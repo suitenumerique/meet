@@ -13,6 +13,10 @@ import {
   TextField,
 } from 'react-aria-components'
 import { css } from '@/styled-system/css'
+import {
+  MIN_ROOM_LENGTH,
+  ALPHANUMERIC_LOWERCASE,
+} from '@/features/rooms/utils/isRoomValid'
 
 export const PersonalizeMeetingDialog = ({
   isOpen,
@@ -43,10 +47,10 @@ export const PersonalizeMeetingDialog = ({
   }
 
   const validationErrors = []
-  if (roomSlug.length < 5) {
+  if (roomSlug.length < MIN_ROOM_LENGTH) {
     validationErrors.push(t('errors.validation.length'))
   }
-  if (!roomSlug.match(/^[a-z0-9]+$/)) {
+  if (!new RegExp(`^${ALPHANUMERIC_LOWERCASE}+$`).test(roomSlug)) {
     validationErrors.push(t('errors.validation.spaceOrSpecialCharacter'))
   }
 

@@ -6,13 +6,18 @@
  */
 export const generatedRoomPattern = '[a-z]{3}-[a-z]{4}-[a-z]{3}'
 
+export const ALPHANUMERIC_LOWERCASE = '[a-z0-9]'
+
+// Minimum length requirement for personalized rooms
+export const MIN_ROOM_LENGTH = 5
+
 /**
  * Pattern for user-defined custom room IDs
  * Format: Minimum 5 lowercase alphanumeric characters
  * This pattern allows users to create memorable, personalized room names
  * while maintaining basic validation rules (e.g., myroom123, teamspace, project2024)
  */
-export const personalizedRoomPattern = '[a-z0-9]{5,}'
+export const personalizedRoomPattern = `${ALPHANUMERIC_LOWERCASE}{${MIN_ROOM_LENGTH},}`
 
 // Combined pattern that accepts both system-generated and personalized room IDs
 // This allows flexibility in room creation while maintaining consistent validation
