@@ -3,7 +3,7 @@
   "heading": "Simple and Secure Video Conferencing",
   "intro": "Communicate and work with ease, without compromising your sovereignty",
   "joinInputError": "Use a meeting link or code. Examples:",
-  "joinInputExample": "URL or 10-letter code",
+  "joinInputExample": "Example of meeting codes: abc-defg-hij ou teamalpha",
   "joinInputLabel": "Meeting link",
   "joinInputSubmit": "Join meeting",
   "joinMeeting": "Join a meeting",
