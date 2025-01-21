@@ -15,7 +15,8 @@
   "moreAbout": "über {{appTitle}}",
   "createMenu": {
     "laterOption": "Meeting für später planen",
-    "instantOption": "Meeting sofort starten"
+    "instantOption": "Meeting sofort starten",
+    "personalizeOption": ""
   },
   "laterMeetingDialog": {
     "heading": "Zugangsdaten",
@@ -28,6 +29,23 @@
       "call": "Ruf an:",
       "pinCode": "Code:"
     }
+  },
+  "personalizeMeetingDialog": {
+    "heading": "",
+    "label": "",
+    "submit": "",
+    "placeholder": "",
+    "errors": {
+      "validation": {
+        "length": "",
+        "spaceOrSpecialCharacter": ""
+      },
+      "server": {
+        "taken": "",
+        "unknown": ""
+      }
+    },
+    "warning": ""
   },
   "introSlider": {
     "previous": {

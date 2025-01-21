@@ -15,7 +15,8 @@
   "moreAbout": "about {{appTitle}}",
   "createMenu": {
     "laterOption": "Create a meeting for a later date",
-    "instantOption": "Start an instant meeting"
+    "instantOption": "Start an instant meeting",
+    "personalizeOption": "Create a custom link"
   },
   "laterMeetingDialog": {
     "heading": "Your connection details",
@@ -28,6 +29,23 @@
       "call": "Call:",
       "pinCode": "Code:"
     }
+  },
+  "personalizeMeetingDialog": {
+    "heading": "Your custom link",
+    "label": "Your custom link",
+    "submit": "Create",
+    "placeholder": "standupbizdev",
+    "errors": {
+      "validation": {
+        "length": "Must contain at least 5 characters.",
+        "spaceOrSpecialCharacter": "Cannot contain spaces or special characters"
+      },
+      "server": {
+        "taken": "Already in use, please try something else",
+        "unknown": "An unknown error occurred, please try again"
+      }
+    },
+    "warning": "This link provides direct access to the meeting. Choose a long and complex name to limit unauthorized access."
   },
   "introSlider": {
     "previous": {
