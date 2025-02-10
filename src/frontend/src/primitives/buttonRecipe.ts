@@ -177,6 +177,18 @@ export const buttonRecipe = cva({
           color: 'primaryDark.100',
         },
       },
+      quaternaryText: {
+        backgroundColor: 'transparent',
+        color: 'greyscale.600',
+        '&[data-hovered]': {
+          backgroundColor: 'greyscale.100',
+          color: 'greyscale.700',
+        },
+        '&[data-pressed]': {
+          backgroundColor: 'greyscale.100',
+          color: 'greyscale.700',
+        },
+      },
       greyscale: {
         backgroundColor: 'transparent',
         color: 'greyscale.400',
