@@ -1,0 +1,52 @@
+{
+  "name": "@gouvfr-lasuite/visio-sdk",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/visio-sdk.umd.cjs",
+  "module": "./dist/visio-sdk.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/visio-sdk.js",
+      "require": "./dist/visio-sdk.umd.cjs"
+    }
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "dev": "vite build -w --mode development",
+    "build": "tsc -b && vite build",
+    "lint": "eslint . --ext ts,tsx",
+    "format": "prettier --write ./src",
+    "check": "prettier --check ./src"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@tanstack/eslint-plugin-query": "5.64.2",
+    "@types/node": "20.14.2",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "@typescript-eslint/eslint-plugin": "7.15.0",
+    "@typescript-eslint/parser": "7.15.0",
+    "@vitejs/plugin-react-swc": "3.5.0",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "10.0.1",
+    "eslint-plugin-react-hooks": "4.6.2",
+    "eslint-plugin-react-refresh": "0.4.7",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "sass": "1.83.4",
+    "prettier": "3.4.2",
+    "typescript": "5.4.5",
+    "vite": "5.3.4",
+    "vite-plugin-dts": "3.9.1"
+  }
+}
