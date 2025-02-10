@@ -11,10 +11,15 @@ import { initializeSupportSession } from '@/features/support/hooks/useSupport'
  *
  * `isLoggedIn` is undefined while query is loading and true/false when it's done
  */
-export const useUser = () => {
+export const useUser = (
+  opts: {
+    fetchUserOptions?: Parameters<typeof fetchUser>[0]
+  } = {}
+) => {
   const query = useQuery({
+    // eslint-disable-next-line @tanstack/query/exhaustive-deps
     queryKey: [keys.user],
-    queryFn: fetchUser,
+    queryFn: () => fetchUser(opts.fetchUserOptions),
     staleTime: Infinity,
   })
 

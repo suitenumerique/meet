@@ -10,7 +10,13 @@ import { attemptSilentLogin, canAttemptSilentLogin } from '../utils/silentLogin'
  * Here our wrapper just returns false in that case, without triggering an error:
  * this is done to prevent unnecessary query retries with react query
  */
-export const fetchUser = (): Promise<ApiUser | false> => {
+export const fetchUser = (
+  opts: {
+    attemptSilent?: boolean
+  } = {
+    attemptSilent: true,
+  }
+): Promise<ApiUser | false> => {
   return new Promise((resolve, reject) => {
     fetchApi<ApiUser>('/users/me')
       .then(resolve)
@@ -19,7 +25,7 @@ export const fetchUser = (): Promise<ApiUser | false> => {
         if (error instanceof ApiError && error.statusCode === 401) {
           // make sure to not resolve the promise while trying to silent login
           // so that consumers of fetchUser don't think the work already ended
-          if (canAttemptSilentLogin()) {
+          if (opts.attemptSilent && canAttemptSilentLogin()) {
             attemptSilentLogin(300)
           } else {
             resolve(false)
