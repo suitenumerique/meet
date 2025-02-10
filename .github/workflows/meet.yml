@@ -175,25 +175,56 @@ jobs:
       - name: Check format
         run: cd src/frontend/ && npm run check
 
+  lint-sdk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/sdk/library
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check linting
+        run: npm run lint
+
+      - name: Check format
+        run: npm run check
+
+  build-sdk:
+    runs-on: ubuntu-latest
+    needs: lint-sdk
+    defaults:
+      run:
+        working-directory: src/sdk/library
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build SDK
+        run: npm run build
+
   i18n-crowdin:
     runs-on: ubuntu-latest
     steps:
-      -
-        uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v1
         id: app-token
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: "infrastructure,secrets"
-      -
-        name: Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
-      -
-        name: Load sops secrets
+      - name: Load sops secrets
         uses: rouja/actions-sops@main
         with:
           secret-file: secrets/numerique-gouv/meet/secrets.enc.env
