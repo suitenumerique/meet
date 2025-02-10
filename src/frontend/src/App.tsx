@@ -13,24 +13,41 @@ import { routes } from './routes'
 import './i18n/init'
 import { queryClient } from '@/api/queryClient'
 import { AppInitialization } from '@/components/AppInitialization'
+import { SdkCreateButton } from './features/sdk/routes/CreateButton'
 
 function App() {
   const { i18n } = useTranslation()
   useLang(i18n.language)
   return (
     <QueryClientProvider client={queryClient}>
-      <AppInitialization />
       <Suspense fallback={null}>
         <I18nProvider locale={i18n.language}>
-          <Layout>
-            <Switch>
-              {Object.entries(routes).map(([, route], i) => (
-                <Route key={i} path={route.path} component={route.Component} />
-              ))}
-              <Route component={NotFoundScreen} />
-            </Switch>
-          </Layout>
-          <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-left" />
+          <Switch>
+            <Route path="/sdk" nest>
+              <Route path="/create-button">
+                <SdkCreateButton />
+              </Route>
+            </Route>
+            {/* We only want support and ReactQueryDevTools in non /sdk routes */}
+            <Route path="*">
+              <AppInitialization />
+              <Layout>
+                {Object.entries(routes).map(([, route], i) => (
+                  <Route
+                    key={i}
+                    path={route.path}
+                    component={route.Component}
+                  />
+                ))}
+              </Layout>
+              <ReactQueryDevtools
+                initialIsOpen={false}
+                buttonPosition="top-left"
+              />
+            </Route>
+
+            <Route component={NotFoundScreen} />
+          </Switch>
         </I18nProvider>
       </Suspense>
     </QueryClientProvider>
