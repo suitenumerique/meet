@@ -8,5 +8,9 @@
     "cta": "Ouvrir la file d'attente"
   },
   "muted": "{{name}} a coupé votre micro. Aucun participant ne peut l'entendre.",
-  "openChat": "Ouvrir le chat"
+  "openChat": "Ouvrir le chat",
+  "lowerHand": {
+    "auto": "Il semblerait que vous ayez pris la parole, donc la main va être baissée.",
+    "dismiss": "Laisser la main levée"
+  }
 }

@@ -8,6 +8,7 @@ import { ToastData } from './ToastProvider'
 import { ToastRaised } from './ToastRaised'
 import { ToastMuted } from './ToastMuted'
 import { ToastMessageReceived } from './ToastMessageReceived'
+import { ToastLowerHand } from './ToastLowerHand'
 
 interface ToastRegionProps extends AriaToastRegionProps {
   state: ToastState<ToastData>
@@ -32,6 +33,9 @@ export function ToastRegion({ state, ...props }: ToastRegionProps) {
           return (
             <ToastMessageReceived key={toast.key} toast={toast} state={state} />
           )
+        }
+        if (toast.content?.type === NotificationType.LowerHand) {
+          return <ToastLowerHand key={toast.key} toast={toast} state={state} />
         }
         return <Toast key={toast.key} toast={toast} state={state} />
       })}

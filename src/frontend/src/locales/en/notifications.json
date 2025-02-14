@@ -8,5 +8,9 @@
     "cta": "Open waiting list"
   },
   "muted": "{{name}} has muted your microphone. No participant can hear you.",
-  "openChat": "Open chat"
+  "openChat": "Open chat",
+  "lowerHand": {
+    "auto": "It seems you have started speaking, so your hand will be lowered.",
+    "dismiss": "Keep hand raised"
+  }
 }

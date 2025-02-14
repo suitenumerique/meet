@@ -3,4 +3,5 @@ export enum NotificationType {
   HandRaised = 'handRaised',
   ParticipantMuted = 'participantMuted',
   MessageReceived = 'messageReceived',
+  LowerHand = 'lowerHand',
 }

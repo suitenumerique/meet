@@ -8,5 +8,9 @@
     "cta": ""
   },
   "muted": "",
-  "openChat": ""
+  "openChat": "",
+  "lowerHand": {
+    "auto": "",
+    "dismiss": ""
+  }
 }
