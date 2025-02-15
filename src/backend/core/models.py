@@ -80,6 +80,13 @@ class RecordingModeChoices(models.TextChoices):
     TRANSCRIPT = "transcript", _("TRANSCRIPT")
 
 
+class RoomAccessLevel(models.TextChoices):
+    """Room access level choices."""
+
+    PUBLIC = "public", _("Public Access")
+    RESTRICTED = "restricted", _("Restricted Access")
+
+
 class BaseModel(models.Model):
     """
     Serves as an abstract base model for other models, ensuring that records are validated
@@ -241,7 +248,6 @@ def get_resource_roles(resource: models.Model, user: User) -> List[str]:
 class Resource(BaseModel):
     """Model to define access control"""
 
-    is_public = models.BooleanField(default=settings.RESOURCE_DEFAULT_IS_PUBLIC)
     users = models.ManyToManyField(
         User,
         through="ResourceAccess",
@@ -361,7 +367,11 @@ class Room(Resource):
         primary_key=True,
     )
     slug = models.SlugField(max_length=100, blank=True, null=True, unique=True)
-
+    access_level = models.CharField(
+        max_length=50,
+        choices=RoomAccessLevel.choices,
+        default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
+    )
     configuration = models.JSONField(
         blank=True,
         default=dict,

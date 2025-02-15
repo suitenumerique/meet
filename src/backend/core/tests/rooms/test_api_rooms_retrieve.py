@@ -12,6 +12,7 @@ import pytest
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory, UserResourceAccessFactory
+from ...models import RoomAccessLevel
 
 pytestmark = pytest.mark.django_db
 
@@ -21,15 +22,15 @@ def test_api_rooms_retrieve_anonymous_private_pk():
     Anonymous users should be allowed to retrieve a private room but should not be
     given any token.
     """
-    room = RoomFactory(is_public=False)
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
     response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
 
     assert response.status_code == 200
     assert response.json() == {
+        "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
-        "is_public": False,
         "name": room.name,
         "slug": room.slug,
     }
@@ -37,7 +38,7 @@ def test_api_rooms_retrieve_anonymous_private_pk():
 
 def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
     """It should be possible to get a room by its id stripped of its dashes."""
-    room = RoomFactory(is_public=False)
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     id_no_dashes = str(room.id)
 
     client = APIClient()
@@ -45,9 +46,9 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
 
     assert response.status_code == 200
     assert response.json() == {
+        "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
-        "is_public": False,
         "name": room.name,
         "slug": room.slug,
     }
@@ -55,15 +56,15 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
 
 def test_api_rooms_retrieve_anonymous_private_slug():
     """It should be possible to get a room by its slug."""
-    room = RoomFactory(is_public=False)
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
     response = client.get(f"/api/v1.0/rooms/{room.slug!s}/")
 
     assert response.status_code == 200
     assert response.json() == {
+        "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
-        "is_public": False,
         "name": room.name,
         "slug": room.slug,
     }
@@ -71,15 +72,15 @@ def test_api_rooms_retrieve_anonymous_private_slug():
 
 def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
     """Getting a room by a slug that is not normalized should work."""
-    room = RoomFactory(name="Réunion", is_public=False)
+    room = RoomFactory(name="Réunion", access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
     response = client.get("/api/v1.0/rooms/Réunion/")
 
     assert response.status_code == 200
     assert response.json() == {
+        "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
-        "is_public": False,
         "name": room.name,
         "slug": room.slug,
     }
@@ -173,16 +174,16 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
     """
     Anonymous users should be able to retrieve a room with a token provided it is public.
     """
-    room = RoomFactory(is_public=True)
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
     response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
 
     assert response.status_code == 200
     expected_name = f"{room.id!s}"
     assert response.json() == {
+        "access_level": str(room.access_level),
         "id": str(room.id),
         "is_administrable": False,
-        "is_public": True,
         "livekit": {
             "url": "test_url_value",
             "room": expected_name,
@@ -209,7 +210,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     which they are not related, provided the room is public.
     They should not see related users.
     """
-    room = RoomFactory(is_public=True)
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
 
     user = UserFactory()
     client = APIClient()
@@ -222,9 +223,9 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
 
     expected_name = f"{room.id!s}"
     assert response.json() == {
+        "access_level": str(room.access_level),
         "id": str(room.id),
         "is_administrable": False,
-        "is_public": True,
         "livekit": {
             "url": "test_url_value",
             "room": expected_name,
@@ -242,7 +243,7 @@ def test_api_rooms_retrieve_authenticated():
     Authenticated users should be allowed to retrieve a private room to which they
     are not related but should not be given any token.
     """
-    room = RoomFactory(is_public=False)
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
     user = UserFactory()
     client = APIClient()
@@ -254,9 +255,9 @@ def test_api_rooms_retrieve_authenticated():
     assert response.status_code == 200
 
     assert response.json() == {
+        "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
-        "is_public": False,
         "name": room.name,
         "slug": room.slug,
     }
@@ -324,9 +325,9 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries):
 
     expected_name = str(room.id)
     assert content_dict == {
+        "access_level": str(room.access_level),
         "id": str(room.id),
         "is_administrable": False,
-        "is_public": room.is_public,
         "livekit": {
             "url": "test_url_value",
             "room": expected_name,
@@ -400,9 +401,9 @@ def test_api_rooms_retrieve_administrators(mock_token, django_assert_num_queries
     )
     expected_name = str(room.id)
     assert content_dict == {
+        "access_level": str(room.access_level),
         "id": str(room.id),
         "is_administrable": True,
-        "is_public": room.is_public,
         "configuration": {},
         "livekit": {
             "url": "test_url_value",

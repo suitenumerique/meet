@@ -92,7 +92,7 @@ class ListRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "is_public"]
+        fields = ["id", "name", "slug", "access_level"]
         read_only_fields = ["id", "slug"]
 
 
@@ -101,7 +101,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "configuration", "is_public"]
+        fields = ["id", "name", "slug", "configuration", "access_level"]
         read_only_fields = ["id", "slug"]
 
     def to_representation(self, instance):
@@ -129,7 +129,7 @@ class RoomSerializer(serializers.ModelSerializer):
         if not is_admin:
             del output["configuration"]
 
-        if role is not None or instance.is_public:
+        if role is not None or instance.access_level == models.RoomAccessLevel.PUBLIC:
             slug = f"{instance.id!s}"
             username = request.query_params.get("username", None)
 
