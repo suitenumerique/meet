@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 import pytest
 
 from core.factories import RoomFactory, UserFactory
-from core.models import Room
+from core.models import Room, RoomAccessLevel
 
 pytestmark = pytest.mark.django_db
 
@@ -80,10 +80,10 @@ def test_models_rooms_users():
     assert list(room.users.all()) == [user]
 
 
-def test_models_rooms_is_public_default():
+def test_models_rooms_access_level_default():
     """A room should be public by default."""
     room = Room.objects.create(name="room")
-    assert room.is_public is True
+    assert room.access_level == RoomAccessLevel.PUBLIC
 
 
 # Access rights methods

@@ -9,14 +9,15 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory
+from ...models import RoomAccessLevel
 
 pytestmark = pytest.mark.django_db
 
 
 def test_api_rooms_list_anonymous():
     """Anonymous users should not be able to list rooms."""
-    RoomFactory(is_public=False)
-    RoomFactory(is_public=True)
+    RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
     client = APIClient()
 
@@ -38,10 +39,12 @@ def test_api_rooms_list_authenticated():
 
     other_user = UserFactory()
 
-    RoomFactory(is_public=False)
-    RoomFactory(is_public=True)
-    room_user_accesses = RoomFactory(is_public=False, users=[user])
-    RoomFactory(is_public=False, users=[other_user])
+    RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    room_user_accesses = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED, users=[user]
+    )
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED, users=[other_user])
 
     response = client.get(
         "/api/v1.0/rooms/",
@@ -105,7 +108,7 @@ def test_api_rooms_list_authenticated_distinct():
     client = APIClient()
     client.force_login(user)
 
-    room = RoomFactory(is_public=True, users=[user, other_user])
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC, users=[user, other_user])
 
     response = client.get(
         "/api/v1.0/rooms/",

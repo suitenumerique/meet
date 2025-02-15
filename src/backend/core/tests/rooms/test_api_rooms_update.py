@@ -8,6 +8,7 @@ import pytest
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory
+from ...models import RoomAccessLevel
 
 pytestmark = pytest.mark.django_db
 
@@ -54,17 +55,18 @@ def test_api_rooms_update_members():
     not be allowed to update it.
     """
     user = UserFactory()
-    room = RoomFactory(name="Old name", users=[(user, "member")])
+    room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC, name="Old name", users=[(user, "member")]
+    )
     client = APIClient()
     client.force_login(user)
 
-    new_is_public = not room.is_public
     response = client.put(
         f"/api/v1.0/rooms/{room.id!s}/",
         {
             "name": "New name",
             "slug": "should-be-ignored",
-            "is_public": new_is_public,
+            "access_level": RoomAccessLevel.RESTRICTED,
             "configuration": {"the_key": "the_value"},
         },
         format="json",
@@ -73,24 +75,26 @@ def test_api_rooms_update_members():
     room.refresh_from_db()
     assert room.name == "Old name"
     assert room.slug == "old-name"
-    assert room.is_public != new_is_public
+    assert room.access_level != RoomAccessLevel.RESTRICTED
     assert room.configuration == {}
 
 
 def test_api_rooms_update_administrators():
     """Administrators or owners of a room should be allowed to update it."""
     user = UserFactory()
-    room = RoomFactory(users=[(user, random.choice(["administrator", "owner"]))])
+    room = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED,
+        users=[(user, random.choice(["administrator", "owner"]))],
+    )
     client = APIClient()
     client.force_login(user)
 
-    new_is_public = not room.is_public
     response = client.put(
         f"/api/v1.0/rooms/{room.id!s}/",
         {
             "name": "New name",
             "slug": "should-be-ignored",
-            "is_public": new_is_public,
+            "access_level": RoomAccessLevel.PUBLIC,
             "configuration": {"the_key": "the_value"},
         },
         format="json",
@@ -99,7 +103,7 @@ def test_api_rooms_update_administrators():
     room.refresh_from_db()
     assert room.name == "New name"
     assert room.slug == "new-name"
-    assert room.is_public == new_is_public
+    assert room.access_level == RoomAccessLevel.PUBLIC
     assert room.configuration == {"the_key": "the_value"}
 
 
