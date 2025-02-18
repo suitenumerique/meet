@@ -171,3 +171,32 @@ class StartRecordingSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         """Not implemented as this is a validation-only serializer."""
         raise NotImplementedError("StartRecordingSerializer is validation-only")
+
+
+class RequestEntrySerializer(serializers.Serializer):
+    """Validate request entry data."""
+
+    username = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("StartRecordingSerializer is validation-only")
+
+    def update(self, instance, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("StartRecordingSerializer is validation-only")
+
+
+class ParticipantEntrySerializer(serializers.Serializer):
+    """Validate participant entry decision data."""
+
+    participant_id = serializers.CharField(required=True)
+    allow_entry = serializers.BooleanField(required=True)
+
+    def create(self, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("StartRecordingSerializer is validation-only")
+
+    def update(self, instance, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("StartRecordingSerializer is validation-only")
