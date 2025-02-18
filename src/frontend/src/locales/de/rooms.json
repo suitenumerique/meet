@@ -34,7 +34,19 @@
       "usernameEmpty": ""
     },
     "cameraDisabled": "",
-    "cameraStarting": ""
+    "cameraStarting": "",
+    "waiting": {
+      "title": "",
+      "body": ""
+    },
+    "denied": {
+      "title": "",
+      "body": ""
+    },
+    "timeoutInvite": {
+      "title": "",
+      "body": ""
+    }
   },
   "leaveRoomPrompt": "",
   "shareDialog": {

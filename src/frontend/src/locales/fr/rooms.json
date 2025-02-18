@@ -34,7 +34,19 @@
       "usernameEmpty": "Votre nom ne peut pas être vide"
     },
     "cameraDisabled": "La caméra est désactivée.",
-    "cameraStarting": "La caméra va démarrer."
+    "cameraStarting": "La caméra va démarrer.",
+    "waiting": {
+      "title": "Demande de participation…",
+      "body": "Vous pourrez participer à cet appel lorsque quelqu'un vous y autorisera"
+    },
+    "denied": {
+      "title": "Vous ne pouvez pas participer à cet appel",
+      "body": "Votre demande de participation a été refusée."
+    },
+    "timeoutInvite": {
+      "title": "Vous ne pouvez pas participer à cet appel",
+      "body": "Personne n'a répondu à votre demande de participation à l'appel"
+    }
   },
   "leaveRoomPrompt": "Revenir à l'accueil vous fera quitter la réunion.",
   "shareDialog": {

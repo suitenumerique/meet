@@ -47,7 +47,7 @@ export const Room = () => {
   if (!userConfig && !skipJoinScreen) {
     return (
       <UserAware>
-        <Join onSubmit={setUserConfig} />
+        <Join onSubmit={setUserConfig} roomId={roomId} />
       </UserAware>
     )
   }
