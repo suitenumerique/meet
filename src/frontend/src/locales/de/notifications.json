@@ -12,5 +12,8 @@
   "lowerHand": {
     "auto": "",
     "dismiss": ""
+  },
+  "reaction": {
+    "description": ""
   }
 }

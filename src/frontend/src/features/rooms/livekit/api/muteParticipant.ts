@@ -5,6 +5,7 @@ import { buildServerApiUrl } from './buildServerApiUrl'
 import { useRoomData } from '../hooks/useRoomData'
 import { useRoomContext } from '@livekit/components-react'
 import { NotificationType } from '@/features/notifications/NotificationType'
+import { NotificationPayload } from '@/features/notifications/NotificationPayload'
 
 export const useMuteParticipant = () => {
   const data = useRoomData()
@@ -12,7 +13,10 @@ export const useMuteParticipant = () => {
 
   const notifyParticipant = async (participant: Participant) => {
     const encoder = new TextEncoder()
-    const data = encoder.encode(NotificationType.ParticipantMuted)
+    const payload: NotificationPayload = {
+      type: NotificationType.ParticipantMuted,
+    }
+    const data = encoder.encode(JSON.stringify(payload))
     await room.localParticipant.publishData(data, {
       reliable: true,
       destinationIdentities: [participant.identity],

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { ToastProvider, toastQueue } from './components/ToastProvider'
@@ -7,10 +7,18 @@ import { NotificationDuration } from './NotificationDuration'
 import { Div } from '@/primitives'
 import { ChatMessage, isMobileBrowser } from '@livekit/components-core'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
+import { Reaction } from '@/features/rooms/livekit/components/controls/ReactionsToggle'
+import {
+  ANIMATION_DURATION,
+  ReactionPortals,
+} from '@/features/rooms/livekit/components/ReactionPortal'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
   const { triggerNotificationSound } = useNotificationSound()
+
+  const [reactions, setReactions] = useState<Reaction[]>([])
+  const instanceIdRef = useRef(0)
 
   useEffect(() => {
     const handleChatMessage = (
@@ -34,13 +42,31 @@ export const MainNotificationToast = () => {
     }
   }, [room, triggerNotificationSound])
 
+  const handleEmoji = (emoji: string, participant: Participant) => {
+    if (!emoji) return
+    const id = instanceIdRef.current++
+    setReactions((prev) => [
+      ...prev,
+      {
+        id,
+        emoji,
+        participant,
+      },
+    ])
+    setTimeout(() => {
+      setReactions((prev) => prev.filter((instance) => instance.id !== id))
+    }, ANIMATION_DURATION)
+  }
+
   useEffect(() => {
     const handleDataReceived = (
       payload: Uint8Array,
       participant?: RemoteParticipant
     ) => {
       const decoder = new TextDecoder()
-      const notificationType = decoder.decode(payload)
+      const notificationPayload = JSON.parse(decoder.decode(payload))
+      const notificationType = notificationPayload.type
+      const data = notificationPayload.data
 
       if (!participant) return
 
@@ -53,6 +79,9 @@ export const MainNotificationToast = () => {
             },
             { timeout: NotificationDuration.ALERT }
           )
+          break
+        case NotificationType.ReactionReceived:
+          handleEmoji(data?.emoji, participant)
           break
         default:
           return
@@ -160,6 +189,7 @@ export const MainNotificationToast = () => {
   return (
     <Div position="absolute" bottom={0} right={5} zIndex={1000}>
       <ToastProvider />
+      <ReactionPortals reactions={reactions} />
     </Div>
   )
 }

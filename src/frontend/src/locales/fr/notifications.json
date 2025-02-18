@@ -12,5 +12,8 @@
   "lowerHand": {
     "auto": "Il semblerait que vous ayez pris la parole, donc la main va être baissée.",
     "dismiss": "Laisser la main levée"
+  },
+  "reaction": {
+    "description": "{{name}} a reagi avec {{emoji}}"
   }
 }

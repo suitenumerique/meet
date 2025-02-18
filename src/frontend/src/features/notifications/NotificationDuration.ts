@@ -11,4 +11,5 @@ export const NotificationDuration = {
   PARTICIPANT_JOINED: ToastDuration.LONG,
   HAND_RAISED: ToastDuration.LONG,
   LOWER_HAND: ToastDuration.EXTRA_LONG,
+  REACTION_RECEIVED: ToastDuration.SHORT,
 } as const

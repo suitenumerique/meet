@@ -4,6 +4,7 @@ import { css } from '@/styled-system/css'
 import { LeaveButton } from '../../components/controls/LeaveButton'
 import { SelectToggleDevice } from '../../components/controls/SelectToggleDevice'
 import { Track } from 'livekit-client'
+import { ReactionsToggle } from '../../components/controls/ReactionsToggle'
 import { HandToggle } from '../../components/controls/HandToggle'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { OptionsButton } from '../../components/controls/Options/OptionsButton'
@@ -75,6 +76,7 @@ export function DesktopControlBar({
             }
             menuVariant="dark"
           />
+          <ReactionsToggle />
           {browserSupportsScreenSharing && (
             <ScreenShareToggle
               onDeviceError={(error) =>

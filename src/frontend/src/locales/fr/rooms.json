@@ -85,7 +85,12 @@
       "closed": "Afficher l'assistant IA"
     },
     "support": "Support",
-    "moreOptions": "Plus d'options"
+    "moreOptions": "Plus d'options",
+    "reactions": {
+      "button": "Envoyer une réaction",
+      "send": "Envoyer la réaction {{emoji}}",
+      "you": "vous"
+    }
   },
   "options": {
     "buttonLabel": "Plus d'options",

@@ -12,5 +12,8 @@
   "lowerHand": {
     "auto": "It seems you have started speaking, so your hand will be lowered.",
     "dismiss": "Keep hand raised"
+  },
+  "reaction": {
+    "description": "{{name}} reacted with {{emoji}}"
   }
 }

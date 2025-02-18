@@ -86,7 +86,12 @@
       "closed": ""
     },
     "support": "",
-    "moreOptions": ""
+    "moreOptions": "",
+    "reactions": {
+      "button": "",
+      "send": "",
+      "you": ""
+    }
   },
   "options": {
     "buttonLabel": "",
