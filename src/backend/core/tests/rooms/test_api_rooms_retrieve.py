@@ -235,7 +235,9 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         "slug": room.slug,
     }
 
-    mock_token.assert_called_once_with(room=expected_name, user=user, username=None)
+    mock_token.assert_called_once_with(
+        room=expected_name, user=user, username=None, color=None
+    )
 
 
 def test_api_rooms_retrieve_authenticated():
@@ -337,7 +339,9 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries):
         "slug": room.slug,
     }
 
-    mock_token.assert_called_once_with(room=expected_name, user=user, username=None)
+    mock_token.assert_called_once_with(
+        room=expected_name, user=user, username=None, color=None
+    )
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
@@ -414,4 +418,6 @@ def test_api_rooms_retrieve_administrators(mock_token, django_assert_num_queries
         "slug": room.slug,
     }
 
-    mock_token.assert_called_once_with(room=expected_name, user=user, username=None)
+    mock_token.assert_called_once_with(
+        room=expected_name, user=user, username=None, color=None
+    )

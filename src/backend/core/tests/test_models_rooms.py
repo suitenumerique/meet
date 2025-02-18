@@ -164,3 +164,14 @@ def test_models_rooms_access_rights_owner_direct(django_assert_num_queries):
         assert room.is_administrator(user) is True
     with django_assert_num_queries(1):
         assert room.is_owner(user) is True
+
+
+def test_models_rooms_is_public_property():
+    """Test the is_public property returns correctly based on access_level."""
+    # Test public room
+    public_room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    assert public_room.is_public is True
+
+    # Test non-public room
+    private_room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    assert private_room.is_public is False

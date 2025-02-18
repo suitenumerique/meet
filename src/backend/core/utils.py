@@ -37,7 +37,9 @@ def generate_color(identity: str) -> str:
     return f"hsl({hue}, {saturation}%, {lightness}%)"
 
 
-def generate_token(room: str, user, username: Optional[str] = None) -> str:
+def generate_token(
+    room: str, user, username: Optional[str] = None, color: Optional[str] = None
+) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
     Args:
@@ -45,6 +47,8 @@ def generate_token(room: str, user, username: Optional[str] = None) -> str:
         user (User): The user which request the access token.
         username (Optional[str]): The username to be displayed in the room.
                          If none, a default value will be used.
+        color (Optional[str]): The color to be displayed in the room.
+                         If none, a value will be generated
 
     Returns:
         str: The LiveKit JWT access token.
@@ -69,6 +73,9 @@ def generate_token(room: str, user, username: Optional[str] = None) -> str:
         identity = str(user.sub)
         default_username = str(user)
 
+    if color is None:
+        color = generate_color(identity)
+
     token = (
         AccessToken(
             api_key=settings.LIVEKIT_CONFIGURATION["api_key"],
@@ -77,13 +84,15 @@ def generate_token(room: str, user, username: Optional[str] = None) -> str:
         .with_grants(video_grants)
         .with_identity(identity)
         .with_name(username or default_username)
-        .with_metadata(json.dumps({"color": generate_color(identity)}))
+        .with_metadata(json.dumps({"color": color}))
     )
 
     return token.to_jwt()
 
 
-def generate_livekit_config(room_id: str, user, username: str) -> dict:
+def generate_livekit_config(
+    room_id: str, user, username: str, color: Optional[str] = None
+) -> dict:
     """Generate LiveKit configuration for room access.
 
     Args:
@@ -97,5 +106,7 @@ def generate_livekit_config(room_id: str, user, username: str) -> dict:
     return {
         "url": settings.LIVEKIT_CONFIGURATION["url"],
         "room": room_id,
-        "token": generate_token(room=room_id, user=user, username=username),
+        "token": generate_token(
+            room=room_id, user=user, username=username, color=color
+        ),
     }

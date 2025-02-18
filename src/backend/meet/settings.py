@@ -235,7 +235,17 @@ class Base(Configuration):
 
     # Cache
     CACHES = {
-        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": values.Value(
+                "redis://redis:6379/1",
+                environ_name="REDIS_URL",
+                environ_prefix=None,
+            ),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        },
     }
 
     REST_FRAMEWORK = {
@@ -252,6 +262,13 @@ class Base(Configuration):
         "PAGE_SIZE": 20,
         "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        "DEFAULT_THROTTLE_RATES": {
+            "request_entry": values.Value(
+                default="150/hour",
+                environ_name="REQUEST_ENTRY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+        },
     }
 
     SPECTACULAR_SETTINGS = {
@@ -478,6 +495,32 @@ class Base(Configuration):
         converter=lambda x: int(x),  # pylint: disable=unnecessary-lambda
     )
     BREVO_API_CONTACT_ATTRIBUTES = values.DictValue({"VISIO_USER": True})
+
+    # Lobby configurations
+    LOBBY_KEY_PREFIX = values.Value(
+        "room_lobby", environ_name="LOBBY_KEY_PREFIX", environ_prefix=None
+    )
+    LOBBY_WAITING_TIMEOUT = values.PositiveIntegerValue(
+        3, environ_name="LOBBY_WAITING_TIMEOUT", environ_prefix=None
+    )
+    LOBBY_DENIED_TIMEOUT = values.PositiveIntegerValue(
+        5, environ_name="LOBBY_DENIED_TIMEOUT", environ_prefix=None
+    )
+    LOBBY_ACCEPTED_TIMEOUT = values.PositiveIntegerValue(
+        21600,  # 6hrs
+        environ_name="LOBBY_ACCEPTED_TIMEOUT",
+        environ_prefix=None,
+    )
+    LOBBY_NOTIFICATION_TYPE = values.Value(
+        "participantWaiting",
+        environ_name="LOBBY_NOTIFICATION_TYPE",
+        environ_prefix=None,
+    )
+    LOBBY_COOKIE_NAME = values.Value(
+        "lobbyParticipantId",
+        environ_name="LOBBY_COOKIE_NAME",
+        environ_prefix=None,
+    )
 
     # pylint: disable=invalid-name
     @property

@@ -404,6 +404,11 @@ class Room(Resource):
             raise ValidationError({"name": f'Room name "{self.name:s}" is reserved.'})
         super().clean_fields(exclude=exclude)
 
+    @property
+    def is_public(self):
+        """Check if a room is public"""
+        return self.access_level == RoomAccessLevel.PUBLIC
+
 
 class BaseAccessManager(models.Manager):
     """Base manager for handling resource access control."""
