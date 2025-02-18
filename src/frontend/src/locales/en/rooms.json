@@ -34,7 +34,19 @@
       "usernameEmpty": "Your name cannot be empty"
     },
     "cameraDisabled": "Camera is disabled.",
-    "cameraStarting": "Camera is starting."
+    "cameraStarting": "Camera is starting.",
+    "waiting": {
+      "title": "Requesting to join...",
+      "body": "You will be able to join this call when someone authorizes you"
+    },
+    "denied": {
+      "title": "You cannot join this call",
+      "body": "Your request to join has been denied."
+    },
+    "timeoutInvite": {
+      "title": "You cannot join this call",
+      "body": "No one responded to your request"
+    }
   },
   "leaveRoomPrompt": "This will make you leave the meeting.",
   "shareDialog": {
