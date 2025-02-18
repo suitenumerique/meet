@@ -1,6 +1,5 @@
 """Client serializers for the Meet core app."""
 
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
@@ -130,16 +129,11 @@ class RoomSerializer(serializers.ModelSerializer):
             del output["configuration"]
 
         if role is not None or instance.access_level == models.RoomAccessLevel.PUBLIC:
-            slug = f"{instance.id!s}"
+            room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
-
-            output["livekit"] = {
-                "url": settings.LIVEKIT_CONFIGURATION["url"],
-                "room": slug,
-                "token": utils.generate_token(
-                    room=slug, user=request.user, username=username
-                ),
-            }
+            output["livekit"] = utils.generate_livekit_config(
+                room_id=room_id, user=request.user, username=username
+            )
 
         output["is_administrable"] = is_admin
 
