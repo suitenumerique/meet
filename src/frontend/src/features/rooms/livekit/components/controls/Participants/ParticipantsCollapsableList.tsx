@@ -3,7 +3,6 @@ import { css } from '@/styled-system/css'
 import { ToggleButton } from 'react-aria-components'
 import { HStack, styled, VStack } from '@/styled-system/jsx'
 import { RiArrowUpSLine } from '@remixicon/react'
-import { Participant } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 
 const ToggleHeader = styled(ToggleButton, {
@@ -46,19 +45,19 @@ const ListContainer = styled(VStack, {
   },
 })
 
-type ParticipantsCollapsableListProps = {
+export type ParticipantsCollapsableListProps<T> = {
   heading: string
-  participants: Array<Participant>
-  renderParticipant: (participant: Participant) => JSX.Element
+  participants: Array<T>
+  renderParticipant: (participant: T) => JSX.Element
   action?: () => JSX.Element
 }
 
-export const ParticipantsCollapsableList = ({
+export function ParticipantsCollapsableList<T>({
   heading,
   participants,
   renderParticipant,
   action,
-}: ParticipantsCollapsableListProps) => {
+}: ParticipantsCollapsableListProps<T>) {
   const { t } = useTranslation('rooms')
   const [isOpen, setIsOpen] = useState(true)
   const label = t(`participants.collapsable.${isOpen ? 'close' : 'open'}`, {

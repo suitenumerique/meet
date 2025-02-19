@@ -208,7 +208,20 @@
     },
     "raisedHands": "Mains levées",
     "lowerParticipantHand": "Baisser la main de {{name}}",
-    "lowerParticipantsHand": "Baisser la main de tous les participants"
+    "lowerParticipantsHand": "Baisser la main de tous les participants",
+    "waiting": {
+      "title": "Salle d'attente",
+      "accept": {
+        "button": "Accepter",
+        "label": "Accepter {{name}} dans la réunion",
+        "all": "Tout accepter"
+      },
+      "deny": {
+        "button": "Refuser",
+        "label": "Refuser {{name}} dans la réunion",
+        "all": "Tout rejeter"
+      }
+    }
   },
   "recording": {
     "label": "Enregistrement"

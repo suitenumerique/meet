@@ -208,7 +208,20 @@
     },
     "raisedHands": "Raised hands",
     "lowerParticipantHand": "Lower {{name}}'s hand",
-    "lowerParticipantsHand": "Lower all hands"
+    "lowerParticipantsHand": "Lower all hands",
+    "waiting": {
+      "title": "Lobby",
+      "accept": {
+        "button": "Accept",
+        "label": "Accept {{name}} into the meeting",
+        "all": "Accept all"
+      },
+      "deny": {
+        "button": "Deny",
+        "label": "Deny {{name}} from the meeting",
+        "all": "Deny all"
+      }
+    }
   },
   "recording": {
     "label": "Recording"
