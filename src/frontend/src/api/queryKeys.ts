@@ -3,4 +3,5 @@ export const keys = {
   room: 'room',
   config: 'config',
   requestEntry: 'requestEntry',
+  waitingParticipants: 'waitingParticipants',
 }

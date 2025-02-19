@@ -203,7 +203,20 @@
     },
     "raisedHands": "",
     "lowerParticipantHand": "",
-    "lowerParticipantsHand": ""
+    "lowerParticipantsHand": "",
+    "waiting": {
+      "title": "",
+      "accept": {
+        "button": "",
+        "label": "",
+        "all": ""
+      },
+      "deny": {
+        "button": "",
+        "label": "",
+        "all": ""
+      }
+    }
   },
   "recording": {
     "label": ""
