@@ -64,7 +64,7 @@ export function ToastMessageReceived({ state, ...props }: ToastProps) {
             />
             <span>{participant.name}</span>
           </div>
-          <Text margin={false} wrap={'pretty'} centered={false}>
+          <Text margin={false} centered={false} wrap={'pretty'} fullWidth>
             {message}
           </Text>
         </div>
