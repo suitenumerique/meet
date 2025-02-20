@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { styled, VStack } from '@/styled-system/jsx'
 import { usePostHog } from 'posthog-js/react'
 import { PostHog } from 'posthog-js'
+import { Button as RACButton } from 'react-aria-components'
 
 const Card = styled('div', {
   base: {
@@ -170,7 +171,7 @@ const RateQuality = ({
       <H lvl={3}>{t('question')}</H>
       <Bar>
         {[...Array(maxRating)].map((_, index) => (
-          <Button
+          <RACButton
             key={index}
             onPress={() => handleRatingClick(index + 1)}
             className={ratingButtonRecipe({
@@ -179,7 +180,7 @@ const RateQuality = ({
             })}
           >
             {index + 1}
-          </Button>
+          </RACButton>
         ))}
       </Bar>
       <div
