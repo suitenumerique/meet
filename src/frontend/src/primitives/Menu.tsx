@@ -9,15 +9,17 @@ import { Box } from './Box'
 export const Menu = ({
   children,
   variant = 'light',
+  placement,
 }: {
   children: [trigger: ReactNode, menu: ReactNode]
   variant?: 'dark' | 'light'
+  placement?: 'bottom' | 'top' | 'left' | 'right'
 }) => {
   const [trigger, menu] = children
   return (
     <MenuTrigger>
       {trigger}
-      <StyledPopover>
+      <StyledPopover placement={placement}>
         <Box size="sm" type="popover" variant={variant}>
           {menu}
         </Box>
