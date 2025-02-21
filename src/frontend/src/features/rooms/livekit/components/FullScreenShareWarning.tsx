@@ -20,14 +20,41 @@ export const FullScreenShareWarning = ({
   const { localParticipant } = useLocalParticipant()
   const screenSharePreferences = useSnapshot(ScreenSharePreferenceStore)
 
-  const isFullScreenCapture = useMemo(() => {
-    const trackLabel =
-      trackReference.publication?.track?.mediaStreamTrack?.label
-    return trackLabel?.includes('screen')
+  const isFullScreenSharing = useMemo(() => {
+    if (trackReference?.source !== 'screen_share') return false
+
+    const mediaStreamTrack = trackReference.publication?.track?.mediaStreamTrack
+
+    if (!mediaStreamTrack) return false
+
+    // Method 1: Display Surface Check (Chrome & Edge)
+    const trackSettings = mediaStreamTrack.getSettings()
+    if (trackSettings?.displaySurface) {
+      return trackSettings.displaySurface === 'monitor'
+    }
+
+    // Method 2: Track Constraints Check
+    const constraints = mediaStreamTrack.getConstraints()
+    if (constraints?.displaySurface) {
+      return constraints.displaySurface === 'monitor'
+    }
+
+    // Method 3: Label Analysis (Firefox, Safari)
+    const trackLabel = mediaStreamTrack.label.toLowerCase()
+    const fullScreenIndicators = [
+      'monitor',
+      'screen',
+      'display',
+      'entire screen',
+      'full screen',
+    ]
+    return fullScreenIndicators.some((indicator) =>
+      trackLabel.includes(indicator)
+    )
   }, [trackReference])
 
   const shouldShowWarning =
-    screenSharePreferences.enabled && isFullScreenCapture
+    screenSharePreferences.enabled && isFullScreenSharing
 
   const handleStopScreenShare = async () => {
     if (!localParticipant.isScreenShareEnabled) return

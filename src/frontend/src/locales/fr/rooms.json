@@ -200,7 +200,7 @@
     "fullScreen": "Plein écran"
   },
   "fullScreenWarning": {
-    "message": "Pour éviter l'affichage en boucle infinie, ne partagez pas l'intégralité de votre écran ni de votre fenêtre de navigateur. Partagez plutôt un onglet ou une autre fenêtre.",
+    "message": "Pour éviter l'affichage en boucle infinie, ne partagez pas l'intégralité de votre écran. Partagez plutôt un onglet ou une autre fenêtre.",
     "stop": "Arrêter la présentation",
     "ignore": "Ignorer"
   }

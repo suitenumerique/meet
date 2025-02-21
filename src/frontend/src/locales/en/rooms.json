@@ -200,7 +200,7 @@
     "fullScreen": "Full screen"
   },
   "fullScreenWarning": {
-    "message": "To avoid infinite loop display, do not share your entire screen or browser window. Instead, share a tab or another window.",
+    "message": "To avoid infinite loop display, do not share your entire screen. Instead, share a tab or another window.",
     "stop": "Stop presenting",
     "ignore": "Ignore"
   }
