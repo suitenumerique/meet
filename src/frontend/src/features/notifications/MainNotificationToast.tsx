@@ -12,6 +12,7 @@ import {
   ANIMATION_DURATION,
   ReactionPortals,
 } from '@/features/rooms/livekit/components/ReactionPortal'
+import { useTranslation } from 'react-i18next'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -185,6 +186,10 @@ export const MainNotificationToast = () => {
       room.off(RoomEvent.Disconnected, closeAllToasts)
     }
   }, [room])
+
+  // Without this line, when the component first renders,
+  // the 'notifications' namespace might not be loaded yet
+  useTranslation(['notifications'])
 
   return (
     <Div position="absolute" bottom={0} right={5} zIndex={1000}>
