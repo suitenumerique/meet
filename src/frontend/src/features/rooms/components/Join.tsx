@@ -25,6 +25,7 @@ import { useLobby } from '../hooks/useLobby'
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/queryClient'
 import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
+import { Spinner } from '@/primitives/Spinner'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -313,7 +314,7 @@ export const Join = ({
               {t('waiting.title')}
             </H>
             <P>{t('waiting.body')}</P>
-            <p>[Loading spinner]</p>
+            <Spinner />
           </VStack>
         )
 
