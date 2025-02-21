@@ -15,6 +15,7 @@ import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
+import { RiProhibited2Line } from '@remixicon/react'
 
 enum BlurRadius {
   NONE = 0,
@@ -63,6 +64,11 @@ export const EffectsConfiguration = ({
     }
   }, [videoTrack, videoTrack?.isMuted])
 
+  const clearEffect = async () => {
+    await videoTrack.stopProcessor()
+    onSubmit?.(undefined)
+  }
+
   const toggleEffect = async (
     type: ProcessorType,
     options: BackgroundOptions
@@ -72,7 +78,7 @@ export const EffectsConfiguration = ({
       /**
        * Special case: if no video track is available, then we must pass directly the processor into the
        * toggle call. Otherwise, the rest of the function below would not have a videoTrack to call
-       * setProccesor on.
+       * setProcessor on.
        *
        * We arrive in this condition when we enter the room with the camera already off.
        */
@@ -95,8 +101,7 @@ export const EffectsConfiguration = ({
     try {
       if (isSelected(type, options)) {
         // Stop processor.
-        await videoTrack.stopProcessor()
-        onSubmit?.(undefined)
+        await clearEffect()
       } else if (!processor || processor.serialize().type !== type) {
         // Change processor.
         const newProcessor = BackgroundProcessorFactory.getProcessor(
@@ -243,6 +248,16 @@ export const EffectsConfiguration = ({
                     gap: '1.25rem',
                   })}
                 >
+                  <ToggleButton
+                    variant="bigSquare"
+                    onPress={async () => {
+                      await clearEffect()
+                    }}
+                    isSelected={!getProcessor()}
+                    isDisabled={processorPendingReveal}
+                  >
+                    <RiProhibited2Line />
+                  </ToggleButton>
                   <ToggleButton
                     variant="bigSquare"
                     aria-label={tooltipLabel(ProcessorType.BLUR, {
