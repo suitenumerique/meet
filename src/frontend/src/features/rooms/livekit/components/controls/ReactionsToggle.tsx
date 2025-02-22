@@ -69,8 +69,9 @@ export const ReactionsToggle = () => {
             display: 'flex',
           })}
         >
-          {EMOJIS.map((emoji) => (
+          {EMOJIS.map((emoji, index) => (
             <Button
+              key={index}
               onPress={() => sendReaction(emoji)}
               aria-label={t('send', { emoji })}
               variant="quaternaryText"
