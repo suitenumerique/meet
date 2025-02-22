@@ -46,7 +46,7 @@ from core.recording.worker.mediator import (
 )
 from core.services.lobby_service import (
     LobbyParticipantNotFound,
-    LobbyParticipantParsingError,
+    LobbyParticipantStatus,
     LobbyService,
 )
 
@@ -361,16 +361,24 @@ class RoomViewSet(
         serializer.is_valid(raise_exception=True)
 
         room = self.get_object()
-        participant_id = (
-            str(request.user.id)
-            if request.user.is_authenticated
-            else request.COOKIES.get(settings.SESSION_COOKIE_NAME)
-        )
+
+        if room.is_public:
+            return drf_response.Response(
+                {
+                    "status": LobbyParticipantStatus.ACCEPTED,
+                    "livekit": utils.generate_livekit_config(
+                        room_id=str(room.id),
+                        user=request.user,
+                        username=serializer.validated_data["username"],
+                    ),
+                }
+            )
 
         lobby_service = LobbyService()
+        participant_id = lobby_service.get_participant_id(request=request)
 
         status, livekit = lobby_service.request_entry(
-            room_id=str(room.id),
+            room_id=room.id,
             participant_id=participant_id,
             user=request.user,
             **serializer.validated_data,
@@ -392,11 +400,18 @@ class RoomViewSet(
         serializer.is_valid(raise_exception=True)
 
         room = self.get_object()
+
+        if room.is_public:
+            return drf_response.Response(
+                {"message": "Room has no lobby system."},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
+
         lobby_service = LobbyService()
 
         try:
             lobby_service.handle_participant_entry(
-                room_id=str(room.id),
+                room_id=room.id,
                 **serializer.validated_data,
             )
             return drf_response.Response({"message": "Participant was updated."})
@@ -405,11 +420,6 @@ class RoomViewSet(
             return drf_response.Response(
                 {"message": "Participant not found."},
                 status=drf_status.HTTP_404_NOT_FOUND,
-            )
-        except LobbyParticipantParsingError:
-            return drf_response.Response(
-                {"message": "Participant data are corrupted, removed from the lobby."},
-                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     @decorators.action(
@@ -423,9 +433,13 @@ class RoomViewSet(
     def list_waiting_participants(self, request, pk=None):  # pylint: disable=unused-argument
         """List waiting participants."""
         room = self.get_object()
+
+        if room.is_public:
+            return drf_response.Response({"participants": []})
+
         lobby_service = LobbyService()
 
-        participants = lobby_service.list_waiting_participants(str(room.id))
+        participants = lobby_service.list_waiting_participants(room.id)
         return drf_response.Response({"participants": participants})
 
 

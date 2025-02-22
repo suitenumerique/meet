@@ -487,7 +487,7 @@ class Base(Configuration):
         "room_lobby", environ_name="LOBBY_KEY_PREFIX", environ_prefix=None
     )
     LOBBY_WAITING_TIMEOUT = values.PositiveIntegerValue(
-        5, environ_name="LOBBY_WAITING_TIMEOUT", environ_prefix=None
+        3, environ_name="LOBBY_WAITING_TIMEOUT", environ_prefix=None
     )
     LOBBY_DENIED_TIMEOUT = values.PositiveIntegerValue(
         5, environ_name="LOBBY_DENIED_TIMEOUT", environ_prefix=None

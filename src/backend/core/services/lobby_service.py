@@ -1,9 +1,10 @@
-"""Wip."""
+"""Lobby Service"""
 
 import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
+from uuid import UUID
 
 from django.conf import settings
 from django.core.cache import cache
@@ -47,19 +48,19 @@ class LobbyNotificationError(LobbyError):
 
 @dataclass
 class LobbyParticipant:
-    """Wip"""
+    """Participant in a lobby system."""
 
     status: LobbyParticipantStatus
     username: str
     id: str
 
     def to_dict(self) -> Dict[str, str]:
-        """Wip"""
+        """Serialize the participant object to a dict representation."""
         return {"status": self.status.value, "username": self.username, "id": self.id}
 
     @classmethod
     def from_dict(cls, data: dict) -> "LobbyParticipant":
-        """Wip"""
+        """Create a LobbyParticipant instance from a dictionary."""
         try:
             status = LobbyParticipantStatus(
                 data.get("status", LobbyParticipantStatus.UNKNOWN.value)
@@ -78,12 +79,25 @@ class LobbyService:
     """
 
     @staticmethod
-    def _get_cache_key(room_id: str, participant_key: str) -> str:
+    def _get_cache_key(room_id: UUID, participant_id: str) -> str:
         """Generate cache key for participant(s) data."""
-        return f"{settings.LOBBY_KEY_PREFIX}_{room_id}_{participant_key}"
+        return f"{settings.LOBBY_KEY_PREFIX}_{room_id!s}_{participant_id}"
+
+    @staticmethod
+    def get_participant_id(request) -> str:
+        """Extract unique participant identifier from the request."""
+        return (
+            str(request.user.id)
+            if request.user.is_authenticated
+            else request.COOKIES.get(settings.SESSION_COOKIE_NAME)
+        )
 
     def request_entry(
-        self, room_id: str, user, participant_id: str, username: str
+        self,
+        room_id: UUID,
+        user,
+        participant_id: str,
+        username: str,
     ) -> Tuple[LobbyParticipantStatus, Optional[Dict]]:
         """Request entry to a room for a participant.
 
@@ -111,12 +125,12 @@ class LobbyService:
         if status == LobbyParticipantStatus.ACCEPTED:
             # wrongly named, contains access token to join a room
             livekit_config = utils.generate_livekit_config(
-                room_id=room_id, user=user, username=username
+                room_id=str(room_id), user=user, username=username
             )
 
         return status, livekit_config
 
-    def refresh_waiting_status(self, room_id: str, participant_id: str):
+    def refresh_waiting_status(self, room_id: UUID, participant_id: str):
         """Refresh timeout for waiting participant.
 
         Extends the waiting period for a participant to maintain their position
@@ -127,7 +141,7 @@ class LobbyService:
             self._get_cache_key(room_id, participant_id), settings.LOBBY_WAITING_TIMEOUT
         )
 
-    def enter(self, room_id: str, participant_id: str, username: str) -> None:
+    def enter(self, room_id: UUID, participant_id: str, username: str) -> None:
         """Add participant to waiting lobby.
 
         Create a new participant entry in waiting status and notify room
@@ -148,12 +162,14 @@ class LobbyService:
         )
 
         try:
-            self.notify_participants(room_name=room_id)
+            self.notify_participants(room_id=room_id)
         except LobbyNotificationError:
             # If room not created yet, there is no participants to notify
             pass
 
-    def check_status(self, room_id: str, participant_id: str) -> LobbyParticipantStatus:
+    def check_status(
+        self, room_id: UUID, participant_id: str
+    ) -> LobbyParticipantStatus:
         """Check participant's current status in the lobby."""
 
         cache_key = self._get_cache_key(room_id, participant_id)
@@ -165,13 +181,12 @@ class LobbyService:
         try:
             participant = LobbyParticipant.from_dict(data)
             return participant.status
-
         except LobbyParticipantParsingError:
             logger.error("Corrupted participant data found and removed: %s", cache_key)
             cache.delete(cache_key)
             return LobbyParticipantStatus.UNKNOWN
 
-    def list_waiting_participants(self, room_id: str) -> List[dict]:
+    def list_waiting_participants(self, room_id: UUID) -> List[dict]:
         """List all waiting participants for a room."""
 
         pattern = self._get_cache_key(room_id, "*")
@@ -182,15 +197,23 @@ class LobbyService:
 
         data = cache.get_many(keys)
 
-        return [
-            raw_participant
-            for raw_participant in data.values()
-            if raw_participant
-            and raw_participant.get("status") == LobbyParticipantStatus.WAITING.value
-        ]
+        waiting_participants = []
+        for cache_key, raw_participant in data.items():
+            try:
+                participant = LobbyParticipant.from_dict(raw_participant)
+            except LobbyParticipantParsingError:
+                cache.delete(cache_key)
+                continue
+            if participant.status == LobbyParticipantStatus.WAITING:
+                waiting_participants.append(participant.to_dict())
+
+        return waiting_participants
 
     def handle_participant_entry(
-        self, room_id: str, participant_id: str, allow_entry: bool
+        self,
+        room_id: UUID,
+        participant_id: str,
+        allow_entry: bool,
     ) -> None:
         """Handle decision on participant entry.
 
@@ -199,23 +222,21 @@ class LobbyService:
         - If denied: DENIED status with short timeout allowing status check and retry
         """
         if allow_entry:
-            self._update_participant_status(
-                room_id,
-                participant_id,
-                LobbyParticipantStatus.ACCEPTED,
-                settings.LOBBY_ACCEPTED_TIMEOUT,
-            )
+            decision = {
+                "status": LobbyParticipantStatus.ACCEPTED,
+                "timeout": settings.LOBBY_ACCEPTED_TIMEOUT,
+            }
         else:
-            self._update_participant_status(
-                room_id,
-                participant_id,
-                LobbyParticipantStatus.DENIED,
-                settings.LOBBY_DENIED_TIMEOUT,
-            )
+            decision = {
+                "status": LobbyParticipantStatus.DENIED,
+                "timeout": settings.LOBBY_DENIED_TIMEOUT,
+            }
+
+        self._update_participant_status(room_id, participant_id, **decision)
 
     def _update_participant_status(
         self,
-        room_id: str,
+        room_id: UUID,
         participant_id: str,
         status: LobbyParticipantStatus,
         timeout: int,
@@ -242,7 +263,7 @@ class LobbyService:
         cache.set(cache_key, participant.to_dict(), timeout=timeout)
 
     @async_to_sync
-    async def notify_participants(self, room_name: str):
+    async def notify_participants(self, room_id: UUID):
         """Notify room participants about a new waiting participant using LiveKit.
 
         Raises:
@@ -259,7 +280,7 @@ class LobbyService:
             try:
                 await room_service.send_data(
                     room_service_api.SendDataRequest(
-                        room=room_name,
+                        room=str(room_id),
                         data=settings.LOBBY_NOTIFICATION_MSG.encode("utf-8"),
                         kind="RELIABLE",
                     )
