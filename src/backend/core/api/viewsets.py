@@ -44,6 +44,10 @@ from core.recording.worker.factories import (
 from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
+from core.services.lobby_service import (
+    LobbyParticipantNotFound,
+    LobbyService,
+)
 
 from . import permissions, serializers
 
@@ -342,6 +346,88 @@ class RoomViewSet(
         return drf_response.Response(
             {"message": f"Recording stopped for room {room.slug}."}
         )
+
+    @decorators.action(
+        detail=True,
+        methods=["POST"],
+        url_path="request-entry",
+        permission_classes=[],
+    )
+    def request_entry(self, request, pk=None):  # pylint: disable=unused-argument
+        """Request entry to a room"""
+
+        serializer = serializers.RequestEntrySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        room = self.get_object()
+        lobby_service = LobbyService()
+
+        status, livekit, participant_id = lobby_service.request_entry(
+            room=room,
+            request=request,
+            **serializer.validated_data,
+        )
+        response = drf_response.Response({"status": status.value, "livekit": livekit})
+        lobby_service.prepare_response(response, participant_id)
+
+        return response
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="enter",
+        permission_classes=[
+            permissions.HasPrivilegesOnRoom,
+        ],
+    )
+    def allow_participant_to_enter(self, request, pk=None):  # pylint: disable=unused-argument
+        """Accept or deny a participant's entry request."""
+
+        serializer = serializers.ParticipantEntrySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        room = self.get_object()
+
+        if room.is_public:
+            return drf_response.Response(
+                {"message": "Room has no lobby system."},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
+
+        lobby_service = LobbyService()
+
+        try:
+            lobby_service.handle_participant_entry(
+                room_id=room.id,
+                **serializer.validated_data,
+            )
+            return drf_response.Response({"message": "Participant was updated."})
+
+        except LobbyParticipantNotFound:
+            return drf_response.Response(
+                {"message": "Participant not found."},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
+
+    @decorators.action(
+        detail=True,
+        methods=["GET"],
+        url_path="waiting-participants",
+        permission_classes=[
+            permissions.HasPrivilegesOnRoom,
+        ],
+    )
+    def list_waiting_participants(self, request, pk=None):  # pylint: disable=unused-argument
+        """List waiting participants."""
+        room = self.get_object()
+
+        if room.is_public:
+            return drf_response.Response({"participants": []})
+
+        lobby_service = LobbyService()
+
+        participants = lobby_service.list_waiting_participants(room.id)
+        return drf_response.Response({"participants": participants})
 
 
 class ResourceAccessListModelMixin:

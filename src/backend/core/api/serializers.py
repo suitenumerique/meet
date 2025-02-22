@@ -1,6 +1,5 @@
 """Client serializers for the Meet core app."""
 
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
@@ -92,7 +91,7 @@ class ListRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "is_public"]
+        fields = ["id", "name", "slug", "access_level"]
         read_only_fields = ["id", "slug"]
 
 
@@ -101,7 +100,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "configuration", "is_public"]
+        fields = ["id", "name", "slug", "configuration", "access_level"]
         read_only_fields = ["id", "slug"]
 
     def to_representation(self, instance):
@@ -130,16 +129,11 @@ class RoomSerializer(serializers.ModelSerializer):
             del output["configuration"]
 
         if role is not None or instance.is_public:
-            slug = f"{instance.id!s}"
+            room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
-
-            output["livekit"] = {
-                "url": settings.LIVEKIT_CONFIGURATION["url"],
-                "room": slug,
-                "token": utils.generate_token(
-                    room=slug, user=request.user, username=username
-                ),
-            }
+            output["livekit"] = utils.generate_livekit_config(
+                room_id=room_id, user=request.user, username=username
+            )
 
         output["is_administrable"] = is_admin
 
@@ -169,6 +163,35 @@ class StartRecordingSerializer(serializers.Serializer):
             "screen_recording or transcript.",
         },
     )
+
+    def create(self, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("StartRecordingSerializer is validation-only")
+
+    def update(self, instance, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("StartRecordingSerializer is validation-only")
+
+
+class RequestEntrySerializer(serializers.Serializer):
+    """Validate request entry data."""
+
+    username = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("StartRecordingSerializer is validation-only")
+
+    def update(self, instance, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("StartRecordingSerializer is validation-only")
+
+
+class ParticipantEntrySerializer(serializers.Serializer):
+    """Validate participant entry decision data."""
+
+    participant_id = serializers.CharField(required=True)
+    allow_entry = serializers.BooleanField(required=True)
 
     def create(self, validated_data):
         """Not implemented as this is a validation-only serializer."""

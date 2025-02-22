@@ -36,8 +36,6 @@ class ResourceFactory(factory.django.DjangoModelFactory):
         model = models.Resource
         skip_postgeneration_save = True
 
-    is_public = factory.Faker("boolean", chance_of_getting_true=50)
-
     @factory.post_generation
     def users(self, create, extracted, **kwargs):
         """Add users to resource from a given list of users."""
@@ -70,6 +68,7 @@ class RoomFactory(ResourceFactory):
 
     name = factory.Faker("catch_phrase")
     slug = factory.LazyAttribute(lambda o: slugify(o.name))
+    access_level = factory.fuzzy.FuzzyChoice(models.RoomAccessLevel)
 
 
 class RecordingFactory(factory.django.DjangoModelFactory):

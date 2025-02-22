@@ -81,3 +81,21 @@ def generate_token(room: str, user, username: Optional[str] = None) -> str:
     )
 
     return token.to_jwt()
+
+
+def generate_livekit_config(room_id: str, user, username: str) -> dict:
+    """Generate LiveKit configuration for room access.
+
+    Args:
+        room_id: Room identifier
+        user: User instance requesting access
+        username: Display name in room
+
+    Returns:
+        dict: LiveKit configuration with URL, room and access token
+    """
+    return {
+        "url": settings.LIVEKIT_CONFIGURATION["url"],
+        "room": room_id,
+        "token": generate_token(room=room_id, user=user, username=username),
+    }

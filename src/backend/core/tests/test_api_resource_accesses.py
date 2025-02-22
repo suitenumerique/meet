@@ -16,7 +16,7 @@ from ..factories import (
     UserFactory,
     UserResourceAccessFactory,
 )
-from ..models import ResourceAccess, RoleChoices
+from ..models import ResourceAccess, RoleChoices, RoomAccessLevel
 
 pytestmark = pytest.mark.django_db
 
@@ -44,13 +44,13 @@ def test_api_room_user_accesses_list_authenticated_not_related():
     client = APIClient()
     client.force_login(user)
 
-    public_room = RoomFactory(is_public=True)
+    public_room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     UserResourceAccessFactory(resource=public_room)
     UserResourceAccessFactory(resource=public_room, role="member")
     UserResourceAccessFactory(resource=public_room, role="administrator")
     UserResourceAccessFactory(resource=public_room, role="owner")
 
-    private_room = RoomFactory(is_public=False)
+    private_room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     UserResourceAccessFactory(resource=private_room)
     UserResourceAccessFactory(resource=private_room, role="member")
     UserResourceAccessFactory(resource=private_room, role="administrator")
@@ -73,13 +73,17 @@ def test_api_room_user_accesses_list_authenticated_member():
     client = APIClient()
     client.force_login(user)
 
-    public_room = RoomFactory(is_public=True, users=[(user, "member")])
+    public_room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC, users=[(user, "member")]
+    )
     UserResourceAccessFactory(resource=public_room)
     UserResourceAccessFactory(resource=public_room, role="member")
     UserResourceAccessFactory(resource=public_room, role="administrator")
     UserResourceAccessFactory(resource=public_room, role="owner")
 
-    private_room = RoomFactory(is_public=False, users=[(user, "member")])
+    private_room = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED, users=[(user, "member")]
+    )
     UserResourceAccessFactory(resource=private_room)
     UserResourceAccessFactory(resource=private_room, role="member")
     UserResourceAccessFactory(resource=private_room, role="administrator")
@@ -102,7 +106,7 @@ def test_api_room_user_accesses_list_authenticated_administrator():
     client = APIClient()
     client.force_login(user)
 
-    public_room = RoomFactory(is_public=True)
+    public_room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     public_room_accesses = (
         # Access for the logged-in user
         UserResourceAccessFactory(
@@ -115,7 +119,7 @@ def test_api_room_user_accesses_list_authenticated_administrator():
         UserResourceAccessFactory(resource=public_room, role="owner"),
     )
 
-    private_room = RoomFactory(is_public=False)
+    private_room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     private_room_accesses = (
         # Access for the logged-in user
         UserResourceAccessFactory(
@@ -148,7 +152,7 @@ def test_api_room_user_accesses_list_authenticated_owner():
     client = APIClient()
     client.force_login(user)
 
-    public_room = RoomFactory(is_public=True)
+    public_room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     public_room_accesses = (
         # Access for the logged-in user
         UserResourceAccessFactory(resource=public_room, user=user, role="owner"),
@@ -158,7 +162,7 @@ def test_api_room_user_accesses_list_authenticated_owner():
         UserResourceAccessFactory(resource=public_room, role="administrator"),
         UserResourceAccessFactory(resource=public_room, role="owner"),
     )
-    private_room = RoomFactory(is_public=False)
+    private_room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     private_room_accesses = (
         # Access for the logged-in user
         UserResourceAccessFactory(resource=private_room, user=user, role="owner"),
@@ -252,8 +256,8 @@ def test_api_room_user_accesses_retrieve_authenticated_not_related():
     client = APIClient()
     client.force_login(user)
 
-    for is_public in [True, False]:
-        room = RoomFactory(is_public=is_public)
+    for access_level in [RoomAccessLevel.PUBLIC, RoomAccessLevel.RESTRICTED]:
+        room = RoomFactory(access_level=access_level)
         assert len(RoleChoices.choices) == 3
 
         for role, _name in RoleChoices.choices:
@@ -277,9 +281,9 @@ def test_api_room_user_accesses_retrieve_authenticated_member():
     client = APIClient()
     client.force_login(user)
 
-    for is_public in [True, False]:
+    for access_level in [RoomAccessLevel.PUBLIC, RoomAccessLevel.RESTRICTED]:
         room = RoomFactory(
-            is_public=is_public,
+            access_level=access_level,
             users=[(user, "member")],
         )
         assert len(RoleChoices.choices) == 3
@@ -305,8 +309,8 @@ def test_api_room_user_accesses_retrieve_authenticated_administrator():
     client = APIClient()
     client.force_login(user)
 
-    for is_public in [True, False]:
-        room = RoomFactory(is_public=is_public, users=[(user, "administrator")])
+    for access_level in [RoomAccessLevel.PUBLIC, RoomAccessLevel.RESTRICTED]:
+        room = RoomFactory(access_level=access_level, users=[(user, "administrator")])
         assert len(RoleChoices.choices) == 3
 
         for role, _name in RoleChoices.choices:
@@ -334,8 +338,8 @@ def test_api_room_user_accesses_retrieve_authenticated_owner():
     client = APIClient()
     client.force_login(user)
 
-    for is_public in [True, False]:
-        room = RoomFactory(is_public=is_public, users=[(user, "owner")])
+    for access_level in [RoomAccessLevel.PUBLIC, RoomAccessLevel.RESTRICTED]:
+        room = RoomFactory(access_level=access_level, users=[(user, "owner")])
         assert len(RoleChoices.choices) == 3
 
         for role, _name in RoleChoices.choices:

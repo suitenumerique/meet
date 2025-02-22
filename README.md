@@ -116,10 +116,9 @@ $ make build-k8s-cluster
 ```
 
 Once the Kubernetes cluster is ready, start the application stack locally:
+
 ```shell
-$ make start-tilt
-or
-$ make start-tilt-keycloak # start stack without Pro Connect, use keycloak
+$ make start-tilt-keycloak
 ```
 These commands set up and run your application environment using Tilt for local Kubernetes development.
 

@@ -1,12 +1,17 @@
 import { css } from '@/styled-system/css'
 import { useParticipants } from '@livekit/components-react'
 
-import { Div, H } from '@/primitives'
+import { Button, Div, H } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { ParticipantListItem } from '../../controls/Participants/ParticipantListItem'
 import { ParticipantsCollapsableList } from '../../controls/Participants/ParticipantsCollapsableList'
 import { HandRaisedListItem } from '../../controls/Participants/HandRaisedListItem'
 import { LowerAllHandsButton } from '../../controls/Participants/LowerAllHandsButton'
+import { HStack } from '@/styled-system/jsx'
+import { WaitingParticipantListItem } from './WaitingParticipantListItem'
+import { useWaitingParticipants } from '@/features/rooms/hooks/useWaitingParticipants'
+import { Participant } from 'livekit-client'
+import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
 
 // TODO: Optimize rendering performance, especially for longer participant lists, even though they are generally short.
 export const ParticipantsList = () => {
@@ -35,6 +40,12 @@ export const ParticipantsList = () => {
     return data.raised
   })
 
+  const {
+    waitingParticipants,
+    handleParticipantEntry,
+    handleParticipantsEntry,
+  } = useWaitingParticipants()
+
   // TODO - extract inline styling in a centralized styling file, and avoid magic numbers
   return (
     <Div overflowY="scroll">
@@ -50,9 +61,42 @@ export const ParticipantsList = () => {
       >
         {t('subheading').toUpperCase()}
       </H>
+      {waitingParticipants?.length > 0 && (
+        <Div marginBottom=".9375rem">
+          <ParticipantsCollapsableList<WaitingParticipant>
+            heading={t('waiting.title')}
+            participants={waitingParticipants}
+            renderParticipant={(participant) => (
+              <WaitingParticipantListItem
+                key={participant.id}
+                participant={participant}
+                onAction={handleParticipantEntry}
+              />
+            )}
+            action={() => (
+              <HStack justify={'center'} width={'100%'}>
+                <Button
+                  size="sm"
+                  variant="secondaryText"
+                  onPress={() => handleParticipantsEntry(false)}
+                >
+                  {t('waiting.deny.all')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondaryText"
+                  onPress={() => handleParticipantsEntry(true)}
+                >
+                  {t('waiting.accept.all')}
+                </Button>
+              </HStack>
+            )}
+          />
+        </Div>
+      )}
       {raisedHandParticipants.length > 0 && (
         <Div marginBottom=".9375rem">
-          <ParticipantsCollapsableList
+          <ParticipantsCollapsableList<Participant>
             heading={t('raisedHands')}
             participants={raisedHandParticipants}
             renderParticipant={(participant) => (
@@ -67,7 +111,7 @@ export const ParticipantsList = () => {
           />
         </Div>
       )}
-      <ParticipantsCollapsableList
+      <ParticipantsCollapsableList<Participant>
         heading={t('contributors')}
         participants={sortedParticipants}
         renderParticipant={(participant) => (

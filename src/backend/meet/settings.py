@@ -411,8 +411,11 @@ class Base(Configuration):
         ),
         "url": values.Value(environ_name="LIVEKIT_API_URL", environ_prefix=None),
     }
-    RESOURCE_DEFAULT_IS_PUBLIC = values.BooleanValue(
-        True, environ_name="RESOURCE_DEFAULT_IS_PUBLIC", environ_prefix=None
+    LIVEKIT_VERIFY_SSL = values.BooleanValue(
+        True, environ_name="LIVEKIT_VERIFY_SSL", environ_prefix=None
+    )
+    RESOURCE_DEFAULT_ACCESS_LEVEL = values.Value(
+        "public", environ_name="RESOURCE_DEFAULT_ACCESS_LEVEL", environ_prefix=None
     )
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
@@ -478,6 +481,32 @@ class Base(Configuration):
         converter=lambda x: int(x),  # pylint: disable=unnecessary-lambda
     )
     BREVO_API_CONTACT_ATTRIBUTES = values.DictValue({"VISIO_USER": True})
+
+    # Lobby configurations
+    LOBBY_KEY_PREFIX = values.Value(
+        "room_lobby", environ_name="LOBBY_KEY_PREFIX", environ_prefix=None
+    )
+    LOBBY_WAITING_TIMEOUT = values.PositiveIntegerValue(
+        3, environ_name="LOBBY_WAITING_TIMEOUT", environ_prefix=None
+    )
+    LOBBY_DENIED_TIMEOUT = values.PositiveIntegerValue(
+        5, environ_name="LOBBY_DENIED_TIMEOUT", environ_prefix=None
+    )
+    LOBBY_ACCEPTED_TIMEOUT = values.PositiveIntegerValue(
+        21600,  # 6hrs
+        environ_name="LOBBY_ACCEPTED_TIMEOUT",
+        environ_prefix=None,
+    )
+    LOBBY_NOTIFICATION_MSG = values.Value(
+        "participantWaiting",
+        environ_name="LOBBY_NOTIFICATION_MSG",
+        environ_prefix=None,
+    )
+    LOBBY_COOKIE_NAME = values.Value(
+        "lobbyParticipantId",
+        environ_name="LOBBY_COOKIE_NAME",
+        environ_prefix=None,
+    )
 
     # pylint: disable=invalid-name
     @property

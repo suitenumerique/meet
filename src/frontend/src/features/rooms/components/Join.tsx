@@ -7,7 +7,7 @@ import { LocalVideoTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { SelectToggleDevice } from '../livekit/components/controls/SelectToggleDevice'
 import { Field } from '@/primitives/Field'
-import { Button, Dialog, Text, Form } from '@/primitives'
+import { Button, Dialog, Text, Form, P } from '@/primitives'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { LocalUserChoices } from '../routes/Room'
 import { Heading } from 'react-aria-components'
@@ -19,6 +19,13 @@ import {
 import { usePersistentUserChoices } from '../livekit/hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { isMobileBrowser } from '@livekit/components-core'
+import { fetchRoom } from '@/features/rooms/api/fetchRoom'
+import { keys } from '@/api/queryKeys'
+import { useLobby } from '../hooks/useLobby'
+import { useQuery } from '@tanstack/react-query'
+import { queryClient } from '@/api/queryClient'
+import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
+import { Spinner } from '@/primitives/Spinner'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -99,8 +106,10 @@ const Effects = ({
 
 export const Join = ({
   onSubmit,
+  roomId,
 }: {
   onSubmit: (choices: LocalUserChoices) => void
+  roomId: string
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
@@ -195,7 +204,51 @@ export const Join = ({
     }
   }, [videoTrack, videoEnabled])
 
-  function handleSubmit() {
+  // Room data strategy:
+  // 1. Initial fetch is performed to check access and get LiveKit configuration
+  // 2. Data remains valid for 6 hours to avoid unnecessary refetches
+  // 3. State is manually updated via queryClient when a waiting participant is accepted
+  // 4. No automatic refetching or revalidation occurs during this period
+  // todo - refactor in a hook
+  const { data: roomData, refetch: refetchRoom } = useQuery({
+    /* eslint-disable @tanstack/query/exhaustive-deps */
+    queryKey: [keys.room, roomId],
+    queryFn: () => fetchRoom({ roomId, username }),
+    staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
+    retry: false,
+    enabled: false,
+  })
+
+  const handleAccepted = (response: ApiRequestEntry) => {
+    queryClient.setQueryData([keys.room, roomId], {
+      ...roomData,
+      livekit: response.livekit,
+    })
+
+    onSubmit({
+      audioEnabled,
+      videoEnabled,
+      audioDeviceId,
+      videoDeviceId,
+      username,
+      processorSerialized: processor?.serialize(),
+    })
+  }
+
+  const { status, startWaiting } = useLobby({
+    roomId,
+    username,
+    onAccepted: handleAccepted,
+  })
+
+  const handleSubmit = async () => {
+    const { data } = await refetchRoom()
+
+    if (!data?.livekit) {
+      startWaiting()
+      return
+    }
+
     onSubmit({
       audioEnabled,
       videoEnabled,
@@ -215,6 +268,74 @@ export const Join = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoTrack])
+
+  const renderWaitingState = () => {
+    switch (status) {
+      case ApiLobbyStatus.TIMEOUT:
+        return (
+          <VStack alignItems="center" textAlign="center">
+            <H lvl={1} margin={false}>
+              {t('timeoutInvite.title')}
+            </H>
+            <P>{t('timeoutInvite.body')}</P>
+          </VStack>
+        )
+
+      case ApiLobbyStatus.DENIED:
+        return (
+          <VStack alignItems="center" textAlign="center">
+            <H lvl={1} margin={false}>
+              {t('denied.title')}
+            </H>
+            <P>{t('denied.body')}</P>
+          </VStack>
+        )
+
+      case ApiLobbyStatus.WAITING:
+        return (
+          <VStack alignItems="center" textAlign="center">
+            <H lvl={1} margin={false}>
+              {t('waiting.title')}
+            </H>
+            <P>{t('waiting.body')}</P>
+            <Spinner />
+          </VStack>
+        )
+
+      default:
+        return (
+          <Form
+            onSubmit={handleSubmit}
+            submitLabel={t('joinLabel')}
+            submitButtonProps={{
+              fullWidth: true,
+            }}
+          >
+            <VStack marginBottom={1}>
+              <H lvl={1} margin={false}>
+                {t('heading')}
+              </H>
+              <Field
+                type="text"
+                onChange={setUsername}
+                label={t('usernameLabel')}
+                aria-label={t('usernameLabel')}
+                defaultValue={initialUserChoices?.username}
+                validate={(value) => !value && t('errors.usernameEmpty')}
+                wrapperProps={{
+                  noMargin: true,
+                  fullWidth: true,
+                }}
+                labelProps={{
+                  center: true,
+                }}
+                maxLength={50}
+              />
+            </VStack>
+          </Form>
+        )
+    }
+  }
 
   return (
     <Screen footer={false}>
@@ -353,35 +474,7 @@ export const Join = ({
               },
             })}
           >
-            <Form
-              onSubmit={handleSubmit}
-              submitLabel={t('joinLabel')}
-              submitButtonProps={{
-                fullWidth: true,
-              }}
-            >
-              <VStack marginBottom={1}>
-                <H lvl={1} margin={false}>
-                  {t('heading')}
-                </H>
-                <Field
-                  type="text"
-                  onChange={setUsername}
-                  label={t('usernameLabel')}
-                  aria-label={t('usernameLabel')}
-                  defaultValue={initialUserChoices?.username}
-                  validate={(value) => !value && t('errors.usernameEmpty')}
-                  wrapperProps={{
-                    noMargin: true,
-                    fullWidth: true,
-                  }}
-                  labelProps={{
-                    center: true,
-                  }}
-                  maxLength={50}
-                />
-              </VStack>
-            </Form>
+            {renderWaitingState()}
           </div>
         </div>
       </div>

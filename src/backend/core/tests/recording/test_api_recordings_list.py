@@ -59,8 +59,8 @@ def test_api_recordings_list_authenticated_direct(role):
         "id": str(recording.id),
         "created_at": recording.created_at.isoformat().replace("+00:00", "Z"),
         "room": {
+            "access_level": str(room.access_level),
             "id": str(room.id),
-            "is_public": room.is_public,
             "name": room.name,
             "slug": room.slug,
         },
