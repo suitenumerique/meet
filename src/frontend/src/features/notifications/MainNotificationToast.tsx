@@ -4,6 +4,7 @@ import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { ToastProvider, toastQueue } from './components/ToastProvider'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
+import { decodeNotificationDataReceived } from './utils'
 import { Div } from '@/primitives'
 import { ChatMessage, isMobileBrowser } from '@livekit/components-core'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
@@ -67,14 +68,11 @@ export const MainNotificationToast = () => {
       payload: Uint8Array,
       participant?: RemoteParticipant
     ) => {
-      const decoder = new TextDecoder()
-      const notificationPayload = JSON.parse(decoder.decode(payload))
-      const notificationType = notificationPayload.type
-      const data = notificationPayload.data
+      const { type, data } = decodeNotificationDataReceived(payload)
 
       if (!participant) return
 
-      switch (notificationType) {
+      switch (type) {
         case NotificationType.ParticipantMuted:
           toastQueue.add(
             {
@@ -85,7 +83,7 @@ export const MainNotificationToast = () => {
           )
           break
         case NotificationType.ReactionReceived:
-          handleEmoji(data?.emoji, participant)
+          if (data?.emoji) handleEmoji(data.emoji, participant)
           break
         default:
           return

@@ -2,6 +2,7 @@ import { toastQueue } from './components/ToastProvider'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
 import { Participant } from 'livekit-client'
+import { NotificationPayload } from './NotificationPayload'
 
 export const showLowerHandToast = (
   participant: Participant,
@@ -25,4 +26,11 @@ export const closeLowerHandToasts = () => {
       toastQueue.close(toast.key)
     }
   })
+}
+
+export const decodeNotificationDataReceived = (
+  payload: Uint8Array
+): NotificationPayload => {
+  const decoder = new TextDecoder()
+  return JSON.parse(decoder.decode(payload))
 }
