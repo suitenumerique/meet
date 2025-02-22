@@ -15,5 +15,10 @@
   },
   "reaction": {
     "description": ""
+  },
+  "waitingParticipants": {
+    "one": "",
+    "several": "",
+    "open": ""
   }
 }

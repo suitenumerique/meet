@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
-import { ToastProvider, toastQueue } from './components/ToastProvider'
+import { ChatMessage, isMobileBrowser } from '@livekit/components-core'
+import { useTranslation } from 'react-i18next'
+import { Div } from '@/primitives'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
 import { decodeNotificationDataReceived } from './utils'
-import { Div } from '@/primitives'
-import { ChatMessage, isMobileBrowser } from '@livekit/components-core'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
+import { ToastProvider, toastQueue } from './components/ToastProvider'
+import { WaitingParticipantNotification } from './components/WaitingParticipantNotification'
 import {
   EMOJIS,
   Reaction,
@@ -16,7 +18,6 @@ import {
   ANIMATION_DURATION,
   ReactionPortals,
 } from '@/features/rooms/livekit/components/ReactionPortal'
-import { useTranslation } from 'react-i18next'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -195,6 +196,7 @@ export const MainNotificationToast = () => {
   return (
     <Div position="absolute" bottom={0} right={5} zIndex={1000}>
       <ToastProvider />
+      <WaitingParticipantNotification />
       <ReactionPortals reactions={reactions} />
     </Div>
   )

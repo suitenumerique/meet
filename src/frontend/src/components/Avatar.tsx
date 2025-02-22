@@ -26,6 +26,11 @@ const avatar = cva({
         height: '100%',
       },
     },
+    notification: {
+      true: {
+        border: '2px solid white',
+      },
+    },
   },
   defaultVariants: {
     context: 'list',
@@ -37,14 +42,22 @@ export type AvatarProps = React.HTMLAttributes<HTMLDivElement> & {
   bgColor?: string
 } & RecipeVariantProps<typeof avatar>
 
-export const Avatar = ({ name, bgColor, context, ...props }: AvatarProps) => {
+export const Avatar = ({
+  name,
+  bgColor,
+  context,
+  notification,
+  style,
+  ...props
+}: AvatarProps) => {
   const initial = name?.trim()?.charAt(0) || ''
   return (
     <div
       style={{
         backgroundColor: bgColor,
+        ...style,
       }}
-      className={avatar({ context })}
+      className={avatar({ context, notification })}
       {...props}
     >
       {initial}

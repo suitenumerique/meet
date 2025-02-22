@@ -22,7 +22,7 @@ export const StyledToastContainer = styled('div', {
   },
 })
 
-const StyledToast = styled('div', {
+export const StyledToast = styled('div', {
   base: {
     display: 'flex',
     justifyContent: 'space-between',

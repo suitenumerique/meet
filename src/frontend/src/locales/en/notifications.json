@@ -15,5 +15,10 @@
   },
   "reaction": {
     "description": "{{name}} reacted with {{emoji}}"
+  },
+  "waitingParticipants": {
+    "one": "One person wants to join this call.",
+    "several": "Several people want to join this call.",
+    "open": "Open"
   }
 }
