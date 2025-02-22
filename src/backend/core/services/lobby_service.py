@@ -1,6 +1,7 @@
 """Lobby Service"""
 
 import logging
+import uuid
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
@@ -84,21 +85,22 @@ class LobbyService:
         return f"{settings.LOBBY_KEY_PREFIX}_{room_id!s}_{participant_id}"
 
     @staticmethod
-    def get_participant_id(request) -> str:
+    def _get_or_create_participant_id(request) -> str:
         """Extract unique participant identifier from the request."""
-        return (
-            str(request.user.id)
-            if request.user.is_authenticated
-            else request.COOKIES.get(settings.SESSION_COOKIE_NAME)
-        )
+        return request.COOKIES.get(settings.LOBBY_COOKIE_NAME, uuid.uuid4().hex)
+
+    @staticmethod
+    def prepare_response(response, participant_id):
+        """Set participant cookie if needed."""
+        if not response.cookies.get(settings.LOBBY_COOKIE_NAME):
+            response.set_cookie(settings.LOBBY_COOKIE_NAME, participant_id)
 
     def request_entry(
         self,
-        room_id: UUID,
-        user,
-        participant_id: str,
+        room,
+        request,
         username: str,
-    ) -> Tuple[LobbyParticipantStatus, Optional[Dict]]:
+    ) -> Tuple[LobbyParticipantStatus, Optional[Dict], str]:
         """Request entry to a room for a participant.
 
         This usual status transitions is:
@@ -112,23 +114,32 @@ class LobbyService:
         5. If denied, do nothing.
         """
 
-        status = self.check_status(room_id, participant_id)
+        participant_id = self._get_or_create_participant_id(request)
+
+        # todo - this check gonna be modified with other access level
+        if room.is_public:
+            livekit_config = utils.generate_livekit_config(
+                room_id=str(room.id), user=request.user, username=username
+            )
+            return LobbyParticipantStatus.ACCEPTED, livekit_config, participant_id
+
+        status = self.check_status(room.id, participant_id)
 
         if status == LobbyParticipantStatus.WAITING:
-            self.refresh_waiting_status(room_id, participant_id)
+            self.refresh_waiting_status(room.id, participant_id)
 
         if status == LobbyParticipantStatus.UNKNOWN:
-            self.enter(room_id, participant_id, username)
+            self.enter(room.id, participant_id, username)
             status = LobbyParticipantStatus.WAITING
 
         livekit_config = None
         if status == LobbyParticipantStatus.ACCEPTED:
             # wrongly named, contains access token to join a room
             livekit_config = utils.generate_livekit_config(
-                room_id=str(room_id), user=user, username=username
+                room_id=str(room.id), user=request.user, username=username
             )
 
-        return status, livekit_config
+        return status, livekit_config, participant_id
 
     def refresh_waiting_status(self, room_id: UUID, participant_id: str):
         """Refresh timeout for waiting participant.

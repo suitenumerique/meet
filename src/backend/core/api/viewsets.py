@@ -46,7 +46,6 @@ from core.recording.worker.mediator import (
 )
 from core.services.lobby_service import (
     LobbyParticipantNotFound,
-    LobbyParticipantStatus,
     LobbyService,
 )
 
@@ -361,29 +360,17 @@ class RoomViewSet(
         serializer.is_valid(raise_exception=True)
 
         room = self.get_object()
-
-        if room.is_public:
-            return drf_response.Response(
-                {
-                    "status": LobbyParticipantStatus.ACCEPTED,
-                    "livekit": utils.generate_livekit_config(
-                        room_id=str(room.id),
-                        user=request.user,
-                        username=serializer.validated_data["username"],
-                    ),
-                }
-            )
-
         lobby_service = LobbyService()
-        participant_id = lobby_service.get_participant_id(request=request)
 
-        status, livekit = lobby_service.request_entry(
-            room_id=room.id,
-            participant_id=participant_id,
-            user=request.user,
+        status, livekit, participant_id = lobby_service.request_entry(
+            room=room,
+            request=request,
             **serializer.validated_data,
         )
-        return drf_response.Response({"status": status.value, "livekit": livekit})
+        response = drf_response.Response({"status": status.value, "livekit": livekit})
+        lobby_service.prepare_response(response, participant_id)
+
+        return response
 
     @decorators.action(
         detail=True,

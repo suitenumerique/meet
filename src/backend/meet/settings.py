@@ -502,6 +502,11 @@ class Base(Configuration):
         environ_name="LOBBY_NOTIFICATION_MSG",
         environ_prefix=None,
     )
+    LOBBY_COOKIE_NAME = values.Value(
+        "lobbyParticipantId",
+        environ_name="LOBBY_COOKIE_NAME",
+        environ_prefix=None,
+    )
 
     # pylint: disable=invalid-name
     @property
