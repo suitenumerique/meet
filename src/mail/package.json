@@ -14,7 +14,7 @@
     "build": "npm run build-mjml-to-html && npm run build-html-to-plain-text"
   },
   "volta": {
-    "node": "22.13.1"
+    "node": "22.14.0"
   },
   "repository": "https://github.com/numerique-gouv/meet",
   "author": "DINUM",
