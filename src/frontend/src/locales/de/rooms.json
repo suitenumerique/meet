@@ -97,6 +97,10 @@
       "open": "",
       "closed": ""
     },
+    "admin": {
+      "open": "",
+      "closed": ""
+    },
     "support": "",
     "moreOptions": "",
     "reactions": {
@@ -142,13 +146,15 @@
       "participants": "",
       "effects": "",
       "chat": "",
-      "transcript": ""
+      "transcript": "",
+      "admin": ""
     },
     "content": {
       "participants": "",
       "effects": "",
       "chat": "",
-      "transcript": ""
+      "transcript": "",
+      "admin": ""
     },
     "closeButton": ""
   },
@@ -165,6 +171,13 @@
       "heading": "",
       "body": "",
       "button": ""
+    }
+  },
+  "admin": {
+    "description": "",
+    "access": {
+      "title": "",
+      "description": ""
     }
   },
   "rating": {

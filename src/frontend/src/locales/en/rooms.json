@@ -96,6 +96,10 @@
       "open": "Hide AI assistant",
       "closed": "Show AI assistant"
     },
+    "admin": {
+      "open": "Hide admin",
+      "closed": "Open admin"
+    },
     "support": "Support",
     "moreOptions": "More options",
     "reactions": {
@@ -141,13 +145,15 @@
       "participants": "Participants",
       "effects": "Effects",
       "chat": "Messages in the chat",
-      "transcript": "AI Assistant"
+      "transcript": "AI Assistant",
+      "admin": "Admin settings"
     },
     "content": {
       "participants": "participants",
       "effects": "effects",
       "chat": "messages",
-      "transcript": "AI assistant"
+      "transcript": "AI assistant",
+      "admin": "Admin settings"
     },
     "closeButton": "Hide {{content}}"
   },
@@ -164,6 +170,13 @@
       "heading": "Recording in Progress...",
       "body": "Your meeting is currently being recorded. You will receive a summary via email once the meeting ends.",
       "button": "Stop Recording"
+    }
+  },
+  "admin": {
+    "description": "These organizer settings allow you to maintain control of your meeting. Only organizers can access these controls.",
+    "access": {
+      "title": "Room access",
+      "description": "These settings will also apply to future occurrences of this meeting."
     }
   },
   "rating": {

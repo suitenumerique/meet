@@ -96,6 +96,10 @@
       "open": "Masquer l'assistant IA",
       "closed": "Afficher l'assistant IA"
     },
+    "admin": {
+      "open": "Masquer l'admin",
+      "closed": "Afficher l'admin"
+    },
     "support": "Support",
     "moreOptions": "Plus d'options",
     "reactions": {
@@ -141,13 +145,15 @@
       "participants": "Participants",
       "effects": "Effets",
       "chat": "Messages dans l'appel",
-      "transcript": "Assistant IA"
+      "transcript": "Assistant IA",
+      "admin": "Commandes de l'organisateur"
     },
     "content": {
       "participants": "les participants",
       "effects": "les effets",
       "chat": "les messages",
-      "transcript": "l'assistant IA"
+      "transcript": "l'assistant IA",
+      "admin": "Commandes de l'organisateur"
     },
     "closeButton": "Masquer {{content}}"
   },
@@ -164,6 +170,13 @@
       "heading": "Enregistrement en cours …",
       "body": "L'enregistrement de votre réunion est en cours. Vous recevrez un compte-rendu par email une fois la réunion terminée.",
       "button": "Arrêter l'enregistrement"
+    }
+  },
+  "admin": {
+    "description": "Ces paramètres organisateur vous permettent de garder le contrôle de votre réunion. Seuls les organisateurs peuvent accéder à ces commandes.",
+    "access": {
+      "title": "Accès à la réunion",
+      "description": "Ces paramètres s'appliqueront également aux futures occurences de cette réunion."
     }
   },
   "rating": {

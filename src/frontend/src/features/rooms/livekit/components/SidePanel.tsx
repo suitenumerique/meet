@@ -11,6 +11,7 @@ import { ReactNode } from 'react'
 import { Chat } from '../prefabs/Chat'
 import { Transcript } from './Transcript'
 import { Effects } from './effects/Effects'
+import { Admin } from './Admin'
 
 type StyledSidePanelProps = {
   title: string
@@ -108,6 +109,7 @@ export const SidePanel = () => {
     isChatOpen,
     isSidePanelOpen,
     isTranscriptOpen,
+    isAdminOpen,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
 
@@ -131,6 +133,9 @@ export const SidePanel = () => {
       </Panel>
       <Panel isOpen={isTranscriptOpen}>
         <Transcript />
+      </Panel>
+      <Panel isOpen={isAdminOpen}>
+        <Admin />
       </Panel>
     </StyledSidePanel>
   )

@@ -3,6 +3,7 @@ import { ChatToggle } from '../../components/controls/ChatToggle'
 import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
 import { SupportToggle } from '../../components/controls/SupportToggle'
 import { TranscriptToggle } from '../../components/controls/TranscriptToggle'
+import { AdminToggle } from '../../components/AdminToggle'
 import { useSize } from '../../hooks/useResizeObserver'
 import { useState, RefObject } from 'react'
 import { Dialog, DialogTrigger, Popover } from 'react-aria-components'
@@ -19,6 +20,7 @@ const NavigationControls = ({ onPress }: Partial<ToggleButtonProps>) => (
     <ParticipantsToggle onPress={onPress} />
     <TranscriptToggle onPress={onPress} />
     <SupportToggle onPress={onPress} />
+    <AdminToggle onPress={onPress} />
   </>
 )
 
