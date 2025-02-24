@@ -91,6 +91,9 @@ export const text = cva({
       sm: {
         marginBottom: 0.5,
       },
+      md: {
+        marginBottom: 1,
+      },
     },
     fullWidth: {
       true: {
