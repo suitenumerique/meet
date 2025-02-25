@@ -18,7 +18,9 @@ import { Input } from './Input'
 import { Radio } from './Radio'
 import { Checkbox } from './Checkbox'
 import { Select } from './Select'
+import { Text } from './Text'
 import { Div } from './Div'
+import { css } from '@/styled-system/css'
 
 const FieldWrapper = styled('div', {
   base: {
@@ -54,7 +56,9 @@ const StyledLabel = styled(Label, {
 })
 
 type OmittedRACProps = 'type' | 'label' | 'items' | 'description' | 'validate'
-type Items<T = ReactNode> = { items: Array<{ value: string; label: T }> }
+type Items<T = ReactNode> = {
+  items: Array<{ value: string; description?: string; label: T }>
+}
 type PartialTextFieldProps = Omit<TextFieldProps, OmittedRACProps>
 type PartialCheckboxProps = Omit<CheckboxProps, OmittedRACProps>
 type PartialCheckboxGroupProps = Omit<CheckboxGroupProps, OmittedRACProps>
@@ -200,7 +204,29 @@ export const Field = <T extends object>({
           {LabelAndDescription}
           {items.map((item, index) => (
             <FieldItem last={index === items.length - 1} key={item.value}>
-              <Radio value={item.value}>{item.label}</Radio>
+              <Radio
+                value={item.value}
+                alignment={item.description ? 'top' : undefined}
+              >
+                <div
+                  className={css({
+                    display: 'flex',
+                    flexDirection: 'column',
+                  })}
+                >
+                  {item.label}
+                  {item.description && (
+                    <Text
+                      variant="note"
+                      className={css({
+                        textStyle: 'sm',
+                      })}
+                    >
+                      {item.description}
+                    </Text>
+                  )}
+                </div>
+              </Radio>
             </FieldItem>
           ))}
           {RACFieldErrors}

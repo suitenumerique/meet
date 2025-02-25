@@ -63,6 +63,14 @@ export const StyledRadio = styled(RACRadio, {
         },
       },
     },
+    alignment: {
+      top: {
+        alignItems: 'start',
+        '& .mt-Radio': {
+          marginTop: '3px',
+        },
+      },
+    },
   },
 })
 
