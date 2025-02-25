@@ -176,7 +176,17 @@
     "description": "These organizer settings allow you to maintain control of your meeting. Only organizers can access these controls.",
     "access": {
       "title": "Room access",
-      "description": "These settings will also apply to future occurrences of this meeting."
+      "description": "These settings will also apply to future occurrences of this meeting.",
+      "levels": {
+        "public": {
+          "label": "Open",
+          "description": "No one needs to request to join the meeting."
+        },
+        "restricted": {
+          "label": "Restricted",
+          "description": "People who have not been invited to the meeting must request to join."
+        }
+      }
     }
   },
   "rating": {

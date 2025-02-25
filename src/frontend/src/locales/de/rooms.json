@@ -177,7 +177,17 @@
     "description": "",
     "access": {
       "title": "",
-      "description": ""
+      "description": "",
+      "levels": {
+        "public": {
+          "label": "",
+          "description": ""
+        },
+        "restricted": {
+          "label": "",
+          "description": ""
+        }
+      }
     }
   },
   "rating": {
