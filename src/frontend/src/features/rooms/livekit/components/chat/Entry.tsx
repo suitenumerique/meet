@@ -19,7 +19,6 @@ export const ChatEntry: (
   { entry, hideMetadata = false, messageFormatter, ...props }: ChatEntryProps,
   ref
 ) {
-  // Fixme - Livekit messageFormatter strips '\n' char
   const formattedMessage = React.useMemo(() => {
     return messageFormatter ? messageFormatter(entry.message) : entry.message
   }, [entry.message, messageFormatter])
@@ -58,6 +57,7 @@ export const ChatEntry: (
         variant="sm"
         margin={false}
         className={css({
+          whiteSpace: 'pre-wrap',
           '& .lk-chat-link': {
             color: 'blue',
             textDecoration: 'underline',
