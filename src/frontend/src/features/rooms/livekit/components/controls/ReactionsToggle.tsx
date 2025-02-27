@@ -13,7 +13,8 @@ import {
 import { Toolbar as RACToolbar } from 'react-aria-components'
 import { Participant } from 'livekit-client'
 
-const EMOJIS = ['👍', '👎', '👏', '❤️', '😂', '😮', '🎉']
+// eslint-disable-next-line react-refresh/only-export-components
+export const EMOJIS = ['👍', '👎', '👏', '❤️', '😂', '😮', '🎉']
 
 export interface Reaction {
   id: number
@@ -144,7 +145,6 @@ export const ReactionsToggle = () => {
           </div>
         )}
       </div>
-
       <ReactionPortals reactions={reactions} />
     </>
   )

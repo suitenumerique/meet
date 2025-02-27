@@ -7,7 +7,10 @@ import { NotificationDuration } from './NotificationDuration'
 import { Div } from '@/primitives'
 import { ChatMessage, isMobileBrowser } from '@livekit/components-core'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
-import { Reaction } from '@/features/rooms/livekit/components/controls/ReactionsToggle'
+import {
+  EMOJIS,
+  Reaction,
+} from '@/features/rooms/livekit/components/controls/ReactionsToggle'
 import {
   ANIMATION_DURATION,
   ReactionPortals,
@@ -44,7 +47,7 @@ export const MainNotificationToast = () => {
   }, [room, triggerNotificationSound])
 
   const handleEmoji = (emoji: string, participant: Participant) => {
-    if (!emoji) return
+    if (!emoji || !EMOJIS.includes(emoji)) return
     const id = instanceIdRef.current++
     setReactions((prev) => [
       ...prev,
