@@ -149,39 +149,3 @@ export const ReactionsToggle = () => {
     </>
   )
 }
-
-// export const ReactionsToolBar = () => {
-//   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
-//
-//   const [reactions, setReactions] = useState<Reaction[]>([])
-//   const instanceIdRef = useRef(0)
-//   const room = useRoomContext()
-//
-//   const sendReaction = async (emoji: string) => {
-//     const encoder = new TextEncoder()
-//     const payload: NotificationPayload = {
-//       type: NotificationType.ReactionReceived,
-//       data: {
-//         emoji: emoji,
-//       },
-//     }
-//     const data = encoder.encode(JSON.stringify(payload))
-//     await room.localParticipant.publishData(data, { reliable: true })
-//
-//     const newReaction = {
-//       id: instanceIdRef.current++,
-//       emoji,
-//       participant: room.localParticipant,
-//     }
-//     setReactions((prev) => [...prev, newReaction])
-//
-//     // Remove this reaction after animation
-//     setTimeout(() => {
-//       setReactions((prev) =>
-//         prev.filter((instance) => instance.id !== newReaction.id)
-//       )
-//     }, ANIMATION_DURATION)
-//   }
-//
-//   return <></>
-// }
