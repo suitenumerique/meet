@@ -4,14 +4,12 @@ import { HStack, Stack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/primitives'
 import { SettingsButton } from '@/features/settings'
-import { logoutUrl, useUser } from '@/features/auth'
+import { useUser } from '@/features/auth'
 import { useMatchesRoute } from '@/navigation/useMatchesRoute'
 import { FeedbackBanner } from '@/components/FeedbackBanner'
 import { Menu } from '@/primitives/Menu'
 import { MenuList } from '@/primitives/MenuList'
 import { ProConnectButton } from '@/components/ProConnectButton'
-import { terminateAnalyticsSession } from '@/features/analytics/hooks/useAnalytics'
-import { terminateSupportSession } from '@/features/support/hooks/useSupport'
 
 import LogoAsset from '@/assets/logo.svg'
 
@@ -97,7 +95,7 @@ export const Header = () => {
   const { t } = useTranslation()
   const isHome = useMatchesRoute('home')
   const isRoom = useMatchesRoute('room')
-  const { user, isLoggedIn } = useUser()
+  const { user, isLoggedIn, logout } = useUser()
 
   return (
     <>
@@ -173,9 +171,7 @@ export const Header = () => {
                     items={[{ value: 'logout', label: t('logout') }]}
                     onAction={(value) => {
                       if (value === 'logout') {
-                        terminateAnalyticsSession()
-                        terminateSupportSession()
-                        window.location.href = logoutUrl()
+                        logout()
                       }
                     }}
                   />

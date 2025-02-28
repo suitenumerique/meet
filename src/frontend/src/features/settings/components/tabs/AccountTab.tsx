@@ -1,7 +1,7 @@
 import { A, Badge, Button, DialogProps, Field, H, P } from '@/primitives'
 import { Trans, useTranslation } from 'react-i18next'
 import { useRoomContext } from '@livekit/components-react'
-import { logoutUrl, useUser } from '@/features/auth'
+import { useUser } from '@/features/auth'
 import { css } from '@/styled-system/css'
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import { HStack } from '@/styled-system/jsx'
@@ -16,7 +16,7 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   const { t } = useTranslation('settings')
   const { saveUsername } = usePersistentUserChoices()
   const room = useRoomContext()
-  const { user, isLoggedIn } = useUser()
+  const { user, isLoggedIn, logout } = useUser()
   const [name, setName] = useState(room?.localParticipant.name || '')
 
   const handleOnSubmit = () => {
@@ -51,7 +51,7 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
             />
           </P>
           <P>
-            <A href={logoutUrl()}>{t('logout', { ns: 'global' })}</A>
+            <A onPress={logout}>{t('logout', { ns: 'global' })}</A>
           </P>
         </>
       ) : (
