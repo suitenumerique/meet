@@ -172,6 +172,12 @@
     "heading": "Merci pour votre retour",
     "body": "Notre équipe produit prend le temps d'analyser attentivement vos réponses. Nous reviendrons vers vous dans les plus brefs délais."
   },
+  "authenticationMessage": {
+    "heading": "Comment pouvons-nous vous recontacter ?",
+    "placeholder": "Votre email",
+    "submit": "Envoyer",
+    "ignore": "Ignorer"
+  },
   "participants": {
     "subheading": "Dans la réunion",
     "you": "Vous",

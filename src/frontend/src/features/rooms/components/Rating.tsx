@@ -1,5 +1,5 @@
-import { Button, H, Text, TextArea } from '@/primitives'
-import { useEffect, useState } from 'react'
+import { Button, H, Input, Text, TextArea } from '@/primitives'
+import { useEffect, useMemo, useState } from 'react'
 import { cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { styled, VStack } from '@/styled-system/jsx'
@@ -237,8 +237,73 @@ const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
   )
 }
 
+const AuthenticationMessage = ({
+  onNext,
+  posthog,
+}: {
+  onNext: () => void
+  posthog: PostHog
+}) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'authenticationMessage' })
+
+  const [email, setEmail] = useState('')
+
+  const onSubmit = () => {
+    posthog.people.set({ unsafe_email: email })
+    onNext()
+  }
+
+  return (
+    <Card
+      style={{
+        maxWidth: '380px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+      }}
+    >
+      <H lvl={3}>{t('heading')}</H>
+      <Input
+        id="emailInput"
+        name="email"
+        placeholder={t('placeholder')}
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={{
+          marginBottom: '1rem',
+        }}
+      />
+      <VStack gap="0.5">
+        <Button
+          variant="primary"
+          size="sm"
+          fullWidth
+          isDisabled={!email}
+          onPress={onSubmit}
+        >
+          {t('submit')}
+        </Button>
+        <Button
+          invisible
+          variant="secondary"
+          size="sm"
+          fullWidth
+          onPress={onNext}
+        >
+          {t('ignore')}
+        </Button>
+      </VStack>
+    </Card>
+  )
+}
+
 export const Rating = () => {
   const posthog = usePostHog()
+
+  const isUserAnonymous = useMemo(() => {
+    return posthog.get_property('$user_state') == 'anonymous'
+  }, [posthog])
 
   const [step, setStep] = useState(0)
 
@@ -251,6 +316,17 @@ export const Rating = () => {
   }
 
   if (step == 2) {
+    return isUserAnonymous ? (
+      <AuthenticationMessage
+        posthog={posthog}
+        onNext={() => setStep(step + 1)}
+      />
+    ) : (
+      <ConfirmationMessage onNext={() => setStep(0)} />
+    )
+  }
+
+  if (step == 3) {
     return <ConfirmationMessage onNext={() => setStep(0)} />
   }
 }

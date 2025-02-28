@@ -172,6 +172,12 @@
     "heading": "Thank you for your submission",
     "body": "Our product team takes the time to carefully review your feedback. We will get back to you as soon as possible."
   },
+  "authenticationMessage": {
+    "heading": "How can we contact you?",
+    "placeholder": "Your email",
+    "submit": "Send",
+    "ignore": "Ignore"
+  },
   "participants": {
     "subheading": "In room",
     "you": "You",

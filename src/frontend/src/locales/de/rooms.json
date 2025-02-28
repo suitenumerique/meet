@@ -173,6 +173,12 @@
     "heading": "",
     "body": ""
   },
+  "authenticationMessage": {
+    "heading": "",
+    "placeholder": "",
+    "submit": "",
+    "ignore": ""
+  },
   "participants": {
     "subheading": "",
     "contributors": "",
