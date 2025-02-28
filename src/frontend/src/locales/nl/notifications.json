@@ -1,0 +1,19 @@
+{
+  "defaultName": "Een deelnemer",
+  "joined": {
+    "description": "{{name}} is in de ruimte gekomen"
+  },
+  "raised": {
+    "description": "{{name}} heeft een hand opgestoken.",
+    "cta": "Open wachtlijst"
+  },
+  "muted": "{{name}} heeft uw microfoon gedempt. Deelnemers kunnen u niet horen.",
+  "openChat": "Open chat",
+  "lowerHand": {
+    "auto": "Het lijkt erop dat u bent begonnen te spreken, dus we laten uw hand zakken.",
+    "dismiss": "Houdt uw hand opgestoken"
+  },
+  "reaction": {
+    "description": "{{name}} reageerde met {{emoji}}"
+  }
+}

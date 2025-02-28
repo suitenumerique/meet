@@ -1,0 +1,212 @@
+{
+  "feedback": {
+    "heading": "Je hebt de vergadering verlaten",
+    "home": "Keer terug naar het hoofdscherm",
+    "back": "Sluit weer bij de vergadering aan"
+  },
+  "join": {
+    "videoinput": {
+      "choose": "Selecteer camera",
+      "disable": "Camera uitschakelen",
+      "enable": "Camera inschakelen",
+      "label": "Camera",
+      "placeholder": "Schakel de camera in om de preview te zien"
+    },
+    "audioinput": {
+      "choose": "Selecteer microfoon",
+      "disable": "Microfoon dempen",
+      "enable": "Microfoon dempen opheffen",
+      "label": "Microfoon"
+    },
+    "effects": {
+      "description": "Pas effecten toe",
+      "title": "Effecten",
+      "subTitle": "Configureer de effecten van uw camera."
+    },
+    "heading": "Deelnemen aan de vergadering",
+    "joinLabel": "Deelnemen",
+    "joinMeeting": "Deelnemen aan de vergadering",
+    "toggleOff": "Klik om uit te schakelen",
+    "toggleOn": "Klik om in te schakelen",
+    "usernameHint": "Getoond aan andere deelnemers",
+    "usernameLabel": "Uw naam",
+    "errors": {
+      "usernameEmpty": "Uw naam kan niet leeg zijn"
+    },
+    "cameraDisabled": "Camera is uitgeschakeld.",
+    "cameraStarting": "Camera wordt ingeschakeld."
+  },
+  "leaveRoomPrompt": "Dat zal u de vergadering doen verlaten.",
+  "shareDialog": {
+    "copy": "Kopieer de vergaderlink",
+    "copyButton": "Kopieerlink",
+    "copied": "Link gekopieerd naar het klembord",
+    "heading": "Uw vergadering is klaar",
+    "description": "Deel deze link met mensen die u wilt uitnodigen voor de vergadering.",
+    "permissions": "Mensen met deze link hebben uw toestemming niet nodig om deel te nemen aan deze vergadering."
+  },
+  "error": {
+    "createRoom": {
+      "heading": "Verificatie vereist",
+      "body": "Deze ruimte is nog niet gemaakt. Logt u alstublieft in om hem aan te maken, of wacht tot een ingelogde gebruiker dat doet."
+    }
+  },
+  "controls": {
+    "microphone": "Microfoon",
+    "camera": "Camera",
+    "chat": {
+      "open": "Sluit de chat",
+      "closed": "Open de chat",
+      "input": {
+        "textArea": {
+          "label": "Voer een bericht in",
+          "placeholder": "Voer een bericht in"
+        },
+        "button": {
+          "label": "Stuur bericht"
+        }
+      }
+    },
+    "hand": {
+      "raise": "Hand opsteken",
+      "lower": "Hand laten zakken"
+    },
+    "screenShare": {
+      "start": "Scherm delen",
+      "stop": "Stop schermdelen"
+    },
+    "leave": "Vertrekken",
+    "participants": {
+      "open": "Verberg iedereen",
+      "closed": "Toon iedereen"
+    },
+    "transcript": {
+      "open": "Verberg AI-assistent",
+      "closed": "Toon AI-assistant"
+    },
+    "support": "Ondersteuning",
+    "moreOptions": "Meer opties",
+    "reactions": {
+      "button": "Stuur reactie",
+      "send": "Stuur reactie {{emoji}}",
+      "you": "U"
+    }
+  },
+  "options": {
+    "buttonLabel": "Meer opties",
+    "items": {
+      "feedback": "Geef ons feedback",
+      "settings": "Instellingen",
+      "username": "Verander uw naam",
+      "effects": "Pas effecten toe",
+      "switchCamera": "Selecteer camera",
+      "fullscreen": {
+        "enter": "Volledig scherm",
+        "exit": "Stop volledig scherm stand"
+      }
+    }
+  },
+  "effects": {
+    "activateCamera": "Uw camera is uitgeschakeld. Kies een optie om hem in te schakelen.",
+    "notAvailable": "Video-effecten zijn binnenkort beschikbaar in uw browser. We werken hier aan! Ondertussen kunt u Chrome gebruiken voor de beste prestaties, of Firefox :(",
+    "heading": "Vervaging",
+    "blur": {
+      "title": "Achtergrond vervagen",
+      "light": "Licht vervagen",
+      "normal": "Vervagen",
+      "apply": "Schakel vervaging in",
+      "clear": "Schakel vervaging uit"
+    },
+    "virtual": {
+      "title": "Virtuele achtergrond",
+      "apply": "Schakel virtuele achtergrond in",
+      "clear": "Schakel virtuele achtergrond uit"
+    },
+    "experimental": "Experimentele functionaliteit. Een v2 komt er aan met volledige browser-ondersteuning en verbeterde kwaliteit."
+  },
+  "sidePanel": {
+    "heading": {
+      "participants": "Deelnemers",
+      "effects": "Effecten",
+      "chat": "Berichten in de chat",
+      "transcript": "AI-assistent"
+    },
+    "content": {
+      "participants": "deelnemers",
+      "effects": "effecten",
+      "chat": "berichten",
+      "transcript": "AI-assistent"
+    },
+    "closeButton": "Verberg {{content}}"
+  },
+  "chat": {
+    "disclaimer": "De berichten zijn alleen voor de deelnemers zichtbaar op het moment dat ze worden verzonden. Alle berichten worden verwijderd aan het einde van het gesprek."
+  },
+  "transcript": {
+    "start": {
+      "heading": "Start de assistent!",
+      "body": "De assistent begint automatisch de audio van uw vergadering op te nemen (beperkt tot 1 uur). Na afloop krijgt u direct een heldere en beknopte samenvatting van de discussies in uw e-mail.",
+      "button": "Start"
+    },
+    "stop": {
+      "heading": "Opname loopt ...",
+      "body": "Uw vergadering wordt momenteel opgenomen. U ontvangt een samenvatting via e-mail, zo gauw de vergarding gesloten wordt.",
+      "button": "Stop met opname"
+    }
+  },
+  "rating": {
+    "submit": "Indienen",
+    "question": "Wat vindt u van de kwaliteit van het gesprek?",
+    "levels": {
+      "min": "erg slecht",
+      "max": "uitstekend"
+    }
+  },
+  "openFeedback": {
+    "question": "Wat kunnen we doen om Visio te verbeteren?",
+    "placeholder": "Beschrijf uw problemen of deel uw suggesties ...",
+    "submit": "Indienen",
+    "skip": "Overslaan"
+  },
+  "confirmationMessage": {
+    "heading": "Bedankt voor uw inzending",
+    "body": "Ons productteam neemt de tijd om uw feedback zorgvuldig te bekijken. We zullen zo snel mogelijk antwoorden."
+  },
+  "participants": {
+    "subheading": "In de ruimte",
+    "you": "U",
+    "contributors": "Deelnemers",
+    "collapsable": {
+      "open": "Open {{name}} lijst",
+      "close": "Sluit {{name}} lijst"
+    },
+    "muteYourself": "Uw microfoon dempen",
+    "muteParticipant": "Demp de microfoon van {{name}}",
+    "muteParticipantAlert": {
+      "heading": "Demp {{name}}",
+      "description": "Demp {{name}} voor alle deelnemers? {{name}} zal de enige zijn die dempen voor zichzelf kan opheffen.",
+      "confirm": "Dempen",
+      "cancel": "Annuleren"
+    },
+    "raisedHands": "Opgestoken handen",
+    "lowerParticipantHand": "Laat {{name}}'s hand zakken",
+    "lowerParticipantsHand": "Laat alle handen zakken"
+  },
+  "recording": {
+    "label": "Opnemen"
+  },
+  "participantTileFocus": {
+    "pin": {
+      "enable": "Pinnen",
+      "disable": "Losmaken"
+    },
+    "effects": "Pas visuele effecten toe",
+    "muteParticipant": "Demp {{name}}",
+    "fullScreen": "Volledig scherm"
+  },
+  "fullScreenWarning": {
+    "message": "Om niet oneindige uw scherm in zichzelf te delen, kunt u beter niet het hele scherm delen. Deel in plaats daarvan een tab of een ander venster.",
+    "stop": "Stop met presenteren",
+    "ignore": "Negeren"
+  }
+}
