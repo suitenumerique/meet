@@ -275,6 +275,7 @@ export const EffectsConfiguration = ({
                     isSelected={isSelected(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.LIGHT,
                     })}
+                    data-attr="toggle-blur-light"
                   >
                     <BlurOn />
                   </ToggleButton>
@@ -295,6 +296,7 @@ export const EffectsConfiguration = ({
                     isSelected={isSelected(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.NORMAL,
                     })}
+                    data-attr="toggle-blur-normal"
                   >
                     <BlurOnStrong />
                   </ToggleButton>
@@ -349,7 +351,8 @@ export const EffectsConfiguration = ({
                         style={{
                           backgroundImage: `url(${thumbnailPath})`,
                         }}
-                      ></ToggleButton>
+                        data-attr={`toggle-virtual-${i}`}
+                      />
                     )
                   })}
                 </div>

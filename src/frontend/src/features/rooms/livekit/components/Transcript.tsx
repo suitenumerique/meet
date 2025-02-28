@@ -77,7 +77,11 @@ export const Transcript = () => {
             {t('stop.body')}
           </Text>
           <div className={css({ height: '2rem' })} />
-          <Button isDisabled={isLoading} onPress={() => handleTranscript()}>
+          <Button
+            isDisabled={isLoading}
+            onPress={() => handleTranscript()}
+            data-attr="stop-transcript"
+          >
             <RiStopCircleLine style={{ marginRight: '0.5rem' }} />{' '}
             {t('stop.button')}
           </Button>
@@ -89,7 +93,11 @@ export const Transcript = () => {
             {t('start.body')}
           </Text>
           <div className={css({ height: '2rem' })} />
-          <Button isDisabled={isLoading} onPress={() => handleTranscript()}>
+          <Button
+            isDisabled={isLoading}
+            onPress={() => handleTranscript()}
+            data-attr="start-transcript"
+          >
             <RiRecordCircleLine style={{ marginRight: '0.5rem' }} />{' '}
             {t('start.button')}
           </Button>

@@ -130,6 +130,7 @@ export const ReactionsToggle = () => {
                   aria-label={t('send', { emoji })}
                   variant="quaternaryText"
                   size="sm"
+                  data-attr={`send-reaction-${emoji}`}
                 >
                   <span
                     className={css({

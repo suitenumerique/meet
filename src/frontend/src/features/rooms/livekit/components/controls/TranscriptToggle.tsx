@@ -38,6 +38,7 @@ export const TranscriptToggle = ({
           onPress?.(e)
         }}
         {...props}
+        data-attr="toggle-transcript"
       >
         <RiBardLine />
       </ToggleButton>
