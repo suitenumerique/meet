@@ -40,9 +40,9 @@ export function ToastMessageReceived({ state, ...props }: ToastProps) {
             padding: '14px',
             gap: '0.75rem',
             textAlign: 'start',
-            width: '150px',
+            width: '250px',
             md: {
-              width: '260px',
+              width: '350px',
             },
           })}
         >
