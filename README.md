@@ -1,157 +1,113 @@
-# Meet
-
-Meet is a simple video and phone conferencing tool, powered by [LiveKit](https://livekit.io/).
-
-Meet is built on top of [Django Rest
-Framework](https://www.django-rest-framework.org/) and [Vite.js](https://vitejs.dev/).
-
-## Getting started
-
-### Prerequisite
-
-#### Docker
-
-Make sure you have a recent version of Docker and [Docker
-Compose](https://docs.docker.com/compose/install) installed on your laptop:
-
-```bash
-$ docker -v
-  Docker version 20.10.2, build 2291f61
-
-$ docker compose -v
-  docker compose version 1.27.4, build 40524192
-```
-
-> ⚠️ You may need to run the following commands with `sudo` but this can be
-> avoided by assigning your user to the `docker` group.
-
-#### LiveKit CLI
-
-Install LiveKit CLI, which provides utilities for interacting with the LiveKit ecosystem (including the server, egress, and more), please follow the instructions available in the [official repository](https://github.com/livekit/livekit-cli).
-
-### Project bootstrap
-
-The easiest way to start working on the project is to use GNU Make:
-
-```bash
-$ make bootstrap FLUSH_ARGS='--no-input'
-```
-
-Then you can access to the project in development mode by going to http://localhost:3000.
-You will be prompted to log in, the default credentials are:
-```bash
-username: meet
-password: meet
-```
----
-
-This command builds the `app` container, installs dependencies, performs
-database migrations and compile translations. It's a good idea to use this
-command each time you are pulling code from the project repository to avoid
-dependency-related or migration-related issues.
-
-Your Docker services should now be up and running 🎉
-
-[FIXME] Explain how to run the frontend project.
-
-### Configure LiveKit CLI
-
-For the optimal DX, create a default project named `meet` to use with `livekit-cli` commands:
-```bash
-$ livekit-cli project add
-URL: http://localhost:7880
-API Key: devkey
-API Secret: secret
-Give it a name for later reference: meet
-? Make this project default?? [y/N] y
-```
-
-Thus, you won't need to pass the project API Key and API Secret for each command.
+<p align="center">
+  <img alt="posthoglogo" src="./docs/assets/visio-logo.png" maxWidth="100%">
+</p>
 
 
-### Adding content
+<p align="center">
+  <a href="https://github.com/suitenumerique/meet/stargazers/">
+    <img src="https://img.shields.io/github/stars/suitenumerique/meet" alt="">
+  </a>
+  <a href='http://makeapullrequest.com'><img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/></a>
+  <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/suitenumerique/meet"/>
+  <img alt="GitHub closed issues" src="https://img.shields.io/github/issues-closed/suitenumerique/meet"/>
+  <a href="https://github.com/suitenumerique/meet/blob/main/LICENSE">
+    <img alt="GitHub closed issues" src="https://img.shields.io/github/license/suitenumerique/meet"/>
+  </a>    
+</p>
 
-You can create a basic demo site by running:
+<p align="center">
+  <a href="https://livekit.io/">LiveKit</a> - <a href="https://go.crisp.chat/chat/embed/?website_id=58ea6697-8eba-4492-bc59-ad6562585041">Chat with us</a> - <a href="https://github.com/orgs/suitenumerique/projects/3/views/2">Roadmap</a> - <a href="https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md">Changelog</a> - <a href="https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md">Bug reports</a> 
+</p>
 
-```bash
-$ make demo
-```
+<p align="center">
+  <a href="https://visio.numerique.gouv.fr/">
+    <img src="https://github.com/user-attachments/assets/09c1faa1-de88-4848-af3a-6fbe793999bf" alt="Visio Demonstration">
+  </a>
+</p>
 
-Finally, you can check all available Make rules using:
+## Visio: Simple Video Conferencing
 
-```bash
-$ make help
-```
-
-### Django admin
-
-You can access the Django admin site at
-[http://localhost:8071/admin](http://localhost:8071/admin).
-
-You first need to create a superuser account:
-
-```bash
-$ make superuser
-```
-
-### Run application on local Kubernetes
-
-The application is deployed across staging, preprod, and production environments using Kubernetes (K8s).
-Reproducing environment conditions locally is crucial for developing new features or debugging issues.
-
-This is facilitated by [Tilt](https://tilt.dev/) ("Kubernetes for Prod, Tilt for Dev").  Tilt enables smart rebuilds and live updates for services running locally in Kubernetes.  We defined our services in a Tiltfile located at `bin/Tiltfile`.
+Powered by [LiveKit](https://livekit.io/), Visio offers Zoom-level performance with high-quality video and audio. No installation required—simply join calls directly from your browser. Check out LiveKit's impressive optimizations in their [blog post](https://blog.livekit.io/livekit-one-dot-zero/).
+### Features
+- Optimized for stability in large meetings (+100 p.)
+- Support for multiple screen sharing streams
+- Non-persistent, secure chat
+- End-to-end encryption (coming soon)
+- Meeting recording (coming soon)
+- Meeting transcription (currently in beta)
+- Telephony integration (in development)
+- Secure participation with robust authentication and access control
+- LiveKit Advances features including :
+  - speaker detection 
+  - simulcast 
+  - end-to-end optimizations 
+  - selective subscription
+  - SVC codecs (VP9, AV1)
 
 
-#### Getting Started
+Visio is fully self-hostable and released under the MIT License, ensuring complete control and flexibility. It's free to [get started](https://visio.numerique.gouv.fr/) or [request a demo](mailto:visio@numerique.gouv.fr). 
 
-Make sure you have installed:
-- kubectl
-- helm
-- helmfile
-- tilt
+We’re continuously adding new features to enhance your experience, with the latest updates coming soon!
 
-To build and start the Kubernetes cluster using Kind:
-```shell
-$ make build-k8s-cluster 
-```
 
-Once the Kubernetes cluster is ready, start the application stack locally:
-```shell
-$ make start-tilt
-or
-$ make start-tilt-keycloak # start stack without Pro Connect, use keycloak
-```
-These commands set up and run your application environment using Tilt for local Kubernetes development.
+## Table of Contents
 
-You can monitor Tilt's at `http://localhost:10350/`. After Tilt actions finish, you can access the app at `https://meet.127.0.0.1.nip.io/`.
+- [Get started for free](#get-started-for-free)
+- [Docs](#docs)
+- [Contributing](#contributing)
+- [Philosophy](#philosophy)
+- [Open-source](#open-source)
 
-#### Debugging frontend
 
-Tilt deploys the `meet-dev` for the frontend by default, to benefit from Vite.js hot reloading while developing. 
-To troubleshoot production issues, please modify the Tiltfile, switch frontend's target to `frontend-production`:
+## Get started for free
 
-```yaml
-...
+### Visio Cloud (Recommended)
+Sign up for Visio Cloud, designed for European public servants. Hosted on SecNumCloud-compliant providers and accessible via government SSO, [ProConnect](https://www.proconnect.gouv.fr/). Start for free. Reach out if your entity isn't connected yet to our sso.
 
-docker_build(
-    'localhost:5001/meet-frontend:latest',
-    context='..',
-    dockerfile='../src/frontend/Dockerfile',
-    only=['./src/frontend', './docker', './.dockerignore'],
-    target='frontend-production',  # Update this line when needed
-    live_update=[
-        sync('../src/frontend', '/home/frontend'),
-    ]
-)
-...
-```
+### Open-source deploy (Advanced)
+
+Deploy Visio on your own infrastructure using [our self-hosting guide](https://github.com/suitenumerique/meet/blob/main/docs/installation.md). Our open-source deployment is optimized for Kubernetes, and we're working on supporting additional deployment options. Keycloak integration and any SSO are supported. We offer customer support for open-source setups—just reach out for assistance.  
+
+## Docs
+
+We're currently working on both technical and user documentation for Visio. In the meantime, many of the essential aspects are already well covered by the [LiveKit documentation](https://docs.livekit.io/home/) and their [self-hosting guide](https://docs.livekit.io/home/self-hosting/deployment/). Stay tuned for more updates!
 
 ## Contributing
 
-This project is intended to be community-driven, so please, do not hesitate to
-get in touch if you have any question related to our implementation or design
-decisions.
+We <3 contributions big and small:
 
-## License
+- Vote on features or get early access to beta functionality in our [roadmap](https://github.com/orgs/suitenumerique/projects/3/views/2)
+- Open a PR (see our instructions on [developing Visio locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md))
+- Submit a [feature request](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=enhancement&template=Feature_request.md) or [bug report](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md)
 
-This work is released under the MIT License (see [LICENSE](./LICENSE)).
+
+## Philosophy
+
+We’re relentlessly focused on building the best open-source video conferencing product—Visio. Growth comes from creating something people truly need, not just from chasing metrics.
+
+Our users come first. We’re committed to making Visio as accessible and easy to use as proprietary solutions, ensuring it meets the highest standards.
+
+Most of the heavy engineering is handled by the incredible LiveKit team, allowing us to focus on delivering a top-tier product. We follow extreme programming practices, favoring pair programming and quick, iterative releases. Challenge our tech and architecture—simplicity is always our top priority.
+
+
+## Open-source
+
+Gov 🇫🇷 supports open source! This project is available under [MIT license](https://github.com/suitenumerique/meet/blob/0cc2a7b7b4f4821e2c4d9d790efa739622bb6601/LICENSE).
+
+All features we develop will always remain free, and we are committed to contributing back to the LiveKit community whenever feasible.
+To learn more, don't hesitate to [reach out](mailto:visio@numerique.gouv.fr).
+
+### Help us!
+
+Come help us make Visio even better. We're growing fast and [would love some help](mailto:visio@numerique.gouv.fr).
+
+
+## Contributors 🧞
+
+<a href="https://github.com/suitenumerique/meet/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=suitenumerique/meet" />
+</a>
+
+## Credits 
+
+We're using the awesome [LiveKit](https://livekit.io/) implementation. We're also thankful to the teams behind [Django Rest Framework](https://www.django-rest-framework.org/), [Vite.js](https://vite.dev/), and [React Aria](https://github.com/adobe/react-spectrum) — Thanks for your amazing work!
