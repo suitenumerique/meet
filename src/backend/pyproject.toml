@@ -25,7 +25,7 @@ license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "boto3==1.37.2",
+    "boto3==1.37.4",
     "Brotli==1.1.0",
     "brevo-python==1.1.2",
     "celery[redis]==5.4.0",
@@ -70,21 +70,21 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "django-extensions==3.2.3",
-    "drf-spectacular-sidecar==2025.2.1",
+    "drf-spectacular-sidecar==2025.3.1",
     "freezegun==1.5.1",
     "ipdb==0.13.13",
-    "ipython==8.32.0",
+    "ipython==9.0.1",
     "pyfakefs==5.7.4",
     "pylint-django==2.6.1",
     "pylint==3.3.4",
     "pytest-cov==6.0.0",
     "pytest-django==4.10.0",
-    "pytest==8.3.4",
+    "pytest==8.3.5",
     "pytest-icdiff==0.9",
     "pytest-xdist==3.6.1",
     "responses==0.25.6",
-    "ruff==0.9.7",
-    "types-requests==2.32.0.20241016",
+    "ruff==0.9.9",
+    "types-requests==2.32.0.20250301",
 ]
 
 [tool.setuptools]
