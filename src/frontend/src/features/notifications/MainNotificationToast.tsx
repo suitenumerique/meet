@@ -69,11 +69,11 @@ export const MainNotificationToast = () => {
       payload: Uint8Array,
       participant?: RemoteParticipant
     ) => {
-      const { type, data } = decodeNotificationDataReceived(payload)
+      const notification = decodeNotificationDataReceived(payload)
 
-      if (!participant) return
+      if (!participant || !notification) return
 
-      switch (type) {
+      switch (notification.type) {
         case NotificationType.ParticipantMuted:
           toastQueue.add(
             {
@@ -84,7 +84,8 @@ export const MainNotificationToast = () => {
           )
           break
         case NotificationType.ReactionReceived:
-          if (data?.emoji) handleEmoji(data.emoji, participant)
+          if (notification.data?.emoji)
+            handleEmoji(notification.data.emoji, participant)
           break
         default:
           return

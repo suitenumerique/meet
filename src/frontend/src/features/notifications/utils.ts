@@ -30,7 +30,22 @@ export const closeLowerHandToasts = () => {
 
 export const decodeNotificationDataReceived = (
   payload: Uint8Array
-): NotificationPayload => {
-  const decoder = new TextDecoder()
-  return JSON.parse(decoder.decode(payload))
+): NotificationPayload | undefined => {
+  if (!payload || !(payload instanceof Uint8Array)) {
+    throw new Error('Invalid payload: expected Uint8Array')
+  }
+  try {
+    const decoder = new TextDecoder()
+    const jsonString = decoder.decode(payload)
+    if (!jsonString || typeof jsonString !== 'string') {
+      throw new Error('Invalid decoded content')
+    }
+    // Parse with additional validation if needed
+    const parsed = JSON.parse(jsonString)
+    return parsed as NotificationPayload
+  } catch (error) {
+    // Handle errors appropriately for your application
+    console.error('Failed to decode notification payload:', error)
+    return
+  }
 }

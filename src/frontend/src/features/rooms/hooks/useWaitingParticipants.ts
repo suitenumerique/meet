@@ -23,8 +23,8 @@ export const useWaitingParticipants = () => {
   const isAdminOrOwner = useIsAdminOrOwner()
 
   const handleDataReceived = useCallback((payload: Uint8Array) => {
-    const { type } = decodeNotificationDataReceived(payload)
-    if (type === NotificationType.ParticipantWaiting) {
+    const notification = decodeNotificationDataReceived(payload)
+    if (notification?.type === NotificationType.ParticipantWaiting) {
       setListEnabled(true)
     }
   }, [])
