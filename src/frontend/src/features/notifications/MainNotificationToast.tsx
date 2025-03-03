@@ -18,6 +18,7 @@ import {
   ANIMATION_DURATION,
   ReactionPortals,
 } from '@/features/rooms/livekit/components/ReactionPortal'
+import { safeParseMetadata } from '@/features/rooms/utils/safeParseMetadata'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -145,10 +146,10 @@ export const MainNotificationToast = () => {
       if (isMobileBrowser()) return
       if (participant.isLocal) return
 
-      const prevMetadata = JSON.parse(prevMetadataStr || '{}')
-      const metadata = JSON.parse(participant.metadata || '{}')
+      const prevMetadata = safeParseMetadata(prevMetadataStr)
+      const metadata = safeParseMetadata(participant.metadata)
 
-      if (prevMetadata.raised == metadata.raised) return
+      if (prevMetadata?.raised == metadata?.raised) return
 
       const existingToast = toastQueue.visibleToasts.find(
         (toast) =>
