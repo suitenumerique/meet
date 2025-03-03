@@ -110,6 +110,16 @@ jobs:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:5
+        ports:
+          - 6379:6379
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     env:
       DJANGO_CONFIGURATION: Test
@@ -121,6 +131,7 @@ jobs:
       DB_USER: dinum
       DB_PASSWORD: pass
       DB_PORT: 5432
+      REDIS_URL: redis://localhost:6379/1
       STORAGES_STATICFILES_BACKEND: django.contrib.staticfiles.storage.StaticFilesStorage
       LIVEKIT_API_SECRET: secret
       LIVEKIT_API_KEY: devkey
