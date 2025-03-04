@@ -1,0 +1,49 @@
+{
+  "account": {
+    "currentlyLoggedAs": "U bent momenteel ingelogd als <0>{{user}}</0>",
+    "heading": "Account",
+    "youAreNotLoggedIn": "U bent niet ingelogd.",
+    "nameLabel": "Uw naam",
+    "authentication": "Authenticatie"
+  },
+  "audio": {
+    "microphone": {
+      "heading": "Microfoon",
+      "label": "Selecteer uw audioinvoer"
+    },
+    "speakers": {
+      "heading": "Luidsprekers",
+      "label": "Selecteer uw audio-uitvoer",
+      "test": "Test",
+      "ongoingTest": "Testgeluid ..."
+    },
+    "permissionsRequired": "Machtigingen vereist"
+  },
+  "notifications": {
+    "heading": "Geluidsmeldingen",
+    "label": "Geluidsmeldingen voor",
+    "actions": {
+      "disable": "Uitschakelen",
+      "enable": "Inschakelen"
+    },
+    "items": {
+      "participantJoined": "Deelnemer is toegevoegd",
+      "handRaised": "Hand opgestoken",
+      "messageReceived": "Bericht ontvangen"
+    }
+  },
+  "dialog": {
+    "heading": "Instellingen"
+  },
+  "language": {
+    "heading": "Taal",
+    "label": "Taal"
+  },
+  "settingsButtonLabel": "Instellingen",
+  "tabs": {
+    "account": "Profiel",
+    "audio": "Audio",
+    "general": "Algemeen",
+    "notifications": "Meldingen"
+  }
+}

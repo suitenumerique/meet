@@ -1,0 +1,43 @@
+{
+  "app": "Visio",
+  "backToHome": "Terug naar het hoofdscherm",
+  "cancel": "Annuleren",
+  "closeDialog": "Sluit het dialoogvenster",
+  "error": {
+    "heading": "Er is een fout opgetreden bij het laden van de pagina"
+  },
+  "feedback": {
+    "context": "Visio is nog in vroege ontwikkeling - uw input is belangrijk!",
+    "cta": "Deel uw feedback"
+  },
+  "forbidden": {
+    "heading": "U hebt geen toestemming om deze pagina te bekijken"
+  },
+  "loading": "Laden ...",
+  "loggedInUserTooltip": "Ingelogd als ...",
+  "login": {
+    "buttonLabel": "Log in met Proconnect",
+    "linkLabel": "Wat is ProConnect? ",
+    "link": "Wat is ProConnect?"
+  },
+  "logout": "Uitloggen",
+  "notFound": {
+    "heading": "Pagina niet gevonden"
+  },
+  "submit": "OK",
+  "footer": {
+    "links": {
+      "legifrance": "legifrance.gouv.fr",
+      "infogouv": "info.gouv.fr",
+      "servicepublic": "service-public.fr",
+      "datagouv": "data.gouv.fr",
+      "legalsTerms": "Wettelijke kennisgeving",
+      "data": "Persoonlijke gegevens en cookies",
+      "accessibility": "Toegankelijkheid: audit in uitvoering",
+      "ariaLabel": "nieuw venster",
+      "code": "Open Source Code Repository"
+    },
+    "mentions": "Tenzij anders vermeld, is de inhoud van deze site beschikbaar onder",
+    "license": "etalab 2.0 licentie"
+  }
+}

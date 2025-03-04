@@ -3,6 +3,6 @@
   "input": ["src/**/*.{ts,tsx}", "!src/styled-system/**/*", "!src/**/*.d.ts"],
   "output": "src/locales/$LOCALE/$NAMESPACE.json",
   "createOldCatalogs": false,
-  "locales": ["en", "fr", "de"],
+  "locales": ["en", "fr", "de", "nl"],
   "sort": true
 }

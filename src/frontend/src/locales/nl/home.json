@@ -1,0 +1,56 @@
+{
+  "createMeeting": "Maak een vergadering",
+  "heading": "Eenvoudige en veilige videoconferenties",
+  "intro": "Communiceer en werk gemakkelijk, zonder uw soevereiniteit in gevaar te brengen",
+  "joinInputError": "Gebruik een vergaderlink of code. Voorbeelden:",
+  "joinInputExample": "Een 10-lettercode zoals : abc-defg-hij",
+  "joinInputLabel": "Vergadering met link",
+  "joinInputSubmit": "Deelnemen aan de vergadering",
+  "joinMeeting": "Deelnemen aan een vergadering",
+  "joinMeetingTipContent": "U kunt deelnemen aan een vergadering door de volledige link in de adresbalk van de browser te plakken.",
+  "joinMeetingTipHeading": "Wist u dat?",
+  "loginToCreateMeeting": "Log in om een vergadering te maken",
+  "moreLinkLabel": "Meer informatie - nieuw tabblad",
+  "moreLink": "Meer informatie",
+  "moreAbout": "over Visio",
+  "createMenu": {
+    "laterOption": "Maak een vergadering voor een latere datum",
+    "instantOption": "Begin direct een vergadering"
+  },
+  "laterMeetingDialog": {
+    "heading": "Uw verbindingsgegevens",
+    "description": "Stuur deze link naar de mensen die u wilt uitnodigen voor de vergadering. Zij kunnen deelnemen zonder ProConnect.",
+    "copy": "Kopieer de vergaderlink",
+    "copied": "Link gekopieerd naar klembord",
+    "permissions": "Mensen met deze link hebben uw toestemming niet nodig om deel te nemen aan deze vergadering."
+  },
+  "introSlider": {
+    "previous": {
+      "label": "vorige",
+      "tooltip": "vorige"
+    },
+    "next": {
+      "label": "volgende",
+      "tooltip": "volgende"
+    },
+    "beta": {
+      "text": "Word lid van de bèta",
+      "tooltip": "Vul het formulier in"
+    },
+    "slide1": {
+      "title": "Probeer Visio om uw dagelijkse taken te vereenvoudigen",
+      "body": "Ontdek een intuïtieve en toegankelijke oplossing, ontworpen voor alle openbare partijen, hun partners en nog veel meer.",
+      "imgAlt": "Illustratie van een gebruiksvriendelijk en toegankelijk samenwerkingsplatform"
+    },
+    "slide2": {
+      "title": "Houdt groepsgesprekken zonder limieten",
+      "body": "Vergaderingen van onbeperkte lengte, met soepele en hoogwaardige communicatie, ongeacht de groepsgrootte.",
+      "imgAlt": "Afbeelding van een virtuele ontmoeting met meerdere deelnemers die naadloos samenwerken"
+    },
+    "slide3": {
+      "title": "Transformeer uw vergaderingen met AI",
+      "body": "Krijg nauwkeurige en bruikbare transcripties om uw productiviteit te stimuleren. Deze mogelijkheid is in bèta, probeer het nu!",
+      "imgAlt": "Illustratie van AI-aangedreven notitie in een virtuele vergadering"
+    }
+  }
+}
