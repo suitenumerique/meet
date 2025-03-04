@@ -2,7 +2,7 @@ import { Link } from 'wouter'
 import { css } from '@/styled-system/css'
 import { HStack, Stack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/primitives'
+import { Button, Text } from '@/primitives'
 import { SettingsButton } from '@/features/settings'
 import { useUser } from '@/features/auth'
 import { useMatchesRoute } from '@/navigation/useMatchesRoute'
@@ -12,6 +12,7 @@ import { MenuList } from '@/primitives/MenuList'
 import { ProConnectButton } from '@/components/ProConnectButton'
 
 import LogoAsset from '@/assets/logo.svg'
+import { useLoginHint } from '@/hooks/useLoginHint'
 
 const Marianne = () => {
   return (
@@ -91,6 +92,64 @@ const Logo = () => {
   )
 }
 
+const LoginHint = () => {
+  const { t } = useTranslation()
+  const { isVisible, closeLoginHint } = useLoginHint()
+  if (!isVisible) return null
+  return (
+    <div
+      className={css({
+        position: 'absolute',
+        top: '103px',
+        right: '110px',
+        zIndex: '100',
+        outline: 'none',
+        padding: '1.25rem',
+        maxWidth: '350px',
+        boxShadow: '0 2px 5px rgba(0 0 0 / 0.1)',
+        borderRadius: '1rem',
+        backgroundColor: 'primary.200',
+        display: 'none',
+        xsm: {
+          display: 'block',
+        },
+        sm: {
+          top: '131px',
+          right: '100px',
+          zIndex: '100',
+        },
+        _after: {
+          content: '""',
+          position: 'absolute',
+          top: '-10px',
+          right: '20%',
+          marginLeft: '-10px',
+          borderWidth: '0 10px 10px 10px',
+          borderStyle: 'solid',
+          borderColor: 'transparent transparent #E3E3FB transparent',
+        },
+      })}
+    >
+      <Text variant="h3" margin={false} bold>
+        {t('loginHint.title')}
+      </Text>
+      <Text variant="paragraph" margin={false}>
+        {t('loginHint.body')}
+      </Text>
+      <Button
+        aria-label={t('loginHint.button.ariaLabel')}
+        size="sm"
+        className={css({
+          marginLeft: 'auto',
+        })}
+        onPress={() => closeLoginHint()}
+      >
+        {t('loginHint.button.label')}
+      </Button>
+    </div>
+  )
+}
+
 export const Header = () => {
   const { t } = useTranslation()
   const isHome = useMatchesRoute('home')
@@ -144,7 +203,10 @@ export const Header = () => {
           <nav>
             <Stack gap={1} direction="row" align="center">
               {isLoggedIn === false && !isHome && (
-                <ProConnectButton hint={false} />
+                <>
+                  <ProConnectButton hint={false} />
+                  <LoginHint />
+                </>
               )}
               {!!user && (
                 <Menu>

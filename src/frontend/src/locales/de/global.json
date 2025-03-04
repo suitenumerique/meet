@@ -41,5 +41,13 @@
     },
     "mentions": "",
     "license": ""
+  },
+  "loginHint": {
+    "title": "",
+    "body": "",
+    "button": {
+      "ariaLabel": "",
+      "label": ""
+    }
   }
 }

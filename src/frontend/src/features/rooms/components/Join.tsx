@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { usePreviewTracks } from '@livekit/components-react'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
-import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LocalVideoTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { SelectToggleDevice } from '../livekit/components/controls/SelectToggleDevice'
@@ -26,6 +26,8 @@ import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/queryClient'
 import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
+import { ApiAccessLevel } from '../api/ApiRoom'
+import { useLoginHint } from '@/hooks/useLoginHint'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -264,10 +266,16 @@ export const Join = ({
     onAccepted: handleAccepted,
   })
 
+  const { openLoginHint } = useLoginHint()
+
   const handleSubmit = async () => {
     const { data } = await refetchRoom()
 
     if (!data?.livekit) {
+      // Display a message to inform the user that by logging in, they won't have to wait for room entry approval.
+      if (data?.access_level == ApiAccessLevel.TRUSTED) {
+        openLoginHint()
+      }
       startWaiting()
       return
     }

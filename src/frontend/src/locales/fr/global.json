@@ -41,5 +41,13 @@
     },
     "mentions": "Sauf mention contraire, les contenus de ce site sont disponibles sous",
     "license": "licence etalab 2.0"
+  },
+  "loginHint": {
+    "title": "Connectez-vous avec votre compte ProConnect",
+    "body": "Au lieu de patienter, connectez-vous avec votre compte ProConnect.",
+    "button": {
+      "ariaLabel": "Fermer la suggestion",
+      "label": "OK"
+    }
   }
 }
