@@ -7,7 +7,7 @@ import { LocalVideoTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { SelectToggleDevice } from '../livekit/components/controls/SelectToggleDevice'
 import { Field } from '@/primitives/Field'
-import { Button, Dialog, Text, Form, P } from '@/primitives'
+import { Button, Dialog, Text, Form } from '@/primitives'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { LocalUserChoices } from '../routes/Room'
 import { Heading } from 'react-aria-components'
@@ -293,7 +293,9 @@ export const Join = ({
             <H lvl={1} margin={false}>
               {t('timeoutInvite.title')}
             </H>
-            <P>{t('timeoutInvite.body')}</P>
+            <Text as="p" variant="note">
+              {t('timeoutInvite.body')}
+            </Text>
           </VStack>
         )
 
@@ -303,7 +305,9 @@ export const Join = ({
             <H lvl={1} margin={false}>
               {t('denied.title')}
             </H>
-            <P>{t('denied.body')}</P>
+            <Text as="p" variant="note">
+              {t('denied.body')}
+            </Text>
           </VStack>
         )
 
@@ -313,7 +317,13 @@ export const Join = ({
             <H lvl={1} margin={false}>
               {t('waiting.title')}
             </H>
-            <P>{t('waiting.body')}</P>
+            <Text
+              as="p"
+              variant="note"
+              className={css({ marginBottom: '1.5rem' })}
+            >
+              {t('waiting.body')}
+            </Text>
             <Spinner />
           </VStack>
         )
@@ -328,7 +338,7 @@ export const Join = ({
             }}
           >
             <VStack marginBottom={1}>
-              <H lvl={1} margin={false}>
+              <H lvl={1} margin="sm">
                 {t('heading')}
               </H>
               <Field
