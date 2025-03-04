@@ -84,6 +84,7 @@ class RoomAccessLevel(models.TextChoices):
     """Room access level choices."""
 
     PUBLIC = "public", _("Public Access")
+    TRUSTED = "trusted", _("Trusted Access")
     RESTRICTED = "restricted", _("Restricted Access")
 
 

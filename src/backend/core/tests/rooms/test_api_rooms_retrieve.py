@@ -36,6 +36,25 @@ def test_api_rooms_retrieve_anonymous_private_pk():
     }
 
 
+def test_api_rooms_retrieve_anonymous_trusted_pk():
+    """
+    Anonymous users should be allowed to retrieve a room that has a trusted access_level,
+    but should not be given any token.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
+    client = APIClient()
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "access_level": "trusted",
+        "id": str(room.id),
+        "is_administrable": False,
+        "name": room.name,
+        "slug": room.slug,
+    }
+
+
 def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
     """It should be possible to get a room by its id stripped of its dashes."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -172,7 +191,7 @@ def test_api_rooms_retrieve_anonymous_unregistered_not_allowed():
 )
 def test_api_rooms_retrieve_anonymous_public(mock_token):
     """
-    Anonymous users should be able to retrieve a room with a token provided it is public.
+    Anonymous users should be able to retrieve a room with a token provided, if the room is public.
     """
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
@@ -211,6 +230,50 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     They should not see related users.
     """
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(
+        f"/api/v1.0/rooms/{room.id!s}/",
+    )
+    assert response.status_code == 200
+
+    expected_name = f"{room.id!s}"
+    assert response.json() == {
+        "access_level": str(room.access_level),
+        "id": str(room.id),
+        "is_administrable": False,
+        "livekit": {
+            "url": "test_url_value",
+            "room": expected_name,
+            "token": "foo",
+        },
+        "name": room.name,
+        "slug": room.slug,
+    }
+
+    mock_token.assert_called_once_with(
+        room=expected_name, user=user, username=None, color=None
+    )
+
+
+@mock.patch("core.utils.generate_token", return_value="foo")
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+def test_api_rooms_retrieve_authenticated_trusted(mock_token):
+    """
+    Authenticated users should be allowed to retrieve a room and get a token for a room to
+    which they are not related, provided the room has a trusted access_level.
+    They should not see related users.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
 
     user = UserFactory()
     client = APIClient()

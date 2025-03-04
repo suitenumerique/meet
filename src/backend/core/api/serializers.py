@@ -128,7 +128,16 @@ class RoomSerializer(serializers.ModelSerializer):
         if not is_admin:
             del output["configuration"]
 
-        if role is not None or instance.is_public:
+        should_access_room = (
+            (
+                instance.access_level == models.RoomAccessLevel.TRUSTED
+                and request.user.is_authenticated
+            )
+            or role is not None
+            or instance.is_public
+        )
+
+        if should_access_room:
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
             output["livekit"] = utils.generate_livekit_config(

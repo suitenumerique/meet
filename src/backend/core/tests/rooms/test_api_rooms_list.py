@@ -17,6 +17,7 @@ pytestmark = pytest.mark.django_db
 def test_api_rooms_list_anonymous():
     """Anonymous users should not be able to list rooms."""
     RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    RoomFactory(access_level=RoomAccessLevel.TRUSTED)
     RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
     client = APIClient()
@@ -40,6 +41,7 @@ def test_api_rooms_list_authenticated():
     other_user = UserFactory()
 
     RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    RoomFactory(access_level=RoomAccessLevel.TRUSTED)
     RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     room_user_accesses = RoomFactory(
         access_level=RoomAccessLevel.RESTRICTED, users=[user]

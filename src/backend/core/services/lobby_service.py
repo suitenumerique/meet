@@ -14,7 +14,7 @@ from django.core.cache import cache
 from asgiref.sync import async_to_sync
 from livekit.api import LiveKitAPI, SendDataRequest, TwirpError  # pylint: disable=E0611
 
-from core import utils
+from core import models, utils
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +111,24 @@ class LobbyService:
                 samesite="Lax",
             )
 
+    @staticmethod
+    def can_bypass_lobby(room, user) -> bool:
+        """Determines if a user can bypass the waiting lobby and join a room directly.
+
+        A user can bypass the lobby if:
+        1. The room is public (open to everyone)
+        2. The room has TRUSTED access level and the user is authenticated
+
+        Note: Room access levels can change while participants are waiting in the lobby.
+        This function only checks the current state and should be called each time
+        a participant requests entry to ensure consistent access control, even for
+        participants who have already begun waiting.
+        """
+        return room.is_public or (
+            room.access_level == models.RoomAccessLevel.TRUSTED
+            and user.is_authenticated
+        )
+
     def request_entry(
         self,
         room,
@@ -133,7 +151,7 @@ class LobbyService:
         participant_id = self._get_or_create_participant_id(request)
         participant = self._get_participant(room.id, participant_id)
 
-        if room.is_public:
+        if self.can_bypass_lobby(room=room, user=request.user):
             if participant is None:
                 participant = LobbyParticipant(
                     status=LobbyParticipantStatus.ACCEPTED,
