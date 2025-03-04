@@ -180,7 +180,11 @@
       "levels": {
         "public": {
           "label": "Ouvrir",
-          "description": "Persone n'a à demander à rejoindre la réunion."
+          "description": "Persone n'a à demander pour rejoindre la réunion."
+        },
+        "trusted": {
+          "label": "Ouvrir aux personnes de confiance",
+          "description": "Les personnes authentifiées n'ont pas à demander pour rejoindre la réunion."
         },
         "restricted": {
           "label": "Restreindre",

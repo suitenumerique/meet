@@ -182,6 +182,10 @@
           "label": "Open",
           "description": "No one needs to request to join the meeting."
         },
+        "trusted": {
+          "label": "Open to trusted people",
+          "description": "Authenticated people do not need to request to join the meeting."
+        },
         "restricted": {
           "label": "Restricted",
           "description": "People who have not been invited to the meeting must request to join."

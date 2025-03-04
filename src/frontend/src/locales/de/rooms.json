@@ -183,6 +183,10 @@
           "label": "",
           "description": ""
         },
+        "trusted": {
+          "label": "",
+          "description": ""
+        },
         "restricted": {
           "label": "",
           "description": ""
