@@ -1,40 +1,33 @@
 import { ProgressBar } from 'react-aria-components'
 import { css } from '@/styled-system/css'
 
-// FIXME - this component will be style after the designer review
 export const Spinner = () => {
-  const center = 16
-  const strokeWidth = 4
-  const r = 16 - strokeWidth
+  const center = 14
+  const strokeWidth = 3
+  const r = 14 - strokeWidth
   const c = 2 * r * Math.PI
   return (
-    <ProgressBar aria-label="Loading…" value={75}>
+    <ProgressBar aria-label="Loading…" value={30}>
       {({ percentage }) => (
         <>
           <svg
-            width={64}
-            height={64}
-            viewBox="0 0 32 32"
+            width={56}
+            height={56}
+            viewBox="0 0 28 28"
             fill="none"
             strokeWidth={strokeWidth}
           >
             <circle
               cx={center}
               cy={center}
-              r={r - (strokeWidth / 2 - 0.25)}
+              r={r}
+              strokeDasharray={0}
+              strokeDashoffset={0}
+              strokeLinecap="round"
               className={css({
-                stroke: 'primary.300',
-                strokeWidth: 0.5,
+                stroke: 'primary.100',
               })}
-            />
-            <circle
-              cx={center}
-              cy={center}
-              r={r + (strokeWidth / 2 - 0.25)}
-              className={css({
-                stroke: 'primary.300',
-                strokeWidth: 0.5,
-              })}
+              style={{}}
             />
             <circle
               cx={center}
@@ -44,10 +37,10 @@ export const Spinner = () => {
               strokeDashoffset={percentage && c - (percentage / 100) * c}
               strokeLinecap="round"
               className={css({
-                stroke: 'primary.900',
+                stroke: 'primary.800',
               })}
               style={{
-                animation: `rotate 1s linear infinite`,
+                animation: `rotate 1s ease-in-out infinite`,
                 transformOrigin: 'center',
                 transition: 'transform 16ms linear',
               }}
