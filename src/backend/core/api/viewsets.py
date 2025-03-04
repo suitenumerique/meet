@@ -150,9 +150,8 @@ class UserViewSet(
         queryset = self.queryset
 
         if self.action == "list":
-            # Exclude all users already in the given document
-            if document_id := self.request.GET.get("document_id", ""):
-                queryset = queryset.exclude(documentaccess__document_id=document_id)
+            if not settings.ALLOW_UNSECURE_USER_LISTING:
+                return models.User.objects.none()
 
             # Filter users by email similarity
             if query := self.request.GET.get("q", ""):

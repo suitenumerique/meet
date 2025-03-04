@@ -22,10 +22,32 @@ def test_api_users_list_anonymous():
     }
 
 
-def test_api_users_list_authenticated():
+def test_api_users_list_authenticated_secure(settings):
     """
-    Authenticated users should be able to list users.
+    Authenticated users should not be able to list any user
+    when ALLOW_UNSECURE_USER_LISTING is False.
     """
+    settings.ALLOW_UNSECURE_USER_LISTING = False
+    user = factories.UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    factories.UserFactory.create_batch(2)
+    response = client.get(
+        "/api/v1.0/users/",
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert len(content["results"]) == 0
+
+
+def test_api_users_list_authenticated_unsecure(settings):
+    """
+    Authenticated users should be able to list all users
+    when ALLOW_UNSECURE_USER_LISTING is True.
+    """
+    settings.ALLOW_UNSECURE_USER_LISTING = True
     user = factories.UserFactory()
 
     client = APIClient()
@@ -40,11 +62,12 @@ def test_api_users_list_authenticated():
     assert len(content["results"]) == 3
 
 
-def test_api_users_list_query_email():
+def test_api_users_list_query_email(settings):
     """
     Authenticated users should be able to list users
     and filter by email.
     """
+    settings.ALLOW_UNSECURE_USER_LISTING = True
     user = factories.UserFactory()
 
     client = APIClient()

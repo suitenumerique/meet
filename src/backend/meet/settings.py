@@ -73,6 +73,9 @@ class Base(Configuration):
     ALLOWED_HOSTS = values.ListValue([])
     SECRET_KEY = values.Value(None)
     SILENCED_SYSTEM_CHECKS = values.ListValue([])
+    ALLOW_UNSECURE_USER_LISTING = values.BooleanValue(
+        False, environ_name="ALLOW_UNSECURE_USER_LISTING", environ_prefix=None
+    )
 
     # Application definition
     ROOT_URLCONF = "meet.urls"
