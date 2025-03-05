@@ -129,7 +129,7 @@ export const ReactionsToggle = () => {
                   key={index}
                   onPress={() => sendReaction(emoji)}
                   aria-label={t('send', { emoji })}
-                  variant="quaternaryText"
+                  variant="primaryTextDark"
                   size="sm"
                   data-attr={`send-reaction-${emoji}`}
                 >
