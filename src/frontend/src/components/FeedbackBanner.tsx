@@ -24,7 +24,7 @@ export const FeedbackBanner = () => {
           alignItems: 'center',
         })}
       >
-        <RiErrorWarningLine size={20} />
+        <RiErrorWarningLine size={20} aria-hidden="true" />
         <Text as="p">{t('feedback.context')}</Text>
         <div
           className={css({
