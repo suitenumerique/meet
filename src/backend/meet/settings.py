@@ -267,7 +267,7 @@ class Base(Configuration):
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
         "DEFAULT_THROTTLE_RATES": {
             "request_entry": values.Value(
-                default="150/hour",
+                default="150/minute",
                 environ_name="REQUEST_ENTRY_THROTTLE_RATES",
                 environ_prefix=None,
             ),
