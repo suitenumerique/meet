@@ -1,13 +1,12 @@
 import { css } from '@/styled-system/css'
 import { useParticipants } from '@livekit/components-react'
 
-import { Button, Div, H } from '@/primitives'
+import { Div, H } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { ParticipantListItem } from '../../controls/Participants/ParticipantListItem'
 import { ParticipantsCollapsableList } from '../../controls/Participants/ParticipantsCollapsableList'
 import { HandRaisedListItem } from '../../controls/Participants/HandRaisedListItem'
 import { LowerAllHandsButton } from '../../controls/Participants/LowerAllHandsButton'
-import { HStack } from '@/styled-system/jsx'
 import { WaitingParticipantListItem } from './WaitingParticipantListItem'
 import { useWaitingParticipants } from '@/features/rooms/hooks/useWaitingParticipants'
 import { Participant } from 'livekit-client'
@@ -41,11 +40,8 @@ export const ParticipantsList = () => {
     return data.raised
   })
 
-  const {
-    waitingParticipants,
-    handleParticipantEntry,
-    handleParticipantsEntry,
-  } = useWaitingParticipants()
+  const { waitingParticipants, handleParticipantEntry } =
+    useWaitingParticipants()
 
   // TODO - extract inline styling in a centralized styling file, and avoid magic numbers
   return (
@@ -74,24 +70,7 @@ export const ParticipantsList = () => {
                 onAction={handleParticipantEntry}
               />
             )}
-            action={() => (
-              <HStack justify={'center'} width={'100%'}>
-                <Button
-                  size="sm"
-                  variant="secondaryText"
-                  onPress={() => handleParticipantsEntry(false)}
-                >
-                  {t('waiting.deny.all')}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondaryText"
-                  onPress={() => handleParticipantsEntry(true)}
-                >
-                  {t('waiting.accept.all')}
-                </Button>
-              </HStack>
-            )}
+            action={() => <></>}
           />
         </Div>
       )}
