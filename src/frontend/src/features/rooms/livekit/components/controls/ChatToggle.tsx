@@ -48,7 +48,7 @@ export const ChatToggle = ({
             right: '-.25rem',
             width: '1rem',
             height: '1rem',
-            backgroundColor: 'red',
+            backgroundColor: '#E1000F',
             borderRadius: '50%',
             zIndex: 1,
             border: '2px solid #d1d5db',

@@ -19,7 +19,7 @@ export const MutedMicIndicator = ({
   }
 
   return (
-    <Div padding={0.25} backgroundColor="red" borderRadius="4px">
+    <Div padding={0.25} backgroundColor="#E1000F" borderRadius="4px">
       <RiMicOffFill size={16} color="white" />
     </Div>
   )
