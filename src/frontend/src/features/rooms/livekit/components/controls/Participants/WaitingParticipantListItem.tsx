@@ -4,6 +4,7 @@ import { css } from '@/styled-system/css'
 import { Avatar } from '@/components/Avatar'
 import { useTranslation } from 'react-i18next'
 import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
+import { RiCloseLine } from '@remixicon/react'
 
 export const WaitingParticipantListItem = ({
   participant,
@@ -25,7 +26,12 @@ export const WaitingParticipantListItem = ({
         width: 'full',
       })}
     >
-      <HStack>
+      <HStack
+        className={css({
+          flex: '1',
+          minWidth: '0',
+        })}
+      >
         <Avatar name={participant.username} bgColor={participant.color} />
         <Text
           variant={'sm'}
@@ -33,6 +39,8 @@ export const WaitingParticipantListItem = ({
             userSelect: 'none',
             cursor: 'default',
             display: 'flex',
+            flex: '1',
+            minWidth: '0',
           })}
         >
           <span
@@ -40,7 +48,7 @@ export const WaitingParticipantListItem = ({
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              maxWidth: '120px',
+              width: '100%',
               display: 'block',
             })}
           >
@@ -48,15 +56,15 @@ export const WaitingParticipantListItem = ({
           </span>
         </Text>
       </HStack>
-      {/* FIXME - flex layout is broken when the participant name is long */}
       <HStack
+        gap="0.25rem"
         className={css({
-          marginRight: '0.5rem',
+          flexShrink: '0',
         })}
       >
         <Button
           size="sm"
-          variant="secondaryText"
+          variant="tertiary"
           onPress={() => onAction(participant, true)}
           aria-label={t('waiting.accept.label', { name: participant.username })}
           data-attr="participants-accept"
@@ -65,12 +73,14 @@ export const WaitingParticipantListItem = ({
         </Button>
         <Button
           size="sm"
+          square
+          tooltip={t('participants.waiting.deny.button')}
           variant="secondaryText"
           onPress={() => onAction(participant, false)}
           aria-label={t('waiting.deny.label', { name: participant.username })}
           data-attr="participants-deny"
         >
-          {t('participants.waiting.deny.button')}
+          <RiCloseLine />
         </Button>
       </HStack>
     </HStack>
