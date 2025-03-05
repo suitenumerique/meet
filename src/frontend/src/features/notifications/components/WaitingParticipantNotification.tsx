@@ -1,100 +1,211 @@
-import { useListWaitingParticipants } from '@/features/rooms/api/listWaitingParticipants'
-import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { StyledToastContainer } from './Toast'
-import { HStack } from '@/styled-system/jsx'
+import { HStack, VStack } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
-import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { Button, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { RiInfinityLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
+import { useEffect, useRef, useState } from 'react'
+import { usePrevious } from '@/hooks/usePrevious'
+import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
+import { useWaitingParticipants } from '@/features/rooms/hooks/useWaitingParticipants'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+
+export const NOTIFICATION_DISPLAY_DURATION = 10000
 
 export const WaitingParticipantNotification = () => {
-  const data = useRoomData()
   const { t } = useTranslation('notifications', {
     keyPrefix: 'waitingParticipants',
   })
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
   const { isParticipantsOpen, toggleParticipants } = useSidePanel()
-  const { data: readOnlyData } = useListWaitingParticipants(data!.id, {
-    retry: false,
-    enabled: false,
-  })
-  const participants = readOnlyData?.participants || []
-  if (!participants.length) return
+  const [showQuickActionsMessage, setShowQuickActionsMessage] = useState(false)
+  const { waitingParticipants, handleParticipantEntry } =
+    useWaitingParticipants()
+  const prevWaitingParticipant = usePrevious<WaitingParticipant[] | undefined>(
+    waitingParticipants
+  )
+
+  const isParticipantListEmpty = (p?: WaitingParticipant[]) => p?.length == 0
+
+  useEffect(() => {
+    // Show notification when the first participant enters the waiting room
+    if (
+      !isParticipantListEmpty(waitingParticipants) &&
+      isParticipantListEmpty(prevWaitingParticipant) &&
+      !isParticipantsOpen
+    ) {
+      setShowQuickActionsMessage(true)
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current)
+      }
+      timerRef.current = setTimeout(() => {
+        setShowQuickActionsMessage(false)
+        timerRef.current = null // Clear the ref when timeout completes
+      }, NOTIFICATION_DISPLAY_DURATION)
+    } else if (waitingParticipants.length !== prevWaitingParticipant?.length) {
+      // Hide notification when the participant count changes
+      setShowQuickActionsMessage(false)
+    }
+  }, [waitingParticipants, prevWaitingParticipant, isParticipantsOpen])
+
+  useEffect(() => {
+    // This cleanup function will only run when the component unmounts
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    // Hide notification when participants panel is opened
+    if (isParticipantsOpen) {
+      setShowQuickActionsMessage(false)
+    }
+  }, [isParticipantsOpen])
+
+  if (!waitingParticipants.length) return null
+
   return (
     <StyledToastContainer role="alert">
       <HStack
         padding={'1rem'}
         gap={'1rem'}
         role={'alertdialog'}
-        aria-label={participants.length > 1 ? t('several') : t('one')}
+        aria-label={waitingParticipants.length > 1 ? t('several') : t('one')}
         aria-modal={false}
       >
-        <HStack gap={0}>
-          <Avatar
-            name={participants[0].username}
-            bgColor={participants[0].color}
-            context="list"
-            notification
-          />
-          {participants.length > 1 && (
-            <Avatar
-              name={participants[1].username}
-              bgColor={participants[1].color}
-              context="list"
-              notification
+        {showQuickActionsMessage ? (
+          <VStack gap={'1rem'} alignItems={'start'}>
+            <Text
+              variant="paragraph"
+              margin={false}
               style={{
-                marginLeft: '-10px',
+                minWidth: '15rem',
               }}
-            />
-          )}
-          {participants.length > 2 && (
-            <span
-              className={css({
-                width: '32px',
-                height: '32px',
-                fontSize: '1rem',
-                color: 'white',
-                display: 'flex',
-                borderRadius: '50%',
-                justifyContent: 'center',
-                alignItems: 'center',
-                background: 'primaryDark.100',
-                border: '2px solid white',
-                marginLeft: '-10px',
-              })}
             >
-              {participants.length < 102 ? (
-                <p>+{participants.length - 2}</p>
-              ) : (
-                <RiInfinityLine size={20} />
+              {t('one')}
+            </Text>
+            <HStack gap="1rem">
+              <Avatar
+                name={waitingParticipants[0].username}
+                bgColor={waitingParticipants[0].color}
+                context="list"
+                notification
+              />
+              <Text
+                variant="sm"
+                margin={false}
+                className={css({
+                  maxWidth: '10rem',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                })}
+              >
+                {waitingParticipants[0].username}
+              </Text>
+            </HStack>
+            <HStack gap="0.25rem" marginLeft="auto">
+              <Button
+                size="sm"
+                variant="text"
+                style={{
+                  color: '#60a5fa',
+                }}
+                onPress={async () => {
+                  await handleParticipantEntry(waitingParticipants[0], true)
+                  setShowQuickActionsMessage(false)
+                }}
+              >
+                {t('accept')}
+              </Button>
+              <Button
+                size="sm"
+                variant="text"
+                style={{
+                  color: '#60a5fa',
+                }}
+                onPress={() => {
+                  toggleParticipants()
+                  setShowQuickActionsMessage(false)
+                }}
+              >
+                {t('open')}
+              </Button>
+            </HStack>
+          </VStack>
+        ) : (
+          <>
+            <HStack gap={0}>
+              <Avatar
+                name={waitingParticipants[0].username}
+                bgColor={waitingParticipants[0].color}
+                context="list"
+                notification
+              />
+              {waitingParticipants.length > 1 && (
+                <Avatar
+                  name={waitingParticipants[1].username}
+                  bgColor={waitingParticipants[1].color}
+                  context="list"
+                  notification
+                  style={{
+                    marginLeft: '-10px',
+                  }}
+                />
               )}
-            </span>
-          )}
-        </HStack>
-        <Text
-          variant="paragraph"
-          margin={false}
-          wrap={'balance'}
-          style={{
-            maxWidth: participants.length == 1 ? '10rem' : '15rem',
-          }}
-        >
-          {participants.length > 1 ? t('several') : t('one')}
-        </Text>
-        {!isParticipantsOpen && (
-          <Button
-            size="sm"
-            variant="text"
-            style={{
-              color: '#60a5fa',
-            }}
-            onPress={() => {
-              toggleParticipants()
-            }}
-          >
-            {t('open')}
-          </Button>
+              {waitingParticipants.length > 2 && (
+                <span
+                  className={css({
+                    width: '32px',
+                    height: '32px',
+                    fontSize: '1rem',
+                    color: 'white',
+                    display: 'flex',
+                    borderRadius: '50%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    background: 'primaryDark.100',
+                    border: '2px solid white',
+                    marginLeft: '-10px',
+                  })}
+                >
+                  {waitingParticipants.length < 102 ? (
+                    <p>+{waitingParticipants.length - 2}</p>
+                  ) : (
+                    <RiInfinityLine size={20} />
+                  )}
+                </span>
+              )}
+            </HStack>
+            <Text
+              variant="paragraph"
+              margin={false}
+              wrap={'balance'}
+              style={{
+                maxWidth: waitingParticipants.length == 1 ? '10rem' : '15rem',
+              }}
+            >
+              {waitingParticipants.length > 1 ? t('several') : t('one')}
+            </Text>
+            {!isParticipantsOpen && (
+              <Button
+                size="sm"
+                variant="text"
+                style={{
+                  color: '#60a5fa',
+                }}
+                onPress={() => {
+                  toggleParticipants()
+                }}
+              >
+                {t('open')}
+              </Button>
+            )}
+          </>
         )}
       </HStack>
     </StyledToastContainer>

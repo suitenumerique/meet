@@ -19,6 +19,7 @@
   "waitingParticipants": {
     "one": "Une personne souhaite participer à cet appel.",
     "several": "Plusieurs personnes souhaitent participer à cet appel.",
-    "open": "Afficher"
+    "open": "Afficher",
+    "accept": "Accepter"
   }
 }

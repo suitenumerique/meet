@@ -19,6 +19,7 @@
   "waitingParticipants": {
     "one": "",
     "several": "",
-    "open": ""
+    "open": "",
+    "accept": ""
   }
 }
