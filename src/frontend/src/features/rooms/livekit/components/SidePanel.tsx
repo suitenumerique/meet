@@ -2,7 +2,7 @@ import { layoutStore } from '@/stores/layout'
 import { css } from '@/styled-system/css'
 import { Heading } from 'react-aria-components'
 import { text } from '@/primitives/Text'
-import { Box, Button, Div } from '@/primitives'
+import { Button, Div } from '@/primitives'
 import { RiCloseLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from './controls/Participants/ParticipantsList'
@@ -28,9 +28,16 @@ const StyledSidePanel = ({
   isClosed,
   closeButtonTooltip,
 }: StyledSidePanelProps) => (
-  <Box
-    size="sm"
+  <div
     className={css({
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderColor: 'box.border',
+      backgroundColor: 'box.bg',
+      color: 'box.text',
+      borderRadius: 8,
+      flex: 1,
+      position: 'absolute',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
@@ -41,7 +48,6 @@ const StyledSidePanel = ({
       top: 0,
       bottom: '80px',
       width: '360px',
-      position: 'absolute',
       transition: '.5s cubic-bezier(.4,0,.2,1) 5ms',
     })}
     style={{
@@ -80,7 +86,7 @@ const StyledSidePanel = ({
       </Button>
     </Div>
     {children}
-  </Box>
+  </div>
 )
 
 type PanelProps = {
