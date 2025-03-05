@@ -44,7 +44,7 @@ export function DesktopControlBar({
             gap: '0.5rem',
             marginLeft: '0.5rem',
           })}
-        ></div>
+        />
         <div
           className={css({
             flex: '1 1 33%',

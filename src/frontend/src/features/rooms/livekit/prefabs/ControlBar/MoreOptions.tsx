@@ -12,7 +12,7 @@ import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { RiArrowDownSLine, RiArrowUpSLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 
-const CONTROL_BAR_BREAKPOINT = 750
+const CONTROL_BAR_BREAKPOINT = 1100
 
 const NavigationControls = ({ onPress }: Partial<ToggleButtonProps>) => (
   <>
