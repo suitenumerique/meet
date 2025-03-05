@@ -14,6 +14,7 @@ export const StyledSwitch = styled(RACSwitch, {
     color: 'black',
     forcedColorAdjust: 'none',
     '& .indicator': {
+      position: 'relative',
       width: '2.6rem',
       height: '1.563rem',
       border: '0.125rem solid',
@@ -27,17 +28,38 @@ export const StyledSwitch = styled(RACSwitch, {
         width: '1.063rem',
         height: '1.063rem',
         borderRadius: '1.063rem',
-        background: 'primary.800',
-        transition: 'all 200ms',
+        border: '2px solid',
+        borderColor: 'primary.800',
+        background: 'white',
+        transition: 'opacity 10ms',
+        transitionDelay: '0ms',
       },
+    },
+    '& .checkmark': {
+      position: 'absolute',
+      display: 'block',
+      top: '50%',
+      right: '0.25rem',
+      transform: 'translateY(-50%)',
+      color: 'primary.800',
+      fontSize: '0.75rem',
+      fontWeight: 'bold',
+      zIndex: 1,
+      opacity: 0,
     },
     '&[data-selected] .indicator': {
       borderColor: 'primary.800',
       background: 'primary.800',
       _before: {
+        border: 'none',
         background: 'white',
         transform: 'translateX(100%)',
       },
+    },
+    '&[data-selected] .checkmark': {
+      opacity: 1,
+      transition: 'opacity 30ms',
+      transitionDelay: '150ms',
     },
     '&[data-disabled] .indicator': {
       borderColor: 'primary.200',
@@ -63,7 +85,9 @@ export type SwitchProps = StyledVariantProps<typeof StyledSwitch> &
  */
 export const Switch = ({ children, ...props }: SwitchProps) => (
   <StyledSwitch {...props}>
-    <div className="indicator" />
+    <div className="indicator">
+      <span className="checkmark">✓</span>
+    </div>
     {children}
   </StyledSwitch>
 )
