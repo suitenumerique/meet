@@ -79,3 +79,6 @@ db.sqlite3
 
 # Egress output
 docker/livekit/out
+
+# LiveKit CA configuration
+docker/livekit/rootCA.pem

@@ -45,6 +45,23 @@ docker_build(
 )
 clean_old_images('localhost:5001/meet-summary')
 
+# Copy the mkcert root CA certificate to our Docker build context
+# This is necessary because we need to inject the certificate into our LiveKit container
+local_resource(
+    'copy-root-ca',
+    cmd='cp "$(mkcert -CAROOT)/rootCA.pem" ../docker/livekit/rootCA.pem',
+    deps=[],  # No dependencies needed
+)
+# Build a custom LiveKit Docker image that includes our root CA certificate
+# This allows LiveKit to trust our local development certificates
+docker_build(
+    'localhost:5001/meet-livekit:latest',
+    context='../docker/livekit',
+    dockerfile='./../docker/livekit/Dockerfile',
+    only=['.'],
+)
+clean_old_images('localhost:5001/meet-livekit')
+
 k8s_yaml(local('cd ../src/helm && helmfile -n meet -e ${DEV_ENV:-dev} template .'))
 
 migration = '''

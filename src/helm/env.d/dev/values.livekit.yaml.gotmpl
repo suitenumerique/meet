@@ -1,6 +1,11 @@
 replicaCount: 1
 terminationGracePeriodSeconds: 18000
 
+image:
+    repository: localhost:5001/meet-livekit
+    pullPolicy: Always
+    tag: "latest"
+
 livekit:
   log_level: debug
   rtc:
