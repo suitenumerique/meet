@@ -39,6 +39,10 @@ from core.recording.worker.factories import (
 from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
+from core.services.livekit_events_service import (
+    LiveKitEventsService,
+    LiveKitWebhookError,
+)
 from core.services.lobby_service import (
     LobbyParticipantNotFound,
     LobbyService,
@@ -429,6 +433,32 @@ class RoomViewSet(
 
         participants = lobby_service.list_waiting_participants(room.id)
         return drf_response.Response({"participants": participants})
+
+    @decorators.action(
+        detail=False,
+        methods=["POST"],
+        url_path="webhooks-livekit",
+        permission_classes=[],
+    )
+    def webhooks_livekit(self, request):
+        """Process webhooks from LiveKit."""
+
+        livekit_events_service = LiveKitEventsService()
+
+        try:
+            livekit_events_service.receive(request)
+            return drf_response.Response(
+                {"status": "success"}, status=drf_status.HTTP_200_OK
+            )
+        except LiveKitWebhookError as e:
+            status_code = getattr(e, "status_code", drf_status.HTTP_400_BAD_REQUEST)
+
+            if status_code == drf_status.HTTP_500_INTERNAL_SERVER_ERROR:
+                raise e
+
+            return drf_response.Response(
+                {"status": "error", "message": str(e)}, status=status_code
+            )
 
 
 class ResourceAccessListModelMixin:
