@@ -6,9 +6,11 @@ Test lobby service.
 # ruff: noqa: PLR0913
 
 import json
+import uuid
 from unittest import mock
 
 from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponse
 
 import pytest
@@ -832,3 +834,60 @@ def test_notify_participants_error(mock_livekit_api, lobby_service):
 
     # Verify aclose was still called after the exception
     mock_api_instance.aclose.assert_called_once()
+
+
+def test_clear_room_cache(settings, lobby_service):
+    """Test clearing room cache actually removes entries from cache."""
+
+    settings.LOBBY_KEY_PREFIX = "test-lobby"
+    settings.LOBBY_WAITING_TIMEOUT = 10000
+    settings.LOBBY_ACCEPTED_TIMEOUT = 10000
+    settings.LOBBY_DENIED_TIMEOUT = 10000
+
+    room_id = uuid.uuid4()
+
+    cache.set(
+        f"test-lobby_{room_id!s}_participant1",
+        LobbyParticipant(
+            status=LobbyParticipantStatus.WAITING,
+            username="participant1",
+            id="participant1",
+            color="#123456",
+        ),
+        timeout=settings.LOBBY_WAITING_TIMEOUT,
+    )
+    cache.set(
+        f"test-lobby_{room_id!s}_participant2",
+        LobbyParticipant(
+            status=LobbyParticipantStatus.ACCEPTED,
+            username="participant2",
+            id="participant2",
+            color="#123456",
+        ),
+        timeout=settings.LOBBY_ACCEPTED_TIMEOUT,
+    )
+    cache.set(
+        f"test-lobby_{room_id!s}_participant3",
+        LobbyParticipant(
+            status=LobbyParticipantStatus.DENIED,
+            username="participant3",
+            id="participant3",
+            color="#123456",
+        ),
+        timeout=settings.LOBBY_DENIED_TIMEOUT,
+    )
+
+    lobby_service.clear_room_cache(room_id)
+
+    assert cache.keys(f"test-lobby_{room_id!s}_*") == []
+
+
+def test_clear_room_empty(settings, lobby_service):
+    """Test clearing room cache when it's already empty."""
+
+    settings.LOBBY_KEY_PREFIX = "test-lobby"
+    room_id = uuid.uuid4()
+
+    assert cache.keys(f"test-lobby_{room_id!s}_*") == []
+    lobby_service.clear_room_cache(room_id)
+    assert cache.keys(f"test-lobby_{room_id!s}_*") == []

@@ -356,3 +356,14 @@ class LobbyService:
             raise LobbyNotificationError("Failed to notify room participants") from e
         finally:
             await lkapi.aclose()
+
+    def clear_room_cache(self, room_id: UUID) -> None:
+        """Clear all participant entries from the cache for a specific room."""
+
+        pattern = self._get_cache_key(room_id, "*")
+        keys = cache.keys(pattern)
+
+        if not keys:
+            return
+
+        cache.delete_many(keys)
