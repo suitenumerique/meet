@@ -18,7 +18,7 @@ from livekit.api import TwirpError
 
 from core.factories import RoomFactory
 from core.models import RoomAccessLevel
-from core.services.lobby_service import (
+from core.services.lobby import (
     LobbyNotificationError,
     LobbyParticipant,
     LobbyParticipantNotFound,
@@ -309,7 +309,7 @@ def test_request_entry_trusted_room(
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.services.lobby_service.LobbyService.enter")
+@mock.patch("core.services.lobby.LobbyService.enter")
 def test_request_entry_new_participant(
     mock_enter, lobby_service, participant_id, username
 ):
@@ -338,7 +338,7 @@ def test_request_entry_new_participant(
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.services.lobby_service.LobbyService.refresh_waiting_status")
+@mock.patch("core.services.lobby.LobbyService.refresh_waiting_status")
 def test_request_entry_waiting_participant(
     mock_refresh, lobby_service, participant_id, username
 ):
@@ -400,7 +400,7 @@ def test_request_entry_accepted_participant(
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_refresh_waiting_status(mock_cache, lobby_service, participant_id):
     """Test refreshing waiting status for a participant."""
     lobby_service._get_cache_key = mock.Mock(return_value="mocked_cache_key")
@@ -412,9 +412,9 @@ def test_refresh_waiting_status(mock_cache, lobby_service, participant_id):
 
 
 # pylint: disable=R0917
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 @mock.patch("core.utils.generate_color")
-@mock.patch("core.services.lobby_service.LobbyService.notify_participants")
+@mock.patch("core.services.lobby.LobbyService.notify_participants")
 def test_enter_success(
     mock_notify,
     mock_generate_color,
@@ -447,9 +447,9 @@ def test_enter_success(
 
 
 # pylint: disable=R0917
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 @mock.patch("core.utils.generate_color")
-@mock.patch("core.services.lobby_service.LobbyService.notify_participants")
+@mock.patch("core.services.lobby.LobbyService.notify_participants")
 def test_enter_with_notification_error(
     mock_notify,
     mock_generate_color,
@@ -479,7 +479,7 @@ def test_enter_with_notification_error(
     )
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_get_participant_not_found(mock_cache, lobby_service, participant_id):
     """Test getting a participant that doesn't exist."""
     mock_cache.get.return_value = None
@@ -494,8 +494,8 @@ def test_get_participant_not_found(mock_cache, lobby_service, participant_id):
     mock_cache.get.assert_called_once_with("mocked_cache_key")
 
 
-@mock.patch("core.services.lobby_service.cache")
-@mock.patch("core.services.lobby_service.LobbyParticipant.from_dict")
+@mock.patch("core.services.lobby.cache")
+@mock.patch("core.services.lobby.LobbyParticipant.from_dict")
 def test_get_participant_parsing_error(
     mock_from_dict, mock_cache, lobby_service, participant_id
 ):
@@ -512,7 +512,7 @@ def test_get_participant_parsing_error(
     mock_cache.delete.assert_called_once_with("mocked_cache_key")
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_list_waiting_participants_empty(mock_cache, lobby_service):
     """Test listing waiting participants when none exist."""
     mock_cache.keys.return_value = []
@@ -526,7 +526,7 @@ def test_list_waiting_participants_empty(mock_cache, lobby_service):
     mock_cache.get_many.assert_not_called()
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_list_waiting_participants(mock_cache, lobby_service, participant_dict):
     """Test listing waiting participants with valid data."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -544,7 +544,7 @@ def test_list_waiting_participants(mock_cache, lobby_service, participant_dict):
     mock_cache.get_many.assert_called_once_with([cache_key])
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_list_waiting_participants_multiple(mock_cache, lobby_service):
     """Test listing multiple waiting participants with valid data."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -587,7 +587,7 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
     mock_cache.get_many.assert_called_once_with([cache_key1, cache_key2])
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_list_waiting_participants_corrupted_data(mock_cache, lobby_service):
     """Test listing waiting participants with corrupted data."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -601,7 +601,7 @@ def test_list_waiting_participants_corrupted_data(mock_cache, lobby_service):
     mock_cache.delete.assert_called_once_with(cache_key)
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_list_waiting_participants_partially_corrupted(mock_cache, lobby_service):
     """Test listing waiting participants with one valid and one corrupted entry."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -640,7 +640,7 @@ def test_list_waiting_participants_partially_corrupted(mock_cache, lobby_service
     mock_cache.get_many.assert_called_once_with([cache_key1, cache_key2])
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_list_waiting_participants_non_waiting(mock_cache, lobby_service):
     """Test listing only waiting participants (not accepted/denied)."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -673,7 +673,7 @@ def test_list_waiting_participants_non_waiting(mock_cache, lobby_service):
     assert result[0]["status"] == "waiting"
 
 
-@mock.patch("core.services.lobby_service.LobbyService._update_participant_status")
+@mock.patch("core.services.lobby.LobbyService._update_participant_status")
 def test_handle_participant_entry_allow(mock_update, lobby_service, participant_id):
     """Test handling allowed participant entry."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -687,7 +687,7 @@ def test_handle_participant_entry_allow(mock_update, lobby_service, participant_
     )
 
 
-@mock.patch("core.services.lobby_service.LobbyService._update_participant_status")
+@mock.patch("core.services.lobby.LobbyService._update_participant_status")
 def test_handle_participant_entry_deny(mock_update, lobby_service, participant_id):
     """Test handling denied participant entry."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -701,7 +701,7 @@ def test_handle_participant_entry_deny(mock_update, lobby_service, participant_i
     )
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_update_participant_status_not_found(mock_cache, lobby_service, participant_id):
     """Test updating status for non-existent participant."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -720,8 +720,8 @@ def test_update_participant_status_not_found(mock_cache, lobby_service, particip
     mock_cache.get.assert_called_once_with("mocked_cache_key")
 
 
-@mock.patch("core.services.lobby_service.cache")
-@mock.patch("core.services.lobby_service.LobbyParticipant.from_dict")
+@mock.patch("core.services.lobby.cache")
+@mock.patch("core.services.lobby.LobbyParticipant.from_dict")
 def test_update_participant_status_corrupted_data(
     mock_from_dict, mock_cache, lobby_service, participant_id
 ):
@@ -743,7 +743,7 @@ def test_update_participant_status_corrupted_data(
     lobby_service._get_cache_key.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.services.lobby_service.cache")
+@mock.patch("core.services.lobby.cache")
 def test_update_participant_status_success(mock_cache, lobby_service, participant_id):
     """Test successful participant status update."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -776,7 +776,7 @@ def test_update_participant_status_success(mock_cache, lobby_service, participan
     lobby_service._get_cache_key.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.services.lobby_service.LiveKitAPI")
+@mock.patch("core.services.lobby.LiveKitAPI")
 def test_notify_participants_success(mock_livekit_api, lobby_service):
     """Test successful participant notification."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -807,7 +807,7 @@ def test_notify_participants_success(mock_livekit_api, lobby_service):
     mock_api_instance.aclose.assert_called_once()
 
 
-@mock.patch("core.services.lobby_service.LiveKitAPI")
+@mock.patch("core.services.lobby.LiveKitAPI")
 def test_notify_participants_error(mock_livekit_api, lobby_service):
     """Test participant notification with API error."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)

@@ -12,7 +12,7 @@ from unittest import mock
 import pytest
 from livekit import api
 
-from ...services.livekit_events_service import ActionFailedError, LiveKitEventsService
+from ...services.livekit_events import ActionFailedError, LiveKitEventsService
 
 
 @pytest.fixture

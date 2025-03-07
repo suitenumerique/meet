@@ -39,11 +39,11 @@ from core.recording.worker.factories import (
 from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
-from core.services.livekit_events_service import (
+from core.services.livekit_events import (
     LiveKitEventsService,
     LiveKitWebhookError,
 )
-from core.services.lobby_service import (
+from core.services.lobby import (
     LobbyParticipantNotFound,
     LobbyService,
 )

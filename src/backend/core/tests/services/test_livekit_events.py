@@ -8,7 +8,7 @@ from unittest import mock
 
 import pytest
 
-from core.services.livekit_events_service import (
+from core.services.livekit_events import (
     ActionFailedError,
     AuthenticationError,
     InvalidPayloadError,
@@ -16,7 +16,7 @@ from core.services.livekit_events_service import (
     UnsupportedEventTypeError,
     api,
 )
-from core.services.lobby_service import LobbyService
+from core.services.lobby import LobbyService
 
 pytestmark = pytest.mark.django_db
 

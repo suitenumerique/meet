@@ -10,7 +10,7 @@ from mozilla_django_oidc.auth import (
 )
 
 from core.models import User
-from core.services.marketing_service import (
+from core.services.marketing import (
     ContactCreationError,
     ContactData,
     get_marketing_service,

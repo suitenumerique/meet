@@ -14,7 +14,7 @@ from rest_framework.test import APIClient
 from ... import utils
 from ...factories import RoomFactory, UserFactory
 from ...models import RoomAccessLevel
-from ...services.lobby_service import (
+from ...services.lobby import (
     LobbyService,
 )
 

@@ -12,7 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 import brevo_python
 import pytest
 
-from core.services.marketing_service import (
+from core.services.marketing import (
     BrevoMarketingService,
     ContactCreationError,
     ContactData,
@@ -144,9 +144,7 @@ def clear_marketing_cache():
 def test_get_marketing_service_caching(clear_marketing_cache):
     """Test marketing service caching behavior."""
     settings.BREVO_API_KEY = "test-api-key"
-    settings.MARKETING_SERVICE_CLASS = (
-        "core.services.marketing_service.BrevoMarketingService"
-    )
+    settings.MARKETING_SERVICE_CLASS = "core.services.marketing.BrevoMarketingService"
 
     service1 = get_marketing_service()
     service2 = get_marketing_service()
@@ -163,14 +161,12 @@ def test_get_marketing_service_invalid_class(clear_marketing_cache):
         get_marketing_service()
 
 
-@mock.patch("core.services.marketing_service.import_string")
+@mock.patch("core.services.marketing.import_string")
 def test_service_instantiation_called_once(mock_import_string, clear_marketing_cache):
     """Test service class is instantiated only once."""
 
     settings.BREVO_API_KEY = "test-api-key"
-    settings.MARKETING_SERVICE_CLASS = (
-        "core.services.marketing_service.BrevoMarketingService"
-    )
+    settings.MARKETING_SERVICE_CLASS = "core.services.marketing.BrevoMarketingService"
     get_marketing_service.cache_clear()
 
     mock_service_cls = mock.Mock()

@@ -9,7 +9,7 @@ import pytest
 from core import models
 from core.authentication.backends import OIDCAuthenticationBackend
 from core.factories import UserFactory
-from core.services import marketing_service
+from core.services import marketing
 
 pytestmark = pytest.mark.django_db
 
@@ -535,7 +535,7 @@ def test_marketing_signup_handles_service_initialization_errors(
 @pytest.mark.parametrize(
     "error",
     [
-        marketing_service.ContactCreationError,
+        marketing.ContactCreationError,
         ImproperlyConfigured,
         ImportError,
     ],

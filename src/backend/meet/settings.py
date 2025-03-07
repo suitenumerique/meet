@@ -484,7 +484,7 @@ class Base(Configuration):
         environ_prefix=None,
     )
     MARKETING_SERVICE_CLASS = values.Value(
-        "core.services.marketing_service.BrevoMarketingService",
+        "core.services.marketing.BrevoMarketingService",
         environ_name="MARKETING_SERVICE_CLASS",
         environ_prefix=None,
     )

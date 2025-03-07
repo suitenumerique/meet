@@ -7,7 +7,7 @@ from django.conf import settings
 
 from livekit import api
 
-from .lobby_service import LobbyService
+from .lobby import LobbyService
 
 
 class LiveKitWebhookError(Exception):
