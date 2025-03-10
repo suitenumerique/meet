@@ -31,22 +31,22 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "@tanstack/eslint-plugin-query": "5.64.2",
-    "@types/node": "20.14.2",
+    "@tanstack/eslint-plugin-query": "5.67.2",
+    "@types/node": "22.13.10",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
-    "@typescript-eslint/eslint-plugin": "7.15.0",
-    "@typescript-eslint/parser": "7.15.0",
-    "@vitejs/plugin-react-swc": "3.5.0",
+    "@typescript-eslint/eslint-plugin": "8.26.0",
+    "@typescript-eslint/parser": "8.26.0",
+    "@vitejs/plugin-react-swc": "3.8.0",
     "eslint": "8.57.0",
-    "eslint-config-prettier": "10.0.1",
-    "eslint-plugin-react-hooks": "4.6.2",
-    "eslint-plugin-react-refresh": "0.4.7",
+    "eslint-config-prettier": "10.1.1",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-react-refresh": "0.4.19",
     "eslint-plugin-jsx-a11y": "6.10.2",
-    "sass": "1.83.4",
-    "prettier": "3.4.2",
-    "typescript": "5.4.5",
-    "vite": "5.4.12",
-    "vite-plugin-dts": "3.9.1"
+    "sass": "1.85.1",
+    "prettier": "3.5.3",
+    "typescript": "5.8.2",
+    "vite": "6.2.1",
+    "vite-plugin-dts": "4.5.3"
   }
 }
