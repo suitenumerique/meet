@@ -1,0 +1,69 @@
+{
+  "title": "Legal Notices",
+  "creator": {
+    "title": "Publisher",
+    "body": "The Visio site is published by the interministerial digital directorate (DINUM), hereinafter referred to as \"the publisher\", belonging to the Prime Minister's services.",
+    "contact": {
+      "title": "Contact Information",
+      "address": "Address: {{address}}",
+      "phone": "Reception Tel.: {{phone}}",
+      "siret": "SIRET: {{siret}}",
+      "siren": "SIREN: {{siren}}"
+    }
+  },
+  "director": {
+    "title": "Publication Director",
+    "body": "Interministerial Digital Director."
+  },
+  "hosting": {
+    "title": "Hosting",
+    "body": "This website is hosted by Outscale with SecNumCloud certification:",
+    "address": {
+      "line1": "Outscale",
+      "line2": "1, rue Royale",
+      "line3": "319 Bureaux de la Colline",
+      "line4": "92210 Saint-Cloud"
+    }
+  },
+  "accessibility": {
+    "title": "Accessibility",
+    "body": "Compliance with digital accessibility standards is a future objective. The site has not yet been audited. However, the team strives to create a site accessible to all by following the RGAA recommendations.",
+    "status": "Accessibility status: non-compliant",
+    "reporting": {
+      "title": "Report a malfunction",
+      "body1": "If you encounter an accessibility issue preventing you from accessing content or a site feature, please let us know by contacting visio@numerique.gouv.fr.",
+      "body2": "If you do not receive a prompt response from us, you have the right to send your grievances or a request for referral to the Rights Defender. You have the right to send your grievances or request for referral to the \"Rights Defender\" by phone at 09 69 39 00 00, via the online form https://formulaire.defenseurdesdroits.fr or by free mail (no postage required):",
+      "address": {
+        "line1": "Défenseur des droits",
+        "line2": "Libre réponse 71120",
+        "line3": "75342 Paris CEDEX 07"
+      }
+    }
+  },
+  "reuse": {
+    "title": "Content Reuse and Links",
+    "body1": "Unless explicitly mentioned as intellectual property held by third parties, the contents of this site are offered under an open license.",
+    "body2": "Any public or private site is authorized to establish, without prior authorization, a link (including deep linking) to the information disseminated on this site.",
+    "media": {
+      "title": "Graphics, Photos and Videos",
+      "body": "Graphics, photographs, and multimedia resources are most often covered by intellectual property rights held by third parties and are not, as such, reusable without their consent. Therefore, we invite you to contact us if you wish to reuse such content so that we can direct you to the holder(s) of these rights: visio@numerique.gouv.fr."
+    }
+  },
+  "liability": {
+    "title": "Liability Clause",
+    "body1": "The information offered on this site is provided as a service to public service agents, particularly to agents of State services.",
+    "body2": "The information and/or documents available on this site are subject to change at any time and may be updated to facilitate access to digital resources.",
+    "body3": "The information and/or documents accessed from this site are the responsibility of the owners of each interministerial service thus made available.",
+    "body4": "The publisher cannot under any circumstances be held responsible for any damage of any nature whatsoever resulting from the misuse of resources accessible from this site."
+  },
+  "dataProtection": {
+    "title": "Data Protection Officer",
+    "body": "If you wish to obtain information about personal data processing managed by a Prime Minister's Service, you can contact the data protection officer (DPO) by email at dpd@pm.gouv.fr or by mail at the following address:",
+    "address": {
+      "line1": "Service du Premier ministre",
+      "line2": "A l'attention du délégué à la protection des données (DPD)",
+      "line3": "56 rue de Varenne",
+      "line4": "75700 Paris"
+    }
+  }
+}

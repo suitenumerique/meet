@@ -1,0 +1,69 @@
+{
+  "title": "",
+  "creator": {
+    "title": "",
+    "body": "",
+    "contact": {
+      "title": "",
+      "address": "",
+      "phone": "",
+      "siret": "",
+      "siren": ""
+    }
+  },
+  "director": {
+    "title": "",
+    "body": ""
+  },
+  "hosting": {
+    "title": "",
+    "body": "",
+    "address": {
+      "line1": "",
+      "line2": "",
+      "line3": "",
+      "line4": ""
+    }
+  },
+  "accessibility": {
+    "title": "",
+    "body": "",
+    "status": "",
+    "reporting": {
+      "title": "",
+      "body1": "",
+      "body2": "",
+      "address": {
+        "line1": "",
+        "line2": "",
+        "line3": ""
+      }
+    }
+  },
+  "reuse": {
+    "title": "",
+    "body1": "",
+    "body2": "",
+    "media": {
+      "title": "",
+      "body": ""
+    }
+  },
+  "liability": {
+    "title": "",
+    "body1": "",
+    "body2": "",
+    "body3": "",
+    "body4": ""
+  },
+  "dataProtection": {
+    "title": "",
+    "body": "",
+    "address": {
+      "line1": "",
+      "line2": "",
+      "line3": "",
+      "line4": ""
+    }
+  }
+}

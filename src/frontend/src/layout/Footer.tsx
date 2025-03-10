@@ -1,6 +1,6 @@
 import { styled } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
-import { A } from '@/primitives'
+import { A, Link } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 
 const StyledLi = styled('li', {
@@ -221,15 +221,14 @@ export const Footer = () => {
         </FirstRow>
         <SecondRow>
           <StyledLi divider>
-            <A
-              externalIcon
+            <Link
               underline={false}
               footer="minor"
-              href="https://docs.numerique.gouv.fr/docs/f88a2eb0-7ce7-4016-b6ee-9f1fd1771951/"
-              aria-label={t('links.legalsTerms') + ' - ' + t('links.ariaLabel')}
+              to="/mentions-legales"
+              aria-label={t('links.legalsTerms')}
             >
               {t('links.legalsTerms')}
-            </A>
+            </Link>
           </StyledLi>
           <StyledLi divider>
             <A

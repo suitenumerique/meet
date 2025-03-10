@@ -1,0 +1,69 @@
+{
+  "title": "Mentions Légales",
+  "creator": {
+    "title": "Éditeur",
+    "body": "Le site de Visio est édité par la direction interministérielle du numérique (DINUM), ci-après nommé « l'éditeur », appartenant aux services du Premier ministre.",
+    "contact": {
+      "title": "Coordonnées",
+      "address": "Adresse : {{address}}",
+      "phone": "Tel. accueil : {{phone}}",
+      "siret": "SIRET : {{siret}}",
+      "siren": "SIREN : {{siren}}"
+    }
+  },
+  "director": {
+    "title": "Directeur de la publication",
+    "body": "Directeur interministériel du numérique."
+  },
+  "hosting": {
+    "title": "Hébergement",
+    "body": "Ce site internet est hébergé par chez l'hébergeur Outscale en SecNumCloud :",
+    "address": {
+      "line1": "Outscale",
+      "line2": "1, rue Royale",
+      "line3": "319 Bureaux de la Colline",
+      "line4": "92210 Saint-Cloud"
+    }
+  },
+  "accessibility": {
+    "title": "Accessibilité",
+    "body": "La conformité aux normes d'accessibilité numérique est un objectif ultérieur. Le site n'a pas encore été audité. Cependant, l'équipe s'efforce de créer un site accessible à tous en suivant les recommandations du RGAA.",
+    "status": "Etat d'accessibilité : non conforme",
+    "reporting": {
+      "title": "Signaler un dysfonctionnement",
+      "body1": "Si vous rencontrez un défaut d'accessibilité vous empêchant d'accéder à un contenu ou une fonctionnalité du site, merci de nous en faire part en nous contactant visio@numerique.gouv.fr.",
+      "body2": "Si vous n'obtenez pas de réponse rapide de notre part, vous êtes en droit de faire parvenir vos doléances ou une demande de saisine au Défenseur des droits. Vous êtes en droit de faire parvenir vos doléances ou demande de saisine au « défenseur des droits » par téléphone au 09 69 39 00 00, via le formulaire en ligne https://formulaire.defenseurdesdroits.fr ou encore par courrier gratuit (sans affranchissement) :",
+      "address": {
+        "line1": "Défenseur des droits",
+        "line2": "Libre réponse 71120",
+        "line3": "75342 Paris CEDEX 07"
+      }
+    }
+  },
+  "reuse": {
+    "title": "Réutilisation des contenus et liens",
+    "body1": "Sauf mention explicite de propriété intellectuelle détenue par des tiers, les contenus de ce site sont proposés sous licence ouverte.",
+    "body2": "Tout site public ou privé est autorisé à établir, sans autorisation préalable, un lien (y compris profond) vers les informations diffusées sur ce site.",
+    "media": {
+      "title": "Graphismes, photos et vidéos",
+      "body": "Les graphismes, photographies et ressources multimédias sont le plus souvent couverts par des droits de propriété intellectuelle détenus par des tiers et ne sont pas, à ce titre, réutilisables sans leur accord. Aussi, nous vous invitons à nous contacter si vous souhaitez réutiliser de tels contenus afin que nous puissions vous orienter vers le(s) titulaire(s) de ces droits : visio@numerique.gouv.fr."
+    }
+  },
+  "liability": {
+    "title": "Clause de responsabilité",
+    "body1": "Les informations proposées sur ce site le sont à titre de service rendu aux agents du service public, notamment aux agents des services de l'Etat.",
+    "body2": "Les informations et/ou documents disponibles sur ce site sont susceptibles d'être modifiés à tout moment, et peuvent faire l'objet de mises à jour pour faciliter l'accès aux ressources numériques.",
+    "body3": "Les informations et/ou documents accédés à partir de ce site relèvent de la responsabilité des porteurs de chaque service interministériel ainsi mis à disposition.",
+    "body4": "L'éditeur ne pourra en aucun cas être tenue responsable de tout dommage de quelque nature qu'il soit résultant de la mauvaise utilisation des ressources accessibles à partir de ce site."
+  },
+  "dataProtection": {
+    "title": "Délégué à la protection des données",
+    "body": "Si vous souhaitez obtenir des informations sur les traitements de données personnelles gérés par un Service Premier Ministre vous pouvez contacter le délégué à la protection des données (DPD) par courriel à l'adresse dpd@pm.gouv.fr ou par courrier à l'adresse suivante :",
+    "address": {
+      "line1": "Service du Premier ministre",
+      "line2": "A l'attention du délégué à la protection des données (DPD)",
+      "line3": "56 rue de Varenne",
+      "line4": "75700 Paris"
+    }
+  }
+}
