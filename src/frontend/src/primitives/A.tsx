@@ -51,6 +51,11 @@ const link = cva({
         lineHeight: '1rem',
       },
     },
+    color: {
+      primary: {
+        color: 'blue',
+      },
+    },
   },
 })
 
@@ -64,12 +69,13 @@ export const A = ({
   externalIcon,
   underline,
   footer,
+  color,
   ...props
 }: AProps) => {
   return (
     <Link
       {...props}
-      className={link({ size, externalIcon, underline, footer })}
+      className={link({ size, externalIcon, underline, footer, color })}
     />
   )
 }
