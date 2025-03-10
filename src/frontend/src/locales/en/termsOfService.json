@@ -1,0 +1,221 @@
+{
+  "terms": {
+    "title": "Terms of Service",
+    "introduction": "These terms of service (referred to as \"ToS\") establish the legal framework of the \"Visio\" Platform and define the conditions of access and use of services by the user.",
+    "articles": {
+      "article1": {
+        "title": "Article 1 - Scope",
+        "content": "The platform \"visio.numerique.gouv.fr\" is an initiative of the interministerial operator of the Interministerial Digital Direction, which is responsible for processing and the operational carrier of the solution."
+      },
+      "article2": {
+        "title": "Article 2 - Purpose",
+        "content": "The platform may collect personal data for the following purposes:",
+        "purposes": [
+          "Promote team cooperation and remote work.",
+          "Facilitate the organization of meetings, conferences or training sessions.",
+          "Improve the Visio platform."
+        ]
+      },
+      "article3": {
+        "title": "Article 3 - Definitions",
+        "definitions": [
+          {
+            "term": "User",
+            "definition": "Any public agent or interlocutor of a public agent, using the platform."
+          },
+          {
+            "term": "Services",
+            "definition": "The functionalities offered by the platform to meet its purposes."
+          },
+          {
+            "term": "Data controller",
+            "definition": "The person who, within the meaning of Article 4 of Regulation (EU) No. 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, determines the purposes and means of processing personal data."
+          }
+        ]
+      },
+      "article4": {
+        "title": "Article 4 - Framework and usage restrictions",
+        "content": "Visio is in the process of certification for a non-sensitive data usage framework, which excludes the processing of so-called \"sensitive\" personal data under Articles 9 and 10 of the GDPR and information bearing the mention \"Restricted Distribution\" within the meaning of interministerial instruction 901/SGDSN/ANSSI."
+      },
+      "article5": {
+        "title": "Article 5 - Features",
+        "sections": {
+          "section1": {
+            "title": "5.1 - Features open to public agents",
+            "content": "Visio offers any public agent the possibility to create a videoconference room from a standard workstation, linked to their ProConnect account.",
+            "paragraph1": "Any State agent, whose activities are compatible with the use of Visio or who is not subject to particular confidentiality obligations or professional secrecy, can create a videoconference freely. They can then share the meeting link with other participants, whether they are part of the administration or not.",
+            "paragraph2": "For this purpose, each room organizer can:",
+            "capabilities": [
+              "Protect access to the room with a waiting room;",
+              "Authorize the entry of each participant in the room;",
+              "Mute participants' microphones and cameras;",
+              "Exclude a participant from the room."
+            ],
+            "paragraph3": "Only agents whose field of activity is authorized to use Visio or who are not subject to a particular confidentiality obligation or professional secrecy can use or control this service and its functionalities."
+          },
+          "section2": {
+            "title": "5.2 - Features open to all Users",
+            "content": "Visio allows any user, public agent or not, to participate in any Visio room to which they are invited by a State agent and to benefit from all its features.",
+            "paragraph": "For this purpose, each participant can:",
+            "capabilities": [
+              "Decline their identity or indicate it when entering the room;",
+              "Exchange remotely in audio and/or video;",
+              "Share their screen;",
+              "Exchange messages during the room publicly with everyone;",
+              "See information about the conference;",
+              "Exercise their right to their image by choosing never to activate their camera and/or microphone or to deactivate one, the other or both at any time;",
+              "Protect the privacy of the place from which they access the room by selecting and then activating a screen background before entering the room or even during the videoconference."
+            ]
+          }
+        }
+      },
+      "article6": {
+        "title": "Article 6 - Responsibility",
+        "sections": {
+          "section1": {
+            "title": "6.1 - The Platform Editor",
+            "paragraphs": [
+              "The editor reserves the right to suspend or revoke access to the service if it considers that the use of the service is detrimental to its image or does not correspond to security requirements.",
+              "The editor is committed to securing the Platform, particularly by taking all necessary measures to guarantee the security and confidentiality of the information provided.",
+              "The editor provides the necessary and reasonable means to ensure continuous access, without financial counterpart for users, to the Platform. It reserves the freedom to evolve, modify or suspend, without notice, the platform for maintenance reasons or for any other reason deemed necessary."
+            ]
+          },
+          "section2": {
+            "title": "6.2 - The Platform User",
+            "paragraphs": [
+              "Any information transmitted by the User is their sole responsibility. It is reminded that any person making a false declaration for themselves or for others is exposed, in particular, to the sanctions provided for in Article 441-1 of the Penal Code, providing for penalties of up to three years' imprisonment and a fine of 45,000 euros.",
+              "It is up to the User to ensure beforehand that they are authorized to use Visio or not to be subject to a particular confidentiality obligation or professional secrecy."
+            ]
+          }
+        }
+      },
+      "article7": {
+        "title": "Article 7 - Protection of personal data",
+        "sections": {
+          "section1": {
+            "title": "7.1 - Data controller",
+            "content": "The data controller is the Interministerial Digital Direction, whose director is Ms. Stéphanie Schaer."
+          },
+          "section2": {
+            "title": "7.2 - Personal data processed",
+            "content": "The platform may process the following personal data:",
+            "dataCategories": [
+              {
+                "category": "Data relating to the organizing public agent:",
+                "items": [
+                  "Email address of the organizing public agent and participants;",
+                  "Organization;",
+                  "First and last name;",
+                  "Public IP address;"
+                ]
+              },
+              {
+                "category": "Data relating to videoconferences;"
+              },
+              {
+                "category": "Data collected by the host:",
+                "items": [
+                  "The public IP address of the client (terminal associated with the browser used)",
+                  "The IP address of the server",
+                  "Technical connection data relating to",
+                  "the Browser (type, version no.)",
+                  "the Client workstation operating system",
+                  "the flows (bandwidth, throughput, packet loss, latency)",
+                  "the image quality (resolution, number of frames/s) in sending and receiving."
+                ]
+              }
+            ]
+          },
+          "section3": {
+            "title": "7.3 - Purposes of processing",
+            "content": "The platform may process personal data for the following purposes:",
+            "purposes": [
+              "Promote team cooperation and remote work;",
+              "Facilitate the organization of meetings, conferences or training sessions;",
+              "Facilitate assistance to each user of the service.",
+              "Improve the Visio platform;"
+            ]
+          },
+          "section4": {
+            "title": "7.4 - Legal basis for data processing",
+            "content": "The data processed on the occasion of this processing have several legal bases:",
+            "bases": [
+              "the legal obligation to which the data controller is subject within the meaning of Article 6-c of the GDPR;",
+              "the public interest mission to which the data controller is subject within the meaning of Article 6-e of the GDPR."
+            ],
+            "details": [
+              {
+                "title": "a) Data relating to the organizing public agent",
+                "content": "This data processing is necessary for the performance of a task carried out in the public interest or in the exercise of official authority vested in the controller within the meaning of Article 6-e of Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data.",
+                "legalReference": "The public interest mission is notably established by: Article 6 of Decree No. 2019-1088 of October 25, 2019 relating to the State's information and communication system and to the interministerial digital direction"
+              },
+              {
+                "title": "b) Data relating to the web conference",
+                "content": "This data processing is necessary for the performance of a task carried out in the public interest or in the exercise of official authority vested in the controller within the meaning of Article 6-e of Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data.",
+                "legalReference": "The public interest mission is notably established by: Article 6 of Decree No. 2019-1088 of October 25, 2019 relating to the State's information and communication system and to the interministerial digital direction"
+              },
+              {
+                "title": "c) Connection data",
+                "content": "This data processing is necessary for compliance with a legal obligation to which the controller is subject within the meaning of Article 6-c of Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data.",
+                "legalReferences": [
+                  "The LCEN Law No. 2004-575 of June 21, 2004 for confidence in the digital economy",
+                  "Articles 1 and 3 of Decree No. 2011-219 of February 25, 2011"
+                ]
+              }
+            ]
+          },
+          "section5": {
+            "title": "7.5 - Retention period of processed data",
+            "content": "Personal data are kept for the purposes of possible requests for assistance or traceability for a conference, for the development of statistics:",
+            "dataType": "Data Type",
+            "retentionPeriod": "Retention Period",
+            "retentionTable": [
+              {
+                "dataType": "Data relating to the organizing agent",
+                "retention": "The data kept are anonymized and are deleted at the latest 12 months after the expiry date of the videoconference"
+              },
+              {
+                "dataType": "Data relating to the videoconference",
+                "retention": "The data are deleted at the latest 12 months after the expiry date of the videoconference"
+              }
+            ],
+            "additionalInfo": "At the end of the retention period, the data relating to the organizing agent and the data relating to the videoconference can no longer be used by the data controller within the framework of the platform. They are destroyed at the latest 12 months after the expiry date of the videoconference."
+          },
+          "section6": {
+            "title": "7.6 - Security and confidentiality",
+            "content": "The data controller undertakes to take the necessary technical and organizational security measures to ensure confidentiality, integrity and protect data access."
+          },
+          "section7": {
+            "title": "7.7 - Rights of data subjects",
+            "content": "Pursuant to Article 13 of Regulation (EU) No. 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, each user whose data is collected in the context of the use or connection to the Visio platform is reminded that they have the following rights regarding their personal data:",
+            "rights": [
+              "Right to information;",
+              "Right of access to data;",
+              "Right of rectification and right of erasure of data;",
+              "Right to restriction of data"
+            ],
+            "exerciseRights": {
+              "content": "You can exercise these rights by contacting by:",
+              "methods": [
+                "Electronic means: visio@numerique.gouv.fr",
+                "Postal means: Direction interministérielle du Numérique, 20 avenue de Ségur, 75007 Paris."
+              ]
+            },
+            "additionalInfo": [
+              "Due to the obligation of security and confidentiality in the processing of personal data incumbent on the data controller, your request will only be processed if you provide proof of your identity. To help you in your approach, you will find here a model letter developed by the Cnil.",
+              "You have the possibility to object to the processing of your personal data. To help you in your approach, you will find here a model letter developed by the Cnil.",
+              "Response times: The data controller undertakes to respond to your request for access, rectification or objection or any other request for additional information within a reasonable time that should not exceed 1 month from the receipt of your request."
+            ]
+          },
+          "section8": {
+            "title": "7.8 - Recipients",
+            "paragraphs": [
+              "The collected data are processed only by persons legally authorized to know the processed information.",
+              "These are agents, employees or other persons who may represent the legal entity holding a public service mission that uses the platform service."
+            ]
+          }
+        }
+      }
+    }
+  }
+}

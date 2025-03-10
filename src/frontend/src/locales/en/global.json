@@ -37,7 +37,8 @@
       "accessibility": "Accessibility: non-compliant",
       "ariaLabel": "new window",
       "code": "Open Source Code Repository",
-      "technicalDetails": "Technical Notice"
+      "technicalDetails": "Technical Notice",
+      "termsOfService": "Terms of service"
     },
     "mentions": "Unless otherwise stated, the contents of this site are available under",
     "license": "etalab 2.0 license"

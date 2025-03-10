@@ -155,6 +155,7 @@ export const Header = () => {
   const isHome = useMatchesRoute('home')
   const isLegalTerms = useMatchesRoute('legalTerms')
   const isAccessibility = useMatchesRoute('accessibility')
+  const isTermsOfService = useMatchesRoute('termsOfService')
   const isRoom = useMatchesRoute('room')
   const { user, isLoggedIn, logout } = useUser()
 
@@ -207,7 +208,8 @@ export const Header = () => {
               {isLoggedIn === false &&
                 !isHome &&
                 !isLegalTerms &&
-                !isAccessibility && (
+                !isAccessibility &&
+                !isTermsOfService && (
                   <>
                     <ProConnectButton hint={false} />
                     <LoginHint />

@@ -231,6 +231,16 @@ export const Footer = () => {
             </Link>
           </StyledLi>
           <StyledLi divider>
+            <Link
+              underline={false}
+              footer="minor"
+              to="/conditions-utilisation"
+              aria-label={t('links.termsOfService')}
+            >
+              {t('links.termsOfService')}
+            </Link>
+          </StyledLi>
+          <StyledLi divider>
             <A
               externalIcon
               underline={false}

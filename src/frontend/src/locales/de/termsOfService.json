@@ -1,0 +1,108 @@
+{
+  "terms": {
+    "title": "",
+    "introduction": "",
+    "articles": {
+      "article1": {
+        "title": "",
+        "content": ""
+      },
+      "article2": {
+        "title": "",
+        "content": "",
+        "purposes": []
+      },
+      "article3": {
+        "title": "",
+        "definitions": []
+      },
+      "article4": {
+        "title": "",
+        "content": ""
+      },
+      "article5": {
+        "title": "",
+        "sections": {
+          "section1": {
+            "title": "",
+            "content": "",
+            "paragraph1": "",
+            "paragraph2": "",
+            "capabilities": [],
+            "paragraph3": ""
+          },
+          "section2": {
+            "title": "",
+            "content": "",
+            "paragraph": "",
+            "capabilities": []
+          }
+        }
+      },
+      "article6": {
+        "title": "",
+        "sections": {
+          "section1": {
+            "title": "",
+            "paragraphs": []
+          },
+          "section2": {
+            "title": "",
+            "paragraphs": []
+          }
+        }
+      },
+      "article7": {
+        "title": "",
+        "sections": {
+          "section1": {
+            "title": "",
+            "content": ""
+          },
+          "section2": {
+            "title": "",
+            "content": "",
+            "dataCategories": []
+          },
+          "section3": {
+            "title": "",
+            "content": "",
+            "purposes": []
+          },
+          "section4": {
+            "title": "",
+            "content": "",
+            "bases": [],
+            "details": []
+          },
+          "section5": {
+            "title": "",
+            "content": "",
+            "dataType": "",
+            "retentionPeriod": "",
+            "retentionTable": [],
+            "additionalInfo": ""
+          },
+          "section6": {
+            "title": "",
+            "content": ""
+          },
+          "section7": {
+            "title": "",
+            "content": "",
+            "rights": [],
+            "exerciseRights": {
+              "content": "",
+              "methods": []
+            },
+            "additionalInfo": []
+          },
+          "section8": {
+            "title": "",
+            "paragraphs": []
+          }
+        }
+      }
+    }
+  }
+}

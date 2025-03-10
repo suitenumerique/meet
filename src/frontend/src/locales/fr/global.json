@@ -37,7 +37,8 @@
       "accessibility": "Accessibilités : non conforme",
       "ariaLabel": "nouvelle fenêtre",
       "code": "Dépôt de code Open Source",
-      "technicalDetails": "Fiche Technique"
+      "technicalDetails": "Fiche Technique",
+      "termsOfService": "Conditions d'utilisation"
     },
     "mentions": "Sauf mention contraire, les contenus de ce site sont disponibles sous",
     "license": "licence etalab 2.0"

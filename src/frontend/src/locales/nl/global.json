@@ -35,7 +35,9 @@
       "data": "Persoonlijke gegevens en cookies",
       "accessibility": "Toegankelijkheid: audit in uitvoering",
       "ariaLabel": "nieuw venster",
-      "code": "Open Source Code Repository"
+      "code": "Open Source Code Repository",
+      "technicalDetails": "Technische fiche",
+      "termsOfService": "Gebruiksvoorwaarden"
     },
     "mentions": "Tenzij anders vermeld, is de inhoud van deze site beschikbaar onder",
     "license": "etalab 2.0 licentie"
