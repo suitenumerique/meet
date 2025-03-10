@@ -242,17 +242,14 @@ export const Footer = () => {
             </A>
           </StyledLi>
           <StyledLi divider>
-            <A
-              externalIcon
+            <Link
               underline={false}
               footer="minor"
-              href="https://docs.numerique.gouv.fr/docs/94bd1e3b-a44d-4cf5-b7ee-708a5386a111/"
-              aria-label={
-                t('links.accessibility') + ' - ' + t('links.ariaLabel')
-              }
+              to="/accessibilite"
+              aria-label={t('links.accessibility')}
             >
               {t('links.accessibility')}
-            </A>
+            </Link>
           </StyledLi>
           <StyledLi divider>
             <A

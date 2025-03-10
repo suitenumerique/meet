@@ -154,6 +154,7 @@ export const Header = () => {
   const { t } = useTranslation()
   const isHome = useMatchesRoute('home')
   const isLegalTerms = useMatchesRoute('legalTerms')
+  const isAccessibility = useMatchesRoute('accessibility')
   const isRoom = useMatchesRoute('room')
   const { user, isLoggedIn, logout } = useUser()
 
@@ -203,12 +204,15 @@ export const Header = () => {
           </header>
           <nav>
             <Stack gap={1} direction="row" align="center">
-              {isLoggedIn === false && !isHome && !isLegalTerms && (
-                <>
-                  <ProConnectButton hint={false} />
-                  <LoginHint />
-                </>
-              )}
+              {isLoggedIn === false &&
+                !isHome &&
+                !isLegalTerms &&
+                !isAccessibility && (
+                  <>
+                    <ProConnectButton hint={false} />
+                    <LoginHint />
+                  </>
+                )}
               {!!user && (
                 <Menu>
                   <Button

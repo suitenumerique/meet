@@ -1,9 +1,10 @@
 import { FeedbackRoute, RoomRoute, roomIdPattern } from '@/features/rooms'
 import { HomeRoute } from '@/features/home'
 import { LegalTermsRoute } from '@/features/legalsTerms/LegalTermsRoute'
+import { AccessibilityRoute } from '@/features/legalsTerms/Accessibility'
 
 export const routes: Record<
-  'home' | 'room' | 'feedback' | 'legalTerms',
+  'home' | 'room' | 'feedback' | 'legalTerms' | 'accessibility',
   {
     name: RouteName
     path: RegExp | string
@@ -32,6 +33,11 @@ export const routes: Record<
     name: 'legalTerms',
     path: '/mentions-legales',
     Component: LegalTermsRoute,
+  },
+  accessibility: {
+    name: 'accessibility',
+    path: '/accessibilite',
+    Component: AccessibilityRoute,
   },
 }
 

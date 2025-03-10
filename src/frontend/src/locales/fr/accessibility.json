@@ -1,0 +1,40 @@
+{
+  "accessibility": {
+    "title": "Accessibilité",
+    "introduction": "Visio s'engage à rendre ses services numériques accessibles, conformément à l'article 47 de la loi n°2005-102 du 11 février 2005.",
+    "declaration": {
+      "title": "Déclaration d'accessibilité",
+      "date": "Établie le 05 mars 2025."
+    },
+    "scope": "Cette déclaration d'accessibilité s'applique au site visio.numerique.gouv.fr",
+    "complianceStatus": {
+      "title": "État de conformité",
+      "body": "visio.numerique.gouv.fr est non conforme avec le RGAA 4.1. Le site n'a pas encore été audité. Cependant, l'équipe s'efforce de créer un site accessible à tous en suivant les recommandations du RGAA."
+    },
+    "improvement": {
+      "title": "Amélioration et contact",
+      "body": "Si vous n'arrivez pas à accéder à un contenu ou à un service, vous pouvez contacter le responsable de lasuite.numerique.gouv.fr pour être orienté vers une alternative accessible ou obtenir le contenu sous une autre forme.",
+      "contact": {
+        "email": "E-mail : visio@numerique.gouv.fr",
+        "address": "Adresse : DINUM, 20 avenue de Ségur 75007 Paris"
+      },
+      "response": "Nous essayons de répondre dans les 2 jours ouvrés."
+    },
+    "recourse": {
+      "title": "Voie de recours",
+      "introduction": "Cette procédure est à utiliser dans le cas suivant : vous avez signalé au responsable du site internet un défaut d'accessibilité qui vous empêche d'accéder à un contenu ou à un des services du portail et vous n'avez pas obtenu de réponse satisfaisante.",
+      "options": {
+        "intro": "Vous pouvez :",
+        "option1": "Écrire un message au Défenseur des droits",
+        "option2": "Contacter le délégué du Défenseur des droits dans votre région",
+        "option3": "Envoyer un courrier par la poste (gratuit, ne pas mettre de timbre) :"
+      }
+    },
+    "dataProtection": {
+      "line1": "Service du Premier ministre",
+      "line2": "A l'attention du délégué à la protection des données (DPD)",
+      "line3": "56 rue de Varenne",
+      "line4": "75007 Paris"
+    }
+  }
+}

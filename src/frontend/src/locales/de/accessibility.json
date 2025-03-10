@@ -1,0 +1,40 @@
+{
+  "accessibility": {
+    "title": "",
+    "introduction": "",
+    "declaration": {
+      "title": "",
+      "date": ""
+    },
+    "scope": "",
+    "complianceStatus": {
+      "title": "",
+      "body": ""
+    },
+    "improvement": {
+      "title": "",
+      "body": "",
+      "contact": {
+        "email": "",
+        "address": ""
+      },
+      "response": ""
+    },
+    "recourse": {
+      "title": "",
+      "introduction": "",
+      "options": {
+        "intro": "",
+        "option1": "",
+        "option2": "",
+        "option3": ""
+      }
+    },
+    "dataProtection": {
+      "line1": "",
+      "line2": "",
+      "line3": "",
+      "line4": ""
+    }
+  }
+}
