@@ -261,7 +261,7 @@ export const Footer = () => {
               {t('links.accessibility')}
             </Link>
           </StyledLi>
-          <StyledLi divider>
+          <StyledLi>
             <A
               externalIcon
               underline={false}
@@ -274,17 +274,6 @@ export const Footer = () => {
               {t('links.technicalDetails')}
             </A>
           </StyledLi>
-          <StyledLi>
-            <A
-              externalIcon
-              underline={false}
-              footer="minor"
-              href="https://github.com/numerique-gouv/meet/"
-              aria-label={t('links.code') + ' - ' + t('links.ariaLabel')}
-            >
-              {t('links.code')}
-            </A>
-          </StyledLi>
         </SecondRow>
         <ThirdRow>
           {t('mentions')}{' '}
@@ -295,6 +284,17 @@ export const Footer = () => {
           >
             {t('license')}
           </A>
+          .
+          <br /> {t('links.codeAnnotation')}{' '}
+          <A
+            externalIcon
+            footer="minor"
+            href="https://github.com/numerique-gouv/meet/"
+            aria-label={t('links.code') + ' - ' + t('links.ariaLabel')}
+          >
+            {t('links.code')}
+          </A>
+          .
         </ThirdRow>
       </InnerContainer>
     </footer>

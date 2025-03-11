@@ -36,7 +36,8 @@
       "data": "Données personnelles et cookie",
       "accessibility": "Accessibilités : non conforme",
       "ariaLabel": "nouvelle fenêtre",
-      "code": "Dépôt de code Open Source",
+      "codeAnnotation": "Notre code est ouvert et disponible sur ce",
+      "code": "dépôt de code Open Source",
       "technicalDetails": "Fiche Technique",
       "termsOfService": "Conditions d'utilisation"
     },
