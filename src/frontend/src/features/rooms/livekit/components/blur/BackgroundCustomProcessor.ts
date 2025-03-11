@@ -18,6 +18,7 @@ import {
 } from '.'
 
 import { DrawingUtils } from './DrawingUtils'
+import { DrawingUtils2 } from '@/features/rooms/livekit/components/blur/DrawingUtils2.ts'
 
 const PROCESSING_WIDTH = 256
 const PROCESSING_HEIGHT = 144
@@ -166,8 +167,8 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     this.imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath:
-          // 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite',
-          'https://storage.googleapis.com/mediapipe-models/image_segmenter/deeplab_v3/float32/1/deeplab_v3.tflite',
+          'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite',
+        // 'https://storage.googleapis.com/mediapipe-models/image_segmenter/deeplab_v3/float32/1/deeplab_v3.tflite',
         delegate: 'GPU', // Use CPU for Firefox.
       },
       runningMode: 'VIDEO',
@@ -202,10 +203,10 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
 
     const legendColor = [[255, 197, 0, 255]]
 
-    this.drawingUtils.drawCategoryMask(
+    this.drawingUtils.applyBackgroundBlur(
       this.imageSegmenterResult.categoryMask,
-      legendColor, // Vivid Yellow
-      this.videoElement
+      this.videoElement,
+      3.0
     )
   }
 
@@ -247,7 +248,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
         PROCESSING_HEIGHT
       )
     }
-    this.drawingUtils = new DrawingUtils(this.workCanvas.getContext('webgl2'))
+    this.drawingUtils = new DrawingUtils2(this.workCanvas.getContext('webgl2'))
   }
 
   _wip(id: string, width: number, height: number) {
