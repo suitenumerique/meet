@@ -17,6 +17,8 @@ import {
   ProcessorType,
 } from '.'
 
+import { DrawingUtils } from './DrawingUtils'
+
 const PROCESSING_WIDTH = 256
 const PROCESSING_HEIGHT = 144
 
@@ -24,6 +26,8 @@ const SEGMENTATION_MASK_CANVAS_ID = 'background-blur-local-segmentation'
 const BLUR_CANVAS_ID = 'background-blur-local'
 
 const DEFAULT_BLUR = '10'
+
+export class Wip {}
 
 /**
  * This implementation of video blurring is made to be run on CPU for browser that are
@@ -50,8 +54,11 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
   imageSegmenterResult?: ImageSegmenterResult
 
   // Canvas used for resizing video source and projecting mask.
-  segmentationMaskCanvas?: HTMLCanvasElement
-  segmentationMaskCanvasCtx?: CanvasRenderingContext2D
+  workCanvas?: HTMLCanvasElement
+  // segmentationMaskCanvasCtx?: CanvasRenderingContext2D
+  drawingUtils: any
+  segmentationMaskCanvasCtx: any
+  segmentationMaskCanvas: any
 
   // Mask containg the inference result.
   segmentationMask?: ImageData
@@ -90,10 +97,11 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
 
     this._initVirtualBackgroundImage()
     this._createMainCanvas()
-    this._createMaskCanvas()
+    this._createWorkCanvas()
 
     const stream = this.outputCanvas!.captureStream()
     const tracks = stream.getVideoTracks()
+
     if (tracks.length == 0) {
       throw new Error('No tracks found for processing')
     }
@@ -158,37 +166,15 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     this.imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath:
-          'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite',
-        delegate: 'CPU', // Use CPU for Firefox.
+          // 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite',
+          'https://storage.googleapis.com/mediapipe-models/image_segmenter/deeplab_v3/float32/1/deeplab_v3.tflite',
+        delegate: 'GPU', // Use CPU for Firefox.
       },
       runningMode: 'VIDEO',
       outputCategoryMask: true,
       outputConfidenceMasks: false,
+      canvas: this.workCanvas,
     })
-  }
-
-  /**
-   * Resize the source video to the processing resolution.
-   */
-  async sizeSource() {
-    this.segmentationMaskCanvasCtx?.drawImage(
-      this.videoElement!,
-      0,
-      0,
-      this.videoElement!.videoWidth,
-      this.videoElement!.videoHeight,
-      0,
-      0,
-      PROCESSING_WIDTH,
-      PROCESSING_HEIGHT
-    )
-
-    this.sourceImageData = this.segmentationMaskCanvasCtx?.getImageData(
-      0,
-      0,
-      PROCESSING_WIDTH,
-      PROCESSING_WIDTH
-    )
   }
 
   /**
@@ -198,7 +184,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     const startTimeMs = performance.now()
     return new Promise<void>((resolve) => {
       this.imageSegmenter!.segmentForVideo(
-        this.sourceImageData!,
+        this.videoElement,
         startTimeMs,
         (result: ImageSegmenterResult) => {
           this.imageSegmenterResult = result
@@ -212,92 +198,26 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
    * TODO: future improvement with WebGL.
    */
   async blur() {
-    const mask = this.imageSegmenterResult!.categoryMask!.getAsUint8Array()
-    for (let i = 0; i < mask.length; ++i) {
-      this.segmentationMask!.data[i * 4 + 3] = 255 - mask[i]
-    }
+    // console.log('$$ blur')
 
-    this.segmentationMaskCanvasCtx!.putImageData(this.segmentationMask!, 0, 0)
+    const legendColor = [[255, 197, 0, 255]]
 
-    this.outputCanvasCtx!.globalCompositeOperation = 'copy'
-    this.outputCanvasCtx!.filter = 'blur(8px)'
-
-    // Put opacity mask.
-    this.outputCanvasCtx!.drawImage(
-      this.segmentationMaskCanvas!,
-      0,
-      0,
-      PROCESSING_WIDTH,
-      PROCESSING_HEIGHT,
-      0,
-      0,
-      this.videoElement!.videoWidth,
-      this.videoElement!.videoHeight
-    )
-
-    // Draw clear body.
-    this.outputCanvasCtx!.globalCompositeOperation = 'source-in'
-    this.outputCanvasCtx!.filter = 'none'
-    this.outputCanvasCtx!.drawImage(this.videoElement!, 0, 0)
-
-    // Draw blurry background.
-    this.outputCanvasCtx!.globalCompositeOperation = 'destination-over'
-    this.outputCanvasCtx!.filter = `blur(${this.options.blurRadius ?? DEFAULT_BLUR}px)`
-    this.outputCanvasCtx!.drawImage(this.videoElement!, 0, 0)
-  }
-
-  /**
-   * TODO: future improvement with WebGL.
-   */
-  async drawVirtualBackground() {
-    const mask = this.imageSegmenterResult!.categoryMask!.getAsUint8Array()
-    for (let i = 0; i < mask.length; ++i) {
-      this.segmentationMask!.data[i * 4 + 3] = 255 - mask[i]
-    }
-
-    this.segmentationMaskCanvasCtx!.putImageData(this.segmentationMask!, 0, 0)
-
-    this.outputCanvasCtx!.globalCompositeOperation = 'copy'
-    this.outputCanvasCtx!.filter = 'blur(8px)'
-
-    // Put opacity mask.
-    this.outputCanvasCtx!.drawImage(
-      this.segmentationMaskCanvas!,
-      0,
-      0,
-      PROCESSING_WIDTH,
-      PROCESSING_HEIGHT,
-      0,
-      0,
-      this.videoElement!.videoWidth,
-      this.videoElement!.videoHeight
-    )
-
-    // Draw clear body.
-    this.outputCanvasCtx!.globalCompositeOperation = 'source-in'
-    this.outputCanvasCtx!.filter = 'none'
-    this.outputCanvasCtx!.drawImage(this.videoElement!, 0, 0)
-
-    // Draw virtual background.
-    this.outputCanvasCtx!.globalCompositeOperation = 'destination-over'
-    this.outputCanvasCtx!.drawImage(
-      this.virtualBackgroundImage!,
-      0,
-      0,
-      this.outputCanvas!.width,
-      this.outputCanvas!.height
+    this.drawingUtils.drawCategoryMask(
+      this.imageSegmenterResult.categoryMask,
+      legendColor, // Vivid Yellow
+      this.videoElement
     )
   }
 
   async process() {
-    await this.sizeSource()
     await this.segment()
 
     if (this.options.blurRadius) {
       await this.blur()
-    } else {
-      await this.drawVirtualBackground()
     }
+    // } else {
+    //   await this.drawVirtualBackground()
+    // }
     this.timerWorker!.postMessage({
       id: SET_TIMEOUT,
       timeMs: 1000 / 30,
@@ -318,19 +238,33 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     this.outputCanvasCtx = this.outputCanvas.getContext('2d')!
   }
 
-  _createMaskCanvas() {
-    this.segmentationMaskCanvas = document.querySelector(
-      `#${SEGMENTATION_MASK_CANVAS_ID}`
-    ) as HTMLCanvasElement
-    if (!this.segmentationMaskCanvas) {
-      this.segmentationMaskCanvas = this._createCanvas(
-        SEGMENTATION_MASK_CANVAS_ID,
+  _createWorkCanvas() {
+    this.workCanvas = document.querySelector(`#workcanvas`)
+    if (!this.workCanvas) {
+      this.workCanvas = this._wip(
+        'workcanvas',
         PROCESSING_WIDTH,
         PROCESSING_HEIGHT
       )
     }
-    this.segmentationMaskCanvasCtx =
-      this.segmentationMaskCanvas.getContext('2d')!
+    this.drawingUtils = new DrawingUtils(this.workCanvas.getContext('webgl2'))
+  }
+
+  _wip(id: string, width: number, height: number) {
+    const wip = document.querySelector(`#wip`)
+    const element = document.createElement('canvas')
+    element.setAttribute('id', id)
+    element.setAttribute('width', '' + width)
+    element.setAttribute('height', '' + height)
+    element.style.position = 'absolute'
+    element.style.top = '0'
+    element.style.left = '0'
+    element.style.maxWidth = '611px'
+    element.style.maxHeight = '305px'
+
+    wip.appendChild(element)
+
+    return element
   }
 
   _createCanvas(id: string, width: number, height: number) {

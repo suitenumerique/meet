@@ -170,16 +170,23 @@ export const EffectsConfiguration = ({
         })}
       >
         {videoTrack && !videoTrack.isMuted ? (
-          <video
-            ref={videoRef}
-            width="100%"
-            muted
-            style={{
-              transform: 'rotateY(180deg)',
-              minHeight: '175px',
-              borderRadius: '8px',
-            }}
-          />
+          <div
+            className={css({
+              position: 'relative',
+            })}
+            id="wip"
+          >
+            <video
+              ref={videoRef}
+              width="100%"
+              muted
+              style={{
+                transform: 'rotateY(180deg)',
+                minHeight: '175px',
+                borderRadius: '8px',
+              }}
+            />
+          </div>
         ) : (
           <div
             style={{

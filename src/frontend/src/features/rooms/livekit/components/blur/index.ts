@@ -36,22 +36,25 @@ export class BackgroundProcessorFactory {
     type: ProcessorType,
     opts: BackgroundOptions
   ): BackgroundProcessorInterface | undefined {
-    if (type === ProcessorType.BLUR) {
-      if (ProcessorWrapper.isSupported) {
-        return new BackgroundBlurTrackProcessorJsWrapper(opts)
-      }
-      if (BackgroundCustomProcessor.isSupported) {
-        return new BackgroundCustomProcessor(opts)
-      }
-    } else if (type === ProcessorType.VIRTUAL) {
-      if (ProcessorWrapper.isSupported) {
-        return new BackgroundVirtualTrackProcessorJsWrapper(opts)
-      }
-      if (BackgroundCustomProcessor.isSupported) {
-        return new BackgroundCustomProcessor(opts)
-      }
-    }
-    return undefined
+    return new BackgroundCustomProcessor(opts)
+
+    // if (type === ProcessorType.BLUR) {
+    //   if (ProcessorWrapper.isSupported) {
+    //
+    //   }
+    //   if (BackgroundCustomProcessor.isSupported) {
+    //     return new BackgroundCustomProcessor(opts)
+    //   }
+    // } else if (type === ProcessorType.VIRTUAL) {
+    //   if (ProcessorWrapper.isSupported) {
+    //     return new BackgroundVirtualTrackProcessorJsWrapper(opts)
+    //   }
+    //   if (BackgroundCustomProcessor.isSupported) {
+    //     return new BackgroundCustomProcessor(opts)
+    //   }
+    // }
+
+    // return undefined
   }
 
   static deserializeProcessor(data?: ProcessorSerialized) {
