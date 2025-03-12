@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-const VERTEX_SHADER = `
-  attribute vec2 aVertex;
-  attribute vec2 aTex;
-  varying vec2 vTex;
+const VERTEX_SHADER = `#version 300 es
+  in vec2 aVertex;
+  in vec2 aTex;
+  out vec2 vTex;
   void main(void) {
     gl_Position = vec4(aVertex, 0.0, 1.0);
     vTex = aTex;
   }`
 
-const FRAGMENT_SHADER = `
+const FRAGMENT_SHADER = `#version 300 es
   precision mediump float;
-  varying vec2 vTex;
+  in vec2 vTex;
   uniform sampler2D inputTexture;
+  out vec4 fragColor;
   void main() {
-    gl_FragColor = texture2D(inputTexture, vTex);
+    fragColor = texture(inputTexture, vTex);
   }
  `
 

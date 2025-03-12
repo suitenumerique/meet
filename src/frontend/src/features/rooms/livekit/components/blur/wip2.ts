@@ -17,7 +17,7 @@ import { ImageSource } from '@mediapipe/tasks-vision'
  *
  * This version inverts the mask interpretation - it blurs what's OUTSIDE the mask.
  */
-const FRAGMENT_SHADER = `
+const FRAGMENT_SHADER = `#version 300 es
   precision mediump float;
   
   uniform sampler2D backgroundTexture;
@@ -25,90 +25,31 @@ const FRAGMENT_SHADER = `
   uniform vec2 texelSize;
   uniform float blurAmount;
   
-  varying vec2 vTex;
-  
-  // Helper function for multi-pass blur
-  vec4 multiPassBlur(sampler2D image, vec2 uv, vec2 pixelSize, float strength) {
-    // Use a larger sampling area for higher quality blur
-    vec4 accumulator = vec4(0.0);
-    float weightSum = 0.0;
-    float kernel[5];
-    
-    // Define our approximated Gaussian weights
-    kernel[0] = 0.227027;
-    kernel[1] = 0.1945946;
-    kernel[2] = 0.1216216;
-    kernel[3] = 0.054054;
-    kernel[4] = 0.016216;
-    
-    // First horizontal pass
-    // accumulator += texture2D(image, uv) * kernel[0];
-    // weightSum += kernel[0];
-    
-    for (int i = 0; i < 5; i++) {
-      float weight = kernel[i];
-      float offset = float(i) * pixelSize.x * strength;
-      accumulator += texture2D(image, uv + vec2(offset, 0.0)) * weight;
-      accumulator += texture2D(image, uv - vec2(offset, 0.0)) * weight;
-      weightSum += weight * 2.0;
-    }
-    
-    vec4 horizontalPass = accumulator / weightSum;
-    
-    // Reset for vertical pass
-    // accumulator = vec4(0.0);
-    // weightSum = 0.0;
+  in vec2 vTex;
+  out vec4 fragColor;
 
-    // // Second vertical pass
-    // accumulator += horizontalPass * kernel[0];
-    // weightSum += kernel[0];
-    //
-    // for (int i = 1; i < 5; i++) {
-    //   float weight = kernel[i];
-    //   float offset = float(i) * pixelSize.y * strength;
-    //
-    //   accumulator += horizontalPass * weight;
-    //   weightSum += weight;
-    //
-    //   // Sample vertical offsets
-    //   vec2 offsetCoord;
-    //
-    //   offsetCoord = uv + vec2(0.0, offset);
-    //   accumulator += texture2D(image, offsetCoord) * weight;
-    //
-    //   offsetCoord = uv - vec2(0.0, offset);
-    //   accumulator += texture2D(image, offsetCoord) * weight;
-    //
-    //   weightSum += weight * 2.0;
-    // }
-    
-    return accumulator / weightSum;
-  }
-  
-  // Create a smooth edge for the mask to prevent harsh transitions
-  float smoothMask(float maskValue) {
-    // Add a small amount of feathering to the mask edge
-    float featherAmount = 0.02;
-    return smoothstep(0.0, featherAmount, maskValue);
-  }
-  
+  const float offset[5] = float[](0.0, 1.0, 2.0, 3.0, 4.0);
+  const float weight[5] = float[](0.2270270270, 0.1945945946, 0.1216216216,
+    0.0540540541, 0.0162162162);
+
+  const float radius = 0.01;
+
   void main() {
-    // Get mask value and INVERT IT
-    // Now: 0.0 for foreground (inside mask), 1.0 for background (outside mask)
-    float rawMaskValue =  texture2D(maskTexture, vTex).r;
-    float maskValue = smoothMask(rawMaskValue);
-    
-    // Original color (inside the mask - the "subject")
-    vec4 originalColor = texture2D(backgroundTexture, vTex);
-    
-    // Apply blur to outside of mask - stronger blur for a more dramatic effect
-    vec4 blurredColor = multiPassBlur(backgroundTexture, vTex, texelSize, blurAmount * 6.0);
-    
-    // Mix between blurred and original based on inverted mask
-    // Now where mask was 1.0 (inside), maskValue is 0.0 (keep original)
-    // Where mask was 0.0 (outside), maskValue is 1.0 (apply blur)
-    // gl_FragColor = mix(originalColor, blurredColor, maskValue);
-    gl_FragColor = blurredColor;
+    vec4 centerColor = texture(backgroundTexture, vTex);
+    float personMask = texture(maskTexture, vTex).r + 0.0 * blurAmount;
+
+    vec4 frameColor = centerColor * weight[0];  
+
+    for (int i = 1; i < 5; i++) {
+      vec2 offset = vec2(offset[i]) * texelSize * radius;
+
+      vec2 texCoord = vTex + offset;
+      frameColor += texture(backgroundTexture, texCoord) * weight[i] * texture(maskTexture, texCoord).r;
+      texCoord = vTex - offset;
+      frameColor += texture(backgroundTexture, texCoord) * weight[i] * texture(maskTexture, texCoord).r;
+    }
+
+    fragColor = mix(centerColor, frameColor, personMask);
   }
 `
 
