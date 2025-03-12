@@ -17,6 +17,7 @@ import { ImageSource } from '@mediapipe/tasks-vision'
  *
  * This version inverts the mask interpretation - it blurs what's OUTSIDE the mask.
  */
+
 const FRAGMENT_SHADER = `#version 300 es
   precision mediump float;
   
@@ -25,9 +26,37 @@ const FRAGMENT_SHADER = `#version 300 es
   uniform vec2 texelSize;
   uniform float blurAmount;
   
+  const float sigma_s = 2.0;  // Spatial sigma (distance-based)
+  const int KERNEL_RADIUS = 2;  // Kernel size is (2 * KERNEL_RADIUS + 1) x (2 * KERNEL_RADIUS + 1)
+
   in vec2 vTex;
   out vec4 fragColor;
 
+  vec4 maskSmoothing() {
+      vec4 centerColor = texture(maskTexture, vTex);
+      float sumWeight = 0.0;
+      vec4 sumColor = vec4(0.0);
+
+      for (int i = -KERNEL_RADIUS; i <= KERNEL_RADIUS; i++) {
+          for (int j = -KERNEL_RADIUS; j <= KERNEL_RADIUS; j++) {
+              vec2 offset = vec2(float(i), float(j)) * texelSize;
+              vec4 neighborColor = texture(maskTexture, vTex + offset);
+
+              // Spatial weight (Gaussian distance)
+              float spatialDist = length(vec2(i, j));
+              float spatialWeight = exp(-(spatialDist * spatialDist) / (2.0 * sigma_s * sigma_s));
+
+              // Accumulate weighted color
+              sumColor += neighborColor * spatialWeight;
+              sumWeight += spatialWeight;
+          }
+      }
+
+      // Normalize the result to avoid darkening
+      return sumColor / sumWeight;
+  }
+
+  // Gaussian blur weights and offsets
   const float offset[5] = float[](0.0, 1.0, 2.0, 3.0, 4.0);
   const float weight[5] = float[](0.2270270270, 0.1945945946, 0.1216216216,
     0.0540540541, 0.0162162162);
@@ -36,22 +65,28 @@ const FRAGMENT_SHADER = `#version 300 es
 
   void main() {
     vec4 centerColor = texture(backgroundTexture, vTex);
-    float personMask = texture(maskTexture, vTex).r + 0.0 * blurAmount;
+
+    // Apply bilateral filtering on the mask before using it
+    vec4 personMask = maskSmoothing();
 
     vec4 frameColor = centerColor * weight[0];  
 
     for (int i = 1; i < 5; i++) {
-      vec2 offset = vec2(offset[i]) * texelSize * radius;
+      vec2 offsetVec = vec2(offset[i]) * texelSize * radius;
 
-      vec2 texCoord = vTex + offset;
-      frameColor += texture(backgroundTexture, texCoord) * weight[i] * texture(maskTexture, texCoord).r;
-      texCoord = vTex - offset;
-      frameColor += texture(backgroundTexture, texCoord) * weight[i] * texture(maskTexture, texCoord).r;
+      vec2 texCoord = vTex + offsetVec;
+      frameColor += texture(backgroundTexture, texCoord) * weight[i] * personMask.r;
+
+      texCoord = vTex - offsetVec;
+      frameColor += texture(backgroundTexture, texCoord) * weight[i] * personMask.r;
     }
 
-    fragColor = mix(centerColor, frameColor, personMask);
+    // Blend original color with blurred background
+    fragColor = mix(centerColor, frameColor, personMask.r);
   }
-`
+`;
+
+
 
 /** A drawing util class for high-quality background blur. */
 export class BackgroundBlurShaderContext extends MPImageShaderContext {
@@ -132,10 +167,10 @@ export class BackgroundBlurShaderContext extends MPImageShaderContext {
       gl.getUniformLocation(this.program!, 'texelSize'),
       'Uniform location'
     )
-    this.blurAmountUniform = assertExists(
-      gl.getUniformLocation(this.program!, 'blurAmount'),
-      'Uniform location'
-    )
+    // this.blurAmountUniform = assertExists(
+    //   gl.getUniformLocation(this.program!, 'blurAmount'),
+    //   'Uniform location'
+    // )
   }
 
   protected override configureUniforms(): void {
