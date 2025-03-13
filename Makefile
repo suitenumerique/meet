@@ -130,6 +130,25 @@ stop: ## stop the development server using Docker
 	@$(COMPOSE) stop
 .PHONY: stop
 
+# -- Front
+
+frontend-development-install: ## install the frontend locally
+	cd $(PATH_FRONT) && npm i
+.PHONY: frontend-development-install
+
+frontend-lint: ## run the frontend linter
+	cd $(PATH_FRONT) && npm run lint
+.PHONY: frontend-lint
+
+frontend-format: ## run the frontend format
+	cd $(PATH_FRONT) && npm run format
+.PHONY: frontend-format
+
+run-frontend-development: ## run the frontend in development mode
+	@$(COMPOSE) stop frontend
+	cd $(PATH_FRONT) && npm run dev
+.PHONY: run-frontend-development
+
 # -- Backend
 
 demo: ## flush db then create a demo for load testing purpose
