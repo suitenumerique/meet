@@ -97,6 +97,7 @@ services:
 
   dockerize:
     image: jwilder/dockerize
+    platform: linux/x86_64
 
   crowdin:
     image: crowdin/cli:4.0.0
