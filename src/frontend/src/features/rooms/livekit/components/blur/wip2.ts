@@ -26,63 +26,60 @@ const FRAGMENT_SHADER = `#version 300 es
   uniform vec2 texelSize;
   uniform float blurAmount;
   
-  const float sigma_s = 2.0;  // Spatial sigma (distance-based)
-  const int KERNEL_RADIUS = 2;  // Kernel size is (2 * KERNEL_RADIUS + 1) x (2 * KERNEL_RADIUS + 1)
-
   in vec2 vTex;
   out vec4 fragColor;
 
+  // Smoothing function for mask transitions
   vec4 maskSmoothing() {
-      vec4 centerColor = texture(maskTexture, vTex);
-      float sumWeight = 0.0;
-      vec4 sumColor = vec4(0.0);
-
-      for (int i = -KERNEL_RADIUS; i <= KERNEL_RADIUS; i++) {
-          for (int j = -KERNEL_RADIUS; j <= KERNEL_RADIUS; j++) {
-              vec2 offset = vec2(float(i), float(j)) * texelSize;
-              vec4 neighborColor = texture(maskTexture, vTex + offset);
-
-              // Spatial weight (Gaussian distance)
-              float spatialDist = length(vec2(i, j));
-              float spatialWeight = exp(-(spatialDist * spatialDist) / (2.0 * sigma_s * sigma_s));
-
-              // Accumulate weighted color
-              sumColor += neighborColor * spatialWeight;
-              sumWeight += spatialWeight;
-          }
-      }
-
-      // Normalize the result to avoid darkening
-      return sumColor / sumWeight;
+    // Sample the mask at the current texel
+    float maskValue = texture(maskTexture, vTex).r;
+    
+    // Apply smoothing to reduce aliasing at mask edges
+    float smoothedMask = smoothstep(0.2, 0.8, maskValue);
+    
+    return vec4(smoothedMask);
   }
-
-  // Gaussian blur weights and offsets
-  const float offset[5] = float[](0.0, 1.0, 2.0, 3.0, 4.0);
-  const float weight[5] = float[](0.2270270270, 0.1945945946, 0.1216216216,
-    0.0540540541, 0.0162162162);
-
-  const float radius = 0.01;
+  
+  // Compute Gaussian weight based on distance and blur amount
+  float gaussianWeight(float x, float y, float sigma) {
+    float sigmaSq = sigma * sigma;
+    float distanceSq = x * x + y * y;
+    
+    // Gaussian function: (1/(2πσ²)) * e^(-((x²+y²)/(2σ²)))
+    return exp(-distanceSq / (2.0 * sigmaSq));
+  }
 
   void main() {
     vec4 centerColor = texture(backgroundTexture, vTex);
-
+    
     // Apply bilateral filtering on the mask before using it
     vec4 personMask = maskSmoothing();
-
-    vec4 frameColor = centerColor * weight[0];  
-
-    for (int i = 1; i < 5; i++) {
-      vec2 offsetVec = vec2(offset[i]) * texelSize * radius;
-
-      vec2 texCoord = vTex + offsetVec;
-      frameColor += texture(backgroundTexture, texCoord) * weight[i] * personMask.r;
-
-      texCoord = vTex - offsetVec;
-      frameColor += texture(backgroundTexture, texCoord) * weight[i] * personMask.r;
+    
+    // Dynamic 5x5 Gaussian blur
+    vec4 blurredColor = vec4(0.0);
+    float totalWeight = 0.0;
+    
+    // Compute effective sigma from blur amount (adjust as needed)
+    float sigma = max(0.1, blurAmount) + 50.0;
+    
+    // Apply 5x5 kernel with dynamic weights
+    for (int y = -10; y <= 10; y++) {
+      for (int x = -10; x <= 10; x++) {
+        // Calculate Gaussian weight for this offset
+        float weight = gaussianWeight(float(x), float(y), sigma);
+        totalWeight += weight;
+        
+        vec2 offset = vec2(float(x), float(y)) * texelSize;
+        vec2 sampleCoord = vTex + offset;
+        blurredColor += texture(backgroundTexture, sampleCoord) * weight;
+      }
     }
-
-    // Blend original color with blurred background
-    fragColor = mix(centerColor, frameColor, personMask.r);
+    
+    // Normalize by total weight
+    blurredColor /= totalWeight;
+    
+    // Blend original color with blurred background based on mask
+    fragColor = mix(centerColor, blurredColor, personMask.r);
   }
 `;
 
@@ -120,17 +117,33 @@ export class BackgroundBlurShaderContext extends MPImageShaderContext {
     )
 
     // Set texel size (for proper blur scaling)
-    const width =
-      background instanceof ImageData ? background.width : background.width || 1
-    const height =
-      background instanceof ImageData
-        ? background.height
-        : background.height || 1
+    let width = 1;
+    let height = 1;
+
+    if (background instanceof ImageData) {
+      width = background.width;
+      height = background.height;
+    } else if (background instanceof HTMLCanvasElement) {
+      width = background.width;
+      height = background.height;
+    } else if (background instanceof HTMLImageElement) {
+      width = background.naturalWidth;
+      height = background.naturalHeight;
+    } else if (background instanceof HTMLVideoElement) {
+      width = background.videoWidth;
+      height = background.videoHeight;
+    }
+
+    // Ensure we have valid dimensions to prevent division by zero
+    width = Math.max(width, 1);
+    height = Math.max(height, 1);
 
     gl.uniform2f(this.texelSizeUniform!, 1.0 / width, 1.0 / height)
 
     // Set blur amount
-    gl.uniform1f(this.blurAmountUniform!, blurAmount)
+    if (this.blurAmountUniform) {
+      gl.uniform1f(this.blurAmountUniform, blurAmount)
+    }
   }
 
   unbindTextures() {
@@ -167,10 +180,10 @@ export class BackgroundBlurShaderContext extends MPImageShaderContext {
       gl.getUniformLocation(this.program!, 'texelSize'),
       'Uniform location'
     )
-    // this.blurAmountUniform = assertExists(
-    //   gl.getUniformLocation(this.program!, 'blurAmount'),
-    //   'Uniform location'
-    // )
+    this.blurAmountUniform = assertExists(
+      gl.getUniformLocation(this.program!, 'blurAmount'),
+      'Uniform location'
+    )
   }
 
   protected override configureUniforms(): void {
