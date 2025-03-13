@@ -88,9 +88,19 @@ bootstrap: \
 .PHONY: bootstrap
 
 # -- Docker/compose
-build: ## build the app-dev container
-	@$(COMPOSE) build app-dev --no-cache
+build: ## build the project containers
+	@$(MAKE) build-backend
+	@$(MAKE) build-frontend
 .PHONY: build
+
+build-backend: ## build the app-dev container
+	@$(COMPOSE) build app-dev
+.PHONY: build-backend
+
+
+build-frontend: ## build the frontend container
+	@$(COMPOSE) build frontend
+.PHONY: build-frontend
 
 down: ## stop and remove containers, networks, images, and volumes
 	@$(COMPOSE) down
@@ -100,10 +110,16 @@ logs: ## display app-dev logs (follow mode)
 	@$(COMPOSE) logs -f app-dev
 .PHONY: logs
 
-run: ## start the wsgi (production) and development server
+run-backend: ## start only the backend application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-dev
 	@echo "Wait for postgresql to be up..."
 	@$(WAIT_DB)
+.PHONY: run-backend
+
+run:
+run: ## start the wsgi (production) and development server
+	@$(MAKE) run-backend
+	@$(COMPOSE) up --force-recreate -d frontend
 .PHONY: run
 
 status: ## an alias for "docker compose ps"

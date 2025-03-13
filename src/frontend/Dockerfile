@@ -29,6 +29,9 @@ FROM meet AS meet-builder
 
 WORKDIR /home/frontend
 
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
 RUN npm run build
 
 # ---- Front-end image ----

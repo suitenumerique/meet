@@ -95,6 +95,18 @@ services:
     depends_on:
       - keycloak
 
+  frontend:
+    user: "${DOCKER_USER:-1000}"
+    build:
+      context: .
+      dockerfile: ./src/frontend/Dockerfile
+      target: frontend-production
+      args:
+        VITE_API_BASE_URL: "http://localhost:8071"
+    image: meet:frontend-development
+    ports:
+      - "3000:8080"
+
   dockerize:
     image: jwilder/dockerize
     platform: linux/x86_64
