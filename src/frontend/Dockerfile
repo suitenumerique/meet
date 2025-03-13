@@ -38,7 +38,7 @@ RUN npm run build
 FROM nginxinc/nginx-unprivileged:1.26-alpine AS frontend-production
 
 USER root
-RUN apk update && apk upgrade libssl3 libcrypto3
+RUN apk update && apk upgrade libssl3 libcrypto3 libxml2>=2.12.7-r2
 
 USER nginx
 
