@@ -1,40 +1,34 @@
 {
   "accessibility": {
     "title": "Accessibility",
-    "introduction": "Visio is committed to making its digital services accessible, in accordance with Article 47 of Law No. 2005-102 of February 11, 2005.",
+    "introduction": "<i>Visio</i> is committed to making its digital services accessible, in accordance with Article 47 of Law No. 2005-102 of February 11, 2005.",
     "declaration": {
-      "title": "Accessibility Declaration",
-      "date": "Established on March 5, 2025."
+      "title": "Accessibility Statement",
+      "date": "Established on December 4, 2024."
     },
-    "scope": "This accessibility declaration applies to the site visio.numerique.gouv.fr",
+    "scope": "This accessibility statement applies to the website visio.numerique.gouv.fr",
     "complianceStatus": {
       "title": "Compliance Status",
-      "body": "visio.numerique.gouv.fr is not compliant with RGAA 4.1. The site has not yet been audited. However, the team is striving to create a site accessible to all by following RGAA recommendations."
+      "body": "visio.numerique.gouv.fr is not compliant with RGAA 4.1. The site has not yet been audited. However, the team strives to create a site that is accessible to everyone by following RGAA recommendations."
     },
     "improvement": {
       "title": "Improvement and Contact",
-      "body": "If you are unable to access content or a service, you can contact the administrator of lasuite.numerique.gouv.fr to be directed to an accessible alternative or obtain the content in another format.",
+      "body": "If you cannot access content or a service, you can contact the person responsible for lasuite.numerique.gouv.fr to be directed to an accessible alternative or to obtain the content in another form.",
       "contact": {
         "email": "Email: visio@numerique.gouv.fr",
         "address": "Address: DINUM, 20 avenue de Ségur 75007 Paris"
       },
-      "response": "We try to respond within 2 business days."
+      "response": "We try to respond within 2 working days."
     },
     "recourse": {
-      "title": "Recourse",
-      "introduction": "This procedure should be used in the following case: you have reported an accessibility issue to the website administrator that prevents you from accessing content or services on the portal, and you have not received a satisfactory response.",
+      "title": "Means of Recourse",
+      "introduction": "This procedure is to be used in the following case: you have reported to the website manager an accessibility issue that prevents you from accessing content or one of the portal's services, and you have not received a satisfactory response.",
       "options": {
         "intro": "You can:",
-        "option1": "Send a message to the Defender of Rights",
-        "option2": "Contact the delegate of the Defender of Rights in your region",
-        "option3": "Send a letter by mail (free, do not put a stamp):"
+        "option1": "Write a message to the Rights Defender",
+        "option2": "Contact the Rights Defender's representative in your region",
+        "option3": "Send a letter by mail (free, no stamp needed): </br> Rights Defender Free response 71120 75342 Paris CEDEX 07"
       }
-    },
-    "dataProtection": {
-      "line1": "Service du Premier ministre",
-      "line2": "A l'attention du délégué à la protection des données (DPD)",
-      "line3": "56 rue de Varenne",
-      "line4": "75007 Paris"
     }
   }
 }

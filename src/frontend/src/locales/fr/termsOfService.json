@@ -1,221 +1,94 @@
 {
-  "terms": {
-    "title": "Conditions Générales d'Utilisation",
-    "introduction": "Les présentes conditions générales d'utilisation (dites \"CGU\") fixent le cadre juridique de la Plateforme \"Visio\" et définissent les conditions d'accès et d'utilisation des services par l'utilisateur.",
-    "articles": {
-      "article1": {
-        "title": "Article 1 - Champ d'application",
-        "content": "La plateforme \"visio.numerique.gouv.fr\" est à l'initiative de l'opérateur interministériel de la Direction Interministérielle du NUMérique qui en est le responsable de traitements et le porteur opérationnel de la solution."
-      },
-      "article2": {
-        "title": "Article 2 - Objet",
-        "content": "La plateforme peut collecter des données à caractère personnel pour les finalités suivantes :",
-        "purposes": [
-          "Favoriser la coopération des équipes et le travail à distance.",
-          "Faciliter l'organisation de réunions, conférences ou formations.",
-          "Améliorer la plateforme Visio."
-        ]
-      },
-      "article3": {
-        "title": "Article 3 - Définitions",
-        "definitions": [
-          {
-            "term": "L'Utilisateur",
-            "definition": "est tout agent public ou interlocuteur d'agent public, utilisant la plateforme."
-          },
-          {
-            "term": "Les Services",
-            "definition": "sont les fonctionnalités offertes par la plateforme pour répondre à ses finalités."
-          },
-          {
-            "term": "Le responsable de traitement",
-            "definition": "est la personne qui, au sens de l'article 4 du règlement UE) n°2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des personnes physiques à l'égard du traitement des données à caractère personnel et à la libre circulation de ces données détermine les finalités et les moyens des traitements de données à caractère personnel."
-          }
-        ]
-      },
-      "article4": {
-        "title": "Article 4 - Cadre et restrictions d'usage",
-        "content": "Visio est en cours d'homologuation pour un cadre d'usage de données non sensibles, qui exclut le traitement des données personnelles dites « sensibles » relevant des articles 9 et 10 du RGPD et des informations portant la mention \"Diffusion Restreinte\" au sens de l'instruction interministérielle 901/SGDSN/ANSSI."
-      },
-      "article5": {
-        "title": "Article 5 - Fonctionnalités",
-        "sections": {
-          "section1": {
-            "title": "5.1 - Fonctionnalités ouvertes aux agents publics",
-            "content": "Visio offre à tout agent public la possibilité de créer un salon de visioconférence depuis un poste de travail standard, lié à son compte ProConnect.",
-            "paragraph1": "Tout agent de l'État, dont les activités sont compatibles avec l'utilisation de Visio ou qui n'est pas soumis à des obligations particulières de confidentialité ou de secret professionnel, peut créer une visioconférence en toute liberté. Il peut ensuite partager le lien de la réunion avec d'autres participants, qu'ils fassent partie de l'administration ou non.",
-            "paragraph2": "A cet effet, chaque organisateur de salon peut :",
-            "capabilities": [
-              "Protéger l'accès au salon par une salle d'attente ;",
-              "Autoriser l'entrée de chaque participant dans le salon ;",
-              "Couper les micros et caméras des participants ;",
-              "Exclure un participant du salon."
-            ],
-            "paragraph3": "Seuls les agents, dont le domaine d'activité est autorisé à utiliser Visio ou qui ne sont pas soumis à une obligation de confidentialité particulière ou de secret professionnel, peuvent utiliser ou avoir la maîtrise de ce service et de ses fonctionnalités."
-          },
-          "section2": {
-            "title": "5.2 - Fonctionnalités ouvertes à tous les Utilisateurs",
-            "content": "Visio permet à tout utilisateur, agent public ou non de participer à tout salon de Visio auquel il est convié par un agent de l'Etat et de profiter de toutes ses fonctionnalités.",
-            "paragraph": "A cet effet, chaque participant peut :",
-            "capabilities": [
-              "décliner son identité ou indiquer en entrant dans le salon ;",
-              "échanger à distance en audio et/ou en vidéo ;",
-              "partager son écran ;",
-              "échanger des messages durant le salon de manière publique avec tous ;",
-              "voir des informations sur la conférence ;",
-              "exercer son droit à l'image en choisissant de ne jamais activer sa caméra et/ou son micro ou de désactiver l'un, l'autre ou les deux à tout instant ;",
-              "protéger l'intimité du lieu duquel il accède au salon en sélectionnant puis en activant un fond d'écran avant d'entrer dans le salon ou même durant la visioconférence."
-            ]
-          }
-        }
-      },
-      "article6": {
-        "title": "Article 6 - Responsabilité",
-        "sections": {
-          "section1": {
-            "title": "6.1 - L'Editeur de la plateforme",
-            "paragraphs": [
-              "L'éditeur s'autorise à suspendre ou révoquer l'accès au service, s'il estime que l'usage réalisé du service porte préjudice à son image ou ne correspond pas aux exigences de sécurité.",
-              "L'éditeur s'engage à la sécurisation de la Plateforme, notamment en prenant toutes les mesures nécessaires permettant de garantir la sécurité et la confidentialité des informations fournies.",
-              "L'éditeur fournit les moyens nécessaires et raisonnables pour assurer un accès continu, sans contrepartie financière pour les utilisateurs, à la Plateforme. Il se réserve la liberté de faire évoluer, de modifier ou de suspendre, sans préavis, la plateforme pour des raisons de maintenance ou pour tout autre motif jugé nécessaire."
-            ]
-          },
-          "section2": {
-            "title": "6.2 - L'Utilisateur de la plateforme",
-            "paragraphs": [
-              "Toute information transmise par l'Utilisateur est de sa seule responsabilité. Il est rappelé que toute personne procédant à une fausse déclaration pour elle-même ou pour autrui s'expose, notamment, aux sanctions prévues à l'article 441-1 du code pénal, prévoyant des peines pouvant aller jusqu'à trois ans d'emprisonnement et 45 000 euros d'amende.",
-              "Il revient à l'Utilisateur de s'assurer préalablement d'être autorisé à utiliser Visio ou à ne pas être soumis à une obligation de confidentialité particulière ou secret professionnel."
-            ]
-          }
-        }
-      },
-      "article7": {
-        "title": "Article 7 - Protection des données à caractère personnel",
-        "sections": {
-          "section1": {
-            "title": "7.1 - Responsable de traitement",
-            "content": "Le responsable de traitement est la Direction interministérielle du Numérique, dont la directrice est Madame Stéphanie Schaer."
-          },
-          "section2": {
-            "title": "7.2 - Données personnelles traitées",
-            "content": "La plateforme peut traiter les données à caractère personnel suivantes :",
-            "dataCategories": [
-              {
-                "category": "Données relatives à l'agent public organisateur :",
-                "items": [
-                  "adresse e-mail de l'agent public organisateur et des participants ;",
-                  "Organisation ;",
-                  "Nom Prénom ;",
-                  "Adresse IP publique ;"
-                ]
-              },
-              {
-                "category": "Données relatives aux visioconférences ;"
-              },
-              {
-                "category": "Données collectées par l'hébergeur :",
-                "items": [
-                  "L'adresse IP publique du client (terminal associé au navigateur utilisé)",
-                  "L'adresse IP du serveur",
-                  "Données techniques de la connexion portant sur",
-                  "le Navigateur (type, n° de version)",
-                  "le Système d'exploitation du poste client",
-                  "les flux (bande passante, débit, perte de paquets, latence)",
-                  "la qualité de l'image (résolution, nombre d'images/s) en envoi et en réception."
-                ]
-              }
-            ]
-          },
-          "section3": {
-            "title": "7.3 - Finalités des traitements",
-            "content": "La plateforme peut traiter des données à caractère personnel pour les finalités suivantes :",
-            "purposes": [
-              "Favoriser la coopération des équipes et le travail à distance ;",
-              "Faciliter l'organisation de réunions, conférences ou formations ;",
-              "Faciliter l'assistance à chaque utilisateur du service.",
-              "Améliorer la plateforme Visio ;"
-            ]
-          },
-          "section4": {
-            "title": "7.4 - Base juridique des traitements de données",
-            "content": "Les données traitées à l'occasion de ce traitement ont plusieurs fondements juridiques :",
-            "bases": [
-              "l'obligation légale à laquelle est soumis le responsable de traitements au sens de l'article 6-c du RGPD ;",
-              "la mission d'intérêt public à laquelle le responsable du traitement est soumis au sens de l'article 6-e du RGPD."
-            ],
-            "details": [
-              {
-                "title": "a) Les données relatives à l'agent public organisateur",
-                "content": "Ce traitement de données est nécessaire à l'exercice d'une mission d'intérêt public ou relevant de l'exercice de l'autorité publique dont est investi le responsable de traitement au sens de l'article 6-e du règlement (UE) 2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des personnes physiques à l'égard du traitement des données à caractère personnel et à la libre circulation de ces données.",
-                "legalReference": "La mission d'intérêt public est notamment posée par : L'article 6 du décret n°2019-1088 du 25 octobre 2019 relatif au système d'information et de communication de l'Etat et à la direction interministérielle du numérique"
-              },
-              {
-                "title": "b) Les données relatives à la visioconférence",
-                "content": "Ce traitement de données est nécessaire à l'exercice d'une mission d'intérêt public ou relevant de l'exercice de l'autorité publique dont est investi le responsable de traitement au sens de l'article 6-e du Règlement (UE) 2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des personnes physiques à l'égard du traitement des données à caractère personnel et à la libre circulation de ces données.",
-                "legalReference": "La mission d'intérêt public est notamment posée par : L'article 6 du décret n°2019-1088 du 25 octobre 2019 relatif au système d'information et de communication de l'Etat et à la direction interministérielle du numérique"
-              },
-              {
-                "title": "c) Les données de connexion",
-                "content": "Ce traitement de données est nécessaire au respect d'une obligation légale à laquelle le responsable du traitement est soumis au sens de l'article 6-c du règlement (UE) 2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des personnes physiques à l'égard du traitement des données à caractère personnel et à la libre circulation de ces données.",
-                "legalReferences": [
-                  "La loi LCEN n°2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique",
-                  "Les articles 1 et 3 du décret n°2011-219 du 25 février 2011"
-                ]
-              }
-            ]
-          },
-          "section5": {
-            "title": "7.5 - Durée de conservation des données traitées",
-            "content": "Les données à caractère personnel sont conservées aux fins d'éventuelles demandes d'assistance ou de traçabilité pour une conférence, d'élaboration de statistiques :",
-            "dataType": "Type de données",
-            "retentionPeriod": "Période de rétention",
-            "retentionTable": [
-              {
-                "dataType": "Données relatives à l'agent organisateur",
-                "retention": "Les données conservées sont anonymisées et sont supprimées au plus tard 12 mois après la date d'expiration de la visioconférence"
-              },
-              {
-                "dataType": "Données relatives à la visioconference",
-                "retention": "Les données sont supprimées au plus tard 12 mois après la date d'expiration de la visioconference"
-              }
-            ],
-            "additionalInfo": "A l'issue de la durée de conservation, les données relatives à l'agent organisateur et les données relatives à la visioconference ne peuvent plus être utilisées par le responsable de traitements dans le cadre de la plateforme. Elles sont détruites au plus tard 12 mois après la date d'expiration de la visioconference."
-          },
-          "section6": {
-            "title": "7.6 - Sécurité et confidentialité",
-            "content": "Le responsable de traitement s'engage à prendre les mesures techniques et organisationnelles de sécurité nécessaires pour assurer la confidentialité, l'intégrité et protéger l'accès des données."
-          },
-          "section7": {
-            "title": "7.7 - Droits des personnes concernées",
-            "content": "En vertu de l'article 13 du règlement (UE) n°2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des personnes physiques à l'égard du traitement des données à caractère personnel et à la libre circulation de ces données, il est rappelé à chaque utilisateur dont les données sont collectées dans le cadre de l'utilisation ou de la connexion à la plateforme Visio qu'il dispose des droits suivants concernant ses données à caractère personnel :",
-            "rights": [
-              "Droit d'information ;",
-              "Droit d'accès aux données ;",
-              "Droit de rectification et droit d'effacement des données ;",
-              "Droit de limitation des données"
-            ],
-            "exerciseRights": {
-              "content": "Vous pouvez exercer ces droits en contactant par :",
-              "methods": [
-                "voie électronique : visio@numerique.gouv.fr",
-                "voie postale : Direction interministérielle du Numérique, 20 avenue de Ségur, 75007 Paris."
-              ]
-            },
-            "additionalInfo": [
-              "En raison de l'obligation de sécurité et de confidentialité dans le traitement des données à caractère personnel qui incombe au responsable de traitement, votre demande ne sera traitée que si vous rapportez la preuve de votre identité. Pour vous aider dans votre démarche, vous trouverez ici un modèle de courrier élaboré par la Cnil.",
-              "Vous avez la possibilité de vous opposer à un traitement de vos données personnelles. Pour vous aider dans votre démarche, vous trouverez ici un modèle de courrier élaboré par la Cnil.",
-              "Délais de réponse : La responsable de traitement s'engage à répondre à votre demande d'accès, de rectification ou d'opposition ou toute autre demande complémentaire d'informations dans un délai raisonnable qui ne saurait dépasser 1 mois à compter de la réception de votre demande."
-            ]
-          },
-          "section8": {
-            "title": "7.8 - Destinataires",
-            "paragraphs": [
-              "Les données collectées sont traitées par les seules personnes juridiquement habilitées à connaître des informations traitées.",
-              "Il s'agit des agents, salariés ou autre personne pouvant représenter la personne morale titulaire d'une mission de service public qui utilise le service de la plateforme."
-            ]
-          }
+  "title": "Modalités d'utilisation de Visio",
+  "articles": {
+    "article1": {
+      "title": "1. Champ d'application",
+      "content": "Le présent document définit les modalités d'utilisation de Visio, le service de visioconférence de l'administration."
+    },
+    "article2": {
+      "title": "2. Objet de la plateforme",
+      "content": "Le service permet de favoriser la coopération des équipes et le travail à distance et de faciliter l'organisation de réunions, conférences ou formations.",
+      "purposes": "Visio est développé et opéré par la DINUM. Toute utilisation du service doit respecter les présentes modalités d'utilisation."
+    },
+    "article3": {
+      "title": "3. Accès au service",
+      "definition": "Visio est mis à disposition des agents publics connectés par ProConnect aux fins d'administrer un salon de visioconférence. L'agent public connecté peut ensuite transmettre un lien permettant d'accéder au salon à toute personne, sous sa responsabilité."
+    },
+    "article4": {
+      "title": "4. Utilisation",
+      "content": "L'utilisation du service est libre et gratuite, pour administration un salon de visioconférence, il est nécessaire de se connecter par ProConnect."
+    },
+    "article5": {
+      "title": "5. Fonctionnalités",
+      "sections": {
+        "section1": {
+          "title": "5.1. Fonctionnalités ouvertes aux agents publics",
+          "content": "Visio offre aux agents publics la possibilité de créer un salon de visioconférence depuis un poste de travail standard, lié à son compte ProConnect.",
+          "paragraph1": "Tout agent de l'État, dont les activités sont compatibles avec l'utilisation de Visio ou qui n'est pas soumis à des obligations particulières de confidentialité ou de secret professionnel, peut créer une visioconférence. Il peut ensuite partager le lien de la réunion avec d'autres participants, qu'ils fassent partie de l'administration ou non.",
+          "paragraph2": "A cet effet, chaque organisateur de salon peut :",
+          "capabilities": [
+            "Protéger l'accès au salon par une salle d'attente ;",
+            "Autoriser l'entrée de chaque participant dans le salon ;",
+            "Couper les micros et caméras des participants ;",
+            "Exclure un participant du salon."
+          ],
+          "paragraph3": "Seuls les agents, dont le domaine d'activité est autorisé à utiliser Visio ou qui <u>ne sont pas soumis à une obligation de confidentialité particulière ou de secret professionnel</u>, peuvent utiliser ou avoir la maîtrise de ce service et de ses fonctionnalités."
+        },
+        "section2": {
+          "title": "5.2. Fonctionnalités ouvertes aux utilisateurs et utilisatrices",
+          "content": "Visio permet à tout utilisateur et tout utilisatrice, agent public ou non de participer à tout salon de Visio auquel il est convié par un agent de l'Etat et de profiter de toutes ses fonctionnalités.",
+          "paragraph": "A cet effet, chaque participant et participante peut :",
+          "capabilities": [
+            "décliner son identité affichée en entrant dans le salon ;",
+            "échanger à distance en audio et/ou en vidéo ;",
+            "partager son écran ;",
+            "échanger des messages durant le salon de manière publique avec tous ;",
+            "voir des informations sur la conférence ;",
+            "activer ou désactiver sa caméra et/ou son micro à tout instant ;",
+            "protéger l'intimité de son poste en sélectionnant puis en activant un fond d'écran avant d'entrer dans le salon ou même durant la visioconférence."
+          ]
         }
       }
+    },
+    "article6": {
+      "title": "6. Engagements et responsabilités des utilisateurs et utilisatrices",
+      "sections": {
+        "section1": {
+          "title": "6.1 Usages conformes",
+          "paragraphs": [
+            "Le service est mis à disposition pour les agents publics par ProConnect.",
+            "L'utilisateur ou l'utilisatrice est responsable des données ou contenus qu'il ou elle saisit dans le service de messagerie du salon de visioconférence. Il ou elle veille à ne saisir que des messages appropriés."
+          ]
+        },
+        "section2": {
+          "title": "6.2 Usages interdits",
+          "paragraphs": [
+            "L'utilisateur ou l'utilisatrice s'engage à ne pas saisir dans le service de messagerie du salon de Visio des contenus ou informations contraires aux dispositions légales et réglementaires en vigueur."
+          ]
+        }
+      }
+    },
+    "article7": {
+      "title": "7. Engagements et responsabilités de la DINUM",
+      "sections": {
+        "section1": {
+          "title": "7.1. Sécurité et accès à la plateforme",
+          "content": "La DINUM s'engage à la sécurisation de Visio, notamment en prenant toutes les mesures nécessaires permettant de garantir la sécurité et la confidentialité des informations fournies.",
+          "paragraphs": [
+            "La DINUM s'engage à fournir les moyens nécessaires et raisonnables pour assurer un accès continu à Visio.",
+            "La DINUM se réserve le droit de faire évoluer, de modifier ou de suspendre, sans préavis, le service pour des raisons de maintenance ou pour tout autre motif jugé nécessaire.",
+            "La DINUM se réserve le droit de suspendre ou supprimer un compte utilisateur ou utilisatrice du service qui aurait méconnu les présentes modalités d'utilisation, sans préjudice des éventuelles actions en responsabilité pénale et civile qui pourraient être engagées à l'encontre de l'utilisateur ou l'utilisatrice."
+          ]
+        },
+        "section2": {
+          "title": "7.2 Open Source et Licences",
+          "content": "Le code source de Visio est libre et disponible ici : https://github.com/suitenumerique/meet\nLes contenus proposés par la DINUM sont sous Licence Ouverte, à l'exception des logos et des représentations iconographiques et photographiques pouvant être régis par leurs licences propres."
+        }
+      }
+    },
+    "article8": {
+      "title": "8. Évolution des modalités d'utilisation",
+      "content": "Les termes des présentes modalités d'utilisation peuvent être modifiés ou complétés à tout moment, sans préavis, en fonction des modifications apportées au service, de l'évolution de la législation ou pour tout autre motif jugé nécessaire.\nCes modifications et mises à jour s'imposent à l'utilisateur ou l'utilisatrice qui doit, en conséquence, se référer régulièrement à cette rubrique pour vérifier les modalités en vigueur."
     }
   }
 }

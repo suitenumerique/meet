@@ -1,10 +1,10 @@
 {
   "accessibility": {
     "title": "Accessibilité",
-    "introduction": "Visio s'engage à rendre ses services numériques accessibles, conformément à l'article 47 de la loi n°2005-102 du 11 février 2005.",
+    "introduction": "<i>Visio</i> s'engage à rendre ses services numériques accessibles, conformément à l'article 47 de la loi n°2005-102 du 11 février 2005.",
     "declaration": {
       "title": "Déclaration d'accessibilité",
-      "date": "Établie le 05 mars 2025."
+      "date": "Établie le 04 décembre 2024."
     },
     "scope": "Cette déclaration d'accessibilité s'applique au site visio.numerique.gouv.fr",
     "complianceStatus": {
@@ -27,14 +27,8 @@
         "intro": "Vous pouvez :",
         "option1": "Écrire un message au Défenseur des droits",
         "option2": "Contacter le délégué du Défenseur des droits dans votre région",
-        "option3": "Envoyer un courrier par la poste (gratuit, ne pas mettre de timbre) :"
+        "option3": "Envoyer un courrier par la poste (gratuit, ne pas mettre de timbre) : </br> Défenseur des droits Libre réponse 71120 75342 Paris CEDEX 07"
       }
-    },
-    "dataProtection": {
-      "line1": "Service du Premier ministre",
-      "line2": "A l'attention du délégué à la protection des données (DPD)",
-      "line3": "56 rue de Varenne",
-      "line4": "75007 Paris"
     }
   }
 }
