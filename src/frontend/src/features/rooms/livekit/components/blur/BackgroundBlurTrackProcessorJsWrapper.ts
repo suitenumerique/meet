@@ -13,7 +13,7 @@ import {
 /**
  * This is simply a wrapper around track-processor-js Processor
  * in order to be compatible with a common interface BackgroundBlurProcessorInterface
- * used accross the project.
+ * used across the project.
  */
 export class BackgroundBlurTrackProcessorJsWrapper
   implements BackgroundProcessorInterface
