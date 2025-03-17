@@ -7,7 +7,7 @@ import {
 } from '@livekit/components-core'
 import { RoomEvent, Track } from 'livekit-client'
 import * as React from 'react'
-
+import { useState } from 'react'
 import {
   CarouselLayout,
   ConnectionStateToast,
@@ -29,6 +29,7 @@ import { ParticipantTile } from '../components/ParticipantTile'
 import { SidePanel } from '../components/SidePanel'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { RecordingStateToast } from '../components/RecordingStateToast'
+import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 
 const LayoutWrapper = styled(
   'div',
@@ -149,6 +150,8 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
 
   const { isSidePanelOpen } = useSidePanel()
 
+  const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
+
   return (
     <div
       className="lk-video-conference"
@@ -162,6 +165,10 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
           value={layoutContext}
           // onPinChange={handleFocusStateChange}
         >
+          <ScreenShareErrorModal
+            isOpen={isShareErrorVisible}
+            onClose={() => setIsShareErrorVisible(false)}
+          />
           <div
             // todo - extract these magic values into constant
             style={{
@@ -207,7 +214,18 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             </LayoutWrapper>
             <MainNotificationToast />
           </div>
-          <ControlBar />
+          <ControlBar
+            onDeviceError={(e) => {
+              console.error(e)
+              if (
+                e.source == Track.Source.ScreenShare &&
+                e.error.toString() ==
+                  'NotAllowedError: Permission denied by system'
+              ) {
+                setIsShareErrorVisible(true)
+              }
+            }}
+          />
           <SidePanel />
         </LayoutContextProvider>
       )}

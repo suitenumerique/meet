@@ -61,6 +61,17 @@
     "createRoom": {
       "heading": "Authentification requise",
       "body": "Cette réunion n'a pas encore été créée. Veuillez vous authentifier pour la créer ou attendre qu'un utilisateur authentifié le fasse."
+    },
+    "screenShare": {
+      "title": "Impossible de partager votre écran",
+      "ariaLabel": "Impossible de partager votre écran",
+      "message": "Il se peut que votre navigateur ne soit pas autorisé à enregistrer l'écran sur votre ordinateur.",
+      "macInstructions": "Accèdez à vos",
+      "macSystemPreferences": "Préférences système",
+      "helpLinkText": "Pour en savoir plus, consulter",
+      "helpLinkLabel": "Problème de présentation",
+      "closeButton": "Ignorer",
+      "newTab": "Nouvelle fenêtre"
     }
   },
   "controls": {

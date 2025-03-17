@@ -60,6 +60,17 @@
     "createRoom": {
       "heading": "",
       "body": ""
+    },
+    "screenShare": {
+      "title": "",
+      "ariaLabel": "",
+      "message": "",
+      "macInstructions": "",
+      "macSystemPreferences": "",
+      "helpLinkText": "",
+      "helpLinkLabel": "",
+      "closeButton": "",
+      "newTab": ""
     }
   },
   "controls": {

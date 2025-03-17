@@ -61,6 +61,17 @@
     "createRoom": {
       "heading": "Authentication Required",
       "body": "This room has not been created yet. Please authenticate to create it or wait for an authenticated user to do so."
+    },
+    "screenShare": {
+      "title": "Unable to share your screen",
+      "ariaLabel": "Unable to share your screen",
+      "message": "Your browser may not be allowed to record the screen on your computer.",
+      "macInstructions": "Go to your",
+      "macSystemPreferences": "System Preferences",
+      "helpLinkText": "To learn more, see",
+      "helpLinkLabel": "Presentation issue",
+      "closeButton": "Dismiss",
+      "newTab": "New window"
     }
   },
   "controls": {

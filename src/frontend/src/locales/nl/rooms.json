@@ -49,6 +49,17 @@
     "createRoom": {
       "heading": "Verificatie vereist",
       "body": "Deze ruimte is nog niet gemaakt. Logt u alstublieft in om hem aan te maken, of wacht tot een ingelogde gebruiker dat doet."
+    },
+    "screenShare": {
+      "title": "Kan uw scherm niet delen",
+      "ariaLabel": "Kan uw scherm niet delen",
+      "message": "Het is mogelijk dat uw browser geen toestemming heeft om het scherm op uw computer op te nemen.",
+      "macInstructions": "Ga naar uw",
+      "macSystemPreferences": "Systeemvoorkeuren",
+      "helpLinkText": "Meer informatie, zie",
+      "helpLinkLabel": "Presentatieprobleem",
+      "closeButton": "Negeren",
+      "newTab": "Nieuw venster"
     }
   },
   "controls": {
