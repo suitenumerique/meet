@@ -54,7 +54,6 @@ dependencies = [
     "requests==2.32.3",
     "sentry-sdk==2.22.0",
     "url-normalize==1.4.3",
-    "WeasyPrint>=60.2",
     "whitenoise==6.9.0",
     "mozilla-django-oidc==4.0.1",
     "livekit-api==0.8.2",
