@@ -212,7 +212,7 @@ POSTGRES_PASSWORD: pass
 Now you are ready to deploy Visio without AI. AI required more dependencies (Openai-compliant API, LiveKit Egress, Cold storage and a docs deployment to push resumes). To deploy meet you need to provide all previous information to the helm chart.
 
 ```
-$ helm repo add meet https://numerique-gouv.github.io/meet/
+$ helm repo add meet https://suitenumerique.github.io/meet/
 $ helm repo update
 $ helm install meet meet/meet -f examples/meet.values.yaml
 ```
