@@ -34,7 +34,19 @@
       "usernameEmpty": "Uw naam kan niet leeg zijn"
     },
     "cameraDisabled": "Camera is uitgeschakeld.",
-    "cameraStarting": "Camera wordt ingeschakeld."
+    "cameraStarting": "Camera wordt ingeschakeld.",
+    "waiting": {
+      "title": "Verzoek tot deelname...",
+      "body": "U kunt deelnemen aan dit gesprek wanneer iemand u toestemming geeft"
+    },
+    "denied": {
+      "title": "U kunt niet deelnemen aan dit gesprek",
+      "body": "Uw verzoek tot deelname is geweigerd."
+    },
+    "timeoutInvite": {
+      "title": "U kunt niet deelnemen aan dit gesprek",
+      "body": "Niemand heeft gereageerd op uw verzoek om deel te nemen aan het gesprek"
+    }
   },
   "leaveRoomPrompt": "Dat zal u de vergadering doen verlaten.",
   "shareDialog": {
@@ -95,6 +107,10 @@
       "open": "Verberg AI-assistent",
       "closed": "Toon AI-assistant"
     },
+    "admin": {
+      "open": "Verberg beheerder",
+      "closed": "Toon beheerder"
+    },
     "support": "Ondersteuning",
     "moreOptions": "Meer opties",
     "reactions": {
@@ -140,13 +156,15 @@
       "participants": "Deelnemers",
       "effects": "Effecten",
       "chat": "Berichten in de chat",
-      "transcript": "AI-assistent"
+      "transcript": "AI-assistent",
+      "admin": "Beheerdersbediening"
     },
     "content": {
       "participants": "deelnemers",
       "effects": "effecten",
       "chat": "berichten",
-      "transcript": "AI-assistent"
+      "transcript": "AI-assistent",
+      "admin": "Beheerdersbediening"
     },
     "closeButton": "Verberg {{content}}"
   },
@@ -163,6 +181,27 @@
       "heading": "Opname loopt ...",
       "body": "Uw vergadering wordt momenteel opgenomen. U ontvangt een samenvatting via e-mail, zo gauw de vergarding gesloten wordt.",
       "button": "Stop met opname"
+    }
+  },
+  "admin": {
+    "description": "Deze organisatorinstellingen geven u controle over uw vergadering. Alleen organisatoren hebben toegang tot deze bedieningselementen.",
+    "access": {
+      "title": "Toegang tot vergadering",
+      "description": "Deze instellingen zijn ook van toepassing op toekomstige sessies van deze vergadering.",
+      "levels": {
+        "public": {
+          "label": "Open",
+          "description": "Niemand hoeft toestemming te vragen om deel te nemen aan de vergadering."
+        },
+        "trusted": {
+          "label": "Open voor vertrouwde personen",
+          "description": "Geauthenticeerde personen hoeven geen toestemming te vragen om deel te nemen aan de vergadering."
+        },
+        "restricted": {
+          "label": "Beperkt",
+          "description": "Personen die niet zijn uitgenodigd voor de vergadering moeten vragen om deel te nemen."
+        }
+      }
     }
   },
   "rating": {
@@ -183,6 +222,12 @@
     "heading": "Bedankt voor uw inzending",
     "body": "Ons productteam neemt de tijd om uw feedback zorgvuldig te bekijken. We zullen zo snel mogelijk antwoorden."
   },
+  "authenticationMessage": {
+    "heading": "Hoe kunnen we contact met u opnemen?",
+    "placeholder": "Uw e-mail",
+    "submit": "Verzenden",
+    "ignore": "Negeren"
+  },
   "participants": {
     "subheading": "In de ruimte",
     "you": "U",
@@ -201,7 +246,20 @@
     },
     "raisedHands": "Opgestoken handen",
     "lowerParticipantHand": "Laat {{name}}'s hand zakken",
-    "lowerParticipantsHand": "Laat alle handen zakken"
+    "lowerParticipantsHand": "Laat alle handen zakken",
+    "waiting": {
+      "title": "Wachtkamer",
+      "accept": {
+        "button": "Accepteren",
+        "label": "{{name}} toelaten tot de vergadering",
+        "all": "Alles accepteren"
+      },
+      "deny": {
+        "button": "Weigeren",
+        "label": "{{name}} weigeren voor de vergadering",
+        "all": "Alles weigeren"
+      }
+    }
   },
   "recording": {
     "label": "Opnemen"
