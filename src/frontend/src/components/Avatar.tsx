@@ -1,4 +1,4 @@
-import { cva, RecipeVariantProps } from '@/styled-system/css'
+import { css, cva, RecipeVariantProps } from '@/styled-system/css'
 import React from 'react'
 
 const avatar = cva({
@@ -19,7 +19,8 @@ const avatar = cva({
       list: {
         width: '32px',
         height: '32px',
-        fontSize: '1.25rem',
+        fontSize: '1.3rem',
+        lineHeight: '1rem',
       },
       placeholder: {
         width: '100%',
@@ -60,7 +61,13 @@ export const Avatar = ({
       className={avatar({ context, notification })}
       {...props}
     >
-      {initial}
+      <span
+        className={css({
+          marginTop: '-0.3rem',
+        })}
+      >
+        {initial}
+      </span>
     </div>
   )
 }

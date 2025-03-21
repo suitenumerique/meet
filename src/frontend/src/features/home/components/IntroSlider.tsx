@@ -17,12 +17,13 @@ const Heading = styled('h2', {
   base: {
     width: 'fit-content',
     marginBottom: 0,
-    fontSize: '1.5rem',
+    fontSize: '1.3rem',
+    fontWeight: '600',
     marginTop: '0.75rem',
     lineHeight: '2rem',
     maxWidth: '23rem',
     textAlign: 'center',
-    textWrap: 'pretty',
+    textWrap: 'balance',
   },
 })
 
@@ -31,7 +32,7 @@ const Body = styled('p', {
     maxWidth: '23rem',
     textAlign: 'center',
     textWrap: 'pretty',
-    lineHeight: '1.2rem',
+    lineHeight: '1.4rem',
     fontSize: '1rem',
   },
 })
@@ -102,7 +103,7 @@ const Slide = styled('div', {
     alignItems: 'center',
     gap: '0.5rem',
     justifyContent: 'start',
-    minHeight: { base: 'none', xsm: '550px' },
+    minHeight: { base: 'none', xsm: '580px' },
     minWidth: { base: 'none', xsm: '200px' },
     width: { base: '100%', xsm: '22.625rem' },
   },

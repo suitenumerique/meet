@@ -75,7 +75,13 @@ export const A = ({
   return (
     <Link
       {...props}
-      className={link({ size, externalIcon, underline, footer, color })}
+      className={link({
+        size,
+        externalIcon,
+        underline,
+        footer,
+        color,
+      })}
     />
   )
 }

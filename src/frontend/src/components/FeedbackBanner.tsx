@@ -25,7 +25,9 @@ export const FeedbackBanner = () => {
         })}
       >
         <RiErrorWarningLine size={20} aria-hidden="true" />
-        <Text as="p">{t('feedback.context')}</Text>
+        <Text as="p" variant="sm">
+          {t('feedback.context')}
+        </Text>
         <div
           className={css({
             display: 'flex',
@@ -33,7 +35,7 @@ export const FeedbackBanner = () => {
             gap: 0.25,
           })}
         >
-          <A href={GRIST_FORM} target="_blank">
+          <A href={GRIST_FORM} target="_blank" size="sm">
             {t('feedback.cta')}
           </A>
           <RiExternalLinkLine size={16} aria-hidden="true" />

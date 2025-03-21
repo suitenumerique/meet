@@ -72,8 +72,8 @@ const LeftColumn = ({ children }: { children?: ReactNode }) => {
           textAlign: 'left',
           alignItems: 'flex-start',
           flexShrink: '1',
-          flexBasis: '36rem',
-          maxWidth: '36rem',
+          flexBasis: '40rem',
+          maxWidth: '40rem',
           padding: '1em 3em',
         },
       })}
@@ -120,14 +120,13 @@ const Separator = styled('div', {
 
 const Heading = styled('h1', {
   base: {
-    fontWeight: '500',
+    fontWeight: '600',
     fontStyle: 'normal',
     fontStretch: 'normal',
     fontOpticalSizing: 'auto',
-    marginBottom: 0,
-    paddingBottom: '0.75rem',
+    paddingBottom: '1.2rem',
     fontSize: '2.3rem',
-    lineHeight: '2.5rem',
+    lineHeight: '2.6rem',
     letterSpacing: '0',
     xsm: {
       fontSize: '3rem',
@@ -139,9 +138,9 @@ const Heading = styled('h1', {
 const IntroText = styled('div', {
   base: {
     marginBottom: '3rem',
-    fontSize: '1.5rem',
-    lineHeight: '1.8rem',
-    textWrap: 'pretty',
+    fontSize: '1.2rem',
+    lineHeight: '1.5rem',
+    textWrap: 'balance',
     maxWidth: '32rem',
   },
 })
