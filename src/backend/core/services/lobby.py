@@ -221,18 +221,18 @@ class LobbyService:
             color=color,
         )
 
+        try:
+            self.notify_participants(room_id=room_id)
+        except LobbyNotificationError:
+            # If room not created yet, there is no participants to notify
+            pass
+
         cache_key = self._get_cache_key(room_id, participant_id)
         cache.set(
             cache_key,
             participant.to_dict(),
             timeout=settings.LOBBY_WAITING_TIMEOUT,
         )
-
-        try:
-            self.notify_participants(room_id=room_id)
-        except LobbyNotificationError:
-            # If room not created yet, there is no participants to notify
-            pass
 
         return participant
 
