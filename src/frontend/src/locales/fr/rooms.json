@@ -187,11 +187,11 @@
     "description": "Ces paramètres organisateur vous permettent de garder le contrôle de votre réunion. Seuls les organisateurs peuvent accéder à ces commandes.",
     "access": {
       "title": "Accès à la réunion",
-      "description": "Ces paramètres s'appliqueront également aux futures occurences de cette réunion.",
+      "description": "Ces paramètres s'appliqueront également aux futures occurrences de cette réunion.",
       "levels": {
         "public": {
           "label": "Ouvrir",
-          "description": "Persone n'a à demander pour rejoindre la réunion."
+          "description": "Tout le monde peut rejoindre la réunion sans autorisation."
         },
         "trusted": {
           "label": "Ouvrir aux personnes de confiance",
