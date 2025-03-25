@@ -498,6 +498,9 @@ class Base(Configuration):
         converter=lambda x: int(x),  # pylint: disable=unnecessary-lambda
     )
     BREVO_API_CONTACT_ATTRIBUTES = values.DictValue({"VISIO_USER": True})
+    BREVO_API_TIMEOUT = values.PositiveIntegerValue(
+        1, environ_name="BREVO_API_TIMEOUT", environ_prefix=None
+    )
 
     # Lobby configurations
     LOBBY_KEY_PREFIX = values.Value(

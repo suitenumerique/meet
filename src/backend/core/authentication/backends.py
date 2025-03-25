@@ -121,7 +121,9 @@ class OIDCAuthenticationBackend(MozillaOIDCAuthenticationBackend):
             contact_data = ContactData(
                 email=email, attributes={"VISIO_SOURCE": ["SIGNIN"]}
             )
-            marketing_service.create_contact(contact_data, timeout=1)
+            marketing_service.create_contact(
+                contact_data, timeout=settings.BREVO_API_TIMEOUT
+            )
         except (ContactCreationError, ImproperlyConfigured, ImportError):
             pass
 
