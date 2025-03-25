@@ -298,7 +298,7 @@ export const Join = ({
       case ApiLobbyStatus.TIMEOUT:
         return (
           <VStack alignItems="center" textAlign="center">
-            <H lvl={1} margin={false}>
+            <H lvl={1} margin={false} centered>
               {t('timeoutInvite.title')}
             </H>
             <Text as="p" variant="note">
@@ -310,7 +310,7 @@ export const Join = ({
       case ApiLobbyStatus.DENIED:
         return (
           <VStack alignItems="center" textAlign="center">
-            <H lvl={1} margin={false}>
+            <H lvl={1} margin={false} centered>
               {t('denied.title')}
             </H>
             <Text as="p" variant="note">
@@ -322,7 +322,7 @@ export const Join = ({
       case ApiLobbyStatus.WAITING:
         return (
           <VStack alignItems="center" textAlign="center">
-            <H lvl={1} margin={false}>
+            <H lvl={1} margin={false} centered>
               {t('waiting.title')}
             </H>
             <Text
@@ -346,7 +346,7 @@ export const Join = ({
             }}
           >
             <VStack marginBottom={1}>
-              <H lvl={1} margin="sm">
+              <H lvl={1} margin="sm" centered>
                 {t('heading')}
               </H>
               <Field
