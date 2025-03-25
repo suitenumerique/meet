@@ -58,14 +58,14 @@ export class SdkReverseClient {
  * To be used in SDK scope.
  */
 export function useEnsureAuth() {
-  const { isLoggedIn, ...other } = useUser({
+  const { isLoggedIn, refetch } = useUser({
     fetchUserOptions: { attemptSilent: false },
   })
 
   const startSSO = () => {
     return new Promise<void>((resolve) => {
       SdkReverseClient.waitForAuthenticationAck().then(async () => {
-        await other.refetch()
+        await refetch()
         resolve()
       })
       const params = `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,
