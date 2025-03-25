@@ -1,10 +1,15 @@
 """API routes related to application tasks."""
 
+from typing import Optional
+
 from celery.result import AsyncResult
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from summary.core.celery_worker import process_audio_transcribe_summarize
+from summary.core.celery_worker import (
+    process_audio_transcribe_summarize,
+    process_audio_transcribe_summarize_v2,
+)
 
 
 class TaskCreation(BaseModel):
@@ -13,6 +18,7 @@ class TaskCreation(BaseModel):
     filename: str
     email: str
     sub: str
+    version: Optional[int] = 2
 
 
 router = APIRouter(prefix="/tasks")
@@ -21,9 +27,15 @@ router = APIRouter(prefix="/tasks")
 @router.post("/")
 async def create_task(request: TaskCreation):
     """Create a task."""
-    task = process_audio_transcribe_summarize.delay(
-        request.filename, request.email, request.sub
-    )
+    if request.version == 1:
+        task = process_audio_transcribe_summarize.delay(
+            request.filename, request.email, request.sub
+        )
+    else:
+        task = process_audio_transcribe_summarize_v2.delay(
+            request.filename, request.email, request.sub
+        )
+
     return {"id": task.id, "message": "Task created"}
 
 
