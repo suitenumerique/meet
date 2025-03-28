@@ -18,15 +18,16 @@ export const terminateSupportSession = () => {
 
 export type useSupportProps = {
   id?: string
+  isDisabled?: boolean
 }
 
 // Configure Crisp chat for real-time support across all pages.
-export const useSupport = ({ id }: useSupportProps) => {
+export const useSupport = ({ id, isDisabled }: useSupportProps) => {
   useEffect(() => {
-    if (!id || Crisp.isCrispInjected()) return
+    if (!id || Crisp.isCrispInjected() || isDisabled) return
     Crisp.configure(id)
     Crisp.setHideOnMobile(true)
-  }, [id])
+  }, [id, isDisabled])
 
   return null
 }

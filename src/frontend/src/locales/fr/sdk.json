@@ -1,5 +1,10 @@
 {
-  "createButton": {
-    "label": "Créer un lien Visio"
+  "createMeeting": {
+    "createButton": "Créer un lien",
+    "joinButton": "Participer avec Visio",
+    "copyLinkTooltip": "Copier le lien",
+    "resetLabel": "Réinitialiser",
+    "participantLimit": "Jusqu'à 150 participants.",
+    "popupBlocked": "La fenêtre pop-up a été bloquée. Veuillez autoriser les pop-ups pour ce site."
   }
 }

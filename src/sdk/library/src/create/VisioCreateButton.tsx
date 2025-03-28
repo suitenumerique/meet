@@ -1,11 +1,15 @@
-import { DEFAULT_CONFIG } from '@/Config'
-import { ClientMessageType } from '@/Types'
 import { useEffect } from 'react'
+import { ClientMessageType, RoomData } from '@/Types'
+import { DEFAULT_CONFIG } from '@/Config'
 
 export const VisioCreateButton = ({
   onRoomCreated,
+  readOnly = false,
+  slug,
 }: {
-  onRoomCreated: (roomUrl: string) => void
+  onRoomCreated: (roomData: RoomData) => void
+  readOnly?: boolean
+  slug?: string
 }) => {
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -13,13 +17,11 @@ export const VisioCreateButton = ({
       if (event.origin !== new URL(DEFAULT_CONFIG.url).origin) {
         return
       }
-      if (event.data.type === ClientMessageType.ROOM_CREATED) {
-        const data = event.data.data
-        const roomUrl = data.url
-        onRoomCreated(roomUrl)
+      const { type, data } = event.data
+      if (type == ClientMessageType.ROOM_CREATED && data?.room) {
+        onRoomCreated(data.room)
       }
     }
-
     window.addEventListener('message', onMessage)
     return () => {
       window.removeEventListener('message', onMessage)
@@ -30,10 +32,13 @@ export const VisioCreateButton = ({
     // eslint-disable-next-line jsx-a11y/iframe-has-title
     <iframe
       allow="clipboard-read; clipboard-write"
-      src={DEFAULT_CONFIG.url + '/create-button'}
+      src={
+        DEFAULT_CONFIG.url +
+        `/create-button?readOnly=${readOnly}${slug ? '&slug=' + slug : ''}`
+      }
       style={{
         width: '100%',
-        height: '52px',
+        height: '100px',
         border: 'none',
       }}
     ></iframe>

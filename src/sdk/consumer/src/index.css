@@ -72,3 +72,56 @@ button {
   font-weight: 300;
   cursor: pointer;
 }
+
+.create-meeting {
+  background-color: rgb(45, 45, 70);
+  color: white;
+  height: 46px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.75rem;
+  border: none;
+}
+
+.create-meeting svg path {
+  fill: white !important;
+}
+
+
+.icon {
+  color: white !important;
+}
+
+.join-button {
+  background-color: rgb(45, 45, 70);
+  color: white;
+  height: 46px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0 1rem;
+  text-decoration: none;
+}
+
+.join-button svg path {
+  fill: white !important;
+}
+
+.join-link {
+  padding-top: 0.5rem;
+}
+
+.join-link svg path {
+  fill: white !important;
+}

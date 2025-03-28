@@ -17,18 +17,19 @@ export const terminateAnalyticsSession = () => {
 export type useAnalyticsProps = {
   id?: string
   host?: string
+  isDisabled?: boolean
 }
 
-export const useAnalytics = ({ id, host }: useAnalyticsProps) => {
+export const useAnalytics = ({ id, host, isDisabled }: useAnalyticsProps) => {
   const [location] = useLocation()
   useEffect(() => {
-    if (!id || !host) return
+    if (!id || !host || isDisabled) return
     if (posthog.__loaded) return
     posthog.init(id, {
       api_host: host,
       person_profiles: 'always',
     })
-  }, [id, host])
+  }, [id, host, isDisabled])
 
   // From PostHog tutorial on PageView tracking in a Single Page Application (SPA) context.
   useEffect(() => {

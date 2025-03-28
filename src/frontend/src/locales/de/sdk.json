@@ -1,5 +1,10 @@
 {
-  "createButton": {
-    "label": ""
+  "createMeeting": {
+    "createButton": "",
+    "joinButton": "",
+    "copyLinkTooltip": "",
+    "resetLabel": "",
+    "participantLimit": "",
+    "popupBlocked": ""
   }
 }

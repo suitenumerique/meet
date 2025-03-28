@@ -13,12 +13,11 @@ import { RiAddLine, RiLink } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
 import { IntroSlider } from '@/features/home/components/IntroSlider'
 import { MoreLink } from '@/features/home/components/MoreLink'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useState } from 'react'
 
 import { css } from '@/styled-system/css'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
-import { SdkReverseClient } from '@/features/sdk/SdkReverseClient'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -155,18 +154,6 @@ export const Home = () => {
 
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoomId, setLaterRoomId] = useState<null | string>(null)
-
-  const { user } = useUser()
-
-  /**
-   * Used for SDK popup to close automatically.
-   */
-  useEffect(() => {
-    if (!user) {
-      return
-    }
-    SdkReverseClient.broadcastAuthentication()
-  }, [user])
 
   return (
     <UserAware>

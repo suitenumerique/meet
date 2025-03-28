@@ -3,6 +3,8 @@ import { HomeRoute } from '@/features/home'
 import { LegalTermsRoute } from '@/features/legalsTerms/LegalTermsRoute'
 import { AccessibilityRoute } from '@/features/legalsTerms/Accessibility'
 import { TermsOfServiceRoute } from '@/features/legalsTerms/TermsOfService'
+import { CreatePopup } from '@/features/sdk/routes/CreatePopup'
+import { CreateMeetingButton } from '@/features/sdk/routes/CreateMeetingButton'
 
 export const routes: Record<
   | 'home'
@@ -10,7 +12,9 @@ export const routes: Record<
   | 'feedback'
   | 'legalTerms'
   | 'accessibility'
-  | 'termsOfService',
+  | 'termsOfService'
+  | 'sdkCreatePopup'
+  | 'sdkCreateButton',
   {
     name: RouteName
     path: RegExp | string
@@ -49,6 +53,16 @@ export const routes: Record<
     name: 'termsOfService',
     path: '/conditions-utilisation',
     Component: TermsOfServiceRoute,
+  },
+  sdkCreatePopup: {
+    name: 'sdkCreatePopup',
+    path: '/sdk/create-popup',
+    Component: CreatePopup,
+  },
+  sdkCreateButton: {
+    name: 'sdkCreateButton',
+    path: '/sdk/create-button',
+    Component: CreateMeetingButton,
   },
 }
 
