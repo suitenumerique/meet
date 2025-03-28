@@ -2,7 +2,6 @@
 
 This document is a step-by-step guide that describes how to install Visio on a k8s cluster without AI features.
 
-
 ## Prerequisites
 
 - k8s cluster with an nginx-ingress controller
@@ -43,11 +42,11 @@ It will expire on 23 March 2027 🗓
 2. Create kind cluster with containerd registry config dir enabled
 Creating cluster "visio" ...
  ✓ Ensuring node image (kindest/node:v1.27.3) 🖼
- ✓ Preparing nodes 📦  
- ✓ Writing configuration 📜 
- ✓ Starting control-plane 🕹️ 
- ✓ Installing CNI 🔌 
- ✓ Installing StorageClass 💾 
+ ✓ Preparing nodes 📦
+ ✓ Writing configuration 📜
+ ✓ Starting control-plane 🕹️
+ ✓ Installing CNI 🔌
+ ✓ Installing StorageClass 💾
 Set kubectl context to "kind-visio"
 You can now use your cluster with:
 
@@ -95,13 +94,14 @@ ingress-nginx-admission-create-jgnc9        0/1     Completed   0          2m44s
 ingress-nginx-admission-patch-wrt47         0/1     Completed   0          2m44s
 ingress-nginx-controller-57c548c4cd-9xwt6   1/1     Running     0          2m44s
 ```
-When your k8s cluster is ready, you can start the deployment. This cluster is special because it uses the *.127.0.0.1.nip.io domain and mkcert certificates to have full HTTPS support and easy domain name management.
 
-Please remember that *.127.0.0.1.nip.io will always resolve to 127.0.0.1, except in the k8s cluster where we configure CoreDNS to answer with the ingress-nginx service IP.
+When your k8s cluster is ready, you can start the deployment. This cluster is special because it uses the \*.127.0.0.1.nip.io domain and mkcert certificates to have full HTTPS support and easy domain name management.
+
+Please remember that \*.127.0.0.1.nip.io will always resolve to 127.0.0.1, except in the k8s cluster where we configure CoreDNS to answer with the ingress-nginx service IP.
 
 ## Preparation
 
-### What will you use to authenticate your users ? 
+### What will you use to authenticate your users ?
 
 Visio uses OIDC, so if you already have an OIDC provider, obtain the necessary information to use it. In the next step, we will see how to configure Django (and thus Visio) to use it. If you do not have a provider, we will show you how to deploy a local Keycloak instance (this is not a production deployment, just a demo).
 
@@ -153,6 +153,7 @@ keycloak-0              1/1     Running   0          26m
 keycloak-postgresql-0   1/1     Running   0          26m
 redis-master-0          1/1     Running   0          35s
 ```
+
 When the redis is ready we can deploy livekit-server.
 
 ```
@@ -194,6 +195,7 @@ livekit-livekit-server-5c5fb87f7f-ct6x5   1/1     Running   0          15m
 postgresql-0                              1/1     Running   0          50s
 redis-master-0                            1/1     Running   0          19
 ```
+
 From here important information you will need are :
 
 ```
@@ -231,3 +233,98 @@ meet-admin               <none>   meet.127.0.0.1.nip.io       localhost   80, 44
 ```
 
 You can use Visio on https://meet.127.0.0.1.nip.io. The provisioning user in keycloak is meet/meet.
+
+## All options
+
+These are the environmental options available on meet backend.
+
+| Option                                          | Description                              | default                                                                                                                                                       |
+| ----------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DJANGO_ALLOWED_HOSTS                            | Host that are allowed                    | []                                                                                                                                                            |
+| DJANGO_SECRET_KEY                               | Secret key used                          |                                                                                                                                                               |
+| DJANGO_SILENCED_SYSTEM_CHECKS                   | Silence system checks                    | []                                                                                                                                                            |
+| DJANGO_ALLOW_UNSECURE_USER_LISTING              |                                          | false                                                                                                                                                         |
+| DB_ENGINE                                       | Database engine used                     | django.db.backends.postgresql_psycopg2                                                                                                                        |
+| DB_NAME                                         | name of the database                     | meet                                                                                                                                                          |
+| DB_USER                                         | user used to connect to database         | dinum                                                                                                                                                         |
+| DB_PASSWORD                                     | password used to connect to the database | pass                                                                                                                                                          |
+| DB_HOST                                         | hostname of the database                 | localhost                                                                                                                                                     |
+| DB_PORT                                         | port to connect to database              | 5432                                                                                                                                                          |
+| STORAGES_STATICFILES_BACKEND                    | Static file serving engine               | whitenoise.storage.CompressedManifestStaticFilesStorage                                                                                                       |
+| AWS_S3_ENDPOINT_URL                             | S3 host endpoint                         |                                                                                                                                                               |
+| AWS_S3_ACCESS_KEY_ID                            | s3 access key                            |                                                                                                                                                               |
+| AWS_S3_SECRET_ACCESS_KEY                        | s3 secret key                            |                                                                                                                                                               |
+| AWS_S3_REGION_NAME                              | s3 region                                |                                                                                                                                                               |
+| AWS_STORAGE_BUCKET_NAME                         | s3 bucket name                           |                                                                                                                                                               |
+| DJANGO_LANGUAGE_CODE                            | Default language                         | en-us                                                                                                                                                         |
+| REDIS_URL                                       | redis endpoint                           | redis://redis:6379/1                                                                                                                                          |
+| REQUEST_ENTRY_THROTTLE_RATES                    | throttle rates                           | 150/minute                                                                                                                                                    |
+| SPECTACULAR_SETTINGS_ENABLE_DJANGO_DEPLOY_CHECK | deploy check                             | False                                                                                                                                                         |
+| FRONTEND_ANALYTICS                              | analytics information                    | {}                                                                                                                                                            |
+| FRONTEND_SUPPORT                                | crisp frontend support                   | {}                                                                                                                                                            |
+| FRONTEND_SILENCE_LIVEKIT_DEBUG                  | silence livekit debug                    | false                                                                                                                                                         |
+| DJANGO_EMAIL_BACKEND                            | email backend library                    | django.core.mail.backends.smtp.EmailBackend                                                                                                                   |
+| DJANGO_EMAIL_HOST                               | host of the email server                 |                                                                                                                                                               |
+| DJANGO_EMAIL_HOST_USER                          | user to connect to the email server      |                                                                                                                                                               |
+| DJANGO_EMAIL_HOST_PASSWORD                      | password to connect tto the email server |                                                                                                                                                               |
+| DJANGO_EMAIL_PORT                               | por tot connect to the email server      |                                                                                                                                                               |
+| DJANGO_EMAIL_USE_TLS                            | enable tls on email connection           | false                                                                                                                                                         |
+| DJANGO_EMAIL_USE_SSL                            | enable tls on email connection           | false                                                                                                                                                         |
+| DJANGO_EMAIL_FROM                               | email from account                       | from@example.com                                                                                                                                              |
+| DJANGO_CORS_ALLOW_ALL_ORIGINS                   | allow all cors origins                   | true                                                                                                                                                          |
+| DJANGO_CORS_ALLOWED_ORIGINS                     | origins to allow in string               | []                                                                                                                                                            |
+| DJANGO_CORS_ALLOWED_ORIGIN_REGEXES              | origins to allow in regex                | []                                                                                                                                                            |
+| SENTRY_DSN                                      | sentry server                            |                                                                                                                                                               |
+| DJANGO_CELERY_BROKER_URL                        | celery broker host                       | redis://redis:6379/0                                                                                                                                          |
+| DJANGO_CELERY_BROKER_TRANSPORT_OPTIONS          | celery broker options                    | {}                                                                                                                                                            |
+| OIDC_CREATE_USER                                | create oidc user if not exists           | false                                                                                                                                                         |
+| OIDC_VERIFY_SSL                                 | verify ssl for oidc                      | true                                                                                                                                                          |
+| OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION       | fallback to email for identification     | false                                                                                                                                                         |
+| OIDC_RP_SIGN_ALGO                               | token verification algoritm used by oidc | RS256                                                                                                                                                         |
+| OIDC_RP_CLIENT_ID                               | oidc client                              | meet                                                                                                                                                          |
+| OIDC_RP_CLIENT_SECRET                           | oidc client secret                       |                                                                                                                                                               |
+| OIDC_OP_JWKS_ENDPOINT                           | oidc endpoint for JWKS                   |                                                                                                                                                               |
+| OIDC_OP_AUTHORIZATION_ENDPOINT                  | oidc endpoint for authorization          |                                                                                                                                                               |
+| OIDC_OP_TOKEN_ENDPOINT                          | oidc endpoint for token                  |                                                                                                                                                               |
+| OIDC_OP_USER_ENDPOINT                           | oidc endpoint for user                   |                                                                                                                                                               |
+| OIDC_OP_LOGOUT_ENDPOINT                         | oidc endpoint for logout                 |                                                                                                                                                               |
+| OIDC_AUTH_REQUEST_EXTRA_PARAMS                  | extra parameters for oidc request        |                                                                                                                                                               |
+| OIDC_RP_SCOPES                                  | oidc scopes                              | openid email                                                                                                                                                  |
+| LOGIN_REDIRECT_URL                              | login redirect url                       |                                                                                                                                                               |
+| LOGIN_REDIRECT_URL_FAILURE                      | login redurect url for failure           |                                                                                                                                                               |
+| LOGOUT_REDIRECT_URL                             | url to redirect to on logout             |                                                                                                                                                               |
+| OIDC_USE_NONCE                                  | use nonce for oidc                       | true                                                                                                                                                          |
+| OIDC_REDIRECT_REQUIRE_HTTPS                     | require https for oidc                   | false                                                                                                                                                         |
+| OIDC_REDIRECT_ALLOWED_HOSTS                     | allowed redirect hosts for oidc          | []                                                                                                                                                            |
+| OIDC_STORE_ID_TOKEN                             | store oidc ID token                      | true                                                                                                                                                          |
+| ALLOW_LOGOUT_GET_METHOD                         | allow logout through get method          | true                                                                                                                                                          |
+| OIDC_REDIRECT_FIELD_NAME                        | direct field for oidc                    | returnTo                                                                                                                                                      |
+| OIDC_USERINFO_FULLNAME_FIELDS                   | full name claim from OIDC token          | ["given_name", "usual_name"]                                                                                                                                  |
+| OIDC_USERINFO_SHORTNAME_FIELD                   | shortname claim from OIDC token          | given_name                                                                                                                                                    |
+| LIVEKIT_API_KEY                                 | livekit api key                          |                                                                                                                                                               |
+| LIVEKIT_API_SECRET                              | livekit api secret                       |                                                                                                                                                               |
+| LIVEKIT_API_URL                                 | livekit api url                          |                                                                                                                                                               |
+| RESOURCE_DEFAULT_ACCESS_LEVEL                   | default resource access level for rooms  | public                                                                                                                                                        |
+| ALLOW_UNREGISTERED_ROOMS                        | Allow usage of unregistered rooms        | true                                                                                                                                                          |
+| RECORDING_ENABLE                                | record meeting option                    | false                                                                                                                                                         |
+| RECORDING_OUTPUT_FOLDER                         | folder to store meetings                 | recordings                                                                                                                                                    |
+| RECORDING_VERIFY_SSL                            | verify ssl for recording storage         | true                                                                                                                                                          |
+| RECORDING_WORKER_CLASSES                        | worker classes for recording             | {"screen_recording": "core.recording.worker.services.VideoCompositeEgressService","transcript": "core.recording.worker.services.AudioCompositeEgressService"} |
+| RECORDING_EVENT_PARSER_CLASS                    | storage event engine for recording       | core.recording.event.parsers.MinioParser                                                                                                                      |
+| RECORDING_ENABLE_STORAGE_EVENT_AUTH             | enable storage event authorization       | true                                                                                                                                                          |
+| RECORDING_STORAGE_EVENT_ENABLE                  | enable recording storage events          | false                                                                                                                                                         |
+| RECORDING_STORAGE_EVENT_TOKEN                   | recording storage event token            |                                                                                                                                                               |
+| SUMMARY_SERVICE_ENDPOINT                        | summary service endpoint                 |                                                                                                                                                               |
+| SUMMARY_SERVICE_API_TOKEN                       | api token voor summary service           |                                                                                                                                                               |
+| SIGNUP_NEW_USER_TO_MARKETING_EMAIL              | signup users to marketing emails         | false                                                                                                                                                         |
+| MARKETING_SERVICE_CLASS                         | markering class                          | core.services.marketing.BrevoMarketingService                                                                                                                 |
+| BREVO_API_KEY                                   | breva api key for marketing emails       |                                                                                                                                                               |
+| BREVO_API_CONTACT_LIST_IDS                      | brevo api contact list ids               | []                                                                                                                                                            |
+| DJANGO_BREVO_API_CONTACT_ATTRIBUTES             | brevo contact attributes                 | {"VISIO_USER": True}                                                                                                                                          |
+| BREVO_API_TIMEOUT                               | brevo timeout                            | 1                                                                                                                                                             |
+| LOBBY_KEY_PREFIX                                | lobby prefix                             | room_lobby                                                                                                                                                    |
+| LOBBY_WAITING_TIMEOUT                           | lobby waiting tumeout                    | 3                                                                                                                                                             |
+| LOBBY_DENIED_TIMEOUT                            | lobby deny timeout                       | 5                                                                                                                                                             |
+| LOBBY_ACCEPTED_TIMEOUT                          | lobby accept timeout                     | 21600                                                                                                                                                         |
+| LOBBY_NOTIFICATION_TYPE                         | lobby notification types                 | participantWaiting                                                                                                                                            |
+| LOBBY_COOKIE_NAME                               | lobby cookie name                        | lobbyParticipantId                                                                                                                                            |
