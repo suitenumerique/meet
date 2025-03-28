@@ -21,6 +21,7 @@ import { logoutUrl } from '../utils/logoutUrl'
 export const useUser = (
   opts: {
     fetchUserOptions?: Parameters<typeof fetchUser>[0]
+    refetchInterval?: number
   } = {}
 ) => {
   const query = useQuery({
@@ -28,6 +29,7 @@ export const useUser = (
     queryKey: [keys.user],
     queryFn: () => fetchUser(opts.fetchUserOptions),
     staleTime: Infinity,
+    refetchInterval: opts.refetchInterval,
   })
 
   useEffect(() => {

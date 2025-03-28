@@ -1,28 +1,53 @@
 import { Button } from '@/primitives/Button'
 import { useTranslation } from 'react-i18next'
 import { usePersistentUserChoices } from '@livekit/components-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 import { css } from '@/styled-system/css'
 import { RiCheckLine, RiFileCopyLine } from '@remixicon/react'
-import { VisioIcon } from '@/assets/VisioIcon'
 import { generateRoomId, useCreateRoom } from '../../rooms'
-import {
-  ClientMessageType,
-  SdkReverseClient,
-  useEnsureAuth,
-} from '../SdkReverseClient'
+import { authUrl, useUser } from '@/features/auth'
+import { Spinner } from '@/primitives/Spinner.tsx'
+
+import { useParams } from 'wouter'
 
 export const SdkCreateButton = () => {
   const { t } = useTranslation('sdk', { keyPrefix: 'createButton' })
+
   const [roomUrl, setRoomUrl] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
+
+  const [wPopup, setWPopup] = useState()
+
   const {
     userChoices: { username },
   } = usePersistentUserChoices()
 
   const { mutateAsync: createRoom } = useCreateRoom()
-  const { ensureAuth } = useEnsureAuth()
+  // const { ensureAuth } = useEnsureAuth()
+
+  const { isLoggedIn } = useUser({ refetchInterval: 1000 })
+
+  useEffect(() => {
+    if (wPopup?.closed) {
+      window.location.reload()
+    }
+  }, [wPopup])
+
+  useEffect(() => {
+    if (window.location.search == '?auth=success') {
+      window.close()
+    }
+  }, [window.location.search])
+
+  if (isLoggedIn === false && !wPopup) {
+    const popup = window.open(
+      authUrl({ returnTo: '/sdk/create-button?auth=success' }), // Path to your popup HTML page
+      'wip',
+      `popup=true, width=550, height=550, left=614, top=267, resizable=yes,scrollbars=yes`
+    )
+    setWPopup(popup)
+  }
 
   const submitCreateRoom = async () => {
     setIsLoading(true)
@@ -31,73 +56,52 @@ export const SdkCreateButton = () => {
     const roomUrlTmp = getRouteUrl('room', data.slug)
     setRoomUrl(roomUrlTmp)
     setIsLoading(false)
-    SdkReverseClient.post(ClientMessageType.ROOM_CREATED, {
-      url: roomUrlTmp,
-    })
+    // SdkReverseClient.post(ClientMessageType.ROOM_CREATED, {
+    //   url: roomUrlTmp,
+    // })
+
+    console.log('$$roomUrlTmp', roomUrlTmp)
+    sendMessageToParent(roomUrlTmp, slug)
   }
 
-  const submit = async () => {
-    await ensureAuth()
-    submitCreateRoom()
+  const sendMessageToParent = (roomUrlTmp, slug) => {
+    console.log('$$', window.opener)
+    const phone = '00000000000'
+    const code = '123456789'
+
+    if (window.opener) {
+      window.opener.postMessage(
+        {
+          source: 'https://meet.127.0.0.1.nip.io/',
+          url: roomUrlTmp,
+          slug,
+          phone,
+          code,
+        },
+        '*'
+      )
+      window.close()
+    }
   }
 
-  return (
-    <div
-      className={css({
-        paddingTop: '3px',
-        paddingLeft: '3px',
-      })}
-    >
-      {roomUrl ? (
-        <RoomUrl roomUrl={roomUrl} />
-      ) : (
-        <Button
-          variant="primaryDark"
-          aria-label={t('label')}
-          onPress={submit}
-          data-attr="sdk-create"
-          loading={isLoading}
-          icon={<VisioIcon />}
-        >
-          {t('label')}
-        </Button>
-      )}
-    </div>
-  )
-}
+  console.log(isLoggedIn)
 
-const RoomUrl = ({ roomUrl }: { roomUrl: string }) => {
-  const [isCopied, setIsCopied] = useState(false)
-
-  const copy = () => {
-    navigator.clipboard.writeText(roomUrl!)
-    setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 1000)
-  }
+  useEffect(() => {
+    if (isLoggedIn) {
+      submitCreateRoom()
+    }
+  }, [isLoggedIn])
 
   return (
     <div
       className={css({
         display: 'flex',
+        justifyContent: 'center',
         alignItems: 'center',
-        gap: '0.5rem',
+        height: '100%',
       })}
     >
-      <span
-        className={css({
-          color: 'greyscale.600',
-        })}
-      >
-        {roomUrl}
-      </span>
-      <Button
-        variant={isCopied ? 'success' : 'quaternaryText'}
-        data-attr="sdk-create-copy"
-        onPress={copy}
-        square
-      >
-        {isCopied ? <RiCheckLine /> : <RiFileCopyLine />}
-      </Button>
+      <Spinner />
     </div>
   )
 }

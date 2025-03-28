@@ -22,7 +22,8 @@ const initiateSilentLogin = () => {
 }
 
 export const canAttemptSilentLogin = () => {
-  return isRetryAllowed()
+  return false
+  // return isRetryAllowed()
 }
 
 export const attemptSilentLogin = (retryIntervalInSeconds: number) => {
