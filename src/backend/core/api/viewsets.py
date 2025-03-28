@@ -47,6 +47,7 @@ from core.services.lobby import (
     LobbyParticipantNotFound,
     LobbyService,
 )
+from core.services.room_generation import RoomGeneration
 
 from . import permissions, serializers
 
@@ -186,6 +187,12 @@ class RequestEntryAnonRateThrottle(throttling.AnonRateThrottle):
     scope = "request_entry"
 
 
+class GenerationCallbackAnonRateThrottle(throttling.AnonRateThrottle):
+    """Throttle Anonymous user requesting room generation callback"""
+
+    scope = "generation_callback"
+
+
 class RoomViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
@@ -267,6 +274,7 @@ class RoomViewSet(
             user=self.request.user,
             role=models.RoleChoices.OWNER,
         )
+        RoomGeneration().persist_callback_state(self.request, room)
 
     @decorators.action(
         detail=True,
@@ -459,6 +467,23 @@ class RoomViewSet(
             return drf_response.Response(
                 {"status": "error", "message": str(e)}, status=status_code
             )
+
+    @decorators.action(
+        detail=False,
+        methods=["POST"],
+        url_path="generation-callback",
+        permission_classes=[],
+        throttle_classes=[GenerationCallbackAnonRateThrottle],
+    )
+    def generation_callback(self, request):
+        """Process webhooks from LiveKit."""
+
+        room = RoomGeneration().get_callback_state(request)
+
+        if room:
+            return drf_response.Response(room)
+
+        return drf_response.Response({"status": "OK"})
 
 
 class ResourceAccessListModelMixin:

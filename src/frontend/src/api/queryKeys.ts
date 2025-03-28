@@ -4,4 +4,5 @@ export const keys = {
   config: 'config',
   requestEntry: 'requestEntry',
   waitingParticipants: 'waitingParticipants',
+  roomGenerationCallback: 'roomGenerationCallback',
 }

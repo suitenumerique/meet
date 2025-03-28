@@ -13,34 +13,10 @@ import { routes } from './routes'
 import './i18n/init'
 import { queryClient } from '@/api/queryClient'
 import { AppInitialization } from '@/components/AppInitialization'
-import { SdkCreateButton } from './features/sdk/routes/CreateButton'
-
-const SDK_BASE_ROUTE = '/sdk'
 
 function App() {
   const { i18n } = useTranslation()
   useLang(i18n.language)
-
-  const [location] = useLocation()
-  const isSDKRoute = location.startsWith(SDK_BASE_ROUTE)
-
-  if (isSDKRoute) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <Suspense fallback={null}>
-          <I18nProvider locale={i18n.language}>
-            <Switch>
-              <Route path={SDK_BASE_ROUTE} nest>
-                <Route path="/create-button">
-                  <SdkCreateButton />
-                </Route>
-              </Route>
-            </Switch>
-          </I18nProvider>
-        </Suspense>
-      </QueryClientProvider>
-    )
-  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -55,7 +31,10 @@ function App() {
               <Route component={NotFoundScreen} />
             </Switch>
           </Layout>
-          <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-left" />
+          <ReactQueryDevtools
+            initialIsOpen={false}
+            buttonPosition="bottom-left"
+          />
         </I18nProvider>
       </Suspense>
     </QueryClientProvider>

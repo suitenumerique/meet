@@ -1,39 +1,23 @@
-import { DEFAULT_CONFIG } from '@/Config'
-import { ClientMessageType } from '@/Types'
-import { useEffect } from 'react'
+import React from 'react'
+type RoomData = {
+  slug: string
+  url: string
+  phone?: string
+  code?: string
+}
 
 export const VisioCreateButton = ({
   onRoomCreated,
 }: {
-  onRoomCreated: (roomUrl: string) => void
+  onRoomCreated: (roomData: RoomData) => void
 }) => {
-  useEffect(() => {
-    const onMessage = (event: MessageEvent) => {
-      // Make sure it is the correct origin.
-      if (event.origin !== new URL(DEFAULT_CONFIG.url).origin) {
-        return
-      }
-      if (event.data.type === ClientMessageType.ROOM_CREATED) {
-        const data = event.data.data
-        const roomUrl = data.url
-        onRoomCreated(roomUrl)
-      }
-    }
-
-    window.addEventListener('message', onMessage)
-    return () => {
-      window.removeEventListener('message', onMessage)
-    }
-  }, [onRoomCreated])
-
   return (
-    // eslint-disable-next-line jsx-a11y/iframe-has-title
     <iframe
       allow="clipboard-read; clipboard-write"
-      src={DEFAULT_CONFIG.url + '/create-button'}
+      src={'https://meet.127.0.0.1.nip.io/sdk/create-button'}
       style={{
         width: '100%',
-        height: '52px',
+        height: '100px',
         border: 'none',
       }}
     ></iframe>

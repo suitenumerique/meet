@@ -156,18 +156,6 @@ export const Home = () => {
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoomId, setLaterRoomId] = useState<null | string>(null)
 
-  const { user } = useUser()
-
-  /**
-   * Used for SDK popup to close automatically.
-   */
-  useEffect(() => {
-    if (!user) {
-      return
-    }
-    SdkReverseClient.broadcastAuthentication()
-  }, [user])
-
   return (
     <UserAware>
       <Screen>
