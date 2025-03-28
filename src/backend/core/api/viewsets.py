@@ -47,6 +47,7 @@ from core.services.lobby import (
     LobbyParticipantNotFound,
     LobbyService,
 )
+from core.services.room_creation import RoomCreation
 
 from . import permissions, serializers
 
@@ -186,6 +187,12 @@ class RequestEntryAnonRateThrottle(throttling.AnonRateThrottle):
     scope = "request_entry"
 
 
+class CreationCallbackAnonRateThrottle(throttling.AnonRateThrottle):
+    """Throttle Anonymous user requesting room generation callback"""
+
+    scope = "creation_callback"
+
+
 class RoomViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
@@ -267,6 +274,9 @@ class RoomViewSet(
             user=self.request.user,
             role=models.RoleChoices.OWNER,
         )
+
+        if callback_id := self.request.data.get("callback_id"):
+            RoomCreation().persist_callback_state(callback_id, room)
 
     @decorators.action(
         detail=True,
@@ -459,6 +469,31 @@ class RoomViewSet(
             return drf_response.Response(
                 {"status": "error", "message": str(e)}, status=status_code
             )
+
+    @decorators.action(
+        detail=False,
+        methods=["POST"],
+        url_path="creation-callback",
+        permission_classes=[],
+        throttle_classes=[CreationCallbackAnonRateThrottle],
+    )
+    def creation_callback(self, request):
+        """Retrieve cached room data via an unauthenticated request with a unique ID.
+
+        Designed for interoperability across iframes, popups, and other contexts,
+        even on the same domain, bypassing browser security restrictions on direct communication.
+        """
+
+        serializer = serializers.CreationCallbackSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        room = RoomCreation().get_callback_state(
+            callback_id=serializer.validated_data.get("callback_id")
+        )
+
+        return drf_response.Response(
+            {"status": "success", "room": room}, status=drf_status.HTTP_200_OK
+        )
 
 
 class ResourceAccessListModelMixin:

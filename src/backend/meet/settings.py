@@ -272,6 +272,11 @@ class Base(Configuration):
                 environ_name="REQUEST_ENTRY_THROTTLE_RATES",
                 environ_prefix=None,
             ),
+            "creation_callback": values.Value(
+                default="600/minute",
+                environ_name="CREATION_CALLBACK_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
         },
     }
 
@@ -525,6 +530,13 @@ class Base(Configuration):
     LOBBY_COOKIE_NAME = values.Value(
         "lobbyParticipantId",
         environ_name="LOBBY_COOKIE_NAME",
+        environ_prefix=None,
+    )
+
+    # Calendar integrations
+    ROOM_CREATION_CALLBACK_CACHE_TIMEOUT = values.PositiveIntegerValue(
+        600,  # 10 minutes
+        environ_name="ROOM_CREATION_CALLBACK_CACHE_TIMEOUT",
         environ_prefix=None,
     )
 
