@@ -43,8 +43,8 @@ export const CreatePopup = () => {
 
     window.opener.postMessage(roomData, '*')
 
-    window.close()
     localStorage.removeItem(LOCAL_STORAGE_ID_KEY)
+    window.close()
   }
 
   /**
