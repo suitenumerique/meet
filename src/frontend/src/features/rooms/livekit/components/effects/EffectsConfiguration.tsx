@@ -16,6 +16,7 @@ import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
 import { RiProhibited2Line, RiUserVoiceLine } from '@remixicon/react'
+import { useHasFaceLandmarksAccess } from '../../hooks/useHasFaceLandmarksAccess'
 
 enum BlurRadius {
   NONE = 0,
@@ -50,6 +51,7 @@ export const EffectsConfiguration = ({
   const { toggle, enabled } = useTrackToggle({ source: Track.Source.Camera })
   const [processorPending, setProcessorPending] = useState(false)
   const processorPendingReveal = useSyncAfterDelay(processorPending)
+  const hasFaceLandmarksAccess = useHasFaceLandmarksAccess()
 
   useEffect(() => {
     const videoElement = videoRef.current
@@ -302,49 +304,51 @@ export const EffectsConfiguration = ({
                   </ToggleButton>
                 </div>
               </div>
-              <div
-                className={css({
-                  marginTop: '1.5rem',
-                })}
-              >
-                <H
-                  lvl={3}
-                  style={{
-                    marginBottom: '1rem',
-                  }}
-                  variant="bodyXsBold"
-                >
-                  {t('faceLandmarks.title')}
-                </H>
+              {hasFaceLandmarksAccess && (
                 <div
                   className={css({
-                    display: 'flex',
-                    gap: '1.25rem',
+                    marginTop: '1.5rem',
                   })}
                 >
-                  <ToggleButton
-                    variant="bigSquare"
-                    aria-label={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
-                      blurRadius: 0,
-                    })}
-                    tooltip={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
-                      blurRadius: 0,
-                    })}
-                    isDisabled={processorPendingReveal}
-                    onChange={async () =>
-                      await toggleEffect(ProcessorType.FACE_LANDMARKS, {
-                        blurRadius: 0,
-                      })
-                    }
-                    isSelected={isSelected(ProcessorType.FACE_LANDMARKS, {
-                      blurRadius: 0,
-                    })}
-                    data-attr="toggle-face-landmarks"
+                  <H
+                    lvl={3}
+                    style={{
+                      marginBottom: '1rem',
+                    }}
+                    variant="bodyXsBold"
                   >
-                    <RiUserVoiceLine />
-                  </ToggleButton>
+                    {t('faceLandmarks.title')}
+                  </H>
+                  <div
+                    className={css({
+                      display: 'flex',
+                      gap: '1.25rem',
+                    })}
+                  >
+                    <ToggleButton
+                      variant="bigSquare"
+                      aria-label={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
+                        blurRadius: 0,
+                      })}
+                      tooltip={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
+                        blurRadius: 0,
+                      })}
+                      isDisabled={processorPendingReveal}
+                      onChange={async () =>
+                        await toggleEffect(ProcessorType.FACE_LANDMARKS, {
+                          blurRadius: 0,
+                        })
+                      }
+                      isSelected={isSelected(ProcessorType.FACE_LANDMARKS, {
+                        blurRadius: 0,
+                      })}
+                      data-attr="toggle-face-landmarks"
+                    >
+                      <RiUserVoiceLine />
+                    </ToggleButton>
+                  </div>
                 </div>
-              </div>
+              )}
               <div
                 className={css({
                   marginTop: '1.5rem',
