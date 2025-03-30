@@ -134,22 +134,27 @@
     }
   },
   "effects": {
-    "activateCamera": "Votre camera est désactivée. Choisissez une option pour l'activer.",
-    "notAvailable": "Les effets vidéo seront bientôt disponible sur votre navigateur. Nous y travaillons ! En attendant, vous pouvez utiliser Google Chrome pour une meilleure performance ou Firefox :(",
+    "activateCamera": "Votre caméra est désactivée. Choisissez une option pour l'activer.",
+    "notAvailable": "Les effets vidéo seront bientôt disponibles sur votre navigateur. Nous y travaillons ! En attendant, vous pouvez utiliser Google Chrome pour de meilleures performances ou Firefox :(",
     "heading": "Flou",
     "blur": {
       "title": "Flou d'arrière-plan",
-      "light": "Léger flou",
+      "light": "Flou léger",
       "normal": "Flou",
-      "apply": "Appliquer le flou",
+      "apply": "Activer le flou",
       "clear": "Désactiver le flou"
     },
     "virtual": {
       "title": "Arrière-plan virtuel",
-      "apply": "Appliquer l'arrière plan virtuel",
-      "clear": "Désactiver l'arrière plan virtuel"
+      "apply": "Activer l'arrière-plan virtuel",
+      "clear": "Désactiver l'arrière-plan virtuel"
     },
-    "experimental": "Fonctionnalité expérimentale. Une v2 arrive pour un support complet sur tous les navigateurs et une meilleur qualité."
+    "faceLandmarks": {
+      "title": "Points du visage",
+      "apply": "Activer les points du visage",
+      "clear": "Désactiver les points du visage"
+    },
+    "experimental": "Fonctionnalité expérimentale. Une v2 arrive pour un support complet des navigateurs et une meilleure qualité."
   },
   "sidePanel": {
     "heading": {

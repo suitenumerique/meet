@@ -135,22 +135,27 @@
     }
   },
   "effects": {
-    "activateCamera": "",
-    "notAvailable": "",
-    "heading": "",
+    "activateCamera": "Ihre Kamera ist deaktiviert. Wählen Sie eine Option, um sie zu aktivieren.",
+    "notAvailable": "Videoeffekte werden in Kürze in Ihrem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit können Sie Google Chrome für beste Leistung oder Firefox verwenden :(",
+    "heading": "Unschärfe",
     "blur": {
-      "title": "",
-      "light": "",
-      "normal": "",
-      "apply": "",
-      "clear": ""
+      "title": "Hintergrundunschärfe",
+      "light": "Leichte Unschärfe",
+      "normal": "Unschärfe",
+      "apply": "Unschärfe aktivieren",
+      "clear": "Unschärfe deaktivieren"
     },
     "virtual": {
-      "title": "",
-      "apply": "",
-      "clear": ""
+      "title": "Virtueller Hintergrund",
+      "apply": "Virtuellen Hintergrund aktivieren",
+      "clear": "Virtuellen Hintergrund deaktivieren"
     },
-    "experimental": ""
+    "faceLandmarks": {
+      "title": "Gesichtsmerkmale",
+      "apply": "Gesichtsmerkmale aktivieren",
+      "clear": "Gesichtsmerkmale deaktivieren"
+    },
+    "experimental": "Experimentelle Funktion. Eine v2 kommt für vollständige Browserunterstützung und verbesserte Qualität."
   },
   "sidePanel": {
     "heading": {

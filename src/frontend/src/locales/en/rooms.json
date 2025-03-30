@@ -149,6 +149,11 @@
       "apply": "Enable virtual background",
       "clear": "Disable virtual background"
     },
+    "faceLandmarks": {
+      "title": "Face landmarks",
+      "apply": "Enable face landmarks",
+      "clear": "Disable face landmarks"
+    },
     "experimental": "Experimental feature. A v2 is coming for full browser support and improved quality."
   },
   "sidePanel": {

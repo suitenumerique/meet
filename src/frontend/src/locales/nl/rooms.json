@@ -134,22 +134,31 @@
     }
   },
   "effects": {
-    "activateCamera": "Uw camera is uitgeschakeld. Kies een optie om hem in te schakelen.",
-    "notAvailable": "Video-effecten zijn binnenkort beschikbaar in uw browser. We werken hier aan! Ondertussen kunt u Chrome gebruiken voor de beste prestaties, of Firefox :(",
+    "activateCamera": "Uw camera is uitgeschakeld. Kies een optie om deze in te schakelen.",
+    "notAvailable": "Video-effecten zijn binnenkort beschikbaar in uw browser. We werken eraan! In de tussentijd kunt u Google Chrome gebruiken voor de beste prestaties of Firefox :(",
     "heading": "Vervaging",
     "blur": {
-      "title": "Achtergrond vervagen",
-      "light": "Licht vervagen",
-      "normal": "Vervagen",
-      "apply": "Schakel vervaging in",
-      "clear": "Schakel vervaging uit"
+      "title": "Achtergrondvervaging",
+      "light": "Lichte vervaging",
+      "normal": "Vervaging",
+      "apply": "Vervaging inschakelen",
+      "clear": "Vervaging uitschakelen"
     },
     "virtual": {
       "title": "Virtuele achtergrond",
-      "apply": "Schakel virtuele achtergrond in",
-      "clear": "Schakel virtuele achtergrond uit"
+      "apply": "Virtuele achtergrond inschakelen",
+      "clear": "Virtuele achtergrond uitschakelen"
     },
-    "experimental": "Experimentele functionaliteit. Een v2 komt er aan met volledige browser-ondersteuning en verbeterde kwaliteit."
+    "faceLandmarks": {
+      "title": "Gezichtskenmerken",
+      "apply": "Gezichtskenmerken inschakelen",
+      "clear": "Gezichtskenmerken uitschakelen",
+      "tooltip": {
+        "apply": "Gezichtskenmerken inschakelen",
+        "clear": "Gezichtskenmerken uitschakelen"
+      }
+    },
+    "experimental": "Experimentele functie. Een v2 komt eraan voor volledige browserondersteuning en verbeterde kwaliteit."
   },
   "sidePanel": {
     "heading": {

@@ -3,10 +3,12 @@ import { Track, TrackProcessor } from 'livekit-client'
 import { BackgroundBlurTrackProcessorJsWrapper } from './BackgroundBlurTrackProcessorJsWrapper'
 import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
 import { BackgroundVirtualTrackProcessorJsWrapper } from './BackgroundVirtualTrackProcessorJsWrapper'
+import { FaceLandmarksProcessor } from './FaceLandmarksProcessor'
 
 export type BackgroundOptions = {
   blurRadius?: number
   imagePath?: string
+  showFaceLandmarks?: boolean
 }
 
 export interface ProcessorSerialized {
@@ -25,11 +27,12 @@ export interface BackgroundProcessorInterface
 export enum ProcessorType {
   BLUR = 'blur',
   VIRTUAL = 'virtual',
+  FACE_LANDMARKS = 'faceLandmarks'
 }
 
 export class BackgroundProcessorFactory {
   static isSupported() {
-    return ProcessorWrapper.isSupported || BackgroundCustomProcessor.isSupported
+    return ProcessorWrapper.isSupported || BackgroundCustomProcessor.isSupported || FaceLandmarksProcessor.isSupported
   }
 
   static getProcessor(
@@ -49,6 +52,10 @@ export class BackgroundProcessorFactory {
       }
       if (BackgroundCustomProcessor.isSupported) {
         return new BackgroundCustomProcessor(opts)
+      }
+    } else if (type === ProcessorType.FACE_LANDMARKS) {
+      if (FaceLandmarksProcessor.isSupported) {
+        return new FaceLandmarksProcessor(opts)
       }
     }
     return undefined
