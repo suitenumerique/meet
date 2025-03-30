@@ -49,7 +49,7 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
   // Effect images
   glassesImage?: HTMLImageElement
   mustacheImage?: HTMLImageElement
-
+  beretImage?: HTMLImageElement
   constructor(opts: BackgroundOptions) {
     this.name = 'face_landmarks'
     this.options = opts
@@ -65,6 +65,10 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
     this.mustacheImage = new Image()
     this.mustacheImage.src = '/assets/mustache.png'
     this.mustacheImage.crossOrigin = 'anonymous'
+
+    this.beretImage = new Image()
+    this.beretImage.src = '/assets/beret.png'
+    this.beretImage.crossOrigin = 'anonymous'
   }
 
   static get isSupported() {
@@ -172,7 +176,8 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
     rightPoint: { x: number; y: number },
     image: HTMLImageElement,
     widthScale: number,
-    heightScale: number
+    heightScale: number,
+    yOffset: number = 0
   ) {
     // Calculate distance between points
     const distance = Math.sqrt(
@@ -186,7 +191,7 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
     
     // Calculate center position between points
     const centerX = (leftPoint.x + rightPoint.x) / 2
-    const centerY = (leftPoint.y + rightPoint.y) / 2
+    const centerY = (leftPoint.y + rightPoint.y) / 2 + yOffset
     
     // Draw image
     this.outputCanvasCtx!.save()
@@ -237,20 +242,28 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
     this.outputCanvasCtx!.lineWidth = 2
 
     for (const face of this.faceLandmarkerResult.faceLandmarks) {
-      // Find eye landmarks (indices 33 and 263 are the left and right eye corners)
+      // Find eye landmarks 
       const leftEye = face[468]
       const rightEye = face[473]
       
-      // Find mouth landmarks for mustache (indices 0 and 17 are the left and right corners of the mouth)
+      // Find mouth landmarks for mustache
       const leftMoustache = face[92]
       const rightMoustache = face[322]
+      
+      // Find forehead landmarks for beret
+      const leftForehead = face[103]
+      const rightForehead = face[332]
       
       if (leftEye && rightEye && this.options.showGlasses) {
         this.drawEffect(leftEye, rightEye, this.glassesImage!, 2.5, 0.7)
       }
 
-      if (leftMoustache && rightMoustache && this.options.showMustache) {
+      if (leftMoustache && rightMoustache && this.options.showFrench) {
         this.drawEffect(leftMoustache, rightMoustache, this.mustacheImage!, 1.5, 0.5)
+      }
+
+      if (leftForehead && rightForehead && this.options.showFrench) {
+        this.drawEffect(leftForehead, rightForehead, this.beretImage!, 2.1, 0.7, -0.1)
       }
     }
   }

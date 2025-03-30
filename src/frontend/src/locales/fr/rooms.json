@@ -155,9 +155,9 @@
         "apply": "Ajouter des lunettes",
         "clear": "Retirer les lunettes"
       },
-      "mustache": {
-        "apply": "Ajouter une moustache",
-        "clear": "Retirer la moustache"
+      "french": {
+        "apply": "Ajouter la touche française",
+        "clear": "Retirer la touche française"
       }
     },
     "experimental": "Fonctionnalité expérimentale. Une v2 arrive pour un support complet des navigateurs et une meilleure qualité."

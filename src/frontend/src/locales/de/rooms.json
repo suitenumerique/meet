@@ -156,9 +156,9 @@
         "apply": "Brille hinzufügen",
         "clear": "Brille entfernen"
       },
-      "mustache": {
-        "apply": "Schnurrbart hinzufügen",
-        "clear": "Schnurrbart entfernen"
+      "french": {
+        "apply": "Französische Touch hinzufügen",
+        "clear": "Französische Touch entfernen"
       }
     },
     "experimental": "Experimentelle Funktion. Eine v2 kommt für vollständige Browserunterstützung und verbesserte Qualität."

@@ -15,7 +15,7 @@ import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
-import { RiProhibited2Line, RiGlassesLine, RiEmotionLine } from '@remixicon/react'
+import { RiProhibited2Line, RiGlassesLine, RiGoblet2Fill } from '@remixicon/react'
 import { useHasFaceLandmarksAccess } from '../../hooks/useHasFaceLandmarksAccess'
 
 enum BlurRadius {
@@ -142,7 +142,7 @@ export const EffectsConfiguration = ({
 
   const tooltipLabel = (type: ProcessorType, options: BackgroundOptions) => {
     if (type === ProcessorType.FACE_LANDMARKS) {
-      const effect = options.showGlasses ? 'glasses' : 'mustache'
+      const effect = options.showGlasses ? 'glasses' : 'french'
       return t(`faceLandmarks.${effect}.${isSelected(type, options) ? 'clear' : 'apply'}`)
     }
     return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
@@ -151,19 +151,19 @@ export const EffectsConfiguration = ({
   const getFaceLandmarksOptions = () => {
     const processor = getProcessor()
     if (processor?.serialize().type === ProcessorType.FACE_LANDMARKS) {
-      return processor.serialize().options as { showGlasses?: boolean; showMustache?: boolean }
+      return processor.serialize().options as { showGlasses?: boolean; showFrench?: boolean }
     }
-    return { showGlasses: false, showMustache: false }
+    return { showGlasses: false, showFrench: false }
   }
 
-  const toggleFaceLandmarkEffect = async (effect: 'glasses' | 'mustache') => {
+  const toggleFaceLandmarkEffect = async (effect: 'glasses' | 'french') => {
     const currentOptions = getFaceLandmarksOptions()
     const newOptions = {
       ...currentOptions,
-      [effect === 'glasses' ? 'showGlasses' : 'showMustache']: !currentOptions[effect === 'glasses' ? 'showGlasses' : 'showMustache']
+      [effect === 'glasses' ? 'showGlasses' : 'showFrench']: !currentOptions[effect === 'glasses' ? 'showGlasses' : 'showFrench']
     }
 
-    if (!newOptions.showGlasses && !newOptions.showMustache) {
+    if (!newOptions.showGlasses && !newOptions.showFrench) {
       // If both effects are off stop the processor
       await clearEffect()
     } else {
@@ -356,11 +356,11 @@ export const EffectsConfiguration = ({
                       variant="bigSquare"
                       aria-label={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
                         showGlasses: true,
-                        showMustache: false,
+                        showFrench: false,
                       })}
                       tooltip={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
                         showGlasses: true,
-                        showMustache: false,
+                        showFrench: false,
                       })}
                       isDisabled={processorPendingReveal}
                       onChange={async () => await toggleFaceLandmarkEffect('glasses')}
@@ -373,18 +373,18 @@ export const EffectsConfiguration = ({
                       variant="bigSquare"
                       aria-label={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
                         showGlasses: false,
-                        showMustache: true,
+                        showFrench: true,
                       })}
                       tooltip={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
                         showGlasses: false,
-                        showMustache: true,
+                        showFrench: true,
                       })}
                       isDisabled={processorPendingReveal}
-                      onChange={async () => await toggleFaceLandmarkEffect('mustache')}
-                      isSelected={getFaceLandmarksOptions().showMustache}
-                      data-attr="toggle-mustache"
+                      onChange={async () => await toggleFaceLandmarkEffect('french')}
+                      isSelected={getFaceLandmarksOptions().showFrench}
+                      data-attr="toggle-french"
                     >
-                      <RiEmotionLine />
+                      <RiGoblet2Fill />
                     </ToggleButton>
                   </div>
                 </div>

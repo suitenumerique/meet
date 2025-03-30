@@ -9,7 +9,7 @@ export type BackgroundOptions = {
   blurRadius?: number
   imagePath?: string
   showGlasses?: boolean
-  showMustache?: boolean
+  showFrench?: boolean
 }
 
 export interface ProcessorSerialized {

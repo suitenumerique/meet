@@ -155,9 +155,9 @@
         "apply": "Add Glasses",
         "clear": "Remove Glasses"
       },
-      "mustache": {
-        "apply": "Add Mustache",
-        "clear": "Remove Mustache"
+      "french": {
+        "apply": "Add French touch",
+        "clear": "Remove French touch"
       }
     },
     "experimental": "Experimental feature. A v2 is coming for full browser support and improved quality."
