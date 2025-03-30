@@ -150,9 +150,15 @@
       "clear": "Disable virtual background"
     },
     "faceLandmarks": {
-      "title": "Face landmarks",
-      "apply": "Enable face landmarks",
-      "clear": "Disable face landmarks"
+      "title": "Visual Effects",
+      "glasses": {
+        "apply": "Add Glasses",
+        "clear": "Remove Glasses"
+      },
+      "mustache": {
+        "apply": "Add Mustache",
+        "clear": "Remove Mustache"
+      }
     },
     "experimental": "Experimental feature. A v2 is coming for full browser support and improved quality."
   },

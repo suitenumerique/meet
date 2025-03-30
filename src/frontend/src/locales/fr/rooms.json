@@ -150,9 +150,15 @@
       "clear": "Désactiver l'arrière-plan virtuel"
     },
     "faceLandmarks": {
-      "title": "Points du visage",
-      "apply": "Activer les points du visage",
-      "clear": "Désactiver les points du visage"
+      "title": "Effets visuels",
+      "glasses": {
+        "apply": "Ajouter des lunettes",
+        "clear": "Retirer les lunettes"
+      },
+      "mustache": {
+        "apply": "Ajouter une moustache",
+        "clear": "Retirer la moustache"
+      }
     },
     "experimental": "Fonctionnalité expérimentale. Une v2 arrive pour un support complet des navigateurs et une meilleure qualité."
   },

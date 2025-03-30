@@ -151,9 +151,15 @@
       "clear": "Virtuellen Hintergrund deaktivieren"
     },
     "faceLandmarks": {
-      "title": "Gesichtsmerkmale",
-      "apply": "Gesichtsmerkmale aktivieren",
-      "clear": "Gesichtsmerkmale deaktivieren"
+      "title": "Visuelle Effekte",
+      "glasses": {
+        "apply": "Brille hinzufügen",
+        "clear": "Brille entfernen"
+      },
+      "mustache": {
+        "apply": "Schnurrbart hinzufügen",
+        "clear": "Schnurrbart entfernen"
+      }
     },
     "experimental": "Experimentelle Funktion. Eine v2 kommt für vollständige Browserunterstützung und verbesserte Qualität."
   },

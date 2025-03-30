@@ -46,20 +46,25 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
 
   type: ProcessorType
 
-  // Glasses image element
+  // Effect images
   glassesImage?: HTMLImageElement
+  mustacheImage?: HTMLImageElement
 
   constructor(opts: BackgroundOptions) {
     this.name = 'face_landmarks'
     this.options = opts
     this.type = ProcessorType.FACE_LANDMARKS
-    this._initGlassesImage()
+    this._initEffectImages()
   }
 
-  private _initGlassesImage() {
+  private _initEffectImages() {
     this.glassesImage = new Image()
-    this.glassesImage.src = '/assets/glasses.png' // You'll need to add this image to your public assets
+    this.glassesImage.src = '/assets/glasses.png'
     this.glassesImage.crossOrigin = 'anonymous'
+
+    this.mustacheImage = new Image()
+    this.mustacheImage.src = '/assets/mustache.png'
+    this.mustacheImage.crossOrigin = 'anonymous'
   }
 
   static get isSupported() {
@@ -162,6 +167,53 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
     )
   }
 
+  private drawEffect(
+    leftPoint: { x: number; y: number },
+    rightPoint: { x: number; y: number },
+    image: HTMLImageElement,
+    widthScale: number,
+    heightScale: number
+  ) {
+    // Calculate distance between points
+    const distance = Math.sqrt(
+      Math.pow(rightPoint.x - leftPoint.x, 2) + 
+      Math.pow(rightPoint.y - leftPoint.y, 2)
+    )
+    
+    // Scale image based on distance
+    const width = distance * PROCESSING_WIDTH * widthScale
+    const height = width * heightScale
+    
+    // Calculate center position between points
+    const centerX = (leftPoint.x + rightPoint.x) / 2
+    const centerY = (leftPoint.y + rightPoint.y) / 2
+    
+    // Draw image
+    this.outputCanvasCtx!.save()
+    this.outputCanvasCtx!.translate(
+      centerX * PROCESSING_WIDTH,
+      centerY * PROCESSING_HEIGHT
+    )
+    
+    // Calculate rotation angle based on point positions
+    const angle = Math.atan2(
+      rightPoint.y - leftPoint.y,
+      rightPoint.x - leftPoint.x
+    )
+    this.outputCanvasCtx!.rotate(angle)
+    
+    // Draw image centered at the midpoint between points
+    this.outputCanvasCtx!.drawImage(
+      image,
+      -width / 2,
+      -height / 2,
+      width,
+      height
+    )
+    
+    this.outputCanvasCtx!.restore()
+  }
+
   async drawFaceLandmarks() {
     // Draw the original video frame at the canvas size
     this.outputCanvasCtx!.drawImage(
@@ -185,49 +237,20 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
     this.outputCanvasCtx!.lineWidth = 2
 
     for (const face of this.faceLandmarkerResult.faceLandmarks) {
-      // Find eye landmarks (indices 33 and 263 are the left and right eye centers)
-      const leftEye = face[33]
-      const rightEye = face[263]
+      // Find eye landmarks (indices 33 and 263 are the left and right eye corners)
+      const leftEye = face[468]
+      const rightEye = face[473]
       
-      if (leftEye && rightEye) {
-        // Calculate glasses position and size
-        const eyeDistance = Math.sqrt(
-          Math.pow(rightEye.x - leftEye.x, 2) + 
-          Math.pow(rightEye.y - leftEye.y, 2)
-        )
-        
-        // Scale glasses based on eye distance
-        const glassesWidth = eyeDistance * PROCESSING_WIDTH * 2.5 // Adjust multiplier as needed
-        const glassesHeight = glassesWidth * 0.7 // Adjust aspect ratio as needed
-        
-        // Calculate center position between eyes
-        const centerX = (leftEye.x + rightEye.x) / 2
-        const centerY = (leftEye.y + rightEye.y) / 2
-        
-        // Draw glasses
-        this.outputCanvasCtx!.save()
-        this.outputCanvasCtx!.translate(
-          centerX * PROCESSING_WIDTH,
-          centerY * PROCESSING_HEIGHT
-        )
-        
-        // Calculate rotation angle based on eye positions
-        const angle = Math.atan2(
-          rightEye.y - leftEye.y,
-          rightEye.x - leftEye.x
-        )
-        this.outputCanvasCtx!.rotate(angle)
-        
-        // Draw glasses centered at the midpoint between eyes
-        this.outputCanvasCtx!.drawImage(
-          this.glassesImage!,
-          -glassesWidth / 2,
-          -glassesHeight / 2,
-          glassesWidth,
-          glassesHeight
-        )
-        
-        this.outputCanvasCtx!.restore()
+      // Find mouth landmarks for mustache (indices 0 and 17 are the left and right corners of the mouth)
+      const leftMoustache = face[92]
+      const rightMoustache = face[322]
+      
+      if (leftEye && rightEye && this.options.showGlasses) {
+        this.drawEffect(leftEye, rightEye, this.glassesImage!, 2.5, 0.7)
+      }
+
+      if (leftMoustache && rightMoustache && this.options.showMustache) {
+        this.drawEffect(leftMoustache, rightMoustache, this.mustacheImage!, 1.5, 0.5)
       }
     }
   }

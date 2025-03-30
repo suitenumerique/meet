@@ -5,17 +5,17 @@ import {
   BackgroundProcessorFactory,
   BackgroundProcessorInterface,
   ProcessorType,
+  BackgroundOptions
 } from '../blur'
 import { css } from '@/styled-system/css'
 import { Text, P, ToggleButton, H } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
-import { BackgroundOptions } from '@livekit/track-processors'
 import { BlurOn } from '@/components/icons/BlurOn'
 import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
-import { RiProhibited2Line, RiUserVoiceLine } from '@remixicon/react'
+import { RiProhibited2Line, RiGlassesLine, RiEmotionLine } from '@remixicon/react'
 import { useHasFaceLandmarksAccess } from '../../hooks/useHasFaceLandmarksAccess'
 
 enum BlurRadius {
@@ -141,7 +141,34 @@ export const EffectsConfiguration = ({
   }
 
   const tooltipLabel = (type: ProcessorType, options: BackgroundOptions) => {
+    if (type === ProcessorType.FACE_LANDMARKS) {
+      const effect = options.showGlasses ? 'glasses' : 'mustache'
+      return t(`faceLandmarks.${effect}.${isSelected(type, options) ? 'clear' : 'apply'}`)
+    }
     return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
+  }
+
+  const getFaceLandmarksOptions = () => {
+    const processor = getProcessor()
+    if (processor?.serialize().type === ProcessorType.FACE_LANDMARKS) {
+      return processor.serialize().options as { showGlasses?: boolean; showMustache?: boolean }
+    }
+    return { showGlasses: false, showMustache: false }
+  }
+
+  const toggleFaceLandmarkEffect = async (effect: 'glasses' | 'mustache') => {
+    const currentOptions = getFaceLandmarksOptions()
+    const newOptions = {
+      ...currentOptions,
+      [effect === 'glasses' ? 'showGlasses' : 'showMustache']: !currentOptions[effect === 'glasses' ? 'showGlasses' : 'showMustache']
+    }
+
+    if (!newOptions.showGlasses && !newOptions.showMustache) {
+      // If both effects are off stop the processor
+      await clearEffect()
+    } else {
+      await toggleEffect(ProcessorType.FACE_LANDMARKS, newOptions)
+    }
   }
 
   return (
@@ -328,23 +355,36 @@ export const EffectsConfiguration = ({
                     <ToggleButton
                       variant="bigSquare"
                       aria-label={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
-                        blurRadius: 0,
+                        showGlasses: true,
+                        showMustache: false,
                       })}
                       tooltip={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
-                        blurRadius: 0,
+                        showGlasses: true,
+                        showMustache: false,
                       })}
                       isDisabled={processorPendingReveal}
-                      onChange={async () =>
-                        await toggleEffect(ProcessorType.FACE_LANDMARKS, {
-                          blurRadius: 0,
-                        })
-                      }
-                      isSelected={isSelected(ProcessorType.FACE_LANDMARKS, {
-                        blurRadius: 0,
-                      })}
-                      data-attr="toggle-face-landmarks"
+                      onChange={async () => await toggleFaceLandmarkEffect('glasses')}
+                      isSelected={getFaceLandmarksOptions().showGlasses}
+                      data-attr="toggle-glasses"
                     >
-                      <RiUserVoiceLine />
+                      <RiGlassesLine />
+                    </ToggleButton>
+                    <ToggleButton
+                      variant="bigSquare"
+                      aria-label={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
+                        showGlasses: false,
+                        showMustache: true,
+                      })}
+                      tooltip={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
+                        showGlasses: false,
+                        showMustache: true,
+                      })}
+                      isDisabled={processorPendingReveal}
+                      onChange={async () => await toggleFaceLandmarkEffect('mustache')}
+                      isSelected={getFaceLandmarksOptions().showMustache}
+                      data-attr="toggle-mustache"
+                    >
+                      <RiEmotionLine />
                     </ToggleButton>
                   </div>
                 </div>

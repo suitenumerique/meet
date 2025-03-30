@@ -150,12 +150,14 @@
       "clear": "Virtuele achtergrond uitschakelen"
     },
     "faceLandmarks": {
-      "title": "Gezichtskenmerken",
-      "apply": "Gezichtskenmerken inschakelen",
-      "clear": "Gezichtskenmerken uitschakelen",
-      "tooltip": {
-        "apply": "Gezichtskenmerken inschakelen",
-        "clear": "Gezichtskenmerken uitschakelen"
+      "title": "Visuele effecten",
+      "glasses": {
+        "apply": "Bril toevoegen",
+        "clear": "Bril verwijderen"
+      },
+      "mustache": {
+        "apply": "Snor toevoegen",
+        "clear": "Snor verwijderen"
       }
     },
     "experimental": "Experimentele functie. Een v2 komt eraan voor volledige browserondersteuning en verbeterde kwaliteit."

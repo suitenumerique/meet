@@ -8,7 +8,8 @@ import { FaceLandmarksProcessor } from './FaceLandmarksProcessor'
 export type BackgroundOptions = {
   blurRadius?: number
   imagePath?: string
-  showFaceLandmarks?: boolean
+  showGlasses?: boolean
+  showMustache?: boolean
 }
 
 export interface ProcessorSerialized {
