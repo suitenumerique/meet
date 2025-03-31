@@ -28,12 +28,16 @@ export interface BackgroundProcessorInterface
 export enum ProcessorType {
   BLUR = 'blur',
   VIRTUAL = 'virtual',
-  FACE_LANDMARKS = 'faceLandmarks'
+  FACE_LANDMARKS = 'faceLandmarks',
 }
 
 export class BackgroundProcessorFactory {
   static isSupported() {
-    return ProcessorWrapper.isSupported || BackgroundCustomProcessor.isSupported || FaceLandmarksProcessor.isSupported
+    return (
+      ProcessorWrapper.isSupported ||
+      BackgroundCustomProcessor.isSupported ||
+      FaceLandmarksProcessor.isSupported
+    )
   }
 
   static getProcessor(

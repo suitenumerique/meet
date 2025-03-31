@@ -181,32 +181,32 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
   ) {
     // Calculate distance between points
     const distance = Math.sqrt(
-      Math.pow(rightPoint.x - leftPoint.x, 2) + 
-      Math.pow(rightPoint.y - leftPoint.y, 2)
+      Math.pow(rightPoint.x - leftPoint.x, 2) +
+        Math.pow(rightPoint.y - leftPoint.y, 2)
     )
-    
+
     // Scale image based on distance
     const width = distance * PROCESSING_WIDTH * widthScale
     const height = width * heightScale
-    
+
     // Calculate center position between points
     const centerX = (leftPoint.x + rightPoint.x) / 2
     const centerY = (leftPoint.y + rightPoint.y) / 2 + yOffset
-    
+
     // Draw image
     this.outputCanvasCtx!.save()
     this.outputCanvasCtx!.translate(
       centerX * PROCESSING_WIDTH,
       centerY * PROCESSING_HEIGHT
     )
-    
+
     // Calculate rotation angle based on point positions
     const angle = Math.atan2(
       rightPoint.y - leftPoint.y,
       rightPoint.x - leftPoint.x
     )
     this.outputCanvasCtx!.rotate(angle)
-    
+
     // Draw image centered at the midpoint between points
     this.outputCanvasCtx!.drawImage(
       image,
@@ -215,7 +215,7 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
       width,
       height
     )
-    
+
     this.outputCanvasCtx!.restore()
   }
 
@@ -242,28 +242,41 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
     this.outputCanvasCtx!.lineWidth = 2
 
     for (const face of this.faceLandmarkerResult.faceLandmarks) {
-      // Find eye landmarks 
+      // Find eye landmarks
       const leftEye = face[468]
       const rightEye = face[473]
-      
+
       // Find mouth landmarks for mustache
       const leftMoustache = face[92]
       const rightMoustache = face[322]
-      
+
       // Find forehead landmarks for beret
       const leftForehead = face[103]
       const rightForehead = face[332]
-      
+
       if (leftEye && rightEye && this.options.showGlasses) {
         this.drawEffect(leftEye, rightEye, this.glassesImage!, 2.5, 0.7)
       }
 
       if (leftMoustache && rightMoustache && this.options.showFrench) {
-        this.drawEffect(leftMoustache, rightMoustache, this.mustacheImage!, 1.5, 0.5)
+        this.drawEffect(
+          leftMoustache,
+          rightMoustache,
+          this.mustacheImage!,
+          1.5,
+          0.5
+        )
       }
 
       if (leftForehead && rightForehead && this.options.showFrench) {
-        this.drawEffect(leftForehead, rightForehead, this.beretImage!, 2.1, 0.7, -0.1)
+        this.drawEffect(
+          leftForehead,
+          rightForehead,
+          this.beretImage!,
+          2.1,
+          0.7,
+          -0.1
+        )
       }
     }
   }
@@ -329,4 +342,4 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
       options: this.options,
     }
   }
-} 
+}

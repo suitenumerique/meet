@@ -5,7 +5,7 @@ import {
   BackgroundProcessorFactory,
   BackgroundProcessorInterface,
   ProcessorType,
-  BackgroundOptions
+  BackgroundOptions,
 } from '../blur'
 import { css } from '@/styled-system/css'
 import { Text, P, ToggleButton, H } from '@/primitives'
@@ -15,7 +15,11 @@ import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
-import { RiProhibited2Line, RiGlassesLine, RiGoblet2Fill } from '@remixicon/react'
+import {
+  RiProhibited2Line,
+  RiGlassesLine,
+  RiGoblet2Fill,
+} from '@remixicon/react'
 import { useHasFaceLandmarksAccess } from '../../hooks/useHasFaceLandmarksAccess'
 
 enum BlurRadius {
@@ -143,7 +147,9 @@ export const EffectsConfiguration = ({
   const tooltipLabel = (type: ProcessorType, options: BackgroundOptions) => {
     if (type === ProcessorType.FACE_LANDMARKS) {
       const effect = options.showGlasses ? 'glasses' : 'french'
-      return t(`faceLandmarks.${effect}.${isSelected(type, options) ? 'clear' : 'apply'}`)
+      return t(
+        `faceLandmarks.${effect}.${isSelected(type, options) ? 'clear' : 'apply'}`
+      )
     }
     return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
   }
@@ -151,7 +157,10 @@ export const EffectsConfiguration = ({
   const getFaceLandmarksOptions = () => {
     const processor = getProcessor()
     if (processor?.serialize().type === ProcessorType.FACE_LANDMARKS) {
-      return processor.serialize().options as { showGlasses?: boolean; showFrench?: boolean }
+      return processor.serialize().options as {
+        showGlasses?: boolean
+        showFrench?: boolean
+      }
     }
     return { showGlasses: false, showFrench: false }
   }
@@ -160,7 +169,8 @@ export const EffectsConfiguration = ({
     const currentOptions = getFaceLandmarksOptions()
     const newOptions = {
       ...currentOptions,
-      [effect === 'glasses' ? 'showGlasses' : 'showFrench']: !currentOptions[effect === 'glasses' ? 'showGlasses' : 'showFrench']
+      [effect === 'glasses' ? 'showGlasses' : 'showFrench']:
+        !currentOptions[effect === 'glasses' ? 'showGlasses' : 'showFrench'],
     }
 
     if (!newOptions.showGlasses && !newOptions.showFrench) {
@@ -363,7 +373,9 @@ export const EffectsConfiguration = ({
                         showFrench: false,
                       })}
                       isDisabled={processorPendingReveal}
-                      onChange={async () => await toggleFaceLandmarkEffect('glasses')}
+                      onChange={async () =>
+                        await toggleFaceLandmarkEffect('glasses')
+                      }
                       isSelected={getFaceLandmarksOptions().showGlasses}
                       data-attr="toggle-glasses"
                     >
@@ -380,7 +392,9 @@ export const EffectsConfiguration = ({
                         showFrench: true,
                       })}
                       isDisabled={processorPendingReveal}
-                      onChange={async () => await toggleFaceLandmarkEffect('french')}
+                      onChange={async () =>
+                        await toggleFaceLandmarkEffect('french')
+                      }
                       isSelected={getFaceLandmarksOptions().showFrench}
                       data-attr="toggle-french"
                     >

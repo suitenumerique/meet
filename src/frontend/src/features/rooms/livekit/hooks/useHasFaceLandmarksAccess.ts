@@ -6,4 +6,4 @@ export const useHasFaceLandmarksAccess = () => {
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
 
   return featureEnabled || !isAnalyticsEnabled
-} 
+}
