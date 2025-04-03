@@ -14,13 +14,16 @@ import { useTranslation } from 'react-i18next'
 
 const CONTROL_BAR_BREAKPOINT = 1100
 
-const NavigationControls = ({ onPress }: Partial<ToggleButtonProps>) => (
+const NavigationControls = ({
+  onPress,
+  tooltipType = 'instant',
+}: Partial<ToggleButtonProps>) => (
   <>
-    <ChatToggle onPress={onPress} />
-    <ParticipantsToggle onPress={onPress} />
-    <TranscriptToggle onPress={onPress} />
-    <SupportToggle onPress={onPress} />
-    <AdminToggle onPress={onPress} />
+    <ChatToggle onPress={onPress} tooltipType={tooltipType} />
+    <ParticipantsToggle onPress={onPress} tooltipType={tooltipType} />
+    <TranscriptToggle onPress={onPress} tooltipType={tooltipType} />
+    <SupportToggle onPress={onPress} tooltipType={tooltipType} />
+    <AdminToggle onPress={onPress} tooltipType={tooltipType} />
   </>
 )
 
@@ -55,7 +58,7 @@ export const LateralMenu = () => {
             gap: '0.5rem',
           })}
         >
-          <NavigationControls onPress={handleClose} />
+          <NavigationControls onPress={handleClose} tooltipType="delayed" />
         </Dialog>
       </Popover>
     </DialogTrigger>
