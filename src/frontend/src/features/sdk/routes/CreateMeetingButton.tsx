@@ -66,6 +66,7 @@ export const CreateMeetingButton = () => {
     setRoom(undefined)
     setCallbackId(undefined)
     setIsPending(false)
+    popupManager.clearState()
   }
 
   if (isPending) {

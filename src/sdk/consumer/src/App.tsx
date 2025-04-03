@@ -21,7 +21,10 @@ function App() {
       </div>
       <div className="group">
         <label>Visioconference</label>
-        <VisioCreateButton onRoomCreated={(data) => setRoomUrl(data.url)} />
+        <VisioCreateButton
+          onRoomCreated={(data) => setRoomUrl(data.url)}
+          onClear={() => setRoomUrl("")}
+        />
       </div>
       <div className="group">
         <label>Description</label>

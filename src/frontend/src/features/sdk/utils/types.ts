@@ -4,6 +4,7 @@ export type CallbackCreationRoomData = {
 
 export enum ClientMessageType {
   ROOM_CREATED = 'ROOM_CREATED',
+  STATE_CLEAR = 'STATE_CLEAR',
 }
 
 export interface PopupMessageData {

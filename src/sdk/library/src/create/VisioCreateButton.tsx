@@ -4,10 +4,12 @@ import { DEFAULT_CONFIG } from '@/Config'
 
 export const VisioCreateButton = ({
   onRoomCreated,
+  onClear,
   readOnly = false,
   slug,
 }: {
   onRoomCreated: (roomData: RoomData) => void
+  onClear: () => void
   readOnly?: boolean
   slug?: string
 }) => {
@@ -20,13 +22,15 @@ export const VisioCreateButton = ({
       const { type, data } = event.data
       if (type == ClientMessageType.ROOM_CREATED && data?.room) {
         onRoomCreated(data.room)
+      } else if (type == ClientMessageType.STATE_CLEAR) {
+        onClear()
       }
     }
     window.addEventListener('message', onMessage)
     return () => {
       window.removeEventListener('message', onMessage)
     }
-  }, [onRoomCreated])
+  }, [onRoomCreated, onClear])
 
   return (
     // eslint-disable-next-line jsx-a11y/iframe-has-title
