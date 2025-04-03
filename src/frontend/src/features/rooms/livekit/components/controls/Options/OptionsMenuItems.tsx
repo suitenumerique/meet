@@ -4,6 +4,7 @@ import { FullScreenMenuItem } from './FullScreenMenuItem'
 import { SettingsMenuItem } from './SettingsMenuItem'
 import { FeedbackMenuItem } from './FeedbackMenuItem'
 import { EffectsMenuItem } from './EffectsMenuItem'
+import { SupportMenuItem } from './SupportMenuItem'
 
 // @todo try refactoring it to use MenuList component
 export const OptionsMenuItems = () => {
@@ -20,6 +21,7 @@ export const OptionsMenuItems = () => {
       </MenuSection>
       <Separator />
       <MenuSection>
+        <SupportMenuItem />
         <FeedbackMenuItem />
         <SettingsMenuItem />
       </MenuSection>

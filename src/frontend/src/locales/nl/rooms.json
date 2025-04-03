@@ -111,7 +111,6 @@
       "open": "Verberg beheerder",
       "closed": "Toon beheerder"
     },
-    "support": "Ondersteuning",
     "moreOptions": "Meer opties",
     "reactions": {
       "button": "Stuur reactie",
@@ -130,7 +129,8 @@
       "fullscreen": {
         "enter": "Volledig scherm",
         "exit": "Stop volledig scherm stand"
-      }
+      },
+      "support": "Contact ondersteuning"
     }
   },
   "effects": {

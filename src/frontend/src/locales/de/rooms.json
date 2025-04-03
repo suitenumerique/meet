@@ -112,7 +112,6 @@
       "open": "",
       "closed": ""
     },
-    "support": "",
     "moreOptions": "",
     "reactions": {
       "button": "",
@@ -131,7 +130,8 @@
       "fullscreen": {
         "enter": "",
         "exit": ""
-      }
+      },
+      "support": ""
     }
   },
   "effects": {

@@ -111,7 +111,6 @@
       "open": "Hide admin",
       "closed": "Open admin"
     },
-    "support": "Support",
     "moreOptions": "More options",
     "reactions": {
       "button": "Send reaction",
@@ -130,7 +129,8 @@
       "fullscreen": {
         "enter": "Fullscreen",
         "exit": "Exit fullscreen mode"
-      }
+      },
+      "support": "Contact support"
     }
   },
   "effects": {

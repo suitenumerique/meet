@@ -111,7 +111,6 @@
       "open": "Masquer l'admin",
       "closed": "Afficher l'admin"
     },
-    "support": "Support",
     "moreOptions": "Plus d'options",
     "reactions": {
       "button": "Envoyer une réaction",
@@ -130,7 +129,8 @@
       "fullscreen": {
         "enter": "Plein écran",
         "exit": "Quitter le mode plein écran"
-      }
+      },
+      "support": "Contacter l'aide"
     }
   },
   "effects": {

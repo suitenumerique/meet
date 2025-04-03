@@ -17,7 +17,6 @@ import {
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { ChatToggle } from '../../components/controls/ChatToggle'
 import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
-import { SupportToggle } from '../../components/controls/SupportToggle'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { LinkButton } from '@/primitives'
 import { useSettingsDialog } from '../../components/controls/SettingsDialogContext'
@@ -135,10 +134,6 @@ export function MobileControlBar({
               onPress={() => setIsMenuOpened(false)}
             />
             <TranscriptToggle
-              description={true}
-              onPress={() => setIsMenuOpened(false)}
-            />
-            <SupportToggle
               description={true}
               onPress={() => setIsMenuOpened(false)}
             />

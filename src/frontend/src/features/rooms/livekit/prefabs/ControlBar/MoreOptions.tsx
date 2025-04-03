@@ -1,7 +1,6 @@
 import { css } from '@/styled-system/css'
 import { ChatToggle } from '../../components/controls/ChatToggle'
 import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
-import { SupportToggle } from '../../components/controls/SupportToggle'
 import { TranscriptToggle } from '../../components/controls/TranscriptToggle'
 import { AdminToggle } from '../../components/AdminToggle'
 import { useSize } from '../../hooks/useResizeObserver'
@@ -22,7 +21,6 @@ const NavigationControls = ({
     <ChatToggle onPress={onPress} tooltipType={tooltipType} />
     <ParticipantsToggle onPress={onPress} tooltipType={tooltipType} />
     <TranscriptToggle onPress={onPress} tooltipType={tooltipType} />
-    <SupportToggle onPress={onPress} tooltipType={tooltipType} />
     <AdminToggle onPress={onPress} tooltipType={tooltipType} />
   </>
 )
