@@ -79,7 +79,7 @@ def format_segments(transcription_data):
         text = segment.get('text', '')
         if text:
             if speaker != previous_speaker:
-                formatted_output += f"\n\n *{speaker}*: {text}"
+                formatted_output += f"\n\n **{speaker}**: {text}"
             else:
                 formatted_output += f" {text}"
             previous_speaker = speaker
