@@ -167,7 +167,7 @@
       "participants": "Participants",
       "effects": "Effets",
       "chat": "Messages dans l'appel",
-      "transcript": "Assistant IA",
+      "transcript": "Transcription",
       "admin": "Commandes de l'organisateur",
       "tools": "Plus d'outils"
     },
@@ -175,7 +175,7 @@
       "participants": "les participants",
       "effects": "les effets",
       "chat": "les messages",
-      "transcript": "l'assistant IA",
+      "transcript": "transcription",
       "admin": "commandes de l'organisateur",
       "tools": "plus d'outils"
     },
@@ -187,7 +187,12 @@
   "moreTools": {
     "body": "Accèder à d'avantage d'outils dans Visio pour améliorer vos réunions,",
     "moreLink": "en savoir plus",
-    "tools": {}
+    "tools": {
+      "transcript": {
+        "title": "Transcription",
+        "body": "Transcrivez votre réunion pour plus tard"
+      }
+    }
   },
   "transcript": {
     "start": {

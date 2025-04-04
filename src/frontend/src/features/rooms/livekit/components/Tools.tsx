@@ -4,6 +4,10 @@ import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { CRISP_HELP_ARTICLE_MORE_TOOLS } from '@/utils/constants'
 import { ReactNode } from 'react'
+import { Transcript } from './Transcript'
+import { RiFileTextFill } from '@remixicon/react'
+import { useIsTranscriptEnabled } from '../hooks/useIsTranscriptEnabled'
+import { useSidePanel } from '../hooks/useSidePanel'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -64,7 +68,14 @@ const ToolButton = ({
 }
 
 export const Tools = () => {
+  const { openTranscript, isTranscriptOpen } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
+  const isTranscriptEnabled = useIsTranscriptEnabled()
+
+  if (isTranscriptOpen && isTranscriptEnabled) {
+    return <Transcript />
+  }
+
   return (
     <Div
       display="flex"
@@ -89,7 +100,14 @@ export const Tools = () => {
         </A>
         .
       </Text>
-      WIP
+      {isTranscriptEnabled && (
+        <ToolButton
+          icon={<RiFileTextFill size={24} color="white" />}
+          title={t('tools.transcript.title')}
+          description={t('tools.transcript.body')}
+          onPress={() => openTranscript()}
+        />
+      )}
     </Div>
   )
 }

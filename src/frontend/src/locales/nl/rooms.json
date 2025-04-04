@@ -167,7 +167,7 @@
       "participants": "Deelnemers",
       "effects": "Effecten",
       "chat": "Berichten in de chat",
-      "transcript": "AI-assistent",
+      "transcript": "Transcriptie",
       "admin": "Beheerdersbediening",
       "tools": "Meer tools"
     },
@@ -175,7 +175,7 @@
       "participants": "deelnemers",
       "effects": "effecten",
       "chat": "berichten",
-      "transcript": "AI-assistent",
+      "transcript": "transcriptie",
       "admin": "beheerdersbediening",
       "tools": "meer tools"
     },
@@ -187,7 +187,12 @@
   "moreTools": {
     "body": "Toegang tot meer tools in Visio om je vergaderingen te verbeteren,",
     "moreLink": "lees meer",
-    "tools": {}
+    "tools": {
+      "transcript": {
+        "title": "Transcriptie",
+        "body": "Transcribeer je vergadering voor later"
+      }
+    }
   },
   "transcript": {
     "start": {

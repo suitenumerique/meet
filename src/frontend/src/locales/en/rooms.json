@@ -167,7 +167,7 @@
       "participants": "Participants",
       "effects": "Effects",
       "chat": "Messages in the chat",
-      "transcript": "AI Assistant",
+      "transcript": "Transcription",
       "admin": "Admin settings",
       "tools": "More tools"
     },
@@ -175,7 +175,7 @@
       "participants": "participants",
       "effects": "effects",
       "chat": "messages",
-      "transcript": "AI assistant",
+      "transcript": "Transcription",
       "admin": "admin settings",
       "tools": "more tools"
     },
@@ -187,7 +187,12 @@
   "moreTools": {
     "body": "Access more tools in Visio to enhance your meetings,",
     "moreLink": "learn more",
-    "tools": {}
+    "tools": {
+      "transcript": {
+        "title": "Transcription",
+        "body": "Transcribe your meeting for later"
+      }
+    }
   },
   "transcript": {
     "start": {

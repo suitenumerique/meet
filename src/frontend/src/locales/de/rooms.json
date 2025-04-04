@@ -188,7 +188,12 @@
   "moreTools": {
     "body": "",
     "moreLink": "",
-    "tools": {}
+    "tools": {
+      "transcript": {
+        "title": "",
+        "body": ""
+      }
+    }
   },
   "transcript": {
     "start": {
