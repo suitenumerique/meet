@@ -207,6 +207,7 @@ export const IntroSlider = () => {
                 {slide.isAvailableInBeta && (
                   <LinkButton
                     href={BETA_USERS_FORM_URL}
+                    target="_blank"
                     tooltip={t('beta.tooltip')}
                     variant={'primary'}
                     size={'sm'}

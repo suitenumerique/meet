@@ -9,6 +9,7 @@ type LinkButtonProps = RecipeVariantProps<ButtonRecipe> &
   TooltipWrapperProps & {
     // Use tooltip as description below the button.
     description?: boolean
+    target?: string
   }
 
 export const LinkButton = ({
