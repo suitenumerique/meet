@@ -8,10 +8,7 @@ import { Button, LinkButton } from '@/primitives'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
-// todo - extract in a proper env variable
-const BETA_USERS_FORM_URL =
-  'https://grist.numerique.gouv.fr/o/docs/forms/3fFfvJoTBEQ6ZiMi8zsQwX/17'
+import { BETA_USERS_FORM_URL } from '@/utils/constants'
 
 const Heading = styled('h2', {
   base: {

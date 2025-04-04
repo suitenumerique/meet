@@ -2,7 +2,7 @@ import { css } from '@/styled-system/css'
 import { RiErrorWarningLine, RiExternalLinkLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { Text, A } from '@/primitives'
-import { GRIST_FORM } from '@/utils/constants'
+import { GRIST_FEEDBACKS_FORM } from '@/utils/constants'
 
 export const FeedbackBanner = () => {
   const { t } = useTranslation()
@@ -35,7 +35,7 @@ export const FeedbackBanner = () => {
             gap: 0.25,
           })}
         >
-          <A href={GRIST_FORM} target="_blank" size="sm">
+          <A href={GRIST_FEEDBACKS_FORM} target="_blank" size="sm">
             {t('feedback.cta')}
           </A>
           <RiExternalLinkLine size={16} aria-hidden="true" />
