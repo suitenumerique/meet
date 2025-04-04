@@ -199,9 +199,15 @@
     "start": {
       "heading": "",
       "body": "",
-      "button": ""
+      "button": "",
+      "linkMore": ""
     },
     "stop": {
+      "heading": "",
+      "body": "",
+      "button": ""
+    },
+    "beta": {
       "heading": "",
       "body": "",
       "button": ""

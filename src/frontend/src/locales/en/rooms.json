@@ -196,14 +196,20 @@
   },
   "transcript": {
     "start": {
-      "heading": "Start the Assistant!",
-      "body": "The assistant automatically starts recording your meeting audio (limited to 1 hour). At the end, you'll receive a clear and concise summary of the discussion directly via email.",
-      "button": "Start"
+      "heading": "Transcribe this call",
+      "body": "Automatically transcribe this call and receive the summary in Docs.",
+      "button": "Start transcription",
+      "linkMore": "Learn more"
     },
     "stop": {
-      "heading": "Recording in Progress...",
-      "body": "Your meeting is currently being recorded. You will receive a summary via email once the meeting ends.",
-      "button": "Stop Recording"
+      "heading": "Transcription in progress...",
+      "body": "The transcription of your meeting is in progress. You will receive the result by email once the meeting is finished.",
+      "button": "Stop transcription"
+    },
+    "beta": {
+      "heading": "Become a beta tester",
+      "body": "Record your meeting for later. You will receive a summary by email once the meeting is finished.",
+      "button": "Sign up"
     }
   },
   "admin": {

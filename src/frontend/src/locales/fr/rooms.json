@@ -196,14 +196,20 @@
   },
   "transcript": {
     "start": {
-      "heading": "Démarrer l'assistant !",
-      "body": "L'assistant démarre automatiquement l'enregistrement sonore de votre réunion (limité à 1h). À la fin, vous recevrez un résumé clair et concis des échanges directement par e-mail.",
-      "button": "Démarrer"
+      "heading": "Transcrire cet appel",
+      "body": "Transcrivez cet appel automatiquement et recevez le compte rendu dans Docs.",
+      "button": "Démarrer la transcription",
+      "linkMore": "En savoir plus"
     },
     "stop": {
-      "heading": "Enregistrement en cours …",
-      "body": "L'enregistrement de votre réunion est en cours. Vous recevrez un compte-rendu par email une fois la réunion terminée.",
-      "button": "Arrêter l'enregistrement"
+      "heading": "Transcription en cours …",
+      "body": "La transcription de votre réunion est en cours. Vous recevrez le resultat par email une fois la réunion terminée.",
+      "button": "Arrêter la transcription"
+    },
+    "beta": {
+      "heading": "Devenez beta testeur",
+      "body": "Enregistrer votre réunion pour plus tard. Vous recevrez un compte-rendu par email une fois la réunion terminée.",
+      "button": "Inscrivez-vous"
     }
   },
   "admin": {

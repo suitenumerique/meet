@@ -1,10 +1,7 @@
-import { Button, Div, H, Text } from '@/primitives'
+import { A, Button, Div, LinkButton, Text } from '@/primitives'
 
 import thirdSlide from '@/assets/intro-slider/3_resume.png'
 import { css } from '@/styled-system/css'
-
-import { useHasTranscriptAccess } from '../hooks/useHasTranscriptAccess'
-import { RiRecordCircleLine, RiStopCircleLine } from '@remixicon/react'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
 import {
@@ -12,21 +9,33 @@ import {
   useStartRecording,
 } from '@/features/rooms/api/startRecording'
 import { useStopRecording } from '@/features/rooms/api/stopRecording'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
+import { NotificationPayload } from '@/features/notifications/NotificationPayload'
+import { NotificationType } from '@/features/notifications/NotificationType'
+import { useSnapshot } from 'valtio/index'
+import {
+  TranscriptionStatus,
+  transcriptionStore,
+} from '@/stores/transcription.ts'
+import { useHasTranscriptAccess } from '../hooks/useHasTranscriptAccess'
+import {
+  BETA_USERS_FORM_URL,
+  CRISP_HELP_ARTICLE_TRANSCRIPT,
+} from '@/utils/constants'
 
 export const Transcript = () => {
   const [isLoading, setIsLoading] = useState(false)
-
   const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
 
   const hasTranscriptAccess = useHasTranscriptAccess()
-
   const roomId = useRoomId()
 
   const { mutateAsync: startRecordingRoom } = useStartRecording()
   const { mutateAsync: stopRecordingRoom } = useStopRecording()
+
+  const transcriptionSnap = useSnapshot(transcriptionStore)
 
   const room = useRoomContext()
 
@@ -40,6 +49,17 @@ export const Transcript = () => {
     }
   }, [room])
 
+  const notifyParticipant = async (status: NotificationType) => {
+    const encoder = new TextEncoder()
+    const payload: NotificationPayload = {
+      type: status,
+    }
+    const data = encoder.encode(JSON.stringify(payload))
+    await room.localParticipant.publishData(data, {
+      reliable: true,
+    })
+  }
+
   const handleTranscript = async () => {
     if (!roomId) {
       console.warn('No room ID found')
@@ -49,8 +69,12 @@ export const Transcript = () => {
       setIsLoading(true)
       if (room.isRecording) {
         await stopRecordingRoom({ id: roomId })
+        await notifyParticipant(NotificationType.TranscriptionStopped)
+        transcriptionStore.status = TranscriptionStatus.STOPPING
       } else {
         await startRecordingRoom({ id: roomId, mode: RecordingMode.Transcript })
+        await notifyParticipant(NotificationType.TranscriptionStarted)
+        transcriptionStore.status = TranscriptionStatus.STARTING
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)
@@ -58,7 +82,13 @@ export const Transcript = () => {
     }
   }
 
-  if (!hasTranscriptAccess) return
+  const isDisabled = useMemo(
+    () =>
+      isLoading ||
+      transcriptionSnap.status === TranscriptionStatus.STARTING ||
+      transcriptionSnap.status === TranscriptionStatus.STOPPING,
+    [isLoading, transcriptionSnap]
+  )
 
   return (
     <Div
@@ -69,38 +99,98 @@ export const Transcript = () => {
       flexDirection="column"
       alignItems="center"
     >
-      <img src={thirdSlide} alt={'wip'} />
-      {room.isRecording ? (
+      <img
+        src={thirdSlide}
+        alt={''}
+        className={css({
+          minHeight: '309px',
+          marginBottom: '1rem',
+        })}
+      />
+      {!hasTranscriptAccess ? (
         <>
-          <H lvl={2}>{t('stop.heading')}</H>
-          <Text variant="sm" centered wrap="balance">
-            {t('stop.body')}
-          </Text>
-          <div className={css({ height: '2rem' })} />
-          <Button
-            isDisabled={isLoading}
-            onPress={() => handleTranscript()}
-            data-attr="stop-transcript"
+          <Text>{t('beta.heading')}</Text>
+          <Text
+            variant="note"
+            wrap={'pretty'}
+            centered
+            className={css({
+              textStyle: 'sm',
+              marginBottom: '2.5rem',
+              marginTop: '0.25rem',
+            })}
           >
-            <RiStopCircleLine style={{ marginRight: '0.5rem' }} />{' '}
-            {t('stop.button')}
-          </Button>
+            {t('beta.body')}{' '}
+            <A href={CRISP_HELP_ARTICLE_TRANSCRIPT} target="_blank">
+              {t('start.linkMore')}
+            </A>
+          </Text>
+          <LinkButton
+            size="sm"
+            variant="tertiary"
+            href={BETA_USERS_FORM_URL}
+            target="_blank"
+          >
+            {t('beta.button')}
+          </LinkButton>
         </>
       ) : (
         <>
-          <H lvl={2}>{t('start.heading')}</H>
-          <Text variant="sm" centered wrap="balance">
-            {t('start.body')}
-          </Text>
-          <div className={css({ height: '2rem' })} />
-          <Button
-            isDisabled={isLoading}
-            onPress={() => handleTranscript()}
-            data-attr="start-transcript"
-          >
-            <RiRecordCircleLine style={{ marginRight: '0.5rem' }} />{' '}
-            {t('start.button')}
-          </Button>
+          {room.isRecording ? (
+            <>
+              <Text>{t('stop.heading')}</Text>
+              <Text
+                variant="note"
+                wrap={'pretty'}
+                centered
+                className={css({
+                  textStyle: 'sm',
+                  marginBottom: '2.5rem',
+                  marginTop: '0.25rem',
+                })}
+              >
+                {t('stop.body')}
+              </Text>
+              <Button
+                isDisabled={isDisabled}
+                onPress={() => handleTranscript()}
+                data-attr="stop-transcript"
+                size="sm"
+                variant="tertiary"
+              >
+                {t('stop.button')}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Text>{t('start.heading')}</Text>
+              <Text
+                variant="note"
+                wrap={'pretty'}
+                centered
+                className={css({
+                  textStyle: 'sm',
+                  maxWidth: '90%',
+                  marginBottom: '2.5rem',
+                  marginTop: '0.25rem',
+                })}
+              >
+                {t('start.body')} <br />{' '}
+                <A href={CRISP_HELP_ARTICLE_TRANSCRIPT} target="_blank">
+                  {t('start.linkMore')}
+                </A>
+              </Text>
+              <Button
+                isDisabled={isDisabled}
+                onPress={() => handleTranscript()}
+                data-attr="start-transcript"
+                size="sm"
+                variant="tertiary"
+              >
+                {t('start.button')}
+              </Button>
+            </>
+          )}
         </>
       )}
     </Div>

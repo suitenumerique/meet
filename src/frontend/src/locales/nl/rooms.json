@@ -196,14 +196,20 @@
   },
   "transcript": {
     "start": {
-      "heading": "Start de assistent!",
-      "body": "De assistent begint automatisch de audio van uw vergadering op te nemen (beperkt tot 1 uur). Na afloop krijgt u direct een heldere en beknopte samenvatting van de discussies in uw e-mail.",
-      "button": "Start"
+      "heading": "Transcribeer dit gesprek",
+      "body": "Transcribeer dit gesprek automatisch en ontvang het verslag in Docs.",
+      "button": "Transcriptie starten",
+      "linkMore": "Meer informatie"
     },
     "stop": {
-      "heading": "Opname loopt ...",
-      "body": "Uw vergadering wordt momenteel opgenomen. U ontvangt een samenvatting via e-mail, zo gauw de vergarding gesloten wordt.",
-      "button": "Stop met opname"
+      "heading": "Transcriptie bezig...",
+      "body": "De transcriptie van uw vergadering is bezig. U ontvangt het resultaat per e-mail zodra de vergadering is afgelopen.",
+      "button": "Transcriptie stoppen"
+    },
+    "beta": {
+      "heading": "Word betatester",
+      "body": "Neem uw vergadering op voor later. U ontvangt een samenvatting per e-mail zodra de vergadering is afgelopen.",
+      "button": "Aanmelden"
     }
   },
   "admin": {
