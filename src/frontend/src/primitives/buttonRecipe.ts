@@ -42,6 +42,7 @@ export const buttonRecipe = cva({
       primary: {
         backgroundColor: 'primary.800',
         color: 'white',
+        fontWeight: 'medium !important',
         '&[data-hovered]': {
           backgroundColor: 'primary.action',
         },
@@ -56,6 +57,7 @@ export const buttonRecipe = cva({
       secondary: {
         backgroundColor: 'white',
         color: 'primary.800',
+        fontWeight: 'medium !important',
         borderColor: 'primary.800',
         '&[data-hovered]': {
           backgroundColor: 'greyscale.100',
@@ -113,6 +115,7 @@ export const buttonRecipe = cva({
       },
       tertiary: {
         backgroundColor: 'primary.100',
+        fontWeight: 'medium !important',
         color: 'primary.800',
         '&[data-hovered]': {
           backgroundColor: 'primary.300',
@@ -123,6 +126,7 @@ export const buttonRecipe = cva({
       },
       tertiaryText: {
         backgroundColor: 'transparent',
+        fontWeight: 'medium !important',
         color: 'primary.900',
         '&[data-hovered]': {
           backgroundColor: 'primary.300',
@@ -133,6 +137,7 @@ export const buttonRecipe = cva({
       },
       primaryDark: {
         backgroundColor: 'primaryDark.100',
+        fontWeight: 'medium !important',
         color: 'white',
         '&[data-pressed]': {
           backgroundColor: 'primaryDark.900',
@@ -149,6 +154,7 @@ export const buttonRecipe = cva({
       },
       secondaryDark: {
         backgroundColor: 'primaryDark.50',
+        fontWeight: 'medium !important',
         color: 'white',
         '&[data-pressed]': {
           backgroundColor: 'primaryDark.200',
@@ -164,6 +170,7 @@ export const buttonRecipe = cva({
       },
       primaryTextDark: {
         backgroundColor: 'transparent',
+        fontWeight: 'medium !important',
         color: 'white',
         '&[data-hovered]': {
           backgroundColor: 'primaryDark.100',
@@ -179,6 +186,7 @@ export const buttonRecipe = cva({
       },
       quaternaryText: {
         backgroundColor: 'transparent',
+        fontWeight: 'medium !important',
         color: 'greyscale.600',
         '&[data-hovered]': {
           backgroundColor: 'greyscale.100',
