@@ -104,7 +104,7 @@
       "open": "",
       "closed": ""
     },
-    "transcript": {
+    "tools": {
       "open": "",
       "closed": ""
     },
@@ -169,19 +169,26 @@
       "effects": "",
       "chat": "",
       "transcript": "",
-      "admin": ""
+      "admin": "",
+      "tools": ""
     },
     "content": {
       "participants": "",
       "effects": "",
       "chat": "",
       "transcript": "",
-      "admin": ""
+      "admin": "",
+      "tools": ""
     },
     "closeButton": ""
   },
   "chat": {
     "disclaimer": ""
+  },
+  "moreTools": {
+    "body": "",
+    "moreLink": "",
+    "tools": {}
   },
   "transcript": {
     "start": {

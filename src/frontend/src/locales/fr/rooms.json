@@ -103,9 +103,9 @@
       "open": "Masquer les participants",
       "closed": "Afficher les participants"
     },
-    "transcript": {
-      "open": "Masquer l'assistant IA",
-      "closed": "Afficher l'assistant IA"
+    "tools": {
+      "open": "Masquer plus d'outils",
+      "closed": "Afficher plus d'outils"
     },
     "admin": {
       "open": "Masquer l'admin",
@@ -168,19 +168,26 @@
       "effects": "Effets",
       "chat": "Messages dans l'appel",
       "transcript": "Assistant IA",
-      "admin": "Commandes de l'organisateur"
+      "admin": "Commandes de l'organisateur",
+      "tools": "Plus d'outils"
     },
     "content": {
       "participants": "les participants",
       "effects": "les effets",
       "chat": "les messages",
       "transcript": "l'assistant IA",
-      "admin": "Commandes de l'organisateur"
+      "admin": "commandes de l'organisateur",
+      "tools": "plus d'outils"
     },
     "closeButton": "Masquer {{content}}"
   },
   "chat": {
     "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel."
+  },
+  "moreTools": {
+    "body": "Accèder à d'avantage d'outils dans Visio pour améliorer vos réunions,",
+    "moreLink": "en savoir plus",
+    "tools": {}
   },
   "transcript": {
     "start": {

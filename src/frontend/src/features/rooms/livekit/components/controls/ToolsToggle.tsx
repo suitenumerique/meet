@@ -1,24 +1,19 @@
 import { ToggleButton } from '@/primitives'
-import { RiBardLine } from '@remixicon/react'
+import { RiShapesLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useSidePanel } from '../../hooks/useSidePanel'
-import { useHasTranscriptAccess } from '../../hooks/useHasTranscriptAccess'
 import { css } from '@/styled-system/css'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 
-export const TranscriptToggle = ({
+export const ToolsToggle = ({
   variant = 'primaryTextDark',
   onPress,
   ...props
 }: ToggleButtonProps) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'controls.transcript' })
+  const { t } = useTranslation('rooms', { keyPrefix: 'controls.tools' })
 
-  const { isTranscriptOpen, toggleTranscript } = useSidePanel()
-  const tooltipLabel = isTranscriptOpen ? 'open' : 'closed'
-
-  const hasTranscriptAccess = useHasTranscriptAccess()
-
-  if (!hasTranscriptAccess) return
+  const { isToolsOpen, toggleTools } = useSidePanel()
+  const tooltipLabel = isToolsOpen ? 'open' : 'closed'
 
   return (
     <div
@@ -32,15 +27,15 @@ export const TranscriptToggle = ({
         variant={variant}
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
-        isSelected={isTranscriptOpen}
+        isSelected={isToolsOpen}
         onPress={(e) => {
-          toggleTranscript()
+          toggleTools()
           onPress?.(e)
         }}
         {...props}
-        data-attr="toggle-transcript"
+        data-attr="toggle-tools"
       >
-        <RiBardLine />
+        <RiShapesLine />
       </ToggleButton>
     </div>
   )

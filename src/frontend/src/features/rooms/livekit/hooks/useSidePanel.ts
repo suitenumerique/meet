@@ -5,7 +5,7 @@ export enum PanelId {
   PARTICIPANTS = 'participants',
   EFFECTS = 'effects',
   CHAT = 'chat',
-  TRANSCRIPT = 'transcript',
+  TOOLS = 'tools',
   ADMIN = 'admin',
 }
 
@@ -16,7 +16,7 @@ export const useSidePanel = () => {
   const isParticipantsOpen = activePanelId == PanelId.PARTICIPANTS
   const isEffectsOpen = activePanelId == PanelId.EFFECTS
   const isChatOpen = activePanelId == PanelId.CHAT
-  const isTranscriptOpen = activePanelId == PanelId.TRANSCRIPT
+  const isToolsOpen = activePanelId == PanelId.TOOLS
   const isAdminOpen = activePanelId == PanelId.ADMIN
   const isSidePanelOpen = !!activePanelId
 
@@ -36,8 +36,8 @@ export const useSidePanel = () => {
     layoutStore.activePanelId = isEffectsOpen ? null : PanelId.EFFECTS
   }
 
-  const toggleTranscript = () => {
-    layoutStore.activePanelId = isTranscriptOpen ? null : PanelId.TRANSCRIPT
+  const toggleTools = () => {
+    layoutStore.activePanelId = isToolsOpen ? null : PanelId.TOOLS
   }
 
   return {
@@ -45,13 +45,13 @@ export const useSidePanel = () => {
     toggleParticipants,
     toggleChat,
     toggleEffects,
-    toggleTranscript,
+    toggleTools,
     toggleAdmin,
     isChatOpen,
     isParticipantsOpen,
     isEffectsOpen,
     isSidePanelOpen,
-    isTranscriptOpen,
+    isToolsOpen,
     isAdminOpen,
   }
 }

@@ -103,9 +103,9 @@
       "open": "Hide everyone",
       "closed": "See everyone"
     },
-    "transcript": {
-      "open": "Hide AI assistant",
-      "closed": "Show AI assistant"
+    "tools": {
+      "open": "Hide more tools",
+      "closed": "Show more tools"
     },
     "admin": {
       "open": "Hide admin",
@@ -168,19 +168,26 @@
       "effects": "Effects",
       "chat": "Messages in the chat",
       "transcript": "AI Assistant",
-      "admin": "Admin settings"
+      "admin": "Admin settings",
+      "tools": "More tools"
     },
     "content": {
       "participants": "participants",
       "effects": "effects",
       "chat": "messages",
       "transcript": "AI assistant",
-      "admin": "Admin settings"
+      "admin": "admin settings",
+      "tools": "more tools"
     },
     "closeButton": "Hide {{content}}"
   },
   "chat": {
     "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call."
+  },
+  "moreTools": {
+    "body": "Access more tools in Visio to enhance your meetings,",
+    "moreLink": "learn more",
+    "tools": {}
   },
   "transcript": {
     "start": {
