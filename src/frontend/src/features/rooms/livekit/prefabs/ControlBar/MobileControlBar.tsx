@@ -14,6 +14,7 @@ import {
   RiMore2Line,
   RiSettings3Line,
 } from '@remixicon/react'
+import { GRIST_FEEDBACKS_FORM } from '@/utils/constants'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { ChatToggle } from '../../components/controls/ChatToggle'
 import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
@@ -150,7 +151,7 @@ export function MobileControlBar({
               <RiAccountBoxLine size={20} />
             </Button>
             <LinkButton
-              href="https://grist.incubateur.net/o/docs/forms/1YrfNP1QSSy8p2gCxMFnSf/4"
+              href={GRIST_FEEDBACKS_FORM}
               variant="primaryTextDark"
               tooltip={t('options.items.feedback')}
               aria-label={t('options.items.feedback')}
