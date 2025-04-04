@@ -88,6 +88,16 @@ export const MainNotificationToast = () => {
           if (notification.data?.emoji)
             handleEmoji(notification.data.emoji, participant)
           break
+        case NotificationType.TranscriptionStarted:
+        case NotificationType.TranscriptionStopped:
+          toastQueue.add(
+            {
+              participant,
+              type: notification.type,
+            },
+            { timeout: NotificationDuration.ALERT }
+          )
+          break
         default:
           return
       }

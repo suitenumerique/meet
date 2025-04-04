@@ -21,5 +21,7 @@
     "several": "Plusieurs personnes souhaitent participer à cet appel.",
     "open": "Afficher",
     "accept": "Accepter"
-  }
+  },
+  "recordingStarted": "{{name}} a démarré la transcription de la réunion.",
+  "recordingStopped": "{{name}} a arrêté la transcription de la réunion."
 }

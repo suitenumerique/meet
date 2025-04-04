@@ -21,5 +21,7 @@
     "several": "Meerdere mensen willen deelnemen aan dit gesprek.",
     "open": "Openen",
     "accept": "Accepteren"
-  }
+  },
+  "recordingStarted": "{{name}} is de transcriptie van de vergadering gestart.",
+  "recordingStopped": "{{name}} heeft de transcriptie van de vergadering gestopt."
 }
