@@ -123,6 +123,10 @@ export const buttonRecipe = cva({
         '&[data-pressed]': {
           backgroundColor: 'primary.300',
         },
+        '&[data-disabled]': {
+          backgroundColor: 'transparent',
+          color: 'primary.400',
+        },
       },
       tertiaryText: {
         backgroundColor: 'transparent',
