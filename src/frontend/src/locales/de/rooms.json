@@ -282,7 +282,11 @@
     }
   },
   "recording": {
-    "label": ""
+    "transcript": {
+      "started": "",
+      "starting": "",
+      "stopping": ""
+    }
   },
   "participantTileFocus": {
     "pin": {

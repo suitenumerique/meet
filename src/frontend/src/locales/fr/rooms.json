@@ -281,7 +281,11 @@
     }
   },
   "recording": {
-    "label": "Enregistrement"
+    "transcript": {
+      "started": "Transcription en cours",
+      "starting": "Démarrage de la transcription",
+      "stopping": "Arrêt de la transcription"
+    }
   },
   "participantTileFocus": {
     "pin": {

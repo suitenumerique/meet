@@ -1,7 +1,13 @@
 import { ProgressBar } from 'react-aria-components'
 import { css } from '@/styled-system/css'
 
-export const Spinner = ({ size = 56 }: { size?: number }) => {
+export const Spinner = ({
+  size = 56,
+  variant = 'light',
+}: {
+  size?: number
+  variant?: 'light' | 'dark'
+}) => {
   const center = 14
   const strokeWidth = 3
   const r = 14 - strokeWidth
@@ -25,7 +31,7 @@ export const Spinner = ({ size = 56 }: { size?: number }) => {
               strokeDashoffset={0}
               strokeLinecap="round"
               className={css({
-                stroke: 'primary.100',
+                stroke: variant == 'light' ? 'primary.100' : 'primaryDark.100',
               })}
               style={{}}
             />
@@ -37,7 +43,7 @@ export const Spinner = ({ size = 56 }: { size?: number }) => {
               strokeDashoffset={percentage && c - (percentage / 100) * c}
               strokeLinecap="round"
               className={css({
-                stroke: 'primary.800',
+                stroke: variant == 'light' ? 'primary.800' : 'white',
               })}
               style={{
                 animation: `rotate 1s ease-in-out infinite`,

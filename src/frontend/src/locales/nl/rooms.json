@@ -281,7 +281,11 @@
     }
   },
   "recording": {
-    "label": "Opnemen"
+    "transcript": {
+      "started": "Transcriptie bezig",
+      "starting": "Transcriptie begint",
+      "stopping": "Transcriptie stopt"
+    }
   },
   "participantTileFocus": {
     "pin": {

@@ -281,7 +281,11 @@
     }
   },
   "recording": {
-    "label": "Recording"
+    "transcript": {
+      "started": "Transcribing",
+      "starting": "Transcription starting",
+      "stopping": "Transcription stopping"
+    }
   },
   "participantTileFocus": {
     "pin": {
