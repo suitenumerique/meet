@@ -1,7 +1,7 @@
 import { ProgressBar } from 'react-aria-components'
 import { css } from '@/styled-system/css'
 
-export const Spinner = () => {
+export const Spinner = ({ size = 56 }: { size?: number }) => {
   const center = 14
   const strokeWidth = 3
   const r = 14 - strokeWidth
@@ -11,8 +11,8 @@ export const Spinner = () => {
       {({ percentage }) => (
         <>
           <svg
-            width={56}
-            height={56}
+            width={size}
+            height={size}
             viewBox="0 0 28 28"
             fill="none"
             strokeWidth={strokeWidth}

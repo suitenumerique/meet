@@ -78,7 +78,7 @@ export const CreateMeetingButton = () => {
   if (isPending) {
     return (
       <div>
-        <Spinner />
+        <Spinner size={34} />
       </div>
     )
   }
