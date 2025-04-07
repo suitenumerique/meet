@@ -14,9 +14,13 @@ import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { NotificationPayload } from '@/features/notifications/NotificationPayload'
 import { NotificationType } from '@/features/notifications/NotificationType'
-import { useSnapshot } from 'valtio/index'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { CRISP_HELP_ARTICLE_RECORDING } from '@/utils/constants'
+import { useIsRecordingTransitioning } from '../hooks/useIsRecordingTransitioning'
+import {
+  useIsScreenRecordingStarted,
+  useIsTranscriptStarted,
+} from '../hooks/useIsRecordingStarted'
 
 export const ScreenRecording = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -27,9 +31,11 @@ export const ScreenRecording = () => {
   const { mutateAsync: startRecordingRoom } = useStartRecording()
   const { mutateAsync: stopRecordingRoom } = useStopRecording()
 
-  const recordingSnap = useSnapshot(recordingStore)
+  const isScreenRecordingStarted = useIsScreenRecordingStarted()
+  const isTranscriptStarted = useIsTranscriptStarted()
 
   const room = useRoomContext()
+  const isRecordingTransitioning = useIsRecordingTransitioning()
 
   useEffect(() => {
     const handleRecordingStatusChanged = () => {
@@ -52,7 +58,7 @@ export const ScreenRecording = () => {
     })
   }
 
-  const handleTranscript = async () => {
+  const handleScreenRecording = async () => {
     if (!roomId) {
       console.warn('No room ID found')
       return
@@ -78,11 +84,8 @@ export const ScreenRecording = () => {
   }
 
   const isDisabled = useMemo(
-    () =>
-      isLoading ||
-      recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTING ||
-      recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STOPPING,
-    [isLoading, recordingSnap]
+    () => isLoading || isRecordingTransitioning || isTranscriptStarted,
+    [isLoading, isRecordingTransitioning, isTranscriptStarted]
   )
 
   return (
@@ -103,7 +106,7 @@ export const ScreenRecording = () => {
         })}
       />
 
-      {room.isRecording ? (
+      {isScreenRecordingStarted ? (
         <>
           <Text>{t('stop.heading')}</Text>
           <Text
@@ -120,7 +123,7 @@ export const ScreenRecording = () => {
           </Text>
           <Button
             isDisabled={isDisabled}
-            onPress={() => handleTranscript()}
+            onPress={() => handleScreenRecording()}
             data-attr="stop-transcript"
             size="sm"
             variant="tertiary"
@@ -149,7 +152,7 @@ export const ScreenRecording = () => {
           </Text>
           <Button
             isDisabled={isDisabled}
-            onPress={() => handleTranscript()}
+            onPress={() => handleScreenRecording()}
             data-attr="start-transcript"
             size="sm"
             variant="tertiary"

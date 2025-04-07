@@ -14,13 +14,17 @@ import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { NotificationPayload } from '@/features/notifications/NotificationPayload'
 import { NotificationType } from '@/features/notifications/NotificationType'
-import { useSnapshot } from 'valtio/index'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { useHasRecordingAccess } from '../hooks/useHasScreenRecordingAccess'
 import {
   BETA_USERS_FORM_URL,
   CRISP_HELP_ARTICLE_TRANSCRIPT,
 } from '@/utils/constants'
+import { useIsRecordingTransitioning } from '../hooks/useIsRecordingTransitioning'
+import {
+  useIsScreenRecordingStarted,
+  useIsTranscriptStarted,
+} from '../hooks/useIsRecordingStarted'
 
 export const Transcript = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -35,7 +39,9 @@ export const Transcript = () => {
   const { mutateAsync: startRecordingRoom } = useStartRecording()
   const { mutateAsync: stopRecordingRoom } = useStopRecording()
 
-  const recordingSnap = useSnapshot(recordingStore)
+  const isScreenRecordingStarted = useIsScreenRecordingStarted()
+  const isTranscriptStarted = useIsTranscriptStarted()
+  const isRecordingTransitioning = useIsRecordingTransitioning()
 
   const room = useRoomContext()
 
@@ -83,11 +89,8 @@ export const Transcript = () => {
   }
 
   const isDisabled = useMemo(
-    () =>
-      isLoading ||
-      recordingSnap.status === RecordingStatus.TRANSCRIPT_STARTING ||
-      recordingSnap.status === RecordingStatus.TRANSCRIPT_STOPPING,
-    [isLoading, recordingSnap]
+    () => isLoading || isRecordingTransitioning || isScreenRecordingStarted,
+    [isLoading, isRecordingTransitioning, isScreenRecordingStarted]
   )
 
   return (
@@ -136,7 +139,7 @@ export const Transcript = () => {
         </>
       ) : (
         <>
-          {room.isRecording ? (
+          {isTranscriptStarted ? (
             <>
               <Text>{t('stop.heading')}</Text>
               <Text
