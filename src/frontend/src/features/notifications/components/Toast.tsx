@@ -48,7 +48,7 @@ export function Toast({ state, ...props }: ToastProps) {
   return (
     <StyledToastContainer {...toastProps} ref={ref}>
       <StyledToast>
-        <div {...contentProps}>{props.toast.content?.message} machine a</div>
+        <div {...contentProps}>{props.toast.content?.message}</div>
         <Button square size="sm" invisible {...closeButtonProps}>
           <RiCloseLine color="white" />
         </Button>
