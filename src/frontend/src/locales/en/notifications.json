@@ -25,5 +25,9 @@
   "transcript": {
     "started": "{{name}} started the meeting transcription.",
     "stopped": "{{name}} stopped the meeting transcription."
+  },
+  "screenRecording": {
+    "started": "{{name}} started the meeting recording.",
+    "stopped": "{{name}} stopped the meeting recording."
   }
 }

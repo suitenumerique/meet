@@ -9,7 +9,7 @@ import { ToastRaised } from './ToastRaised'
 import { ToastMuted } from './ToastMuted'
 import { ToastMessageReceived } from './ToastMessageReceived'
 import { ToastLowerHand } from './ToastLowerHand'
-import { ToastTranscript } from './ToastTranscript'
+import { ToastAnyRecording } from './ToastAnyRecording'
 
 interface ToastRegionProps extends AriaToastRegionProps {
   state: ToastState<ToastData>
@@ -39,7 +39,9 @@ const renderToast = (
 
     case NotificationType.TranscriptionStarted:
     case NotificationType.TranscriptionStopped:
-      return <ToastTranscript key={toast.key} toast={toast} state={state} />
+    case NotificationType.ScreenRecordingStarted:
+    case NotificationType.ScreenRecordingStopped:
+      return <ToastAnyRecording key={toast.key} toast={toast} state={state} />
 
     default:
       return <Toast key={toast.key} toast={toast} state={state} />

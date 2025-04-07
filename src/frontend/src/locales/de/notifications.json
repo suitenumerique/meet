@@ -25,5 +25,9 @@
   "transcript": {
     "started": "",
     "stopped": ""
+  },
+  "screenRecording": {
+    "started": "",
+    "stopped": ""
   }
 }

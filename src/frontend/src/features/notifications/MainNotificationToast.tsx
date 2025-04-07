@@ -90,6 +90,8 @@ export const MainNotificationToast = () => {
           break
         case NotificationType.TranscriptionStarted:
         case NotificationType.TranscriptionStopped:
+        case NotificationType.ScreenRecordingStarted:
+        case NotificationType.ScreenRecordingStopped:
           toastQueue.add(
             {
               participant,
