@@ -53,7 +53,6 @@ dependencies = [
     "python-frontmatter==1.1.0",
     "requests==2.32.3",
     "sentry-sdk==2.24.1",
-    "url-normalize==1.4.3",
     "whitenoise==6.9.0",
     "mozilla-django-oidc==4.0.1",
     "livekit-api==0.8.2",
