@@ -22,6 +22,8 @@
     "open": "",
     "accept": ""
   },
-  "recordingStarted": "",
-  "recordingStopped": ""
+  "transcript": {
+    "started": "",
+    "stopped": ""
+  }
 }

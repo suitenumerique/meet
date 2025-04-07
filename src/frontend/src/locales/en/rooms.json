@@ -291,7 +291,7 @@
       }
     }
   },
-  "recording": {
+  "recordingBadge": {
     "transcript": {
       "started": "Transcribing",
       "starting": "Transcription starting",

@@ -22,6 +22,8 @@
     "open": "Openen",
     "accept": "Accepteren"
   },
-  "recordingStarted": "{{name}} is de transcriptie van de vergadering gestart.",
-  "recordingStopped": "{{name}} heeft de transcriptie van de vergadering gestopt."
+  "transcript": {
+    "started": "{{name}} is de transcriptie van de vergadering gestart.",
+    "stopped": "{{name}} heeft de transcriptie van de vergadering gestopt."
+  }
 }

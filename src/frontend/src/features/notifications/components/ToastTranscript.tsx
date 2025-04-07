@@ -7,13 +7,14 @@ import { useTranslation } from 'react-i18next'
 import { NotificationType } from '../NotificationType'
 
 export function ToastTranscript({ state, ...props }: ToastProps) {
-  const { t } = useTranslation('notifications')
+  const { t } = useTranslation('notifications', { keyPrefix: 'transcript' })
   const ref = useRef(null)
   const { toastProps, contentProps } = useToast(props, state, ref)
   const participant = props.toast.content.participant
   const type = props.toast.content.type
 
-  const key = `recording${type == NotificationType.TranscriptionStarted ? 'Started' : 'Stopped'}`
+  const key =
+    type == NotificationType.TranscriptionStarted ? 'started' : 'stopped'
 
   return (
     <StyledToastContainer {...toastProps} ref={ref}>

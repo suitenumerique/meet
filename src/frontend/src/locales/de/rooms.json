@@ -292,7 +292,7 @@
       }
     }
   },
-  "recording": {
+  "recordingBadge": {
     "transcript": {
       "started": "",
       "starting": "",

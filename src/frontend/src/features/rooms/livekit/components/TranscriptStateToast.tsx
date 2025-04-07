@@ -11,7 +11,9 @@ import { NotificationType } from '@/features/notifications/NotificationType'
 import { TranscriptionStatus, transcriptionStore } from '@/stores/transcription'
 
 export const TranscriptStateToast = () => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'recording.transcript' })
+  const { t } = useTranslation('rooms', {
+    keyPrefix: 'recordingBadge.transcript',
+  })
   const room = useRoomContext()
 
   const transcriptionSnap = useSnapshot(transcriptionStore)

@@ -22,6 +22,8 @@
     "open": "Open",
     "accept": "Accept"
   },
-  "recordingStarted": "{{name}} started the meeting transcription.",
-  "recordingStopped": "{{name}} stopped the meeting transcription."
+  "transcript": {
+    "started": "{{name}} started the meeting transcription.",
+    "stopped": "{{name}} stopped the meeting transcription."
+  }
 }

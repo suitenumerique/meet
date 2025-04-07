@@ -22,6 +22,8 @@
     "open": "Afficher",
     "accept": "Accepter"
   },
-  "recordingStarted": "{{name}} a démarré la transcription de la réunion.",
-  "recordingStopped": "{{name}} a arrêté la transcription de la réunion."
+  "transcript": {
+    "started": "{{name}} a démarré la transcription de la réunion.",
+    "stopped": "{{name}} a arrêté la transcription de la réunion."
+  }
 }

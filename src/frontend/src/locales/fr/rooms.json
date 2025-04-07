@@ -291,7 +291,7 @@
       }
     }
   },
-  "recording": {
+  "recordingBadge": {
     "transcript": {
       "started": "Transcription en cours",
       "starting": "Démarrage de la transcription",
