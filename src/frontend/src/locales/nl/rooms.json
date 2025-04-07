@@ -168,6 +168,7 @@
       "effects": "Effecten",
       "chat": "Berichten in de chat",
       "transcript": "Transcriptie",
+      "screenRecording": "Schermopname",
       "admin": "Beheerdersbediening",
       "tools": "Meer tools"
     },
@@ -175,7 +176,8 @@
       "participants": "deelnemers",
       "effects": "effecten",
       "chat": "berichten",
-      "transcript": "transcriptie",
+      "screenRecording": "transcriptie",
+      "transcript": "schermopname",
       "admin": "beheerdersbediening",
       "tools": "meer tools"
     },
@@ -190,7 +192,11 @@
     "tools": {
       "transcript": {
         "title": "Transcriptie",
-        "body": "Transcribeer je vergadering voor later"
+        "body": "Bewaar een schriftelijk verslag van je vergadering."
+      },
+      "screenRecording": {
+        "title": "Opname",
+        "body": "Neem je vergadering op om die later opnieuw te bekijken."
       }
     }
   },
@@ -210,6 +216,19 @@
       "heading": "Word betatester",
       "body": "Neem uw vergadering op voor later. U ontvangt een samenvatting per e-mail zodra de vergadering is afgelopen.",
       "button": "Aanmelden"
+    }
+  },
+  "screenRecording": {
+    "start": {
+      "heading": "Dit gesprek opnemen",
+      "body": "Neem dit gesprek op om het later terug te kijken. Je ontvangt de video-opname per e-mail.",
+      "button": "Opname starten",
+      "linkMore": "Meer informatie"
+    },
+    "stop": {
+      "heading": "Opname bezig …",
+      "body": "Je ontvangt het resultaat per e-mail zodra de opname is voltooid.",
+      "button": "Opname stoppen"
     }
   },
   "admin": {

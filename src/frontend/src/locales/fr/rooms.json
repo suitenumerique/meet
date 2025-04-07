@@ -168,6 +168,7 @@
       "effects": "Effets",
       "chat": "Messages dans l'appel",
       "transcript": "Transcription",
+      "screenRecording": "Enregistrement",
       "admin": "Commandes de l'organisateur",
       "tools": "Plus d'outils"
     },
@@ -176,6 +177,7 @@
       "effects": "les effets",
       "chat": "les messages",
       "transcript": "transcription",
+      "screenRecording": "enregistrement",
       "admin": "commandes de l'organisateur",
       "tools": "plus d'outils"
     },
@@ -190,7 +192,11 @@
     "tools": {
       "transcript": {
         "title": "Transcription",
-        "body": "Transcrivez votre réunion pour plus tard"
+        "body": "Conservez une trace écrite de votre réunion."
+      },
+      "screenRecording": {
+        "title": "Enregistrement",
+        "body": "Enregistrez votre réunion pour la revoir quand vous le souhaitez."
       }
     }
   },
@@ -210,6 +216,19 @@
       "heading": "Devenez beta testeur",
       "body": "Enregistrer votre réunion pour plus tard. Vous recevrez un compte-rendu par email une fois la réunion terminée.",
       "button": "Inscrivez-vous"
+    }
+  },
+  "screenRecording": {
+    "start": {
+      "heading": "Enregistrer cet appel",
+      "body": "Enregistrez cet appel pour plus tard et recevez l'enregistrement vidéo par mail.",
+      "button": "Démarrer l'enregistrement",
+      "linkMore": "En savoir plus"
+    },
+    "stop": {
+      "heading": "Enregistrement en cours …",
+      "body": "Vous recevrez le resultat par email une fois l'enregistrement terminé.",
+      "button": "Arrêter l'enregistrement"
     }
   },
   "admin": {

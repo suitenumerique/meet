@@ -5,9 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { CRISP_HELP_ARTICLE_MORE_TOOLS } from '@/utils/constants'
 import { ReactNode } from 'react'
 import { Transcript } from './Transcript'
-import { RiFileTextFill } from '@remixicon/react'
-import { useSidePanel } from '../hooks/useSidePanel'
 import { useIsRecordingModeEnabled } from '../hooks/useIsRecordingModeEnabled'
+import { RiFileTextFill, RiLiveFill } from '@remixicon/react'
+import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
+import { ScreenRecording } from './ScreenRecording'
 import { RecordingMode } from '@/features/rooms/api/startRecording'
 
 export interface ToolsButtonProps {
@@ -69,14 +70,24 @@ const ToolButton = ({
 }
 
 export const Tools = () => {
-  const { openTranscript, isTranscriptOpen } = useSidePanel()
+  const { openTranscript, openScreenRecording, activeSubPanelId } =
+    useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
   const isTranscriptEnabled = useIsRecordingModeEnabled(
     RecordingMode.Transcript
   )
 
-  if (isTranscriptOpen && isTranscriptEnabled) {
-    return <Transcript />
+  const isScreenRecordingEnabled = useIsRecordingModeEnabled(
+    RecordingMode.ScreenRecording
+  )
+
+  switch (activeSubPanelId) {
+    case SubPanelId.TRANSCRIPT:
+      return <Transcript />
+    case SubPanelId.SCREEN_RECORDING:
+      return <ScreenRecording />
+    default:
+      break
   }
 
   return (
@@ -109,6 +120,14 @@ export const Tools = () => {
           title={t('tools.transcript.title')}
           description={t('tools.transcript.body')}
           onPress={() => openTranscript()}
+        />
+      )}
+      {isScreenRecordingEnabled && (
+        <ToolButton
+          icon={<RiLiveFill size={24} color="white" />}
+          title={t('tools.screenRecording.title')}
+          description={t('tools.screenRecording.body')}
+          onPress={() => openScreenRecording()}
         />
       )}
     </Div>

@@ -168,6 +168,7 @@
       "effects": "Effects",
       "chat": "Messages in the chat",
       "transcript": "Transcription",
+      "screenRecording": "Recording",
       "admin": "Admin settings",
       "tools": "More tools"
     },
@@ -175,7 +176,8 @@
       "participants": "participants",
       "effects": "effects",
       "chat": "messages",
-      "transcript": "Transcription",
+      "transcript": "transcription",
+      "screenRecording": "recording",
       "admin": "admin settings",
       "tools": "more tools"
     },
@@ -190,7 +192,11 @@
     "tools": {
       "transcript": {
         "title": "Transcription",
-        "body": "Transcribe your meeting for later"
+        "body": "Keep a written record of your meeting."
+      },
+      "screenRecording": {
+        "title": "Recording",
+        "body": "Record your meeting to watch it again whenever you like."
       }
     }
   },
@@ -210,6 +216,19 @@
       "heading": "Become a beta tester",
       "body": "Record your meeting for later. You will receive a summary by email once the meeting is finished.",
       "button": "Sign up"
+    }
+  },
+  "screenRecording": {
+    "start": {
+      "heading": "Record this call",
+      "body": "Record this call to watch it later and receive the video recording by email.",
+      "button": "Start recording",
+      "linkMore": "Learn more"
+    },
+    "stop": {
+      "heading": "Recording in progress…",
+      "body": "You will receive the result by email once the recording is complete.",
+      "button": "Stop recording"
     }
   },
   "admin": {
