@@ -8,22 +8,22 @@ import { Text } from '@/primitives'
 import { RemoteParticipant, RoomEvent } from 'livekit-client'
 import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
-import { TranscriptionStatus, transcriptionStore } from '@/stores/transcription'
+import { RecordingStatus, recordingStore } from '@/stores/recording'
 
-export const TranscriptStateToast = () => {
+export const RecordingStateBadge = () => {
   const { t } = useTranslation('rooms', {
-    keyPrefix: 'recordingBadge.transcript',
+    keyPrefix: 'recordingBadge',
   })
   const room = useRoomContext()
 
-  const transcriptionSnap = useSnapshot(transcriptionStore)
+  const recordingSnap = useSnapshot(recordingStore)
 
   useEffect(() => {
-    if (room.isRecording) {
-      transcriptionStore.status = TranscriptionStatus.STARTED
+    if (room.isRecording && recordingSnap.status == RecordingStatus.STOPPED) {
+      recordingStore.status = RecordingStatus.ANY_STARTED
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [room.isRecording])
 
   useEffect(() => {
     const handleDataReceived = (
@@ -36,10 +36,16 @@ export const TranscriptStateToast = () => {
 
       switch (notification.type) {
         case NotificationType.TranscriptionStarted:
-          transcriptionStore.status = TranscriptionStatus.STARTING
+          recordingStore.status = RecordingStatus.TRANSCRIPT_STARTING
           break
         case NotificationType.TranscriptionStopped:
-          transcriptionStore.status = TranscriptionStatus.STOPPING
+          recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
+          break
+        case NotificationType.ScreenRecordingStarted:
+          recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTING
+          break
+        case NotificationType.ScreenRecordingStopped:
+          recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
           break
         default:
           return
@@ -47,9 +53,17 @@ export const TranscriptStateToast = () => {
     }
 
     const handleRecordingStatusChanged = (status: boolean) => {
-      transcriptionStore.status = status
-        ? TranscriptionStatus.STARTED
-        : TranscriptionStatus.STOPPED
+      if (!status) {
+        recordingStore.status = RecordingStatus.STOPPED
+      } else if (recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTING) {
+        recordingStore.status = RecordingStatus.TRANSCRIPT_STARTED
+      } else if (
+        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTING
+      ) {
+        recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTED
+      } else {
+        recordingStore.status = RecordingStatus.ANY_STARTED
+      }
     }
 
     room.on(RoomEvent.DataReceived, handleDataReceived)
@@ -59,20 +73,30 @@ export const TranscriptStateToast = () => {
       room.off(RoomEvent.DataReceived, handleDataReceived)
       room.off(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
     }
-  }, [room])
+  }, [room, recordingSnap])
 
   const key = useMemo(() => {
-    switch (transcriptionSnap.status) {
-      case TranscriptionStatus.STOPPING:
-        return 'stopping'
-      case TranscriptionStatus.STARTING:
-        return 'starting'
+    switch (recordingSnap.status) {
+      case RecordingStatus.TRANSCRIPT_STARTED:
+        return 'transcript.started'
+      case RecordingStatus.TRANSCRIPT_STOPPING:
+        return 'transcript.stopping'
+      case RecordingStatus.TRANSCRIPT_STARTING:
+        return 'transcript.starting'
+      case RecordingStatus.SCREEN_RECORDING_STARTED:
+        return 'screenRecording.started'
+      case RecordingStatus.SCREEN_RECORDING_STOPPING:
+        return 'screenRecording.stopping'
+      case RecordingStatus.SCREEN_RECORDING_STARTING:
+        return 'screenRecording.starting'
+      case RecordingStatus.ANY_STARTED:
+        return 'any.started'
       default:
-        return 'started'
+        return
     }
-  }, [transcriptionSnap])
+  }, [recordingSnap])
 
-  if (transcriptionSnap.status == TranscriptionStatus.STOPPED) return
+  if (!key) return
 
   return (
     <div

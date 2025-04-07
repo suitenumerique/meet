@@ -296,6 +296,14 @@
       "started": "Transcriptie bezig",
       "starting": "Transcriptie begint",
       "stopping": "Transcriptie stopt"
+    },
+    "screenRecording": {
+      "started": "Opname bezig",
+      "starting": "Opname starten",
+      "stopping": "Opname stoppen"
+    },
+    "any": {
+      "started": "Opname bezig"
     }
   },
   "participantTileFocus": {

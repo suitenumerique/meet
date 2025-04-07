@@ -15,10 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { NotificationPayload } from '@/features/notifications/NotificationPayload'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { useSnapshot } from 'valtio/index'
-import {
-  TranscriptionStatus,
-  transcriptionStore,
-} from '@/stores/transcription.ts'
+import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { useHasTranscriptAccess } from '../hooks/useHasTranscriptAccess'
 import {
   BETA_USERS_FORM_URL,
@@ -35,7 +32,7 @@ export const Transcript = () => {
   const { mutateAsync: startRecordingRoom } = useStartRecording()
   const { mutateAsync: stopRecordingRoom } = useStopRecording()
 
-  const transcriptionSnap = useSnapshot(transcriptionStore)
+  const recordingSnap = useSnapshot(recordingStore)
 
   const room = useRoomContext()
 
@@ -70,11 +67,11 @@ export const Transcript = () => {
       if (room.isRecording) {
         await stopRecordingRoom({ id: roomId })
         await notifyParticipant(NotificationType.TranscriptionStopped)
-        transcriptionStore.status = TranscriptionStatus.STOPPING
+        recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
       } else {
         await startRecordingRoom({ id: roomId, mode: RecordingMode.Transcript })
         await notifyParticipant(NotificationType.TranscriptionStarted)
-        transcriptionStore.status = TranscriptionStatus.STARTING
+        recordingStore.status = RecordingStatus.TRANSCRIPT_STARTING
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)
@@ -85,9 +82,9 @@ export const Transcript = () => {
   const isDisabled = useMemo(
     () =>
       isLoading ||
-      transcriptionSnap.status === TranscriptionStatus.STARTING ||
-      transcriptionSnap.status === TranscriptionStatus.STOPPING,
-    [isLoading, transcriptionSnap]
+      recordingSnap.status === RecordingStatus.TRANSCRIPT_STARTING ||
+      recordingSnap.status === RecordingStatus.TRANSCRIPT_STOPPING,
+    [isLoading, recordingSnap]
   )
 
   return (

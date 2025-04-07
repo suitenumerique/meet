@@ -296,6 +296,14 @@
       "started": "Transcription en cours",
       "starting": "Démarrage de la transcription",
       "stopping": "Arrêt de la transcription"
+    },
+    "screenRecording": {
+      "started": "Enregistrement en cours",
+      "starting": "Démarrage de l'enregistrement",
+      "stopping": "Arrêt de l'enregistrement"
+    },
+    "any": {
+      "started": "Enregistrement en cours"
     }
   },
   "participantTileFocus": {

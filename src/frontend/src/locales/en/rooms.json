@@ -296,6 +296,14 @@
       "started": "Transcribing",
       "starting": "Transcription starting",
       "stopping": "Transcription stopping"
+    },
+    "screenRecording": {
+      "started": "Recording in progress",
+      "starting": "Starting recording",
+      "stopping": "Stopping recording"
+    },
+    "any": {
+      "started": "Recording in progress"
     }
   },
   "participantTileFocus": {
