@@ -1,17 +1,21 @@
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
-import { useIsTranscriptEnabled } from './useIsTranscriptEnabled'
+import { RecordingMode } from '@/features/rooms/api/startRecording'
+import { useIsRecordingModeEnabled } from './useIsRecordingModeEnabled'
 import { useIsAdminOrOwner } from './useIsAdminOrOwner'
 
-export const useHasTranscriptAccess = () => {
-  const featureEnabled = useFeatureFlagEnabled('transcription-summary')
+export const useHasRecordingAccess = (
+  mode: RecordingMode,
+  featureFlag: string
+) => {
+  const featureEnabled = useFeatureFlagEnabled(featureFlag)
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
-  const isTranscriptEnabled = useIsTranscriptEnabled()
+  const isRecordingModeEnabled = useIsRecordingModeEnabled(mode)
   const isAdminOrOwner = useIsAdminOrOwner()
 
   return (
     (featureEnabled || !isAnalyticsEnabled) &&
     isAdminOrOwner &&
-    isTranscriptEnabled
+    isRecordingModeEnabled
   )
 }

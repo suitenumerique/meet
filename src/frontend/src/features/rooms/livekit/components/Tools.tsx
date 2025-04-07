@@ -6,8 +6,9 @@ import { CRISP_HELP_ARTICLE_MORE_TOOLS } from '@/utils/constants'
 import { ReactNode } from 'react'
 import { Transcript } from './Transcript'
 import { RiFileTextFill } from '@remixicon/react'
-import { useIsTranscriptEnabled } from '../hooks/useIsTranscriptEnabled'
 import { useSidePanel } from '../hooks/useSidePanel'
+import { useIsRecordingModeEnabled } from '../hooks/useIsRecordingModeEnabled'
+import { RecordingMode } from '@/features/rooms/api/startRecording'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -70,7 +71,9 @@ const ToolButton = ({
 export const Tools = () => {
   const { openTranscript, isTranscriptOpen } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
-  const isTranscriptEnabled = useIsTranscriptEnabled()
+  const isTranscriptEnabled = useIsRecordingModeEnabled(
+    RecordingMode.Transcript
+  )
 
   if (isTranscriptOpen && isTranscriptEnabled) {
     return <Transcript />

@@ -16,7 +16,7 @@ import { NotificationPayload } from '@/features/notifications/NotificationPayloa
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { useSnapshot } from 'valtio/index'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
-import { useHasTranscriptAccess } from '../hooks/useHasTranscriptAccess'
+import { useHasRecordingAccess } from '../hooks/useHasScreenRecordingAccess'
 import {
   BETA_USERS_FORM_URL,
   CRISP_HELP_ARTICLE_TRANSCRIPT,
@@ -26,7 +26,10 @@ export const Transcript = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
 
-  const hasTranscriptAccess = useHasTranscriptAccess()
+  const hasTranscriptAccess = useHasRecordingAccess(
+    RecordingMode.Transcript,
+    'transcription-summary'
+  )
   const roomId = useRoomId()
 
   const { mutateAsync: startRecordingRoom } = useStartRecording()
