@@ -318,6 +318,9 @@ class Base(Configuration):
     EMAIL_USE_TLS = values.BooleanValue(False)
     EMAIL_USE_SSL = values.BooleanValue(False)
     EMAIL_FROM = values.Value("from@example.com")
+    EMAIL_BRAND_NAME = values.Value(None)
+    EMAIL_SUPPORT_EMAIL = values.Value(None)
+    EMAIL_LOGO_IMG = values.Value(None)
 
     AUTH_USER_MODEL = "core.User"
 

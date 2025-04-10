@@ -1,0 +1,67 @@
+<mjml>
+  <mj-include path="./partial/header.mjml" />
+
+  <mj-body mj-class="bg--blue-100">
+    <mj-wrapper css-class="wrapper" padding="5px 25px 0px 25px">
+      <mj-section css-class="wrapper-logo">
+        <mj-column>
+          <mj-image
+            align="center"
+            src="{{logo_img}}"
+            width="320px"
+            alt="{%trans 'Logo email' %}"
+          />
+        </mj-column>
+      </mj-section>
+      <mj-section mj-class="bg--white-100" padding="0px 20px 60px 20px">
+        <mj-column>
+          <mj-text align="center">
+            <h1>{% trans "Your recording is ready!"%}</h1>
+          </mj-text>
+          <!-- Main Message -->
+          <mj-text>
+            {% blocktrans %}
+            Your recording of "{{room_name}}" on {{recording_date}} at {{recording_time}} is now ready to view.
+            {% endblocktrans %}
+          </mj-text>
+          <mj-text>
+            <p>{% trans "To keep this recording permanently:" %}</p>
+            <ol>
+              <li>{% trans "Click the \"Open\" button below" %}</li>
+              <li>{% trans "Use the \"Download\" button in the interface" %}</li>
+              <li>{% trans "Save the file to your preferred location" %}</li>
+            </ol>
+          </mj-text>
+          <mj-button
+            href="{{link}}"
+            background-color="#000091"
+            color="white"
+            padding-bottom="30px"
+          >
+            {% trans "Open"%}
+          </mj-button>
+          <mj-text>
+            {% blocktrans %}
+            If you have any questions or need assistance, please contact our support team at {{support_email}}.
+            {% endblocktrans %}
+          </mj-text>
+          <mj-divider
+            border-width="1px"
+            border-style="solid"
+            border-color="#DDDDDD"
+            width="30%"
+            align="center"
+          />
+          <!-- Signature -->
+          <mj-text>
+            <p>
+              {% blocktrans %}
+              Thank you for using {{brandname}}.
+              {% endblocktrans %}
+            </p>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

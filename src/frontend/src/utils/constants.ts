@@ -9,3 +9,6 @@ export const CRISP_HELP_ARTICLE_MORE_TOOLS =
 
 export const CRISP_HELP_ARTICLE_TRANSCRIPT =
   'https://lasuite.crisp.help/fr/article/visio-transcript-1sjq43x' as const
+
+export const CRISP_HELP_ARTICLE_RECORDING =
+  'https://lasuite.crisp.help/fr/article/visio-enregistrement-wgc8o0' as const

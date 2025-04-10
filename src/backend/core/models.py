@@ -576,6 +576,18 @@ class Recording(BaseModel):
             RecordingStatusChoices.STOPPED,
         }
 
+    @property
+    def is_saved(self) -> bool:
+        """Wip"""
+        return self.status in {
+            RecordingStatusChoices.SAVED,
+        }
+
+    @property
+    def key(self):
+        """Wip."""
+        extension = "ogg" if self.mode == RecordingModeChoices.TRANSCRIPT else "mp4"
+        return f"{settings.RECORDING_OUTPUT_FOLDER}/{self.id}.{extension}"
 
 class RecordingAccess(BaseAccess):
     """Relation model to give access to a recording for a user or a team with a role."""

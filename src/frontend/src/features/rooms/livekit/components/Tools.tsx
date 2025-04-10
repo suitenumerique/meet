@@ -5,9 +5,11 @@ import { useTranslation } from 'react-i18next'
 import { CRISP_HELP_ARTICLE_MORE_TOOLS } from '@/utils/constants'
 import { ReactNode } from 'react'
 import { Transcript } from './Transcript'
-import { RiFileTextFill } from '@remixicon/react'
-import { useIsTranscriptEnabled } from '../hooks/useIsTranscriptEnabled'
-import { useSidePanel } from '../hooks/useSidePanel'
+import { RiFileTextFill, RiLiveFill } from '@remixicon/react'
+import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
+import { ScreenRecording } from '@/features/rooms/livekit/components/ScreenRecording'
+import { useIsRecordingEnabled } from '../hooks/useIsRecordingEnabled'
+import { RecordingMode } from '@/features/rooms/api/startRecording'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -68,12 +70,22 @@ const ToolButton = ({
 }
 
 export const Tools = () => {
-  const { openTranscript, isTranscriptOpen } = useSidePanel()
-  const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
-  const isTranscriptEnabled = useIsTranscriptEnabled()
+  const { openTranscript, openScreenRecording, activeSubPanelId } =
+    useSidePanel()
 
-  if (isTranscriptOpen && isTranscriptEnabled) {
-    return <Transcript />
+  const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
+  const isTranscriptEnabled = useIsRecordingEnabled(RecordingMode.Transcript)
+
+  // FIXME - use settings returned by backend
+  const isRecordingEnabled = true
+
+  switch (activeSubPanelId) {
+    case SubPanelId.TRANSCRIPT:
+      return <Transcript />
+    case SubPanelId.SCREEN_RECORDING:
+      return <ScreenRecording />
+    default:
+      break
   }
 
   return (
@@ -106,6 +118,14 @@ export const Tools = () => {
           title={t('tools.transcript.title')}
           description={t('tools.transcript.body')}
           onPress={() => openTranscript()}
+        />
+      )}
+      {isRecordingEnabled && (
+        <ToolButton
+          icon={<RiLiveFill size={24} color="white" />}
+          title={t('tools.screenRecording.title')}
+          description={t('tools.screenRecording.body')}
+          onPress={() => openScreenRecording()}
         />
       )}
     </Div>

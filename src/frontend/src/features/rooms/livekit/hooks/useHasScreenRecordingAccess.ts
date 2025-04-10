@@ -1,18 +1,20 @@
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import { RecordingMode } from '@/features/rooms/api/startRecording'
-import { useIsAdminOrOwner } from './useIsAdminOrOwner'
 import { useIsRecordingEnabled } from './useIsRecordingEnabled'
+import { useIsAdminOrOwner } from './useIsAdminOrOwner'
 
-export const useHasTranscriptAccess = () => {
-  const featureEnabled = useFeatureFlagEnabled('transcription-summary')
+export const useHasScreenRecordingAccess = () => {
+  const featureEnabled = useFeatureFlagEnabled('screen-recording')
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
-  const isTranscriptEnabled = useIsRecordingEnabled(RecordingMode.Transcript)
+  const isScreenRecordingEnabled = useIsRecordingEnabled(
+    RecordingMode.ScreenRecording
+  )
   const isAdminOrOwner = useIsAdminOrOwner()
 
   return (
     (featureEnabled || !isAnalyticsEnabled) &&
     isAdminOrOwner &&
-    isTranscriptEnabled
+    isScreenRecordingEnabled
   )
 }

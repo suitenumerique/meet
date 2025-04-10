@@ -292,11 +292,19 @@
       }
     }
   },
-  "recording": {
+  "recordingToast": {
     "transcript": {
       "started": "",
       "starting": "",
       "stopping": ""
+    },
+    "screenRecording": {
+      "started": "",
+      "starting": "",
+      "stopping": ""
+    },
+    "any": {
+      "started": ""
     }
   },
   "participantTileFocus": {

@@ -22,6 +22,12 @@
     "open": "",
     "accept": ""
   },
-  "recordingStarted": "",
-  "recordingStopped": ""
+  "transcript": {
+    "started": "",
+    "stopped": ""
+  },
+  "screenRecording": {
+    "started": "",
+    "stopped": ""
+  }
 }
