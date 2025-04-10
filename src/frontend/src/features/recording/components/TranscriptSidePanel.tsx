@@ -1,4 +1,4 @@
-import { A, Button, Div, LinkButton, Text } from '@/primitives'
+import { A, Button, Div, H, LinkButton, Text } from '@/primitives'
 
 import thirdSlide from '@/assets/intro-slider/3_resume.png'
 import { css } from '@/styled-system/css'
@@ -137,7 +137,9 @@ export const TranscriptSidePanel = () => {
         <>
           {isTranscriptStarted ? (
             <>
-              <Text>{t('stop.heading')}</Text>
+              <H lvl={3} margin={false}>
+                {t('stop.heading')}
+              </H>
               <Text
                 variant="note"
                 wrap={'pretty'}
@@ -162,7 +164,9 @@ export const TranscriptSidePanel = () => {
             </>
           ) : (
             <>
-              <Text>{t('start.heading')}</Text>
+              <H lvl={3} margin={false}>
+                {t('start.heading')}
+              </H>
               <Text
                 variant="note"
                 wrap={'pretty'}

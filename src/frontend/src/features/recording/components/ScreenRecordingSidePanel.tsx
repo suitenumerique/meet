@@ -1,4 +1,4 @@
-import { A, Button, Div, Text } from '@/primitives'
+import { A, Button, Div, H, Text } from '@/primitives'
 
 import fourthSlide from '@/assets/intro-slider/4_record.png'
 import { css } from '@/styled-system/css'
@@ -106,7 +106,9 @@ export const ScreenRecordingSidePanel = () => {
 
       {isScreenRecordingStarted ? (
         <>
-          <Text>{t('stop.heading')}</Text>
+          <H lvl={3} margin={false}>
+            {t('stop.heading')}
+          </H>
           <Text
             variant="note"
             wrap={'pretty'}
@@ -131,7 +133,9 @@ export const ScreenRecordingSidePanel = () => {
         </>
       ) : (
         <>
-          <Text>{t('start.heading')}</Text>
+          <H lvl={3} margin={false}>
+            {t('start.heading')}
+          </H>
           <Text
             variant="note"
             wrap={'pretty'}
