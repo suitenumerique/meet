@@ -23,6 +23,7 @@ import {
   BETA_USERS_FORM_URL,
   CRISP_HELP_ARTICLE_TRANSCRIPT,
 } from '@/utils/constants'
+import { FeatureFlags } from '@/features/analytics/enums'
 
 export const Transcript = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -30,7 +31,7 @@ export const Transcript = () => {
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
-    'transcription-summary'
+    FeatureFlags.Transcript
   )
   const roomId = useRoomId()
 

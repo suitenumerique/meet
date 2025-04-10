@@ -3,10 +3,11 @@ import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalytics
 import { RecordingMode } from '../types'
 import { useIsRecordingModeEnabled } from './useIsRecordingModeEnabled'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
+import { FeatureFlags } from '@/features/analytics/enums'
 
 export const useHasRecordingAccess = (
   mode: RecordingMode,
-  featureFlag: string
+  featureFlag: FeatureFlags
 ) => {
   const featureEnabled = useFeatureFlagEnabled(featureFlag)
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
