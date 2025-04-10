@@ -58,7 +58,7 @@ def test_authentication_getter_new_user_no_email(monkeypatch):
 
     assert user.sub == "123"
     assert user.email is None
-    assert user.password == "!"
+    assert user.has_usable_password() is False
     assert models.User.objects.count() == 1
 
 
@@ -84,7 +84,7 @@ def test_authentication_getter_new_user_with_email(monkeypatch):
     assert user.email == email
     assert user.full_name is None
     assert user.short_name is None
-    assert user.password == "!"
+    assert user.has_usable_password() is False
     assert models.User.objects.count() == 1
 
 
@@ -110,7 +110,7 @@ def test_authentication_getter_new_user_with_names(monkeypatch, email):
     assert user.email == email
     assert user.full_name == "John Doe"
     assert user.short_name == "John"
-    assert user.password == "!"
+    assert user.has_usable_password() is False
     assert models.User.objects.count() == 1
 
 
@@ -129,7 +129,7 @@ def test_models_oidc_user_getter_invalid_token(django_assert_num_queries, monkey
         django_assert_num_queries(0),
         pytest.raises(
             SuspiciousOperation,
-            match="User info contained no recognizable user identification",
+            match="Claims verification failed",
         ),
     ):
         klass.get_or_create_user(access_token="test-token", id_token=None, payload=None)

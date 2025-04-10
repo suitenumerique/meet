@@ -355,8 +355,8 @@ class Base(Configuration):
     SESSION_COOKIE_AGE = 60 * 60 * 12
 
     # OIDC - Authorization Code Flow
-    OIDC_AUTHENTICATE_CLASS = "core.authentication.views.OIDCAuthenticationRequestView"
-    OIDC_CALLBACK_CLASS = "core.authentication.views.OIDCAuthenticationCallbackView"
+    OIDC_AUTHENTICATE_CLASS = "lasuite.oidc_login.views.OIDCAuthenticationRequestView"
+    OIDC_CALLBACK_CLASS = "lasuite.oidc_login.views.OIDCAuthenticationCallbackView"
     OIDC_CREATE_USER = values.BooleanValue(
         default=True, environ_name="OIDC_CREATE_USER", environ_prefix=None
     )
@@ -389,6 +389,9 @@ class Base(Configuration):
     )
     OIDC_OP_USER_ENDPOINT = values.Value(
         None, environ_name="OIDC_OP_USER_ENDPOINT", environ_prefix=None
+    )
+    OIDC_OP_USER_ENDPOINT_FORMAT = values.Value(
+        "AUTO", environ_name="OIDC_OP_USER_ENDPOINT_FORMAT", environ_prefix=None
     )
     OIDC_OP_LOGOUT_ENDPOINT = values.Value(
         None, environ_name="OIDC_OP_LOGOUT_ENDPOINT", environ_prefix=None
@@ -434,6 +437,11 @@ class Base(Configuration):
     OIDC_USERINFO_SHORTNAME_FIELD = values.Value(
         default="given_name",
         environ_name="OIDC_USERINFO_SHORTNAME_FIELD",
+        environ_prefix=None,
+    )
+    OIDC_USERINFO_ESSENTIAL_CLAIMS = values.ListValue(
+        default=[],
+        environ_name="OIDC_USERINFO_ESSENTIAL_CLAIMS",
         environ_prefix=None,
     )
 
