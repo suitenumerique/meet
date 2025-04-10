@@ -1,12 +1,8 @@
 import { useMutation, UseMutationOptions } from '@tanstack/react-query'
 import { fetchApi } from '@/api/fetchApi'
 import { ApiError } from '@/api/ApiError'
-import { ApiRoom } from './ApiRoom'
-
-export enum RecordingMode {
-  Transcript = 'transcript',
-  ScreenRecording = 'screen_recording',
-}
+import { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import { RecordingMode } from '../types'
 
 export interface StartRecordingParams {
   id: string

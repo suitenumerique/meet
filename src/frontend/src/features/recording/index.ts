@@ -6,3 +6,6 @@ export {
 export { useIsRecordingTransitioning } from './hooks/useIsRecordingTransitioning'
 export { useHasRecordingAccess } from './hooks/useHasRecordingAccess'
 export { RecordingStateToast } from './components/RecordingStateToast'
+export { useStartRecording } from './api/startRecording'
+export { useStopRecording } from './api/stopRecording'
+export { RecordingMode } from './types'

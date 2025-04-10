@@ -1,4 +1,4 @@
-import { RecordingMode } from '@/features/rooms/api/startRecording'
+import { RecordingMode } from '../types'
 import { useConfig } from '@/api/useConfig'
 
 export const useIsRecordingModeEnabled = (mode: RecordingMode) => {

@@ -7,8 +7,8 @@ import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
   useStartRecording,
-} from '@/features/rooms/api/startRecording'
-import { useStopRecording } from '@/features/rooms/api/stopRecording'
+  useStopRecording,
+} from '@/features/recording'
 import { useEffect, useMemo, useState } from 'react'
 import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'

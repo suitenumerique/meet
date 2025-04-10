@@ -8,8 +8,7 @@ import { Transcript } from './Transcript'
 import { RiFileTextFill, RiLiveFill } from '@remixicon/react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
 import { ScreenRecording } from './ScreenRecording'
-import { RecordingMode } from '@/features/rooms/api/startRecording'
-import { useIsRecordingModeEnabled } from '@/features/recording'
+import { useIsRecordingModeEnabled, RecordingMode } from '@/features/recording'
 
 export interface ToolsButtonProps {
   icon: ReactNode

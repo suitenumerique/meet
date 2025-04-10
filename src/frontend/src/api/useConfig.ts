@@ -1,7 +1,7 @@
 import { fetchApi } from './fetchApi'
 import { keys } from './queryKeys'
 import { useQuery } from '@tanstack/react-query'
-import { RecordingMode } from '@/features/rooms/api/startRecording'
+import { RecordingMode } from '@/features/recording'
 
 export interface ApiConfig {
   analytics?: {

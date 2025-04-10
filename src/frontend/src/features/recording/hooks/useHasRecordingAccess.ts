@@ -1,6 +1,6 @@
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
-import { RecordingMode } from '@/features/rooms/api/startRecording'
+import { RecordingMode } from '../types'
 import { useIsRecordingModeEnabled } from './useIsRecordingModeEnabled'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 
