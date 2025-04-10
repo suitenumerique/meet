@@ -212,6 +212,10 @@
       "body": "La transcription de votre réunion est en cours. Vous recevrez le resultat par email une fois la réunion terminée.",
       "button": "Arrêter la transcription"
     },
+    "stopping": {
+      "heading": "Sauvegarde de vos données…",
+      "body": "Cette opération peut durer quelques minutes. Merci de votre patience."
+    },
     "beta": {
       "heading": "Devenez beta testeur",
       "body": "Enregistrer votre réunion pour plus tard. Vous recevrez un compte-rendu par email une fois la réunion terminée.",
@@ -224,6 +228,10 @@
       "body": "Enregistrez cet appel pour plus tard et recevez l'enregistrement vidéo par mail.",
       "button": "Démarrer l'enregistrement",
       "linkMore": "En savoir plus"
+    },
+    "stopping": {
+      "heading": "Sauvegarde de vos données…",
+      "body": "Cette opération peut durer quelques minutes. Merci de votre patience."
     },
     "stop": {
       "heading": "Enregistrement en cours …",

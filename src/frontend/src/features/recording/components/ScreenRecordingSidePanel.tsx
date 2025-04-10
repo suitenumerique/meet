@@ -14,20 +14,18 @@ import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { CRISP_HELP_ARTICLE_RECORDING } from '@/utils/constants'
-import {
-  useIsRecordingTransitioning,
-  useIsScreenRecordingStarted,
-  useIsTranscriptStarted,
-} from '@/features/recording'
+import { useIsRecordingTransitioning } from '@/features/recording'
 
 import {
   useNotifyParticipants,
   NotificationType,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
+import { useSnapshot } from 'valtio/index'
 
 export const ScreenRecordingSidePanel = () => {
   const [isLoading, setIsLoading] = useState(false)
+  const recordingSnap = useSnapshot(recordingStore)
   const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
 
   const { notifyParticipants } = useNotifyParticipants()
@@ -37,8 +35,16 @@ export const ScreenRecordingSidePanel = () => {
   const { mutateAsync: startRecordingRoom } = useStartRecording()
   const { mutateAsync: stopRecordingRoom } = useStopRecording()
 
-  const isScreenRecordingStarted = useIsScreenRecordingStarted()
-  const isTranscriptStarted = useIsTranscriptStarted()
+  const statuses = useMemo(() => {
+    return {
+      isAnotherModeStarted:
+        recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTED,
+      isStarted:
+        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTED,
+      isStopping:
+        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STOPPING,
+    }
+  }, [recordingSnap])
 
   const room = useRoomContext()
   const isRecordingTransitioning = useIsRecordingTransitioning()
@@ -84,8 +90,9 @@ export const ScreenRecordingSidePanel = () => {
   }
 
   const isDisabled = useMemo(
-    () => isLoading || isRecordingTransitioning || isTranscriptStarted,
-    [isLoading, isRecordingTransitioning, isTranscriptStarted]
+    () =>
+      isLoading || isRecordingTransitioning || statuses.isAnotherModeStarted,
+    [isLoading, isRecordingTransitioning, statuses]
   )
 
   return (
@@ -106,7 +113,7 @@ export const ScreenRecordingSidePanel = () => {
         })}
       />
 
-      {isScreenRecordingStarted ? (
+      {statuses.isStarted ? (
         <>
           <H lvl={3} margin={false}>
             {t('stop.heading')}
@@ -135,34 +142,57 @@ export const ScreenRecordingSidePanel = () => {
         </>
       ) : (
         <>
-          <H lvl={3} margin={false}>
-            {t('start.heading')}
-          </H>
-          <Text
-            variant="note"
-            wrap={'pretty'}
-            centered
-            className={css({
-              textStyle: 'sm',
-              maxWidth: '90%',
-              marginBottom: '2.5rem',
-              marginTop: '0.25rem',
-            })}
-          >
-            {t('start.body')} <br />{' '}
-            <A href={CRISP_HELP_ARTICLE_RECORDING} target="_blank">
-              {t('start.linkMore')}
-            </A>
-          </Text>
-          <Button
-            isDisabled={isDisabled}
-            onPress={() => handleScreenRecording()}
-            data-attr="start-screen-recording"
-            size="sm"
-            variant="tertiary"
-          >
-            {t('start.button')}
-          </Button>
+          {statuses.isStopping ? (
+            <>
+              <H lvl={3} margin={false}>
+                {t('stopping.heading')}
+              </H>
+              <Text
+                variant="note"
+                wrap={'pretty'}
+                centered
+                className={css({
+                  textStyle: 'sm',
+                  maxWidth: '90%',
+                  marginBottom: '2.5rem',
+                  marginTop: '0.25rem',
+                })}
+              >
+                {t('stopping.body')}
+              </Text>
+            </>
+          ) : (
+            <>
+              <H lvl={3} margin={false}>
+                {t('start.heading')}
+              </H>
+              <Text
+                variant="note"
+                wrap={'pretty'}
+                centered
+                className={css({
+                  textStyle: 'sm',
+                  maxWidth: '90%',
+                  marginBottom: '2.5rem',
+                  marginTop: '0.25rem',
+                })}
+              >
+                {t('start.body')} <br />{' '}
+                <A href={CRISP_HELP_ARTICLE_RECORDING} target="_blank">
+                  {t('start.linkMore')}
+                </A>
+              </Text>
+              <Button
+                isDisabled={isDisabled}
+                onPress={() => handleScreenRecording()}
+                data-attr="start-screen-recording"
+                size="sm"
+                variant="tertiary"
+              >
+                {t('start.button')}
+              </Button>
+            </>
+          )}
         </>
       )}
     </Div>

@@ -6,12 +6,10 @@ import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
+  useHasRecordingAccess,
+  useIsRecordingTransitioning,
   useStartRecording,
   useStopRecording,
-  useIsScreenRecordingStarted,
-  useIsTranscriptStarted,
-  useIsRecordingTransitioning,
-  useHasRecordingAccess,
 } from '../index'
 import { useEffect, useMemo, useState } from 'react'
 import { RoomEvent } from 'livekit-client'
@@ -23,14 +21,17 @@ import {
 } from '@/utils/constants'
 import { FeatureFlags } from '@/features/analytics/enums'
 import {
-  useNotifyParticipants,
   NotificationType,
+  useNotifyParticipants,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
+import { useSnapshot } from 'valtio/index'
 
 export const TranscriptSidePanel = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
+
+  const recordingSnap = useSnapshot(recordingStore)
 
   const { notifyParticipants } = useNotifyParticipants()
 
@@ -43,8 +44,15 @@ export const TranscriptSidePanel = () => {
   const { mutateAsync: startRecordingRoom } = useStartRecording()
   const { mutateAsync: stopRecordingRoom } = useStopRecording()
 
-  const isScreenRecordingStarted = useIsScreenRecordingStarted()
-  const isTranscriptStarted = useIsTranscriptStarted()
+  const statuses = useMemo(() => {
+    return {
+      isAnotherModeStarted:
+        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTED,
+      isStarted: recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTED,
+      isStopping: recordingSnap.status == RecordingStatus.TRANSCRIPT_STOPPING,
+    }
+  }, [recordingSnap])
+
   const isRecordingTransitioning = useIsRecordingTransitioning()
 
   const room = useRoomContext()
@@ -87,8 +95,9 @@ export const TranscriptSidePanel = () => {
   }
 
   const isDisabled = useMemo(
-    () => isLoading || isRecordingTransitioning || isScreenRecordingStarted,
-    [isLoading, isRecordingTransitioning, isScreenRecordingStarted]
+    () =>
+      isLoading || isRecordingTransitioning || statuses.isAnotherModeStarted,
+    [isLoading, isRecordingTransitioning, statuses]
   )
 
   return (
@@ -137,7 +146,7 @@ export const TranscriptSidePanel = () => {
         </>
       ) : (
         <>
-          {isTranscriptStarted ? (
+          {statuses.isStarted ? (
             <>
               <H lvl={3} margin={false}>
                 {t('stop.heading')}
@@ -166,34 +175,57 @@ export const TranscriptSidePanel = () => {
             </>
           ) : (
             <>
-              <H lvl={3} margin={false}>
-                {t('start.heading')}
-              </H>
-              <Text
-                variant="note"
-                wrap={'pretty'}
-                centered
-                className={css({
-                  textStyle: 'sm',
-                  maxWidth: '90%',
-                  marginBottom: '2.5rem',
-                  marginTop: '0.25rem',
-                })}
-              >
-                {t('start.body')} <br />{' '}
-                <A href={CRISP_HELP_ARTICLE_TRANSCRIPT} target="_blank">
-                  {t('start.linkMore')}
-                </A>
-              </Text>
-              <Button
-                isDisabled={isDisabled}
-                onPress={() => handleTranscript()}
-                data-attr="start-transcript"
-                size="sm"
-                variant="tertiary"
-              >
-                {t('start.button')}
-              </Button>
+              {statuses.isStopping ? (
+                <>
+                  <H lvl={3} margin={false}>
+                    {t('stopping.heading')}
+                  </H>
+                  <Text
+                    variant="note"
+                    wrap={'pretty'}
+                    centered
+                    className={css({
+                      textStyle: 'sm',
+                      maxWidth: '90%',
+                      marginBottom: '2.5rem',
+                      marginTop: '0.25rem',
+                    })}
+                  >
+                    {t('stopping.body')}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <H lvl={3} margin={false}>
+                    {t('start.heading')}
+                  </H>
+                  <Text
+                    variant="note"
+                    wrap={'pretty'}
+                    centered
+                    className={css({
+                      textStyle: 'sm',
+                      maxWidth: '90%',
+                      marginBottom: '2.5rem',
+                      marginTop: '0.25rem',
+                    })}
+                  >
+                    {t('start.body')} <br />{' '}
+                    <A href={CRISP_HELP_ARTICLE_TRANSCRIPT} target="_blank">
+                      {t('start.linkMore')}
+                    </A>
+                  </Text>
+                  <Button
+                    isDisabled={isDisabled}
+                    onPress={() => handleTranscript()}
+                    data-attr="start-transcript"
+                    size="sm"
+                    variant="tertiary"
+                  >
+                    {t('start.button')}
+                  </Button>
+                </>
+              )}
             </>
           )}
         </>

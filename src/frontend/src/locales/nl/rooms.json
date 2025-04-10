@@ -212,6 +212,10 @@
       "body": "De transcriptie van uw vergadering is bezig. U ontvangt het resultaat per e-mail zodra de vergadering is afgelopen.",
       "button": "Transcriptie stoppen"
     },
+    "stopping": {
+      "heading": "Uw gegevens worden opgeslagen…",
+      "body": "Dit proces kan enkele minuten duren. Bedankt voor uw geduld."
+    },
     "beta": {
       "heading": "Word betatester",
       "body": "Neem uw vergadering op voor later. U ontvangt een samenvatting per e-mail zodra de vergadering is afgelopen.",
@@ -224,6 +228,10 @@
       "body": "Neem dit gesprek op om het later terug te kijken. Je ontvangt de video-opname per e-mail.",
       "button": "Opname starten",
       "linkMore": "Meer informatie"
+    },
+    "stopping": {
+      "heading": "Uw gegevens worden opgeslagen…",
+      "body": "Dit proces kan enkele minuten duren. Bedankt voor uw geduld."
     },
     "stop": {
       "heading": "Opname bezig …",

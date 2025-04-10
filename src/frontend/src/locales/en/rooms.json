@@ -212,6 +212,10 @@
       "body": "The transcription of your meeting is in progress. You will receive the result by email once the meeting is finished.",
       "button": "Stop transcription"
     },
+    "stopping": {
+      "heading": "Saving your data…",
+      "body": "This process may take a few minutes. Thank you for your patience."
+    },
     "beta": {
       "heading": "Become a beta tester",
       "body": "Record your meeting for later. You will receive a summary by email once the meeting is finished.",
@@ -224,6 +228,10 @@
       "body": "Record this call to watch it later and receive the video recording by email.",
       "button": "Start recording",
       "linkMore": "Learn more"
+    },
+    "stopping": {
+      "heading": "Saving your data…",
+      "body": "This process may take a few minutes. Thank you for your patience."
     },
     "stop": {
       "heading": "Recording in progress…",
