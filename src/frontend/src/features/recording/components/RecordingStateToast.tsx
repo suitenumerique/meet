@@ -10,7 +10,7 @@ import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 
-export const RecordingStateBadge = () => {
+export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
     keyPrefix: 'recordingBadge',
   })
