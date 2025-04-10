@@ -6,11 +6,16 @@ import { CRISP_HELP_ARTICLE_MORE_TOOLS } from '@/utils/constants'
 import { ReactNode } from 'react'
 import { RiFileTextFill, RiLiveFill } from '@remixicon/react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
-import { useIsRecordingModeEnabled, RecordingMode } from '@/features/recording'
+import {
+  useIsRecordingModeEnabled,
+  RecordingMode,
+  useHasRecordingAccess,
+} from '@/features/recording'
 import {
   TranscriptSidePanel,
   ScreenRecordingSidePanel,
 } from '@/features/recording'
+import { FeatureFlags } from '@/features/analytics/enums'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -78,8 +83,9 @@ export const Tools = () => {
     RecordingMode.Transcript
   )
 
-  const isScreenRecordingEnabled = useIsRecordingModeEnabled(
-    RecordingMode.ScreenRecording
+  const hasScreenRecordingAccess = useHasRecordingAccess(
+    RecordingMode.ScreenRecording,
+    FeatureFlags.ScreenRecording
   )
 
   switch (activeSubPanelId) {
@@ -123,7 +129,7 @@ export const Tools = () => {
           onPress={() => openTranscript()}
         />
       )}
-      {isScreenRecordingEnabled && (
+      {hasScreenRecordingAccess && (
         <ToolButton
           icon={<RiLiveFill size={24} color="white" />}
           title={t('tools.screenRecording.title')}
