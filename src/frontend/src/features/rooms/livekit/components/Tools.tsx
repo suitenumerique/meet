@@ -4,11 +4,13 @@ import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { CRISP_HELP_ARTICLE_MORE_TOOLS } from '@/utils/constants'
 import { ReactNode } from 'react'
-import { Transcript } from './Transcript'
 import { RiFileTextFill, RiLiveFill } from '@remixicon/react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
-import { ScreenRecording } from './ScreenRecording'
 import { useIsRecordingModeEnabled, RecordingMode } from '@/features/recording'
+import {
+  TranscriptSidePanel,
+  ScreenRecordingSidePanel,
+} from '@/features/recording'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -82,9 +84,9 @@ export const Tools = () => {
 
   switch (activeSubPanelId) {
     case SubPanelId.TRANSCRIPT:
-      return <Transcript />
+      return <TranscriptSidePanel />
     case SubPanelId.SCREEN_RECORDING:
-      return <ScreenRecording />
+      return <ScreenRecordingSidePanel />
     default:
       break
   }

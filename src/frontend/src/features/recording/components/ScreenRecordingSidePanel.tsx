@@ -25,7 +25,7 @@ import {
   NotificationType,
 } from '@/features/notifications'
 
-export const ScreenRecording = () => {
+export const ScreenRecordingSidePanel = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
 

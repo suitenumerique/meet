@@ -12,7 +12,7 @@ import {
   useIsTranscriptStarted,
   useIsRecordingTransitioning,
   useHasRecordingAccess,
-} from '@/features/recording'
+} from '../index'
 import { useEffect, useMemo, useState } from 'react'
 import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
@@ -27,7 +27,7 @@ import {
   NotificationType,
 } from '@/features/notifications'
 
-export const Transcript = () => {
+export const TranscriptSidePanel = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
 
