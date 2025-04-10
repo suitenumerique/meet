@@ -169,6 +169,7 @@
       "effects": "",
       "chat": "",
       "transcript": "",
+      "screenRecording": "",
       "admin": "",
       "tools": ""
     },
@@ -177,6 +178,7 @@
       "effects": "",
       "chat": "",
       "transcript": "",
+      "screenRecording": "",
       "admin": "",
       "tools": ""
     },
@@ -190,6 +192,10 @@
     "moreLink": "",
     "tools": {
       "transcript": {
+        "title": "",
+        "body": ""
+      },
+      "screenRecording": {
         "title": "",
         "body": ""
       }
@@ -212,6 +218,23 @@
       "body": ""
     },
     "beta": {
+      "heading": "",
+      "body": "",
+      "button": ""
+    }
+  },
+  "screenRecording": {
+    "start": {
+      "heading": "",
+      "body": "",
+      "button": "",
+      "linkMore": ""
+    },
+    "stopping": {
+      "heading": "",
+      "body": ""
+    },
+    "stop": {
       "heading": "",
       "body": "",
       "button": ""
