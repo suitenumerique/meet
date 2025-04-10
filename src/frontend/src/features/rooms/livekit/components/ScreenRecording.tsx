@@ -12,8 +12,6 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
-import { NotificationPayload } from '@/features/notifications/NotificationPayload'
-import { NotificationType } from '@/features/notifications/NotificationType'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { CRISP_HELP_ARTICLE_RECORDING } from '@/utils/constants'
 import {
@@ -22,9 +20,16 @@ import {
   useIsTranscriptStarted,
 } from '@/features/recording'
 
+import {
+  useNotifyParticipants,
+  NotificationType,
+} from '@/features/notifications'
+
 export const ScreenRecording = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
+
+  const { notifyParticipants } = useNotifyParticipants()
 
   const roomId = useRoomId()
 
@@ -47,17 +52,6 @@ export const ScreenRecording = () => {
     }
   }, [room])
 
-  const notifyParticipant = async (status: NotificationType) => {
-    const encoder = new TextEncoder()
-    const payload: NotificationPayload = {
-      type: status,
-    }
-    const data = encoder.encode(JSON.stringify(payload))
-    await room.localParticipant.publishData(data, {
-      reliable: true,
-    })
-  }
-
   const handleScreenRecording = async () => {
     if (!roomId) {
       console.warn('No room ID found')
@@ -67,15 +61,19 @@ export const ScreenRecording = () => {
       setIsLoading(true)
       if (room.isRecording) {
         await stopRecordingRoom({ id: roomId })
-        await notifyParticipant(NotificationType.ScreenRecordingStopped)
         recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
+        await notifyParticipants({
+          type: NotificationType.ScreenRecordingStopped,
+        })
       } else {
         await startRecordingRoom({
           id: roomId,
           mode: RecordingMode.ScreenRecording,
         })
-        await notifyParticipant(NotificationType.ScreenRecordingStarted)
         recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTING
+        await notifyParticipants({
+          type: NotificationType.ScreenRecordingStarted,
+        })
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)

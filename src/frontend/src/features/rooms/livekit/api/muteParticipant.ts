@@ -3,25 +3,15 @@ import Source = Track.Source
 import { fetchServerApi } from './fetchServerApi'
 import { buildServerApiUrl } from './buildServerApiUrl'
 import { useRoomData } from '../hooks/useRoomData'
-import { useRoomContext } from '@livekit/components-react'
-import { NotificationType } from '@/features/notifications/NotificationType'
-import { NotificationPayload } from '@/features/notifications/NotificationPayload'
+import {
+  useNotifyParticipants,
+  NotificationType,
+} from '@/features/notifications'
 
 export const useMuteParticipant = () => {
   const data = useRoomData()
-  const room = useRoomContext()
 
-  const notifyParticipant = async (participant: Participant) => {
-    const encoder = new TextEncoder()
-    const payload: NotificationPayload = {
-      type: NotificationType.ParticipantMuted,
-    }
-    const data = encoder.encode(JSON.stringify(payload))
-    await room.localParticipant.publishData(data, {
-      reliable: true,
-      destinationIdentities: [participant.identity],
-    })
-  }
+  const { notifyParticipants } = useNotifyParticipants()
 
   const muteParticipant = async (participant: Participant) => {
     if (!data || !data?.livekit) {
@@ -53,7 +43,10 @@ export const useMuteParticipant = () => {
         }
       )
 
-      await notifyParticipant(participant)
+      await notifyParticipants({
+        type: NotificationType.ParticipantMuted,
+        destinationIdentities: [participant.identity],
+      })
 
       return response
     } catch (error) {
