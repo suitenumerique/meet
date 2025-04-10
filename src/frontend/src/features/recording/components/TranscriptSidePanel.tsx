@@ -26,6 +26,7 @@ import {
   useNotifyParticipants,
   NotificationType,
 } from '@/features/notifications'
+import posthog from 'posthog-js'
 
 export const TranscriptSidePanel = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -77,6 +78,7 @@ export const TranscriptSidePanel = () => {
         await notifyParticipants({
           type: NotificationType.TranscriptionStarted,
         })
+        posthog.capture('transcript-started', {})
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)

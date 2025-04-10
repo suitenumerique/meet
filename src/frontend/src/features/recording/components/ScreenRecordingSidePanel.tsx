@@ -24,6 +24,7 @@ import {
   useNotifyParticipants,
   NotificationType,
 } from '@/features/notifications'
+import posthog from 'posthog-js'
 
 export const ScreenRecordingSidePanel = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -74,6 +75,7 @@ export const ScreenRecordingSidePanel = () => {
         await notifyParticipants({
           type: NotificationType.ScreenRecordingStarted,
         })
+        posthog.capture('screen-recording-started', {})
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)
@@ -124,7 +126,7 @@ export const ScreenRecordingSidePanel = () => {
           <Button
             isDisabled={isDisabled}
             onPress={() => handleScreenRecording()}
-            data-attr="stop-transcript"
+            data-attr="stop-screen-recording"
             size="sm"
             variant="tertiary"
           >
@@ -155,7 +157,7 @@ export const ScreenRecordingSidePanel = () => {
           <Button
             isDisabled={isDisabled}
             onPress={() => handleScreenRecording()}
-            data-attr="start-transcript"
+            data-attr="start-screen-recording"
             size="sm"
             variant="tertiary"
           >
