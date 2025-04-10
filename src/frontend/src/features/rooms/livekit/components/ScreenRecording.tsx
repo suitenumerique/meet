@@ -16,11 +16,11 @@ import { NotificationPayload } from '@/features/notifications/NotificationPayloa
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { CRISP_HELP_ARTICLE_RECORDING } from '@/utils/constants'
-import { useIsRecordingTransitioning } from '../hooks/useIsRecordingTransitioning'
 import {
+  useIsRecordingTransitioning,
   useIsScreenRecordingStarted,
   useIsTranscriptStarted,
-} from '../hooks/useIsRecordingStarted'
+} from '@/features/recording'
 
 export const ScreenRecording = () => {
   const [isLoading, setIsLoading] = useState(false)

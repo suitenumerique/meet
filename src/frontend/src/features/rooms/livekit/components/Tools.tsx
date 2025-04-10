@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next'
 import { CRISP_HELP_ARTICLE_MORE_TOOLS } from '@/utils/constants'
 import { ReactNode } from 'react'
 import { Transcript } from './Transcript'
-import { useIsRecordingModeEnabled } from '../hooks/useIsRecordingModeEnabled'
 import { RiFileTextFill, RiLiveFill } from '@remixicon/react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
 import { ScreenRecording } from './ScreenRecording'
 import { RecordingMode } from '@/features/rooms/api/startRecording'
+import { useIsRecordingModeEnabled } from '@/features/recording'
 
 export interface ToolsButtonProps {
   icon: ReactNode

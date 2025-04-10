@@ -15,16 +15,16 @@ import { useTranslation } from 'react-i18next'
 import { NotificationPayload } from '@/features/notifications/NotificationPayload'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
-import { useHasRecordingAccess } from '../hooks/useHasScreenRecordingAccess'
 import {
   BETA_USERS_FORM_URL,
   CRISP_HELP_ARTICLE_TRANSCRIPT,
 } from '@/utils/constants'
-import { useIsRecordingTransitioning } from '../hooks/useIsRecordingTransitioning'
 import {
   useIsScreenRecordingStarted,
   useIsTranscriptStarted,
-} from '../hooks/useIsRecordingStarted'
+  useIsRecordingTransitioning,
+  useHasRecordingAccess,
+} from '@/features/recording'
 
 export const Transcript = () => {
   const [isLoading, setIsLoading] = useState(false)

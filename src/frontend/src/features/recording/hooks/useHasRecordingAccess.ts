@@ -2,7 +2,7 @@ import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import { RecordingMode } from '@/features/rooms/api/startRecording'
 import { useIsRecordingModeEnabled } from './useIsRecordingModeEnabled'
-import { useIsAdminOrOwner } from './useIsAdminOrOwner'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 
 export const useHasRecordingAccess = (
   mode: RecordingMode,
