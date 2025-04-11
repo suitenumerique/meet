@@ -250,3 +250,38 @@ def test_models_recording_key_for_unknown_mode(settings):
     recording.mode = "unknown_mode"
     expected_path = f"/custom/path/{recording.id}.{FileExtension.MP4.value}"
     assert recording.key == expected_path
+
+
+# Test is_saved method
+
+
+def test_models_recording_is_saved_true():
+    """Test is_saved property returns True for SAVED status."""
+    recording = RecordingFactory(status=RecordingStatusChoices.SAVED)
+    assert recording.is_saved is True
+
+
+def test_models_recording_is_saved_false_active():
+    """Test is_saved property returns False for ACTIVE status."""
+    recording = RecordingFactory(status=RecordingStatusChoices.ACTIVE)
+    assert recording.is_saved is False
+
+
+def test_models_recording_is_saved_false_initiated():
+    """Test is_saved property returns False for INITIATED status."""
+    recording = RecordingFactory(status=RecordingStatusChoices.INITIATED)
+    assert recording.is_saved is False
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        RecordingStatusChoices.FAILED_TO_STOP,
+        RecordingStatusChoices.FAILED_TO_START,
+        RecordingStatusChoices.ABORTED,
+    ],
+)
+def test_models_recording_is_saved_false_error_states(status):
+    """Test is_saved property returns False for error statuses."""
+    recording = RecordingFactory(status=status)
+    assert recording.is_saved is False

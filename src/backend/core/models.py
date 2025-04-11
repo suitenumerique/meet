@@ -579,6 +579,11 @@ class Recording(BaseModel):
         }
 
     @property
+    def is_saved(self) -> bool:
+        """Check if the recording is in a saved state."""
+        return self.status == RecordingStatusChoices.SAVED
+
+    @property
     def extension(self):
         """Get recording extension based on its mode."""
         extensions = {
