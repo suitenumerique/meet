@@ -18,6 +18,8 @@ from django.utils.translation import gettext_lazy as _
 
 from timezone_field import TimeZoneField
 
+from .recording.enums import FileExtension
+
 logger = getLogger(__name__)
 
 
@@ -575,6 +577,21 @@ class Recording(BaseModel):
             RecordingStatusChoices.ACTIVE,
             RecordingStatusChoices.STOPPED,
         }
+
+    @property
+    def extension(self):
+        """Get recording extension based on its mode."""
+        extensions = {
+            RecordingModeChoices.TRANSCRIPT: FileExtension.OGG.value,
+            RecordingModeChoices.SCREEN_RECORDING: FileExtension.MP4.value,
+        }
+        return extensions.get(self.mode, FileExtension.MP4.value)
+
+    @property
+    def key(self):
+        """Generate the file key based on recording mode."""
+
+        return f"{settings.RECORDING_OUTPUT_FOLDER}/{self.id}.{self.extension}"
 
 
 class RecordingAccess(BaseAccess):

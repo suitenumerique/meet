@@ -57,10 +57,8 @@ class NotificationService:
             logger.error("No owner found for recording %s", recording.id)
             return False
 
-        key = f"{settings.RECORDING_OUTPUT_FOLDER}/{recording.id}.ogg"
-
         payload = {
-            "filename": key,
+            "filename": recording.key,
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
         }

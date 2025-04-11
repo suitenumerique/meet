@@ -12,7 +12,8 @@ from core.factories import (
     UserFactory,
     UserRecordingAccessFactory,
 )
-from core.models import Recording, RecordingStatusChoices
+from core.models import Recording, RecordingModeChoices, RecordingStatusChoices
+from core.recording.enums import FileExtension
 
 pytestmark = pytest.mark.django_db
 
@@ -216,3 +217,36 @@ def test_models_recording_worker_id_very_long():
     too_long_id = "w" * 256
     with pytest.raises(ValidationError):
         RecordingFactory(worker_id=too_long_id)
+
+
+# Test key property method
+
+
+def test_models_recording_key_for_transcript(settings):
+    """Test key property returns correct path for transcript mode."""
+
+    settings.RECORDING_OUTPUT_FOLDER = "/custom/path"
+
+    recording = RecordingFactory(mode=RecordingModeChoices.TRANSCRIPT)
+    expected_path = f"/custom/path/{recording.id}.{FileExtension.OGG.value}"
+    assert recording.key == expected_path
+
+
+def test_models_recording_key_for_screen_recording(settings):
+    """Test key property returns correct path for screen recording mode."""
+    settings.RECORDING_OUTPUT_FOLDER = "/custom/path"
+
+    recording = RecordingFactory(mode=RecordingModeChoices.SCREEN_RECORDING)
+    expected_path = f"/custom/path/{recording.id}.{FileExtension.MP4.value}"
+    assert recording.key == expected_path
+
+
+def test_models_recording_key_for_unknown_mode(settings):
+    """Test key property uses default extension for unknown mode."""
+
+    settings.RECORDING_OUTPUT_FOLDER = "/custom/path"
+    recording = RecordingFactory()
+    # Directly set an invalid mode (bypassing validation)
+    recording.mode = "unknown_mode"
+    expected_path = f"/custom/path/{recording.id}.{FileExtension.MP4.value}"
+    assert recording.key == expected_path
