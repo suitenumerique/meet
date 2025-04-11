@@ -7,6 +7,7 @@ from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 from livekit.api.egress_service import EgressService
 
+from ..enums import FileExtension
 from .exceptions import WorkerConnectionError, WorkerResponseError
 from .factories import WorkerServiceConfig
 
@@ -89,7 +90,9 @@ class VideoCompositeEgressService(BaseEgressService):
 
         # Save room's recording as a mp4 video file.
         file_type = livekit_api.EncodedFileType.MP4
-        filepath = self._get_filepath(filename=recording_id, extension="mp4")
+        filepath = self._get_filepath(
+            filename=recording_id, extension=FileExtension.MP4.value
+        )
 
         file_output = livekit_api.EncodedFileOutput(
             file_type=file_type,
@@ -120,7 +123,9 @@ class AudioCompositeEgressService(BaseEgressService):
 
         # Save room's recording as an ogg audio file.
         file_type = livekit_api.EncodedFileType.OGG
-        filepath = self._get_filepath(filename=recording_id, extension="ogg")
+        filepath = self._get_filepath(
+            filename=recording_id, extension=FileExtension.OGG.value
+        )
 
         file_output = livekit_api.EncodedFileOutput(
             file_type=file_type,
