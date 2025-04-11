@@ -22,6 +22,27 @@ def test_api_recordings_list_anonymous():
     assert response.status_code == 401
 
 
+def test_api_recordings_list_authenticated_no_recording():
+    """
+    Authenticated users listing recordings should only
+    see recordings to which they have access.
+    """
+    user = factories.UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    other_user = factories.UserFactory()
+    factories.UserRecordingAccessFactory(user=other_user)
+
+    response = client.get(
+        "/api/v1.0/recordings/",
+    )
+
+    assert response.status_code == 200
+    results = response.json()["results"]
+    assert results == []
+
+
 @pytest.mark.parametrize(
     "role",
     ["administrator", "member", "owner"],

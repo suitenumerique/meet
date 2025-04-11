@@ -544,6 +544,7 @@ class ResourceAccessViewSet(
 class RecordingViewSet(
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
     """
