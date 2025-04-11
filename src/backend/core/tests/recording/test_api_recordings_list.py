@@ -58,6 +58,7 @@ def test_api_recordings_list_authenticated_direct(role):
     assert results[0] == {
         "id": str(recording.id),
         "created_at": recording.created_at.isoformat().replace("+00:00", "Z"),
+        "mode": recording.mode,
         "room": {
             "access_level": str(room.access_level),
             "id": str(room.id),
