@@ -16,6 +16,10 @@ backend:
     DJANGO_EMAIL_HOST: "mailcatcher"
     DJANGO_EMAIL_PORT: 1025
     DJANGO_EMAIL_USE_SSL: False
+    DJANGO_EMAIL_BRAND_NAME: "La Suite Numérique"
+    DJANGO_EMAIL_SUPPORT_EMAIL: "test@yopmail.com"
+    DJANGO_EMAIL_LOGO_IMG: https://meet.127.0.0.1.nip.io/assets/logo-suite-numerique.png
+    DJANGO_EMAIL_DOMAIN: https://meet.127.0.0.1.nip.io
     OIDC_OP_JWKS_ENDPOINT: https://keycloak.127.0.0.1.nip.io/realms/meet/protocol/openid-connect/certs
     OIDC_OP_AUTHORIZATION_ENDPOINT: https://keycloak.127.0.0.1.nip.io/realms/meet/protocol/openid-connect/auth
     OIDC_OP_TOKEN_ENDPOINT: https://keycloak.127.0.0.1.nip.io/realms/meet/protocol/openid-connect/token
@@ -61,6 +65,7 @@ backend:
     RECORDING_STORAGE_EVENT_TOKEN: password
     SUMMARY_SERVICE_ENDPOINT: http://meet-summary:80/api/v1/tasks/
     SUMMARY_SERVICE_API_TOKEN: password
+    SCREEN_RECORDING_BASE_URL: https://meet.127.0.0.1.nip.io/recordings
     SSL_CERT_FILE: /usr/local/lib/python3.12/site-packages/certifi/cacert.pem
 
 

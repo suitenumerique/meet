@@ -12,6 +12,10 @@ PYTHONPATH=/app
 # Mail
 DJANGO_EMAIL_HOST="mailcatcher"
 DJANGO_EMAIL_PORT=1025
+DJANGO_EMAIL_BRAND_NAME=La Suite Numérique
+DJANGO_EMAIL_SUPPORT_EMAIL=test@yopmail.com
+DJANGO_EMAIL_LOGO_IMG=http://localhost:3000/assets/logo-suite-numerique.png
+DJANGO_EMAIL_DOMAIN=http://localhost:3000/
 
 # Backend url
 MEET_BASE_URL="http://localhost:8072"
@@ -42,3 +46,6 @@ LIVEKIT_API_SECRET=secret
 LIVEKIT_API_KEY=devkey
 LIVEKIT_API_URL=http://localhost:7880
 ALLOW_UNREGISTERED_ROOMS=False
+
+# Recording
+SCREEN_RECORDING_BASE_URL=http://localhost:3000/recordings

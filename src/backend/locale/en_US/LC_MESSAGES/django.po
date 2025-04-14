@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 19:00+0000\n"
+"POT-Creation-Date: 2025-04-14 19:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -309,6 +309,10 @@ msgstr ""
 msgid "Invalid token"
 msgstr ""
 
+#: core/recording/event/notification.py:81
+msgid "Your recording is ready"
+msgstr ""
+
 #: core/templates/mail/html/invitation.html:160
 #: core/templates/mail/text/invitation.txt:3
 msgid "La Suite Numérique"
@@ -392,6 +396,63 @@ msgstr ""
 #: core/templates/mail/html/invitation.html:276
 #: core/templates/mail/text/invitation.txt:28
 msgid "The La Suite Numérique Team"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:159
+#: core/templates/mail/text/screen_recording.txt:3
+msgid "Logo email"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:188
+#: core/templates/mail/text/screen_recording.txt:6
+msgid "Your recording is ready!"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:195
+#: core/templates/mail/text/screen_recording.txt:8
+#, python-format
+msgid ""
+" Your recording of \"%(room_name)s\" on %(recording_date)s at "
+"%(recording_time)s is now ready to download. "
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:201
+#: core/templates/mail/text/screen_recording.txt:10
+msgid "To keep this recording permanently:"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:203
+#: core/templates/mail/text/screen_recording.txt:12
+msgid "Click the \\"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:204
+#: core/templates/mail/text/screen_recording.txt:13
+msgid "Use the \\"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:205
+#: core/templates/mail/text/screen_recording.txt:14
+msgid "Save the file to your preferred location"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:216
+#: core/templates/mail/text/screen_recording.txt:16
+msgid "Open"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:225
+#: core/templates/mail/text/screen_recording.txt:18
+#, python-format
+msgid ""
+" If you have any questions or need assistance, please contact our support "
+"team at %(support_email)s. "
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:240
+#: core/templates/mail/text/screen_recording.txt:22
+#, python-format
+msgid " Thank you for using %(brandname)s. "
 msgstr ""
 
 #: core/templates/mail/text/invitation.txt:8

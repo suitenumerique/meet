@@ -318,6 +318,10 @@ class Base(Configuration):
     EMAIL_USE_TLS = values.BooleanValue(False)
     EMAIL_USE_SSL = values.BooleanValue(False)
     EMAIL_FROM = values.Value("from@example.com")
+    EMAIL_BRAND_NAME = values.Value(None)
+    EMAIL_SUPPORT_EMAIL = values.Value(None)
+    EMAIL_LOGO_IMG = values.Value(None)
+    EMAIL_DOMAIN = values.Value(None)
 
     AUTH_USER_MODEL = "core.User"
 
@@ -479,6 +483,9 @@ class Base(Configuration):
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
     SUMMARY_SERVICE_API_TOKEN = values.Value(
+        None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
+    )
+    SCREEN_RECORDING_BASE_URL = values.Value(
         None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
     )
 
