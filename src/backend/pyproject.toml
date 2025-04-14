@@ -25,7 +25,7 @@ license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "boto3==1.37.18",
+    "boto3==1.37.24",
     "Brotli==1.1.0",
     "brevo-python==1.1.2",
     "celery[redis]==5.4.0",
