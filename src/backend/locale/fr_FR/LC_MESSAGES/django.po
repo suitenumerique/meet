@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-03 10:31+0000\n"
+"POT-Creation-Date: 2025-04-14 18:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,28 +17,32 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: core/admin.py:31
+#: core/admin.py:26
 msgid "Personal info"
 msgstr ""
 
-#: core/admin.py:33
+#: core/admin.py:39
 msgid "Permissions"
 msgstr ""
 
-#: core/admin.py:45
+#: core/admin.py:51
 msgid "Important dates"
 msgstr ""
 
-#: core/api/serializers.py:128
-msgid "Markdown Body"
+#: core/api/serializers.py:60
+msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr ""
 
-#: core/authentication.py:71
+#: core/authentication/backends.py:77
 msgid "User info contained no recognizable user identification"
 msgstr ""
 
-#: core/authentication.py:91
-msgid "Claims contained no recognizable user identification"
+#: core/authentication/backends.py:102
+msgid "User account is disabled"
+msgstr ""
+
+#: core/authentication/backends.py:142
+msgid "Multiple user accounts share a common email."
 msgstr ""
 
 #: core/models.py:27
@@ -53,156 +57,408 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: core/models.py:41
-msgid "id"
+#: core/models.py:45
+msgid "Initiated"
 msgstr ""
 
-#: core/models.py:42
-msgid "primary key for the record as UUID"
+#: core/models.py:46
+msgid "Active"
+msgstr ""
+
+#: core/models.py:47
+msgid "Stopped"
 msgstr ""
 
 #: core/models.py:48
-msgid "created on"
+msgid "Saved"
 msgstr ""
 
 #: core/models.py:49
+msgid "Aborted"
+msgstr ""
+
+#: core/models.py:50
+msgid "Failed to Start"
+msgstr ""
+
+#: core/models.py:51
+msgid "Failed to Stop"
+msgstr ""
+
+#: core/models.py:52
+msgid "Notification succeeded"
+msgstr ""
+
+#: core/models.py:79
+msgid "SCREEN_RECORDING"
+msgstr ""
+
+#: core/models.py:80
+msgid "TRANSCRIPT"
+msgstr ""
+
+#: core/models.py:86
+msgid "Public Access"
+msgstr ""
+
+#: core/models.py:87
+msgid "Trusted Access"
+msgstr ""
+
+#: core/models.py:88
+msgid "Restricted Access"
+msgstr ""
+
+#: core/models.py:100
+msgid "id"
+msgstr ""
+
+#: core/models.py:101
+msgid "primary key for the record as UUID"
+msgstr ""
+
+#: core/models.py:107
+msgid "created on"
+msgstr ""
+
+#: core/models.py:108
 msgid "date and time at which a record was created"
 msgstr ""
 
-#: core/models.py:54
+#: core/models.py:113
 msgid "updated on"
 msgstr ""
 
-#: core/models.py:55
+#: core/models.py:114
 msgid "date and time at which a record was last updated"
 msgstr ""
 
-#: core/models.py:75
+#: core/models.py:134
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
 msgstr ""
 
-#: core/models.py:81
+#: core/models.py:140
 msgid "sub"
 msgstr ""
 
-#: core/models.py:83
+#: core/models.py:142
 msgid ""
 "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
 "characters only."
 msgstr ""
 
-#: core/models.py:91
+#: core/models.py:150
 msgid "identity email address"
 msgstr ""
 
-#: core/models.py:96
+#: core/models.py:155
 msgid "admin email address"
 msgstr ""
 
-#: core/models.py:103
+#: core/models.py:157
+msgid "full name"
+msgstr ""
+
+#: core/models.py:159
+msgid "short name"
+msgstr ""
+
+#: core/models.py:165
 msgid "language"
 msgstr ""
 
-#: core/models.py:104
+#: core/models.py:166
 msgid "The language in which the user wants to see the interface."
 msgstr ""
 
-#: core/models.py:110
+#: core/models.py:172
 msgid "The timezone in which the user wants to see times."
 msgstr ""
 
-#: core/models.py:113
+#: core/models.py:175
 msgid "device"
 msgstr ""
 
-#: core/models.py:115
+#: core/models.py:177
 msgid "Whether the user is a device or a real user."
 msgstr ""
 
-#: core/models.py:118
+#: core/models.py:180
 msgid "staff status"
 msgstr ""
 
-#: core/models.py:120
+#: core/models.py:182
 msgid "Whether the user can log into this admin site."
 msgstr ""
 
-#: core/models.py:123
+#: core/models.py:185
 msgid "active"
 msgstr ""
 
-#: core/models.py:126
+#: core/models.py:188
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
 msgstr ""
 
-#: core/models.py:138
+#: core/models.py:201
 msgid "user"
 msgstr ""
 
-#: core/models.py:139
+#: core/models.py:202
 msgid "users"
 msgstr ""
 
-#: core/models.py:161
-msgid "title"
+#: core/models.py:261
+msgid "Resource"
 msgstr ""
 
-#: core/models.py:162
-msgid "description"
+#: core/models.py:262
+msgid "Resources"
 msgstr ""
 
-#: core/models.py:163
-msgid "code"
+#: core/models.py:316
+msgid "Resource access"
 msgstr ""
 
-#: core/models.py:164
-msgid "css"
+#: core/models.py:317
+msgid "Resource accesses"
 msgstr ""
 
-#: core/models.py:166
-msgid "public"
+#: core/models.py:323
+msgid "Resource access with this User and Resource already exists."
 msgstr ""
 
-#: core/models.py:168
-msgid "Whether this template is public for anyone to use."
+#: core/models.py:379
+msgid "Visio room configuration"
 msgstr ""
 
-#: core/models.py:174
-msgid "Template"
+#: core/models.py:380
+msgid "Values for Visio parameters to configure the room."
 msgstr ""
 
-#: core/models.py:175
-msgid "Templates"
+#: core/models.py:386 core/models.py:506
+msgid "Room"
 msgstr ""
 
-#: core/models.py:256
-msgid "Template/user relation"
+#: core/models.py:387
+msgid "Rooms"
 msgstr ""
 
-#: core/models.py:257
-msgid "Template/user relations"
+#: core/models.py:517
+msgid "Worker ID"
 msgstr ""
 
-#: core/models.py:263
-msgid "This user is already in this template."
+#: core/models.py:519
+msgid ""
+"Enter an identifier for the worker recording.This ID is retained even when "
+"the worker stops, allowing for easy tracking."
 msgstr ""
 
-#: core/models.py:269
-msgid "This team is already in this template."
+#: core/models.py:527
+msgid "Recording mode"
 msgstr ""
 
-#: core/models.py:275
+#: core/models.py:528
+msgid "Defines the mode of recording being called."
+msgstr ""
+
+#: core/models.py:534
+msgid "Recording"
+msgstr ""
+
+#: core/models.py:535
+msgid "Recordings"
+msgstr ""
+
+#: core/models.py:592
+msgid "Recording/user relation"
+msgstr ""
+
+#: core/models.py:593
+msgid "Recording/user relations"
+msgstr ""
+
+#: core/models.py:599
+msgid "This user is already in this recording."
+msgstr ""
+
+#: core/models.py:605
+msgid "This team is already in this recording."
+msgstr ""
+
+#: core/models.py:611
 msgid "Either user or team must be set, not both."
 msgstr ""
 
-#: meet/settings.py:134
+#: core/recording/event/authentication.py:58
+msgid "Authentication is enabled but token is not configured."
+msgstr ""
+
+#: core/recording/event/authentication.py:70
+msgid "Authorization header is required"
+msgstr ""
+
+#: core/recording/event/authentication.py:78
+msgid "Invalid authorization header."
+msgstr ""
+
+#: core/recording/event/authentication.py:88
+msgid "Invalid token"
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:160
+#: core/templates/mail/text/invitation.txt:3
+msgid "La Suite Numérique"
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:190
+#: core/templates/mail/text/invitation.txt:5
+msgid "Invitation to join a team"
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:198
+msgid "Welcome to <strong>Meet</strong>"
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:216
+#: core/templates/mail/text/invitation.txt:12
+msgid "Logo"
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:226
+#: core/templates/mail/text/invitation.txt:14
+msgid ""
+"We are delighted to welcome you to our community on Meet, your new companion "
+"to collaborate on documents efficiently, intuitively, and securely."
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:231
+#: core/templates/mail/text/invitation.txt:15
+msgid ""
+"Our application is designed to help you organize, collaborate, and manage "
+"permissions."
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:236
+#: core/templates/mail/text/invitation.txt:16
+msgid "With Meet, you will be able to:"
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:237
+#: core/templates/mail/text/invitation.txt:17
+msgid "Create documents."
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:238
+#: core/templates/mail/text/invitation.txt:18
+msgid "Invite members of your document or community in just a few clicks."
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:249
+#: core/templates/mail/text/invitation.txt:20
+msgid "Visit Meet"
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:258
+#: core/templates/mail/text/invitation.txt:22
+msgid ""
+"We are confident that Meet will help you increase efficiency and "
+"productivity while strengthening the bond among members."
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:263
+#: core/templates/mail/text/invitation.txt:23
+msgid ""
+"Feel free to explore all the features of the application and share your "
+"feedback and suggestions with us. Your feedback is valuable to us and will "
+"enable us to continually improve our service."
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:268
+#: core/templates/mail/text/invitation.txt:24
+msgid ""
+"Once again, welcome aboard! We are eager to accompany you on you "
+"collaboration adventure."
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:275
+#: core/templates/mail/text/invitation.txt:26
+msgid "Sincerely,"
+msgstr ""
+
+#: core/templates/mail/html/invitation.html:276
+#: core/templates/mail/text/invitation.txt:28
+msgid "The La Suite Numérique Team"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:159
+#: core/templates/mail/text/screen_recording.txt:3
+msgid "Logo email"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:188
+#: core/templates/mail/text/screen_recording.txt:6
+msgid "Your recording is ready!"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:195
+#: core/templates/mail/text/screen_recording.txt:8
+#, python-format
+msgid ""
+" Your recording of \"%(room_name)s\" on %(recording_date)s at "
+"%(recording_time)s is now ready to view. "
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:201
+#: core/templates/mail/text/screen_recording.txt:10
+msgid "To keep this recording permanently:"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:203
+#: core/templates/mail/text/screen_recording.txt:12
+msgid "Click the \\"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:204
+#: core/templates/mail/text/screen_recording.txt:13
+msgid "Use the \\"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:205
+#: core/templates/mail/text/screen_recording.txt:14
+msgid "Save the file to your preferred location"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:216
+#: core/templates/mail/text/screen_recording.txt:16
+msgid "Open"
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:225
+#: core/templates/mail/text/screen_recording.txt:18
+#, python-format
+msgid ""
+" If you have any questions or need assistance, please contact our support "
+"team at %(support_email)s. "
+msgstr ""
+
+#: core/templates/mail/html/screen_recording.html:240
+#: core/templates/mail/text/screen_recording.txt:22
+#, python-format
+msgid " Thank you for using %(brandname)s. "
+msgstr ""
+
+#: core/templates/mail/text/invitation.txt:8
+msgid "Welcome to Meet"
+msgstr ""
+
+#: meet/settings.py:161
 msgid "English"
 msgstr ""
 
-#: meet/settings.py:135
+#: meet/settings.py:162
 msgid "French"
 msgstr ""
