@@ -2,6 +2,7 @@
 
 import uuid
 from logging import getLogger
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.db.models import Q
@@ -20,7 +21,8 @@ from rest_framework import (
     status as drf_status,
 )
 
-from core import models, utils
+from core import enums, models, utils
+from core.recording.enums import FileExtension
 from core.recording.event.authentication import StorageEventAuthentication
 from core.recording.event.exceptions import (
     InvalidBucketError,
@@ -618,3 +620,85 @@ class RecordingViewSet(
         return drf_response.Response(
             {"message": "Event processed."},
         )
+
+    def _auth_get_original_url(self, request):
+        """
+        Extracts and parses the original URL from the "HTTP_X_ORIGINAL_URL" header.
+        Raises PermissionDenied if the header is missing.
+        The original url is passed by nginx in the "HTTP_X_ORIGINAL_URL" header.
+        See corresponding ingress configuration in Helm chart and read about the
+        nginx.ingress.kubernetes.io/auth-url annotation to understand how the Nginx ingress
+        is configured to do this.
+        Based on the original url and the logged-in user, we must decide if we authorize Nginx
+        to let this request go through (by returning a 200 code) or if we block it (by returning
+        a 403 error). Note that we return 403 errors without any further details for security
+        reasons.
+        """
+        # Extract the original URL from the request header
+        original_url = request.META.get("HTTP_X_ORIGINAL_URL")
+        if not original_url:
+            logger.debug("Missing HTTP_X_ORIGINAL_URL header in subrequest")
+            raise drf_exceptions.PermissionDenied()
+
+        logger.debug("Original url: '%s'", original_url)
+        return urlparse(original_url)
+
+    def _auth_get_url_params(self, pattern, fragment):
+        """
+        Extracts URL parameters from the given fragment using the specified regex pattern.
+        Raises PermissionDenied if parameters cannot be extracted.
+        """
+
+        match = pattern.search(fragment)
+
+        try:
+            return match.groupdict()
+        except (ValueError, AttributeError) as exc:
+            logger.debug("Failed to extract parameters from subrequest URL: %s", exc)
+            raise drf_exceptions.PermissionDenied() from exc
+
+    @decorators.action(detail=False, methods=["get"], url_path="media-auth")
+    def media_auth(self, request, *args, **kwargs):
+        """
+        This view is used by an Nginx subrequest to control access to a recording's
+        media file.
+        When we let the request go through, we compute authorization headers that will be added to
+        the request going through thanks to the nginx.ingress.kubernetes.io/auth-response-headers
+        annotation. The request will then be proxied to the object storage backend who will
+        respond with the file after checking the signature included in headers.
+        """
+
+        parsed_url = self._auth_get_original_url(request)
+
+        url_params = self._auth_get_url_params(
+            enums.RECORDING_STORAGE_URL_PATTERN, parsed_url.path
+        )
+
+        user = request.user
+        recording_id = url_params["recording_id"]
+
+        extension = url_params["extension"]
+        if extension not in [item.value for item in FileExtension]:
+            raise drf_exceptions.ValidationError({"detail": "Unsupported extension."})
+
+        try:
+            recording = models.Recording.objects.get(id=recording_id)
+        except models.Recording.DoesNotExist as e:
+            raise drf_exceptions.NotFound("No recording found for this event.") from e
+
+        if extension != recording.extension:
+            raise drf_exceptions.NotFound("No recording found with this extension.")
+
+        abilities = recording.get_abilities(user)
+
+        if not abilities["retrieve"]:
+            logger.debug("User '%s' lacks permission for attachment", user.id)
+            raise drf_exceptions.PermissionDenied()
+
+        if not recording.is_saved:
+            logger.debug("Recording '%s' has not been saved", recording)
+            raise drf_exceptions.PermissionDenied()
+
+        request = utils.generate_s3_authorization_headers(recording.key)
+
+        return drf_response.Response("authorized", headers=request.headers, status=200)

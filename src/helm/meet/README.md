@@ -4,34 +4,50 @@
 
 ### General configuration
 
-| Name                                       | Description                                          | Value                  |
-| ------------------------------------------ | ---------------------------------------------------- | ---------------------- |
-| `image.repository`                         | Repository to use to pull meet's container image     | `lasuite/meet-backend` |
-| `image.tag`                                | meet's container tag                                 | `latest`               |
-| `image.pullPolicy`                         | Container image pull policy                          | `IfNotPresent`         |
-| `image.credentials.username`               | Username for container registry authentication       |                        |
-| `image.credentials.password`               | Password for container registry authentication       |                        |
-| `image.credentials.registry`               | Registry url for which the credentials are specified |                        |
-| `image.credentials.name`                   | Name of the generated secret for imagePullSecrets    |                        |
-| `nameOverride`                             | Override the chart name                              | `""`                   |
-| `fullnameOverride`                         | Override the full application name                   | `""`                   |
-| `ingress.enabled`                          | whether to enable the Ingress or not                 | `false`                |
-| `ingress.className`                        | IngressClass to use for the Ingress                  | `nil`                  |
-| `ingress.host`                             | Host for the Ingress                                 | `meet.example.com`     |
-| `ingress.path`                             | Path to use for the Ingress                          | `/`                    |
-| `ingress.hosts`                            | Additional host to configure for the Ingress         | `[]`                   |
-| `ingress.tls.enabled`                      | Weather to enable TLS for the Ingress                | `true`                 |
-| `ingress.tls.additional[].secretName`      | Secret name for additional TLS config                |                        |
-| `ingress.tls.additional[].hosts[]`         | Hosts for additional TLS config                      |                        |
-| `ingress.customBackends`                   | Add custom backends to ingress                       | `[]`                   |
-| `ingressAdmin.enabled`                     | whether to enable the Ingress or not                 | `false`                |
-| `ingressAdmin.className`                   | IngressClass to use for the Ingress                  | `nil`                  |
-| `ingressAdmin.host`                        | Host for the Ingress                                 | `meet.example.com`     |
-| `ingressAdmin.path`                        | Path to use for the Ingress                          | `/admin`               |
-| `ingressAdmin.hosts`                       | Additional host to configure for the Ingress         | `[]`                   |
-| `ingressAdmin.tls.enabled`                 | Weather to enable TLS for the Ingress                | `true`                 |
-| `ingressAdmin.tls.additional[].secretName` | Secret name for additional TLS config                |                        |
-| `ingressAdmin.tls.additional[].hosts[]`    | Hosts for additional TLS config                      |                        |
+| Name                                                                         | Description                                          | Value                                                             |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------- |
+| `image.repository`                                                           | Repository to use to pull meet's container image     | `lasuite/meet-backend`                                            |
+| `image.tag`                                                                  | meet's container tag                                 | `latest`                                                          |
+| `image.pullPolicy`                                                           | Container image pull policy                          | `IfNotPresent`                                                    |
+| `image.credentials.username`                                                 | Username for container registry authentication       |                                                                   |
+| `image.credentials.password`                                                 | Password for container registry authentication       |                                                                   |
+| `image.credentials.registry`                                                 | Registry url for which the credentials are specified |                                                                   |
+| `image.credentials.name`                                                     | Name of the generated secret for imagePullSecrets    |                                                                   |
+| `nameOverride`                                                               | Override the chart name                              | `""`                                                              |
+| `fullnameOverride`                                                           | Override the full application name                   | `""`                                                              |
+| `ingress.enabled`                                                            | whether to enable the Ingress or not                 | `false`                                                           |
+| `ingress.className`                                                          | IngressClass to use for the Ingress                  | `nil`                                                             |
+| `ingress.host`                                                               | Host for the Ingress                                 | `meet.example.com`                                                |
+| `ingress.path`                                                               | Path to use for the Ingress                          | `/`                                                               |
+| `ingress.hosts`                                                              | Additional host to configure for the Ingress         | `[]`                                                              |
+| `ingress.tls.enabled`                                                        | Weather to enable TLS for the Ingress                | `true`                                                            |
+| `ingress.tls.additional[].secretName`                                        | Secret name for additional TLS config                |                                                                   |
+| `ingress.tls.additional[].hosts[]`                                           | Hosts for additional TLS config                      |                                                                   |
+| `ingress.customBackends`                                                     | Add custom backends to ingress                       | `[]`                                                              |
+| `ingressAdmin.enabled`                                                       | whether to enable the Ingress or not                 | `false`                                                           |
+| `ingressAdmin.className`                                                     | IngressClass to use for the Ingress                  | `nil`                                                             |
+| `ingressAdmin.host`                                                          | Host for the Ingress                                 | `meet.example.com`                                                |
+| `ingressAdmin.path`                                                          | Path to use for the Ingress                          | `/admin`                                                          |
+| `ingressAdmin.hosts`                                                         | Additional host to configure for the Ingress         | `[]`                                                              |
+| `ingressAdmin.tls.enabled`                                                   | Weather to enable TLS for the Ingress                | `true`                                                            |
+| `ingressAdmin.tls.additional[].secretName`                                   | Secret name for additional TLS config                |                                                                   |
+| `ingressAdmin.tls.additional[].hosts[]`                                      | Hosts for additional TLS config                      |                                                                   |
+| `ingressMedia.enabled`                                                       | whether to enable the Ingress or not                 | `false`                                                           |
+| `ingressMedia.className`                                                     | IngressClass to use for the Ingress                  | `nil`                                                             |
+| `ingressMedia.host`                                                          | Host for the Ingress                                 | `meet.example.com`                                                |
+| `ingressMedia.path`                                                          | Path to use for the Ingress                          | `/media/(.*)`                                                     |
+| `ingressMedia.hosts`                                                         | Additional host to configure for the Ingress         | `[]`                                                              |
+| `ingressMedia.tls.enabled`                                                   | Weather to enable TLS for the Ingress                | `true`                                                            |
+| `ingressMedia.tls.secretName`                                                | Secret name for TLS config                           | `nil`                                                             |
+| `ingressMedia.tls.additional[].secretName`                                   | Secret name for additional TLS config                |                                                                   |
+| `ingressMedia.tls.additional[].hosts[]`                                      | Hosts for additional TLS config                      |                                                                   |
+| `ingressMedia.annotations.nginx.ingress.kubernetes.io/auth-url`              |                                                      | `https://meet.example.com/api/v1.0/recordings/media-auth/`        |
+| `ingressMedia.annotations.nginx.ingress.kubernetes.io/auth-response-headers` |                                                      | `Authorization, X-Amz-Date, X-Amz-Content-SHA256`                 |
+| `ingressMedia.annotations.nginx.ingress.kubernetes.io/upstream-vhost`        |                                                      | `minio.meet.svc.cluster.local:9000`                               |
+| `ingressMedia.annotations.nginx.ingress.kubernetes.io/configuration-snippet` |                                                      | `add_header Content-Security-Policy "default-src 'none'" always;` |
+| `serviceMedia.host`                                                          |                                                      | `minio.meet.svc.cluster.local`                                    |
+| `serviceMedia.port`                                                          |                                                      | `9000`                                                            |
+| `serviceMedia.annotations`                                                   |                                                      | `{}`                                                              |
 
 ### backend
 
