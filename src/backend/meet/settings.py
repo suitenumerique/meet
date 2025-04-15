@@ -322,6 +322,7 @@ class Base(Configuration):
     EMAIL_SUPPORT_EMAIL = values.Value(None)
     EMAIL_LOGO_IMG = values.Value(None)
     EMAIL_DOMAIN = values.Value(None)
+    EMAIL_APP_BASE_URL = values.Value(None)
 
     AUTH_USER_MODEL = "core.User"
 
