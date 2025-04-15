@@ -486,7 +486,7 @@ class Base(Configuration):
         None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
     )
     SCREEN_RECORDING_BASE_URL = values.Value(
-        None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
+        None, environ_name="SCREEN_RECORDING_BASE_URL", environ_prefix=None
     )
 
     # Marketing and communication settings
