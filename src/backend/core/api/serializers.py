@@ -189,11 +189,11 @@ class RequestEntrySerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("StartRecordingSerializer is validation-only")
+        raise NotImplementedError("RequestEntrySerializer is validation-only")
 
     def update(self, instance, validated_data):
         """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("StartRecordingSerializer is validation-only")
+        raise NotImplementedError("RequestEntrySerializer is validation-only")
 
 
 class ParticipantEntrySerializer(serializers.Serializer):
@@ -204,11 +204,11 @@ class ParticipantEntrySerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("StartRecordingSerializer is validation-only")
+        raise NotImplementedError("ParticipantEntrySerializer is validation-only")
 
     def update(self, instance, validated_data):
         """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("StartRecordingSerializer is validation-only")
+        raise NotImplementedError("ParticipantEntrySerializer is validation-only")
 
 
 class CreationCallbackSerializer(serializers.Serializer):
@@ -218,8 +218,8 @@ class CreationCallbackSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("StartRecordingSerializer is validation-only")
+        raise NotImplementedError("CreationCallbackSerializer is validation-only")
 
     def update(self, instance, validated_data):
         """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("StartRecordingSerializer is validation-only")
+        raise NotImplementedError("CreationCallbackSerializer is validation-only")
