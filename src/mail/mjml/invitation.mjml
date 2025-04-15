@@ -3,46 +3,58 @@
 
   <mj-body mj-class="bg--blue-100">
     <mj-wrapper css-class="wrapper" padding="0 40px 40px 40px">
-      <mj-section background-url="{% base64_static 'images/mail-header-background.png' %}" background-size="cover" background-repeat="no-repeat" background-position="0 -30px">
+      <mj-section css-class="wrapper-logo">
         <mj-column>
-            <mj-image align="center" src="{% base64_static 'images/logo-suite-numerique.png' %}" width="250px" align="left" alt="{%trans 'La Suite Numérique' %}" />
+          <mj-image
+            align="center"
+            src="{{logo_img}}"
+            width="320px"
+            alt="{%trans 'Logo email' %}"
+          />
         </mj-column>
       </mj-section>
+
       <mj-section mj-class="bg--white-100" padding="30px 20px 60px 20px">
         <mj-column>
+          <!-- Invitation message -->
+          <mj-text font-size="18px" color="#202124">
+            <p><a href="mailto:{{ sender_email }}">{{ sender_email }}</a>  {% trans "invites you to join an ongoing video call" %}</p>
+          </mj-text>
+
+          <!-- Join button -->
+          <mj-button href="{{ room_url }}" background-color="#1A73E8" color="white" border-radius="4px" font-weight="bold" font-size="16px" padding="20px 0">
+            {% trans "JOIN THE CALL" %}
+          </mj-button>
+
+          <!-- Call URL -->
+          <mj-text align="center" color="#5F6368" font-size="14px" padding-top="15px">
+            <p>{{ room_link }}</p>
+          </mj-text>
+
+          <mj-divider border-width="1px" border-style="solid" border-color="#EEEEEE" padding="30px 0" />
+
+          <!-- Additional information -->
           <mj-text font-size="14px">
-            <p>{% trans "Invitation to join a team" %}</p>
+            <p>{% trans "If you can't click the button, copy and paste the URL into your browser to join the call." %}</p>
           </mj-text>
 
-          <!-- Welcome Message -->
-          <mj-text>
-            <h1>{% blocktrans %}Welcome to <strong>Meet</strong>{% endblocktrans %}</h1>
-          </mj-text>
-          <mj-divider border-width="1px" border-style="solid" border-color="#DDDDDD" width="30%" align="left"/>
-
-          <mj-image src="{% base64_static 'images/logo.svg' %}" width="157px" align="left" alt="{%trans 'Logo' %}" />
-
-          <!-- Main Message -->
-          <mj-text>{% trans "We are delighted to welcome you to our community on Meet, your new companion to collaborate on documents efficiently, intuitively, and securely." %}</mj-text>
-          <mj-text>{% trans "Our application is designed to help you organize, collaborate, and manage permissions." %}</mj-text>
-          <mj-text>
-            {% trans "With Meet, you will be able to:" %}
+          <!-- Quick tips -->
+          <mj-text padding-top="20px" font-size="14px">
+            <p>{% trans "Tips for a better experience:" %}</p>
             <ul>
-              <li>{% trans "Create documents."%}</li>
-              <li>{% trans "Invite members of your document or community in just a few clicks."%}</li>
+              <li>{% trans "Use Chrome or Firefox for better call quality" %}</li>
+              <li>{% trans "Test your microphone and camera before joining" %}</li>
+              <li>{% trans "Make sure you have a stable internet connection" %}</li>
             </ul>
           </mj-text>
-          <mj-button href="//{{site.domain}}" background-color="#000091" color="white" padding-bottom="30px">
-            {% trans "Visit Meet"%}
-          </mj-button>
-          <mj-text>{% trans "We are confident that Meet will help you increase efficiency and productivity while strengthening the bond among members." %}</mj-text>
-          <mj-text>{% trans "Feel free to explore all the features of the application and share your feedback and suggestions with us. Your feedback is valuable to us and will enable us to continually improve our service." %}</mj-text>
-          <mj-text>{% trans "Once again, welcome aboard! We are eager to accompany you on you collaboration adventure." %}</mj-text>
 
           <!-- Signature -->
-          <mj-text>
-            <p>{% trans "Sincerely," %}</p>
-            <p>{% trans "The La Suite Numérique Team" %}</p>
+          <mj-text font-size="14px">
+            <p>
+              {% blocktrans %}
+              Thank you for using {{brandname}}.
+              {% endblocktrans %}
+            </p>
           </mj-text>
         </mj-column>
       </mj-section>
@@ -51,4 +63,3 @@
 
   <mj-include path="./partial/footer.mjml" />
 </mjml>
-

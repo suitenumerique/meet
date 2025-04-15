@@ -223,3 +223,17 @@ class CreationCallbackSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         """Not implemented as this is a validation-only serializer."""
         raise NotImplementedError("CreationCallbackSerializer is validation-only")
+
+
+class RoomInviteSerializer(serializers.Serializer):
+    """Validate room invite creation data."""
+
+    emails = serializers.ListField(child=serializers.EmailField(), allow_empty=False)
+
+    def create(self, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("RoomInviteSerializer is validation-only")
+
+    def update(self, instance, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError("RoomInviteSerializer is validation-only")

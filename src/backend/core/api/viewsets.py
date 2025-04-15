@@ -39,6 +39,7 @@ from core.recording.worker.factories import (
 from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
+from core.services.invitation import InvitationService
 from core.services.livekit_events import (
     LiveKitEventsService,
     LiveKitWebhookError,
@@ -493,6 +494,38 @@ class RoomViewSet(
 
         return drf_response.Response(
             {"status": "success", "room": room}, status=drf_status.HTTP_200_OK
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="invite",
+        permission_classes=[
+            permissions.HasPrivilegesOnRoom,
+        ],
+    )
+    def invite(self, request, pk=None):  # pylint: disable=unused-argument
+        """Send email invitations to join a room.
+
+        This API endpoint allows a user with appropriate privileges to send email invitations
+        to one or more recipients, inviting them to join the specified room.
+        """
+
+        room = self.get_object()
+
+        serializer = serializers.RoomInviteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        emails = serializer.validated_data.get("emails")
+        emails = list(set(emails))
+
+        InvitationService().invite_to_room(
+            room=room, sender=request.user, emails=emails
+        )
+
+        return drf_response.Response(
+            {"status": "success", "message": "invitations sent"},
+            status=drf_status.HTTP_200_OK,
         )
 
 
