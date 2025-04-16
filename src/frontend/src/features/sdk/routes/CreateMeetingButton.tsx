@@ -77,8 +77,21 @@ export const CreateMeetingButton = () => {
 
   if (isPending) {
     return (
-      <div>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+        })}
+      >
         <Spinner size={34} />
+        <Button
+          variant="quaternaryText"
+          square
+          icon={<RiCloseLine />}
+          onPress={resetState}
+          aria-label={t('resetLabel')}
+        />
       </div>
     )
   }
