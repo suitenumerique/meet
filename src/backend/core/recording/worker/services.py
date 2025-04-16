@@ -101,8 +101,7 @@ class VideoCompositeEgressService(BaseEgressService):
         )
 
         request = livekit_api.RoomCompositeEgressRequest(
-            room_name=room_name,
-            file_outputs=[file_output],
+            room_name=room_name, file_outputs=[file_output], layout="speaker-light"
         )
 
         response = self._handle_request(request, "start_room_composite_egress")
