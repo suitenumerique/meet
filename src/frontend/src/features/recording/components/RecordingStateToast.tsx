@@ -9,6 +9,7 @@ import { RemoteParticipant, RoomEvent } from 'livekit-client'
 import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
+import { RiRecordCircleLine } from '@remixicon/react'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
@@ -98,6 +99,8 @@ export const RecordingStateToast = () => {
 
   if (!key) return
 
+  const isStarted = key?.includes('started')
+
   return (
     <div
       className={css({
@@ -115,7 +118,16 @@ export const RecordingStateToast = () => {
         gap: '0.5rem',
       })}
     >
-      <Spinner size={20} variant="dark" />
+      {isStarted ? (
+        <RiRecordCircleLine
+          size={20}
+          className={css({
+            animation: 'pulse_background 1s infinite',
+          })}
+        />
+      ) : (
+        <Spinner size={20} variant="dark" />
+      )}
       <Text
         variant={'sm'}
         className={css({
