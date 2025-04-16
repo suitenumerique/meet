@@ -2,6 +2,7 @@
 export { useIsRecordingModeEnabled } from './hooks/useIsRecordingModeEnabled'
 export { useIsRecordingTransitioning } from './hooks/useIsRecordingTransitioning'
 export { useHasRecordingAccess } from './hooks/useHasRecordingAccess'
+export { useIsRecordingActive } from './hooks/useIsRecordingActive'
 
 // api
 export { useStartRecording } from './api/startRecording'

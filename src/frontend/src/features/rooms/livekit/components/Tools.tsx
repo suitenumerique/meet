@@ -10,10 +10,9 @@ import {
   useIsRecordingModeEnabled,
   RecordingMode,
   useHasRecordingAccess,
-} from '@/features/recording'
-import {
   TranscriptSidePanel,
   ScreenRecordingSidePanel,
+  useIsRecordingActive,
 } from '@/features/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 
@@ -23,6 +22,7 @@ export interface ToolsButtonProps {
   description: string
   onPress: () => void
   isBetaFeature?: boolean
+  isActive?: boolean
 }
 
 const ToolButton = ({
@@ -31,6 +31,7 @@ const ToolButton = ({
   description,
   onPress,
   isBetaFeature = false,
+  isActive = false,
 }: ToolsButtonProps) => {
   return (
     <RACButton
@@ -85,8 +86,23 @@ const ToolButton = ({
         )}
       </div>
       <div>
-        <Text margin={false} as="h3">
+        <Text
+          margin={false}
+          as="h3"
+          className={css({ display: 'flex', gap: 0.25 })}
+        >
           {title}
+          {isActive && (
+            <div
+              className={css({
+                backgroundColor: 'primary.500',
+                height: '10px',
+                width: '10px',
+                marginTop: '5px',
+                borderRadius: '100%',
+              })}
+            />
+          )}
         </Text>
         <Text as="p" variant="smNote" wrap="pretty">
           {description}
@@ -100,13 +116,20 @@ export const Tools = () => {
   const { openTranscript, openScreenRecording, activeSubPanelId } =
     useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
+
   const isTranscriptEnabled = useIsRecordingModeEnabled(
     RecordingMode.Transcript
   )
 
+  const isTranscriptActive = useIsRecordingActive(RecordingMode.Transcript)
+
   const hasScreenRecordingAccess = useHasRecordingAccess(
     RecordingMode.ScreenRecording,
     FeatureFlags.ScreenRecording
+  )
+
+  const isScreenRecordingActive = useIsRecordingActive(
+    RecordingMode.ScreenRecording
   )
 
   switch (activeSubPanelId) {
@@ -149,6 +172,7 @@ export const Tools = () => {
           description={t('tools.transcript.body')}
           onPress={() => openTranscript()}
           isBetaFeature
+          isActive={isTranscriptActive}
         />
       )}
       {hasScreenRecordingAccess && (
@@ -158,6 +182,7 @@ export const Tools = () => {
           description={t('tools.screenRecording.body')}
           onPress={() => openScreenRecording()}
           isBetaFeature
+          isActive={isScreenRecordingActive}
         />
       )}
     </Div>
