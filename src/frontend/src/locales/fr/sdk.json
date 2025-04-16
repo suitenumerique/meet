@@ -1,6 +1,6 @@
 {
   "createMeeting": {
-    "createButton": "Créer un lien",
+    "createButton": "Créer un lien Visio",
     "joinButton": "Participer avec Visio",
     "copyLinkTooltip": "Copier le lien",
     "resetLabel": "Réinitialiser",
