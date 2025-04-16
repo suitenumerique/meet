@@ -22,6 +22,7 @@ export interface ToolsButtonProps {
   title: string
   description: string
   onPress: () => void
+  isBetaFeature?: boolean
 }
 
 const ToolButton = ({
@@ -29,6 +30,7 @@ const ToolButton = ({
   title,
   description,
   onPress,
+  isBetaFeature = false,
 }: ToolsButtonProps) => {
   return (
     <RACButton
@@ -59,9 +61,28 @@ const ToolButton = ({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          position: 'relative',
         })}
       >
         {icon}
+        {isBetaFeature && (
+          <div
+            className={css({
+              position: 'absolute',
+              backgroundColor: 'primary.50',
+              color: 'primary.800',
+              fontSize: '12px',
+              fontWeight: 500,
+              borderRadius: '4px',
+              paddingX: '4px',
+              paddingBottom: '1px',
+              bottom: -8,
+              right: -8,
+            })}
+          >
+            BETA
+          </div>
+        )}
       </div>
       <div>
         <Text margin={false} as="h3">
@@ -127,6 +148,7 @@ export const Tools = () => {
           title={t('tools.transcript.title')}
           description={t('tools.transcript.body')}
           onPress={() => openTranscript()}
+          isBetaFeature
         />
       )}
       {hasScreenRecordingAccess && (
@@ -135,6 +157,7 @@ export const Tools = () => {
           title={t('tools.screenRecording.title')}
           description={t('tools.screenRecording.body')}
           onPress={() => openScreenRecording()}
+          isBetaFeature
         />
       )}
     </Div>
