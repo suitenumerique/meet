@@ -12,6 +12,7 @@ export interface ApiConfig {
     id: string
   }
   silence_livekit_debug_logs?: boolean
+  is_silent_login_enabled?: boolean
   recording?: {
     is_enabled?: boolean
     available_modes?: RecordingMode[]

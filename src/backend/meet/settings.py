@@ -307,6 +307,9 @@ class Base(Configuration):
         "silence_livekit_debug_logs": values.BooleanValue(
             False, environ_name="FRONTEND_SILENCE_LIVEKIT_DEBUG", environ_prefix=None
         ),
+        "is_silent_login_enabled": values.BooleanValue(
+            True, environ_name="FRONTEND_IS_SILENT_LOGING_ENABLED", environ_prefix=None
+        ),
     }
 
     # Mail

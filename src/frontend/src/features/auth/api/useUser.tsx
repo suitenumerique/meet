@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { keys } from '@/api/queryKeys'
 import { fetchUser } from './fetchUser'
 import { type ApiUser } from './ApiUser'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   startAnalyticsSession,
   terminateAnalyticsSession,
@@ -12,6 +12,7 @@ import {
   terminateSupportSession,
 } from '@/features/support/hooks/useSupport'
 import { logoutUrl } from '../utils/logoutUrl'
+import { useConfig } from '@/api/useConfig'
 
 /**
  * returns info about currently logged-in user
@@ -23,11 +24,24 @@ export const useUser = (
     fetchUserOptions?: Parameters<typeof fetchUser>[0]
   } = {}
 ) => {
+  const { data, isLoading } = useConfig()
+
+  const options = useMemo(() => {
+    if (!data || data?.is_silent_login_enabled !== true) {
+      return {
+        ...opts,
+        attemptSilent: false,
+      }
+    }
+    return opts.fetchUserOptions
+  }, [data, opts])
+
   const query = useQuery({
     // eslint-disable-next-line @tanstack/query/exhaustive-deps
     queryKey: [keys.user],
-    queryFn: () => fetchUser(opts.fetchUserOptions),
+    queryFn: () => fetchUser(options),
     staleTime: Infinity,
+    enabled: !isLoading,
   })
 
   useEffect(() => {
