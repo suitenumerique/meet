@@ -22,6 +22,7 @@ import {
 } from '@/features/notifications'
 import posthog from 'posthog-js'
 import { useSnapshot } from 'valtio/index'
+import { Spinner } from '@/primitives/Spinner'
 
 export const ScreenRecordingSidePanel = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -160,6 +161,7 @@ export const ScreenRecordingSidePanel = () => {
               >
                 {t('stopping.body')}
               </Text>
+              <Spinner />
             </>
           ) : (
             <>
