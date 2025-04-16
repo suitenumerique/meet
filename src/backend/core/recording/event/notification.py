@@ -83,7 +83,7 @@ class NotificationService:
                     fail_silently=False,
                 )
             except smtplib.SMTPException as exception:
-                logger.error("notification to %s was not sent: %s", emails, exception)
+                logger.error("notification could not be sent: %s", exception)
                 return False
 
         return True

@@ -150,9 +150,9 @@ def test_notify_user_by_email_smtp_exception(mocked_current_site, caplog):
     """Test email notification when an exception occurs."""
 
     recording = factories.RecordingFactory(room__name="Conference Room A")
-    owner = factories.UserRecordingAccessFactory(
+    factories.UserRecordingAccessFactory(
         recording=recording, role=models.RoleChoices.OWNER
-    ).user
+    )
 
     notification_service = NotificationService()
 
@@ -164,4 +164,4 @@ def test_notify_user_by_email_smtp_exception(mocked_current_site, caplog):
 
         assert result is False
         mock_send_mail.assert_called_once()
-        assert f"notification to ['{owner.email}'] was not sent" in caplog.text
+        assert "notification could not be sent:" in caplog.text
