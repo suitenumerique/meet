@@ -107,7 +107,7 @@ export const RecordingStateToast = () => {
         left: '10px',
         paddingY: '0.25rem',
         paddingX: '0.75rem 0.75rem',
-        backgroundColor: 'primaryDark.100',
+        backgroundColor: 'danger.700',
         borderColor: 'white',
         border: '1px solid',
         color: 'white',

@@ -31,7 +31,7 @@ export const Spinner = ({
               strokeDashoffset={0}
               strokeLinecap="round"
               className={css({
-                stroke: variant == 'light' ? 'primary.100' : 'primaryDark.100',
+                stroke: variant == 'light' ? 'primary.100' : 'transparent',
               })}
               style={{}}
             />
