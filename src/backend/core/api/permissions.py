@@ -94,7 +94,7 @@ class HasAbilityPermission(IsAuthenticated):
 class HasPrivilegesOnRoom(IsAuthenticated):
     """Check if user has privileges on a given room."""
 
-    message = "You must have privileges to start a recording."
+    message = "You must have privileges on room to perform this action."
 
     def has_object_permission(self, request, view, obj):
         """Determine if user has privileges on room."""
