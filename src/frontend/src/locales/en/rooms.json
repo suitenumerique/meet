@@ -205,6 +205,7 @@
       "heading": "Transcribe this call",
       "body": "Automatically transcribe this call and receive the summary in Docs.",
       "button": "Start transcription",
+      "loading": "Transcription starting",
       "linkMore": "Learn more"
     },
     "stop": {
@@ -227,6 +228,7 @@
       "heading": "Record this call",
       "body": "Record this call to watch it later and receive the video recording by email.",
       "button": "Start recording",
+      "loading": "Recording starting",
       "linkMore": "Learn more"
     },
     "stopping": {

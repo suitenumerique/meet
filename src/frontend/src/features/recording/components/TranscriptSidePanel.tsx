@@ -49,6 +49,7 @@ export const TranscriptSidePanel = () => {
     return {
       isAnotherModeStarted:
         recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTED,
+      isStarting: recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTING,
       isStarted: recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTED,
       isStopping: recordingSnap.status == RecordingStatus.TRANSCRIPT_STOPPING,
     }
@@ -224,7 +225,14 @@ export const TranscriptSidePanel = () => {
                     size="sm"
                     variant="tertiary"
                   >
-                    {t('start.button')}
+                    {statuses.isStarting ? (
+                      <>
+                        <Spinner size={20} />
+                        {t('start.loading')}
+                      </>
+                    ) : (
+                      t('start.button')
+                    )}
                   </Button>
                 </>
               )}

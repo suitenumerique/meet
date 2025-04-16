@@ -205,6 +205,7 @@
       "heading": "Transcribeer dit gesprek",
       "body": "Transcribeer dit gesprek automatisch en ontvang het verslag in Docs.",
       "button": "Transcriptie starten",
+      "loading": "Transcriptie begint",
       "linkMore": "Meer informatie"
     },
     "stop": {
@@ -227,6 +228,7 @@
       "heading": "Dit gesprek opnemen",
       "body": "Neem dit gesprek op om het later terug te kijken. Je ontvangt de video-opname per e-mail.",
       "button": "Opname starten",
+      "loading": "Opname gestarten",
       "linkMore": "Meer informatie"
     },
     "stopping": {

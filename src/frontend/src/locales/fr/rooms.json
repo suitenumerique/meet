@@ -205,6 +205,7 @@
       "heading": "Transcrire cet appel",
       "body": "Transcrivez cet appel automatiquement et recevez le compte rendu dans Docs.",
       "button": "Démarrer la transcription",
+      "loading": "Démarrage de la transcription",
       "linkMore": "En savoir plus"
     },
     "stop": {
@@ -227,6 +228,7 @@
       "heading": "Enregistrer cet appel",
       "body": "Enregistrez cet appel pour plus tard et recevez l'enregistrement vidéo par mail.",
       "button": "Démarrer l'enregistrement",
+      "loading": "Démarrage de l'enregistrement",
       "linkMore": "En savoir plus"
     },
     "stopping": {
