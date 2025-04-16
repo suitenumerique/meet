@@ -12,7 +12,7 @@ import { RecordingStatus, recordingStore } from '@/stores/recording'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
-    keyPrefix: 'recordingBadge',
+    keyPrefix: 'recordingStateToast',
   })
   const room = useRoomContext()
 

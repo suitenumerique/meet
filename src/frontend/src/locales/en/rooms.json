@@ -320,7 +320,7 @@
       }
     }
   },
-  "recordingBadge": {
+  "recordingStateToast": {
     "transcript": {
       "started": "Transcribing",
       "starting": "Transcription starting",

@@ -320,7 +320,7 @@
       }
     }
   },
-  "recordingBadge": {
+  "recordingStateToast": {
     "transcript": {
       "started": "Transcription en cours",
       "starting": "Démarrage de la transcription",
