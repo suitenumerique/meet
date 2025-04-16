@@ -10,10 +10,14 @@ import { usePrevious } from '@/hooks/usePrevious'
 import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
 import { useWaitingParticipants } from '@/features/rooms/hooks/useWaitingParticipants'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { useNotificationSound } from '../hooks/useSoundNotification'
+import { NotificationType } from '@/features/notifications'
 
 export const NOTIFICATION_DISPLAY_DURATION = 10000
 
 export const WaitingParticipantNotification = () => {
+  const { triggerNotificationSound } = useNotificationSound()
+
   const { t } = useTranslation('notifications', {
     keyPrefix: 'waitingParticipants',
   })
@@ -37,6 +41,9 @@ export const WaitingParticipantNotification = () => {
       !isParticipantsOpen
     ) {
       setShowQuickActionsMessage(true)
+
+      triggerNotificationSound(NotificationType.ParticipantJoined)
+
       if (timerRef.current !== null) {
         clearTimeout(timerRef.current)
       }
@@ -48,7 +55,12 @@ export const WaitingParticipantNotification = () => {
       // Hide notification when the participant count changes
       setShowQuickActionsMessage(false)
     }
-  }, [waitingParticipants, prevWaitingParticipant, isParticipantsOpen])
+  }, [
+    waitingParticipants,
+    prevWaitingParticipant,
+    isParticipantsOpen,
+    triggerNotificationSound,
+  ])
 
   useEffect(() => {
     // This cleanup function will only run when the component unmounts
