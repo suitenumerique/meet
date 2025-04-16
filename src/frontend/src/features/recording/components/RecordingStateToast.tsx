@@ -10,6 +10,14 @@ import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { RiRecordCircleLine } from '@remixicon/react'
+import {
+  RecordingMode,
+  useHasRecordingAccess,
+  useIsRecordingActive,
+} from '@/features/recording'
+import { FeatureFlags } from '@/features/analytics/enums'
+import { Button as RACButton } from 'react-aria-components'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
@@ -17,7 +25,25 @@ export const RecordingStateToast = () => {
   })
   const room = useRoomContext()
 
+  const { openTranscript, openScreenRecording } = useSidePanel()
+
   const recordingSnap = useSnapshot(recordingStore)
+
+  const hasTranscriptAccess = useHasRecordingAccess(
+    RecordingMode.Transcript,
+    FeatureFlags.Transcript
+  )
+
+  const isTranscriptActive = useIsRecordingActive(RecordingMode.Transcript)
+
+  const hasScreenRecordingAccess = useHasRecordingAccess(
+    RecordingMode.ScreenRecording,
+    FeatureFlags.ScreenRecording
+  )
+
+  const isScreenRecordingActive = useIsRecordingActive(
+    RecordingMode.ScreenRecording
+  )
 
   useEffect(() => {
     if (room.isRecording && recordingSnap.status == RecordingStatus.STOPPED) {
@@ -101,6 +127,10 @@ export const RecordingStateToast = () => {
 
   const isStarted = key?.includes('started')
 
+  const hasScreenRecordingAccessAndActive =
+    isScreenRecordingActive && hasScreenRecordingAccess
+  const hasTranscriptAccessAndActive = isTranscriptActive && hasTranscriptAccess
+
   return (
     <div
       className={css({
@@ -128,14 +158,41 @@ export const RecordingStateToast = () => {
       ) : (
         <Spinner size={20} variant="dark" />
       )}
-      <Text
-        variant={'sm'}
-        className={css({
-          fontWeight: '500 !important',
-        })}
-      >
-        {t(key)}
-      </Text>
+
+      {!hasScreenRecordingAccessAndActive && !hasTranscriptAccessAndActive && (
+        <Text
+          variant={'sm'}
+          className={css({
+            fontWeight: '500 !important',
+          })}
+        >
+          {t(key)}
+        </Text>
+      )}
+      {hasScreenRecordingAccessAndActive && (
+        <RACButton
+          onPress={openScreenRecording}
+          className={css({
+            textStyle: 'sm !important',
+            fontWeight: '500 !important',
+            cursor: 'pointer',
+          })}
+        >
+          {t(key)}
+        </RACButton>
+      )}
+      {hasTranscriptAccessAndActive && (
+        <RACButton
+          onPress={openTranscript}
+          className={css({
+            textStyle: 'sm !important',
+            fontWeight: '500 !important',
+            cursor: 'pointer',
+          })}
+        >
+          {t(key)}
+        </RACButton>
+      )}
     </div>
   )
 }
