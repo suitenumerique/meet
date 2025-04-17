@@ -7,6 +7,7 @@ export enum PanelId {
   CHAT = 'chat',
   TOOLS = 'tools',
   ADMIN = 'admin',
+  INFO = 'info',
 }
 
 export enum SubPanelId {
@@ -24,6 +25,7 @@ export const useSidePanel = () => {
   const isChatOpen = activePanelId == PanelId.CHAT
   const isToolsOpen = activePanelId == PanelId.TOOLS
   const isAdminOpen = activePanelId == PanelId.ADMIN
+  const isInfoOpen = activePanelId == PanelId.INFO
   const isTranscriptOpen = activeSubPanelId == SubPanelId.TRANSCRIPT
   const isScreenRecordingOpen = activeSubPanelId == SubPanelId.SCREEN_RECORDING
   const isSidePanelOpen = !!activePanelId
@@ -54,6 +56,11 @@ export const useSidePanel = () => {
     if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
   }
 
+  const toggleInfo = () => {
+    layoutStore.activePanelId = isInfoOpen ? null : PanelId.INFO
+    if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
+  }
+
   const openTranscript = () => {
     layoutStore.activeSubPanelId = SubPanelId.TRANSCRIPT
     layoutStore.activePanelId = PanelId.TOOLS
@@ -72,6 +79,7 @@ export const useSidePanel = () => {
     toggleEffects,
     toggleTools,
     toggleAdmin,
+    toggleInfo,
     openTranscript,
     openScreenRecording,
     isSubPanelOpen,
@@ -81,6 +89,7 @@ export const useSidePanel = () => {
     isSidePanelOpen,
     isToolsOpen,
     isAdminOpen,
+    isInfoOpen,
     isTranscriptOpen,
     isScreenRecordingOpen,
   }

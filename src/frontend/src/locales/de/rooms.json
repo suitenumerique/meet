@@ -91,6 +91,10 @@
         }
       }
     },
+    "info": {
+      "open": "",
+      "closed": ""
+    },
     "hand": {
       "raise": "",
       "lower": ""
@@ -171,7 +175,8 @@
       "transcript": "",
       "screenRecording": "",
       "admin": "",
-      "tools": ""
+      "tools": "",
+      "info": ""
     },
     "content": {
       "participants": "",
@@ -180,7 +185,8 @@
       "transcript": "",
       "screenRecording": "",
       "admin": "",
-      "tools": ""
+      "tools": "",
+      "info": ""
     },
     "closeButton": ""
   },
@@ -198,6 +204,16 @@
       "screenRecording": {
         "title": "",
         "body": ""
+      }
+    }
+  },
+  "info": {
+    "roomInformation": {
+      "title": "",
+      "button": {
+        "ariaLabel": "",
+        "copy": "",
+        "copied": ""
       }
     }
   },

@@ -12,6 +12,7 @@ import { Chat } from '../prefabs/Chat'
 import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
+import { Info } from './Info'
 
 type StyledSidePanelProps = {
   title: string
@@ -133,6 +134,7 @@ export const SidePanel = () => {
     isSidePanelOpen,
     isToolsOpen,
     isAdminOpen,
+    isInfoOpen,
     isSubPanelOpen,
     activeSubPanelId,
   } = useSidePanel()
@@ -166,6 +168,9 @@ export const SidePanel = () => {
       </Panel>
       <Panel isOpen={isAdminOpen}>
         <Admin />
+      </Panel>
+      <Panel isOpen={isInfoOpen}>
+        <Info />
       </Panel>
     </StyledSidePanel>
   )

@@ -397,6 +397,12 @@ const config: Config = {
           lineHeight: '1.25rem',
         },
       },
+      xs: {
+        value: {
+          fontSize: '0.825rem',
+          lineHeight: '1.15rem',
+        },
+      },
       badge: {
         value: {
           fontSize: '0.75rem',

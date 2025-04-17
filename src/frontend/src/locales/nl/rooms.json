@@ -90,6 +90,10 @@
         }
       }
     },
+    "info": {
+      "open": "Informatie verbergen",
+      "closed": "Informatie tonen"
+    },
     "hand": {
       "raise": "Hand opsteken",
       "lower": "Hand laten zakken"
@@ -170,7 +174,8 @@
       "transcript": "Transcriptie",
       "screenRecording": "Schermopname",
       "admin": "Beheerdersbediening",
-      "tools": "Meer tools"
+      "tools": "Meer tools",
+      "info": "Vergaderinformatie"
     },
     "content": {
       "participants": "deelnemers",
@@ -179,7 +184,8 @@
       "screenRecording": "transcriptie",
       "transcript": "schermopname",
       "admin": "beheerdersbediening",
-      "tools": "meer tools"
+      "tools": "meer tools",
+      "info": "vergaderinformatie"
     },
     "closeButton": "Verberg {{content}}"
   },
@@ -197,6 +203,16 @@
       "screenRecording": {
         "title": "Opname",
         "body": "Neem je vergadering op om die later opnieuw te bekijken."
+      }
+    }
+  },
+  "info": {
+    "roomInformation": {
+      "title": "Verbindingsinformatie",
+      "button": {
+        "ariaLabel": "Kopieer je vergaderadres",
+        "copy": "Adres kopiëren",
+        "copied": "Adres gekopieerd"
       }
     }
   },

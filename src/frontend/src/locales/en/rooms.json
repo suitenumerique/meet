@@ -90,6 +90,10 @@
         }
       }
     },
+    "info": {
+      "open": "Hide information",
+      "closed": "Show information"
+    },
     "hand": {
       "raise": "Raise hand",
       "lower": "Lower hand"
@@ -170,7 +174,8 @@
       "transcript": "Transcription",
       "screenRecording": "Recording",
       "admin": "Admin settings",
-      "tools": "More tools"
+      "tools": "More tools",
+      "info": "Meeting information"
     },
     "content": {
       "participants": "participants",
@@ -179,7 +184,8 @@
       "transcript": "transcription",
       "screenRecording": "recording",
       "admin": "admin settings",
-      "tools": "more tools"
+      "tools": "more tools",
+      "info": "meeting information"
     },
     "closeButton": "Hide {{content}}"
   },
@@ -197,6 +203,16 @@
       "screenRecording": {
         "title": "Recording",
         "body": "Record your meeting to watch it again whenever you like."
+      }
+    }
+  },
+  "info": {
+    "roomInformation": {
+      "title": "Connection Information",
+      "button": {
+        "ariaLabel": "Copy your meeting address",
+        "copy": "Copy address",
+        "copied": "Address copied"
       }
     }
   },

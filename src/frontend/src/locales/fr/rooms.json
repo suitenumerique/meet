@@ -90,6 +90,10 @@
         }
       }
     },
+    "info": {
+      "open": "Masquer les informations",
+      "closed": "Afficher les informations"
+    },
     "hand": {
       "raise": "Lever la main",
       "lower": "Baisser la main"
@@ -170,7 +174,8 @@
       "transcript": "Transcription",
       "screenRecording": "Enregistrement",
       "admin": "Commandes de l'organisateur",
-      "tools": "Plus d'outils"
+      "tools": "Plus d'outils",
+      "info": "Informations sur la réunion"
     },
     "content": {
       "participants": "les participants",
@@ -179,7 +184,8 @@
       "transcript": "transcription",
       "screenRecording": "enregistrement",
       "admin": "commandes de l'organisateur",
-      "tools": "plus d'outils"
+      "tools": "plus d'outils",
+      "info": "informations sur la réunion"
     },
     "closeButton": "Masquer {{content}}"
   },
@@ -197,6 +203,16 @@
       "screenRecording": {
         "title": "Enregistrement",
         "body": "Enregistrez votre réunion pour la revoir quand vous le souhaitez."
+      }
+    }
+  },
+  "info": {
+    "roomInformation": {
+      "title": "Informations de connexions",
+      "button": {
+        "ariaLabel": "Copier l'adresse de votre réunion",
+        "copy": "Copier l'adresse",
+        "copied": "Adresse copiée"
       }
     }
   },

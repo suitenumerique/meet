@@ -57,6 +57,10 @@ export const text = cva({
         color: 'default.subtle-text',
         textStyle: 'sm',
       },
+      xsNote: {
+        color: 'default.subtle-text',
+        textStyle: 'xs',
+      },
       inherits: {},
     },
     centered: {
