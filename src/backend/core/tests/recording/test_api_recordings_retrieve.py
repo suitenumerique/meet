@@ -80,6 +80,7 @@ def test_api_recording_retrieve_administrators():
 
     assert content == {
         "id": str(recording.id),
+        "key": recording.key,
         "room": {
             "access_level": str(room.access_level),
             "id": str(room.id),
@@ -111,6 +112,7 @@ def test_api_recording_retrieve_owners():
 
     assert content == {
         "id": str(recording.id),
+        "key": recording.key,
         "room": {
             "access_level": str(room.access_level),
             "id": str(room.id),
