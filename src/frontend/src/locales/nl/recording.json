@@ -1,0 +1,15 @@
+{
+  "error": {
+    "title": "Opname niet beschikbaar",
+    "body": "Deze opname is niet gevonden of is verwijderd na de geldigheidsperiode van 7 dagen."
+  },
+  "authentication": {
+    "title": "Authenticatie vereist",
+    "body": "Log in om toegang te krijgen tot deze opname."
+  },
+  "success": {
+    "title": "Je opname is klaar!",
+    "body": "Opname van de vergadering <b>{{room}}</b> op {{created_at}}.",
+    "button": "Downloaden"
+  }
+}

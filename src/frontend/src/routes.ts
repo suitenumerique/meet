@@ -5,6 +5,7 @@ import { AccessibilityRoute } from '@/features/legalsTerms/Accessibility'
 import { TermsOfServiceRoute } from '@/features/legalsTerms/TermsOfService'
 import { CreatePopup } from '@/features/sdk/routes/CreatePopup'
 import { CreateMeetingButton } from '@/features/sdk/routes/CreateMeetingButton'
+import { RecordingDownloadRoute } from '@/features/recording'
 
 export const routes: Record<
   | 'home'
@@ -14,7 +15,8 @@ export const routes: Record<
   | 'accessibility'
   | 'termsOfService'
   | 'sdkCreatePopup'
-  | 'sdkCreateButton',
+  | 'sdkCreateButton'
+  | 'recordingDownload',
   {
     name: RouteName
     path: RegExp | string
@@ -63,6 +65,14 @@ export const routes: Record<
     name: 'sdkCreateButton',
     path: '/sdk/create-button',
     Component: CreateMeetingButton,
+  },
+  recordingDownload: {
+    name: 'recordingDownload',
+    path: new RegExp(
+      `^[/]recording[/](?<recordingId>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$`
+    ),
+    to: (recordingId: string) => `/recording/${recordingId.trim()}`,
+    Component: RecordingDownloadRoute,
   },
 }
 

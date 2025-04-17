@@ -12,3 +12,6 @@ export { RecordingMode } from './types'
 export { RecordingStateToast } from './components/RecordingStateToast'
 export { TranscriptSidePanel } from './components/TranscriptSidePanel'
 export { ScreenRecordingSidePanel } from './components/ScreenRecordingSidePanel'
+
+// routes
+export { RecordingDownload as RecordingDownloadRoute } from './routes/RecordingDownload'

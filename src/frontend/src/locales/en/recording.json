@@ -1,0 +1,15 @@
+{
+  "error": {
+    "title": "Recording unavailable",
+    "body": "This recording could not be found or was deleted after its 7-day validity period."
+  },
+  "authentication": {
+    "title": "Authentication required",
+    "body": "Please log in to access this recording."
+  },
+  "success": {
+    "title": "Your recording is ready!",
+    "body": "Recording of the meeting <b>{{room}}</b> from {{created_at}}.",
+    "button": "Download"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "error": {
+    "title": "Enregistrement indisponible",
+    "body": "Cet enregistrement est introuvable ou a été supprimé après sa période de validité de 7 jours."
+  },
+  "authentication": {
+    "title": "Authentification requise",
+    "body": "Veuillez vous connecter pour accéder à cet enregistrement."
+  },
+  "success": {
+    "title": "Votre enregistrement est prêt !",
+    "body": "Enregistrement de la réunion <b>{{room}}</b> du {{created_at}}.",
+    "button": "Télécharger"
+  }
+}
