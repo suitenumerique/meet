@@ -7,6 +7,10 @@
     "title": "Authenticatie vereist",
     "body": "Log in om toegang te krijgen tot deze opname."
   },
+  "unsaved": {
+    "title": "Download niet beschikbaar",
+    "body": "Deze opname is nog niet klaar om te worden gedownload. Probeer het later opnieuw."
+  },
   "success": {
     "title": "Je opname is klaar!",
     "body": "Opname van de vergadering <b>{{room}}</b> op {{created_at}}.",

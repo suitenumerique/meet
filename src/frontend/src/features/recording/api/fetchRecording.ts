@@ -1,6 +1,6 @@
 import { fetchApi } from '@/api/fetchApi'
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
-import { RecordingMode } from '@/features/recording'
+import { RecordingMode, RecordingStatus } from '@/features/recording'
 
 export type RecordingApi = {
   id: string
@@ -8,6 +8,7 @@ export type RecordingApi = {
   created_at: string
   key: string
   mode: RecordingMode
+  status: RecordingStatus
 }
 
 export const fetchRecording = ({ recordingId }: { recordingId?: string }) => {

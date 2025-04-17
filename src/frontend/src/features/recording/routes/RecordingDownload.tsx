@@ -12,6 +12,7 @@ import { formatDate } from '@/utils/formatDate'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { LoadingScreen } from '@/components/LoadingScreen'
 import { fetchRecording } from '../api/fetchRecording'
+import { RecordingStatus } from '@/features/recording'
 
 export const RecordingDownload = () => {
   const { t } = useTranslation('recording')
@@ -40,6 +41,13 @@ export const RecordingDownload = () => {
 
   if (isError) {
     return <ErrorScreen title={t('error.title')} body={t('error.body')} />
+  }
+
+  if (
+    data.status !== RecordingStatus.Saved &&
+    data.status !== RecordingStatus.NotificationSucceed
+  ) {
+    return <ErrorScreen title={t('unsaved.title')} body={t('unsaved.body')} />
   }
 
   return (

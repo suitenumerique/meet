@@ -7,6 +7,10 @@
     "title": "Authentification requise",
     "body": "Veuillez vous connecter pour accéder à cet enregistrement."
   },
+  "unsaved": {
+    "title": "Téléchargement indisponible",
+    "body": "Cet enregistrement n'est pas encore prêt à être téléchargé. Veuillez réessayer plus tard."
+  },
   "success": {
     "title": "Votre enregistrement est prêt !",
     "body": "Enregistrement de la réunion <b>{{room}}</b> du {{created_at}}.",
