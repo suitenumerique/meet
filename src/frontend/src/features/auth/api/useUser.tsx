@@ -65,6 +65,7 @@ export const useUser = (
     refetch: query.refetch,
     user: isLoggedOut ? undefined : (query.data as ApiUser | undefined),
     isLoggedIn,
+    isLoading: query.isLoading,
     logout,
   }
 }

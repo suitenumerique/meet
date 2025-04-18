@@ -17,7 +17,7 @@ import { RecordingStatus } from '@/features/recording'
 export const RecordingDownload = () => {
   const { t } = useTranslation('recording')
   const { recordingId } = useParams()
-  const { isLoggedIn } = useUser()
+  const { isLoggedIn, isLoading: isAuthLoading } = useUser()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['recording', recordingId],
@@ -26,7 +26,7 @@ export const RecordingDownload = () => {
     enabled: !!recordingId,
   })
 
-  if (isLoading || !data) {
+  if (isLoading || !data || isAuthLoading) {
     return <LoadingScreen />
   }
 
