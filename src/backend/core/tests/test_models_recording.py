@@ -256,8 +256,11 @@ def test_models_recording_key_for_unknown_mode(settings):
 
 
 def test_models_recording_is_saved_true():
-    """Test is_saved property returns True for SAVED status."""
+    """Test is_saved property returns True for SAVED and NOTIFICATION_SUCCEEDED status."""
     recording = RecordingFactory(status=RecordingStatusChoices.SAVED)
+    assert recording.is_saved is True
+
+    recording = RecordingFactory(status=RecordingStatusChoices.NOTIFICATION_SUCCEEDED)
     assert recording.is_saved is True
 
 
