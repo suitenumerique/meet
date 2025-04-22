@@ -33,19 +33,20 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
   const [isAlertOpen, setIsAlertOpen] = useState(false)
   const name = participant.name || participant.identity
 
+  const label = isLocal(participant)
+    ? t('participants.muteYourself')
+    : t('participants.muteParticipant', {
+        name,
+      })
+
   return (
     <>
       <Button
         square
         variant="greyscale"
         size="sm"
-        tooltip={
-          isLocal(participant)
-            ? t('participants.muteYourself')
-            : t('participants.muteParticipant', {
-                name,
-              })
-        }
+        tooltip={label}
+        aria-label={label}
         isDisabled={isMuted}
         onPress={() =>
           !isMuted && isLocal(participant)
@@ -55,7 +56,7 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
         data-attr="participants-mute"
       >
         {isMuted ? (
-          <RiMicOffFill color={'gray'} />
+          <RiMicOffFill color={'gray'} aria-hidden={true} />
         ) : (
           <RiMicFill
             className={css({
@@ -64,6 +65,7 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
                 ? 'pulse_background 800ms infinite'
                 : undefined,
             })}
+            aria-hidden={true}
           />
         )}
       </Button>
