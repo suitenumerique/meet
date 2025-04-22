@@ -1,6 +1,6 @@
 {{- $envVars := include "meet.common.env" (list . .Values.backend) -}}
 {{- $fullName := include "meet.backend.fullname" . -}}
-{{- $component := "backend" -}}
+{{- $component := "backend-createsuperuser" -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
