@@ -23,344 +23,352 @@ msgstr ""
 
 #: core/admin.py:39
 msgid "Permissions"
-msgstr ""
+msgstr "Permissions"
 
 #: core/admin.py:51
 msgid "Important dates"
-msgstr ""
+msgstr "Important dates"
 
 #: core/api/serializers.py:60
 msgid "You must be administrator or owner of a room to add accesses to it."
-msgstr ""
+msgstr "You must be administrator or owner of a room to add accesses to it."
 
 #: core/authentication/backends.py:77
 msgid "User info contained no recognizable user identification"
-msgstr ""
+msgstr "User info contained no recognizable user identification"
 
 #: core/authentication/backends.py:102
 msgid "User account is disabled"
-msgstr ""
+msgstr "User account is disabled"
 
 #: core/authentication/backends.py:142
 msgid "Multiple user accounts share a common email."
-msgstr ""
+msgstr "Multiple user accounts share a common email."
 
 #: core/models.py:29
 msgid "Member"
-msgstr ""
+msgstr "Member"
 
 #: core/models.py:30
 msgid "Administrator"
-msgstr ""
+msgstr "Administrator"
 
 #: core/models.py:31
 msgid "Owner"
-msgstr ""
+msgstr "Owner"
 
 #: core/models.py:47
 msgid "Initiated"
-msgstr ""
+msgstr "Initiated"
 
 #: core/models.py:48
 msgid "Active"
-msgstr ""
+msgstr "Active"
 
 #: core/models.py:49
 msgid "Stopped"
-msgstr ""
+msgstr "Stopped"
 
 #: core/models.py:50
 msgid "Saved"
-msgstr ""
+msgstr "Saved"
 
 #: core/models.py:51
 msgid "Aborted"
-msgstr ""
+msgstr "Aborted"
 
 #: core/models.py:52
 msgid "Failed to Start"
-msgstr ""
+msgstr "Failed to Start"
 
 #: core/models.py:53
 msgid "Failed to Stop"
-msgstr ""
+msgstr "Failed to Stop"
 
 #: core/models.py:54
 msgid "Notification succeeded"
-msgstr ""
+msgstr "Notification succeeded"
 
 #: core/models.py:81
 msgid "SCREEN_RECORDING"
-msgstr ""
+msgstr "SCREEN_RECORDING"
 
 #: core/models.py:82
 msgid "TRANSCRIPT"
-msgstr ""
+msgstr "TRANSCRIPT"
 
 #: core/models.py:88
 msgid "Public Access"
-msgstr ""
+msgstr "Public Access"
 
 #: core/models.py:89
 msgid "Trusted Access"
-msgstr ""
+msgstr "Trusted Access"
 
 #: core/models.py:90
 msgid "Restricted Access"
-msgstr ""
+msgstr "Restricted Access"
 
 #: core/models.py:102
 msgid "id"
-msgstr ""
+msgstr "id"
 
 #: core/models.py:103
 msgid "primary key for the record as UUID"
-msgstr ""
+msgstr "primary key for the record as UUID"
 
 #: core/models.py:109
 msgid "created on"
-msgstr ""
+msgstr "created on"
 
 #: core/models.py:110
 msgid "date and time at which a record was created"
-msgstr ""
+msgstr "date and time at which a record was created"
 
 #: core/models.py:115
 msgid "updated on"
-msgstr ""
+msgstr "updated on"
 
 #: core/models.py:116
 msgid "date and time at which a record was last updated"
-msgstr ""
+msgstr "date and time at which a record was last updated"
 
 #: core/models.py:136
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
-msgstr ""
+msgstr "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
+"_ characters."
 
 #: core/models.py:142
 msgid "sub"
-msgstr ""
+msgstr "sub"
 
 #: core/models.py:144
 msgid ""
 "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
 "characters only."
 msgstr ""
+"Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
+"characters only."
 
 #: core/models.py:152
 msgid "identity email address"
-msgstr ""
+msgstr "identity email address"
 
 #: core/models.py:157
 msgid "admin email address"
-msgstr ""
+msgstr "admin email address"
 
 #: core/models.py:159
 msgid "full name"
-msgstr ""
+msgstr "full name"
 
 #: core/models.py:161
 msgid "short name"
-msgstr ""
+msgstr "short name"
 
 #: core/models.py:167
 msgid "language"
-msgstr ""
+msgstr "language"
 
 #: core/models.py:168
 msgid "The language in which the user wants to see the interface."
-msgstr ""
+msgstr "The language in which the user wants to see the interface."
 
 #: core/models.py:174
 msgid "The timezone in which the user wants to see times."
-msgstr ""
+msgstr "The timezone in which the user wants to see times."
 
 #: core/models.py:177
 msgid "device"
-msgstr ""
+msgstr "device"
 
 #: core/models.py:179
 msgid "Whether the user is a device or a real user."
-msgstr ""
+msgstr "Whether the user is a device or a real user."
 
 #: core/models.py:182
 msgid "staff status"
-msgstr ""
+msgstr "staff status"
 
 #: core/models.py:184
 msgid "Whether the user can log into this admin site."
-msgstr ""
+msgstr "Whether the user can log into this admin site."
 
 #: core/models.py:187
 msgid "active"
-msgstr ""
+msgstr "active"
 
 #: core/models.py:190
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
 msgstr ""
+"Whether this user should be treated as active. Unselect this instead of "
+"deleting accounts."
 
 #: core/models.py:203
 msgid "user"
-msgstr ""
+msgstr "user"
 
 #: core/models.py:204
 msgid "users"
-msgstr ""
+msgstr "users"
 
 #: core/models.py:263
 msgid "Resource"
-msgstr ""
+msgstr "Resource"
 
 #: core/models.py:264
 msgid "Resources"
-msgstr ""
+msgstr "Resources"
 
 #: core/models.py:318
 msgid "Resource access"
-msgstr ""
+msgstr "Resource access"
 
 #: core/models.py:319
 msgid "Resource accesses"
-msgstr ""
+msgstr "Resource accesses"
 
 #: core/models.py:325
 msgid "Resource access with this User and Resource already exists."
-msgstr ""
+msgstr "Resource access with this User and Resource already exists."
 
 #: core/models.py:381
 msgid "Visio room configuration"
-msgstr ""
+msgstr "Visio room configuration"
 
 #: core/models.py:382
 msgid "Values for Visio parameters to configure the room."
-msgstr ""
+msgstr "Values for Visio parameters to configure the room."
 
 #: core/models.py:388 core/models.py:508
 msgid "Room"
-msgstr ""
+msgstr "Room"
 
 #: core/models.py:389
 msgid "Rooms"
-msgstr ""
+msgstr "Rooms"
 
 #: core/models.py:519
 msgid "Worker ID"
-msgstr ""
+msgstr "Worker ID"
 
 #: core/models.py:521
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
 msgstr ""
+"Enter an identifier for the worker recording.This ID is retained even when "
+"the worker stops, allowing for easy tracking."
 
 #: core/models.py:529
 msgid "Recording mode"
-msgstr ""
+msgstr "Recording mode"
 
 #: core/models.py:530
 msgid "Defines the mode of recording being called."
-msgstr ""
+msgstr "Defines the mode of recording being called."
 
 #: core/models.py:536
 msgid "Recording"
-msgstr ""
+msgstr "Recording"
 
 #: core/models.py:537
 msgid "Recordings"
-msgstr ""
+msgstr "Recordings"
 
 #: core/models.py:617
 msgid "Recording/user relation"
-msgstr ""
+msgstr "Recording/user relation"
 
 #: core/models.py:618
 msgid "Recording/user relations"
-msgstr ""
+msgstr "Recording/user relations"
 
 #: core/models.py:624
 msgid "This user is already in this recording."
-msgstr ""
+msgstr "This user is already in this recording."
 
 #: core/models.py:630
 msgid "This team is already in this recording."
-msgstr ""
+msgstr "This team is already in this recording."
 
 #: core/models.py:636
 msgid "Either user or team must be set, not both."
-msgstr ""
+msgstr "Either user or team must be set, not both."
 
 #: core/recording/event/authentication.py:58
 msgid "Authentication is enabled but token is not configured."
-msgstr ""
+msgstr "Authentication is enabled but token is not configured."
 
 #: core/recording/event/authentication.py:70
 msgid "Authorization header is required"
-msgstr ""
+msgstr "Authorization header is required"
 
 #: core/recording/event/authentication.py:78
 msgid "Invalid authorization header."
-msgstr ""
+msgstr "Invalid authorization header."
 
 #: core/recording/event/authentication.py:88
 msgid "Invalid token"
-msgstr ""
+msgstr "Invalid token"
 
 #: core/recording/event/notification.py:74
 msgid "Your recording is ready"
-msgstr ""
+msgstr "Your recording is ready"
 
 #: core/services/invitation.py:44
 #, python-brace-format
 msgid "Video call in progress: {sender.email} is waiting for you to connect"
-msgstr ""
+msgstr "Video call in progress: {sender.email} is waiting for you to connect"
 
 #: core/templates/mail/html/invitation.html:159
 #: core/templates/mail/html/screen_recording.html:159
 #: core/templates/mail/text/invitation.txt:3
 #: core/templates/mail/text/screen_recording.txt:3
 msgid "Logo email"
-msgstr ""
+msgstr "Logo email"
 
 #: core/templates/mail/html/invitation.html:189
 #: core/templates/mail/text/invitation.txt:5
 msgid "invites you to join an ongoing video call"
-msgstr ""
+msgstr "invites you to join an ongoing video call"
 
 #: core/templates/mail/html/invitation.html:200
 #: core/templates/mail/text/invitation.txt:7
 msgid "JOIN THE CALL"
-msgstr ""
+msgstr "JOIN THE CALL"
 
 #: core/templates/mail/html/invitation.html:227
 #: core/templates/mail/text/invitation.txt:13
 msgid ""
 "If you can't click the button, copy and paste the URL into your browser to "
 "join the call."
-msgstr ""
+msgstr "If you can't click the button, copy and paste the URL into your browser to "
+"join the call."
 
 #: core/templates/mail/html/invitation.html:235
 #: core/templates/mail/text/invitation.txt:15
 msgid "Tips for a better experience:"
-msgstr ""
+msgstr "Tips for a better experience:"
 
 #: core/templates/mail/html/invitation.html:237
 #: core/templates/mail/text/invitation.txt:17
 msgid "Use Chrome or Firefox for better call quality"
-msgstr ""
+msgstr "Use Chrome or Firefox for better call quality"
 
 #: core/templates/mail/html/invitation.html:238
 #: core/templates/mail/text/invitation.txt:18
 msgid "Test your microphone and camera before joining"
-msgstr ""
+msgstr "Test your microphone and camera before joining"
 
 #: core/templates/mail/html/invitation.html:239
 #: core/templates/mail/text/invitation.txt:19
 msgid "Make sure you have a stable internet connection"
-msgstr ""
+msgstr "Make sure you have a stable internet connection"
 
 #: core/templates/mail/html/invitation.html:248
 #: core/templates/mail/html/screen_recording.html:240
@@ -368,12 +376,12 @@ msgstr ""
 #: core/templates/mail/text/screen_recording.txt:22
 #, python-format
 msgid " Thank you for using %(brandname)s. "
-msgstr ""
+msgstr " Thank you for using %(brandname)s. "
 
 #: core/templates/mail/html/screen_recording.html:188
 #: core/templates/mail/text/screen_recording.txt:6
 msgid "Your recording is ready!"
-msgstr ""
+msgstr "Your recording is ready!"
 
 #: core/templates/mail/html/screen_recording.html:195
 #: core/templates/mail/text/screen_recording.txt:8
@@ -381,32 +389,33 @@ msgstr ""
 msgid ""
 " Your recording of \"%(room_name)s\" on %(recording_date)s at "
 "%(recording_time)s is now ready to download. "
-msgstr ""
+msgstr " Your recording of \"%(room_name)s\" on %(recording_date)s at "
+"%(recording_time)s is now ready to download. "
 
 #: core/templates/mail/html/screen_recording.html:201
 #: core/templates/mail/text/screen_recording.txt:10
 msgid "To keep this recording permanently:"
-msgstr ""
+msgstr "To keep this recording permanently:"
 
 #: core/templates/mail/html/screen_recording.html:203
 #: core/templates/mail/text/screen_recording.txt:12
 msgid "Click the \"Open\" button below "
-msgstr ""
+msgstr "Click the \"Open\" button below "
 
 #: core/templates/mail/html/screen_recording.html:204
 #: core/templates/mail/text/screen_recording.txt:13
 msgid "Use the \"Download\" button in the interface "
-msgstr ""
+msgstr "Use the \"Download\" button in the interface "
 
 #: core/templates/mail/html/screen_recording.html:205
 #: core/templates/mail/text/screen_recording.txt:14
 msgid "Save the file to your preferred location"
-msgstr ""
+msgstr "Save the file to your preferred location"
 
 #: core/templates/mail/html/screen_recording.html:216
 #: core/templates/mail/text/screen_recording.txt:16
 msgid "Open"
-msgstr ""
+msgstr "Open"
 
 #: core/templates/mail/html/screen_recording.html:225
 #: core/templates/mail/text/screen_recording.txt:18
@@ -414,16 +423,17 @@ msgstr ""
 msgid ""
 " If you have any questions or need assistance, please contact our support "
 "team at %(support_email)s. "
-msgstr ""
+msgstr " If you have any questions or need assistance, please contact our support "
+"team at %(support_email)s. "
 
 #: meet/settings.py:162
 msgid "English"
-msgstr ""
+msgstr "English"
 
 #: meet/settings.py:163
 msgid "French"
-msgstr ""
+msgstr "French"
 
 #: meet/settings.py:164
 msgid "Dutch"
-msgstr ""
+msgstr "Dutch"
