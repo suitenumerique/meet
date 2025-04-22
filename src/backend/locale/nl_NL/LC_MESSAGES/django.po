@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-22 15:02+0000\n"
+"POT-Creation-Date: 2025-04-22 15:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -390,12 +390,12 @@ msgstr ""
 
 #: core/templates/mail/html/screen_recording.html:203
 #: core/templates/mail/text/screen_recording.txt:12
-msgid "Click the \\"
+msgid "Click the \"Open\" button below "
 msgstr ""
 
 #: core/templates/mail/html/screen_recording.html:204
 #: core/templates/mail/text/screen_recording.txt:13
-msgid "Use the \\"
+msgid "Use the \"Download\" button in the interface "
 msgstr ""
 
 #: core/templates/mail/html/screen_recording.html:205

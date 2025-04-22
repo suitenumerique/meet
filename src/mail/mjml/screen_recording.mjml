@@ -27,9 +27,9 @@
           <mj-text>
             <p>{% trans "To keep this recording permanently:" %}</p>
             <ol>
-              <li>{% trans "Click the \"Open\" button below" %}</li>
-              <li>{% trans "Use the \"Download\" button in the interface" %}</li>
-              <li>{% trans "Save the file to your preferred location" %}</li>
+              <li>{% blocktrans %}Click the "Open" button below {% endblocktrans %}</li>
+              <li>{% blocktrans %}Use the "Download" button in the interface {% endblocktrans %}</li>
+              <li>{% blocktrans %}Save the file to your preferred location{% endblocktrans %}</li>
             </ol>
           </mj-text>
           <mj-button
