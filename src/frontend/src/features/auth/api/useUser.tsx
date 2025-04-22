@@ -24,24 +24,25 @@ export const useUser = (
     fetchUserOptions?: Parameters<typeof fetchUser>[0]
   } = {}
 ) => {
-  const { data, isLoading } = useConfig()
+  const { data, isLoading: isConfigLoading } = useConfig()
 
   const options = useMemo(() => {
-    if (!data || data?.is_silent_login_enabled !== true) {
+    if (isConfigLoading) return
+    if (data?.is_silent_login_enabled !== true) {
       return {
         ...opts,
         attemptSilent: false,
       }
     }
     return opts.fetchUserOptions
-  }, [data, opts])
+  }, [data, opts, isConfigLoading])
 
   const query = useQuery({
     // eslint-disable-next-line @tanstack/query/exhaustive-deps
     queryKey: [keys.user],
     queryFn: () => fetchUser(options),
     staleTime: Infinity,
-    enabled: !isLoading,
+    enabled: !isConfigLoading,
   })
 
   useEffect(() => {
