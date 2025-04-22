@@ -103,8 +103,10 @@ def test_api_users_retrieve_me_anonymous():
     }
 
 
-def test_api_users_retrieve_me_authenticated():
+def test_api_users_retrieve_me_authenticated(settings):
     """Authenticated users should be able to retrieve their own user via the "/users/me" path."""
+
+    settings.TIME_ZONE = "UTC"
     user = factories.UserFactory()
 
     client = APIClient()
@@ -121,6 +123,8 @@ def test_api_users_retrieve_me_authenticated():
         "email": user.email,
         "full_name": user.full_name,
         "short_name": user.short_name,
+        "language": user.language,
+        "timezone": "UTC",
     }
 
 

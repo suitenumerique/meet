@@ -336,10 +336,11 @@ def test_api_rooms_retrieve_authenticated():
         "url": "test_url_value",
     }
 )
-def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries):
+def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, settings):
     """
     Users who are members of a room should be allowed to see related users.
     """
+    settings.TIME_ZONE = "UTC"
     user = UserFactory()
     other_user = UserFactory()
 
@@ -369,6 +370,8 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries):
                     "email": user_access.user.email,
                     "full_name": user_access.user.full_name,
                     "short_name": user_access.user.short_name,
+                    "timezone": "UTC",
+                    "language": user_access.user.language,
                 },
                 "resource": str(room.id),
                 "role": user_access.role,
@@ -380,6 +383,8 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries):
                     "email": other_user_access.user.email,
                     "full_name": other_user_access.user.full_name,
                     "short_name": other_user_access.user.short_name,
+                    "timezone": "UTC",
+                    "language": other_user_access.user.language,
                 },
                 "resource": str(room.id),
                 "role": other_user_access.role,
@@ -415,11 +420,14 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries):
         "url": "test_url_value",
     }
 )
-def test_api_rooms_retrieve_administrators(mock_token, django_assert_num_queries):
+def test_api_rooms_retrieve_administrators(
+    mock_token, django_assert_num_queries, settings
+):
     """
     A user who is an administrator or owner of a room should be allowed
     to see related users.
     """
+    settings.TIME_ZONE = "UTC"
     user = UserFactory()
     other_user = UserFactory()
     room = RoomFactory()
@@ -448,6 +456,8 @@ def test_api_rooms_retrieve_administrators(mock_token, django_assert_num_queries
                     "email": other_user_access.user.email,
                     "full_name": other_user_access.user.full_name,
                     "short_name": other_user_access.user.short_name,
+                    "timezone": "UTC",
+                    "language": other_user_access.user.language,
                 },
                 "resource": str(room.id),
                 "role": other_user_access.role,
@@ -459,6 +469,8 @@ def test_api_rooms_retrieve_administrators(mock_token, django_assert_num_queries
                     "email": user_access.user.email,
                     "full_name": user_access.user.full_name,
                     "short_name": user_access.user.short_name,
+                    "timezone": "UTC",
+                    "language": user_access.user.language,
                 },
                 "resource": str(room.id),
                 "role": user_access.role,

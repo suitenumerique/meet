@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
+from timezone_field.rest_framework import TimeZoneSerializerField
 
 from core import models, utils
 
@@ -11,9 +12,11 @@ from core import models, utils
 class UserSerializer(serializers.ModelSerializer):
     """Serialize users."""
 
+    timezone = TimeZoneSerializerField()
+
     class Meta:
         model = models.User
-        fields = ["id", "email", "full_name", "short_name"]
+        fields = ["id", "email", "full_name", "short_name", "timezone", "language"]
         read_only_fields = ["id", "email", "full_name", "short_name"]
 
 
