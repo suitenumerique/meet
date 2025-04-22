@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-04-22 15:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: antoine.lebaud@mail.numerique.gouv.fr\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -19,348 +19,348 @@ msgstr ""
 
 #: core/admin.py:26
 msgid "Personal info"
-msgstr ""
+msgstr "Informations personnelles"
 
 #: core/admin.py:39
 msgid "Permissions"
-msgstr ""
+msgstr "Permissions"
 
 #: core/admin.py:51
 msgid "Important dates"
-msgstr ""
+msgstr "Dates importantes"
 
 #: core/api/serializers.py:60
 msgid "You must be administrator or owner of a room to add accesses to it."
-msgstr ""
+msgstr "Vous devez être administrateur ou propriétaire d'une salle pour y ajouter des accès."
 
 #: core/authentication/backends.py:77
 msgid "User info contained no recognizable user identification"
-msgstr ""
+msgstr "Les informations utilisateur ne contiennent aucune identification utilisateur reconnaissable"
 
 #: core/authentication/backends.py:102
 msgid "User account is disabled"
-msgstr ""
+msgstr "Le compte utilisateur est désactivé"
 
 #: core/authentication/backends.py:142
 msgid "Multiple user accounts share a common email."
-msgstr ""
+msgstr "Plusieurs comptes utilisateur partagent une adresse e-mail commune."
 
 #: core/models.py:29
 msgid "Member"
-msgstr ""
+msgstr "Membre"
 
 #: core/models.py:30
 msgid "Administrator"
-msgstr ""
+msgstr "Administrateur"
 
 #: core/models.py:31
 msgid "Owner"
-msgstr ""
+msgstr "Propriétaire"
 
 #: core/models.py:47
 msgid "Initiated"
-msgstr ""
+msgstr "Initié"
 
 #: core/models.py:48
 msgid "Active"
-msgstr ""
+msgstr "Actif"
 
 #: core/models.py:49
 msgid "Stopped"
-msgstr ""
+msgstr "Arrêté"
 
 #: core/models.py:50
 msgid "Saved"
-msgstr ""
+msgstr "Enregistré"
 
 #: core/models.py:51
 msgid "Aborted"
-msgstr ""
+msgstr "Abandonné"
 
 #: core/models.py:52
 msgid "Failed to Start"
-msgstr ""
+msgstr "Échec au démarrage"
 
 #: core/models.py:53
 msgid "Failed to Stop"
-msgstr ""
+msgstr "Échec à l'arrêt"
 
 #: core/models.py:54
 msgid "Notification succeeded"
-msgstr ""
+msgstr "Notification réussie"
 
 #: core/models.py:81
 msgid "SCREEN_RECORDING"
-msgstr ""
+msgstr "ENREGISTREMENT_ÉCRAN"
 
 #: core/models.py:82
 msgid "TRANSCRIPT"
-msgstr ""
+msgstr "TRANSCRIPTION"
 
 #: core/models.py:88
 msgid "Public Access"
-msgstr ""
+msgstr "Accès public"
 
 #: core/models.py:89
 msgid "Trusted Access"
-msgstr ""
+msgstr "Accès de confiance"
 
 #: core/models.py:90
 msgid "Restricted Access"
-msgstr ""
+msgstr "Accès restreint"
 
 #: core/models.py:102
 msgid "id"
-msgstr ""
+msgstr "id"
 
 #: core/models.py:103
 msgid "primary key for the record as UUID"
-msgstr ""
+msgstr "clé primaire pour l'enregistrement sous forme d'UUID"
 
 #: core/models.py:109
 msgid "created on"
-msgstr ""
+msgstr "créé le"
 
 #: core/models.py:110
 msgid "date and time at which a record was created"
-msgstr ""
+msgstr "date et heure auxquelles un enregistrement a été créé"
 
 #: core/models.py:115
 msgid "updated on"
-msgstr ""
+msgstr "mis à jour le"
 
 #: core/models.py:116
 msgid "date and time at which a record was last updated"
-msgstr ""
+msgstr "date et heure auxquelles un enregistrement a été mis à jour pour la dernière fois"
 
 #: core/models.py:136
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
-msgstr ""
+msgstr "Entrez un identifiant valide. Cette valeur ne peut contenir que des lettres, des chiffres et les caractères @/./+/-/_."
 
 #: core/models.py:142
 msgid "sub"
-msgstr ""
+msgstr "identifiant"
 
 #: core/models.py:144
 msgid ""
 "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
 "characters only."
-msgstr ""
+msgstr "Obligatoire. 255 caractères ou moins. Lettres, chiffres et caractères @/./+/-/_ uniquement."
 
 #: core/models.py:152
 msgid "identity email address"
-msgstr ""
+msgstr "adresse e-mail d'identité"
 
 #: core/models.py:157
 msgid "admin email address"
-msgstr ""
+msgstr "adresse e-mail d'administrateur"
 
 #: core/models.py:159
 msgid "full name"
-msgstr ""
+msgstr "nom complet"
 
 #: core/models.py:161
 msgid "short name"
-msgstr ""
+msgstr "nom court"
 
 #: core/models.py:167
 msgid "language"
-msgstr ""
+msgstr "langue"
 
 #: core/models.py:168
 msgid "The language in which the user wants to see the interface."
-msgstr ""
+msgstr "La langue dans laquelle l'utilisateur souhaite voir l'interface."
 
 #: core/models.py:174
 msgid "The timezone in which the user wants to see times."
-msgstr ""
+msgstr "Le fuseau horaire dans lequel l'utilisateur souhaite voir les heures."
 
 #: core/models.py:177
 msgid "device"
-msgstr ""
+msgstr "appareil"
 
 #: core/models.py:179
 msgid "Whether the user is a device or a real user."
-msgstr ""
+msgstr "Si l'utilisateur est un appareil ou un utilisateur réel."
 
 #: core/models.py:182
 msgid "staff status"
-msgstr ""
+msgstr "statut du personnel"
 
 #: core/models.py:184
 msgid "Whether the user can log into this admin site."
-msgstr ""
+msgstr "Si l'utilisateur peut se connecter à ce site d'administration."
 
 #: core/models.py:187
 msgid "active"
-msgstr ""
+msgstr "actif"
 
 #: core/models.py:190
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
-msgstr ""
+msgstr "Si cet utilisateur doit être traité comme actif. Désélectionnez cette option au lieu de supprimer des comptes."
 
 #: core/models.py:203
 msgid "user"
-msgstr ""
+msgstr "utilisateur"
 
 #: core/models.py:204
 msgid "users"
-msgstr ""
+msgstr "utilisateurs"
 
 #: core/models.py:263
 msgid "Resource"
-msgstr ""
+msgstr "Ressource"
 
 #: core/models.py:264
 msgid "Resources"
-msgstr ""
+msgstr "Ressources"
 
 #: core/models.py:318
 msgid "Resource access"
-msgstr ""
+msgstr "Accès aux ressources"
 
 #: core/models.py:319
 msgid "Resource accesses"
-msgstr ""
+msgstr "Accès aux ressources"
 
 #: core/models.py:325
 msgid "Resource access with this User and Resource already exists."
-msgstr ""
+msgstr "L'accès à la ressource avec cet utilisateur et cette ressource existe déjà."
 
 #: core/models.py:381
 msgid "Visio room configuration"
-msgstr ""
+msgstr "Configuration de la salle de visioconférence"
 
 #: core/models.py:382
 msgid "Values for Visio parameters to configure the room."
-msgstr ""
+msgstr "Valeurs des paramètres de visioconférence pour configurer la salle."
 
 #: core/models.py:388 core/models.py:508
 msgid "Room"
-msgstr ""
+msgstr "Salle"
 
 #: core/models.py:389
 msgid "Rooms"
-msgstr ""
+msgstr "Salles"
 
 #: core/models.py:519
 msgid "Worker ID"
-msgstr ""
+msgstr "ID du Worker"
 
 #: core/models.py:521
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
-msgstr ""
+msgstr "Entrez un identifiant pour l'enregistrement du travailleur. Cet identifiant est conservé même lorsque le travailleur s'arrête, permettant un suivi facile."
 
 #: core/models.py:529
 msgid "Recording mode"
-msgstr ""
+msgstr "Mode d'enregistrement"
 
 #: core/models.py:530
 msgid "Defines the mode of recording being called."
-msgstr ""
+msgstr "Définit le mode d'enregistrement appelé."
 
 #: core/models.py:536
 msgid "Recording"
-msgstr ""
+msgstr "Enregistrement"
 
 #: core/models.py:537
 msgid "Recordings"
-msgstr ""
+msgstr "Enregistrements"
 
 #: core/models.py:617
 msgid "Recording/user relation"
-msgstr ""
+msgstr "Relation enregistrement/utilisateur"
 
 #: core/models.py:618
 msgid "Recording/user relations"
-msgstr ""
+msgstr "Relations enregistrement/utilisateur"
 
 #: core/models.py:624
 msgid "This user is already in this recording."
-msgstr ""
+msgstr "Cet utilisateur est déjà dans cet enregistrement."
 
 #: core/models.py:630
 msgid "This team is already in this recording."
-msgstr ""
+msgstr "Cette équipe est déjà dans cet enregistrement."
 
 #: core/models.py:636
 msgid "Either user or team must be set, not both."
-msgstr ""
+msgstr "Soit l'utilisateur, soit l'équipe doit être défini, pas les deux."
 
 #: core/recording/event/authentication.py:58
 msgid "Authentication is enabled but token is not configured."
-msgstr ""
+msgstr "L'authentification est activée mais le jeton n'est pas configuré."
 
 #: core/recording/event/authentication.py:70
 msgid "Authorization header is required"
-msgstr ""
+msgstr "L'en-tête d'autorisation est requis"
 
 #: core/recording/event/authentication.py:78
 msgid "Invalid authorization header."
-msgstr ""
+msgstr "En-tête d'autorisation invalide."
 
 #: core/recording/event/authentication.py:88
 msgid "Invalid token"
-msgstr ""
+msgstr "Jeton invalide"
 
 #: core/recording/event/notification.py:74
 msgid "Your recording is ready"
-msgstr ""
+msgstr "Votre enregistrement est prêt"
 
 #: core/services/invitation.py:44
 #, python-brace-format
 msgid "Video call in progress: {sender.email} is waiting for you to connect"
-msgstr ""
+msgstr "Appel vidéo en cours : {sender.email} attend que vous vous connectiez"
 
 #: core/templates/mail/html/invitation.html:159
 #: core/templates/mail/html/screen_recording.html:159
 #: core/templates/mail/text/invitation.txt:3
 #: core/templates/mail/text/screen_recording.txt:3
 msgid "Logo email"
-msgstr ""
+msgstr "Logo email"
 
 #: core/templates/mail/html/invitation.html:189
 #: core/templates/mail/text/invitation.txt:5
 msgid "invites you to join an ongoing video call"
-msgstr ""
+msgstr "vous invite à rejoindre un appel vidéo en cours"
 
 #: core/templates/mail/html/invitation.html:200
 #: core/templates/mail/text/invitation.txt:7
 msgid "JOIN THE CALL"
-msgstr ""
+msgstr "REJOINDRE L'APPEL"
 
 #: core/templates/mail/html/invitation.html:227
 #: core/templates/mail/text/invitation.txt:13
 msgid ""
 "If you can't click the button, copy and paste the URL into your browser to "
 "join the call."
-msgstr ""
+msgstr "Si vous ne pouvez pas cliquer sur le bouton, copiez et collez l'URL dans votre navigateur pour rejoindre l'appel."
 
 #: core/templates/mail/html/invitation.html:235
 #: core/templates/mail/text/invitation.txt:15
 msgid "Tips for a better experience:"
-msgstr ""
+msgstr "Conseils pour une meilleure expérience :"
 
 #: core/templates/mail/html/invitation.html:237
 #: core/templates/mail/text/invitation.txt:17
 msgid "Use Chrome or Firefox for better call quality"
-msgstr ""
+msgstr "Utilisez Chrome ou Firefox pour une meilleure qualité d'appel"
 
 #: core/templates/mail/html/invitation.html:238
 #: core/templates/mail/text/invitation.txt:18
 msgid "Test your microphone and camera before joining"
-msgstr ""
+msgstr "Testez votre microphone et votre caméra avant de rejoindre"
 
 #: core/templates/mail/html/invitation.html:239
 #: core/templates/mail/text/invitation.txt:19
 msgid "Make sure you have a stable internet connection"
-msgstr ""
+msgstr "Assurez-vous d'avoir une connexion Internet stable"
 
 #: core/templates/mail/html/invitation.html:248
 #: core/templates/mail/html/screen_recording.html:240
@@ -368,12 +368,12 @@ msgstr ""
 #: core/templates/mail/text/screen_recording.txt:22
 #, python-format
 msgid " Thank you for using %(brandname)s. "
-msgstr ""
+msgstr " Merci d'utiliser %(brandname)s. "
 
 #: core/templates/mail/html/screen_recording.html:188
 #: core/templates/mail/text/screen_recording.txt:6
 msgid "Your recording is ready!"
-msgstr ""
+msgstr "Votre enregistrement est prêt !"
 
 #: core/templates/mail/html/screen_recording.html:195
 #: core/templates/mail/text/screen_recording.txt:8
@@ -382,31 +382,33 @@ msgid ""
 " Your recording of \"%(room_name)s\" on %(recording_date)s at "
 "%(recording_time)s is now ready to download. "
 msgstr ""
+" Votre enregistrement de \"%(room_name)s\" du %(recording_date)s à "
+"%(recording_time)s est maintenant prêt à être téléchargé. "
 
 #: core/templates/mail/html/screen_recording.html:201
 #: core/templates/mail/text/screen_recording.txt:10
 msgid "To keep this recording permanently:"
-msgstr ""
+msgstr "Pour conserver cet enregistrement de façon permanente :"
 
 #: core/templates/mail/html/screen_recording.html:203
 #: core/templates/mail/text/screen_recording.txt:12
 msgid "Click the \"Open\" button below "
-msgstr ""
+msgstr "Cliquez sur le bouton \"Ouvrir\" ci-dessous "
 
 #: core/templates/mail/html/screen_recording.html:204
 #: core/templates/mail/text/screen_recording.txt:13
 msgid "Use the \"Download\" button in the interface "
-msgstr ""
+msgstr "Utilisez le bouton \"Télécharger\" dans l'interface "
 
 #: core/templates/mail/html/screen_recording.html:205
 #: core/templates/mail/text/screen_recording.txt:14
 msgid "Save the file to your preferred location"
-msgstr ""
+msgstr "Enregistrez le fichier à l'emplacement de votre choix"
 
 #: core/templates/mail/html/screen_recording.html:216
 #: core/templates/mail/text/screen_recording.txt:16
 msgid "Open"
-msgstr ""
+msgstr "Ouvrir"
 
 #: core/templates/mail/html/screen_recording.html:225
 #: core/templates/mail/text/screen_recording.txt:18
@@ -414,16 +416,16 @@ msgstr ""
 msgid ""
 " If you have any questions or need assistance, please contact our support "
 "team at %(support_email)s. "
-msgstr ""
+msgstr " Si vous avez des questions ou besoin d'assistance, veuillez contacter notre équipe d'assistance à %(support_email)s. "
 
 #: meet/settings.py:162
 msgid "English"
-msgstr ""
+msgstr "Anglais"
 
 #: meet/settings.py:163
 msgid "French"
-msgstr ""
+msgstr "Français"
 
 #: meet/settings.py:164
 msgid "Dutch"
-msgstr ""
+msgstr "Néerlandais"
