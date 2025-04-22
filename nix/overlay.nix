@@ -2,6 +2,8 @@ self: super:
 {
   meet-backend = self.callPackage ./packages/meet-backend.nix { };
 
+  meet-frontend = self.callPackage ./packages/meet-frontend.nix { };
+
   pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
     (pyself: pysuper: {
       brevo-python = pyself.callPackage ./packages/brevo-python.nix { };
