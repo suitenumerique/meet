@@ -4,6 +4,7 @@ Test event notification.
 
 # pylint: disable=E1128,W0621,W0613,W0212
 
+import datetime
 import smtplib
 from unittest import mock
 
@@ -74,6 +75,7 @@ def test_notify_external_services_unknown_mode(caplog):
     assert f"Unknown recording mode unknown for recording {recording.id}" in caplog.text
 
 
+# pylint: disable=too-many-locals
 def test_notify_user_by_email_success(mocked_current_site, settings):
     """Test successful email notification to recording owners."""
     settings.EMAIL_BRAND_NAME = "ACME"
@@ -84,15 +86,28 @@ def test_notify_user_by_email_success(mocked_current_site, settings):
 
     recording = factories.RecordingFactory(room__name="Conference Room A")
 
-    owners = [
-        factories.UserRecordingAccessFactory(
-            recording=recording, role=models.RoleChoices.OWNER
-        ).user,
-        factories.UserRecordingAccessFactory(
-            recording=recording, role=models.RoleChoices.OWNER
-        ).user,
-    ]
-    owner_emails = [owner.email for owner in owners]
+    # Fix recording test to avoid flaky tests
+    recording.created_at = datetime.datetime(2023, 5, 15, 14, 30, 0)
+
+    french_user = factories.UserFactory(
+        email="franc@test.com", language="fr-fr", timezone="Europe/Paris"
+    )
+    dutch_user = factories.UserFactory(
+        email="berry@test.com", language="nl-nl", timezone="Europe/Amsterdam"
+    )
+    english_user = factories.UserFactory(
+        email="john@test.com", language="en-us", timezone="America/Phoenix"
+    )
+
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER, user=french_user
+    )
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER, user=dutch_user
+    )
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER, user=english_user
+    )
 
     # Create non-owner users to verify they don't receive emails
     factories.UserRecordingAccessFactory(
@@ -108,30 +123,69 @@ def test_notify_user_by_email_success(mocked_current_site, settings):
         result = notification_service._notify_user_by_email(recording)
 
         assert result is True
-        mock_send_mail.assert_called_once()
+        assert mock_send_mail.call_count == 3
 
-        subject, body, sender, recipients = mock_send_mail.call_args[0]
+        call_args_list = mock_send_mail.call_args_list
 
-        assert subject == "Your recording is ready"
-
-        # Verify email contains expected content
-        required_content = [
+        base_content = [
             "ACME",  # Brand name
             "support@acme.com",  # Support email
             "https://acme.com/logo",  # Logo URL
             f"https://acme.com/recordings/{recording.id}",  # Recording link
             "Conference Room A",  # Room name
-            recording.created_at.strftime("%A %d %B %Y"),  # Formatted date
-            recording.created_at.strftime("%H:%M"),  # Formatted time
         ]
 
-        for content in required_content:
-            assert content in body
+        # First call verification
+        subject1, body1, sender1, recipients1 = call_args_list[0][0]
+        assert subject1 == "Votre enregistrement est prêt"
 
-        assert sender == "notifications@acme.com"
+        # Verify email contains expected content
+        personalized_content1 = [
+            *base_content,
+            "2023-05-15",  # Formatted date
+            "16:30",  # Formatted time
+            "Votre enregistrement est prêt !",  # Intro
+        ]
+        for content in personalized_content1:
+            assert content in body1
 
-        # Verify all owners received the email (order-independent comparison)
-        assert sorted(recipients) == sorted(owner_emails)
+        assert recipients1 == "franc@test.com"
+        assert sender1 == "notifications@acme.com"
+
+        # Second call verification
+        subject2, body2, sender2, recipients2 = call_args_list[1][0]
+        assert subject2 == "Je opname is klaar"
+
+        # Verify second email content (if needed)
+        personalized_content2 = [
+            *base_content,
+            "2023-05-15",  # Formatted date
+            "16:30",  # Formatted time
+            "Je opname is klaar!",  # Intro
+        ]
+        for content in personalized_content2:
+            assert content in body2
+
+        assert recipients2 == "berry@test.com"
+        assert sender2 == "notifications@acme.com"
+
+        # Third call verification
+        subject3, body3, sender3, recipients3 = call_args_list[2][0]
+        assert subject3 == "Your recording is ready"
+
+        # Verify second email content (if needed)
+        personalized_content3 = [
+            *base_content,
+            "Conference Room A",  # Room name
+            "2023-05-15",  # Formatted date
+            "07:30",  # Formatted time
+            "Your recording is ready!",  # Intro
+        ]
+        for content in personalized_content3:
+            assert content in body3
+
+        assert recipients3 == "john@test.com"
+        assert sender3 == "notifications@acme.com"
 
 
 def test_notify_user_by_email_no_owners(mocked_current_site, caplog):
@@ -153,6 +207,9 @@ def test_notify_user_by_email_smtp_exception(mocked_current_site, caplog):
     factories.UserRecordingAccessFactory(
         recording=recording, role=models.RoleChoices.OWNER
     )
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER
+    )
 
     notification_service = NotificationService()
 
@@ -163,5 +220,5 @@ def test_notify_user_by_email_smtp_exception(mocked_current_site, caplog):
         result = notification_service._notify_user_by_email(recording)
 
         assert result is False
-        mock_send_mail.assert_called_once()
+        assert mock_send_mail.call_count == 2
         assert "notification could not be sent:" in caplog.text
