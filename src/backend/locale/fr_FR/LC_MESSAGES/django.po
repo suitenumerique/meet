@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-23 13:47+0000\n"
+"POT-Creation-Date: 2025-04-23 14:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: antoine.lebaud@mail.numerique.gouv.fr\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -325,7 +325,7 @@ msgstr "En-tête d'autorisation invalide."
 msgid "Invalid token"
 msgstr "Jeton invalide"
 
-#: core/recording/event/notification.py:74
+#: core/recording/event/notification.py:94
 msgid "Your recording is ready"
 msgstr "Votre enregistrement est prêt"
 
@@ -402,6 +402,12 @@ msgid ""
 msgstr ""
 " Votre enregistrement de \"%(room_name)s\" du %(recording_date)s à "
 "%(recording_time)s est maintenant prêt à être téléchargé. "
+
+#: core/templates/mail/html/screen_recording.html:195
+#: core/templates/mail/text/screen_recording.txt:8
+#, python-format
+msgid " The recording will expire in %(days)s days. "
+msgstr " L'enregistrement expirera dans %(days)s jours. "
 
 #: core/templates/mail/html/screen_recording.html:201
 #: core/templates/mail/text/screen_recording.txt:10

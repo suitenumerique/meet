@@ -23,6 +23,11 @@
             {% blocktrans %}
             Your recording of "{{room_name}}" on {{recording_date}} at {{recording_time}} is now ready to download.
             {% endblocktrans %}
+            {% if recording_expiration_days %}
+            {% blocktrans with days=recording_expiration_days %}
+            The recording will expire in {{days}} days.
+            {% endblocktrans %}
+            {% endif %}
           </mj-text>
           <mj-text>
             <p>{% trans "To keep this recording permanently:" %}</p>

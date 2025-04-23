@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-23 13:47+0000\n"
+"POT-Creation-Date: 2025-04-23 14:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -317,7 +317,7 @@ msgstr "Invalid authorization header."
 msgid "Invalid token"
 msgstr "Invalid token"
 
-#: core/recording/event/notification.py:74
+#: core/recording/event/notification.py:94
 msgid "Your recording is ready"
 msgstr "Your recording is ready"
 
@@ -391,8 +391,15 @@ msgstr "Your recording is ready!"
 msgid ""
 " Your recording of \"%(room_name)s\" on %(recording_date)s at "
 "%(recording_time)s is now ready to download. "
-msgstr " Your recording of \"%(room_name)s\" on %(recording_date)s at "
+msgstr ""
+" Your recording of \"%(room_name)s\" on %(recording_date)s at "
 "%(recording_time)s is now ready to download. "
+
+#: core/templates/mail/html/screen_recording.html:195
+#: core/templates/mail/text/screen_recording.txt:8
+#, python-format
+msgid " The recording will expire in %(days)s days. "
+msgstr " The recording will expire in %(days)s days. "
 
 #: core/templates/mail/html/screen_recording.html:201
 #: core/templates/mail/text/screen_recording.txt:10

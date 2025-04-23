@@ -63,6 +63,7 @@ class NotificationService:
             "logo_img": settings.EMAIL_LOGO_IMG,
             "domain": settings.EMAIL_DOMAIN,
             "room_name": recording.room.name,
+            "expiration_days": settings.RECORDING_EXPIRATION_DAYS,
             "link": f"{settings.SCREEN_RECORDING_BASE_URL}/{recording.id}",
         }
 
