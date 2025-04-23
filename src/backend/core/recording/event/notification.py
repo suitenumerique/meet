@@ -44,16 +44,18 @@ class NotificationService:
         page in the frontend where they can access their specific recording.
         """
 
-        owner_accesses = models.RecordingAccess.objects.select_related("user").filter(
-            role=models.RoleChoices.OWNER,
-            recording_id=recording.id,
+        owner_accesses = (
+            models.RecordingAccess.objects.select_related("user")
+            .filter(
+                role=models.RoleChoices.OWNER,
+                recording_id=recording.id,
+            )
+            .order_by("created_at")
         )
 
         if not owner_accesses:
             logger.error("No owner found for recording %s", recording.id)
             return False
-
-        language = get_language()
 
         context = {
             "brandname": settings.EMAIL_BRAND_NAME,
@@ -61,32 +63,49 @@ class NotificationService:
             "logo_img": settings.EMAIL_LOGO_IMG,
             "domain": settings.EMAIL_DOMAIN,
             "room_name": recording.room.name,
-            "recording_date": recording.created_at.strftime("%A %d %B %Y"),
-            "recording_time": recording.created_at.strftime("%H:%M"),
             "link": f"{settings.SCREEN_RECORDING_BASE_URL}/{recording.id}",
         }
 
-        emails = [access.user.email for access in owner_accesses]
+        has_failures = False
 
-        with override(language):
-            msg_html = render_to_string("mail/html/screen_recording.html", context)
-            msg_plain = render_to_string("mail/text/screen_recording.txt", context)
-            subject = str(_("Your recording is ready"))  # Force translation
-
-            try:
-                send_mail(
-                    subject.capitalize(),
-                    msg_plain,
-                    settings.EMAIL_FROM,
-                    emails,
-                    html_message=msg_html,
-                    fail_silently=False,
+        # We process emails individually rather than in batch because:
+        # 1. Each email requires personalization (timezone, language)
+        # 2. The number of recipients per recording is typically small (not thousands)
+        for access in owner_accesses:
+            user = access.user
+            language = user.language or get_language()
+            with override(language):
+                personalized_context = {
+                    "recording_date": recording.created_at.astimezone(
+                        user.timezone
+                    ).strftime("%Y-%m-%d"),
+                    "recording_time": recording.created_at.astimezone(
+                        user.timezone
+                    ).strftime("%H:%M"),
+                    **context,
+                }
+                msg_html = render_to_string(
+                    "mail/html/screen_recording.html", personalized_context
                 )
-            except smtplib.SMTPException as exception:
-                logger.error("notification could not be sent: %s", exception)
-                return False
+                msg_plain = render_to_string(
+                    "mail/text/screen_recording.txt", personalized_context
+                )
+                subject = str(_("Your recording is ready"))  # Force translation
 
-        return True
+                try:
+                    send_mail(
+                        subject.capitalize(),
+                        msg_plain,
+                        settings.EMAIL_FROM,
+                        user.email,
+                        html_message=msg_html,
+                        fail_silently=False,
+                    )
+                except smtplib.SMTPException as exception:
+                    logger.error("notification could not be sent: %s", exception)
+                    has_failures = True
+
+        return not has_failures
 
     @staticmethod
     def _notify_summary_service(recording):
