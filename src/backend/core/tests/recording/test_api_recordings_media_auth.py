@@ -20,7 +20,7 @@ from core.factories import RecordingFactory, UserFactory, UserRecordingAccessFac
 pytestmark = pytest.mark.django_db
 
 
-def test_api_documents_media_auth_unauthenticated():
+def test_api_recordings_media_auth_unauthenticated():
     """
     Test that unauthenticated requests to download media are rejected
     """
@@ -33,7 +33,7 @@ def test_api_documents_media_auth_unauthenticated():
     assert response.status_code == 401
 
 
-def test_api_documents_media_auth_wrong_path():
+def test_api_recordings_media_auth_wrong_path():
     """
     Test that media URLs with incorrect path structures are rejected
     """
@@ -51,7 +51,7 @@ def test_api_documents_media_auth_wrong_path():
     assert response.status_code == 403
 
 
-def test_api_documents_media_auth_unknown_recording():
+def test_api_recordings_media_auth_unknown_recording():
     """
     Test that requests for non-existent recordings are properly handled
     """
@@ -69,7 +69,7 @@ def test_api_documents_media_auth_unknown_recording():
     assert response.status_code == 404
 
 
-def test_api_documents_media_auth_no_abilities():
+def test_api_recordings_media_auth_no_abilities():
     """
     Test that users without any access permissions cannot download recordings
     """
@@ -88,7 +88,7 @@ def test_api_documents_media_auth_no_abilities():
     assert response.status_code == 403
 
 
-def test_api_documents_media_auth_wrong_abilities():
+def test_api_recordings_media_auth_wrong_abilities():
     """
     Test that users with insufficient role permissions cannot download recordings
     """
@@ -111,7 +111,7 @@ def test_api_documents_media_auth_wrong_abilities():
 
 
 @pytest.mark.parametrize("wrong_status", ["initiated", "active", "failed_to_stop"])
-def test_api_documents_media_auth_unsaved(wrong_status):
+def test_api_recordings_media_auth_unsaved(wrong_status):
     """
     Test that recordings that aren't in 'saved' status cannot be downloaded
     """
@@ -132,7 +132,7 @@ def test_api_documents_media_auth_unsaved(wrong_status):
     assert response.status_code == 403
 
 
-def test_api_documents_media_auth_mismatched_extension():
+def test_api_recordings_media_auth_mismatched_extension():
     """
     Test that requests with mismatched file extensions are rejected
     """
@@ -160,7 +160,7 @@ def test_api_documents_media_auth_mismatched_extension():
 @pytest.mark.parametrize(
     "wrong_extension", ["jpg", "txt", "mp3"], ids=["image", "text", "audio"]
 )
-def test_api_documents_media_auth_wrong_extension(wrong_extension):
+def test_api_recordings_media_auth_wrong_extension(wrong_extension):
     """
     Trying to download a recording with an unsupported extension should return
     a validation error (400) with details about allowed extensions.
@@ -185,7 +185,7 @@ def test_api_documents_media_auth_wrong_extension(wrong_extension):
 
 
 @pytest.mark.parametrize("mode", ["screen_recording", "transcript"])
-def test_api_documents_media_auth_success_owner(mode):
+def test_api_recordings_media_auth_success_owner(mode):
     """
     Test downloading a recording when logged in and authorized.
     Verifies S3 authentication headers and successful file retrieval.
@@ -235,7 +235,7 @@ def test_api_documents_media_auth_success_owner(mode):
 
 
 @pytest.mark.parametrize("mode", ["screen_recording", "transcript"])
-def test_api_documents_media_auth_success_administrator(mode):
+def test_api_recordings_media_auth_success_administrator(mode):
     """
     Test downloading a recording when logged in and authorized.
     Verifies S3 authentication headers and successful file retrieval.
