@@ -13,9 +13,11 @@ import { ErrorScreen } from '@/components/ErrorScreen'
 import { LoadingScreen } from '@/components/LoadingScreen'
 import { fetchRecording } from '../api/fetchRecording'
 import { RecordingStatus } from '@/features/recording'
+import { useConfig } from '@/api/useConfig'
 
 export const RecordingDownload = () => {
   const { t } = useTranslation('recording')
+  const { data: configData } = useConfig()
   const { recordingId } = useParams()
   const { isLoggedIn, isLoading: isAuthLoading } = useUser()
 
@@ -50,6 +52,17 @@ export const RecordingDownload = () => {
     return <ErrorScreen title={t('unsaved.title')} body={t('unsaved.body')} />
   }
 
+  if (data.is_expired) {
+    return (
+      <ErrorScreen
+        title={t('expired.title')}
+        body={t('expired.body', {
+          date: formatDate(data?.expired_at, 'YYYY-MM-DD HH:mm'),
+        })}
+      />
+    )
+  }
+
   return (
     <UserAware>
       <Screen layout="centered" footer={false}>
@@ -74,6 +87,16 @@ export const RecordingDownload = () => {
                   }),
                 }}
               />
+              <span>
+                {configData?.recording?.expiration_days && (
+                  <>
+                    {' '}
+                    {t('success.expiration', {
+                      expiration_days: configData?.recording?.expiration_days,
+                    })}
+                  </>
+                )}
+              </span>
             </Text>
             <LinkButton
               href={mediaUrl(data.key)}

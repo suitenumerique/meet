@@ -1,7 +1,11 @@
 {
   "error": {
     "title": "Recording unavailable",
-    "body": "This recording could not be found or was deleted after its 7-day validity period."
+    "body": "This recording could not be found or was deleted."
+  },
+  "expired": {
+    "title": "Recording expired",
+    "body": "This recording was deleted on {{date}}."
   },
   "authentication": {
     "title": "Authentication required",
@@ -14,6 +18,7 @@
   "success": {
     "title": "Your recording is ready!",
     "body": "Recording of the meeting <b>{{room}}</b> from {{created_at}}.",
+    "expiration": "Attention, this recording will expire after {{expiration_days}} day(s).",
     "button": "Download"
   }
 }

@@ -9,6 +9,8 @@ export type RecordingApi = {
   key: string
   mode: RecordingMode
   status: RecordingStatus
+  is_expired: boolean
+  expired_at: string
 }
 
 export const fetchRecording = ({ recordingId }: { recordingId?: string }) => {

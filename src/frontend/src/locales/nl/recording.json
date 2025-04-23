@@ -1,7 +1,11 @@
 {
   "error": {
     "title": "Opname niet beschikbaar",
-    "body": "Deze opname is niet gevonden of is verwijderd na de geldigheidsperiode van 7 dagen."
+    "body": "Deze opname is niet gevonden of is verwijderd."
+  },
+  "expired": {
+    "title": "Opname verlopen",
+    "body": "Deze opname is verwijderd op {{date}}."
   },
   "authentication": {
     "title": "Authenticatie vereist",
@@ -14,6 +18,7 @@
   "success": {
     "title": "Je opname is klaar!",
     "body": "Opname van de vergadering <b>{{room}}</b> op {{created_at}}.",
+    "expiration": "Let op, deze opname verloopt na {{expiration_days}} dag(en).",
     "button": "Downloaden"
   }
 }

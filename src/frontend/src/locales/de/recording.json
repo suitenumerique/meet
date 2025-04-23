@@ -3,6 +3,10 @@
     "title": "",
     "body": ""
   },
+  "expired": {
+    "title": "",
+    "body": ""
+  },
   "authentication": {
     "title": "",
     "body": ""
@@ -14,6 +18,7 @@
   "success": {
     "title": "",
     "body": "",
+    "expiration": "",
     "button": ""
   }
 }

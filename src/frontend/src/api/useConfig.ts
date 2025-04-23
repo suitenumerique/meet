@@ -16,6 +16,7 @@ export interface ApiConfig {
   recording?: {
     is_enabled?: boolean
     available_modes?: RecordingMode[]
+    expiration_days?: number
   }
 }
 
