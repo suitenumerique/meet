@@ -2,7 +2,10 @@
 Test recordings API endpoints in the Meet core app: retrieve.
 """
 
+import random
+
 import pytest
+from freezegun import freeze_time
 from rest_framework.test import APIClient
 
 from ...factories import RecordingFactory, UserFactory, UserRecordingAccessFactory
@@ -61,8 +64,9 @@ def test_api_recording_retrieve_members():
     }
 
 
-def test_api_recording_retrieve_administrators():
+def test_api_recording_retrieve_administrators(settings):
     """A user who is an administrator of a recording should be able to retrieve it."""
+    settings.RECORDING_EXPIRATION_DAYS = None
 
     user = UserFactory()
     recording = RecordingFactory()
@@ -91,11 +95,14 @@ def test_api_recording_retrieve_administrators():
         "updated_at": recording.updated_at.isoformat().replace("+00:00", "Z"),
         "status": str(recording.status),
         "mode": str(recording.mode),
+        "expired_at": None,
+        "is_expired": False,
     }
 
 
-def test_api_recording_retrieve_owners():
+def test_api_recording_retrieve_owners(settings):
     """A user who is an owner of a recording should be able to retrieve it."""
+    settings.RECORDING_EXPIRATION_DAYS = None
     user = UserFactory()
     recording = RecordingFactory()
 
@@ -123,6 +130,87 @@ def test_api_recording_retrieve_owners():
         "updated_at": recording.updated_at.isoformat().replace("+00:00", "Z"),
         "status": str(recording.status),
         "mode": str(recording.mode),
+        "expired_at": None,
+        "is_expired": False,
+    }
+
+
+@freeze_time("2023-01-15 12:00:00")
+def test_api_recording_retrieve_compute_expiration_date_correctly(settings):
+    """Test that the API returns the correct expiration date for a non-expired recording."""
+    settings.RECORDING_EXPIRATION_DAYS = 1
+
+    user = UserFactory()
+    recording = RecordingFactory()
+
+    UserRecordingAccessFactory(
+        recording=recording, user=user, role=random.choice(["administrator", "owner"])
+    )
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/recordings/{recording.id!s}/")
+
+    assert response.status_code == 200
+    content = response.json()
+    room = recording.room
+
+    assert content == {
+        "id": str(recording.id),
+        "key": recording.key,
+        "room": {
+            "access_level": str(room.access_level),
+            "id": str(room.id),
+            "name": room.name,
+            "slug": room.slug,
+        },
+        "created_at": "2023-01-15T12:00:00Z",
+        "updated_at": "2023-01-15T12:00:00Z",
+        "status": str(recording.status),
+        "mode": str(recording.mode),
+        "expired_at": "2023-01-16T12:00:00Z",
+        "is_expired": False,  # Ensure the recording is still valid and hasn't expired
+    }
+
+
+def test_api_recording_retrieve_expired(settings):
+    """Test that the API returns the correct expiration date and flag for an expired recording."""
+    settings.RECORDING_EXPIRATION_DAYS = 2
+
+    user = UserFactory()
+
+    with freeze_time("2023-01-15 12:00:00"):
+        recording = RecordingFactory()
+
+    UserRecordingAccessFactory(
+        recording=recording, user=user, role=random.choice(["administrator", "owner"])
+    )
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/recordings/{recording.id!s}/")
+
+    assert response.status_code == 200
+    content = response.json()
+    room = recording.room
+
+    assert content == {
+        "id": str(recording.id),
+        "key": recording.key,
+        "room": {
+            "access_level": str(room.access_level),
+            "id": str(room.id),
+            "name": room.name,
+            "slug": room.slug,
+        },
+        "created_at": "2023-01-15T12:00:00Z",
+        "updated_at": "2023-01-15T12:00:00Z",
+        "status": str(recording.status),
+        "mode": str(recording.mode),
+        "expired_at": "2023-01-17T12:00:00Z",
+        "is_expired": True,  # Ensure the recording has expired
     }
 
 

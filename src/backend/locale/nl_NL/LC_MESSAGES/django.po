@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-22 15:15+0000\n"
+"POT-Creation-Date: 2025-04-23 13:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,9 +29,10 @@ msgstr "Rechten"
 msgid "Important dates"
 msgstr "Belangrijke datums"
 
-#: core/api/serializers.py:60
+#: core/api/serializers.py:63
 msgid "You must be administrator or owner of a room to add accesses to it."
-msgstr "Je moet beheerder of eigenaar van een ruimte zijn om toegang toe te voegen."
+msgstr ""
+"Je moet beheerder of eigenaar van een ruimte zijn om toegang toe te voegen."
 
 #: core/authentication/backends.py:77
 msgid "User info contained no recognizable user identification"
@@ -45,95 +46,95 @@ msgstr "Gebruikersaccount is uitgeschakeld"
 msgid "Multiple user accounts share a common email."
 msgstr "Meerdere gebruikersaccounts delen een gemeenschappelijk e-mailadres."
 
-#: core/models.py:29
+#: core/models.py:30
 msgid "Member"
 msgstr "Lid"
 
-#: core/models.py:30
+#: core/models.py:31
 msgid "Administrator"
 msgstr "Beheerder"
 
-#: core/models.py:31
+#: core/models.py:32
 msgid "Owner"
 msgstr "Eigenaar"
 
-#: core/models.py:47
+#: core/models.py:48
 msgid "Initiated"
 msgstr "Gestart"
 
-#: core/models.py:48
+#: core/models.py:49
 msgid "Active"
 msgstr "Actief"
 
-#: core/models.py:49
+#: core/models.py:50
 msgid "Stopped"
 msgstr "Gestopt"
 
-#: core/models.py:50
+#: core/models.py:51
 msgid "Saved"
 msgstr "Opgeslagen"
 
-#: core/models.py:51
+#: core/models.py:52
 msgid "Aborted"
 msgstr "Afgebroken"
 
-#: core/models.py:52
+#: core/models.py:53
 msgid "Failed to Start"
 msgstr "Starten mislukt"
 
-#: core/models.py:53
+#: core/models.py:54
 msgid "Failed to Stop"
 msgstr "Stoppen mislukt"
 
-#: core/models.py:54
+#: core/models.py:55
 msgid "Notification succeeded"
 msgstr "Notificatie geslaagd"
 
-#: core/models.py:81
+#: core/models.py:82
 msgid "SCREEN_RECORDING"
 msgstr "SCHERM_OPNAME"
 
-#: core/models.py:82
+#: core/models.py:83
 msgid "TRANSCRIPT"
 msgstr "TRANSCRIPT"
 
-#: core/models.py:88
+#: core/models.py:89
 msgid "Public Access"
 msgstr "Openbare toegang"
 
-#: core/models.py:89
+#: core/models.py:90
 msgid "Trusted Access"
 msgstr "Vertrouwde toegang"
 
-#: core/models.py:90
+#: core/models.py:91
 msgid "Restricted Access"
 msgstr "Beperkte toegang"
 
-#: core/models.py:102
+#: core/models.py:103
 msgid "id"
 msgstr "id"
 
-#: core/models.py:103
+#: core/models.py:104
 msgid "primary key for the record as UUID"
 msgstr "primaire sleutel voor het record als UUID"
 
-#: core/models.py:109
+#: core/models.py:110
 msgid "created on"
 msgstr "aangemaakt op"
 
-#: core/models.py:110
+#: core/models.py:111
 msgid "date and time at which a record was created"
 msgstr "datum en tijd waarop een record werd aangemaakt"
 
-#: core/models.py:115
+#: core/models.py:116
 msgid "updated on"
 msgstr "bijgewerkt op"
 
-#: core/models.py:116
+#: core/models.py:117
 msgid "date and time at which a record was last updated"
 msgstr "datum en tijd waarop een record voor het laatst werd bijgewerkt"
 
-#: core/models.py:136
+#: core/models.py:137
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
@@ -141,163 +142,162 @@ msgstr ""
 "Voer een geldige sub in. Deze waarde mag alleen letters, cijfers en @/./+/-/"
 "_ tekens bevatten."
 
-#: core/models.py:142
+#: core/models.py:143
 msgid "sub"
 msgstr "sub"
 
-#: core/models.py:144
+#: core/models.py:145
 msgid ""
 "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
 "characters only."
 msgstr ""
-"Vereist. 255 tekens of minder. Alleen letters, cijfers en @/./+/-/_ "
-"tekens."
+"Vereist. 255 tekens of minder. Alleen letters, cijfers en @/./+/-/_ tekens."
 
-#: core/models.py:152
+#: core/models.py:153
 msgid "identity email address"
 msgstr "identiteit e-mailadres"
 
-#: core/models.py:157
+#: core/models.py:158
 msgid "admin email address"
 msgstr "beheerder e-mailadres"
 
-#: core/models.py:159
+#: core/models.py:160
 msgid "full name"
 msgstr "volledige naam"
 
-#: core/models.py:161
+#: core/models.py:162
 msgid "short name"
 msgstr "korte naam"
 
-#: core/models.py:167
+#: core/models.py:168
 msgid "language"
 msgstr "taal"
 
-#: core/models.py:168
+#: core/models.py:169
 msgid "The language in which the user wants to see the interface."
 msgstr "De taal waarin de gebruiker de interface wil zien."
 
-#: core/models.py:174
+#: core/models.py:175
 msgid "The timezone in which the user wants to see times."
 msgstr "De tijdzone waarin de gebruiker tijden wil zien."
 
-#: core/models.py:177
+#: core/models.py:178
 msgid "device"
 msgstr "apparaat"
 
-#: core/models.py:179
+#: core/models.py:180
 msgid "Whether the user is a device or a real user."
 msgstr "Of de gebruiker een apparaat is of een echte gebruiker."
 
-#: core/models.py:182
+#: core/models.py:183
 msgid "staff status"
 msgstr "personeelsstatus"
 
-#: core/models.py:184
+#: core/models.py:185
 msgid "Whether the user can log into this admin site."
 msgstr "Of de gebruiker kan inloggen op deze beheersite."
 
-#: core/models.py:187
+#: core/models.py:188
 msgid "active"
 msgstr "actief"
 
-#: core/models.py:190
+#: core/models.py:191
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
 msgstr ""
-"Of deze gebruiker als actief moet worden behandeld. Deselecteer dit in plaats van "
-"accounts te verwijderen."
+"Of deze gebruiker als actief moet worden behandeld. Deselecteer dit in "
+"plaats van accounts te verwijderen."
 
-#: core/models.py:203
+#: core/models.py:204
 msgid "user"
 msgstr "gebruiker"
 
-#: core/models.py:204
+#: core/models.py:205
 msgid "users"
 msgstr "gebruikers"
 
-#: core/models.py:263
+#: core/models.py:264
 msgid "Resource"
 msgstr "Bron"
 
-#: core/models.py:264
+#: core/models.py:265
 msgid "Resources"
 msgstr "Bronnen"
 
-#: core/models.py:318
+#: core/models.py:319
 msgid "Resource access"
 msgstr "Brontoegang"
 
-#: core/models.py:319
+#: core/models.py:320
 msgid "Resource accesses"
 msgstr "Brontoegangsrechten"
 
-#: core/models.py:325
+#: core/models.py:326
 msgid "Resource access with this User and Resource already exists."
 msgstr "Brontoegang met deze gebruiker en bron bestaat al."
 
-#: core/models.py:381
+#: core/models.py:382
 msgid "Visio room configuration"
 msgstr "Visio-ruimteconfiguratie"
 
-#: core/models.py:382
+#: core/models.py:383
 msgid "Values for Visio parameters to configure the room."
 msgstr "Waarden voor Visio-parameters om de ruimte te configureren."
 
-#: core/models.py:388 core/models.py:508
+#: core/models.py:389 core/models.py:509
 msgid "Room"
 msgstr "Ruimte"
 
-#: core/models.py:389
+#: core/models.py:390
 msgid "Rooms"
 msgstr "Ruimtes"
 
-#: core/models.py:519
+#: core/models.py:520
 msgid "Worker ID"
 msgstr "Worker ID"
 
-#: core/models.py:521
+#: core/models.py:522
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
 msgstr ""
-"Voer een identificatie in voor de worker-opname. Deze ID blijft behouden, zelfs wanneer "
-"de worker stopt, waardoor eenvoudige tracking mogelijk is."
+"Voer een identificatie in voor de worker-opname. Deze ID blijft behouden, "
+"zelfs wanneer de worker stopt, waardoor eenvoudige tracking mogelijk is."
 
-#: core/models.py:529
+#: core/models.py:530
 msgid "Recording mode"
 msgstr "Opnamemodus"
 
-#: core/models.py:530
+#: core/models.py:531
 msgid "Defines the mode of recording being called."
 msgstr "Definieert de modus van opname die wordt aangeroepen."
 
-#: core/models.py:536
+#: core/models.py:537
 msgid "Recording"
 msgstr "Opname"
 
-#: core/models.py:537
+#: core/models.py:538
 msgid "Recordings"
 msgstr "Opnames"
 
-#: core/models.py:617
+#: core/models.py:646
 msgid "Recording/user relation"
 msgstr "Opname/gebruiker-relatie"
 
-#: core/models.py:618
+#: core/models.py:647
 msgid "Recording/user relations"
 msgstr "Opname/gebruiker-relaties"
 
-#: core/models.py:624
+#: core/models.py:653
 msgid "This user is already in this recording."
 msgstr "Deze gebruiker is al in deze opname."
 
-#: core/models.py:630
+#: core/models.py:659
 msgid "This team is already in this recording."
 msgstr "Dit team is al in deze opname."
 
-#: core/models.py:636
+#: core/models.py:665
 msgid "Either user or team must be set, not both."
 msgstr "Ofwel gebruiker of team moet worden ingesteld, niet beide."
 
@@ -349,8 +349,8 @@ msgid ""
 "If you can't click the button, copy and paste the URL into your browser to "
 "join the call."
 msgstr ""
-"Als je niet op de knop kunt klikken, kopieer en plak dan de URL in je browser om "
-"deel te nemen aan de oproep."
+"Als je niet op de knop kunt klikken, kopieer en plak dan de URL in je "
+"browser om deel te nemen aan de oproep."
 
 #: core/templates/mail/html/invitation.html:235
 #: core/templates/mail/text/invitation.txt:15

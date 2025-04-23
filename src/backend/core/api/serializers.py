@@ -159,7 +159,17 @@ class RecordingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Recording
-        fields = ["id", "room", "created_at", "updated_at", "status", "mode", "key"]
+        fields = [
+            "id",
+            "room",
+            "created_at",
+            "updated_at",
+            "status",
+            "mode",
+            "key",
+            "is_expired",
+            "expired_at",
+        ]
         read_only_fields = fields
 
 

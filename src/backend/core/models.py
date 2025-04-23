@@ -3,8 +3,9 @@ Declare and configure the models for the Meet core application
 """
 
 import uuid
+from datetime import datetime, timedelta
 from logging import getLogger
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 from django.contrib.auth import models as auth_models
@@ -12,6 +13,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.functional import lazy
 from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext_lazy as _
@@ -600,6 +602,34 @@ class Recording(BaseModel):
         """Generate the file key based on recording mode."""
 
         return f"{settings.RECORDING_OUTPUT_FOLDER}/{self.id}.{self.extension}"
+
+    @property
+    def expired_at(self) -> Optional[datetime]:
+        """
+        Calculate the expiration date based on created_at and RECORDING_EXPIRATION_DAYS.
+        Returns None if no expiration is configured.
+
+        Note: This is a naive and imperfect implementation since recordings are actually
+        saved to the bucket after created_at timestamp is set. The actual expiration
+        will be determined by the bucket lifecycle policy which operates on the object's
+        timestamp in the storage system, not this value.
+        """
+
+        if not settings.RECORDING_EXPIRATION_DAYS:
+            return None
+
+        return self.created_at + timedelta(days=settings.RECORDING_EXPIRATION_DAYS)
+
+    @property
+    def is_expired(self) -> bool:
+        """
+        Determine if the recording has expired by comparing expired_at with current UTC time.
+        Returns False if no expiration is configured or if expiration date is in the future.
+        """
+        if not self.expired_at:
+            return False
+
+        return self.expired_at < timezone.now()
 
 
 class RecordingAccess(BaseAccess):

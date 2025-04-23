@@ -47,11 +47,12 @@ def test_api_recordings_list_authenticated_no_recording():
     "role",
     ["administrator", "member", "owner"],
 )
-def test_api_recordings_list_authenticated_direct(role):
+def test_api_recordings_list_authenticated_direct(role, settings):
     """
     Authenticated users listing recordings, should only see the recordings
     to which they are related.
     """
+    settings.RECORDING_EXPIRATIONS_DAYS = None
     user = factories.UserFactory()
     client = APIClient()
     client.force_login(user)
@@ -89,6 +90,8 @@ def test_api_recordings_list_authenticated_direct(role):
         },
         "status": "initiated",
         "updated_at": recording.updated_at.isoformat().replace("+00:00", "Z"),
+        "expired_at": None,
+        "is_expired": False,
     }
 
 

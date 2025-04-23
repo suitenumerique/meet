@@ -40,6 +40,7 @@ def get_frontend_configuration(request):
         "recording": {
             "is_enabled": settings.RECORDING_ENABLE,
             "available_modes": settings.RECORDING_WORKER_CLASSES.keys(),
+            "expiration_days": settings.RECORDING_EXPIRATION_DAYS,
         },
     }
     frontend_configuration.update(settings.FRONTEND_CONFIGURATION)

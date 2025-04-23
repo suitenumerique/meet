@@ -485,6 +485,11 @@ class Base(Configuration):
     RECORDING_STORAGE_EVENT_TOKEN = values.Value(
         None, environ_name="RECORDING_STORAGE_EVENT_TOKEN", environ_prefix=None
     )
+    # Number of days before recordings expire - must be synced with bucket lifecycle policy
+    # Set to None for no expiration
+    RECORDING_EXPIRATION_DAYS = values.IntegerValue(
+        None, environ_name="RECORDING_EXPIRATION_DAYS", environ_prefix=None
+    )
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
