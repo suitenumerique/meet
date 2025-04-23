@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.0.1",
+  "version": "0.1.19",
   "type": "module",
   "main": "./dist/visio-sdk.umd.cjs",
   "module": "./dist/visio-sdk.js",
