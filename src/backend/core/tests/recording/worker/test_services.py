@@ -25,7 +25,7 @@ def config():
     return WorkerServiceConfig(
         output_folder="/test/output",
         server_configurations={
-            "host": "test.livekit.io",
+            "url": "test.livekit.io",
             "api_key": "test_key",
             "api_secret": "test_secret",
         },
@@ -230,7 +230,7 @@ def test_base_egress_ssl_verification_config(verify_ssl):
     config = WorkerServiceConfig(
         output_folder="/test/output",
         server_configurations={
-            "host": "test.livekit.io",
+            "url": "test.livekit.io",
             "api_key": "test_key",
             "api_secret": "test_secret",
         },
