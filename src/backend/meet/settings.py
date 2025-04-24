@@ -446,6 +446,9 @@ class Base(Configuration):
         ),
         "url": values.Value(environ_name="LIVEKIT_API_URL", environ_prefix=None),
     }
+    LIVEKIT_VERIFY_SSL = values.BooleanValue(
+        True, environ_name="LIVEKIT_VERIFY_SSL", environ_prefix=None
+    )
     RESOURCE_DEFAULT_ACCESS_LEVEL = values.Value(
         "public", environ_name="RESOURCE_DEFAULT_ACCESS_LEVEL", environ_prefix=None
     )
@@ -459,9 +462,6 @@ class Base(Configuration):
     )
     RECORDING_OUTPUT_FOLDER = values.Value(
         "recordings", environ_name="RECORDING_OUTPUT_FOLDER", environ_prefix=None
-    )
-    RECORDING_VERIFY_SSL = values.BooleanValue(
-        True, environ_name="RECORDING_VERIFY_SSL", environ_prefix=None
     )
     RECORDING_WORKER_CLASSES = values.DictValue(
         {

@@ -2,10 +2,11 @@
 
 # pylint: disable=no-member
 
+from django.conf import settings
+
 import aiohttp
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
-from livekit.api.egress_service import EgressService
 
 from ..enums import FileExtension
 from .exceptions import WorkerConnectionError, WorkerResponseError
@@ -29,21 +30,29 @@ class BaseEgressService:
     async def _handle_request(self, request, method_name: str):
         """Handle making a request to the LiveKit API and returns the response."""
 
-        # Use HTTP connector for local development with Tilt,
-        # where cluster communications are unsecure
-        connector = aiohttp.TCPConnector(ssl=self._config.verify_ssl)
+        custom_session = None
+        if not settings.LIVEKIT_VERIFY_SSL:
+            connector = aiohttp.TCPConnector(ssl=False)
+            custom_session = aiohttp.ClientSession(connector=connector)
 
-        async with aiohttp.ClientSession(connector=connector) as session:
-            client = EgressService(session, **self._config.server_configurations)
-            method = getattr(client, method_name)
-            try:
-                response = await method(request)
-            except livekit_api.TwirpError as e:
-                raise WorkerConnectionError(
-                    f"LiveKit client connection error, {e.message}."
-                ) from e
+        lkapi = livekit_api.LiveKitAPI(
+            session=custom_session, **self._config.server_configurations
+        )
 
+        # ruff: noqa: SLF001
+        # pylint: disable=protected-access
+        method = getattr(lkapi._egress, method_name)
+
+        try:
+            response = await method(request)
             return response
+        except livekit_api.TwirpError as e:
+            raise WorkerConnectionError(
+                f"LiveKit client connection error, {e.message}."
+            ) from e
+
+        finally:
+            await lkapi.aclose()
 
     def stop(self, worker_id: str) -> str:
         """Stop an ongoing egress worker.

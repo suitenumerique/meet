@@ -17,7 +17,6 @@ class WorkerServiceConfig:
 
     output_folder: str
     server_configurations: Dict[str, Any]
-    verify_ssl: Optional[bool]
     bucket_args: Optional[dict]
 
     @classmethod
@@ -29,7 +28,6 @@ class WorkerServiceConfig:
         return cls(
             output_folder=settings.RECORDING_OUTPUT_FOLDER,
             server_configurations=settings.LIVEKIT_CONFIGURATION,
-            verify_ssl=settings.RECORDING_VERIFY_SSL,
             bucket_args={
                 "endpoint": settings.AWS_S3_ENDPOINT_URL,
                 "access_key": settings.AWS_S3_ACCESS_KEY_ID,

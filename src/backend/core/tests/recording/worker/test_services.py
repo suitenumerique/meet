@@ -28,7 +28,6 @@ def config():
             "api_key": "test_key",
             "api_secret": "test_secret",
         },
-        verify_ssl=True,
         bucket_args={
             "endpoint": "https://s3.test.com",
             "access_key": "test_key",

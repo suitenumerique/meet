@@ -32,7 +32,6 @@ def test_settings():
     mocked_settings = {
         "RECORDING_OUTPUT_FOLDER": "/test/output",
         "LIVEKIT_CONFIGURATION": {"server": "test.example.com"},
-        "RECORDING_VERIFY_SSL": True,
         "AWS_S3_ENDPOINT_URL": "https://s3.test.com",
         "AWS_S3_ACCESS_KEY_ID": "test_key",
         "AWS_S3_SECRET_ACCESS_KEY": "test_secret",
@@ -56,7 +55,6 @@ def test_config_initialization(default_config):
     """Test that WorkerServiceConfig is properly initialized from settings"""
     assert default_config.output_folder == "/test/output"
     assert default_config.server_configurations == {"server": "test.example.com"}
-    assert default_config.verify_ssl is True
     assert default_config.bucket_args == {
         "endpoint": "https://s3.test.com",
         "access_key": "test_key",
@@ -76,7 +74,6 @@ def test_config_immutability(default_config):
 @override_settings(
     RECORDING_OUTPUT_FOLDER="/test/output",
     LIVEKIT_CONFIGURATION={"server": "test.example.com"},
-    RECORDING_VERIFY_SSL=True,
     AWS_S3_ENDPOINT_URL="https://s3.test.com",
     AWS_S3_ACCESS_KEY_ID="test_key",
     AWS_S3_SECRET_ACCESS_KEY="test_secret",
