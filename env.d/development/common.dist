@@ -48,7 +48,8 @@ OIDC_AUTH_REQUEST_EXTRA_PARAMS={"acr_values": "eidas1"}
 # Livekit Token settings
 LIVEKIT_API_SECRET=secret
 LIVEKIT_API_KEY=devkey
-LIVEKIT_API_URL=http://localhost:7880
+LIVEKIT_API_URL=http://127.0.0.1.nip.io:7880
+LIVEKIT_VERIFY_SSL=False
 ALLOW_UNREGISTERED_ROOMS=False
 
 # Recording

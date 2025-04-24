@@ -72,6 +72,8 @@ services:
         - nginx
         - livekit
         - createbuckets
+    extra_hosts:
+      - "127.0.0.1.nip.io:host-gateway"
   
   celery-dev:
     user: ${DOCKER_USER:-1000}
