@@ -13,8 +13,9 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.files.storage import default_storage
 
+import aiohttp
 import botocore
-from livekit.api import AccessToken, VideoGrants
+from livekit.api import AccessToken, LiveKitAPI, VideoGrants
 
 
 def generate_color(identity: str) -> str:
@@ -142,3 +143,18 @@ def generate_s3_authorization_headers(key):
     auth.add_auth(request)
 
     return request
+
+
+def create_livekit_client(custom_configuration=None):
+    """Create and return a configured LiveKit API client."""
+
+    custom_session = None
+
+    if not settings.LIVEKIT_VERIFY_SSL:
+        connector = aiohttp.TCPConnector(ssl=False)
+        custom_session = aiohttp.ClientSession(connector=connector)
+
+    # Use default configuration if none provided
+    configuration = custom_configuration or settings.LIVEKIT_CONFIGURATION
+
+    return LiveKitAPI(session=custom_session, **configuration)

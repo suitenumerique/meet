@@ -776,9 +776,10 @@ def test_update_participant_status_success(mock_cache, lobby_service, participan
     lobby_service._get_cache_key.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.services.lobby.LiveKitAPI")
-def test_notify_participants_success_no_room(mock_livekit_api, lobby_service):
+@mock.patch("core.utils.create_livekit_client")
+def test_notify_participants_success_no_room(mock_create_livekit_client, lobby_service):
     """Test the notify_participants method when the LiveKit room doesn't exist yet."""
+
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
     # Set up the mock LiveKitAPI and its behavior
@@ -794,14 +795,10 @@ def test_notify_participants_success_no_room(mock_livekit_api, lobby_service):
 
     mock_api_instance.room.list_rooms = mock.AsyncMock(return_value=MockResponse())
     mock_api_instance.aclose = mock.AsyncMock()
-    mock_livekit_api.return_value = mock_api_instance
+    mock_create_livekit_client.return_value = mock_api_instance
 
     # Act
     lobby_service.notify_participants(room.id)
-
-    # Assert
-    # Verify the API was initialized with correct configuration
-    mock_livekit_api.assert_called_once_with(**settings.LIVEKIT_CONFIGURATION)
 
     # Verify that the service checked for existing rooms
     mock_api_instance.room.list_rooms.assert_called_once()
@@ -813,8 +810,8 @@ def test_notify_participants_success_no_room(mock_livekit_api, lobby_service):
     mock_api_instance.aclose.assert_called_once()
 
 
-@mock.patch("core.services.lobby.LiveKitAPI")
-def test_notify_participants_success(mock_livekit_api, lobby_service):
+@mock.patch("core.utils.create_livekit_client")
+def test_notify_participants_success(mock_create_livekit_client, lobby_service):
     """Test successful participant notification."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     # Set up the mock LiveKitAPI and its behavior
@@ -830,13 +827,10 @@ def test_notify_participants_success(mock_livekit_api, lobby_service):
     mock_api_instance.room.list_rooms = mock.AsyncMock(return_value=MockResponse())
 
     mock_api_instance.aclose = mock.AsyncMock()
-    mock_livekit_api.return_value = mock_api_instance
+    mock_create_livekit_client.return_value = mock_api_instance
 
     # Call the function
     lobby_service.notify_participants(room.id)
-
-    # Verify the API was called correctly
-    mock_livekit_api.assert_called_once_with(**settings.LIVEKIT_CONFIGURATION)
 
     # Verify that the service checked for existing rooms
     mock_api_instance.room.list_rooms.assert_called_once()
@@ -855,8 +849,8 @@ def test_notify_participants_success(mock_livekit_api, lobby_service):
     mock_api_instance.aclose.assert_called_once()
 
 
-@mock.patch("core.services.lobby.LiveKitAPI")
-def test_notify_participants_error(mock_livekit_api, lobby_service):
+@mock.patch("core.utils.create_livekit_client")
+def test_notify_participants_error(mock_create_livekit_client, lobby_service):
     """Test participant notification with API error."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     # Set up the mock LiveKitAPI and its behavior
@@ -874,16 +868,13 @@ def test_notify_participants_error(mock_livekit_api, lobby_service):
     mock_api_instance.room.list_rooms = mock.AsyncMock(return_value=MockResponse())
 
     mock_api_instance.aclose = mock.AsyncMock()
-    mock_livekit_api.return_value = mock_api_instance
+    mock_create_livekit_client.return_value = mock_api_instance
 
     # Call the function and expect an exception
     with pytest.raises(
         LobbyNotificationError, match="Failed to notify room participants"
     ):
         lobby_service.notify_participants(room.id)
-
-    # Verify the API was called correctly
-    mock_livekit_api.assert_called_once_with(**settings.LIVEKIT_CONFIGURATION)
 
     # Verify that the service checked for existing rooms
     mock_api_instance.room.list_rooms.assert_called_once()

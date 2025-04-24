@@ -2,12 +2,10 @@
 
 # pylint: disable=no-member
 
-from django.conf import settings
-
-import aiohttp
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
+from ... import utils
 from ..enums import FileExtension
 from .exceptions import WorkerConnectionError, WorkerResponseError
 from .factories import WorkerServiceConfig
@@ -30,14 +28,7 @@ class BaseEgressService:
     async def _handle_request(self, request, method_name: str):
         """Handle making a request to the LiveKit API and returns the response."""
 
-        custom_session = None
-        if not settings.LIVEKIT_VERIFY_SSL:
-            connector = aiohttp.TCPConnector(ssl=False)
-            custom_session = aiohttp.ClientSession(connector=connector)
-
-        lkapi = livekit_api.LiveKitAPI(
-            session=custom_session, **self._config.server_configurations
-        )
+        lkapi = utils.create_livekit_client(self._config.server_configurations)
 
         # ruff: noqa: SLF001
         # pylint: disable=protected-access

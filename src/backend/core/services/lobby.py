@@ -14,7 +14,6 @@ from django.core.cache import cache
 from asgiref.sync import async_to_sync
 from livekit.api import (  # pylint: disable=E0611
     ListRoomsRequest,
-    LiveKitAPI,
     SendDataRequest,
     TwirpError,
 )
@@ -347,7 +346,7 @@ class LobbyService:
             "type": settings.LOBBY_NOTIFICATION_TYPE,
         }
 
-        lkapi = LiveKitAPI(**settings.LIVEKIT_CONFIGURATION)
+        lkapi = utils.create_livekit_client()
 
         try:
             room_response = await lkapi.room.list_rooms(
