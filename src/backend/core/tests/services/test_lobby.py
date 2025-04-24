@@ -863,7 +863,7 @@ def test_notify_participants_error(mock_livekit_api, lobby_service):
     mock_api_instance = mock.Mock()
     mock_api_instance.room = mock.Mock()
     mock_api_instance.room.send_data = mock.AsyncMock(
-        side_effect=TwirpError(msg="test error", code=123)
+        side_effect=TwirpError(msg="test error", code=123, status=123)
     )
 
     class MockResponse:

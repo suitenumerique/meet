@@ -55,7 +55,7 @@ dependencies = [
     "sentry-sdk==2.24.1",
     "whitenoise==6.9.0",
     "mozilla-django-oidc==4.0.1",
-    "livekit-api==0.8.2",
+    "livekit-api==1.0.2",
     "aiohttp==3.11.14",
 ]
 
