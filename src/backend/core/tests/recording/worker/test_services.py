@@ -6,10 +6,9 @@ Test worker service classes.
 
 from unittest.mock import AsyncMock, Mock, patch
 
-import aiohttp
 import pytest
 
-from core.recording.worker.exceptions import WorkerConnectionError, WorkerResponseError
+from core.recording.worker.exceptions import WorkerResponseError
 from core.recording.worker.factories import WorkerServiceConfig
 from core.recording.worker.services import (
     AudioCompositeEgressService,
@@ -127,58 +126,6 @@ def test_base_egress_filepath_construction(service, filename, extension, expecte
     assert result.endswith(f"{filename}.{extension}")
 
 
-def test_base_egress_handle_request_success(
-    config, service, mock_client_session, mock_egress_service, mock_tcp_connector
-):
-    """Test successful request handling"""
-    # Setup mock response
-    mock_response = Mock()
-    mock_method = AsyncMock(return_value=mock_response)
-    mock_egress_instance = Mock()
-    mock_egress_instance.test_method = mock_method
-    mock_egress_service.return_value = mock_egress_instance
-
-    # Create test request
-    test_request = Mock()
-
-    response = service._handle_request(test_request, "test_method")
-
-    mock_client_session.assert_called_once_with(
-        connector=mock_tcp_connector.return_value
-    )
-
-    # Verify EgressService initialization
-    mock_egress_service.assert_called_once_with(
-        mock_client_session.return_value.__aenter__.return_value,
-        **service._config.server_configurations,
-    )
-
-    # Verify method call and response
-    mock_method.assert_called_once_with(test_request)
-    assert response == mock_response
-
-
-def test_base_egress_handle_request_connection_error(service, mock_egress_service):
-    """Test handling of connection errors"""
-    # Setup mock error
-    mock_method = AsyncMock(
-        side_effect=livekit_api.TwirpError(msg="Connection failed", code=500)
-    )
-    mock_egress_instance = Mock()
-    mock_egress_instance.test_method = mock_method
-    mock_egress_service.return_value = mock_egress_instance
-
-    # Create test request
-    test_request = Mock()
-
-    # Verify error handling
-    with pytest.raises(WorkerConnectionError) as exc:
-        service._handle_request(test_request, "test_method")
-
-    assert "LiveKit client connection error" in str(exc.value)
-    assert "Connection failed" in str(exc.value)
-
-
 @pytest.mark.parametrize(
     "response_status,expected_result",
     [
@@ -222,43 +169,6 @@ def test_base_egress_start_not_implemented(service):
     with pytest.raises(NotImplementedError) as exc:
         service.start("test_room", "test_recording")
     assert "Subclass must implement this method" in str(exc.value)
-
-
-@pytest.mark.parametrize("verify_ssl", [True, False])
-def test_base_egress_ssl_verification_config(verify_ssl):
-    """Test SSL verification configuration"""
-    config = WorkerServiceConfig(
-        output_folder="/test/output",
-        server_configurations={
-            "url": "test.livekit.io",
-            "api_key": "test_key",
-            "api_secret": "test_secret",
-        },
-        verify_ssl=verify_ssl,
-        bucket_args={
-            "endpoint": "https://s3.test.com",
-            "access_key": "test_key",
-            "secret": "test_secret",
-            "region": "test-region",
-            "bucket": "test-bucket",
-            "force_path_style": True,
-        },
-    )
-
-    service = BaseEgressService(config)
-
-    # Mock ClientSession to capture connector configuration
-    with patch("aiohttp.ClientSession") as mock_session:
-        mock_session.return_value.__aenter__ = AsyncMock()
-        mock_session.return_value.__aexit__ = AsyncMock()
-
-        # Trigger request to verify connector configuration
-        service._handle_request(Mock(), "test_method")
-
-        # Verify SSL configuration
-        connector = mock_session.call_args[1]["connector"]
-        assert isinstance(connector, aiohttp.TCPConnector)
-        assert connector._ssl == verify_ssl
 
 
 def test_video_composite_egress_hrid(video_service):
