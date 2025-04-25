@@ -328,3 +328,51 @@ These are the environmental options available on meet backend.
 | LOBBY_ACCEPTED_TIMEOUT                          | lobby accept timeout                     | 21600                                                                                                                                                         |
 | LOBBY_NOTIFICATION_TYPE                         | lobby notification types                 | participantWaiting                                                                                                                                            |
 | LOBBY_COOKIE_NAME                               | lobby cookie name                        | lobbyParticipantId                                                                                                                                            |
+
+# Installation on NixOS
+
+## Example configuration
+
+```nix
+imports = [ "${pathToRepo}/nix/module.nix" ];
+nixpkgs.overlays = [ (import "${pathToRepo}/nix/overlay.nix") ];
+services.meet = {
+  enable = true;
+  enableNginx = true;
+  domain = "meet.example.com";
+  database.createLocally = true;
+  redis.createLocally = true;
+  livekit = {
+    enable = true;
+    config = { };
+  };
+  config = {
+    # your configuration
+  };
+};
+```
+
+## Options Reference
+
+| Option                               | Description                                                                                                           | Default Value                                                                                                     |
+|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| services.meet.enable                 | Enable the meet service                                                                                               | `false`                                                                                                           |
+| services.meet.package                | Package for the backend server to use                                                                                 | `pkgs.meet-backend`                                                                                               |
+| services.meet.frontendPackage        | Package for the frontend server to use                                                                                | `pkgs.meet-frontend`                                                                                              |
+| services.meet.listenAddress          | Address used by the backend server to listen                                                                          | `127.0.0.1`                                                                                                       |
+| services.meet.port                   | Port used by the backend server to listen                                                                             | `8000`                                                                                                            |
+| services.meet.enableNginx            | Enable the nginx virtual host for meet                                                                                | `true`                                                                                                            |
+| services.meet.domain                 | Domain name of the meet server                                                                                        |                                                                                                                   |
+| services.meet.config                 | Configuration (as environment variables) of meet backend server. Check [the reference](#all-options) for more details | `{ }`                                                                                                             |
+| services.meet.environmentFile        | File containing the configuration (as environment variables) of meet backend server                                   | `null`                                                                                                            |
+| services.meet.secretKeyPath          | Path to the file containing the DJANGO_SECRET_KEY                                                                     | `null`                                                                                                            |
+| services.meet.livekit.enable         | Enable the livekit service                                                                                            | `false`                                                                                                           |
+| services.meet.livekit.package        | Package for the livekit server to use                                                                                 | `pkgs.livekit`                                                                                                    |
+| services.meet.livekit.keyFile        | Path to the file containing the livekit secrets, in the format `key: secret`                                          | `null`                                                                                                            |
+| services.meet.livekit.config         | Configuration of the livekit server                                                                                   | `{ port = 7880; rtc = { port_range_start = 50000; port_range_end = 60000; tcp_port = 7881; udp_port = 7882; }; }` |
+| services.meet.s3.accessKeyIDPath     | Path to the file contaning the access key ID / application key of the S3 bucket                                       | `null`                                                                                                            |
+| services.meet.s3.secretAccessKeyPath | Path to the file containing the secret access key of the S3 bucket                                                    | `null`                                                                                                            |
+| services.meet.oidc.clientSecretPath  | Path to the file containing the client secret of the OIDC client                                                      | `null`                                                                                                            |
+| services.meet.database.createLocally | Enable the local PostgreSQL database server for meet                                                                  | `false`                                                                                                           |
+| services.meet.redis.createLocally    | Enable the local Redis server for meet                                                                                | `false`                                                                                                           |
+
