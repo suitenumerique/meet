@@ -237,6 +237,14 @@
       "heading": "Become a beta tester",
       "body": "Record your meeting for later. You will receive a summary by email once the meeting is finished.",
       "button": "Sign up"
+    },
+    "alert": {
+      "title": "Transcription Failed",
+      "body": {
+        "stop": "We were unable to stop the transcription. Please try again in a moment.",
+        "start": "We were unable to start the transcription. Please try again in a moment."
+      },
+      "button": "OK"
     }
   },
   "screenRecording": {
@@ -255,6 +263,14 @@
       "heading": "Recording in progress…",
       "body": "You will receive the result by email once the recording is complete.",
       "button": "Stop recording"
+    },
+    "alert": {
+      "title": "Recording Failed",
+      "body": {
+        "stop": "We were unable to stop the recording. Please try again in a moment.",
+        "start": "We were unable to start the recording. Please try again in a moment."
+      },
+      "button": "OK"
     }
   },
   "admin": {

@@ -1,4 +1,4 @@
-import { A, Button, Div, H, Text } from '@/primitives'
+import { A, Button, Dialog, Div, H, P, Text } from '@/primitives'
 
 import fourthSlide from '@/assets/intro-slider/4_record.png'
 import { css } from '@/styled-system/css'
@@ -29,14 +29,20 @@ export const ScreenRecordingSidePanel = () => {
   const recordingSnap = useSnapshot(recordingStore)
   const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
 
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
+
   const { notifyParticipants } = useNotifyParticipants()
 
   const roomId = useRoomId()
 
   const { mutateAsync: startRecordingRoom, isPending: isPendingToStart } =
-    useStartRecording()
+    useStartRecording({
+      onError: () => setIsErrorDialogOpen('start'),
+    })
   const { mutateAsync: stopRecordingRoom, isPending: isPendingToStop } =
-    useStopRecording()
+    useStopRecording({
+      onError: () => setIsErrorDialogOpen('stop'),
+    })
 
   const statuses = useMemo(() => {
     return {
@@ -208,6 +214,20 @@ export const ScreenRecordingSidePanel = () => {
           )}
         </>
       )}
+      <Dialog
+        isOpen={!!isErrorDialogOpen}
+        role="alertdialog"
+        aria-label={t('alert.title')}
+      >
+        <P>{t(`alert.body.${isErrorDialogOpen}`)}</P>
+        <Button
+          variant="text"
+          size="sm"
+          onPress={() => setIsErrorDialogOpen('')}
+        >
+          {t('alert.button')}
+        </Button>
+      </Dialog>
     </Div>
   )
 }

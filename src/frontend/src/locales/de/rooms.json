@@ -237,6 +237,14 @@
       "heading": "",
       "body": "",
       "button": ""
+    },
+    "alert": {
+      "title": "",
+      "body": {
+        "stop": "",
+        "start": ""
+      },
+      "button": ""
     }
   },
   "screenRecording": {
@@ -253,6 +261,14 @@
     "stop": {
       "heading": "",
       "body": "",
+      "button": ""
+    },
+    "alert": {
+      "title": "",
+      "body": {
+        "stop": "",
+        "start": ""
+      },
       "button": ""
     }
   },

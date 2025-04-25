@@ -237,6 +237,14 @@
       "heading": "Devenez beta testeur",
       "body": "Enregistrer votre réunion pour plus tard. Vous recevrez un compte-rendu par email une fois la réunion terminée.",
       "button": "Inscrivez-vous"
+    },
+    "alert": {
+      "title": "Échec de transcription",
+      "body": {
+        "stop": "Nous n'avons pas pu stopper la transcription. Veuillez réessayer dans quelques instants.",
+        "start": "Nous n'avons pas pu démarrer la transcription. Veuillez réessayer dans quelques instants."
+      },
+      "button": "OK"
     }
   },
   "screenRecording": {
@@ -255,6 +263,14 @@
       "heading": "Enregistrement en cours …",
       "body": "Vous recevrez le resultat par email une fois l'enregistrement terminé.",
       "button": "Arrêter l'enregistrement"
+    },
+    "alert": {
+      "title": "Échec de l'enregistrement",
+      "body": {
+        "stop": "Nous n'avons pas pu stopper l'enregistrement. Veuillez réessayer dans quelques instants.",
+        "start": "Nous n'avons pas pu démarrer l'enregistrement. Veuillez réessayer dans quelques instants."
+      },
+      "button": "OK"
     }
   },
   "admin": {

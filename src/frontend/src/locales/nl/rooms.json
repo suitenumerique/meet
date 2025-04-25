@@ -237,6 +237,14 @@
       "heading": "Word betatester",
       "body": "Neem uw vergadering op voor later. U ontvangt een samenvatting per e-mail zodra de vergadering is afgelopen.",
       "button": "Aanmelden"
+    },
+    "alert": {
+      "title": "Transcriptie mislukt",
+      "body": {
+        "stop": "We konden de transcriptie niet stoppen. Probeer het over enkele ogenblikken opnieuw.",
+        "start": "We konden de transcriptie niet starten. Probeer het over enkele ogenblikken opnieuw."
+      },
+      "button": "Opnieuw proberen"
     }
   },
   "screenRecording": {
@@ -255,6 +263,14 @@
       "heading": "Opname bezig …",
       "body": "Je ontvangt het resultaat per e-mail zodra de opname is voltooid.",
       "button": "Opname stoppen"
+    },
+    "alert": {
+      "title": "Opname mislukt",
+      "body": {
+        "stop": "We konden de opname niet stoppen. Probeer het over enkele ogenblikken opnieuw.",
+        "start": "We konden de opname niet starten. Probeer het over enkele ogenblikken opnieuw."
+      },
+      "button": "Opnieuw proberen"
     }
   },
   "admin": {

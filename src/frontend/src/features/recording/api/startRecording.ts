@@ -27,5 +27,6 @@ export function useStartRecording(
   return useMutation<ApiRoom, ApiError, StartRecordingParams>({
     mutationFn: startRecording,
     onSuccess: options?.onSuccess,
+    onError: options?.onError,
   })
 }

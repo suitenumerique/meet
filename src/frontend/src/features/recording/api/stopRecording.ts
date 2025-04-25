@@ -19,5 +19,6 @@ export function useStopRecording(
   return useMutation<ApiRoom, ApiError, StopRecordingParams>({
     mutationFn: stopRecording,
     onSuccess: options?.onSuccess,
+    onError: options?.onError,
   })
 }
