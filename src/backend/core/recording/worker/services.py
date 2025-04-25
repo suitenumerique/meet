@@ -41,6 +41,10 @@ class BaseEgressService:
             raise WorkerConnectionError(
                 f"LiveKit client connection error, {e.message}."
             ) from e
+        except Exception as e:
+            raise WorkerConnectionError(
+                f"Unexpected error during LiveKit client connection: {str(e)}"
+            ) from e
 
         finally:
             await lkapi.aclose()
