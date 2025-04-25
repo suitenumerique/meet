@@ -33,8 +33,10 @@ export const ScreenRecordingSidePanel = () => {
 
   const roomId = useRoomId()
 
-  const { mutateAsync: startRecordingRoom } = useStartRecording()
-  const { mutateAsync: stopRecordingRoom } = useStopRecording()
+  const { mutateAsync: startRecordingRoom, isPending: isPendingToStart } =
+    useStartRecording()
+  const { mutateAsync: stopRecordingRoom, isPending: isPendingToStop } =
+    useStopRecording()
 
   const statuses = useMemo(() => {
     return {
@@ -145,7 +147,7 @@ export const ScreenRecordingSidePanel = () => {
         </>
       ) : (
         <>
-          {statuses.isStopping ? (
+          {statuses.isStopping || isPendingToStop ? (
             <>
               <H lvl={3} margin={false}>
                 {t('stopping.heading')}
@@ -193,7 +195,7 @@ export const ScreenRecordingSidePanel = () => {
                 size="sm"
                 variant="tertiary"
               >
-                {statuses.isStarting ? (
+                {statuses.isStarting || isPendingToStart ? (
                   <>
                     <Spinner size={20} />
                     {t('start.loading')}
