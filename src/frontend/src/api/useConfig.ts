@@ -11,6 +11,9 @@ export interface ApiConfig {
   support?: {
     id: string
   }
+  feedback: {
+    url: string
+  }
   silence_livekit_debug_logs?: boolean
   is_silent_login_enabled?: boolean
   recording?: {

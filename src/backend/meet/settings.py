@@ -312,6 +312,9 @@ class Base(Configuration):
         "is_silent_login_enabled": values.BooleanValue(
             True, environ_name="FRONTEND_IS_SILENT_LOGING_ENABLED", environ_prefix=None
         ),
+        "feedback": values.DictValue(
+            {}, environ_name="FRONTEND_FEEDBACK", environ_prefix=None
+        ),
     }
 
     # Mail

@@ -14,7 +14,6 @@ import {
   RiMore2Line,
   RiSettings3Line,
 } from '@remixicon/react'
-import { GRIST_FEEDBACKS_FORM } from '@/utils/constants'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { ChatToggle } from '../../components/controls/ChatToggle'
 import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
@@ -24,6 +23,7 @@ import { useSettingsDialog } from '../../components/controls/SettingsDialogConte
 import { ResponsiveMenu } from './ResponsiveMenu'
 import { ToolsToggle } from '../../components/controls/ToolsToggle'
 import { CameraSwitchButton } from '../../components/controls/CameraSwitchButton'
+import { useConfig } from '@/api/useConfig'
 
 export function MobileControlBar({
   onDeviceError,
@@ -37,6 +37,8 @@ export function MobileControlBar({
   const browserSupportsScreenSharing = supportsScreenSharing()
   const { toggleEffects } = useSidePanel()
   const { setDialogOpen } = useSettingsDialog()
+
+  const { data } = useConfig()
 
   return (
     <>
@@ -150,17 +152,19 @@ export function MobileControlBar({
             >
               <RiAccountBoxLine size={20} />
             </Button>
-            <LinkButton
-              href={GRIST_FEEDBACKS_FORM}
-              variant="primaryTextDark"
-              tooltip={t('options.items.feedback')}
-              aria-label={t('options.items.feedback')}
-              description={true}
-              target="_blank"
-              onPress={() => setIsMenuOpened(false)}
-            >
-              <RiMegaphoneLine size={20} />
-            </LinkButton>
+            {data?.feedback?.url && (
+              <LinkButton
+                href={data?.feedback?.url}
+                variant="primaryTextDark"
+                tooltip={t('options.items.feedback')}
+                aria-label={t('options.items.feedback')}
+                description={true}
+                target="_blank"
+                onPress={() => setIsMenuOpened(false)}
+              >
+                <RiMegaphoneLine size={20} />
+              </LinkButton>
+            )}
             <Button
               onPress={() => {
                 setDialogOpen(true)
