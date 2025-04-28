@@ -6,6 +6,7 @@ import { styled, VStack } from '@/styled-system/jsx'
 import { usePostHog } from 'posthog-js/react'
 import { PostHog } from 'posthog-js'
 import { Button as RACButton } from 'react-aria-components'
+import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 
 const Card = styled('div', {
   base: {
@@ -299,6 +300,7 @@ const AuthenticationMessage = ({
 }
 
 export const Rating = () => {
+  const isAnalyticsEnabled = useIsAnalyticsEnabled()
   const posthog = usePostHog()
 
   const isUserAnonymous = useMemo(() => {
@@ -306,6 +308,8 @@ export const Rating = () => {
   }, [posthog])
 
   const [step, setStep] = useState(0)
+
+  if (!isAnalyticsEnabled) return
 
   if (step == 0) {
     return <RateQuality posthog={posthog} onNext={() => setStep(step + 1)} />
