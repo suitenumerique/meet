@@ -353,7 +353,6 @@ export const Join = ({
                 type="text"
                 onChange={setUsername}
                 label={t('usernameLabel')}
-                aria-label={t('usernameLabel')}
                 defaultValue={initialUserChoices?.username}
                 validate={(value) => !value && t('errors.usernameEmpty')}
                 wrapperProps={{
