@@ -13,14 +13,17 @@ import { routes } from './routes'
 import './i18n/init'
 import { queryClient } from '@/api/queryClient'
 import { AppInitialization } from '@/components/AppInitialization'
+import { useIsSdkContext } from '@/features/sdk/hooks/useIsSdkContext'
 
 function App() {
   const { i18n } = useTranslation()
   useLang(i18n.language)
 
+  const isSDKContext = useIsSdkContext()
+
   return (
     <QueryClientProvider client={queryClient}>
-      <AppInitialization />
+      {!isSDKContext && <AppInitialization />}
       <Suspense fallback={null}>
         <I18nProvider locale={i18n.language}>
           <Layout>
