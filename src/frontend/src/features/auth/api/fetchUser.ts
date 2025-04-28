@@ -26,7 +26,7 @@ export const fetchUser = (
           // make sure to not resolve the promise while trying to silent login
           // so that consumers of fetchUser don't think the work already ended
           if (opts.attemptSilent && canAttemptSilentLogin()) {
-            attemptSilentLogin(300)
+            attemptSilentLogin(30)
           } else {
             resolve(false)
           }
