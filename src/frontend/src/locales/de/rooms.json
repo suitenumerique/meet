@@ -363,5 +363,8 @@
     "message": "",
     "stop": "",
     "ignore": ""
+  },
+  "participantTile": {
+    "screenShare": ""
   }
 }

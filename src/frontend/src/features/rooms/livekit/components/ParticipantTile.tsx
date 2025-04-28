@@ -2,7 +2,6 @@ import {
   AudioTrack,
   ConnectionQualityIndicator,
   LockLockedIcon,
-  ParticipantName,
   ParticipantTileProps,
   ScreenShareIcon,
   useEnsureTrackRef,
@@ -29,6 +28,7 @@ import { MutedMicIndicator } from './MutedMicIndicator'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
 import { ParticipantTileFocus } from './ParticipantTileFocus'
 import { FullScreenShareWarning } from './FullScreenShareWarning'
+import { ParticipantName } from './ParticipantName'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -97,6 +97,8 @@ export const ParticipantTile: (
     participant: trackReference.participant,
   })
 
+  const isScreenShare = trackReference.source != Track.Source.Camera
+
   return (
     <div ref={ref} style={{ position: 'relative' }} {...elementProps}>
       <TrackRefContextIfNeeded trackRef={trackReference}>
@@ -129,45 +131,50 @@ export const ParticipantTile: (
               {!disableMetadata && (
                 <div className="lk-participant-metadata">
                   <HStack gap={0.25}>
-                    <MutedMicIndicator
-                      participant={trackReference.participant}
-                    />
+                    {!isScreenShare && (
+                      <MutedMicIndicator
+                        participant={trackReference.participant}
+                      />
+                    )}
                     <div
                       className="lk-participant-metadata-item"
                       style={{
-                        minHeight: '24px',
-                        backgroundColor: isHandRaised ? 'white' : undefined,
-                        color: isHandRaised ? 'black' : undefined,
+                        padding: '0.1rem 0.25rem',
+                        backgroundColor:
+                          isHandRaised && !isScreenShare ? 'white' : undefined,
+                        color:
+                          isHandRaised && !isScreenShare ? 'black' : undefined,
                         transition: 'background 200ms ease, color 400ms ease',
                       }}
                     >
-                      {trackReference.source === Track.Source.Camera ? (
-                        <>
-                          {isHandRaised && (
-                            <RiHand
-                              color="black"
-                              size={16}
-                              style={{
-                                marginInlineEnd: '.25rem', // fixme - match TrackMutedIndicator styling
-                                animationDuration: '300ms',
-                                animationName: 'wave_hand',
-                                animationIterationCount: '2',
-                              }}
-                            />
-                          )}
-                          {isEncrypted && (
-                            <LockLockedIcon
-                              style={{ marginRight: '0.25rem' }}
-                            />
-                          )}
-                          <ParticipantName />
-                        </>
-                      ) : (
-                        <>
-                          <ScreenShareIcon style={{ marginRight: '0.25rem' }} />
-                          <ParticipantName>&apos;s screen</ParticipantName>
-                        </>
+                      {isHandRaised && !isScreenShare && (
+                        <RiHand
+                          color="black"
+                          size={16}
+                          style={{
+                            marginRight: '0.4rem',
+                            minWidth: '16px',
+                            animationDuration: '300ms',
+                            animationName: 'wave_hand',
+                            animationIterationCount: '2',
+                          }}
+                        />
                       )}
+                      {isScreenShare && (
+                        <ScreenShareIcon
+                          style={{
+                            maxWidth: '20px',
+                            width: '100%',
+                          }}
+                        />
+                      )}
+                      {isEncrypted && !isScreenShare && (
+                        <LockLockedIcon style={{ marginRight: '0.25rem' }} />
+                      )}
+                      <ParticipantName
+                        isScreenShare={isScreenShare}
+                        participant={trackReference.participant}
+                      />
                     </div>
                   </HStack>
                   <ConnectionQualityIndicator className="lk-participant-metadata-item" />

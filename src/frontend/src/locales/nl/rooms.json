@@ -364,5 +364,8 @@
     "message": "Om niet oneindige uw scherm in zichzelf te delen, kunt u beter niet het hele scherm delen. Deel in plaats daarvan een tab of een ander venster.",
     "stop": "Stop met presenteren",
     "ignore": "Negeren"
+  },
+  "participantTile": {
+    "screenShare": "{{name}} scherm"
   }
 }

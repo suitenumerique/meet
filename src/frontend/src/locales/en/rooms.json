@@ -364,5 +364,8 @@
     "message": "To avoid infinite loop display, do not share your entire screen. Instead, share a tab or another window.",
     "stop": "Stop presenting",
     "ignore": "Ignore"
+  },
+  "participantTile": {
+    "screenShare": "{{name}}'s screen"
   }
 }
