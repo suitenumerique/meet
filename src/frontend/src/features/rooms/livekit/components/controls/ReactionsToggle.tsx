@@ -12,6 +12,7 @@ import {
 } from '@/features/rooms/livekit/components/ReactionPortal'
 import { Toolbar as RACToolbar } from 'react-aria-components'
 import { Participant } from 'livekit-client'
+import useRateLimiter from '@/hooks/useRateLimiter'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const EMOJIS = ['👍', '👎', '👏', '❤️', '😂', '😮', '🎉']
@@ -55,6 +56,12 @@ export const ReactionsToggle = () => {
       )
     }, ANIMATION_DURATION)
   }
+
+  const debouncedSendReaction = useRateLimiter({
+    callback: sendReaction,
+    maxCalls: 10,
+    windowMs: 1000,
+  })
 
   // Custom animation implementation for the emoji toolbar
   // Could not use a menu and its animation, because a menu would make the toolbar inaccessible by keyboard
@@ -127,7 +134,7 @@ export const ReactionsToggle = () => {
               {EMOJIS.map((emoji, index) => (
                 <Button
                   key={index}
-                  onPress={() => sendReaction(emoji)}
+                  onPress={() => debouncedSendReaction(emoji)}
                   aria-label={t('send', { emoji })}
                   variant="primaryTextDark"
                   size="sm"
