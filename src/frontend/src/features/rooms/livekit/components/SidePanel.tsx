@@ -110,9 +110,10 @@ const StyledSidePanel = ({
 type PanelProps = {
   isOpen: boolean
   children: React.ReactNode
+  keepAlive?: boolean
 }
 
-const Panel = ({ isOpen, children }: PanelProps) => (
+const Panel = ({ isOpen, keepAlive = true, children }: PanelProps) => (
   <div
     style={{
       display: isOpen ? 'inherit' : 'none',
@@ -121,7 +122,7 @@ const Panel = ({ isOpen, children }: PanelProps) => (
       flexGrow: 1,
     }}
   >
-    {children}
+    {keepAlive || isOpen ? children : null}
   </div>
 )
 
