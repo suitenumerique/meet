@@ -113,7 +113,7 @@ type PanelProps = {
   keepAlive?: boolean
 }
 
-const Panel = ({ isOpen, keepAlive = true, children }: PanelProps) => (
+const Panel = ({ isOpen, keepAlive = false, children }: PanelProps) => (
   <div
     style={{
       display: isOpen ? 'inherit' : 'none',
@@ -161,7 +161,7 @@ export const SidePanel = () => {
       <Panel isOpen={isEffectsOpen}>
         <Effects />
       </Panel>
-      <Panel isOpen={isChatOpen}>
+      <Panel isOpen={isChatOpen} keepAlive={true}>
         <Chat />
       </Panel>
       <Panel isOpen={isToolsOpen}>
