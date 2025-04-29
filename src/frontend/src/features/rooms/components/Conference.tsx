@@ -17,6 +17,7 @@ import posthog from 'posthog-js'
 import { css } from '@/styled-system/css'
 import { LocalUserChoices } from '../routes/Room'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
+import { RnnNoiseProcessor } from '../livekit/components/denoise/RnnNoiseProcessor'
 
 export const Conference = ({
   roomId,
@@ -112,7 +113,9 @@ export const Conference = ({
           serverUrl={data?.livekit?.url}
           token={data?.livekit?.token}
           connect={true}
-          audio={userConfig.audioEnabled}
+          audio={userConfig.audioEnabled && {
+            processor: new RnnNoiseProcessor(),
+          }}
           video={
             userConfig.videoEnabled && {
               processor: BackgroundProcessorFactory.deserializeProcessor(
