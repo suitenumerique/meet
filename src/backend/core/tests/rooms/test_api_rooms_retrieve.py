@@ -338,22 +338,20 @@ def test_api_rooms_retrieve_authenticated():
 )
 def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, settings):
     """
-    Users who are members of a room should be allowed to see related users.
+    Users who are members of a room should not be allowed to see related users.
     """
     settings.TIME_ZONE = "UTC"
     user = UserFactory()
     other_user = UserFactory()
 
     room = RoomFactory()
-    user_access = UserResourceAccessFactory(resource=room, user=user, role="member")
-    other_user_access = UserResourceAccessFactory(
-        resource=room, user=other_user, role="member"
-    )
+    UserResourceAccessFactory(resource=room, user=user, role="member")
+    UserResourceAccessFactory(resource=room, user=other_user, role="member")
 
     client = APIClient()
     client.force_login(user)
 
-    with django_assert_num_queries(4):
+    with django_assert_num_queries(3):
         response = client.get(
             f"/api/v1.0/rooms/{room.id!s}/",
         )
@@ -361,37 +359,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
     assert response.status_code == 200
     content_dict = response.json()
 
-    assert sorted(content_dict.pop("accesses"), key=lambda x: x["id"]) == sorted(
-        [
-            {
-                "id": str(user_access.id),
-                "user": {
-                    "id": str(user_access.user.id),
-                    "email": user_access.user.email,
-                    "full_name": user_access.user.full_name,
-                    "short_name": user_access.user.short_name,
-                    "timezone": "UTC",
-                    "language": user_access.user.language,
-                },
-                "resource": str(room.id),
-                "role": user_access.role,
-            },
-            {
-                "id": str(other_user_access.id),
-                "user": {
-                    "id": str(other_user_access.user.id),
-                    "email": other_user_access.user.email,
-                    "full_name": other_user_access.user.full_name,
-                    "short_name": other_user_access.user.short_name,
-                    "timezone": "UTC",
-                    "language": other_user_access.user.language,
-                },
-                "resource": str(room.id),
-                "role": other_user_access.role,
-            },
-        ],
-        key=lambda x: x["id"],
-    )
+    assert "accesses" not in content_dict
 
     expected_name = str(room.id)
     assert content_dict == {

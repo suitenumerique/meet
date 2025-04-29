@@ -120,7 +120,7 @@ class RoomSerializer(serializers.ModelSerializer):
         role = instance.get_role(request.user)
         is_admin = models.RoleChoices.check_administrator_role(role)
 
-        if role is not None:
+        if is_admin:
             access_serializer = NestedResourceAccessSerializer(
                 instance.accesses.select_related("resource", "user").all(),
                 context=self.context,
