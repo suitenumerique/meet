@@ -531,40 +531,12 @@ class RoomViewSet(
         )
 
 
-class ResourceAccessListModelMixin:
-    """List mixin for resource access API."""
-
-    def get_permissions(self):
-        """User only needs to be authenticated to list rooms access"""
-        if self.action == "list":
-            permission_classes = [permissions.IsAuthenticated]
-        else:
-            return super().get_permissions()
-
-        return [permission() for permission in permission_classes]
-
-    def get_queryset(self):
-        """Return the queryset according to the action."""
-        queryset = super().get_queryset()
-        if self.action == "list":
-            user = self.request.user
-            queryset = queryset.filter(
-                Q(resource__accesses__user=user),
-                resource__accesses__role__in=[
-                    models.RoleChoices.ADMIN,
-                    models.RoleChoices.OWNER,
-                ],
-            ).distinct()
-        return queryset
-
-
 class ResourceAccessViewSet(
-    ResourceAccessListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
     """
@@ -574,6 +546,25 @@ class ResourceAccessViewSet(
     permission_classes = [permissions.ResourceAccessPermission]
     queryset = models.ResourceAccess.objects.all()
     serializer_class = serializers.ResourceAccessSerializer
+
+    def get_queryset(self):
+        """Return the queryset according to the action."""
+
+        queryset = super().get_queryset()
+
+        # Restrict access to resources the user either has explicit
+        # permissions for or administrative privileges over.
+        if self.action == "list":
+            user = self.request.user
+            queryset = queryset.filter(
+                Q(resource__accesses__user=user),
+                resource__accesses__role__in=[
+                    models.RoleChoices.ADMIN,
+                    models.RoleChoices.OWNER,
+                ],
+            ).distinct()
+
+        return queryset
 
 
 class RecordingViewSet(
