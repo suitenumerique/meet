@@ -15,11 +15,8 @@ import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
-import {
-  RiProhibited2Line,
-  RiGlassesLine,
-  RiGoblet2Fill,
-} from '@remixicon/react'
+import { RiProhibited2Line } from '@remixicon/react'
+import { FunnyEffects } from './FunnyEffects'
 import { useHasFaceLandmarksAccess } from '../../hooks/useHasFaceLandmarksAccess'
 
 enum BlurRadius {
@@ -152,40 +149,7 @@ export const EffectsConfiguration = ({
   }
 
   const tooltipLabel = (type: ProcessorType, options: BackgroundOptions) => {
-    if (type === ProcessorType.FACE_LANDMARKS) {
-      const effect = options.showGlasses ? 'glasses' : 'french'
-      return t(
-        `faceLandmarks.${effect}.${isSelected(type, options) ? 'clear' : 'apply'}`
-      )
-    }
     return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
-  }
-
-  const getFaceLandmarksOptions = () => {
-    const processor = getProcessor()
-    if (processor?.serialize().type === ProcessorType.FACE_LANDMARKS) {
-      return processor.serialize().options as {
-        showGlasses?: boolean
-        showFrench?: boolean
-      }
-    }
-    return { showGlasses: false, showFrench: false }
-  }
-
-  const toggleFaceLandmarkEffect = async (effect: 'glasses' | 'french') => {
-    const currentOptions = getFaceLandmarksOptions()
-    const newOptions = {
-      ...currentOptions,
-      [effect === 'glasses' ? 'showGlasses' : 'showFrench']:
-        !currentOptions[effect === 'glasses' ? 'showGlasses' : 'showFrench'],
-    }
-
-    if (!newOptions.showGlasses && !newOptions.showFrench) {
-      // If both effects are off stop the processor
-      await clearEffect()
-    } else {
-      await toggleEffect(ProcessorType.FACE_LANDMARKS, newOptions)
-    }
   }
 
   return (
@@ -275,6 +239,13 @@ export const EffectsConfiguration = ({
             : {}
         )}
       >
+        {hasFaceLandmarksAccess && (
+          <FunnyEffects
+            videoTrack={videoTrack}
+            isPending={processorPendingReveal}
+            onPending={setProcessorPending}
+          />
+        )}
         {isSupported ? (
           <>
             <div>
@@ -347,8 +318,6 @@ export const EffectsConfiguration = ({
                     <BlurOnStrong />
                   </ToggleButton>
                 </div>
-              </div>
-              {hasFaceLandmarksAccess && (
                 <div
                   className={css({
                     marginTop: '1.5rem',
@@ -361,108 +330,48 @@ export const EffectsConfiguration = ({
                     }}
                     variant="bodyXsBold"
                   >
-                    {t('faceLandmarks.title')}
+                    {t('virtual.title')}
                   </H>
                   <div
                     className={css({
                       display: 'flex',
                       gap: '1.25rem',
+                      flexWrap: 'wrap',
                     })}
                   >
-                    <ToggleButton
-                      variant="bigSquare"
-                      aria-label={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
-                        showGlasses: true,
-                        showFrench: false,
-                      })}
-                      tooltip={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
-                        showGlasses: true,
-                        showFrench: false,
-                      })}
-                      isDisabled={processorPendingReveal}
-                      onChange={async () =>
-                        await toggleFaceLandmarkEffect('glasses')
-                      }
-                      isSelected={getFaceLandmarksOptions().showGlasses}
-                      data-attr="toggle-glasses"
-                    >
-                      <RiGlassesLine />
-                    </ToggleButton>
-                    <ToggleButton
-                      variant="bigSquare"
-                      aria-label={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
-                        showGlasses: false,
-                        showFrench: true,
-                      })}
-                      tooltip={tooltipLabel(ProcessorType.FACE_LANDMARKS, {
-                        showGlasses: false,
-                        showFrench: true,
-                      })}
-                      isDisabled={processorPendingReveal}
-                      onChange={async () =>
-                        await toggleFaceLandmarkEffect('french')
-                      }
-                      isSelected={getFaceLandmarksOptions().showFrench}
-                      data-attr="toggle-french"
-                    >
-                      <RiGoblet2Fill />
-                    </ToggleButton>
-                  </div>
-                </div>
-              )}
-              <div
-                className={css({
-                  marginTop: '1.5rem',
-                })}
-              >
-                <H
-                  lvl={3}
-                  style={{
-                    marginBottom: '1rem',
-                  }}
-                  variant="bodyXsBold"
-                >
-                  {t('virtual.title')}
-                </H>
-                <div
-                  className={css({
-                    display: 'flex',
-                    gap: '1.25rem',
-                    flexWrap: 'wrap',
-                  })}
-                >
-                  {[...Array(8).keys()].map((i) => {
-                    const imagePath = `/assets/backgrounds/${i + 1}.jpg`
-                    const thumbnailPath = `/assets/backgrounds/thumbnails/${i + 1}.jpg`
-                    return (
-                      <ToggleButton
-                        key={i}
-                        variant="bigSquare"
-                        aria-label={tooltipLabel(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
-                        tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
-                        isDisabled={processorPendingReveal}
-                        onChange={async () =>
-                          await toggleEffect(ProcessorType.VIRTUAL, {
+                    {[...Array(8).keys()].map((i) => {
+                      const imagePath = `/assets/backgrounds/${i + 1}.jpg`
+                      const thumbnailPath = `/assets/backgrounds/thumbnails/${i + 1}.jpg`
+                      return (
+                        <ToggleButton
+                          key={i}
+                          variant="bigSquare"
+                          aria-label={tooltipLabel(ProcessorType.VIRTUAL, {
                             imagePath,
-                          })
-                        }
-                        isSelected={isSelected(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
-                        className={css({
-                          bgSize: 'cover',
-                        })}
-                        style={{
-                          backgroundImage: `url(${thumbnailPath})`,
-                        }}
-                        data-attr={`toggle-virtual-${i}`}
-                      />
-                    )
-                  })}
+                          })}
+                          tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
+                            imagePath,
+                          })}
+                          isDisabled={processorPendingReveal}
+                          onChange={async () =>
+                            await toggleEffect(ProcessorType.VIRTUAL, {
+                              imagePath,
+                            })
+                          }
+                          isSelected={isSelected(ProcessorType.VIRTUAL, {
+                            imagePath,
+                          })}
+                          className={css({
+                            bgSize: 'cover',
+                          })}
+                          style={{
+                            backgroundImage: `url(${thumbnailPath})`,
+                          }}
+                          data-attr={`toggle-virtual-${i}`}
+                        />
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { ProcessorOptions, Track } from 'livekit-client'
+import { ProcessorOptions, Track, TrackProcessor } from 'livekit-client'
 import posthog from 'posthog-js'
 import {
   FilesetResolver,
@@ -11,19 +11,20 @@ import {
   TIMEOUT_TICK,
   timerWorkerScript,
 } from './TimerWorker'
-import {
-  BackgroundProcessorInterface,
-  BackgroundOptions,
-  ProcessorType,
-} from '.'
+import { ProcessorType } from '.'
 
 const PROCESSING_WIDTH = 256 * 3
 const PROCESSING_HEIGHT = 144 * 3
 
 const FACE_LANDMARKS_CANVAS_ID = 'face-landmarks-local'
 
-export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
-  options: BackgroundOptions
+export type FaceLandmarksOptions = {
+  showGlasses: boolean
+  showFrench: boolean
+}
+
+export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
+  options: FaceLandmarksOptions
   name: string
   processedTrack?: MediaStreamTrack | undefined
 
@@ -50,7 +51,7 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
   glassesImage?: HTMLImageElement
   mustacheImage?: HTMLImageElement
   beretImage?: HTMLImageElement
-  constructor(opts: BackgroundOptions) {
+  constructor(opts: FaceLandmarksOptions) {
     this.name = 'face_landmarks'
     this.options = opts
     this.type = ProcessorType.FACE_LANDMARKS
@@ -314,7 +315,7 @@ export class FaceLandmarksProcessor implements BackgroundProcessorInterface {
     return element
   }
 
-  update(opts: BackgroundOptions): void {
+  update(opts: FaceLandmarksOptions): void {
     this.options = opts
   }
 
