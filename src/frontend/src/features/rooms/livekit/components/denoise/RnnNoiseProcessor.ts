@@ -1,13 +1,11 @@
 import { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
+import { NoiseSuppressorWorklet_Name } from "@timephy/rnnoise-wasm"
+import NoiseSuppressorWorklet from "@timephy/rnnoise-wasm/NoiseSuppressorWorklet?worker&url"
 
 export interface AudioProcessorInterface extends TrackProcessor<Track.Kind.Audio> {
     name: string
 }
 
-/**
- * This processor will eventually handle noise reduction.
- * Currently it's a pass-through processor that sets up the structure for future noise reduction implementation.
- */
 export class RnnNoiseProcessor implements AudioProcessorInterface {
     name: string = 'noise-reduction'
     processedTrack?: MediaStreamTrack
@@ -16,7 +14,7 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
     private audioContext?: AudioContext
     private sourceNode?: MediaStreamAudioSourceNode
     private destinationNode?: MediaStreamAudioDestinationNode
-
+    private noiseSuppressionNode?: AudioWorkletNode
     constructor() {
         // Initialize any configuration options here when needed
     }
@@ -27,15 +25,20 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
         }
 
         this.source = opts.track as MediaStreamTrack
-
-        // Set up basic Web Audio API nodes
+        
+        // Set up Web Audio API nodes
         this.audioContext = new AudioContext()
-        this.sourceNode = this.audioContext.createMediaStreamSource(new MediaStream([this.source]))
+        await this.audioContext.audioWorklet.addModule(NoiseSuppressorWorklet)
+        this.sourceNode = this.audioContext.createMediaStreamSource(new MediaStream([this.source]))  
         this.destinationNode = this.audioContext.createMediaStreamDestination()
 
-        // For now, just connect source directly to destination (pass-through)
-        this.sourceNode.connect(this.destinationNode)
+        this.noiseSuppressionNode = new AudioWorkletNode(this.audioContext, NoiseSuppressorWorklet_Name)
 
+        // Connect the audio processing chain
+        this.sourceNode
+            .connect(this.noiseSuppressionNode)
+            .connect(this.destinationNode)
+        
         // Get the processed track
         const tracks = this.destinationNode.stream.getAudioTracks()
         if (tracks.length === 0) {
@@ -52,12 +55,15 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
     async destroy() {
         // Clean up audio nodes and context
         this.sourceNode?.disconnect()
+        this.noiseSuppressionNode?.disconnect()
+        this.destinationNode?.disconnect()
         await this.audioContext?.close()
-
+        
         this.sourceNode = undefined
         this.destinationNode = undefined
         this.audioContext = undefined
         this.source = undefined
         this.processedTrack = undefined
+        this.noiseSuppressionNode = undefined
     }
 }
