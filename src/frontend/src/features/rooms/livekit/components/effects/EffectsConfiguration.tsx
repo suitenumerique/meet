@@ -17,7 +17,7 @@ import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
 import { RiProhibited2Line } from '@remixicon/react'
 import { FunnyEffects } from './FunnyEffects'
-import { useHasFaceLandmarksAccess } from '../../hooks/useHasFaceLandmarksAccess'
+import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
 
 enum BlurRadius {
   NONE = 0,
@@ -52,7 +52,7 @@ export const EffectsConfiguration = ({
   const { toggle, enabled } = useTrackToggle({ source: Track.Source.Camera })
   const [processorPending, setProcessorPending] = useState(false)
   const processorPendingReveal = useSyncAfterDelay(processorPending)
-  const hasFaceLandmarksAccess = useHasFaceLandmarksAccess()
+  const hasFunnyEffectsAccess = useHasFunnyEffectsAccess()
 
   useEffect(() => {
     const videoElement = videoRef.current
@@ -239,7 +239,7 @@ export const EffectsConfiguration = ({
             : {}
         )}
       >
-        {hasFaceLandmarksAccess && (
+        {hasFunnyEffectsAccess && (
           <FunnyEffects
             videoTrack={videoTrack}
             isPending={processorPendingReveal}
