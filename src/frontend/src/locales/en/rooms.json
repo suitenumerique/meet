@@ -163,8 +163,7 @@
         "apply": "Add French touch",
         "clear": "Remove French touch"
       }
-    },
-    "experimental": "Experimental feature. A v2 is coming for full browser support and improved quality."
+    }
   },
   "sidePanel": {
     "heading": {

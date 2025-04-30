@@ -163,8 +163,7 @@
         "apply": "Franse stijl toevoegen",
         "clear": "Franse stijl verwijderen"
       }
-    },
-    "experimental": "Experimentele functie. Een v2 komt eraan voor volledige browserondersteuning en verbeterde kwaliteit."
+    }
   },
   "sidePanel": {
     "heading": {

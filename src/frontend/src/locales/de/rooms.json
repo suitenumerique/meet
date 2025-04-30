@@ -164,8 +164,7 @@
         "apply": "Französische Touch hinzufügen",
         "clear": "Französische Touch entfernen"
       }
-    },
-    "experimental": "Experimentelle Funktion. Eine v2 kommt für vollständige Browserunterstützung und verbesserte Qualität."
+    }
   },
   "sidePanel": {
     "heading": {

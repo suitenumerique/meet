@@ -466,9 +466,6 @@ export const EffectsConfiguration = ({
                 </div>
               </div>
             </div>
-            <Information className={css({ marginTop: '1rem' })}>
-              <Text variant="sm">⚠︎ {t('experimental')}</Text>
-            </Information>
           </>
         ) : (
           <Information>

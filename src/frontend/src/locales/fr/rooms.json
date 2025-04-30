@@ -163,8 +163,7 @@
         "apply": "Ajouter la touche française",
         "clear": "Retirer la touche française"
       }
-    },
-    "experimental": "Fonctionnalité expérimentale. Une v2 arrive pour un support complet des navigateurs et une meilleure qualité."
+    }
   },
   "sidePanel": {
     "heading": {
