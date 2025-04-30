@@ -114,6 +114,13 @@ export const EffectsConfiguration = ({
           type,
           options
         )!
+        // IMPORTANT: Must explicitly stop previous processor before setting a new one
+        // in browsers without modern API support to prevent UI crashes.
+        // This workaround is needed until this issue is resolved:
+        // https://github.com/livekit/track-processors-js/issues/85
+        if (!BackgroundProcessorFactory.hasModernApiSupport()) {
+          await videoTrack.stopProcessor()
+        }
         await videoTrack.setProcessor(newProcessor)
         onSubmit?.(newProcessor)
       } else {

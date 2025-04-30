@@ -32,6 +32,10 @@ export enum ProcessorType {
 }
 
 export class BackgroundProcessorFactory {
+  static hasModernApiSupport() {
+    return ProcessorWrapper.hasModernApiSupport
+  }
+
   static isSupported() {
     return (
       ProcessorWrapper.isSupported ||
