@@ -186,7 +186,7 @@ export const EffectsConfiguration = ({
             muted
             style={{
               transform: 'rotateY(180deg)',
-              minHeight: '175px',
+              [layout === 'vertical' ? 'height' : 'minHeight']: '175px',
               borderRadius: '8px',
             }}
           />
