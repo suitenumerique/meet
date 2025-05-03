@@ -6,19 +6,19 @@ import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
+  useIsRecordingTransitioning,
   useStartRecording,
   useStopRecording,
 } from '@/features/recording'
 import { useEffect, useMemo, useState } from 'react'
-import { RoomEvent } from 'livekit-client'
+import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { CRISP_HELP_ARTICLE_RECORDING } from '@/utils/constants'
-import { useIsRecordingTransitioning } from '@/features/recording'
 
 import {
-  useNotifyParticipants,
   NotificationType,
+  useNotifyParticipants,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
 import { useSnapshot } from 'valtio/index'
@@ -58,6 +58,7 @@ export const ScreenRecordingSidePanel = () => {
   }, [recordingSnap])
 
   const room = useRoomContext()
+  const isRoomConnected = room.state == ConnectionState.Connected
   const isRecordingTransitioning = useIsRecordingTransitioning()
 
   useEffect(() => {
@@ -102,8 +103,11 @@ export const ScreenRecordingSidePanel = () => {
 
   const isDisabled = useMemo(
     () =>
-      isLoading || isRecordingTransitioning || statuses.isAnotherModeStarted,
-    [isLoading, isRecordingTransitioning, statuses]
+      isLoading ||
+      isRecordingTransitioning ||
+      statuses.isAnotherModeStarted ||
+      !isRoomConnected,
+    [isLoading, isRecordingTransitioning, statuses, isRoomConnected]
   )
 
   return (
