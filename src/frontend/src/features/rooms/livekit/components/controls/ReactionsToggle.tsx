@@ -15,7 +15,15 @@ import { Participant } from 'livekit-client'
 import useRateLimiter from '@/hooks/useRateLimiter'
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const EMOJIS = ['👍', '👎', '👏', '❤️', '😂', '😮', '🎉']
+export enum Emoji {
+  THUMBS_UP = 'thumbs-up',
+  THUMBS_DOWN = 'thumbs-down',
+  CLAP = 'clapping-hands',
+  HEART = 'red-heart',
+  LAUGHING = 'face-with-tears-of-joy',
+  SURPRISED = 'face-with-open-mouth',
+  CELEBRATION = 'party-popper',
+}
 
 export interface Reaction {
   id: number
@@ -112,10 +120,10 @@ export const ReactionsToggle = () => {
           <div
             className={css({
               position: 'absolute',
-              top: -55,
-              left: -114,
+              top: -63,
+              left: -139,
               borderRadius: '8px',
-              padding: '0.25rem',
+              padding: '0.35rem',
               backgroundColor: 'primaryDark.50',
               opacity: opacity,
               transition: 'opacity 0.2s ease',
@@ -129,24 +137,29 @@ export const ReactionsToggle = () => {
             <RACToolbar
               className={css({
                 display: 'flex',
+                gap: '0.5rem',
               })}
             >
-              {EMOJIS.map((emoji, index) => (
+              {Object.values(Emoji).map((emoji, index) => (
                 <Button
                   key={index}
                   onPress={() => debouncedSendReaction(emoji)}
                   aria-label={t('send', { emoji })}
                   variant="primaryTextDark"
                   size="sm"
+                  square
                   data-attr={`send-reaction-${emoji}`}
                 >
-                  <span
+                  <img
+                    src={`/assets/reactions/${emoji}.png`}
+                    alt=""
                     className={css({
-                      fontSize: '20px',
+                      minHeight: '28px',
+                      minWidth: '28px',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
                     })}
-                  >
-                    {emoji}
-                  </span>
+                  />
                 </Button>
               ))}
             </RACToolbar>

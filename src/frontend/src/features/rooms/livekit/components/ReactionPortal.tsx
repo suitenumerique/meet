@@ -60,7 +60,6 @@ export function FloatingReaction({
   return (
     <div
       className={css({
-        fontSize: '3rem',
         position: 'absolute',
         display: 'flex',
         alignItems: 'center',
@@ -69,17 +68,20 @@ export function FloatingReaction({
       style={{
         left: left,
         bottom: INITIAL_POSITION + deltaY,
-        transform: `scale(${scale})`,
         opacity: opacity,
       }}
     >
-      <span
+      <img
+        src={`/assets/reactions/${emoji}.png`}
+        alt={''}
         className={css({
-          lineHeight: '57px',
+          height: '50px',
         })}
-      >
-        {emoji}
-      </span>
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'center bottom',
+        }}
+      />
       {name && (
         <Text
           variant="sm"
