@@ -15,6 +15,7 @@ export const INITIAL_POSITION = 200
 interface FloatingReactionProps {
   emoji: string
   name?: string
+  isLocal?: boolean
   speed?: number
   scale?: number
 }
@@ -22,6 +23,7 @@ interface FloatingReactionProps {
 export function FloatingReaction({
   emoji,
   name,
+  isLocal = false,
   speed = 1,
   scale = 1,
 }: FloatingReactionProps) {
@@ -86,8 +88,9 @@ export function FloatingReaction({
         <Text
           variant="sm"
           className={css({
-            backgroundColor: 'primaryDark.100',
-            color: 'white',
+            backgroundColor: isLocal ? 'primary.100' : 'primaryDark.100',
+            color: isLocal ? 'black' : 'white',
+            fontWeight: 500,
             textAlign: 'center',
             borderRadius: '20px',
             paddingX: '0.5rem',
@@ -130,6 +133,7 @@ export function ReactionPortal({
         speed={speed}
         scale={scale}
         name={participant?.isLocal ? t('you') : participant.name}
+        isLocal={participant?.isLocal}
       />
     </div>,
     document.body
