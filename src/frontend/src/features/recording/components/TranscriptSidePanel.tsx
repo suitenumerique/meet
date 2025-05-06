@@ -12,7 +12,7 @@ import {
   useStopRecording,
 } from '../index'
 import { useEffect, useMemo, useState } from 'react'
-import { RoomEvent } from 'livekit-client'
+import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
 import {
@@ -67,6 +67,7 @@ export const TranscriptSidePanel = () => {
   const isRecordingTransitioning = useIsRecordingTransitioning()
 
   const room = useRoomContext()
+  const isRoomConnected = room.state == ConnectionState.Connected
 
   useEffect(() => {
     const handleRecordingStatusChanged = () => {
@@ -107,8 +108,11 @@ export const TranscriptSidePanel = () => {
 
   const isDisabled = useMemo(
     () =>
-      isLoading || isRecordingTransitioning || statuses.isAnotherModeStarted,
-    [isLoading, isRecordingTransitioning, statuses]
+      isLoading ||
+      isRecordingTransitioning ||
+      statuses.isAnotherModeStarted ||
+      !isRoomConnected,
+    [isLoading, isRecordingTransitioning, statuses, isRoomConnected]
   )
 
   return (
