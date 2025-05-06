@@ -1,4 +1,8 @@
-import { FeedbackRoute, RoomRoute, roomIdPattern } from '@/features/rooms'
+import {
+  FeedbackRoute,
+  RoomRoute,
+  flexibleRoomIdPattern,
+} from '@/features/rooms'
 import { HomeRoute } from '@/features/home'
 import { LegalTermsRoute } from '@/features/legalsTerms/LegalTermsRoute'
 import { AccessibilityRoute } from '@/features/legalsTerms/Accessibility'
@@ -32,8 +36,8 @@ export const routes: Record<
   },
   room: {
     name: 'room',
-    path: new RegExp(`^[/](?<roomId>${roomIdPattern})$`),
     to: (roomId: string) => `/${roomId.trim()}`,
+    path: new RegExp(`^[/](?<roomId>${flexibleRoomIdPattern})$`),
     Component: RoomRoute,
   },
   feedback: {
