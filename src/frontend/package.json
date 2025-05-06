@@ -20,6 +20,7 @@
     "@react-aria/toast": "3.0.1",
     "@remixicon/react": "4.6.0",
     "@tanstack/react-query": "5.69.0",
+    "@timephy/rnnoise-wasm": "^1.0.0",
     "crisp-sdk-web": "1.0.25",
     "hoofd": "1.7.3",
     "i18next": "24.2.3",

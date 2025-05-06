@@ -3,7 +3,7 @@ import { usePreviewTracks } from '@livekit/components-react'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { LocalVideoTrack, Track } from 'livekit-client'
+import { LocalVideoTrack, LocalAudioTrack, Track, TrackProcessor } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { SelectToggleDevice } from '../livekit/components/controls/SelectToggleDevice'
 import { Field } from '@/primitives/Field'
@@ -18,6 +18,7 @@ import {
 } from '../livekit/components/effects/EffectsConfiguration'
 import { usePersistentUserChoices } from '../livekit/hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
+import { RnnNoiseProcessor, AudioProcessorInterface } from '../livekit/components/denoise/RnnNoiseProcessor'
 import { isMobileBrowser } from '@livekit/components-core'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { keys } from '@/api/queryKeys'
@@ -137,6 +138,7 @@ export const Join = ({
       initialUserChoices.processorSerialized
     )
   )
+  const audioProcessor = useMemo(() => new RnnNoiseProcessor(), [])
 
   useEffect(() => {
     saveAudioInputDeviceId(audioDeviceId)
@@ -179,7 +181,7 @@ export const Join = ({
     () =>
       tracks?.filter(
         (track) => track.kind === Track.Kind.Audio
-      )[0] as LocalVideoTrack,
+      )[0] as LocalAudioTrack,
     [tracks]
   )
 
@@ -292,6 +294,14 @@ export const Join = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoTrack])
+
+  // Same for audio processor
+  useEffect(() => {
+    if (audioProcessor && audioTrack && !audioTrack.getProcessor()) {
+      audioTrack.setProcessor(audioProcessor as TrackProcessor<Track.Kind.Audio>)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioTrack])
 
   const renderWaitingState = () => {
     switch (status) {

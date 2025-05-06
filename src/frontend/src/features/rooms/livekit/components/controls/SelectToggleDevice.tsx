@@ -18,6 +18,7 @@ import {
   LocalVideoTrack,
   Track,
   VideoCaptureOptions,
+  AudioCaptureOptions,
 } from 'livekit-client'
 
 import { Shortcut } from '@/features/shortcuts/types'
@@ -28,6 +29,7 @@ import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { useEffect } from 'react'
 import { usePersistentUserChoices } from '../../hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../blur'
+import { RnnNoiseProcessor } from '../denoise/RnnNoiseProcessor'
 
 export type ToggleSource = Exclude<
   Track.Source,
@@ -127,6 +129,18 @@ export const SelectToggleDevice = <T extends ToggleSource>({
       toggle(!trackProps.enabled, {
         processor: processor,
       } as VideoCaptureOptions)
+    } else if (props.source === Track.Source.Microphone) {
+      // Add noise reduction processor for audio tracks
+      const noiseProcessor = new RnnNoiseProcessor()
+      
+      const toggle = trackProps.toggle as (
+        forceState: boolean,
+        captureOptions: AudioCaptureOptions
+      ) => Promise<void>
+
+      toggle(!trackProps.enabled, {
+        processor: noiseProcessor,
+      } as AudioCaptureOptions)
     } else {
       trackProps.toggle()
     }
