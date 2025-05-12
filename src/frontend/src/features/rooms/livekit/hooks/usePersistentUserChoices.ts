@@ -19,23 +19,38 @@ export function usePersistentUserChoices(
   )
 
   const saveAudioInputEnabled = React.useCallback((isEnabled: boolean) => {
-    setSettings((prev) => ({ ...prev, audioEnabled: isEnabled }))
+    setSettings((prev: LocalUserChoices) => ({
+      ...prev,
+      audioEnabled: isEnabled,
+    }))
   }, [])
   const saveVideoInputEnabled = React.useCallback((isEnabled: boolean) => {
-    setSettings((prev) => ({ ...prev, videoEnabled: isEnabled }))
+    setSettings((prev: LocalUserChoices) => ({
+      ...prev,
+      videoEnabled: isEnabled,
+    }))
   }, [])
   const saveAudioInputDeviceId = React.useCallback((deviceId: string) => {
-    setSettings((prev) => ({ ...prev, audioDeviceId: deviceId }))
+    setSettings((prev: LocalUserChoices) => ({
+      ...prev,
+      audioDeviceId: deviceId,
+    }))
   }, [])
   const saveVideoInputDeviceId = React.useCallback((deviceId: string) => {
-    setSettings((prev) => ({ ...prev, videoDeviceId: deviceId }))
+    setSettings((prev: LocalUserChoices) => ({
+      ...prev,
+      videoDeviceId: deviceId,
+    }))
   }, [])
   const saveUsername = React.useCallback((username: string) => {
-    setSettings((prev) => ({ ...prev, username: username }))
+    setSettings((prev: LocalUserChoices) => ({ ...prev, username: username }))
   }, [])
   const saveProcessorSerialized = React.useCallback(
     (processorSerialized?: ProcessorSerialized) => {
-      setSettings((prev) => ({ ...prev, processorSerialized }))
+      setSettings((prev: LocalUserChoices) => ({
+        ...prev,
+        processorSerialized,
+      }))
     },
     []
   )
