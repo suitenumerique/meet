@@ -55,7 +55,7 @@ class StorageEventAuthentication(BaseAuthentication):
         if not required_token:
             if settings.RECORDING_ENABLE_STORAGE_EVENT_AUTH:
                 raise AuthenticationFailed(
-                    _("Authentication is enabled but token is not configured.")
+                    "Authentication is enabled but token is not configured."
                 )
 
             return MachineUser(), None
@@ -67,7 +67,7 @@ class StorageEventAuthentication(BaseAuthentication):
                 "Authentication failed: Missing Authorization header (ip: %s)",
                 request.META.get("REMOTE_ADDR"),
             )
-            raise AuthenticationFailed(_("Authorization header is required"))
+            raise AuthenticationFailed("Authorization header is required")
 
         auth_parts = auth_header.split(" ")
         if len(auth_parts) != 2 or auth_parts[0] != self.TOKEN_TYPE:
@@ -75,7 +75,7 @@ class StorageEventAuthentication(BaseAuthentication):
                 "Authentication failed: Invalid authorization header (ip: %s)",
                 request.META.get("REMOTE_ADDR"),
             )
-            raise AuthenticationFailed(_("Invalid authorization header."))
+            raise AuthenticationFailed("Invalid authorization header.")
 
         token = auth_parts[1]
 
@@ -85,7 +85,7 @@ class StorageEventAuthentication(BaseAuthentication):
                 "Authentication failed: Invalid token (ip: %s)",
                 request.META.get("REMOTE_ADDR"),
             )
-            raise AuthenticationFailed(_("Invalid token"))
+            raise AuthenticationFailed("Invalid token")
 
         return MachineUser(), token
 

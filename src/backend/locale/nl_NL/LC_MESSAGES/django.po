@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-13 10:15+0000\n"
+"POT-Creation-Date: 2025-05-13 13:54+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,10 +33,6 @@ msgstr "Belangrijke datums"
 msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr ""
 "Je moet beheerder of eigenaar van een ruimte zijn om toegang toe te voegen."
-
-#: core/authentication/backends.py:96
-msgid "Multiple user accounts share a common email."
-msgstr "Meerdere gebruikersaccounts delen een gemeenschappelijk e-mailadres."
 
 #: core/models.py:31
 msgid "Member"
@@ -292,22 +288,6 @@ msgstr "Dit team is al in deze opname."
 #: core/models.py:666
 msgid "Either user or team must be set, not both."
 msgstr "Ofwel gebruiker of team moet worden ingesteld, niet beide."
-
-#: core/recording/event/authentication.py:58
-msgid "Authentication is enabled but token is not configured."
-msgstr "Authenticatie is ingeschakeld maar token is niet geconfigureerd."
-
-#: core/recording/event/authentication.py:70
-msgid "Authorization header is required"
-msgstr "Autorisatie-header is vereist"
-
-#: core/recording/event/authentication.py:78
-msgid "Invalid authorization header."
-msgstr "Ongeldige autorisatie-header."
-
-#: core/recording/event/authentication.py:88
-msgid "Invalid token"
-msgstr "Ongeldig token"
 
 #: core/recording/event/notification.py:94
 msgid "Your recording is ready"

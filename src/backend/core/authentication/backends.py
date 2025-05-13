@@ -93,6 +93,6 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
                     pass
                 except User.MultipleObjectsReturned as e:
                     raise SuspiciousOperation(
-                        _("Multiple user accounts share a common email.")
+                        "Multiple user accounts share a common email."
                     ) from e
         return None

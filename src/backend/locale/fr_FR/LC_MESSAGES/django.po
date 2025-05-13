@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-13 10:15+0000\n"
+"POT-Creation-Date: 2025-05-13 13:54+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: antoine.lebaud@mail.numerique.gouv.fr\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,10 +34,6 @@ msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr ""
 "Vous devez être administrateur ou propriétaire d'une salle pour y ajouter "
 "des accès."
-
-#: core/authentication/backends.py:96
-msgid "Multiple user accounts share a common email."
-msgstr "Plusieurs comptes utilisateur partagent une adresse e-mail commune."
 
 #: core/models.py:31
 msgid "Member"
@@ -298,22 +294,6 @@ msgstr "Cette équipe est déjà dans cet enregistrement."
 #: core/models.py:666
 msgid "Either user or team must be set, not both."
 msgstr "Soit l'utilisateur, soit l'équipe doit être défini, pas les deux."
-
-#: core/recording/event/authentication.py:58
-msgid "Authentication is enabled but token is not configured."
-msgstr "L'authentification est activée mais le jeton n'est pas configuré."
-
-#: core/recording/event/authentication.py:70
-msgid "Authorization header is required"
-msgstr "L'en-tête d'autorisation est requis"
-
-#: core/recording/event/authentication.py:78
-msgid "Invalid authorization header."
-msgstr "En-tête d'autorisation invalide."
-
-#: core/recording/event/authentication.py:88
-msgid "Invalid token"
-msgstr "Jeton invalide"
 
 #: core/recording/event/notification.py:94
 msgid "Your recording is ready"
