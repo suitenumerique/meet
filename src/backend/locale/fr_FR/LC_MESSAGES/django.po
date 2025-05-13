@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-23 14:04+0000\n"
+"POT-Creation-Date: 2025-05-13 10:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: antoine.lebaud@mail.numerique.gouv.fr\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,111 +35,101 @@ msgstr ""
 "Vous devez être administrateur ou propriétaire d'une salle pour y ajouter "
 "des accès."
 
-#: core/authentication/backends.py:77
-msgid "User info contained no recognizable user identification"
-msgstr ""
-"Les informations utilisateur ne contiennent aucune identification "
-"utilisateur reconnaissable"
-
-#: core/authentication/backends.py:102
-msgid "User account is disabled"
-msgstr "Le compte utilisateur est désactivé"
-
-#: core/authentication/backends.py:142
+#: core/authentication/backends.py:96
 msgid "Multiple user accounts share a common email."
 msgstr "Plusieurs comptes utilisateur partagent une adresse e-mail commune."
 
-#: core/models.py:30
+#: core/models.py:31
 msgid "Member"
 msgstr "Membre"
 
-#: core/models.py:31
+#: core/models.py:32
 msgid "Administrator"
 msgstr "Administrateur"
 
-#: core/models.py:32
+#: core/models.py:33
 msgid "Owner"
 msgstr "Propriétaire"
 
-#: core/models.py:48
+#: core/models.py:49
 msgid "Initiated"
 msgstr "Initié"
 
-#: core/models.py:49
+#: core/models.py:50
 msgid "Active"
 msgstr "Actif"
 
-#: core/models.py:50
+#: core/models.py:51
 msgid "Stopped"
 msgstr "Arrêté"
 
-#: core/models.py:51
+#: core/models.py:52
 msgid "Saved"
 msgstr "Enregistré"
 
-#: core/models.py:52
+#: core/models.py:53
 msgid "Aborted"
 msgstr "Abandonné"
 
-#: core/models.py:53
+#: core/models.py:54
 msgid "Failed to Start"
 msgstr "Échec au démarrage"
 
-#: core/models.py:54
+#: core/models.py:55
 msgid "Failed to Stop"
 msgstr "Échec à l'arrêt"
 
-#: core/models.py:55
+#: core/models.py:56
 msgid "Notification succeeded"
 msgstr "Notification réussie"
 
-#: core/models.py:82
+#: core/models.py:83
 msgid "SCREEN_RECORDING"
 msgstr "ENREGISTREMENT_ÉCRAN"
 
-#: core/models.py:83
+#: core/models.py:84
 msgid "TRANSCRIPT"
 msgstr "TRANSCRIPTION"
 
-#: core/models.py:89
+#: core/models.py:90
 msgid "Public Access"
 msgstr "Accès public"
 
-#: core/models.py:90
+#: core/models.py:91
 msgid "Trusted Access"
 msgstr "Accès de confiance"
 
-#: core/models.py:91
+#: core/models.py:92
 msgid "Restricted Access"
 msgstr "Accès restreint"
 
-#: core/models.py:103
+#: core/models.py:104
 msgid "id"
 msgstr "id"
 
-#: core/models.py:104
+#: core/models.py:105
 msgid "primary key for the record as UUID"
 msgstr "clé primaire pour l'enregistrement sous forme d'UUID"
 
-#: core/models.py:110
+#: core/models.py:111
 msgid "created on"
 msgstr "créé le"
 
-#: core/models.py:111
+#: core/models.py:112
 msgid "date and time at which a record was created"
 msgstr "date et heure auxquelles un enregistrement a été créé"
 
-#: core/models.py:116
+#: core/models.py:117
 msgid "updated on"
 msgstr "mis à jour le"
 
-#: core/models.py:117
+#: core/models.py:118
 msgid "date and time at which a record was last updated"
 msgstr ""
 "date et heure auxquelles un enregistrement a été mis à jour pour la dernière "
 "fois"
 
-#: core/models.py:137
+#: core/models.py:138
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
@@ -147,11 +137,11 @@ msgstr ""
 "Entrez un identifiant valide. Cette valeur ne peut contenir que des lettres, "
 "des chiffres et les caractères @/./+/-/_."
 
-#: core/models.py:143
+#: core/models.py:144
 msgid "sub"
 msgstr "identifiant"
 
-#: core/models.py:145
+#: core/models.py:146
 msgid ""
 "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
 "characters only."
@@ -159,55 +149,55 @@ msgstr ""
 "Obligatoire. 255 caractères ou moins. Lettres, chiffres et caractères @/./"
 "+/-/_ uniquement."
 
-#: core/models.py:153
+#: core/models.py:154
 msgid "identity email address"
 msgstr "adresse e-mail d'identité"
 
-#: core/models.py:158
+#: core/models.py:159
 msgid "admin email address"
 msgstr "adresse e-mail d'administrateur"
 
-#: core/models.py:160
+#: core/models.py:161
 msgid "full name"
 msgstr "nom complet"
 
-#: core/models.py:162
+#: core/models.py:163
 msgid "short name"
 msgstr "nom court"
 
-#: core/models.py:168
+#: core/models.py:169
 msgid "language"
 msgstr "langue"
 
-#: core/models.py:169
+#: core/models.py:170
 msgid "The language in which the user wants to see the interface."
 msgstr "La langue dans laquelle l'utilisateur souhaite voir l'interface."
 
-#: core/models.py:175
+#: core/models.py:176
 msgid "The timezone in which the user wants to see times."
 msgstr "Le fuseau horaire dans lequel l'utilisateur souhaite voir les heures."
 
-#: core/models.py:178
+#: core/models.py:179
 msgid "device"
 msgstr "appareil"
 
-#: core/models.py:180
+#: core/models.py:181
 msgid "Whether the user is a device or a real user."
 msgstr "Si l'utilisateur est un appareil ou un utilisateur réel."
 
-#: core/models.py:183
+#: core/models.py:184
 msgid "staff status"
 msgstr "statut du personnel"
 
-#: core/models.py:185
+#: core/models.py:186
 msgid "Whether the user can log into this admin site."
 msgstr "Si l'utilisateur peut se connecter à ce site d'administration."
 
-#: core/models.py:188
+#: core/models.py:189
 msgid "active"
 msgstr "actif"
 
-#: core/models.py:191
+#: core/models.py:192
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
@@ -215,56 +205,56 @@ msgstr ""
 "Si cet utilisateur doit être traité comme actif. Désélectionnez cette option "
 "au lieu de supprimer des comptes."
 
-#: core/models.py:204
+#: core/models.py:205
 msgid "user"
 msgstr "utilisateur"
 
-#: core/models.py:205
+#: core/models.py:206
 msgid "users"
 msgstr "utilisateurs"
 
-#: core/models.py:264
+#: core/models.py:265
 msgid "Resource"
 msgstr "Ressource"
 
-#: core/models.py:265
+#: core/models.py:266
 msgid "Resources"
 msgstr "Ressources"
 
-#: core/models.py:319
+#: core/models.py:320
 msgid "Resource access"
 msgstr "Accès aux ressources"
 
-#: core/models.py:320
+#: core/models.py:321
 msgid "Resource accesses"
 msgstr "Accès aux ressources"
 
-#: core/models.py:326
+#: core/models.py:327
 msgid "Resource access with this User and Resource already exists."
 msgstr ""
 "L'accès à la ressource avec cet utilisateur et cette ressource existe déjà."
 
-#: core/models.py:382
+#: core/models.py:383
 msgid "Visio room configuration"
 msgstr "Configuration de la salle de visioconférence"
 
-#: core/models.py:383
+#: core/models.py:384
 msgid "Values for Visio parameters to configure the room."
 msgstr "Valeurs des paramètres de visioconférence pour configurer la salle."
 
-#: core/models.py:389 core/models.py:509
+#: core/models.py:390 core/models.py:510
 msgid "Room"
 msgstr "Salle"
 
-#: core/models.py:390
+#: core/models.py:391
 msgid "Rooms"
 msgstr "Salles"
 
-#: core/models.py:520
+#: core/models.py:521
 msgid "Worker ID"
 msgstr "ID du Worker"
 
-#: core/models.py:522
+#: core/models.py:523
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
@@ -273,39 +263,39 @@ msgstr ""
 "est conservé même lorsque le travailleur s'arrête, permettant un suivi "
 "facile."
 
-#: core/models.py:530
+#: core/models.py:531
 msgid "Recording mode"
 msgstr "Mode d'enregistrement"
 
-#: core/models.py:531
+#: core/models.py:532
 msgid "Defines the mode of recording being called."
 msgstr "Définit le mode d'enregistrement appelé."
 
-#: core/models.py:537
+#: core/models.py:538
 msgid "Recording"
 msgstr "Enregistrement"
 
-#: core/models.py:538
+#: core/models.py:539
 msgid "Recordings"
 msgstr "Enregistrements"
 
-#: core/models.py:646
+#: core/models.py:647
 msgid "Recording/user relation"
 msgstr "Relation enregistrement/utilisateur"
 
-#: core/models.py:647
+#: core/models.py:648
 msgid "Recording/user relations"
 msgstr "Relations enregistrement/utilisateur"
 
-#: core/models.py:653
+#: core/models.py:654
 msgid "This user is already in this recording."
 msgstr "Cet utilisateur est déjà dans cet enregistrement."
 
-#: core/models.py:659
+#: core/models.py:660
 msgid "This team is already in this recording."
 msgstr "Cette équipe est déjà dans cet enregistrement."
 
-#: core/models.py:665
+#: core/models.py:666
 msgid "Either user or team must be set, not both."
 msgstr "Soit l'utilisateur, soit l'équipe doit être défini, pas les deux."
 

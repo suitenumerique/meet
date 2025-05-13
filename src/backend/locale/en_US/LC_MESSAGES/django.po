@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-23 14:04+0000\n"
+"POT-Creation-Date: 2025-05-13 10:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,107 +33,99 @@ msgstr "Important dates"
 msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr "You must be administrator or owner of a room to add accesses to it."
 
-#: core/authentication/backends.py:77
-msgid "User info contained no recognizable user identification"
-msgstr "User info contained no recognizable user identification"
-
-#: core/authentication/backends.py:102
-msgid "User account is disabled"
-msgstr "User account is disabled"
-
-#: core/authentication/backends.py:142
+#: core/authentication/backends.py:96
 msgid "Multiple user accounts share a common email."
 msgstr "Multiple user accounts share a common email."
 
-#: core/models.py:30
+#: core/models.py:31
 msgid "Member"
 msgstr "Member"
 
-#: core/models.py:31
+#: core/models.py:32
 msgid "Administrator"
 msgstr "Administrator"
 
-#: core/models.py:32
+#: core/models.py:33
 msgid "Owner"
 msgstr "Owner"
 
-#: core/models.py:48
+#: core/models.py:49
 msgid "Initiated"
 msgstr "Initiated"
 
-#: core/models.py:49
+#: core/models.py:50
 msgid "Active"
 msgstr "Active"
 
-#: core/models.py:50
+#: core/models.py:51
 msgid "Stopped"
 msgstr "Stopped"
 
-#: core/models.py:51
+#: core/models.py:52
 msgid "Saved"
 msgstr "Saved"
 
-#: core/models.py:52
+#: core/models.py:53
 msgid "Aborted"
 msgstr "Aborted"
 
-#: core/models.py:53
+#: core/models.py:54
 msgid "Failed to Start"
 msgstr "Failed to Start"
 
-#: core/models.py:54
+#: core/models.py:55
 msgid "Failed to Stop"
 msgstr "Failed to Stop"
 
-#: core/models.py:55
+#: core/models.py:56
 msgid "Notification succeeded"
 msgstr "Notification succeeded"
 
-#: core/models.py:82
+#: core/models.py:83
 msgid "SCREEN_RECORDING"
 msgstr "SCREEN_RECORDING"
 
-#: core/models.py:83
+#: core/models.py:84
 msgid "TRANSCRIPT"
 msgstr "TRANSCRIPT"
 
-#: core/models.py:89
+#: core/models.py:90
 msgid "Public Access"
 msgstr "Public Access"
 
-#: core/models.py:90
+#: core/models.py:91
 msgid "Trusted Access"
 msgstr "Trusted Access"
 
-#: core/models.py:91
+#: core/models.py:92
 msgid "Restricted Access"
 msgstr "Restricted Access"
 
-#: core/models.py:103
+#: core/models.py:104
 msgid "id"
 msgstr "id"
 
-#: core/models.py:104
+#: core/models.py:105
 msgid "primary key for the record as UUID"
 msgstr "primary key for the record as UUID"
 
-#: core/models.py:110
+#: core/models.py:111
 msgid "created on"
 msgstr "created on"
 
-#: core/models.py:111
+#: core/models.py:112
 msgid "date and time at which a record was created"
 msgstr "date and time at which a record was created"
 
-#: core/models.py:116
+#: core/models.py:117
 msgid "updated on"
 msgstr "updated on"
 
-#: core/models.py:117
+#: core/models.py:118
 msgid "date and time at which a record was last updated"
 msgstr "date and time at which a record was last updated"
 
-#: core/models.py:137
+#: core/models.py:138
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
@@ -141,11 +133,11 @@ msgstr ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
 
-#: core/models.py:143
+#: core/models.py:144
 msgid "sub"
 msgstr "sub"
 
-#: core/models.py:145
+#: core/models.py:146
 msgid ""
 "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
 "characters only."
@@ -153,55 +145,55 @@ msgstr ""
 "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
 "characters only."
 
-#: core/models.py:153
+#: core/models.py:154
 msgid "identity email address"
 msgstr "identity email address"
 
-#: core/models.py:158
+#: core/models.py:159
 msgid "admin email address"
 msgstr "admin email address"
 
-#: core/models.py:160
+#: core/models.py:161
 msgid "full name"
 msgstr "full name"
 
-#: core/models.py:162
+#: core/models.py:163
 msgid "short name"
 msgstr "short name"
 
-#: core/models.py:168
+#: core/models.py:169
 msgid "language"
 msgstr "language"
 
-#: core/models.py:169
+#: core/models.py:170
 msgid "The language in which the user wants to see the interface."
 msgstr "The language in which the user wants to see the interface."
 
-#: core/models.py:175
+#: core/models.py:176
 msgid "The timezone in which the user wants to see times."
 msgstr "The timezone in which the user wants to see times."
 
-#: core/models.py:178
+#: core/models.py:179
 msgid "device"
 msgstr "device"
 
-#: core/models.py:180
+#: core/models.py:181
 msgid "Whether the user is a device or a real user."
 msgstr "Whether the user is a device or a real user."
 
-#: core/models.py:183
+#: core/models.py:184
 msgid "staff status"
 msgstr "staff status"
 
-#: core/models.py:185
+#: core/models.py:186
 msgid "Whether the user can log into this admin site."
 msgstr "Whether the user can log into this admin site."
 
-#: core/models.py:188
+#: core/models.py:189
 msgid "active"
 msgstr "active"
 
-#: core/models.py:191
+#: core/models.py:192
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
@@ -209,55 +201,55 @@ msgstr ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
 
-#: core/models.py:204
+#: core/models.py:205
 msgid "user"
 msgstr "user"
 
-#: core/models.py:205
+#: core/models.py:206
 msgid "users"
 msgstr "users"
 
-#: core/models.py:264
+#: core/models.py:265
 msgid "Resource"
 msgstr "Resource"
 
-#: core/models.py:265
+#: core/models.py:266
 msgid "Resources"
 msgstr "Resources"
 
-#: core/models.py:319
+#: core/models.py:320
 msgid "Resource access"
 msgstr "Resource access"
 
-#: core/models.py:320
+#: core/models.py:321
 msgid "Resource accesses"
 msgstr "Resource accesses"
 
-#: core/models.py:326
+#: core/models.py:327
 msgid "Resource access with this User and Resource already exists."
 msgstr "Resource access with this User and Resource already exists."
 
-#: core/models.py:382
+#: core/models.py:383
 msgid "Visio room configuration"
 msgstr "Visio room configuration"
 
-#: core/models.py:383
+#: core/models.py:384
 msgid "Values for Visio parameters to configure the room."
 msgstr "Values for Visio parameters to configure the room."
 
-#: core/models.py:389 core/models.py:509
+#: core/models.py:390 core/models.py:510
 msgid "Room"
 msgstr "Room"
 
-#: core/models.py:390
+#: core/models.py:391
 msgid "Rooms"
 msgstr "Rooms"
 
-#: core/models.py:520
+#: core/models.py:521
 msgid "Worker ID"
 msgstr "Worker ID"
 
-#: core/models.py:522
+#: core/models.py:523
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
@@ -265,39 +257,39 @@ msgstr ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
 
-#: core/models.py:530
+#: core/models.py:531
 msgid "Recording mode"
 msgstr "Recording mode"
 
-#: core/models.py:531
+#: core/models.py:532
 msgid "Defines the mode of recording being called."
 msgstr "Defines the mode of recording being called."
 
-#: core/models.py:537
+#: core/models.py:538
 msgid "Recording"
 msgstr "Recording"
 
-#: core/models.py:538
+#: core/models.py:539
 msgid "Recordings"
 msgstr "Recordings"
 
-#: core/models.py:646
+#: core/models.py:647
 msgid "Recording/user relation"
 msgstr "Recording/user relation"
 
-#: core/models.py:647
+#: core/models.py:648
 msgid "Recording/user relations"
 msgstr "Recording/user relations"
 
-#: core/models.py:653
+#: core/models.py:654
 msgid "This user is already in this recording."
 msgstr "This user is already in this recording."
 
-#: core/models.py:659
+#: core/models.py:660
 msgid "This team is already in this recording."
 msgstr "This team is already in this recording."
 
-#: core/models.py:665
+#: core/models.py:666
 msgid "Either user or team must be set, not both."
 msgstr "Either user or team must be set, not both."
 
