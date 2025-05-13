@@ -1,56 +1,56 @@
 {
-  "createMeeting": "",
-  "heading": "",
-  "intro": "",
-  "joinInputError": "",
-  "joinInputExample": "",
-  "joinInputLabel": "",
-  "joinInputSubmit": "",
-  "joinMeeting": "",
-  "joinMeetingTipContent": "",
-  "joinMeetingTipHeading": "",
-  "loginToCreateMeeting": "",
-  "moreLinkLabel": "",
-  "moreLink": "",
-  "moreAbout": "",
+  "createMeeting": "Meeting erstellen",
+  "heading": "Einfache und sichere Videokonferenzen",
+  "intro": "Kommunizieren und arbeiten Sie mühelos, ohne Ihre digitale Souveränität zu gefährden",
+  "joinInputError": "Verwenden Sie einen Meeting-Link oder -Code. Beispiele:",
+  "joinInputExample": "URL oder 10-stelliger Code",
+  "joinInputLabel": "Meeting-Link",
+  "joinInputSubmit": "Meeting beitreten",
+  "joinMeeting": "Meeting beitreten",
+  "joinMeetingTipContent": "Sie können einem Meeting beitreten, indem Sie den vollständigen Link in die Adressleiste Ihres Browsers einfügen.",
+  "joinMeetingTipHeading": "Wussten Sie schon?",
+  "loginToCreateMeeting": "Melden Sie sich an, um ein Meeting zu erstellen",
+  "moreLinkLabel": "Mehr erfahren – neues Tab",
+  "moreLink": "Mehr erfahren",
+  "moreAbout": "über Visio",
   "createMenu": {
-    "laterOption": "",
-    "instantOption": ""
+    "laterOption": "Meeting für später planen",
+    "instantOption": "Sofort-Meeting starten"
   },
   "laterMeetingDialog": {
-    "heading": "",
-    "description": "",
-    "copy": "",
-    "copied": "",
-    "permissions": ""
+    "heading": "Ihre Zugangsdaten",
+    "description": "Senden Sie diesen Link an die Personen, die Sie zum Meeting einladen möchten. Sie können ohne ProConnect teilnehmen.",
+    "copy": "Meeting-Link kopieren",
+    "copied": "Link in die Zwischenablage kopiert",
+    "permissions": "Personen mit diesem Link benötigen keine Genehmigung, um diesem Meeting beizutreten."
   },
   "introSlider": {
     "previous": {
-      "label": "",
-      "tooltip": ""
-    },
-    "beta": {
-      "text": "",
-      "tooltip": ""
+      "label": "Zurück",
+      "tooltip": "Zurück"
     },
     "next": {
-      "label": "",
-      "tooltip": ""
+      "label": "Weiter",
+      "tooltip": "Weiter"
+    },
+    "beta": {
+      "text": "An der Beta teilnehmen",
+      "tooltip": "Formular ausfüllen"
     },
     "slide1": {
-      "title": "",
-      "body": "",
-      "imgAlt": ""
+      "title": "Testen Sie Visio für Ihre täglichen Aufgaben",
+      "body": "Entdecken Sie eine intuitive und zugängliche Lösung, entwickelt für alle Mitarbeitenden im öffentlichen Dienst, ihre Partner und viele weitere.",
+      "imgAlt": "Illustration einer benutzerfreundlichen und barrierefreien Kollaborationsplattform"
     },
     "slide2": {
-      "title": "",
-      "body": "",
-      "imgAlt": ""
+      "title": "Gruppenanrufe ohne Einschränkungen",
+      "body": "Unbegrenzte Meeting-Dauer mit flüssiger, hochwertiger Kommunikation – unabhängig von der Gruppengröße.",
+      "imgAlt": "Bild eines virtuellen Meetings mit mehreren nahtlos zusammenarbeitenden Teilnehmenden"
     },
     "slide3": {
-      "title": "",
-      "body": "",
-      "imgAlt": ""
+      "title": "Verwandeln Sie Ihre Meetings mit KI",
+      "body": "Erhalten Sie präzise und verwertbare Transkripte zur Steigerung Ihrer Produktivität. Funktion in der Beta – jetzt testen!",
+      "imgAlt": "Illustration KI-gestützter Notizen in einem virtuellen Meeting"
     }
   }
 }

@@ -1,49 +1,49 @@
 {
   "account": {
-    "currentlyLoggedAs": "",
-    "heading": "",
-    "youAreNotLoggedIn": "",
-    "nameLabel": "",
-    "authentication": ""
+    "currentlyLoggedAs": "Sie sind derzeit angemeldet als <0>{{user}}</0>",
+    "heading": "Konto",
+    "youAreNotLoggedIn": "Sie sind nicht angemeldet.",
+    "nameLabel": "Ihr Name",
+    "authentication": "Authentifizierung"
   },
   "audio": {
     "microphone": {
-      "heading": "",
-      "label": ""
+      "heading": "Mikrofon",
+      "label": "Wählen Sie Ihre Audioeingabe"
     },
     "speakers": {
-      "heading": "",
-      "label": "",
-      "test": "",
-      "ongoingTest": ""
+      "heading": "Lautsprecher",
+      "label": "Wählen Sie Ihre Audioausgabe",
+      "test": "Testen",
+      "ongoingTest": "Soundtest läuft…"
     },
-    "permissionsRequired": ""
+    "permissionsRequired": "Berechtigungen erforderlich"
   },
   "notifications": {
-    "heading": "",
-    "label": "",
+    "heading": "Tonbenachrichtigungen",
+    "label": "Tonbenachrichtigungen für",
     "actions": {
-      "disable": "",
-      "enable": ""
+      "disable": "Deaktivieren",
+      "enable": "Aktivieren"
     },
     "items": {
-      "participantJoined": "",
-      "handRaised": "",
-      "messageReceived": ""
+      "participantJoined": "Teilnehmer beigetreten",
+      "handRaised": "Hand gehoben",
+      "messageReceived": "Nachricht erhalten"
     }
   },
   "dialog": {
-    "heading": ""
+    "heading": "Einstellungen"
   },
   "language": {
-    "heading": "",
-    "label": ""
+    "heading": "Sprache",
+    "label": "Sprache"
   },
-  "settingsButtonLabel": "",
+  "settingsButtonLabel": "Einstellungen",
   "tabs": {
-    "account": "",
-    "audio": "",
-    "general": "",
-    "notifications": ""
+    "account": "Profil",
+    "audio": "Audio",
+    "general": "Allgemein",
+    "notifications": "Benachrichtigungen"
   }
 }

@@ -1,33 +1,33 @@
 {
-  "defaultName": "",
+  "defaultName": "Ein Mitwirkender",
   "joined": {
-    "description": ""
+    "description": "{{name}} ist dem Raum beigetreten"
   },
   "raised": {
-    "description": "",
-    "cta": ""
+    "description": "{{name}} hat die Hand gehoben.",
+    "cta": "Warteliste öffnen"
   },
-  "muted": "",
-  "openChat": "",
+  "muted": "{{name}} hat dein Mikrofon stummgeschaltet. Kein Teilnehmer kann dich hören.",
+  "openChat": "Chat öffnen",
   "lowerHand": {
-    "auto": "",
-    "dismiss": ""
+    "auto": "Es scheint, dass du angefangen hast zu sprechen, daher wird deine Hand gesenkt.",
+    "dismiss": "Hand oben lassen"
   },
   "reaction": {
-    "description": ""
+    "description": "{{name}} hat mit {{emoji}} reagiert"
   },
   "waitingParticipants": {
-    "one": "",
-    "several": "",
-    "open": "",
-    "accept": ""
+    "one": "Eine Person möchte diesem Anruf beitreten.",
+    "several": "Mehrere Personen möchten diesem Anruf beitreten.",
+    "open": "Öffnen",
+    "accept": "Annehmen"
   },
   "transcript": {
-    "started": "",
-    "stopped": ""
+    "started": "{{name}} hat die Transkription des Treffens gestartet.",
+    "stopped": "{{name}} hat die Transkription des Treffens gestoppt."
   },
   "screenRecording": {
-    "started": "",
-    "stopped": ""
+    "started": "{{name}} hat die Aufzeichnung des Treffens gestartet.",
+    "stopped": "{{name}} hat die Aufzeichnung des Treffens gestoppt."
   }
 }

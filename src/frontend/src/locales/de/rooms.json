@@ -1,146 +1,145 @@
 {
   "feedback": {
-    "heading": "",
-    "home": "",
-    "back": ""
+    "heading": "Sie haben das Meeting verlassen",
+    "home": "Zur Startseite zurückkehren",
+    "back": "Dem Meeting erneut beitreten"
   },
   "join": {
     "videoinput": {
-      "choose": "",
-      "disable": "",
-      "enable": "",
-      "label": "",
-      "placeholder": ""
+      "choose": "Kamera auswählen",
+      "disable": "Kamera deaktivieren",
+      "enable": "Kamera aktivieren",
+      "label": "Kamera",
+      "placeholder": "Kamera aktivieren, um die Vorschau zu sehen"
     },
     "audioinput": {
-      "choose": "",
-      "disable": "",
-      "enable": "",
-      "label": ""
+      "choose": "Mikrofon auswählen",
+      "disable": "Mikrofon deaktivieren",
+      "enable": "Mikrofon aktivieren",
+      "label": "Mikrofon"
     },
-    "heading": "",
     "effects": {
-      "description": "",
-      "title": "",
-      "subTitle": ""
+      "description": "Effekte anwenden",
+      "title": "Effekte",
+      "subTitle": "Konfigurieren Sie die Effekte Ihrer Kamera."
     },
-    "joinLabel": "",
-    "joinMeeting": "",
-    "toggleOff": "",
-    "toggleOn": "",
-    "usernameHint": "",
-    "usernameLabel": "",
+    "heading": "Dem Meeting beitreten?",
+    "joinLabel": "Beitreten",
+    "joinMeeting": "Meeting beitreten",
+    "toggleOff": "Klicken, um auszuschalten",
+    "toggleOn": "Klicken, um einzuschalten",
+    "usernameHint": "Wird anderen Teilnehmern angezeigt",
+    "usernameLabel": "Ihr Name",
     "errors": {
-      "usernameEmpty": ""
+      "usernameEmpty": "Ihr Name darf nicht leer sein"
     },
-    "cameraDisabled": "",
-    "cameraStarting": "",
+    "cameraDisabled": "Kamera ist deaktiviert.",
+    "cameraStarting": "Kamera wird gestartet.",
     "waiting": {
-      "title": "",
-      "body": ""
+      "title": "Beitrittsanfrage wird gesendet...",
+      "body": "Sie können diesem Anruf beitreten, sobald jemand Sie autorisiert"
     },
     "denied": {
-      "title": "",
-      "body": ""
+      "title": "Sie können diesem Anruf nicht beitreten",
+      "body": "Ihre Beitrittsanfrage wurde abgelehnt."
     },
     "timeoutInvite": {
-      "title": "",
-      "body": ""
+      "title": "Sie können diesem Anruf nicht beitreten",
+      "body": "Niemand hat auf Ihre Anfrage reagiert"
     }
   },
-  "leaveRoomPrompt": "",
+  "leaveRoomPrompt": "Dadurch verlassen Sie das Meeting.",
   "shareDialog": {
-    "copy": "",
-    "copied": "",
-    "heading": "",
-    "description": "",
-    "permissions": ""
+    "copy": "Meeting-Link kopieren",
+    "copyButton": "Link kopieren",
+    "copied": "Link in die Zwischenablage kopiert",
+    "heading": "Ihr Meeting ist bereit",
+    "description": "Teilen Sie diesen Link mit Personen, die Sie zum Meeting einladen möchten.",
+    "permissions": "Personen mit diesem Link benötigen keine Erlaubnis, um diesem Meeting beizutreten."
   },
   "error": {
     "createRoom": {
-      "heading": "",
-      "body": ""
+      "heading": "Authentifizierung erforderlich",
+      "body": "Dieser Raum wurde noch nicht erstellt. Bitte authentifizieren Sie sich, um ihn zu erstellen, oder warten Sie, bis ein authentifizierter Benutzer dies tut."
     },
     "screenShare": {
-      "title": "",
-      "ariaLabel": "",
-      "message": "",
-      "macInstructions": "",
-      "macSystemPreferences": "",
-      "helpLinkText": "",
-      "helpLinkLabel": "",
-      "closeButton": "",
-      "newTab": ""
+      "title": "Bildschirmfreigabe nicht möglich",
+      "ariaLabel": "Bildschirmfreigabe nicht möglich",
+      "message": "Ihr Browser darf möglicherweise den Bildschirm Ihres Computers nicht aufzeichnen.",
+      "macInstructions": "Gehen Sie zu Ihren",
+      "macSystemPreferences": "Systemeinstellungen",
+      "helpLinkText": "Weitere Informationen finden Sie unter",
+      "helpLinkLabel": "Präsentationsproblem",
+      "closeButton": "Schließen",
+      "newTab": "Neues Fenster"
     }
   },
   "controls": {
-    "microphone": "",
-    "camera": "",
-    "shareScreen": "",
-    "stopScreenShare": "",
+    "microphone": "Mikrofon",
+    "camera": "Kamera",
     "chat": {
-      "open": "",
-      "closed": "",
+      "open": "Chat schließen",
+      "closed": "Chat öffnen",
       "input": {
         "textArea": {
-          "label": "",
-          "placeholder": ""
+          "label": "Nachricht eingeben",
+          "placeholder": "Nachricht eingeben"
         },
         "button": {
-          "label": ""
+          "label": "Nachricht senden"
         }
       }
     },
     "info": {
-      "open": "",
-      "closed": ""
+      "open": "Informationen ausblenden",
+      "closed": "Informationen anzeigen"
     },
     "hand": {
-      "raise": "",
-      "lower": ""
+      "raise": "Hand heben",
+      "lower": "Hand senken"
     },
     "screenShare": {
-      "start": "",
-      "stop": ""
+      "start": "Bildschirm freigeben",
+      "stop": "Bildschirmfreigabe beenden"
     },
-    "leave": "",
+    "leave": "Verlassen",
     "participants": {
-      "open": "",
-      "closed": ""
+      "open": "Alle ausblenden",
+      "closed": "Alle anzeigen"
     },
     "tools": {
-      "open": "",
-      "closed": ""
+      "open": "Weitere Tools ausblenden",
+      "closed": "Weitere Tools anzeigen"
     },
     "admin": {
-      "open": "",
-      "closed": ""
+      "open": "Admin ausblenden",
+      "closed": "Admin öffnen"
     },
-    "moreOptions": "",
+    "moreOptions": "Weitere Optionen",
     "reactions": {
-      "button": "",
-      "send": "",
-      "you": ""
+      "button": "Reaktion senden",
+      "send": "Reaktion {{emoji}} senden",
+      "you": "Sie"
     }
   },
   "options": {
-    "buttonLabel": "",
+    "buttonLabel": "Weitere Optionen",
     "items": {
-      "feedback": "",
-      "settings": "",
-      "username": "",
-      "effects": "",
-      "switchCamera": "",
+      "feedback": "Feedback geben",
+      "settings": "Einstellungen",
+      "username": "Ihren Namen aktualisieren",
+      "effects": "Effekte anwenden",
+      "switchCamera": "Kamera wechseln",
       "fullscreen": {
-        "enter": "",
-        "exit": ""
+        "enter": "Vollbild",
+        "exit": "Vollbildmodus verlassen"
       },
-      "support": ""
+      "support": "Support kontaktieren"
     }
   },
   "effects": {
     "activateCamera": "Ihre Kamera ist deaktiviert. Wählen Sie eine Option, um sie zu aktivieren.",
-    "notAvailable": "Videoeffekte werden in Kürze in Ihrem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit können Sie Google Chrome für beste Leistung oder Firefox verwenden :(",
+    "notAvailable": "Videoeffekte werden bald in Ihrem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit können Sie Google Chrome für die beste Leistung oder Firefox verwenden :(",
     "heading": "Unschärfe",
     "blur": {
       "title": "Hintergrundunschärfe",
@@ -161,225 +160,227 @@
         "clear": "Brille entfernen"
       },
       "french": {
-        "apply": "Französische Touch hinzufügen",
-        "clear": "Französische Touch entfernen"
+        "apply": "Französischen Touch hinzufügen",
+        "clear": "Französischen Touch entfernen"
       }
     }
   },
   "sidePanel": {
     "heading": {
-      "participants": "",
-      "effects": "",
-      "chat": "",
-      "transcript": "",
-      "screenRecording": "",
-      "admin": "",
-      "tools": "",
-      "info": ""
+      "participants": "Teilnehmer",
+      "effects": "Effekte",
+      "chat": "Nachrichten im Chat",
+      "transcript": "Transkription",
+      "screenRecording": "Aufzeichnung",
+      "admin": "Admin-Einstellungen",
+      "tools": "Weitere Tools",
+      "info": "Meeting-Informationen"
     },
     "content": {
-      "participants": "",
-      "effects": "",
-      "chat": "",
-      "transcript": "",
-      "screenRecording": "",
-      "admin": "",
-      "tools": "",
-      "info": ""
+      "participants": "Teilnehmer",
+      "effects": "Effekte",
+      "chat": "Nachrichten",
+      "transcript": "Transkription",
+      "screenRecording": "Aufzeichnung",
+      "admin": "Admin-Einstellungen",
+      "tools": "Weitere Tools",
+      "info": "Meeting-Informationen"
     },
-    "closeButton": ""
+    "closeButton": "{{content}} ausblenden"
   },
   "chat": {
-    "disclaimer": ""
+    "disclaimer": "Die Nachrichten sind nur für Teilnehmer zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Anrufs gelöscht."
   },
   "moreTools": {
-    "body": "",
-    "moreLink": "",
+    "body": "Greifen Sie auf weitere Tools in Visio zu, um Ihre Meetings zu verbessern,",
+    "moreLink": "mehr erfahren",
     "tools": {
       "transcript": {
-        "title": "",
-        "body": ""
+        "title": "Transkription",
+        "body": "Führen Sie ein schriftliches Protokoll Ihres Meetings."
       },
       "screenRecording": {
-        "title": "",
-        "body": ""
+        "title": "Aufzeichnung",
+        "body": "Zeichnen Sie Ihr Meeting auf, um es später erneut anzusehen."
       }
     }
   },
   "info": {
     "roomInformation": {
-      "title": "",
+      "title": "Verbindungsinformationen",
       "button": {
-        "ariaLabel": "",
-        "copy": "",
-        "copied": ""
+        "ariaLabel": "Kopiere deine Meeting-Adresse",
+        "copy": "Adresse kopieren",
+        "copied": "Adresse kopiert"
       }
     }
   },
   "transcript": {
     "start": {
-      "heading": "",
-      "body": "",
-      "button": "",
-      "linkMore": ""
+      "heading": "Dieses Gespräch transkribieren",
+      "body": "Dieses Gespräch automatisch transkribieren und die Zusammenfassung in Docs erhalten.",
+      "button": "Transkription starten",
+      "loading": "Transkription wird gestartet",
+      "linkMore": "Mehr erfahren"
     },
     "stop": {
-      "heading": "",
-      "body": "",
-      "button": ""
+      "heading": "Transkription läuft...",
+      "body": "Die Transkription deines Meetings läuft. Du erhältst das Ergebnis per E-Mail, sobald das Meeting beendet ist.",
+      "button": "Transkription stoppen"
     },
     "stopping": {
-      "heading": "",
-      "body": ""
+      "heading": "Daten werden gespeichert…",
+      "body": "Dieser Vorgang kann einige Minuten dauern. Danke für deine Geduld."
     },
     "beta": {
-      "heading": "",
-      "body": "",
-      "button": ""
+      "heading": "Werde Beta-Tester",
+      "body": "Zeichne dein Meeting auf. Du erhältst eine Zusammenfassung per E-Mail nach dem Meeting.",
+      "button": "Anmelden"
     },
     "alert": {
-      "title": "",
+      "title": "Transkription fehlgeschlagen",
       "body": {
-        "stop": "",
-        "start": ""
+        "stop": "Die Transkription konnte nicht gestoppt werden. Bitte versuche es in einem Moment erneut.",
+        "start": "Die Transkription konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
       },
-      "button": ""
+      "button": "OK"
     }
   },
   "screenRecording": {
     "start": {
-      "heading": "",
-      "body": "",
-      "button": "",
-      "linkMore": ""
+      "heading": "Dieses Gespräch aufzeichnen",
+      "body": "Zeichne dieses Gespräch auf, um es später anzusehen. Du erhältst die Videoaufnahme per E-Mail.",
+      "button": "Aufzeichnung starten",
+      "loading": "Aufzeichnung wird gestartet",
+      "linkMore": "Mehr erfahren"
     },
     "stopping": {
-      "heading": "",
-      "body": ""
+      "heading": "Daten werden gespeichert…",
+      "body": "Dieser Vorgang kann einige Minuten dauern. Danke für deine Geduld."
     },
     "stop": {
-      "heading": "",
-      "body": "",
-      "button": ""
+      "heading": "Aufzeichnung läuft…",
+      "body": "Du erhältst das Ergebnis per E-Mail, sobald die Aufzeichnung abgeschlossen ist.",
+      "button": "Aufzeichnung stoppen"
     },
     "alert": {
-      "title": "",
+      "title": "Aufzeichnung fehlgeschlagen",
       "body": {
-        "stop": "",
-        "start": ""
+        "stop": "Die Aufzeichnung konnte nicht gestoppt werden. Bitte versuche es in einem Moment erneut.",
+        "start": "Die Aufzeichnung konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
       },
-      "button": ""
+      "button": "OK"
     }
   },
   "admin": {
-    "description": "",
+    "description": "Diese Einstellungen für Organisatoren ermöglichen dir die Kontrolle über dein Meeting. Nur Organisatoren haben Zugriff auf diese Optionen.",
     "access": {
-      "title": "",
-      "description": "",
-      "type": "",
+      "title": "Raumzugang",
+      "description": "Diese Einstellungen gelten auch für zukünftige Ausgaben dieses Meetings.",
+      "type": "Zugangsarten für Meetings",
       "levels": {
         "public": {
-          "label": "",
-          "description": ""
+          "label": "Offen",
+          "description": "Niemand muss um Zugang zum Meeting bitten."
         },
         "trusted": {
-          "label": "",
-          "description": ""
+          "label": "Offen für vertrauenswürdige Personen",
+          "description": "Authentifizierte Personen müssen nicht um Zugang bitten."
         },
         "restricted": {
-          "label": "",
-          "description": ""
+          "label": "Eingeschränkt",
+          "description": "Nicht eingeladene Personen müssen um Zugang bitten."
         }
       }
     }
   },
   "rating": {
-    "submit": "",
-    "question": "",
+    "submit": "Absenden",
+    "question": "Wie bewertest du die Qualität deines Gesprächs?",
     "levels": {
-      "min": "",
-      "max": ""
+      "min": "sehr schlecht",
+      "max": "ausgezeichnet"
     }
   },
   "openFeedback": {
-    "question": "",
-    "placeholder": "",
-    "submit": "",
-    "skip": ""
+    "question": "Was können wir tun, um Visio zu verbessern?",
+    "placeholder": "Beschreibe deine Fehler oder teile deine Vorschläge…",
+    "submit": "Absenden",
+    "skip": "Überspringen"
   },
   "confirmationMessage": {
-    "heading": "",
-    "body": ""
+    "heading": "Vielen Dank für deine Rückmeldung",
+    "body": "Unser Produktteam nimmt sich Zeit, dein Feedback sorgfältig zu prüfen. Wir melden uns so bald wie möglich bei dir."
   },
   "authenticationMessage": {
-    "heading": "",
-    "placeholder": "",
-    "submit": "",
-    "ignore": ""
+    "heading": "Wie können wir dich kontaktieren?",
+    "placeholder": "Deine E-Mail-Adresse",
+    "submit": "Senden",
+    "ignore": "Ignorieren"
   },
   "participants": {
-    "subheading": "",
-    "contributors": "",
+    "subheading": "Im Raum",
+    "you": "Du",
+    "contributors": "Mitwirkende",
     "collapsable": {
-      "open": "",
-      "close": ""
+      "open": "{{name}}-Liste öffnen",
+      "close": "{{name}}-Liste schließen"
     },
-    "you": "",
-    "muteYourself": "",
-    "muteParticipant": "",
+    "muteYourself": "Mikrofon ausschalten",
+    "muteParticipant": "{{name}}’s Mikrofon ausschalten",
     "muteParticipantAlert": {
-      "heading": "",
-      "description": "",
-      "confirm": "",
-      "cancel": ""
+      "heading": "{{name}} stummschalten",
+      "description": "{{name}} für alle Teilnehmer stummschalten? {{name}} kann sich nur selbst wieder einschalten.",
+      "confirm": "Stummschalten",
+      "cancel": "Abbrechen"
     },
-    "raisedHands": "",
-    "lowerParticipantHand": "",
-    "lowerParticipantsHand": "",
+    "raisedHands": "Meldungen",
+    "lowerParticipantHand": "{{name}}’s Hand senken",
+    "lowerParticipantsHand": "Alle Hände senken",
     "waiting": {
-      "title": "",
+      "title": "Warteraum",
       "accept": {
-        "button": "",
-        "label": "",
-        "all": ""
+        "button": "Zulassen",
+        "label": "{{name}} zum Meeting zulassen",
+        "all": "Alle zulassen"
       },
       "deny": {
-        "button": "",
-        "label": "",
-        "all": ""
+        "button": "Ablehnen",
+        "label": "{{name}} vom Meeting ablehnen",
+        "all": "Alle ablehnen"
       }
     }
   },
-  "recordingBadge": {
+  "recordingStateToast": {
     "transcript": {
-      "started": "",
-      "starting": "",
-      "stopping": ""
+      "started": "Transkription läuft",
+      "starting": "Transkription wird gestartet",
+      "stopping": "Transkription wird gestoppt"
     },
     "screenRecording": {
-      "started": "",
-      "starting": "",
-      "stopping": ""
+      "started": "Aufzeichnung läuft",
+      "starting": "Aufzeichnung wird gestartet",
+      "stopping": "Aufzeichnung wird gestoppt"
     },
     "any": {
-      "started": ""
+      "started": "Aufzeichnung läuft"
     }
   },
   "participantTileFocus": {
     "pin": {
-      "enable": "",
-      "disable": ""
+      "enable": "Anheften",
+      "disable": "Lösen"
     },
-    "effects": "",
-    "muteParticipant": "",
-    "fullScreen": ""
+    "effects": "Visuelle Effekte anwenden",
+    "muteParticipant": "{{name}} stummschalten",
+    "fullScreen": "Vollbild"
   },
   "fullScreenWarning": {
-    "message": "",
-    "stop": "",
-    "ignore": ""
+    "message": "Um eine Endlosschleife zu vermeiden, teile nicht deinen gesamten Bildschirm. Teile stattdessen einen Tab oder ein anderes Fenster.",
+    "stop": "Präsentation beenden",
+    "ignore": "Ignorieren"
   },
   "participantTile": {
-    "screenShare": ""
+    "screenShare": "{{name}}’s Bildschirm"
   }
 }

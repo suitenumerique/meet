@@ -1,24 +1,24 @@
 {
   "error": {
-    "title": "",
-    "body": ""
+    "title": "Aufzeichnung nicht verfügbar",
+    "body": "Diese Aufzeichnung konnte nicht gefunden werden oder wurde gelöscht."
   },
   "expired": {
-    "title": "",
-    "body": ""
+    "title": "Aufzeichnung abgelaufen",
+    "body": "Diese Aufzeichnung wurde am {{date}} gelöscht."
   },
   "authentication": {
-    "title": "",
-    "body": ""
+    "title": "Authentifizierung erforderlich",
+    "body": "Bitte melden Sie sich an, um auf diese Aufzeichnung zuzugreifen."
   },
   "unsaved": {
-    "title": "",
-    "body": ""
+    "title": "Download nicht verfügbar",
+    "body": "Diese Aufzeichnung ist noch nicht zum Herunterladen bereit. Bitte versuchen Sie es später erneut."
   },
   "success": {
-    "title": "",
-    "body": "",
-    "expiration": "",
-    "button": ""
+    "title": "Ihre Aufzeichnung ist bereit!",
+    "body": "Aufzeichnung des Treffens <b>{{room}}</b> vom {{created_at}}.",
+    "expiration": "Achtung, diese Aufzeichnung wird nach {{expiration_days}} Tag(en) gelöscht.",
+    "button": "Herunterladen"
   }
 }

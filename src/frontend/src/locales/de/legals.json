@@ -1,37 +1,37 @@
 {
-  "title": "",
+  "title": "Rechtliche Hinweise",
   "creator": {
-    "title": "",
-    "body": "",
+    "title": "Herausgeber",
+    "body": "Der Visio-Dienst wird herausgegeben von der Interministeriellen Digitaldirektion des Staates (DINUM) mit Sitz:",
     "contact": {
-      "title": "",
-      "address": "",
-      "city": "",
-      "phone": "",
-      "siret": "",
-      "siren": ""
+      "title": "Kontaktdaten",
+      "address": "20 avenue de Ségur",
+      "city": "75007 Paris",
+      "phone": "Tel. Zentrale: 01.71.21.01.70",
+      "siret": "SIRET: 12000101100010 (Generalsekretariat der Regierung)",
+      "siren": "SIREN: 120 001 011"
     }
   },
   "director": {
-    "title": "",
-    "body": ""
+    "title": "Verantwortliche für die Veröffentlichung",
+    "body": "Die Verantwortliche für die Veröffentlichung ist Frau Stéphanie Schaer, Interministerielle Direktorin für Digitalisierung."
   },
   "hosting": {
-    "title": "",
-    "body": ""
+    "title": "Hosting",
+    "body": "Der Dienst wird gehostet von Outscale West-1 CloudGouv SecNumCloud mit Standort in Frankreich."
   },
   "accessibility": {
-    "title": "",
-    "body": "",
-    "more": "",
-    "link": "",
-    "status": ""
+    "title": "Barrierefreiheit",
+    "body": "Die Einhaltung der Standards für digitale Barrierefreiheit ist ein zukünftiges Ziel. Die Website wurde noch nicht auditiert. Das Team bemüht sich jedoch, eine für alle zugängliche Website zu erstellen, unter Berücksichtigung der Empfehlungen des RGAA.",
+    "more": "Mehr erfahren: ",
+    "link": "Link zur Seite über Barrierefreiheit",
+    "status": "Barrierefreiheitsstatus: nicht konform"
   },
   "reuse": {
-    "title": "",
-    "body1": "",
-    "license": "",
-    "body2": "",
-    "body3": ""
+    "title": "Wiederverwendung von Inhalten und Links",
+    "body1": "Sofern nicht ausdrücklich anders angegeben und geistige Eigentumsrechte Dritter betroffen sind, werden die Inhalte dieser Website unter der ",
+    "license": "offenen Lizenz Etalab 2.0",
+    "body2": "bereitgestellt. Insbesondere dürfen Sie diese Inhalte frei vervielfältigen, kopieren, ändern, extrahieren, umwandeln, verbreiten, weiterleiten, veröffentlichen, übertragen und nutzen – unter der Bedingung, dass die Quelle und das Datum der letzten Aktualisierung genannt werden und Dritte nicht durch die Informationen in die Irre geführt werden.",
+    "body3": "Jede öffentliche oder private Website ist berechtigt, ohne vorherige Genehmigung, einen Link (einschließlich eines Deep Links) zu den auf dieser Website veröffentlichten Informationen zu setzen."
   }
 }

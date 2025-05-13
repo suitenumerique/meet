@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-13 10:15+0000\n"
+"POT-Creation-Date: 2025-05-13 13:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,321 +19,326 @@ msgstr ""
 
 #: core/admin.py:26
 msgid "Personal info"
-msgstr "Persoonlijke informatie"
+msgstr "Persönliche Informationen"
 
 #: core/admin.py:39
 msgid "Permissions"
-msgstr "Rechten"
+msgstr "Berechtigungen"
 
 #: core/admin.py:51
 msgid "Important dates"
-msgstr "Belangrijke datums"
+msgstr "Wichtige Daten"
 
 #: core/api/serializers.py:63
 msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr ""
-"Je moet beheerder of eigenaar van een ruimte zijn om toegang toe te voegen."
+"Sie müssen Administrator oder Eigentümer eines Raums sein, um Zugriffe "
+"hinzuzufügen."
 
 #: core/authentication/backends.py:96
 msgid "Multiple user accounts share a common email."
-msgstr "Meerdere gebruikersaccounts delen een gemeenschappelijk e-mailadres."
+msgstr "Mehrere Benutzerkonten verwenden dieselbe E-Mail-Adresse."
 
 #: core/models.py:31
 msgid "Member"
-msgstr "Lid"
+msgstr "Mitglied"
 
 #: core/models.py:32
 msgid "Administrator"
-msgstr "Beheerder"
+msgstr "Administrator"
 
 #: core/models.py:33
 msgid "Owner"
-msgstr "Eigenaar"
+msgstr "Eigentümer"
 
 #: core/models.py:49
 msgid "Initiated"
-msgstr "Gestart"
+msgstr "Gestartet"
 
 #: core/models.py:50
 msgid "Active"
-msgstr "Actief"
+msgstr "Aktiv"
 
 #: core/models.py:51
 msgid "Stopped"
-msgstr "Gestopt"
+msgstr "Beendet"
 
 #: core/models.py:52
 msgid "Saved"
-msgstr "Opgeslagen"
+msgstr "Gespeichert"
 
 #: core/models.py:53
 msgid "Aborted"
-msgstr "Afgebroken"
+msgstr "Abgebrochen"
 
 #: core/models.py:54
 msgid "Failed to Start"
-msgstr "Starten mislukt"
+msgstr "Start fehlgeschlagen"
 
 #: core/models.py:55
 msgid "Failed to Stop"
-msgstr "Stoppen mislukt"
+msgstr "Stopp fehlgeschlagen"
 
 #: core/models.py:56
 msgid "Notification succeeded"
-msgstr "Notificatie geslaagd"
+msgstr "Benachrichtigung erfolgreich"
 
 #: core/models.py:83
 msgid "SCREEN_RECORDING"
-msgstr "SCHERM_OPNAME"
+msgstr "BILDSCHIRMAUFZEICHNUNG"
 
 #: core/models.py:84
 msgid "TRANSCRIPT"
-msgstr "TRANSCRIPT"
+msgstr "TRANSKRIPT"
 
 #: core/models.py:90
 msgid "Public Access"
-msgstr "Openbare toegang"
+msgstr "Öffentlicher Zugriff"
 
 #: core/models.py:91
 msgid "Trusted Access"
-msgstr "Vertrouwde toegang"
+msgstr "Vertrauenswürdiger Zugriff"
 
 #: core/models.py:92
 msgid "Restricted Access"
-msgstr "Beperkte toegang"
+msgstr "Eingeschränkter Zugriff"
 
 #: core/models.py:104
 msgid "id"
-msgstr "id"
+msgstr "ID"
 
 #: core/models.py:105
 msgid "primary key for the record as UUID"
-msgstr "primaire sleutel voor het record als UUID"
+msgstr "Primärschlüssel des Eintrags als UUID"
 
 #: core/models.py:111
 msgid "created on"
-msgstr "aangemaakt op"
+msgstr "erstellt am"
 
 #: core/models.py:112
 msgid "date and time at which a record was created"
-msgstr "datum en tijd waarop een record werd aangemaakt"
+msgstr "Datum und Uhrzeit der Erstellung eines Eintrags"
 
 #: core/models.py:117
 msgid "updated on"
-msgstr "bijgewerkt op"
+msgstr "aktualisiert am"
 
 #: core/models.py:118
 msgid "date and time at which a record was last updated"
-msgstr "datum en tijd waarop een record voor het laatst werd bijgewerkt"
+msgstr "Datum und Uhrzeit der letzten Aktualisierung eines Eintrags"
 
 #: core/models.py:138
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
 msgstr ""
-"Voer een geldige sub in. Deze waarde mag alleen letters, cijfers en @/./+/-/"
-"_ tekens bevatten."
+"Geben Sie einen gültigen Sub ein. Dieser Wert darf nur Buchstaben, Zahlen "
+"und die Zeichen @/./+/-/_ enthalten."
 
 #: core/models.py:144
 msgid "sub"
-msgstr "sub"
+msgstr "Sub"
 
 #: core/models.py:146
 msgid ""
 "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ "
 "characters only."
 msgstr ""
-"Vereist. 255 tekens of minder. Alleen letters, cijfers en @/./+/-/_ tekens."
+"Erforderlich. Maximal 255 Zeichen. Nur Buchstaben, Zahlen und @/./+/-/_ sind "
+"erlaubt."
 
 #: core/models.py:154
 msgid "identity email address"
-msgstr "identiteit e-mailadres"
+msgstr "Identitäts-E-Mail-Adresse"
 
 #: core/models.py:159
 msgid "admin email address"
-msgstr "beheerder e-mailadres"
+msgstr "Administrator-E-Mail-Adresse"
 
 #: core/models.py:161
 msgid "full name"
-msgstr "volledige naam"
+msgstr "Vollständiger Name"
 
 #: core/models.py:163
 msgid "short name"
-msgstr "korte naam"
+msgstr "Kurzname"
 
 #: core/models.py:169
 msgid "language"
-msgstr "taal"
+msgstr "Sprache"
 
 #: core/models.py:170
 msgid "The language in which the user wants to see the interface."
-msgstr "De taal waarin de gebruiker de interface wil zien."
+msgstr "Die Sprache, in der der Benutzer die Oberfläche sehen möchte."
 
 #: core/models.py:176
 msgid "The timezone in which the user wants to see times."
-msgstr "De tijdzone waarin de gebruiker tijden wil zien."
+msgstr "Die Zeitzone, in der der Benutzer die Zeiten sehen möchte."
 
 #: core/models.py:179
 msgid "device"
-msgstr "apparaat"
+msgstr "Gerät"
 
 #: core/models.py:181
 msgid "Whether the user is a device or a real user."
-msgstr "Of de gebruiker een apparaat is of een echte gebruiker."
+msgstr "Ob es sich um ein Gerät oder einen echten Benutzer handelt."
 
 #: core/models.py:184
 msgid "staff status"
-msgstr "personeelsstatus"
+msgstr "Mitarbeiterstatus"
 
 #: core/models.py:186
 msgid "Whether the user can log into this admin site."
-msgstr "Of de gebruiker kan inloggen op deze beheersite."
+msgstr "Ob der Benutzer sich bei dieser Admin-Seite anmelden kann."
 
 #: core/models.py:189
 msgid "active"
-msgstr "actief"
+msgstr "aktiv"
 
 #: core/models.py:192
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
 msgstr ""
-"Of deze gebruiker als actief moet worden behandeld. Deselecteer dit in "
-"plaats van accounts te verwijderen."
+"Ob dieser Benutzer als aktiv behandelt werden soll. Deaktivieren Sie dies "
+"anstelle des Löschens des Kontos."
 
 #: core/models.py:205
 msgid "user"
-msgstr "gebruiker"
+msgstr "Benutzer"
 
 #: core/models.py:206
 msgid "users"
-msgstr "gebruikers"
+msgstr "Benutzer"
 
 #: core/models.py:265
 msgid "Resource"
-msgstr "Bron"
+msgstr "Ressource"
 
 #: core/models.py:266
 msgid "Resources"
-msgstr "Bronnen"
+msgstr "Ressourcen"
 
 #: core/models.py:320
 msgid "Resource access"
-msgstr "Brontoegang"
+msgstr "Ressourcenzugriff"
 
 #: core/models.py:321
 msgid "Resource accesses"
-msgstr "Brontoegangsrechten"
+msgstr "Ressourcenzugriffe"
 
 #: core/models.py:327
 msgid "Resource access with this User and Resource already exists."
-msgstr "Brontoegang met deze gebruiker en bron bestaat al."
+msgstr ""
+"Ein Ressourcenzugriff mit diesem Benutzer und dieser Ressource existiert "
+"bereits."
 
 #: core/models.py:383
 msgid "Visio room configuration"
-msgstr "Visio-ruimteconfiguratie"
+msgstr "Visio-Raumkonfiguration"
 
 #: core/models.py:384
 msgid "Values for Visio parameters to configure the room."
-msgstr "Waarden voor Visio-parameters om de ruimte te configureren."
+msgstr "Werte für Visio-Parameter zur Konfiguration des Raums."
 
 #: core/models.py:390 core/models.py:510
 msgid "Room"
-msgstr "Ruimte"
+msgstr "Raum"
 
 #: core/models.py:391
 msgid "Rooms"
-msgstr "Ruimtes"
+msgstr "Räume"
 
 #: core/models.py:521
 msgid "Worker ID"
-msgstr "Worker ID"
+msgstr "Worker-ID"
 
 #: core/models.py:523
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
 msgstr ""
-"Voer een identificatie in voor de worker-opname. Deze ID blijft behouden, "
-"zelfs wanneer de worker stopt, waardoor eenvoudige tracking mogelijk is."
+"Geben Sie eine ID für die Aufzeichnung des Workers ein. Diese ID bleibt "
+"erhalten, auch wenn der Worker stoppt, was ein einfaches Nachverfolgen "
+"ermöglicht."
 
 #: core/models.py:531
 msgid "Recording mode"
-msgstr "Opnamemodus"
+msgstr "Aufzeichnungsmodus"
 
 #: core/models.py:532
 msgid "Defines the mode of recording being called."
-msgstr "Definieert de modus van opname die wordt aangeroepen."
+msgstr "Definiert den aufgerufenen Aufzeichnungsmodus."
 
 #: core/models.py:538
 msgid "Recording"
-msgstr "Opname"
+msgstr "Aufzeichnung"
 
 #: core/models.py:539
 msgid "Recordings"
-msgstr "Opnames"
+msgstr "Aufzeichnungen"
 
 #: core/models.py:647
 msgid "Recording/user relation"
-msgstr "Opname/gebruiker-relatie"
+msgstr "Beziehung Aufzeichnung/Benutzer"
 
 #: core/models.py:648
 msgid "Recording/user relations"
-msgstr "Opname/gebruiker-relaties"
+msgstr "Beziehungen Aufzeichnung/Benutzer"
 
 #: core/models.py:654
 msgid "This user is already in this recording."
-msgstr "Deze gebruiker is al in deze opname."
+msgstr "Dieser Benutzer ist bereits Teil dieser Aufzeichnung."
 
 #: core/models.py:660
 msgid "This team is already in this recording."
-msgstr "Dit team is al in deze opname."
+msgstr "Dieses Team ist bereits Teil dieser Aufzeichnung."
 
 #: core/models.py:666
 msgid "Either user or team must be set, not both."
-msgstr "Ofwel gebruiker of team moet worden ingesteld, niet beide."
+msgstr "Entweder Benutzer oder Team muss festgelegt werden, nicht beides."
 
 #: core/recording/event/authentication.py:58
 msgid "Authentication is enabled but token is not configured."
-msgstr "Authenticatie is ingeschakeld maar token is niet geconfigureerd."
+msgstr "Authentifizierung ist aktiviert, aber Token ist nicht konfiguriert."
 
 #: core/recording/event/authentication.py:70
 msgid "Authorization header is required"
-msgstr "Autorisatie-header is vereist"
+msgstr "Autorisierungs-Header ist erforderlich"
 
 #: core/recording/event/authentication.py:78
 msgid "Invalid authorization header."
-msgstr "Ongeldige autorisatie-header."
+msgstr "Ungültiger Autorisierungs-Header."
 
 #: core/recording/event/authentication.py:88
 msgid "Invalid token"
-msgstr "Ongeldig token"
+msgstr "Ungültiges Token"
 
 #: core/recording/event/notification.py:94
 msgid "Your recording is ready"
-msgstr "Je opname is klaar"
+msgstr "Ihre Aufzeichnung ist bereit"
 
 #: core/services/invitation.py:44
 #, python-brace-format
 msgid "Video call in progress: {sender.email} is waiting for you to connect"
-msgstr "Video-oproep bezig: {sender.email} wacht op je verbinding"
+msgstr "Videoanruf läuft: {sender.email} wartet auf Ihre Teilnahme"
 
 #: core/templates/mail/html/invitation.html:159
 #: core/templates/mail/html/screen_recording.html:159
 #: core/templates/mail/text/invitation.txt:3
 #: core/templates/mail/text/screen_recording.txt:3
 msgid "Logo email"
-msgstr "Logo e-mail"
+msgstr "Logo-E-Mail"
 
 #: core/templates/mail/html/invitation.html:189
 #: core/templates/mail/text/invitation.txt:5
 msgid "invites you to join an ongoing video call"
-msgstr "nodigt je uit om deel te nemen aan een lopende video-oproep"
+msgstr "lädt Sie zu einem laufenden Videoanruf ein"
 
 #: core/templates/mail/html/invitation.html:200
 #: core/templates/mail/text/invitation.txt:7
 msgid "JOIN THE CALL"
-msgstr "NEEM DEEL AAN DE OPROEP"
+msgstr "AM ANRUF TEILNEHMEN"
 
 #: core/templates/mail/html/invitation.html:227
 #: core/templates/mail/text/invitation.txt:13
@@ -341,28 +346,28 @@ msgid ""
 "If you can't click the button, copy and paste the URL into your browser to "
 "join the call."
 msgstr ""
-"Als je niet op de knop kunt klikken, kopieer en plak dan de URL in je "
-"browser om deel te nemen aan de oproep."
+"Wenn Sie den Button nicht anklicken können, kopieren Sie die URL und fügen "
+"Sie sie in Ihren Browser ein, um am Anruf teilzunehmen."
 
 #: core/templates/mail/html/invitation.html:235
 #: core/templates/mail/text/invitation.txt:15
 msgid "Tips for a better experience:"
-msgstr "Tips voor een betere ervaring:"
+msgstr "Tipps für ein besseres Erlebnis:"
 
 #: core/templates/mail/html/invitation.html:237
 #: core/templates/mail/text/invitation.txt:17
 msgid "Use Chrome or Firefox for better call quality"
-msgstr "Gebruik Chrome of Firefox voor betere gesprekskwaliteit"
+msgstr "Verwenden Sie Chrome oder Firefox für eine bessere Anrufqualität"
 
 #: core/templates/mail/html/invitation.html:238
 #: core/templates/mail/text/invitation.txt:18
 msgid "Test your microphone and camera before joining"
-msgstr "Test je microfoon en camera voordat je deelneemt"
+msgstr "Testen Sie Ihr Mikrofon und Ihre Kamera vor dem Beitritt"
 
 #: core/templates/mail/html/invitation.html:239
 #: core/templates/mail/text/invitation.txt:19
 msgid "Make sure you have a stable internet connection"
-msgstr "Zorg ervoor dat je een stabiele internetverbinding hebt"
+msgstr "Stellen Sie sicher, dass Sie eine stabile Internetverbindung haben"
 
 #: core/templates/mail/html/invitation.html:248
 #: core/templates/mail/html/screen_recording.html:240
@@ -370,12 +375,12 @@ msgstr "Zorg ervoor dat je een stabiele internetverbinding hebt"
 #: core/templates/mail/text/screen_recording.txt:22
 #, python-format
 msgid " Thank you for using %(brandname)s. "
-msgstr " Bedankt voor het gebruik van %(brandname)s. "
+msgstr " Vielen Dank für die Nutzung von %(brandname)s. "
 
 #: core/templates/mail/html/screen_recording.html:188
 #: core/templates/mail/text/screen_recording.txt:6
 msgid "Your recording is ready!"
-msgstr "Je opname is klaar!"
+msgstr "Ihre Aufzeichnung ist fertig!"
 
 #: core/templates/mail/html/screen_recording.html:195
 #: core/templates/mail/text/screen_recording.txt:8
@@ -384,39 +389,39 @@ msgid ""
 " Your recording of \"%(room_name)s\" on %(recording_date)s at "
 "%(recording_time)s is now ready to download. "
 msgstr ""
-" Je opname van \"%(room_name)s\" op %(recording_date)s om %(recording_time)s "
-"is nu klaar om te downloaden. "
+" Ihre Aufzeichnung von \"%(room_name)s\" am %(recording_date)s um "
+"%(recording_time)s steht nun zum Herunterladen bereit. "
 
 #: core/templates/mail/html/screen_recording.html:195
 #: core/templates/mail/text/screen_recording.txt:8
 #, python-format
 msgid " The recording will expire in %(days)s days. "
-msgstr " De opname verloopt over %(days)s dagen. "
+msgstr " Die Aufzeichnung wird in %(days)s Tagen ablaufen. "
 
 #: core/templates/mail/html/screen_recording.html:201
 #: core/templates/mail/text/screen_recording.txt:10
 msgid "To keep this recording permanently:"
-msgstr "Om deze opname permanent te bewaren:"
+msgstr "So speichern Sie diese Aufzeichnung dauerhaft:"
 
 #: core/templates/mail/html/screen_recording.html:203
 #: core/templates/mail/text/screen_recording.txt:12
 msgid "Click the \"Open\" button below "
-msgstr "Klik op de \"Openen\"-knop hieronder "
+msgstr "Klicken Sie auf den Button „Öffnen“ unten "
 
 #: core/templates/mail/html/screen_recording.html:204
 #: core/templates/mail/text/screen_recording.txt:13
 msgid "Use the \"Download\" button in the interface "
-msgstr "Gebruik de \"Download\"-knop in de interface "
+msgstr "Verwenden Sie den Button „Herunterladen“ in der Oberfläche "
 
 #: core/templates/mail/html/screen_recording.html:205
 #: core/templates/mail/text/screen_recording.txt:14
 msgid "Save the file to your preferred location"
-msgstr "Sla het bestand op naar je gewenste locatie"
+msgstr "Speichern Sie die Datei an einem gewünschten Ort"
 
 #: core/templates/mail/html/screen_recording.html:216
 #: core/templates/mail/text/screen_recording.txt:16
 msgid "Open"
-msgstr "Openen"
+msgstr "Öffnen"
 
 #: core/templates/mail/html/screen_recording.html:225
 #: core/templates/mail/text/screen_recording.txt:18
@@ -425,21 +430,21 @@ msgid ""
 " If you have any questions or need assistance, please contact our support "
 "team at %(support_email)s. "
 msgstr ""
-" Als je vragen hebt of hulp nodig hebt, neem dan contact op met ons support "
-"team via %(support_email)s. "
+" Wenn Sie Fragen haben oder Unterstützung benötigen, wenden Sie sich bitte "
+"an unser Support-Team unter %(support_email)s. "
 
 #: meet/settings.py:162
 msgid "English"
-msgstr "Engels"
+msgstr "Englisch"
 
 #: meet/settings.py:163
 msgid "French"
-msgstr "Frans"
+msgstr "Französisch"
 
 #: meet/settings.py:164
 msgid "Dutch"
-msgstr "Nederlands"
+msgstr "Niederländisch"
 
 #: meet/settings.py:165
 msgid "German"
-msgstr "Duits"
+msgstr "Deutsch"

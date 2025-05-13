@@ -1,33 +1,33 @@
 {
   "accessibility": {
-    "title": "",
-    "introduction": "",
+    "title": "Barrierefreiheit",
+    "introduction": "<i>Visio</i> verpflichtet sich, seine digitalen Dienste barrierefrei zu gestalten, gemäß Artikel 47 des Gesetzes Nr. 2005-102 vom 11. Februar 2005.",
     "declaration": {
-      "title": "",
-      "date": ""
+      "title": "Erklärung zur Barrierefreiheit",
+      "date": "Erstellt am 4. Dezember 2024."
     },
-    "scope": "",
+    "scope": "Diese Erklärung zur Barrierefreiheit gilt für die Website visio.numerique.gouv.fr",
     "complianceStatus": {
-      "title": "",
-      "body": ""
+      "title": "Stand der Vereinbarkeit",
+      "body": "visio.numerique.gouv.fr ist nicht konform mit RGAA 4.1. Die Website wurde noch nicht geprüft. Das Team bemüht sich jedoch, eine für alle zugängliche Seite gemäß den Empfehlungen des RGAA zu erstellen."
     },
     "improvement": {
-      "title": "",
-      "body": "",
+      "title": "Verbesserung und Kontakt",
+      "body": "Wenn Sie auf Inhalte oder Dienste nicht zugreifen können, können Sie die verantwortliche Person von lasuite.numerique.gouv.fr kontaktieren, um eine barrierefreie Alternative zu erhalten oder die Inhalte in einer anderen Form zu bekommen.",
       "contact": {
-        "email": "",
-        "address": ""
+        "email": "E-Mail: visio@numerique.gouv.fr",
+        "address": "Adresse: DINUM, 20 avenue de Ségur, 75007 Paris"
       },
-      "response": ""
+      "response": "Wir bemühen uns, innerhalb von 2 Werktagen zu antworten."
     },
     "recourse": {
-      "title": "",
-      "introduction": "",
+      "title": "Rechtsbehelfe",
+      "introduction": "Dieses Verfahren ist in folgendem Fall zu verwenden: Sie haben der für die Website zuständigen Stelle ein Problem mit der Barrierefreiheit gemeldet, das Sie daran hindert, auf Inhalte oder Dienste des Portals zuzugreifen, und keine zufriedenstellende Antwort erhalten.",
       "options": {
-        "intro": "",
-        "option1": "",
-        "option2": "",
-        "option3": ""
+        "intro": "Sie können:",
+        "option1": "Dem*der Beauftragten für Rechte eine Nachricht schreiben",
+        "option2": "Den*die Vertreter*in des*der Beauftragten für Rechte in Ihrer Region kontaktieren",
+        "option3": "Einen Brief per Post senden (kostenfrei, ohne Briefmarke): </br> Défenseur des droits, Libre réponse 71120, 75342 Paris CEDEX 07"
       }
     }
   }

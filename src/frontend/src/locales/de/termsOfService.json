@@ -1,72 +1,94 @@
 {
-  "title": "",
+  "title": "Nutzungsbedingungen für Visio",
   "articles": {
     "article1": {
-      "title": "",
-      "content": ""
+      "title": "1. Geltungsbereich",
+      "content": "Dieses Dokument definiert die Nutzungsbedingungen für Visio, den Videokonferenzdienst der Verwaltung."
     },
     "article2": {
-      "title": "",
-      "content": "",
-      "purposes": ""
+      "title": "2. Zweck der Plattform",
+      "content": "Der Dienst fördert die Zusammenarbeit im Team und das Arbeiten aus der Ferne und erleichtert die Organisation von Besprechungen, Konferenzen oder Schulungen.",
+      "purposes": "Visio wird von DINUM entwickelt und betrieben. Jede Nutzung des Dienstes muss mit diesen Nutzungsbedingungen übereinstimmen."
     },
     "article3": {
-      "title": "",
-      "definition": ""
+      "title": "3. Zugang zum Dienst",
+      "definition": "Visio wird öffentlichen Bediensteten zur Verfügung gestellt, die über ProConnect verbunden sind, um einen Videokonferenzraum zu verwalten. Der verbundene öffentliche Bedienstete kann dann einen Link übermitteln, der den Zugang zum Raum unter seiner Verantwortung ermöglicht."
     },
     "article4": {
-      "title": "",
-      "content": ""
+      "title": "4. Nutzung",
+      "content": "Die Nutzung des Dienstes ist kostenlos. Um einen Videokonferenzraum zu verwalten, ist eine Verbindung über ProConnect erforderlich."
     },
     "article5": {
-      "title": "",
+      "title": "5. Funktionen",
       "sections": {
         "section1": {
-          "title": "",
-          "content": "",
-          "paragraph1": "",
-          "paragraph2": "",
-          "capabilities": ["", "", "", ""],
-          "paragraph3": ""
+          "title": "5.1. Funktionen für öffentliche Bedienstete",
+          "content": "Visio bietet öffentlichen Bediensteten die Möglichkeit, von einem Standardarbeitsplatz aus einen Videokonferenzraum zu erstellen, der mit ihrem ProConnect-Konto verknüpft ist.",
+          "paragraph1": "Jeder Staatsbedienstete, dessen Tätigkeiten mit der Nutzung von Visio vereinbar sind oder der keinen spezifischen Vertraulichkeitsverpflichtungen oder dem Berufsgeheimnis unterliegt, kann eine Videokonferenz erstellen. Er kann dann den Besprechungslink mit anderen Teilnehmern teilen, unabhängig davon, ob sie Teil der Verwaltung sind oder nicht.",
+          "paragraph2": "Zu diesem Zweck kann jeder Raumorganisator:",
+          "capabilities": [
+            "Den Zugang zum Raum mit einem Warteraum schützen;",
+            "Den Eintritt jedes Teilnehmers in den Raum autorisieren;",
+            "Die Mikrofone und Kameras der Teilnehmer stummschalten;",
+            "Einen Teilnehmer aus dem Raum entfernen."
+          ],
+          "paragraph3": "Nur Bedienstete, deren Tätigkeitsbereich zur Nutzung von Visio berechtigt ist oder die <u>keinen spezifischen Vertraulichkeitsverpflichtungen oder dem Berufsgeheimnis unterliegen</u>, dürfen diesen Dienst und seine Funktionen nutzen oder kontrollieren."
         },
         "section2": {
-          "title": "",
-          "content": "",
-          "paragraph": "",
-          "capabilities": ["", "", "", "", "", "", ""]
+          "title": "5.2. Funktionen für Nutzer",
+          "content": "Visio ermöglicht es jedem Nutzer, ob öffentlicher Bediensteter oder nicht, an jedem Visio-Raum teilzunehmen, zu dem er von einem Staatsbediensteten eingeladen wurde, und alle Funktionen zu nutzen.",
+          "paragraph": "Zu diesem Zweck kann jeder Teilnehmer:",
+          "capabilities": [
+            "Seine angezeigte Identität beim Betreten des Raums festlegen;",
+            "Über Audio und/oder Video aus der Ferne kommunizieren;",
+            "Seinen Bildschirm teilen;",
+            "Während der Sitzung öffentlich mit allen Nachrichten austauschen;",
+            "Informationen über die Konferenz einsehen;",
+            "Seine Kamera und/oder sein Mikrofon jederzeit ein- oder ausschalten;",
+            "Die Privatsphäre seines Arbeitsplatzes schützen, indem er vor dem Betreten des Raums oder sogar während der Videokonferenz einen Hintergrund auswählt und aktiviert."
+          ]
         }
       }
     },
     "article6": {
-      "title": "",
+      "title": "6. Verpflichtungen und Verantwortlichkeiten der Nutzer",
       "sections": {
         "section1": {
-          "title": "",
-          "paragraphs": ["", ""]
+          "title": "6.1. Konforme Nutzung",
+          "paragraphs": [
+            "Der Dienst wird öffentlichen Bediensteten über ProConnect zur Verfügung gestellt.",
+            "Der Nutzer ist für die Daten oder Inhalte verantwortlich, die er im Nachrichtendienst des Videokonferenzraums eingibt. Er muss sicherstellen, dass er nur angemessene Nachrichten eingibt."
+          ]
         },
         "section2": {
-          "title": "",
-          "paragraphs": [""]
+          "title": "6.2. Verbotene Nutzung",
+          "paragraphs": [
+            "Der Nutzer verpflichtet sich, keine Inhalte oder Informationen in den Nachrichtendienst des Visio-Raums einzugeben, die gegen geltende gesetzliche und regulatorische Bestimmungen verstoßen."
+          ]
         }
       }
     },
     "article7": {
-      "title": "",
+      "title": "7. Verpflichtungen und Verantwortlichkeiten von DINUM",
       "sections": {
         "section1": {
-          "title": "",
-          "content": "",
-          "paragraphs": ["", "", ""]
+          "title": "7.1. Sicherheit und Plattformzugang",
+          "content": "DINUM verpflichtet sich, Visio zu sichern, insbesondere durch alle notwendigen Maßnahmen zur Gewährleistung der Sicherheit und Vertraulichkeit der bereitgestellten Informationen.",
+          "paragraphs": [
+            "DINUM verpflichtet sich, die notwendigen und angemessenen Mittel bereitzustellen, um einen kontinuierlichen Zugang zu Visio zu gewährleisten.",
+            "DINUM behält sich das Recht vor, den Dienst aus Wartungsgründen oder aus anderen als notwendig erachteten Gründen ohne Vorankündigung zu ändern, zu modifizieren oder auszusetzen.",
+            "DINUM behält sich das Recht vor, ein Nutzerkonto des Dienstes zu sperren oder zu löschen, das gegen diese Nutzungsbedingungen verstoßen hat, unbeschadet etwaiger strafrechtlicher und zivilrechtlicher Maßnahmen, die gegen den Nutzer ergriffen werden könnten."
+          ]
         },
         "section2": {
-          "title": "",
-          "content": ""
+          "title": "7.2. Open Source und Lizenzen",
+          "content": "Der Quellcode von Visio ist frei und hier verfügbar: https://github.com/suitenumerique/meet\nDie von DINUM angebotenen Inhalte stehen unter einer Open License, mit Ausnahme von Logos sowie ikonografischen und fotografischen Darstellungen, die möglicherweise eigenen Lizenzen unterliegen."
         }
       }
     },
     "article8": {
-      "title": "",
-      "content": ""
+      "title": "8. Änderung der Nutzungsbedingungen",
+      "content": "Die Bedingungen dieser Nutzungsbedingungen können jederzeit ohne Vorankündigung geändert oder ergänzt werden, abhängig von Änderungen am Dienst, Gesetzesänderungen oder aus anderen als notwendig erachteten Gründen.\nDiese Änderungen und Aktualisierungen sind für den Nutzer verbindlich, der daher regelmäßig diesen Abschnitt konsultieren muss, um die geltenden Bedingungen zu überprüfen."
     }
   }
 }

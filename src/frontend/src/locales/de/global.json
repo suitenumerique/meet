@@ -1,55 +1,55 @@
 {
   "app": "Visio",
-  "backToHome": "",
-  "cancel": "",
-  "closeDialog": "",
+  "backToHome": "Zurück zur Startseite",
+  "cancel": "Abbrechen",
+  "closeDialog": "Dialogfenster schließen",
   "error": {
-    "heading": ""
+    "heading": "Beim Laden der Seite ist ein Fehler aufgetreten"
   },
   "feedback": {
-    "context": "",
-    "cta": ""
+    "context": "Produkt in Entwicklung — Ihr Feedback ist wichtig!",
+    "cta": "Teilen Sie uns Ihre Meinung mit"
   },
   "forbidden": {
-    "heading": ""
+    "heading": "Zugriff verweigert"
   },
-  "loading": "",
-  "loggedInUserTooltip": "",
+  "loading": "Ladevorgang…",
+  "loggedInUserTooltip": "Angemeldet als…",
   "login": {
-    "buttonLabel": "",
-    "linkLabel": "",
-    "link": ""
+    "buttonLabel": "Mit ProConnect anmelden",
+    "linkLabel": "Was ist ProConnect? – neues Fenster",
+    "link": "Was ist ProConnect?"
   },
-  "logout": "",
+  "logout": "Abmelden",
   "notFound": {
-    "heading": "",
-    "body": ""
+    "heading": "Überprüfen Sie Ihren Meeting-Code",
+    "body": "Stellen Sie sicher, dass Sie den richtigen Meeting-Code in der URL eingegeben haben. Beispiel:"
   },
   "submit": "OK",
   "footer": {
     "links": {
-      "legifrance": "",
-      "infogouv": "",
-      "servicepublic": "",
-      "datagouv": "",
-      "legalsTerms": "",
-      "data": "",
-      "accessibility": "",
-      "ariaLabel": "",
-      "codeAnnotation": "",
-      "code": "",
-      "technicalDetails": "",
-      "termsOfService": ""
+      "legifrance": "legifrance.gouv.fr",
+      "infogouv": "info.gouv.fr",
+      "servicepublic": "service-public.fr",
+      "datagouv": "data.gouv.fr",
+      "legalsTerms": "Rechtliche Hinweise",
+      "data": "Datenschutz und Cookies",
+      "accessibility": "Barrierefreiheit: nicht konform",
+      "ariaLabel": "neues Fenster",
+      "codeAnnotation": "Unser Code ist offen und verfügbar in diesem",
+      "code": "Open-Source-Code-Repository",
+      "technicalDetails": "Technisches Datenblatt",
+      "termsOfService": "Nutzungsbedingungen"
     },
-    "mentions": "",
-    "license": ""
+    "mentions": "Sofern nicht anders angegeben, sind die Inhalte dieser Website verfügbar unter der",
+    "license": "Etalab 2.0 Lizenz"
   },
   "loginHint": {
-    "title": "",
-    "body": "",
+    "title": "Melden Sie sich mit Ihrem ProConnect-Konto an",
+    "body": "Statt zu warten, melden Sie sich mit Ihrem ProConnect-Konto an.",
     "button": {
-      "ariaLabel": "",
-      "label": ""
+      "ariaLabel": "Hinweis schließen",
+      "label": "OK"
     }
   }
 }
