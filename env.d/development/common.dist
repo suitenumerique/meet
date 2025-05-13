@@ -54,3 +54,6 @@ ALLOW_UNREGISTERED_ROOMS=False
 
 # Recording
 SCREEN_RECORDING_BASE_URL=http://localhost:3000/recordings
+
+# Telephony
+ROOM_TELEPHONY_ENABLED=True

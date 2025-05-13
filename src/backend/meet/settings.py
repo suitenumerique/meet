@@ -572,6 +572,23 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # SIP Telephony
+    ROOM_TELEPHONY_ENABLED = values.BooleanValue(
+        False,
+        environ_name="ROOM_TELEPHONY_ENABLED",
+        environ_prefix=None,
+    )
+    ROOM_TELEPHONY_PIN_LENGTH = values.PositiveIntegerValue(
+        10,
+        environ_name="ROOM_TELEPHONY_PIN_LENGTH",
+        environ_prefix=None,
+    )
+    ROOM_TELEPHONY_PIN_MAX_RETRIES = values.PositiveIntegerValue(
+        5,
+        environ_name="ROOM_TELEPHONY_PIN_MAX_RETRIES",
+        environ_prefix=None,
+    )
+
     # pylint: disable=invalid-name
     @property
     def ENVIRONMENT(self):

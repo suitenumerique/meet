@@ -2,6 +2,7 @@
 Declare and configure the models for the Meet core application
 """
 
+import secrets
 import uuid
 from datetime import datetime, timedelta
 from logging import getLogger
@@ -383,6 +384,14 @@ class Room(Resource):
         verbose_name=_("Visio room configuration"),
         help_text=_("Values for Visio parameters to configure the room."),
     )
+    pin_code = models.CharField(
+        max_length=None,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name=_("Room PIN code"),
+        help_text=_("Unique n-digit code that identifies this room in telephony mode."),
+    )
 
     class Meta:
         db_table = "meet_room"
@@ -392,6 +401,14 @@ class Room(Resource):
 
     def __str__(self):
         return capfirst(self.name)
+
+    def save(self, *args, **kwargs):
+        """Generate a unique n-digit pin code for new rooms."""
+        if settings.ROOM_TELEPHONY_ENABLED and not self.pk and not self.pin_code:
+            self.pin_code = self.generate_unique_pin_code(
+                length=settings.ROOM_TELEPHONY_PIN_LENGTH
+            )
+        super().save(*args, **kwargs)
 
     def clean_fields(self, exclude=None):
         """
@@ -407,12 +424,38 @@ class Room(Resource):
             pass
         else:
             raise ValidationError({"name": f'Room name "{self.name:s}" is reserved.'})
+
         super().clean_fields(exclude=exclude)
 
     @property
     def is_public(self):
         """Check if a room is public"""
         return self.access_level == RoomAccessLevel.PUBLIC
+
+    @staticmethod
+    def generate_unique_pin_code(length):
+        """Generate a unique n-digit PIN code"""
+
+        if length < 4:
+            raise ValueError(
+                "PIN code length must be at least 4 digits for minimal security"
+            )
+
+        max_value = 10**length
+
+        for _ in range(settings.ROOM_TELEPHONY_PIN_MAX_RETRIES):
+            pin_code = str(secrets.randbelow(max_value)).zfill(length)
+            if not Room.objects.filter(pin_code=pin_code).exists():
+                return pin_code
+
+        # Log a warning as a temporary measure until backend observability is implemented.
+        logger.warning(
+            "Failed to generate unique PIN code of length %s after %s attempts",
+            length,
+            settings.ROOM_TELEPHONY_PIN_MAX_RETRIES,
+        )
+
+        return None
 
 
 class BaseAccessManager(models.Manager):
