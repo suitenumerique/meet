@@ -14,6 +14,8 @@ This document is a step-by-step guide that describes how to install Visio on a k
 
 If you do not have a kubernetes test cluster, you can install everything on a local kind cluster. In this case, the simplest way is to use our script located in this repo under **bin/start-kind.sh**.
 
+IMPORTANT: The kind method will only deploy meet as a local instance(127.0.0.1) that can only be accessed from the device where it has been deployed. 
+
 To be able to use the script, you will need to install the following components:
 
 - Docker (https://docs.docker.com/desktop/)
@@ -23,9 +25,10 @@ To be able to use the script, you will need to install the following components:
 - kubectl (https://kubernetes.io/docs/tasks/tools/)
 
 In order to initiate the local kind installation via **start-kind.sh** do the following:
-- Download the script to the device where the above components are installed
-- make the script executable
-- run the script with proper permissions (administrator/sudo etc.)
+1) Make sure administrator/root user context is able to execute mkcert, docker, kind etc. commands or the script might fail
+2) Download the script to the device where the above components are installed
+3) Make the script executable
+4) Run the script with proper permissions (administrator/sudo etc.)
 
 The output of the script will resemble the below example:
 
@@ -107,7 +110,7 @@ When your k8s cluster is ready, you can start the deployment. This cluster is sp
 
 Please remember that \*.127.0.0.1.nip.io will always resolve to 127.0.0.1, except in the k8s cluster where we configure CoreDNS to answer with the ingress-nginx service IP.
 
-## Preparation
+## Preparation of components
 
 ### What will you use to authenticate your users ?
 
@@ -119,7 +122,7 @@ If you haven't run the script **bin/start-kind.sh**, you'll need to manually cre
 $ kubectl create namespace meet
 ```
 
-If you have already run the script, you can skip this step and proceed to the next instruction. NOTE: Before you proceed, make sure you download this repo examples/ directory to the location where you will be executing the helm command as it will look for "examples/<name>values.yaml"
+If you have already run the script, you can skip this step and proceed to the next instruction. NOTE: Before you proceed, and is using the kind method, make sure you download this repo examples/ directory and its contents to the location where you will be executing the helm command. Helm will look for "examples/<name>values.yaml" from based on the path it is being executed.
 
 ```
 $ kubectl config set-context --current --namespace=meet
@@ -240,7 +243,7 @@ meet                     <none>   meet.127.0.0.1.nip.io       localhost   80, 44
 meet-admin               <none>   meet.127.0.0.1.nip.io       localhost   80, 443   52m
 ```
 
-You can use Visio on https://meet.127.0.0.1.nip.io. The provisioning user in keycloak is meet/meet.
+You can use Visio on https://meet.127.0.0.1.nip.io from the local device. The provisioning user in keycloak is meet/meet.
 
 ## All options
 
