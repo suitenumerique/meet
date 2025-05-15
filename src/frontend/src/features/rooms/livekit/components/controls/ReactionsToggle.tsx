@@ -23,6 +23,7 @@ export enum Emoji {
   LAUGHING = 'face-with-tears-of-joy',
   SURPRISED = 'face-with-open-mouth',
   CELEBRATION = 'party-popper',
+  PLEASE = 'folded-hands',
 }
 
 export interface Reaction {
@@ -121,7 +122,7 @@ export const ReactionsToggle = () => {
             className={css({
               position: 'absolute',
               top: -63,
-              left: -139,
+              left: -162,
               borderRadius: '8px',
               padding: '0.35rem',
               backgroundColor: 'primaryDark.50',
