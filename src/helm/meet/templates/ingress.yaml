@@ -60,7 +60,7 @@ spec:
               serviceName: {{ include "meet.frontend.fullname" . }}
               servicePort: {{ .Values.frontend.service.port }}
             {{- end }}
-          - path: /api
+          - path: /api/v
             {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
             pathType: Prefix
             {{- end }}
@@ -96,7 +96,7 @@ spec:
               serviceName: {{ include "meet.frontend.fullname" $ }}
               servicePort: {{ $.Values.frontend.service.port }}
             {{- end }}
-          - path: /api
+          - path: /api/v
             {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
             pathType: Prefix
             {{- end }}
