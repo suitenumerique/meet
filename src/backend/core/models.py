@@ -14,7 +14,6 @@ from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
 from django.utils import timezone
-from django.utils.functional import lazy
 from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -164,7 +163,7 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
     )
     language = models.CharField(
         max_length=10,
-        choices=lazy(lambda: settings.LANGUAGES, tuple)(),
+        choices=settings.LANGUAGES,
         default=settings.LANGUAGE_CODE,
         verbose_name=_("language"),
         help_text=_("The language in which the user wants to see the interface."),
