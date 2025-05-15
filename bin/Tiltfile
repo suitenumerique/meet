@@ -49,7 +49,7 @@ clean_old_images('localhost:5001/meet-summary')
 # This is necessary because we need to inject the certificate into our LiveKit container
 local_resource(
     'copy-root-ca',
-    cmd='cp "$(mkcert -CAROOT)/rootCA.pem" ../docker/livekit/rootCA.pem',
+    cmd='cp -f "$(mkcert -CAROOT)/rootCA.pem" ../docker/livekit/rootCA.pem',
     deps=[],  # No dependencies needed
 )
 # Build a custom LiveKit Docker image that includes our root CA certificate
