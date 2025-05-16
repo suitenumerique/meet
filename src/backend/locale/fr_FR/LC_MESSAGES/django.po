@@ -130,12 +130,12 @@ msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
 msgstr ""
-"Entrez un identifiant valide. Cette valeur ne peut contenir que des lettres, "
+"Entrez un sub valide. Cette valeur ne peut contenir que des lettres, "
 "des chiffres et les caractères @/./+/-/_."
 
 #: core/models.py:144
 msgid "sub"
-msgstr "identifiant"
+msgstr "sub"
 
 #: core/models.py:146
 msgid ""
@@ -263,8 +263,8 @@ msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
 msgstr ""
-"Entrez un identifiant pour l'enregistrement du travailleur. Cet identifiant "
-"est conservé même lorsque le travailleur s'arrête, permettant un suivi "
+"Entrez un identifiant pour l'enregistrement du Worker. Cet identifiant "
+"est conservé même lorsque le Worker s'arrête, permettant un suivi "
 "facile."
 
 #: core/models.py:573
