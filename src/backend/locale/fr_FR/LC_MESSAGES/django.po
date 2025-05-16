@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-13 13:54+0000\n"
+"POT-Creation-Date: 2025-05-16 17:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: antoine.lebaud@mail.numerique.gouv.fr\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -238,19 +238,27 @@ msgstr "Configuration de la salle de visioconférence"
 msgid "Values for Visio parameters to configure the room."
 msgstr "Valeurs des paramètres de visioconférence pour configurer la salle."
 
-#: core/models.py:390 core/models.py:510
+#: core/models.py:391
+msgid "Room PIN code"
+msgstr "Code PIN de la salle"
+
+#: core/models.py:392
+msgid "Unique n-digit code that identifies this room in telephony mode."
+msgstr "Code unique à n chiffres qui identifie cette salle en mode téléphonique."
+
+#: core/models.py:398 core/models.py:552
 msgid "Room"
 msgstr "Salle"
 
-#: core/models.py:391
+#: core/models.py:399
 msgid "Rooms"
 msgstr "Salles"
 
-#: core/models.py:521
+#: core/models.py:563
 msgid "Worker ID"
 msgstr "ID du Worker"
 
-#: core/models.py:523
+#: core/models.py:565
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
@@ -259,39 +267,39 @@ msgstr ""
 "est conservé même lorsque le travailleur s'arrête, permettant un suivi "
 "facile."
 
-#: core/models.py:531
+#: core/models.py:573
 msgid "Recording mode"
 msgstr "Mode d'enregistrement"
 
-#: core/models.py:532
+#: core/models.py:574
 msgid "Defines the mode of recording being called."
 msgstr "Définit le mode d'enregistrement appelé."
 
-#: core/models.py:538
+#: core/models.py:580
 msgid "Recording"
 msgstr "Enregistrement"
 
-#: core/models.py:539
+#: core/models.py:581
 msgid "Recordings"
 msgstr "Enregistrements"
 
-#: core/models.py:647
+#: core/models.py:689
 msgid "Recording/user relation"
 msgstr "Relation enregistrement/utilisateur"
 
-#: core/models.py:648
+#: core/models.py:690
 msgid "Recording/user relations"
 msgstr "Relations enregistrement/utilisateur"
 
-#: core/models.py:654
+#: core/models.py:696
 msgid "This user is already in this recording."
 msgstr "Cet utilisateur est déjà dans cet enregistrement."
 
-#: core/models.py:660
+#: core/models.py:702
 msgid "This team is already in this recording."
 msgstr "Cette équipe est déjà dans cet enregistrement."
 
-#: core/models.py:666
+#: core/models.py:708
 msgid "Either user or team must be set, not both."
 msgstr "Soit l'utilisateur, soit l'équipe doit être défini, pas les deux."
 

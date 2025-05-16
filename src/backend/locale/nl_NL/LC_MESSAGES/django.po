@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-13 13:54+0000\n"
+"POT-Creation-Date: 2025-05-16 17:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -233,19 +233,27 @@ msgstr "Visio-ruimteconfiguratie"
 msgid "Values for Visio parameters to configure the room."
 msgstr "Waarden voor Visio-parameters om de ruimte te configureren."
 
-#: core/models.py:390 core/models.py:510
+#: core/models.py:391
+msgid "Room PIN code"
+msgstr "Pincode van de kamer"
+
+#: core/models.py:392
+msgid "Unique n-digit code that identifies this room in telephony mode."
+msgstr "Unieke n-cijferige code die deze kamer identificeert in telefonie-modus."
+
+#: core/models.py:398 core/models.py:552
 msgid "Room"
 msgstr "Ruimte"
 
-#: core/models.py:391
+#: core/models.py:399
 msgid "Rooms"
 msgstr "Ruimtes"
 
-#: core/models.py:521
+#: core/models.py:563
 msgid "Worker ID"
 msgstr "Worker ID"
 
-#: core/models.py:523
+#: core/models.py:565
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
@@ -253,39 +261,39 @@ msgstr ""
 "Voer een identificatie in voor de worker-opname. Deze ID blijft behouden, "
 "zelfs wanneer de worker stopt, waardoor eenvoudige tracking mogelijk is."
 
-#: core/models.py:531
+#: core/models.py:573
 msgid "Recording mode"
 msgstr "Opnamemodus"
 
-#: core/models.py:532
+#: core/models.py:574
 msgid "Defines the mode of recording being called."
 msgstr "Definieert de modus van opname die wordt aangeroepen."
 
-#: core/models.py:538
+#: core/models.py:580
 msgid "Recording"
 msgstr "Opname"
 
-#: core/models.py:539
+#: core/models.py:581
 msgid "Recordings"
 msgstr "Opnames"
 
-#: core/models.py:647
+#: core/models.py:689
 msgid "Recording/user relation"
 msgstr "Opname/gebruiker-relatie"
 
-#: core/models.py:648
+#: core/models.py:690
 msgid "Recording/user relations"
 msgstr "Opname/gebruiker-relaties"
 
-#: core/models.py:654
+#: core/models.py:696
 msgid "This user is already in this recording."
 msgstr "Deze gebruiker is al in deze opname."
 
-#: core/models.py:660
+#: core/models.py:702
 msgid "This team is already in this recording."
 msgstr "Dit team is al in deze opname."
 
-#: core/models.py:666
+#: core/models.py:708
 msgid "Either user or team must be set, not both."
 msgstr "Ofwel gebruiker of team moet worden ingesteld, niet beide."
 
