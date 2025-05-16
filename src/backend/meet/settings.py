@@ -18,6 +18,7 @@ from django.utils.translation import gettext_lazy as _
 
 import sentry_sdk
 from configurations import Configuration, values
+from lasuite.configuration.values import SecretFileValue
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
@@ -73,7 +74,7 @@ class Base(Configuration):
 
     # Security
     ALLOWED_HOSTS = values.ListValue([])
-    SECRET_KEY = values.Value(None)
+    SECRET_KEY = SecretFileValue(None)
     SILENCED_SYSTEM_CHECKS = values.ListValue([])
     ALLOW_UNSECURE_USER_LISTING = values.BooleanValue(
         False, environ_name="ALLOW_UNSECURE_USER_LISTING", environ_prefix=None
@@ -93,7 +94,7 @@ class Base(Configuration):
             ),
             "NAME": values.Value("meet", environ_name="DB_NAME", environ_prefix=None),
             "USER": values.Value("dinum", environ_name="DB_USER", environ_prefix=None),
-            "PASSWORD": values.Value(
+            "PASSWORD": SecretFileValue(
                 "pass", environ_name="DB_PASSWORD", environ_prefix=None
             ),
             "HOST": values.Value(
@@ -128,10 +129,10 @@ class Base(Configuration):
     AWS_S3_ENDPOINT_URL = values.Value(
         environ_name="AWS_S3_ENDPOINT_URL", environ_prefix=None
     )
-    AWS_S3_ACCESS_KEY_ID = values.Value(
+    AWS_S3_ACCESS_KEY_ID = SecretFileValue(
         environ_name="AWS_S3_ACCESS_KEY_ID", environ_prefix=None
     )
-    AWS_S3_SECRET_ACCESS_KEY = values.Value(
+    AWS_S3_SECRET_ACCESS_KEY = SecretFileValue(
         environ_name="AWS_S3_SECRET_ACCESS_KEY", environ_prefix=None
     )
     AWS_S3_REGION_NAME = values.Value(
@@ -342,7 +343,7 @@ class Base(Configuration):
     EMAIL_BACKEND = values.Value("django.core.mail.backends.smtp.EmailBackend")
     EMAIL_HOST = values.Value(None)
     EMAIL_HOST_USER = values.Value(None)
-    EMAIL_HOST_PASSWORD = values.Value(None)
+    EMAIL_HOST_PASSWORD = SecretFileValue(None)
     EMAIL_PORT = values.PositiveIntegerValue(None)
     EMAIL_USE_TLS = values.BooleanValue(False)
     EMAIL_USE_SSL = values.BooleanValue(False)
@@ -400,7 +401,7 @@ class Base(Configuration):
     OIDC_RP_CLIENT_ID = values.Value(
         "meet", environ_name="OIDC_RP_CLIENT_ID", environ_prefix=None
     )
-    OIDC_RP_CLIENT_SECRET = values.Value(
+    OIDC_RP_CLIENT_SECRET = SecretFileValue(
         None,
         environ_name="OIDC_RP_CLIENT_SECRET",
         environ_prefix=None,
@@ -474,8 +475,8 @@ class Base(Configuration):
 
     # Video conference configuration
     LIVEKIT_CONFIGURATION = {
-        "api_key": values.Value(environ_name="LIVEKIT_API_KEY", environ_prefix=None),
-        "api_secret": values.Value(
+        "api_key": SecretFileValue(environ_name="LIVEKIT_API_KEY", environ_prefix=None),
+        "api_secret": SecretFileValue(
             environ_name="LIVEKIT_API_SECRET", environ_prefix=None
         ),
         "url": values.Value(environ_name="LIVEKIT_API_URL", environ_prefix=None),
@@ -516,7 +517,7 @@ class Base(Configuration):
     RECORDING_STORAGE_EVENT_ENABLE = values.BooleanValue(
         False, environ_name="RECORDING_STORAGE_EVENT_ENABLE", environ_prefix=None
     )
-    RECORDING_STORAGE_EVENT_TOKEN = values.Value(
+    RECORDING_STORAGE_EVENT_TOKEN = SecretFileValue(
         None, environ_name="RECORDING_STORAGE_EVENT_TOKEN", environ_prefix=None
     )
     # Number of days before recordings expire - must be synced with bucket lifecycle policy
@@ -527,7 +528,7 @@ class Base(Configuration):
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
-    SUMMARY_SERVICE_API_TOKEN = values.Value(
+    SUMMARY_SERVICE_API_TOKEN = SecretFileValue(
         None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
     )
     SCREEN_RECORDING_BASE_URL = values.Value(
@@ -545,7 +546,7 @@ class Base(Configuration):
         environ_name="MARKETING_SERVICE_CLASS",
         environ_prefix=None,
     )
-    BREVO_API_KEY = values.Value(
+    BREVO_API_KEY = SecretFileValue(
         None, environ_name="BREVO_API_KEY", environ_prefix=None
     )
     BREVO_API_CONTACT_LIST_IDS = values.ListValue(
