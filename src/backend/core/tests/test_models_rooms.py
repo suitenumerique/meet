@@ -302,25 +302,25 @@ def test_pin_generation_max_retries(mock_randbelow, mock_logger, settings):
 
     RoomFactory(pin_code="12345")
 
-    # Assert default max retries is low, 3
+    # Assert default max retries is low, 5
     room1 = RoomFactory()
-    assert mock_randbelow.call_count == 3
+    assert mock_randbelow.call_count == 5
     assert room1.pin_code is None
 
     mock_logger.assert_called_once_with(
-        "Failed to generate unique PIN code of length %s after %s attempts", 5, 3
+        "Failed to generate unique PIN code of length %s after %s attempts", 5, 5
     )
 
     mock_logger.reset_mock()
     mock_randbelow.reset_mock()
-    settings.ROOM_TELEPHONY_PIN_MAX_RETRIES = 5
+    settings.ROOM_TELEPHONY_PIN_MAX_RETRIES = 3
 
     room2 = RoomFactory()
-    assert mock_randbelow.call_count == 5
+    assert mock_randbelow.call_count == 3
     assert room2.pin_code is None
 
     mock_logger.assert_called_once_with(
-        "Failed to generate unique PIN code of length %s after %s attempts", 5, 5
+        "Failed to generate unique PIN code of length %s after %s attempts", 5, 3
     )
 
 
