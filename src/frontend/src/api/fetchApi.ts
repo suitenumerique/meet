@@ -15,6 +15,15 @@ export const fetchApi = async <T = Record<string, unknown>>(
       ...options?.headers,
     },
   })
+
+  // Handle empty responses (like for DELETE requests)
+  if (
+    response.status === 204 ||
+    response.headers.get('content-length') === '0'
+  ) {
+    return {} as T
+  }
+
   const result = await response.json()
   if (!response.ok) {
     throw new ApiError(response.status, result)

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import datetime
 import json
 import os
 from socket import gethostbyname, gethostname
@@ -224,6 +225,7 @@ class Base(Configuration):
         # Third party apps
         "corsheaders",
         "dockerflow.django",
+        "knox",
         "rest_framework",
         "parler",
         "easy_thumbnails",
@@ -257,6 +259,7 @@ class Base(Configuration):
 
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": (
+            "knox.auth.TokenAuthentication",
             "rest_framework.authentication.SessionAuthentication",
             "lasuite.oidc_resource_server.authentication.ResourceServerAuthentication",
         ),
@@ -505,6 +508,18 @@ class Base(Configuration):
     OIDC_RS_SCOPES = values.ListValue(
         [], environ_name="OIDC_RS_SCOPES", environ_prefix=None
     )
+
+    # User token (knox)
+    REST_KNOX = {
+        "SECURE_HASH_ALGORITHM": "hashlib.sha512",
+        "AUTH_TOKEN_CHARACTER_LENGTH": 64,
+        "TOKEN_TTL": datetime.timedelta(hours=24 * 7),
+        "TOKEN_LIMIT_PER_USER": None,
+        "AUTO_REFRESH": False,
+        "AUTO_REFRESH_MAX_TTL": None,
+        "MIN_REFRESH_INTERVAL": 60,
+        "AUTH_HEADER_PREFIX": "Token",
+    }
 
     # Video conference configuration
     LIVEKIT_CONFIGURATION = {

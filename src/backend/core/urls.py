@@ -8,6 +8,7 @@ from lasuite.oidc_resource_server.urls import urlpatterns as resource_server_url
 from rest_framework.routers import DefaultRouter
 
 from core.api import get_frontend_configuration, viewsets
+from core.user_token import viewsets as user_token_viewsets
 
 # - Main endpoints
 router = DefaultRouter()
@@ -16,6 +17,11 @@ router.register("rooms", viewsets.RoomViewSet, basename="rooms")
 router.register("recordings", viewsets.RecordingViewSet, basename="recordings")
 router.register(
     "resource-accesses", viewsets.ResourceAccessViewSet, basename="resource_accesses"
+)
+router.register(
+    "user-tokens",
+    user_token_viewsets.UserTokenViewset,
+    basename="user_tokens",
 )
 
 urlpatterns = [

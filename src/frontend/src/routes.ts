@@ -10,6 +10,7 @@ import { TermsOfServiceRoute } from '@/features/legalsTerms/TermsOfService'
 import { CreatePopup } from '@/features/sdk/routes/CreatePopup'
 import { CreateMeetingButton } from '@/features/sdk/routes/CreateMeetingButton'
 import { RecordingDownloadRoute } from '@/features/recording'
+import { UserTokens } from '@/features/user-tokens/routes/UserTokens'
 
 export const routes: Record<
   | 'home'
@@ -20,7 +21,8 @@ export const routes: Record<
   | 'termsOfService'
   | 'sdkCreatePopup'
   | 'sdkCreateButton'
-  | 'recordingDownload',
+  | 'recordingDownload'
+  | 'userTokens',
   {
     name: RouteName
     path: RegExp | string
@@ -77,6 +79,11 @@ export const routes: Record<
     ),
     to: (recordingId: string) => `/recording/${recordingId.trim()}`,
     Component: RecordingDownloadRoute,
+  },
+  userTokens: {
+    name: 'userTokens',
+    path: '/user-tokens',
+    Component: UserTokens,
   },
 }
 
