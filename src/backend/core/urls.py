@@ -4,6 +4,7 @@ from django.conf import settings
 from django.urls import include, path
 
 from lasuite.oidc_login.urls import urlpatterns as oidc_urls
+from lasuite.oidc_resource_server.urls import urlpatterns as resource_server_urls
 from rest_framework.routers import DefaultRouter
 
 from core.api import get_frontend_configuration, viewsets
@@ -24,6 +25,7 @@ urlpatterns = [
             [
                 *router.urls,
                 *oidc_urls,
+                *resource_server_urls,
                 path("config/", get_frontend_configuration, name="config"),
             ]
         ),
