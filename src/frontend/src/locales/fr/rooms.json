@@ -20,7 +20,7 @@
     },
     "heading": "Rejoindre la réunion ?",
     "effects": {
-      "description": "Appliquer des effets",
+      "description": "Effets d'arrière plan",
       "title": "Effets",
       "subTitle": "Paramétrez les effets de votre caméra."
     },
@@ -128,7 +128,7 @@
       "feedback": "Partager votre avis",
       "settings": "Paramètres",
       "username": "Choisir votre nom",
-      "effects": "Appliquer des effets",
+      "effects": "Effets d'arrière plan",
       "switchCamera": "Changer de caméra",
       "fullscreen": {
         "enter": "Plein écran",
@@ -371,7 +371,7 @@
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"
     },
-    "effects": "Appliquer des effets",
+    "effects": "Effets d'arrière plan",
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
   },
