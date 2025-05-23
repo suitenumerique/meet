@@ -8,3 +8,5 @@ and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+- 🔧(backend) support `_FILE` for secret environment variables #566 
