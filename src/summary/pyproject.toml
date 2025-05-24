@@ -7,17 +7,17 @@ dependencies = [
     "uvicorn>=0.24.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
-    "celery==5.4.0",
-    "redis==5.2.1",
+    "celery==5.5.2",
+    "redis==6.1.0",
     "minio==7.2.15",
-    "openai==1.68.2",
+    "openai==1.82.0",
     "requests==2.32.3",
-    "sentry-sdk[fastapi, celery]==2.24.1",
+    "sentry-sdk[fastapi, celery]==2.29.1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff==0.11.2",
+    "ruff==0.11.11",
 ]
 
 [build-system]
