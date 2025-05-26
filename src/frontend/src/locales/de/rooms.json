@@ -223,6 +223,11 @@
       "loading": "Transkription wird gestartet",
       "linkMore": "Mehr erfahren"
     },
+    "notAdminOrOwner": {
+      "heading": "Zugriff eingeschränkt",
+      "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
+      "linkMore": "Mehr erfahren"
+    },
     "stop": {
       "heading": "Transkription läuft...",
       "body": "Die Transkription deines Meetings läuft. Du erhältst das Ergebnis per E-Mail, sobald das Meeting beendet ist.",
@@ -252,6 +257,11 @@
       "body": "Zeichne dieses Gespräch auf, um es später anzusehen. Du erhältst die Videoaufnahme per E-Mail.",
       "button": "Aufzeichnung starten",
       "loading": "Aufzeichnung wird gestartet",
+      "linkMore": "Mehr erfahren"
+    },
+    "notAdminOrOwner": {
+      "heading": "Zugriff eingeschränkt",
+      "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine videoaufnahme (Beta) starten.",
       "linkMore": "Mehr erfahren"
     },
     "stopping": {

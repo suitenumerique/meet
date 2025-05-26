@@ -223,6 +223,11 @@
       "loading": "Transcription starting",
       "linkMore": "Learn more"
     },
+    "notAdminOrOwner": {
+      "heading": "Restricted Access",
+      "body": "For security reasons, only the meeting creator or an admin can start a transcription (beta).",
+      "linkMore": "Learn more"
+    },
     "stop": {
       "heading": "Transcription in progress...",
       "body": "The transcription of your meeting is in progress. You will receive the result by email once the meeting is finished.",
@@ -252,6 +257,11 @@
       "body": "Record this call to watch it later and receive the video recording by email.",
       "button": "Start recording",
       "loading": "Recording starting",
+      "linkMore": "Learn more"
+    },
+    "notAdminOrOwner": {
+      "heading": "Restricted Access",
+      "body": "For security reasons, only the meeting creator or an admin can start a recording (beta).",
       "linkMore": "Learn more"
     },
     "stopping": {

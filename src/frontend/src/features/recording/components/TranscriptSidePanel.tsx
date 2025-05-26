@@ -10,6 +10,7 @@ import {
   useIsRecordingTransitioning,
   useStartRecording,
   useStopRecording,
+  useHasFeatureWithoutAdminRights,
 } from '../index'
 import { useEffect, useMemo, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
@@ -42,6 +43,12 @@ export const TranscriptSidePanel = () => {
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
+
+  const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
+    RecordingMode.Transcript,
+    FeatureFlags.Transcript
+  )
+
   const roomId = useRoomId()
 
   const { mutateAsync: startRecordingRoom, isPending: isPendingToStart } =
@@ -134,30 +141,54 @@ export const TranscriptSidePanel = () => {
       />
       {!hasTranscriptAccess ? (
         <>
-          <Text>{t('beta.heading')}</Text>
-          <Text
-            variant="note"
-            wrap={'pretty'}
-            centered
-            className={css({
-              textStyle: 'sm',
-              marginBottom: '2.5rem',
-              marginTop: '0.25rem',
-            })}
-          >
-            {t('beta.body')}{' '}
-            <A href={CRISP_HELP_ARTICLE_TRANSCRIPT} target="_blank">
-              {t('start.linkMore')}
-            </A>
-          </Text>
-          <LinkButton
-            size="sm"
-            variant="tertiary"
-            href={BETA_USERS_FORM_URL}
-            target="_blank"
-          >
-            {t('beta.button')}
-          </LinkButton>
+          {hasFeatureWithoutAdminRights ? (
+            <>
+              <Text>{t('notAdminOrOwner.heading')}</Text>
+              <Text
+                variant="note"
+                wrap="balance"
+                centered
+                className={css({
+                  textStyle: 'sm',
+                  marginBottom: '2.5rem',
+                  marginTop: '0.25rem',
+                })}
+              >
+                {t('notAdminOrOwner.body')}
+                <br />
+                <A href={CRISP_HELP_ARTICLE_TRANSCRIPT} target="_blank">
+                  {t('notAdminOrOwner.linkMore')}
+                </A>
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text>{t('beta.heading')}</Text>
+              <Text
+                variant="note"
+                wrap={'pretty'}
+                centered
+                className={css({
+                  textStyle: 'sm',
+                  marginBottom: '2.5rem',
+                  marginTop: '0.25rem',
+                })}
+              >
+                {t('beta.body')}{' '}
+                <A href={CRISP_HELP_ARTICLE_TRANSCRIPT} target="_blank">
+                  {t('start.linkMore')}
+                </A>
+              </Text>
+              <LinkButton
+                size="sm"
+                variant="tertiary"
+                href={BETA_USERS_FORM_URL}
+                target="_blank"
+              >
+                {t('beta.button')}
+              </LinkButton>
+            </>
+          )}
         </>
       ) : (
         <>
