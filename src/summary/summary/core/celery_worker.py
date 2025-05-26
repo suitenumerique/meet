@@ -36,6 +36,28 @@ if settings.sentry_dsn and settings.sentry_is_enabled:
         sentry_sdk.init(dsn=settings.sentry_dsn, enable_tracing=True)
 
 
+DEFAULT_EMPTY_TRANSCRIPTION = """
+**Aucun contenu audio n’a été détecté dans votre transcription.**
+
+
+*Si vous pensez qu’il s’agit d’une erreur, n’hésitez pas à contacter
+notre support technique : visio@numerique.gouv.fr*
+
+.
+
+.
+
+.
+
+Quelques points que nous vous conseillons de vérifier :
+- Un micro était-il activé ?
+- Étiez-vous suffisamment proche ?
+- Le micro est-il de bonne qualité ?
+- L’enregistrement dure-t-il plus de 30 secondes ?
+
+"""
+
+
 def save_audio_stream(audio_stream, chunk_size=32 * 1024):
     """Save an audio stream to a temporary OGG file."""
     with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
@@ -219,7 +241,11 @@ def process_audio_transcribe_summarize_v2(filename: str, email: str, sub: str):
             os.remove(temp_file_path)
             logger.debug("Temporary file removed: %s", temp_file_path)
 
-    formatted_transcription = format_segments(transcription)
+    formatted_transcription = (
+        DEFAULT_EMPTY_TRANSCRIPTION
+        if not transcription.text
+        else format_segments(transcription)
+    )
 
     data = {
         "title": "Transcription",
