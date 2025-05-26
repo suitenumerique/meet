@@ -106,6 +106,10 @@ class RoomAdmin(admin.ModelAdmin):
     """Room admin interface declaration."""
 
     inlines = (ResourceAccessInline,)
+    search_fields = ["name", "slug", "=id"]
+    list_display = ["name", "slug", "access_level", "created_at"]
+    list_filter = ["access_level", "created_at"]
+    readonly_fields = ["id", "created_at", "updated_at"]
 
 
 class RecordingAccessInline(admin.TabularInline):
