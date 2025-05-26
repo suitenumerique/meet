@@ -99,6 +99,7 @@ class ResourceAccessInline(admin.TabularInline):
 
     model = models.ResourceAccess
     extra = 0
+    autocomplete_fields = ["user"]
 
 
 @admin.register(models.Room)
