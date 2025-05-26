@@ -126,6 +126,27 @@ class RecordingAdmin(admin.ModelAdmin):
 
     inlines = (RecordingAccessInline,)
     search_fields = ["status", "=id", "worker_id", "room__slug", "=room__id"]
-    list_display = ("id", "status", "room", "created_at", "worker_id")
+    list_display = ("id", "status", "room", "get_owner", "created_at", "worker_id")
     list_filter = ["status", "room", "created_at"]
     readonly_fields = ["id", "created_at", "updated_at"]
+
+    def get_queryset(self, request):
+        """Optimize queries by prefetching related access and user data to avoid N+1 queries."""
+        return super().get_queryset(request).prefetch_related("accesses__user")
+
+    def get_owner(self, obj):
+        """Return the owner of the recording for display in the admin list."""
+
+        owners = [
+            access
+            for access in obj.accesses.all()
+            if access.role == models.RoleChoices.OWNER
+        ]
+
+        if not owners:
+            return _("No owner")
+
+        if len(owners) > 1:
+            return _("Multiple owners")
+
+        return str(owners[0].user)
