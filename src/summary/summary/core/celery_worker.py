@@ -64,9 +64,9 @@ def format_segments(transcription_data):
     conversation with speaker labels.
     """
     formatted_output = ""
-    if not transcription_data or not hasattr(transcription_data, 'segments'):
-        if isinstance(transcription_data, dict) and 'segments' in transcription_data:
-            segments = transcription_data['segments']
+    if not transcription_data or not hasattr(transcription_data, "segments"):
+        if isinstance(transcription_data, dict) and "segments" in transcription_data:
+            segments = transcription_data["segments"]
         else:
             return "Error: Invalid transcription data format"
     else:
@@ -75,8 +75,8 @@ def format_segments(transcription_data):
     previous_speaker = None
 
     for segment in segments:
-        speaker = segment.get('speaker', 'UNKNOWN_SPEAKER')
-        text = segment.get('text', '')
+        speaker = segment.get("speaker", "UNKNOWN_SPEAKER")
+        text = segment.get("text", "")
         if text:
             if speaker != previous_speaker:
                 formatted_output += f"\n\n **{speaker}**: {text}"
@@ -84,6 +84,7 @@ def format_segments(transcription_data):
                 formatted_output += f" {text}"
             previous_speaker = speaker
     return formatted_output
+
 
 def post_with_retries(url, data):
     """Send POST request with automatic retries."""
@@ -236,5 +237,3 @@ def process_audio_transcribe_summarize_v2(filename: str, email: str, sub: str):
     logger.debug("Response body: %s", response.text)
 
     # TODO - integrate summarize the transcript and create a new document.
-
-
