@@ -230,7 +230,7 @@
     },
     "stopping": {
       "heading": "Daten werden gespeichert…",
-      "body": "Dieser Vorgang kann einige Minuten dauern. Danke für deine Geduld."
+      "body": "Sie können das Meeting verlassen, wenn Sie möchten; die Aufzeichnung wird automatisch beendet."
     },
     "beta": {
       "heading": "Werde Beta-Tester",
@@ -256,7 +256,7 @@
     },
     "stopping": {
       "heading": "Daten werden gespeichert…",
-      "body": "Dieser Vorgang kann einige Minuten dauern. Danke für deine Geduld."
+      "body": "Sie können das Meeting verlassen, wenn Sie möchten; die Aufzeichnung wird automatisch beendet."
     },
     "stop": {
       "heading": "Aufzeichnung läuft…",

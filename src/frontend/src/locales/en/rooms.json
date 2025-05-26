@@ -230,7 +230,7 @@
     },
     "stopping": {
       "heading": "Saving your data…",
-      "body": "This process may take a few minutes. Thank you for your patience."
+      "body": "You can leave the meeting if you wish; the recording will finish automatically."
     },
     "beta": {
       "heading": "Become a beta tester",
@@ -256,7 +256,7 @@
     },
     "stopping": {
       "heading": "Saving your data…",
-      "body": "This process may take a few minutes. Thank you for your patience."
+      "body": "You can leave the meeting if you wish; the recording will finish automatically."
     },
     "stop": {
       "heading": "Recording in progress…",

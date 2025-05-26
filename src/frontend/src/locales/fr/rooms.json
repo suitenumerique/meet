@@ -230,7 +230,7 @@
     },
     "stopping": {
       "heading": "Sauvegarde de vos données…",
-      "body": "Cette opération peut durer quelques minutes. Merci de votre patience."
+      "body": "Vous pouvez quitter la réunion si vous le souhaitez, la sauvegarde se terminera automatiquement."
     },
     "beta": {
       "heading": "Devenez beta testeur",
@@ -256,7 +256,7 @@
     },
     "stopping": {
       "heading": "Sauvegarde de vos données…",
-      "body": "Cette opération peut durer quelques minutes. Merci de votre patience."
+      "body": "Vous pouvez quitter la réunion si vous le souhaitez, la sauvegarde se terminera automatiquement."
     },
     "stop": {
       "heading": "Enregistrement en cours …",
