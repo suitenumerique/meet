@@ -125,4 +125,7 @@ class RecordingAdmin(admin.ModelAdmin):
     """Recording admin interface declaration."""
 
     inlines = (RecordingAccessInline,)
+    search_fields = ["status", "=id", "worker_id", "room__slug", "=room__id"]
     list_display = ("id", "status", "room", "created_at", "worker_id")
+    list_filter = ["status", "room", "created_at"]
+    readonly_fields = ["id", "created_at", "updated_at"]
