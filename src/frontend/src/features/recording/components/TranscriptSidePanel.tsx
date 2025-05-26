@@ -24,6 +24,7 @@ import { FeatureFlags } from '@/features/analytics/enums'
 import {
   NotificationType,
   useNotifyParticipants,
+  notifyRecordingSaveInProgress,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
 import { useSnapshot } from 'valtio/index'
@@ -99,6 +100,10 @@ export const TranscriptSidePanel = () => {
         await notifyParticipants({
           type: NotificationType.TranscriptionStopped,
         })
+        notifyRecordingSaveInProgress(
+          RecordingMode.Transcript,
+          room.localParticipant
+        )
       } else {
         await startRecordingRoom({ id: roomId, mode: RecordingMode.Transcript })
         recordingStore.status = RecordingStatus.TRANSCRIPT_STARTING

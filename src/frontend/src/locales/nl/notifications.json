@@ -29,5 +29,15 @@
   "screenRecording": {
     "started": "{{name}} is begonnen met het opnemen van de vergadering.",
     "stopped": "{{name}} is gestopt met het opnemen van de vergadering."
+  },
+  "recordingSave": {
+    "transcript": {
+      "message": "We zijn uw opname aan het voltooien! U ontvangt een e-mail op <strong>{{email}}</strong> zodra de transcriptie klaar is.",
+      "default": "We zijn uw opname aan het voltooien! U ontvangt een e-mail zodra de transcriptie klaar is."
+    },
+    "screenRecording": {
+      "message": "We zijn uw opname aan het voltooien! U ontvangt een e-mail op <strong>{{email}}</strong> zodra deze klaar is.",
+      "default": "We zijn uw opname aan het voltooien! U ontvangt een e-mail zodra deze klaar is."
+    }
   }
 }

@@ -10,4 +10,5 @@ export enum NotificationType {
   TranscriptionStopped = 'transcriptionStopped',
   ScreenRecordingStarted = 'screenRecordingStarted',
   ScreenRecordingStopped = 'screenRecordingStopped',
+  RecordingSaving = 'recordingSaving',
 }

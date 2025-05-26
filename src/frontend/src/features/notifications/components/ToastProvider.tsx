@@ -8,6 +8,8 @@ export interface ToastData {
   participant: Participant
   type: NotificationType
   message?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any
 }
 
 // Using a global queue for toasts allows for centralized management and queuing of notifications

@@ -106,14 +106,10 @@ export const RecordingStateToast = () => {
     switch (recordingSnap.status) {
       case RecordingStatus.TRANSCRIPT_STARTED:
         return 'transcript.started'
-      case RecordingStatus.TRANSCRIPT_STOPPING:
-        return 'transcript.stopping'
       case RecordingStatus.TRANSCRIPT_STARTING:
         return 'transcript.starting'
       case RecordingStatus.SCREEN_RECORDING_STARTED:
         return 'screenRecording.started'
-      case RecordingStatus.SCREEN_RECORDING_STOPPING:
-        return 'screenRecording.stopping'
       case RecordingStatus.SCREEN_RECORDING_STARTING:
         return 'screenRecording.starting'
       case RecordingStatus.ANY_STARTED:

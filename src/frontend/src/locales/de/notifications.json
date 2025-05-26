@@ -29,5 +29,15 @@
   "screenRecording": {
     "started": "{{name}} hat die Aufzeichnung des Treffens gestartet.",
     "stopped": "{{name}} hat die Aufzeichnung des Treffens gestoppt."
+  },
+  "recordingSave": {
+    "transcript": {
+      "message": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail an <strong>{{email}}</strong>, sobald die Transkription fertig ist.",
+      "default": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail, sobald die Transkription fertig ist."
+    },
+    "screenRecording": {
+      "message": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail an <strong>{{email}}</strong>, sobald sie fertig ist.",
+      "default": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail, sobald sie fertig ist."
+    }
   }
 }

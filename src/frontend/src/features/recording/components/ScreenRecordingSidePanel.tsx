@@ -18,6 +18,7 @@ import { CRISP_HELP_ARTICLE_RECORDING } from '@/utils/constants'
 
 import {
   NotificationType,
+  notifyRecordingSaveInProgress,
   useNotifyParticipants,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
@@ -84,6 +85,10 @@ export const ScreenRecordingSidePanel = () => {
         await notifyParticipants({
           type: NotificationType.ScreenRecordingStopped,
         })
+        notifyRecordingSaveInProgress(
+          RecordingMode.ScreenRecording,
+          room.localParticipant
+        )
       } else {
         await startRecordingRoom({
           id: roomId,

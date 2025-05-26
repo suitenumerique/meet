@@ -3,6 +3,7 @@ import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
 import { Participant } from 'livekit-client'
 import { NotificationPayload } from './NotificationPayload'
+import { RecordingMode } from '@/features/recording'
 
 export const showLowerHandToast = (
   participant: Participant,
@@ -48,4 +49,18 @@ export const decodeNotificationDataReceived = (
     console.error('Failed to decode notification payload:', error)
     return
   }
+}
+
+export const notifyRecordingSaveInProgress = (
+  mode: RecordingMode,
+  participant: Participant
+) => {
+  toastQueue.add(
+    {
+      participant,
+      mode,
+      type: NotificationType.RecordingSaving,
+    },
+    { timeout: NotificationDuration.RECORDING_SAVING }
+  )
 }

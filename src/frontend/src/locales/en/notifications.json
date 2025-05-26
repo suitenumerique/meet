@@ -29,5 +29,15 @@
   "screenRecording": {
     "started": "{{name}} started the meeting recording.",
     "stopped": "{{name}} stopped the meeting recording."
+  },
+  "recordingSave": {
+    "transcript": {
+      "message": "Your recording is being saved! We’ll send the transcript to <strong>{{email}}</strong> as soon as it’s ready.",
+      "default": "Your recording is being saved! We’ll send the transcript to your email as soon as it’s ready."
+    },
+    "screenRecording": {
+      "message": "Your recording is being saved! We’ll send a notification to <strong>{{email}}</strong> as soon as it’s ready.",
+      "default": "Your recording is being saved! We’ll send a notification to your email as soon as it’s ready."
+    }
   }
 }
