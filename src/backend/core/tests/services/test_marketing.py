@@ -11,6 +11,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 import brevo_python
 import pytest
+import requests
 
 from core.services.marketing import (
     BrevoMarketingService,
@@ -128,6 +129,30 @@ def test_create_contact_api_error(mock_contact_api):
     brevo_service = BrevoMarketingService()
 
     mock_api.create_contact.side_effect = brevo_python.rest.ApiException()
+
+    with pytest.raises(ContactCreationError, match="Failed to create contact in Brevo"):
+        brevo_service.create_contact(valid_contact_data)
+
+
+@mock.patch("brevo_python.ContactsApi")
+def test_create_contact_timeout_error(mock_contact_api):
+    """Test contact creation timeout error handling."""
+
+    mock_api = mock_contact_api.return_value
+    settings.BREVO_API_KEY = "test-api-key"
+    settings.BREVO_API_CONTACT_LIST_IDS = [1, 2, 3, 4]
+    settings.BREVO_API_CONTACT_ATTRIBUTES = {"source": "test"}
+
+    valid_contact_data = ContactData(
+        email="test@example.com",
+        attributes={"first_name": "Test"},
+        list_ids=[1, 2],
+        update_enabled=True,
+    )
+
+    brevo_service = BrevoMarketingService()
+
+    mock_api.create_contact.side_effect = requests.exceptions.ReadTimeout()
 
     with pytest.raises(ContactCreationError, match="Failed to create contact in Brevo"):
         brevo_service.create_contact(valid_contact_data)
