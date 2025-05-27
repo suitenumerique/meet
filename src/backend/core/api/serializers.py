@@ -37,7 +37,7 @@ class ResourceAccessSerializerMixin:
             # Update
             self.instance
             and (
-                data["role"] == models.RoleChoices.OWNER
+                data.get("role") == models.RoleChoices.OWNER
                 and not self.instance.resource.is_owner(user)
                 or self.instance.role == models.RoleChoices.OWNER
                 and not self.instance.user == user
