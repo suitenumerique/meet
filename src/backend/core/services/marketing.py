@@ -122,7 +122,7 @@ class BrevoMarketingService:
         try:
             response = contact_api.create_contact(contact, **api_configurations)
         except (brevo_python.rest.ApiException, requests.exceptions.ReadTimeout) as err:
-            logger.exception("Failed to create contact in Brevo")
+            logger.warning("Failed to create contact in Brevo", exc_info=True)
             raise ContactCreationError("Failed to create contact in Brevo") from err
 
         return response
