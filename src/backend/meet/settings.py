@@ -802,6 +802,14 @@ class Staging(Production):
     """
 
 
+class Sandbox(Production):
+    """
+    Sandbox environment settings
+
+    nota bene: it should inherit from the Production environment.
+    """
+
+
 class PreProduction(Production):
     """
     Pre-production environment settings
