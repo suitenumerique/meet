@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import datetime
 import json
 import os
 from socket import gethostbyname, gethostname
@@ -224,6 +225,7 @@ class Base(Configuration):
         # Third party apps
         "corsheaders",
         "dockerflow.django",
+        "knox",
         "rest_framework",
         "parler",
         "easy_thumbnails",
@@ -257,8 +259,9 @@ class Base(Configuration):
 
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": (
-            "mozilla_django_oidc.contrib.drf.OIDCAuthentication",
+            "knox.auth.TokenAuthentication",
             "rest_framework.authentication.SessionAuthentication",
+            "lasuite.oidc_resource_server.authentication.ResourceServerAuthentication",
         ),
         "DEFAULT_PARSER_CLASSES": [
             "rest_framework.parsers.JSONParser",
@@ -454,6 +457,69 @@ class Base(Configuration):
         environ_name="OIDC_USERINFO_ESSENTIAL_CLAIMS",
         environ_prefix=None,
     )
+
+    # OIDC - Meet as a resource server
+    OIDC_OP_URL = values.Value(
+        default=None, environ_name="OIDC_OP_URL", environ_prefix=None
+    )
+    OIDC_OP_INTROSPECTION_ENDPOINT = values.Value(
+        environ_name="OIDC_OP_INTROSPECTION_ENDPOINT", environ_prefix=None
+    )
+    OIDC_TIMEOUT = values.IntegerValue(
+        default=3, environ_name="OIDC_TIMEOUT", environ_prefix=None
+    )
+    OIDC_PROXY = values.Value(None, environ_name="OIDC_PROXY", environ_prefix=None)
+
+    OIDC_RS_BACKEND_CLASS = "lasuite.oidc_resource_server.backend.ResourceServerBackend"
+    OIDC_RS_AUDIENCE_CLAIM = values.Value(  # The claim used to identify the audience
+        default="client_id", environ_name="OIDC_RS_AUDIENCE_CLAIM", environ_prefix=None
+    )
+    OIDC_RS_PRIVATE_KEY_STR = values.Value(
+        default=None,
+        environ_name="OIDC_RS_PRIVATE_KEY_STR",
+        environ_prefix=None,
+    )
+    OIDC_RS_ENCRYPTION_KEY_TYPE = values.Value(
+        default="RSA",
+        environ_name="OIDC_RS_ENCRYPTION_KEY_TYPE",
+        environ_prefix=None,
+    )
+    OIDC_RS_ENCRYPTION_ALGO = values.Value(
+        default="RSA-OAEP",
+        environ_name="OIDC_RS_ENCRYPTION_ALGO",
+        environ_prefix=None,
+    )
+    OIDC_RS_ENCRYPTION_ENCODING = values.Value(
+        default="A256GCM",
+        environ_name="OIDC_RS_ENCRYPTION_ENCODING",
+        environ_prefix=None,
+    )
+    OIDC_RS_CLIENT_ID = values.Value(
+        None, environ_name="OIDC_RS_CLIENT_ID", environ_prefix=None
+    )
+    OIDC_RS_CLIENT_SECRET = values.Value(
+        None,
+        environ_name="OIDC_RS_CLIENT_SECRET",
+        environ_prefix=None,
+    )
+    OIDC_RS_SIGNING_ALGO = values.Value(
+        default="ES256", environ_name="OIDC_RS_SIGNING_ALGO", environ_prefix=None
+    )
+    OIDC_RS_SCOPES = values.ListValue(
+        [], environ_name="OIDC_RS_SCOPES", environ_prefix=None
+    )
+
+    # User token (knox)
+    REST_KNOX = {
+        "SECURE_HASH_ALGORITHM": "hashlib.sha512",
+        "AUTH_TOKEN_CHARACTER_LENGTH": 64,
+        "TOKEN_TTL": datetime.timedelta(hours=24 * 7),
+        "TOKEN_LIMIT_PER_USER": None,
+        "AUTO_REFRESH": False,
+        "AUTO_REFRESH_MAX_TTL": None,
+        "MIN_REFRESH_INTERVAL": 60,
+        "AUTH_HEADER_PREFIX": "Token",
+    }
 
     # Video conference configuration
     LIVEKIT_CONFIGURATION = {

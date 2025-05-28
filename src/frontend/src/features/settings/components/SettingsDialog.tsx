@@ -3,6 +3,7 @@ import { useLanguageLabels } from '@/i18n/useLanguageLabels'
 import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
 import { useUser } from '@/features/auth'
 import { ProConnectButton } from '@/components/ProConnectButton'
+import { Button } from '@/primitives'
 
 export type SettingsDialogProps = Pick<DialogProps, 'isOpen' | 'onOpenChange'>
 
@@ -12,6 +13,12 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
   const { languagesList, currentLanguage } = useLanguageLabels()
   return (
     <Dialog title={t('dialog.heading')} {...props}>
+      <Button
+        onClick={() => (window.location.href = '/user-tokens')}
+        aria-label={t('API Tokens', 'API Tokens')}
+      >
+        {t('API Tokens', 'API Tokens')}
+      </Button>
       <H lvl={2}>{t('account.heading')}</H>
       {isLoggedIn ? (
         <>
