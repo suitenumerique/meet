@@ -10,7 +10,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 
 import brevo_python
-import requests
+import urllib3
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +121,10 @@ class BrevoMarketingService:
 
         try:
             response = contact_api.create_contact(contact, **api_configurations)
-        except (brevo_python.rest.ApiException, requests.exceptions.ReadTimeout) as err:
+        except (
+            brevo_python.rest.ApiException,
+            urllib3.exceptions.ReadTimeoutError,
+        ) as err:
             logger.warning("Failed to create contact in Brevo", exc_info=True)
             raise ContactCreationError("Failed to create contact in Brevo") from err
 

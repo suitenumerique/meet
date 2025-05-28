@@ -11,7 +11,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 import brevo_python
 import pytest
-import requests
+import urllib3
 
 from core.services.marketing import (
     BrevoMarketingService,
@@ -152,7 +152,11 @@ def test_create_contact_timeout_error(mock_contact_api):
 
     brevo_service = BrevoMarketingService()
 
-    mock_api.create_contact.side_effect = requests.exceptions.ReadTimeout()
+    mock_api.create_contact.side_effect = urllib3.exceptions.ReadTimeoutError(
+        pool=mock.Mock(),
+        url="https://api.brevo.com/v3/endpoint",
+        message="HTTPSConnectionPool(host='api.brevo.com', port=443): Read timed out.",
+    )
 
     with pytest.raises(ContactCreationError, match="Failed to create contact in Brevo"):
         brevo_service.create_contact(valid_contact_data)
