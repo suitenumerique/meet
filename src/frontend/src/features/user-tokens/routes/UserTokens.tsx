@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createUserToken, deleteUserToken, listUserTokens } from '../api/index'
 import { NewUserToken, UserToken } from '../types'
 import { H, Button } from '@/primitives'
@@ -8,7 +8,7 @@ interface UserTokenWithId extends UserToken {
   id: string
 }
 
-export const UserTokens: React.FC = () => {
+export const UserTokens = () => {
   const [tokens, setTokens] = useState<UserTokenWithId[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
