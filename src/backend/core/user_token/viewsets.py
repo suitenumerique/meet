@@ -1,7 +1,7 @@
 """API endpoints for user token management"""
 
 from knox.models import get_token_model
-from rest_framework import permissions, viewsets, mixins
+from rest_framework import mixins, permissions, viewsets
 from rest_framework.authentication import SessionAuthentication
 
 from . import serializers
