@@ -14,6 +14,7 @@ import {
   isRoomValid,
   normalizeRoomId,
 } from '@/features/rooms/utils/isRoomValid'
+import { useSkipPreJoinParam } from '@/features/rooms/hooks/useSkipPreJoinParam.ts'
 
 export type LocalUserChoices = LocalUserChoicesLK & {
   processorSerialized?: ProcessorSerialized
@@ -28,7 +29,9 @@ export const Room = () => {
   const [location, setLocation] = useLocation()
   const initialRoomData = history.state?.initialRoomData
   const mode = isLoggedIn && history.state?.create ? 'create' : 'join'
-  const skipJoinScreen = isLoggedIn && mode === 'create'
+
+  const skipPreJoin = useSkipPreJoinParam()
+  const skipJoinScreen = (isLoggedIn && mode === 'create') || skipPreJoin
 
   useKeyboardShortcuts()
 
