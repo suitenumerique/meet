@@ -16,6 +16,7 @@ export interface ApiConfig {
   }
   silence_livekit_debug_logs?: boolean
   is_silent_login_enabled?: boolean
+  custom_css?: string
   recording?: {
     is_enabled?: boolean
     available_modes?: RecordingMode[]
