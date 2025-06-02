@@ -23,7 +23,7 @@ export const JoinMeetingDialog = () => {
           name="roomId"
           label={t('joinInputLabel')}
           description={t('joinInputExample', {
-            example: 'https://visio.numerique.gouv.fr/azer-tyu-qsdf',
+            example: window.origin + '/azer-tyu-qsdf',
           })}
           validate={(value) => {
             return !isRoomValid(value.trim()) ? (
