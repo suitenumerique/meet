@@ -319,6 +319,9 @@ class Base(Configuration):
         "feedback": values.DictValue(
             {}, environ_name="FRONTEND_FEEDBACK", environ_prefix=None
         ),
+        "transcript": values.DictValue(
+            {}, environ_name="FRONTEND_TRANSCRIPT", environ_prefix=None
+        )
     }
 
     # Mail
