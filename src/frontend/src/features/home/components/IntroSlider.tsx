@@ -8,7 +8,7 @@ import { Button, LinkButton } from '@/primitives'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BETA_USERS_FORM_URL } from '@/utils/constants'
+import { useConfig } from '@/api/useConfig'
 
 const Heading = styled('h2', {
   base: {
@@ -171,6 +171,8 @@ export const IntroSlider = () => {
   const { t } = useTranslation('home', { keyPrefix: 'introSlider' })
   const NUMBER_SLIDES = SLIDES.length
 
+  const { data } = useConfig()
+
   return (
     <Container>
       <div
@@ -203,7 +205,7 @@ export const IntroSlider = () => {
                 <Body>{t(`${slide.key}.body`)}</Body>
                 {slide.isAvailableInBeta && (
                   <LinkButton
-                    href={BETA_USERS_FORM_URL}
+                    href={data?.transcript.form_beta_users}
                     target="_blank"
                     tooltip={t('beta.tooltip')}
                     variant={'primary'}

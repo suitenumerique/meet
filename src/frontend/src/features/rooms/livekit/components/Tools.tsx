@@ -2,7 +2,6 @@ import { A, Div, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
-import { CRISP_HELP_ARTICLE_MORE_TOOLS } from '@/utils/constants'
 import { ReactNode } from 'react'
 import { RiFileTextFill, RiLiveFill } from '@remixicon/react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
@@ -15,6 +14,7 @@ import {
   useIsRecordingActive,
 } from '@/features/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
+import { useConfig } from '@/api/useConfig'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -113,6 +113,7 @@ const ToolButton = ({
 }
 
 export const Tools = () => {
+  const { data } = useConfig()
   const { openTranscript, openScreenRecording, activeSubPanelId } =
     useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
@@ -160,10 +161,14 @@ export const Tools = () => {
         margin="md"
       >
         {t('body')}{' '}
-        <A href={CRISP_HELP_ARTICLE_MORE_TOOLS} target="_blank">
-          {t('moreLink')}
-        </A>
-        .
+        {data?.support?.help_article_more_tools && (
+          <>
+            <A href={data?.support?.help_article_more_tools} target="_blank">
+              {t('moreLink')}
+            </A>
+            .
+          </>
+        )}
       </Text>
       {isTranscriptEnabled && (
         <ToolButton
