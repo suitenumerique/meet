@@ -9,6 +9,7 @@ import {
   closeLowerHandToasts,
   showLowerHandToast,
 } from '@/features/notifications/utils'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 
 const SPEAKING_DETECTION_DELAY = 3000
 
@@ -23,6 +24,12 @@ export const HandToggle = () => {
   const isSpeaking = room.localParticipant.isSpeaking
   const speakingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [hasShownToast, setHasShownToast] = useState(false)
+
+  const shortcut = {
+    key: 'h',
+    ctrlKey: true,
+  }
+  useRegisterKeyboardShortcut({ shortcut, handler: toggleRaisedHand })
 
   const resetToastState = () => {
     setHasShownToast(false)
