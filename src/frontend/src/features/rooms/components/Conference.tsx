@@ -17,6 +17,7 @@ import posthog from 'posthog-js'
 import { css } from '@/styled-system/css'
 import { LocalUserChoices } from '../routes/Room'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
+import { useUsernameParam } from '@/features/rooms/hooks/useUsernameParam.ts'
 
 export const Conference = ({
   roomId,
@@ -29,6 +30,8 @@ export const Conference = ({
   mode?: 'join' | 'create'
   initialRoomData?: ApiRoom
 }) => {
+  const username = useUsernameParam()
+
   useEffect(() => {
     posthog.capture('visit-room', { slug: roomId })
   }, [roomId])
@@ -56,7 +59,7 @@ export const Conference = ({
     queryFn: () =>
       fetchRoom({
         roomId: roomId as string,
-        username: userConfig.username,
+        username: username != null ? username : userConfig.username,
       }).catch((error) => {
         if (error.statusCode == '404') {
           createRoom({ slug: roomId, username: userConfig.username })
