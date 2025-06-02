@@ -304,6 +304,11 @@ class Base(Configuration):
 
     # Frontend
     FRONTEND_CONFIGURATION = {
+        # If set, a <link> tag with this URL as href is added to the <head> of the frontend app.
+        # This is useful if you want to change CSS variables to customize the look of the app.
+        "custom_css_url": values.Value(
+            None, environ_name="FRONTEND_CUSTOM_CSS_URL", environ_prefix=None
+        ),
         "analytics": values.DictValue(
             {}, environ_name="FRONTEND_ANALYTICS", environ_prefix=None
         ),
