@@ -10,8 +10,7 @@ export const NotFoundScreen = () => {
     <Screen layout="centered">
       <CenteredContent title={t('notFound.heading')} withBackButton>
         <Text centered>
-          {t('notFound.body')}{' '}
-          <Bold>https://visio.numerique.gouv.fr/xxx-yyyy-zzz.</Bold>
+          {t('notFound.body')} <Bold>{window.origin}/xxx-yyyy-zzz.</Bold>
         </Text>
       </CenteredContent>
     </Screen>
