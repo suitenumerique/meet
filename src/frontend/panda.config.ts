@@ -190,7 +190,6 @@ const config: Config = {
       fonts: {
         sans: {
           value: [
-            'Marianne',
             'Source Sans',
             'Source Sans fallback',
             'ui-sans-serif',
