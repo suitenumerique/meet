@@ -16,9 +16,10 @@
   "loading": "Laden ...",
   "loggedInUserTooltip": "Ingelogd als ...",
   "login": {
-    "buttonLabel": "Log in met Proconnect",
-    "linkLabel": "Wat is ProConnect? ",
-    "link": "Wat is ProConnect?"
+    "buttonLabel": "Log in",
+    "proconnectButtonLabel": "Log in met Proconnect",
+    "proconnectLinkLabel": "Wat is ProConnect?",
+    "proconnectLink": "Wat is ProConnect?"
   },
   "logout": "Uitloggen",
   "notFound": {

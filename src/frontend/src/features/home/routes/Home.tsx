@@ -7,7 +7,6 @@ import { Screen } from '@/layout/Screen'
 import { generateRoomId } from '@/features/rooms'
 import { useUser, UserAware } from '@/features/auth'
 import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
-import { ProConnectButton } from '@/components/ProConnectButton'
 import { useCreateRoom } from '@/features/rooms'
 import { RiAddLine, RiLink } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
@@ -214,10 +213,8 @@ export const Home = () => {
                     </MenuItem>
                   </RACMenu>
                 </Menu>
-              ) : data?.use_proconnect_button ? (
-                <ProConnectButton hint={false} />
               ) : (
-                <LoginButton />
+                <LoginButton proConnectHint={false} />
               )}
               <DialogTrigger>
                 <Button
