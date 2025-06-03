@@ -18,6 +18,8 @@ import { ReactNode, useState } from 'react'
 import { css } from '@/styled-system/css'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
+import { useConfig } from '@/api/useConfig'
+import { LoginButton } from '@/components/LoginButton'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -155,6 +157,8 @@ export const Home = () => {
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoomId, setLaterRoomId] = useState<null | string>(null)
 
+  const { data } = useConfig()
+
   return (
     <UserAware>
       <Screen>
@@ -210,14 +214,19 @@ export const Home = () => {
                     </MenuItem>
                   </RACMenu>
                 </Menu>
-              ) : (
+              ) : data?.use_proconnect_button ? (
                 <ProConnectButton hint={false} />
+              ) : (
+                <LoginButton />
               )}
               <DialogTrigger>
                 <Button
                   variant="secondary"
                   style={{
-                    height: !isLoggedIn ? '56px' : undefined, // Temporary, Align with ProConnect Button fixed height
+                    height:
+                      !isLoggedIn && data?.use_proconnect_button
+                        ? '56px'
+                        : undefined, // Temporary, Align with ProConnect Button fixed height
                   }}
                 >
                   {t('joinMeeting')}

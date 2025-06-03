@@ -327,6 +327,9 @@ class Base(Configuration):
         "use_french_gov_footer": values.BooleanValue(
             False, environ_name="FRONTEND_USE_FRENCH_GOV_FOOTER", environ_prefix=None
         ),
+        "use_proconnect_button": values.BooleanValue(
+            False, environ_name="FRONTEND_USE_PROCONNECT_BUTTON", environ_prefix=None
+        ),
     }
 
     # Mail
