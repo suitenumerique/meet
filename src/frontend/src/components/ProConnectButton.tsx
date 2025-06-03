@@ -1,9 +1,9 @@
-import { Link } from 'react-aria-components'
+import { Link as RALink } from 'react-aria-components'
 import { authUrl } from '@/features/auth'
 import { cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { VStack } from '@/styled-system/jsx'
-import { Text } from '@/primitives'
+import { Link } from '@/primitives'
 
 // Styles per their documentation https://github.com/numerique-gouv/agentconnect-documentation/blob/main/doc_fs/bouton_proconnect.md
 const proConnectButtonRecipe = cva({
@@ -32,23 +32,22 @@ export const ProConnectButton = ({ hint = true }: ProConnectButtonProps) => {
   const { t } = useTranslation('global', { keyPrefix: 'login' })
   return (
     <VStack alignItems="start">
-      <Link
+      <RALink
         className={proConnectButtonRecipe()}
         aria-label={t('proconnectButtonLabel')}
         href={authUrl()}
         data-attr="login"
       />
       {hint && (
-        <Text margin="sm" variant="note">
-          <Link
-            href="https://agentconnect.gouv.fr/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t('linkLabel')}
-          >
-            {t('link')}
-          </Link>
-        </Text>
+        <Link
+          to="https://agentconnect.gouv.fr/"
+          target="_blank"
+          rel="noopener noreferrer"
+          color="note"
+          aria-label={t('proconnectLinkLabel')}
+        >
+          {t('proconnectLink')}
+        </Link>
       )}
     </VStack>
   )

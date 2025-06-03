@@ -6,7 +6,7 @@ import { css } from '@/styled-system/css'
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import { HStack } from '@/styled-system/jsx'
 import { useState } from 'react'
-import { ProConnectButton } from '@/components/ProConnectButton'
+import { LoginButton } from '@/components/LoginButton'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 
 export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &
@@ -57,7 +57,7 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
       ) : (
         <>
           <P>{t('account.youAreNotLoggedIn')}</P>
-          <ProConnectButton />
+          <LoginButton />
         </>
       )}
       <HStack

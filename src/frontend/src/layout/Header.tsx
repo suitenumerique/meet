@@ -9,7 +9,7 @@ import { useMatchesRoute } from '@/navigation/useMatchesRoute'
 import { FeedbackBanner } from '@/components/FeedbackBanner'
 import { Menu } from '@/primitives/Menu'
 import { MenuList } from '@/primitives/MenuList'
-import { ProConnectButton } from '@/components/ProConnectButton'
+import { LoginButton } from '@/components/LoginButton'
 
 import LogoAsset from '@/assets/logo.svg'
 import { useLoginHint } from '@/hooks/useLoginHint'
@@ -175,7 +175,7 @@ export const Header = () => {
                 !isAccessibility &&
                 !isTermsOfService && (
                   <>
-                    <ProConnectButton hint={false} />
+                    <LoginButton proConnectHint={false} />
                     <LoginHint />
                   </>
                 )}

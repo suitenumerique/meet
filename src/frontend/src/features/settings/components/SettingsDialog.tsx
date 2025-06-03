@@ -2,7 +2,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
 import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
 import { useUser } from '@/features/auth'
-import { ProConnectButton } from '@/components/ProConnectButton'
+import { LoginButton } from '@/components/LoginButton'
 
 export type SettingsDialogProps = Pick<DialogProps, 'isOpen' | 'onOpenChange'>
 
@@ -29,7 +29,7 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
       ) : (
         <>
           <P>{t('account.youAreNotLoggedIn')}</P>
-          <ProConnectButton />
+          <LoginButton />
         </>
       )}
       <H lvl={2}>{t('language.heading')}</H>

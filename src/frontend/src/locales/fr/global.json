@@ -16,9 +16,10 @@
   "loading": "Chargement…",
   "loggedInUserTooltip": "Connecté en tant que…",
   "login": {
-    "buttonLabel": "S'identifier avec ProConnect",
-    "linkLabel": "Qu'est-ce que ProConnect ? - nouvelle fenêtre",
-    "link": "Qu'est-ce que ProConnect ?"
+    "buttonLabel": "Se connecter",
+    "proconnectButtonLabel": "S'identifier avec ProConnect",
+    "proconnectLinkLabel": "Qu'est-ce que ProConnect ? - nouvelle fenêtre",
+    "proconnectLink": "Qu'est-ce que ProConnect ?"
   },
   "logout": "Se déconnecter",
   "notFound": {
