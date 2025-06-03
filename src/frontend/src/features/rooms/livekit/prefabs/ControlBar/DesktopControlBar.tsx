@@ -11,6 +11,7 @@ import { OptionsButton } from '../../components/controls/Options/OptionsButton'
 import { StartMediaButton } from '../../components/controls/StartMediaButton'
 import { MoreOptions } from './MoreOptions'
 import { useRef } from 'react'
+import {SubtitleToggle} from "@/features/rooms/livekit/components/controls/SubtitleToggle.tsx";
 
 export function DesktopControlBar({
   onDeviceError,
@@ -77,6 +78,7 @@ export function DesktopControlBar({
             menuVariant="dark"
           />
           <ReactionsToggle />
+          <SubtitleToggle/>
           {browserSupportsScreenSharing && (
             <ScreenShareToggle
               onDeviceError={(error) =>

@@ -7,6 +7,7 @@ import {
 type State = {
   showHeader: boolean
   showFooter: boolean
+  showSubtitle: false,
   activePanelId: PanelId | null
   activeSubPanelId: SubPanelId | null
 }
@@ -14,6 +15,7 @@ type State = {
 export const layoutStore = proxy<State>({
   showHeader: false,
   showFooter: false,
+  showSubtitle: false,
   activePanelId: null,
   activeSubPanelId: null,
 })
