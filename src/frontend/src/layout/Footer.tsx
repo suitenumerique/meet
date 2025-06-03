@@ -1,6 +1,7 @@
 import { styled } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { A, Link } from '@/primitives'
+import { useConfig } from '@/api/useConfig'
 import { useTranslation } from 'react-i18next'
 
 const StyledLi = styled('li', {
@@ -120,6 +121,10 @@ const Marianne = () => {
 
 export const Footer = () => {
   const { t } = useTranslation('global', { keyPrefix: 'footer' })
+  const { data } = useConfig()
+  if (!data?.use_french_gov_footer) {
+    return null
+  }
 
   return (
     <footer
