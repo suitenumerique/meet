@@ -18,6 +18,7 @@ export interface ApiConfig {
   is_silent_login_enabled?: boolean
   custom_css_url?: string
   use_french_gov_footer?: boolean
+  use_proconnect_button?: boolean
   recording?: {
     is_enabled?: boolean
     available_modes?: RecordingMode[]

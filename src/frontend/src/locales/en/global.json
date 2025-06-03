@@ -16,7 +16,8 @@
   "loading": "Loading…",
   "loggedInUserTooltip": "Logged in as…",
   "login": {
-    "buttonLabel": "Login with ProConnect",
+    "proconnectButtonLabel": "Login with ProConnect",
+    "buttonLabel": "Login",
     "linkLabel": "What is ProConnect? - new tab",
     "link": "What is ProConnect?"
   },

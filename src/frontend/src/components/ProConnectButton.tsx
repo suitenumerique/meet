@@ -34,7 +34,7 @@ export const ProConnectButton = ({ hint = true }: ProConnectButtonProps) => {
     <VStack alignItems="start">
       <Link
         className={proConnectButtonRecipe()}
-        aria-label={t('buttonLabel')}
+        aria-label={t('proconnectButtonLabel')}
         href={authUrl()}
         data-attr="login"
       />
