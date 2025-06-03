@@ -190,8 +190,6 @@ const config: Config = {
       fonts: {
         sans: {
           value: [
-            'Source Sans',
-            'Source Sans fallback',
             'ui-sans-serif',
             'system-ui',
             '-apple-system',
