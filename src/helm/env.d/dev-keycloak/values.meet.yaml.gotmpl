@@ -76,6 +76,13 @@ backend:
       - "/bin/sh"
       - "-c"
       - |
+        while ! python manage.py check --database default > /dev/null 2>&1
+        do
+          echo "Database not ready"
+          sleep 2
+        done
+        echo "Database is ready"
+
         python manage.py migrate --no-input &&
         python manage.py create_demo --force
     restartPolicy: Never
@@ -92,6 +99,13 @@ backend:
       - "/bin/sh"
       - "-c"
       - |
+        while ! python manage.py check --database default > /dev/null 2>&1
+        do
+          echo "Database not ready"
+          sleep 2
+        done
+        echo "Database is ready"
+
         python manage.py createsuperuser --email admin@example.com --password admin
     restartPolicy: Never
 
