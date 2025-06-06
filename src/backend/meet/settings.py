@@ -333,6 +333,9 @@ class Base(Configuration):
         "transcript": values.DictValue(
             {}, environ_name="FRONTEND_TRANSCRIPT", environ_prefix=None
         ),
+        "manifest_link": values.Value(
+            None, environ_name="FRONTEND_MANIFEST_LINK", environ_prefix=None
+        ),
     }
 
     # Mail
