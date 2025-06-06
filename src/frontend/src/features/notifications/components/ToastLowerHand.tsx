@@ -5,6 +5,7 @@ import { StyledToastContainer, ToastProps } from './Toast'
 import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/primitives'
+import { css } from '@/styled-system/css'
 
 export function ToastLowerHand({ state, ...props }: ToastProps) {
   const { t } = useTranslation('notifications', { keyPrefix: 'lowerHand' })
@@ -31,10 +32,10 @@ export function ToastLowerHand({ state, ...props }: ToastProps) {
         <Button
           size="sm"
           variant="text"
-          style={{
-            color: '#60a5fa',
+          className={css({
+            color: 'primary.300',
             marginLeft: '0.5rem',
-          }}
+          })}
           onPress={() => handleDismiss()}
         >
           {t('dismiss')}

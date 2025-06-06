@@ -190,9 +190,6 @@ const config: Config = {
       fonts: {
         sans: {
           value: [
-            'Marianne',
-            'Source Sans',
-            'Source Sans fallback',
             'ui-sans-serif',
             'system-ui',
             '-apple-system',
@@ -317,6 +314,10 @@ const config: Config = {
           subtle: { value: '{colors.red.100}' },
           'subtle-text': { value: '{colors.red.700}' },
           ...pandaPreset.theme.tokens.colors.red,
+        },
+        alert: {
+          DEFAULT: { value: '{colors.blue.700}' },
+          notification: { value: '{colors.red.600}' },
         },
         success: {
           DEFAULT: { value: '{colors.green.700}' },

@@ -1,5 +1,4 @@
 {
-  "app": "Visio",
   "backToHome": "Back to homescreen",
   "cancel": "Cancel",
   "closeDialog": "Close dialog",
@@ -16,9 +15,10 @@
   "loading": "Loading…",
   "loggedInUserTooltip": "Logged in as…",
   "login": {
-    "buttonLabel": "Login with ProConnect",
-    "linkLabel": "What is ProConnect? - new tab",
-    "link": "What is ProConnect?"
+    "buttonLabel": "Login",
+    "proconnectButtonLabel": "Login with ProConnect",
+    "proconnectLinkLabel": "What is ProConnect? - new tab",
+    "proconnectLink": "What is ProConnect?"
   },
   "logout": "Logout",
   "notFound": {

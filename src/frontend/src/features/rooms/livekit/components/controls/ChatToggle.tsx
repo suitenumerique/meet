@@ -48,10 +48,11 @@ export const ChatToggle = ({
             right: '-.25rem',
             width: '1rem',
             height: '1rem',
-            backgroundColor: '#E1000F',
+            backgroundColor: 'alert.notification',
             borderRadius: '50%',
             zIndex: 1,
-            border: '2px solid #d1d5db',
+            border: '2px solid',
+            borderColor: 'greyscale.250',
           })}
         />
       )}

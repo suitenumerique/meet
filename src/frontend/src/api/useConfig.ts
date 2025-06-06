@@ -10,17 +10,28 @@ export interface ApiConfig {
   }
   support?: {
     id: string
+    help_article_transcript: string
+    help_article_recording: string
+    help_article_more_tools: string
   }
   feedback: {
     url: string
   }
+  transcript: {
+    form_beta_users: string
+  }
   silence_livekit_debug_logs?: boolean
   is_silent_login_enabled?: boolean
+  custom_css_url?: string
+  use_french_gov_footer?: boolean
+  use_proconnect_button?: boolean
   recording?: {
     is_enabled?: boolean
     available_modes?: RecordingMode[]
     expiration_days?: number
   }
+  manifest_link?: string
+  app_title: string
 }
 
 const fetchConfig = (): Promise<ApiConfig> => {

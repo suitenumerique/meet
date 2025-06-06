@@ -55,6 +55,9 @@ const link = cva({
       primary: {
         color: 'blue',
       },
+      note: {
+        color: 'default.subtle-text',
+      },
     },
   },
 })

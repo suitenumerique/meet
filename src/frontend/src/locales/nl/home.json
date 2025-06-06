@@ -12,7 +12,7 @@
   "loginToCreateMeeting": "Log in om een vergadering te maken",
   "moreLinkLabel": "Meer informatie - nieuw tabblad",
   "moreLink": "Meer informatie",
-  "moreAbout": "over Visio",
+  "moreAbout": "over {{appTitle}}",
   "createMenu": {
     "laterOption": "Maak een vergadering voor een latere datum",
     "instantOption": "Begin direct een vergadering"
@@ -38,7 +38,7 @@
       "tooltip": "Vul het formulier in"
     },
     "slide1": {
-      "title": "Probeer Visio om uw dagelijkse taken te vereenvoudigen",
+      "title": "Stap over op eenvoud. Probeer ons nu!",
       "body": "Ontdek een intuïtieve en toegankelijke oplossing, ontworpen voor alle openbare partijen, hun partners en nog veel meer.",
       "imgAlt": "Illustratie van een gebruiksvriendelijk en toegankelijk samenwerkingsplatform"
     },

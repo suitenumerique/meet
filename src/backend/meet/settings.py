@@ -304,6 +304,11 @@ class Base(Configuration):
 
     # Frontend
     FRONTEND_CONFIGURATION = {
+        # If set, a <link> tag with this URL as href is added to the <head> of the frontend app.
+        # This is useful if you want to change CSS variables to customize the look of the app.
+        "custom_css_url": values.Value(
+            None, environ_name="FRONTEND_CUSTOM_CSS_URL", environ_prefix=None
+        ),
         "analytics": values.DictValue(
             {}, environ_name="FRONTEND_ANALYTICS", environ_prefix=None
         ),
@@ -318,6 +323,21 @@ class Base(Configuration):
         ),
         "feedback": values.DictValue(
             {}, environ_name="FRONTEND_FEEDBACK", environ_prefix=None
+        ),
+        "use_french_gov_footer": values.BooleanValue(
+            False, environ_name="FRONTEND_USE_FRENCH_GOV_FOOTER", environ_prefix=None
+        ),
+        "use_proconnect_button": values.BooleanValue(
+            False, environ_name="FRONTEND_USE_PROCONNECT_BUTTON", environ_prefix=None
+        ),
+        "transcript": values.DictValue(
+            {}, environ_name="FRONTEND_TRANSCRIPT", environ_prefix=None
+        ),
+        "app_title": values.Value(
+            "La Suite Meet", environ_name="FRONTEND_APP_TITLE", environ_prefix=None
+        ),
+        "manifest_link": values.Value(
+            None, environ_name="FRONTEND_MANIFEST_LINK", environ_prefix=None
         ),
     }
 

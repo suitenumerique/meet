@@ -12,7 +12,7 @@
   "loginToCreateMeeting": "Login to create a meeting",
   "moreLinkLabel": "Learn more - new tab",
   "moreLink": "Learn more",
-  "moreAbout": "about Visio",
+  "moreAbout": "about {{appTitle}}",
   "createMenu": {
     "laterOption": "Create a meeting for a later date",
     "instantOption": "Start an instant meeting"
@@ -38,7 +38,7 @@
       "tooltip": "Fill out the form"
     },
     "slide1": {
-      "title": "Try Visio to simplify your daily tasks",
+      "title": "Make the switch to simplicity. Try us now!",
       "body": "Discover an intuitive and accessible solution, designed for all public agents, their partners, and much more.",
       "imgAlt": "Illustration of a user-friendly and accessible collaboration platform"
     },
