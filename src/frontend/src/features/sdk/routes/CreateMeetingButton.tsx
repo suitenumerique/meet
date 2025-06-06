@@ -160,7 +160,7 @@ export const CreateMeetingButton = () => {
           })}
         >
           {/*
-           * Using popup for Visio to access session cookies (blocked in iframes).
+           * Using popup for La Suite Meet to access session cookies (blocked in iframes).
            * If authenticated: Popup creates room and returns data directly.
            * If not: Popup sends callbackId, redirects to login, then backend
            * associates new room with callbackId after authentication.

@@ -138,6 +138,7 @@ services:
       target: frontend-production
       args:
         VITE_API_BASE_URL: "http://localhost:8071"
+        VITE_APP_TITLE: "LaSuite Meet"
     image: meet:frontend-development
     ports:
       - "3000:8080"
