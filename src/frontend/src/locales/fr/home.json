@@ -12,7 +12,7 @@
   "loginToCreateMeeting": "Connectez-vous pour créer une réunion",
   "moreLinkLabel": "En savoir plus - nouvelle fenêtre",
   "moreLink": "En savoir plus",
-  "moreAbout": "sur Visio",
+  "moreAbout": "sur {{appTitle}}",
   "createMenu": {
     "laterOption": "Créer une réunion pour une date ultérieure",
     "instantOption": "Démarrer une réunion instantanée"
@@ -38,7 +38,7 @@
       "tooltip": "Accéder au formulaire"
     },
     "slide1": {
-      "title": "Essayez Visio pour simplifier votre quotidien",
+      "title": "Passez à la simplicité. Essayez-nous dès maintenant !",
       "body": "Découvrez une solution intuitive et accessible, conçue pour tous les agents publics et leurs partenaires, et bien plus encore.",
       "imgAlt": "Illustration d'une plateforme de collaboration simple et accessible"
     },

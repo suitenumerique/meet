@@ -192,7 +192,7 @@
     "disclaimer": "De berichten zijn alleen voor de deelnemers zichtbaar op het moment dat ze worden verzonden. Alle berichten worden verwijderd aan het einde van het gesprek."
   },
   "moreTools": {
-    "body": "Toegang tot meer tools in Visio om je vergaderingen te verbeteren.",
+    "body": "Je krijgt toegang tot meer tools om je vergaderingen te verbeteren.",
     "moreLink": "lees meer",
     "tools": {
       "transcript": {
@@ -313,7 +313,7 @@
     }
   },
   "openFeedback": {
-    "question": "Wat kunnen we doen om Visio te verbeteren?",
+    "question": "Wat kunnen we doen om ons te verbeteren?",
     "placeholder": "Beschrijf uw problemen of deel uw suggesties ...",
     "submit": "Indienen",
     "skip": "Overslaan"

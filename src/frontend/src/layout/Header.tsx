@@ -37,19 +37,16 @@ const BetaBadge = () => (
   </span>
 )
 
-const Logo = () => {
-  const { t } = useTranslation()
-  return (
-    <img
-      src={LogoAsset}
-      alt={t('app')}
-      className={`Header-logo ${css({
-        maxHeight: { base: '30px', sm: '40px' },
-        marginTop: { base: '10px', sm: '5px' },
-      })}`}
-    />
-  )
-}
+const Logo = () => (
+  <img
+    src={LogoAsset}
+    alt={`${import.meta.env.VITE_APP_TITLE}`}
+    className={`Header-logo ${css({
+      maxHeight: { base: '30px', sm: '40px' },
+      marginTop: { base: '10px', sm: '5px' },
+    })}`}
+  />
+)
 
 const LoginHint = () => {
   const { t } = useTranslation()
