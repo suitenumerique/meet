@@ -30,6 +30,7 @@ export interface ApiConfig {
     available_modes?: RecordingMode[]
     expiration_days?: number
   }
+  app_title: string
 }
 
 const fetchConfig = (): Promise<ApiConfig> => {

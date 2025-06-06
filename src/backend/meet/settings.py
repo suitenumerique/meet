@@ -333,6 +333,9 @@ class Base(Configuration):
         "transcript": values.DictValue(
             {}, environ_name="FRONTEND_TRANSCRIPT", environ_prefix=None
         ),
+        "app_title": values.Value(
+            "La Suite Meet", environ_name="FRONTEND_APP_TITLE", environ_prefix=None
+        ),
     }
 
     # Mail
