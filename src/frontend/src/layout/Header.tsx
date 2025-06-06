@@ -13,6 +13,7 @@ import { LoginButton } from '@/components/LoginButton'
 
 import LogoAsset from '@/assets/logo.svg'
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { useConfig } from '@/api/useConfig'
 
 const BetaBadge = () => (
   <span
@@ -38,11 +39,11 @@ const BetaBadge = () => (
 )
 
 const Logo = () => {
-  const { t } = useTranslation()
+  const { data } = useConfig()
   return (
     <img
       src={LogoAsset}
-      alt={t('app')}
+      alt={data?.app_title || 'La Suite Meet'}
       className={`Header-logo ${css({
         maxHeight: { base: '30px', sm: '40px' },
         marginTop: { base: '10px', sm: '5px' },

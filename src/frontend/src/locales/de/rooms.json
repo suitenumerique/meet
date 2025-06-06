@@ -192,7 +192,7 @@
     "disclaimer": "Die Nachrichten sind nur für Teilnehmer zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Anrufs gelöscht."
   },
   "moreTools": {
-    "body": "Greifen Sie auf weitere Tools in Visio zu, um Ihre Meetings zu verbessern.",
+    "body": "Greifen Sie auf weitere Tools zu, um Ihre Meetings zu verbessern.",
     "moreLink": "mehr erfahren",
     "tools": {
       "transcript": {
@@ -313,7 +313,7 @@
     }
   },
   "openFeedback": {
-    "question": "Was können wir tun, um Visio zu verbessern?",
+    "question": "Was können wir tun, um uns zu verbessern?",
     "placeholder": "Beschreibe deine Fehler oder teile deine Vorschläge…",
     "submit": "Absenden",
     "skip": "Überspringen"

@@ -12,7 +12,7 @@
   "loginToCreateMeeting": "Melden Sie sich an, um ein Meeting zu erstellen",
   "moreLinkLabel": "Mehr erfahren – neues Tab",
   "moreLink": "Mehr erfahren",
-  "moreAbout": "über Visio",
+  "moreAbout": "über {{appTitle}}",
   "createMenu": {
     "laterOption": "Meeting für später planen",
     "instantOption": "Sofort-Meeting starten"
@@ -38,7 +38,7 @@
       "tooltip": "Formular ausfüllen"
     },
     "slide1": {
-      "title": "Testen Sie Visio für Ihre täglichen Aufgaben",
+      "title": "Wechseln Sie zur Einfachheit. Testen Sie uns jetzt!",
       "body": "Entdecken Sie eine intuitive und zugängliche Lösung, entwickelt für alle Mitarbeitenden im öffentlichen Dienst, ihre Partner und viele weitere.",
       "imgAlt": "Illustration einer benutzerfreundlichen und barrierefreien Kollaborationsplattform"
     },
