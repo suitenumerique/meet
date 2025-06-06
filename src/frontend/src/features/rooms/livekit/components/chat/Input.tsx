@@ -4,6 +4,7 @@ import { RiSendPlane2Fill } from '@remixicon/react'
 import { useState, useEffect } from 'react'
 import { RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
+import { css } from '@/styled-system/css'
 
 const MAX_ROWS = 6
 
@@ -70,12 +71,12 @@ export const ChatInput = ({
 
   return (
     <HStack
-      style={{
+      className={css({
         margin: '0.75rem 0 1.5rem',
         padding: '0.5rem',
-        backgroundColor: '#f3f4f6',
+        backgroundColor: 'gray.100',
         borderRadius: 4,
-      }}
+      })}
     >
       <TextArea
         ref={inputRef}

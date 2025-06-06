@@ -111,7 +111,7 @@ const RightColumn = ({ children }: { children?: ReactNode }) => {
 const Separator = styled('div', {
   base: {
     borderBottom: '1px solid',
-    borderColor: '#747775',
+    borderColor: 'greyscale.500',
     marginTop: '2.5rem',
     maxWidth: '30rem',
     width: '100%',
