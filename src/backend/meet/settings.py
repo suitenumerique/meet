@@ -336,6 +336,9 @@ class Base(Configuration):
         "app_title": values.Value(
             "La Suite Meet", environ_name="FRONTEND_APP_TITLE", environ_prefix=None
         ),
+        "manifest_link": values.Value(
+            None, environ_name="FRONTEND_MANIFEST_LINK", environ_prefix=None
+        ),
     }
 
     # Mail
