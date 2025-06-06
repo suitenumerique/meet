@@ -315,6 +315,10 @@ const config: Config = {
           'subtle-text': { value: '{colors.red.700}' },
           ...pandaPreset.theme.tokens.colors.red,
         },
+        alert: {
+          DEFAULT: { value: '{colors.blue.700}' },
+          notification: { value: '{colors.red.600}' },
+        },
         success: {
           DEFAULT: { value: '{colors.green.700}' },
           hover: { value: '{colors.green.800}' },

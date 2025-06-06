@@ -11,6 +11,7 @@ import {
   RiSpam2Fill,
 } from '@remixicon/react'
 import { useEffect, useState } from 'react'
+import { css } from '@/styled-system/css'
 
 // fixme - extract in a proper primitive this dialog without overlay
 const StyledRACDialog = styled(Dialog, {
@@ -100,14 +101,19 @@ export const InviteDialog = ({
           </Button>
           <HStack>
             <div
-              style={{
-                backgroundColor: '#d9e5ff',
+              className={css({
+                backgroundColor: 'primary.200',
                 borderRadius: '50%',
                 padding: '4px',
                 marginTop: '1rem',
-              }}
+              })}
             >
-              <RiSpam2Fill size={22} style={{ fill: '#4c84fc' }} />
+              <RiSpam2Fill
+                size={22}
+                className={css({
+                  fill: 'primary.500',
+                })}
+              />
             </div>
             <Text variant="sm" style={{ marginTop: '1rem' }}>
               {t('shareDialog.permissions')}

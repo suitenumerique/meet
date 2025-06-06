@@ -52,7 +52,7 @@ export const Admin = () => {
           border: 'none',
           height: '1px',
           width: '100%',
-          background: '#dadce0',
+          background: 'greyscale.250',
         })}
       />
       <H

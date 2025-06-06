@@ -14,6 +14,7 @@ import { ChatInput } from '../components/chat/Input'
 import { ChatEntry } from '../components/chat/Entry'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { LocalParticipant, RemoteParticipant, RoomEvent } from 'livekit-client'
+import { css } from '@/styled-system/css'
 
 export interface ChatProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -122,12 +123,12 @@ export function Chat({ ...props }: ChatProps) {
     >
       <Text
         variant="sm"
-        style={{
+        className={css({
           padding: '0.75rem',
-          backgroundColor: '#f3f4f6',
+          backgroundColor: 'greyscale.50',
           borderRadius: 4,
           marginBottom: '0.75rem',
-        }}
+        })}
       >
         {t('disclaimer')}
       </Text>

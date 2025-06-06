@@ -124,9 +124,9 @@ export const WaitingParticipantNotification = () => {
               <Button
                 size="sm"
                 variant="text"
-                style={{
-                  color: '#60a5fa',
-                }}
+                className={css({
+                  color: 'primary.300',
+                })}
                 onPress={async () => {
                   await handleParticipantEntry(waitingParticipants[0], true)
                   setShowQuickActionsMessage(false)
@@ -137,9 +137,9 @@ export const WaitingParticipantNotification = () => {
               <Button
                 size="sm"
                 variant="text"
-                style={{
-                  color: '#60a5fa',
-                }}
+                className={css({
+                  color: 'primary.300',
+                })}
                 onPress={() => {
                   toggleParticipants()
                   setShowQuickActionsMessage(false)
@@ -207,9 +207,9 @@ export const WaitingParticipantNotification = () => {
               <Button
                 size="sm"
                 variant="text"
-                style={{
-                  color: '#60a5fa',
-                }}
+                className={css({
+                  color: 'primary.300',
+                })}
                 onPress={() => {
                   toggleParticipants()
                 }}

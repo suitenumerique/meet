@@ -17,14 +17,15 @@ const ToggleHeader = styled(ToggleButton, {
     transition: 'background 200ms',
     borderTopRadius: '7px',
     '&[data-hovered]': {
-      backgroundColor: '#f5f5f5',
+      backgroundColor: 'greyscale.50',
     },
   },
 })
 
 const Container = styled('div', {
   base: {
-    border: '1px solid #dadce0',
+    border: '1px solid',
+    borderColor: 'greyscale.250',
     borderRadius: '8px',
     margin: '0 .625rem',
   },
@@ -32,7 +33,8 @@ const Container = styled('div', {
 
 const ListContainer = styled(VStack, {
   base: {
-    borderTop: '1px solid #dadce0',
+    borderTop: '1px solid',
+    borderTopColor: 'greyscale.250',
     alignItems: 'start',
     overflowY: 'scroll',
     overflowX: 'hidden',

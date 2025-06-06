@@ -1,8 +1,8 @@
 import { useTrackMutedIndicator } from '@livekit/components-react'
 import { Participant, Track } from 'livekit-client'
 import Source = Track.Source
-import { Div } from '@/primitives'
 import { RiMicOffFill } from '@remixicon/react'
+import { css } from '@/styled-system/css'
 
 export const MutedMicIndicator = ({
   participant,
@@ -19,8 +19,14 @@ export const MutedMicIndicator = ({
   }
 
   return (
-    <Div padding={0.25} backgroundColor="#E1000F" borderRadius="4px">
+    <div
+      className={css({
+        backgroundColor: 'red.600',
+        borderRadius: '4px',
+        padding: 0.25,
+      })}
+    >
       <RiMicOffFill size={16} color="white" />
-    </Div>
+    </div>
   )
 }

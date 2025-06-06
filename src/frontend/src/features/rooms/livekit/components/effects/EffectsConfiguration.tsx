@@ -230,7 +230,7 @@ export const EffectsConfiguration = ({
           layout === 'horizontal'
             ? {
                 md: {
-                  borderLeft: '1px solid #dadce0',
+                  borderLeft: '1px solid greyscale.250',
                   paddingLeft: '1.5rem',
                   width: '420px',
                   flexShrink: 0,
