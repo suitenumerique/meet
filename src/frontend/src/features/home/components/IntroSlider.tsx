@@ -6,7 +6,7 @@ import { styled } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { Button, LinkButton } from '@/primitives'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useConfig } from '@/api/useConfig'
 
@@ -169,9 +169,15 @@ const SLIDES: Slide[] = [
 export const IntroSlider = () => {
   const [slideIndex, setSlideIndex] = useState(0)
   const { t } = useTranslation('home', { keyPrefix: 'introSlider' })
-  const NUMBER_SLIDES = SLIDES.length
 
   const { data } = useConfig()
+
+  const filteredSlides = useMemo(
+    () => (data?.transcript?.form_beta_users ? SLIDES : SLIDES.slice(0, 2)),
+    [data]
+  )
+
+  const NUMBER_SLIDES = filteredSlides.length
 
   return (
     <Container>
@@ -197,7 +203,7 @@ export const IntroSlider = () => {
           </ButtonVerticalCenter>
         </ButtonContainer>
         <SlideContainer>
-          {SLIDES.map((slide, index) => (
+          {filteredSlides.map((slide, index) => (
             <Slide visible={index == slideIndex} key={index}>
               <Image src={slide.img} alt={t(`${slide.key}.imgAlt`)} />
               <TextAnimation visible={index == slideIndex}>
@@ -240,7 +246,7 @@ export const IntroSlider = () => {
           display: { base: 'none', xsm: 'block' },
         })}
       >
-        {SLIDES.map((_, index) => (
+        {filteredSlides.map((_, index) => (
           <Dot key={index} selected={index == slideIndex} />
         ))}
       </div>

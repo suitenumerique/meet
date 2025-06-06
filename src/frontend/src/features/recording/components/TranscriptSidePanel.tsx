@@ -193,14 +193,16 @@ export const TranscriptSidePanel = () => {
                   </A>
                 )}
               </Text>
-              <LinkButton
-                size="sm"
-                variant="tertiary"
-                href={data?.transcript.form_beta_users}
-                target="_blank"
-              >
-                {t('beta.button')}
-              </LinkButton>
+              {data?.transcript.form_beta_users && (
+                <LinkButton
+                  size="sm"
+                  variant="tertiary"
+                  href={data?.transcript.form_beta_users}
+                  target="_blank"
+                >
+                  {t('beta.button')}
+                </LinkButton>
+              )}
             </>
           )}
         </>
