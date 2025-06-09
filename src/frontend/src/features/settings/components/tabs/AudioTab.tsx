@@ -1,4 +1,4 @@
-import { DialogProps, Field, H } from '@/primitives'
+import { DialogProps, Field, H, Switch } from '@/primitives'
 
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import {
@@ -13,16 +13,44 @@ import { HStack } from '@/styled-system/jsx'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { ReactNode } from 'react'
+import { css } from '@/styled-system/css'
 
 type RowWrapperProps = {
   heading: string
   children: ReactNode[]
+  beta?: boolean
 }
 
-const RowWrapper = ({ heading, children }: RowWrapperProps) => {
+const BetaBadge = () => (
+  <span
+    className={css({
+      content: '"Beta"',
+      display: 'block',
+      letterSpacing: '-0.02rem',
+      padding: '0 0.25rem',
+      backgroundColor: '#E8EDFF',
+      color: '#0063CB',
+      fontSize: '12px',
+      fontWeight: 500,
+      margin: '0 0 0.9375rem 0.3125rem',
+      lineHeight: '1rem',
+      borderRadius: '4px',
+      width: 'fit-content',
+      height: 'fit-content',
+      marginTop: { base: '10px', sm: '5px' },
+    })}
+  >
+    Beta
+  </span>
+)
+
+const RowWrapper = ({ heading, children, beta }: RowWrapperProps) => {
   return (
     <>
-      <H lvl={2}>{heading}</H>
+      <HStack>
+        <H lvl={2}>{heading}</H>
+        {beta && <BetaBadge />}
+      </HStack>
       <HStack
         gap={0}
         style={{
@@ -61,7 +89,11 @@ export const AudioTab = ({ id }: AudioTabProps) => {
   const { t } = useTranslation('settings')
   const { localParticipant } = useRoomContext()
 
-  const { saveAudioInputDeviceId } = usePersistentUserChoices()
+  const {
+    userChoices: { noiseReductionEnabled },
+    saveAudioInputDeviceId,
+    saveNoiseReductionEnabled,
+  } = usePersistentUserChoices()
 
   const isSpeaking = useIsSpeaking(localParticipant)
 
@@ -158,6 +190,20 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           <SoundTester />
         </RowWrapper>
       )}
+      <RowWrapper heading={t('audio.noiseReduction.heading')} beta>
+        <Switch
+          aria-label={t(
+            `audio.noiseReduction.ariaLabel.${noiseReductionEnabled ? 'disable' : 'enable'}`
+          )}
+          isSelected={noiseReductionEnabled}
+          onChange={(v) => {
+            saveNoiseReductionEnabled(v)
+          }}
+        >
+          {t('audio.noiseReduction.label')}
+        </Switch>
+        <div />
+      </RowWrapper>
     </TabPanel>
   )
 }

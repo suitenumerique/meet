@@ -12,6 +12,14 @@
       "label": "Selecteer uw audioinvoer",
       "disabled": "Microfoon uitgeschakeld"
     },
+    "noiseReduction": {
+      "label": "Ruisonderdrukking",
+      "heading": "Ruisonderdrukking",
+      "ariaLabel": {
+        "enable": "Ruisonderdrukking inschakelen",
+        "disable": "Ruisonderdrukking uitschakelen"
+      }
+    },
     "speakers": {
       "heading": "Luidsprekers",
       "label": "Selecteer uw audio-uitvoer",

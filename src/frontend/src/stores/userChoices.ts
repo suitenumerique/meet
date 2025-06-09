@@ -8,6 +8,7 @@ import {
 
 export type LocalUserChoices = LocalUserChoicesLK & {
   processorSerialized?: ProcessorSerialized
+  noiseReductionEnabled?: boolean
 }
 
 function getUserChoicesState(): LocalUserChoices {

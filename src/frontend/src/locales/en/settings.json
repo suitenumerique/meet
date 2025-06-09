@@ -12,6 +12,14 @@
       "label": "Select your audio input",
       "disabled": "Microphone disabled"
     },
+    "noiseReduction": {
+      "label": "Noise reduction",
+      "heading": "Noise reduction",
+      "ariaLabel": {
+        "enable": "Enable noise reduction",
+        "disable": "Disable noise reduction"
+      }
+    },
     "speakers": {
       "heading": "Speakers",
       "label": "Select your audio output",

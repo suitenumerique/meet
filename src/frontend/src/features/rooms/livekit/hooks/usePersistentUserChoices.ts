@@ -22,6 +22,9 @@ export function usePersistentUserChoices() {
     saveUsername: (username: string) => {
       userChoicesStore.username = username
     },
+    saveNoiseReductionEnabled: (enabled: boolean) => {
+      userChoicesStore.noiseReductionEnabled = enabled
+    },
     saveProcessorSerialized: (
       processorSerialized: ProcessorSerialized | undefined
     ) => {

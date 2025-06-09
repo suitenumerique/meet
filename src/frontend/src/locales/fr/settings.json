@@ -12,6 +12,14 @@
       "label": "Sélectionner votre entrée audio",
       "disabled": "Micro désactivé"
     },
+    "noiseReduction": {
+      "label": "Réduction de bruit",
+      "heading": "Réduction de bruit",
+      "ariaLabel": {
+        "enable": "Activer la réduction du bruit",
+        "disable": "Désactiver la réduction du bruit"
+      }
+    },
     "speakers": {
       "heading": "Haut-parleurs",
       "label": "Sélectionner votre sortie audio",
