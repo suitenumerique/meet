@@ -7,7 +7,7 @@ import {
 } from '@livekit/components-core'
 import { RoomEvent, Track } from 'livekit-client'
 import * as React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   CarouselLayout,
   ConnectionStateToast,
@@ -18,6 +18,7 @@ import {
   usePinnedTracks,
   useTracks,
   useCreateLayoutContext,
+  useRoomContext,
 } from '@livekit/components-react'
 
 import { ControlBar } from './ControlBar/ControlBar'
@@ -30,6 +31,9 @@ import { SidePanel } from '../components/SidePanel'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { RecordingStateToast } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
+import { RnnNoiseProcessor } from '@/features/rooms/livekit/processors/RnnNoiseProcessor'
+import { useSnapshot } from 'valtio'
+import { settingsStore } from '@/stores/settings.ts'
 
 const LayoutWrapper = styled(
   'div',
@@ -83,6 +87,30 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   )
 
   const layoutContext = useCreateLayoutContext()
+
+  const room = useRoomContext()
+  const audioTrack = room.localParticipant.getTrackPublication(
+    Track.Source.Microphone
+  )?.audioTrack
+
+  const settingsSnap = useSnapshot(settingsStore)
+
+  useEffect(() => {
+    if (!audioTrack) return
+
+    const processor = audioTrack?.getProcessor()
+
+    if (settingsSnap.isNoiseSuppressionEnabled && !processor) {
+      const rnnNoiseProcessor = new RnnNoiseProcessor()
+      audioTrack
+        .setProcessor(rnnNoiseProcessor)
+        .then(() => console.log('$$ setup successful'))
+    } else if (!settingsSnap.isNoiseSuppressionEnabled && processor) {
+      audioTrack
+        .stopProcessor()
+        .then(() => console.log('$$ cleanup successful'))
+    }
+  }, [audioTrack, settingsSnap])
 
   const screenShareTracks = tracks
     .filter(isTrackReference)
