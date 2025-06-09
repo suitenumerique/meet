@@ -130,6 +130,18 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           )}
         </>
       </RowWrapper>
+      <RowWrapper heading={'Noise reduction'}>
+        <Field
+          type="checkbox"
+          label={'Enable noise reduction'}
+          onSelectionChange={(v) => console.log('$$', v)}
+          {...disabledProps}
+          style={{
+            width: '100%',
+          }}
+        />
+        <div />
+      </RowWrapper>
       {/* Safari has a known limitation where its implementation of 'enumerateDevices' does not include audio output devices.
         To prevent errors or an empty selection list, we only render the speakers selection field on non-Safari browsers. */}
       {!isSafari() && (
