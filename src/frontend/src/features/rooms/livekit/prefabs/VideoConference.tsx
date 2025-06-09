@@ -31,6 +31,7 @@ import { useSidePanel } from '../hooks/useSidePanel'
 import { RecordingStateToast } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
+import { useNoiseReduction } from '../hooks/useNoiseReduction'
 
 const LayoutWrapper = styled(
   'div',
@@ -86,6 +87,8 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   )
 
   const layoutContext = useCreateLayoutContext()
+
+  useNoiseReduction()
 
   const screenShareTracks = tracks
     .filter(isTrackReference)
