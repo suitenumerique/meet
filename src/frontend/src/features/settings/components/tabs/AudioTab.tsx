@@ -1,4 +1,4 @@
-import { DialogProps, Field, H } from '@/primitives'
+import { DialogProps, Field, H, Switch } from '@/primitives'
 
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import {
@@ -11,7 +11,9 @@ import { useTranslation } from 'react-i18next'
 import { SoundTester } from '@/components/SoundTester'
 import { HStack } from '@/styled-system/jsx'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
-import { ReactNode } from 'react'
+import { ReactNode, useCallback } from 'react'
+import { useSnapshot } from 'valtio'
+import { settingsStore } from '@/stores/settings'
 
 type RowWrapperProps = {
   heading: string
@@ -106,6 +108,8 @@ export const AudioTab = ({ id }: AudioTabProps) => {
     return defaultItem.value
   }
 
+  const settingsSnap = useSnapshot(settingsStore)
+
   return (
     <TabPanel padding={'md'} flex id={id}>
       <RowWrapper heading={t('audio.microphone.heading')}>
@@ -131,15 +135,15 @@ export const AudioTab = ({ id }: AudioTabProps) => {
         </>
       </RowWrapper>
       <RowWrapper heading={'Noise reduction'}>
-        <Field
-          type="checkbox"
-          label={'Enable noise reduction'}
-          onSelectionChange={(v) => console.log('$$', v)}
-          {...disabledProps}
-          style={{
-            width: '100%',
+        <Switch
+          aria-label="wip"
+          isSelected={settingsSnap.isNoiseSuppressionEnabled}
+          onChange={(v) => {
+            settingsStore.isNoiseSuppressionEnabled = v
           }}
-        />
+        >
+          Noise reduction
+        </Switch>
         <div />
       </RowWrapper>
       {/* Safari has a known limitation where its implementation of 'enumerateDevices' does not include audio output devices.
