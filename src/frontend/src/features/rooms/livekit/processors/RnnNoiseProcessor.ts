@@ -27,8 +27,10 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
       throw new Error('Track is required for audio processing')
     }
 
+    console.log('$$ opts', opts)
+
     this.source = opts.track as MediaStreamTrack
-    this.audioContext = opts.audioContext as AudioContext
+    this.audioContext = new AudioContext()
 
     await this.audioContext.audioWorklet.addModule(NoiseSuppressorWorklet)
 
