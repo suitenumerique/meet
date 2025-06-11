@@ -30,6 +30,7 @@ import { SidePanel } from '../components/SidePanel'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { RecordingStateToast } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
+import { useConnectionObserver } from '../hooks/useConnectionObserver'
 
 const LayoutWrapper = styled(
   'div',
@@ -73,6 +74,8 @@ export interface VideoConferenceProps
 export function VideoConference({ ...props }: VideoConferenceProps) {
   const lastAutoFocusedScreenShareTrack =
     React.useRef<TrackReferenceOrPlaceholder | null>(null)
+
+  useConnectionObserver()
 
   const tracks = useTracks(
     [
