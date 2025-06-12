@@ -18,6 +18,7 @@ export const useConnectionObserver = () => {
       // total session duration from first connect to final disconnect.
       if (connectionStartTimeRef.current != null) return
       connectionStartTimeRef.current = Date.now()
+      posthog.capture('connection-event')
     }
 
     const handleReconnect = () => {
