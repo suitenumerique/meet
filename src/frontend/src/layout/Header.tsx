@@ -9,51 +9,11 @@ import { useMatchesRoute } from '@/navigation/useMatchesRoute'
 import { FeedbackBanner } from '@/components/FeedbackBanner'
 import { Menu } from '@/primitives/Menu'
 import { MenuList } from '@/primitives/MenuList'
-import { ProConnectButton } from '@/components/ProConnectButton'
+import { LoginButton } from '@/components/LoginButton'
 
 import LogoAsset from '@/assets/logo.svg'
 import { useLoginHint } from '@/hooks/useLoginHint'
-
-const Marianne = () => {
-  return (
-    <div
-      className={css({
-        _before: {
-          content: '""',
-          display: 'block',
-          backgroundImage: 'url(/assets/marianne.svg)',
-          backgroundPosition: '0 -0.046875rem, 0 0, 0 0',
-          backgroundSize: '2.0625rem 0.84375rem, 2.0625rem 0.75rem, 0',
-          height: '0.75rem',
-          marginBottom: '0.1rem',
-          width: '2.0625rem',
-        },
-        _after: {
-          content: '""',
-          display: 'block',
-          backgroundImage: 'url(/assets/devise.svg)',
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'contain',
-          width: '2.5rem',
-          height: '1.7857142857142858rem',
-          marginTop: '0.25rem',
-        },
-      })}
-    >
-      <p
-        className={css({
-          letterSpacing: '-.01em',
-          textTransform: 'uppercase',
-          fontWeight: '700',
-          fontFamily: 'Marianne',
-          fontSize: '0.7875rem !important',
-        })}
-      >
-        gouvernement
-      </p>
-    </div>
-  )
-}
+import { useConfig } from '@/api/useConfig'
 
 const BetaBadge = () => (
   <span
@@ -79,15 +39,15 @@ const BetaBadge = () => (
 )
 
 const Logo = () => {
-  const { t } = useTranslation()
+  const { data } = useConfig()
   return (
     <img
       src={LogoAsset}
-      alt={t('app')}
-      className={css({
+      alt={data?.app_title || 'La Suite Meet'}
+      className={`Header-logo ${css({
         maxHeight: { base: '30px', sm: '40px' },
         marginTop: { base: '10px', sm: '5px' },
-      })}
+      })}`}
     />
   )
 }
@@ -195,7 +155,12 @@ export const Header = () => {
                 }}
                 to="/"
               >
-                <Marianne />
+                {/* this is there only as a hook for custom CSS users who might want to show something before the app logo */}
+                <div
+                  className={`Header-beforeLogo ${css({
+                    display: 'none',
+                  })}`}
+                />
                 <HStack gap={0}>
                   <Logo />
                   <BetaBadge />
@@ -211,7 +176,7 @@ export const Header = () => {
                 !isAccessibility &&
                 !isTermsOfService && (
                   <>
-                    <ProConnectButton hint={false} />
+                    <LoginButton proConnectHint={false} />
                     <LoginHint />
                   </>
                 )}

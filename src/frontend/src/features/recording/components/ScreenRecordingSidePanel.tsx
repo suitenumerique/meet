@@ -14,7 +14,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
-import { CRISP_HELP_ARTICLE_RECORDING } from '@/utils/constants'
 
 import {
   NotificationType,
@@ -24,8 +23,10 @@ import {
 import posthog from 'posthog-js'
 import { useSnapshot } from 'valtio/index'
 import { Spinner } from '@/primitives/Spinner'
+import { useConfig } from '@/api/useConfig'
 
 export const ScreenRecordingSidePanel = () => {
+  const { data } = useConfig()
   const [isLoading, setIsLoading] = useState(false)
   const recordingSnap = useSnapshot(recordingStore)
   const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
@@ -199,9 +200,11 @@ export const ScreenRecordingSidePanel = () => {
                 })}
               >
                 {t('start.body')} <br />{' '}
-                <A href={CRISP_HELP_ARTICLE_RECORDING} target="_blank">
-                  {t('start.linkMore')}
-                </A>
+                {data?.support?.help_article_recording && (
+                  <A href={data.support.help_article_recording} target="_blank">
+                    {t('start.linkMore')}
+                  </A>
+                )}
               </Text>
               <Button
                 isDisabled={isDisabled}

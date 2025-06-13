@@ -7,6 +7,7 @@ import { Button, Div } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { RiCloseLine, RiHand } from '@remixicon/react'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { css } from '@/styled-system/css'
 
 export function ToastRaised({ state, ...props }: ToastProps) {
   const { t } = useTranslation('notifications')
@@ -46,9 +47,9 @@ export function ToastRaised({ state, ...props }: ToastProps) {
           <Button
             size="sm"
             variant="text"
-            style={{
-              color: '#60a5fa',
-            }}
+            className={css({
+              color: 'primary.300',
+            })}
             onPress={(e) => {
               toggleParticipants()
               closeButtonProps.onPress?.(e)

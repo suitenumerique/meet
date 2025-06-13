@@ -7,7 +7,6 @@ import { Screen } from '@/layout/Screen'
 import { generateRoomId } from '@/features/rooms'
 import { useUser, UserAware } from '@/features/auth'
 import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
-import { ProConnectButton } from '@/components/ProConnectButton'
 import { useCreateRoom } from '@/features/rooms'
 import { RiAddLine, RiLink } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
@@ -18,6 +17,8 @@ import { ReactNode, useState } from 'react'
 import { css } from '@/styled-system/css'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
+import { useConfig } from '@/api/useConfig'
+import { LoginButton } from '@/components/LoginButton'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -110,7 +111,7 @@ const RightColumn = ({ children }: { children?: ReactNode }) => {
 const Separator = styled('div', {
   base: {
     borderBottom: '1px solid',
-    borderColor: '#747775',
+    borderColor: 'greyscale.500',
     marginTop: '2.5rem',
     maxWidth: '30rem',
     width: '100%',
@@ -154,6 +155,8 @@ export const Home = () => {
 
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoomId, setLaterRoomId] = useState<null | string>(null)
+
+  const { data } = useConfig()
 
   return (
     <UserAware>
@@ -211,13 +214,16 @@ export const Home = () => {
                   </RACMenu>
                 </Menu>
               ) : (
-                <ProConnectButton hint={false} />
+                <LoginButton proConnectHint={false} />
               )}
               <DialogTrigger>
                 <Button
                   variant="secondary"
                   style={{
-                    height: !isLoggedIn ? '56px' : undefined, // Temporary, Align with ProConnect Button fixed height
+                    height:
+                      !isLoggedIn && data?.use_proconnect_button
+                        ? '56px'
+                        : undefined, // Temporary, Align with ProConnect Button fixed height
                   }}
                 >
                   {t('joinMeeting')}
