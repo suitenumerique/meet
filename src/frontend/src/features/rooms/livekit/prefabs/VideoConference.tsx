@@ -5,24 +5,25 @@ import {
   isWeb,
   log,
 } from '@livekit/components-core'
-import { RoomEvent, Track } from 'livekit-client'
+import { ConnectionState, RoomEvent, Track } from 'livekit-client'
 import * as React from 'react'
 import { useState } from 'react'
 import {
   CarouselLayout,
-  ConnectionStateToast,
   FocusLayoutContainer,
   GridLayout,
   LayoutContextProvider,
   RoomAudioRenderer,
-  usePinnedTracks,
-  useTracks,
+  useConnectionState,
   useCreateLayoutContext,
+  usePinnedTracks,
+  useRoomContext,
+  useTracks,
 } from '@livekit/components-react'
 
 import { ControlBar } from './ControlBar/ControlBar'
 import { styled } from '@/styled-system/jsx'
-import { cva } from '@/styled-system/css'
+import { css, cva } from '@/styled-system/css'
 import { MainNotificationToast } from '@/features/notifications/MainNotificationToast'
 import { FocusLayout } from '../components/FocusLayout'
 import { ParticipantTile } from '../components/ParticipantTile'
@@ -31,6 +32,8 @@ import { useSidePanel } from '../hooks/useSidePanel'
 import { RecordingStateToast } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
+import { ConnectingScreen } from '@/features/rooms/livekit/components/messages/ConnectingScreen.tsx'
+import { ConnectionStateWrapper } from '@/features/rooms/livekit/components/messages/ConnectionStateWrapper.tsx'
 
 const LayoutWrapper = styled(
   'div',
@@ -74,8 +77,6 @@ export interface VideoConferenceProps
 export function VideoConference({ ...props }: VideoConferenceProps) {
   const lastAutoFocusedScreenShareTrack =
     React.useRef<TrackReferenceOrPlaceholder | null>(null)
-
-  useConnectionObserver()
 
   const tracks = useTracks(
     [
@@ -156,85 +157,90 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
   return (
-    <div
-      className="lk-video-conference"
-      {...props}
-      style={{
-        overflowX: 'hidden',
-      }}
-    >
-      {isWeb() && (
-        <LayoutContextProvider
-          value={layoutContext}
-          // onPinChange={handleFocusStateChange}
-        >
-          <ScreenShareErrorModal
-            isOpen={isShareErrorVisible}
-            onClose={() => setIsShareErrorVisible(false)}
-          />
-          <div
-            // todo - extract these magic values into constant
-            style={{
-              position: 'absolute',
-              inset: isSidePanelOpen
-                ? 'var(--lk-grid-gap) calc(358px + 3rem) calc(80px + var(--lk-grid-gap)) 16px'
-                : 'var(--lk-grid-gap) var(--lk-grid-gap) calc(80px + var(--lk-grid-gap))',
-              transition: 'inset .5s cubic-bezier(0.4,0,0.2,1) 5ms',
-            }}
+    <ConnectionStateWrapper>
+      <div
+        className="lk-video-conference"
+        {...props}
+        style={{
+          overflowX: 'hidden',
+        }}
+      >
+        {isWeb() && (
+          <LayoutContextProvider
+            value={layoutContext}
+            // onPinChange={handleFocusStateChange}
           >
-            <LayoutWrapper>
-              <div
-                style={{ display: 'flex', position: 'relative', width: '100%' }}
-              >
-                {!focusTrack ? (
-                  <div
-                    className="lk-grid-layout-wrapper"
-                    style={{ height: 'auto' }}
-                  >
-                    <GridLayout tracks={tracks} style={{ padding: 0 }}>
-                      <ParticipantTile />
-                    </GridLayout>
-                  </div>
-                ) : (
-                  <div
-                    className="lk-focus-layout-wrapper"
-                    style={{ height: 'auto' }}
-                  >
-                    <FocusLayoutContainer style={{ padding: 0 }}>
-                      <CarouselLayout
-                        tracks={carouselTracks}
-                        style={{
-                          minWidth: '200px',
-                        }}
-                      >
+            <ScreenShareErrorModal
+              isOpen={isShareErrorVisible}
+              onClose={() => setIsShareErrorVisible(false)}
+            />
+            <div
+              // todo - extract these magic values into constant
+              style={{
+                position: 'absolute',
+                inset: isSidePanelOpen
+                  ? 'var(--lk-grid-gap) calc(358px + 3rem) calc(80px + var(--lk-grid-gap)) 16px'
+                  : 'var(--lk-grid-gap) var(--lk-grid-gap) calc(80px + var(--lk-grid-gap))',
+                transition: 'inset .5s cubic-bezier(0.4,0,0.2,1) 5ms',
+              }}
+            >
+              <LayoutWrapper>
+                <div
+                  style={{
+                    display: 'flex',
+                    position: 'relative',
+                    width: '100%',
+                  }}
+                >
+                  {!focusTrack ? (
+                    <div
+                      className="lk-grid-layout-wrapper"
+                      style={{ height: 'auto' }}
+                    >
+                      <GridLayout tracks={tracks} style={{ padding: 0 }}>
                         <ParticipantTile />
-                      </CarouselLayout>
-                      {focusTrack && <FocusLayout trackRef={focusTrack} />}
-                    </FocusLayoutContainer>
-                  </div>
-                )}
-              </div>
-            </LayoutWrapper>
-            <MainNotificationToast />
-          </div>
-          <ControlBar
-            onDeviceError={(e) => {
-              console.error(e)
-              if (
-                e.source == Track.Source.ScreenShare &&
-                e.error.toString() ==
-                  'NotAllowedError: Permission denied by system'
-              ) {
-                setIsShareErrorVisible(true)
-              }
-            }}
-          />
-          <SidePanel />
-        </LayoutContextProvider>
-      )}
-      <RoomAudioRenderer />
-      <ConnectionStateToast />
-      <RecordingStateToast />
-    </div>
+                      </GridLayout>
+                    </div>
+                  ) : (
+                    <div
+                      className="lk-focus-layout-wrapper"
+                      style={{ height: 'auto' }}
+                    >
+                      <FocusLayoutContainer style={{ padding: 0 }}>
+                        <CarouselLayout
+                          tracks={carouselTracks}
+                          style={{
+                            minWidth: '200px',
+                          }}
+                        >
+                          <ParticipantTile />
+                        </CarouselLayout>
+                        {focusTrack && <FocusLayout trackRef={focusTrack} />}
+                      </FocusLayoutContainer>
+                    </div>
+                  )}
+                </div>
+              </LayoutWrapper>
+              <MainNotificationToast />
+            </div>
+            <ControlBar
+              onDeviceError={(e) => {
+                console.error(e)
+                if (
+                  e.source == Track.Source.ScreenShare &&
+                  e.error.toString() ==
+                    'NotAllowedError: Permission denied by system'
+                ) {
+                  setIsShareErrorVisible(true)
+                }
+              }}
+            />
+            <SidePanel />
+          </LayoutContextProvider>
+        )}
+        <RoomAudioRenderer />
+        <RecordingStateToast />
+      </div>
+    </ConnectionStateWrapper>
   )
 }
