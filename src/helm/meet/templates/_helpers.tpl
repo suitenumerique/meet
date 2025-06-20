@@ -185,6 +185,15 @@ Requires top level scope
 {{- end }}
 
 {{/*
+Full name for the agents
+
+Requires top level scope
+*/}}
+{{- define "meet.agents.fullname" -}}
+{{ include "meet.fullname" . }}-agents
+{{- end }}
+
+{{/*
 Usage : {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" .) "imageCredentials" .Values.path.to.the.image1) }}
 */}}
 {{- define "meet.secret.dockerconfigjson.name" }}
