@@ -13,9 +13,9 @@
     "check": "prettier --check ./src"
   },
   "dependencies": {
-    "@livekit/components-react": "2.8.1",
-    "@livekit/components-styles": "1.1.5",
-    "@livekit/track-processors": "0.5.6",
+    "@livekit/components-react": "2.9.10",
+    "@livekit/components-styles": "1.1.6",
+    "@livekit/track-processors": "0.5.7",
     "@pandacss/preset-panda": "0.53.6",
     "@react-aria/toast": "3.0.2",
     "@remixicon/react": "4.6.0",
@@ -26,7 +26,7 @@
     "i18next-browser-languagedetector": "8.1.0",
     "i18next-parser": "9.3.0",
     "i18next-resources-to-backend": "1.2.1",
-    "livekit-client": "2.11.4",
+    "livekit-client": "2.13.8",
     "posthog-js": "1.240.6",
     "react": "18.3.1",
     "react-aria-components": "1.8.0",
