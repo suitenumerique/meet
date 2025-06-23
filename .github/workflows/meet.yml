@@ -81,7 +81,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Install development dependencies
         run: pip install --user .[dev]
       - name: Check code formatting with ruff
@@ -185,7 +185,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Install development dependencies
         run: pip install --user .[dev]

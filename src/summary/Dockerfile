@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim AS builder
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ COPY pyproject.toml .
 
 RUN pip3 install --no-cache-dir .
 
-FROM python:3.12-slim AS production
+FROM python:3.13-slim AS production
 
 WORKDIR /app
 

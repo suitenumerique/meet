@@ -68,7 +68,7 @@ backend:
     SUMMARY_SERVICE_API_TOKEN: password
     SCREEN_RECORDING_BASE_URL: https://meet.127.0.0.1.nip.io/recordings
     ROOM_TELEPHONY_ENABLED: True
-    SSL_CERT_FILE: /usr/local/lib/python3.12/site-packages/certifi/cacert.pem
+    SSL_CERT_FILE: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
 
 
   migrate:
@@ -112,7 +112,7 @@ backend:
   # Extra volume mounts to manage our local custom CA and avoid to set ssl_verify: false
   extraVolumeMounts:
     - name: certs
-      mountPath: /usr/local/lib/python3.12/site-packages/certifi/cacert.pem
+      mountPath: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
       subPath: cacert.pem
 
   # Extra volumes to manage our local custom CA and avoid to set ssl_verify: false
