@@ -58,7 +58,9 @@ class ResourceAccessSerializerMixin:
         request = self.context.get("request", None)
         user = getattr(request, "user", None)
 
-        if not (user and user.is_authenticated and resource.is_administrator(user)):
+        if not (
+            user and user.is_authenticated and resource.is_administrator_or_owner(user)
+        ):
             raise PermissionDenied(
                 _("You must be administrator or owner of a room to add accesses to it.")
             )
@@ -118,9 +120,11 @@ class RoomSerializer(serializers.ModelSerializer):
             return output
 
         role = instance.get_role(request.user)
-        is_admin = models.RoleChoices.check_administrator_role(role)
+        is_admin_or_owner = models.RoleChoices.check_administrator_role(
+            role
+        ) or models.RoleChoices.check_owner_role(role)
 
-        if is_admin:
+        if is_admin_or_owner:
             access_serializer = NestedResourceAccessSerializer(
                 instance.accesses.select_related("resource", "user").all(),
                 context=self.context,
@@ -128,7 +132,7 @@ class RoomSerializer(serializers.ModelSerializer):
             )
             output["accesses"] = access_serializer.data
 
-        if not is_admin:
+        if not is_admin_or_owner:
             del output["configuration"]
 
         should_access_room = (
@@ -147,7 +151,7 @@ class RoomSerializer(serializers.ModelSerializer):
                 room_id=room_id, user=request.user, username=username
             )
 
-        output["is_administrable"] = is_admin
+        output["is_administrable"] = is_admin_or_owner
 
         return output
 

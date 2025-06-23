@@ -64,7 +64,7 @@ class RoomPermissions(permissions.BasePermission):
         if request.method == "DELETE":
             return obj.is_owner(user)
 
-        return obj.is_administrator(user)
+        return obj.is_administrator_or_owner(user)
 
 
 class ResourceAccessPermission(IsAuthenticated):
@@ -80,7 +80,7 @@ class ResourceAccessPermission(IsAuthenticated):
         if request.method == "DELETE" and obj.role == RoleChoices.OWNER:
             return obj.user == user
 
-        return obj.resource.is_administrator(user)
+        return obj.resource.is_administrator_or_owner(user)
 
 
 class HasAbilityPermission(IsAuthenticated):
@@ -98,7 +98,7 @@ class HasPrivilegesOnRoom(IsAuthenticated):
 
     def has_object_permission(self, request, view, obj):
         """Determine if user has privileges on room."""
-        return obj.is_owner(request.user) or obj.is_administrator(request.user)
+        return obj.is_administrator_or_owner(request.user)
 
 
 class IsRecordingEnabled(permissions.BasePermission):

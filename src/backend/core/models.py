@@ -35,7 +35,7 @@ class RoleChoices(models.TextChoices):
     @classmethod
     def check_administrator_role(cls, role):
         """Check if a role is administrator."""
-        return role in [cls.ADMIN, cls.OWNER]
+        return role == cls.ADMIN
 
     @classmethod
     def check_owner_role(cls, role):
@@ -288,13 +288,13 @@ class Resource(BaseModel):
                 role = RoleChoices.MEMBER
         return role
 
-    def is_administrator(self, user):
+    def is_administrator_or_owner(self, user):
         """
-        Check if a user is administrator of the resource.
-
-        Users carrying the "owner" role are considered as administrators a fortiori.
-        """
-        return RoleChoices.check_administrator_role(self.get_role(user))
+        Check if a user is administrator or owner of the resource."""
+        role = self.get_role(user)
+        return RoleChoices.check_administrator_role(
+            role
+        ) or RoleChoices.check_owner_role(role)
 
     def is_owner(self, user):
         """Check if a user is owner of the resource."""

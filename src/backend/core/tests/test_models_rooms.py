@@ -102,7 +102,7 @@ def test_models_rooms_access_rights_none(django_assert_num_queries):
     with django_assert_num_queries(0):
         assert room.get_role(None) is None
     with django_assert_num_queries(0):
-        assert room.is_administrator(None) is False
+        assert room.is_administrator_or_owner(None) is False
     with django_assert_num_queries(0):
         assert room.is_owner(None) is False
 
@@ -115,7 +115,7 @@ def test_models_rooms_access_rights_anonymous(django_assert_num_queries):
     with django_assert_num_queries(0):
         assert room.get_role(user) is None
     with django_assert_num_queries(0):
-        assert room.is_administrator(user) is False
+        assert room.is_administrator_or_owner(user) is False
     with django_assert_num_queries(0):
         assert room.is_owner(user) is False
 
@@ -128,7 +128,7 @@ def test_models_rooms_access_rights_authenticated(django_assert_num_queries):
     with django_assert_num_queries(1):
         assert room.get_role(user) is None
     with django_assert_num_queries(1):
-        assert room.is_administrator(user) is False
+        assert room.is_administrator_or_owner(user) is False
     with django_assert_num_queries(1):
         assert room.is_owner(user) is False
 
@@ -141,7 +141,7 @@ def test_models_rooms_access_rights_member_direct(django_assert_num_queries):
     with django_assert_num_queries(1):
         assert room.get_role(user) == "member"
     with django_assert_num_queries(1):
-        assert room.is_administrator(user) is False
+        assert room.is_administrator_or_owner(user) is False
     with django_assert_num_queries(1):
         assert room.is_owner(user) is False
 
@@ -154,7 +154,7 @@ def test_models_rooms_access_rights_administrator_direct(django_assert_num_queri
     with django_assert_num_queries(1):
         assert room.get_role(user) == "administrator"
     with django_assert_num_queries(1):
-        assert room.is_administrator(user) is True
+        assert room.is_administrator_or_owner(user) is True
     with django_assert_num_queries(1):
         assert room.is_owner(user) is False
 
@@ -167,7 +167,7 @@ def test_models_rooms_access_rights_owner_direct(django_assert_num_queries):
     with django_assert_num_queries(1):
         assert room.get_role(user) == "owner"
     with django_assert_num_queries(1):
-        assert room.is_administrator(user) is True
+        assert room.is_administrator_or_owner(user) is True
     with django_assert_num_queries(1):
         assert room.is_owner(user) is True
 
