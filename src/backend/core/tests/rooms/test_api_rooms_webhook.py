@@ -25,7 +25,7 @@ def webhook_event_data():
             "name": "00000000-0000-0000-0000-000000000000",
             "emptyTimeout": 300,
             "creationTime": "1692627281",
-            "turnPassword": "2Pvdj+/WV1xV4EkB8klJ9xkXDWY=",
+            "turnPassword": "fake-turn-password",
             "enabledCodecs": [
                 {"mime": "audio/opus"},
                 {"mime": "video/H264"},
