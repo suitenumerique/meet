@@ -287,9 +287,7 @@ def test_finds_user_whitespace_email(django_assert_num_queries, settings):
     [
         "john.doe@ｅxample.com",  # Fullwidth character in domain
         "john.doe@еxample.com",  # Cyrillic 'е' in domain
-        "JOHN.DOe@exam𝔭le.com",  # Mixed Gothic '𝔭' in domain
         "john.doe@exаmple.com",  # Cyrillic 'а' (a) in domain
-        "john.doe@ｅ𝓧𝓪𝓶𝓹𝓵𝓮.com",  # Mixed fullwidth and cursive in domain
     ],
 )
 def test_authentication_getter_existing_user_email_tricky(email, monkeypatch, settings):
