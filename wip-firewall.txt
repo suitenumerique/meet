@@ -1,0 +1,3 @@
+(sudo pfctl -sr 2>/dev/null; echo "block drop quick proto tcp from any to any port = 7881"; echo "block drop quick proto udp from any to any port = 7881") | sudo pfctl -f -
+
+(sudo pfctl -sr 2>/dev/null; echo "block drop quick proto tcp from any to any port = 7882"; echo "block drop quick proto udp from any to any port = 7882") | sudo pfctl -f -

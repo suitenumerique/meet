@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { LiveKitRoom } from '@livekit/components-react'
-import { Room, RoomOptions } from 'livekit-client'
+import { DisconnectReason, Room, RoomOptions } from 'livekit-client'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -100,8 +100,8 @@ export const Conference = ({
   // Some clients (like DINUM) operate in bandwidth-constrained environments
   // These settings help ensure successful connections in poor network conditions
   const connectOptions = {
-    maxRetries: 5, // Default: 1. Only for unreachable server scenarios
-    peerConnectionTimeout: 60000, // Default: 15s. Extended for slow TURN/TLS negotiation
+    maxRetries: 1, // Default: 1. Only for unreachable server scenarios
+    peerConnectionTimeout: 20000, // Default: 15s. Extended for slow TURN/TLS negotiation
   }
 
   return (
@@ -124,6 +124,20 @@ export const Conference = ({
           className={css({
             backgroundColor: 'primaryDark.50 !important',
           })}
+          onError={(e) => {
+            if (e.message.includes('could not establish signal connection')) {
+              console.log('signaling issue')
+            } else if (
+              e.message.includes('could not establish pc connection')
+            ) {
+              console.log('pc connection issue')
+            } else {
+              console.log('$$ onError', e)
+            }
+          }}
+          onDisconnected={(e) =>
+            console.log('$$ onDisconnected', e, DisconnectReason[e])
+          }
         >
           <VideoConference />
           {showInviteDialog && (
