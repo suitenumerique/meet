@@ -1,13 +1,13 @@
 """Meet celery configuration file."""
 
-import os
+from os import environ
 
 from celery import Celery
 from configurations.importer import install
 
 # Set the default Django settings module for the 'celery' program.
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "meet.settings")
-os.environ.setdefault("DJANGO_CONFIGURATION", "Development")
+environ.setdefault("DJANGO_SETTINGS_MODULE", "meet.settings")
+environ.setdefault("DJANGO_CONFIGURATION", "Development")
 
 install(check_options=True)
 

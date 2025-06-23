@@ -7,11 +7,11 @@ For more information on this file, see
 https://docs.djangoproject.com/en/3.1/howto/deployment/wsgi/
 """
 
-import os
+from os import environ
 
 from configurations.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "meet.settings")
-os.environ.setdefault("DJANGO_CONFIGURATION", "Development")
+environ.setdefault("DJANGO_SETTINGS_MODULE", "meet.settings")
+environ.setdefault("DJANGO_CONFIGURATION", "Development")
 
 application = get_wsgi_application()
