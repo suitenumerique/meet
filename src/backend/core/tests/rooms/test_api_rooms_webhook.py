@@ -2,7 +2,6 @@
 Test LiveKit webhook endpoint on the rooms API.
 """
 
-# ruff: noqa: PLR0913
 # pylint: disable=R0913,W0621,R0917,W0613
 import base64
 import hashlib
