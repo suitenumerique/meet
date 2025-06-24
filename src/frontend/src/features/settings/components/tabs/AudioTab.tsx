@@ -14,6 +14,7 @@ import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { ReactNode } from 'react'
 import { css } from '@/styled-system/css'
+import { useIsMobile } from '@/utils/useIsMobile'
 
 type RowWrapperProps = {
   heading: string
@@ -141,6 +142,8 @@ export const AudioTab = ({ id }: AudioTabProps) => {
     return defaultItem.value
   }
 
+  const isMobile = useIsMobile()
+
   return (
     <TabPanel padding={'md'} flex id={id}>
       <RowWrapper heading={t('audio.microphone.heading')}>
@@ -190,20 +193,22 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           <SoundTester />
         </RowWrapper>
       )}
-      <RowWrapper heading={t('audio.noiseReduction.heading')} beta>
-        <Switch
-          aria-label={t(
-            `audio.noiseReduction.ariaLabel.${noiseReductionEnabled ? 'disable' : 'enable'}`
-          )}
-          isSelected={noiseReductionEnabled}
-          onChange={(v) => {
-            saveNoiseReductionEnabled(v)
-          }}
-        >
-          {t('audio.noiseReduction.label')}
-        </Switch>
-        <div />
-      </RowWrapper>
+      {!isMobile && (
+        <RowWrapper heading={t('audio.noiseReduction.heading')} beta>
+          <Switch
+            aria-label={t(
+              `audio.noiseReduction.ariaLabel.${noiseReductionEnabled ? 'disable' : 'enable'}`
+            )}
+            isSelected={noiseReductionEnabled}
+            onChange={(v) => {
+              saveNoiseReductionEnabled(v)
+            }}
+          >
+            {t('audio.noiseReduction.label')}
+          </Switch>
+          <div />
+        </RowWrapper>
+      )}
     </TabPanel>
   )
 }

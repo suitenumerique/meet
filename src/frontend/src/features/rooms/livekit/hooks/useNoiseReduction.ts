@@ -3,9 +3,11 @@ import { Track } from 'livekit-client'
 import { useRoomContext } from '@livekit/components-react'
 import { RnnNoiseProcessor } from '../processors/RnnNoiseProcessor'
 import { usePersistentUserChoices } from './usePersistentUserChoices'
+import { useIsMobile } from '@/utils/useIsMobile'
 
 export const useNoiseReduction = () => {
   const room = useRoomContext()
+  const isMobile = useIsMobile()
 
   const {
     userChoices: { noiseReductionEnabled },
@@ -16,7 +18,7 @@ export const useNoiseReduction = () => {
   )?.audioTrack
 
   useEffect(() => {
-    if (!audioTrack) return
+    if (!audioTrack || isMobile) return
 
     const processor = audioTrack?.getProcessor()
 
@@ -26,5 +28,5 @@ export const useNoiseReduction = () => {
     } else if (!noiseReductionEnabled && processor) {
       audioTrack.stopProcessor()
     }
-  }, [audioTrack, noiseReductionEnabled])
+  }, [audioTrack, noiseReductionEnabled, isMobile])
 }
