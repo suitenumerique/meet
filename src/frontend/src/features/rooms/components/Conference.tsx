@@ -15,8 +15,8 @@ import { InviteDialog } from './InviteDialog'
 import { VideoConference } from '../livekit/prefabs/VideoConference'
 import posthog from 'posthog-js'
 import { css } from '@/styled-system/css'
-import { LocalUserChoices } from '../routes/Room'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
+import { LocalUserChoices } from '@/stores/userChoices'
 
 export const Conference = ({
   roomId,

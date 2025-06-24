@@ -9,7 +9,6 @@ import { SelectToggleDevice } from '../livekit/components/controls/SelectToggleD
 import { Field } from '@/primitives/Field'
 import { Button, Dialog, Text, Form } from '@/primitives'
 import { HStack, VStack } from '@/styled-system/jsx'
-import { LocalUserChoices } from '../routes/Room'
 import { Heading } from 'react-aria-components'
 import { RiImageCircleAiFill } from '@remixicon/react'
 import {
@@ -28,6 +27,7 @@ import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { LocalUserChoices } from '@/stores/userChoices'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -116,39 +116,25 @@ export const Join = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
   const {
-    userChoices: initialUserChoices,
+    userChoices: {
+      audioEnabled,
+      videoEnabled,
+      audioDeviceId,
+      videoDeviceId,
+      processorSerialized,
+      username,
+    },
+    saveAudioInputEnabled,
+    saveVideoInputEnabled,
     saveAudioInputDeviceId,
     saveVideoInputDeviceId,
     saveUsername,
     saveProcessorSerialized,
-  } = usePersistentUserChoices({})
+  } = usePersistentUserChoices()
 
-  const [audioEnabled, setAudioEnabled] = useState(true)
-  const [videoEnabled, setVideoEnabled] = useState(true)
-  const [audioDeviceId, setAudioDeviceId] = useState<string>(
-    initialUserChoices.audioDeviceId
-  )
-  const [videoDeviceId, setVideoDeviceId] = useState<string>(
-    initialUserChoices.videoDeviceId
-  )
-  const [username, setUsername] = useState<string>(initialUserChoices.username)
   const [processor, setProcessor] = useState(
-    BackgroundProcessorFactory.deserializeProcessor(
-      initialUserChoices.processorSerialized
-    )
+    BackgroundProcessorFactory.deserializeProcessor(processorSerialized)
   )
-
-  useEffect(() => {
-    saveAudioInputDeviceId(audioDeviceId)
-  }, [audioDeviceId, saveAudioInputDeviceId])
-
-  useEffect(() => {
-    saveVideoInputDeviceId(videoDeviceId)
-  }, [videoDeviceId, saveVideoInputDeviceId])
-
-  useEffect(() => {
-    saveUsername(username)
-  }, [username, saveUsername])
 
   useEffect(() => {
     saveProcessorSerialized(processor?.serialize())
@@ -161,8 +147,8 @@ export const Join = ({
 
   const tracks = usePreviewTracks(
     {
-      audio: { deviceId: initialUserChoices.audioDeviceId },
-      video: { deviceId: initialUserChoices.videoDeviceId },
+      audio: { deviceId: audioDeviceId },
+      video: { deviceId: videoDeviceId },
     },
     onError
   )
@@ -351,9 +337,9 @@ export const Join = ({
               </H>
               <Field
                 type="text"
-                onChange={setUsername}
+                onChange={saveUsername}
                 label={t('usernameLabel')}
-                defaultValue={initialUserChoices?.username}
+                defaultValue={username}
                 validate={(value) => !value && t('errors.usernameEmpty')}
                 wrapperProps={{
                   noMargin: true,
@@ -474,11 +460,11 @@ export const Join = ({
                 source={Track.Source.Microphone}
                 initialState={audioEnabled}
                 track={audioTrack}
-                initialDeviceId={initialUserChoices.audioDeviceId}
-                onChange={(enabled) => setAudioEnabled(enabled)}
+                initialDeviceId={audioDeviceId}
+                onChange={(enabled) => saveAudioInputEnabled(enabled)}
                 onDeviceError={(error) => console.error(error)}
                 onActiveDeviceChange={(deviceId) =>
-                  setAudioDeviceId(deviceId ?? '')
+                  saveAudioInputDeviceId(deviceId ?? '')
                 }
                 variant="tertiary"
               />
@@ -486,11 +472,11 @@ export const Join = ({
                 source={Track.Source.Camera}
                 initialState={videoEnabled}
                 track={videoTrack}
-                initialDeviceId={initialUserChoices.videoDeviceId}
-                onChange={(enabled) => setVideoEnabled(enabled)}
+                initialDeviceId={videoDeviceId}
+                onChange={(enabled) => saveVideoInputEnabled(enabled)}
                 onDeviceError={(error) => console.error(error)}
                 onActiveDeviceChange={(deviceId) =>
-                  setVideoDeviceId(deviceId ?? '')
+                  saveVideoInputDeviceId(deviceId ?? '')
                 }
                 variant="tertiary"
               />

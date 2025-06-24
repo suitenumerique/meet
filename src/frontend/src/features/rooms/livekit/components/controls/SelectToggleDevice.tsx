@@ -99,7 +99,7 @@ export const SelectToggleDevice = <T extends ToggleSource>({
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
   const trackProps = useTrackToggle(props)
 
-  const { userChoices } = usePersistentUserChoices({})
+  const { userChoices } = usePersistentUserChoices()
 
   const toggle = () => {
     if (props.source === Track.Source.Camera) {

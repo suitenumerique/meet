@@ -47,16 +47,13 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
  * ```
  * @public
  */
-export function ControlBar({
-  saveUserChoices = true,
-  onDeviceError,
-}: ControlBarProps) {
+export function ControlBar({ onDeviceError }: ControlBarProps) {
   const {
     saveAudioInputEnabled,
     saveVideoInputEnabled,
     saveAudioInputDeviceId,
     saveVideoInputDeviceId,
-  } = usePersistentUserChoices({ preventSave: !saveUserChoices })
+  } = usePersistentUserChoices()
 
   const microphoneOnChange = React.useCallback(
     (enabled: boolean, isUserInitiated: boolean) =>

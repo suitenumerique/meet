@@ -1,23 +1,16 @@
 import { useEffect, useState } from 'react'
-import {
-  usePersistentUserChoices,
-  type LocalUserChoices as LocalUserChoicesLK,
-} from '@livekit/components-react'
+import { usePersistentUserChoices } from '@livekit/components-react'
 import { useLocation, useParams } from 'wouter'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { useUser, UserAware } from '@/features/auth'
 import { Conference } from '../components/Conference'
 import { Join } from '../components/Join'
 import { useKeyboardShortcuts } from '@/features/shortcuts/useKeyboardShortcuts'
-import { ProcessorSerialized } from '../livekit/components/blur'
 import {
   isRoomValid,
   normalizeRoomId,
 } from '@/features/rooms/utils/isRoomValid'
-
-export type LocalUserChoices = LocalUserChoicesLK & {
-  processorSerialized?: ProcessorSerialized
-}
+import { LocalUserChoices } from '@/stores/userChoices'
 
 export const Room = () => {
   const { isLoggedIn } = useUser()
