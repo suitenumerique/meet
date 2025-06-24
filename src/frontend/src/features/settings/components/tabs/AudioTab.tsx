@@ -132,7 +132,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           {localParticipant.isMicrophoneEnabled ? (
             <ActiveSpeaker isSpeaking={isSpeaking} />
           ) : (
-            <span>Micro désactivé</span>
+            <span>{t('audio.microphone.disabled')}</span>
           )}
         </>
       </RowWrapper>

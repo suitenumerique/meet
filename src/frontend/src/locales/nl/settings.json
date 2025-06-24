@@ -9,7 +9,8 @@
   "audio": {
     "microphone": {
       "heading": "Microfoon",
-      "label": "Selecteer uw audioinvoer"
+      "label": "Selecteer uw audioinvoer",
+      "disabled": "Microfoon uitgeschakeld"
     },
     "speakers": {
       "heading": "Luidsprekers",

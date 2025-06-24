@@ -9,7 +9,8 @@
   "audio": {
     "microphone": {
       "heading": "Microphone",
-      "label": "Select your audio input"
+      "label": "Select your audio input",
+      "disabled": "Microphone disabled"
     },
     "speakers": {
       "heading": "Speakers",

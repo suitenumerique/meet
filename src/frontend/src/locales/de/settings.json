@@ -9,7 +9,8 @@
   "audio": {
     "microphone": {
       "heading": "Mikrofon",
-      "label": "Wählen Sie Ihre Audioeingabe"
+      "label": "Wählen Sie Ihre Audioeingabe",
+      "disabled": "Mikrofon deaktiviert"
     },
     "speakers": {
       "heading": "Lautsprecher",
