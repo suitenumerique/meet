@@ -1,5 +1,7 @@
 """Client serializers for the Meet core app."""
 
+import uuid
+
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
@@ -218,6 +220,14 @@ class ParticipantEntrySerializer(serializers.Serializer):
 
     participant_id = serializers.CharField(required=True)
     allow_entry = serializers.BooleanField(required=True)
+
+    def validate_participant_id(self, value):
+        """Validate that the participant_id is a valid UUID hex string."""
+        try:
+            uuid.UUID(hex=value, version=4)
+        except (ValueError, TypeError) as e:
+            raise serializers.ValidationError("Invalid UUID hex format") from e
+        return value
 
     def create(self, validated_data):
         """Not implemented as this is a validation-only serializer."""
