@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { SoundTester } from '@/components/SoundTester'
 import { HStack } from '@/styled-system/jsx'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
+import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { ReactNode } from 'react'
 
 type RowWrapperProps = {
@@ -59,6 +60,8 @@ type DeviceItems = Array<{ value: string; label: string }>
 export const AudioTab = ({ id }: AudioTabProps) => {
   const { t } = useTranslation('settings')
   const { localParticipant } = useRoomContext()
+
+  const { saveAudioInputDeviceId } = usePersistentUserChoices()
 
   const isSpeaking = useIsSpeaking(localParticipant)
 
@@ -116,7 +119,10 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           defaultSelectedKey={
             activeDeviceIdIn || getDefaultSelectedKey(itemsIn)
           }
-          onSelectionChange={(key) => setActiveMediaDeviceIn(key as string)}
+          onSelectionChange={(key) => {
+            setActiveMediaDeviceIn(key as string)
+            saveAudioInputDeviceId(key as string)
+          }}
           {...disabledProps}
           style={{
             width: '100%',
