@@ -7,7 +7,7 @@
       "enabled": false,
       "groupName": "ignored python dependencies",
       "matchManagers": ["pep621"],
-      "matchPackageNames": []
+      "matchPackageNames": ["redis"]
     },
     {
       "enabled": false,

@@ -8,7 +8,7 @@ dependencies = [
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
     "celery==5.5.3",
-    "redis==6.2.0",
+    "redis==5.2.1",
     "minio==7.2.15",
     "openai==1.91.0",
     "requests==2.32.4",

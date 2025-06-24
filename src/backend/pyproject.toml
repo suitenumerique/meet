@@ -34,7 +34,7 @@ dependencies = [
     "django-countries==7.6.1",
     "django-lasuite==0.0.10",
     "django-parler==2.3",
-    "redis==6.2.0",
+    "redis==5.2.1",
     "django-redis==6.0.0",
     "django-storages[s3]==1.14.6",
     "django-timezone-field>=5.1",
