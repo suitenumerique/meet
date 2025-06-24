@@ -46,7 +46,6 @@ dependencies = [
     "factory_boy==3.3.3",
     "gunicorn==23.0.0",
     "jsonschema==4.24.0",
-    "june-analytics-python==2.3.0",
     "markdown==3.8.2",
     "nested-multipart-parser==1.5.0",
     "psycopg[binary]==3.2.9",
