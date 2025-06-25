@@ -13,7 +13,7 @@
     "check": "prettier --check ./src"
   },
   "dependencies": {
-    "@livekit/components-react": "2.9.10",
+    "@livekit/components-react": "2.9.12",
     "@livekit/components-styles": "1.1.6",
     "@livekit/track-processors": "0.5.7",
     "@pandacss/preset-panda": "0.53.6",
