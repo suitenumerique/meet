@@ -12,7 +12,10 @@ export type LocalUserChoices = LocalUserChoicesLK & {
 }
 
 function getUserChoicesState(): LocalUserChoices {
-  return loadUserChoices()
+  return {
+    noiseReductionEnabled: false,
+    ...loadUserChoices(),
+  }
 }
 
 export const userChoicesStore = proxy<LocalUserChoices>(getUserChoicesState())
