@@ -14,7 +14,8 @@ import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { ReactNode } from 'react'
 import { css } from '@/styled-system/css'
-import { useIsMobile } from '@/utils/useIsMobile'
+import posthog from 'posthog-js'
+import { useNoiseReductionAvailable } from '@/features/rooms/livekit/hooks/useNoiseReductionAvailable'
 
 type RowWrapperProps = {
   heading: string
@@ -142,7 +143,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
     return defaultItem.value
   }
 
-  const isMobile = useIsMobile()
+  const noiseReductionAvailable = useNoiseReductionAvailable()
 
   return (
     <TabPanel padding={'md'} flex id={id}>
@@ -193,7 +194,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           <SoundTester />
         </RowWrapper>
       )}
-      {!isMobile && (
+      {noiseReductionAvailable && (
         <RowWrapper heading={t('audio.noiseReduction.heading')} beta>
           <Switch
             aria-label={t(
@@ -202,6 +203,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
             isSelected={noiseReductionEnabled}
             onChange={(v) => {
               saveNoiseReductionEnabled(v)
+              if (v) posthog.capture('noise-reduction-init')
             }}
           >
             {t('audio.noiseReduction.label')}
