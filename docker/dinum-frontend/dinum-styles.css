@@ -1,0 +1,70 @@
+:root {
+    --fonts-sans: 'Marianne', ui-sans-serif, system-ui, sans-serif;
+}
+
+.Header-beforeLogo {
+    display: block;
+}
+
+.Header-beforeLogo::before {
+    content: '';
+    display: block;
+    background-image: url(/assets/marianne.svg);
+    background-position: 0 -0.046875rem;
+    background-size: 2.0625rem 0.84375rem;
+    height: 0.75rem;
+    margin-bottom: 0.1rem;
+    width: 2.0625rem;
+}
+
+.Header-beforeLogo::after {
+    content: '';
+    display: block;
+    background-image: url(/assets/gouvernement.svg), url(/assets/devise.svg);
+    background-repeat: no-repeat, no-repeat;
+    background-size: 108.8px 10px, 40px 29px;
+    background-position: 0 3px, 0 18.9px;
+    width: 108.8px;
+    height: 48px;
+    margin-top: 0.25rem;
+}
+
+@font-face {
+    font-family: 'Marianne';
+    src: url('/assets/fonts/Marianne-Regular-subset.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Marianne';
+    src: url('/assets/fonts/Marianne-Regular_Italic-subset.woff2') format('woff2');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Marianne';
+    src: url('/assets/fonts/Marianne-Medium-subset.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Marianne';
+    src: url('/assets/fonts/Marianne-Bold-subset.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Marianne';
+    src: url('/assets/fonts/Marianne-ExtraBold-subset.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
