@@ -11,7 +11,6 @@ import { Menu } from '@/primitives/Menu'
 import { MenuList } from '@/primitives/MenuList'
 import { LoginButton } from '@/components/LoginButton'
 
-import LogoAsset from '@/assets/logo.svg'
 import { useLoginHint } from '@/hooks/useLoginHint'
 
 const BetaBadge = () => (
@@ -39,7 +38,7 @@ const BetaBadge = () => (
 
 const Logo = () => (
   <img
-    src={LogoAsset}
+    src="/assets/logo.svg"
     alt={`${import.meta.env.VITE_APP_TITLE}`}
     className={`Header-logo ${css({
       maxHeight: { base: '30px', sm: '40px' },
