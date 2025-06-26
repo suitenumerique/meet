@@ -49,7 +49,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  build-and-push-frontend:
+  build-and-push-frontend-generic:
     runs-on: ubuntu-latest
     steps:
       -
@@ -77,6 +77,40 @@ jobs:
         with:
           context: .
           file: ./src/frontend/Dockerfile
+          target: frontend-production
+          build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-and-push-frontend-dinum:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v4
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: lasuite/meet-frontend-dinum
+      -
+        name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USER }}" --password-stdin
+      -
+        name: Run trivy scan
+        uses: numerique-gouv/action-trivy-cache@main
+        with:
+          docker-build-args: '-f docker/dinum-frontend/Dockerfile --target frontend-production'
+          docker-image-name: 'docker.io/lasuite/meet-frontend-dinum:${{ github.sha }}'
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/dinum-frontend/Dockerfile
           target: frontend-production
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
@@ -113,7 +147,8 @@ jobs:
 
   notify-argocd:
     needs:
-      - build-and-push-frontend
+      - build-and-push-frontend-generic
+      - build-and-push-frontend-dinum
       - build-and-push-backend
       - build-and-push-summary
     runs-on: ubuntu-latest
