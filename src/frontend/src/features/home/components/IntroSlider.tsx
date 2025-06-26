@@ -1,7 +1,3 @@
-import firstSlide from '@/assets/intro-slider/1_solo.png'
-import secondSlide from '@/assets/intro-slider/2_multiple.png'
-import thirdSlide from '@/assets/intro-slider/3_resume.png'
-
 import { styled } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { Button, LinkButton } from '@/primitives'
@@ -145,7 +141,7 @@ const TextAnimation = styled('div', {
 
 type Slide = {
   key: string
-  img: string
+  src: string
   isAvailableInBeta?: boolean
 }
 
@@ -153,16 +149,15 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     key: 'slide1',
-    img: firstSlide,
+    src: '/assets/intro-slider/1.png',
   },
   {
     key: 'slide2',
-    img: secondSlide,
+    src: '/assets/intro-slider/2.png',
   },
   {
     key: 'slide3',
-    img: thirdSlide,
-    isAvailableInBeta: true,
+    src: '/assets/intro-slider/3.png',
   },
 ]
 
@@ -205,7 +200,7 @@ export const IntroSlider = () => {
         <SlideContainer>
           {filteredSlides.map((slide, index) => (
             <Slide visible={index == slideIndex} key={index}>
-              <Image src={slide.img} alt={t(`${slide.key}.imgAlt`)} />
+              <Image src={slide.src} alt={t(`${slide.key}.imgAlt`)} />
               <TextAnimation visible={index == slideIndex}>
                 <Heading>{t(`${slide.key}.title`)}</Heading>
                 <Body>{t(`${slide.key}.body`)}</Body>

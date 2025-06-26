@@ -1,6 +1,5 @@
 import { A, Button, Dialog, Div, H, P, Text } from '@/primitives'
 
-import fourthSlide from '@/assets/intro-slider/4_record.png'
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
@@ -126,7 +125,7 @@ export const ScreenRecordingSidePanel = () => {
       alignItems="center"
     >
       <img
-        src={fourthSlide}
+        src="/assets/intro-slider/4.png"
         alt={''}
         className={css({
           minHeight: '309px',

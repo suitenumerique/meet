@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Center, VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
-import fourthSlide from '@/assets/intro-slider/4_record.png'
 import { mediaUrl } from '@/api/mediaUrl'
 import { UserAware, useUser } from '@/features/auth'
 import { Screen } from '@/layout/Screen'
@@ -69,7 +68,7 @@ export const RecordingDownload = () => {
         <Center>
           <VStack>
             <img
-              src={fourthSlide}
+              src="/assets/intro-slider/4.png"
               alt={''}
               className={css({
                 maxHeight: '309px',

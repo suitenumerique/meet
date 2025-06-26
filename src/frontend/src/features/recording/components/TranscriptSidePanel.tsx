@@ -1,6 +1,5 @@
 import { A, Button, Dialog, Div, H, LinkButton, P, Text } from '@/primitives'
 
-import thirdSlide from '@/assets/intro-slider/3_resume.png'
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
@@ -136,7 +135,7 @@ export const TranscriptSidePanel = () => {
       alignItems="center"
     >
       <img
-        src={thirdSlide}
+        src="/assets/intro-slider/3.png"
         alt={''}
         className={css({
           minHeight: '309px',
