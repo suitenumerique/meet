@@ -2,6 +2,15 @@ load('ext://uibutton', 'cmd_button', 'bool_input', 'location')
 load('ext://namespace', 'namespace_create', 'namespace_inject')
 namespace_create('meet')
 
+DEV_ENV = os.getenv('DEV_ENV', 'dev')
+
+if DEV_ENV == 'dev-dinum':
+    update_settings(suppress_unused_image_warnings=["localhost:5001/meet-frontend-generic:latest"])
+
+if DEV_ENV == 'dev-keycloak':
+    update_settings(suppress_unused_image_warnings=["localhost:5001/meet-frontend-dinum:latest"])
+
+
 def clean_old_images(image_name):
     local('docker images -q %s | tail -n +2 | xargs -r docker rmi' % image_name)
 
@@ -22,7 +31,19 @@ docker_build(
 clean_old_images('localhost:5001/meet-backend')
 
 docker_build(
-    'localhost:5001/meet-frontend:latest',
+    'localhost:5001/meet-frontend-dinum:latest',
+    context='..',
+    dockerfile='../docker/dinum-frontend/Dockerfile',
+    only=['./src/frontend', './docker', './.dockerignore'],
+    target = 'frontend-production',
+    live_update=[
+        sync('../src/frontend', '/home/frontend'),
+    ]
+)
+clean_old_images('localhost:5001/meet-frontend-dinum')
+
+docker_build(
+    'localhost:5001/meet-frontend-generic:latest',
     context='..',
     dockerfile='../src/frontend/Dockerfile',
     only=['./src/frontend', './docker', './.dockerignore'],
@@ -31,7 +52,7 @@ docker_build(
         sync('../src/frontend', '/home/frontend'),
     ]
 )
-clean_old_images('localhost:5001/meet-frontend')
+clean_old_images('localhost:5001/meet-frontend-generic')
 
 docker_build(
     'localhost:5001/meet-summary:latest',

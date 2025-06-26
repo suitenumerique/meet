@@ -1,0 +1,43 @@
+replicaCount: 1
+terminationGracePeriodSeconds: 18000
+
+egress:
+  log_level: debug
+  ws_url: ws://livekit-livekit-server:80
+  insecure: true
+  enable_chrome_sandbox: true
+  {{- with .Values.livekit.keys }}
+  {{- range $key, $value := . }}
+  api_key: {{ $key }}
+  api_secret: {{ $value }}
+  {{- end }}
+  {{- end }}
+  redis:
+    address: redis-master:6379
+    password: pass
+  s3:
+    access_key: meet
+    secret: password
+    region: local
+    bucket: meet-media-storage
+    endpoint: http://minio:9000
+    force_path_style: true
+
+loadBalancer:
+  type: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - hosts:
+        - livekit-egress.127.0.0.1.nip.io
+      secretName: livekit-egress-dinum-cert
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+
+nodeSelector: {}
+resources: {}

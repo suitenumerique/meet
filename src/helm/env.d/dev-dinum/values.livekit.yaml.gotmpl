@@ -1,0 +1,50 @@
+replicaCount: 1
+terminationGracePeriodSeconds: 18000
+
+image:
+    repository: localhost:5001/meet-livekit
+    pullPolicy: Always
+    tag: "latest"
+
+livekit:
+  log_level: debug
+  rtc:
+    use_external_ip: false
+    port_range_start: 50000
+    port_range_end: 60000
+    tcp_port: 7881
+  redis:
+    address: redis-master:6379
+    password: pass
+  keys:
+  turn:
+    enabled: true
+    udp_port: 443
+    domain: livekit.127.0.0.1.nip.io
+    loadBalancerAnnotations: {}
+
+  webhook:
+    api_key:
+    urls:
+        - https://meet.127.0.0.1.nip.io/api/v1.0/rooms/webhooks-livekit/
+
+
+loadBalancer:
+  type: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - hosts:
+        - livekit.127.0.0.1.nip.io
+      secretName: livekit-dinum-cert
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
+
+nodeSelector: {}
+resources: {}

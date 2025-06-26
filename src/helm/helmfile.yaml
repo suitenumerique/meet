@@ -3,6 +3,10 @@ environments:
     values:
       - version: 0.0.1
       - env.d/{{ .Environment.Name }}/values.secrets.yaml
+  dev-dinum:
+    values:
+      - version: 0.0.1
+      - env.d/{{ .Environment.Name }}/values.secrets.yaml
   dev:
     values:
       - version: 0.0.1
