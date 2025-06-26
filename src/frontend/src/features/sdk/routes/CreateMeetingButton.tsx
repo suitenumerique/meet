@@ -8,7 +8,7 @@ import { RiCloseLine, RiFileCopyLine } from '@remixicon/react'
 import { Text } from '@/primitives'
 import { Spinner } from '@/primitives/Spinner'
 import { buttonRecipe } from '@/primitives/buttonRecipe'
-import { VisioIcon } from '@/assets/VisioIcon'
+import { CameraIcon } from '@/assets/CameraIcon'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 import { useRoomCreationCallback } from '../api/useRoomCreationCallback'
 import { PopupManager } from '../utils/PopupManager'
@@ -117,7 +117,7 @@ export const CreateMeetingButton = () => {
                 textWrap: 'nowrap',
               }}
             >
-              <VisioIcon />
+              <CameraIcon />
               {t('joinButton')}
             </Link>
             <HStack gap={0}>
@@ -174,7 +174,7 @@ export const CreateMeetingButton = () => {
             }}
             size="sm"
           >
-            <VisioIcon />
+            <CameraIcon />
             {t('createButton')}
           </Button>
         </div>

@@ -1,4 +1,4 @@
-export const VisioIcon = () => {
+export const CameraIcon = () => {
   return (
     <svg
       width="24"
