@@ -247,9 +247,81 @@ export const EffectsConfiguration = ({
           />
         )}
         {isSupported ? (
-          <>
+          <div>
             <div>
-              <div>
+              <H
+                lvl={3}
+                style={{
+                  marginBottom: '1rem',
+                }}
+                variant="bodyXsBold"
+              >
+                {t('blur.title')}
+              </H>
+              <div
+                className={css({
+                  display: 'flex',
+                  gap: '1.25rem',
+                })}
+              >
+                <ToggleButton
+                  variant="bigSquare"
+                  onPress={async () => {
+                    await clearEffect()
+                  }}
+                  isSelected={!getProcessor()}
+                  isDisabled={processorPendingReveal}
+                >
+                  <RiProhibited2Line />
+                </ToggleButton>
+                <ToggleButton
+                  variant="bigSquare"
+                  aria-label={tooltipLabel(ProcessorType.BLUR, {
+                    blurRadius: BlurRadius.LIGHT,
+                  })}
+                  tooltip={tooltipLabel(ProcessorType.BLUR, {
+                    blurRadius: BlurRadius.LIGHT,
+                  })}
+                  isDisabled={processorPendingReveal}
+                  onChange={async () =>
+                    await toggleEffect(ProcessorType.BLUR, {
+                      blurRadius: BlurRadius.LIGHT,
+                    })
+                  }
+                  isSelected={isSelected(ProcessorType.BLUR, {
+                    blurRadius: BlurRadius.LIGHT,
+                  })}
+                  data-attr="toggle-blur-light"
+                >
+                  <BlurOn />
+                </ToggleButton>
+                <ToggleButton
+                  variant="bigSquare"
+                  aria-label={tooltipLabel(ProcessorType.BLUR, {
+                    blurRadius: BlurRadius.NORMAL,
+                  })}
+                  tooltip={tooltipLabel(ProcessorType.BLUR, {
+                    blurRadius: BlurRadius.NORMAL,
+                  })}
+                  isDisabled={processorPendingReveal}
+                  onChange={async () =>
+                    await toggleEffect(ProcessorType.BLUR, {
+                      blurRadius: BlurRadius.NORMAL,
+                    })
+                  }
+                  isSelected={isSelected(ProcessorType.BLUR, {
+                    blurRadius: BlurRadius.NORMAL,
+                  })}
+                  data-attr="toggle-blur-normal"
+                >
+                  <BlurOnStrong />
+                </ToggleButton>
+              </div>
+              <div
+                className={css({
+                  marginTop: '1.5rem',
+                })}
+              >
                 <H
                   lvl={3}
                   style={{
@@ -257,125 +329,51 @@ export const EffectsConfiguration = ({
                   }}
                   variant="bodyXsBold"
                 >
-                  {t('blur.title')}
+                  {t('virtual.title')}
                 </H>
                 <div
                   className={css({
                     display: 'flex',
                     gap: '1.25rem',
+                    flexWrap: 'wrap',
                   })}
                 >
-                  <ToggleButton
-                    variant="bigSquare"
-                    onPress={async () => {
-                      await clearEffect()
-                    }}
-                    isSelected={!getProcessor()}
-                    isDisabled={processorPendingReveal}
-                  >
-                    <RiProhibited2Line />
-                  </ToggleButton>
-                  <ToggleButton
-                    variant="bigSquare"
-                    aria-label={tooltipLabel(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.LIGHT,
-                    })}
-                    tooltip={tooltipLabel(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.LIGHT,
-                    })}
-                    isDisabled={processorPendingReveal}
-                    onChange={async () =>
-                      await toggleEffect(ProcessorType.BLUR, {
-                        blurRadius: BlurRadius.LIGHT,
-                      })
-                    }
-                    isSelected={isSelected(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.LIGHT,
-                    })}
-                    data-attr="toggle-blur-light"
-                  >
-                    <BlurOn />
-                  </ToggleButton>
-                  <ToggleButton
-                    variant="bigSquare"
-                    aria-label={tooltipLabel(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.NORMAL,
-                    })}
-                    tooltip={tooltipLabel(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.NORMAL,
-                    })}
-                    isDisabled={processorPendingReveal}
-                    onChange={async () =>
-                      await toggleEffect(ProcessorType.BLUR, {
-                        blurRadius: BlurRadius.NORMAL,
-                      })
-                    }
-                    isSelected={isSelected(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.NORMAL,
-                    })}
-                    data-attr="toggle-blur-normal"
-                  >
-                    <BlurOnStrong />
-                  </ToggleButton>
-                </div>
-                <div
-                  className={css({
-                    marginTop: '1.5rem',
+                  {[...Array(8).keys()].map((i) => {
+                    const imagePath = `/assets/backgrounds/${i + 1}.jpg`
+                    const thumbnailPath = `/assets/backgrounds/thumbnails/${i + 1}.jpg`
+                    return (
+                      <ToggleButton
+                        key={i}
+                        variant="bigSquare"
+                        aria-label={tooltipLabel(ProcessorType.VIRTUAL, {
+                          imagePath,
+                        })}
+                        tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
+                          imagePath,
+                        })}
+                        isDisabled={processorPendingReveal}
+                        onChange={async () =>
+                          await toggleEffect(ProcessorType.VIRTUAL, {
+                            imagePath,
+                          })
+                        }
+                        isSelected={isSelected(ProcessorType.VIRTUAL, {
+                          imagePath,
+                        })}
+                        className={css({
+                          bgSize: 'cover',
+                        })}
+                        style={{
+                          backgroundImage: `url(${thumbnailPath})`,
+                        }}
+                        data-attr={`toggle-virtual-${i}`}
+                      />
+                    )
                   })}
-                >
-                  <H
-                    lvl={3}
-                    style={{
-                      marginBottom: '1rem',
-                    }}
-                    variant="bodyXsBold"
-                  >
-                    {t('virtual.title')}
-                  </H>
-                  <div
-                    className={css({
-                      display: 'flex',
-                      gap: '1.25rem',
-                      flexWrap: 'wrap',
-                    })}
-                  >
-                    {[...Array(8).keys()].map((i) => {
-                      const imagePath = `/assets/backgrounds/${i + 1}.jpg`
-                      const thumbnailPath = `/assets/backgrounds/thumbnails/${i + 1}.jpg`
-                      return (
-                        <ToggleButton
-                          key={i}
-                          variant="bigSquare"
-                          aria-label={tooltipLabel(ProcessorType.VIRTUAL, {
-                            imagePath,
-                          })}
-                          tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
-                            imagePath,
-                          })}
-                          isDisabled={processorPendingReveal}
-                          onChange={async () =>
-                            await toggleEffect(ProcessorType.VIRTUAL, {
-                              imagePath,
-                            })
-                          }
-                          isSelected={isSelected(ProcessorType.VIRTUAL, {
-                            imagePath,
-                          })}
-                          className={css({
-                            bgSize: 'cover',
-                          })}
-                          style={{
-                            backgroundImage: `url(${thumbnailPath})`,
-                          }}
-                          data-attr={`toggle-virtual-${i}`}
-                        />
-                      )
-                    })}
-                  </div>
                 </div>
               </div>
             </div>
-          </>
+          </div>
         ) : (
           <Information>
             <Text variant="sm">{t('notAvailable')}</Text>

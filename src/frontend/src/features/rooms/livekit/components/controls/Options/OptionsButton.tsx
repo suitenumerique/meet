@@ -7,18 +7,16 @@ export const OptionsButton = () => {
   const { t } = useTranslation('rooms')
 
   return (
-    <>
-      <Menu variant="dark">
-        <Button
-          square
-          variant="primaryDark"
-          aria-label={t('options.buttonLabel')}
-          tooltip={t('options.buttonLabel')}
-        >
-          <RiMoreFill />
-        </Button>
-        <OptionsMenuItems />
-      </Menu>
-    </>
+    <Menu variant="dark">
+      <Button
+        square
+        variant="primaryDark"
+        aria-label={t('options.buttonLabel')}
+        tooltip={t('options.buttonLabel')}
+      >
+        <RiMoreFill />
+      </Button>
+      <OptionsMenuItems />
+    </Menu>
   )
 }

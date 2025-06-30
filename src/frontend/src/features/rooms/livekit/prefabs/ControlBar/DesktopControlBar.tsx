@@ -22,75 +22,73 @@ export function DesktopControlBar({
   const browserSupportsScreenSharing = supportsScreenSharing()
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
   return (
-    <>
+    <div
+      ref={desktopControlBarEl}
+      className={css({
+        width: '100vw',
+        display: 'flex',
+        position: 'absolute',
+        padding: '1.125rem',
+        bottom: 0,
+        left: 0,
+        right: 0,
+      })}
+    >
       <div
-        ref={desktopControlBarEl}
         className={css({
-          width: '100vw',
           display: 'flex',
-          position: 'absolute',
-          padding: '1.125rem',
-          bottom: 0,
-          left: 0,
-          right: 0,
+          justifyContent: 'flex-start',
+          flex: '1 1 33%',
+          alignItems: 'center',
+          gap: '0.5rem',
+          marginLeft: '0.5rem',
+        })}
+      />
+      <div
+        className={css({
+          flex: '1 1 33%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          display: 'flex',
+          gap: '0.65rem',
         })}
       >
-        <div
-          className={css({
-            display: 'flex',
-            justifyContent: 'flex-start',
-            flex: '1 1 33%',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginLeft: '0.5rem',
-          })}
+        <SelectToggleDevice
+          source={Track.Source.Microphone}
+          onChange={microphoneOnChange}
+          onDeviceError={(error) =>
+            onDeviceError?.({ source: Track.Source.Microphone, error })
+          }
+          onActiveDeviceChange={(deviceId) =>
+            saveAudioInputDeviceId(deviceId ?? '')
+          }
+          menuVariant="dark"
         />
-        <div
-          className={css({
-            flex: '1 1 33%',
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            gap: '0.65rem',
-          })}
-        >
-          <SelectToggleDevice
-            source={Track.Source.Microphone}
-            onChange={microphoneOnChange}
+        <SelectToggleDevice
+          source={Track.Source.Camera}
+          onChange={cameraOnChange}
+          onDeviceError={(error) =>
+            onDeviceError?.({ source: Track.Source.Camera, error })
+          }
+          onActiveDeviceChange={(deviceId) =>
+            saveVideoInputDeviceId(deviceId ?? '')
+          }
+          menuVariant="dark"
+        />
+        <ReactionsToggle />
+        {browserSupportsScreenSharing && (
+          <ScreenShareToggle
             onDeviceError={(error) =>
-              onDeviceError?.({ source: Track.Source.Microphone, error })
+              onDeviceError?.({ source: Track.Source.ScreenShare, error })
             }
-            onActiveDeviceChange={(deviceId) =>
-              saveAudioInputDeviceId(deviceId ?? '')
-            }
-            menuVariant="dark"
           />
-          <SelectToggleDevice
-            source={Track.Source.Camera}
-            onChange={cameraOnChange}
-            onDeviceError={(error) =>
-              onDeviceError?.({ source: Track.Source.Camera, error })
-            }
-            onActiveDeviceChange={(deviceId) =>
-              saveVideoInputDeviceId(deviceId ?? '')
-            }
-            menuVariant="dark"
-          />
-          <ReactionsToggle />
-          {browserSupportsScreenSharing && (
-            <ScreenShareToggle
-              onDeviceError={(error) =>
-                onDeviceError?.({ source: Track.Source.ScreenShare, error })
-              }
-            />
-          )}
-          <HandToggle />
-          <OptionsButton />
-          <LeaveButton />
-          <StartMediaButton />
-        </div>
-        <MoreOptions parentElement={desktopControlBarEl} />
+        )}
+        <HandToggle />
+        <OptionsButton />
+        <LeaveButton />
+        <StartMediaButton />
       </div>
-    </>
+      <MoreOptions parentElement={desktopControlBarEl} />
+    </div>
   )
 }
