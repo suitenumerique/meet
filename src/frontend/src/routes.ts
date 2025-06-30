@@ -72,9 +72,7 @@ export const routes: Record<
   },
   recordingDownload: {
     name: 'recordingDownload',
-    path: new RegExp(
-      `^[/]recording[/](?<recordingId>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$`
-    ),
+    path: /^\/recording\/(?<recordingId>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/,
     to: (recordingId: string) => `/recording/${recordingId.trim()}`,
     Component: RecordingDownloadRoute,
   },
