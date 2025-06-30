@@ -42,7 +42,7 @@ class ResourceAccessSerializerMixin:
                 data.get("role") == models.RoleChoices.OWNER
                 and not self.instance.resource.is_owner(user)
                 or self.instance.role == models.RoleChoices.OWNER
-                and not self.instance.user == user
+                and self.instance.user != user
             )
         ) or (
             # Create

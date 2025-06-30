@@ -17,7 +17,7 @@ def generate_pin_for_rooms(apps, schema_editor):
     def generate_pin_code():
         while True:
             pin_code = str(secrets.randbelow(10 ** length)).zfill(length)
-            if not pin_code in existing_pins:
+            if pin_code not in existing_pins:
                 return pin_code
 
     for room in rooms_without_pin_code:

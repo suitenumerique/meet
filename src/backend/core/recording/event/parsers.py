@@ -123,7 +123,7 @@ class MinioParser:
                 f"Invalid bucket: expected {self._bucket_name}, got {event_data.bucket_name}"
             )
 
-        if not event_data.filetype in self._allowed_filetypes:
+        if event_data.filetype not in self._allowed_filetypes:
             raise InvalidFileTypeError(
                 f"Invalid file type, expected {self._allowed_filetypes},"
                 f"got '{event_data.filetype}'"
