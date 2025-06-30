@@ -63,10 +63,10 @@ FROM base AS core
 ENV PYTHONUNBUFFERED=1
 
 RUN apk add \
-  gettext \
   cairo \
-  libffi-dev \
   gdk-pixbuf \
+  gettext \
+  libffi-dev \
   pango \
   shared-mime-info
 
