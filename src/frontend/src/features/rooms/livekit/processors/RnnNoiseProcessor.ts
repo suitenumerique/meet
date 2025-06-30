@@ -23,8 +23,6 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
   private destinationNode?: MediaStreamAudioDestinationNode
   private noiseSuppressionNode?: AudioWorkletNode
 
-  constructor() {}
-
   async init(opts: ProcessorOptions<Track.Kind.Audio>) {
     if (!opts.track) {
       throw new Error('Track is required for audio processing')
