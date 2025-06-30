@@ -3,8 +3,8 @@ import { styled } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
 import { useIsSpeaking } from '@livekit/components-react'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
-import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 import { useMemo, useRef } from 'react'
+import useSize from '@react-hook/size'
 
 const StyledParticipantPlaceHolder = styled('div', {
   base: {
@@ -28,7 +28,7 @@ export const ParticipantPlaceholder = ({
   const participantColor = getParticipantColor(participant)
 
   const placeholderEl = useRef<HTMLDivElement>(null)
-  const { width, height } = useSize(placeholderEl)
+  const [width, height] = useSize(placeholderEl)
 
   const minDimension = Math.min(width, height)
   const avatarSize = useMemo(

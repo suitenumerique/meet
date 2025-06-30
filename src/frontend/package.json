@@ -18,6 +18,7 @@
     "@livekit/track-processors": "0.5.7",
     "@pandacss/preset-panda": "0.54.0",
     "@react-aria/toast": "3.0.5",
+    "@react-hook/size": "2.1.2",
     "@remixicon/react": "4.6.0",
     "@tanstack/react-query": "5.81.5",
     "@timephy/rnnoise-wasm": "1.0.0",
