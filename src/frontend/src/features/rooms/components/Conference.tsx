@@ -7,6 +7,8 @@ import {
   MediaDeviceFailure,
   Room,
   RoomOptions,
+  supportsAdaptiveStream,
+  supportsDynacast,
 } from 'livekit-client'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
@@ -74,8 +76,8 @@ export const Conference = ({
 
   const roomOptions = useMemo((): RoomOptions => {
     return {
-      adaptiveStream: true,
-      dynacast: true,
+      adaptiveStream: supportsAdaptiveStream(),
+      dynacast: supportsDynacast(),
       publishDefaults: {
         videoCodec: 'vp9',
       },
