@@ -62,7 +62,7 @@ FROM base AS core
 
 ENV PYTHONUNBUFFERED=1
 
-RUN apk add \
+RUN apk --no-cache add \
   cairo \
   gdk-pixbuf \
   gettext \
