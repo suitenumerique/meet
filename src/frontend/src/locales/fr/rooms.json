@@ -141,6 +141,7 @@
     "activateCamera": "Votre caméra est désactivée. Choisissez une option pour l'activer.",
     "notAvailable": "Les effets vidéo seront bientôt disponibles sur votre navigateur. Nous y travaillons ! En attendant, vous pouvez utiliser Google Chrome pour de meilleures performances ou Firefox :(",
     "heading": "Flou",
+    "clear": "Désactiver l'effect",
     "blur": {
       "title": "Flou d'arrière-plan",
       "light": "Flou léger",

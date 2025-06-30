@@ -141,6 +141,7 @@
     "activateCamera": "Uw camera is uitgeschakeld. Kies een optie om deze in te schakelen.",
     "notAvailable": "Video-effecten zijn binnenkort beschikbaar in uw browser. We werken eraan! In de tussentijd kunt u Google Chrome gebruiken voor de beste prestaties of Firefox :(",
     "heading": "Vervaging",
+    "clear": "Effect uitschakelen",
     "blur": {
       "title": "Achtergrondvervaging",
       "light": "Lichte vervaging",

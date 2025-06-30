@@ -141,6 +141,7 @@
     "activateCamera": "Your camera is disabled. Choose an option to enable it.",
     "notAvailable": "Video effects will be available soon on your browser. We're working on it! In the meantime, you can use Google Chrome for best performance or Firefox :(",
     "heading": "Blur",
+    "clear": "Disable effect",
     "blur": {
       "title": "Background blur",
       "light": "Light blur",

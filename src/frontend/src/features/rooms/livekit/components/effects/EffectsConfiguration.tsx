@@ -266,6 +266,7 @@ export const EffectsConfiguration = ({
               >
                 <ToggleButton
                   variant="bigSquare"
+                  aria-label={t('clear')}
                   onPress={async () => {
                     await clearEffect()
                   }}
