@@ -129,8 +129,11 @@ def test_validate_invalid_filetype(minio_parser):
 @pytest.mark.parametrize(
     "invalid_filepath",
     [
-        "invalid_filepath",
+        "invalid_filepath",  # totally invalid string
         "recording/46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
+        "recording/46d1a121-2426-484d-8fb3-09b5d886f7a8",  # missing extension
+        "46d1a121-2426-484d-8fb3-09b5d886f7a8",  # missing url_encoded_folder_path and extension
+        "",  # empty string
         "recording%2F46d1a1212426484d8fb309b5d886f7a8.ogg",
     ],
 )
