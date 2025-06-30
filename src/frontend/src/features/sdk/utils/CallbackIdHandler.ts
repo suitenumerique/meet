@@ -1,5 +1,5 @@
 export class CallbackIdHandler {
-  private storageKey = 'popup_callback_id'
+  private readonly storageKey = 'popup_callback_id'
 
   private generateId(): string {
     return (
