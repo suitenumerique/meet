@@ -18,7 +18,7 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
           <P>
             <Trans
               i18nKey="settings:account.currentlyLoggedAs"
-              values={{ user: user?.full_name || user?.email }}
+              values={{ user: user?.full_name ?? user?.email }}
               components={[<Badge />]}
             />
           </P>

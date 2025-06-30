@@ -14,7 +14,7 @@ export const ErrorScreen = ({
   const { t } = useTranslation()
   return (
     <Screen layout="centered">
-      <CenteredContent title={title || t('error.heading')} withBackButton>
+      <CenteredContent title={title ?? t('error.heading')} withBackButton>
         {!!body && (
           <Center>
             <Text as="p" variant="h3" centered>

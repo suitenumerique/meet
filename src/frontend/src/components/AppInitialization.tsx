@@ -14,7 +14,7 @@ export const AppInitialization = () => {
     support = {},
     silence_livekit_debug_logs = false,
     custom_css_url = '',
-  } = data || {}
+  } = data ?? {}
 
   useAnalytics(analytics)
   useSupport(support)

@@ -51,7 +51,7 @@ export const Avatar = ({
   style,
   ...props
 }: AvatarProps) => {
-  const initial = name?.trim()?.charAt(0) || ''
+  const initial = name?.trim()?.charAt(0) ?? ''
   return (
     <div
       style={{

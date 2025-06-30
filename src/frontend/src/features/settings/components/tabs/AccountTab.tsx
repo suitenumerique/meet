@@ -17,7 +17,7 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   const { saveUsername } = usePersistentUserChoices()
   const room = useRoomContext()
   const { user, isLoggedIn, logout } = useUser()
-  const [name, setName] = useState(room?.localParticipant.name || '')
+  const [name, setName] = useState(room?.localParticipant.name ?? '')
 
   const handleOnSubmit = () => {
     if (room) room.localParticipant.setName(name)

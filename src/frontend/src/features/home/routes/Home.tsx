@@ -251,7 +251,7 @@ export const Home = () => {
           </RightColumn>
         </Columns>
         <LaterMeetingDialog
-          roomId={laterRoomId || ''}
+          roomId={laterRoomId ?? ''}
           onOpenChange={() => setLaterRoomId(null)}
         />
       </Screen>

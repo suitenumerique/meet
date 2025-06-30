@@ -9,7 +9,7 @@ type useRaisedHandProps = {
 export function useRaisedHand({ participant }: useRaisedHandProps) {
   // fixme - refactor this part to rely on attributes
   const { metadata } = useParticipantInfo({ participant })
-  const parsedMetadata = JSON.parse(metadata || '{}')
+  const parsedMetadata = JSON.parse(metadata ?? '{}')
 
   const toggleRaisedHand = () => {
     if (isLocal(participant)) {
@@ -19,5 +19,5 @@ export function useRaisedHand({ participant }: useRaisedHandProps) {
     }
   }
 
-  return { isHandRaised: parsedMetadata.raised || false, toggleRaisedHand }
+  return { isHandRaised: parsedMetadata.raised ?? false, toggleRaisedHand }
 }

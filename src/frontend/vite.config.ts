@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tsconfigPaths()],
     server: {
       port: parseInt(env.VITE_PORT) || 3000,
-      host: env.VITE_HOST || 'localhost',
+      host: env.VITE_HOST ?? 'localhost',
       allowedHosts: ['.nip.io'],
     },
   }
