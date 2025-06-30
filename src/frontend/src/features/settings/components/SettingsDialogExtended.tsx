@@ -14,8 +14,8 @@ import { AccountTab } from './tabs/AccountTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
 import { GeneralTab } from './tabs/GeneralTab'
 import { AudioTab } from './tabs/AudioTab'
-import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 import { useRef } from 'react'
+import useSize from '@react-hook/size'
 
 const tabsStyle = css({
   maxHeight: '40.625rem', // fixme size copied from meet settings modal
@@ -51,7 +51,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   const { t } = useTranslation('settings')
 
   const dialogEl = useRef<HTMLDivElement>(null)
-  const { width } = useSize(dialogEl)
+  const width = useSize(dialogEl)[0]
   const isWideScreen = !width || width >= 800 // fixme - hardcoded 50rem in pixel
 
   return (
