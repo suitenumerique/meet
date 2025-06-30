@@ -230,15 +230,14 @@ def test_api_rooms_invite_error(mock_invite_to_room):
 
     data = {"emails": ["toto@yopmail.com", "toto@yopmail.com"]}
 
-    with pytest.raises(InvitationError) as excinfo:
+    with pytest.raises(InvitationError):
         client.post(
             f"/api/v1.0/rooms/{room.id}/invite/",
             json.dumps(data),
             content_type="application/json",
         )
 
-        mock_invite_to_room.assert_called_once()
-        assert "Could not send invitation" in str(excinfo.value)
+    mock_invite_to_room.assert_called_once()
 
 
 @mock.patch("core.services.invitation.send_mail")
