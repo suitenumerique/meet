@@ -42,6 +42,13 @@ def get_frontend_configuration(request):
             "available_modes": settings.RECORDING_WORKER_CLASSES.keys(),
             "expiration_days": settings.RECORDING_EXPIRATION_DAYS,
         },
+        "telephony": {
+            "enabled": settings.ROOM_TELEPHONY_ENABLED,
+            "phone_number": settings.ROOM_TELEPHONY_PHONE_NUMBER
+            if settings.ROOM_TELEPHONY_ENABLED
+            else None,
+            "default_country": settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
+        },
     }
     frontend_configuration.update(settings.FRONTEND_CONFIGURATION)
     return Response(frontend_configuration)
