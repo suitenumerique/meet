@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react'
 import { VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { RiCheckLine, RiFileCopyLine } from '@remixicon/react'
-import { Button, Div, Text } from '@/primitives'
+import { Bold, Button, Div, Text } from '@/primitives'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 import { useRoomData } from '../hooks/useRoomData'
+import { formatPinCode } from '../../utils/telephony'
+import { useTelephony } from '../hooks/useTelephony'
 
 export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
@@ -21,6 +23,8 @@ export const Info = () => {
 
   const data = useRoomData()
   const roomUrl = getRouteUrl('room', data?.slug)
+
+  const telephony = useTelephony()
 
   return (
     <Div
@@ -41,9 +45,29 @@ export const Info = () => {
         >
           {t('roomInformation.title')}
         </Text>
-        <Text as="p" variant="xsNote" wrap="pretty">
-          {roomUrl}
-        </Text>
+        <div
+          className={css({
+            gap: '0.15rem',
+            display: 'flex',
+            flexDirection: 'column',
+          })}
+        >
+          <Text as="p" variant="xsNote" wrap="pretty">
+            {roomUrl}
+          </Text>
+          {telephony?.enabled && data?.pin_code && (
+            <>
+              <Text as="p" variant="xsNote" wrap="pretty">
+                <Bold>{t('roomInformation.phone.call')}</Bold> (
+                {telephony?.country}) {telephony?.internationalPhoneNumber}
+              </Text>
+              <Text as="p" variant="xsNote" wrap="pretty">
+                <Bold>{t('roomInformation.phone.pinCode')}</Bold>{' '}
+                {formatPinCode(data?.pin_code)}
+              </Text>
+            </>
+          )}
+        </div>
         <Button
           size="sm"
           variant={isCopied ? 'success' : 'tertiaryText'}

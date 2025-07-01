@@ -213,6 +213,10 @@
         "ariaLabel": "Copier l'adresse de votre réunion",
         "copy": "Copier l'adresse",
         "copied": "Adresse copiée"
+      },
+      "phone": {
+        "call": "Appelez le :",
+        "pinCode": "Code :"
       }
     }
   },
