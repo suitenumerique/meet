@@ -143,7 +143,7 @@ def test_handled_event_type(
 
 def test_unhandled_event_type(client, mock_livekit_config):
     """Should return 200 for event types that have no handler."""
-    event_data = json.dumps({"event": "room_started"})
+    event_data = json.dumps({"event": "participant_joined"})
 
     hash64 = base64.b64encode(hashlib.sha256(event_data.encode()).digest()).decode()
     token = api.AccessToken(

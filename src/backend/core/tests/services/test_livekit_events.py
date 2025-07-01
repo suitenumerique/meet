@@ -8,6 +8,7 @@ from unittest import mock
 
 import pytest
 
+from core.factories import RoomFactory
 from core.services.livekit_events import (
     ActionFailedError,
     AuthenticationError,
@@ -17,6 +18,7 @@ from core.services.livekit_events import (
     api,
 )
 from core.services.lobby import LobbyService
+from core.services.telephony import TelephonyException, TelephonyService
 
 pytestmark = pytest.mark.django_db
 
@@ -56,40 +58,147 @@ def test_initialization(
 
 
 @mock.patch.object(LobbyService, "clear_room_cache")
-def test_handle_room_finished(mock_clear_cache, service):
-    """Should clear lobby cache when room is finished."""
-
+@mock.patch.object(TelephonyService, "delete_dispatch_rule")
+def test_handle_room_finished_clears_cache_and_deletes_dispatch_rule(
+    mock_delete_dispatch_rule, mock_clear_cache, service, settings
+):
+    """Should clear lobby cache and delete telephony dispatch rule when room finishes."""
+    settings.ROOM_TELEPHONY_ENABLED = True
     mock_room_name = uuid.uuid4()
-
     mock_data = mock.MagicMock()
     mock_data.room.name = str(mock_room_name)
 
     service._handle_room_finished(mock_data)
 
+    mock_delete_dispatch_rule.assert_called_once_with(mock_room_name)
+    mock_clear_cache.assert_called_once_with(mock_room_name)
+
+
+@mock.patch.object(LobbyService, "clear_room_cache")
+@mock.patch.object(TelephonyService, "delete_dispatch_rule")
+def test_handle_room_finished_skips_telephony_when_disabled(
+    mock_delete_dispatch_rule, mock_clear_cache, service, settings
+):
+    """Should clear lobby cache but skip dispatch rule deletion when telephony is disabled."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    mock_room_name = uuid.uuid4()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(mock_room_name)
+
+    service._handle_room_finished(mock_data)
+
+    mock_delete_dispatch_rule.assert_not_called()
     mock_clear_cache.assert_called_once_with(mock_room_name)
 
 
 @mock.patch.object(
     LobbyService, "clear_room_cache", side_effect=Exception("Test error")
 )
-def test_handle_room_finished_error(mock_clear_cache, service):
-    """Should raise ActionFailedError when processing fails."""
+@mock.patch.object(TelephonyService, "delete_dispatch_rule")
+def test_handle_room_finished_raises_error_when_cache_clearing_fails(
+    mock_delete_dispatch_rule, mock_clear_cache, service, settings
+):
+    """Should raise ActionFailedError when lobby cache clearing fails when room finishes."""
+    settings.ROOM_TELEPHONY_ENABLED = True
     mock_data = mock.MagicMock()
     mock_data.room.name = "00000000-0000-0000-0000-000000000000"
-    with pytest.raises(
-        ActionFailedError, match="Failed to process room finished event"
-    ):
+
+    expected_error = (
+        "Failed to clear room cache for room 00000000-0000-0000-0000-000000000000"
+    )
+
+    with pytest.raises(ActionFailedError, match=expected_error):
         service._handle_room_finished(mock_data)
 
+    mock_delete_dispatch_rule.assert_called_once_with(
+        uuid.UUID("00000000-0000-0000-0000-000000000000")
+    )
 
-def test_handle_room_finished_invalid_room_name(service):
-    """Should raise ActionFailedError when processing fails."""
+
+@mock.patch.object(LobbyService, "clear_room_cache")
+@mock.patch.object(
+    TelephonyService,
+    "delete_dispatch_rule",
+    side_effect=TelephonyException("Test error"),
+)
+def test_handle_room_finished_raises_error_when_telephony_deletion_fails(
+    mock_delete_dispatch_rule, mock_clear_cache, service, settings
+):
+    """Should raise ActionFailedError when dispatch rule deletion fails when room finishes."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    mock_data = mock.MagicMock()
+    mock_data.room.name = "00000000-0000-0000-0000-000000000000"
+
+    expected_error = (
+        "Failed to delete telephony dispatch rule for room "
+        "00000000-0000-0000-0000-000000000000"
+    )
+
+    with pytest.raises(ActionFailedError, match=expected_error):
+        service._handle_room_finished(mock_data)
+
+    mock_clear_cache.assert_not_called()
+
+
+def test_handle_room_finished_raises_error_for_invalid_room_name(service):
+    """Should raise ActionFailedError when room name format is invalid when room finishes."""
     mock_data = mock.MagicMock()
     mock_data.room.name = "invalid"
+
     with pytest.raises(
         ActionFailedError, match="Failed to process room finished event"
     ):
         service._handle_room_finished(mock_data)
+
+
+@mock.patch.object(TelephonyService, "create_dispatch_rule")
+def test_handle_room_started_creates_dispatch_rule_successfully(
+    mock_create_dispatch_rule, service, settings
+):
+    """Should create telephony dispatch rule when room starts successfully."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    service._handle_room_started(mock_data)
+
+    mock_create_dispatch_rule.assert_called_once_with(room)
+
+
+@mock.patch.object(TelephonyService, "create_dispatch_rule")
+def test_handle_room_started_skips_dispatch_rule_when_telephony_disabled(
+    mock_create_dispatch_rule, service, settings
+):
+    """Should skip creating telephony dispatch rule when telephony is disabled during room start."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    room = RoomFactory()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    service._handle_room_started(mock_data)
+
+    mock_create_dispatch_rule.assert_not_called()
+
+
+def test_handle_room_started_raises_error_for_invalid_room_name(service):
+    """Should raise ActionFailedError when room name format is invalid  when room starts."""
+    mock_data = mock.MagicMock()
+    mock_data.room.name = "invalid"
+
+    with pytest.raises(ActionFailedError, match="Failed to process room started event"):
+        service._handle_room_started(mock_data)
+
+
+def test_handle_room_started_raises_error_for_nonexistent_room(service):
+    """Should raise ActionFailedError when a room starts that doesn't exist in the database."""
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(uuid.uuid4())
+
+    expected_error = f"Room with ID {mock_data.room.name} does not exist"
+
+    with pytest.raises(ActionFailedError, match=expected_error):
+        service._handle_room_started(mock_data)
 
 
 @mock.patch.object(
