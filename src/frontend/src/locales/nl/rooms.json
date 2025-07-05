@@ -213,6 +213,10 @@
         "ariaLabel": "Kopieer je vergaderadres",
         "copy": "Adres kopiëren",
         "copied": "Adres gekopieerd"
+      },
+      "phone": {
+        "call": "Bel:",
+        "pinCode": "Code:"
       }
     }
   },

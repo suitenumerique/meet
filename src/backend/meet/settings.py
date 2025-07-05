@@ -609,6 +609,16 @@ class Base(Configuration):
         environ_name="ROOM_TELEPHONY_PIN_MAX_RETRIES",
         environ_prefix=None,
     )
+    ROOM_TELEPHONY_PHONE_NUMBER = values.Value(
+        None,
+        environ_name="ROOM_TELEPHONY_PHONE_NUMBER",
+        environ_prefix=None,
+    )
+    ROOM_TELEPHONY_DEFAULT_COUNTRY = values.Value(
+        "US",
+        environ_name="ROOM_TELEPHONY_DEFAULT_COUNTRY",
+        environ_prefix=None,
+    )
 
     # pylint: disable=invalid-name
     @property

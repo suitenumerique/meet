@@ -213,6 +213,10 @@
         "ariaLabel": "Copy your meeting address",
         "copy": "Copy address",
         "copied": "Address copied"
+      },
+      "phone": {
+        "call": "Call:",
+        "pinCode": "Code:"
       }
     }
   },

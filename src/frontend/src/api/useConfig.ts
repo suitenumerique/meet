@@ -30,6 +30,11 @@ export interface ApiConfig {
     available_modes?: RecordingMode[]
     expiration_days?: number
   }
+  telephony: {
+    enabled: boolean
+    phone_number?: string
+    default_country?: string
+  }
   manifest_link?: string
 }
 
