@@ -9,7 +9,6 @@ import { RoomEvent, Track } from 'livekit-client'
 import * as React from 'react'
 import { useState } from 'react'
 import {
-  CarouselLayout,
   ConnectionStateToast,
   FocusLayoutContainer,
   GridLayout,
@@ -32,6 +31,7 @@ import { RecordingStateToast } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
+import { CarouselLayout } from '../components/layout/CarouselLayout'
 
 const LayoutWrapper = styled(
   'div',

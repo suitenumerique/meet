@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { LiveKitRoom } from '@livekit/components-react'
-import { Room, RoomOptions } from 'livekit-client'
+import {
+  Room,
+  RoomOptions,
+  supportsAdaptiveStream,
+  supportsDynacast,
+} from 'livekit-client'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -67,8 +72,8 @@ export const Conference = ({
 
   const roomOptions = useMemo((): RoomOptions => {
     return {
-      adaptiveStream: true,
-      dynacast: true,
+      adaptiveStream: supportsAdaptiveStream(),
+      dynacast: supportsDynacast(),
       publishDefaults: {
         videoCodec: 'vp9',
       },
