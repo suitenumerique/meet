@@ -33,9 +33,9 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 - Support for multiple screen sharing streams
 - Non-persistent, secure chat
 - End-to-end encryption (coming soon)
-- Meeting recording (coming soon)
+- Meeting recording
 - Meeting transcription (currently in beta)
-- Telephony integration (in development)
+- Telephony integration
 - Secure participation with robust authentication and access control
 - LiveKit Advances features including :
   - speaker detection 
