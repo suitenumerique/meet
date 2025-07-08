@@ -17,6 +17,7 @@ FROM frontend-deps AS meet-builder
 WORKDIR /home/frontend
 
 ENV VITE_APP_TITLE="Visio"
+ENV VITE_BUILD_SOURCEMAP="true"
 
 RUN npm run build
 
