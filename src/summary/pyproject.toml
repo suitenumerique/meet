@@ -11,6 +11,7 @@ dependencies = [
     "redis==5.2.1",
     "minio==7.2.15",
     "openai==1.91.0",
+    "posthog==6.0.3",
     "requests==2.32.4",
     "sentry-sdk[fastapi, celery]==2.30.0",
 ]
