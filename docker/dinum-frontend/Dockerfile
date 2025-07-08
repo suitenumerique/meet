@@ -11,7 +11,7 @@ RUN npm ci
 COPY .dockerignore ./.dockerignore
 COPY ./src/frontend/ .
 
-### ---- Front-end builder image ----
+# ---- Front-end builder image ----
 FROM frontend-deps AS meet-builder
 
 WORKDIR /home/frontend
@@ -20,6 +20,11 @@ ENV VITE_APP_TITLE="Visio"
 ENV VITE_BUILD_SOURCEMAP="true"
 
 RUN npm run build
+
+# Inject PostHog sourcemap metadata into the built assets
+# This metadata is essential for correctly mapping errors to source maps in production
+RUN set -e && \
+    npx @posthog/cli sourcemap inject --directory ./dist/assets
 
 COPY ./docker/dinum-frontend/dinum-styles.css \
     ./dist/assets/
