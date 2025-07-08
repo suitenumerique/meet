@@ -45,6 +45,15 @@ class Settings(BaseSettings):
     sentry_is_enabled: bool = False
     sentry_dsn: Optional[str] = None
 
+    # Posthog (analytics)
+    posthog_enabled: bool = False
+    posthog_api_key: Optional[str] = None
+    posthog_api_host: Optional[str] = "https://eu.i.posthog.com"
+
+    # TaskTracker
+    task_tracker_redis_url: str = "redis://redis/0"
+    task_tracker_prefix: str = "task_metadata:"
+
 
 @lru_cache
 def get_settings():

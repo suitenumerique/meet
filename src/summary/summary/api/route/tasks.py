@@ -1,5 +1,6 @@
 """API routes related to application tasks."""
 
+import time
 from typing import Optional
 
 from celery.result import AsyncResult
@@ -33,7 +34,7 @@ async def create_task(request: TaskCreation):
         )
     else:
         task = process_audio_transcribe_summarize_v2.delay(
-            request.filename, request.email, request.sub
+            request.filename, request.email, request.sub, time.time()
         )
 
     return {"id": task.id, "message": "Task created"}

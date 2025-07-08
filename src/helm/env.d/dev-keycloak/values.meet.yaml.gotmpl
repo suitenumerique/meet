@@ -173,6 +173,7 @@ summary:
     WEBHOOK_URL: https://www.mock-impress.com/webhook/
     CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
     CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
+    TASK_TRACKER_REDIS_URL: redis://default:pass@redis-master:6379/1
   
   image:
     repository: localhost:5001/meet-summary
@@ -206,6 +207,7 @@ celery:
     WEBHOOK_URL: https://www.mock-impress.com/webhook/
     CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
     CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
+    TASK_TRACKER_REDIS_URL: redis://default:pass@redis-master:6379/1
   
   image:
     repository: localhost:5001/meet-summary

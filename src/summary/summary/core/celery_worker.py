@@ -3,6 +3,7 @@
 import json
 import os
 import tempfile
+import time
 from pathlib import Path
 
 import openai
@@ -10,14 +11,19 @@ import sentry_sdk
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
 from minio import Minio
+from mutagen import File
 from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
+from summary.core.analytics import TasksTracker, get_analytics
 from summary.core.config import get_settings
 from summary.core.prompt import get_instructions
 
 settings = get_settings()
+analytics = get_analytics()
+
+tasks_tracker = TasksTracker()
 
 logger = get_task_logger(__name__)
 
@@ -120,6 +126,25 @@ def post_with_retries(url, data):
         session.close()
 
 
+@signals.task_prerun.connect
+def task_started(task_id=None, task=None, args=None, **kwargs):
+    """Signal handler called before task execution begins."""
+    task_args = args or []
+    tasks_tracker.create(task_id, task_args)
+
+
+@signals.task_retry.connect
+def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
+    """Signal handler called when task execution retries."""
+    tasks_tracker.retry(request.id)
+
+
+@signals.task_failure.connect
+def task_failure_handler(task_id, exception=None, **kwargs):
+    """Signal handler called when task execution fails permanently."""
+    tasks_tracker.capture(task_id, "task_failed")
+
+
 @celery.task(max_retries=settings.celery_max_retries)
 def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     """Process an audio file by transcribing it and generating a summary.
@@ -194,8 +219,10 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     logger.debug("Response body: %s", response.text)
 
 
-@celery.task(max_retries=settings.celery_max_retries)
-def process_audio_transcribe_summarize_v2(filename: str, email: str, sub: str):
+@celery.task(bind=True, max_retries=settings.celery_max_retries)
+def process_audio_transcribe_summarize_v2(
+    self, filename: str, email: str, sub: str, received_at: float
+):
     """Process an audio file by transcribing it and generating a summary.
 
     This Celery task performs the following operations:
@@ -206,6 +233,8 @@ def process_audio_transcribe_summarize_v2(filename: str, email: str, sub: str):
     """
     logger.info("Notification received")
     logger.debug("filename: %s", filename)
+
+    task_id = self.request.id
 
     minio_client = Minio(
         settings.aws_s3_endpoint_url,
@@ -223,6 +252,9 @@ def process_audio_transcribe_summarize_v2(filename: str, email: str, sub: str):
     temp_file_path = save_audio_stream(audio_file_stream)
     logger.debug("Recording successfully downloaded, filepath: %s", temp_file_path)
 
+    audio_file = File(temp_file_path)
+    tasks_tracker.track(task_id, {"audio_length": audio_file.info.length})
+
     logger.debug("Initiating OpenAI client")
     openai_client = openai.OpenAI(
         api_key=settings.openai_api_key, base_url=settings.openai_base_url
@@ -230,11 +262,19 @@ def process_audio_transcribe_summarize_v2(filename: str, email: str, sub: str):
 
     try:
         logger.debug("Querying transcription …")
+        transcription_start_time = time.time()
         with open(temp_file_path, "rb") as audio_file:
             transcription = openai_client.audio.transcriptions.create(
                 model=settings.openai_asr_model, file=audio_file
             )
-
+            tasks_tracker.track(
+                task_id,
+                {
+                    "transcription_time": round(
+                        time.time() - transcription_start_time, 2
+                    )
+                },
+            )
             logger.debug("Transcription: \n %s", transcription)
     finally:
         if os.path.exists(temp_file_path):
@@ -246,6 +286,8 @@ def process_audio_transcribe_summarize_v2(filename: str, email: str, sub: str):
         if not transcription.segments
         else format_segments(transcription)
     )
+
+    tasks_tracker.track_transcription_metadata(task_id, transcription)
 
     data = {
         "title": "Transcription",
@@ -261,5 +303,7 @@ def process_audio_transcribe_summarize_v2(filename: str, email: str, sub: str):
 
     logger.info("Webhook submitted successfully. Status: %s", response.status_code)
     logger.debug("Response body: %s", response.text)
+
+    tasks_tracker.capture(task_id, "task_succeeded")
 
     # TODO - integrate summarize the transcript and create a new document.
