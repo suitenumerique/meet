@@ -10,6 +10,7 @@ dependencies = [
     "celery==5.5.3",
     "redis==5.2.1",
     "minio==7.2.15",
+    "mutagen==1.47.0",
     "openai==1.91.0",
     "posthog==6.0.3",
     "requests==2.32.4",
