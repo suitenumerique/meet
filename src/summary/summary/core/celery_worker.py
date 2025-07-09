@@ -176,7 +176,9 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
 
     logger.debug("Initiating OpenAI client")
     openai_client = openai.OpenAI(
-        api_key=settings.openai_api_key, base_url=settings.openai_base_url
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+        max_retries=settings.openai_max_retries,
     )
 
     try:
@@ -257,7 +259,9 @@ def process_audio_transcribe_summarize_v2(
 
     logger.debug("Initiating OpenAI client")
     openai_client = openai.OpenAI(
-        api_key=settings.openai_api_key, base_url=settings.openai_base_url
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+        max_retries=settings.openai_max_retries,
     )
 
     try:
