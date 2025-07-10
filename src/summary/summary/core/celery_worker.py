@@ -174,7 +174,8 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     temp_file_path = save_audio_stream(audio_file_stream)
     logger.debug("Recording successfully downloaded, filepath: %s", temp_file_path)
 
-    logger.debug("Initiating OpenAI client")
+    logger.info("Initiating OpenAI client")
+
     openai_client = openai.OpenAI(
         api_key=settings.openai_api_key,
         base_url=settings.openai_base_url,
@@ -182,12 +183,11 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     )
 
     try:
-        logger.debug("Querying transcription …")
+        logger.info("Querying transcription …")
         with open(temp_file_path, "rb") as audio_file:
             transcription = openai_client.audio.transcriptions.create(
                 model=settings.openai_asr_model, file=audio_file
             )
-
             transcription = transcription.text
 
             logger.debug("Transcription: \n %s", transcription)
@@ -252,12 +252,14 @@ def process_audio_transcribe_summarize_v2(
     )
 
     temp_file_path = save_audio_stream(audio_file_stream)
-    logger.debug("Recording successfully downloaded, filepath: %s", temp_file_path)
+
+    logger.info("Recording successfully downloaded")
+    logger.debug("Recording filepath: %s", temp_file_path)
 
     audio_file = File(temp_file_path)
     tasks_tracker.track(task_id, {"audio_length": audio_file.info.length})
 
-    logger.debug("Initiating OpenAI client")
+    logger.info("Initiating OpenAI client")
     openai_client = openai.OpenAI(
         api_key=settings.openai_api_key,
         base_url=settings.openai_base_url,
@@ -265,7 +267,7 @@ def process_audio_transcribe_summarize_v2(
     )
 
     try:
-        logger.debug("Querying transcription …")
+        logger.info("Querying transcription …")
         transcription_start_time = time.time()
         with open(temp_file_path, "rb") as audio_file:
             transcription = openai_client.audio.transcriptions.create(
@@ -279,6 +281,7 @@ def process_audio_transcribe_summarize_v2(
                     )
                 },
             )
+            logger.info("Transcription received.")
             logger.debug("Transcription: \n %s", transcription)
     finally:
         if os.path.exists(temp_file_path):
