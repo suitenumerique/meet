@@ -148,7 +148,7 @@ def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
 @signals.task_failure.connect
 def task_failure_handler(task_id, exception=None, **kwargs):
     """Signal handler called when task execution fails permanently."""
-    tasks_tracker.capture(task_id, "task_failed")
+    tasks_tracker.capture(task_id, settings.posthog_event_failure)
 
 
 @celery.task(max_retries=settings.celery_max_retries)
@@ -329,6 +329,6 @@ def process_audio_transcribe_summarize_v2(
     logger.info("Webhook submitted successfully. Status: %s", response.status_code)
     logger.debug("Response body: %s", response.text)
 
-    tasks_tracker.capture(task_id, "task_succeeded")
+    tasks_tracker.capture(task_id, settings.posthog_event_success)
 
     # TODO - integrate summarize the transcript and create a new document.

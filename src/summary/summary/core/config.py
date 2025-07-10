@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     posthog_enabled: bool = False
     posthog_api_key: Optional[str] = None
     posthog_api_host: Optional[str] = "https://eu.i.posthog.com"
+    posthog_event_failure: str = "transcript-failure"
+    posthog_event_success: str = "transcript-success"
 
     # TaskTracker
     task_tracker_redis_url: str = "redis://redis/0"
