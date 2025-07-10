@@ -12,7 +12,7 @@ from celery import Celery, signals
 from celery.utils.log import get_task_logger
 from minio import Minio
 from mutagen import File
-from requests import Session
+from requests import Session, exceptions
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
@@ -221,7 +221,11 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     logger.debug("Response body: %s", response.text)
 
 
-@celery.task(bind=True, max_retries=settings.celery_max_retries)
+@celery.task(
+    bind=True,
+    autoretry_for=[exceptions.HTTPError],
+    max_retries=settings.celery_max_retries,
+)
 def process_audio_transcribe_summarize_v2(
     self, filename: str, email: str, sub: str, received_at: float
 ):
