@@ -1,7 +1,7 @@
 """Application configuration and settings."""
 
 from functools import lru_cache
-from typing import Annotated, Optional
+from typing import Annotated, Optional, List
 
 from fastapi import Depends
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
     # Webhook-related settings
     webhook_max_retries: int = 2
-    webhook_status_forcelist: list[int] = [502, 503, 504]
+    webhook_status_forcelist: List[int] = [502, 503, 504]
     webhook_backoff_factor: float = 0.1
     webhook_api_token: str
     webhook_url: str
