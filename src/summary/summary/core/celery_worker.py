@@ -64,6 +64,12 @@ Quelques points que nous vous conseillons de vérifier :
 """
 
 
+class AudioValidationError(Exception):
+    """Custom exception for audio validation errors."""
+
+    pass
+
+
 def save_audio_stream(audio_stream, chunk_size=32 * 1024):
     """Save an audio stream to a temporary OGG file."""
     with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
@@ -262,6 +268,14 @@ def process_audio_transcribe_summarize_v2(
 
     audio_file = File(temp_file_path)
     tasks_tracker.track(task_id, {"audio_length": audio_file.info.length})
+
+    if audio_file.info.length > settings.recording_max_duration:
+        error_msg = "Recording too long: %.2fs > %.2fs limit" % (
+            audio_file.info.length,
+            settings.recording_max_duration,
+        )
+        logger.error(error_msg)
+        raise AudioValidationError(error_msg)
 
     logger.info("Initiating OpenAI client")
     openai_client = openai.OpenAI(
