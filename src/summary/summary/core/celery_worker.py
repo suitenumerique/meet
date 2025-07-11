@@ -269,7 +269,7 @@ def process_audio_transcribe_summarize_v2(
     audio_file = File(temp_file_path)
     metadata_manager.track(task_id, {"audio_length": audio_file.info.length})
 
-    if audio_file.info.length > settings.recording_max_duration:
+    if settings.recording_max_duration is not None and audio_file.info.length > settings.recording_max_duration:
         error_msg = "Recording too long: %.2fs > %.2fs limit" % (
             audio_file.info.length,
             settings.recording_max_duration,

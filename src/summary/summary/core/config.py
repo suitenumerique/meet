@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     app_api_token: str
 
     # Audio recordings
-    recording_max_duration: int = 5400  # 1h30
+    recording_max_duration: Optional[int] = None
 
     # Celery settings
     celery_broker_url: str = "redis://redis/0"
