@@ -1,7 +1,7 @@
 """Application configuration and settings."""
 
 from functools import lru_cache
-from typing import Annotated, Optional, List
+from typing import Annotated, List, Optional
 
 from fastapi import Depends
 from pydantic_settings import BaseSettings, SettingsConfigDict

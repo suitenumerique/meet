@@ -73,7 +73,6 @@ class MetadataManager:
         """Save metadata for a specific task to Redis."""
         self._redis.hset(self._get_redis_key(task_id), mapping=metadata)
 
-
     @staticmethod
     def _convert_value(value):
         """Convert a string value to the most appropriate Python type."""
@@ -88,7 +87,10 @@ class MetadataManager:
     def _get_metadata(self, task_id):
         """Retrieve and parse metadata for a specific task from Redis."""
         raw_metadata = self._redis.hgetall(self._get_redis_key(task_id))
-        return {k.decode("utf-8"): self._convert_value(v.decode("utf-8")) for k, v in raw_metadata.items()}
+        return {
+            k.decode("utf-8"): self._convert_value(v.decode("utf-8"))
+            for k, v in raw_metadata.items()
+        }
 
     def has_task_id(self, task_id):
         """Check if task_id exists in tasks metadata cache."""
@@ -194,9 +196,7 @@ class MetadataManager:
         metadata = self._get_metadata(task_id)
 
         if "start_time" in metadata:
-            metadata["execution_time"] = round(
-                time.time() - metadata["start_time"], 2
-            )
+            metadata["execution_time"] = round(time.time() - metadata["start_time"], 2)
             del metadata["start_time"]
 
         metadata["task_id"] = task_id
