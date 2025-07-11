@@ -20,6 +20,9 @@ class TaskCreation(BaseModel):
     email: str
     sub: str
     version: Optional[int] = 2
+    room: Optional[str]
+    recording_date: Optional[str]
+    recording_time: Optional[str]
 
 
 router = APIRouter(prefix="/tasks")
@@ -34,7 +37,13 @@ async def create_task(request: TaskCreation):
         )
     else:
         task = process_audio_transcribe_summarize_v2.delay(
-            request.filename, request.email, request.sub, time.time()
+            request.filename,
+            request.email,
+            request.sub,
+            time.time(),
+            request.room,
+            request.recording_date,
+            request.recording_time,
         )
 
     return {"id": task.id, "message": "Task created"}

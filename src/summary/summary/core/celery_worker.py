@@ -1,10 +1,13 @@
 """Celery workers."""
 
+# ruff: noqa: PLR0913
+
 import json
 import os
 import tempfile
 import time
 from pathlib import Path
+from typing import Optional
 
 import openai
 import sentry_sdk
@@ -233,7 +236,14 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     max_retries=settings.celery_max_retries,
 )
 def process_audio_transcribe_summarize_v2(
-    self, filename: str, email: str, sub: str, received_at: float
+    self,
+    filename: str,
+    email: str,
+    sub: str,
+    received_at: float,
+    room: Optional[str],
+    recording_date: Optional[str],
+    recording_time: Optional[str],
 ):
     """Process an audio file by transcribing it and generating a summary.
 
@@ -269,7 +279,10 @@ def process_audio_transcribe_summarize_v2(
     audio_file = File(temp_file_path)
     metadata_manager.track(task_id, {"audio_length": audio_file.info.length})
 
-    if settings.recording_max_duration is not None and audio_file.info.length > settings.recording_max_duration:
+    if (
+        settings.recording_max_duration is not None
+        and audio_file.info.length > settings.recording_max_duration
+    ):
         error_msg = "Recording too long: %.2fs > %.2fs limit" % (
             audio_file.info.length,
             settings.recording_max_duration,
@@ -314,8 +327,16 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.track_transcription_metadata(task_id, transcription)
 
+    if not room or not recording_date or not recording_time:
+        title = settings.document_default_title
+    else:
+        title = settings.document_title_template.format(
+            room=room,
+            room_recording_date=recording_date,
+            room_recording_time=recording_time,
+        )
     data = {
-        "title": settings.document_title,
+        "title": title,
         "content": formatted_transcription,
         "email": email,
         "sub": sub,

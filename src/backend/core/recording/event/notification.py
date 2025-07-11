@@ -136,6 +136,13 @@ class NotificationService:
             "filename": recording.key,
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
+            "room": recording.room.name,
+            "recording_date": recording.created_at.astimezone(
+                owner_access.user.timezone
+            ).strftime("%Y-%m-%d"),
+            "recording_time": recording.created_at.astimezone(
+                owner_access.user.timezone
+            ).strftime("%H:%M"),
         }
 
         headers = {

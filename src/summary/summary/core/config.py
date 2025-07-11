@@ -46,7 +46,10 @@ class Settings(BaseSettings):
     webhook_url: str
 
     # Output related settings
-    document_title: Optional[str] = "Transcription"
+    document_default_title: Optional[str] = "Transcription"
+    document_title_template: Optional[str] = (
+        'Réunion "{room}" du {room_recording_date} à {room_recording_time}'
+    )
 
     # Sentry
     sentry_is_enabled: bool = False
