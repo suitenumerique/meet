@@ -315,7 +315,7 @@ def process_audio_transcribe_summarize_v2(
     metadata_manager.track_transcription_metadata(task_id, transcription)
 
     data = {
-        "title": "Transcription",
+        "title": settings.document_title,
         "content": formatted_transcription,
         "email": email,
         "sub": sub,
