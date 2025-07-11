@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Recording unavailable",
-    "body": "This recording could not be found or was deleted."
+    "body": "The recording is unavailable or may have been deleted. Only the meeting organizer can access it. Feel free to contact them if needed."
   },
   "expired": {
     "title": "Recording expired",

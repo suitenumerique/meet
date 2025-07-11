@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Opname niet beschikbaar",
-    "body": "Deze opname is niet gevonden of is verwijderd."
+    "body": "De opname is niet beschikbaar of is mogelijk verwijderd. Alleen de organisator van de vergadering heeft toegang. Neem gerust contact met hem of haar op als dat nodig is."
   },
   "expired": {
     "title": "Opname verlopen",

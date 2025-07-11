@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Enregistrement indisponible",
-    "body": "Cet enregistrement est introuvable ou a été supprimé."
+    "body": "L’enregistrement est introuvable. Seul l’organisateur de la réunion peut y accéder. N’hésitez pas à le contacter si besoin."
   },
   "expired": {
     "title": "Enregistrement expiré",

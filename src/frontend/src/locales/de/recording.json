@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Aufzeichnung nicht verfügbar",
-    "body": "Diese Aufzeichnung konnte nicht gefunden werden oder wurde gelöscht."
+    "body": "Die Aufzeichnung ist nicht verfügbar oder wurde möglicherweise gelöscht. Nur der Organisator der Besprechung hat Zugriff darauf. Wenden Sie sich bei Bedarf gerne an ihn."
   },
   "expired": {
     "title": "Aufzeichnung abgelaufen",
