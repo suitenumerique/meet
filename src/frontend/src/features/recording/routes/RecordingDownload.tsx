@@ -27,11 +27,11 @@ export const RecordingDownload = () => {
     enabled: !!recordingId,
   })
 
-  if (isLoading || !data || isAuthLoading) {
+  if (isLoggedIn === undefined || isAuthLoading) {
     return <LoadingScreen />
   }
 
-  if (!isLoggedIn) {
+  if (isLoggedIn === false && !isAuthLoading) {
     return (
       <ErrorScreen
         title={t('authentication.title')}
@@ -40,7 +40,11 @@ export const RecordingDownload = () => {
     )
   }
 
-  if (isError) {
+  if (isLoading) {
+    return <LoadingScreen />
+  }
+
+  if (isError || !data) {
     return <ErrorScreen title={t('error.title')} body={t('error.body')} />
   }
 
