@@ -1,6 +1,6 @@
 # Installation on a k8s cluster
 
-This document is a step-by-step guide that describes how to install Visio on a k8s cluster without AI features.
+This document is a step-by-step guide that describes how to install LaSuite Meet on a k8s cluster without AI features.
 
 ## Prerequisites for a kubernetes setup
 
@@ -114,7 +114,7 @@ Please remember that \*.127.0.0.1.nip.io will always resolve to 127.0.0.1, excep
 
 ### What will you use to authenticate your users ?
 
-Visio uses OIDC, so if you already have an OIDC provider, obtain the necessary information to use it. In the next step, we will see how to configure Django (and thus Visio) to use it. If you do not have a provider, we will show you how to deploy a local Keycloak instance (this is not a production deployment, just a demo).
+LaSuite Meet uses OIDC, so if you already have an OIDC provider, obtain the necessary information to use it. In the next step, we will see how to configure Django (and thus LaSuite Meet) to use it. If you do not have a provider, we will show you how to deploy a local Keycloak instance (this is not a production deployment, just a demo).
 
 If you haven't run the script **bin/start-kind.sh**, you'll need to manually create the namespace by running the following command:
 
@@ -152,7 +152,7 @@ You can find these values in **examples/keycloak.values.yaml**
 
 ### Find livekit server connexion values
 
-Visio use livekit for streaming part so if you have a livekit provider, obtain the necessary information to use it. If you do not have a provider, you can install a livekit testing environment as follows:
+LaSuite Meet use livekit for streaming part so if you have a livekit provider, obtain the necessary information to use it. If you do not have a provider, you can install a livekit testing environment as follows:
 
 Livekit need a redis (and meet too) so we will start by deploying a redis :
 
@@ -194,7 +194,7 @@ CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
 
 ### Find postgresql connexion values
 
-Visio uses a postgresql db as backend so if you have a provider, obtain the necessary information to use it. If you do not have, you can install a postgresql testing environment as follows:
+LaSuite Meet uses a postgresql db as backend so if you have a provider, obtain the necessary information to use it. If you do not have, you can install a postgresql testing environment as follows:
 
 ```
 $ helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql -f examples/postgresql.values.yaml
@@ -222,7 +222,7 @@ POSTGRES_PASSWORD: pass
 
 ## Deployment
 
-Now you are ready to deploy Visio without AI. AI required more dependencies (Openai-compliant API, LiveKit Egress, Cold storage and a docs deployment to push resumes). To deploy meet you need to provide all previous information to the helm chart.
+Now you are ready to deploy LaSuite Meet without AI. AI required more dependencies (Openai-compliant API, LiveKit Egress, Cold storage and a docs deployment to push resumes). To deploy meet you need to provide all previous information to the helm chart.
 
 ```
 $ helm repo add meet https://suitenumerique.github.io/meet/
@@ -243,7 +243,7 @@ meet                     <none>   meet.127.0.0.1.nip.io       localhost   80, 44
 meet-admin               <none>   meet.127.0.0.1.nip.io       localhost   80, 443   52m
 ```
 
-You can use Visio on https://meet.127.0.0.1.nip.io from the local device. The provisioning user in keycloak is meet/meet.
+You can use LaSuite Meet on https://meet.127.0.0.1.nip.io from the local device. The provisioning user in keycloak is meet/meet.
 
 ## All options
 
