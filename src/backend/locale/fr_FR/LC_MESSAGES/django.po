@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 10:50+0000\n"
+"POT-Creation-Date: 2025-07-11 11:33+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: antoine.lebaud@mail.numerique.gouv.fr\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,15 +29,15 @@ msgstr "Permissions"
 msgid "Important dates"
 msgstr "Dates importantes"
 
-#: core/admin.py:143
+#: core/admin.py:147
 msgid "No owner"
 msgstr "Pas de propriétaire"
 
-#: core/admin.py:146
+#: core/admin.py:150
 msgid "Multiple owners"
 msgstr "Plusieurs propriétaires"
 
-#: core/api/serializers.py:63
+#: core/api/serializers.py:67
 msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr ""
 "Vous devez être administrateur ou propriétaire d'une salle pour y ajouter "
@@ -138,8 +138,8 @@ msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
 msgstr ""
-"Entrez un sub valide. Cette valeur ne peut contenir que des lettres, "
-"des chiffres et les caractères @/./+/-/_."
+"Entrez un sub valide. Cette valeur ne peut contenir que des lettres, des "
+"chiffres et les caractères @/./+/-/_."
 
 #: core/models.py:144
 msgid "sub"
@@ -252,7 +252,8 @@ msgstr "Code PIN de la salle"
 
 #: core/models.py:392
 msgid "Unique n-digit code that identifies this room in telephony mode."
-msgstr "Code unique à n chiffres qui identifie cette salle en mode téléphonique."
+msgstr ""
+"Code unique à n chiffres qui identifie cette salle en mode téléphonique."
 
 #: core/models.py:398 core/models.py:552
 msgid "Room"
@@ -271,9 +272,8 @@ msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
 msgstr ""
-"Entrez un identifiant pour l'enregistrement du Worker. Cet identifiant "
-"est conservé même lorsque le Worker s'arrête, permettant un suivi "
-"facile."
+"Entrez un identifiant pour l'enregistrement du Worker. Cet identifiant est "
+"conservé même lorsque le Worker s'arrête, permettant un suivi facile."
 
 #: core/models.py:573
 msgid "Recording mode"
@@ -367,9 +367,9 @@ msgid "Make sure you have a stable internet connection"
 msgstr "Assurez-vous d'avoir une connexion Internet stable"
 
 #: core/templates/mail/html/invitation.html:248
-#: core/templates/mail/html/screen_recording.html:240
+#: core/templates/mail/html/screen_recording.html:245
 #: core/templates/mail/text/invitation.txt:21
-#: core/templates/mail/text/screen_recording.txt:22
+#: core/templates/mail/text/screen_recording.txt:23
 #, python-format
 msgid " Thank you for using %(brandname)s. "
 msgstr " Merci d'utiliser %(brandname)s. "
@@ -395,33 +395,41 @@ msgstr ""
 msgid " The recording will expire in %(days)s days. "
 msgstr " L'enregistrement expirera dans %(days)s jours. "
 
-#: core/templates/mail/html/screen_recording.html:201
-#: core/templates/mail/text/screen_recording.txt:10
+#: core/templates/mail/html/screen_recording.html:200
+#: core/templates/mail/text/screen_recording.txt:9
+msgid ""
+" Sharing the recording via link is not yet available. Only organizers can "
+"download it. "
+msgstr ""
+"Le partage de l'enregistrement via lien n'est pas encore disponible. Seuls les organisateurs peuvent le télécharger."
+
+#: core/templates/mail/html/screen_recording.html:206
+#: core/templates/mail/text/screen_recording.txt:11
 msgid "To keep this recording permanently:"
 msgstr "Pour conserver cet enregistrement de façon permanente :"
 
-#: core/templates/mail/html/screen_recording.html:203
-#: core/templates/mail/text/screen_recording.txt:12
+#: core/templates/mail/html/screen_recording.html:208
+#: core/templates/mail/text/screen_recording.txt:13
 msgid "Click the \"Open\" button below "
 msgstr "Cliquez sur le bouton \"Ouvrir\" ci-dessous "
 
-#: core/templates/mail/html/screen_recording.html:204
-#: core/templates/mail/text/screen_recording.txt:13
+#: core/templates/mail/html/screen_recording.html:209
+#: core/templates/mail/text/screen_recording.txt:14
 msgid "Use the \"Download\" button in the interface "
 msgstr "Utilisez le bouton \"Télécharger\" dans l'interface "
 
-#: core/templates/mail/html/screen_recording.html:205
-#: core/templates/mail/text/screen_recording.txt:14
+#: core/templates/mail/html/screen_recording.html:210
+#: core/templates/mail/text/screen_recording.txt:15
 msgid "Save the file to your preferred location"
 msgstr "Enregistrez le fichier à l'emplacement de votre choix"
 
-#: core/templates/mail/html/screen_recording.html:216
-#: core/templates/mail/text/screen_recording.txt:16
+#: core/templates/mail/html/screen_recording.html:221
+#: core/templates/mail/text/screen_recording.txt:17
 msgid "Open"
 msgstr "Ouvrir"
 
-#: core/templates/mail/html/screen_recording.html:225
-#: core/templates/mail/text/screen_recording.txt:18
+#: core/templates/mail/html/screen_recording.html:230
+#: core/templates/mail/text/screen_recording.txt:19
 #, python-format
 msgid ""
 " If you have any questions or need assistance, please contact our support "
@@ -430,18 +438,18 @@ msgstr ""
 " Si vous avez des questions ou besoin d'assistance, veuillez contacter notre "
 "équipe d'assistance à %(support_email)s. "
 
-#: meet/settings.py:162
+#: meet/settings.py:163
 msgid "English"
 msgstr "Anglais"
 
-#: meet/settings.py:163
+#: meet/settings.py:164
 msgid "French"
 msgstr "Français"
 
-#: meet/settings.py:164
+#: meet/settings.py:165
 msgid "Dutch"
 msgstr "Néerlandais"
 
-#: meet/settings.py:165
+#: meet/settings.py:166
 msgid "German"
 msgstr "Allemand"

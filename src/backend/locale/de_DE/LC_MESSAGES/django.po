@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 10:50+0000\n"
+"POT-Creation-Date: 2025-07-11 11:33+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,15 +29,15 @@ msgstr "Berechtigungen"
 msgid "Important dates"
 msgstr "Wichtige Daten"
 
-#: core/admin.py:143
+#: core/admin.py:147
 msgid "No owner"
 msgstr "Kein Eigentümer"
 
-#: core/admin.py:146
+#: core/admin.py:150
 msgid "Multiple owners"
 msgstr "Mehrere Eigentümer"
 
-#: core/api/serializers.py:63
+#: core/api/serializers.py:67
 msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr ""
 "Sie müssen Administrator oder Eigentümer eines Raums sein, um Zugriffe "
@@ -251,7 +251,8 @@ msgstr "PIN-Code für den Raum"
 
 #: core/models.py:392
 msgid "Unique n-digit code that identifies this room in telephony mode."
-msgstr "Eindeutiger n-stelliger Code, der diesen Raum im Telephonmodus identifiziert."
+msgstr ""
+"Eindeutiger n-stelliger Code, der diesen Raum im Telephonmodus identifiziert."
 
 #: core/models.py:398 core/models.py:552
 msgid "Room"
@@ -366,9 +367,9 @@ msgid "Make sure you have a stable internet connection"
 msgstr "Stellen Sie sicher, dass Sie eine stabile Internetverbindung haben"
 
 #: core/templates/mail/html/invitation.html:248
-#: core/templates/mail/html/screen_recording.html:240
+#: core/templates/mail/html/screen_recording.html:245
 #: core/templates/mail/text/invitation.txt:21
-#: core/templates/mail/text/screen_recording.txt:22
+#: core/templates/mail/text/screen_recording.txt:23
 #, python-format
 msgid " Thank you for using %(brandname)s. "
 msgstr " Vielen Dank für die Nutzung von %(brandname)s. "
@@ -394,33 +395,41 @@ msgstr ""
 msgid " The recording will expire in %(days)s days. "
 msgstr " Die Aufzeichnung wird in %(days)s Tagen ablaufen. "
 
-#: core/templates/mail/html/screen_recording.html:201
-#: core/templates/mail/text/screen_recording.txt:10
+#: core/templates/mail/html/screen_recording.html:200
+#: core/templates/mail/text/screen_recording.txt:9
+msgid ""
+" Sharing the recording via link is not yet available. Only organizers can "
+"download it. "
+msgstr ""
+" Die Freigabe der Aufzeichnung per Link ist noch nicht verfügbar. Nur Organisatoren können sie herunterladen. "
+
+#: core/templates/mail/html/screen_recording.html:206
+#: core/templates/mail/text/screen_recording.txt:11
 msgid "To keep this recording permanently:"
 msgstr "So speichern Sie diese Aufzeichnung dauerhaft:"
 
-#: core/templates/mail/html/screen_recording.html:203
-#: core/templates/mail/text/screen_recording.txt:12
+#: core/templates/mail/html/screen_recording.html:208
+#: core/templates/mail/text/screen_recording.txt:13
 msgid "Click the \"Open\" button below "
 msgstr "Klicken Sie auf den Button „Öffnen“ unten "
 
-#: core/templates/mail/html/screen_recording.html:204
-#: core/templates/mail/text/screen_recording.txt:13
+#: core/templates/mail/html/screen_recording.html:209
+#: core/templates/mail/text/screen_recording.txt:14
 msgid "Use the \"Download\" button in the interface "
 msgstr "Verwenden Sie den Button „Herunterladen“ in der Oberfläche "
 
-#: core/templates/mail/html/screen_recording.html:205
-#: core/templates/mail/text/screen_recording.txt:14
+#: core/templates/mail/html/screen_recording.html:210
+#: core/templates/mail/text/screen_recording.txt:15
 msgid "Save the file to your preferred location"
 msgstr "Speichern Sie die Datei an einem gewünschten Ort"
 
-#: core/templates/mail/html/screen_recording.html:216
-#: core/templates/mail/text/screen_recording.txt:16
+#: core/templates/mail/html/screen_recording.html:221
+#: core/templates/mail/text/screen_recording.txt:17
 msgid "Open"
 msgstr "Öffnen"
 
-#: core/templates/mail/html/screen_recording.html:225
-#: core/templates/mail/text/screen_recording.txt:18
+#: core/templates/mail/html/screen_recording.html:230
+#: core/templates/mail/text/screen_recording.txt:19
 #, python-format
 msgid ""
 " If you have any questions or need assistance, please contact our support "
@@ -429,18 +438,18 @@ msgstr ""
 " Wenn Sie Fragen haben oder Unterstützung benötigen, wenden Sie sich bitte "
 "an unser Support-Team unter %(support_email)s. "
 
-#: meet/settings.py:162
+#: meet/settings.py:163
 msgid "English"
 msgstr "Englisch"
 
-#: meet/settings.py:163
+#: meet/settings.py:164
 msgid "French"
 msgstr "Französisch"
 
-#: meet/settings.py:164
+#: meet/settings.py:165
 msgid "Dutch"
 msgstr "Niederländisch"
 
-#: meet/settings.py:165
+#: meet/settings.py:166
 msgid "German"
 msgstr "Deutsch"

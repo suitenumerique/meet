@@ -30,6 +30,11 @@
             {% endif %}
           </mj-text>
           <mj-text>
+            {% blocktrans %}
+            Sharing the recording via link is not yet available. Only organizers can download it.
+            {% endblocktrans %}
+          </mj-text>
+          <mj-text>
             <p>{% trans "To keep this recording permanently:" %}</p>
             <ol>
               <li>{% blocktrans %}Click the "Open" button below {% endblocktrans %}</li>
