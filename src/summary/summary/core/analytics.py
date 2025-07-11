@@ -70,11 +70,11 @@ class TasksTracker:
         return f"{self._key_prefix}{task_id}"
 
     def _save_metadata(self, task_id, metadata):
-        """Wip."""
+        """Save metadata for a specific task to Redis."""
         self._redis.hset(self._get_redis_key(task_id), mapping=metadata)
 
     def _get_metadata(self, task_id):
-        """Wip."""
+        """Retrieve and parse metadata for a specific task from Redis."""
         raw_metadata = self._redis.hgetall(self._get_redis_key(task_id))
         return {k.decode("utf-8"): v.decode("utf-8") for k, v in raw_metadata.items()}
 
