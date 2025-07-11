@@ -19,6 +19,10 @@
     "title": "Votre enregistrement est prêt !",
     "body": "Enregistrement de la réunion <b>{{room}}</b> du {{created_at}}.",
     "expiration": "Attention cet enregistrement expirera au bout de {{expiration_days}} jour(s).",
-    "button": "Télécharger"
+    "button": "Télécharger",
+    "warning": {
+      "title": "Partage via lien désactivé",
+      "body": "Le partage de l'enregistrement via lien n'est pas encore disponible. Seuls les organisateurs peuvent le télécharger."
+    }
   }
 }

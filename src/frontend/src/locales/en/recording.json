@@ -19,6 +19,10 @@
     "title": "Your recording is ready!",
     "body": "Recording of the meeting <b>{{room}}</b> from {{created_at}}.",
     "expiration": "Attention, this recording will expire after {{expiration_days}} day(s).",
-    "button": "Download"
+    "button": "Download",
+    "warning": {
+      "title": "Link sharing disabled",
+      "body": "Sharing the recording via link is not yet available. Only organizers can download it."
+    }
   }
 }

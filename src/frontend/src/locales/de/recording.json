@@ -19,6 +19,10 @@
     "title": "Ihre Aufzeichnung ist bereit!",
     "body": "Aufzeichnung des Treffens <b>{{room}}</b> vom {{created_at}}.",
     "expiration": "Achtung, diese Aufzeichnung wird nach {{expiration_days}} Tag(en) gelöscht.",
-    "button": "Herunterladen"
+    "button": "Herunterladen",
+    "warning": {
+      "title": "Linkfreigabe deaktiviert",
+      "body": "Die Freigabe der Aufzeichnung per Link ist noch nicht verfügbar. Nur Organisatoren können sie herunterladen."
+    }
   }
 }

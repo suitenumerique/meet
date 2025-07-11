@@ -19,6 +19,10 @@
     "title": "Je opname is klaar!",
     "body": "Opname van de vergadering <b>{{room}}</b> op {{created_at}}.",
     "expiration": "Let op, deze opname verloopt na {{expiration_days}} dag(en).",
-    "button": "Downloaden"
+    "button": "Downloaden",
+    "warning": {
+      "title": "Delen via link uitgeschakeld",
+      "body": "Het delen van de opname via een link is nog niet beschikbaar. Alleen organisatoren kunnen deze downloaden."
+    }
   }
 }
