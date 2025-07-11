@@ -134,6 +134,8 @@ keycloak-0              1/1     Running   0          6m48s
 keycloak-postgresql-0   1/1     Running   0          6m48s
 ```
 
+In your OIDC provider, set LaSuite Meet's redirect URI to `https://.../api/v1.0/callback/` where `...` should be replaced with the domain name LaSuite Meet is hosted on.
+
 From here the important information you will need are :
 
 ```
