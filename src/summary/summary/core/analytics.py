@@ -55,8 +55,8 @@ def get_analytics():
     return Analytics()
 
 
-class TasksTracker:
-    """Tracks task execution metadata and analytics for background tasks."""
+class MetadataManager:
+    """A Redis-based metadata manager for storing and retrieving task metadata."""
 
     def __init__(self):
         """Initialize the task tracker with analytics client."""
