@@ -41,6 +41,7 @@ def get_frontend_configuration(request):
             "is_enabled": settings.RECORDING_ENABLE,
             "available_modes": settings.RECORDING_WORKER_CLASSES.keys(),
             "expiration_days": settings.RECORDING_EXPIRATION_DAYS,
+            "max_duration": settings.RECORDING_MAX_DURATION,
         },
         "telephony": {
             "enabled": settings.ROOM_TELEPHONY_ENABLED,
