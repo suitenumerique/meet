@@ -37,7 +37,7 @@ def test_request_entry_anonymous(settings):
     assert not lobby_keys
 
     with (
-        mock.patch.object(LobbyService, "notify_participants", return_value=None),
+        mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(utils, "generate_color", return_value="mocked-color"),
     ):
         response = client.post(
@@ -86,7 +86,7 @@ def test_request_entry_authenticated_user(settings):
     assert not lobby_keys
 
     with (
-        mock.patch.object(LobbyService, "notify_participants", return_value=None),
+        mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(utils, "generate_color", return_value="mocked-color"),
     ):
         response = client.post(
@@ -156,7 +156,7 @@ def test_request_entry_with_existing_participants(settings):
 
     # Mock external service calls to isolate the test
     with (
-        mock.patch.object(LobbyService, "notify_participants", return_value=None),
+        mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(utils, "generate_color", return_value="mocked-color"),
     ):
         # Make request as a new anonymous user
@@ -205,7 +205,7 @@ def test_request_entry_public_room(settings):
     assert not lobby_keys
 
     with (
-        mock.patch.object(LobbyService, "notify_participants", return_value=None),
+        mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(
             LobbyService, "_get_or_create_participant_id", return_value="123"
         ),
@@ -255,7 +255,7 @@ def test_request_entry_authenticated_user_public_room(settings):
     assert not lobby_keys
 
     with (
-        mock.patch.object(LobbyService, "notify_participants", return_value=None),
+        mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(
             LobbyService,
             "_get_or_create_participant_id",
@@ -315,7 +315,7 @@ def test_request_entry_waiting_participant_public_room(settings):
     client.cookies.load({"mocked-cookie": "2f7f162fe7d1421b90e702bfbfbf8def"})
 
     with (
-        mock.patch.object(LobbyService, "notify_participants", return_value=None),
+        mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(
             utils, "generate_livekit_config", return_value={"token": "test-token"}
         ),
