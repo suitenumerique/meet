@@ -29,6 +29,7 @@ export interface ApiConfig {
     is_enabled?: boolean
     available_modes?: RecordingMode[]
     expiration_days?: number
+    max_duration?: number
   }
   telephony: {
     enabled: boolean
