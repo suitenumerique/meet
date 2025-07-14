@@ -1,6 +1,5 @@
 """Lobby Service"""
 
-import json
 import logging
 import uuid
 from dataclasses import dataclass
@@ -10,13 +9,6 @@ from uuid import UUID
 
 from django.conf import settings
 from django.core.cache import cache
-
-from asgiref.sync import async_to_sync
-from livekit.api import (  # pylint: disable=E0611
-    ListRoomsRequest,
-    SendDataRequest,
-    TwirpError,
-)
 
 from core import models, utils
 
@@ -44,10 +36,6 @@ class LobbyParticipantParsingError(LobbyError):
 
 class LobbyParticipantNotFound(LobbyError):
     """Raised when participant is not found."""
-
-
-class LobbyNotificationError(LobbyError):
-    """Raised when LiveKit notification fails."""
 
 
 @dataclass
@@ -211,9 +199,6 @@ class LobbyService:
 
         Create a new participant entry in waiting status and notify room
         participants of the new entry request.
-
-        Raises:
-            LobbyNotificationError: If room notification fails
         """
 
         color = utils.generate_color(participant_id)
@@ -226,10 +211,15 @@ class LobbyService:
         )
 
         try:
-            self.notify_participants(room_id=room_id)
-        except LobbyNotificationError:
+            utils.notify_participants(
+                room_name=room_id,
+                notification_data={
+                    "type": settings.LOBBY_NOTIFICATION_TYPE,
+                },
+            )
+        except utils.NotificationError:
             # If room not created yet, there is no participants to notify
-            pass
+            logger.exception("Failed to notify room participants")
 
         cache_key = self._get_cache_key(room_id, participant_id)
         cache.set(
@@ -333,44 +323,6 @@ class LobbyService:
 
         participant.status = status
         cache.set(cache_key, participant.to_dict(), timeout=timeout)
-
-    @async_to_sync
-    async def notify_participants(self, room_id: UUID):
-        """Notify room participants about a new waiting participant using LiveKit.
-
-        Raises:
-            LobbyNotificationError: If notification fails to send
-        """
-
-        notification_data = {
-            "type": settings.LOBBY_NOTIFICATION_TYPE,
-        }
-
-        lkapi = utils.create_livekit_client()
-
-        try:
-            room_response = await lkapi.room.list_rooms(
-                ListRoomsRequest(
-                    names=[str(room_id)],
-                )
-            )
-
-            # Check if the room exists
-            if not room_response.rooms:
-                return
-
-            await lkapi.room.send_data(
-                SendDataRequest(
-                    room=str(room_id),
-                    data=json.dumps(notification_data).encode("utf-8"),
-                    kind="RELIABLE",
-                )
-            )
-        except TwirpError as e:
-            logger.exception("Failed to notify room participants")
-            raise LobbyNotificationError("Failed to notify room participants") from e
-        finally:
-            await lkapi.aclose()
 
     def clear_room_cache(self, room_id: UUID) -> None:
         """Clear all participant entries from the cache for a specific room."""
