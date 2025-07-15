@@ -1,5 +1,7 @@
 """LiveKit Events Service"""
 
+# pylint: disable=E1101
+
 import uuid
 from enum import Enum
 from logging import getLogger
@@ -9,6 +11,10 @@ from django.conf import settings
 from livekit import api
 
 from core import models
+from core.recording.services.recording_events import (
+    RecordingEventsError,
+    RecordingEventsService,
+)
 
 from .lobby import LobbyService
 from .telephony import TelephonyException, TelephonyService
@@ -84,6 +90,7 @@ class LiveKitEventsService:
         self.webhook_receiver = api.WebhookReceiver(token_verifier)
         self.lobby_service = LobbyService()
         self.telephony_service = TelephonyService()
+        self.recording_events = RecordingEventsService()
 
     def receive(self, request):
         """Process webhook and route to appropriate handler."""
@@ -114,6 +121,29 @@ class LiveKitEventsService:
 
         # pylint: disable=not-callable
         handler(data)
+
+    def _handle_egress_ended(self, data):
+        """Handle 'egress_ended' event."""
+
+        try:
+            recording = models.Recording.objects.get(
+                worker_id=data.egress_info.egress_id
+            )
+        except models.Recording.DoesNotExist as err:
+            raise ActionFailedError(
+                f"Recording with worker ID {data.egress_info.egress_id} does not exist"
+            ) from err
+
+        if (
+            data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            try:
+                self.recording_events.handle_limit_reached(recording)
+            except RecordingEventsError as e:
+                raise ActionFailedError(
+                    f"Failed to process limit reached event for recording {recording}"
+                ) from e
 
     def _handle_room_started(self, data):
         """Handle 'room_started' event."""
