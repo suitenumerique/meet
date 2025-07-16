@@ -10,6 +10,9 @@ export function ToastMuted({ state, ...props }: ToastProps) {
   const ref = useRef(null)
   const { toastProps, contentProps } = useToast(props, state, ref)
   const participant = props.toast.content.participant
+
+  if (!participant) return
+
   return (
     <StyledToastContainer {...toastProps} ref={ref}>
       <HStack

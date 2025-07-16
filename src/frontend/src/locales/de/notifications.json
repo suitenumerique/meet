@@ -24,11 +24,13 @@
   },
   "transcript": {
     "started": "{{name}} hat die Transkription des Treffens gestartet.",
-    "stopped": "{{name}} hat die Transkription des Treffens gestoppt."
+    "stopped": "{{name}} hat die Transkription des Treffens gestoppt.",
+    "limitReached": "Die Transkription hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert."
   },
   "screenRecording": {
     "started": "{{name}} hat die Aufzeichnung des Treffens gestartet.",
-    "stopped": "{{name}} hat die Aufzeichnung des Treffens gestoppt."
+    "stopped": "{{name}} hat die Aufzeichnung des Treffens gestoppt.",
+    "limitReached": "Die Aufzeichnung hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert."
   },
   "recordingSave": {
     "transcript": {

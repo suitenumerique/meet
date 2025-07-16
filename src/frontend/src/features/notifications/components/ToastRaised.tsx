@@ -20,6 +20,8 @@ export function ToastRaised({ state, ...props }: ToastProps) {
   const participant = props.toast.content.participant
   const { isParticipantsOpen, toggleParticipants } = useSidePanel()
 
+  if (!participant) return
+
   return (
     <StyledToastContainer {...toastProps} ref={ref}>
       <HStack

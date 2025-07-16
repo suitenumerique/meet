@@ -24,11 +24,13 @@
   },
   "transcript": {
     "started": "{{name}} a démarré la transcription de la réunion.",
-    "stopped": "{{name}} a arrêté la transcription de la réunion."
+    "stopped": "{{name}} a arrêté la transcription de la réunion.",
+    "limitReached": "La transcription a dépassé la durée maximale autorisée, elle va être automatiquement sauvegardée."
   },
   "screenRecording": {
     "started": "{{name}} a démarré l'enregistrement de la réunion.",
-    "stopped": "{{name}} a arrêté l'enregistrement de la réunion."
+    "stopped": "{{name}} a arrêté l'enregistrement de la réunion.",
+    "limitReached": "L'enregistrement a dépassé la durée maximale autorisée, il va être automatiquement sauvegardé."
   },
   "recordingSave": {
     "transcript": {
