@@ -19,10 +19,14 @@ export function ToastAnyRecording({ state, ...props }: ToastProps) {
         return 'transcript.started'
       case NotificationType.TranscriptionStopped:
         return 'transcript.stopped'
+      case NotificationType.TranscriptionLimitReached:
+        return 'transcript.limitReached'
       case NotificationType.ScreenRecordingStarted:
         return 'screenRecording.started'
       case NotificationType.ScreenRecordingStopped:
         return 'screenRecording.stopped'
+      case NotificationType.ScreenRecordingLimitReached:
+        return 'screenRecording.limitReached'
       default:
         return
     }
@@ -40,7 +44,7 @@ export function ToastAnyRecording({ state, ...props }: ToastProps) {
         gap={0}
       >
         {t(key, {
-          name: participant.name,
+          name: participant?.name,
         })}
       </HStack>
     </StyledToastContainer>

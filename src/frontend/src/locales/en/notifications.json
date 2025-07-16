@@ -24,11 +24,13 @@
   },
   "transcript": {
     "started": "{{name}} started the meeting transcription.",
-    "stopped": "{{name}} stopped the meeting transcription."
+    "stopped": "{{name}} stopped the meeting transcription.",
+    "limitReached": "The transcription has exceeded the maximum allowed duration and will be automatically saved."
   },
   "screenRecording": {
     "started": "{{name}} started the meeting recording.",
-    "stopped": "{{name}} stopped the meeting recording."
+    "stopped": "{{name}} stopped the meeting recording.",
+    "limitReached": "The recording has exceeded the maximum allowed duration and will be automatically saved."
   },
   "recordingSave": {
     "transcript": {

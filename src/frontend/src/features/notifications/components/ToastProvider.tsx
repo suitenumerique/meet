@@ -5,7 +5,7 @@ import { Participant } from 'livekit-client'
 import { NotificationType } from '../NotificationType'
 
 export interface ToastData {
-  participant: Participant
+  participant?: Participant
   type: NotificationType
   message?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

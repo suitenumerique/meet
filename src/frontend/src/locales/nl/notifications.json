@@ -24,11 +24,13 @@
   },
   "transcript": {
     "started": "{{name}} is de transcriptie van de vergadering gestart.",
-    "stopped": "{{name}} heeft de transcriptie van de vergadering gestopt."
+    "stopped": "{{name}} heeft de transcriptie van de vergadering gestopt.",
+    "limitReached": "De transcriptie heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen."
   },
   "screenRecording": {
     "started": "{{name}} is begonnen met het opnemen van de vergadering.",
-    "stopped": "{{name}} is gestopt met het opnemen van de vergadering."
+    "stopped": "{{name}} is gestopt met het opnemen van de vergadering.",
+    "limitReached": "De opname heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen."
   },
   "recordingSave": {
     "transcript": {

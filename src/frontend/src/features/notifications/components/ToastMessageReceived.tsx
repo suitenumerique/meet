@@ -27,7 +27,7 @@ export function ToastMessageReceived({ state, ...props }: ToastProps) {
     }
   }, [isChatOpen, toast, state])
 
-  if (isChatOpen) return null
+  if (isChatOpen || !participant) return null
 
   return (
     <StyledToastContainer {...toastProps} ref={ref}>

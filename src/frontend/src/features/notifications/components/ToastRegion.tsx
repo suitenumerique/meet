@@ -40,8 +40,10 @@ const renderToast = (
 
     case NotificationType.TranscriptionStarted:
     case NotificationType.TranscriptionStopped:
+    case NotificationType.TranscriptionLimitReached:
     case NotificationType.ScreenRecordingStarted:
     case NotificationType.ScreenRecordingStopped:
+    case NotificationType.ScreenRecordingLimitReached:
       return <ToastAnyRecording key={toast.key} toast={toast} state={state} />
 
     case NotificationType.RecordingSaving:

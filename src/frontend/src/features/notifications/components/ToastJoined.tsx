@@ -29,6 +29,9 @@ export function ToastJoined({ state, ...props }: ToastProps) {
   )
   const layoutContext = useMaybeLayoutContext()
   const participant = props.toast.content.participant
+
+  if (!participant) return
+
   const trackReference = {
     participant,
     publication: participant.getTrackPublication(Source.Camera),

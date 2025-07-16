@@ -72,29 +72,33 @@ export const MainNotificationToast = () => {
     ) => {
       const notification = decodeNotificationDataReceived(payload)
 
-      if (!participant || !notification) return
+      if (!notification) return
 
       switch (notification.type) {
         case NotificationType.ParticipantMuted:
-          toastQueue.add(
-            {
-              participant,
-              type: NotificationType.ParticipantMuted,
-            },
-            { timeout: NotificationDuration.ALERT }
-          )
+          if (participant) {
+            toastQueue.add(
+              {
+                participant,
+                type: NotificationType.ParticipantMuted,
+              },
+              { timeout: NotificationDuration.ALERT }
+            )
+          }
+
           break
         case NotificationType.ReactionReceived:
-          if (notification.data?.emoji)
+          if (notification.data?.emoji && participant)
             handleEmoji(notification.data.emoji, participant)
           break
         case NotificationType.TranscriptionStarted:
         case NotificationType.TranscriptionStopped:
         case NotificationType.ScreenRecordingStarted:
         case NotificationType.ScreenRecordingStopped:
+        case NotificationType.TranscriptionLimitReached:
+        case NotificationType.ScreenRecordingLimitReached:
           toastQueue.add(
             {
-              participant,
               type: notification.type,
             },
             { timeout: NotificationDuration.ALERT }
