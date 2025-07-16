@@ -1,11 +1,11 @@
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
-import { useSnapshot } from 'valtio/index'
+import { useSnapshot } from 'valtio'
 import { useRoomContext } from '@livekit/components-react'
 import { Spinner } from '@/primitives/Spinner'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Text } from '@/primitives'
-import { RemoteParticipant, RoomEvent } from 'livekit-client'
+import { RoomEvent } from 'livekit-client'
 import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
@@ -18,14 +18,18 @@ import {
 import { FeatureFlags } from '@/features/analytics/enums'
 import { Button as RACButton } from 'react-aria-components'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
+import { LimitReachedAlertDialog } from './LimitReachedAlertDialog'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
     keyPrefix: 'recordingStateToast',
   })
   const room = useRoomContext()
+  const isAdminOrOwner = useIsAdminOrOwner()
 
   const { openTranscript, openScreenRecording } = useSidePanel()
+  const [isAlertOpen, setIsAlertOpen] = useState(false)
 
   const recordingSnap = useSnapshot(recordingStore)
 
@@ -53,13 +57,10 @@ export const RecordingStateToast = () => {
   }, [room.isRecording])
 
   useEffect(() => {
-    const handleDataReceived = (
-      payload: Uint8Array,
-      participant?: RemoteParticipant
-    ) => {
+    const handleDataReceived = (payload: Uint8Array) => {
       const notification = decodeNotificationDataReceived(payload)
 
-      if (!participant || !notification) return
+      if (!notification) return
 
       switch (notification.type) {
         case NotificationType.TranscriptionStarted:
@@ -68,10 +69,18 @@ export const RecordingStateToast = () => {
         case NotificationType.TranscriptionStopped:
           recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
           break
+        case NotificationType.TranscriptionLimitReached:
+          if (isAdminOrOwner) setIsAlertOpen(true)
+          recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
+          break
         case NotificationType.ScreenRecordingStarted:
           recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTING
           break
         case NotificationType.ScreenRecordingStopped:
+          recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
+          break
+        case NotificationType.ScreenRecordingLimitReached:
+          if (isAdminOrOwner) setIsAlertOpen(true)
           recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
           break
         default:
@@ -100,7 +109,7 @@ export const RecordingStateToast = () => {
       room.off(RoomEvent.DataReceived, handleDataReceived)
       room.off(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
     }
-  }, [room, recordingSnap])
+  }, [room, recordingSnap, setIsAlertOpen, isAdminOrOwner])
 
   const key = useMemo(() => {
     switch (recordingSnap.status) {
@@ -119,7 +128,14 @@ export const RecordingStateToast = () => {
     }
   }, [recordingSnap])
 
-  if (!key) return
+  if (!key)
+    return isAdminOrOwner ? (
+      <LimitReachedAlertDialog
+        isOpen={isAlertOpen}
+        onClose={() => setIsAlertOpen(false)}
+        aria-label="Recording limit exceeded"
+      />
+    ) : null
 
   const isStarted = key?.includes('started')
 

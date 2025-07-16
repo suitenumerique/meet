@@ -379,6 +379,12 @@
     },
     "any": {
       "started": "Aufzeichnung läuft"
+    },
+    "limitReachedAlert": {
+      "title": "Aufnahmelimit überschritten",
+      "description": "Die Aufnahme hat die zulässige Höchstdauer{{duration_message}} überschritten. Sie wird jetzt automatisch gespeichert.",
+      "durationMessage": " von {{duration}}",
+      "button": "OK"
     }
   },
   "participantTileFocus": {

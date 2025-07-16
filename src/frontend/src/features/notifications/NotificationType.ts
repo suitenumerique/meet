@@ -8,7 +8,9 @@ export enum NotificationType {
   ParticipantWaiting = 'participantWaiting',
   TranscriptionStarted = 'transcriptionStarted',
   TranscriptionStopped = 'transcriptionStopped',
+  TranscriptionLimitReached = 'transcriptionLimitReached',
   ScreenRecordingStarted = 'screenRecordingStarted',
   ScreenRecordingStopped = 'screenRecordingStopped',
+  ScreenRecordingLimitReached = 'screenRecordingLimitReached',
   RecordingSaving = 'recordingSaving',
 }

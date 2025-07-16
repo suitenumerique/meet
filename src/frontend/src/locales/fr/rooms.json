@@ -379,6 +379,12 @@
     },
     "any": {
       "started": "Enregistrement en cours"
+    },
+    "limitReachedAlert": {
+      "title": "Limite d'enregistrement dépassée",
+      "description": "L'enregistrement a dépassé la durée maximale autorisée{{duration_message}}. Il va maintenant être automatiquement sauvegardé.",
+      "durationMessage": " de {{duration}}",
+      "button": "OK"
     }
   },
   "participantTileFocus": {

@@ -379,6 +379,12 @@
     },
     "any": {
       "started": "Recording in progress"
+    },
+    "limitReachedAlert": {
+      "title": "Recording limit exceeded",
+      "description": "The recording has exceeded the maximum allowed duration{{duration_message}}. It will now be saved automatically.",
+      "durationMessage": " of {{duration}}",
+      "button": "OK"
     }
   },
   "participantTileFocus": {
