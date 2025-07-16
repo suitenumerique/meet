@@ -379,6 +379,12 @@
     },
     "any": {
       "started": "Opname bezig"
+    },
+    "limitReachedAlert": {
+      "title": "Opnamelimiet overschreden",
+      "description": "De opname heeft de maximaal toegestane duur{{duration_message}} overschreden. Deze wordt nu automatisch opgeslagen.",
+      "durationMessage": " van {{duration}}",
+      "button": "OK"
     }
   },
   "participantTileFocus": {
