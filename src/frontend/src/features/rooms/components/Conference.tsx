@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { LiveKitRoom } from '@livekit/components-react'
-import { DisconnectReason, Room, RoomOptions } from 'livekit-client'
+import {
+  DisconnectReason,
+  MediaDeviceFailure,
+  Room,
+  RoomOptions,
+} from 'livekit-client'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -18,6 +23,7 @@ import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
 import { navigateTo } from '@/navigation/navigateTo'
+import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
 
 export const Conference = ({
   roomId,
@@ -86,6 +92,13 @@ export const Conference = ({
   const room = useMemo(() => new Room(roomOptions), [roomOptions])
 
   const [showInviteDialog, setShowInviteDialog] = useState(mode === 'create')
+  const [mediaDeviceError, setMediaDeviceError] = useState<{
+    error: MediaDeviceFailure | null
+    kind: MediaDeviceKind | null
+  }>({
+    error: null,
+    kind: null,
+  })
 
   const { t } = useTranslation('rooms')
   if (isCreateError) {
@@ -132,6 +145,11 @@ export const Conference = ({
               navigateTo('feedback', { duplicateIdentity: true })
             }
           }}
+          onMediaDeviceFailure={(e, kind) => {
+            if (e == MediaDeviceFailure.DeviceInUse && !!kind) {
+              setMediaDeviceError({ error: e, kind })
+            }
+          }}
         >
           <VideoConference />
           {showInviteDialog && (
@@ -142,6 +160,10 @@ export const Conference = ({
               onClose={() => setShowInviteDialog(false)}
             />
           )}
+          <MediaDeviceErrorAlert
+            {...mediaDeviceError}
+            onClose={() => setMediaDeviceError({ error: null, kind: null })}
+          />
         </LiveKitRoom>
       </Screen>
     </QueryAware>

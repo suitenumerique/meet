@@ -60,6 +60,19 @@
     "description": "Partagez ce lien avec les personnes que vous souhaitez inviter à la réunion.",
     "permissions": "Les personnes disposant de ce lien n'ont pas besoin de votre autorisation pour rejoindre cette réunion."
   },
+  "mediaErrorDialog": {
+    "DeviceInUse": {
+      "title": {
+        "audioinput": "Activation microphone impossible",
+        "videoinput": "Activation caméra impossible"
+      },
+      "body": {
+        "audioinput": "Votre microphone est déjà utilisé dans un autre onglet ou une autre application, ce qui empêche son activation dans cette visioconférence. Si vous le souhaitez, fermez l'autre onglet ou application pour l'utiliser ici.",
+        "videoinput": "Votre caméra est déjà utilisée dans un autre onglet ou une autre application, ce qui empêche son activation dans cette visioconférence. Si vous le souhaitez, fermez l'autre onglet ou application pour l'utiliser ici."
+      }
+    },
+    "close": "OK"
+  },
   "error": {
     "createRoom": {
       "heading": "Authentification requise",

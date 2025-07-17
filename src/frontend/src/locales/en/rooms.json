@@ -60,6 +60,19 @@
     "description": "Share this link with people you want to invite to the meeting.",
     "permissions": "People with this link do not need your permission to join this meeting."
   },
+  "mediaErrorDialog": {
+    "DeviceInUse": {
+      "title": {
+        "audioinput": "Microphone Activation Failed",
+        "videoinput": "Camera Activation Failed"
+      },
+      "body": {
+        "audioinput": "Your microphone is already in use by another tab or application, which prevents it from being activated in this video call. If you wish, close the other tab or application to use it here.",
+        "videoinput": "Your camera is already in use by another tab or application, which prevents it from being activated in this video call. If you wish, close the other tab or application to use it here."
+      }
+    },
+    "close": "OK"
+  },
   "error": {
     "createRoom": {
       "heading": "Authentication Required",
