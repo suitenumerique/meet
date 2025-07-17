@@ -128,6 +128,8 @@ export const Conference = ({
           onDisconnected={(e) => {
             if (e == DisconnectReason.CLIENT_INITIATED) {
               navigateTo('feedback')
+            } else if (e == DisconnectReason.DUPLICATE_IDENTITY) {
+              navigateTo('feedback', { duplicateIdentity: true })
             }
           }}
         >

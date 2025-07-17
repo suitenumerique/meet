@@ -1,6 +1,9 @@
 {
   "feedback": {
-    "heading": "Vous avez quitté la réunion",
+    "heading": {
+      "normal": "Vous avez quitté la réunion",
+      "duplicateIdentity": "Vous avez rejoint la réunion depuis un autre appareil"
+    },
     "home": "Retourner à l'accueil",
     "back": "Réintégrer la réunion"
   },
