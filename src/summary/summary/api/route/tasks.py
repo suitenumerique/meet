@@ -36,14 +36,16 @@ async def create_task(request: TaskCreation):
             request.filename, request.email, request.sub
         )
     else:
-        task = process_audio_transcribe_summarize_v2.delay(
-            request.filename,
-            request.email,
-            request.sub,
-            time.time(),
-            request.room,
-            request.recording_date,
-            request.recording_time,
+        task = process_audio_transcribe_summarize_v2.apply_async(
+            args=[
+                request.filename,
+                request.email,
+                request.sub,
+                time.time(),
+                request.room,
+                request.recording_date,
+                request.recording_time,
+            ]
         )
 
     return {"id": task.id, "message": "Task created"}
