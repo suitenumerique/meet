@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { LiveKitRoom } from '@livekit/components-react'
-import { Room, RoomOptions } from 'livekit-client'
+import { DisconnectReason, Room, RoomOptions } from 'livekit-client'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -17,6 +17,7 @@ import posthog from 'posthog-js'
 import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
+import { navigateTo } from '@/navigation/navigateTo'
 
 export const Conference = ({
   roomId,
@@ -124,6 +125,11 @@ export const Conference = ({
           className={css({
             backgroundColor: 'primaryDark.50 !important',
           })}
+          onDisconnected={(e) => {
+            if (e == DisconnectReason.CLIENT_INITIATED) {
+              navigateTo('feedback')
+            }
+          }}
         >
           <VideoConference />
           {showInviteDialog && (
