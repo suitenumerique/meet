@@ -60,6 +60,19 @@
     "description": "Teilen Sie diesen Link mit Personen, die Sie zum Meeting einladen möchten.",
     "permissions": "Personen mit diesem Link benötigen keine Erlaubnis, um diesem Meeting beizutreten."
   },
+  "mediaErrorDialog": {
+    "DeviceInUse": {
+      "title": {
+        "audioinput": "Mikrofon konnte nicht aktiviert werden",
+        "videoinput": "Kamera konnte nicht aktiviert werden"
+      },
+      "body": {
+        "audioinput": "Ihr Mikrofon wird bereits in einem anderen Tab oder von einer anderen Anwendung verwendet, was die Aktivierung in diesem Videoanruf verhindert. Wenn Sie möchten, schließen Sie den anderen Tab oder die Anwendung, um es hier zu verwenden.",
+        "videoinput": "Ihre Kamera wird bereits in einem anderen Tab oder von einer anderen Anwendung verwendet, was die Aktivierung in diesem Videoanruf verhindert. Wenn Sie möchten, schließen Sie den anderen Tab oder die Anwendung, um sie hier zu verwenden."
+      }
+    },
+    "close": "OK"
+  },
   "error": {
     "createRoom": {
       "heading": "Authentifizierung erforderlich",

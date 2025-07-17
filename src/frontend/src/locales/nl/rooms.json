@@ -60,6 +60,19 @@
     "description": "Deel deze link met mensen die u wilt uitnodigen voor de vergadering.",
     "permissions": "Mensen met deze link hebben uw toestemming niet nodig om deel te nemen aan deze vergadering."
   },
+  "mediaErrorDialog": {
+    "DeviceInUse": {
+      "title": {
+        "audioinput": "Microfoon activeren mislukt",
+        "videoinput": "Camera activeren mislukt"
+      },
+      "body": {
+        "audioinput": "Je microfoon wordt al gebruikt door een ander tabblad of een andere toepassing, waardoor deze niet geactiveerd kan worden in dit videogesprek. Sluit indien gewenst het andere tabblad of de toepassing om je microfoon hier te gebruiken.",
+        "videoinput": "Je camera wordt al gebruikt door een ander tabblad of een andere toepassing, waardoor deze niet geactiveerd kan worden in dit videogesprek. Sluit indien gewenst het andere tabblad of de toepassing om je camera hier te gebruiken."
+      }
+    },
+    "close": "OK"
+  },
   "error": {
     "createRoom": {
       "heading": "Verificatie vereist",
