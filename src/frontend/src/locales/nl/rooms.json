@@ -1,6 +1,9 @@
 {
   "feedback": {
-    "heading": "Je hebt de vergadering verlaten",
+    "heading": {
+      "normal": "Je hebt de vergadering verlaten",
+      "duplicateIdentity": "U heeft de vergadering via een ander apparaat geopend"
+    },
     "home": "Keer terug naar het hoofdscherm",
     "back": "Sluit weer bij de vergadering aan"
   },
