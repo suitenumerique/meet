@@ -174,7 +174,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
       </RowWrapper>
       {/* Safari has a known limitation where its implementation of 'enumerateDevices' does not include audio output devices.
         To prevent errors or an empty selection list, we only render the speakers selection field on non-Safari browsers. */}
-      {!isSafari() && (
+      {!isSafari() ? (
         <RowWrapper heading={t('audio.speakers.heading')}>
           <Field
             type="select"
@@ -192,6 +192,13 @@ export const AudioTab = ({ id }: AudioTabProps) => {
             }}
           />
           <SoundTester />
+        </RowWrapper>
+      ) : (
+        <RowWrapper heading={t('audio.speakers.heading')}>
+          <span style={{ color: '#b00', fontSize: '0.95em' }}>
+            {t('audio.speakers.safariWarning')}
+          </span>
+          <div />
         </RowWrapper>
       )}
       {noiseReductionAvailable && (
