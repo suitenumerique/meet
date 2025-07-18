@@ -14,7 +14,6 @@ import { AccountTab } from './tabs/AccountTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
 import { GeneralTab } from './tabs/GeneralTab'
 import { AudioTab } from './tabs/AudioTab'
-import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 
