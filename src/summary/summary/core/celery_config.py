@@ -1,8 +1,9 @@
+"""Celery Config."""
 
 # https://github.com/danihodovic/celery-exporter
 # Enable task events for Prometheus monitoring via celery-exporter.
 
-# worker_send_task_events: Sends task lifecycle events (e.g., started, succeeded, failed),
+# worker_send_task_events: Sends task lifecycle events (e.g., started, succeeded),
 # allowing the exporter to track task execution metrics and durations.
 worker_send_task_events = True
 

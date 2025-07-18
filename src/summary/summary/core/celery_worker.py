@@ -37,7 +37,7 @@ celery = Celery(
     broker_connection_retry_on_startup=True,
 )
 
-celery.config_from_object('summary.core.celery_config')
+celery.config_from_object("summary.core.celery_config")
 
 if settings.sentry_dsn and settings.sentry_is_enabled:
 
