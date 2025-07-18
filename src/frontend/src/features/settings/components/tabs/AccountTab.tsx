@@ -18,7 +18,10 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   const room = useRoomContext()
   const { user, isLoggedIn, logout } = useUser()
   const [name, setName] = useState(room?.localParticipant.name ?? '')
-  const userDisplay = (user?.full_name && user?.email) ? `${user.full_name} (${user.email})` : user?.email
+  const userDisplay =
+    user?.full_name && user?.email
+      ? `${user.full_name} (${user.email})`
+      : user?.email
 
   const handleOnSubmit = () => {
     if (room) room.localParticipant.setName(name)

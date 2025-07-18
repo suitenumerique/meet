@@ -10,7 +10,10 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
   const { t, i18n } = useTranslation('settings')
   const { user, isLoggedIn, logout } = useUser()
   const { languagesList, currentLanguage } = useLanguageLabels()
-  const userDisplay = (user?.full_name && user?.email) ? `${user.full_name} (${user.email})` : user?.email
+  const userDisplay =
+    user?.full_name && user?.email
+      ? `${user.full_name} (${user.email})`
+      : user?.email
   return (
     <Dialog title={t('dialog.heading')} {...props}>
       <H lvl={2}>{t('account.heading')}</H>
