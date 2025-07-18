@@ -24,7 +24,8 @@
       "heading": "Luidsprekers",
       "label": "Selecteer uw audio-uitvoer",
       "test": "Test",
-      "ongoingTest": "Testgeluid ..."
+      "ongoingTest": "Testgeluid ...",
+      "safariWarning": "Luidsprekerselectie is nog niet beschikbaar op Safari vanwege browserbeperkingen."
     },
     "permissionsRequired": "Machtigingen vereist"
   },
