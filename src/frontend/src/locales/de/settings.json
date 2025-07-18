@@ -24,7 +24,8 @@
       "heading": "Lautsprecher",
       "label": "Wählen Sie Ihre Audioausgabe",
       "test": "Testen",
-      "ongoingTest": "Soundtest läuft…"
+      "ongoingTest": "Soundtest läuft…",
+      "safariWarning": "Die Lautsprecherauswahl ist auf Safari aufgrund von Browser-Einschränkungen noch nicht verfügbar."
     },
     "permissionsRequired": "Berechtigungen erforderlich"
   },

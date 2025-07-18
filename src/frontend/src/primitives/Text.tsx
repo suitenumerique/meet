@@ -53,6 +53,9 @@ export const text = cva({
       note: {
         color: 'default.subtle-text',
       },
+      warning: {
+        color: 'danger.subtle-text',
+      },
       smNote: {
         color: 'default.subtle-text',
         textStyle: 'sm',

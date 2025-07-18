@@ -24,7 +24,8 @@
       "heading": "Speakers",
       "label": "Select your audio output",
       "test": "Test",
-      "ongoingTest": "Testing sound…"
+      "ongoingTest": "Testing sound…",
+      "safariWarning": "Speaker selection is not available yet on Safari due to browser limitations."
     },
     "permissionsRequired": "Permissions required"
   },

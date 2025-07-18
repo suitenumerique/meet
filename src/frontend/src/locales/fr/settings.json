@@ -24,7 +24,8 @@
       "heading": "Haut-parleurs",
       "label": "Sélectionner votre sortie audio",
       "test": "Tester",
-      "ongoingTest": "Test du son…"
+      "ongoingTest": "Test du son…",
+      "safariWarning": "La sélection du haut-parleur n'est pas encore disponible sur Safari en raison de limitations du navigateur."
     },
     "permissionsRequired": "Autorisations nécessaires"
   },
