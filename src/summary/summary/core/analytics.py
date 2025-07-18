@@ -107,12 +107,13 @@ class MetadataManager:
             "retries": 0,
         }
 
-        _required_args_count = 4
+        _required_args_count = 7
         if len(task_args) != _required_args_count:
             logger.error("Invalid number of arguments.")
             return
 
-        filename, email, _, received_at = task_args
+        filename, email, _, received_at, *_ = task_args
+
         initial_metadata = {
             **initial_metadata,
             "filename": filename,
