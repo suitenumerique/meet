@@ -212,7 +212,7 @@ class LobbyService:
 
         try:
             utils.notify_participants(
-                room_name=room_id,
+                room_name=str(room_id),
                 notification_data={
                     "type": settings.LOBBY_NOTIFICATION_TYPE,
                 },
