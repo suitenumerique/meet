@@ -16,6 +16,7 @@ import { GeneralTab } from './tabs/GeneralTab'
 import { AudioTab } from './tabs/AudioTab'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 import { useRef } from 'react'
+import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 
 const tabsStyle = css({
   maxHeight: '40.625rem', // fixme size copied from meet settings modal
@@ -51,8 +52,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   const { t } = useTranslation('settings')
 
   const dialogEl = useRef<HTMLDivElement>(null)
-  const { width } = useSize(dialogEl)
-  const isWideScreen = !width || width >= 800 // fixme - hardcoded 50rem in pixel
+  const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
 
   return (
     <Dialog innerRef={dialogEl} {...props} role="dialog" type="flex">
