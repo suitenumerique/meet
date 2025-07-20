@@ -7,7 +7,7 @@ export const initializeSupportSession = (user: ApiUser) => {
   if (!Crisp.isCrispInjected()) return
   const { id, email } = user
   Crisp.setTokenId(`meet-${id}`)
-  Crisp.user.setEmail(email)
+  if (email) Crisp.user.setEmail(email)
 }
 
 export const terminateSupportSession = () => {
