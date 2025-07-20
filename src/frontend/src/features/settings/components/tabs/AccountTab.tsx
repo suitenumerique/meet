@@ -41,7 +41,7 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
         value={name}
         onChange={setName}
         validate={(value) => {
-          return !value ? <p>{'Votre Nom ne peut pas être vide'}</p> : null
+          return !value ? <p>{t('account.nameError')}</p> : null
         }}
       />
       <H lvl={2}>{t('account.authentication')}</H>

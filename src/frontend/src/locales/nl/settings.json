@@ -4,7 +4,8 @@
     "heading": "Account",
     "youAreNotLoggedIn": "U bent niet ingelogd.",
     "nameLabel": "Uw naam",
-    "authentication": "Authenticatie"
+    "authentication": "Authenticatie",
+    "nameError": "Uw naam mag niet leeg zijn"
   },
   "audio": {
     "microphone": {

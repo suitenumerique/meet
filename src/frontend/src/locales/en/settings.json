@@ -4,7 +4,8 @@
     "heading": "Account",
     "youAreNotLoggedIn": "You are not logged in.",
     "nameLabel": "Your Name",
-    "authentication": "Authentication"
+    "authentication": "Authentication",
+    "nameError": "Your name cannot be empty"
   },
   "audio": {
     "microphone": {

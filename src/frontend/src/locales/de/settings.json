@@ -4,7 +4,8 @@
     "heading": "Konto",
     "youAreNotLoggedIn": "Sie sind nicht angemeldet.",
     "nameLabel": "Ihr Name",
-    "authentication": "Authentifizierung"
+    "authentication": "Authentifizierung",
+    "nameError": "Ihr Name darf nicht leer sein"
   },
   "audio": {
     "microphone": {
