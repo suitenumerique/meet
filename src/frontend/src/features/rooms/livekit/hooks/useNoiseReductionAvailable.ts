@@ -4,7 +4,7 @@ import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalytics
 import { isMobileBrowser } from '@livekit/components-core'
 
 export const useNoiseReductionAvailable = () => {
-  const featureEnabled = useFeatureFlagEnabled(FeatureFlags.faceLandmarks)
+  const featureEnabled = useFeatureFlagEnabled(FeatureFlags.noiseReduction)
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
 
   const isMobile = isMobileBrowser()
