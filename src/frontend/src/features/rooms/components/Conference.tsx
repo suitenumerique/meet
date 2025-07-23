@@ -24,6 +24,7 @@ import { LocalUserChoices } from '@/stores/userChoices'
 import { navigateTo } from '@/navigation/navigateTo'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
 import { usePostHog } from 'posthog-js/react'
+import { useConfig } from '@/api/useConfig'
 
 export const Conference = ({
   roomId,
@@ -37,11 +38,14 @@ export const Conference = ({
   initialRoomData?: ApiRoom
 }) => {
   const posthog = usePostHog()
+  const { data: apiConfig } = useConfig()
 
   useEffect(() => {
     posthog.capture('visit-room', { slug: roomId })
   }, [roomId, posthog])
   const fetchKey = [keys.room, roomId]
+
+  const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
 
   const {
     mutateAsync: createRoom,
@@ -52,6 +56,36 @@ export const Conference = ({
       queryClient.setQueryData(fetchKey, data)
     },
   })
+
+  /**
+   * Warm up connection to LiveKit server before joining room
+   * This prefetch helps reduce initial connection latency by establishing
+   * an early HTTP connection to the WebRTC signaling server
+   *
+   * FIREFOX + PROXY WORKAROUND:
+   * On Firefox behind proxy configurations, WebSocket signaling fails to establish.
+   * Client receives HTTP 200 instead of expected 101 (Switching Protocols).
+   * This appears to be a certificate/security issue where the initial request
+   * is considered unsecure. By first calling the signaling server via HTTPS,
+   * subsequent WebSocket establishment works correctly in these setups.
+   * This is a temporary workaround - issue is reproducible on LiveKit's demo app.
+   */
+  useEffect(() => {
+    const warmUpLivekitConnection = async () => {
+      if (isConnectionWarmedUp || !apiConfig) return
+      try {
+        // Make a lightweight HTTPS request to establish secure connection
+        // This resolves Firefox+proxy WebSocket handshake issues
+        await fetch(apiConfig.livekit.url, { method: 'HEAD' })
+        setIsConnectionWarmedUp(true)
+      } catch (error) {
+        // Don't block room connection if warmup fails
+        console.warn('LiveKit connection warmup failed:', error)
+        setIsConnectionWarmedUp(true)
+      }
+    }
+    warmUpLivekitConnection()
+  }, [isConnectionWarmedUp, apiConfig])
 
   const {
     status: fetchStatus,
@@ -125,9 +159,9 @@ export const Conference = ({
       <Screen header={false} footer={false}>
         <LiveKitRoom
           room={room}
-          serverUrl={data?.livekit?.url}
+          serverUrl={apiConfig?.livekit.url}
           token={data?.livekit?.token}
-          connect={true}
+          connect={isConnectionWarmedUp}
           audio={userConfig.audioEnabled}
           video={
             userConfig.videoEnabled && {
