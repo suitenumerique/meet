@@ -18,12 +18,12 @@ import { ApiRoom } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
 import { VideoConference } from '../livekit/prefabs/VideoConference'
-import posthog from 'posthog-js'
 import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
 import { navigateTo } from '@/navigation/navigateTo'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
+import { usePostHog } from 'posthog-js/react'
 
 export const Conference = ({
   roomId,
@@ -36,9 +36,11 @@ export const Conference = ({
   mode?: 'join' | 'create'
   initialRoomData?: ApiRoom
 }) => {
+  const posthog = usePostHog()
+
   useEffect(() => {
     posthog.capture('visit-room', { slug: roomId })
-  }, [roomId])
+  }, [roomId, posthog])
   const fetchKey = [keys.room, roomId]
 
   const {
@@ -138,6 +140,9 @@ export const Conference = ({
           className={css({
             backgroundColor: 'primaryDark.50 !important',
           })}
+          onError={(e) => {
+            posthog.captureException(e)
+          }}
           onDisconnected={(e) => {
             if (e == DisconnectReason.CLIENT_INITIATED) {
               navigateTo('feedback', { duplicateIdentity: false })
