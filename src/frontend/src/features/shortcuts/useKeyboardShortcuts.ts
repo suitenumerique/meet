@@ -12,6 +12,7 @@ export const useKeyboardShortcuts = () => {
     // Issues might occur. First draft.
     const onKeyDown = (e: KeyboardEvent) => {
       const { key, metaKey, ctrlKey } = e
+      if (!key) return
       const shortcutKey = formatShortcutKey({
         key,
         ctrlKey: ctrlKey || (isMacintosh() && metaKey),
