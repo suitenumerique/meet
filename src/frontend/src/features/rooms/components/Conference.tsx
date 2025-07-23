@@ -57,36 +57,6 @@ export const Conference = ({
     },
   })
 
-  /**
-   * Warm up connection to LiveKit server before joining room
-   * This prefetch helps reduce initial connection latency by establishing
-   * an early HTTP connection to the WebRTC signaling server
-   *
-   * FIREFOX + PROXY WORKAROUND:
-   * On Firefox behind proxy configurations, WebSocket signaling fails to establish.
-   * Client receives HTTP 200 instead of expected 101 (Switching Protocols).
-   * This appears to be a certificate/security issue where the initial request
-   * is considered unsecure. By first calling the signaling server via HTTPS,
-   * subsequent WebSocket establishment works correctly in these setups.
-   * This is a temporary workaround - issue is reproducible on LiveKit's demo app.
-   */
-  useEffect(() => {
-    const warmUpLivekitConnection = async () => {
-      if (isConnectionWarmedUp || !apiConfig) return
-      try {
-        // Make a lightweight HTTPS request to establish secure connection
-        // This resolves Firefox+proxy WebSocket handshake issues
-        await fetch(apiConfig.livekit.url, { method: 'HEAD' })
-        setIsConnectionWarmedUp(true)
-      } catch (error) {
-        // Don't block room connection if warmup fails
-        console.warn('LiveKit connection warmup failed:', error)
-        setIsConnectionWarmedUp(true)
-      }
-    }
-    warmUpLivekitConnection()
-  }, [isConnectionWarmedUp, apiConfig])
-
   const {
     status: fetchStatus,
     isError: isFetchError,
@@ -126,6 +96,28 @@ export const Conference = ({
   }, [userConfig.videoDeviceId, userConfig.audioDeviceId])
 
   const room = useMemo(() => new Room(roomOptions), [roomOptions])
+
+  useEffect(() => {
+    /**
+     * Warm up connection to LiveKit server before joining room
+     * This prefetch helps reduce initial connection latency by establishing
+     * an early HTTP connection to the WebRTC signaling server
+     *
+     * FIREFOX + PROXY WORKAROUND:
+     * On Firefox behind proxy configurations, WebSocket signaling fails to establish.
+     * Client receives HTTP 200 instead of expected 101 (Switching Protocols).
+     * This appears to be a certificate/security issue where the initial request
+     * is considered unsecure. By first calling the signaling server via HTTPS,
+     * subsequent WebSocket establishment works correctly in these setups.
+     * This is a workaround - issue is reproducible on LiveKit's demo app.
+     */
+    const prepareConnection = async () => {
+      if (!apiConfig || isConnectionWarmedUp) return
+      await room.prepareConnection(apiConfig.livekit.url)
+      setIsConnectionWarmedUp(true)
+    }
+    prepareConnection()
+  }, [room, apiConfig, isConnectionWarmedUp])
 
   const [showInviteDialog, setShowInviteDialog] = useState(mode === 'create')
   const [mediaDeviceError, setMediaDeviceError] = useState<{
