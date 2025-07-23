@@ -37,6 +37,9 @@ export interface ApiConfig {
     default_country?: string
   }
   manifest_link?: string
+  livekit: {
+    url: string
+  }
 }
 
 const fetchConfig = (): Promise<ApiConfig> => {

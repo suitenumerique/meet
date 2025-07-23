@@ -50,6 +50,7 @@ def get_frontend_configuration(request):
             else None,
             "default_country": settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
         },
+        "livekit": {"url": settings.LIVEKIT_CONFIGURATION["url"]},
     }
     frontend_configuration.update(settings.FRONTEND_CONFIGURATION)
     return Response(frontend_configuration)
