@@ -50,7 +50,12 @@ def get_frontend_configuration(request):
             else None,
             "default_country": settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
         },
-        "livekit": {"url": settings.LIVEKIT_CONFIGURATION["url"]},
+        "livekit": {
+            "url": settings.LIVEKIT_CONFIGURATION["url"],
+            "enable_firefox_proxy_workaround": settings.LIVEKIT_CONFIGURATION[
+                "enable_firefox_proxy_workaround"
+            ],
+        },
     }
     frontend_configuration.update(settings.FRONTEND_CONFIGURATION)
     return Response(frontend_configuration)
