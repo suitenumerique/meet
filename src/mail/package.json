@@ -1,6 +1,6 @@
 {
   "name": "mail_mjml",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "description": "An util to generate html and text django's templates from mjml templates",
   "type": "module",
   "dependencies": {
