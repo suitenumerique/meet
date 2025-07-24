@@ -1,7 +1,7 @@
 
 [project]
 name = "summary"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
     "fastapi[standard]>=0.105.0",
     "uvicorn>=0.24.0",
