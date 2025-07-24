@@ -39,6 +39,7 @@ export interface ApiConfig {
   manifest_link?: string
   livekit: {
     url: string
+    enable_firefox_proxy_workaround: boolean
   }
 }
 

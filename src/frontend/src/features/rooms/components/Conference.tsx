@@ -25,6 +25,7 @@ import { navigateTo } from '@/navigation/navigateTo'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
 import { usePostHog } from 'posthog-js/react'
 import { useConfig } from '@/api/useConfig'
+import { isFireFox } from '@/utils/livekit'
 
 export const Conference = ({
   roomId,
@@ -103,17 +104,40 @@ export const Conference = ({
      * This prefetch helps reduce initial connection latency by establishing
      * an early HTTP connection to the WebRTC signaling server
      *
-     * FIREFOX + PROXY WORKAROUND:
-     * On Firefox behind proxy configurations, WebSocket signaling fails to establish.
-     * Client receives HTTP 200 instead of expected 101 (Switching Protocols).
-     * This appears to be a certificate/security issue where the initial request
-     * is considered unsecure. By first calling the signaling server via HTTPS,
-     * subsequent WebSocket establishment works correctly in these setups.
-     * This is a workaround - issue is reproducible on LiveKit's demo app.
+     * It should cache DNS and TLS keys.
      */
     const prepareConnection = async () => {
       if (!apiConfig || isConnectionWarmedUp) return
       await room.prepareConnection(apiConfig.livekit.url)
+
+      if (isFireFox() && apiConfig.livekit.enable_firefox_proxy_workaround) {
+        try {
+          const wssUrl =
+            apiConfig.livekit.url
+              .replace('https://', 'wss://')
+              .replace(/\/$/, '') + '/rtc'
+
+          /**
+           * FIREFOX + PROXY WORKAROUND:
+           *
+           * Issue: On Firefox behind proxy configurations, WebSocket signaling fails to establish.
+           * Symptom: Client receives HTTP 200 instead of expected 101 (Switching Protocols).
+           * Root Cause: Certificate/security issue where the initial request is considered unsecure.
+           *
+           * Solution: Pre-establish a WebSocket connection to the signaling server, which fails.
+           * This "primes" the connection, allowing subsequent WebSocket establishments to work correctly.
+           *
+           * Note: This issue is reproducible on LiveKit's demo app.
+           * Reference: livekit-examples/meet/issues/466
+           */
+          const ws = new WebSocket(wssUrl)
+          // 401 unauthorized response is expected
+          ws.onerror = () => ws.readyState <= 1 && ws.close()
+        } catch (e) {
+          console.debug('Firefox WebSocket workaround failed.', e)
+        }
+      }
+
       setIsConnectionWarmedUp(true)
     }
     prepareConnection()
