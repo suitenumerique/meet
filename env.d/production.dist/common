@@ -1,0 +1,50 @@
+# Django
+DJANGO_ALLOWED_HOSTS=${MEET_HOST}
+DJANGO_SECRET_KEY=<generate a secret key>
+DJANGO_SETTINGS_MODULE=meet.settings
+DJANGO_CONFIGURATION=Production
+
+# Python
+PYTHONPATH=/app
+
+# Meet settings
+
+# Mail
+DJANGO_EMAIL_HOST=<smtp host> 
+DJANGO_EMAIL_HOST_USER=<smtp user> 
+DJANGO_EMAIL_HOST_PASSWORD=<smtp password>
+DJANGO_EMAIL_PORT=<smtp port> 
+DJANGO_EMAIL_FROM=<your email address>
+
+#DJANGO_EMAIL_USE_TLS=true # A flag to enable or disable TLS for email sending.
+#DJANGO_EMAIL_USE_SSL=true # A flag to enable or disable SSL for email sending.
+
+DJANGO_EMAIL_BRAND_NAME="La Suite Numérique" 
+DJANGO_EMAIL_LOGO_IMG="https://${meet_HOST}/assets/logo-suite-numerique.png"
+
+# Backend url
+MEET_BASE_URL="https://${MEET_HOST}"
+
+# OIDC
+OIDC_OP_JWKS_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/certs
+OIDC_OP_AUTHORIZATION_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/auth
+OIDC_OP_TOKEN_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/token
+OIDC_OP_USER_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/userinfo
+OIDC_OP_LOGOUT_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/logout
+
+OIDC_RP_CLIENT_ID=<client_id>
+OIDC_RP_CLIENT_SECRET=<client secret>
+OIDC_RP_SIGN_ALGO=RS256
+OIDC_RP_SCOPES="openid email"
+
+LOGIN_REDIRECT_URL=https://${MEET_HOST}
+LOGIN_REDIRECT_URL_FAILURE=https://${MEET_HOST}
+LOGOUT_REDIRECT_URL=https://${MEET_HOST}
+
+OIDC_REDIRECT_ALLOWED_HOSTS=["https://${MEET_HOST}"]
+
+# Livekit Token settings
+LIVEKIT_API_SECRET=<generate a secret key>
+LIVEKIT_API_KEY=meet
+LIVEKIT_API_URL=https://${LIVEKIT_HOST}
+ALLOW_UNREGISTERED_ROOMS=False
