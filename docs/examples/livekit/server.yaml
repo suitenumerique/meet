@@ -1,0 +1,22 @@
+port: 7880
+redis:
+  address: redis:6379
+keys:
+  meet: <your livekit secret key>
+# WebRTC configuration
+rtc:
+  # # when set, LiveKit will attempt to use a UDP mux so all UDP traffic goes through
+  # # listed port(s). To maximize system performance, we recommend using a range of ports
+  # # greater or equal to the number of vCPUs on the machine.
+  # # port_range_start & end must not be set for this config to take effect
+  udp_port: 7882
+  # when set, LiveKit enable WebRTC ICE over TCP when UDP isn't available
+  # this port *cannot* be behind load balancer or TLS, and must be exposed on the node
+  # WebRTC transports are encrypted and do not require additional encryption
+  # only 80/443 on public IP are allowed if less than 1024
+  tcp_port: 7881
+  # use_external_ip should be set to true for most cloud environments where
+  # the host has a public IP address, but is not exposed to the process.
+  # LiveKit will attempt to use STUN to discover the true IP, and advertise
+  # that IP with its clients
+  use_external_ip: true

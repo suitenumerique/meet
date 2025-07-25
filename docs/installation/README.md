@@ -6,11 +6,8 @@ Here are a bunch of resources to help you install the project.
 La Suite Meet maintainers use only the Kubernetes deployment method in production, so advanced support is available exclusively for this setup. Please follow the instructions provided [here](/docs/installation/kubernetes.md).
 
 ## Docker Compose
-We understand that not everyone has a Kubernetes cluster available.
+We understand that not everyone has a Kubernetes cluster available, please follow the instructions provided [here](/docs/installation/compose.md) to set up a docker compose instance.
 We also provide [Docker images](https://hub.docker.com/u/lasuite?page=1&search=meet) that can be deployed using Compose.
-
-> [!WARNING]  
-> Under construction: A PR is in progress to support deploying La Suite Meet via Docker Compose.
 
 ## Other ways to install La Suite Meet
 Community members have contributed alternative ways to install La Suite Meet 🙏. While maintainers may not provide direct support, we help keep these instructions up to date, and you can reach out to contributors or the community for assistance.
