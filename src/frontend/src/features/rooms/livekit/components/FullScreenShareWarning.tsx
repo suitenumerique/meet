@@ -4,9 +4,9 @@ import { useMemo, useRef } from 'react'
 import { ScreenSharePreferenceStore } from '@/stores/ScreenSharePreferences'
 import { useSnapshot } from 'valtio'
 import { useLocalParticipant } from '@livekit/components-react'
-import { useSize } from '../hooks/useResizeObserver'
 import { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
+import useSize from '@react-hook/size'
 
 export const FullScreenShareWarning = ({
   trackReference,
@@ -16,7 +16,7 @@ export const FullScreenShareWarning = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'fullScreenWarning' })
 
   const warningContainerRef = useRef<HTMLDivElement>(null)
-  const { width: containerWidth } = useSize(warningContainerRef)
+  const containerWidth = useSize(warningContainerRef)[0]
   const { localParticipant } = useLocalParticipant()
   const screenSharePreferences = useSnapshot(ScreenSharePreferenceStore)
 

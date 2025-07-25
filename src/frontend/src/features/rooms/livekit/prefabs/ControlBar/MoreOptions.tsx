@@ -4,13 +4,13 @@ import { ParticipantsToggle } from '../../components/controls/Participants/Parti
 import { ToolsToggle } from '../../components/controls/ToolsToggle'
 import { InfoToggle } from '../../components/controls/InfoToggle'
 import { AdminToggle } from '../../components/AdminToggle'
-import { useSize } from '../../hooks/useResizeObserver'
 import { useState, RefObject } from 'react'
 import { Dialog, DialogTrigger, Popover } from 'react-aria-components'
 import { Button } from '@/primitives'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { RiArrowDownSLine, RiArrowUpSLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
+import useSize from '@react-hook/size'
 
 const CONTROL_BAR_BREAKPOINT = 1100
 
@@ -70,7 +70,7 @@ export const MoreOptions = ({
 }: {
   parentElement: RefObject<HTMLDivElement>
 }) => {
-  const { width: parentWidth } = useSize(parentElement)
+  const parentWidth = useSize(parentElement)[0]
   return (
     <div
       className={css({
