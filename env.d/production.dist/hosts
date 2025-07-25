@@ -1,0 +1,7 @@
+MEET_HOST=meet.domain.tld
+KEYCLOAK_HOST=id.domain.tld
+LIVEKIT_HOST=livekit.domain.tld
+BACKEND_INTERNAL_HOST=backend
+FRONTEND_INTERNAL_HOST=frontend
+LIVEKIT_INTERNAL_HOST=livekit
+REALM_NAME=meet

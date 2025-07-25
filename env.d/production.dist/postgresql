@@ -1,0 +1,11 @@
+# App database configuration
+DB_HOST=postgresql
+DB_NAME=meet
+DB_USER=meet
+DB_PASSWORD=<generate a secure password>
+DB_PORT=5432
+
+# Postgresql db container configuration
+POSTGRES_DB=meet
+POSTGRES_USER=meet
+POSTGRES_PASSWORD=${DB_PASSWORD}
