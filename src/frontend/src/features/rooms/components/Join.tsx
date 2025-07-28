@@ -5,7 +5,6 @@ import { Screen } from '@/layout/Screen'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LocalVideoTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
-import { SelectToggleDevice } from '../livekit/components/controls/SelectToggleDevice'
 import { Field } from '@/primitives/Field'
 import { Button, Dialog, Text, Form } from '@/primitives'
 import { HStack, VStack } from '@/styled-system/jsx'
@@ -27,6 +26,7 @@ import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { ToggleDeviceJoin } from '@/features/rooms/components/ToggleDeviceJoin'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -414,6 +414,32 @@ export const Join = ({
                   </p>
                 </div>
               )}
+              <div
+                className={css({
+                  position: 'absolute',
+                  right: '50%',
+                  bottom: '0',
+                  padding: '1rem',
+                  zIndex: '1',
+                  display: 'flex',
+                  gap: '1rem',
+                  justifyContent: 'center',
+                  marginRight: '-80px',
+                })}
+              >
+                <ToggleDeviceJoin
+                  source={Track.Source.Microphone}
+                  initialState={audioEnabled}
+                  track={audioTrack}
+                  onChange={saveAudioInputEnabled}
+                />
+                <ToggleDeviceJoin
+                  source={Track.Source.Camera}
+                  initialState={videoEnabled}
+                  track={videoTrack}
+                  onChange={saveVideoInputEnabled}
+                />
+              </div>
               <Effects
                 videoTrack={videoTrack}
                 onSubmit={(processor) =>

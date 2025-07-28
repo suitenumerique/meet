@@ -228,6 +228,20 @@ export const buttonRecipe = cva({
           color: 'error.200',
         },
       },
+      errorCircle: {
+        width: '56px',
+        height: '56px',
+        borderRadius: '100%',
+        backgroundColor: 'error.500',
+        color: 'white',
+        '&[data-hovered]': {
+          backgroundColor: 'error.600',
+        },
+        '&[data-pressed]': {
+          backgroundColor: 'error.700',
+          color: 'error.200',
+        },
+      },
       error2: {
         backgroundColor: 'error.200',
         color: 'error.900',

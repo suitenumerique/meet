@@ -3,7 +3,6 @@ import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKey
 import { useMemo, useState } from 'react'
 import { appendShortcutLabel } from '@/features/shortcuts/utils'
 import { useTranslation } from 'react-i18next'
-import { SelectToggleDeviceConfig } from './SelectToggleDevice'
 import useLongPress from '@/features/shortcuts/useLongPress'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import {
@@ -13,6 +12,7 @@ import {
 } from '@livekit/components-react'
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import { SelectToggleDeviceConfig } from '../../types/SelectToggleDevice'
 
 export type ToggleDeviceProps = {
   enabled: boolean
@@ -63,10 +63,12 @@ export const ToggleDevice = ({
     return <ActiveSpeakerWrapper />
   }
 
+  const errorVariant = variant == 'whiteCircle' ? 'errorCircle' : 'error2'
+
   return (
     <ToggleButton
       isSelected={!enabled}
-      variant={enabled ? variant : 'error2'}
+      variant={enabled ? variant : errorVariant}
       shySelected
       onPress={() => toggle()}
       aria-label={toggleLabel}
