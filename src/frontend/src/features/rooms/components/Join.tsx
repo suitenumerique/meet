@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { usePreviewTracks } from '@livekit/components-react'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LocalVideoTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { SelectToggleDevice } from '../livekit/components/controls/SelectToggleDevice'
@@ -27,7 +27,6 @@ import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
-import { LocalUserChoices } from '@/stores/userChoices'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -107,10 +106,10 @@ const Effects = ({
 }
 
 export const Join = ({
-  onSubmit,
+  enterRoom,
   roomId,
 }: {
-  onSubmit: (choices: LocalUserChoices) => void
+  enterRoom: () => void
   roomId: string
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
@@ -132,23 +131,14 @@ export const Join = ({
     saveProcessorSerialized,
   } = usePersistentUserChoices()
 
-  const [processor, setProcessor] = useState(
-    BackgroundProcessorFactory.deserializeProcessor(processorSerialized)
-  )
-
-  useEffect(() => {
-    saveProcessorSerialized(processor?.serialize())
-  }, [
-    processor,
-    saveProcessorSerialized,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    JSON.stringify(processor?.serialize()),
-  ])
-
   const tracks = usePreviewTracks(
     {
       audio: { deviceId: audioDeviceId },
-      video: { deviceId: videoDeviceId },
+      video: {
+        deviceId: videoDeviceId,
+        processor:
+          BackgroundProcessorFactory.deserializeProcessor(processorSerialized),
+      },
     },
     onError
   )
@@ -191,25 +181,6 @@ export const Join = ({
       videoElement?.removeEventListener('loadedmetadata', handleVideoLoaded)
     }
   }, [videoTrack, videoEnabled])
-
-  const enterRoom = useCallback(() => {
-    onSubmit({
-      audioEnabled,
-      videoEnabled,
-      audioDeviceId,
-      videoDeviceId,
-      username,
-      processorSerialized: processor?.serialize(),
-    })
-  }, [
-    onSubmit,
-    audioEnabled,
-    videoEnabled,
-    audioDeviceId,
-    videoDeviceId,
-    username,
-    processor,
-  ])
 
   // Room data strategy:
   // 1. Initial fetch is performed to check access and get LiveKit configuration
@@ -268,16 +239,6 @@ export const Join = ({
 
     enterRoom()
   }
-
-  // This hook is used to setup the persisted user choice processor on initialization.
-  // So it's on purpose that processor is not included in the deps.
-  // We just want to wait for the videoTrack to be loaded to apply the default processor.
-  useEffect(() => {
-    if (processor && videoTrack && !videoTrack.getProcessor()) {
-      videoTrack.setProcessor(processor)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoTrack])
 
   const renderWaitingState = () => {
     switch (status) {
@@ -453,7 +414,12 @@ export const Join = ({
                   </p>
                 </div>
               )}
-              <Effects videoTrack={videoTrack} onSubmit={setProcessor} />
+              <Effects
+                videoTrack={videoTrack}
+                onSubmit={(processor) =>
+                  saveProcessorSerialized(processor?.serialize())
+                }
+              />
             </div>
             <HStack justify="center" padding={1.5}>
               <SelectToggleDevice

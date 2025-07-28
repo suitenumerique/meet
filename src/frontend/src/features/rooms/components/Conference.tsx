@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { LiveKitRoom } from '@livekit/components-react'
+import {
+  LiveKitRoom,
+  usePersistentUserChoices,
+} from '@livekit/components-react'
 import {
   DisconnectReason,
   MediaDeviceFailure,
@@ -29,17 +32,19 @@ import { isFireFox } from '@/utils/livekit'
 
 export const Conference = ({
   roomId,
-  userConfig,
   initialRoomData,
   mode = 'join',
 }: {
   roomId: string
-  userConfig: LocalUserChoices
   mode?: 'join' | 'create'
   initialRoomData?: ApiRoom
 }) => {
   const posthog = usePostHog()
   const { data: apiConfig } = useConfig()
+
+  const { userChoices: userConfig } = usePersistentUserChoices() as {
+    userChoices: LocalUserChoices
+  }
 
   useEffect(() => {
     posthog.capture('visit-room', { slug: roomId })
