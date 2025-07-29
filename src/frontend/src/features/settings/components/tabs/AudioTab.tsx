@@ -95,6 +95,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
     userChoices: { noiseReductionEnabled },
     saveAudioInputDeviceId,
     saveNoiseReductionEnabled,
+    saveAudioOutputDeviceId,
   } = usePersistentUserChoices()
 
   const isSpeaking = useIsSpeaking(localParticipant)
@@ -183,9 +184,10 @@ export const AudioTab = ({ id }: AudioTabProps) => {
             defaultSelectedKey={
               activeDeviceIdOut || getDefaultSelectedKey(itemsOut)
             }
-            onSelectionChange={async (key) =>
+            onSelectionChange={async (key) => {
               setActiveMediaDeviceOut(key as string)
-            }
+              saveAudioOutputDeviceId(key as string)
+            }}
             {...disabledProps}
             style={{
               minWidth: 0,
