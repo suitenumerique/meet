@@ -57,6 +57,22 @@
       "body": "Niemand heeft gereageerd op uw verzoek om deel te nemen aan het gesprek"
     }
   },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera":  "{{app_title}} heeft geen toestemming om je camera te gebruiken",
+      "microphone": "{{app_title}} heeft geen toestemming om je microfoon te gebruiken",
+      "cameraAndMicrophone": "{{app_title}} heeft geen toestemming om je microfoon en camera te gebruiken",
+      "default": "{{app_title}} heeft geen toestemming voor bepaalde rechten"
+    },
+    "body": {
+      "openMenu": "Klik op het instellingenpictogram {{icon_placeholder}} in de adresbalk van je browser",
+      "details": {
+        "camera":  "Sta toegang tot de camera toe",
+        "microphone": "Sta toegang tot de microfoon toe",
+        "cameraAndMicrophone": "Sta toegang tot de camera en microfoon toe"
+      }
+    }
+  },
   "leaveRoomPrompt": "Dat zal u de vergadering doen verlaten.",
   "shareDialog": {
     "copy": "Kopieer de vergaderlink",

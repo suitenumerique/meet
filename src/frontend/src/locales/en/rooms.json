@@ -57,6 +57,22 @@
       "body": "No one responded to your request"
     }
   },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera":  "{{app_title}} is not allowed to use your camera",
+      "microphone": "{{app_title}} is not allowed to use your microphone",
+      "cameraAndMicrophone": "{{app_title}} is not allowed to use your microphone or camera",
+      "default": "{{app_title}} is not allowed to use certain permissions"
+    },
+    "body": {
+      "openMenu": "Click the settings icon {{icon_placeholder}} in your browser's address bar",
+      "details": {
+        "camera":  "Allow access to the camera",
+        "microphone": "Allow access to the microphone",
+        "cameraAndMicrophone": "Allow access to the camera and microphone"
+      }
+    }
+  },
   "leaveRoomPrompt": "This will make you leave the meeting.",
   "shareDialog": {
     "copy": "Copy the meeting link",

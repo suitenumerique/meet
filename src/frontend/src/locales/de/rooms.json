@@ -57,6 +57,22 @@
       "body": "Niemand hat auf Ihre Anfrage reagiert"
     }
   },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera":  "{{app_title}} hat keine Berechtigung, Ihre Kamera zu verwenden",
+      "microphone": "{{app_title}} hat keine Berechtigung, Ihr Mikrofon zu verwenden",
+      "cameraAndMicrophone": "{{app_title}} hat keine Berechtigung, Ihr Mikrofon und Ihre Kamera zu verwenden",
+      "default": "{{app_title}} hat keine Berechtigung für bestimmte Zugriffe"
+    },
+    "body": {
+      "openMenu": "Klicken Sie auf das Einstellungssymbol {{icon_placeholder}} in der Adressleiste Ihres Browsers",
+      "details": {
+        "camera":  "Zugriff auf die Kamera erlauben",
+        "microphone": "Zugriff auf das Mikrofon erlauben",
+        "cameraAndMicrophone": "Zugriff auf Kamera und Mikrofon erlauben"
+      }
+    }
+  },
   "leaveRoomPrompt": "Dadurch verlassen Sie das Meeting.",
   "shareDialog": {
     "copy": "Meeting-Link kopieren",
