@@ -7,7 +7,7 @@ import { LocalVideoTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { Field } from '@/primitives/Field'
 import { Button, Dialog, Text, Form } from '@/primitives'
-import { HStack, VStack } from '@/styled-system/jsx'
+import { VStack } from '@/styled-system/jsx'
 import { Heading } from 'react-aria-components'
 import { RiImageCircleAiFill } from '@remixicon/react'
 import {
@@ -27,6 +27,7 @@ import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { ToggleDeviceJoin } from '@/features/rooms/components/ToggleDeviceJoin'
+import { SelectDeviceJoin } from '@/features/rooms/components/SelectDeviceJoin'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -119,6 +120,7 @@ export const Join = ({
       audioEnabled,
       videoEnabled,
       audioDeviceId,
+      audioOutputDeviceId,
       videoDeviceId,
       processorSerialized,
       username,
@@ -126,11 +128,14 @@ export const Join = ({
     saveAudioInputEnabled,
     saveVideoInputEnabled,
     saveAudioInputDeviceId,
+    saveAudioOutputDeviceId,
     saveVideoInputDeviceId,
     saveUsername,
     saveProcessorSerialized,
   } = usePersistentUserChoices()
 
+  // fix - permission issue, when permission not set doesn't refresh
+  // fix - when mic change, camera blink
   const tracks = usePreviewTracks(
     {
       audio: { deviceId: audioDeviceId },
@@ -351,6 +356,7 @@ export const Join = ({
           <div
             className={css({
               width: '100%',
+              minWidth: 0,
               lg: {
                 width: '740px',
               },
@@ -447,32 +453,53 @@ export const Join = ({
                 }
               />
             </div>
-            <HStack justify="center" padding={1.5}>
-              <SelectToggleDevice
-                source={Track.Source.Microphone}
-                initialState={audioEnabled}
-                track={audioTrack}
-                initialDeviceId={audioDeviceId}
-                onChange={(enabled) => saveAudioInputEnabled(enabled)}
-                onDeviceError={(error) => console.error(error)}
-                onActiveDeviceChange={(deviceId) =>
-                  saveAudioInputDeviceId(deviceId ?? '')
-                }
-                variant="tertiary"
-              />
-              <SelectToggleDevice
-                source={Track.Source.Camera}
-                initialState={videoEnabled}
-                track={videoTrack}
-                initialDeviceId={videoDeviceId}
-                onChange={(enabled) => saveVideoInputEnabled(enabled)}
-                onDeviceError={(error) => console.error(error)}
-                onActiveDeviceChange={(deviceId) =>
-                  saveVideoInputDeviceId(deviceId ?? '')
-                }
-                variant="tertiary"
-              />
-            </HStack>
+            <div
+              className={css({
+                display: 'none',
+                lg: {
+                  display: 'flex',
+                  justifyContent: 'center',
+                  paddingTop: 1.5,
+                  gap: '2%',
+                  width: '80%',
+                  marginX: 'auto',
+                },
+              })}
+            >
+              <div
+                className={css({
+                  width: '30%',
+                })}
+              >
+                <SelectDeviceJoin
+                  kind="audioinput"
+                  id={audioDeviceId}
+                  onSubmit={saveAudioInputDeviceId}
+                />
+              </div>
+              <div
+                className={css({
+                  width: '30%',
+                })}
+              >
+                <SelectDeviceJoin
+                  kind="audiooutput"
+                  id={audioOutputDeviceId}
+                  onSubmit={saveAudioOutputDeviceId}
+                />
+              </div>
+              <div
+                className={css({
+                  width: '30%',
+                })}
+              >
+                <SelectDeviceJoin
+                  kind="videoinput"
+                  id={videoDeviceId}
+                  onSubmit={saveVideoInputDeviceId}
+                />
+              </div>
+            </div>
           </div>
           <div
             className={css({
@@ -481,7 +508,7 @@ export const Join = ({
               padding: '0',
               sm: {
                 width: '448px',
-                padding: '0 3rem 9rem 3rem',
+                padding: '0 3rem 4rem 3rem',
               },
             })}
           >

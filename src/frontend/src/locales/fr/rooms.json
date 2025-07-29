@@ -8,6 +8,9 @@
     "back": "Réintégrer la réunion"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Chargement…"
+    },
     "videoinput": {
       "choose": "Choisir la webcam",
       "disable": "Désactiver la webcam",
@@ -20,6 +23,9 @@
       "disable": "Désactiver le micro",
       "enable": "Activer le micro",
       "label": "Microphone"
+    },
+    "audiooutput": {
+      "choose": "Choisir le haut parleur"
     },
     "heading": "Rejoindre la réunion ?",
     "effects": {

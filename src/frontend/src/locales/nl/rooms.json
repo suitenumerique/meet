@@ -8,6 +8,9 @@
     "back": "Sluit weer bij de vergadering aan"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Laden…"
+    },
     "videoinput": {
       "choose": "Selecteer camera",
       "disable": "Camera uitschakelen",
@@ -20,6 +23,9 @@
       "disable": "Microfoon dempen",
       "enable": "Microfoon dempen opheffen",
       "label": "Microfoon"
+    },
+    "audiooutput": {
+      "choose": "Selecteer luidsprekers"
     },
     "effects": {
       "description": "Pas effecten toe",

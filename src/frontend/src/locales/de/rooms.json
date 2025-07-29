@@ -8,6 +8,9 @@
     "back": "Dem Meeting erneut beitreten"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Lädt…"
+    },
     "videoinput": {
       "choose": "Kamera auswählen",
       "disable": "Kamera deaktivieren",
@@ -20,6 +23,9 @@
       "disable": "Mikrofon deaktivieren",
       "enable": "Mikrofon aktivieren",
       "label": "Mikrofon"
+    },
+    "audiooutput": {
+      "choose": "Lautsprecher auswählen"
     },
     "effects": {
       "description": "Effekte anwenden",
