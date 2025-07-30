@@ -135,7 +135,6 @@ export const Join = ({
   } = usePersistentUserChoices()
 
   // fix - permission issue, when permission not set doesn't refresh
-  // fix - when mic change, camera blink
   const { videoTrack, audioTrack } = usePreviewTracks(
     {
       audio: { deviceId: audioDeviceId },

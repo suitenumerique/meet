@@ -1,12 +1,15 @@
 import {
+  AudioCaptureOptions,
   createLocalTracks,
   CreateLocalTracksOptions,
+  LocalAudioTrack,
   LocalTrack,
   LocalVideoTrack,
   Mutex,
   Track,
+  VideoCaptureOptions,
 } from 'livekit-client'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 function roomOptionsStringifyReplacer(key: string, val: unknown) {
   if (key === 'processor') {
@@ -22,26 +25,41 @@ export function usePreviewTracks(
   options: CreateLocalTracksOptions,
   onError?: (err: Error) => void
 ) {
-  const [tracks, setTracks] = useState<LocalTrack[]>()
+  const trackLock = useMemo(() => {
+    return new Mutex()
+  }, [])
 
-  const trackLock = useMemo(() => new Mutex(), [])
-  const videoTrack = useMemo(
-    () =>
-      tracks?.filter(
-        (track) => track.kind === Track.Kind.Video
-      )[0] as LocalVideoTrack,
-    [tracks]
-  )
+  const videoTrackLock = useMemo(() => {
+    return new Mutex()
+  }, [])
 
-  const audioTrack = useMemo(
-    () =>
-      tracks?.filter(
-        (track) => track.kind === Track.Kind.Audio
-      )[0] as LocalVideoTrack,
-    [tracks]
-  )
+  const audioTrackLock = useMemo(() => {
+    return new Mutex()
+  }, [])
+
+  const isInitiated = useRef(false)
+
+  const videoTrackRef = useRef<LocalVideoTrack | undefined>()
+  const audioTrackRef = useRef<LocalAudioTrack | undefined>()
+
+  const [videoTrack, setVideoTrack] = useState<LocalVideoTrack | undefined>()
+  const [audioTrack, setAudioTrack] = useState<LocalAudioTrack | undefined>()
+
+  const extractTracks = (tracks: LocalTrack[]) => {
+    const video = tracks.find(
+      (track): track is LocalVideoTrack => track.kind === Track.Kind.Video
+    )
+    const audio = tracks.find(
+      (track): track is LocalAudioTrack => track.kind === Track.Kind.Audio
+    )
+
+    return { video, audio }
+  }
 
   useEffect(() => {
+    if (isInitiated.current) {
+      return
+    }
     let needsCleanup = false
     let localTracks: Array<LocalTrack> = []
     trackLock.lock().then(async (unlock) => {
@@ -52,7 +70,12 @@ export function usePreviewTracks(
           if (needsCleanup) {
             localTracks.forEach((tr) => tr.stop())
           } else {
-            setTracks(localTracks)
+            const { audio, video } = extractTracks(localTracks)
+            isInitiated.current = true
+            setVideoTrack(video)
+            videoTrackRef.current = video
+            setAudioTrack(audio)
+            audioTrackRef.current = audio
           }
         }
       } catch (e: unknown) {
@@ -67,16 +90,84 @@ export function usePreviewTracks(
     })
 
     return () => {
+      if (isInitiated.current) {
+        return
+      }
       needsCleanup = true
       localTracks.forEach((track) => {
         track.stop()
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     JSON.stringify(options, roomOptionsStringifyReplacer),
     onError,
     trackLock,
   ])
 
-  return { videoTrack, audioTrack }
+  const videoOptions = options?.video
+
+  useEffect(() => {
+    if (!isInitiated.current) {
+      return
+    }
+    videoTrackLock.lock().then(async (unlock) => {
+      try {
+        if (!videoOptions) return
+        await videoTrackRef.current?.restartTrack(
+          videoOptions as VideoCaptureOptions
+        )
+      } catch (e: unknown) {
+        if (onError && e instanceof Error) {
+          onError(e)
+        } else {
+          console.error(e)
+        }
+      } finally {
+        unlock()
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(videoOptions, roomOptionsStringifyReplacer),
+    onError,
+    videoTrackLock,
+  ])
+
+  const audioOptions = options?.audio
+
+  useEffect(() => {
+    if (!isInitiated.current) {
+      return
+    }
+    audioTrackLock.lock().then(async (unlock) => {
+      try {
+        if (!audioOptions) return
+        await audioTrackRef.current?.restartTrack(
+          audioOptions as AudioCaptureOptions
+        )
+      } catch (e: unknown) {
+        if (onError && e instanceof Error) {
+          onError(e)
+        } else {
+          console.error(e)
+        }
+      } finally {
+        unlock()
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(audioOptions, roomOptionsStringifyReplacer),
+    onError,
+    audioTrackLock,
+  ])
+
+  return {
+    videoTrack,
+    audioTrack,
+  }
 }
