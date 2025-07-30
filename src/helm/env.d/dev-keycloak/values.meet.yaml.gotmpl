@@ -223,6 +223,37 @@ celery:
     - "--pool=solo"
     - "--loglevel=info"
 
+agents:
+  replicas: 1
+  envVars:
+    LIVEKIT_URL: https://livekit.127.0.0.1.nip.io/
+    {{- with .Values.livekit.keys }}
+    {{- range $key, $value := . }}
+    LIVEKIT_API_SECRET: {{ $value }}
+    LIVEKIT_API_KEY: {{ $key }}
+    {{- end }}
+    {{- end }}
+
+  image:
+    repository: localhost:5001/meet-agents
+    pullPolicy: Always
+    tag: "latest"
+
+  # Extra volume mounts to manage our local custom CA and avoid to disable ssl
+  extraVolumeMounts:
+    - name: certs
+      mountPath: /usr/lib/ssl/cert.pem
+      subPath: cert.pem
+
+  # Extra volumes to manage our local custom CA and avoid to disable ssl
+  extraVolumes:
+    - name: certs
+      configMap:
+        name: certifi
+        items:
+        - key: cacert.pem
+          path: cert.pem
+
 ingressMedia:
   enabled: true
   host: meet.127.0.0.1.nip.io
