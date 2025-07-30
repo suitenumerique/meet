@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { usePreviewTracks } from '@livekit/components-react'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -28,6 +27,7 @@ import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { ToggleDeviceJoin } from '@/features/rooms/components/ToggleDeviceJoin'
 import { SelectDeviceJoin } from '@/features/rooms/components/SelectDeviceJoin'
+import { usePreviewTracks } from '@/features/rooms/hooks/usePreviewTracks'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
