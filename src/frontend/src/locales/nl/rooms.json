@@ -178,6 +178,8 @@
   "effects": {
     "activateCamera": "Camera is uit.",
     "activateButton": "Camera inschakelen",
+    "permissionsCamera": "Sta de app toe om toegang te krijgen tot je camera om door te gaan.",
+    "permissionsButton": "Toegang tot camera toestaan",
     "notAvailable": "Video-effecten zijn binnenkort beschikbaar in uw browser. We werken eraan! In de tussentijd kunt u Google Chrome gebruiken voor de beste prestaties of Firefox :(",
     "heading": "Vervaging",
     "clear": "Effect uitschakelen",

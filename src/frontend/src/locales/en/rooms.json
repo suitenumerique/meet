@@ -178,6 +178,8 @@
   "effects": {
     "activateCamera": "Your camera is disabled.",
     "activateButton": "Turn on camera",
+    "permissionsCamera": "Please allow the app to access your camera to continue.",
+    "permissionsButton": "Allow camera access",
     "notAvailable": "Video effects will be available soon on your browser. We're working on it! In the meantime, you can use Google Chrome for best performance or Firefox :(",
     "heading": "Blur",
     "clear": "Disable effect",

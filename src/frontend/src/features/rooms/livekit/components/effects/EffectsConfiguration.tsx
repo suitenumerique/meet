@@ -1,5 +1,5 @@
 import { LocalVideoTrack, Track } from 'livekit-client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BackgroundProcessorFactory,
@@ -16,6 +16,8 @@ import { useTrackToggle } from '@livekit/components-react'
 import { RiProhibited2Line } from '@remixicon/react'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
+import { usePermissions } from '@/features/rooms/hooks/usePermissions'
+import { useModal } from '@/features/rooms/hooks/useModal'
 
 enum BlurRadius {
   NONE = 0,
@@ -48,6 +50,9 @@ export const EffectsConfiguration = ({
   const videoRef = useRef<HTMLVideoElement>(null)
   const { t } = useTranslation('rooms', { keyPrefix: 'effects' })
   const { toggle, enabled } = useTrackToggle({ source: Track.Source.Camera })
+
+  const { isCameraGranted } = usePermissions()
+  const { open } = useModal('permissions')
 
   const [processorPending, setProcessorPending] = useState(false)
 
@@ -157,6 +162,11 @@ export const EffectsConfiguration = ({
     return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
   }
 
+  const isDisabled = useMemo(
+    () => processorPending || videoTrack?.isMuted || !isCameraGranted,
+    [processorPending, videoTrack, isCameraGranted]
+  )
+
   return (
     <div
       className={css(
@@ -248,20 +258,22 @@ export const EffectsConfiguration = ({
                 marginBottom: 0,
               }}
             >
-              {t('activateCamera')}
+              {t(isCameraGranted ? 'activateCamera' : 'permissionsCamera')}
             </P>
             <Button
               size="sm"
               variant="tertiary"
-              onPress={async () => await toggle()}
-              aria-label={t('activateButton')}
+              onPress={async () => (isCameraGranted ? await toggle() : open())}
+              aria-label={t(
+                isCameraGranted ? 'activateButton' : 'permissionsButton'
+              )}
               className={css({
                 width: 'fit-content',
                 marginX: 'auto',
                 marginTop: '1rem',
               })}
             >
-              {t('activateButton')}
+              {t(isCameraGranted ? 'activateButton' : 'permissionsButton')}
             </Button>
           </div>
         )}
@@ -312,7 +324,7 @@ export const EffectsConfiguration = ({
                     await clearEffect()
                   }}
                   isSelected={!selectedProcessor}
-                  isDisabled={processorPending || videoTrack?.isMuted}
+                  isDisabled={isDisabled}
                 >
                   <RiProhibited2Line />
                 </ToggleButton>
@@ -324,7 +336,7 @@ export const EffectsConfiguration = ({
                   tooltip={tooltipLabel(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.LIGHT,
                   })}
-                  isDisabled={processorPending || videoTrack?.isMuted}
+                  isDisabled={isDisabled}
                   onChange={async () =>
                     await toggleEffect(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.LIGHT,
@@ -345,7 +357,7 @@ export const EffectsConfiguration = ({
                   tooltip={tooltipLabel(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.NORMAL,
                   })}
-                  isDisabled={processorPending || videoTrack?.isMuted}
+                  isDisabled={isDisabled}
                   onChange={async () =>
                     await toggleEffect(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.NORMAL,
@@ -393,7 +405,7 @@ export const EffectsConfiguration = ({
                         tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
                           imagePath,
                         })}
-                        isDisabled={processorPending || videoTrack?.isMuted}
+                        isDisabled={isDisabled}
                         onChange={async () =>
                           await toggleEffect(ProcessorType.VIRTUAL, {
                             imagePath,

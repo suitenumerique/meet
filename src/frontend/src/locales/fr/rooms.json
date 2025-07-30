@@ -178,6 +178,8 @@
   "effects": {
     "activateCamera": "Caméra désactivée.",
     "activateButton": "Activer la caméra",
+    "permissionsCamera": "Veuillez autoriser l'application à accéder à votre caméra pour continuer.",
+    "permissionsButton": "Autoriser l'accès à la caméra",
     "notAvailable": "Les effets vidéo seront bientôt disponibles sur votre navigateur. Nous y travaillons ! En attendant, vous pouvez utiliser Google Chrome pour de meilleures performances ou Firefox :(",
     "heading": "Flou",
     "clear": "Désactiver l'effect",

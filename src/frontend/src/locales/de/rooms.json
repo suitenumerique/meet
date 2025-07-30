@@ -178,6 +178,8 @@
   "effects": {
     "activateCamera": "Kamera ist aus.",
     "activateButton": "Kamera einschalten",
+    "permissionsCamera": "Bitte erlauben Sie der App den Zugriff auf Ihre Kamera, um fortzufahren.",
+    "permissionsButton": "Kamerazugriff erlauben",
     "notAvailable": "Videoeffekte werden bald in Ihrem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit können Sie Google Chrome für die beste Leistung oder Firefox verwenden :(",
     "heading": "Unschärfe",
     "clear": "Effekt deaktivieren",
