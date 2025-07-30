@@ -9,6 +9,8 @@ export const usePermissions = () => {
     useState<PermissionState>(undefined)
 
   useEffect(() => {
+    // fixme - on safari, 'change' event is not trigger
+    // fixme - prevent error on old browsers
     const checkPermissions = async () => {
       try {
         const [cameraPermission, microphonePermission] = await Promise.all([
