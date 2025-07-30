@@ -136,7 +136,7 @@ export const Join = ({
 
   // fix - permission issue, when permission not set doesn't refresh
   // fix - when mic change, camera blink
-  const tracks = usePreviewTracks(
+  const { videoTrack, audioTrack } = usePreviewTracks(
     {
       audio: { deviceId: audioDeviceId },
       video: {
@@ -146,22 +146,6 @@ export const Join = ({
       },
     },
     onError
-  )
-
-  const videoTrack = useMemo(
-    () =>
-      tracks?.filter(
-        (track) => track.kind === Track.Kind.Video
-      )[0] as LocalVideoTrack,
-    [tracks]
-  )
-
-  const audioTrack = useMemo(
-    () =>
-      tracks?.filter(
-        (track) => track.kind === Track.Kind.Audio
-      )[0] as LocalVideoTrack,
-    [tracks]
   )
 
   const videoEl = useRef(null)

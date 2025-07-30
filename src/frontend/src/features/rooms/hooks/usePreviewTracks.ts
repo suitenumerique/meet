@@ -2,7 +2,9 @@ import {
   createLocalTracks,
   CreateLocalTracksOptions,
   LocalTrack,
+  LocalVideoTrack,
   Mutex,
+  Track,
 } from 'livekit-client'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -23,6 +25,21 @@ export function usePreviewTracks(
   const [tracks, setTracks] = useState<LocalTrack[]>()
 
   const trackLock = useMemo(() => new Mutex(), [])
+  const videoTrack = useMemo(
+    () =>
+      tracks?.filter(
+        (track) => track.kind === Track.Kind.Video
+      )[0] as LocalVideoTrack,
+    [tracks]
+  )
+
+  const audioTrack = useMemo(
+    () =>
+      tracks?.filter(
+        (track) => track.kind === Track.Kind.Audio
+      )[0] as LocalVideoTrack,
+    [tracks]
+  )
 
   useEffect(() => {
     let needsCleanup = false
@@ -61,5 +78,5 @@ export function usePreviewTracks(
     trackLock,
   ])
 
-  return tracks
+  return { videoTrack, audioTrack }
 }
