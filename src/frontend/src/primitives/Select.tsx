@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { styled } from '@/styled-system/jsx'
-import { RiArrowDropDownLine } from '@remixicon/react'
+import { RemixiconComponentType, RiArrowDropDownLine } from '@remixicon/react'
 import {
   Button,
   ListBox,
@@ -12,12 +12,14 @@ import {
 import { Box } from './Box'
 import { StyledPopover } from './Popover'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
+import { css } from '@/styled-system/css'
 
 const StyledButton = styled(Button, {
   base: {
     width: 'full',
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingY: 0.125,
     paddingX: 0.25,
     border: '1px solid',
@@ -53,22 +55,40 @@ const StyledSelectValue = styled(SelectValue, {
   },
 })
 
+const StyledIcon = styled('div', {
+  base: {
+    marginRight: '0.35rem',
+    flexShrink: 0,
+  },
+})
+
 export const Select = <T extends string | number>({
   label,
+  iconComponent,
   items,
   errors,
   ...props
 }: Omit<SelectProps<object>, 'items' | 'label' | 'errors'> & {
+  iconComponent?: RemixiconComponentType
   label: ReactNode
   items: Array<{ value: T; label: ReactNode }>
   errors?: ReactNode
 }) => {
+  const IconComponent = iconComponent
   return (
     <RACSelect {...props}>
       {label}
       <StyledButton>
+        {!!IconComponent && (
+          <StyledIcon>
+            <IconComponent size={18} />
+          </StyledIcon>
+        )}
         <StyledSelectValue />
-        <RiArrowDropDownLine aria-hidden="true" />
+        <RiArrowDropDownLine
+          aria-hidden="true"
+          className={css({ flexShrink: 0 })}
+        />
       </StyledButton>
       <StyledPopover>
         <Box size="sm" type="popover" variant="control">

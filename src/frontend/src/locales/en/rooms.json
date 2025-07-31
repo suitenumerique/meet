@@ -8,6 +8,10 @@
     "back": "Rejoin the meeting"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Loading…",
+      "permissionNeeded": "Permission needed"
+    },
     "videoinput": {
       "choose": "Select camera",
       "disable": "Disable camera",
@@ -20,6 +24,9 @@
       "disable": "Disable microphone",
       "enable": "Enable microphone",
       "label": "Microphone"
+    },
+    "audiooutput": {
+      "choose": "Select speakers"
     },
     "effects": {
       "description": "Apply effects",
@@ -36,8 +43,14 @@
     "errors": {
       "usernameEmpty": "Your name cannot be empty"
     },
-    "cameraDisabled": "Camera is disabled.",
-    "cameraStarting": "Camera is starting.",
+    "cameraDisabled": "The camera is disabled",
+    "cameraStarting": "The camera is starting…",
+    "cameraNotGranted": "Do you want others to be able to see you during the meeting?",
+    "cameraAndMicNotGranted": "Do you want others to be able to see and hear you during the meeting?",
+    "videoPreview": {
+      "enabled": "Video preview enabled",
+      "disabled": "Video preview disabled"
+    },
     "waiting": {
       "title": "Requesting to join...",
       "body": "You will be able to join this call when someone authorizes you"
@@ -49,6 +62,22 @@
     "timeoutInvite": {
       "title": "You cannot join this call",
       "body": "No one responded to your request"
+    }
+  },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera":  "{{app_title}} is not allowed to use your camera",
+      "microphone": "{{app_title}} is not allowed to use your microphone",
+      "cameraAndMicrophone": "{{app_title}} is not allowed to use your microphone or camera",
+      "default": "{{app_title}} is not allowed to use certain permissions"
+    },
+    "body": {
+      "openMenu": "Click the settings icon {{icon_placeholder}} in your browser's address bar",
+      "details": {
+        "camera":  "Allow access to the camera",
+        "microphone": "Allow access to the microphone",
+        "cameraAndMicrophone": "Allow access to the camera and microphone"
+      }
     }
   },
   "leaveRoomPrompt": "This will make you leave the meeting.",
@@ -154,7 +183,10 @@
     }
   },
   "effects": {
-    "activateCamera": "Your camera is disabled. Choose an option to enable it.",
+    "activateCamera": "Your camera is disabled.",
+    "activateButton": "Turn on camera",
+    "permissionsCamera": "Please allow the app to access your camera to continue.",
+    "permissionsButton": "Allow camera access",
     "notAvailable": "Video effects will be available soon on your browser. We're working on it! In the meantime, you can use Google Chrome for best performance or Firefox :(",
     "heading": "Blur",
     "clear": "Disable effect",

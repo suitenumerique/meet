@@ -1,5 +1,5 @@
 import { LocalVideoTrack, Track } from 'livekit-client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BackgroundProcessorFactory,
@@ -8,16 +8,16 @@ import {
   BackgroundOptions,
 } from '../blur'
 import { css } from '@/styled-system/css'
-import { Text, P, ToggleButton, H } from '@/primitives'
+import { Text, P, ToggleButton, H, Button } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
 import { BlurOn } from '@/components/icons/BlurOn'
 import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
-import { Loader } from '@/primitives/Loader'
-import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
 import { RiProhibited2Line } from '@remixicon/react'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
+import { usePermissions } from '@/features/rooms/hooks/usePermissions'
+import { useModal } from '@/features/rooms/hooks/useModal'
 
 enum BlurRadius {
   NONE = 0,
@@ -37,7 +37,7 @@ const Information = styled('div', {
 })
 
 export type EffectsConfigurationProps = {
-  videoTrack: LocalVideoTrack
+  videoTrack?: LocalVideoTrack
   onSubmit?: (processor?: BackgroundProcessorInterface) => void
   layout?: 'vertical' | 'horizontal'
 }
@@ -50,9 +50,19 @@ export const EffectsConfiguration = ({
   const videoRef = useRef<HTMLVideoElement>(null)
   const { t } = useTranslation('rooms', { keyPrefix: 'effects' })
   const { toggle, enabled } = useTrackToggle({ source: Track.Source.Camera })
+
+  const { isCameraGranted } = usePermissions()
+  const { open } = useModal('permissions')
+
   const [processorPending, setProcessorPending] = useState(false)
-  const processorPendingReveal = useSyncAfterDelay(processorPending)
+
   const hasFunnyEffectsAccess = useHasFunnyEffectsAccess()
+
+  // Note: videoTrack.getProcessor() will return undefined during a transition
+  // but our selectedProcessor state maintains the intended value
+  const [selectedProcessor, setSelectedProcessor] = useState(
+    videoTrack?.getProcessor()
+  )
 
   useEffect(() => {
     const videoElement = videoRef.current
@@ -63,12 +73,13 @@ export const EffectsConfiguration = ({
 
     return () => {
       if (!videoElement) return
-      videoTrack.detach(videoElement)
+      videoTrack?.detach(videoElement)
     }
   }, [videoTrack, videoTrack?.isMuted])
 
   const clearEffect = async () => {
-    await videoTrack.stopProcessor()
+    await videoTrack?.stopProcessor()
+    setSelectedProcessor(undefined)
     onSubmit?.(undefined)
   }
 
@@ -92,7 +103,6 @@ export const EffectsConfiguration = ({
       await toggle(true, {
         processor: newProcessorTmp,
       })
-      setTimeout(() => setProcessorPending(false))
       return
     }
 
@@ -100,9 +110,10 @@ export const EffectsConfiguration = ({
       await toggle(true)
     }
 
-    const processor = getProcessor()
+    const processor = videoTrack?.getProcessor() as BackgroundProcessorInterface
     try {
       if (isSelected(type, options)) {
+        setSelectedProcessor(undefined)
         // Stop processor.
         await clearEffect()
       } else if (!processor || processor.serialize().type !== type) {
@@ -118,28 +129,27 @@ export const EffectsConfiguration = ({
         if (!BackgroundProcessorFactory.hasModernApiSupport()) {
           await videoTrack.stopProcessor()
         }
+
         await videoTrack.setProcessor(newProcessor)
+        setSelectedProcessor(newProcessor)
         onSubmit?.(newProcessor)
       } else {
         // Update processor.
         processor?.update(options)
         // We want to trigger onSubmit when options changes so the parent component is aware of it.
         onSubmit?.(processor)
+        setSelectedProcessor(processor)
       }
     } catch (error) {
       console.error('Error applying effect:', error)
     } finally {
-      // Without setTimeout the DOM is not refreshing when updating the options.
-      setTimeout(() => setProcessorPending(false))
+      setProcessorPending(false)
     }
   }
 
-  const getProcessor = () => {
-    return videoTrack?.getProcessor() as BackgroundProcessorInterface
-  }
-
   const isSelected = (type: ProcessorType, options: BackgroundOptions) => {
-    const processor = getProcessor()
+    if (!selectedProcessor) return false
+    const processor = selectedProcessor as BackgroundProcessorInterface
     const processorSerialized = processor?.serialize()
     return (
       !!processor &&
@@ -151,6 +161,11 @@ export const EffectsConfiguration = ({
   const tooltipLabel = (type: ProcessorType, options: BackgroundOptions) => {
     return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
   }
+
+  const isDisabled = useMemo(
+    () => processorPending || videoTrack?.isMuted || !isCameraGranted,
+    [processorPending, videoTrack, isCameraGranted]
+  )
 
   return (
     <div
@@ -165,7 +180,7 @@ export const EffectsConfiguration = ({
               display: 'flex',
               gap: '1.5rem',
               flexDirection: 'column',
-              md: {
+              lg: {
                 flexDirection: 'row',
                 overflow: 'hidden',
               },
@@ -175,31 +190,65 @@ export const EffectsConfiguration = ({
       <div
         className={css({
           width: '100%',
-          aspectRatio: 16 / 9,
           position: 'relative',
         })}
       >
         {videoTrack && !videoTrack.isMuted ? (
           <video
             ref={videoRef}
-            width="100%"
             muted
+            className={css(
+              layout === 'vertical'
+                ? {
+                    height: '175px',
+                    width: '100%',
+                  }
+                : {
+                    minHeight: '175px',
+                    maxWidth: '600px',
+                    width: '100%',
+                    objectFit: 'cover',
+                    sm: {
+                      aspectRatio: 16 / 9,
+                    },
+                    lg: {
+                      maxWidth: '100%',
+                    },
+                  }
+            )}
             style={{
               transform: 'rotateY(180deg)',
-              [layout === 'vertical' ? 'height' : 'minHeight']: '175px',
               borderRadius: '8px',
             }}
           />
         ) : (
           <div
             style={{
-              width: '100%',
-              height: '100%',
               display: 'flex',
               backgroundColor: 'black',
               justifyContent: 'center',
               flexDirection: 'column',
+              borderRadius: '8px',
             }}
+            className={css(
+              layout === 'vertical'
+                ? {
+                    height: '175px',
+                    width: '100%',
+                  }
+                : {
+                    minHeight: '175px',
+                    maxWidth: '600px',
+                    width: '100%',
+                    objectFit: 'cover',
+                    sm: {
+                      aspectRatio: 16 / 9,
+                    },
+                    lg: {
+                      maxWidth: '100%',
+                    },
+                  }
+            )}
           >
             <P
               style={{
@@ -209,19 +258,23 @@ export const EffectsConfiguration = ({
                 marginBottom: 0,
               }}
             >
-              {t('activateCamera')}
+              {t(isCameraGranted ? 'activateCamera' : 'permissionsCamera')}
             </P>
-          </div>
-        )}
-        {processorPendingReveal && (
-          <div
-            className={css({
-              position: 'absolute',
-              right: '8px',
-              bottom: '8px',
-            })}
-          >
-            <Loader />
+            <Button
+              size="sm"
+              variant="tertiary"
+              onPress={async () => (isCameraGranted ? await toggle() : open())}
+              aria-label={t(
+                isCameraGranted ? 'activateButton' : 'permissionsButton'
+              )}
+              className={css({
+                width: 'fit-content',
+                marginX: 'auto',
+                marginTop: '1rem',
+              })}
+            >
+              {t(isCameraGranted ? 'activateButton' : 'permissionsButton')}
+            </Button>
           </div>
         )}
       </div>
@@ -242,7 +295,7 @@ export const EffectsConfiguration = ({
         {hasFunnyEffectsAccess && (
           <FunnyEffects
             videoTrack={videoTrack}
-            isPending={processorPendingReveal}
+            isPending={processorPending}
             onPending={setProcessorPending}
           />
         )}
@@ -270,8 +323,8 @@ export const EffectsConfiguration = ({
                   onPress={async () => {
                     await clearEffect()
                   }}
-                  isSelected={!getProcessor()}
-                  isDisabled={processorPendingReveal}
+                  isSelected={!selectedProcessor}
+                  isDisabled={isDisabled}
                 >
                   <RiProhibited2Line />
                 </ToggleButton>
@@ -283,7 +336,7 @@ export const EffectsConfiguration = ({
                   tooltip={tooltipLabel(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.LIGHT,
                   })}
-                  isDisabled={processorPendingReveal}
+                  isDisabled={isDisabled}
                   onChange={async () =>
                     await toggleEffect(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.LIGHT,
@@ -304,7 +357,7 @@ export const EffectsConfiguration = ({
                   tooltip={tooltipLabel(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.NORMAL,
                   })}
-                  isDisabled={processorPendingReveal}
+                  isDisabled={isDisabled}
                   onChange={async () =>
                     await toggleEffect(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.NORMAL,
@@ -352,7 +405,7 @@ export const EffectsConfiguration = ({
                         tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
                           imagePath,
                         })}
-                        isDisabled={processorPendingReveal}
+                        isDisabled={isDisabled}
                         onChange={async () =>
                           await toggleEffect(ProcessorType.VIRTUAL, {
                             imagePath,

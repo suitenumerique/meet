@@ -8,6 +8,10 @@
     "back": "Dem Meeting erneut beitreten"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Lädt…",
+      "permissionNeeded": "Genehmigung erforderlich"
+    },
     "videoinput": {
       "choose": "Kamera auswählen",
       "disable": "Kamera deaktivieren",
@@ -20,6 +24,9 @@
       "disable": "Mikrofon deaktivieren",
       "enable": "Mikrofon aktivieren",
       "label": "Mikrofon"
+    },
+    "audiooutput": {
+      "choose": "Lautsprecher auswählen"
     },
     "effects": {
       "description": "Effekte anwenden",
@@ -36,8 +43,14 @@
     "errors": {
       "usernameEmpty": "Ihr Name darf nicht leer sein"
     },
-    "cameraDisabled": "Kamera ist deaktiviert.",
-    "cameraStarting": "Kamera wird gestartet.",
+    "cameraDisabled": "Die Kamera ist deaktiviert",
+    "cameraStarting": "Die Kamera wird gestartet…",
+    "cameraNotGranted": "Möchten Sie, dass andere Sie während der Besprechung sehen können?",
+    "cameraAndMicNotGranted": "Möchten Sie, dass andere Sie während der Besprechung sehen und hören können?",
+    "videoPreview": {
+      "enabled": "Videovorschau aktiviert",
+      "disabled": "Videovorschau deaktiviert"
+    },
     "waiting": {
       "title": "Beitrittsanfrage wird gesendet...",
       "body": "Sie können diesem Anruf beitreten, sobald jemand Sie autorisiert"
@@ -49,6 +62,22 @@
     "timeoutInvite": {
       "title": "Sie können diesem Anruf nicht beitreten",
       "body": "Niemand hat auf Ihre Anfrage reagiert"
+    }
+  },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera":  "{{app_title}} hat keine Berechtigung, Ihre Kamera zu verwenden",
+      "microphone": "{{app_title}} hat keine Berechtigung, Ihr Mikrofon zu verwenden",
+      "cameraAndMicrophone": "{{app_title}} hat keine Berechtigung, Ihr Mikrofon und Ihre Kamera zu verwenden",
+      "default": "{{app_title}} hat keine Berechtigung für bestimmte Zugriffe"
+    },
+    "body": {
+      "openMenu": "Klicken Sie auf das Einstellungssymbol {{icon_placeholder}} in der Adressleiste Ihres Browsers",
+      "details": {
+        "camera":  "Zugriff auf die Kamera erlauben",
+        "microphone": "Zugriff auf das Mikrofon erlauben",
+        "cameraAndMicrophone": "Zugriff auf Kamera und Mikrofon erlauben"
+      }
     }
   },
   "leaveRoomPrompt": "Dadurch verlassen Sie das Meeting.",
@@ -154,7 +183,10 @@
     }
   },
   "effects": {
-    "activateCamera": "Ihre Kamera ist deaktiviert. Wählen Sie eine Option, um sie zu aktivieren.",
+    "activateCamera": "Kamera ist aus.",
+    "activateButton": "Kamera einschalten",
+    "permissionsCamera": "Bitte erlauben Sie der App den Zugriff auf Ihre Kamera, um fortzufahren.",
+    "permissionsButton": "Kamerazugriff erlauben",
     "notAvailable": "Videoeffekte werden bald in Ihrem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit können Sie Google Chrome für die beste Leistung oder Firefox verwenden :(",
     "heading": "Unschärfe",
     "clear": "Effekt deaktivieren",

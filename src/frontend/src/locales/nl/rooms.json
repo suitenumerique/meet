@@ -8,6 +8,10 @@
     "back": "Sluit weer bij de vergadering aan"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Laden…",
+      "permissionNeeded": "Toestemming vereist"
+    },
     "videoinput": {
       "choose": "Selecteer camera",
       "disable": "Camera uitschakelen",
@@ -20,6 +24,9 @@
       "disable": "Microfoon dempen",
       "enable": "Microfoon dempen opheffen",
       "label": "Microfoon"
+    },
+    "audiooutput": {
+      "choose": "Selecteer luidsprekers"
     },
     "effects": {
       "description": "Pas effecten toe",
@@ -36,8 +43,14 @@
     "errors": {
       "usernameEmpty": "Uw naam kan niet leeg zijn"
     },
-    "cameraDisabled": "Camera is uitgeschakeld.",
-    "cameraStarting": "Camera wordt ingeschakeld.",
+    "cameraDisabled": "De camera is uitgeschakeld",
+    "cameraStarting": "De camera wordt gestart…",
+    "cameraNotGranted": "Wil je dat anderen je kunnen zien tijdens de vergadering?",
+    "cameraAndMicNotGranted": "Wil je dat anderen je kunnen zien en horen tijdens de vergadering?",
+    "videoPreview": {
+      "enabled": "Videovoorbeeld ingeschakeld",
+      "disabled": "Videovoorbeeld uitgeschakeld"
+    },
     "waiting": {
       "title": "Verzoek tot deelname...",
       "body": "U kunt deelnemen aan dit gesprek wanneer iemand u toestemming geeft"
@@ -49,6 +62,22 @@
     "timeoutInvite": {
       "title": "U kunt niet deelnemen aan dit gesprek",
       "body": "Niemand heeft gereageerd op uw verzoek om deel te nemen aan het gesprek"
+    }
+  },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera":  "{{app_title}} heeft geen toestemming om je camera te gebruiken",
+      "microphone": "{{app_title}} heeft geen toestemming om je microfoon te gebruiken",
+      "cameraAndMicrophone": "{{app_title}} heeft geen toestemming om je microfoon en camera te gebruiken",
+      "default": "{{app_title}} heeft geen toestemming voor bepaalde rechten"
+    },
+    "body": {
+      "openMenu": "Klik op het instellingenpictogram {{icon_placeholder}} in de adresbalk van je browser",
+      "details": {
+        "camera":  "Sta toegang tot de camera toe",
+        "microphone": "Sta toegang tot de microfoon toe",
+        "cameraAndMicrophone": "Sta toegang tot de camera en microfoon toe"
+      }
     }
   },
   "leaveRoomPrompt": "Dat zal u de vergadering doen verlaten.",
@@ -154,7 +183,10 @@
     }
   },
   "effects": {
-    "activateCamera": "Uw camera is uitgeschakeld. Kies een optie om deze in te schakelen.",
+    "activateCamera": "Camera is uit.",
+    "activateButton": "Camera inschakelen",
+    "permissionsCamera": "Sta de app toe om toegang te krijgen tot je camera om door te gaan.",
+    "permissionsButton": "Toegang tot camera toestaan",
     "notAvailable": "Video-effecten zijn binnenkort beschikbaar in uw browser. We werken eraan! In de tussentijd kunt u Google Chrome gebruiken voor de beste prestaties of Firefox :(",
     "heading": "Vervaging",
     "clear": "Effect uitschakelen",

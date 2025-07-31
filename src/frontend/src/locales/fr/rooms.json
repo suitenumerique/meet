@@ -8,6 +8,10 @@
     "back": "Réintégrer la réunion"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Chargement…",
+      "permissionNeeded": "Autorisations nécessaires"
+    },
     "videoinput": {
       "choose": "Choisir la webcam",
       "disable": "Désactiver la webcam",
@@ -20,6 +24,9 @@
       "disable": "Désactiver le micro",
       "enable": "Activer le micro",
       "label": "Microphone"
+    },
+    "audiooutput": {
+      "choose": "Choisir le haut parleur"
     },
     "heading": "Rejoindre la réunion ?",
     "effects": {
@@ -36,8 +43,14 @@
     "errors": {
       "usernameEmpty": "Votre nom ne peut pas être vide"
     },
-    "cameraDisabled": "La caméra est désactivée.",
-    "cameraStarting": "La caméra va démarrer.",
+    "cameraDisabled": "La caméra est désactivée",
+    "cameraStarting": "La caméra va démarrer…",
+    "cameraNotGranted": "Souhaitez-vous que les autres puissent vous voir pendant la réunion ?",
+    "cameraAndMicNotGranted": "Souhaitez-vous que les autres puissent vous voir et vous entendre pendant la réunion ?",
+    "videoPreview": {
+      "enabled": "Apercu vidéo activé",
+      "disabled": "Apercu vidéo désactivé"
+    },
     "waiting": {
       "title": "Demande de participation…",
       "body": "Vous pourrez participer à cet appel lorsque quelqu'un vous y autorisera"
@@ -49,6 +62,22 @@
     "timeoutInvite": {
       "title": "Vous ne pouvez pas participer à cet appel",
       "body": "Personne n'a répondu à votre demande de participation à l'appel"
+    }
+  },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera":  "{{app_title}} n'est pas autorisé à utiliser votre caméra",
+      "microphone": "{{app_title}} n'est pas autorisé à utiliser votre micro",
+      "cameraAndMicrophone": "{{app_title}} n'est pas autorisé à utiliser votre micro ni votre caméra",
+      "default": "{{app_title}} n'est pas autorisé à utiliser certaines permissions"
+    },
+    "body": {
+      "openMenu": "Cliquez sur l'icône des paramètres {{icon_placeholder}} dans la barre d'adresse de votre navigateur",
+      "details": {
+        "camera":  "Autorisez l'accès à la caméra",
+        "microphone": "Autorisez l'accès au microphone",
+        "cameraAndMicrophone": "Autorisez l'accès à la caméra et au microphone"
+      }
     }
   },
   "leaveRoomPrompt": "Revenir à l'accueil vous fera quitter la réunion.",
@@ -154,7 +183,10 @@
     }
   },
   "effects": {
-    "activateCamera": "Votre caméra est désactivée. Choisissez une option pour l'activer.",
+    "activateCamera": "Caméra désactivée.",
+    "activateButton": "Activer la caméra",
+    "permissionsCamera": "Veuillez autoriser l'application à accéder à votre caméra pour continuer.",
+    "permissionsButton": "Autoriser l'accès à la caméra",
     "notAvailable": "Les effets vidéo seront bientôt disponibles sur votre navigateur. Nous y travaillons ! En attendant, vous pouvez utiliser Google Chrome pour de meilleures performances ou Firefox :(",
     "heading": "Flou",
     "clear": "Désactiver l'effect",
