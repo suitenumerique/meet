@@ -1,13 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { permissionStore } from '@/stores/permissions.ts'
+import { useSnapshot } from 'valtio'
 
-type PermissionState = undefined | 'granted' | 'prompt' | 'denied'
-
-export const usePermissions = () => {
-  const [cameraPermission, setCameraPermission] =
-    useState<PermissionState>(undefined)
-  const [microphonePermission, setMicrophonePermission] =
-    useState<PermissionState>(undefined)
-
+export const usePermissionsSync = () => {
   useEffect(() => {
     // fixme - on safari, 'change' event is not trigger
     // fixme - prevent error on old browsers
@@ -17,17 +12,17 @@ export const usePermissions = () => {
           navigator.permissions.query({ name: 'camera' }),
           navigator.permissions.query({ name: 'microphone' }),
         ])
-        setCameraPermission(cameraPermission.state)
-        setMicrophonePermission(microphonePermission.state)
+        permissionStore.cameraPermission = cameraPermission.state
+        permissionStore.microphonePermission = microphonePermission.state
 
         const handleCameraChange = (e: Event) => {
           const target = e.target as PermissionStatus
-          setCameraPermission(target.state)
+          permissionStore.cameraPermission = target.state
         }
 
         const handleMicrophoneChange = (e: Event) => {
           const target = e.target as PermissionStatus
-          setMicrophonePermission(target.state)
+          permissionStore.microphonePermission = target.state
         }
 
         if (!cameraPermission.onchange) {
@@ -53,15 +48,19 @@ export const usePermissions = () => {
     }
     checkPermissions()
   }, [])
+}
+
+export const usePermissions = () => {
+  const permissionSnap = useSnapshot(permissionStore)
 
   return {
-    cameraPermission,
-    microphonePermission,
-    isCameraDenied: cameraPermission == 'denied',
-    isCameraPrompted: cameraPermission == 'prompt',
-    isCameraGranted: cameraPermission == 'granted',
-    isMicrophoneDenied: microphonePermission == 'denied',
-    isMicrophonePrompted: microphonePermission == 'prompt',
-    isMicrophoneGranted: microphonePermission == 'granted',
+    cameraPermission: permissionSnap.cameraPermission,
+    microphonePermission: permissionSnap.microphonePermission,
+    isCameraDenied: permissionSnap.cameraPermission == 'denied',
+    isCameraPrompted: permissionSnap.cameraPermission == 'prompt',
+    isCameraGranted: permissionSnap.cameraPermission == 'granted',
+    isMicrophoneDenied: permissionSnap.microphonePermission == 'denied',
+    isMicrophonePrompted: permissionSnap.microphonePermission == 'prompt',
+    isMicrophoneGranted: permissionSnap.microphonePermission == 'granted',
   }
 }

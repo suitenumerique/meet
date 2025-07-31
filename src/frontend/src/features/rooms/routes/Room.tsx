@@ -10,6 +10,7 @@ import {
   isRoomValid,
   normalizeRoomId,
 } from '@/features/rooms/utils/isRoomValid'
+import { usePermissionsSync } from '@/features/rooms/hooks/usePermissions'
 
 const BaseRoom = ({ children }: { children: ReactNode }) => (
   <UserAware>
@@ -29,6 +30,7 @@ export const Room = () => {
   const skipJoinScreen = isLoggedIn && mode === 'create'
 
   useKeyboardShortcuts()
+  usePermissionsSync()
 
   const clearRouterState = () => {
     if (window?.history?.state) {
