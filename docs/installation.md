@@ -217,9 +217,6 @@ DB_NAME: meet
 DB_USER: dinum
 DB_PASSWORD: pass
 DB_PORT: 5432
-POSTGRES_DB: meet
-POSTGRES_USER: dinum
-POSTGRES_PASSWORD: pass
 ```
 
 ## Deployment

@@ -62,9 +62,6 @@ backend:
     DB_USER: dinum
     DB_PASSWORD: pass
     DB_PORT: 5432
-    POSTGRES_DB: meet
-    POSTGRES_USER: dinum
-    POSTGRES_PASSWORD: pass
     REDIS_URL: redis://default:pass@redis-master:6379/1
     STORAGES_STATICFILES_BACKEND: django.contrib.staticfiles.storage.StaticFilesStorage
     {{- with .Values.livekit.keys }}
