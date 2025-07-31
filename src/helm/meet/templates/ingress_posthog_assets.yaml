@@ -29,7 +29,7 @@ spec:
   {{- if .Values.posthog.ingressAssets.tls.enabled }}
   tls:
     {{- if .Values.posthog.ingressAssets.host }}
-    - secretName: {{ $fullName }}-posthog-tls
+    - secretName: {{ .Values.posthog.ingressAssets.tls.secretName | default (printf "%s-posthog-tls" $fullName) | quote }}
       hosts:
         - {{ .Values.posthog.ingressAssets.host | quote }}
     {{- end }}

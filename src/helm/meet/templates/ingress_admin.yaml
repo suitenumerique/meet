@@ -30,6 +30,7 @@ spec:
   tls:
     {{- if .Values.ingressAdmin.host }}
     - secretName: {{ $fullName }}-tls
+    - secretName: {{ .Values.ingressAdmin.tls.secretName | default (printf "%s-tls" $fullName) | quote }}
       hosts:
         - {{ .Values.ingressAdmin.host | quote }}
     {{- end }}

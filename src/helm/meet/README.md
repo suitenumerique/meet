@@ -21,6 +21,7 @@
 | `ingress.path`                                                               | Path to use for the Ingress                          | `/`                                                                |
 | `ingress.hosts`                                                              | Additional host to configure for the Ingress         | `[]`                                                               |
 | `ingress.tls.enabled`                                                        | Weather to enable TLS for the Ingress                | `true`                                                             |
+| `ingress.tls.secretName`                                                     | Secret name for TLS config                           | `nil`                                                              |
 | `ingress.tls.additional[].secretName`                                        | Secret name for additional TLS config                |                                                                    |
 | `ingress.tls.additional[].hosts[]`                                           | Hosts for additional TLS config                      |                                                                    |
 | `ingress.customBackends`                                                     | Add custom backends to ingress                       | `[]`                                                               |
@@ -30,6 +31,7 @@
 | `ingressAdmin.path`                                                          | Path to use for the Ingress                          | `/admin`                                                           |
 | `ingressAdmin.hosts`                                                         | Additional host to configure for the Ingress         | `[]`                                                               |
 | `ingressAdmin.tls.enabled`                                                   | Weather to enable TLS for the Ingress                | `true`                                                             |
+| `ingressAdmin.tls.secretName`                                                | Secret name for TLS config                           | `nil`                                                              |
 | `ingressAdmin.tls.additional[].secretName`                                   | Secret name for additional TLS config                |                                                                    |
 | `ingressAdmin.tls.additional[].hosts[]`                                      | Hosts for additional TLS config                      |                                                                    |
 | `ingressMedia.enabled`                                                       | whether to enable the Ingress or not                 | `false`                                                            |
@@ -163,6 +165,7 @@
 | `posthog.ingress.path`                 | URL path prefix for the ingress routes (e.g., /)            | `/`                       |
 | `posthog.ingress.hosts`                | Additional hostnames array to be included in the ingress    | `[]`                      |
 | `posthog.ingress.tls.enabled`          | Enable or disable TLS/HTTPS for the ingress                 | `true`                    |
+| `posthog.ingress.tls.secretName`       | Secret name for TLS config                                  | `nil`                     |
 | `posthog.ingress.tls.additional`       | Additional TLS configurations for extra hosts/certificates  | `[]`                      |
 | `posthog.ingress.customBackends`       | Custom backend service configurations for the ingress       | `[]`                      |
 | `posthog.ingress.annotations`          | Additional Kubernetes annotations to apply to the ingress   | `{}`                      |
@@ -172,6 +175,7 @@
 | `posthog.ingressAssets.path`           | URL path prefix for the ingress routes (e.g., /)            | `/static`                 |
 | `posthog.ingressAssets.hosts`          | Additional hostnames array to be included in the ingress    | `[]`                      |
 | `posthog.ingressAssets.tls.enabled`    | Enable or disable TLS/HTTPS for the ingress                 | `true`                    |
+| `posthog.ingressAssets.tls.secretName` | Secret name for TLS config                                  | `nil`                     |
 | `posthog.ingressAssets.tls.additional` | Additional TLS configurations for extra hosts/certificates  | `[]`                      |
 | `posthog.ingressAssets.customBackends` | Custom backend service configurations for the ingress       | `[]`                      |
 | `posthog.ingressAssets.annotations`    | Additional Kubernetes annotations to apply to the ingress   | `{}`                      |

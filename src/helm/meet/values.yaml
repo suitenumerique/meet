@@ -38,10 +38,12 @@ ingress:
   hosts: []
   #  - chart-example.local
   ## @param ingress.tls.enabled Weather to enable TLS for the Ingress
+  ## @param ingress.tls.secretName Secret name for TLS config
   ## @skip ingress.tls.additional
   ## @extra ingress.tls.additional[].secretName Secret name for additional TLS config
   ## @extra ingress.tls.additional[].hosts[] Hosts for additional TLS config
   tls:
+    secretName: null
     enabled: true
     additional: []
 
@@ -62,10 +64,12 @@ ingressAdmin:
   hosts: [ ]
   #  - chart-example.local
   ## @param ingressAdmin.tls.enabled Weather to enable TLS for the Ingress
+  ## @param ingressAdmin.tls.secretName Secret name for TLS config
   ## @skip ingressAdmin.tls.additional
   ## @extra ingressAdmin.tls.additional[].secretName Secret name for additional TLS config
   ## @extra ingressAdmin.tls.additional[].hosts[] Hosts for additional TLS config
   tls:
+    secretName: null
     enabled: true
     additional: []
 
@@ -87,8 +91,8 @@ ingressMedia:
   ## @extra ingressMedia.tls.additional[].secretName Secret name for additional TLS config
   ## @extra ingressMedia.tls.additional[].hosts[] Hosts for additional TLS config
   tls:
-    enabled: true
     secretName: null
+    enabled: true
     additional: []
 
   ## @param ingressMedia.annotations.nginx.ingress.kubernetes.io/auth-url
@@ -358,6 +362,7 @@ posthog:
   ## @param posthog.ingress.path URL path prefix for the ingress routes (e.g., /)
   ## @param posthog.ingress.hosts Additional hostnames array to be included in the ingress
   ## @param posthog.ingress.tls.enabled Enable or disable TLS/HTTPS for the ingress
+  ## @param posthog.ingress.tls.secretName Secret name for TLS config
   ## @param posthog.ingress.tls.additional Additional TLS configurations for extra hosts/certificates
   ## @param posthog.ingress.customBackends Custom backend service configurations for the ingress
   ## @param posthog.ingress.annotations Additional Kubernetes annotations to apply to the ingress
@@ -368,6 +373,7 @@ posthog:
     path: /
     hosts: [ ]
     tls:
+      secretName: null
       enabled: true
       additional: [ ]
 
@@ -380,6 +386,7 @@ posthog:
   ## @param posthog.ingressAssets.path URL path prefix for the ingress routes (e.g., /)
   ## @param posthog.ingressAssets.hosts Additional hostnames array to be included in the ingress
   ## @param posthog.ingressAssets.tls.enabled Enable or disable TLS/HTTPS for the ingress
+  ## @param posthog.ingressAssets.tls.secretName Secret name for TLS config
   ## @param posthog.ingressAssets.tls.additional Additional TLS configurations for extra hosts/certificates
   ## @param posthog.ingressAssets.customBackends Custom backend service configurations for the ingress
   ## @param posthog.ingressAssets.annotations Additional Kubernetes annotations to apply to the ingress
@@ -390,6 +397,7 @@ posthog:
     path: /static
     hosts: [ ]
     tls:
+      secretName: null
       enabled: true
       additional: [ ]
 
