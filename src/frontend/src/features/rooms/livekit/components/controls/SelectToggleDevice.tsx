@@ -5,7 +5,7 @@ import {
   UseTrackToggleProps,
 } from '@livekit/components-react'
 import { Button, Menu, MenuList } from '@/primitives'
-import { RiArrowDownSLine } from '@remixicon/react'
+import { RiArrowUpSLine } from '@remixicon/react'
 import {
   LocalAudioTrack,
   LocalVideoTrack,
@@ -131,7 +131,7 @@ export const SelectToggleDevice = <T extends ToggleSource>({
             square
             variant={trackProps.enabled ? variant : 'error2'}
           >
-            <RiArrowDownSLine />
+            <RiArrowUpSLine />
           </Button>
           <MenuList
             items={devices.map((d) => ({
