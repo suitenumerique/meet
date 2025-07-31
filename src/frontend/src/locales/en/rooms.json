@@ -9,7 +9,8 @@
   },
   "join": {
     "selectDevice": {
-      "loading": "Loading…"
+      "loading": "Loading…",
+      "permissionNeeded": "Permission needed"
     },
     "videoinput": {
       "choose": "Select camera",

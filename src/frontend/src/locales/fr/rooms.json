@@ -9,7 +9,8 @@
   },
   "join": {
     "selectDevice": {
-      "loading": "Chargement…"
+      "loading": "Chargement…",
+      "permissionNeeded": "Autorisations nécessaires"
     },
     "videoinput": {
       "choose": "Choisir la webcam",

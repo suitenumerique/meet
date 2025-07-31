@@ -9,7 +9,8 @@
   },
   "join": {
     "selectDevice": {
-      "loading": "Laden…"
+      "loading": "Laden…",
+      "permissionNeeded": "Toestemming vereist"
     },
     "videoinput": {
       "choose": "Selecteer camera",
