@@ -47,15 +47,18 @@ export const SelectDeviceJoin = ({
     setActiveMediaDevice: setActiveMediaDevice,
   } = useMediaDeviceSelect({ kind, requestPermissions: false })
 
-  const items: DeviceItems = devices.map((d) => ({
-    value: d.deviceId,
-    label: d.label,
-  }))
+  const items: DeviceItems = devices
+    .filter((d) => !!d.deviceId)
+    .map((d) => ({
+      value: d.deviceId,
+      label: d.label,
+    }))
 
   return (
     <Select
       aria-label={t(`${kind}.choose`)}
       label=""
+      isDisabled={items.length == 0}
       items={items}
       iconComponent={config.icon}
       placeholder={t('selectDevice.loading')}
