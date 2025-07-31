@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Track } from 'livekit-client'
+import { LocalTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { Field } from '@/primitives/Field'
 import { Button, Dialog, Text, Form } from '@/primitives'
@@ -125,6 +125,15 @@ export const Join = ({
     },
     onError
   )
+
+  const toggleTrack = (track: LocalTrack | undefined, isEnabled: boolean) => {
+    if (!track) return
+    if (isEnabled) {
+      track?.unmute()
+    } else {
+      track?.mute()
+    }
+  }
 
   const videoEl = useRef(null)
   const isVideoInitiated = useRef(false)
@@ -478,7 +487,10 @@ export const Join = ({
                     source={Track.Source.Microphone}
                     initialState={audioEnabled}
                     track={audioTrack}
-                    onChange={saveAudioInputEnabled}
+                    onChange={(value) => {
+                      toggleTrack(audioTrack, value)
+                      saveAudioInputEnabled(value)
+                    }}
                   />
                   <ToggleDeviceJoin
                     source={Track.Source.Camera}
@@ -492,7 +504,7 @@ export const Join = ({
                         isVideoInitiated.current = false
                         videoElement.style.opacity = '0'
                       }
-
+                      toggleTrack(videoTrack, value)
                       saveVideoInputEnabled(value)
                     }}
                   />
