@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Track } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { Field } from '@/primitives/Field'
@@ -28,6 +28,7 @@ import { useLoginHint } from '@/hooks/useLoginHint'
 import { ToggleDeviceJoin } from '@/features/rooms/components/ToggleDeviceJoin'
 import { SelectDeviceJoin } from '@/features/rooms/components/SelectDeviceJoin'
 import { usePreviewTracks } from '@/features/rooms/hooks/usePreviewTracks'
+import { usePermissions } from '@/features/rooms/hooks/usePermissions'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -72,36 +73,14 @@ const Effects = ({
         </Text>
         <EffectsConfiguration videoTrack={videoTrack} onSubmit={onSubmit} />
       </Dialog>
-      <div
-        className={css({
-          position: 'absolute',
-          right: 0,
-          bottom: '0',
-          padding: '1rem',
-          zIndex: '1',
-        })}
+      <Button
+        variant="whiteCircle"
+        onPress={openDialog}
+        tooltip={t('description')}
+        aria-label={t('description')}
       >
-        <Button
-          variant="whiteCircle"
-          onPress={openDialog}
-          tooltip={t('description')}
-          aria-label={t('description')}
-        >
-          <RiImageCircleAiFill size={24} />
-        </Button>
-      </div>
-      <div
-        className={css({
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '20%',
-          backgroundImage:
-            'linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(255,255,255,0) 100%)',
-          borderBottomRadius: '1rem',
-        })}
-      />
+        <RiImageCircleAiFill size={24} />
+      </Button>
     </>
   )
 }
@@ -148,12 +127,14 @@ export const Join = ({
   )
 
   const videoEl = useRef(null)
+  const isVideoInitiated = useRef(false)
 
   useEffect(() => {
     const videoElement = videoEl.current as HTMLVideoElement | null
 
     const handleVideoLoaded = () => {
       if (videoElement) {
+        isVideoInitiated.current = true
         videoElement.style.opacity = '1'
       }
     }
@@ -228,6 +209,29 @@ export const Join = ({
     enterRoom()
   }
 
+  const { isCameraGranted, isMicrophoneGranted } = usePermissions()
+
+  const hintMessage = useMemo(() => {
+    if (!isCameraGranted) {
+      if (!isMicrophoneGranted) {
+        return 'cameraAndMicNotGranted'
+      }
+      return 'cameraNotGranted'
+    }
+
+    if (!videoEnabled) {
+      return 'cameraDisabled'
+    }
+
+    if (!isVideoInitiated.current) {
+      return 'cameraStarting'
+    }
+
+    if (videoTrack && videoEnabled) {
+      return ''
+    }
+  }, [videoTrack, videoEnabled, isCameraGranted, isMicrophoneGranted])
+
   const renderWaitingState = () => {
     switch (status) {
       case ApiLobbyStatus.TIMEOUT:
@@ -279,6 +283,10 @@ export const Join = ({
             submitButtonProps={{
               fullWidth: true,
             }}
+            className={css({
+              width: '100%',
+              maxWidth: '340px',
+            })}
           >
             <VStack marginBottom={1}>
               <H lvl={1} margin="sm" centered>
@@ -310,139 +318,208 @@ export const Join = ({
       <div
         className={css({
           display: 'flex',
-          alignItems: 'flex-start',
           justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          flexDirection: 'column',
           flexGrow: 1,
+          gap: { base: '1rem', sm: '2rem', lg: 0 },
           lg: {
-            alignItems: 'center',
+            flexDirection: 'row',
           },
         })}
       >
         <div
           className={css({
             display: 'flex',
-            height: 'auto',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '2rem',
-            padding: '0 2rem',
-            flexDirection: 'column',
-            minWidth: 0,
             width: '100%',
+            minWidth: 0,
+            maxWidth: '764px',
             lg: {
-              flexDirection: 'row',
-              width: 'auto',
-              height: '570px',
+              height: '540px',
+              flexGrow: 1,
             },
           })}
         >
           <div
             className={css({
-              width: '100%',
+              display: 'inline-flex',
+              flexDirection: 'column',
+              flexGrow: 1,
               minWidth: 0,
-              lg: {
-                width: '740px',
-              },
+              flexShrink: { base: 0, sm: 1 },
             })}
           >
             <div
               className={css({
                 borderRadius: '1rem',
+                flex: '0 1',
+                minWidth: '320px',
+                margin: {
+                  base: '0.5rem',
+                  sm: '1rem',
+                  lg: '1rem 0.5rem 1rem 1rem',
+                },
                 overflow: 'hidden',
                 position: 'relative',
-                width: '100%',
-                height: 'auto',
-                aspectRatio: 16 / 9,
-                '--tw-shadow':
-                  '0 10px 15px -5px #00000010, 0 4px 5px -6px #00000010',
-                '--tw-shadow-colored':
-                  '0 10px 15px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color)',
-                boxShadow:
-                  'var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)',
-                backgroundColor: 'black',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
               })}
             >
-              {videoTrack && videoEnabled ? (
-                // eslint-disable-next-line jsx-a11y/media-has-caption
-                <video
-                  ref={videoEl}
-                  width="1280"
-                  height="720"
-                  className={css({
-                    display: 'block',
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    transform: 'rotateY(180deg)',
-                    opacity: 0,
-                    transition: 'opacity 0.3s ease-in-out',
-                    borderRadius: '1rem',
-                  })}
-                  disablePictureInPicture
-                  disableRemotePlayback
-                />
-              ) : (
-                <div
-                  className={css({
-                    width: '100%',
-                    height: '100%',
-                    color: 'white',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  })}
-                >
-                  <p
-                    className={css({
-                      fontSize: '24px',
-                      fontWeight: '300',
-                    })}
-                  >
-                    {!videoEnabled && t('cameraDisabled')}
-                    {videoEnabled && !videoTrack && t('cameraStarting')}
-                  </p>
-                </div>
-              )}
               <div
                 className={css({
-                  position: 'absolute',
-                  right: '50%',
-                  bottom: '0',
-                  padding: '1rem',
-                  zIndex: '1',
-                  display: 'flex',
-                  gap: '1rem',
-                  justifyContent: 'center',
-                  marginRight: '-80px',
+                  position: 'relative',
+                  width: '100%',
+                  height: 'fit-content',
+                  aspectRatio: '16 / 9',
                 })}
               >
-                <ToggleDeviceJoin
-                  source={Track.Source.Microphone}
-                  initialState={audioEnabled}
-                  track={audioTrack}
-                  onChange={saveAudioInputEnabled}
-                />
-                <ToggleDeviceJoin
-                  source={Track.Source.Camera}
-                  initialState={videoEnabled}
-                  track={videoTrack}
-                  onChange={saveVideoInputEnabled}
-                />
+                <div
+                  className={css({
+                    backgroundColor: 'black',
+                    position: 'absolute',
+                    boxSizing: 'border-box',
+                    top: 0,
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'hidden',
+                  })}
+                >
+                  <div
+                    aria-label={t(
+                      `videoPreview.${videoEnabled && isCameraGranted ? 'enabled' : 'disabled'}`
+                    )}
+                    role="status"
+                    className={css({
+                      position: 'absolute',
+                      top: 0,
+                      width: '100%',
+                    })}
+                  >
+                    <div
+                      className={css({
+                        width: '100%',
+                        height: 'auto',
+                        aspectRatio: '16 / 9',
+                        overflow: 'hidden',
+                        position: 'absolute',
+                        top: '-2px',
+                        left: '-2px',
+                        pointerEvents: 'none',
+                        transform: 'scale(1.02)',
+                      })}
+                    >
+                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                      <video
+                        ref={videoEl}
+                        width="1280"
+                        height="720"
+                        style={{
+                          display:
+                            !videoEnabled || !isCameraGranted
+                              ? 'none'
+                              : undefined,
+                        }}
+                        className={css({
+                          position: 'absolute',
+                          transform: 'rotateY(180deg)',
+                          opacity: 0,
+                          height: '100%',
+                          transition: 'opacity 0.3s ease-in-out',
+                          objectFit: 'cover',
+                        })}
+                        disablePictureInPicture
+                        disableRemotePlayback
+                      />
+                    </div>
+                  </div>
+                  <div
+                    role="alert"
+                    className={css({
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: '100%',
+                      width: '100%',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      alignItems: 'center',
+                      padding: '0.24rem',
+                      boxSizing: 'border-box',
+                    })}
+                  >
+                    <p
+                      className={css({
+                        fontWeight: '400',
+                        fontSize: { base: '1rem', sm: '1.25rem', lg: '1.5rem' },
+                        textWrap: 'balance',
+                        color: 'white',
+                      })}
+                    >
+                      {hintMessage && t(hintMessage)}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className={css({
+                    position: 'absolute',
+                    right: '50%',
+                    bottom: '1rem',
+                    zIndex: '1',
+                    display: 'flex',
+                    gap: '1.5rem',
+                    justifyContent: 'center',
+                    marginRight: '-68px',
+                  })}
+                >
+                  <ToggleDeviceJoin
+                    source={Track.Source.Microphone}
+                    initialState={audioEnabled}
+                    track={audioTrack}
+                    onChange={saveAudioInputEnabled}
+                  />
+                  <ToggleDeviceJoin
+                    source={Track.Source.Camera}
+                    initialState={videoEnabled}
+                    track={videoTrack}
+                    onChange={(value) => {
+                      const videoElement =
+                        videoEl.current as HTMLVideoElement | null
+
+                      if (isVideoInitiated.current && !value && videoElement) {
+                        isVideoInitiated.current = false
+                        videoElement.style.opacity = '0'
+                      }
+
+                      saveVideoInputEnabled(value)
+                    }}
+                  />
+                </div>
+                <div
+                  className={css({
+                    position: 'absolute',
+                    right: '1rem',
+                    bottom: '1rem',
+                    zIndex: '1',
+                  })}
+                >
+                  <Effects
+                    videoTrack={videoTrack}
+                    onSubmit={(processor) =>
+                      saveProcessorSerialized(processor?.serialize())
+                    }
+                  />
+                </div>
               </div>
-              <Effects
-                videoTrack={videoTrack}
-                onSubmit={(processor) =>
-                  saveProcessorSerialized(processor?.serialize())
-                }
-              />
             </div>
             <div
               className={css({
                 display: 'none',
-                lg: {
+                sm: {
                   display: 'flex',
                   justifyContent: 'center',
-                  paddingTop: 1.5,
                   gap: '2%',
                   width: '80%',
                   marginX: 'auto',
@@ -484,19 +561,18 @@ export const Join = ({
               </div>
             </div>
           </div>
-          <div
-            className={css({
-              width: '100%',
-              flexShrink: 0,
-              padding: '0',
-              sm: {
-                width: '448px',
-                padding: '0 3rem 4rem 3rem',
-              },
-            })}
-          >
-            {renderWaitingState()}
-          </div>
+        </div>
+        <div
+          className={css({
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            flex: '0 0 448px',
+            position: 'relative',
+            margin: '1rem 1rem 1rem 0.5rem',
+          })}
+        >
+          {renderWaitingState()}
         </div>
       </div>
     </Screen>

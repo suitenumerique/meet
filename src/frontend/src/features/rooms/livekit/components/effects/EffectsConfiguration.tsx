@@ -37,7 +37,7 @@ const Information = styled('div', {
 })
 
 export type EffectsConfigurationProps = {
-  videoTrack: LocalVideoTrack
+  videoTrack?: LocalVideoTrack
   onSubmit?: (processor?: BackgroundProcessorInterface) => void
   layout?: 'vertical' | 'horizontal'
 }
@@ -73,12 +73,12 @@ export const EffectsConfiguration = ({
 
     return () => {
       if (!videoElement) return
-      videoTrack.detach(videoElement)
+      videoTrack?.detach(videoElement)
     }
   }, [videoTrack, videoTrack?.isMuted])
 
   const clearEffect = async () => {
-    await videoTrack.stopProcessor()
+    await videoTrack?.stopProcessor()
     setSelectedProcessor(undefined)
     onSubmit?.(undefined)
   }

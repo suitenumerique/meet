@@ -42,8 +42,14 @@
     "errors": {
       "usernameEmpty": "Your name cannot be empty"
     },
-    "cameraDisabled": "Camera is disabled.",
-    "cameraStarting": "Camera is starting.",
+    "cameraDisabled": "The camera is disabled",
+    "cameraStarting": "The camera is starting…",
+    "cameraNotGranted": "Do you want others to be able to see you during the meeting?",
+    "cameraAndMicNotGranted": "Do you want others to be able to see and hear you during the meeting?",
+    "videoPreview": {
+      "enabled": "Video preview enabled",
+      "disabled": "Video preview disabled"
+    },
     "waiting": {
       "title": "Requesting to join...",
       "body": "You will be able to join this call when someone authorizes you"

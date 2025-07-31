@@ -7,7 +7,7 @@ import { FaceLandmarksProcessor } from '../blur/FaceLandmarksProcessor'
 import { LocalVideoTrack } from 'livekit-client'
 
 export type FunnyEffectsProps = {
-  videoTrack: LocalVideoTrack
+  videoTrack?: LocalVideoTrack
   isPending?: boolean
   onPending: (value: boolean) => void
 }
@@ -47,12 +47,12 @@ export const FunnyEffects = ({
 
     try {
       if (!newOptions.showGlasses && !newOptions.showFrench) {
-        await videoTrack.stopProcessor()
+        await videoTrack?.stopProcessor()
       } else if (options.showGlasses || options.showFrench) {
         await processor?.update(newOptions)
       } else {
         const newProcessor = new FaceLandmarksProcessor(newOptions)
-        await videoTrack.setProcessor(newProcessor)
+        await videoTrack?.setProcessor(newProcessor)
       }
     } catch (e) {
       console.error('could not update processor', e)

@@ -42,8 +42,14 @@
     "errors": {
       "usernameEmpty": "Uw naam kan niet leeg zijn"
     },
-    "cameraDisabled": "Camera is uitgeschakeld.",
-    "cameraStarting": "Camera wordt ingeschakeld.",
+    "cameraDisabled": "De camera is uitgeschakeld",
+    "cameraStarting": "De camera wordt gestart…",
+    "cameraNotGranted": "Wil je dat anderen je kunnen zien tijdens de vergadering?",
+    "cameraAndMicNotGranted": "Wil je dat anderen je kunnen zien en horen tijdens de vergadering?",
+    "videoPreview": {
+      "enabled": "Videovoorbeeld ingeschakeld",
+      "disabled": "Videovoorbeeld uitgeschakeld"
+    },
     "waiting": {
       "title": "Verzoek tot deelname...",
       "body": "U kunt deelnemen aan dit gesprek wanneer iemand u toestemming geeft"

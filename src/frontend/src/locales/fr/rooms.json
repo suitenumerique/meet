@@ -42,8 +42,14 @@
     "errors": {
       "usernameEmpty": "Votre nom ne peut pas être vide"
     },
-    "cameraDisabled": "La caméra est désactivée.",
-    "cameraStarting": "La caméra va démarrer.",
+    "cameraDisabled": "La caméra est désactivée",
+    "cameraStarting": "La caméra va démarrer…",
+    "cameraNotGranted": "Souhaitez-vous que les autres puissent vous voir pendant la réunion ?",
+    "cameraAndMicNotGranted": "Souhaitez-vous que les autres puissent vous voir et vous entendre pendant la réunion ?",
+    "videoPreview": {
+      "enabled": "Apercu vidéo activé",
+      "disabled": "Apercu vidéo désactivé"
+    },
     "waiting": {
       "title": "Demande de participation…",
       "body": "Vous pourrez participer à cet appel lorsque quelqu'un vous y autorisera"
