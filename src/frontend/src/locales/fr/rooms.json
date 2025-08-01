@@ -51,6 +51,22 @@
       "body": "Personne n'a répondu à votre demande de participation à l'appel"
     }
   },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera":  "{{app_title}} n'est pas autorisé à utiliser votre caméra",
+      "microphone": "{{app_title}} n'est pas autorisé à utiliser votre micro",
+      "cameraAndMicrophone": "{{app_title}} n'est pas autorisé à utiliser votre micro ni votre caméra",
+      "default": "{{app_title}} n'est pas autorisé à utiliser certaines permissions"
+    },
+    "body": {
+      "openMenu": "Cliquez sur l'icône des paramètres {{icon_placeholder}} dans la barre d'adresse de votre navigateur",
+      "details": {
+        "camera":  "Autorisez l'accès à la caméra",
+        "microphone": "Autorisez l'accès au microphone",
+        "cameraAndMicrophone": "Autorisez l'accès à la caméra et au microphone"
+      }
+    }
+  },
   "leaveRoomPrompt": "Revenir à l'accueil vous fera quitter la réunion.",
   "shareDialog": {
     "copy": "Copier le lien de la réunion",
