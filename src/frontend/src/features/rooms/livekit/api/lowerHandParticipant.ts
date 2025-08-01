@@ -2,7 +2,6 @@ import { Participant } from 'livekit-client'
 import { fetchServerApi } from './fetchServerApi'
 import { buildServerApiUrl } from './buildServerApiUrl'
 import { useRoomData } from '../hooks/useRoomData'
-import { safeParseMetadata } from '@/features/rooms/utils/safeParseMetadata'
 
 export const useLowerHandParticipant = () => {
   const data = useRoomData()
@@ -11,8 +10,12 @@ export const useLowerHandParticipant = () => {
     if (!data || !data?.livekit) {
       throw new Error('Room data is not available')
     }
-    const newMetadata = safeParseMetadata(participant.metadata) || {}
-    newMetadata.raised = !newMetadata.raised
+
+    const newAttributes = {
+      ...participant.attributes,
+      handRaisedAt: '',
+    }
+
     return fetchServerApi(
       buildServerApiUrl(
         data.livekit.url,
@@ -24,7 +27,7 @@ export const useLowerHandParticipant = () => {
         body: JSON.stringify({
           room: data.livekit.room,
           identity: participant.identity,
-          metadata: JSON.stringify(newMetadata),
+          attributes: newAttributes,
           permission: participant.permissions,
         }),
       }

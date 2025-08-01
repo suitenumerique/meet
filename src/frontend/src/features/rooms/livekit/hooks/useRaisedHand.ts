@@ -1,5 +1,5 @@
 import { LocalParticipant, Participant } from 'livekit-client'
-import { useParticipantInfo } from '@livekit/components-react'
+import { useParticipantAttribute } from '@livekit/components-react'
 import { isLocal } from '@/utils/livekit'
 
 type useRaisedHandProps = {
@@ -7,17 +7,22 @@ type useRaisedHandProps = {
 }
 
 export function useRaisedHand({ participant }: useRaisedHandProps) {
-  // fixme - refactor this part to rely on attributes
-  const { metadata } = useParticipantInfo({ participant })
-  const parsedMetadata = JSON.parse(metadata || '{}')
+  const handRaisedAtAttribute = useParticipantAttribute('handRaisedAt', {
+    participant,
+  })
 
-  const toggleRaisedHand = () => {
-    if (isLocal(participant)) {
-      parsedMetadata.raised = !parsedMetadata.raised
-      const localParticipant = participant as LocalParticipant
-      localParticipant.setMetadata(JSON.stringify(parsedMetadata))
+  const isHandRaised = !!handRaisedAtAttribute
+
+  const toggleRaisedHand = async () => {
+    if (!isLocal(participant)) return
+    const localParticipant = participant as LocalParticipant
+
+    const attributes: Record<string, string> = {
+      handRaisedAt: !isHandRaised ? new Date().toISOString() : '',
     }
+
+    await localParticipant.setAttributes(attributes)
   }
 
-  return { isHandRaised: parsedMetadata.raised ?? false, toggleRaisedHand }
+  return { isHandRaised, toggleRaisedHand }
 }
