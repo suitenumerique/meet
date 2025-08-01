@@ -34,9 +34,15 @@ export const ParticipantsList = () => {
     ...sortedRemoteParticipants,
   ]
 
-  const raisedHandParticipants = participants.filter((participant) => {
-    return !!participant.attributes.handRaisedAt
-  })
+  const raisedHandParticipants = participants
+    .filter((participant) => !!participant.attributes.handRaisedAt)
+    .sort((a, b) => {
+      const dateA = new Date(a.attributes.handRaisedAt)
+      const dateB = new Date(b.attributes.handRaisedAt)
+      const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime()
+      const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime()
+      return timeA - timeB
+    })
 
   const { waitingParticipants, handleParticipantEntry } =
     useWaitingParticipants()
