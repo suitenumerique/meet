@@ -22,7 +22,7 @@ import {
 } from '@livekit/components-core'
 import { Track } from 'livekit-client'
 import { RiHand } from '@remixicon/react'
-import { useRaisedHand } from '../hooks/useRaisedHand'
+import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
 import { HStack } from '@/styled-system/jsx'
 import { MutedMicIndicator } from './MutedMicIndicator'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
@@ -97,6 +97,10 @@ export const ParticipantTile: (
     participant: trackReference.participant,
   })
 
+  const { positionInQueue, firstInQueue } = useRaisedHandPosition({
+    participant: trackReference.participant,
+  })
+
   const isScreenShare = trackReference.source != Track.Source.Camera
 
   return (
@@ -141,24 +145,32 @@ export const ParticipantTile: (
                       style={{
                         padding: '0.1rem 0.25rem',
                         backgroundColor:
-                          isHandRaised && !isScreenShare ? 'white' : undefined,
+                          isHandRaised && !isScreenShare
+                            ? firstInQueue
+                              ? '#fde047'
+                              : 'white'
+                            : undefined,
                         color:
                           isHandRaised && !isScreenShare ? 'black' : undefined,
                         transition: 'background 200ms ease, color 400ms ease',
                       }}
                     >
                       {isHandRaised && !isScreenShare && (
-                        <RiHand
-                          color="black"
-                          size={16}
-                          style={{
-                            marginRight: '0.4rem',
-                            minWidth: '16px',
-                            animationDuration: '300ms',
-                            animationName: 'wave_hand',
-                            animationIterationCount: '2',
-                          }}
-                        />
+                        <>
+                          <span>{positionInQueue}</span>
+                          <RiHand
+                            color="black"
+                            size={16}
+                            style={{
+                              marginRight: '0.4rem',
+                              marginLeft: '0.1rem',
+                              minWidth: '16px',
+                              animationDuration: '300ms',
+                              animationName: 'wave_hand',
+                              animationIterationCount: '2',
+                            }}
+                          />
+                        </>
                       )}
                       {isScreenShare && (
                         <ScreenShareIcon
