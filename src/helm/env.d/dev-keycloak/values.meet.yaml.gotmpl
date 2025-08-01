@@ -35,7 +35,7 @@ backend:
     LOGIN_REDIRECT_URL: https://meet.127.0.0.1.nip.io
     LOGIN_REDIRECT_URL_FAILURE: https://meet.127.0.0.1.nip.io
     LOGOUT_REDIRECT_URL: https://meet.127.0.0.1.nip.io
-    DB_HOST: postgres-postgresql
+    DB_HOST: postgres
     DB_NAME: meet
     DB_USER: dinum
     DB_PASSWORD: pass
@@ -79,15 +79,11 @@ backend:
       - "/bin/sh"
       - "-c"
       - |
-        while ! python manage.py check --database default > /dev/null 2>&1
-        do
-          echo "Database not ready"
-          sleep 2
-        done
-        echo "Database is ready"
-
-        python manage.py migrate --no-input &&
-        python manage.py create_demo --force
+        if ! python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); import sys; sys.exit(0 if User.objects.filter(admin_email='user0@example.com').exists() else 1)"
+        then
+          python manage.py migrate --no-input &&
+          python manage.py create_demo --force || echo "create_demo already run"
+        fi
     restartPolicy: Never
 
   command:
@@ -102,13 +98,6 @@ backend:
       - "/bin/sh"
       - "-c"
       - |
-        while ! python manage.py check --database default > /dev/null 2>&1
-        do
-          echo "Database not ready"
-          sleep 2
-        done
-        echo "Database is ready"
-
         python manage.py createsuperuser --email admin@example.com --password admin
     restartPolicy: Never
 

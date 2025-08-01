@@ -1,0 +1,104 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak
+spec:
+  rules:
+  - host: "keycloak.127.0.0.1.nip.io"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: keycloak
+            port:
+              number: 8080
+  tls:
+  - hosts:
+    - keycloak.127.0.0.1.nip.io
+    secretName: meet-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  ports:
+  - name: tcp-keycloak
+    port: 8080
+    protocol: TCP
+    targetPort: tcp-keycloak
+  selector:
+    app.kubernetes.io/instance: extra
+    app.kubernetes.io/name: keycloak
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: realm
+data:
+  meet.json: |
+{{ .Values.realm | indent 4 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: extra
+      app.kubernetes.io/name: keycloak
+  serviceName: "keycloak"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: extra
+        app.kubernetes.io/name: keycloak
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:20.0.1
+        args:
+          - start-dev
+          - --features=preview
+          - --import-realm
+          - --proxy=edge
+          - --hostname=keycloak.127.0.0.1.nip.io
+          - --hostname-strict=false
+          - --hostname-strict-https=false
+        ports:
+        - containerPort: 8080
+          name: tcp-keycloak
+        env:
+          - name: KEYCLOAK_ADMIN
+            value: admin
+          - name: KEYCLOAK_ADMIN_PASSWORD
+            value: admin
+          - name: PROXY_ADDRESS_FORWARDING
+            value: 'true'
+          - name: KC_DB_URL_HOST
+            value: kc_postgresql
+          - name: KC_DB_URL_DATABASE
+            value: keycloak
+          - name: KC_DB_PASSWORD
+            value: pass
+          - name: KC_DB_USERNAME
+            value: dinum
+          - name: KC_DB_SCHEMA
+            value: public
+        volumeMounts:
+        - name: realm
+          mountPath: "/opt/keycloak/data/import"
+          readOnly: true
+      volumes:
+      - name: realm
+        configMap:
+          name: realm
