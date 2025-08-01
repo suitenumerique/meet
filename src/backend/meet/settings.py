@@ -492,6 +492,9 @@ class Base(Configuration):
         ),
         "url": values.Value(environ_name="LIVEKIT_API_URL", environ_prefix=None),
     }
+    LIVEKIT_FORCE_WSS_PROTOCOL = values.BooleanValue(
+        False, environ_name="LIVEKIT_FORCE_WSS_PROTOCOL", environ_prefix=None
+    )
     LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND = values.BooleanValue(
         environ_name="LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND",
         environ_prefix=None,

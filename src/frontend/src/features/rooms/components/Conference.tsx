@@ -152,6 +152,20 @@ export const Conference = ({
     kind: null,
   })
 
+  /*
+   * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
+   * (Firefox <124, Chrome <125, Edge <125) where HTTPS URLs in WebSocket() constructor
+   *  may fail - the force_wss_protocol flag allows explicit WSS protocol conversion
+   */
+  const serverUrl = useMemo(() => {
+    const livekit_url = apiConfig?.livekit.url
+    if (!livekit_url) return
+    if (apiConfig?.livekit.force_wss_protocol) {
+      return livekit_url.replace('https://', 'wss://')
+    }
+    return livekit_url
+  }, [apiConfig?.livekit])
+
   const { t } = useTranslation('rooms')
   if (isCreateError) {
     // this error screen should be replaced by a proper waiting room for anonymous user.
@@ -175,7 +189,7 @@ export const Conference = ({
       <Screen header={false} footer={false}>
         <LiveKitRoom
           room={room}
-          serverUrl={apiConfig?.livekit.url}
+          serverUrl={serverUrl}
           token={data?.livekit?.token}
           connect={isConnectionWarmedUp}
           audio={userConfig.audioEnabled}
