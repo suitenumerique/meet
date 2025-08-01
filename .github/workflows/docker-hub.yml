@@ -14,6 +14,7 @@ on:
 
 env:
   DOCKER_USER: 1001:127
+  DOCKER_CONTAINER_REGISTRY: lasuite
 
 jobs:
   build-and-push-backend:
@@ -27,7 +28,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: lasuite/meet-backend
+          images: '${{ env.DOCKER_CONTAINER_REGISTRY }}/meet-backend'
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -37,7 +38,7 @@ jobs:
         uses: numerique-gouv/action-trivy-cache@main
         with:
           docker-build-args: '--target backend-production -f Dockerfile'
-          docker-image-name: 'docker.io/lasuite/meet-backend:${{ github.sha }}'
+          docker-image-name: 'docker.io/${{ env.DOCKER_CONTAINER_REGISTRY }}/meet-backend:${{ github.sha }}'
       -
         name: Build and push
         uses: docker/build-push-action@v6
@@ -60,7 +61,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: lasuite/meet-frontend
+          images: '${{ env.DOCKER_CONTAINER_REGISTRY }}/meet-frontend'
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -70,7 +71,7 @@ jobs:
         uses: numerique-gouv/action-trivy-cache@main
         with:
           docker-build-args: '-f src/frontend/Dockerfile --target frontend-production'
-          docker-image-name: 'docker.io/lasuite/meet-frontend:${{ github.sha }}'
+          docker-image-name: 'docker.io/${{ env.DOCKER_CONTAINER_REGISTRY }}/meet-frontend:${{ github.sha }}'
       -
         name: Build and push
         uses: docker/build-push-action@v6
@@ -94,7 +95,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: lasuite/meet-frontend-dinum
+          images: '${{ env.DOCKER_CONTAINER_REGISTRY }}/meet-frontend-dinum'
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -104,7 +105,7 @@ jobs:
         uses: numerique-gouv/action-trivy-cache@main
         with:
           docker-build-args: '-f docker/dinum-frontend/Dockerfile --target frontend-production'
-          docker-image-name: 'docker.io/lasuite/meet-frontend-dinum:${{ github.sha }}'
+          docker-image-name: 'docker.io/${{ env.DOCKER_CONTAINER_REGISTRY }}/meet-frontend-dinum:${{ github.sha }}'
       -
         name: Build and push
         uses: docker/build-push-action@v6
@@ -128,7 +129,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: lasuite/meet-summary
+          images: '${{ env.DOCKER_CONTAINER_REGISTRY }}/meet-summary'
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
