@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  ports:
+  - name: tcp-postgresql
+    port: 5432
+    protocol: TCP
+    targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/instance: extra
+    app.kubernetes.io/name: postgresql
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: extra
+      app.kubernetes.io/name: postgresql
+  serviceName: "postgres"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: extra
+        app.kubernetes.io/name: postgresql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: pg
+        image: postgres:16-alpine
+        readinessProbe:
+          exec:
+            command: [ "pg_isready", "-U", "dinum", "-d", "meet", "-h", "127.0.0.1" ]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command: [ "pg_isready", "-U", "dinum", "-d", "meet", "-h", "127.0.0.1" ]
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        ports:
+        - containerPort: 5432
+          name: tcp-postgresql
+        env:
+          - name: POSTGRES_PASSWORD
+            value: pass
+          - name: POSTGRES_USER
+            value: dinum
+          - name: POSTGRES_DB
+            value: meet
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

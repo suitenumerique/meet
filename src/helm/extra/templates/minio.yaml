@@ -1,0 +1,107 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio
+spec:
+  rules:
+  - host: "minio.127.0.0.1.nip.io"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: minio
+            port:
+              number: 9001
+  tls:
+  - hosts:
+    - minio.127.0.0.1.nip.io
+    secretName: meet-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  ports:
+  - name: client
+    port: 9000
+    protocol: TCP
+    targetPort: 9000
+  - name: console
+    port: 9001
+    protocol: TCP
+    targetPort: 9001
+  selector:
+    app.kubernetes.io/instance: extra
+    app.kubernetes.io/name: minio
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app.kubernetes.io/instance: extra
+    app.kubernetes.io/name: minio
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: extra
+      app.kubernetes.io/name: minio
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: extra
+        app.kubernetes.io/name: minio
+    spec:
+      containers:
+      - name: minio
+        command:
+          - /bin/sh
+          - -c
+          - |
+            minio server --console-address :9001 /data
+        env:
+          - name: MINIO_ROOT_USER
+            value: meet
+          - name: MINIO_ROOT_PASSWORD
+            value: password
+        image: "minio/minio"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          name: client
+        - containerPort: 9001
+          name: console
+        volumeMounts:
+        - mountPath: /data
+          name: data
+      volumes:
+      - name: data
+        emptyDir:
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bucket
+spec:
+  template:
+    spec:
+      containers:
+      - name: mc
+        image: minio/mc
+        command:
+          - /bin/sh
+          - -c
+          - |
+            /usr/bin/mc alias set meet http://minio:9000 meet password && \
+            /usr/bin/mc mb meet/meet-media-storage && \
+            exit 0
+      restartPolicy: Never
+  backoffLimit: 1
