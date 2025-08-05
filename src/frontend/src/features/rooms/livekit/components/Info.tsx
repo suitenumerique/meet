@@ -76,7 +76,7 @@ export const Info = () => {
           })}
         >
           <Text as="p" variant="xsNote" wrap="pretty">
-            {roomUrl}
+            {roomUrl.replace(/^https?:\/\//, '')}
           </Text>
           {isTelephonyReadyForUse && (
             <>
