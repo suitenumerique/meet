@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { RiCheckLine, RiFileCopyLine } from '@remixicon/react'
@@ -25,6 +25,29 @@ export const Info = () => {
   const roomUrl = getRouteUrl('room', data?.slug)
 
   const telephony = useTelephony()
+
+  const isTelephonyReadyForUse = useMemo(() => {
+    return telephony?.enabled && data?.pin_code
+  }, [telephony?.enabled, data?.pin_code])
+
+  const clipboardContent = useMemo(() => {
+    if (isTelephonyReadyForUse) {
+      return [
+        t('roomInformation.clipboard.url', { roomUrl }),
+        t('roomInformation.clipboard.numberAndPin', {
+          phoneNumber: telephony?.internationalPhoneNumber,
+          pinCode: formatPinCode(data?.pin_code),
+        }),
+      ].join('\n')
+    }
+    return roomUrl
+  }, [
+    isTelephonyReadyForUse,
+    roomUrl,
+    telephony?.internationalPhoneNumber,
+    data?.pin_code,
+    t,
+  ])
 
   return (
     <Div
@@ -55,7 +78,7 @@ export const Info = () => {
           <Text as="p" variant="xsNote" wrap="pretty">
             {roomUrl}
           </Text>
-          {telephony?.enabled && data?.pin_code && (
+          {isTelephonyReadyForUse && (
             <>
               <Text as="p" variant="xsNote" wrap="pretty">
                 <Bold>{t('roomInformation.phone.call')}</Bold> (
@@ -73,7 +96,7 @@ export const Info = () => {
           variant={isCopied ? 'success' : 'tertiaryText'}
           aria-label={t('roomInformation.button.ariaLabel')}
           onPress={() => {
-            navigator.clipboard.writeText(roomUrl)
+            navigator.clipboard.writeText(clipboardContent)
             setIsCopied(true)
           }}
           data-attr="copy-info-sidepannel"
