@@ -20,9 +20,18 @@
   "laterMeetingDialog": {
     "heading": "Uw verbindingsgegevens",
     "description": "Deel deze informatie met de genodigden. Zij kunnen deelnemen aan de vergadering zonder zich aan te melden. Deze vergadering is permanent en kan hergebruikt worden.",
-    "copy": "Kopieer de vergaderlink",
-    "copied": "Link gekopieerd naar klembord",
-    "permissions": "Mensen met deze link hebben uw toestemming niet nodig om deel te nemen aan deze vergadering."
+    "permissions": "Mensen met deze link hebben uw toestemming niet nodig om deel te nemen aan deze vergadering.",
+    "copy": "Informatie kopiëren",
+    "copied": "Informatie gekopieerd",
+    "copyUrl": "Kopieer de vergaderlink",
+    "phone": {
+      "call": "Bel:",
+      "pinCode": "Code:"
+    },
+    "clipboard": {
+      "url": "Klik op deze link om deel te nemen aan de videoconferentie: {{roomUrl}}",
+      "numberAndPin": "Bel {{phoneNumber}} en voer deze code in om telefonisch deel te nemen: {{pinCode}}"
+    }
   },
   "introSlider": {
     "previous": {

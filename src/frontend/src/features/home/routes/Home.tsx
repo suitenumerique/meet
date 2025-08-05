@@ -18,6 +18,7 @@ import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { useConfig } from '@/api/useConfig'
 import { LoginButton } from '@/components/LoginButton'
+import { ApiRoom } from '@/features/rooms/api/ApiRoom'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -153,7 +154,7 @@ export const Home = () => {
   } = usePersistentUserChoices()
 
   const { mutateAsync: createRoom } = useCreateRoom()
-  const [laterRoomId, setLaterRoomId] = useState<null | string>(null)
+  const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
 
   const { data } = useConfig()
 
@@ -202,7 +203,7 @@ export const Home = () => {
                       onAction={() => {
                         const slug = generateRoomId()
                         createRoom({ slug, username }).then((data) =>
-                          setLaterRoomId(data.slug)
+                          setLaterRoom(data)
                         )
                       }}
                       data-attr="create-option-later"
@@ -251,8 +252,8 @@ export const Home = () => {
           </RightColumn>
         </Columns>
         <LaterMeetingDialog
-          roomId={laterRoomId ?? ''}
-          onOpenChange={() => setLaterRoomId(null)}
+          room={laterRoom}
+          onOpenChange={() => setLaterRoom(null)}
         />
       </Screen>
     </UserAware>

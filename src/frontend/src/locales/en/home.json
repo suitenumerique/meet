@@ -20,9 +20,18 @@
   "laterMeetingDialog": {
     "heading": "Your connection details",
     "description": "Share this information with the guests. They will be able to join the meeting without needing to sign in. This meeting is permanent and can be reused.",
-    "copy": "Copy the meeting link",
-    "copied": "Link copied to clipboard",
-    "permissions": "People with this link do not need your permission to join this meeting."
+    "permissions": "People with this link do not need your permission to join this meeting.",
+    "copy": "Copy information",
+    "copied": "Information copied to clipboard",
+    "copyUrl": "Copy the meeting link",
+    "phone": {
+      "call": "Call:",
+      "pinCode": "Code:"
+    },
+    "clipboard": {
+      "url": "To join the video conference, click on this link: {{roomUrl}}",
+      "numberAndPin": "To join by phone, dial {{phoneNumber}} and enter this code: {{pinCode}}"
+    }
   },
   "introSlider": {
     "previous": {

@@ -19,10 +19,19 @@
   },
   "laterMeetingDialog": {
     "heading": "Vos informations de connexion",
-    "copy": "Copier le lien de la réunion",
-    "copied": "Lien copié dans le presse-papiers",
-    "permissions": "Les personnes disposant de ce lien n'ont pas besoin de votre autorisation pour rejoindre cette réunion."
     "description": "Partagez ces informations avec les invités. Ils pourront rejoindre la réunion sans avoir besoin de se connecter. Cette réunion est permanente et peut être réutilisée.",
+    "permissions": "Les personnes disposant de ce lien n'ont pas besoin de votre autorisation pour rejoindre cette réunion.",
+    "copy": "Copier les informations",
+    "copied": "Copiées dans le presse-papiers",
+    "copyUrl": "Copier le lien de la réunion",
+    "phone": {
+      "call": "Appelez le :",
+      "pinCode": "Code :"
+    },
+    "clipboard": {
+      "url": "Pour participer à la visioconférence, cliquez sur ce lien : {{roomUrl}}",
+      "numberAndPin": "Pour participer par téléphone, composez le {{phoneNumber}} et saisissez ce code : {{pinCode}}"
+    }
   },
   "introSlider": {
     "previous": {
