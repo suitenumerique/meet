@@ -53,12 +53,20 @@
   },
   "leaveRoomPrompt": "This will make you leave the meeting.",
   "shareDialog": {
-    "copy": "Copy the meeting link",
-    "copyButton": "Copy link",
-    "copied": "Link copied to clipboard",
+    "copy": "Copy information",
+    "copyUrl": "Copy link",
+    "copied": "Information copied to clipboard",
     "heading": "Your meeting is ready",
     "description": "Share this link with people you want to invite to the meeting.",
-    "permissions": "People with this link do not need your permission to join this meeting."
+    "permissions": "People with this link do not need your permission to join this meeting.",
+    "phone": {
+      "call": "Call:",
+      "pinCode": "Code:"
+    },
+    "clipboard": {
+      "url": "To join the video conference, click on this link: {{roomUrl}}",
+      "numberAndPin": "To join by phone, dial {{phoneNumber}} and enter this code: {{pinCode}}"
+    }
   },
   "mediaErrorDialog": {
     "DeviceInUse": {

@@ -53,12 +53,20 @@
   },
   "leaveRoomPrompt": "Dat zal u de vergadering doen verlaten.",
   "shareDialog": {
-    "copy": "Kopieer de vergaderlink",
-    "copyButton": "Kopieerlink",
-    "copied": "Link gekopieerd naar het klembord",
+    "copy": "Informatie kopiëren",
+    "copyUrl": "Kopieerlink",
+    "copied": "Informatie gekopieerd",
     "heading": "Uw vergadering is klaar",
     "description": "Deel deze link met mensen die u wilt uitnodigen voor de vergadering.",
-    "permissions": "Mensen met deze link hebben uw toestemming niet nodig om deel te nemen aan deze vergadering."
+    "permissions": "Mensen met deze link hebben uw toestemming niet nodig om deel te nemen aan deze vergadering.",
+    "phone": {
+      "call": "Bel:",
+      "pinCode": "Code:"
+    },
+    "clipboard": {
+      "url": "Klik op deze link om deel te nemen aan de videoconferentie: {{roomUrl}}",
+      "numberAndPin": "Bel {{phoneNumber}} en voer deze code in om telefonisch deel te nemen: {{pinCode}}"
+    }
   },
   "mediaErrorDialog": {
     "DeviceInUse": {

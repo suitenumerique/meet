@@ -53,12 +53,20 @@
   },
   "leaveRoomPrompt": "Revenir à l'accueil vous fera quitter la réunion.",
   "shareDialog": {
-    "copy": "Copier le lien de la réunion",
-    "copyButton": "Copier le lien",
-    "copied": "Lien copié dans le presse-papiers",
+    "copy": "Copier les informations",
+    "copyUrl": "Copier le lien",
+    "copied": "Copiées dans le presse-papiers",
     "heading": "Votre réunion est prête",
-    "description": "Partagez ce lien avec les personnes que vous souhaitez inviter à la réunion.",
-    "permissions": "Les personnes disposant de ce lien n'ont pas besoin de votre autorisation pour rejoindre cette réunion."
+    "description": "Partagez ces informations avec les personnes que vous souhaitez inviter à la réunion.",
+    "permissions": "Les personnes disposant de ce lien n'ont pas besoin de votre autorisation pour rejoindre cette réunion.",
+    "phone": {
+      "call": "Appelez le :",
+      "pinCode": "Code :"
+    },
+    "clipboard": {
+      "url": "Pour participer à la visioconférence, cliquez sur ce lien : {{roomUrl}}",
+      "numberAndPin": "Pour participer par téléphone, composez le {{phoneNumber}} et saisissez ce code : {{pinCode}}"
+    }
   },
   "mediaErrorDialog": {
     "DeviceInUse": {
