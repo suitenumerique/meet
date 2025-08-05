@@ -226,9 +226,9 @@
     "roomInformation": {
       "title": "Verbindingsinformatie",
       "button": {
-        "ariaLabel": "Kopieer je vergaderadres",
-        "copy": "Adres kopiëren",
-        "copied": "Adres gekopieerd"
+        "ariaLabel": "Kopieer de informatie van uw vergadering",
+        "copy": "Informatie kopiëren",
+        "copied": "Informatie gekopieerd"
       },
       "phone": {
         "call": "Bel:",

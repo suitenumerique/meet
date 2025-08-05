@@ -226,9 +226,9 @@
     "roomInformation": {
       "title": "Verbindungsinformationen",
       "button": {
-        "ariaLabel": "Kopiere deine Meeting-Adresse",
-        "copy": "Adresse kopieren",
-        "copied": "Adresse kopiert"
+        "ariaLabel": "Kopieren Sie die Informationen aus Ihrer Besprechung",
+        "copy": "Informationen kopieren",
+        "copied": "Informationen kopiert"
       },
       "phone": {
         "call": "Rufen Sie an:",

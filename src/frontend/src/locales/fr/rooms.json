@@ -226,9 +226,9 @@
     "roomInformation": {
       "title": "Informations de connexions",
       "button": {
-        "ariaLabel": "Copier l'adresse de votre réunion",
-        "copy": "Copier l'adresse",
-        "copied": "Adresse copiée"
+        "ariaLabel": "Copier les informations de votre réunion",
+        "copy": "Copier les informations",
+        "copied": "Informations copiées"
       },
       "phone": {
         "call": "Appelez le :",
