@@ -19,7 +19,7 @@
   },
   "laterMeetingDialog": {
     "heading": "Your connection details",
-    "description": "Send this link to the people you want to invite to the meeting. They will be able to join without ProConnect.",
+    "description": "Share this information with the guests. They will be able to join the meeting without needing to sign in. This meeting is permanent and can be reused.",
     "copy": "Copy the meeting link",
     "copied": "Link copied to clipboard",
     "permissions": "People with this link do not need your permission to join this meeting."

@@ -19,10 +19,10 @@
   },
   "laterMeetingDialog": {
     "heading": "Vos informations de connexion",
-    "description": "Envoyez ce lien aux personnes que vous souhaitez inviter à la réunion. Ils pourront la rejoindre sans ProConnect.",
     "copy": "Copier le lien de la réunion",
     "copied": "Lien copié dans le presse-papiers",
     "permissions": "Les personnes disposant de ce lien n'ont pas besoin de votre autorisation pour rejoindre cette réunion."
+    "description": "Partagez ces informations avec les invités. Ils pourront rejoindre la réunion sans avoir besoin de se connecter. Cette réunion est permanente et peut être réutilisée.",
   },
   "introSlider": {
     "previous": {
