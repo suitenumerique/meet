@@ -240,7 +240,6 @@ export const Conference = ({
             <InviteDialog
               isOpen={showInviteDialog}
               onOpenChange={setShowInviteDialog}
-              roomId={roomId}
               onClose={() => setShowInviteDialog(false)}
             />
           )}

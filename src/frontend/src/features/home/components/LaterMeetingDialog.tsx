@@ -5,7 +5,7 @@ import { Bold, Button, Dialog, type DialogProps, P, Text } from '@/primitives'
 import { HStack } from '@/styled-system/jsx'
 import { RiCheckLine, RiFileCopyLine, RiSpam2Fill } from '@remixicon/react'
 import { css } from '@/styled-system/css'
-import { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import { ApiAccessLevel, ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 
@@ -197,26 +197,28 @@ export const LaterMeetingDialog = ({
               )}
             </Button>
           )}
-          <HStack>
-            <div
-              className={css({
-                backgroundColor: 'primary.200',
-                borderRadius: '50%',
-                padding: '4px',
-                marginTop: '1rem',
-              })}
-            >
-              <RiSpam2Fill
-                size={22}
+          {room?.access_level == ApiAccessLevel.PUBLIC && (
+            <HStack>
+              <div
                 className={css({
-                  fill: 'primary.500',
+                  backgroundColor: 'primary.200',
+                  borderRadius: '50%',
+                  padding: '4px',
+                  marginTop: '1rem',
                 })}
-              />
-            </div>
-            <Text variant="sm" style={{ marginTop: '1rem' }}>
-              {t('permissions')}
-            </Text>
-          </HStack>
+              >
+                <RiSpam2Fill
+                  size={22}
+                  className={css({
+                    fill: 'primary.500',
+                  })}
+                />
+              </div>
+              <Text variant="sm" style={{ marginTop: '1rem' }}>
+                {t('permissions')}
+              </Text>
+            </HStack>
+          )}
         </>
       )}
     </Dialog>

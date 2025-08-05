@@ -12,6 +12,8 @@ import {
 } from '@remixicon/react'
 import { useEffect, useState } from 'react'
 import { css } from '@/styled-system/css'
+import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 
 // fixme - extract in a proper primitive this dialog without overlay
 const StyledRACDialog = styled(Dialog, {
@@ -34,13 +36,11 @@ const StyledRACDialog = styled(Dialog, {
   },
 })
 
-export const InviteDialog = ({
-  roomId,
-  ...dialogProps
-}: { roomId: string } & Omit<DialogProps, 'title'>) => {
+export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
   const { t } = useTranslation('rooms')
-  const roomUrl = getRouteUrl('room', roomId)
 
+  const roomData = useRoomData()
+  const roomUrl = getRouteUrl('room', roomData?.slug)
   const [isCopied, setIsCopied] = useState(false)
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export const InviteDialog = ({
   }, [isCopied])
 
   return (
-    <StyledRACDialog {...dialogProps}>
+    <StyledRACDialog {...props}>
       {({ close }) => (
         <VStack
           alignItems="left"
@@ -68,7 +68,7 @@ export const InviteDialog = ({
               variant="tertiaryText"
               size="xs"
               onPress={() => {
-                dialogProps.onClose?.()
+                props.onClose?.()
                 close()
               }}
               aria-label={t('closeDialog')}
@@ -99,26 +99,28 @@ export const InviteDialog = ({
               </>
             )}
           </Button>
-          <HStack>
-            <div
-              className={css({
-                backgroundColor: 'primary.200',
-                borderRadius: '50%',
-                padding: '4px',
-                marginTop: '1rem',
-              })}
-            >
-              <RiSpam2Fill
-                size={22}
+          {roomData?.access_level === ApiAccessLevel.PUBLIC && (
+            <HStack>
+              <div
                 className={css({
-                  fill: 'primary.500',
+                  backgroundColor: 'primary.200',
+                  borderRadius: '50%',
+                  padding: '4px',
+                  marginTop: '1rem',
                 })}
-              />
-            </div>
-            <Text variant="sm" style={{ marginTop: '1rem' }}>
-              {t('shareDialog.permissions')}
-            </Text>
-          </HStack>
+              >
+                <RiSpam2Fill
+                  size={22}
+                  className={css({
+                    fill: 'primary.500',
+                  })}
+                />
+              </div>
+              <Text variant="sm" style={{ marginTop: '1rem' }}>
+                {t('shareDialog.permissions')}
+              </Text>
+            </HStack>
+          )}
         </VStack>
       )}
     </StyledRACDialog>
