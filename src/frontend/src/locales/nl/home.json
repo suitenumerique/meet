@@ -27,10 +27,6 @@
     "phone": {
       "call": "Bel:",
       "pinCode": "Code:"
-    },
-    "clipboard": {
-      "url": "Klik op deze link om deel te nemen aan de videoconferentie: {{roomUrl}}",
-      "numberAndPin": "Bel {{phoneNumber}} en voer deze code in om telefonisch deel te nemen: {{pinCode}}"
     }
   },
   "introSlider": {

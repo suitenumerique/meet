@@ -51,5 +51,9 @@
       "ariaLabel": "Fermer la suggestion",
       "label": "OK"
     }
+  },
+  "clipboardContent": {
+    "url": "Pour participer à la visioconférence, cliquez sur ce lien : {{roomUrl}}",
+    "numberAndPin": "Pour participer par téléphone, composez le {{phoneNumber}} et saisissez ce code : {{pinCode}}"
   }
 }

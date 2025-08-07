@@ -10,12 +10,13 @@ import {
   RiFileCopyLine,
   RiSpam2Fill,
 } from '@remixicon/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { css } from '@/styled-system/css'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
+import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
 
 // fixme - extract in a proper primitive this dialog without overlay
 const StyledRACDialog = styled(Dialog, {
@@ -43,22 +44,6 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
 
   const roomData = useRoomData()
   const roomUrl = getRouteUrl('room', roomData?.slug)
-  const [isCopied, setIsCopied] = useState(false)
-  const [isRoomUrlCopied, setIsRoomUrlCopied] = useState(false)
-
-  useEffect(() => {
-    if (isCopied) {
-      const timeout = setTimeout(() => setIsCopied(false), 3000)
-      return () => clearTimeout(timeout)
-    }
-  }, [isCopied])
-
-  useEffect(() => {
-    if (isRoomUrlCopied) {
-      const timeout = setTimeout(() => setIsRoomUrlCopied(false), 3000)
-      return () => clearTimeout(timeout)
-    }
-  }, [isRoomUrlCopied])
 
   const telephony = useTelephony()
 
@@ -66,24 +51,12 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
     return telephony?.enabled && roomData?.pin_code
   }, [telephony?.enabled, roomData?.pin_code])
 
-  const clipboardContent = useMemo(() => {
-    if (isTelephonyReadyForUse) {
-      return [
-        t('clipboard.url', { roomUrl }),
-        t('clipboard.numberAndPin', {
-          phoneNumber: telephony?.internationalPhoneNumber,
-          pinCode: formatPinCode(roomData?.pin_code),
-        }),
-      ].join('\n')
-    }
-    return roomUrl
-  }, [
-    isTelephonyReadyForUse,
-    roomUrl,
-    telephony?.internationalPhoneNumber,
-    roomData?.pin_code,
-    t,
-  ])
+  const {
+    isCopied,
+    copyRoomToClipboard,
+    isRoomUrlCopied,
+    copyRoomUrlToClipboard,
+  } = useCopyRoomToClipboard(roomData)
 
   return (
     <StyledRACDialog {...props}>
@@ -138,10 +111,7 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
                     variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
                     square
                     size={'sm'}
-                    onPress={() => {
-                      navigator.clipboard.writeText(roomUrl)
-                      setIsRoomUrlCopied(true)
-                    }}
+                    onPress={copyRoomUrlToClipboard}
                     aria-label={t('copyUrl')}
                     tooltip={t('copyUrl')}
                   >
@@ -164,46 +134,38 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
                   {formatPinCode(roomData?.pin_code)}
                 </Text>
               </div>
-              {clipboardContent && (
-                <Button
-                  variant={isCopied ? 'success' : 'secondaryText'}
-                  size="sm"
-                  fullWidth
-                  aria-label={t('copy')}
-                  style={{
-                    justifyContent: 'start',
-                  }}
-                  onPress={() => {
-                    navigator.clipboard.writeText(clipboardContent)
-                    setIsCopied(true)
-                  }}
-                  data-attr="share-dialog-copy"
-                >
-                  {isCopied ? (
-                    <>
-                      <RiCheckLine size={18} style={{ marginRight: '8px' }} />
-                      {t('copied')}
-                    </>
-                  ) : (
-                    <>
-                      <RiFileCopyLine
-                        style={{ marginRight: '6px', minWidth: '18px' }}
-                      />
-                      {t('copy')}
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                variant={isCopied ? 'success' : 'secondaryText'}
+                size="sm"
+                fullWidth
+                aria-label={t('copy')}
+                style={{
+                  justifyContent: 'start',
+                }}
+                onPress={copyRoomToClipboard}
+                data-attr="share-dialog-copy"
+              >
+                {isCopied ? (
+                  <>
+                    <RiCheckLine size={18} style={{ marginRight: '8px' }} />
+                    {t('copied')}
+                  </>
+                ) : (
+                  <>
+                    <RiFileCopyLine
+                      style={{ marginRight: '6px', minWidth: '18px' }}
+                    />
+                    {t('copy')}
+                  </>
+                )}
+              </Button>
             </div>
           ) : (
             <Button
               variant={isCopied ? 'success' : 'tertiary'}
               fullWidth
               aria-label={t('copy')}
-              onPress={() => {
-                navigator.clipboard.writeText(roomUrl)
-                setIsCopied(true)
-              }}
+              onPress={copyRoomToClipboard}
               data-attr="share-dialog-copy"
             >
               {isCopied ? (

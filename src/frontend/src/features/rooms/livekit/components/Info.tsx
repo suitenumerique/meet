@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { RiCheckLine, RiFileCopyLine } from '@remixicon/react'
@@ -8,18 +8,10 @@ import { getRouteUrl } from '@/navigation/getRouteUrl'
 import { useRoomData } from '../hooks/useRoomData'
 import { formatPinCode } from '../../utils/telephony'
 import { useTelephony } from '../hooks/useTelephony'
+import { useCopyRoomToClipboard } from '../hooks/useCopyRoomToClipboard'
 
 export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
-
-  const [isCopied, setIsCopied] = useState(false)
-
-  useEffect(() => {
-    if (isCopied) {
-      const timeout = setTimeout(() => setIsCopied(false), 3000)
-      return () => clearTimeout(timeout)
-    }
-  }, [isCopied])
 
   const data = useRoomData()
   const roomUrl = getRouteUrl('room', data?.slug)
@@ -30,24 +22,7 @@ export const Info = () => {
     return telephony?.enabled && data?.pin_code
   }, [telephony?.enabled, data?.pin_code])
 
-  const clipboardContent = useMemo(() => {
-    if (isTelephonyReadyForUse) {
-      return [
-        t('roomInformation.clipboard.url', { roomUrl }),
-        t('roomInformation.clipboard.numberAndPin', {
-          phoneNumber: telephony?.internationalPhoneNumber,
-          pinCode: formatPinCode(data?.pin_code),
-        }),
-      ].join('\n')
-    }
-    return roomUrl
-  }, [
-    isTelephonyReadyForUse,
-    roomUrl,
-    telephony?.internationalPhoneNumber,
-    data?.pin_code,
-    t,
-  ])
+  const { isCopied, copyRoomToClipboard } = useCopyRoomToClipboard(data)
 
   return (
     <Div
@@ -95,10 +70,7 @@ export const Info = () => {
           size="sm"
           variant={isCopied ? 'success' : 'tertiaryText'}
           aria-label={t('roomInformation.button.ariaLabel')}
-          onPress={() => {
-            navigator.clipboard.writeText(clipboardContent)
-            setIsCopied(true)
-          }}
+          onPress={copyRoomToClipboard}
           data-attr="copy-info-sidepannel"
           style={{
             marginLeft: '-8px',

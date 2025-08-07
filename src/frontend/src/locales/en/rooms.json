@@ -62,10 +62,6 @@
     "phone": {
       "call": "Call:",
       "pinCode": "Code:"
-    },
-    "clipboard": {
-      "url": "To join the video conference, click on this link: {{roomUrl}}",
-      "numberAndPin": "To join by phone, dial {{phoneNumber}} and enter this code: {{pinCode}}"
     }
   },
   "mediaErrorDialog": {
@@ -241,10 +237,6 @@
       "phone": {
         "call": "Call:",
         "pinCode": "Code:"
-      },
-      "clipboard": {
-        "url": "To join the video conference, click on this link: {{roomUrl}}",
-        "numberAndPin": "To join by phone, dial {{phoneNumber}} and enter this code: {{pinCode}}"
       }
     }
   },

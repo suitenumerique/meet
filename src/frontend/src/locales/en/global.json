@@ -51,5 +51,9 @@
       "ariaLabel": "Close the suggestion",
       "label": "OK"
     }
+  },
+  "clipboardContent": {
+    "url": "To join the video conference, click on this link: {{roomUrl}}",
+    "numberAndPin": "To join by phone, dial {{phoneNumber}} and enter this code: {{pinCode}}"
   }
 }

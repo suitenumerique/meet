@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 import { Bold, Button, Dialog, type DialogProps, P, Text } from '@/primitives'
@@ -8,6 +8,7 @@ import { css } from '@/styled-system/css'
 import { ApiAccessLevel, ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
+import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
 
 // fixme - duplication with the InviteDialog
 export const LaterMeetingDialog = ({
@@ -19,47 +20,18 @@ export const LaterMeetingDialog = ({
   const roomUrl = room && getRouteUrl('room', room?.slug)
   const telephony = useTelephony()
 
-  const [isCopied, setIsCopied] = useState(false)
-  const [isRoomUrlCopied, setIsRoomUrlCopied] = useState(false)
-
-  useEffect(() => {
-    if (isCopied) {
-      const timeout = setTimeout(() => setIsCopied(false), 3000)
-      return () => clearTimeout(timeout)
-    }
-  }, [isCopied])
-
   const [isHovered, setIsHovered] = useState(false)
-
-  useEffect(() => {
-    if (isRoomUrlCopied) {
-      const timeout = setTimeout(() => setIsRoomUrlCopied(false), 3000)
-      return () => clearTimeout(timeout)
-    }
-  }, [isRoomUrlCopied])
 
   const isTelephonyReadyForUse = useMemo(() => {
     return telephony?.enabled && room?.pin_code
   }, [telephony?.enabled, room?.pin_code])
 
-  const clipboardContent = useMemo(() => {
-    if (isTelephonyReadyForUse) {
-      return [
-        t('clipboard.url', { roomUrl }),
-        t('clipboard.numberAndPin', {
-          phoneNumber: telephony?.internationalPhoneNumber,
-          pinCode: formatPinCode(room?.pin_code),
-        }),
-      ].join('\n')
-    }
-    return roomUrl
-  }, [
-    isTelephonyReadyForUse,
-    roomUrl,
-    telephony?.internationalPhoneNumber,
-    room?.pin_code,
-    t,
-  ])
+  const {
+    isCopied,
+    copyRoomToClipboard,
+    isRoomUrlCopied,
+    copyRoomUrlToClipboard,
+  } = useCopyRoomToClipboard(room || undefined)
 
   return (
     <Dialog isOpen={!!room} {...dialogProps} title={t('heading')}>
@@ -95,10 +67,7 @@ export const LaterMeetingDialog = ({
                     variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
                     square
                     size={'sm'}
-                    onPress={() => {
-                      navigator.clipboard.writeText(roomUrl)
-                      setIsRoomUrlCopied(true)
-                    }}
+                    onPress={copyRoomUrlToClipboard}
                     aria-label={t('copyUrl')}
                     tooltip={t('copyUrl')}
                   >
@@ -121,36 +90,31 @@ export const LaterMeetingDialog = ({
                   {formatPinCode(room?.pin_code)}
                 </Text>
               </div>
-              {clipboardContent && (
-                <Button
-                  variant={isCopied ? 'success' : 'tertiaryText'}
-                  size="sm"
-                  fullWidth
-                  aria-label={t('copy')}
-                  style={{
-                    justifyContent: 'start',
-                  }}
-                  onPress={() => {
-                    navigator.clipboard.writeText(clipboardContent)
-                    setIsCopied(true)
-                  }}
-                  data-attr="later-dialog-copy"
-                >
-                  {isCopied ? (
-                    <>
-                      <RiCheckLine size={18} style={{ marginRight: '8px' }} />
-                      {t('copied')}
-                    </>
-                  ) : (
-                    <>
-                      <RiFileCopyLine
-                        style={{ marginRight: '6px', minWidth: '18px' }}
-                      />
-                      {t('copy')}
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                variant={isCopied ? 'success' : 'tertiaryText'}
+                size="sm"
+                fullWidth
+                aria-label={t('copy')}
+                style={{
+                  justifyContent: 'start',
+                }}
+                onPress={copyRoomToClipboard}
+                data-attr="later-dialog-copy"
+              >
+                {isCopied ? (
+                  <>
+                    <RiCheckLine size={18} style={{ marginRight: '8px' }} />
+                    {t('copied')}
+                  </>
+                ) : (
+                  <>
+                    <RiFileCopyLine
+                      style={{ marginRight: '6px', minWidth: '18px' }}
+                    />
+                    {t('copy')}
+                  </>
+                )}
+              </Button>
             </div>
           ) : (
             <Button
@@ -161,10 +125,7 @@ export const LaterMeetingDialog = ({
               style={{
                 justifyContent: 'start',
               }}
-              onPress={() => {
-                navigator.clipboard.writeText(roomUrl)
-                setIsCopied(true)
-              }}
+              onPress={copyRoomToClipboard}
               onHoverChange={setIsHovered}
               data-attr="later-dialog-copy"
             >

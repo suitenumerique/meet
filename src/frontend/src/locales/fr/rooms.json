@@ -62,10 +62,6 @@
     "phone": {
       "call": "Appelez le :",
       "pinCode": "Code :"
-    },
-    "clipboard": {
-      "url": "Pour participer à la visioconférence, cliquez sur ce lien : {{roomUrl}}",
-      "numberAndPin": "Pour participer par téléphone, composez le {{phoneNumber}} et saisissez ce code : {{pinCode}}"
     }
   },
   "mediaErrorDialog": {
@@ -241,10 +237,6 @@
       "phone": {
         "call": "Appelez le :",
         "pinCode": "Code :"
-      },
-      "clipboard": {
-        "url": "Pour participer à la visioconférence, cliquez sur ce lien : {{roomUrl}}",
-        "numberAndPin": "Pour participer par téléphone, composez le {{phoneNumber}} et saisissez ce code : {{pinCode}}"
       }
     }
   },
