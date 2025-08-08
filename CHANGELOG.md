@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Changed
 
+- 🚀(paas) add PaaS deployment scripts, tested on Scalingo #957
 - ♿️(frontend) fix form labels and autocomplete wiring #932
 - 🥅(summary) catch file-related exceptions when handling recording #944
 - 📝(frontend) update legal terms #956
