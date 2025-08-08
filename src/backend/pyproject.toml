@@ -29,6 +29,7 @@ dependencies = [
     "Brotli==1.2.0",
     "brevo-python==1.2.0",
     "celery[redis]==5.5.3",
+    "dj-database-url==3.1.0",
     "django-configurations==2.5.1",
     "django-cors-headers==4.9.0",
     "django-countries==8.0.0",

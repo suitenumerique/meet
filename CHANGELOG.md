@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) monitor throttling rate failure through sentry #964
+- 🚀(paas) add PaaS deployment scripts, tested on Scalingo #957
 
 ### Changed
 
