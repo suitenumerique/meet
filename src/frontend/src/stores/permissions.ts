@@ -10,9 +10,11 @@ type PermissionState =
 type State = {
   cameraPermission: PermissionState
   microphonePermission: PermissionState
+  isLoading: boolean
 }
 
 export const permissionsStore = proxy<State>({
   cameraPermission: undefined,
   microphonePermission: undefined,
+  isLoading: true,
 })

@@ -1,14 +1,24 @@
-import { useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { useLocation, useParams } from 'wouter'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { useUser, UserAware } from '@/features/auth'
 import { Conference } from '../components/Conference'
 import { Join } from '../components/Join'
+import { Permissions } from '../components/Permissions'
 import { useKeyboardShortcuts } from '@/features/shortcuts/useKeyboardShortcuts'
 import {
   isRoomValid,
   normalizeRoomId,
 } from '@/features/rooms/utils/isRoomValid'
+
+const BaseRoom = ({ children }: { children: ReactNode }) => {
+  return (
+    <UserAware>
+      <Permissions />
+      {children}
+    </UserAware>
+  )
+}
 
 export const Room = () => {
   const { isLoggedIn } = useUser()
@@ -47,19 +57,19 @@ export const Room = () => {
 
   if (!hasSubmittedEntry && !skipJoinScreen) {
     return (
-      <UserAware>
+      <BaseRoom>
         <Join enterRoom={() => setHasSubmittedEntry(true)} roomId={roomId} />
-      </UserAware>
+      </BaseRoom>
     )
   }
 
   return (
-    <UserAware>
+    <BaseRoom>
       <Conference
         initialRoomData={initialRoomData}
         roomId={roomId}
         mode={mode}
       />
-    </UserAware>
+    </BaseRoom>
   )
 }
