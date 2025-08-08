@@ -11,11 +11,12 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 import json
-from os import path
+from os import environ, path
 from socket import gethostbyname, gethostname
 
 from django.utils.translation import gettext_lazy as _
 
+import dj_database_url
 import sentry_sdk
 from configurations import Configuration, values
 from lasuite.configuration.values import SecretFileValue
@@ -86,7 +87,9 @@ class Base(Configuration):
 
     # Database
     DATABASES = {
-        "default": {
+        "default": dj_database_url.config()
+        if environ.get("DATABASE_URL")
+        else {
             "ENGINE": values.Value(
                 "django.db.backends.postgresql_psycopg2",
                 environ_name="DB_ENGINE",
