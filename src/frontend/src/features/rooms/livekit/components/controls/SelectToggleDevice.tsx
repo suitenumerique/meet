@@ -25,9 +25,11 @@ import { Shortcut } from '@/features/shortcuts/types'
 import { ToggleDevice } from '@/features/rooms/livekit/components/controls/ToggleDevice.tsx'
 import { css } from '@/styled-system/css'
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { usePersistentUserChoices } from '../../hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../blur'
+import { useSnapshot } from 'valtio'
+import { permissionsStore } from '@/stores/permissions'
 
 export type ToggleSource = Exclude<
   Track.Source,
@@ -101,6 +103,18 @@ export const SelectToggleDevice = <T extends ToggleSource>({
 
   const { userChoices } = usePersistentUserChoices()
 
+  const permissions = useSnapshot(permissionsStore)
+  const isPermissionDeniedOrPrompted = useMemo(() => {
+    switch (config.kind) {
+      case 'audioinput':
+        return (
+          permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
+        )
+      case 'videoinput':
+        return permissions.isCameraDenied || permissions.isCameraPrompted
+    }
+  }, [permissions, config.kind])
+
   const toggle = () => {
     if (props.source === Track.Source.Camera) {
       /**
@@ -161,6 +175,7 @@ export const SelectToggleDevice = <T extends ToggleSource>({
         config={config}
         variant={variant}
         toggle={toggle}
+        isPermissionDeniedOrPrompted={isPermissionDeniedOrPrompted}
         toggleButtonProps={{
           ...(hideMenu
             ? {
@@ -172,11 +187,16 @@ export const SelectToggleDevice = <T extends ToggleSource>({
       {!hideMenu && (
         <Menu variant={menuVariant}>
           <Button
+            isDisabled={isPermissionDeniedOrPrompted}
             tooltip={selectLabel}
             aria-label={selectLabel}
             groupPosition="right"
             square
-            variant={trackProps.enabled ? variant : 'error2'}
+            variant={
+              trackProps.enabled && !isPermissionDeniedOrPrompted
+                ? variant
+                : 'error2'
+            }
           >
             <RiArrowDownSLine />
           </Button>

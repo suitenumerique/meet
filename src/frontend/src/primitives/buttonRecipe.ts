@@ -270,6 +270,20 @@ export const buttonRecipe = cva({
           color: 'primary !important',
         },
       },
+      permission: {
+        position: 'relative',
+        // background: 'None !important',
+        borderRadius: '100%',
+        // border: 'none !important',
+        color: 'amber.500',
+        width: 'fit-content',
+        height: 'fit-content',
+        padding: '0 !important',
+        margin: '0 !important',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
     },
     invisible: {
       true: {

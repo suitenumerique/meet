@@ -8,19 +8,30 @@ type PermissionState =
   | 'denied'
   | 'unavailable'
 
-type State = {
+type BaseState = {
   cameraPermission: PermissionState
   microphonePermission: PermissionState
   isLoading: boolean
   isPermissionDialogOpen: boolean
 }
 
-export const permissionsStore = proxy<State>({
+type DerivedState = {
+  isCameraGranted: boolean
+  isMicrophoneGranted: boolean
+  isCameraDenied: boolean
+  isMicrophoneDenied: boolean
+  isCameraPrompted: boolean
+  isMicrophonePrompted: boolean
+}
+
+type State = BaseState & DerivedState
+
+export const permissionsStore = proxy<BaseState>({
   cameraPermission: undefined,
   microphonePermission: undefined,
   isLoading: true,
   isPermissionDialogOpen: false,
-})
+}) as State
 
 derive(
   {
@@ -31,8 +42,20 @@ derive(
     isCameraDenied: (get) => get(permissionsStore).cameraPermission == 'denied',
     isMicrophoneDenied: (get) =>
       get(permissionsStore).microphonePermission == 'denied',
+    isCameraPrompted: (get) =>
+      get(permissionsStore).cameraPermission == 'prompt',
+    isMicrophonePrompted: (get) =>
+      get(permissionsStore).microphonePermission == 'prompt',
   },
   {
     proxy: permissionsStore,
   }
 )
+
+export const openPermissionsDialog = () => {
+  permissionsStore.isPermissionDialogOpen = true
+}
+
+export const closePermissionsDialog = () => {
+  permissionsStore.isPermissionDialogOpen = false
+}

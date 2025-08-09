@@ -94,6 +94,10 @@
       }
     }
   },
+  "permissionsButton": {
+    "tooltip": "More info",
+    "ariaLabel": "Permissions issue. Show more info"
+  },
   "error": {
     "createRoom": {
       "heading": "Authentication Required",

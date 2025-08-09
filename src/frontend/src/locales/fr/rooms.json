@@ -94,6 +94,10 @@
       }
     }
   },
+  "permissionsButton": {
+    "tooltip": "Plus d'infos",
+    "ariaLabel": "Problème de permissions. Afficher plus d'infos"
+  },
   "error": {
     "createRoom": {
       "heading": "Authentification requise",

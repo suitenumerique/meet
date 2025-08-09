@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { appendShortcutLabel } from '@/features/shortcuts/utils'
 import { useTranslation } from 'react-i18next'
 import { SelectToggleDeviceConfig } from './SelectToggleDevice'
+import { PermissionNeededButton } from './PermissionNeededButton'
 import useLongPress from '@/features/shortcuts/useLongPress'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import {
@@ -13,9 +14,11 @@ import {
 } from '@livekit/components-react'
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import { openPermissionsDialog } from '@/stores/permissions'
 
 export type ToggleDeviceProps = {
   enabled: boolean
+  isPermissionDeniedOrPrompted?: boolean
   toggle: () => void
   config: SelectToggleDeviceConfig
   variant?: NonNullable<ButtonRecipeProps>['variant']
@@ -28,6 +31,7 @@ export const ToggleDevice = ({
   toggle,
   variant = 'primaryDark',
   toggleButtonProps,
+  isPermissionDeniedOrPrompted,
 }: ToggleDeviceProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
@@ -56,7 +60,7 @@ export const ToggleDevice = ({
     return shortcut ? appendShortcutLabel(label, shortcut) : label
   }, [enabled, kind, shortcut, t])
 
-  const Icon = enabled ? iconOn : iconOff
+  const Icon = enabled && !isPermissionDeniedOrPrompted ? iconOn : iconOff
 
   const context = useMaybeRoomContext()
   if (kind === 'audioinput' && pushToTalk && context) {
@@ -64,18 +68,27 @@ export const ToggleDevice = ({
   }
 
   return (
-    <ToggleButton
-      isSelected={!enabled}
-      variant={enabled ? variant : 'error2'}
-      shySelected
-      onPress={() => toggle()}
-      aria-label={toggleLabel}
-      tooltip={toggleLabel}
-      groupPosition="left"
-      {...toggleButtonProps}
-    >
-      <Icon />
-    </ToggleButton>
+    <div style={{ position: 'relative' }}>
+      {isPermissionDeniedOrPrompted && <PermissionNeededButton />}
+      <ToggleButton
+        isSelected={!enabled}
+        variant={enabled && !isPermissionDeniedOrPrompted ? variant : 'error2'}
+        shySelected
+        onPress={() =>
+          isPermissionDeniedOrPrompted ? openPermissionsDialog() : toggle()
+        }
+        aria-label={toggleLabel}
+        tooltip={
+          isPermissionDeniedOrPrompted
+            ? t('tooltip', { keyPrefix: 'permissionsButton' })
+            : toggleLabel
+        }
+        groupPosition="left"
+        {...toggleButtonProps}
+      >
+        <Icon />
+      </ToggleButton>
+    </div>
   )
 }
 

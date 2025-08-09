@@ -4,7 +4,7 @@ import { Dialog, H } from '@/primitives'
 import { RiEqualizer2Line } from '@remixicon/react'
 import { useEffect, useMemo } from 'react'
 import { useSnapshot } from 'valtio'
-import { permissionsStore } from '@/stores/permissions'
+import { closePermissionsDialog, permissionsStore } from '@/stores/permissions'
 import { useTranslation } from 'react-i18next'
 import { injectIconIntoTranslation } from '@/utils/translation'
 
@@ -41,7 +41,7 @@ export const Permissions = () => {
       permissions.isCameraGranted &&
       permissions.isMicrophoneGranted
     ) {
-      permissionsStore.isPermissionDialogOpen = false
+      closePermissionsDialog()
     }
   }, [permissions])
 
@@ -56,7 +56,7 @@ export const Permissions = () => {
       aria-label={t(`heading.${permissionLabel}`, {
         appTitle,
       })}
-      onClose={() => (permissionsStore.isPermissionDialogOpen = false)}
+      onClose={closePermissionsDialog}
     >
       <div
         className={css({

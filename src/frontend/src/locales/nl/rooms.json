@@ -94,6 +94,10 @@
       }
     }
   },
+  "permissionsButton": {
+    "tooltip": "Meer info",
+    "ariaLabel": "Probleem met machtigingen. Meer info weergeven"
+  },
   "error": {
     "createRoom": {
       "heading": "Verificatie vereist",
