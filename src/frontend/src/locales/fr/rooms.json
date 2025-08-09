@@ -77,6 +77,23 @@
     },
     "close": "OK"
   },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera": "{{appTitle}} n'est pas autorisé à utiliser votre caméra",
+      "microphone": "{{appTitle}} n'est pas autorisé à utiliser votre micro",
+      "cameraAndMicrophone": "{{appTitle}} n'est pas autorisé à utiliser votre micro ni votre caméra",
+      "default": "{{appTitle}} n'est pas autorisé à utiliser certaines fonctionnalités nécessaires."
+    },
+    "body": {
+      "openMenu": "Cliquez sur l'icône des paramètres ICON_PLACEHOLDER dans la barre d'adresse de votre navigateur",
+      "details": {
+        "camera": "Autorisez l'accès à la caméra",
+        "microphone": "Autorisez l'accès au microphone",
+        "cameraAndMicrophone": "Autorisez l'accès à la caméra et au microphone",
+        "default": "Activez les autorisations nécessaires."
+      }
+    }
+  },
   "error": {
     "createRoom": {
       "heading": "Authentification requise",

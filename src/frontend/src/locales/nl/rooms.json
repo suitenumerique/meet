@@ -77,6 +77,23 @@
     },
     "close": "OK"
   },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera": "{{appTitle}} mag uw camera niet gebruiken",
+      "microphone": "{{appTitle}} mag uw microfoon niet gebruiken",
+      "cameraAndMicrophone": "{{appTitle}} mag uw microfoon en camera niet gebruiken",
+      "default": "{{appTitle}} heeft geen toestemming voor bepaalde rechten"
+    },
+    "body": {
+      "openMenu": "Klik op het instellingenpictogram ICON_PLACEHOLDER in de adresbalk van uw browser",
+      "details": {
+        "camera": "Toegang tot de camera toestaan",
+        "microphone": "Toegang tot de microfoon toestaan",
+        "cameraAndMicrophone": "Toegang tot camera en microfoon toestaan",
+        "default": "Schakel de vereiste machtigingen in."
+      }
+    }
+  },
   "error": {
     "createRoom": {
       "heading": "Verificatie vereist",
