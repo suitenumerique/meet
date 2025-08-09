@@ -27,6 +27,8 @@ import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { useSnapshot } from 'valtio'
+import { openPermissionsDialog, permissionsStore } from '@/stores/permissions'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -220,19 +222,48 @@ export const Join = ({
     enterRoom()
   }
 
+  const permissions = useSnapshot(permissionsStore)
+
+  const isCameraDeniedOrPrompted =
+    permissions.isCameraDenied || permissions.isCameraPrompted
+
+  const isMicrophoneDeniedOrPrompted =
+    permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
+
   const hintMessage = useMemo(() => {
+    if (isCameraDeniedOrPrompted) {
+      return isMicrophoneDeniedOrPrompted
+        ? 'cameraAndMicNotGranted'
+        : 'cameraNotGranted'
+    }
     if (!videoEnabled) {
       return 'cameraDisabled'
     }
-
     if (!isVideoInitiated.current) {
       return 'cameraStarting'
     }
-
     if (videoTrack && videoEnabled) {
       return ''
     }
-  }, [videoTrack, videoEnabled])
+  }, [
+    videoTrack,
+    videoEnabled,
+    isCameraDeniedOrPrompted,
+    isMicrophoneDeniedOrPrompted,
+  ])
+
+  const permissionsButtonLabel = useMemo(() => {
+    if (!isMicrophoneDeniedOrPrompted && !isCameraDeniedOrPrompted) {
+      return null
+    }
+    if (isCameraDeniedOrPrompted && isMicrophoneDeniedOrPrompted) {
+      return 'cameraAndMicNotGranted'
+    }
+    if (isCameraDeniedOrPrompted && !isMicrophoneDeniedOrPrompted) {
+      return 'cameraNotGranted'
+    }
+    return null
+  }, [isMicrophoneDeniedOrPrompted, isCameraDeniedOrPrompted])
 
   const renderWaitingState = () => {
     switch (status) {
@@ -416,7 +447,10 @@ export const Join = ({
                         width="1280"
                         height="720"
                         style={{
-                          display: !videoEnabled ? 'none' : undefined,
+                          display:
+                            !videoEnabled || isCameraDeniedOrPrompted
+                              ? 'none'
+                              : undefined,
                         }}
                         className={css({
                           position: 'absolute',
@@ -443,6 +477,7 @@ export const Join = ({
                       alignItems: 'center',
                       padding: '0.24rem',
                       boxSizing: 'border-box',
+                      gap: '1rem',
                     })}
                   >
                     <p
@@ -455,6 +490,15 @@ export const Join = ({
                     >
                       {hintMessage && t(hintMessage)}
                     </p>
+                    {isCameraDeniedOrPrompted && (
+                      <Button
+                        size="sm"
+                        variant="tertiary"
+                        onPress={openPermissionsDialog}
+                      >
+                        {t(`permissionsButton.${permissionsButtonLabel}`)}
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div

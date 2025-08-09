@@ -37,7 +37,13 @@
       "usernameEmpty": "Uw naam kan niet leeg zijn"
     },
     "cameraDisabled": "Camera is uitgeschakeld.",
-    "cameraStarting": "Camera wordt ingeschakeld.",
+    "cameraStarting": "Camera wordt ingeschakeld…",
+    "cameraNotGranted": "Wilt u dat anderen u tijdens de vergadering kunnen zien?",
+    "cameraAndMicNotGranted": "Wilt u dat anderen u tijdens de vergadering kunnen zien en horen?",
+    "permissionsButton": {
+      "cameraAndMicNotGranted": "Toegang tot camera en microfoon toestaan",
+      "cameraNotGranted": "Toegang tot camera toestaan"
+    },
     "waiting": {
       "title": "Verzoek tot deelname...",
       "body": "U kunt deelnemen aan dit gesprek wanneer iemand u toestemming geeft"

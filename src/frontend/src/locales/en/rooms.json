@@ -37,7 +37,13 @@
       "usernameEmpty": "Your name cannot be empty"
     },
     "cameraDisabled": "Camera is disabled.",
-    "cameraStarting": "Camera is starting.",
+    "cameraStarting": "Camera is starting…",
+    "cameraNotGranted": "Would you like others to be able to see you during the meeting?",
+    "cameraAndMicNotGranted": "Would you like others to be able to see and hear you during the meeting?",
+    "permissionsButton": {
+      "cameraAndMicNotGranted": "Allow access to camera and microphone",
+      "cameraNotGranted": "Allow access to camera"
+    },
     "waiting": {
       "title": "Requesting to join...",
       "body": "You will be able to join this call when someone authorizes you"

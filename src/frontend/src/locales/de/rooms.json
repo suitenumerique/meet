@@ -37,7 +37,13 @@
       "usernameEmpty": "Ihr Name darf nicht leer sein"
     },
     "cameraDisabled": "Kamera ist deaktiviert.",
-    "cameraStarting": "Kamera wird gestartet.",
+    "cameraStarting": "Kamera wird gestartet…",
+    "cameraNotGranted": "Möchten Sie, dass andere Sie während der Besprechung sehen können?",
+    "cameraAndMicNotGranted": "Möchten Sie, dass andere Sie während der Besprechung sehen und hören können?",
+    "permissionsButton": {
+      "cameraAndMicNotGranted": "Zugriff auf Kamera und Mikrofon erlauben",
+      "cameraNotGranted": "Zugriff auf Kamera erlauben"
+    },
     "waiting": {
       "title": "Beitrittsanfrage wird gesendet...",
       "body": "Sie können diesem Anruf beitreten, sobald jemand Sie autorisiert"
