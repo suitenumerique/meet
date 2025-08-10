@@ -95,7 +95,10 @@
       "default": "{{appTitle}} hat keine Berechtigung für bestimmte Zugriffe"
     },
     "body": {
-      "openMenu": "Klicken Sie auf das Einstellungen-Symbol ICON_PLACEHOLDER in der Adressleiste Ihres Browsers",
+      "openMenu": {
+        "others": "Klicken Sie auf das Einstellungen-Symbol ICON_PLACEHOLDER in der Adressleiste Ihres Browsers",
+        "safari": "Klicken Sie auf das Menü 'Safari' und öffnen Sie 'Einstellungen für {{appDomain}}'."
+      },
       "details": {
         "camera": "Zugriff auf die Kamera erlauben",
         "microphone": "Zugriff auf das Mikrofon erlauben",

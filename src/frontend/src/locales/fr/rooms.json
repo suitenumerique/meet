@@ -95,7 +95,10 @@
       "default": "{{appTitle}} n'est pas autorisé à utiliser certaines fonctionnalités nécessaires."
     },
     "body": {
-      "openMenu": "Cliquez sur l'icône des paramètres ICON_PLACEHOLDER dans la barre d'adresse de votre navigateur",
+      "openMenu": {
+        "others": "Cliquez sur l'icône des paramètres ICON_PLACEHOLDER dans la barre d'adresse de votre navigateur",
+        "safari": "Cliquez sur le menu \"Safari\", et ouvrez \"Paramètres pour {{appDomain}}\"."
+      },
       "details": {
         "camera": "Autorisez l'accès à la caméra",
         "microphone": "Autorisez l'accès au microphone",

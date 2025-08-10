@@ -95,7 +95,10 @@
       "default": "{{appTitle}} is not allowed to use certain permissions"
     },
     "body": {
-      "openMenu": "Click on the settings icon ICON_PLACEHOLDER in your browser’s address bar",
+      "openMenu": {
+        "others": "Click on the settings icon ICON_PLACEHOLDER in your browser’s address bar",
+        "safari": "Click the 'Safari' menu, and open 'Settings for {{appDomain}}'."
+      },
       "details": {
         "camera": "Allow access to the camera",
         "microphone": "Allow access to the microphone",

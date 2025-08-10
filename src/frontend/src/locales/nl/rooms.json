@@ -95,7 +95,10 @@
       "default": "{{appTitle}} heeft geen toestemming voor bepaalde rechten"
     },
     "body": {
-      "openMenu": "Klik op het instellingenpictogram ICON_PLACEHOLDER in de adresbalk van uw browser",
+      "openMenu": {
+        "others": "Klik op het instellingenpictogram ICON_PLACEHOLDER in de adresbalk van uw browser",
+        "safari": "Klik op het menu 'Safari' en open 'Instellingen voor {{appDomain}}'."
+      },
       "details": {
         "camera": "Toegang tot de camera toestaan",
         "microphone": "Toegang tot de microfoon toestaan",

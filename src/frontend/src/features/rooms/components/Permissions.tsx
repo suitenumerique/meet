@@ -7,6 +7,7 @@ import { useSnapshot } from 'valtio'
 import { closePermissionsDialog, permissionsStore } from '@/stores/permissions'
 import { useTranslation } from 'react-i18next'
 import { injectIconIntoTranslation } from '@/utils/translation'
+import { isSafari } from '@/utils/livekit'
 
 /**
  * Singleton component - ensures permissions sync runs only once across the app.
@@ -33,7 +34,7 @@ export const Permissions = () => {
   }, [permissions])
 
   const [descriptionBeforeIcon, descriptionAfterIcon] =
-    injectIconIntoTranslation(t('body.openMenu'))
+    injectIconIntoTranslation(t('body.openMenu.others'))
 
   useEffect(() => {
     if (
@@ -86,13 +87,21 @@ export const Permissions = () => {
           </H>
           <ol className={css({ listStyle: 'decimal', paddingLeft: '24px' })}>
             <li>
-              {descriptionBeforeIcon}
-              <span
-                style={{ display: 'inline-block', verticalAlign: 'middle' }}
-              >
-                <RiEqualizer2Line />
-              </span>
-              {descriptionAfterIcon}
+              {isSafari() ? (
+                t('body.openMenu.safari', {
+                  appDomain: window.origin.replace('https://', ''),
+                })
+              ) : (
+                <>
+                  {descriptionBeforeIcon}
+                  <span
+                    style={{ display: 'inline-block', verticalAlign: 'middle' }}
+                  >
+                    <RiEqualizer2Line />
+                  </span>
+                  {descriptionAfterIcon}
+                </>
+              )}
             </li>
             <li>{t(`body.details.${permissionLabel}`)}</li>
           </ol>
