@@ -44,6 +44,10 @@
       "cameraAndMicNotGranted": "Allow access to camera and microphone",
       "cameraNotGranted": "Allow access to camera"
     },
+    "videoPreview": {
+      "enabled": "Video preview enabled",
+      "disabled": "Video preview disabled"
+    },
     "waiting": {
       "title": "Requesting to join...",
       "body": "You will be able to join this call when someone authorizes you"

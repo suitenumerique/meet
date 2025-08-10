@@ -44,6 +44,10 @@
       "cameraAndMicNotGranted": "Toegang tot camera en microfoon toestaan",
       "cameraNotGranted": "Toegang tot camera toestaan"
     },
+    "videoPreview": {
+      "enabled": "Videovoorbeeld ingeschakeld",
+      "disabled": "Videovoorbeeld uitgeschakeld"
+    },
     "waiting": {
       "title": "Verzoek tot deelname...",
       "body": "U kunt deelnemen aan dit gesprek wanneer iemand u toestemming geeft"

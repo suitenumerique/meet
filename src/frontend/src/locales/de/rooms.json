@@ -44,6 +44,10 @@
       "cameraAndMicNotGranted": "Zugriff auf Kamera und Mikrofon erlauben",
       "cameraNotGranted": "Zugriff auf Kamera erlauben"
     },
+    "videoPreview": {
+      "enabled": "Videovorschau aktiviert",
+      "disabled": "Videovorschau deaktiviert"
+    },
     "waiting": {
       "title": "Beitrittsanfrage wird gesendet...",
       "body": "Sie können diesem Anruf beitreten, sobald jemand Sie autorisiert"

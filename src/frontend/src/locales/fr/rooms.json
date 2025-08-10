@@ -40,6 +40,10 @@
     "cameraStarting": "La caméra va démarrer…",
     "cameraNotGranted": "Souhaitez-vous que les autres puissent vous voir pendant la réunion ?",
     "cameraAndMicNotGranted": "Souhaitez-vous que les autres puissent vous voir et vous entendre pendant la réunion ?",
+    "videoPreview": {
+      "enabled": "Apercu vidéo activé",
+      "disabled": "Apercu vidéo désactivé"
+    },
     "permissionsButton": {
       "cameraAndMicNotGranted": "Autorisez l'accès à la caméra et au micro",
       "cameraNotGranted": "Autorisez l'accès à la caméra"
