@@ -91,6 +91,9 @@ export const SelectDevice = ({ id, onSubmit, kind }: SelectDeviceProps) => {
     if (kind == 'videoinput') {
       return permissions.isCameraDenied || permissions.isCameraPrompted
     }
+    if (kind == 'audiooutput') {
+      return permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
+    }
     return false
   }, [kind, permissions])
 
