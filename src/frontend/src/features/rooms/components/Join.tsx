@@ -161,7 +161,11 @@ export const Join = ({
 
     return () => {
       videoTrack?.detach()
-      videoElement?.removeEventListener('loadedmetadata', handleVideoLoaded)
+      if (videoElement) {
+        videoElement.removeEventListener('loadedmetadata', handleVideoLoaded)
+        videoElement.style.opacity = '0'
+      }
+      isVideoInitiated.current = false
     }
   }, [videoTrack, videoEnabled])
 
