@@ -30,6 +30,7 @@ import { useSnapshot } from 'valtio'
 import { openPermissionsDialog, permissionsStore } from '@/stores/permissions'
 import { ToggleDevice } from './join/ToggleDevice'
 import { SelectDevice } from './join/SelectDevice'
+import { useResolveDefaultDeviceId } from '../livekit/hooks/useResolveDefaultDevice'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -139,6 +140,11 @@ export const Join = ({
       )[0] as LocalVideoTrack,
     [tracks]
   )
+
+  // LiveKit by default populates device choices with "default" value.
+  // Instead, use the current device id used by the preview track as a default
+  useResolveDefaultDeviceId(audioDeviceId, audioTrack, saveAudioInputDeviceId)
+  useResolveDefaultDeviceId(videoDeviceId, videoTrack, saveVideoInputDeviceId)
 
   const videoEl = useRef(null)
   const isVideoInitiated = useRef(false)
