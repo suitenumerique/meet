@@ -34,11 +34,8 @@ const SelectDevicePermissions = ({
 }: SelectDevicePermissionsProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
-  const {
-    devices: devices,
-    activeDeviceId: activeDeviceId,
-    setActiveMediaDevice: setActiveMediaDevice,
-  } = useMediaDeviceSelect({ kind: kind, requestPermissions: true })
+  const { devices, activeDeviceId, setActiveMediaDevice } =
+    useMediaDeviceSelect({ kind: kind, requestPermissions: true })
 
   const items: DeviceItems = devices
     .filter((d) => !!d.deviceId)
