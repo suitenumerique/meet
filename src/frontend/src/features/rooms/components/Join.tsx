@@ -31,6 +31,7 @@ import { openPermissionsDialog, permissionsStore } from '@/stores/permissions'
 import { ToggleDevice } from './join/ToggleDevice'
 import { SelectDevice } from './join/SelectDevice'
 import { useResolveDefaultDeviceId } from '../livekit/hooks/useResolveDefaultDevice'
+import { isSafari } from '@/utils/livekit'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -601,17 +602,19 @@ export const Join = ({
                   onSubmit={saveAudioInputDeviceId}
                 />
               </div>
-              <div
-                className={css({
-                  width: '30%',
-                })}
-              >
-                <SelectDevice
-                  kind="audiooutput"
-                  id={audioOutputDeviceId}
-                  onSubmit={saveAudioOutputDeviceId}
-                />
-              </div>
+              {!isSafari() && (
+                <div
+                  className={css({
+                    width: '30%',
+                  })}
+                >
+                  <SelectDevice
+                    kind="audiooutput"
+                    id={audioOutputDeviceId}
+                    onSubmit={saveAudioOutputDeviceId}
+                  />
+                </div>
+              )}
               <div
                 className={css({
                   width: '30%',
