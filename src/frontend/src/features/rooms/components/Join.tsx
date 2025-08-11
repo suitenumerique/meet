@@ -412,6 +412,28 @@ export const Join = ({
             >
               <div
                 className={css({
+                  position: 'absolute',
+                  top: 0,
+                  height: '5rem',
+                  width: '100%',
+                  backgroundImage:
+                    'linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 40%, rgba(0, 0, 0, 0.1) 80%, rgba(0, 0, 0, 0) 100%)',
+                  zIndex: 1,
+                })}
+              />
+              <div
+                className={css({
+                  position: 'absolute',
+                  bottom: 0,
+                  height: '5rem',
+                  width: '100%',
+                  backgroundImage:
+                    'linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 35%, rgba(0, 0, 0, 0.1) 75%, rgba(0, 0, 0, 0) 100%)',
+                  zIndex: 1,
+                })}
+              />
+              <div
+                className={css({
                   position: 'relative',
                   width: '100%',
                   height: 'fit-content',
