@@ -9,10 +9,12 @@
   },
   "join": {
     "selectDevice": {
-      "loading": "Loading…"
+      "loading": "Loading…",
+      "permissionsNeeded": "Permission needed"
     },
     "videoinput": {
       "choose": "Select camera",
+      "permissionsNeeded": "Select camera - permission needed",
       "disable": "Disable camera",
       "enable": "Enable camera",
       "label": "Camera",
@@ -20,6 +22,7 @@
     },
     "audioinput": {
       "choose": "Select microphone",
+      "permissionsNeeded": "Select microphone - permission needed",
       "disable": "Disable microphone",
       "enable": "Enable microphone",
       "label": "Microphone"

@@ -9,10 +9,12 @@
   },
   "join": {
     "selectDevice": {
-      "loading": "Laden…"
+      "loading": "Laden…",
+      "permissionsNeeded": "Genehmigung erforderlich"
     },
     "videoinput": {
       "choose": "Kamera auswählen",
+      "permissionsNeeded": "Kamera auswählen - genehmigung erforderlich",
       "disable": "Kamera deaktivieren",
       "enable": "Kamera aktivieren",
       "label": "Kamera",
@@ -20,6 +22,7 @@
     },
     "audioinput": {
       "choose": "Mikrofon auswählen",
+      "permissionsNeeded": "Mikrofon auswählen - genehmigung erforderlich",
       "disable": "Mikrofon deaktivieren",
       "enable": "Mikrofon aktivieren",
       "label": "Mikrofon"

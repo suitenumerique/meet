@@ -9,10 +9,12 @@
   },
   "join": {
     "selectDevice": {
-      "loading": "Chargement…"
+      "loading": "Chargement…",
+      "permissionsNeeded": "Autorisations nécessaires"
     },
     "videoinput": {
       "choose": "Choisir la webcam",
+      "permissionsNeeded": "Choisir la webcam - autorisations nécessaires",
       "disable": "Désactiver la webcam",
       "enable": "Activer la webcam",
       "label": "Webcam",
@@ -20,6 +22,7 @@
     },
     "audioinput": {
       "choose": "Choisir le micro",
+      "permissionsNeeded": "Choisir le micro - autorisations nécessaires",
       "disable": "Désactiver le micro",
       "enable": "Activer le micro",
       "label": "Microphone"

@@ -9,10 +9,12 @@
   },
   "join": {
     "selectDevice": {
-      "loading": "Bezig met laden…"
+      "loading": "Bezig met laden…",
+      "permissionNeeded": "Toestemming vereist"
     },
     "videoinput": {
       "choose": "Selecteer camera",
+      "permissionNeeded": "Selecteer camera - Toestemming vereist",
       "disable": "Camera uitschakelen",
       "enable": "Camera inschakelen",
       "label": "Camera",
@@ -20,6 +22,7 @@
     },
     "audioinput": {
       "choose": "Selecteer microfoon",
+      "permissionNeeded": "Selecteer microfoon - Toestemming vereist",
       "disable": "Microfoon dempen",
       "enable": "Microfoon dempen opheffen",
       "label": "Microfoon"
