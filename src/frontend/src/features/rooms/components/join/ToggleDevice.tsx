@@ -49,13 +49,13 @@ export const ToggleDevice = <T extends ToggleSource>({
     }
     try {
       if (isTrackEnabled) {
-        await track.mute()
         setIsTrackEnabled(false)
         onChange?.(false, true)
+        await track.mute()
       } else {
-        await track.unmute()
         setIsTrackEnabled(true)
         onChange?.(true, true)
+        await track.unmute()
       }
     } catch (error) {
       console.error('Failed to toggle track:', error)
