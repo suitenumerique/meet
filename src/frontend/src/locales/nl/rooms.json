@@ -10,6 +10,7 @@
   "join": {
     "selectDevice": {
       "loading": "Bezig met laden…",
+      "select": "Selecteer een waarde",
       "permissionsNeeded": "Toestemming vereist"
     },
     "videoinput": {

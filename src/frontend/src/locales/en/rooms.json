@@ -10,6 +10,7 @@
   "join": {
     "selectDevice": {
       "loading": "Loading…",
+      "select": "Select a value",
       "permissionsNeeded": "Permission needed"
     },
     "videoinput": {

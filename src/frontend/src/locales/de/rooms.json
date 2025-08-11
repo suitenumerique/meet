@@ -10,6 +10,7 @@
   "join": {
     "selectDevice": {
       "loading": "Laden…",
+      "select": "Wählen Sie einen Wert",
       "permissionsNeeded": "Genehmigung erforderlich"
     },
     "videoinput": {

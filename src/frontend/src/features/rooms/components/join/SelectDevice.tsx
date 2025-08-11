@@ -6,7 +6,7 @@ import {
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useMediaDeviceSelect } from '@livekit/components-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Select } from '@/primitives/Select'
 import { useSnapshot } from 'valtio'
 import { permissionsStore } from '@/stores/permissions'
@@ -45,6 +45,22 @@ const SelectDevicePermissions = ({
       label: d.label,
     }))
 
+  /**
+   * FALLBACK AUDIO OUTPUT DEVICE SELECTION
+   * Auto-selects the only available audio output device when currently on 'default'
+   */
+  useEffect(() => {
+    if (
+      kind !== 'audiooutput' ||
+      items.length !== 1 ||
+      items[0].value === 'default' ||
+      activeDeviceId !== 'default'
+    )
+      return
+    onSubmit?.(items[0].value)
+    setActiveMediaDevice(items[0].value)
+  }, [items, onSubmit, kind, setActiveMediaDevice, activeDeviceId])
+
   return (
     <Select
       aria-label={t(`${kind}.choose`)}
@@ -52,7 +68,11 @@ const SelectDevicePermissions = ({
       isDisabled={items.length === 0}
       items={items}
       iconComponent={config?.icon}
-      placeholder={t('selectDevice.loading')}
+      placeholder={
+        items.length === 0
+          ? t('selectDevice.loading')
+          : t('selectDevice.select')
+      }
       selectedKey={id || activeDeviceId}
       onSelectionChange={(key) => {
         onSubmit?.(key as string)
