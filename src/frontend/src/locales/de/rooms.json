@@ -8,6 +8,9 @@
     "back": "Dem Meeting erneut beitreten"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Laden…"
+    },
     "videoinput": {
       "choose": "Kamera auswählen",
       "disable": "Kamera deaktivieren",

@@ -8,6 +8,9 @@
     "back": "Réintégrer la réunion"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Chargement…"
+    },
     "videoinput": {
       "choose": "Choisir la webcam",
       "disable": "Désactiver la webcam",

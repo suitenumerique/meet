@@ -5,22 +5,13 @@ import {
   UseTrackToggleProps,
 } from '@livekit/components-react'
 import { Button, Menu, MenuList } from '@/primitives'
-import {
-  RemixiconComponentType,
-  RiArrowDownSLine,
-  RiMicLine,
-  RiMicOffLine,
-  RiVideoOffLine,
-  RiVideoOnLine,
-} from '@remixicon/react'
+import { RiArrowDownSLine } from '@remixicon/react'
 import {
   LocalAudioTrack,
   LocalVideoTrack,
   Track,
   VideoCaptureOptions,
 } from 'livekit-client'
-
-import { Shortcut } from '@/features/shortcuts/types'
 
 import { ToggleDevice } from '@/features/rooms/livekit/components/controls/ToggleDevice.tsx'
 import { css } from '@/styled-system/css'
@@ -30,56 +21,17 @@ import { usePersistentUserChoices } from '../../hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../blur'
 import { useSnapshot } from 'valtio'
 import { permissionsStore } from '@/stores/permissions'
-
-export type ToggleSource = Exclude<
-  Track.Source,
-  Track.Source.ScreenShareAudio | Track.Source.Unknown
->
-
-type SelectToggleSource = Exclude<ToggleSource, Track.Source.ScreenShare>
-
-export type SelectToggleDeviceConfig = {
-  kind: MediaDeviceKind
-  iconOn: RemixiconComponentType
-  iconOff: RemixiconComponentType
-  shortcut?: Shortcut
-  longPress?: Shortcut
-}
-
-type SelectToggleDeviceConfigMap = {
-  [key in SelectToggleSource]: SelectToggleDeviceConfig
-}
-
-const selectToggleDeviceConfig: SelectToggleDeviceConfigMap = {
-  [Track.Source.Microphone]: {
-    kind: 'audioinput',
-    iconOn: RiMicLine,
-    iconOff: RiMicOffLine,
-    shortcut: {
-      key: 'd',
-      ctrlKey: true,
-    },
-    longPress: {
-      key: 'Space',
-    },
-  },
-  [Track.Source.Camera]: {
-    kind: 'videoinput',
-    iconOn: RiVideoOnLine,
-    iconOff: RiVideoOffLine,
-    shortcut: {
-      key: 'e',
-      ctrlKey: true,
-    },
-  },
-}
+import {
+  TOGGLE_DEVICE_CONFIG,
+  ToggleSource,
+} from '../../config/ToggleDeviceConfig'
 
 type SelectToggleDeviceProps<T extends ToggleSource> =
   UseTrackToggleProps<T> & {
     track?: LocalAudioTrack | LocalVideoTrack | undefined
     initialDeviceId?: string
     onActiveDeviceChange: (deviceId: string) => void
-    source: SelectToggleSource
+    source: ToggleSource
     variant?: NonNullable<ButtonRecipeProps>['variant']
     menuVariant?: 'dark' | 'light'
     hideMenu?: boolean
@@ -94,7 +46,7 @@ export const SelectToggleDevice = <T extends ToggleSource>({
   menuVariant = 'light',
   ...props
 }: SelectToggleDeviceProps<T>) => {
-  const config = selectToggleDeviceConfig[props.source]
+  const config = TOGGLE_DEVICE_CONFIG[props.source]
   if (!config) {
     throw new Error('Invalid source')
   }

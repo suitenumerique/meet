@@ -8,6 +8,9 @@
     "back": "Sluit weer bij de vergadering aan"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Bezig met laden…"
+    },
     "videoinput": {
       "choose": "Selecteer camera",
       "disable": "Camera uitschakelen",

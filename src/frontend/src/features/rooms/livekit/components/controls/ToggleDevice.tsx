@@ -3,7 +3,6 @@ import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKey
 import { useMemo, useState } from 'react'
 import { appendShortcutLabel } from '@/features/shortcuts/utils'
 import { useTranslation } from 'react-i18next'
-import { SelectToggleDeviceConfig } from './SelectToggleDevice'
 import { PermissionNeededButton } from './PermissionNeededButton'
 import useLongPress from '@/features/shortcuts/useLongPress'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
@@ -15,13 +14,15 @@ import {
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
+import { ToggleDeviceConfig } from '../../config/ToggleDeviceConfig'
 
 export type ToggleDeviceProps = {
   enabled: boolean
   isPermissionDeniedOrPrompted?: boolean
   toggle: () => void
-  config: SelectToggleDeviceConfig
+  config: ToggleDeviceConfig
   variant?: NonNullable<ButtonRecipeProps>['variant']
+  errorVariant?: NonNullable<ButtonRecipeProps>['variant']
   toggleButtonProps?: Partial<ToggleButtonProps>
 }
 
@@ -30,6 +31,7 @@ export const ToggleDevice = ({
   enabled,
   toggle,
   variant = 'primaryDark',
+  errorVariant = 'error2',
   toggleButtonProps,
   isPermissionDeniedOrPrompted,
 }: ToggleDeviceProps) => {
@@ -72,7 +74,9 @@ export const ToggleDevice = ({
       {isPermissionDeniedOrPrompted && <PermissionNeededButton />}
       <ToggleButton
         isSelected={!enabled}
-        variant={enabled && !isPermissionDeniedOrPrompted ? variant : 'error2'}
+        variant={
+          enabled && !isPermissionDeniedOrPrompted ? variant : errorVariant
+        }
         shySelected
         onPress={() =>
           isPermissionDeniedOrPrompted ? openPermissionsDialog() : toggle()

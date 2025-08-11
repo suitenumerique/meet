@@ -8,6 +8,9 @@
     "back": "Rejoin the meeting"
   },
   "join": {
+    "selectDevice": {
+      "loading": "Loading…"
+    },
     "videoinput": {
       "choose": "Select camera",
       "disable": "Disable camera",

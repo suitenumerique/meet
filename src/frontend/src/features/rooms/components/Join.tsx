@@ -5,7 +5,6 @@ import { Screen } from '@/layout/Screen'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LocalVideoTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
-import { SelectToggleDevice } from '../livekit/components/controls/SelectToggleDevice'
 import { Field } from '@/primitives/Field'
 import { Button, Dialog, Text, Form } from '@/primitives'
 import { VStack } from '@/styled-system/jsx'
@@ -29,6 +28,8 @@ import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { useSnapshot } from 'valtio'
 import { openPermissionsDialog, permissionsStore } from '@/stores/permissions'
+import { ToggleDevice } from './join/ToggleDevice'
+import { SelectDevice } from './join/SelectDevice'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -505,6 +506,33 @@ export const Join = ({
                 <div
                   className={css({
                     position: 'absolute',
+                    bottom: '1rem',
+                    zIndex: '1',
+                    display: 'flex',
+                    gap: '1rem',
+                    justifyContent: 'center',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                  })}
+                >
+                  <ToggleDevice
+                    source={Track.Source.Microphone}
+                    initialState={audioEnabled}
+                    track={audioTrack}
+                    onChange={(enabled) => saveAudioInputEnabled(enabled)}
+                    onDeviceError={(error) => console.error(error)}
+                  />
+                  <ToggleDevice
+                    source={Track.Source.Camera}
+                    initialState={videoEnabled}
+                    track={videoTrack}
+                    onChange={(enabled) => saveVideoInputEnabled(enabled)}
+                    onDeviceError={(error) => console.error(error)}
+                  />
+                </div>
+                <div
+                  className={css({
+                    position: 'absolute',
                     right: '1rem',
                     bottom: '1rem',
                     zIndex: '1',
@@ -528,32 +556,26 @@ export const Join = ({
                 marginX: 'auto',
               })}
             >
-              <div>
-                <SelectToggleDevice
-                  source={Track.Source.Microphone}
-                  initialState={audioEnabled}
-                  track={audioTrack}
-                  initialDeviceId={audioDeviceId}
-                  onChange={(enabled) => saveAudioInputEnabled(enabled)}
-                  onDeviceError={(error) => console.error(error)}
-                  onActiveDeviceChange={(deviceId) =>
-                    saveAudioInputDeviceId(deviceId ?? '')
-                  }
-                  variant="tertiary"
+              <div
+                className={css({
+                  width: '50%',
+                })}
+              >
+                <SelectDevice
+                  kind="audioinput"
+                  id={audioDeviceId}
+                  onSubmit={saveAudioInputDeviceId}
                 />
               </div>
-              <div>
-                <SelectToggleDevice
-                  source={Track.Source.Camera}
-                  initialState={videoEnabled}
-                  track={videoTrack}
-                  initialDeviceId={videoDeviceId}
-                  onChange={(enabled) => saveVideoInputEnabled(enabled)}
-                  onDeviceError={(error) => console.error(error)}
-                  onActiveDeviceChange={(deviceId) =>
-                    saveVideoInputDeviceId(deviceId ?? '')
-                  }
-                  variant="tertiary"
+              <div
+                className={css({
+                  width: '50%',
+                })}
+              >
+                <SelectDevice
+                  kind="videoinput"
+                  id={videoDeviceId}
+                  onSubmit={saveVideoInputDeviceId}
                 />
               </div>
             </div>
