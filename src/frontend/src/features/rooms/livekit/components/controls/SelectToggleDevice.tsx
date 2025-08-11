@@ -28,7 +28,7 @@ import {
 
 type SelectToggleDeviceProps<T extends ToggleSource> =
   UseTrackToggleProps<T> & {
-    track?: LocalAudioTrack | LocalVideoTrack | undefined
+    track?: LocalAudioTrack | LocalVideoTrack
     initialDeviceId?: string
     onActiveDeviceChange: (deviceId: string) => void
     source: ToggleSource

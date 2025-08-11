@@ -11,7 +11,7 @@ import { useSnapshot } from 'valtio'
 import { permissionsStore } from '@/stores/permissions'
 
 type ToggleDeviceProps<T extends ToggleSource> = UseTrackToggleProps<T> & {
-  track?: LocalAudioTrack | LocalVideoTrack | undefined
+  track?: LocalAudioTrack | LocalVideoTrack
   source: ToggleSource
   variant?: NonNullable<ButtonRecipeProps>['variant']
 }
