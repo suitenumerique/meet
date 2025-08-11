@@ -27,6 +27,10 @@
       "enable": "Microfoon dempen opheffen",
       "label": "Microfoon"
     },
+    "audiooutput": {
+      "choose": "Selecteer luidspreker",
+      "permissionsNeeded": "Selecteer luidspreker - Toestemming vereist"
+    },
     "effects": {
       "description": "Pas effecten toe",
       "title": "Effecten",

@@ -27,6 +27,10 @@
       "enable": "Mikrofon aktivieren",
       "label": "Mikrofon"
     },
+    "audiooutput": {
+      "choose": "Lautsprecher auswählen",
+      "permissionsNeeded": "Lautsprecher auswählen - genehmigung erforderlich"
+    },
     "effects": {
       "description": "Effekte anwenden",
       "title": "Effekte",

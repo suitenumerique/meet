@@ -101,11 +101,13 @@ export const Join = ({
       audioEnabled,
       videoEnabled,
       audioDeviceId,
+      audioOutputDeviceId,
       videoDeviceId,
       processorSerialized,
       username,
     },
     saveAudioInputEnabled,
+    saveAudioOutputDeviceId,
     saveVideoInputEnabled,
     saveAudioInputDeviceId,
     saveVideoInputDeviceId,
@@ -590,7 +592,7 @@ export const Join = ({
             >
               <div
                 className={css({
-                  width: '50%',
+                  width: '30%',
                 })}
               >
                 <SelectDevice
@@ -601,7 +603,18 @@ export const Join = ({
               </div>
               <div
                 className={css({
-                  width: '50%',
+                  width: '30%',
+                })}
+              >
+                <SelectDevice
+                  kind="audiooutput"
+                  id={audioOutputDeviceId}
+                  onSubmit={saveAudioOutputDeviceId}
+                />
+              </div>
+              <div
+                className={css({
+                  width: '30%',
                 })}
               >
                 <SelectDevice

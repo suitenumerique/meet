@@ -2,6 +2,7 @@ import {
   RemixiconComponentType,
   RiMicLine,
   RiVideoOnLine,
+  RiVolumeDownLine,
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useMediaDeviceSelect } from '@livekit/components-react'
@@ -71,6 +72,10 @@ export const SelectDevice = ({ id, onSubmit, kind }: SelectDeviceProps) => {
       case 'audioinput':
         return {
           icon: RiMicLine,
+        }
+      case 'audiooutput':
+        return {
+          icon: RiVolumeDownLine,
         }
       case 'videoinput':
         return {

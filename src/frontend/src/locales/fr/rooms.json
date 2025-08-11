@@ -27,6 +27,10 @@
       "enable": "Activer le micro",
       "label": "Microphone"
     },
+    "audiooutput": {
+      "choose": "Choisir le haut-parleur",
+      "permissionsNeeded": "Choisir le haut-parleur - autorisations nécessaires"
+    },
     "heading": "Rejoindre la réunion ?",
     "effects": {
       "description": "Effets d'arrière plan",

@@ -27,6 +27,10 @@
       "enable": "Enable microphone",
       "label": "Microphone"
     },
+    "audiooutput": {
+      "choose": "Select speaker",
+      "permissionsNeeded": "Select speaker - permission needed"
+    },
     "effects": {
       "description": "Apply effects",
       "title": "Effects",
