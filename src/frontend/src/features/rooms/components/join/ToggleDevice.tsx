@@ -1,4 +1,4 @@
-import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
+import { UseTrackToggleProps } from '@livekit/components-react'
 import { ToggleDevice as BaseToggleDevice } from '../../livekit/components/controls/ToggleDevice'
 import {
   TOGGLE_DEVICE_CONFIG,
@@ -6,6 +6,9 @@ import {
 } from '../../livekit/config/ToggleDeviceConfig'
 import { LocalAudioTrack, LocalVideoTrack } from 'livekit-client'
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
+import { useCallback, useMemo, useState } from 'react'
+import { useSnapshot } from 'valtio'
+import { permissionsStore } from '@/stores/permissions'
 
 type ToggleDeviceProps<T extends ToggleSource> = UseTrackToggleProps<T> & {
   track?: LocalAudioTrack | LocalVideoTrack | undefined
@@ -13,20 +16,57 @@ type ToggleDeviceProps<T extends ToggleSource> = UseTrackToggleProps<T> & {
   variant?: NonNullable<ButtonRecipeProps>['variant']
 }
 
-export const ToggleDevice = <T extends ToggleSource>(
-  props: ToggleDeviceProps<T>
-) => {
+export const ToggleDevice = <T extends ToggleSource>({
+  track,
+  onChange,
+  ...props
+}: ToggleDeviceProps<T>) => {
   const config = TOGGLE_DEVICE_CONFIG[props.source]
 
   if (!config) {
     throw new Error('Invalid source')
   }
 
-  const trackProps = useTrackToggle(props)
+  const [isTrackEnabled, setIsTrackEnabled] = useState(
+    props.initialState ?? false
+  )
+
+  const permissions = useSnapshot(permissionsStore)
+
+  const isPermissionDeniedOrPrompted = useMemo(() => {
+    if (config.kind == 'audioinput') {
+      return permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
+    }
+    if (config.kind == 'videoinput') {
+      return permissions.isCameraDenied || permissions.isCameraPrompted
+    }
+  }, [config, permissions])
+
+  const toggle = useCallback(async () => {
+    if (!track) {
+      console.error('Track is undefined.')
+      return
+    }
+    try {
+      if (isTrackEnabled) {
+        await track.mute()
+        setIsTrackEnabled(false)
+        onChange?.(false, true)
+      } else {
+        await track.unmute()
+        setIsTrackEnabled(true)
+        onChange?.(true, true)
+      }
+    } catch (error) {
+      console.error('Failed to toggle track:', error)
+    }
+  }, [track, onChange, isTrackEnabled])
 
   return (
     <BaseToggleDevice
-      {...trackProps}
+      enabled={isTrackEnabled}
+      isPermissionDeniedOrPrompted={isPermissionDeniedOrPrompted}
+      toggle={toggle}
       config={config}
       variant="whiteCircle"
       errorVariant="errorCircle"
