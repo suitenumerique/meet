@@ -30,6 +30,18 @@
     },
     "permissionsRequired": "Machtigingen vereist"
   },
+  "video": {
+    "camera": {
+      "heading": "Camera",
+      "label": "Selecteer uw video-ingang",
+      "disabled": "Camera uitgeschakeld",
+      "previewAriaLabel": {
+        "enabled": "Videovoorbeeld ingeschakeld",
+        "disabled": "Videovoorbeeld uitgeschakeld"
+      }
+    },
+    "permissionsRequired": "Machtigingen vereist"
+  },
   "notifications": {
     "heading": "Geluidsmeldingen",
     "label": "Geluidsmeldingen voor",
@@ -54,6 +66,7 @@
   "tabs": {
     "account": "Profiel",
     "audio": "Audio",
+    "video": "Video",
     "general": "Algemeen",
     "notifications": "Meldingen"
   }
