@@ -69,7 +69,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               {t('dialog.heading')}
             </Heading>
           )}
-          <TabList border={false} aria-label="Chat log orientation example">
+          <TabList border={false}>
             <Tab icon highlight id="1">
               <RiAccountCircleLine />
               {isWideScreen && t('tabs.account')}
