@@ -7,7 +7,14 @@ import { HStack } from '@/styled-system/jsx'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { css } from '@/styled-system/css'
-import { createLocalVideoTrack, LocalVideoTrack } from 'livekit-client'
+import {
+  createLocalVideoTrack,
+  LocalVideoTrack,
+  Track,
+  VideoPresets,
+} from 'livekit-client'
+import { BackgroundProcessorFactory } from '@/features/rooms/livekit/components/blur'
+import { VideoResolution } from '@/stores/userChoices'
 
 type RowWrapperProps = {
   heading: string
@@ -57,8 +64,9 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   const { localParticipant } = useRoomContext()
 
   const {
-    userChoices: { videoDeviceId },
+    userChoices: { videoDeviceId, processorSerialized, videoPublishResolution },
     saveVideoInputDeviceId,
+    saveVideoPublishResolution,
   } = usePersistentUserChoices()
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null
@@ -87,6 +95,22 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         placeholder: t('video.permissionsRequired'),
         isDisabled: true,
       }
+
+  const handleVideoResolutionChange = async (key: 'h720' | 'h360' | 'h180') => {
+    const videoPublication = localParticipant.getTrackPublication(
+      Track.Source.Camera
+    )
+    const videoTrack = videoPublication?.track
+    if (videoTrack) {
+      saveVideoPublishResolution(key)
+      await videoTrack.restartTrack({
+        resolution: VideoPresets[key].resolution,
+        deviceId: { exact: videoDeviceId },
+        processor:
+          BackgroundProcessorFactory.deserializeProcessor(processorSerialized),
+      })
+    }
+  }
 
   useEffect(() => {
     let videoTrack: LocalVideoTrack | null = null
@@ -165,6 +189,54 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           )}
         </div>
       </RowWrapper>
+      <H lvl={2}>{t('video.resolution.heading')}</H>
+      <HStack
+        gap={0}
+        style={{
+          flexWrap: 'wrap',
+        }}
+      >
+        <div
+          style={{
+            flex: '1 1 215px',
+            minWidth: 0,
+          }}
+        >
+          <Field
+            type="select"
+            label={t('video.resolution.publish.label')}
+            items={[
+              {
+                value: 'h720',
+                label: `${t('video.resolution.publish.items.high')} (720p)`,
+              },
+              {
+                value: 'h360',
+                label: `${t('video.resolution.publish.items.medium')} (360p)`,
+              },
+              {
+                value: 'h180',
+                label: `${t('video.resolution.publish.items.low')} (180p)`,
+              },
+            ]}
+            selectedKey={videoPublishResolution}
+            onSelectionChange={async (key) => {
+              await handleVideoResolutionChange(key as VideoResolution)
+            }}
+            style={{
+              width: '100%',
+            }}
+          />
+        </div>
+        <div
+          style={{
+            width: '10rem',
+            justifyContent: 'center',
+            display: 'flex',
+            paddingLeft: '1.5rem',
+          }}
+        />
+      </HStack>
     </TabPanel>
   )
 }

@@ -40,6 +40,17 @@
         "disabled": "Videovoorbeeld uitgeschakeld"
       }
     },
+    "resolution": {
+      "heading": "Resolutie",
+      "publish": {
+        "label": "Selecteer uw verzendresolutie (maximum)",
+        "items": {
+          "high": "Hoge definitie",
+          "medium": "Standaarddefinitie",
+          "low": "Lage definitie"
+        }
+      }
+    },
     "permissionsRequired": "Machtigingen vereist"
   },
   "notifications": {
