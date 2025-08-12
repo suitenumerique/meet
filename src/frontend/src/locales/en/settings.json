@@ -40,6 +40,17 @@
         "disabled": "Video preview disabled"
       }
     },
+    "resolution": {
+      "heading": "Resolution",
+      "publish": {
+        "label": "Select your sending resolution (maximum)",
+        "items": {
+          "high": "High definition",
+          "medium": "Standard definition",
+          "low": "Low definition"
+        }
+      }
+    },
     "permissionsRequired": "Permissions required"
   },
   "notifications": {

@@ -40,6 +40,17 @@
         "disabled": "Aperçu vidéo désactivé"
       }
     },
+    "resolution": {
+      "heading": "Résolution",
+      "publish": {
+        "label": "Sélectionner votre résolution d'envoi (maximum)",
+        "items": {
+          "high": "Haute définition",
+          "medium": "Définition standard",
+          "low": "Basse définition"
+        }
+      }
+    },
     "permissionsRequired": "Autorisations nécessaires"
   },
   "notifications": {

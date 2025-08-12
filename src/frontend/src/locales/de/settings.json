@@ -40,6 +40,17 @@
         "disabled": "Videovorschau deaktiviert"
       }
     },
+    "resolution": {
+      "heading": "Auflösung",
+      "publish": {
+        "label": "Wählen Sie Ihre maximale Sendeauflösung",
+        "items": {
+          "high": "Hohe Auflösung",
+          "medium": "Standardauflösung",
+          "low": "Niedrige Auflösung"
+        }
+      }
+    },
     "permissionsRequired": "Berechtigungen erforderlich"
   },
   "notifications": {
