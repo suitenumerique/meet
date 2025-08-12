@@ -32,6 +32,7 @@ import { ToggleDevice } from './join/ToggleDevice'
 import { SelectDevice } from './join/SelectDevice'
 import { useResolveDefaultDeviceId } from '../livekit/hooks/useResolveDefaultDevice'
 import { isSafari } from '@/utils/livekit'
+import type { LocalUserChoices } from '@/stores/userChoices'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -116,11 +117,27 @@ export const Join = ({
     saveProcessorSerialized,
   } = usePersistentUserChoices()
 
+  const initialUserChoices = useRef<LocalUserChoices | null>(null)
+
+  if (initialUserChoices.current === null) {
+    initialUserChoices.current = {
+      audioEnabled,
+      videoEnabled,
+      audioDeviceId,
+      audioOutputDeviceId,
+      videoDeviceId,
+      processorSerialized,
+      username,
+    }
+  }
+
   const tracks = usePreviewTracks(
     {
-      audio: { deviceId: audioDeviceId },
-      video: {
-        deviceId: videoDeviceId,
+      audio: !!initialUserChoices.current && {
+        deviceId: initialUserChoices.current.audioDeviceId,
+      },
+      video: !!initialUserChoices.current && {
+        deviceId: initialUserChoices.current.videoDeviceId,
         processor:
           BackgroundProcessorFactory.deserializeProcessor(processorSerialized),
       },
@@ -599,7 +616,16 @@ export const Join = ({
                 <SelectDevice
                   kind="audioinput"
                   id={audioDeviceId}
-                  onSubmit={saveAudioInputDeviceId}
+                  onSubmit={async (id) => {
+                    try {
+                      saveAudioInputDeviceId(id)
+                      if (audioTrack) {
+                        await audioTrack.setDeviceId({ exact: id })
+                      }
+                    } catch (err) {
+                      console.error('Failed to switch microphone device', err)
+                    }
+                  }}
                 />
               </div>
               {!isSafari() && (
@@ -623,7 +649,16 @@ export const Join = ({
                 <SelectDevice
                   kind="videoinput"
                   id={videoDeviceId}
-                  onSubmit={saveVideoInputDeviceId}
+                  onSubmit={async (id) => {
+                    try {
+                      saveVideoInputDeviceId(id)
+                      if (videoTrack) {
+                        await await videoTrack.setDeviceId({ exact: id })
+                      }
+                    } catch (err) {
+                      console.error('Failed to switch camera device', err)
+                    }
+                  }}
                 />
               </div>
             </div>
