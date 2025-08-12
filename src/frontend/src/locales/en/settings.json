@@ -30,6 +30,18 @@
     },
     "permissionsRequired": "Permissions required"
   },
+  "video": {
+    "camera": {
+      "heading": "Camera",
+      "label": "Select your video input",
+      "disabled": "Camera disabled",
+      "previewAriaLabel": {
+        "enabled": "Video preview enabled",
+        "disabled": "Video preview disabled"
+      }
+    },
+    "permissionsRequired": "Permissions required"
+  },
   "notifications": {
     "heading": "Sound notifications",
     "label": "sound notifications for",
@@ -54,6 +66,7 @@
   "tabs": {
     "account": "Profile",
     "audio": "Audio",
+    "video": "Video",
     "general": "General",
     "notifications": "Notifications"
   }

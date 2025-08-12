@@ -9,11 +9,13 @@ import {
   RiNotification3Line,
   RiSettings3Line,
   RiSpeakerLine,
+  RiVideoOnLine,
 } from '@remixicon/react'
 import { AccountTab } from './tabs/AccountTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
 import { GeneralTab } from './tabs/GeneralTab'
 import { AudioTab } from './tabs/AudioTab'
+import { VideoTab } from './tabs/VideoTab'
 import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 
@@ -79,10 +81,14 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               {isWideScreen && t('tabs.audio')}
             </Tab>
             <Tab icon highlight id="3">
+              <RiVideoOnLine />
+              {isWideScreen && t('tabs.video')}
+            </Tab>
+            <Tab icon highlight id="4">
               <RiSettings3Line />
               {isWideScreen && t('tabs.general')}
             </Tab>
-            <Tab icon highlight id="4">
+            <Tab icon highlight id="5">
               <RiNotification3Line />
               {isWideScreen && t('tabs.notifications')}
             </Tab>
@@ -91,8 +97,9 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
         <div className={tabPanelContainerStyle}>
           <AccountTab id="1" onOpenChange={props.onOpenChange} />
           <AudioTab id="2" />
-          <GeneralTab id="3" />
-          <NotificationsTab id="4" />
+          <VideoTab id="3" />
+          <GeneralTab id="4" />
+          <NotificationsTab id="5" />
         </div>
       </Tabs>
     </Dialog>

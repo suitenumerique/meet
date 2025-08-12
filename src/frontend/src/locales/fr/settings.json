@@ -30,6 +30,18 @@
     },
     "permissionsRequired": "Autorisations nécessaires"
   },
+  "video": {
+    "camera": {
+      "heading": "Caméra",
+      "label": "Sélectionner votre entrée vidéo",
+      "disabled": "Caméra désactivée",
+      "previewAriaLabel": {
+        "enabled": "Aperçu vidéo activé",
+        "disabled": "Aperçu vidéo désactivé"
+      }
+    },
+    "permissionsRequired": "Autorisations nécessaires"
+  },
   "notifications": {
     "heading": "Notifications sonores",
     "label": "la notification sonore pour",
@@ -54,6 +66,7 @@
   "tabs": {
     "account": "Profil",
     "audio": "Audio",
+    "video": "Vidéo",
     "general": "Général",
     "notifications": "Notifications"
   }
