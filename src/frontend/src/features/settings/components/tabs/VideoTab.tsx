@@ -60,7 +60,7 @@ export type VideoTabProps = Pick<DialogProps, 'onOpenChange'> &
 type DeviceItems = Array<{ value: string; label: string }>
 
 export const VideoTab = ({ id }: VideoTabProps) => {
-  const { t } = useTranslation('settings')
+  const { t } = useTranslation('settings', { keyPrefix: 'video' })
   const { localParticipant } = useRoomContext()
 
   const {
@@ -92,7 +92,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   const disabledProps = isCamEnabled
     ? {}
     : {
-        placeholder: t('video.permissionsRequired'),
+        placeholder: t('permissionsRequired'),
         isDisabled: true,
       }
 
@@ -134,10 +134,10 @@ export const VideoTab = ({ id }: VideoTabProps) => {
 
   return (
     <TabPanel padding={'md'} flex id={id}>
-      <RowWrapper heading={t('video.camera.heading')}>
+      <RowWrapper heading={t('camera.heading')}>
         <Field
           type="select"
-          label={t('video.camera.label')}
+          label={t('camera.label')}
           items={itemsIn}
           selectedKey={videoDeviceId}
           onSelectionChange={async (key) => {
@@ -152,7 +152,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         <div
           role="status"
           aria-label={t(
-            `video.camera.previewAriaLabel.${localParticipant.isCameraEnabled ? 'enabled' : 'disabled'}`
+            `camera.previewAriaLabel.${localParticipant.isCameraEnabled ? 'enabled' : 'disabled'}`
           )}
         >
           {localParticipant.isCameraEnabled ? (
@@ -184,12 +184,12 @@ export const VideoTab = ({ id }: VideoTabProps) => {
                 textAlign: 'center',
               })}
             >
-              {t('video.camera.disabled')}
+              {t('camera.disabled')}
             </span>
           )}
         </div>
       </RowWrapper>
-      <H lvl={2}>{t('video.resolution.heading')}</H>
+      <H lvl={2}>{t('resolution.heading')}</H>
       <HStack
         gap={0}
         style={{
@@ -204,19 +204,19 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         >
           <Field
             type="select"
-            label={t('video.resolution.publish.label')}
+            label={t('resolution.publish.label')}
             items={[
               {
                 value: 'h720',
-                label: `${t('video.resolution.publish.items.high')} (720p)`,
+                label: `${t('resolution.publish.items.high')} (720p)`,
               },
               {
                 value: 'h360',
-                label: `${t('video.resolution.publish.items.medium')} (360p)`,
+                label: `${t('resolution.publish.items.medium')} (360p)`,
               },
               {
                 value: 'h180',
-                label: `${t('video.resolution.publish.items.low')} (180p)`,
+                label: `${t('resolution.publish.items.low')} (180p)`,
               },
             ]}
             selectedKey={videoPublishResolution}
