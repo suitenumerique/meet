@@ -5,6 +5,7 @@ import {
   saveUserChoices,
   LocalUserChoices as LocalUserChoicesLK,
 } from '@livekit/components-core'
+import { VideoQuality } from 'livekit-client'
 
 export type VideoResolution = 'h720' | 'h360' | 'h180'
 
@@ -13,6 +14,7 @@ export type LocalUserChoices = LocalUserChoicesLK & {
   noiseReductionEnabled?: boolean
   audioOutputDeviceId?: string
   videoPublishResolution?: VideoResolution
+  videoSubscribeQuality?: VideoQuality
 }
 
 function getUserChoicesState(): LocalUserChoices {
@@ -20,6 +22,7 @@ function getUserChoicesState(): LocalUserChoices {
     noiseReductionEnabled: false,
     audioOutputDeviceId: 'default', // Use 'default' to match LiveKit's standard device selection behavior
     videoPublishResolution: 'h720',
+    videoSubscribeQuality: VideoQuality.HIGH,
     ...loadUserChoices(),
   }
 }
