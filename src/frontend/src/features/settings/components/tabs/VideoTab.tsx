@@ -12,6 +12,7 @@ import {
   LocalVideoTrack,
   Track,
   VideoPresets,
+  VideoQuality,
 } from 'livekit-client'
 import { BackgroundProcessorFactory } from '@/features/rooms/livekit/components/blur'
 import { VideoResolution } from '@/stores/userChoices'
@@ -61,12 +62,18 @@ type DeviceItems = Array<{ value: string; label: string }>
 
 export const VideoTab = ({ id }: VideoTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'video' })
-  const { localParticipant } = useRoomContext()
+  const { localParticipant, remoteParticipants } = useRoomContext()
 
   const {
-    userChoices: { videoDeviceId, processorSerialized, videoPublishResolution },
+    userChoices: {
+      videoDeviceId,
+      processorSerialized,
+      videoPublishResolution,
+      videoSubscribeQuality,
+    },
     saveVideoInputDeviceId,
     saveVideoPublishResolution,
+    saveVideoSubscribeQuality,
   } = usePersistentUserChoices()
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null
@@ -110,6 +117,22 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           BackgroundProcessorFactory.deserializeProcessor(processorSerialized),
       })
     }
+  }
+
+  /**
+   * Updates video quality for all existing remote video tracks when user preference changes.
+   * LiveKit doesn't support setting video quality preferences at the room level for remote participants,
+   * so this function applies the selected quality to all existing remote video tracks.
+   * Hook useVideoResolutionSubscription updates quality preferences of new participants joining.
+   */
+  const updateExistingRemoteVideoQuality = (selectedQuality: VideoQuality) => {
+    remoteParticipants.forEach((participant) => {
+      participant.videoTrackPublications.forEach((publication) => {
+        if (publication.videoQuality !== selectedQuality) {
+          publication.setVideoQuality(selectedQuality)
+        }
+      })
+    })
   }
 
   useEffect(() => {
@@ -222,6 +245,56 @@ export const VideoTab = ({ id }: VideoTabProps) => {
             selectedKey={videoPublishResolution}
             onSelectionChange={async (key) => {
               await handleVideoResolutionChange(key as VideoResolution)
+            }}
+            style={{
+              width: '100%',
+            }}
+          />
+        </div>
+        <div
+          style={{
+            width: '10rem',
+            justifyContent: 'center',
+            display: 'flex',
+            paddingLeft: '1.5rem',
+          }}
+        />
+      </HStack>
+      <HStack
+        gap={0}
+        style={{
+          flexWrap: 'wrap',
+        }}
+      >
+        <div
+          style={{
+            flex: '1 1 215px',
+            minWidth: 0,
+          }}
+        >
+          <Field
+            type="select"
+            label={t('resolution.subscribe.label')}
+            items={[
+              {
+                value: VideoQuality.HIGH.toString(),
+                label: t('resolution.subscribe.items.high'),
+              },
+              {
+                value: VideoQuality.MEDIUM.toString(),
+                label: t('resolution.subscribe.items.medium'),
+              },
+              {
+                value: VideoQuality.LOW.toString(),
+                label: t('resolution.subscribe.items.low'),
+              },
+            ]}
+            selectedKey={videoSubscribeQuality?.toString()}
+            onSelectionChange={(key) => {
+              if (key == undefined) return
+              const selectedQuality = Number(String(key))
+              saveVideoSubscribeQuality(selectedQuality)
+              updateExistingRemoteVideoQuality(selectedQuality)
             }}
             style={{
               width: '100%',

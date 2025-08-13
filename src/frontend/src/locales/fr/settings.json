@@ -43,9 +43,17 @@
     "resolution": {
       "heading": "Résolution",
       "publish": {
-        "label": "Sélectionner votre résolution d'envoi (maximum)",
+        "label": "Sélectionner votre résolution d'envoi (max.)",
         "items": {
           "high": "Haute définition",
+          "medium": "Définition standard",
+          "low": "Basse définition"
+        }
+      },
+      "subscribe": {
+        "label": "Sélectionner votre résolution de réception (max.)",
+        "items": {
+          "high": "Haute définition (automatique)",
           "medium": "Définition standard",
           "low": "Basse définition"
         }

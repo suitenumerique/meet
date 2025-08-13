@@ -43,9 +43,17 @@
     "resolution": {
       "heading": "Auflösung",
       "publish": {
-        "label": "Wählen Sie Ihre maximale Sendeauflösung",
+        "label": "Wählen Sie Ihre maximale Sendeauflösung (max.)",
         "items": {
           "high": "Hohe Auflösung",
+          "medium": "Standardauflösung",
+          "low": "Niedrige Auflösung"
+        }
+      },
+      "subscribe": {
+        "label": "Wählen Sie Ihre Empfangsauflösung (max.)",
+        "items": {
+          "high": "Hohe Auflösung (automatisch)",
           "medium": "Standardauflösung",
           "low": "Niedrige Auflösung"
         }
