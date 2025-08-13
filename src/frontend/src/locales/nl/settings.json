@@ -43,9 +43,17 @@
     "resolution": {
       "heading": "Resolutie",
       "publish": {
-        "label": "Selecteer uw verzendresolutie (maximum)",
+        "label": "Selecteer uw verzendresolutie (max.)",
         "items": {
           "high": "Hoge definitie",
+          "medium": "Standaarddefinitie",
+          "low": "Lage definitie"
+        }
+      },
+      "subscribe": {
+        "label": "Selecteer uw ontvangstresolutie (max.)",
+        "items": {
+          "high": "Hoge definitie (automatisch)",
           "medium": "Standaarddefinitie",
           "low": "Lage definitie"
         }

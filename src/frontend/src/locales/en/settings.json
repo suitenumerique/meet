@@ -43,9 +43,17 @@
     "resolution": {
       "heading": "Resolution",
       "publish": {
-        "label": "Select your sending resolution (maximum)",
+        "label": "Select your sending resolution (max.)",
         "items": {
           "high": "High definition",
+          "medium": "Standard definition",
+          "low": "Low definition"
+        }
+      },
+      "subscribe": {
+        "label": "Select your reception resolution (max.)",
+        "items": {
+          "high": "High definition (automatic)",
           "medium": "Standard definition",
           "low": "Low definition"
         }
