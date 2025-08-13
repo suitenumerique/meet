@@ -3,7 +3,7 @@ import { usePreviewTracks } from '@livekit/components-react'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { LocalVideoTrack, Track } from 'livekit-client'
+import { LocalAudioTrack, LocalVideoTrack, Track } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { Field } from '@/primitives/Field'
 import { Button, Dialog, Text, Form } from '@/primitives'
@@ -157,7 +157,7 @@ export const Join = ({
     () =>
       tracks?.filter(
         (track) => track.kind === Track.Kind.Audio
-      )[0] as LocalVideoTrack,
+      )[0] as LocalAudioTrack,
     [tracks]
   )
 
