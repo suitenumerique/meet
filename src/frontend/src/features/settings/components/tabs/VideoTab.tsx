@@ -1,11 +1,10 @@
-import { DialogProps, Field, H } from '@/primitives'
+import { DialogProps, Field } from '@/primitives'
 
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import { useMediaDeviceSelect, useRoomContext } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
-import { HStack } from '@/styled-system/jsx'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
-import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { css } from '@/styled-system/css'
 import {
   createLocalVideoTrack,
@@ -16,44 +15,7 @@ import {
 } from 'livekit-client'
 import { BackgroundProcessorFactory } from '@/features/rooms/livekit/components/blur'
 import { VideoResolution } from '@/stores/userChoices'
-
-type RowWrapperProps = {
-  heading: string
-  children: ReactNode[]
-}
-
-const RowWrapper = ({ heading, children }: RowWrapperProps) => {
-  return (
-    <>
-      <H lvl={2}>{heading}</H>
-      <HStack
-        gap={0}
-        style={{
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            flex: '1 1 215px',
-            minWidth: 0,
-          }}
-        >
-          {children[0]}
-        </div>
-        <div
-          style={{
-            width: '10rem',
-            justifyContent: 'center',
-            display: 'flex',
-            paddingLeft: '1.5rem',
-          }}
-        >
-          {children[1]}
-        </div>
-      </HStack>
-    </>
-  )
-}
+import { RowWrapper } from './layout/RowWrapper'
 
 export type VideoTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -212,104 +174,65 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           )}
         </div>
       </RowWrapper>
-      <H lvl={2}>{t('resolution.heading')}</H>
-      <HStack
-        gap={0}
-        style={{
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            flex: '1 1 215px',
-            minWidth: 0,
+      <RowWrapper heading={t('resolution.heading')}>
+        <Field
+          type="select"
+          label={t('resolution.publish.label')}
+          items={[
+            {
+              value: 'h720',
+              label: `${t('resolution.publish.items.high')} (720p)`,
+            },
+            {
+              value: 'h360',
+              label: `${t('resolution.publish.items.medium')} (360p)`,
+            },
+            {
+              value: 'h180',
+              label: `${t('resolution.publish.items.low')} (180p)`,
+            },
+          ]}
+          selectedKey={videoPublishResolution}
+          onSelectionChange={async (key) => {
+            await handleVideoResolutionChange(key as VideoResolution)
           }}
-        >
-          <Field
-            type="select"
-            label={t('resolution.publish.label')}
-            items={[
-              {
-                value: 'h720',
-                label: `${t('resolution.publish.items.high')} (720p)`,
-              },
-              {
-                value: 'h360',
-                label: `${t('resolution.publish.items.medium')} (360p)`,
-              },
-              {
-                value: 'h180',
-                label: `${t('resolution.publish.items.low')} (180p)`,
-              },
-            ]}
-            selectedKey={videoPublishResolution}
-            onSelectionChange={async (key) => {
-              await handleVideoResolutionChange(key as VideoResolution)
-            }}
-            style={{
-              width: '100%',
-            }}
-          />
-        </div>
-        <div
           style={{
-            width: '10rem',
-            justifyContent: 'center',
-            display: 'flex',
-            paddingLeft: '1.5rem',
+            width: '100%',
           }}
         />
-      </HStack>
-      <HStack
-        gap={0}
-        style={{
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            flex: '1 1 215px',
-            minWidth: 0,
+        <></>
+      </RowWrapper>
+      <RowWrapper>
+        <Field
+          type="select"
+          label={t('resolution.subscribe.label')}
+          items={[
+            {
+              value: VideoQuality.HIGH.toString(),
+              label: t('resolution.subscribe.items.high'),
+            },
+            {
+              value: VideoQuality.MEDIUM.toString(),
+              label: t('resolution.subscribe.items.medium'),
+            },
+            {
+              value: VideoQuality.LOW.toString(),
+              label: t('resolution.subscribe.items.low'),
+            },
+          ]}
+          selectedKey={videoSubscribeQuality?.toString()}
+          onSelectionChange={(key) => {
+            if (key == undefined) return
+            const selectedQuality = Number(String(key))
+            saveVideoSubscribeQuality(selectedQuality)
+            updateExistingRemoteVideoQuality(selectedQuality)
           }}
-        >
-          <Field
-            type="select"
-            label={t('resolution.subscribe.label')}
-            items={[
-              {
-                value: VideoQuality.HIGH.toString(),
-                label: t('resolution.subscribe.items.high'),
-              },
-              {
-                value: VideoQuality.MEDIUM.toString(),
-                label: t('resolution.subscribe.items.medium'),
-              },
-              {
-                value: VideoQuality.LOW.toString(),
-                label: t('resolution.subscribe.items.low'),
-              },
-            ]}
-            selectedKey={videoSubscribeQuality?.toString()}
-            onSelectionChange={(key) => {
-              if (key == undefined) return
-              const selectedQuality = Number(String(key))
-              saveVideoSubscribeQuality(selectedQuality)
-              updateExistingRemoteVideoQuality(selectedQuality)
-            }}
-            style={{
-              width: '100%',
-            }}
-          />
-        </div>
-        <div
           style={{
-            width: '10rem',
-            justifyContent: 'center',
-            display: 'flex',
-            paddingLeft: '1.5rem',
+            width: '100%',
           }}
         />
-      </HStack>
+        <></>
+      </RowWrapper>
     </TabPanel>
   )
 }
