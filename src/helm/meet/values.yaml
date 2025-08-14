@@ -616,3 +616,68 @@ celery:
   ## @param celery.pdb.enabled Enable pdb on celery
   pdb:
     enabled: false
+
+## @section agents
+
+agents:
+  ## @param agents.dpAnnotations Annotations to add to the agents Deployment
+  dpAnnotations: {}
+
+  ## @param agents.command Override the agents container command
+  command: []
+
+  ## @param agents.args Override the agents container args
+  args: []
+
+  ## @param agents.replicas Amount of agents replicas
+  replicas: 1
+
+  ## @param agents.shareProcessNamespace Enable share process namespace between containers
+  shareProcessNamespace: false
+
+  ## @param agents.sidecars Add sidecars containers to agents deployment
+  sidecars: []
+
+  ## @param agents.securityContext Configure agents Pod security context
+  securityContext: null
+
+  ## @param agents.envVars Configure agents container environment variables
+  ## @extra agents.envVars.BY_VALUE Example environment variable by setting value directly
+  ## @extra agents.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra agents.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra agents.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
+  ## @extra agents.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @skip agents.envVars
+  envVars:
+    <<: *commonEnvVars
+
+  ## @param agents.podAnnotations Annotations to add to the agents Pod
+  podAnnotations: {}
+
+  ## @param agents.resources Resource requirements for the agents container
+  resources: {}
+
+  ## @param agents.nodeSelector Node selector for the agents Pod
+  nodeSelector: {}
+
+  ## @param agents.tolerations Tolerations for the agents Pod
+  tolerations: []
+
+  ## @param agents.affinity Affinity for the agents Pod
+  affinity: {}
+
+  ## @param agents.persistence Additional volumes to create and mount on the agents. Used for debugging purposes
+  ## @extra agents.persistence.volume-name.size Size of the additional volume
+  ## @extra agents.persistence.volume-name.type Type of the additional volume, persistentVolumeClaim or emptyDir
+  ## @extra agents.persistence.volume-name.mountPath Path where the volume should be mounted to
+  persistence: {}
+
+  ## @param agents.extraVolumeMounts Additional volumes to mount on the agents.
+  extraVolumeMounts: []
+
+  ## @param agents.extraVolumes Additional volumes to mount on the agents.
+  extraVolumes: []
+
+  ## @param agents.pdb.enabled Enable pdb on agents
+  pdb:
+    enabled: false
