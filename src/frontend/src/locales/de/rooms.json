@@ -168,6 +168,10 @@
       "raise": "Hand heben",
       "lower": "Hand senken"
     },
+    "subtitles": {
+      "closed": "Untertitel anzeigen",
+      "open": "Untertitel ausblenden"
+    },
     "screenShare": {
       "start": "Bildschirm freigeben",
       "stop": "Bildschirmfreigabe beenden"

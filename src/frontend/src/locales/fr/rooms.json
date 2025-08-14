@@ -168,6 +168,10 @@
       "raise": "Lever la main",
       "lower": "Baisser la main"
     },
+    "subtitles": {
+      "closed": "Afficher les sous-titres",
+      "open": "Masquer les sous-titres"
+    },
     "screenShare": {
       "start": "Partager l'écran",
       "stop": "Arrêter le partage"
