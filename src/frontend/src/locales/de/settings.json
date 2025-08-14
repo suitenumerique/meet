@@ -30,6 +30,37 @@
     },
     "permissionsRequired": "Berechtigungen erforderlich"
   },
+  "video": {
+    "camera": {
+      "heading": "Kamera",
+      "label": "Wählen Sie Ihre Videoeingabe aus",
+      "disabled": "Kamera deaktiviert",
+      "previewAriaLabel": {
+        "enabled": "Videovorschau aktiviert",
+        "disabled": "Videovorschau deaktiviert"
+      }
+    },
+    "resolution": {
+      "heading": "Auflösung",
+      "publish": {
+        "label": "Wählen Sie Ihre maximale Sendeauflösung (max.)",
+        "items": {
+          "high": "Hohe Auflösung",
+          "medium": "Standardauflösung",
+          "low": "Niedrige Auflösung"
+        }
+      },
+      "subscribe": {
+        "label": "Wählen Sie Ihre Empfangsauflösung (max.)",
+        "items": {
+          "high": "Hohe Auflösung (automatisch)",
+          "medium": "Standardauflösung",
+          "low": "Niedrige Auflösung"
+        }
+      }
+    },
+    "permissionsRequired": "Berechtigungen erforderlich"
+  },
   "notifications": {
     "heading": "Tonbenachrichtigungen",
     "label": "Tonbenachrichtigungen für",
@@ -54,6 +85,7 @@
   "tabs": {
     "account": "Profil",
     "audio": "Audio",
+    "video": "Video",
     "general": "Allgemein",
     "notifications": "Benachrichtigungen"
   }

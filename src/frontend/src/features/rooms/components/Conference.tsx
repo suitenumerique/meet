@@ -12,6 +12,7 @@ import {
   RoomOptions,
   supportsAdaptiveStream,
   supportsDynacast,
+  VideoPresets,
 } from 'livekit-client'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
@@ -98,6 +99,9 @@ export const Conference = ({
       },
       videoCaptureDefaults: {
         deviceId: userConfig.videoDeviceId ?? undefined,
+        resolution: userConfig.videoPublishResolution
+          ? VideoPresets[userConfig.videoPublishResolution].resolution
+          : undefined,
       },
       audioCaptureDefaults: {
         deviceId: userConfig.audioDeviceId ?? undefined,
@@ -109,6 +113,7 @@ export const Conference = ({
     // do not rely on the userConfig object directly as its reference may change on every render
   }, [
     userConfig.videoDeviceId,
+    userConfig.videoPublishResolution,
     userConfig.audioDeviceId,
     userConfig.audioOutputDeviceId,
     isAdaptiveStreamSupported,

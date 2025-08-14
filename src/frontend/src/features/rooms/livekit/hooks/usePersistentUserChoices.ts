@@ -1,6 +1,7 @@
 import { useSnapshot } from 'valtio'
-import { userChoicesStore } from '@/stores/userChoices'
+import { userChoicesStore, VideoResolution } from '@/stores/userChoices'
 import { ProcessorSerialized } from '@/features/rooms/livekit/components/blur'
+import { VideoQuality } from 'livekit-client'
 
 export function usePersistentUserChoices() {
   const userChoicesSnap = useSnapshot(userChoicesStore)
@@ -21,6 +22,12 @@ export function usePersistentUserChoices() {
     },
     saveVideoInputDeviceId: (deviceId: string) => {
       userChoicesStore.videoDeviceId = deviceId
+    },
+    saveVideoPublishResolution: (resolution: VideoResolution) => {
+      userChoicesStore.videoPublishResolution = resolution
+    },
+    saveVideoSubscribeQuality: (quality: VideoQuality) => {
+      userChoicesStore.videoSubscribeQuality = quality
     },
     saveUsername: (username: string) => {
       userChoicesStore.username = username

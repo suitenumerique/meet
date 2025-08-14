@@ -32,6 +32,7 @@ import { RecordingStateToast } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
+import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 
 const LayoutWrapper = styled(
   'div',
@@ -77,6 +78,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
     React.useRef<TrackReferenceOrPlaceholder | null>(null)
 
   useConnectionObserver()
+  useVideoResolutionSubscription()
 
   const tracks = useTracks(
     [

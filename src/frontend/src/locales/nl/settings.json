@@ -30,6 +30,37 @@
     },
     "permissionsRequired": "Machtigingen vereist"
   },
+  "video": {
+    "camera": {
+      "heading": "Camera",
+      "label": "Selecteer uw video-ingang",
+      "disabled": "Camera uitgeschakeld",
+      "previewAriaLabel": {
+        "enabled": "Videovoorbeeld ingeschakeld",
+        "disabled": "Videovoorbeeld uitgeschakeld"
+      }
+    },
+    "resolution": {
+      "heading": "Resolutie",
+      "publish": {
+        "label": "Selecteer uw verzendresolutie (max.)",
+        "items": {
+          "high": "Hoge definitie",
+          "medium": "Standaarddefinitie",
+          "low": "Lage definitie"
+        }
+      },
+      "subscribe": {
+        "label": "Selecteer uw ontvangstresolutie (max.)",
+        "items": {
+          "high": "Hoge definitie (automatisch)",
+          "medium": "Standaarddefinitie",
+          "low": "Lage definitie"
+        }
+      }
+    },
+    "permissionsRequired": "Machtigingen vereist"
+  },
   "notifications": {
     "heading": "Geluidsmeldingen",
     "label": "Geluidsmeldingen voor",
@@ -54,6 +85,7 @@
   "tabs": {
     "account": "Profiel",
     "audio": "Audio",
+    "video": "Video",
     "general": "Algemeen",
     "notifications": "Meldingen"
   }
