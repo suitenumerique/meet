@@ -168,6 +168,10 @@
       "raise": "Hand opsteken",
       "lower": "Hand laten zakken"
     },
+    "subtitles": {
+      "closed": "Ondertitels weergeven",
+      "open": "Ondertitels verbergen"
+    },
     "screenShare": {
       "start": "Scherm delen",
       "stop": "Stop schermdelen"

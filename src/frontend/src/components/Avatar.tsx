@@ -16,6 +16,12 @@ const avatar = cva({
   },
   variants: {
     context: {
+      subtitles: {
+        width: '40px',
+        height: '40px',
+        fontSize: '1.3rem',
+        lineHeight: '1rem',
+      },
       list: {
         width: '32px',
         height: '32px',

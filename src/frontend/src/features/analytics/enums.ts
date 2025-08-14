@@ -3,4 +3,5 @@ export enum FeatureFlags {
   ScreenRecording = 'screen-recording',
   faceLandmarks = 'face-landmarks',
   noiseReduction = 'noise-reduction',
+  subtitles = 'subtitles',
 }

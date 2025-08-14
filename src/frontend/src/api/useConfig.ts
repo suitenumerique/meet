@@ -31,6 +31,9 @@ export interface ApiConfig {
     expiration_days?: number
     max_duration?: number
   }
+  subtitle: {
+    enabled: boolean
+  }
   telephony: {
     enabled: boolean
     phone_number?: string
