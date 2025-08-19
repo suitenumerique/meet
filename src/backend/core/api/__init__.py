@@ -50,6 +50,7 @@ def get_frontend_configuration(request):
             else None,
             "default_country": settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
         },
+        "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "force_wss_protocol": settings.LIVEKIT_FORCE_WSS_PROTOCOL,
