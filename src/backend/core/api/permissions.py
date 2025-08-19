@@ -2,6 +2,7 @@
 
 from django.conf import settings
 
+from livekit.api import TokenVerifier
 from rest_framework import permissions
 
 from ..models import RoleChoices
@@ -119,3 +120,43 @@ class IsStorageEventEnabled(permissions.BasePermission):
     def has_permission(self, request, view):
         """Determine if access is allowed based on settings."""
         return settings.RECORDING_STORAGE_EVENT_ENABLE
+
+
+class IsSubtitleEnabled(permissions.BasePermission):
+    """Check if the subtitle feature is enabled."""
+
+    message = "Access denied, subtitles are disabled."
+
+    def has_permission(self, request, view):
+        """Determine if access is allowed based on settings."""
+        return settings.ROOM_SUBTITLE_ENABLED
+
+
+class HasLiveKitToken(permissions.BasePermission):
+    """Check if LiveKit token is valid for the requested room."""
+
+    message = "A valid LiveKit token is required."
+
+    def has_permission(self, request, view):
+        token = request.data.get("token")
+        if not token:
+            return False
+
+        try:
+            verifier = TokenVerifier(
+                api_key=settings.LIVEKIT_CONFIGURATION["api_key"],
+                api_secret=settings.LIVEKIT_CONFIGURATION["api_secret"],
+            )
+            claims = verifier.verify(token)
+            request.livekit_claims = claims
+            return True
+        # pylint: disable-next=broad-exception-caught
+        except Exception:  # noqa: BLE001
+            return False
+
+    def has_object_permission(self, request, view, obj):
+        """Verify token is for the specific room object."""
+        if not hasattr(request, "livekit_claims"):
+            return False
+
+        return request.livekit_claims.video.room == str(obj.id)

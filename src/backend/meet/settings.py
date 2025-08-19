@@ -644,6 +644,16 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Subtitles settings
+    ROOM_SUBTITLE_ENABLED = values.BooleanValue(
+        False, environ_name="ROOM_SUBTITLE_ENABLED", environ_prefix=None
+    )
+    ROOM_SUBTITLE_AGENT_NAME = values.Value(
+        "multi-user-transcriber",
+        environ_name="ROOM_SUBTITLE_AGENT_NAME",
+        environ_prefix=None,
+    )
+
     # pylint: disable=invalid-name
     @property
     def ENVIRONMENT(self):
