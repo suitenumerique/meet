@@ -119,3 +119,22 @@ class IsStorageEventEnabled(permissions.BasePermission):
     def has_permission(self, request, view):
         """Determine if access is allowed based on settings."""
         return settings.RECORDING_STORAGE_EVENT_ENABLE
+
+
+class IsSubtitleEnabled(permissions.BasePermission):
+    """Check if the subtitle feature is enabled."""
+
+    message = "Access denied, subtitles are disabled."
+
+    def has_permission(self, request, view):
+        """Determine if access is allowed based on settings."""
+        return settings.ROOM_SUBTITLE_ENABLED
+
+
+class HasLiveKitRoomAccess(permissions.BasePermission):
+    """Check if authenticated user's LiveKit token is for the specific room."""
+
+    def has_object_permission(self, request, view, obj):
+        if not request.auth or not hasattr(request.auth, "video"):
+            return False
+        return request.auth.video.room == str(obj.id)
