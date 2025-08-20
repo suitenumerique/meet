@@ -3,7 +3,13 @@ import { usePreviewTracks } from '@livekit/components-react'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { LocalAudioTrack, LocalVideoTrack, Track } from 'livekit-client'
+import {
+  createLocalVideoTrack,
+  createLocalAudioTrack,
+  LocalAudioTrack,
+  LocalVideoTrack,
+  Track,
+} from 'livekit-client'
 import { H } from '@/primitives/H'
 import { Field } from '@/primitives/Field'
 import { Button, Dialog, Text, Form } from '@/primitives'
@@ -133,19 +139,28 @@ export const Join = ({
 
   const tracks = usePreviewTracks(
     {
-      audio: !!initialUserChoices.current && {
-        deviceId: initialUserChoices.current.audioDeviceId,
-      },
-      video: !!initialUserChoices.current && {
-        deviceId: initialUserChoices.current.videoDeviceId,
-        processor:
-          BackgroundProcessorFactory.deserializeProcessor(processorSerialized),
-      },
+      audio: !!initialUserChoices.current &&
+        initialUserChoices.current?.audioEnabled && {
+          deviceId: initialUserChoices.current.audioDeviceId,
+        },
+      video: !!initialUserChoices.current &&
+        initialUserChoices.current?.videoEnabled && {
+          deviceId: initialUserChoices.current.videoDeviceId,
+          processor:
+            BackgroundProcessorFactory.deserializeProcessor(
+              processorSerialized
+            ),
+        },
     },
     onError
   )
 
-  const videoTrack = useMemo(
+  const [dynamicVideoTrack, setDynamicVideoTrack] =
+    useState<LocalVideoTrack | null>(null)
+  const [dynamicAudioTrack, setDynamicAudioTrack] =
+    useState<LocalAudioTrack | null>(null)
+
+  const previewVideoTrack = useMemo(
     () =>
       tracks?.filter(
         (track) => track.kind === Track.Kind.Video
@@ -153,13 +168,87 @@ export const Join = ({
     [tracks]
   )
 
-  const audioTrack = useMemo(
+  const previewAudioTrack = useMemo(
     () =>
       tracks?.filter(
         (track) => track.kind === Track.Kind.Audio
       )[0] as LocalAudioTrack,
     [tracks]
   )
+
+  /*
+   * Dynamic track creation strategy: Only create a dynamic track if the user initially disabled audio/video
+   * but now wants to enable it. This is a "just-in-time" acquisition pattern where we create the track
+   * on-demand. We avoid creating tracks when the user explicitly requested them to be disabled.
+   */
+  useEffect(() => {
+    const createVideoTrack = async () => {
+      try {
+        const track = await createLocalVideoTrack({
+          deviceId: { exact: videoDeviceId },
+          processor:
+            BackgroundProcessorFactory.deserializeProcessor(
+              processorSerialized
+            ),
+        })
+        setDynamicVideoTrack(track)
+      } catch (error) {
+        onError(error as Error)
+      }
+    }
+
+    if (
+      videoEnabled &&
+      !initialUserChoices.current?.videoEnabled &&
+      !previewVideoTrack &&
+      !dynamicVideoTrack
+    ) {
+      createVideoTrack()
+    }
+  }, [
+    videoEnabled,
+    videoDeviceId,
+    processorSerialized,
+    previewVideoTrack,
+    dynamicVideoTrack,
+  ])
+
+  useEffect(() => {
+    const createAudioTrack = async () => {
+      try {
+        const track = await createLocalAudioTrack({
+          deviceId: { exact: audioDeviceId },
+        })
+        setDynamicAudioTrack(track)
+      } catch (error) {
+        onError(error as Error)
+      }
+    }
+    if (
+      audioEnabled &&
+      !initialUserChoices.current?.audioEnabled &&
+      !dynamicAudioTrack &&
+      !dynamicAudioTrack
+    ) {
+      createAudioTrack()
+    }
+  }, [audioEnabled, audioDeviceId, previewAudioTrack, dynamicAudioTrack])
+
+  // Cleanup dynamic tracks
+  useEffect(() => {
+    return () => {
+      dynamicVideoTrack?.stop()
+    }
+  }, [dynamicVideoTrack])
+  useEffect(() => {
+    return () => {
+      dynamicAudioTrack?.stop()
+    }
+  }, [dynamicAudioTrack])
+
+  // Final tracks (dynamic takes precedence over preview)
+  const videoTrack = dynamicVideoTrack || previewVideoTrack
+  const audioTrack = dynamicAudioTrack || previewAudioTrack
 
   // LiveKit by default populates device choices with "default" value.
   // Instead, use the current device id used by the preview track as a default
@@ -188,7 +277,7 @@ export const Join = ({
     }
 
     if (videoElement && videoTrack && videoEnabled) {
-      videoTrack.unmute()
+      // videoTrack.unmute()
       videoTrack.attach(videoElement)
       videoElement.addEventListener('loadedmetadata', handleVideoLoaded)
     }
