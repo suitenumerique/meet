@@ -43,19 +43,15 @@ export const ToggleDevice = <T extends ToggleSource>({
   }, [config, permissions])
 
   const toggle = useCallback(async () => {
-    if (!track) {
-      console.error('Track is undefined.')
-      return
-    }
     try {
       if (isTrackEnabled) {
         setIsTrackEnabled(false)
         onChange?.(false, true)
-        await track.mute()
+        await track?.mute()
       } else {
         setIsTrackEnabled(true)
         onChange?.(true, true)
-        await track.unmute()
+        await track?.unmute()
       }
     } catch (error) {
       console.error('Failed to toggle track:', error)
