@@ -16,8 +16,8 @@ export const SettingsButton = ({
     <Button
       size="sm"
       square
-      tooltip={t('settings')}
-      aria-label={t('settings')}
+      tooltip={t(`settings.${settingTab}`)}
+      aria-label={t(`settings.${settingTab}`)}
       variant="primaryDark"
       onPress={() => {
         setDefaultSelectedKey(settingTab)

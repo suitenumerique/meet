@@ -11,7 +11,10 @@
     "loading": "Bezig met laden…",
     "select": "Selecteer een waarde",
     "permissionsNeeded": "Toestemming vereist",
-    "settings": "Instellingen",
+    "settings": {
+      "audio": "Audio-instellingen",
+      "video": "Video-instellingen"
+    },
     "videoinput": {
       "choose": "Selecteer camera",
       "permissionsNeeded": "Selecteer camera - Toestemming vereist",

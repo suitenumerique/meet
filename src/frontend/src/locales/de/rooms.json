@@ -11,7 +11,10 @@
     "loading": "Laden…",
     "select": "Wählen Sie einen Wert",
     "permissionsNeeded": "Genehmigung erforderlich",
-    "settings": "Einstellungen",
+    "settings": {
+      "audio": "Audioeinstellungen",
+      "video": "Videoeinstellungen"
+    },
     "videoinput": {
       "choose": "Kamera auswählen",
       "permissionsNeeded": "Kamera auswählen - genehmigung erforderlich",

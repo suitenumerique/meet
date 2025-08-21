@@ -11,7 +11,10 @@
     "loading": "Loading…",
     "select": "Select a value",
     "permissionsNeeded": "Permission needed",
-    "settings": "Settings",
+    "settings": {
+      "audio": "Audio settings",
+      "video": "Video settings"
+    },
     "videoinput": {
       "choose": "Select camera",
       "permissionsNeeded": "Select camera - permission needed",
