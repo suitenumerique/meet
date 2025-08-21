@@ -72,34 +72,34 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
             </Heading>
           )}
           <TabList border={false}>
-            <Tab icon highlight id="1">
+            <Tab icon highlight id="account">
               <RiAccountCircleLine />
               {isWideScreen && t('tabs.account')}
             </Tab>
-            <Tab icon highlight id="2">
+            <Tab icon highlight id="audio">
               <RiSpeakerLine />
               {isWideScreen && t('tabs.audio')}
             </Tab>
-            <Tab icon highlight id="3">
+            <Tab icon highlight id="video">
               <RiVideoOnLine />
               {isWideScreen && t('tabs.video')}
             </Tab>
-            <Tab icon highlight id="4">
+            <Tab icon highlight id="general">
               <RiSettings3Line />
               {isWideScreen && t('tabs.general')}
             </Tab>
-            <Tab icon highlight id="5">
+            <Tab icon highlight id="notifications">
               <RiNotification3Line />
               {isWideScreen && t('tabs.notifications')}
             </Tab>
           </TabList>
         </div>
         <div className={tabPanelContainerStyle}>
-          <AccountTab id="1" onOpenChange={props.onOpenChange} />
-          <AudioTab id="2" />
-          <VideoTab id="3" />
-          <GeneralTab id="4" />
-          <NotificationsTab id="5" />
+          <AccountTab id="account" onOpenChange={props.onOpenChange} />
+          <AudioTab id="audio" />
+          <VideoTab id="video" />
+          <GeneralTab id="general" />
+          <NotificationsTab id="notifications" />
         </div>
       </Tabs>
     </Dialog>
