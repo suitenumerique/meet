@@ -82,7 +82,6 @@ export const VideoDeviceControl = ({
       <ToggleDevice
         {...trackProps}
         kind="videoinput"
-        variant="primaryDark"
         toggle={toggle}
         toggleButtonProps={{
           ...(hideMenu

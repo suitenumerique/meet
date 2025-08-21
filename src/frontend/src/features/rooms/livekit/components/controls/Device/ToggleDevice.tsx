@@ -17,25 +17,51 @@ import { openPermissionsDialog } from '@/stores/permissions'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
 import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
+import { ToggleSource, CaptureOptionsBySource } from '@livekit/components-core'
 
-export type ToggleDeviceProps = {
-  enabled: boolean
-  toggle: () => void
-  kind: 'audioinput' | 'videoinput'
+type ToggleDeviceStyleProps = {
   variant?: NonNullable<ButtonRecipeProps>['variant']
   errorVariant?: NonNullable<ButtonRecipeProps>['variant']
   toggleButtonProps?: Partial<ToggleButtonProps>
 }
 
-export const ToggleDevice = ({
+export type ToggleDeviceProps<T extends ToggleSource> = {
+  enabled: boolean
+  toggle: (
+    forceState?: boolean,
+    captureOptions?: CaptureOptionsBySource<T>
+  ) => Promise<void | boolean | undefined> | void
+  context?: 'room' | 'join'
+  kind: 'audioinput' | 'videoinput'
+  toggleButtonProps?: Partial<ToggleButtonProps>
+}
+
+export const ToggleDevice = <T extends ToggleSource>({
   kind,
   enabled,
   toggle,
-  variant = 'primaryDark',
-  errorVariant = 'error2',
-  toggleButtonProps,
-}: ToggleDeviceProps) => {
+  context = 'room',
+  ...props
+}: ToggleDeviceProps<T>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+
+  const { variant, errorVariant, toggleButtonProps } =
+    useMemo<ToggleDeviceStyleProps>(() => {
+      if (context === 'join') {
+        return {
+          variant: 'whiteCircle',
+          errorVariant: 'errorCircle',
+          toggleButtonProps: {
+            groupPosition: undefined,
+          },
+        } as ToggleDeviceStyleProps
+      }
+      return {
+        variant: 'primaryDark',
+        errorVariant: 'error2',
+        toggleButtonProps: undefined,
+      } as ToggleDeviceStyleProps
+    }, [context])
 
   const [pushToTalk, setPushToTalk] = useState(false)
 
@@ -71,8 +97,8 @@ export const ToggleDevice = ({
   const Icon =
     enabled && !cannotUseDevice ? deviceIcons.toggleOn : deviceIcons.toggleOff
 
-  const context = useMaybeRoomContext()
-  if (kind === 'audioinput' && pushToTalk && context) {
+  const roomContext = useMaybeRoomContext()
+  if (kind === 'audioinput' && pushToTalk && roomContext) {
     return <ActiveSpeakerWrapper />
   }
 
@@ -92,6 +118,7 @@ export const ToggleDevice = ({
         }
         groupPosition="left"
         {...toggleButtonProps}
+        {...props}
       >
         <Icon />
       </ToggleButton>
