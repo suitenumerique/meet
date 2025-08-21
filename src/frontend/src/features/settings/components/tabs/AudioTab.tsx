@@ -25,7 +25,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
   const { localParticipant } = useRoomContext()
 
   const {
-    userChoices: { noiseReductionEnabled },
+    userChoices: { noiseReductionEnabled, audioDeviceId, audioOutputDeviceId },
     saveAudioInputDeviceId,
     saveNoiseReductionEnabled,
     saveAudioOutputDeviceId,
@@ -33,17 +33,11 @@ export const AudioTab = ({ id }: AudioTabProps) => {
 
   const isSpeaking = useIsSpeaking(localParticipant)
 
-  const {
-    devices: devicesOut,
-    activeDeviceId: activeDeviceIdOut,
-    setActiveMediaDevice: setActiveMediaDeviceOut,
-  } = useMediaDeviceSelect({ kind: 'audiooutput' })
+  const { devices: devicesOut, setActiveMediaDevice: setActiveMediaDeviceOut } =
+    useMediaDeviceSelect({ kind: 'audiooutput' })
 
-  const {
-    devices: devicesIn,
-    activeDeviceId: activeDeviceIdIn,
-    setActiveMediaDevice: setActiveMediaDeviceIn,
-  } = useMediaDeviceSelect({ kind: 'audioinput' })
+  const { devices: devicesIn, setActiveMediaDevice: setActiveMediaDeviceIn } =
+    useMediaDeviceSelect({ kind: 'audioinput' })
 
   const itemsOut: DeviceItems = devicesOut.map((d) => ({
     value: d.deviceId,
@@ -68,15 +62,6 @@ export const AudioTab = ({ id }: AudioTabProps) => {
         defaultSelectedKey: undefined,
       }
 
-  // No API to directly query the default audio device; this function heuristically finds it.
-  // Returns the item with value 'default' if present; otherwise, returns the first item in the list.
-  const getDefaultSelectedKey = (items: DeviceItems) => {
-    if (!items || items.length === 0) return
-    const defaultItem =
-      items.find((item) => item.value === 'default') || items[0]
-    return defaultItem.value
-  }
-
   const noiseReductionAvailable = useNoiseReductionAvailable()
 
   return (
@@ -86,11 +71,9 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           type="select"
           label={t('audio.microphone.label')}
           items={itemsIn}
-          defaultSelectedKey={
-            activeDeviceIdIn || getDefaultSelectedKey(itemsIn)
-          }
-          onSelectionChange={(key) => {
-            setActiveMediaDeviceIn(key as string)
+          selectedKey={audioDeviceId}
+          onSelectionChange={async (key) => {
+            await setActiveMediaDeviceIn(key as string)
             saveAudioInputDeviceId(key as string)
           }}
           {...disabledProps}
@@ -114,11 +97,9 @@ export const AudioTab = ({ id }: AudioTabProps) => {
             type="select"
             label={t('audio.speakers.label')}
             items={itemsOut}
-            defaultSelectedKey={
-              activeDeviceIdOut || getDefaultSelectedKey(itemsOut)
-            }
-            onSelectionChange={(key) => {
-              setActiveMediaDeviceOut(key as string)
+            selectedKey={audioOutputDeviceId}
+            onSelectionChange={async (key) => {
+              await setActiveMediaDeviceOut(key as string)
               saveAudioOutputDeviceId(key as string)
             }}
             {...disabledProps}
