@@ -69,6 +69,7 @@ const StyledOverlayArrow = styled(OverlayArrow, {
 export const Popover = ({
   children,
   variant = 'light',
+  withArrow = true,
   ...dialogProps
 }: {
   children: [
@@ -78,17 +79,20 @@ export const Popover = ({
       | ReactNode,
   ]
   variant?: 'dark' | 'light'
+  withArrow?: boolean
 } & DialogProps) => {
   const [trigger, popoverContent] = children
   return (
     <DialogTrigger>
       {trigger}
       <StyledPopover>
-        <StyledOverlayArrow variant={variant}>
-          <svg width={12} height={12} viewBox="0 0 12 12">
-            <path d="M0 0 L6 6 L12 0" />
-          </svg>
-        </StyledOverlayArrow>
+        {withArrow && (
+          <StyledOverlayArrow variant={variant}>
+            <svg width={12} height={12} viewBox="0 0 12 12">
+              <path d="M0 0 L6 6 L12 0" />
+            </svg>
+          </StyledOverlayArrow>
+        )}
         <Dialog {...dialogProps}>
           {({ close }) => (
             <Box size="sm" type="popover" variant={variant}>
