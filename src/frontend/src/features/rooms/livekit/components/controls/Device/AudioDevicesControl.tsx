@@ -7,8 +7,7 @@ import { Track } from 'livekit-client'
 import { ToggleDevice } from '@/features/rooms/livekit/components/controls/ToggleDevice.tsx'
 import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
-import { useSnapshot } from 'valtio'
-import { permissionsStore } from '@/stores/permissions'
+import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { ToggleDeviceConfig } from '../../../config/ToggleDeviceConfig'
 import Source = Track.Source
 import * as React from 'react'
@@ -58,10 +57,7 @@ export const AudioDevicesControl = ({
     ...props,
   })
 
-  const permissions = useSnapshot(permissionsStore)
-  const isPermissionDeniedOrPrompted =
-    permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
-
+  const cannotUseDevice = useCannotUseDevice('audioinput')
   const selectLabel = t('audioinput.choose')
 
   return (
@@ -76,7 +72,6 @@ export const AudioDevicesControl = ({
         config={config}
         variant="primaryDark"
         toggle={trackProps.toggle}
-        isPermissionDeniedOrPrompted={isPermissionDeniedOrPrompted}
         toggleButtonProps={{
           ...(hideMenu
             ? {
@@ -88,15 +83,12 @@ export const AudioDevicesControl = ({
       {!hideMenu && (
         <Popover variant="dark" withArrow={false}>
           <Button
-            isDisabled={isPermissionDeniedOrPrompted}
             tooltip={selectLabel}
             aria-label={selectLabel}
             groupPosition="right"
             square
             variant={
-              trackProps.enabled && !isPermissionDeniedOrPrompted
-                ? 'primaryDark'
-                : 'error2'
+              trackProps.enabled && !cannotUseDevice ? 'primaryDark' : 'error2'
             }
           >
             <RiArrowUpSLine />

@@ -8,9 +8,8 @@ import { useTranslation } from 'react-i18next'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { useEffect, useMemo } from 'react'
 import { Select } from '@/primitives/Select'
-import { useSnapshot } from 'valtio'
-import { permissionsStore } from '@/stores/permissions'
 import { Placement } from '@react-types/overlays'
+import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 
 type DeviceItems = Array<{ value: string; label: string }>
 
@@ -100,8 +99,6 @@ export const SelectDevice = ({
 }: SelectDeviceProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
-  const permissions = useSnapshot(permissionsStore)
-
   const contextProps = useMemo<SelectDeviceContext>(() => {
     if (context == 'room') {
       return { variant: 'dark', placement: 'top' }
@@ -126,22 +123,11 @@ export const SelectDevice = ({
     }
   }, [kind])
 
-  const isPermissionDeniedOrPrompted = useMemo(() => {
-    if (kind == 'audioinput') {
-      return permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
-    }
-    if (kind == 'videoinput') {
-      return permissions.isCameraDenied || permissions.isCameraPrompted
-    }
-    if (kind == 'audiooutput') {
-      return permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
-    }
-    return false
-  }, [kind, permissions])
+  const cannotUseDevice = useCannotUseDevice(kind)
 
   if (!config) return null
 
-  if (isPermissionDeniedOrPrompted || permissions.isLoading) {
+  if (cannotUseDevice) {
     return (
       <Select
         aria-label={t(`${kind}.permissionsNeeded`)}

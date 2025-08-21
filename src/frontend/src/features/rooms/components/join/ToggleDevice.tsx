@@ -6,9 +6,7 @@ import {
 } from '../../livekit/config/ToggleDeviceConfig'
 import { LocalAudioTrack, LocalVideoTrack } from 'livekit-client'
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
-import { useCallback, useMemo, useState } from 'react'
-import { useSnapshot } from 'valtio'
-import { permissionsStore } from '@/stores/permissions'
+import { useCallback, useState } from 'react'
 
 type ToggleDeviceProps<T extends ToggleSource> = UseTrackToggleProps<T> & {
   track?: LocalAudioTrack | LocalVideoTrack
@@ -31,17 +29,6 @@ export const ToggleDevice = <T extends ToggleSource>({
     props.initialState ?? false
   )
 
-  const permissions = useSnapshot(permissionsStore)
-
-  const isPermissionDeniedOrPrompted = useMemo(() => {
-    if (config.kind == 'audioinput') {
-      return permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
-    }
-    if (config.kind == 'videoinput') {
-      return permissions.isCameraDenied || permissions.isCameraPrompted
-    }
-  }, [config, permissions])
-
   const toggle = useCallback(async () => {
     try {
       if (isTrackEnabled) {
@@ -61,7 +48,6 @@ export const ToggleDevice = <T extends ToggleSource>({
   return (
     <BaseToggleDevice
       enabled={isTrackEnabled}
-      isPermissionDeniedOrPrompted={isPermissionDeniedOrPrompted}
       toggle={toggle}
       config={config}
       variant="whiteCircle"
