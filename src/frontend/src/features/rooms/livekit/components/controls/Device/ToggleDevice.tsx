@@ -14,8 +14,8 @@ import {
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
-import { ToggleDeviceConfig } from '../../config/ToggleDeviceConfig'
-import { useCannotUseDevice } from '../../hooks/useCannotUseDevice'
+import { ToggleDeviceConfig } from '../../../config/ToggleDeviceConfig'
+import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 
 export type ToggleDeviceProps = {
   enabled: boolean

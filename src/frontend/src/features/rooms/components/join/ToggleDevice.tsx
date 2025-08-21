@@ -1,5 +1,5 @@
 import { UseTrackToggleProps } from '@livekit/components-react'
-import { ToggleDevice as BaseToggleDevice } from '../../livekit/components/controls/ToggleDevice'
+import { ToggleDevice as BaseToggleDevice } from '../../livekit/components/controls/Device/ToggleDevice'
 import {
   TOGGLE_DEVICE_CONFIG,
   ToggleSource,
