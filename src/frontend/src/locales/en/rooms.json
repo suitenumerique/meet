@@ -15,6 +15,7 @@
       "audio": "Audio settings",
       "video": "Video settings"
     },
+    "effects": "Effects",
     "videoinput": {
       "choose": "Select camera",
       "permissionsNeeded": "Select camera - permission needed",

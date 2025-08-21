@@ -1,19 +1,37 @@
 import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
-import { RiArrowUpSLine } from '@remixicon/react'
+import { RiArrowUpSLine, RiImageCircleAiFill } from '@remixicon/react'
 import { Track, VideoCaptureOptions } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
+import { useSidePanel } from '../../../hooks/useSidePanel'
 import { BackgroundProcessorFactory } from '../../blur'
 import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
+
+const EffectsButton = () => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
+  const { toggleEffects } = useSidePanel()
+  return (
+    <Button
+      size="sm"
+      square
+      tooltip={t('effects')}
+      aria-label={t('effects')}
+      variant="primaryDark"
+      onPress={toggleEffects}
+    >
+      <RiImageCircleAiFill size={24} />
+    </Button>
+  )
+}
 
 type VideoDeviceControlProps = Omit<
   UseTrackToggleProps<Source.Camera>,
@@ -128,6 +146,7 @@ export const VideoDeviceControl = ({
                 onSubmit={saveVideoInputDeviceId}
               />
             </div>
+            <EffectsButton />
             <SettingsButton settingTab={SettingsDialogExtendedKey.VIDEO} />
           </div>
         </Popover>
