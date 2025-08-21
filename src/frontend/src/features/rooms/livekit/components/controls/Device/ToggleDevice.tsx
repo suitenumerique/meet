@@ -14,21 +14,21 @@ import {
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
-import { ToggleDeviceConfig } from '../../../config/ToggleDeviceConfig'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
+import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
 
 export type ToggleDeviceProps = {
   enabled: boolean
   toggle: () => void
-  config: ToggleDeviceConfig
+  kind: 'audioinput' | 'videoinput'
   variant?: NonNullable<ButtonRecipeProps>['variant']
   errorVariant?: NonNullable<ButtonRecipeProps>['variant']
   toggleButtonProps?: Partial<ToggleButtonProps>
 }
 
 export const ToggleDevice = ({
-  config,
+  kind,
   enabled,
   toggle,
   variant = 'primaryDark',
@@ -36,8 +36,6 @@ export const ToggleDevice = ({
   toggleButtonProps,
 }: ToggleDeviceProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
-
-  const { kind, shortcut, longPress } = config
 
   const [pushToTalk, setPushToTalk] = useState(false)
 
@@ -54,16 +52,21 @@ export const ToggleDevice = ({
 
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
+  const deviceShortcut = useDeviceShortcut(kind)
 
-  useRegisterKeyboardShortcut({ shortcut, handler: toggle })
-  useLongPress({ keyCode: longPress?.key, onKeyDown, onKeyUp })
+  useRegisterKeyboardShortcut({ shortcut: deviceShortcut, handler: toggle })
+  useLongPress({
+    keyCode: kind === 'audioinput' ? 'Space' : undefined,
+    onKeyDown,
+    onKeyUp,
+  })
 
   const toggleLabel = useMemo(() => {
     const label = t(enabled ? 'disable' : 'enable', {
       keyPrefix: `join.${kind}`,
     })
-    return shortcut ? appendShortcutLabel(label, shortcut) : label
-  }, [enabled, kind, shortcut, t])
+    return deviceShortcut ? appendShortcutLabel(label, deviceShortcut) : label
+  }, [enabled, kind, deviceShortcut, t])
 
   const Icon =
     enabled && !cannotUseDevice ? deviceIcons.toggleOn : deviceIcons.toggleOff

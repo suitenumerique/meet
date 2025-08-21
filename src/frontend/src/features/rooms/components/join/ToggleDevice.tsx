@@ -1,33 +1,32 @@
 import { UseTrackToggleProps } from '@livekit/components-react'
 import { ToggleDevice as BaseToggleDevice } from '../../livekit/components/controls/Device/ToggleDevice'
-import {
-  TOGGLE_DEVICE_CONFIG,
-  ToggleSource,
-} from '../../livekit/config/ToggleDeviceConfig'
-import { LocalAudioTrack, LocalVideoTrack } from 'livekit-client'
+import { LocalAudioTrack, LocalVideoTrack, Track } from 'livekit-client'
 import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { useCallback, useState } from 'react'
 
-type ToggleDeviceProps<T extends ToggleSource> = UseTrackToggleProps<T> & {
+type ToggleSource = Exclude<
+  Track.Source,
+  | Track.Source.ScreenShareAudio
+  | Track.Source.Unknown
+  | Track.Source.ScreenShare
+>
+
+type ToggleDeviceProps<T extends ToggleSource> = Pick<
+  UseTrackToggleProps<T>,
+  'onChange' | 'initialState'
+> & {
   track?: LocalAudioTrack | LocalVideoTrack
-  source: ToggleSource
+  kind: MediaDeviceKind
   variant?: NonNullable<ButtonRecipeProps>['variant']
 }
 
 export const ToggleDevice = <T extends ToggleSource>({
   track,
+  kind,
   onChange,
-  ...props
+  initialState,
 }: ToggleDeviceProps<T>) => {
-  const config = TOGGLE_DEVICE_CONFIG[props.source]
-
-  if (!config) {
-    throw new Error('Invalid source')
-  }
-
-  const [isTrackEnabled, setIsTrackEnabled] = useState(
-    props.initialState ?? false
-  )
+  const [isTrackEnabled, setIsTrackEnabled] = useState(initialState ?? false)
 
   const toggle = useCallback(async () => {
     try {
@@ -49,7 +48,7 @@ export const ToggleDevice = <T extends ToggleSource>({
     <BaseToggleDevice
       enabled={isTrackEnabled}
       toggle={toggle}
-      config={config}
+      kind={kind}
       variant="whiteCircle"
       errorVariant="errorCircle"
       toggleButtonProps={{

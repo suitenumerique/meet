@@ -8,7 +8,6 @@ import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
-import { ToggleDeviceConfig } from '../../../config/ToggleDeviceConfig'
 import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
@@ -24,16 +23,6 @@ export const AudioDevicesControl = ({
   hideMenu,
   ...props
 }: AudioDevicesControlProps) => {
-  const config: ToggleDeviceConfig = {
-    kind: 'audioinput',
-    shortcut: {
-      key: 'd',
-      ctrlKey: true,
-    },
-    longPress: {
-      key: 'Space',
-    },
-  }
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
   const {
@@ -67,7 +56,7 @@ export const AudioDevicesControl = ({
     >
       <ToggleDevice
         {...trackProps}
-        config={config}
+        kind="audioinput"
         variant="primaryDark"
         toggle={trackProps.toggle}
         toggleButtonProps={{
