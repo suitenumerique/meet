@@ -2,7 +2,6 @@ import { supportsScreenSharing } from '@livekit/components-core'
 import { ControlBarAuxProps } from './ControlBar'
 import { css } from '@/styled-system/css'
 import { LeaveButton } from '../../components/controls/LeaveButton'
-import { SelectToggleDevice } from '../../components/controls/SelectToggleDevice'
 import { Track } from 'livekit-client'
 import { ReactionsToggle } from '../../components/controls/ReactionsToggle'
 import { HandToggle } from '../../components/controls/HandToggle'
@@ -11,14 +10,10 @@ import { OptionsButton } from '../../components/controls/Options/OptionsButton'
 import { StartMediaButton } from '../../components/controls/StartMediaButton'
 import { MoreOptions } from './MoreOptions'
 import { useRef } from 'react'
+import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
+import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 
-export function DesktopControlBar({
-  onDeviceError,
-  microphoneOnChange,
-  cameraOnChange,
-  saveAudioInputDeviceId,
-  saveVideoInputDeviceId,
-}: ControlBarAuxProps) {
+export function DesktopControlBar({ onDeviceError }: ControlBarAuxProps) {
   const browserSupportsScreenSharing = supportsScreenSharing()
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
   return (
@@ -53,27 +48,15 @@ export function DesktopControlBar({
           gap: '0.65rem',
         })}
       >
-        <SelectToggleDevice
-          source={Track.Source.Microphone}
-          onChange={microphoneOnChange}
+        <AudioDevicesControl
           onDeviceError={(error) =>
             onDeviceError?.({ source: Track.Source.Microphone, error })
           }
-          onActiveDeviceChange={(deviceId) =>
-            saveAudioInputDeviceId(deviceId ?? '')
-          }
-          menuVariant="dark"
         />
-        <SelectToggleDevice
-          source={Track.Source.Camera}
-          onChange={cameraOnChange}
+        <VideoDeviceControl
           onDeviceError={(error) =>
             onDeviceError?.({ source: Track.Source.Camera, error })
           }
-          onActiveDeviceChange={(deviceId) =>
-            saveVideoInputDeviceId(deviceId ?? '')
-          }
-          menuVariant="dark"
         />
         <ReactionsToggle />
         {browserSupportsScreenSharing && (
