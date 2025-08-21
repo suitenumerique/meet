@@ -48,7 +48,7 @@ export const AudioDevicesControl = ({
 
   const kind = 'audioinput'
   const cannotUseDevice = useCannotUseDevice(kind)
-  const selectLabel = t(`${kind}.choose`)
+  const selectLabel = t(`settings.${SettingsDialogExtendedKey.AUDIO}`)
 
   return (
     <div

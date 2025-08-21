@@ -11,7 +11,10 @@
     "loading": "Chargement…",
     "select": "Sélectionnez une valeur",
     "permissionsNeeded": "Autorisations nécessaires",
-    "settings": "Paramètres",
+    "settings": {
+      "audio": "Paramètres audio",
+      "video": "Paramètres video"
+    },
     "videoinput": {
       "choose": "Choisir la webcam",
       "permissionsNeeded": "Choisir la webcam - autorisations nécessaires",

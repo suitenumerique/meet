@@ -73,7 +73,7 @@ export const VideoDeviceControl = ({
     } as VideoCaptureOptions)
   }
 
-  const selectLabel = t(`${kind}.choose`)
+  const selectLabel = t(`settings.${SettingsDialogExtendedKey.VIDEO}`)
 
   return (
     <div
