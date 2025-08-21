@@ -9,7 +9,6 @@ import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { BackgroundProcessorFactory } from '../../blur'
-import { ToggleDeviceConfig } from '../../../config/ToggleDeviceConfig'
 import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
@@ -25,14 +24,6 @@ export const VideoDeviceControl = ({
   hideMenu,
   ...props
 }: VideoDeviceControlProps) => {
-  const config: ToggleDeviceConfig = {
-    kind: 'videoinput',
-    shortcut: {
-      key: 'e',
-      ctrlKey: true,
-    },
-  }
-
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
   const { userChoices, saveVideoInputDeviceId, saveVideoInputEnabled } =
@@ -90,7 +81,7 @@ export const VideoDeviceControl = ({
     >
       <ToggleDevice
         {...trackProps}
-        config={config}
+        kind="videoinput"
         variant="primaryDark"
         toggle={toggle}
         toggleButtonProps={{

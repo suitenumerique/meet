@@ -660,18 +660,16 @@ export const Join = ({
                   })}
                 >
                   <ToggleDevice
-                    source={Track.Source.Microphone}
+                    kind="audioinput"
                     initialState={audioEnabled}
                     track={audioTrack}
                     onChange={(enabled) => saveAudioInputEnabled(enabled)}
-                    onDeviceError={(error) => console.error(error)}
                   />
                   <ToggleDevice
-                    source={Track.Source.Camera}
+                    kind="videoinput"
                     initialState={videoEnabled}
                     track={videoTrack}
                     onChange={(enabled) => saveVideoInputEnabled(enabled)}
-                    onDeviceError={(error) => console.error(error)}
                   />
                 </div>
                 <div
