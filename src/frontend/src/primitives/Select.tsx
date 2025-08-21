@@ -13,6 +13,7 @@ import { Box } from './Box'
 import { StyledPopover } from './Popover'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { css } from '@/styled-system/css'
+import type { Placement } from '@react-types/overlays'
 
 const StyledButton = styled(Button, {
   base: {
@@ -67,12 +68,14 @@ export const Select = <T extends string | number>({
   iconComponent,
   items,
   errors,
+  placement,
   ...props
 }: Omit<SelectProps<object>, 'items' | 'label' | 'errors'> & {
   iconComponent?: RemixiconComponentType
   label: ReactNode
   items: Array<{ value: T; label: ReactNode }>
   errors?: ReactNode
+  placement?: Placement
 }) => {
   const IconComponent = iconComponent
   return (
@@ -90,7 +93,7 @@ export const Select = <T extends string | number>({
           className={css({ flexShrink: 0 })}
         />
       </StyledButton>
-      <StyledPopover>
+      <StyledPopover placement={placement}>
         <Box size="sm" type="popover" variant="control">
           <ListBox>
             {items.map((item) => (
