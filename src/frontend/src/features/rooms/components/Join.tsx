@@ -33,12 +33,12 @@ import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
-import { useSnapshot } from 'valtio'
-import { openPermissionsDialog, permissionsStore } from '@/stores/permissions'
+import { openPermissionsDialog } from '@/stores/permissions'
 import { ToggleDevice } from './join/ToggleDevice'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
 import type { LocalUserChoices } from '@/stores/userChoices'
+import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -350,13 +350,8 @@ export const Join = ({
     enterRoom()
   }
 
-  const permissions = useSnapshot(permissionsStore)
-
-  const isCameraDeniedOrPrompted =
-    permissions.isCameraDenied || permissions.isCameraPrompted
-
-  const isMicrophoneDeniedOrPrompted =
-    permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
+  const isCameraDeniedOrPrompted = useCannotUseDevice('videoinput')
+  const isMicrophoneDeniedOrPrompted = useCannotUseDevice('audioinput')
 
   const hintMessage = useMemo(() => {
     if (isCameraDeniedOrPrompted) {

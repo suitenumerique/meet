@@ -15,10 +15,10 @@ import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { ToggleDeviceConfig } from '../../config/ToggleDeviceConfig'
+import { useCannotUseDevice } from '../../hooks/useCannotUseDevice'
 
 export type ToggleDeviceProps = {
   enabled: boolean
-  isPermissionDeniedOrPrompted?: boolean
   toggle: () => void
   config: ToggleDeviceConfig
   variant?: NonNullable<ButtonRecipeProps>['variant']
@@ -33,7 +33,6 @@ export const ToggleDevice = ({
   variant = 'primaryDark',
   errorVariant = 'error2',
   toggleButtonProps,
-  isPermissionDeniedOrPrompted,
 }: ToggleDeviceProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
@@ -52,6 +51,8 @@ export const ToggleDevice = ({
     setPushToTalk(false)
   }
 
+  const cannotUseDevice = useCannotUseDevice(kind)
+
   useRegisterKeyboardShortcut({ shortcut, handler: toggle })
   useLongPress({ keyCode: longPress?.key, onKeyDown, onKeyUp })
 
@@ -62,7 +63,7 @@ export const ToggleDevice = ({
     return shortcut ? appendShortcutLabel(label, shortcut) : label
   }, [enabled, kind, shortcut, t])
 
-  const Icon = enabled && !isPermissionDeniedOrPrompted ? iconOn : iconOff
+  const Icon = enabled && !cannotUseDevice ? iconOn : iconOff
 
   const context = useMaybeRoomContext()
   if (kind === 'audioinput' && pushToTalk && context) {
@@ -71,19 +72,15 @@ export const ToggleDevice = ({
 
   return (
     <div style={{ position: 'relative' }}>
-      {isPermissionDeniedOrPrompted && <PermissionNeededButton />}
+      {cannotUseDevice && <PermissionNeededButton />}
       <ToggleButton
         isSelected={!enabled}
-        variant={
-          enabled && !isPermissionDeniedOrPrompted ? variant : errorVariant
-        }
+        variant={enabled && !cannotUseDevice ? variant : errorVariant}
         shySelected
-        onPress={() =>
-          isPermissionDeniedOrPrompted ? openPermissionsDialog() : toggle()
-        }
+        onPress={() => (cannotUseDevice ? openPermissionsDialog() : toggle())}
         aria-label={toggleLabel}
         tooltip={
-          isPermissionDeniedOrPrompted
+          cannotUseDevice
             ? t('tooltip', { keyPrefix: 'permissionsButton' })
             : toggleLabel
         }
