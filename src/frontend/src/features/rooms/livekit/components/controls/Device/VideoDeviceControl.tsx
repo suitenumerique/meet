@@ -24,7 +24,7 @@ export const VideoDeviceControl = ({
   hideMenu,
   ...props
 }: VideoDeviceControlProps) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
   const { userChoices, saveVideoInputDeviceId, saveVideoInputEnabled } =
     usePersistentUserChoices()
@@ -41,7 +41,8 @@ export const VideoDeviceControl = ({
     ...props,
   })
 
-  const cannotUseDevice = useCannotUseDevice('videoinput')
+  const kind = 'videoinput'
+  const cannotUseDevice = useCannotUseDevice(kind)
 
   const toggle = () => {
     /**
@@ -70,7 +71,7 @@ export const VideoDeviceControl = ({
     } as VideoCaptureOptions)
   }
 
-  const selectLabel = t('videoinput.choose')
+  const selectLabel = t(`${kind}.choose`)
 
   return (
     <div
@@ -81,7 +82,7 @@ export const VideoDeviceControl = ({
     >
       <ToggleDevice
         {...trackProps}
-        kind="videoinput"
+        kind={kind}
         toggle={toggle}
         toggleButtonProps={{
           ...(hideMenu
@@ -120,7 +121,7 @@ export const VideoDeviceControl = ({
             >
               <SelectDevice
                 context="room"
-                kind="videoinput"
+                kind={kind}
                 id={userChoices.videoDeviceId}
                 onSubmit={saveVideoInputDeviceId}
               />

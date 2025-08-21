@@ -7,12 +7,10 @@
     "home": "Return to home",
     "back": "Rejoin the meeting"
   },
-  "join": {
-    "selectDevice": {
-      "loading": "Loading…",
-      "select": "Select a value",
-      "permissionsNeeded": "Permission needed"
-    },
+  "selectDevice": {
+    "loading": "Loading…",
+    "select": "Select a value",
+    "permissionsNeeded": "Permission needed",
     "videoinput": {
       "choose": "Select camera",
       "permissionsNeeded": "Select camera - permission needed",
@@ -31,7 +29,9 @@
     "audiooutput": {
       "choose": "Select speaker",
       "permissionsNeeded": "Select speaker - permission needed"
-    },
+    }
+  },
+  "join": {
     "effects": {
       "description": "Apply effects",
       "title": "Effects",

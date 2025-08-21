@@ -7,12 +7,10 @@
     "home": "Zur Startseite zurückkehren",
     "back": "Dem Meeting erneut beitreten"
   },
-  "join": {
-    "selectDevice": {
-      "loading": "Laden…",
-      "select": "Wählen Sie einen Wert",
-      "permissionsNeeded": "Genehmigung erforderlich"
-    },
+  "selectDevice": {
+    "loading": "Laden…",
+    "select": "Wählen Sie einen Wert",
+    "permissionsNeeded": "Genehmigung erforderlich",
     "videoinput": {
       "choose": "Kamera auswählen",
       "permissionsNeeded": "Kamera auswählen - genehmigung erforderlich",
@@ -31,7 +29,9 @@
     "audiooutput": {
       "choose": "Lautsprecher auswählen",
       "permissionsNeeded": "Lautsprecher auswählen - genehmigung erforderlich"
-    },
+    }
+  },
+  "join": {
     "effects": {
       "description": "Effekte anwenden",
       "title": "Effekte",

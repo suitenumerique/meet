@@ -29,7 +29,7 @@ const SelectDevicePermissions = <T extends string | number>({
   onSubmit,
   ...props
 }: SelectDevicePermissionsProps<T>) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
   const deviceIcons = useDeviceIcons(kind)
 
@@ -66,11 +66,7 @@ const SelectDevicePermissions = <T extends string | number>({
       isDisabled={items.length === 0}
       items={items}
       iconComponent={deviceIcons.select}
-      placeholder={
-        items.length === 0
-          ? t('selectDevice.loading')
-          : t('selectDevice.select')
-      }
+      placeholder={items.length === 0 ? t('loading') : t('select')}
       selectedKey={id || activeDeviceId}
       onSelectionChange={(key) => {
         onSubmit?.(key as string)
@@ -87,7 +83,7 @@ export const SelectDevice = ({
   kind,
   context = 'join',
 }: SelectDeviceProps) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
   const contextProps = useMemo<SelectDeviceContext>(() => {
     if (context == 'room') {
@@ -106,7 +102,7 @@ export const SelectDevice = ({
         label=""
         isDisabled={true}
         items={[]}
-        placeholder={t('selectDevice.permissionsNeeded')}
+        placeholder={t('permissionsNeeded')}
         iconComponent={deviceIcons.select}
         {...contextProps}
       />
