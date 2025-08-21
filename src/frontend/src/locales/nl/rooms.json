@@ -15,6 +15,7 @@
       "audio": "Audio-instellingen",
       "video": "Video-instellingen"
     },
+    "effects": "Pas effecten toe",
     "videoinput": {
       "choose": "Selecteer camera",
       "permissionsNeeded": "Selecteer camera - Toestemming vereist",

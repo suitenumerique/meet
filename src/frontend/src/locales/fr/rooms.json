@@ -15,6 +15,7 @@
       "audio": "Paramètres audio",
       "video": "Paramètres video"
     },
+    "effects": "Effets d'arrière plan",
     "videoinput": {
       "choose": "Choisir la webcam",
       "permissionsNeeded": "Choisir la webcam - autorisations nécessaires",
