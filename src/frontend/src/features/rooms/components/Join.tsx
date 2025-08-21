@@ -20,6 +20,7 @@ import {
   EffectsConfiguration,
   EffectsConfigurationProps,
 } from '../livekit/components/effects/EffectsConfiguration'
+import { SelectDevice } from '../livekit/components/controls/Device/SelectDevice'
 import { usePersistentUserChoices } from '../livekit/hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { isMobileBrowser } from '@livekit/components-core'
@@ -35,7 +36,6 @@ import { useLoginHint } from '@/hooks/useLoginHint'
 import { useSnapshot } from 'valtio'
 import { openPermissionsDialog, permissionsStore } from '@/stores/permissions'
 import { ToggleDevice } from './join/ToggleDevice'
-import { SelectDevice } from './join/SelectDevice'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
 import type { LocalUserChoices } from '@/stores/userChoices'
