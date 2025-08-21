@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
-import { RiArrowUpSLine, RiVideoOffLine, RiVideoOnLine } from '@remixicon/react'
+import { RiArrowUpSLine } from '@remixicon/react'
 import { Track, VideoCaptureOptions } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
@@ -27,8 +27,6 @@ export const VideoDeviceControl = ({
 }: VideoDeviceControlProps) => {
   const config: ToggleDeviceConfig = {
     kind: 'videoinput',
-    iconOn: RiVideoOnLine,
-    iconOff: RiVideoOffLine,
     shortcut: {
       key: 'e',
       ctrlKey: true,

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
-import { RiArrowUpSLine, RiMicLine, RiMicOffLine } from '@remixicon/react'
+import { RiArrowUpSLine } from '@remixicon/react'
 import { Track } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
@@ -26,8 +26,6 @@ export const AudioDevicesControl = ({
 }: AudioDevicesControlProps) => {
   const config: ToggleDeviceConfig = {
     kind: 'audioinput',
-    iconOn: RiMicLine,
-    iconOff: RiMicOffLine,
     shortcut: {
       key: 'd',
       ctrlKey: true,

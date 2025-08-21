@@ -1,21 +1,12 @@
-import {
-  RemixiconComponentType,
-  RiMicLine,
-  RiVideoOnLine,
-  RiVolumeDownLine,
-} from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { useEffect, useMemo } from 'react'
-import { Select } from '@/primitives/Select'
+import { Select, SelectProps } from '@/primitives/Select'
 import { Placement } from '@react-types/overlays'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
+import { useDeviceIcons } from '@/features/rooms/livekit/hooks/useDeviceIcons'
 
 type DeviceItems = Array<{ value: string; label: string }>
-
-type DeviceConfig = {
-  icon: RemixiconComponentType
-}
 
 type SelectDeviceContext = {
   variant?: 'light' | 'dark'
@@ -29,19 +20,18 @@ type SelectDeviceProps = {
   context?: 'join' | 'room'
 }
 
-type SelectDevicePermissionsProps = SelectDeviceProps & {
-  config: DeviceConfig
-  contextProps: SelectDeviceContext
-}
+type SelectDevicePermissionsProps<T> = SelectDeviceProps &
+  Pick<SelectProps<T>, 'placement' | 'variant'>
 
-const SelectDevicePermissions = ({
+const SelectDevicePermissions = <T extends string | number>({
   id,
   kind,
-  config,
   onSubmit,
-  contextProps,
-}: SelectDevicePermissionsProps) => {
+  ...props
+}: SelectDevicePermissionsProps<T>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+
+  const deviceIcons = useDeviceIcons(kind)
 
   const { devices, activeDeviceId, setActiveMediaDevice } =
     useMediaDeviceSelect({ kind: kind, requestPermissions: true })
@@ -75,7 +65,7 @@ const SelectDevicePermissions = ({
       label=""
       isDisabled={items.length === 0}
       items={items}
-      iconComponent={config?.icon}
+      iconComponent={deviceIcons.select}
       placeholder={
         items.length === 0
           ? t('selectDevice.loading')
@@ -86,7 +76,7 @@ const SelectDevicePermissions = ({
         onSubmit?.(key as string)
         setActiveMediaDevice(key as string)
       }}
-      {...contextProps}
+      {...props}
     />
   )
 }
@@ -106,26 +96,8 @@ export const SelectDevice = ({
     return {}
   }, [context])
 
-  const config = useMemo<DeviceConfig | undefined>(() => {
-    switch (kind) {
-      case 'audioinput':
-        return {
-          icon: RiMicLine,
-        }
-      case 'audiooutput':
-        return {
-          icon: RiVolumeDownLine,
-        }
-      case 'videoinput':
-        return {
-          icon: RiVideoOnLine,
-        }
-    }
-  }, [kind])
-
+  const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
-
-  if (!config) return null
 
   if (cannotUseDevice) {
     return (
@@ -134,8 +106,8 @@ export const SelectDevice = ({
         label=""
         isDisabled={true}
         items={[]}
-        iconComponent={config?.icon}
         placeholder={t('selectDevice.permissionsNeeded')}
+        iconComponent={deviceIcons.select}
         {...contextProps}
       />
     )
@@ -146,8 +118,7 @@ export const SelectDevice = ({
       id={id}
       onSubmit={onSubmit}
       kind={kind}
-      config={config}
-      contextProps={contextProps}
+      {...contextProps}
     />
   )
 }
