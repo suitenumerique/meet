@@ -1,11 +1,4 @@
 import { Track } from 'livekit-client'
-import {
-  RemixiconComponentType,
-  RiMicLine,
-  RiMicOffLine,
-  RiVideoOffLine,
-  RiVideoOnLine,
-} from '@remixicon/react'
 import { Shortcut } from '@/features/shortcuts/types'
 
 export type ToggleSource = Exclude<
@@ -17,8 +10,6 @@ export type ToggleSource = Exclude<
 
 export type ToggleDeviceConfig = {
   kind: MediaDeviceKind
-  iconOn: RemixiconComponentType
-  iconOff: RemixiconComponentType
   shortcut?: Shortcut
   longPress?: Shortcut
 }
@@ -30,8 +21,6 @@ type ToggleDeviceConfigMap = {
 export const TOGGLE_DEVICE_CONFIG = {
   [Track.Source.Microphone]: {
     kind: 'audioinput',
-    iconOn: RiMicLine,
-    iconOff: RiMicOffLine,
     shortcut: {
       key: 'd',
       ctrlKey: true,
@@ -42,8 +31,6 @@ export const TOGGLE_DEVICE_CONFIG = {
   },
   [Track.Source.Camera]: {
     kind: 'videoinput',
-    iconOn: RiVideoOnLine,
-    iconOff: RiVideoOffLine,
     shortcut: {
       key: 'e',
       ctrlKey: true,

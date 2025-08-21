@@ -16,6 +16,7 @@ import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { ToggleDeviceConfig } from '../../../config/ToggleDeviceConfig'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
+import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
 
 export type ToggleDeviceProps = {
   enabled: boolean
@@ -36,7 +37,7 @@ export const ToggleDevice = ({
 }: ToggleDeviceProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
-  const { kind, shortcut, iconOn, iconOff, longPress } = config
+  const { kind, shortcut, longPress } = config
 
   const [pushToTalk, setPushToTalk] = useState(false)
 
@@ -51,6 +52,7 @@ export const ToggleDevice = ({
     setPushToTalk(false)
   }
 
+  const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
 
   useRegisterKeyboardShortcut({ shortcut, handler: toggle })
@@ -63,7 +65,8 @@ export const ToggleDevice = ({
     return shortcut ? appendShortcutLabel(label, shortcut) : label
   }, [enabled, kind, shortcut, t])
 
-  const Icon = enabled && !cannotUseDevice ? iconOn : iconOff
+  const Icon =
+    enabled && !cannotUseDevice ? deviceIcons.toggleOn : deviceIcons.toggleOff
 
   const context = useMaybeRoomContext()
   if (kind === 'audioinput' && pushToTalk && context) {

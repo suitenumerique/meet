@@ -6,7 +6,7 @@ import {
   ListBox,
   ListBoxItem,
   Select as RACSelect,
-  SelectProps,
+  SelectProps as RACSelectProps,
   SelectValue,
 } from 'react-aria-components'
 import { Box } from './Box'
@@ -88,6 +88,18 @@ const StyledIcon = styled('div', {
   },
 })
 
+export type SelectProps<T> = Omit<
+  RACSelectProps<object>,
+  'items' | 'label' | 'errors'
+> & {
+  iconComponent?: RemixiconComponentType
+  label: ReactNode
+  items: Array<{ value: T; label: ReactNode }>
+  errors?: ReactNode
+  placement?: Placement
+  variant?: 'light' | 'dark'
+}
+
 export const Select = <T extends string | number>({
   label,
   iconComponent,
@@ -96,14 +108,7 @@ export const Select = <T extends string | number>({
   placement,
   variant = 'light',
   ...props
-}: Omit<SelectProps<object>, 'items' | 'label' | 'errors'> & {
-  iconComponent?: RemixiconComponentType
-  label: ReactNode
-  items: Array<{ value: T; label: ReactNode }>
-  errors?: ReactNode
-  placement?: Placement
-  variant?: 'light' | 'dark'
-}) => {
+}: SelectProps<T>) => {
   const IconComponent = iconComponent
   return (
     <RACSelect {...props}>
