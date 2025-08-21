@@ -21,6 +21,7 @@ import {
   EffectsConfigurationProps,
 } from '../livekit/components/effects/EffectsConfiguration'
 import { SelectDevice } from '../livekit/components/controls/Device/SelectDevice'
+import { ToggleDevice } from '../livekit/components/controls/Device/ToggleDevice'
 import { usePersistentUserChoices } from '../livekit/hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { isMobileBrowser } from '@livekit/components-core'
@@ -34,7 +35,6 @@ import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { openPermissionsDialog } from '@/stores/permissions'
-import { ToggleDevice } from './join/ToggleDevice'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
 import type { LocalUserChoices } from '@/stores/userChoices'
@@ -661,15 +661,29 @@ export const Join = ({
                 >
                   <ToggleDevice
                     kind="audioinput"
-                    initialState={audioEnabled}
-                    track={audioTrack}
-                    onChange={(enabled) => saveAudioInputEnabled(enabled)}
+                    context="join"
+                    enabled={audioEnabled}
+                    toggle={async () => {
+                      saveAudioInputEnabled(!audioEnabled)
+                      if (audioEnabled) {
+                        await audioTrack?.mute()
+                      } else {
+                        await audioTrack?.unmute()
+                      }
+                    }}
                   />
                   <ToggleDevice
                     kind="videoinput"
-                    initialState={videoEnabled}
-                    track={videoTrack}
-                    onChange={(enabled) => saveVideoInputEnabled(enabled)}
+                    context="join"
+                    enabled={videoEnabled}
+                    toggle={async () => {
+                      saveVideoInputEnabled(!videoEnabled)
+                      if (videoEnabled) {
+                        await videoTrack?.mute()
+                      } else {
+                        await videoTrack?.unmute()
+                      }
+                    }}
                   />
                 </div>
                 <div

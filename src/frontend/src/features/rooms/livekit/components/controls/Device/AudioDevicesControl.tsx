@@ -57,8 +57,7 @@ export const AudioDevicesControl = ({
       <ToggleDevice
         {...trackProps}
         kind="audioinput"
-        variant="primaryDark"
-        toggle={trackProps.toggle}
+        toggle={trackProps.toggle as () => Promise<void>}
         toggleButtonProps={{
           ...(hideMenu
             ? {
