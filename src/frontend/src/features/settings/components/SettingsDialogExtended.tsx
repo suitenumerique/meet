@@ -43,10 +43,19 @@ const tabPanelContainerStyle = css({
   minWidth: 0,
 })
 
+export type SettingsDialogExtendedKeys =
+  | 'account'
+  | 'audio'
+  | 'video'
+  | 'general'
+  | 'notifications'
+
 export type SettingsDialogExtended = Pick<
   DialogProps,
   'isOpen' | 'onOpenChange'
->
+> & {
+  defaultSelectedKey?: SettingsDialogExtendedKeys
+}
 
 export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   // display only icon on small screen
@@ -57,7 +66,11 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
 
   return (
     <Dialog innerRef={dialogEl} {...props} role="dialog" type="flex">
-      <Tabs orientation="vertical" className={tabsStyle}>
+      <Tabs
+        orientation="vertical"
+        className={tabsStyle}
+        defaultSelectedKey={props.defaultSelectedKey}
+      >
         <div
           className={tabListContainerStyle}
           style={{
