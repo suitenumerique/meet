@@ -4,7 +4,7 @@ import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine, RiMicLine, RiMicOffLine } from '@remixicon/react'
 import { Track } from 'livekit-client'
 
-import { ToggleDevice } from '@/features/rooms/livekit/components/controls/ToggleDevice.tsx'
+import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
