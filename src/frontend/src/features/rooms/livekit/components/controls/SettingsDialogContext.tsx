@@ -1,9 +1,16 @@
-import { SettingsDialogExtended } from '@/features/settings/components/SettingsDialogExtended'
+import {
+  SettingsDialogExtended,
+  SettingsDialogExtendedKeys,
+} from '@/features/settings/components/SettingsDialogExtended'
 import React, { createContext, useContext, useState } from 'react'
 
 const SettingsDialogContext = createContext<
   | {
       dialogOpen: boolean
+      defaultSelectedKey?: SettingsDialogExtendedKeys
+      setDefaultSelectedKey: React.Dispatch<
+        React.SetStateAction<SettingsDialogExtendedKeys | undefined>
+      >
       setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
     }
   | undefined
@@ -12,13 +19,29 @@ const SettingsDialogContext = createContext<
 export const SettingsDialogProvider: React.FC<{
   children: React.ReactNode
 }> = ({ children }) => {
+  const [defaultSelectedKey, setDefaultSelectedKey] = useState<
+    SettingsDialogExtendedKeys | undefined
+  >(undefined)
   const [dialogOpen, setDialogOpen] = useState(false)
   return (
-    <SettingsDialogContext.Provider value={{ dialogOpen, setDialogOpen }}>
+    <SettingsDialogContext.Provider
+      value={{
+        dialogOpen,
+        setDialogOpen,
+        defaultSelectedKey,
+        setDefaultSelectedKey,
+      }}
+    >
       {children}
       <SettingsDialogExtended
         isOpen={dialogOpen}
-        onOpenChange={(v) => !v && setDialogOpen(false)}
+        defaultSelectedKey={defaultSelectedKey}
+        onOpenChange={(v) => {
+          if (!v) {
+            setDefaultSelectedKey(undefined)
+          }
+          setDialogOpen(v)
+        }}
       />
     </SettingsDialogContext.Provider>
   )
