@@ -7,12 +7,10 @@
     "home": "Keer terug naar het hoofdscherm",
     "back": "Sluit weer bij de vergadering aan"
   },
-  "join": {
-    "selectDevice": {
-      "loading": "Bezig met laden…",
-      "select": "Selecteer een waarde",
-      "permissionsNeeded": "Toestemming vereist"
-    },
+  "selectDevice": {
+    "loading": "Bezig met laden…",
+    "select": "Selecteer een waarde",
+    "permissionsNeeded": "Toestemming vereist",
     "videoinput": {
       "choose": "Selecteer camera",
       "permissionsNeeded": "Selecteer camera - Toestemming vereist",
@@ -31,7 +29,9 @@
     "audiooutput": {
       "choose": "Selecteer luidspreker",
       "permissionsNeeded": "Selecteer luidspreker - Toestemming vereist"
-    },
+    }
+  },
+  "join": {
     "effects": {
       "description": "Pas effecten toe",
       "title": "Effecten",

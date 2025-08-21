@@ -43,7 +43,7 @@ export const ToggleDevice = <T extends ToggleSource>({
   context = 'room',
   ...props
 }: ToggleDeviceProps<T>) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
   const { variant, errorVariant, toggleButtonProps } =
     useMemo<ToggleDeviceStyleProps>(() => {
@@ -89,7 +89,7 @@ export const ToggleDevice = <T extends ToggleSource>({
 
   const toggleLabel = useMemo(() => {
     const label = t(enabled ? 'disable' : 'enable', {
-      keyPrefix: `join.${kind}`,
+      keyPrefix: `selectDevice.${kind}`,
     })
     return deviceShortcut ? appendShortcutLabel(label, deviceShortcut) : label
   }, [enabled, kind, deviceShortcut, t])

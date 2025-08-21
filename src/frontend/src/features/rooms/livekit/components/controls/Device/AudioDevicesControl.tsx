@@ -23,7 +23,7 @@ export const AudioDevicesControl = ({
   hideMenu,
   ...props
 }: AudioDevicesControlProps) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
   const {
     userChoices: { audioDeviceId, audioOutputDeviceId },
@@ -44,8 +44,9 @@ export const AudioDevicesControl = ({
     ...props,
   })
 
-  const cannotUseDevice = useCannotUseDevice('audioinput')
-  const selectLabel = t('audioinput.choose')
+  const kind = 'audioinput'
+  const cannotUseDevice = useCannotUseDevice(kind)
+  const selectLabel = t(`${kind}.choose`)
 
   return (
     <div
@@ -56,7 +57,7 @@ export const AudioDevicesControl = ({
     >
       <ToggleDevice
         {...trackProps}
-        kind="audioinput"
+        kind={kind}
         toggle={trackProps.toggle as () => Promise<void>}
         toggleButtonProps={{
           ...(hideMenu
@@ -95,7 +96,7 @@ export const AudioDevicesControl = ({
             >
               <SelectDevice
                 context="room"
-                kind="audioinput"
+                kind={kind}
                 id={audioDeviceId}
                 onSubmit={saveAudioInputDeviceId}
               />
