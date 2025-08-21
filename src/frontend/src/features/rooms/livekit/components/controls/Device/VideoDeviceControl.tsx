@@ -12,6 +12,8 @@ import { BackgroundProcessorFactory } from '../../blur'
 import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
+import { SettingsButton } from './SettingsButton'
+import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 type VideoDeviceControlProps = Omit<
   UseTrackToggleProps<Source.Camera>,
@@ -126,6 +128,7 @@ export const VideoDeviceControl = ({
                 onSubmit={saveVideoInputDeviceId}
               />
             </div>
+            <SettingsButton settingTab={SettingsDialogExtendedKey.VIDEO} />
           </div>
         </Popover>
       )}

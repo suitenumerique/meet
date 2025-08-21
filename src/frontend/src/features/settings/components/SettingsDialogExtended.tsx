@@ -18,6 +18,7 @@ import { AudioTab } from './tabs/AudioTab'
 import { VideoTab } from './tabs/VideoTab'
 import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
+import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 const tabsStyle = css({
   maxHeight: '40.625rem', // fixme size copied from meet settings modal
@@ -43,18 +44,11 @@ const tabPanelContainerStyle = css({
   minWidth: 0,
 })
 
-export type SettingsDialogExtendedKeys =
-  | 'account'
-  | 'audio'
-  | 'video'
-  | 'general'
-  | 'notifications'
-
 export type SettingsDialogExtended = Pick<
   DialogProps,
   'isOpen' | 'onOpenChange'
 > & {
-  defaultSelectedKey?: SettingsDialogExtendedKeys
+  defaultSelectedKey?: SettingsDialogExtendedKey
 }
 
 export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
@@ -85,34 +79,38 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
             </Heading>
           )}
           <TabList border={false}>
-            <Tab icon highlight id="account">
+            <Tab icon highlight id={SettingsDialogExtendedKey.ACCOUNT}>
               <RiAccountCircleLine />
-              {isWideScreen && t('tabs.account')}
+              {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.ACCOUNT}`)}
             </Tab>
-            <Tab icon highlight id="audio">
+            <Tab icon highlight id={SettingsDialogExtendedKey.AUDIO}>
               <RiSpeakerLine />
-              {isWideScreen && t('tabs.audio')}
+              {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.AUDIO}`)}
             </Tab>
-            <Tab icon highlight id="video">
+            <Tab icon highlight id={SettingsDialogExtendedKey.VIDEO}>
               <RiVideoOnLine />
-              {isWideScreen && t('tabs.video')}
+              {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.VIDEO}`)}
             </Tab>
-            <Tab icon highlight id="general">
+            <Tab icon highlight id={SettingsDialogExtendedKey.GENERAL}>
               <RiSettings3Line />
-              {isWideScreen && t('tabs.general')}
+              {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.GENERAL}`)}
             </Tab>
-            <Tab icon highlight id="notifications">
+            <Tab icon highlight id={SettingsDialogExtendedKey.NOTIFICATIONS}>
               <RiNotification3Line />
-              {isWideScreen && t('tabs.notifications')}
+              {isWideScreen &&
+                t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             </Tab>
           </TabList>
         </div>
         <div className={tabPanelContainerStyle}>
-          <AccountTab id="account" onOpenChange={props.onOpenChange} />
-          <AudioTab id="audio" />
-          <VideoTab id="video" />
-          <GeneralTab id="general" />
-          <NotificationsTab id="notifications" />
+          <AccountTab
+            id={SettingsDialogExtendedKey.ACCOUNT}
+            onOpenChange={props.onOpenChange}
+          />
+          <AudioTab id={SettingsDialogExtendedKey.AUDIO} />
+          <VideoTab id={SettingsDialogExtendedKey.VIDEO} />
+          <GeneralTab id={SettingsDialogExtendedKey.GENERAL} />
+          <NotificationsTab id={SettingsDialogExtendedKey.NOTIFICATIONS} />
         </div>
       </Tabs>
     </Dialog>

@@ -1,15 +1,13 @@
-import {
-  SettingsDialogExtended,
-  SettingsDialogExtendedKeys,
-} from '@/features/settings/components/SettingsDialogExtended'
 import React, { createContext, useContext, useState } from 'react'
+import { SettingsDialogExtended } from '@/features/settings/components/SettingsDialogExtended'
+import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 const SettingsDialogContext = createContext<
   | {
       dialogOpen: boolean
-      defaultSelectedKey?: SettingsDialogExtendedKeys
+      defaultSelectedKey?: SettingsDialogExtendedKey
       setDefaultSelectedKey: React.Dispatch<
-        React.SetStateAction<SettingsDialogExtendedKeys | undefined>
+        React.SetStateAction<SettingsDialogExtendedKey | undefined>
       >
       setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
     }
@@ -20,7 +18,7 @@ export const SettingsDialogProvider: React.FC<{
   children: React.ReactNode
 }> = ({ children }) => {
   const [defaultSelectedKey, setDefaultSelectedKey] = useState<
-    SettingsDialogExtendedKeys | undefined
+    SettingsDialogExtendedKey | undefined
   >(undefined)
   const [dialogOpen, setDialogOpen] = useState(false)
   return (
