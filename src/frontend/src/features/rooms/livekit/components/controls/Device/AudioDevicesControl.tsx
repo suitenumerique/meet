@@ -11,6 +11,8 @@ import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
+import { SettingsButton } from './SettingsButton'
+import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 type AudioDevicesControlProps = Omit<
   UseTrackToggleProps<Source.Microphone>,
@@ -114,6 +116,7 @@ export const AudioDevicesControl = ({
                 onSubmit={saveAudioOutputDeviceId}
               />
             </div>
+            <SettingsButton settingTab={SettingsDialogExtendedKey.AUDIO} />
           </div>
         </Popover>
       )}
