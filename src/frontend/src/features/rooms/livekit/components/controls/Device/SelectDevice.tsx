@@ -10,6 +10,7 @@ import { useEffect, useMemo } from 'react'
 import { Select } from '@/primitives/Select'
 import { useSnapshot } from 'valtio'
 import { permissionsStore } from '@/stores/permissions'
+import { Placement } from '@react-types/overlays'
 
 type DeviceItems = Array<{ value: string; label: string }>
 
@@ -17,14 +18,21 @@ type DeviceConfig = {
   icon: RemixiconComponentType
 }
 
+type SelectDeviceContext = {
+  variant?: 'light' | 'dark'
+  placement?: Placement
+}
+
 type SelectDeviceProps = {
   id?: string
   onSubmit?: (id: string) => void
   kind: MediaDeviceKind
+  context?: 'join' | 'room'
 }
 
 type SelectDevicePermissionsProps = SelectDeviceProps & {
   config: DeviceConfig
+  contextProps: SelectDeviceContext
 }
 
 const SelectDevicePermissions = ({
@@ -32,6 +40,7 @@ const SelectDevicePermissions = ({
   kind,
   config,
   onSubmit,
+  contextProps,
 }: SelectDevicePermissionsProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
@@ -78,14 +87,27 @@ const SelectDevicePermissions = ({
         onSubmit?.(key as string)
         setActiveMediaDevice(key as string)
       }}
+      {...contextProps}
     />
   )
 }
 
-export const SelectDevice = ({ id, onSubmit, kind }: SelectDeviceProps) => {
+export const SelectDevice = ({
+  id,
+  onSubmit,
+  kind,
+  context = 'join',
+}: SelectDeviceProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
   const permissions = useSnapshot(permissionsStore)
+
+  const contextProps = useMemo<SelectDeviceContext>(() => {
+    if (context == 'room') {
+      return { variant: 'dark', placement: 'top' }
+    }
+    return {}
+  }, [context])
 
   const config = useMemo<DeviceConfig | undefined>(() => {
     switch (kind) {
@@ -128,6 +150,7 @@ export const SelectDevice = ({ id, onSubmit, kind }: SelectDeviceProps) => {
         items={[]}
         iconComponent={config?.icon}
         placeholder={t('selectDevice.permissionsNeeded')}
+        {...contextProps}
       />
     )
   }
@@ -138,6 +161,7 @@ export const SelectDevice = ({ id, onSubmit, kind }: SelectDeviceProps) => {
       onSubmit={onSubmit}
       kind={kind}
       config={config}
+      contextProps={contextProps}
     />
   )
 }

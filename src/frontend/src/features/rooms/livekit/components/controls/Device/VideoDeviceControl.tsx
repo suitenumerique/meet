@@ -1,12 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import {
-  useMediaDeviceSelect,
-  useTrackToggle,
-  UseTrackToggleProps,
-} from '@livekit/components-react'
-import { Button, Menu, MenuList } from '@/primitives'
+import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
+import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine, RiVideoOffLine, RiVideoOnLine } from '@remixicon/react'
-import { LocalVideoTrack, Track, VideoCaptureOptions } from 'livekit-client'
+import { Track, VideoCaptureOptions } from 'livekit-client'
 
 import { ToggleDevice } from '@/features/rooms/livekit/components/controls/ToggleDevice'
 import { css } from '@/styled-system/css'
@@ -17,17 +13,16 @@ import { permissionsStore } from '@/stores/permissions'
 import { ToggleDeviceConfig } from '../../../config/ToggleDeviceConfig'
 import Source = Track.Source
 import * as React from 'react'
+import { SelectDevice } from './SelectDevice'
 
 type VideoDeviceControlProps = Omit<
   UseTrackToggleProps<Source.Camera>,
   'source' | 'onChange'
 > & {
-  track?: LocalVideoTrack
   hideMenu?: boolean
 }
 
 export const VideoDeviceControl = ({
-  track,
   hideMenu,
   ...props
 }: VideoDeviceControlProps) => {
@@ -90,9 +85,6 @@ export const VideoDeviceControl = ({
     } as VideoCaptureOptions)
   }
 
-  const { devices, activeDeviceId, setActiveMediaDevice } =
-    useMediaDeviceSelect({ kind: 'videoinput', track })
-
   const selectLabel = t('videoinput.choose')
 
   return (
@@ -117,7 +109,7 @@ export const VideoDeviceControl = ({
         }}
       />
       {!hideMenu && (
-        <Menu variant="dark">
+        <Popover variant="dark" withArrow={false}>
           <Button
             isDisabled={isPermissionDeniedOrPrompted}
             tooltip={selectLabel}
@@ -132,19 +124,29 @@ export const VideoDeviceControl = ({
           >
             <RiArrowUpSLine />
           </Button>
-          <MenuList
-            items={devices.map((d) => ({
-              value: d.deviceId,
-              label: d.label,
-            }))}
-            selectedItem={activeDeviceId}
-            onAction={(value) => {
-              setActiveMediaDevice(value as string)
-              saveVideoInputDeviceId(value as string)
-            }}
-            variant="dark"
-          />
-        </Menu>
+          <div
+            className={css({
+              maxWidth: '36rem',
+              padding: '0.15rem',
+              display: 'flex',
+              gap: '0.5rem',
+            })}
+          >
+            <div
+              style={{
+                flex: '1 1 0',
+                minWidth: 0,
+              }}
+            >
+              <SelectDevice
+                context="room"
+                kind="videoinput"
+                id={userChoices.videoDeviceId}
+                onSubmit={saveVideoInputDeviceId}
+              />
+            </div>
+          </div>
+        </Popover>
       )}
     </div>
   )

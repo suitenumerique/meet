@@ -1,12 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import {
-  useMediaDeviceSelect,
-  useTrackToggle,
-  UseTrackToggleProps,
-} from '@livekit/components-react'
-import { Button, Menu, MenuList } from '@/primitives'
+import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
+import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine, RiMicLine, RiMicOffLine } from '@remixicon/react'
-import { LocalAudioTrack, LocalVideoTrack, Track } from 'livekit-client'
+import { Track } from 'livekit-client'
 
 import { ToggleDevice } from '@/features/rooms/livekit/components/controls/ToggleDevice.tsx'
 import { css } from '@/styled-system/css'
@@ -16,17 +12,16 @@ import { permissionsStore } from '@/stores/permissions'
 import { ToggleDeviceConfig } from '../../../config/ToggleDeviceConfig'
 import Source = Track.Source
 import * as React from 'react'
+import { SelectDevice } from './SelectDevice'
 
 type AudioDevicesControlProps = Omit<
   UseTrackToggleProps<Source.Microphone>,
   'source' | 'onChange'
 > & {
-  track?: LocalAudioTrack | LocalVideoTrack
   hideMenu?: boolean
 }
 
 export const AudioDevicesControl = ({
-  track,
   hideMenu,
   ...props
 }: AudioDevicesControlProps) => {
@@ -44,8 +39,12 @@ export const AudioDevicesControl = ({
   }
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
-  const { saveAudioInputDeviceId, saveAudioInputEnabled } =
-    usePersistentUserChoices()
+  const {
+    userChoices: { audioDeviceId, audioOutputDeviceId },
+    saveAudioInputDeviceId,
+    saveAudioInputEnabled,
+    saveAudioOutputDeviceId,
+  } = usePersistentUserChoices()
 
   const onChange = React.useCallback(
     (enabled: boolean, isUserInitiated: boolean) =>
@@ -62,9 +61,6 @@ export const AudioDevicesControl = ({
   const permissions = useSnapshot(permissionsStore)
   const isPermissionDeniedOrPrompted =
     permissions.isMicrophoneDenied || permissions.isMicrophonePrompted
-
-  const { devices, activeDeviceId, setActiveMediaDevice } =
-    useMediaDeviceSelect({ kind: 'audioinput', track })
 
   const selectLabel = t('audioinput.choose')
 
@@ -90,7 +86,7 @@ export const AudioDevicesControl = ({
         }}
       />
       {!hideMenu && (
-        <Menu variant="dark">
+        <Popover variant="dark" withArrow={false}>
           <Button
             isDisabled={isPermissionDeniedOrPrompted}
             tooltip={selectLabel}
@@ -105,19 +101,42 @@ export const AudioDevicesControl = ({
           >
             <RiArrowUpSLine />
           </Button>
-          <MenuList
-            items={devices.map((d) => ({
-              value: d.deviceId,
-              label: d.label,
-            }))}
-            selectedItem={activeDeviceId}
-            onAction={(value) => {
-              setActiveMediaDevice(value as string)
-              saveAudioInputDeviceId(value as string)
-            }}
-            variant="dark"
-          />
-        </Menu>
+          <div
+            className={css({
+              maxWidth: '36rem',
+              padding: '0.15rem',
+              display: 'flex',
+              gap: '0.5rem',
+            })}
+          >
+            <div
+              style={{
+                flex: '1 1 0',
+                minWidth: 0,
+              }}
+            >
+              <SelectDevice
+                context="room"
+                kind="audioinput"
+                id={audioDeviceId}
+                onSubmit={saveAudioInputDeviceId}
+              />
+            </div>
+            <div
+              style={{
+                flex: '1 1 0',
+                minWidth: 0,
+              }}
+            >
+              <SelectDevice
+                context="room"
+                kind="audiooutput"
+                id={audioOutputDeviceId}
+                onSubmit={saveAudioOutputDeviceId}
+              />
+            </div>
+          </div>
+        </Popover>
       )}
     </div>
   )
