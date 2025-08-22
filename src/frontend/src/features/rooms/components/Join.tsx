@@ -277,7 +277,6 @@ export const Join = ({
     }
 
     if (videoElement && videoTrack && videoEnabled) {
-      // videoTrack.unmute()
       videoTrack.attach(videoElement)
       videoElement.addEventListener('loadedmetadata', handleVideoLoaded)
     }
