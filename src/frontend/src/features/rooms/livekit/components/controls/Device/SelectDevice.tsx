@@ -21,17 +21,16 @@ type SelectDeviceProps = {
 }
 
 type SelectDevicePermissionsProps<T> = SelectDeviceProps &
-  Pick<SelectProps<T>, 'placement' | 'variant'>
+  Pick<SelectProps<T>, 'placement' | 'variant' | 'iconComponent'>
 
 const SelectDevicePermissions = <T extends string | number>({
   id,
   kind,
   onSubmit,
+  iconComponent,
   ...props
 }: SelectDevicePermissionsProps<T>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
-
-  const deviceIcons = useDeviceIcons(kind)
 
   const { devices, activeDeviceId, setActiveMediaDevice } =
     useMediaDeviceSelect({ kind: kind, requestPermissions: true })
@@ -65,7 +64,7 @@ const SelectDevicePermissions = <T extends string | number>({
       label=""
       isDisabled={items.length === 0}
       items={items}
-      iconComponent={deviceIcons.select}
+      iconComponent={iconComponent}
       placeholder={items.length === 0 ? t('loading') : t('select')}
       selectedKey={id || activeDeviceId}
       onSelectionChange={(key) => {
@@ -114,6 +113,7 @@ export const SelectDevice = ({
       id={id}
       onSubmit={onSubmit}
       kind={kind}
+      iconComponent={deviceIcons.select}
       {...contextProps}
     />
   )
