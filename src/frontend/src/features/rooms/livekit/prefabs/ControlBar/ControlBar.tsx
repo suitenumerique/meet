@@ -3,7 +3,6 @@ import * as React from 'react'
 
 import { MobileControlBar } from './MobileControlBar'
 import { DesktopControlBar } from './DesktopControlBar'
-import { SettingsDialogProvider } from '../../components/controls/SettingsDialogContext'
 import { useIsMobile } from '@/utils/useIsMobile'
 
 export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -16,15 +15,11 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
  */
 export function ControlBar({ onDeviceError }: ControlBarProps) {
   const isMobile = useIsMobile()
-  return (
-    <SettingsDialogProvider>
-      {isMobile ? (
-        <MobileControlBar onDeviceError={onDeviceError} />
-      ) : (
-        <DesktopControlBar onDeviceError={onDeviceError} />
-      )}
-    </SettingsDialogProvider>
-  )
+
+  if (isMobile) {
+    return <MobileControlBar onDeviceError={onDeviceError} />
+  }
+  return <DesktopControlBar onDeviceError={onDeviceError} />
 }
 
 export type ControlBarAuxProps = Pick<ControlBarProps, 'onDeviceError'>

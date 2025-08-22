@@ -33,6 +33,7 @@ import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
+import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 
 const LayoutWrapper = styled(
   'div',
@@ -240,6 +241,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       <RoomAudioRenderer />
       <ConnectionStateToast />
       <RecordingStateToast />
+      <SettingsDialogProvider />
     </div>
   )
 }

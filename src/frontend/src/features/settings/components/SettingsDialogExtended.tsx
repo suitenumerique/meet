@@ -48,7 +48,7 @@ export type SettingsDialogExtended = Pick<
   DialogProps,
   'isOpen' | 'onOpenChange'
 > & {
-  defaultSelectedKey?: SettingsDialogExtendedKey
+  defaultSelectedTab?: SettingsDialogExtendedKey
 }
 
 export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
@@ -63,7 +63,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
       <Tabs
         orientation="vertical"
         className={tabsStyle}
-        defaultSelectedKey={props.defaultSelectedKey}
+        defaultSelectedKey={props.defaultSelectedTab}
       >
         <div
           className={tabListContainerStyle}

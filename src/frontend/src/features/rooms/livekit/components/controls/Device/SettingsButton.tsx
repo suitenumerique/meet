@@ -1,8 +1,8 @@
-import { useSettingsDialog } from '../SettingsDialogContext'
 import { Button } from '@/primitives'
 import { RiSettings3Line } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
+import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
 
 export const SettingsButton = ({
   settingTab,
@@ -12,7 +12,7 @@ export const SettingsButton = ({
   onPress?: () => void
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
-  const { setDialogOpen, setDefaultSelectedKey } = useSettingsDialog()
+  const { openSettingsDialog } = useSettingsDialog()
 
   return (
     <Button
@@ -22,8 +22,7 @@ export const SettingsButton = ({
       aria-label={t(`settings.${settingTab}`)}
       variant="primaryDark"
       onPress={() => {
-        setDefaultSelectedKey(settingTab)
-        setDialogOpen(true)
+        openSettingsDialog(settingTab)
         onPress?.()
       }}
     >
