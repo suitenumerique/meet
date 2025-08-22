@@ -10,7 +10,7 @@ export const useKeyboardShortcuts = () => {
   useEffect(() => {
     // This approach handles basic shortcuts but isn't comprehensive.
     // Issues might occur. First draft.
-    const onKeyDown = (e: KeyboardEvent) => {
+    const onKeyDown = async (e: KeyboardEvent) => {
       const { key, metaKey, ctrlKey } = e
       if (!key) return
       const shortcutKey = formatShortcutKey({
@@ -20,7 +20,7 @@ export const useKeyboardShortcuts = () => {
       const shortcut = shortcutsSnap.shortcuts.get(shortcutKey)
       if (!shortcut) return
       e.preventDefault()
-      shortcut()
+      await shortcut()
     }
 
     window.addEventListener('keydown', onKeyDown)
