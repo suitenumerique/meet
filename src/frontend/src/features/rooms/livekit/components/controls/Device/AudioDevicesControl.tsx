@@ -61,7 +61,7 @@ export const AudioDevicesControl = ({
         {...trackProps}
         kind={kind}
         toggle={trackProps.toggle as () => Promise<void>}
-        toggleButtonProps={{
+        overrideToggleButtonProps={{
           ...(hideMenu
             ? {
                 groupPosition: undefined,

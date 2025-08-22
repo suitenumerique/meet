@@ -107,7 +107,7 @@ export const VideoDeviceControl = ({
         {...trackProps}
         kind={kind}
         toggle={toggleWithProcessor}
-        toggleButtonProps={{
+        overrideToggleButtonProps={{
           ...(hideMenu
             ? {
                 groupPosition: undefined,
