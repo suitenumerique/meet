@@ -80,7 +80,7 @@ export const Popover = ({
   ]
   variant?: 'dark' | 'light'
   withArrow?: boolean
-} & DialogProps) => {
+} & Omit<DialogProps, 'children'>) => {
   const [trigger, popoverContent] = children
   return (
     <DialogTrigger>

@@ -6,8 +6,10 @@ import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 export const SettingsButton = ({
   settingTab,
+  onPress,
 }: {
   settingTab: SettingsDialogExtendedKey
+  onPress?: () => void
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
   const { setDialogOpen, setDefaultSelectedKey } = useSettingsDialog()
@@ -22,6 +24,7 @@ export const SettingsButton = ({
       onPress={() => {
         setDefaultSelectedKey(settingTab)
         setDialogOpen(true)
+        onPress?.()
       }}
     >
       <RiSettings3Line size={24} />

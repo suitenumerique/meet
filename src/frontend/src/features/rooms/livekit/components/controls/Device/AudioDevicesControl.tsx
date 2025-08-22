@@ -82,42 +82,47 @@ export const AudioDevicesControl = ({
           >
             <RiArrowUpSLine />
           </Button>
-          <div
-            className={css({
-              maxWidth: '36rem',
-              padding: '0.15rem',
-              display: 'flex',
-              gap: '0.5rem',
-            })}
-          >
+          {({ close }) => (
             <div
-              style={{
-                flex: '1 1 0',
-                minWidth: 0,
-              }}
+              className={css({
+                maxWidth: '36rem',
+                padding: '0.15rem',
+                display: 'flex',
+                gap: '0.5rem',
+              })}
             >
-              <SelectDevice
-                context="room"
-                kind={kind}
-                id={audioDeviceId}
-                onSubmit={saveAudioInputDeviceId}
+              <div
+                style={{
+                  flex: '1 1 0',
+                  minWidth: 0,
+                }}
+              >
+                <SelectDevice
+                  context="room"
+                  kind={kind}
+                  id={audioDeviceId}
+                  onSubmit={saveAudioInputDeviceId}
+                />
+              </div>
+              <div
+                style={{
+                  flex: '1 1 0',
+                  minWidth: 0,
+                }}
+              >
+                <SelectDevice
+                  context="room"
+                  kind="audiooutput"
+                  id={audioOutputDeviceId}
+                  onSubmit={saveAudioOutputDeviceId}
+                />
+              </div>
+              <SettingsButton
+                settingTab={SettingsDialogExtendedKey.AUDIO}
+                onPress={close}
               />
             </div>
-            <div
-              style={{
-                flex: '1 1 0',
-                minWidth: 0,
-              }}
-            >
-              <SelectDevice
-                context="room"
-                kind="audiooutput"
-                id={audioOutputDeviceId}
-                onSubmit={saveAudioOutputDeviceId}
-              />
-            </div>
-            <SettingsButton settingTab={SettingsDialogExtendedKey.AUDIO} />
-          </div>
+          )}
         </Popover>
       )}
     </div>
