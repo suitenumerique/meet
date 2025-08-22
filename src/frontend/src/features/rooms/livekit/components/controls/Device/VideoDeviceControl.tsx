@@ -16,9 +16,9 @@ import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
-const EffectsButton = () => {
+const EffectsButton = ({ onPress }: { onPress: () => void }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
-  const { toggleEffects } = useSidePanel()
+  const { isEffectsOpen, toggleEffects } = useSidePanel()
   return (
     <Button
       size="sm"
@@ -26,7 +26,10 @@ const EffectsButton = () => {
       tooltip={t('effects')}
       aria-label={t('effects')}
       variant="primaryDark"
-      onPress={toggleEffects}
+      onPress={() => {
+        if (!isEffectsOpen) toggleEffects()
+        onPress()
+      }}
     >
       <RiImageCircleAiFill size={24} />
     </Button>
@@ -125,30 +128,35 @@ export const VideoDeviceControl = ({
           >
             <RiArrowUpSLine />
           </Button>
-          <div
-            className={css({
-              maxWidth: '36rem',
-              padding: '0.15rem',
-              display: 'flex',
-              gap: '0.5rem',
-            })}
-          >
+          {({ close }) => (
             <div
-              style={{
-                flex: '1 1 0',
-                minWidth: 0,
-              }}
+              className={css({
+                maxWidth: '36rem',
+                padding: '0.15rem',
+                display: 'flex',
+                gap: '0.5rem',
+              })}
             >
-              <SelectDevice
-                context="room"
-                kind={kind}
-                id={userChoices.videoDeviceId}
-                onSubmit={saveVideoInputDeviceId}
+              <div
+                style={{
+                  flex: '1 1 0',
+                  minWidth: 0,
+                }}
+              >
+                <SelectDevice
+                  context="room"
+                  kind={kind}
+                  id={userChoices.videoDeviceId}
+                  onSubmit={saveVideoInputDeviceId}
+                />
+              </div>
+              <EffectsButton onPress={close} />
+              <SettingsButton
+                settingTab={SettingsDialogExtendedKey.VIDEO}
+                onPress={close}
               />
             </div>
-            <EffectsButton />
-            <SettingsButton settingTab={SettingsDialogExtendedKey.VIDEO} />
-          </div>
+          )}
         </Popover>
       )}
     </div>
