@@ -58,6 +58,8 @@ const SelectDevicePermissions = <T extends string | number>({
     setActiveMediaDevice(items[0].value)
   }, [items, onSubmit, kind, setActiveMediaDevice, activeDeviceId])
 
+  const selectedKey = id || activeDeviceId
+
   return (
     <Select
       aria-label={t(`${kind}.choose`)}
@@ -66,8 +68,9 @@ const SelectDevicePermissions = <T extends string | number>({
       items={items}
       iconComponent={iconComponent}
       placeholder={items.length === 0 ? t('loading') : t('select')}
-      selectedKey={id || activeDeviceId}
+      selectedKey={selectedKey}
       onSelectionChange={(key) => {
+        if (key === selectedKey) return
         onSubmit?.(key as string)
         setActiveMediaDevice(key as string)
       }}
