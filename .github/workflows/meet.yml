@@ -92,6 +92,26 @@ jobs:
       - name: Lint code with pylint
         run: ~/.local/bin/pylint meet demo core
 
+  lint-agents:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/agents
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+      - name: Install development dependencies
+        run: pip install --user .[dev]
+      - name: Check code formatting with ruff
+        run: ~/.local/bin/ruff format . --diff
+      - name: Lint code with ruff
+        run: ~/.local/bin/ruff check .
+
   test-back:
     runs-on: ubuntu-latest
     needs: build-mails
