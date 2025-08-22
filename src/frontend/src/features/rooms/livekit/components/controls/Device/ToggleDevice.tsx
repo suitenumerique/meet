@@ -33,7 +33,7 @@ export type ToggleDeviceProps<T extends ToggleSource> = {
   ) => Promise<void | boolean | undefined>
   context?: 'room' | 'join'
   kind: 'audioinput' | 'videoinput'
-  toggleButtonProps?: Partial<ToggleButtonProps>
+  overrideToggleButtonProps?: Partial<ToggleButtonProps>
 }
 
 export const ToggleDevice = <T extends ToggleSource>({
@@ -41,27 +41,32 @@ export const ToggleDevice = <T extends ToggleSource>({
   enabled,
   toggle,
   context = 'room',
-  ...props
+  overrideToggleButtonProps,
 }: ToggleDeviceProps<T>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
-  const { variant, errorVariant, toggleButtonProps } =
-    useMemo<ToggleDeviceStyleProps>(() => {
-      if (context === 'join') {
-        return {
-          variant: 'whiteCircle',
-          errorVariant: 'errorCircle',
-          toggleButtonProps: {
-            groupPosition: undefined,
-          },
-        } as ToggleDeviceStyleProps
-      }
+  const {
+    variant,
+    errorVariant,
+    toggleButtonProps: computedToggleButtonProps,
+  } = useMemo<ToggleDeviceStyleProps>(() => {
+    if (context === 'join') {
       return {
-        variant: 'primaryDark',
-        errorVariant: 'error2',
-        toggleButtonProps: undefined,
+        variant: 'whiteCircle',
+        errorVariant: 'errorCircle',
+        toggleButtonProps: {
+          groupPosition: undefined,
+        },
       } as ToggleDeviceStyleProps
-    }, [context])
+    }
+    return {
+      variant: 'primaryDark',
+      errorVariant: 'error2',
+      toggleButtonProps: {
+        groupPosition: 'left',
+      },
+    } as ToggleDeviceStyleProps
+  }, [context])
 
   const [pushToTalk, setPushToTalk] = useState(false)
 
@@ -121,9 +126,8 @@ export const ToggleDevice = <T extends ToggleSource>({
             ? t('tooltip', { keyPrefix: 'permissionsButton' })
             : toggleLabel
         }
-        groupPosition="left"
-        {...toggleButtonProps}
-        {...props}
+        {...computedToggleButtonProps}
+        {...overrideToggleButtonProps}
       >
         <Icon />
       </ToggleButton>
