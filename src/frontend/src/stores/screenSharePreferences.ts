@@ -4,6 +4,6 @@ type State = {
   enabled: boolean
 }
 
-export const ScreenSharePreferenceStore = proxy<State>({
+export const screenSharePreferenceStore = proxy<State>({
   enabled: true,
 })
