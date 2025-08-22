@@ -13,7 +13,9 @@ import { useRef } from 'react'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 
-export function DesktopControlBar({ onDeviceError }: ControlBarAuxProps) {
+export function DesktopControlBar({
+  onDeviceError,
+}: Readonly<ControlBarAuxProps>) {
   const browserSupportsScreenSharing = supportsScreenSharing()
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
   return (
