@@ -145,12 +145,41 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+  build-and-push-agents:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v4
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: lasuite/meet-agents
+      -
+        name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USER }}" --password-stdin
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/agents
+          file: ./src/agents/Dockerfile
+          target: production
+          build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
   notify-argocd:
     needs:
       - build-and-push-frontend-generic
       - build-and-push-frontend-dinum
       - build-and-push-backend
       - build-and-push-summary
+      - build-and-push-agents
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
