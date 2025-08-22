@@ -30,7 +30,7 @@ export type ToggleDeviceProps<T extends ToggleSource> = {
   toggle: (
     forceState?: boolean,
     captureOptions?: CaptureOptionsBySource<T>
-  ) => Promise<void | boolean | undefined> | void
+  ) => Promise<void | boolean | undefined>
   context?: 'room' | 'join'
   kind: 'audioinput' | 'videoinput'
   toggleButtonProps?: Partial<ToggleButtonProps>

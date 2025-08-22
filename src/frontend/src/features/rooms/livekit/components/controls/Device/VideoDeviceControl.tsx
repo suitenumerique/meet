@@ -67,7 +67,7 @@ export const VideoDeviceControl = ({
   const kind = 'videoinput'
   const cannotUseDevice = useCannotUseDevice(kind)
 
-  const toggle = () => {
+  const toggleWithProcessor = async () => {
     /**
      * We need to make sure that we apply the in-memory processor when re-enabling the camera.
      * Before, we had the following bug:
@@ -89,7 +89,7 @@ export const VideoDeviceControl = ({
       captureOptions: VideoCaptureOptions
     ) => Promise<void>
 
-    toggle(!trackProps.enabled, {
+    await toggle(!trackProps.enabled, {
       processor: processor,
     } as VideoCaptureOptions)
   }
@@ -106,7 +106,7 @@ export const VideoDeviceControl = ({
       <ToggleDevice
         {...trackProps}
         kind={kind}
-        toggle={toggle}
+        toggle={toggleWithProcessor}
         toggleButtonProps={{
           ...(hideMenu
             ? {
