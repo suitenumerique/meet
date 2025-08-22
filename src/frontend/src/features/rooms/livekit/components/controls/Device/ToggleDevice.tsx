@@ -80,11 +80,16 @@ export const ToggleDevice = <T extends ToggleSource>({
   const cannotUseDevice = useCannotUseDevice(kind)
   const deviceShortcut = useDeviceShortcut(kind)
 
-  useRegisterKeyboardShortcut({ shortcut: deviceShortcut, handler: toggle })
+  useRegisterKeyboardShortcut({
+    shortcut: deviceShortcut,
+    handler: toggle,
+    isDisabled: cannotUseDevice,
+  })
   useLongPress({
     keyCode: kind === 'audioinput' ? 'Space' : undefined,
     onKeyDown,
     onKeyUp,
+    isDisabled: cannotUseDevice,
   })
 
   const toggleLabel = useMemo(() => {

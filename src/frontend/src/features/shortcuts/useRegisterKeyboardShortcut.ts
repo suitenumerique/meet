@@ -6,14 +6,21 @@ import { Shortcut } from '@/features/shortcuts/types'
 export type useRegisterKeyboardShortcutProps = {
   shortcut?: Shortcut
   handler: () => void
+  isDisabled?: boolean
 }
 
 export const useRegisterKeyboardShortcut = ({
   shortcut,
   handler,
+  isDisabled = false,
 }: useRegisterKeyboardShortcutProps) => {
   useEffect(() => {
     if (!shortcut) return
-    keyboardShortcutsStore.shortcuts.set(formatShortcutKey(shortcut), handler)
-  }, [handler, shortcut])
+    const formattedKey = formatShortcutKey(shortcut)
+    if (isDisabled) {
+      keyboardShortcutsStore.shortcuts.delete(formattedKey)
+    } else {
+      keyboardShortcutsStore.shortcuts.set(formattedKey, handler)
+    }
+  }, [handler, shortcut, isDisabled])
 }
