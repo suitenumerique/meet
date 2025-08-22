@@ -227,7 +227,7 @@ export const Join = ({
     if (
       audioEnabled &&
       !initialUserChoices.current?.audioEnabled &&
-      !dynamicAudioTrack &&
+      !previewAudioTrack &&
       !dynamicAudioTrack
     ) {
       createAudioTrack()
