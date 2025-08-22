@@ -60,10 +60,10 @@ dependencies = [
 ]
 
 [project.urls]
-"Bug Tracker" = "https://github.com/numerique-gouv/meet/issues/new"
-"Changelog" = "https://github.com/numerique-gouv/meet/blob/main/CHANGELOG.md"
-"Homepage" = "https://github.com/numerique-gouv/meet"
-"Repository" = "https://github.com/numerique-gouv/meet"
+"Bug Tracker" = "https://github.com/suitenumerique/meet/issues/new"
+"Changelog" = "https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md"
+"Homepage" = "https://github.com/suitenumerique/meet"
+"Repository" = "https://github.com/suitenumerique/meet"
 
 [project.optional-dependencies]
 dev = [
