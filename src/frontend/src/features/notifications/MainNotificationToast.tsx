@@ -98,6 +98,7 @@ export const MainNotificationToast = () => {
         case NotificationType.ScreenRecordingLimitReached:
           toastQueue.add(
             {
+              participant,
               type: notification.type,
             },
             { timeout: NotificationDuration.ALERT }
