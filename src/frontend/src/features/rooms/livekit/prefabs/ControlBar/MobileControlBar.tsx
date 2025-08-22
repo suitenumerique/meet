@@ -18,13 +18,13 @@ import { ChatToggle } from '../../components/controls/ChatToggle'
 import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { LinkButton } from '@/primitives'
-import { useSettingsDialog } from '../../components/controls/SettingsDialogContext'
 import { ResponsiveMenu } from './ResponsiveMenu'
 import { ToolsToggle } from '../../components/controls/ToolsToggle'
 import { CameraSwitchButton } from '../../components/controls/CameraSwitchButton'
 import { useConfig } from '@/api/useConfig'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
+import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
 
 export function MobileControlBar({
   onDeviceError,
@@ -33,7 +33,7 @@ export function MobileControlBar({
   const [isMenuOpened, setIsMenuOpened] = React.useState(false)
   const browserSupportsScreenSharing = supportsScreenSharing()
   const { toggleEffects } = useSidePanel()
-  const { setDialogOpen } = useSettingsDialog()
+  const { openSettingsDialog } = useSettingsDialog()
 
   const { data } = useConfig()
 
@@ -152,7 +152,7 @@ export function MobileControlBar({
             )}
             <Button
               onPress={() => {
-                setDialogOpen(true)
+                openSettingsDialog()
                 setIsMenuOpened(false)
               }}
               variant="primaryTextDark"
