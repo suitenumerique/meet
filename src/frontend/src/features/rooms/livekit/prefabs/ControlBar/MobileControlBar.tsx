@@ -26,7 +26,9 @@ import { useConfig } from '@/api/useConfig'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 
-export function MobileControlBar({ onDeviceError }: ControlBarAuxProps) {
+export function MobileControlBar({
+  onDeviceError,
+}: Readonly<ControlBarAuxProps>) {
   const { t } = useTranslation('rooms')
   const [isMenuOpened, setIsMenuOpened] = React.useState(false)
   const browserSupportsScreenSharing = supportsScreenSharing()
