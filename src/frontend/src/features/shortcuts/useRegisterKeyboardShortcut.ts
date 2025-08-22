@@ -5,7 +5,7 @@ import { Shortcut } from '@/features/shortcuts/types'
 
 export type useRegisterKeyboardShortcutProps = {
   shortcut?: Shortcut
-  handler: () => void
+  handler: () => Promise<void | boolean | undefined> | void
   isDisabled?: boolean
 }
 
