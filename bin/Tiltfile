@@ -58,10 +58,10 @@ docker_build(
     'localhost:5001/meet-summary:latest',
     context='../src/summary',
     dockerfile='../src/summary/Dockerfile',
-    only=['.', '../../docker', '../../.dockerignore'],
+    only=['.'],
     target = 'production',
     live_update=[
-        sync('../src/summary', '/home/summary'),
+        sync('../src/summary', '/app'),
     ]
 )
 clean_old_images('localhost:5001/meet-summary')
