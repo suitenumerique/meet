@@ -29,7 +29,7 @@ spec:
       {{- if $.Values.image.credentials }}
       imagePullSecrets:
         - name: {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" .) "imageCredentials" $.Values.image.credentials) }}
-      {{- end}}
+      {{- end }}
       shareProcessNamespace: {{ .Values.agents.shareProcessNamespace }}
       containers:
         {{- with .Values.agents.sidecars }}
@@ -47,7 +47,7 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- if $envVars}}
+            {{- if $envVars }}
             {{- $envVars | indent 12 }}
             {{- end }}
           {{- with .Values.agents.securityContext }}
