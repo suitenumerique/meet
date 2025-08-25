@@ -235,7 +235,10 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     which they are not related, provided the room is public.
     They should not see related users.
     """
-    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC,
+        configuration={"can_publish_sources": ["mock-source"]},
+    )
 
     user = UserFactory()
     client = APIClient()
@@ -262,7 +265,12 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     }
 
     mock_token.assert_called_once_with(
-        room=expected_name, user=user, username=None, color=None
+        room=expected_name,
+        user=user,
+        username=None,
+        color=None,
+        sources=["mock-source"],
+        is_admin_or_owner=False,
     )
 
 
@@ -307,7 +315,12 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
     }
 
     mock_token.assert_called_once_with(
-        room=expected_name, user=user, username=None, color=None
+        room=expected_name,
+        user=user,
+        username=None,
+        color=None,
+        sources=None,
+        is_admin_or_owner=False,
     )
 
 
@@ -353,7 +366,9 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
     user = UserFactory()
     other_user = UserFactory()
 
-    room = RoomFactory()
+    room = RoomFactory(
+        configuration={"can_publish_sources": ["mock-source"]},
+    )
     UserResourceAccessFactory(resource=room, user=user, role="member")
     UserResourceAccessFactory(resource=room, user=other_user, role="member")
 
@@ -386,7 +401,12 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
     }
 
     mock_token.assert_called_once_with(
-        room=expected_name, user=user, username=None, color=None
+        room=expected_name,
+        user=user,
+        username=None,
+        color=None,
+        sources=["mock-source"],
+        is_admin_or_owner=False,
     )
 
 
@@ -473,5 +493,10 @@ def test_api_rooms_retrieve_administrators(
     }
 
     mock_token.assert_called_once_with(
-        room=expected_name, user=user, username=None, color=None
+        room=expected_name,
+        user=user,
+        username=None,
+        color=None,
+        sources=None,
+        is_admin_or_owner=True,
     )

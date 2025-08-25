@@ -143,6 +143,8 @@ class LobbyService:
         participant_id = self._get_or_create_participant_id(request)
         participant = self._get_participant(room.id, participant_id)
 
+        room_id = str(room.id)
+
         if self.can_bypass_lobby(room=room, user=request.user):
             if participant is None:
                 participant = LobbyParticipant(
@@ -155,10 +157,12 @@ class LobbyService:
                 participant.status = LobbyParticipantStatus.ACCEPTED
 
             livekit_config = utils.generate_livekit_config(
-                room_id=str(room.id),
+                room_id=room_id,
                 user=request.user,
                 username=username,
                 color=participant.color,
+                configuration=room.configuration,
+                is_admin_or_owner=False,
             )
             return participant, livekit_config
 
@@ -173,10 +177,12 @@ class LobbyService:
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
             # wrongly named, contains access token to join a room
             livekit_config = utils.generate_livekit_config(
-                room_id=str(room.id),
+                room_id=room_id,
                 user=request.user,
                 username=username,
                 color=participant.color,
+                configuration=room.configuration,
+                is_admin_or_owner=False,
             )
 
         return participant, livekit_config

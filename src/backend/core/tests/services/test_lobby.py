@@ -266,6 +266,8 @@ def test_request_entry_public_room(
         user=request.user,
         username=username,
         color=participant.color,
+        configuration=room.configuration,
+        is_admin_or_owner=False,
     )
 
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
@@ -302,6 +304,8 @@ def test_request_entry_trusted_room(
         user=request.user,
         username=username,
         color=participant.color,
+        configuration=room.configuration,
+        is_admin_or_owner=False,
     )
 
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
@@ -394,6 +398,8 @@ def test_request_entry_accepted_participant(
         user=request.user,
         username=username,
         color="#123456",
+        configuration=room.configuration,
+        is_admin_or_owner=False,
     )
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
