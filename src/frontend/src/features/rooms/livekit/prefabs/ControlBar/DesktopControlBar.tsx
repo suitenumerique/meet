@@ -6,6 +6,7 @@ import { Track } from 'livekit-client'
 import { ReactionsToggle } from '../../components/controls/ReactionsToggle'
 import { HandToggle } from '../../components/controls/HandToggle'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
+import { SubtitlesToggle } from '../../components/controls/SubtitlesToggle'
 import { OptionsButton } from '../../components/controls/Options/OptionsButton'
 import { StartMediaButton } from '../../components/controls/StartMediaButton'
 import { MoreOptions } from './MoreOptions'
@@ -68,6 +69,7 @@ export function DesktopControlBar({
             }
           />
         )}
+        <SubtitlesToggle />
         <HandToggle />
         <OptionsButton />
         <LeaveButton />

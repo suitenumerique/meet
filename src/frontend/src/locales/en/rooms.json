@@ -168,6 +168,10 @@
       "raise": "Raise hand",
       "lower": "Lower hand"
     },
+    "subtitles": {
+      "closed": "Show subtitles",
+      "open": "Hide subtitles"
+    },
     "screenShare": {
       "start": "Share screen",
       "stop": "Stop screen share"

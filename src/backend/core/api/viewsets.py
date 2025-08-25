@@ -51,6 +51,7 @@ from core.services.lobby import (
     LobbyService,
 )
 from core.services.room_creation import RoomCreation
+from core.services.subtitle import SubtitleService
 
 from . import permissions, serializers
 
@@ -528,6 +529,26 @@ class RoomViewSet(
         return drf_response.Response(
             {"status": "success", "message": "invitations sent"},
             status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="start-subtitle",
+        permission_classes=[permissions.IsSubtitleEnabled, permissions.HasLiveKitToken],
+    )
+    def start_subtitle(self, request, pk=None):  # pylint: disable=unused-argument
+        """Start realtime transcription for the room.
+
+        Requires valid LiveKit token for room authorization.
+        Anonymous users can start subtitles if they have room access tokens.
+        """
+
+        room = self.get_object()
+        SubtitleService().start_subtitle(room)
+
+        return drf_response.Response(
+            {"status": "success"}, status=drf_status.HTTP_200_OK
         )
 
 

@@ -282,3 +282,36 @@
 | `celery.extraVolumeMounts`                           | Additional volumes to mount on the celery.                                        | `[]`        |
 | `celery.extraVolumes`                                | Additional volumes to mount on the celery.                                        | `[]`        |
 | `celery.pdb.enabled`                                 | Enable pdb on celery                                                              | `false`     |
+
+### agents
+
+| Name                                                 | Description                                                                       | Value                 |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------- |
+| `agents.image.repository`                            | Repository to use to pull meet's agents container image                           | `lasuite/meet-agents` |
+| `agents.image.tag`                                   | meet's agents container tag                                                       | `latest`              |
+| `agents.image.pullPolicy`                            | agents container image pull policy                                                | `IfNotPresent`        |
+| `agents.dpAnnotations`                               | Annotations to add to the agents Deployment                                       | `{}`                  |
+| `agents.command`                                     | Override the agents container command                                             | `[]`                  |
+| `agents.args`                                        | Override the agents container args                                                | `[]`                  |
+| `agents.replicas`                                    | Amount of agents replicas                                                         | `1`                   |
+| `agents.shareProcessNamespace`                       | Enable share process namespace between containers                                 | `false`               |
+| `agents.sidecars`                                    | Add sidecars containers to agents deployment                                      | `[]`                  |
+| `agents.securityContext`                             | Configure agents Pod security context                                             | `nil`                 |
+| `agents.envVars`                                     | Configure agents container environment variables                                  | `undefined`           |
+| `agents.envVars.BY_VALUE`                            | Example environment variable by setting value directly                            |                       |
+| `agents.envVars.FROM_CONFIGMAP.configMapKeyRef.name` | Name of a ConfigMap when configuring env vars from a ConfigMap                    |                       |
+| `agents.envVars.FROM_CONFIGMAP.configMapKeyRef.key`  | Key within a ConfigMap when configuring env vars from a ConfigMap                 |                       |
+| `agents.envVars.FROM_SECRET.secretKeyRef.name`       | Name of a Secret when configuring env vars from a Secret                          |                       |
+| `agents.envVars.FROM_SECRET.secretKeyRef.key`        | Key within a Secret when configuring env vars from a Secret                       |                       |
+| `agents.podAnnotations`                              | Annotations to add to the agents Pod                                              | `{}`                  |
+| `agents.resources`                                   | Resource requirements for the agents container                                    | `{}`                  |
+| `agents.nodeSelector`                                | Node selector for the agents Pod                                                  | `{}`                  |
+| `agents.tolerations`                                 | Tolerations for the agents Pod                                                    | `[]`                  |
+| `agents.affinity`                                    | Affinity for the agents Pod                                                       | `{}`                  |
+| `agents.persistence`                                 | Additional volumes to create and mount on the agents. Used for debugging purposes | `{}`                  |
+| `agents.persistence.volume-name.size`                | Size of the additional volume                                                     |                       |
+| `agents.persistence.volume-name.type`                | Type of the additional volume, persistentVolumeClaim or emptyDir                  |                       |
+| `agents.persistence.volume-name.mountPath`           | Path where the volume should be mounted to                                        |                       |
+| `agents.extraVolumeMounts`                           | Additional volumes to mount on the agents.                                        | `[]`                  |
+| `agents.extraVolumes`                                | Additional volumes to mount on the agents.                                        | `[]`                  |
+| `agents.pdb.enabled`                                 | Enable pdb on agents                                                              | `false`               |

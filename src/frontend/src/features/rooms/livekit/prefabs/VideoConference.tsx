@@ -34,6 +34,8 @@ import { useConnectionObserver } from '../hooks/useConnectionObserver'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
+import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
+import { Subtitles } from '@/features/subtitle/component/Subtitles'
 
 const LayoutWrapper = styled(
   'div',
@@ -42,7 +44,17 @@ const LayoutWrapper = styled(
       position: 'relative',
       display: 'flex',
       width: '100%',
-      height: '100%',
+      transition: 'height .5s cubic-bezier(0.4,0,0.2,1) 5ms',
+    },
+    variants: {
+      areSubtitlesOpen: {
+        true: {
+          height: 'calc(100% - 12rem)',
+        },
+        false: {
+          height: '100%',
+        },
+      },
     },
   })
 )
@@ -158,6 +170,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const { isSidePanelOpen } = useSidePanel()
+  const { areSubtitlesOpen } = useSubtitles()
 
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
@@ -183,14 +196,19 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             style={{
               position: 'absolute',
               inset: isSidePanelOpen
-                ? 'var(--lk-grid-gap) calc(358px + 3rem) calc(80px + var(--lk-grid-gap)) 16px'
-                : 'var(--lk-grid-gap) var(--lk-grid-gap) calc(80px + var(--lk-grid-gap))',
+                ? `var(--lk-grid-gap) calc(358px + 3rem) calc(80px + var(--lk-grid-gap)) 16px`
+                : `var(--lk-grid-gap) var(--lk-grid-gap) calc(80px + var(--lk-grid-gap))`,
               transition: 'inset .5s cubic-bezier(0.4,0,0.2,1) 5ms',
+              maxHeight: '100%',
             }}
           >
-            <LayoutWrapper>
+            <LayoutWrapper areSubtitlesOpen={areSubtitlesOpen}>
               <div
-                style={{ display: 'flex', position: 'relative', width: '100%' }}
+                style={{
+                  display: 'flex',
+                  position: 'relative',
+                  width: '100%',
+                }}
               >
                 {!focusTrack ? (
                   <div
@@ -221,6 +239,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
                 )}
               </div>
             </LayoutWrapper>
+            <Subtitles />
             <MainNotificationToast />
           </div>
           <ControlBar
