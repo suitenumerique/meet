@@ -294,7 +294,7 @@ export const Footer = () => {
           <A
             externalIcon
             footer="minor"
-            href="https://github.com/numerique-gouv/meet/"
+            href="https://github.com/suitenumerique/meet/"
             aria-label={t('links.code') + ' - ' + t('links.ariaLabel')}
           >
             {t('links.code')}

@@ -58,13 +58,25 @@ docker_build(
     'localhost:5001/meet-summary:latest',
     context='../src/summary',
     dockerfile='../src/summary/Dockerfile',
-    only=['.', '../../docker', '../../.dockerignore'],
+    only=['.'],
     target = 'production',
     live_update=[
-        sync('../src/summary', '/home/summary'),
+        sync('../src/summary', '/app'),
     ]
 )
 clean_old_images('localhost:5001/meet-summary')
+
+docker_build(
+    'localhost:5001/meet-agents:latest',
+    context='../src/agents',
+    dockerfile='../src/agents/Dockerfile',
+   only=['.'],
+    target = 'production',
+    live_update=[
+        sync('../src/agents', '/app'),
+    ]
+)
+clean_old_images('localhost:5001/meet-agents')
 
 # Copy the mkcert root CA certificate to our Docker build context
 # This is necessary because we need to inject the certificate into our LiveKit container
