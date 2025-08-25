@@ -77,11 +77,7 @@ backend:
       - "/bin/sh"
       - "-c"
       - |
-        if ! python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); import sys; sys.exit(0 if User.objects.filter(admin_email='user0@example.com').exists() else 1)"
-        then
-          python manage.py migrate --no-input &&
-          python manage.py create_demo --force || echo "create_demo already run"
-        fi
+        python manage.py migrate --no-input
     restartPolicy: Never
 
   command:
