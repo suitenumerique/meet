@@ -134,6 +134,8 @@ class RoomSerializer(serializers.ModelSerializer):
             )
             output["accesses"] = access_serializer.data
 
+        configuration = output["configuration"]
+
         if not is_admin_or_owner:
             del output["configuration"]
 
@@ -150,7 +152,10 @@ class RoomSerializer(serializers.ModelSerializer):
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
             output["livekit"] = utils.generate_livekit_config(
-                room_id=room_id, user=request.user, username=username
+                room_id=room_id,
+                user=request.user,
+                username=username,
+                configuration=configuration,
             )
 
         output["is_administrable"] = is_admin_or_owner

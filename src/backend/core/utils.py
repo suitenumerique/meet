@@ -108,7 +108,11 @@ def generate_token(
 
 
 def generate_livekit_config(
-    room_id: str, user, username: str, color: Optional[str] = None
+    room_id: str,
+    user,
+    username: str,
+    color: Optional[str] = None,
+    configuration: Optional[dict] = None,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -116,15 +120,21 @@ def generate_livekit_config(
         room_id: Room identifier
         user: User instance requesting access
         username: Display name in room
+        configuration (Optional[dict]): room configuration dict that can override default settings.
 
     Returns:
         dict: LiveKit configuration with URL, room and access token
     """
+
+    sources = None
+    if configuration is not None:
+        sources = configuration.get("can_publish_sources", None)
+
     return {
         "url": settings.LIVEKIT_CONFIGURATION["url"],
         "room": room_id,
         "token": generate_token(
-            room=room_id, user=user, username=username, color=color
+            room=room_id, user=user, username=username, color=color, sources=sources
         ),
     }
 
