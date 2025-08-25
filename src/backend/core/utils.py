@@ -7,7 +7,7 @@ Utils functions used in the core app
 import hashlib
 import json
 import random
-from typing import Optional
+from typing import List, Optional
 from uuid import uuid4
 
 from django.conf import settings
@@ -49,7 +49,11 @@ def generate_color(identity: str) -> str:
 
 
 def generate_token(
-    room: str, user, username: Optional[str] = None, color: Optional[str] = None
+    room: str,
+    user,
+    username: Optional[str] = None,
+    color: Optional[str] = None,
+    sources: Optional[List[str]] = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -60,21 +64,23 @@ def generate_token(
                          If none, a default value will be used.
         color (Optional[str]): The color to be displayed in the room.
                          If none, a value will be generated
+        sources: (Optional[List[str]]): List of media sources the user can publish
+                         If none, defaults to LIVEKIT_DEFAULT_SOURCES.
 
     Returns:
         str: The LiveKit JWT access token.
     """
+
+    if sources is None:
+        sources = settings.LIVEKIT_DEFAULT_SOURCES
+
     video_grants = VideoGrants(
         room=room,
         room_join=True,
         room_admin=True,
         can_update_own_metadata=True,
-        can_publish_sources=[
-            "camera",
-            "microphone",
-            "screen_share",
-            "screen_share_audio",
-        ],
+        can_publish=bool(len(sources)),
+        can_publish_sources=sources,
     )
 
     if user.is_anonymous:
