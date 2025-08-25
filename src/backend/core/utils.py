@@ -2,7 +2,8 @@
 Utils functions used in the core app
 """
 
-# ruff: noqa:S311
+# pylint: disable=R0913, R0917
+# ruff: noqa:S311, PLR0913
 
 import hashlib
 import json
@@ -54,6 +55,7 @@ def generate_token(
     username: Optional[str] = None,
     color: Optional[str] = None,
     sources: Optional[List[str]] = None,
+    is_admin_or_owner: bool = False,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -66,10 +68,14 @@ def generate_token(
                          If none, a value will be generated
         sources: (Optional[List[str]]): List of media sources the user can publish
                          If none, defaults to LIVEKIT_DEFAULT_SOURCES.
+        is_admin_or_owner (bool): Whether user has admin privileges
 
     Returns:
         str: The LiveKit JWT access token.
     """
+
+    if is_admin_or_owner:
+        sources = settings.LIVEKIT_DEFAULT_SOURCES
 
     if sources is None:
         sources = settings.LIVEKIT_DEFAULT_SOURCES
@@ -77,9 +83,9 @@ def generate_token(
     video_grants = VideoGrants(
         room=room,
         room_join=True,
-        room_admin=True,
+        room_admin=is_admin_or_owner,
         can_update_own_metadata=True,
-        can_publish=bool(len(sources)),
+        can_publish=bool(sources),
         can_publish_sources=sources,
     )
 
@@ -101,14 +107,19 @@ def generate_token(
         .with_grants(video_grants)
         .with_identity(identity)
         .with_name(username or default_username)
-        .with_metadata(json.dumps({"color": color}))
+        .with_metadata(json.dumps({"color": color, "room_admin": is_admin_or_owner}))
     )
 
     return token.to_jwt()
 
 
 def generate_livekit_config(
-    room_id: str, user, username: str, color: Optional[str] = None
+    room_id: str,
+    user,
+    username: str,
+    is_admin_or_owner: bool,
+    color: Optional[str] = None,
+    configuration: Optional[dict] = None,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -116,15 +127,28 @@ def generate_livekit_config(
         room_id: Room identifier
         user: User instance requesting access
         username: Display name in room
+        is_admin_or_owner (bool): Whether the user has admin/owner privileges for this room.
+        color (Optional[str]): Optional color to associate with the participant.
+        configuration (Optional[dict]): Room configuration dict that can override default settings.
 
     Returns:
         dict: LiveKit configuration with URL, room and access token
     """
+
+    sources = None
+    if configuration is not None:
+        sources = configuration.get("can_publish_sources", None)
+
     return {
         "url": settings.LIVEKIT_CONFIGURATION["url"],
         "room": room_id,
         "token": generate_token(
-            room=room_id, user=user, username=username, color=color
+            room=room_id,
+            user=user,
+            username=username,
+            color=color,
+            sources=sources,
+            is_admin_or_owner=is_admin_or_owner,
         ),
     }
 
