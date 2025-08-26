@@ -50,6 +50,10 @@ from core.services.lobby import (
     LobbyParticipantNotFound,
     LobbyService,
 )
+from core.services.participants_management import (
+    ParticipantsManagement,
+    ParticipantsManagementException,
+)
 from core.services.room_creation import RoomCreation
 from core.services.subtitle import SubtitleException, SubtitleService
 
@@ -557,6 +561,104 @@ class RoomViewSet(
         except SubtitleException:
             return drf_response.Response(
                 {"error": f"Subtitles failed to start for room {room.slug}"},
+                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return drf_response.Response(
+            {"status": "success"}, status=drf_status.HTTP_200_OK
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="mute-participant",
+        url_name="mute-participant",
+        permission_classes=[permissions.HasPrivilegesOnRoom],
+    )
+    def mute_participant(self, request, pk=None):  # pylint: disable=unused-argument
+        """Mute a specific track for a participant in the room."""
+        room = self.get_object()
+
+        serializer = serializers.MuteParticipantSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            ParticipantsManagement().mute(
+                room_name=str(room.id),
+                identity=str(serializer.validated_data["participant_identity"]),
+                track_sid=serializer.validated_data["track_sid"],
+            )
+        except ParticipantsManagementException:
+            return drf_response.Response(
+                {"error": "Failed to mute participant"},
+                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return drf_response.Response(
+            {
+                "status": "success",
+            },
+            status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="update-participant",
+        url_name="update-participant",
+        permission_classes=[permissions.HasPrivilegesOnRoom],
+    )
+    def update_participant(self, request, pk=None):  # pylint: disable=unused-argument
+        """Update participant attributes, permissions, or metadata."""
+        room = self.get_object()
+
+        serializer = serializers.UpdateParticipantSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            ParticipantsManagement().update(
+                room_name=str(room.id),
+                identity=str(serializer.validated_data["participant_identity"]),
+                metadata=serializer.validated_data.get("metadata"),
+                attributes=serializer.validated_data.get("attributes"),
+                permission=serializer.validated_data.get("permission"),
+                name=serializer.validated_data.get("name"),
+            )
+        except ParticipantsManagementException:
+            return drf_response.Response(
+                {"error": "Failed to update participant"},
+                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return drf_response.Response(
+            {
+                "status": "success",
+            },
+            status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="remove-participant",
+        url_name="remove-participant",
+        permission_classes=[permissions.HasPrivilegesOnRoom],
+    )
+    def remove_participant(self, request, pk=None):  # pylint: disable=unused-argument
+        """Remove a participant from the room."""
+        room = self.get_object()
+
+        serializer = serializers.BaseParticipantsManagementSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            ParticipantsManagement().remove(
+                room_name=str(room.id),
+                identity=str(serializer.validated_data["participant_identity"]),
+            )
+        except ParticipantsManagementException:
+            return drf_response.Response(
+                {"error": "Failed to remove participant"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 

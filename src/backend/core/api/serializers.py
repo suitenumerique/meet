@@ -1,9 +1,10 @@
 """Client serializers for the Meet core app."""
 
-# pylint: disable=W0223
+# pylint: disable=W0223,E0611
 
 from django.utils.translation import gettext_lazy as _
 
+from livekit.api import ParticipantPermission
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from timezone_field.rest_framework import TimeZoneSerializerField
@@ -234,3 +235,69 @@ class RoomInviteSerializer(serializers.Serializer):
     """Validate room invite creation data."""
 
     emails = serializers.ListField(child=serializers.EmailField(), allow_empty=False)
+
+
+class BaseParticipantsManagementSerializer(BaseValidationOnlySerializer):
+    """Base serializer for participant management operations."""
+
+    participant_identity = serializers.UUIDField(
+        help_text="LiveKit participant identity (UUID format)"
+    )
+
+
+class MuteParticipantSerializer(BaseParticipantsManagementSerializer):
+    """Validate participant muting data."""
+
+    track_sid = serializers.CharField(
+        max_length=255, help_text="LiveKit track SID to mute"
+    )
+
+
+class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
+    """Validate participant update data."""
+
+    metadata = serializers.DictField(
+        required=False, allow_null=True, help_text="Participant metadata as JSON object"
+    )
+    attributes = serializers.DictField(
+        required=False,
+        allow_null=True,
+        help_text="Participant attributes as JSON object",
+    )
+    permission = serializers.DictField(
+        required=False,
+        allow_null=True,
+        help_text="Participant permission as JSON object",
+    )
+    name = serializers.CharField(
+        max_length=255,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        help_text="Display name for the participant",
+    )
+
+    def validate(self, attrs):
+        """Ensure at least one update field is provided."""
+        update_fields = ["metadata", "attributes", "permission", "name"]
+
+        has_update = any(
+            field in attrs and attrs[field] is not None and attrs[field] != ""
+            for field in update_fields
+        )
+
+        if not has_update:
+            raise serializers.ValidationError(
+                f"At least one of the following fields must be provided: "
+                f"{', '.join(update_fields)}."
+            )
+
+        if "permission" in attrs:
+            try:
+                ParticipantPermission(**attrs["permission"])
+            except ValueError as e:
+                raise serializers.ValidationError(
+                    {"permission": f"Invalid permission: {str(e)}"}
+                ) from e
+
+        return attrs
