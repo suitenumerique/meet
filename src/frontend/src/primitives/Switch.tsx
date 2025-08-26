@@ -4,7 +4,6 @@ import {
 } from 'react-aria-components'
 import { styled } from '@/styled-system/jsx'
 import { StyledVariantProps } from '@/styled-system/types'
-import { ReactNode } from 'react'
 
 export const StyledSwitch = styled(RACSwitch, {
   base: {
@@ -100,21 +99,25 @@ export const StyledSwitch = styled(RACSwitch, {
 })
 
 export type SwitchProps = StyledVariantProps<typeof StyledSwitch> &
-  RACSwitchProps & { children: ReactNode }
+  RACSwitchProps
 
 /**
  * Styled RAC Switch.
  */
 export const Switch = ({ children, ...props }: SwitchProps) => (
   <StyledSwitch {...props}>
-    <div className="indicator">
-      <span className="checkmark" aria-hidden="true">
-        ✓
-      </span>
-      <span className="cross" aria-hidden="true">
-        ✕
-      </span>
-    </div>
-    {children}
+    {(renderProps) => (
+      <>
+        <div className="indicator">
+          <span className="checkmark" aria-hidden="true">
+            ✓
+          </span>
+          <span className="cross" aria-hidden="true">
+            ✕
+          </span>
+        </div>
+        {typeof children === 'function' ? children(renderProps) : children}
+      </>
+    )}
   </StyledSwitch>
 )
