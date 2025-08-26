@@ -419,7 +419,8 @@ class RoomViewSet(
         try:
             lobby_service.handle_participant_entry(
                 room_id=room.id,
-                **serializer.validated_data,
+                participant_id=str(serializer.validated_data.get("participant_id")),
+                allow_entry=serializer.validated_data.get("allow_entry"),
             )
             return drf_response.Response({"message": "Participant was updated."})
 

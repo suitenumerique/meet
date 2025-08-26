@@ -271,6 +271,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         color=None,
         sources=["mock-source"],
         is_admin_or_owner=False,
+        participant_id=None,
     )
 
 
@@ -321,6 +322,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
         color=None,
         sources=None,
         is_admin_or_owner=False,
+        participant_id=None,
     )
 
 
@@ -407,6 +409,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
         color=None,
         sources=["mock-source"],
         is_admin_or_owner=False,
+        participant_id=None,
     )
 
 
@@ -499,4 +502,5 @@ def test_api_rooms_retrieve_administrators(
         color=None,
         sources=None,
         is_admin_or_owner=True,
+        participant_id=None,
     )

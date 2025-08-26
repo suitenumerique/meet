@@ -132,9 +132,9 @@ def test_request_entry_with_existing_participants(settings):
 
     # Add two participants already waiting in the lobby
     cache.set(
-        f"mocked-cache-prefix_{room.id}_2f7f162fe7d1421b90e702bfbfbf8def",
+        f"mocked-cache-prefix_{room.id}_2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         {
-            "id": "2f7f162fe7d1421b90e702bfbfbf8def",
+            "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
             "username": "user1",
             "status": "waiting",
             "color": "#123456",
@@ -259,7 +259,7 @@ def test_request_entry_authenticated_user_public_room(settings):
         mock.patch.object(
             LobbyService,
             "_get_or_create_participant_id",
-            return_value="2f7f162fe7d1421b90e702bfbfbf8def",
+            return_value="2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         ),
         mock.patch.object(
             utils, "generate_livekit_config", return_value={"token": "test-token"}
@@ -276,11 +276,11 @@ def test_request_entry_authenticated_user_public_room(settings):
     # Verify the lobby cookie was set
     cookie = response.cookies.get("mocked-cookie")
     assert cookie is not None
-    assert cookie.value == "2f7f162fe7d1421b90e702bfbfbf8def"
+    assert cookie.value == "2f7f162f-e7d1-421b-90e7-02bfbfbf8def"
 
     # Verify response content matches expected structure and values
     assert response.json() == {
-        "id": "2f7f162fe7d1421b90e702bfbfbf8def",
+        "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         "username": "test_user",
         "status": "accepted",
         "color": "mocked-color",
@@ -302,9 +302,9 @@ def test_request_entry_waiting_participant_public_room(settings):
 
     # Add a waiting participant to the room's lobby cache
     cache.set(
-        f"mocked-cache-prefix_{room.id}_2f7f162fe7d1421b90e702bfbfbf8def",
+        f"mocked-cache-prefix_{room.id}_2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         {
-            "id": "2f7f162fe7d1421b90e702bfbfbf8def",
+            "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
             "username": "user1",
             "status": "waiting",
             "color": "#123456",
@@ -312,7 +312,7 @@ def test_request_entry_waiting_participant_public_room(settings):
     )
 
     # Simulate a browser with existing participant cookie
-    client.cookies.load({"mocked-cookie": "2f7f162fe7d1421b90e702bfbfbf8def"})
+    client.cookies.load({"mocked-cookie": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def"})
 
     with (
         mock.patch.object(utils, "notify_participants", return_value=None),
@@ -330,11 +330,11 @@ def test_request_entry_waiting_participant_public_room(settings):
     # Verify the lobby cookie was set
     cookie = response.cookies.get("mocked-cookie")
     assert cookie is not None
-    assert cookie.value == "2f7f162fe7d1421b90e702bfbfbf8def"
+    assert cookie.value == "2f7f162f-e7d1-421b-90e7-02bfbfbf8def"
 
     # Verify response content matches expected structure and values
     assert response.json() == {
-        "id": "2f7f162fe7d1421b90e702bfbfbf8def",
+        "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         "username": "user1",
         "status": "accepted",
         "color": "#123456",
@@ -381,7 +381,7 @@ def test_allow_participant_to_enter_anonymous():
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/enter/",
-        {"participant_id": "2f7f162fe7d1421b90e702bfbfbf8def", "allow_entry": True},
+        {"participant_id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def", "allow_entry": True},
     )
 
     assert response.status_code == 401
@@ -396,7 +396,7 @@ def test_allow_participant_to_enter_non_owner():
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/enter/",
-        {"participant_id": "2f7f162fe7d1421b90e702bfbfbf8def", "allow_entry": True},
+        {"participant_id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def", "allow_entry": True},
     )
 
     assert response.status_code == 403
@@ -414,7 +414,7 @@ def test_allow_participant_to_enter_public_room():
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/enter/",
-        {"participant_id": "2f7f162fe7d1421b90e702bfbfbf8def", "allow_entry": True},
+        {"participant_id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def", "allow_entry": True},
     )
 
     assert response.status_code == 404
@@ -437,9 +437,9 @@ def test_allow_participant_to_enter_success(settings, allow_entry, updated_statu
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     cache.set(
-        f"mocked-cache-prefix_{room.id!s}_2f7f162fe7d1421b90e702bfbfbf8def",
+        f"mocked-cache-prefix_{room.id!s}_2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         {
-            "id": "2f7f162fe7d1421b90e702bfbfbf8def",
+            "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
             "status": "waiting",
             "username": "foo",
             "color": "123",
@@ -449,7 +449,7 @@ def test_allow_participant_to_enter_success(settings, allow_entry, updated_statu
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/enter/",
         {
-            "participant_id": "2f7f162fe7d1421b90e702bfbfbf8def",
+            "participant_id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
             "allow_entry": allow_entry,
         },
     )
@@ -458,7 +458,7 @@ def test_allow_participant_to_enter_success(settings, allow_entry, updated_statu
     assert response.json() == {"message": "Participant was updated."}
 
     participant_data = cache.get(
-        f"mocked-cache-prefix_{room.id!s}_2f7f162fe7d1421b90e702bfbfbf8def"
+        f"mocked-cache-prefix_{room.id!s}_2f7f162f-e7d1-421b-90e7-02bfbfbf8def"
     )
     assert participant_data.get("status") == updated_status
 
@@ -476,13 +476,13 @@ def test_allow_participant_to_enter_participant_not_found(settings):
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     participant_data = cache.get(
-        f"mocked-cache-prefix_{room.id!s}_2f7f162fe7d1421b90e702bfbfbf8def"
+        f"mocked-cache-prefix_{room.id!s}_2f7f162f-e7d1-421b-90e7-02bfbfbf8def"
     )
     assert participant_data is None
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/enter/",
-        {"participant_id": "2f7f162fe7d1421b90e702bfbfbf8def", "allow_entry": True},
+        {"participant_id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def", "allow_entry": True},
     )
 
     assert response.status_code == 404
@@ -572,9 +572,9 @@ def test_list_waiting_participants_success(settings):
 
     # Add participants in the lobby
     cache.set(
-        f"mocked-cache-prefix_{room.id}_2f7f162fe7d1421b90e702bfbfbf8def",
+        f"mocked-cache-prefix_{room.id}_2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         {
-            "id": "2f7f162fe7d1421b90e702bfbfbf8def",
+            "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
             "username": "user1",
             "status": "waiting",
             "color": "#123456",
@@ -597,7 +597,7 @@ def test_list_waiting_participants_success(settings):
     participants = response.json().get("participants")
     assert sorted(participants, key=lambda p: p["id"]) == [
         {
-            "id": "2f7f162fe7d1421b90e702bfbfbf8def",
+            "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
             "username": "user1",
             "status": "waiting",
             "color": "#123456",

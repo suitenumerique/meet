@@ -56,6 +56,7 @@ def generate_token(
     color: Optional[str] = None,
     sources: Optional[List[str]] = None,
     is_admin_or_owner: bool = False,
+    participant_id: Optional[str] = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -69,6 +70,8 @@ def generate_token(
         sources: (Optional[List[str]]): List of media sources the user can publish
                          If none, defaults to LIVEKIT_DEFAULT_SOURCES.
         is_admin_or_owner (bool): Whether user has admin privileges
+        participant_id (Optional[str]): Stable identifier for anonymous users;
+                         used as identity when user.is_anonymous.
 
     Returns:
         str: The LiveKit JWT access token.
@@ -90,7 +93,7 @@ def generate_token(
     )
 
     if user.is_anonymous:
-        identity = str(uuid4())
+        identity = participant_id or str(uuid4())
         default_username = "Anonymous"
     else:
         identity = str(user.sub)
@@ -120,6 +123,7 @@ def generate_livekit_config(
     is_admin_or_owner: bool,
     color: Optional[str] = None,
     configuration: Optional[dict] = None,
+    participant_id: Optional[str] = None,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -130,6 +134,8 @@ def generate_livekit_config(
         is_admin_or_owner (bool): Whether the user has admin/owner privileges for this room.
         color (Optional[str]): Optional color to associate with the participant.
         configuration (Optional[dict]): Room configuration dict that can override default settings.
+        participant_id (Optional[str]): Stable identifier for anonymous users;
+                         used as identity when user.is_anonymous.
 
     Returns:
         dict: LiveKit configuration with URL, room and access token
@@ -149,6 +155,7 @@ def generate_livekit_config(
             color=color,
             sources=sources,
             is_admin_or_owner=is_admin_or_owner,
+            participant_id=participant_id,
         ),
     }
 
