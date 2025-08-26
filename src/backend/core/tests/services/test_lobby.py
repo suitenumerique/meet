@@ -839,3 +839,35 @@ def test_clear_room_empty(settings, lobby_service):
     assert cache.keys(f"test-lobby_{room_id!s}_*") == []
     lobby_service.clear_room_cache(room_id)
     assert cache.keys(f"test-lobby_{room_id!s}_*") == []
+
+
+def test_clear_participant_cache(lobby_service):
+    """Test clearing a specific participant entry from cache."""
+    room_id = uuid.uuid4()
+    participant_id = "test-participant-id"
+
+    cache_key = f"{settings.LOBBY_KEY_PREFIX}_{room_id!s}_{participant_id}"
+    participant_data = {
+        "status": "waiting",
+        "username": "test-username",
+        "id": participant_id,
+        "color": "#123456",
+    }
+    cache.set(cache_key, participant_data, timeout=settings.LOBBY_WAITING_TIMEOUT)
+    assert cache.get(cache_key) is not None
+
+    lobby_service.clear_participant_cache(room_id, participant_id)
+    assert cache.get(cache_key) is None
+
+
+def test_clear_participant_cache_nonexistent(lobby_service):
+    """Test clearing a participant that doesn't exist in cache."""
+    room_id = uuid.uuid4()
+    participant_id = "nonexistent-participant"
+
+    cache_key = f"{settings.LOBBY_KEY_PREFIX}_{room_id!s}_{participant_id}"
+    assert cache.get(cache_key) is None
+
+    lobby_service.clear_participant_cache(room_id, participant_id)
+
+    assert cache.get(cache_key) is None

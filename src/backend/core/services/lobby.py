@@ -342,3 +342,9 @@ class LobbyService:
             return
 
         cache.delete_many(keys)
+
+    def clear_participant_cache(self, room_id: UUID, participant_id: str) -> None:
+        """Clear a given participant entry from the cache for a specific room."""
+
+        cache_key = self._get_cache_key(room_id, participant_id)
+        cache.delete(cache_key)
