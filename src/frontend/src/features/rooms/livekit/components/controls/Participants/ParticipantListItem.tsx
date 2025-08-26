@@ -15,8 +15,8 @@ import Source = Track.Source
 import { RiMicFill, RiMicOffFill } from '@remixicon/react'
 import { Button } from '@/primitives'
 import { useState } from 'react'
-import { useMuteParticipant } from '@/features/rooms/livekit/api/muteParticipant'
 import { MuteAlertDialog } from '../../MuteAlertDialog'
+import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 
 type MicIndicatorProps = {
   participant: Participant

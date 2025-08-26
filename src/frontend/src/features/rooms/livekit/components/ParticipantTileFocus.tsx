@@ -20,7 +20,7 @@ import { useSidePanel } from '../hooks/useSidePanel'
 import { useFullScreen } from '../hooks/useFullScreen'
 import { Participant, Track } from 'livekit-client'
 import { MuteAlertDialog } from './MuteAlertDialog'
-import { useMuteParticipant } from '../api/muteParticipant'
+import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 
 const ZoomButton = ({
   trackRef,

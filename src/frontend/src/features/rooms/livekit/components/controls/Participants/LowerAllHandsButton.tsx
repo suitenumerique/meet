@@ -1,7 +1,7 @@
 import { Button } from '@/primitives'
-import { useLowerHandParticipants } from '@/features/rooms/livekit/api/lowerHandParticipants'
 import { useTranslation } from 'react-i18next'
 import { Participant } from 'livekit-client'
+import { useLowerHandParticipants } from '@/features/rooms/api/lowerHandParticipants'
 
 type LowerAllHandsButtonProps = {
   participants: Array<Participant>
