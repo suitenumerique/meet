@@ -156,6 +156,7 @@ class RoomSerializer(serializers.ModelSerializer):
                 user=request.user,
                 username=username,
                 configuration=configuration,
+                is_admin_or_owner=is_admin_or_owner,
             )
 
         output["is_administrable"] = is_admin_or_owner

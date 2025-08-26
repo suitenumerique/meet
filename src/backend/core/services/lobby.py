@@ -161,7 +161,8 @@ class LobbyService:
                 user=request.user,
                 username=username,
                 color=participant.color,
-                configuration=room.configuration
+                configuration=room.configuration,
+                is_admin_or_owner=False,
             )
             return participant, livekit_config
 
@@ -180,7 +181,8 @@ class LobbyService:
                 user=request.user,
                 username=username,
                 color=participant.color,
-                configuration=room.configuration
+                configuration=room.configuration,
+                is_admin_or_owner=False,
             )
 
         return participant, livekit_config
