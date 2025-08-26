@@ -20,6 +20,7 @@ import { Checkbox } from './Checkbox'
 import { Select } from './Select'
 import { Text } from './Text'
 import { Div } from './Div'
+import { Switch, type SwitchProps } from './Switch'
 import { css } from '@/styled-system/css'
 
 const FieldWrapper = styled('div', {
@@ -67,6 +68,7 @@ type PartialSelectProps<T extends object> = Omit<
   SelectProps<T>,
   OmittedRACProps
 >
+type PartialSwitchProps = Omit<SwitchProps, OmittedRACProps>
 type FieldProps<T extends object> = (
   | ({
       type: 'text'
@@ -101,6 +103,11 @@ type FieldProps<T extends object> = (
       validate?: (value: T) => ReactNode | ReactNode[] | true | null | undefined
     } & Items<string> &
       PartialSelectProps<T>)
+  | ({
+      type: 'switch'
+      items?: never
+      validate?: never
+    } & PartialSwitchProps)
 ) & {
   label: string
   description?: string
@@ -247,6 +254,34 @@ export const Field = <T extends object>({
           errors={RACFieldErrors}
           items={items}
         />
+      </FieldWrapper>
+    )
+  }
+
+  if (type === 'switch') {
+    return (
+      <FieldWrapper {...props.wrapperProps}>
+        <div
+          className={css({
+            display: 'flex',
+            justifyContent: 'space-between',
+          })}
+        >
+          {label}
+          <Switch aria-label={label} {...(props as PartialSwitchProps)} />
+        </div>
+        {description && (
+          <Text
+            variant="note"
+            wrap={'pretty'}
+            className={css({
+              textStyle: 'sm',
+              marginBottom: '0.5rem',
+            })}
+          >
+            {description}
+          </Text>
+        )}
       </FieldWrapper>
     )
   }
