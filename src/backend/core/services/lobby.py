@@ -89,7 +89,7 @@ class LobbyService:
     @staticmethod
     def _get_or_create_participant_id(request) -> str:
         """Extract unique participant identifier from the request."""
-        return request.COOKIES.get(settings.LOBBY_COOKIE_NAME, uuid.uuid4().hex)
+        return request.COOKIES.get(settings.LOBBY_COOKIE_NAME, str(uuid.uuid4()))
 
     @staticmethod
     def prepare_response(response, participant_id):
@@ -163,6 +163,7 @@ class LobbyService:
                 color=participant.color,
                 configuration=room.configuration,
                 is_admin_or_owner=False,
+                participant_id=participant_id,
             )
             return participant, livekit_config
 
@@ -183,6 +184,7 @@ class LobbyService:
                 color=participant.color,
                 configuration=room.configuration,
                 is_admin_or_owner=False,
+                participant_id=participant_id,
             )
 
         return participant, livekit_config

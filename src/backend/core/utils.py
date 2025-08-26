@@ -56,6 +56,7 @@ def generate_token(
     color: Optional[str] = None,
     sources: Optional[List[str]] = None,
     is_admin_or_owner: bool = False,
+    participant_id: Optional[str] = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -90,7 +91,7 @@ def generate_token(
     )
 
     if user.is_anonymous:
-        identity = str(uuid4())
+        identity = participant_id or str(uuid4())
         default_username = "Anonymous"
     else:
         identity = str(user.sub)
@@ -122,6 +123,7 @@ def generate_livekit_config(
     is_admin_or_owner: bool,
     color: Optional[str] = None,
     configuration: Optional[dict] = None,
+    participant_id: Optional[str] = None,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -149,6 +151,7 @@ def generate_livekit_config(
             color=color,
             sources=sources,
             is_admin_or_owner=is_admin_or_owner,
+            participant_id=participant_id,
         ),
     }
 

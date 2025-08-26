@@ -228,11 +228,11 @@ class ParticipantEntrySerializer(serializers.Serializer):
     allow_entry = serializers.BooleanField(required=True)
 
     def validate_participant_id(self, value):
-        """Validate that the participant_id is a valid UUID hex string."""
+        """Validate that the participant_id is a valid UUID string."""
         try:
-            uuid.UUID(hex=value, version=4)
+            uuid.UUID(value)
         except (ValueError, TypeError) as e:
-            raise serializers.ValidationError("Invalid UUID hex format") from e
+            raise serializers.ValidationError("Invalid UUID format") from e
         return value
 
     def create(self, validated_data):
