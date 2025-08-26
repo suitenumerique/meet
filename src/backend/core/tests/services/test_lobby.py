@@ -144,10 +144,9 @@ def test_get_or_create_participant_id_from_cookie(lobby_service):
     assert participant_id == "existing-id"
 
 
-@mock.patch("uuid.uuid4")
+@mock.patch.object(uuid, "uuid4", return_value="generated-id")
 def test_get_or_create_participant_id_new(mock_uuid4, lobby_service):
     """Test creating new participant ID when cookie is missing."""
-    mock_uuid4.return_value = mock.Mock(hex="generated-id")
     request = mock.Mock()
     request.COOKIES = {}
 
@@ -268,6 +267,7 @@ def test_request_entry_public_room(
         color=participant.color,
         configuration=room.configuration,
         is_admin_or_owner=False,
+        participant_id="test-participant-id",
     )
 
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
@@ -306,6 +306,7 @@ def test_request_entry_trusted_room(
         color=participant.color,
         configuration=room.configuration,
         is_admin_or_owner=False,
+        participant_id="test-participant-id",
     )
 
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
@@ -400,6 +401,7 @@ def test_request_entry_accepted_participant(
         color="#123456",
         configuration=room.configuration,
         is_admin_or_owner=False,
+        participant_id="test-participant-id",
     )
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 

@@ -2,8 +2,6 @@
 
 # pylint: disable=W0223
 
-import uuid
-
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
@@ -222,16 +220,8 @@ class RequestEntrySerializer(BaseValidationOnlySerializer):
 class ParticipantEntrySerializer(BaseValidationOnlySerializer):
     """Validate participant entry decision data."""
 
-    participant_id = serializers.CharField(required=True)
+    participant_id = serializers.UUIDField(required=True)
     allow_entry = serializers.BooleanField(required=True)
-
-    def validate_participant_id(self, value):
-        """Validate that the participant_id is a valid UUID hex string."""
-        try:
-            uuid.UUID(hex=value, version=4)
-        except (ValueError, TypeError) as e:
-            raise serializers.ValidationError("Invalid UUID hex format") from e
-        return value
 
 
 class CreationCallbackSerializer(BaseValidationOnlySerializer):
