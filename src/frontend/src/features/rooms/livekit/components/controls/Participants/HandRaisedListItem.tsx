@@ -4,11 +4,11 @@ import { HStack } from '@/styled-system/jsx'
 import { Text } from '@/primitives/Text'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/Avatar'
+import { useLowerHandParticipant } from '@/features/rooms/api/lowerHandParticipant'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
 import { Participant } from 'livekit-client'
 import { isLocal } from '@/utils/livekit'
 import { RiHand } from '@remixicon/react'
-import { useLowerHandParticipant } from '@/features/rooms/livekit/api/lowerHandParticipant.ts'
 import { Button } from '@/primitives'
 
 type HandRaisedListItemProps = {
