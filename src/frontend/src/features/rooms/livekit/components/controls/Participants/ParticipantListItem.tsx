@@ -18,6 +18,7 @@ import { Button } from '@/primitives'
 import { useState } from 'react'
 import { MuteAlertDialog } from '../../MuteAlertDialog'
 import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
+import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 
 type MicIndicatorProps = {
   participant: Participant
@@ -30,6 +31,8 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
     participant: participant,
     source: Source.Microphone,
   })
+
+  const canMute = useCanMute(participant)
   const isSpeaking = useIsSpeaking(participant)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
   const name = participant.name || participant.identity
@@ -48,7 +51,7 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
         size="sm"
         tooltip={label}
         aria-label={label}
-        isDisabled={isMuted}
+        isDisabled={isMuted || !canMute}
         onPress={() =>
           !isMuted && isLocal(participant)
             ? muteParticipant(participant)
@@ -105,7 +108,7 @@ export const ParticipantListItem = ({
         <Avatar name={name} bgColor={getParticipantColor(participant)} />
         <VStack gap={0} alignItems="start">
           <Text
-            sm
+            variant="sm"
             className={css({
               userSelect: 'none',
               cursor: 'default',

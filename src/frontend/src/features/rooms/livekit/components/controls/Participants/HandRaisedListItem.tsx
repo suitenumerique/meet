@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/Avatar'
 import { useLowerHandParticipant } from '@/features/rooms/api/lowerHandParticipant'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { Participant } from 'livekit-client'
 import { isLocal } from '@/utils/livekit'
 import { RiHand } from '@remixicon/react'
@@ -22,6 +23,7 @@ export const HandRaisedListItem = ({
   const name = participant.name || participant.identity
 
   const { lowerHandParticipant } = useLowerHandParticipant()
+  const isAdminOrOwner = useIsAdminOrOwner()
 
   return (
     <HStack
@@ -67,16 +69,18 @@ export const HandRaisedListItem = ({
           )}
         </Text>
       </HStack>
-      <Button
-        square
-        variant="greyscale"
-        size="sm"
-        onPress={() => lowerHandParticipant(participant)}
-        tooltip={t('participants.lowerParticipantHand', { name })}
-        data-attr="participants-lower-hand"
-      >
-        <RiHand />
-      </Button>
+      {isAdminOrOwner && (
+        <Button
+          square
+          variant="greyscale"
+          size="sm"
+          onPress={() => lowerHandParticipant(participant)}
+          tooltip={t('participants.lowerParticipantHand', { name })}
+          data-attr="participants-lower-hand"
+        >
+          <RiHand />
+        </Button>
+      )}
     </HStack>
   )
 }

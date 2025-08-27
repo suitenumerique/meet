@@ -21,6 +21,7 @@ import { useFullScreen } from '../hooks/useFullScreen'
 import { Participant, Track } from 'livekit-client'
 import { MuteAlertDialog } from './MuteAlertDialog'
 import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
+import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 
 const ZoomButton = ({
   trackRef,
@@ -165,6 +166,8 @@ export const ParticipantTileFocus = ({
   const isScreenShare = trackRef.source == Track.Source.ScreenShare
   const isLocal = trackRef.participant.isLocal
 
+  const canMute = useCanMute(participant)
+
   return (
     <div
       className={css({
@@ -210,7 +213,7 @@ export const ParticipantTileFocus = ({
                 {participant.isLocal ? (
                   <EffectsButton />
                 ) : (
-                  <MuteButton participant={participant} />
+                  canMute && <MuteButton participant={participant} />
                 )}
               </>
             ) : (
