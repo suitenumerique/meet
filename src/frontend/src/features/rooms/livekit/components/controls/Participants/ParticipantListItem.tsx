@@ -1,10 +1,11 @@
 import { css } from '@/styled-system/css'
 
-import { HStack } from '@/styled-system/jsx'
+import { HStack, VStack } from '@/styled-system/jsx'
 import { Text } from '@/primitives/Text'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/Avatar'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
+import { getParticipantIsRoomAdmin } from '@/features/rooms/utils/getParticipantIsRoomAdmin'
 import { Participant, Track } from 'livekit-client'
 import { isLocal } from '@/utils/livekit'
 import {
@@ -102,36 +103,41 @@ export const ParticipantListItem = ({
     >
       <HStack>
         <Avatar name={name} bgColor={getParticipantColor(participant)} />
-        <Text
-          variant={'sm'}
-          className={css({
-            userSelect: 'none',
-            cursor: 'default',
-            display: 'flex',
-          })}
-        >
-          <span
+        <VStack gap={0} alignItems="start">
+          <Text
+            sm
             className={css({
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '120px',
-              display: 'block',
+              userSelect: 'none',
+              cursor: 'default',
+              display: 'flex',
             })}
           >
-            {name}
-          </span>
-          {isLocal(participant) && (
             <span
               className={css({
-                marginLeft: '.25rem',
                 whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '120px',
+                display: 'block',
               })}
             >
-              ({t('participants.you')})
+              {name}
             </span>
+            {isLocal(participant) && (
+              <span
+                className={css({
+                  marginLeft: '.25rem',
+                  whiteSpace: 'nowrap',
+                })}
+              >
+                ({t('participants.you')})
+              </span>
+            )}
+          </Text>
+          {getParticipantIsRoomAdmin(participant) && (
+            <Text variant="xsNote">{t('participants.host')}</Text>
           )}
-        </Text>
+        </VStack>
       </HStack>
       <HStack>
         <MicIndicator participant={participant} />
