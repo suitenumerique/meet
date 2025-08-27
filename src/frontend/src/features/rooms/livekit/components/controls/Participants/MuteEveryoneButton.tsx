@@ -1,38 +1,38 @@
 import { Button } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { Participant } from 'livekit-client'
-import { useLowerHandParticipants } from '@/features/rooms/api/lowerHandParticipants'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
+import { useMuteParticipants } from '@/features/rooms/api/muteParticipants'
+import { RiMicOffLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
-import { RiHand } from '@remixicon/react'
 
-type LowerAllHandsButtonProps = {
+type MuteEveryoneButtonProps = {
   participants: Array<Participant>
 }
 
-export const LowerAllHandsButton = ({
+export const MuteEveryoneButton = ({
   participants,
-}: LowerAllHandsButtonProps) => {
-  const { lowerHandParticipants } = useLowerHandParticipants()
+}: MuteEveryoneButtonProps) => {
+  const { muteParticipants } = useMuteParticipants()
   const { t } = useTranslation('rooms')
 
   const isAdminOrOwner = useIsAdminOrOwner()
-  if (!isAdminOrOwner) return null
+  if (!isAdminOrOwner || !participants.length) return null
 
   return (
     <Button
-      aria-label={t('participants.lowerParticipantsHand')}
+      aria-label={t('participants.muteParticipants')}
       size="sm"
       fullWidth
       variant="tertiary"
-      onPress={() => lowerHandParticipants(participants)}
-      data-attr="participants-lower-hands"
+      onPress={() => muteParticipants(participants)}
+      data-attr="participants-mute"
       className={css({
         marginBottom: '0.5rem',
       })}
     >
-      <RiHand size={16} />
-      {t('participants.lowerParticipantsHand')}
+      <RiMicOffLine size={16} />
+      {t('participants.muteParticipants')}
     </Button>
   )
 }
