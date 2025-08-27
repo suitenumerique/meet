@@ -286,9 +286,7 @@ export const buttonRecipe = cva({
       },
       permission: {
         position: 'relative',
-        // background: 'None !important',
         borderRadius: '100%',
-        // border: 'none !important',
         color: 'amber.500',
         width: 'fit-content',
         height: 'fit-content',
