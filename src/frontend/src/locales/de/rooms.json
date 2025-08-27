@@ -381,6 +381,22 @@
           "description": "Nicht eingeladene Personen müssen um Zugang bitten."
         }
       }
+    },
+    "moderation": {
+      "title": "Moderation des Meetings",
+      "description": "Diese Einstellungen beschränken die Aktionen, die Mitwirkende während des Meetings durchführen können.",
+      "microphone": {
+        "label": "Mikrofon einschalten",
+        "description": ""
+      },
+      "camera": {
+        "label": "Video aktivieren",
+        "description": ""
+      },
+      "screenshare": {
+        "label": "Ihren Bildschirm teilen",
+        "description": "Wenn Sie diese Option deaktivieren, können Teilnehmer ihren Bildschirm nicht mehr teilen, und laufende Bildschirmfreigaben werden sofort beendet."
+      }
     }
   },
   "rating": {

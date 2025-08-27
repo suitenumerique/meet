@@ -381,6 +381,22 @@
           "description": "People who have not been invited to the meeting must request to join."
         }
       }
+    },
+    "moderation": {
+      "title": "Meeting Moderation",
+      "description": "These settings restrict the actions contributors can take during the meeting.",
+      "microphone": {
+        "label": "Turn on microphone",
+        "description": ""
+      },
+      "camera": {
+        "label": "Enable video",
+        "description": ""
+      },
+      "screenshare": {
+        "label": "Share their screen",
+        "description": "Disabling this option will prevent participants from sharing their screen, and any ongoing screen sharing will be stopped immediately."
+      }
     }
   },
   "rating": {
