@@ -381,6 +381,22 @@
           "description": "Personen die niet zijn uitgenodigd voor de vergadering moeten vragen om deel te nemen."
         }
       }
+    },
+    "moderation": {
+      "title": "Moderatie van de vergadering",
+      "description": "Deze instellingen beperken de acties die deelnemers tijdens de vergadering kunnen uitvoeren.",
+      "microphone": {
+        "label": "Microfoon inschakelen",
+        "description": ""
+      },
+      "camera": {
+        "label": "Video inschakelen",
+        "description": ""
+      },
+      "screenshare": {
+        "label": "Hun scherm delen",
+        "description": "Als u deze optie uitschakelt, kunnen deelnemers hun scherm niet meer delen en wordt elke lopende schermdeling onmiddellijk gestopt."
+      }
     }
   },
   "rating": {

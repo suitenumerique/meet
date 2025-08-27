@@ -381,6 +381,22 @@
           "description": "Les personnes qui n'ont pas été invitées à la réunion doivent demander à la rejoindre."
         }
       }
+    },
+    "moderation": {
+      "title": "Modération de la réunion",
+      "description": "Ces paramètres limitent les actions possibles des contributeurs pendant la réunion.",
+      "microphone": {
+        "label": "Allumer le micro",
+        "description": ""
+      },
+      "camera": {
+        "label": "Activer la vidéo",
+        "description": ""
+      },
+      "screenshare": {
+        "label": "Partager leur écran",
+        "description": "En désactivant cette option, les participants ne pourront plus partager leur écran et tout partage en cours sera immédiatement interrompu."
+      }
     }
   },
   "rating": {
