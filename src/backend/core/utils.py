@@ -110,7 +110,9 @@ def generate_token(
         .with_grants(video_grants)
         .with_identity(identity)
         .with_name(username or default_username)
-        .with_metadata(json.dumps({"color": color, "room_admin": is_admin_or_owner}))
+        .with_attributes(
+            {"color": color, "room_admin": "true" if is_admin_or_owner else "false"}
+        )
     )
 
     return token.to_jwt()

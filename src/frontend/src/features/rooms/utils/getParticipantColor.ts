@@ -10,31 +10,16 @@ function isValidHsl(colorString: string) {
 }
 
 export const getParticipantColor = (participant: Participant): string => {
-  const { metadata } = participant
+  const attributes = participant.attributes
 
-  if (!metadata) {
+  if (!attributes?.color) {
     return DEFAULT_COLOR
   }
 
-  let parsedMetadata: unknown
-
-  try {
-    parsedMetadata = JSON.parse(metadata)
-  } catch (error) {
-    console.error('Invalid JSON in participant metadata:', error)
+  if (!isValidHsl(attributes.color)) {
+    console.warn('Invalid color value:', attributes.color)
     return DEFAULT_COLOR
   }
 
-  if (!parsedMetadata || typeof parsedMetadata !== 'object') {
-    return DEFAULT_COLOR
-  }
-
-  const colorValue = (parsedMetadata as Record<string, unknown>)['color']
-
-  if (typeof colorValue !== 'string' || !isValidHsl(colorValue)) {
-    console.error('Invalid color value:', colorValue)
-    return DEFAULT_COLOR
-  }
-
-  return colorValue
+  return attributes.color
 }
