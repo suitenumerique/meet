@@ -19,6 +19,6 @@ export type ApiRoom = {
   access_level: ApiAccessLevel
   livekit?: ApiLiveKit
   configuration?: {
-    [key: string]: string | number | boolean
+    [key: string]: string | number | boolean | string[]
   }
 }
