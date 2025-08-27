@@ -426,6 +426,7 @@
   "participants": {
     "subheading": "Im Raum",
     "you": "Du",
+    "host": "Host",
     "contributors": "Mitwirkende",
     "collapsable": {
       "open": "{{name}}-Liste öffnen",

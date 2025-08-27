@@ -427,6 +427,7 @@
     "subheading": "Dans la réunion",
     "you": "Vous",
     "contributors": "Contributeurs",
+    "host": "Organisateur de la réunion",
     "collapsable": {
       "open": "Ouvrir la liste {{name}}",
       "close": "Fermer la liste {{name}}"
