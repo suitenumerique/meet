@@ -443,6 +443,7 @@
     "raisedHands": "Raised hands",
     "lowerParticipantHand": "Lower {{name}}'s hand",
     "lowerParticipantsHand": "Lower all hands",
+    "muteParticipants": "Mute all microphones",
     "waiting": {
       "title": "Lobby",
       "accept": {

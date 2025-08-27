@@ -443,6 +443,7 @@
     "raisedHands": "Meldungen",
     "lowerParticipantHand": "{{name}}’s Hand senken",
     "lowerParticipantsHand": "Alle Hände senken",
+    "muteParticipants": "Alle Mikrofone stummschalten",
     "waiting": {
       "title": "Warteraum",
       "accept": {

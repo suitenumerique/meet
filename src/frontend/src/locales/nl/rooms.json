@@ -443,6 +443,7 @@
     "raisedHands": "Opgestoken handen",
     "lowerParticipantHand": "Laat {{name}}'s hand zakken",
     "lowerParticipantsHand": "Laat alle handen zakken",
+    "muteParticipants": "Alle microfoons dempen",
     "waiting": {
       "title": "Wachtkamer",
       "accept": {
