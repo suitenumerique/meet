@@ -442,7 +442,8 @@
     },
     "raisedHands": "Mains levées",
     "lowerParticipantHand": "Baisser la main de {{name}}",
-    "lowerParticipantsHand": "Baisser la main de tous les participants",
+    "lowerParticipantsHand": "Baisser toutes les mains",
+    "muteParticipants": "Couper tous les micros",
     "waiting": {
       "title": "Salle d'attente",
       "accept": {
