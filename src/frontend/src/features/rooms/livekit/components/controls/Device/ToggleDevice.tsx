@@ -27,6 +27,7 @@ type ToggleDeviceStyleProps = {
 
 export type ToggleDeviceProps<T extends ToggleSource> = {
   enabled: boolean
+  isDisabled?: boolean
   toggle: (
     forceState?: boolean,
     captureOptions?: CaptureOptionsBySource<T>
@@ -39,6 +40,7 @@ export type ToggleDeviceProps<T extends ToggleSource> = {
 export const ToggleDevice = <T extends ToggleSource>({
   kind,
   enabled,
+  isDisabled,
   toggle,
   context = 'room',
   overrideToggleButtonProps,
@@ -105,7 +107,9 @@ export const ToggleDevice = <T extends ToggleSource>({
   }, [enabled, kind, deviceShortcut, t])
 
   const Icon =
-    enabled && !cannotUseDevice ? deviceIcons.toggleOn : deviceIcons.toggleOff
+    isDisabled || cannotUseDevice || !enabled
+      ? deviceIcons.toggleOff
+      : deviceIcons.toggleOn
 
   const roomContext = useMaybeRoomContext()
   if (kind === 'audioinput' && pushToTalk && roomContext) {
@@ -117,7 +121,10 @@ export const ToggleDevice = <T extends ToggleSource>({
       {cannotUseDevice && <PermissionNeededButton />}
       <ToggleButton
         isSelected={!enabled}
-        variant={enabled && !cannotUseDevice ? variant : errorVariant}
+        isDisabled={isDisabled}
+        variant={
+          isDisabled || cannotUseDevice || !enabled ? errorVariant : variant
+        }
         shySelected
         onPress={() => (cannotUseDevice ? openPermissionsDialog() : toggle())}
         aria-label={toggleLabel}

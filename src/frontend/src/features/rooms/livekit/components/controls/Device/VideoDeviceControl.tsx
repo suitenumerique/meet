@@ -7,6 +7,7 @@ import { Track, VideoCaptureOptions } from 'livekit-client'
 import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
+import { useCanPublishTrack } from '../../../hooks/useCanPublishTrack'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useSidePanel } from '../../../hooks/useSidePanel'
 import { BackgroundProcessorFactory } from '../../blur'
@@ -15,6 +16,7 @@ import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
+import { TrackSource } from '@livekit/protocol'
 
 const EffectsButton = ({ onPress }: { onPress: () => void }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
@@ -95,6 +97,7 @@ export const VideoDeviceControl = ({
   }
 
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.VIDEO}`)
+  const canPublishTrack = useCanPublishTrack(TrackSource.CAMERA)
 
   return (
     <div
@@ -105,6 +108,7 @@ export const VideoDeviceControl = ({
     >
       <ToggleDevice
         {...trackProps}
+        isDisabled={!canPublishTrack}
         kind={kind}
         toggle={toggleWithProcessor}
         overrideToggleButtonProps={{
@@ -123,7 +127,9 @@ export const VideoDeviceControl = ({
             groupPosition="right"
             square
             variant={
-              trackProps.enabled && !cannotUseDevice ? 'primaryDark' : 'error2'
+              !canPublishTrack || !trackProps.enabled || cannotUseDevice
+                ? 'error2'
+                : 'primaryDark'
             }
           >
             <RiArrowUpSLine />
