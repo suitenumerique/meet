@@ -75,6 +75,7 @@ export const HandRaisedListItem = ({
           variant="greyscale"
           size="sm"
           onPress={() => lowerHandParticipant(participant)}
+          aria-label={t('participants.lowerParticipantHand', { name })}
           tooltip={t('participants.lowerParticipantHand', { name })}
           data-attr="participants-lower-hand"
         >
