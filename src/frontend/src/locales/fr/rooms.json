@@ -456,6 +456,21 @@
         "label": "Refuser {{name}} dans la réunion",
         "all": "Tout rejeter"
       }
+    },
+    "moreOptions": "Plus d'options"
+  },
+  "participantMenu": {
+    "remove": {
+      "label": "Exclure de l'appel",
+      "ariaLabel": "Exclure {{name}} de l'appel"
+    },
+    "unpin": {
+      "label": "Désépingler",
+      "ariaLabel": "Désépingler {{name}}"
+    },
+    "pin": {
+      "label": "Épingler",
+      "ariaLabel": "Épingler {{name}}"
     }
   },
   "recordingStateToast": {

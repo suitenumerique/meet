@@ -456,6 +456,21 @@
         "label": "{{name}} weigeren voor de vergadering",
         "all": "Alles weigeren"
       }
+    },
+    "moreOptions": "Meer opties"
+  },
+  "participantMenu": {
+    "remove": {
+      "label": "Van het gesprek uitsluiten",
+      "ariaLabel": "{{name}} van het gesprek uitsluiten"
+    },
+    "unpin": {
+      "label": "Losmaken",
+      "ariaLabel": "Maak {{name}} los"
+    },
+    "pin": {
+      "label": "Pinnen",
+      "ariaLabel": "Maak {{name}} vast"
     }
   },
   "recordingStateToast": {

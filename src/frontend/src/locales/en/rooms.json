@@ -456,6 +456,21 @@
         "label": "Deny {{name}} from the meeting",
         "all": "Deny all"
       }
+    },
+    "moreOptions": "More options"
+  },
+  "participantMenu": {
+    "remove": {
+      "label": "Remove from the call",
+      "ariaLabel": "Remove {{name}} from the call"
+    },
+    "unpin": {
+      "label": "Unpin",
+      "ariaLabel": "Unpin {{name}}"
+    },
+    "pin": {
+      "label": "Pin",
+      "ariaLabel": "Pin {{name}}"
     }
   },
   "recordingStateToast": {

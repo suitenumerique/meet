@@ -456,6 +456,21 @@
         "label": "{{name}} vom Meeting ablehnen",
         "all": "Alle ablehnen"
       }
+    },
+    "moreOptions": "Weitere Optionen"
+  },
+  "participantMenu": {
+    "remove": {
+      "label": "Vom Anruf ausschließen",
+      "ariaLabel": "{{name}} vom Anruf ausschließen"
+    },
+    "unpin": {
+      "label": "Lösen",
+      "ariaLabel": "Löse {{name}}"
+    },
+    "pin": {
+      "label": "Anheften",
+      "ariaLabel": "Hefte {{name}} an"
     }
   },
   "recordingStateToast": {
