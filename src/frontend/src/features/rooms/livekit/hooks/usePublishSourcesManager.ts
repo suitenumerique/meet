@@ -10,6 +10,10 @@ import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
 import { getParticipantIsRoomAdmin } from '@/features/rooms/utils/getParticipantIsRoomAdmin'
 import Source = Track.Source
+import {
+  NotificationType,
+  useNotifyParticipants,
+} from '@/features/notifications'
 
 export const updatePublishSources = (
   currentSources: Source[],
@@ -32,6 +36,8 @@ export const usePublishSourcesManager = () => {
   const data = useRoomData()
   const { data: configData } = useConfig()
   const configuration = data?.configuration
+
+  const { notifyParticipants } = useNotifyParticipants()
 
   const defaultSources = configData?.livekit?.default_sources?.map((source) => {
     return source as Source
@@ -87,6 +93,25 @@ export const usePublishSourcesManager = () => {
           newSources
         )
 
+        if (!enabled) {
+          /*
+           * We can't rely solely on the ParticipantPermissionsChanged event here,
+           * because for local participants it is emitted twice (once from Participant, once from LocalParticipant).
+           * livekit/client-sdk-js/issues/1637
+           * */
+          await notifyParticipants({
+            type: NotificationType.PermissionsRemoved,
+            destinationIdentities: unprivilegedRemoteParticipants.map(
+              (p) => p.identity
+            ),
+            additionalData: {
+              data: {
+                removedSources: sources,
+              },
+            },
+          })
+        }
+
         return { configuration: newConfiguration }
       } catch (error) {
         console.error(`Failed to update ${sources}:`, error)
@@ -94,6 +119,7 @@ export const usePublishSourcesManager = () => {
       }
     },
     [
+      notifyParticipants,
       configuration,
       currentSources,
       roomId,

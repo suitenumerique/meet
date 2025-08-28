@@ -11,6 +11,7 @@ import { ToastMessageReceived } from './ToastMessageReceived'
 import { ToastLowerHand } from './ToastLowerHand'
 import { ToastAnyRecording } from './ToastAnyRecording'
 import { ToastRecordingSaving } from './ToastRecordingSaving'
+import { ToastPermissionsRemoved } from './ToastPermissionsRemoved'
 
 interface ToastRegionProps extends AriaToastRegionProps {
   state: ToastState<ToastData>
@@ -29,6 +30,11 @@ const renderToast = (
 
     case NotificationType.ParticipantMuted:
       return <ToastMuted key={toast.key} toast={toast} state={state} />
+
+    case NotificationType.PermissionsRemoved:
+      return (
+        <ToastPermissionsRemoved key={toast.key} toast={toast} state={state} />
+      )
 
     case NotificationType.MessageReceived:
       return (

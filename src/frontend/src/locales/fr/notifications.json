@@ -16,6 +16,11 @@
   "reaction": {
     "description": "{{name}} a reagi avec {{emoji}}"
   },
+  "permissionsRemoved": {
+    "camera": "L'organisateur a désactivé la vidéo de tous les participants.",
+    "microphone": "L'organisateur a désactivé le micro de tous les participants.",
+    "screen_share": "L'organisateur a désactivé le partage d'écran de tous les participants."
+  },
   "waitingParticipants": {
     "one": "Une personne souhaite participer à cet appel.",
     "several": "Plusieurs personnes souhaitent participer à cet appel.",
