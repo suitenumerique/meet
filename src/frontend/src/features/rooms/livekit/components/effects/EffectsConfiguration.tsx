@@ -37,12 +37,14 @@ const Information = styled('div', {
 })
 
 export type EffectsConfigurationProps = {
+  isDisabled?: boolean
   videoTrack: LocalVideoTrack
   onSubmit?: (processor?: BackgroundProcessorInterface) => void
   layout?: 'vertical' | 'horizontal'
 }
 
 export const EffectsConfiguration = ({
+  isDisabled,
   videoTrack,
   onSubmit,
   layout = 'horizontal',
@@ -214,7 +216,7 @@ export const EffectsConfiguration = ({
                 marginBottom: 0,
               }}
             >
-              {t('activateCamera')}
+              {t(isDisabled ? 'cameraDisabled' : 'activateCamera')}
             </P>
           </div>
         )}
@@ -276,7 +278,7 @@ export const EffectsConfiguration = ({
                     await clearEffect()
                   }}
                   isSelected={!getProcessor()}
-                  isDisabled={processorPendingReveal}
+                  isDisabled={processorPendingReveal || isDisabled}
                 >
                   <RiProhibited2Line />
                 </ToggleButton>
@@ -288,7 +290,7 @@ export const EffectsConfiguration = ({
                   tooltip={tooltipLabel(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.LIGHT,
                   })}
-                  isDisabled={processorPendingReveal}
+                  isDisabled={processorPendingReveal || isDisabled}
                   onChange={async () =>
                     await toggleEffect(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.LIGHT,
@@ -309,7 +311,7 @@ export const EffectsConfiguration = ({
                   tooltip={tooltipLabel(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.NORMAL,
                   })}
-                  isDisabled={processorPendingReveal}
+                  isDisabled={processorPendingReveal || isDisabled}
                   onChange={async () =>
                     await toggleEffect(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.NORMAL,
@@ -357,7 +359,7 @@ export const EffectsConfiguration = ({
                         tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
                           imagePath,
                         })}
-                        isDisabled={processorPendingReveal}
+                        isDisabled={processorPendingReveal || isDisabled}
                         onChange={async () =>
                           await toggleEffect(ProcessorType.VIRTUAL, {
                             imagePath,
