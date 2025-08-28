@@ -14,7 +14,7 @@ export const MutedMicIndicator = ({
     source: Source.Microphone,
   })
 
-  if (!isMuted) {
+  if (!isMuted && participant.isMicrophoneEnabled) {
     return null
   }
 
