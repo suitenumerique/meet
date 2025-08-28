@@ -8,6 +8,7 @@ import { useRemoteParticipants } from '@livekit/components-react'
 import { useUpdateParticipantsPermissions } from '@/features/rooms/api/updateParticipantsPermissions'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
+import { getParticipantIsRoomAdmin } from '@/features/rooms/utils/getParticipantIsRoomAdmin'
 import Source = Track.Source
 
 export const updatePublishSources = (
@@ -42,7 +43,9 @@ export const usePublishSourcesManager = () => {
   const { updateParticipantsPermissions } = useUpdateParticipantsPermissions()
   const remoteParticipants = useRemoteParticipants()
 
-  // todo - filter, update only contributors and not admin
+  const unprivilegedRemoteParticipants = remoteParticipants.filter(
+    (participant) => !getParticipantIsRoomAdmin(participant)
+  )
 
   const currentSources = useMemo(() => {
     if (
@@ -79,7 +82,10 @@ export const usePublishSourcesManager = () => {
 
         queryClient.setQueryData([keys.room, roomId], room)
 
-        await updateParticipantsPermissions(remoteParticipants, newSources)
+        await updateParticipantsPermissions(
+          unprivilegedRemoteParticipants,
+          newSources
+        )
 
         return { configuration: newConfiguration }
       } catch (error) {
@@ -92,7 +98,7 @@ export const usePublishSourcesManager = () => {
       currentSources,
       roomId,
       patchRoom,
-      remoteParticipants,
+      unprivilegedRemoteParticipants,
       updateParticipantsPermissions,
     ]
   )
