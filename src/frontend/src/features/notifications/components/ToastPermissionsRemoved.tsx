@@ -5,7 +5,10 @@ import { StyledToastContainer, ToastProps } from './Toast'
 import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 
-export function ToastPermissionsRemoved({ state, ...props }: ToastProps) {
+export function ToastPermissionsRemoved({
+  state,
+  ...props
+}: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications', {
     keyPrefix: 'permissionsRemoved',
   })

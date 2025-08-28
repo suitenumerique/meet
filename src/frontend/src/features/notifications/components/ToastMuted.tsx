@@ -5,7 +5,7 @@ import { StyledToastContainer, ToastProps } from './Toast'
 import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 
-export function ToastMuted({ state, ...props }: ToastProps) {
+export function ToastMuted({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
   const ref = useRef(null)
   const { toastProps, contentProps } = useToast(props, state, ref)

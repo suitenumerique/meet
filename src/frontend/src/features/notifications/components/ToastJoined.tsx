@@ -19,7 +19,7 @@ const ClickableToast = styled(RACButton, {
   },
 })
 
-export function ToastJoined({ state, ...props }: ToastProps) {
+export function ToastJoined({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
   const ref = useRef(null)
   const { toastProps, contentProps, titleProps, closeButtonProps } = useToast(

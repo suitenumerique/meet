@@ -9,7 +9,10 @@ import { Button as RACButton } from 'react-aria-components'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 
-export function ToastMessageReceived({ state, ...props }: ToastProps) {
+export function ToastMessageReceived({
+  state,
+  ...props
+}: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
   const ref = useRef(null)
   const { toastProps } = useToast(props, state, ref)
