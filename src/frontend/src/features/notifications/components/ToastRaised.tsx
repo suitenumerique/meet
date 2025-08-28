@@ -9,7 +9,7 @@ import { RiCloseLine, RiHand } from '@remixicon/react'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { css } from '@/styled-system/css'
 
-export function ToastRaised({ state, ...props }: ToastProps) {
+export function ToastRaised({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
   const ref = useRef(null)
   const { toastProps, contentProps, titleProps, closeButtonProps } = useToast(

@@ -38,7 +38,7 @@ export interface ToastProps {
   state: ToastState<ToastData>
 }
 
-export function Toast({ state, ...props }: ToastProps) {
+export function Toast({ state, ...props }: Readonly<ToastProps>) {
   const ref = useRef(null)
   const { toastProps, contentProps, closeButtonProps } = useToast(
     props,
