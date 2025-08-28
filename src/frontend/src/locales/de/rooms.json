@@ -213,6 +213,7 @@
   },
   "effects": {
     "activateCamera": "Ihre Kamera ist deaktiviert. Wählen Sie eine Option, um sie zu aktivieren.",
+    "cameraDisabled": "Ihre Kamera ist deaktiviert.",
     "notAvailable": "Videoeffekte werden bald in Ihrem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit können Sie Google Chrome für die beste Leistung oder Firefox verwenden :(",
     "heading": "Unschärfe",
     "clear": "Effekt deaktivieren",

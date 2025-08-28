@@ -213,6 +213,7 @@
   },
   "effects": {
     "activateCamera": "Votre caméra est désactivée. Choisissez une option pour l'activer.",
+    "cameraDisabled": "Votre caméra est désactivée.",
     "notAvailable": "Les effets vidéo seront bientôt disponibles sur votre navigateur. Nous y travaillons ! En attendant, vous pouvez utiliser Google Chrome pour de meilleures performances ou Firefox :(",
     "heading": "Flou",
     "clear": "Désactiver l'effect",
