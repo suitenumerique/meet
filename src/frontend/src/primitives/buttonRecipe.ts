@@ -144,6 +144,10 @@ export const buttonRecipe = cva({
         backgroundColor: 'primaryDark.100',
         fontWeight: 'medium !important',
         color: 'white',
+        '&[data-disabled]': {
+          backgroundColor: 'primaryDark.75 !important',
+          color: 'primaryDark.300 !important',
+        },
         '&[data-pressed]': {
           backgroundColor: 'primaryDark.900',
           color: 'primaryDark.100',
@@ -247,8 +251,8 @@ export const buttonRecipe = cva({
           color: 'error.100 !important',
         },
         '&[data-disabled]': {
-          backgroundColor: 'error.200',
-          color: 'error.300',
+          backgroundColor: 'error.200 !important',
+          color: 'error.300 !important',
         },
       },
       errorCircle: {
