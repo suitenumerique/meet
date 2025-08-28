@@ -16,6 +16,11 @@
   "reaction": {
     "description": "{{name}} reacted with {{emoji}}"
   },
+  "permissionsRemoved": {
+    "camera": "The host has disabled video for all participants.",
+    "microphone": "The host has disabled the microphone for all participants.",
+    "screen_share": "The host has disabled screen sharing for all participants."
+  },
   "waitingParticipants": {
     "one": "One person wants to join this call.",
     "several": "Several people want to join this call.",

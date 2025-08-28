@@ -16,6 +16,11 @@
   "reaction": {
     "description": "{{name}} reageerde met {{emoji}}"
   },
+  "permissionsRemoved": {
+    "camera": "De organisator heeft de video voor alle deelnemers uitgeschakeld.",
+    "microphone": "De organisator heeft de microfoon voor alle deelnemers uitgeschakeld.",
+    "screen_share": "De organisator heeft het schermdelen voor alle deelnemers uitgeschakeld."
+  },
   "waitingParticipants": {
     "one": "Eén persoon wil deelnemen aan dit gesprek.",
     "several": "Meerdere mensen willen deelnemen aan dit gesprek.",

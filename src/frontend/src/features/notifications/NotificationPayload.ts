@@ -4,5 +4,6 @@ export interface NotificationPayload {
   type: NotificationType
   data?: {
     emoji?: string
+    removedSources?: string[]
   }
 }
