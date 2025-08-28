@@ -19,6 +19,7 @@ import { useState } from 'react'
 import { MuteAlertDialog } from '../../MuteAlertDialog'
 import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
+import { ParticipantMenuButton } from '../../ParticipantMenu/ParticipantMenuButton'
 
 type MicIndicatorProps = {
   participant: Participant
@@ -144,6 +145,7 @@ export const ParticipantListItem = ({
       </HStack>
       <HStack>
         <MicIndicator participant={participant} />
+        <ParticipantMenuButton participant={participant} />
       </HStack>
     </HStack>
   )
