@@ -2,20 +2,13 @@ import { Track } from 'livekit-client'
 import { useCallback, useMemo } from 'react'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
+import { useConfig } from '@/api/useConfig'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { useRemoteParticipants } from '@livekit/components-react'
 import { useUpdateParticipantsPermissions } from '@/features/rooms/api/updateParticipantsPermissions'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
 import Source = Track.Source
-
-// todo - synchronisation with backend
-export const DEFAULT_PUBLISH_SOURCES: Array<Source> = [
-  Source.Microphone,
-  Source.Camera,
-  Source.ScreenShare,
-  Source.ScreenShareAudio,
-]
 
 export const updatePublishSources = (
   currentSources: Source[],
@@ -36,7 +29,12 @@ export const usePublishSourcesManager = () => {
   const { mutateAsync: patchRoom } = usePatchRoom()
 
   const data = useRoomData()
+  const { data: configData } = useConfig()
   const configuration = data?.configuration
+
+  const defaultSources = configData?.livekit?.default_sources?.map((source) => {
+    return source as Source
+  })
 
   // The name can be misleading—use the slug instead to ensure the correct React Query key is updated.
   const roomId = data?.slug
@@ -51,16 +49,16 @@ export const usePublishSourcesManager = () => {
       configuration?.can_publish_sources == undefined ||
       !Array.isArray(configuration?.can_publish_sources)
     ) {
-      return DEFAULT_PUBLISH_SOURCES
+      return defaultSources
     }
     return configuration.can_publish_sources.map((source) => {
       return source as Source
     })
-  }, [configuration?.can_publish_sources])
+  }, [defaultSources, configuration?.can_publish_sources])
 
   const updateSource = useCallback(
     async (sources: Source[], enabled: boolean) => {
-      if (!roomId) return
+      if (!roomId || currentSources == undefined) return
 
       try {
         const newSources = updatePublishSources(

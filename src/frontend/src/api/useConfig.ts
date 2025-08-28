@@ -41,6 +41,7 @@ export interface ApiConfig {
     url: string
     force_wss_protocol: boolean
     enable_firefox_proxy_workaround: boolean
+    default_sources: string[]
   }
 }
 
