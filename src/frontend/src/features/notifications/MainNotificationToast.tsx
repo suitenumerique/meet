@@ -104,6 +104,19 @@ export const MainNotificationToast = () => {
             { timeout: NotificationDuration.ALERT }
           )
           break
+        case NotificationType.PermissionsRemoved: {
+          const removedSources = notification?.data?.removedSources
+          if (!removedSources?.length) break
+          toastQueue.add(
+            {
+              participant,
+              type: notification.type,
+              removedSources: removedSources,
+            },
+            { timeout: NotificationDuration.ALERT }
+          )
+          break
+        }
         default:
           return
       }
