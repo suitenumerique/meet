@@ -21,7 +21,7 @@ export const useMuteParticipant = () => {
     )?.trackSid
 
     if (!trackSid) {
-      throw new Error('Missing audio track')
+      return
     }
 
     try {
