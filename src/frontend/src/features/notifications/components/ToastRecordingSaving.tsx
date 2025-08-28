@@ -9,7 +9,10 @@ import { useUser } from '@/features/auth'
 import { css } from '@/styled-system/css'
 import { RecordingMode } from '@/features/recording'
 
-export function ToastRecordingSaving({ state, ...props }: ToastProps) {
+export function ToastRecordingSaving({
+  state,
+  ...props
+}: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications', { keyPrefix: 'recordingSave' })
   const ref = useRef(null)
   const { toastProps, contentProps } = useToast(props, state, ref)
