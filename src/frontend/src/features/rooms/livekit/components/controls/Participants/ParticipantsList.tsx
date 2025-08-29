@@ -75,7 +75,7 @@ export const ParticipantsList = () => {
                 onAction={handleParticipantEntry}
               />
             )}
-            action={() => <></>}
+            action={<></>}
           />
         </Div>
       )}
@@ -90,9 +90,9 @@ export const ParticipantsList = () => {
                 participant={participant}
               />
             )}
-            action={() => (
+            action={
               <LowerAllHandsButton participants={raisedHandParticipants} />
-            )}
+            }
           />
         </Div>
       )}
@@ -105,9 +105,7 @@ export const ParticipantsList = () => {
             participant={participant}
           />
         )}
-        action={() => (
-          <MuteEveryoneButton participants={sortedRemoteParticipants} />
-        )}
+        action={<MuteEveryoneButton participants={sortedRemoteParticipants} />}
       />
     </Div>
   )
