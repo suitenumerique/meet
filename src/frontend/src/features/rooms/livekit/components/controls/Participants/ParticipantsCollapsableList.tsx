@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 import { css } from '@/styled-system/css'
 import { ToggleButton } from 'react-aria-components'
 import { HStack, styled, VStack } from '@/styled-system/jsx'
@@ -51,7 +51,7 @@ export type ParticipantsCollapsableListProps<T> = {
   heading: string
   participants: Array<T>
   renderParticipant: (participant: T) => JSX.Element
-  action?: () => JSX.Element
+  action?: ReactNode
 }
 
 export function ParticipantsCollapsableList<T>({
@@ -101,7 +101,7 @@ export function ParticipantsCollapsableList<T>({
       </ToggleHeader>
       {isOpen && (
         <ListContainer>
-          {action && action()}
+          {action}
           {participants.map((participant) => renderParticipant(participant))}
         </ListContainer>
       )}
