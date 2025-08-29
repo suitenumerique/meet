@@ -11,6 +11,7 @@ import { WaitingParticipantListItem } from './WaitingParticipantListItem'
 import { useWaitingParticipants } from '@/features/rooms/hooks/useWaitingParticipants'
 import { Participant } from 'livekit-client'
 import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
+import { MuteEveryoneButton } from './MuteEveryoneButton'
 
 // TODO: Optimize rendering performance, especially for longer participant lists, even though they are generally short.
 export const ParticipantsList = () => {
@@ -74,7 +75,7 @@ export const ParticipantsList = () => {
                 onAction={handleParticipantEntry}
               />
             )}
-            action={() => <></>}
+            action={<></>}
           />
         </Div>
       )}
@@ -89,9 +90,9 @@ export const ParticipantsList = () => {
                 participant={participant}
               />
             )}
-            action={() => (
+            action={
               <LowerAllHandsButton participants={raisedHandParticipants} />
-            )}
+            }
           />
         </Div>
       )}
@@ -104,6 +105,7 @@ export const ParticipantsList = () => {
             participant={participant}
           />
         )}
+        action={<MuteEveryoneButton participants={sortedRemoteParticipants} />}
       />
     </Div>
   )

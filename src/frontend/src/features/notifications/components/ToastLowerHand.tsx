@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/primitives'
 import { css } from '@/styled-system/css'
 
-export function ToastLowerHand({ state, ...props }: ToastProps) {
+export function ToastLowerHand({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications', { keyPrefix: 'lowerHand' })
   const ref = useRef(null)
   const { toastProps, contentProps } = useToast(props, state, ref)

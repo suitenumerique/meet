@@ -1,5 +1,5 @@
 import { Participant } from 'livekit-client'
-import { useLowerHandParticipant } from '@/features/rooms/livekit/api/lowerHandParticipant'
+import { useLowerHandParticipant } from './lowerHandParticipant'
 
 export const useLowerHandParticipants = () => {
   const { lowerHandParticipant } = useLowerHandParticipant()

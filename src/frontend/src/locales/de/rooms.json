@@ -209,6 +209,7 @@
   },
   "effects": {
     "activateCamera": "Ihre Kamera ist deaktiviert. Wählen Sie eine Option, um sie zu aktivieren.",
+    "cameraDisabled": "Ihre Kamera ist deaktiviert.",
     "notAvailable": "Videoeffekte werden bald in Ihrem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit können Sie Google Chrome für die beste Leistung oder Firefox verwenden :(",
     "heading": "Unschärfe",
     "clear": "Effekt deaktivieren",
@@ -377,6 +378,22 @@
           "description": "Nicht eingeladene Personen müssen um Zugang bitten."
         }
       }
+    },
+    "moderation": {
+      "title": "Moderation des Meetings",
+      "description": "Diese Einstellungen beschränken die Aktionen, die Mitwirkende während des Meetings durchführen können.",
+      "microphone": {
+        "label": "Mikrofon einschalten",
+        "description": ""
+      },
+      "camera": {
+        "label": "Video aktivieren",
+        "description": ""
+      },
+      "screenshare": {
+        "label": "Ihren Bildschirm teilen",
+        "description": "Wenn Sie diese Option deaktivieren, können Teilnehmer ihren Bildschirm nicht mehr teilen, und laufende Bildschirmfreigaben werden sofort beendet."
+      }
     }
   },
   "rating": {
@@ -406,6 +423,7 @@
   "participants": {
     "subheading": "Im Raum",
     "you": "Du",
+    "host": "Host",
     "contributors": "Mitwirkende",
     "collapsable": {
       "open": "{{name}}-Liste öffnen",
@@ -422,6 +440,7 @@
     "raisedHands": "Meldungen",
     "lowerParticipantHand": "{{name}}’s Hand senken",
     "lowerParticipantsHand": "Alle Hände senken",
+    "muteParticipants": "Alle Mikrofone stummschalten",
     "waiting": {
       "title": "Warteraum",
       "accept": {
@@ -434,6 +453,21 @@
         "label": "{{name}} vom Meeting ablehnen",
         "all": "Alle ablehnen"
       }
+    },
+    "moreOptions": "Weitere Optionen"
+  },
+  "participantMenu": {
+    "remove": {
+      "label": "Vom Anruf ausschließen",
+      "ariaLabel": "{{name}} vom Anruf ausschließen"
+    },
+    "unpin": {
+      "label": "Lösen",
+      "ariaLabel": "Löse {{name}}"
+    },
+    "pin": {
+      "label": "Anheften",
+      "ariaLabel": "Hefte {{name}} an"
     }
   },
   "recordingStateToast": {

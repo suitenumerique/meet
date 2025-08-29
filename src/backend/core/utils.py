@@ -2,12 +2,13 @@
 Utils functions used in the core app
 """
 
-# ruff: noqa:S311
+# pylint: disable=R0913, R0917
+# ruff: noqa:S311, PLR0913
 
 import hashlib
 import json
 import random
-from typing import Optional
+from typing import List, Optional
 from uuid import uuid4
 
 from django.conf import settings
@@ -49,7 +50,13 @@ def generate_color(identity: str) -> str:
 
 
 def generate_token(
-    room: str, user, username: Optional[str] = None, color: Optional[str] = None
+    room: str,
+    user,
+    username: Optional[str] = None,
+    color: Optional[str] = None,
+    sources: Optional[List[str]] = None,
+    is_admin_or_owner: bool = False,
+    participant_id: Optional[str] = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -60,25 +67,31 @@ def generate_token(
                          If none, a default value will be used.
         color (Optional[str]): The color to be displayed in the room.
                          If none, a value will be generated
+        sources: (Optional[List[str]]): List of media sources the user can publish
+                         If none, defaults to LIVEKIT_DEFAULT_SOURCES.
+        is_admin_or_owner (bool): WIP
 
     Returns:
         str: The LiveKit JWT access token.
     """
+
+    if is_admin_or_owner:
+        sources = settings.LIVEKIT_DEFAULT_SOURCES
+
+    if sources is None:
+        sources = settings.LIVEKIT_DEFAULT_SOURCES
+
     video_grants = VideoGrants(
         room=room,
         room_join=True,
-        room_admin=True,
+        room_admin=is_admin_or_owner,
         can_update_own_metadata=True,
-        can_publish_sources=[
-            "camera",
-            "microphone",
-            "screen_share",
-            "screen_share_audio",
-        ],
+        can_publish=bool(len(sources)),
+        can_publish_sources=sources,
     )
 
     if user.is_anonymous:
-        identity = str(uuid4())
+        identity = participant_id or str(uuid4())
         default_username = "Anonymous"
     else:
         identity = str(user.sub)
@@ -95,14 +108,22 @@ def generate_token(
         .with_grants(video_grants)
         .with_identity(identity)
         .with_name(username or default_username)
-        .with_metadata(json.dumps({"color": color}))
+        .with_attributes(
+            {"color": color, "room_admin": "true" if is_admin_or_owner else "false"}
+        )
     )
 
     return token.to_jwt()
 
 
 def generate_livekit_config(
-    room_id: str, user, username: str, color: Optional[str] = None
+    room_id: str,
+    user,
+    username: str,
+    is_admin_or_owner: bool,
+    color: Optional[str] = None,
+    configuration: Optional[dict] = None,
+    participant_id: Optional[str] = None,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -110,15 +131,27 @@ def generate_livekit_config(
         room_id: Room identifier
         user: User instance requesting access
         username: Display name in room
+        configuration (Optional[dict]): room configuration dict that can override default settings.
 
     Returns:
         dict: LiveKit configuration with URL, room and access token
     """
+
+    sources = None
+    if configuration is not None:
+        sources = configuration.get("can_publish_sources", None)
+
     return {
         "url": settings.LIVEKIT_CONFIGURATION["url"],
         "room": room_id,
         "token": generate_token(
-            room=room_id, user=user, username=username, color=color
+            room=room_id,
+            user=user,
+            username=username,
+            color=color,
+            sources=sources,
+            is_admin_or_owner=is_admin_or_owner,
+            participant_id=participant_id,
         ),
     }
 

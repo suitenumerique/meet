@@ -124,6 +124,7 @@ const config: Config = {
         ...pandaPreset.theme.tokens.colors,
         primaryDark: {
           50: { value: '#161622' },
+          75: { value: '#222234' },
           100: { value: '#2D2D46' },
           200: { value: '#43436A' },
           300: { value: '#5A5A8F' },

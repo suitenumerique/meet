@@ -134,6 +134,8 @@ class RoomSerializer(serializers.ModelSerializer):
             )
             output["accesses"] = access_serializer.data
 
+        configuration = output["configuration"]
+
         if not is_admin_or_owner:
             del output["configuration"]
 
@@ -150,7 +152,11 @@ class RoomSerializer(serializers.ModelSerializer):
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
             output["livekit"] = utils.generate_livekit_config(
-                room_id=room_id, user=request.user, username=username
+                room_id=room_id,
+                user=request.user,
+                username=username,
+                configuration=configuration,
+                is_admin_or_owner=is_admin_or_owner,
             )
 
         output["is_administrable"] = is_admin_or_owner
@@ -222,11 +228,11 @@ class ParticipantEntrySerializer(serializers.Serializer):
     allow_entry = serializers.BooleanField(required=True)
 
     def validate_participant_id(self, value):
-        """Validate that the participant_id is a valid UUID hex string."""
+        """Validate that the participant_id is a valid UUID string."""
         try:
-            uuid.UUID(hex=value, version=4)
+            uuid.UUID(value)
         except (ValueError, TypeError) as e:
-            raise serializers.ValidationError("Invalid UUID hex format") from e
+            raise serializers.ValidationError("Invalid UUID format") from e
         return value
 
     def create(self, validated_data):

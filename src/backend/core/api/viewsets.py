@@ -50,6 +50,7 @@ from core.services.lobby import (
     LobbyParticipantNotFound,
     LobbyService,
 )
+from core.services.participants_management import ParticipantsManagement
 from core.services.room_creation import RoomCreation
 
 from . import permissions, serializers
@@ -527,6 +528,72 @@ class RoomViewSet(
 
         return drf_response.Response(
             {"status": "success", "message": "invitations sent"},
+            status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path=r"mute/(?P<identity>[a-f0-9-]{36})",
+        permission_classes=[permissions.HasPrivilegesOnRoom],
+    )
+    def mute_participant(self, request, pk=None, identity=None):
+        """Mute a specific track for a participant in the room."""
+
+        ParticipantsManagement().mute(
+            room_name=pk, identity=identity, track_sid=request.data.get("track_sid")
+        )
+
+        return drf_response.Response(
+            {
+                "status": "success",
+            },
+            status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path=r"update/(?P<identity>[a-f0-9-]{36})",
+        permission_classes=[permissions.HasPrivilegesOnRoom],
+    )
+    def update_participant(self, request, pk=None, identity=None):
+        """Update participant attributes, permissions, or metadata."""
+
+        ParticipantsManagement().update(
+            room_name=pk,
+            identity=identity,
+            metadata=request.data.get("metadata"),
+            attributes=request.data.get("attributes"),
+            permission=request.data.get("permission"),
+            name=request.data.get("name"),
+        )
+
+        return drf_response.Response(
+            {
+                "status": "success",
+            },
+            status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path=r"remove/(?P<identity>[a-f0-9-]{36})",
+        permission_classes=[permissions.HasPrivilegesOnRoom],
+    )
+    def remove_participant(self, request, pk=None, identity=None):
+        """Remove a participant from the room."""
+
+        ParticipantsManagement().remove(
+            room_name=pk,
+            identity=identity,
+        )
+
+        return drf_response.Response(
+            {
+                "status": "success",
+            },
             status=drf_status.HTTP_200_OK,
         )
 

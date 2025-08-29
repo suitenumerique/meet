@@ -6,7 +6,7 @@ import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 import { NotificationType } from '../NotificationType'
 
-export function ToastAnyRecording({ state, ...props }: ToastProps) {
+export function ToastAnyRecording({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
   const ref = useRef(null)
   const { toastProps, contentProps } = useToast(props, state, ref)

@@ -7,12 +7,14 @@ import { Track } from 'livekit-client'
 import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
+import { useCanPublishTrack } from '../../../hooks/useCanPublishTrack'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
-import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
+import { TrackSource } from '@livekit/protocol'
+import Source = Track.Source
 
 type AudioDevicesControlProps = Omit<
   UseTrackToggleProps<Source.Microphone>,
@@ -50,6 +52,8 @@ export const AudioDevicesControl = ({
   const cannotUseDevice = useCannotUseDevice(kind)
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.AUDIO}`)
 
+  const canPublishTrack = useCanPublishTrack(TrackSource.MICROPHONE)
+
   return (
     <div
       className={css({
@@ -59,6 +63,7 @@ export const AudioDevicesControl = ({
     >
       <ToggleDevice
         {...trackProps}
+        isDisabled={!canPublishTrack}
         kind={kind}
         toggle={trackProps.toggle as () => Promise<void>}
         overrideToggleButtonProps={{
@@ -77,7 +82,9 @@ export const AudioDevicesControl = ({
             groupPosition="right"
             square
             variant={
-              trackProps.enabled && !cannotUseDevice ? 'primaryDark' : 'error2'
+              !canPublishTrack || !trackProps.enabled || cannotUseDevice
+                ? 'error2'
+                : 'primaryDark'
             }
           >
             <RiArrowUpSLine />

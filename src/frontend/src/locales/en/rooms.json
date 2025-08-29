@@ -209,6 +209,7 @@
   },
   "effects": {
     "activateCamera": "Your camera is disabled. Choose an option to enable it.",
+    "cameraDisabled": "Your camera is disabled.",
     "notAvailable": "Video effects will be available soon on your browser. We're working on it! In the meantime, you can use Google Chrome for best performance or Firefox :(",
     "heading": "Blur",
     "clear": "Disable effect",
@@ -377,6 +378,22 @@
           "description": "People who have not been invited to the meeting must request to join."
         }
       }
+    },
+    "moderation": {
+      "title": "Meeting Moderation",
+      "description": "These settings restrict the actions contributors can take during the meeting.",
+      "microphone": {
+        "label": "Turn on microphone",
+        "description": ""
+      },
+      "camera": {
+        "label": "Enable video",
+        "description": ""
+      },
+      "screenshare": {
+        "label": "Share their screen",
+        "description": "Disabling this option will prevent participants from sharing their screen, and any ongoing screen sharing will be stopped immediately."
+      }
     }
   },
   "rating": {
@@ -406,6 +423,7 @@
   "participants": {
     "subheading": "In room",
     "you": "You",
+    "host": "Host",
     "contributors": "Contributors",
     "collapsable": {
       "open": "Open {{name}} list",
@@ -422,6 +440,7 @@
     "raisedHands": "Raised hands",
     "lowerParticipantHand": "Lower {{name}}'s hand",
     "lowerParticipantsHand": "Lower all hands",
+    "muteParticipants": "Mute all microphones",
     "waiting": {
       "title": "Lobby",
       "accept": {
@@ -434,6 +453,21 @@
         "label": "Deny {{name}} from the meeting",
         "all": "Deny all"
       }
+    },
+    "moreOptions": "More options"
+  },
+  "participantMenu": {
+    "remove": {
+      "label": "Exclude from the call",
+      "ariaLabel": "Exclude {{name}} from the call"
+    },
+    "unpin": {
+      "label": "Unpin",
+      "ariaLabel": "Unpin {{name}}"
+    },
+    "pin": {
+      "label": "Pin",
+      "ariaLabel": "Pin {{name}}"
     }
   },
   "recordingStateToast": {
