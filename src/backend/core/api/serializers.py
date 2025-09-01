@@ -1,5 +1,7 @@
 """Client serializers for the Meet core app."""
 
+# pylint: disable=W0223
+
 import uuid
 
 from django.utils.translation import gettext_lazy as _
@@ -179,7 +181,19 @@ class RecordingSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class StartRecordingSerializer(serializers.Serializer):
+class BaseValidationOnlySerializer(serializers.Serializer):
+    """Base serializer for validation-only operations."""
+
+    def create(self, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError(f"{self.__class__.__name__} is validation-only")
+
+    def update(self, instance, validated_data):
+        """Not implemented as this is a validation-only serializer."""
+        raise NotImplementedError(f"{self.__class__.__name__} is validation-only")
+
+
+class StartRecordingSerializer(BaseValidationOnlySerializer):
     """Validate start recording requests."""
 
     mode = serializers.ChoiceField(
@@ -192,30 +206,14 @@ class StartRecordingSerializer(serializers.Serializer):
         },
     )
 
-    def create(self, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("StartRecordingSerializer is validation-only")
 
-    def update(self, instance, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("StartRecordingSerializer is validation-only")
-
-
-class RequestEntrySerializer(serializers.Serializer):
+class RequestEntrySerializer(BaseValidationOnlySerializer):
     """Validate request entry data."""
 
     username = serializers.CharField(required=True)
 
-    def create(self, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("RequestEntrySerializer is validation-only")
 
-    def update(self, instance, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("RequestEntrySerializer is validation-only")
-
-
-class ParticipantEntrySerializer(serializers.Serializer):
+class ParticipantEntrySerializer(BaseValidationOnlySerializer):
     """Validate participant entry decision data."""
 
     participant_id = serializers.CharField(required=True)
@@ -229,38 +227,14 @@ class ParticipantEntrySerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid UUID hex format") from e
         return value
 
-    def create(self, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("ParticipantEntrySerializer is validation-only")
 
-    def update(self, instance, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("ParticipantEntrySerializer is validation-only")
-
-
-class CreationCallbackSerializer(serializers.Serializer):
+class CreationCallbackSerializer(BaseValidationOnlySerializer):
     """Validate room creation callback data."""
 
     callback_id = serializers.CharField(required=True)
-
-    def create(self, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("CreationCallbackSerializer is validation-only")
-
-    def update(self, instance, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("CreationCallbackSerializer is validation-only")
 
 
 class RoomInviteSerializer(serializers.Serializer):
     """Validate room invite creation data."""
 
     emails = serializers.ListField(child=serializers.EmailField(), allow_empty=False)
-
-    def create(self, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("RoomInviteSerializer is validation-only")
-
-    def update(self, instance, validated_data):
-        """Not implemented as this is a validation-only serializer."""
-        raise NotImplementedError("RoomInviteSerializer is validation-only")
