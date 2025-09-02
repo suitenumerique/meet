@@ -13,8 +13,9 @@ egress:
   {{- end }}
   {{- end }}
   redis:
-    address: redis-master:6379
+    address: dev-backend-redis:6379
     password: pass
+    username: user
   s3:
     access_key: meet
     secret: password
