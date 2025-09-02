@@ -41,21 +41,21 @@ export class BackgroundProcessorFactory {
     type: ProcessorType,
     opts: BackgroundOptions
   ): BackgroundProcessorInterface | undefined {
-    if (type === ProcessorType.BLUR) {
-      if (ProcessorWrapper.isSupported) {
-        return new BackgroundBlurTrackProcessorJsWrapper(opts)
-      }
-      if (BackgroundCustomProcessor.isSupported) {
-        return new BackgroundCustomProcessor(opts)
-      }
-    } else if (type === ProcessorType.VIRTUAL) {
-      if (ProcessorWrapper.isSupported) {
-        return new BackgroundVirtualTrackProcessorJsWrapper(opts)
-      }
-      if (BackgroundCustomProcessor.isSupported) {
-        return new BackgroundCustomProcessor(opts)
-      }
+    const isBlur = type === ProcessorType.BLUR
+    const isVirtual = type === ProcessorType.VIRTUAL
+
+    if (!isBlur && !isVirtual) return undefined
+
+    if (ProcessorWrapper.isSupported) {
+      return isBlur
+        ? new BackgroundBlurTrackProcessorJsWrapper(opts)
+        : new BackgroundVirtualTrackProcessorJsWrapper(opts)
     }
+
+    if (BackgroundCustomProcessor.isSupported) {
+      return new BackgroundCustomProcessor(opts)
+    }
+
     return undefined
   }
 
