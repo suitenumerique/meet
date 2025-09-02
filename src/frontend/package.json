@@ -15,7 +15,7 @@
   "dependencies": {
     "@livekit/components-react": "2.9.13",
     "@livekit/components-styles": "1.1.6",
-    "@livekit/track-processors": "0.5.7",
+    "@livekit/track-processors": "0.6.0",
     "@pandacss/preset-panda": "0.54.0",
     "@react-aria/toast": "3.0.5",
     "@react-types/overlays": "3.9.0",
