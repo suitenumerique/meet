@@ -85,12 +85,13 @@ clean_old_images('localhost:5001/meet-livekit')
 
 k8s_yaml(local('cd ../src/helm && helmfile -n meet -e ${DEV_ENV:-dev} template .'))
 
-k8s_resource('minio-bucket', resource_deps=['minio'])
-k8s_resource('meet-backend', resource_deps=['postgresql', 'minio', 'redis', 'livekit-livekit-server'])
-k8s_resource('meet-backend-migrate', resource_deps=['meet-backend'])
+k8s_resource('meet-backend', resource_deps=['dev-backend-redis', 'dev-backend-keycloak', 'dev-backend-postgres', 'livekit-livekit-server', 'dev-backend-minio:statefulset'])
+k8s_resource('meet-backend-migrate', resource_deps=['dev-backend-postgres'])
+k8s_resource('livekit-livekit-server', resource_deps=['dev-backend-redis'])
 k8s_resource('livekit-livekit-server-test-connection', resource_deps=['livekit-livekit-server'])
-k8s_resource('keycloak', resource_deps=['kc-postgresql'])
 k8s_resource('meet-backend-createsuperuser', resource_deps=['meet-backend-migrate'])
+k8s_resource('dev-backend-keycloak', resource_deps=['dev-backend-keycloak-pg'])
+k8s_resource('livekit-egress', resource_deps=['livekit-livekit-server'])
 
 migration = '''
 set -eu
