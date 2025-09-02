@@ -118,7 +118,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     }
   }
 
-  update(opts: BackgroundOptions): void {
+  async update(opts: BackgroundOptions): Promise<void> {
     this.options = opts
     this._initVirtualBackgroundImage()
   }

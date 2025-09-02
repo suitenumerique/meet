@@ -2,13 +2,13 @@ import { LocalVideoTrack, Track } from 'livekit-client'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  BackgroundOptions,
   BackgroundProcessorFactory,
   BackgroundProcessorInterface,
   ProcessorType,
-  BackgroundOptions,
 } from '../blur'
 import { css } from '@/styled-system/css'
-import { Text, P, ToggleButton, H } from '@/primitives'
+import { H, P, Text, ToggleButton } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
 import { BlurOn } from '@/components/icons/BlurOn'
 import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
@@ -105,7 +105,11 @@ export const EffectsConfiguration = ({
       if (isSelected(type, options)) {
         // Stop processor.
         await clearEffect()
-      } else if (!processor || processor.serialize().type !== type) {
+      } else if (
+        !processor ||
+        (processor.serialize().type !== type &&
+          !BackgroundProcessorFactory.hasModernApiSupport())
+      ) {
         // Change processor.
         const newProcessor = BackgroundProcessorFactory.getProcessor(
           type,
@@ -121,8 +125,7 @@ export const EffectsConfiguration = ({
         await videoTrack.setProcessor(newProcessor)
         onSubmit?.(newProcessor)
       } else {
-        // Update processor.
-        processor?.update(options)
+        await processor?.update(options)
         // We want to trigger onSubmit when options changes so the parent component is aware of it.
         onSubmit?.(processor)
       }
