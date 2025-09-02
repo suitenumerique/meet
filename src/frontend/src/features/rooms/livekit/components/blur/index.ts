@@ -1,8 +1,7 @@
 import { ProcessorWrapper } from '@livekit/track-processors'
 import { Track, TrackProcessor } from 'livekit-client'
-import { BackgroundBlurTrackProcessorJsWrapper } from './BackgroundBlurTrackProcessorJsWrapper'
 import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
-import { BackgroundVirtualTrackProcessorJsWrapper } from './BackgroundVirtualTrackProcessorJsWrapper'
+import { UnifiedBackgroundTrackProcessor } from './UnifiedBackgroundTrackProcessor'
 
 export type BackgroundOptions = {
   blurRadius?: number
@@ -16,7 +15,7 @@ export interface ProcessorSerialized {
 
 export interface BackgroundProcessorInterface
   extends TrackProcessor<Track.Kind> {
-  update(opts: BackgroundOptions): void
+  update(opts: BackgroundOptions): Promise<void>
   options: BackgroundOptions
   clone(): BackgroundProcessorInterface
   serialize(): ProcessorSerialized
@@ -47,9 +46,7 @@ export class BackgroundProcessorFactory {
     if (!isBlur && !isVirtual) return undefined
 
     if (ProcessorWrapper.isSupported) {
-      return isBlur
-        ? new BackgroundBlurTrackProcessorJsWrapper(opts)
-        : new BackgroundVirtualTrackProcessorJsWrapper(opts)
+      return new UnifiedBackgroundTrackProcessor(opts)
     }
 
     if (BackgroundCustomProcessor.isSupported) {
