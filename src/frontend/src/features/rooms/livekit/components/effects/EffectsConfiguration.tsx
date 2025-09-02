@@ -180,6 +180,8 @@ export const EffectsConfiguration = ({
           width: '100%',
           aspectRatio: 16 / 9,
           position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '8px',
         })}
       >
         {videoTrack && !videoTrack.isMuted ? (
