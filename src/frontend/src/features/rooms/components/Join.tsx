@@ -146,10 +146,9 @@ export const Join = ({
       video: !!initialUserChoices.current &&
         initialUserChoices.current?.videoEnabled && {
           deviceId: initialUserChoices.current.videoDeviceId,
-          processor:
-            BackgroundProcessorFactory.deserializeProcessor(
-              processorSerialized
-            ),
+          processor: BackgroundProcessorFactory.deserializeProcessor(
+            initialUserChoices.current.processorSerialized
+          ),
         },
     },
     onError
