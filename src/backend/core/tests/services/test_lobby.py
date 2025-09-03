@@ -450,7 +450,7 @@ def test_enter_success(
         timeout=settings.LOBBY_WAITING_TIMEOUT,
     )
     mock_notify.assert_called_once_with(
-        room_name=str(room.id), notification_data={"type": "participantWaiting"}
+        room_name=str(room.pk), notification_data={"type": "participantWaiting"}
     )
 
 

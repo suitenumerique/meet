@@ -38,12 +38,12 @@ class TelephonyService:
 
         direct_rule = SIPDispatchRule(
             dispatch_rule_direct=SIPDispatchRuleDirect(
-                room_name=str(room.id), pin=str(room.pin_code)
+                room_name=str(room.pk), pin=str(room.pin_code)
             )
         )
 
         request = CreateSIPDispatchRuleRequest(
-            rule=direct_rule, name=self._rule_name(room.id)
+            rule=direct_rule, name=self._rule_name(room.pk)
         )
 
         lkapi = utils.create_livekit_client()
