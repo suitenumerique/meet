@@ -584,7 +584,7 @@ class RoomViewSet(
 
         try:
             ParticipantsManagement().mute(
-                room_name=str(room.id),
+                room_name=str(room.pk),
                 identity=str(serializer.validated_data["participant_identity"]),
                 track_sid=serializer.validated_data["track_sid"],
             )
@@ -617,7 +617,7 @@ class RoomViewSet(
 
         try:
             ParticipantsManagement().update(
-                room_name=str(room.id),
+                room_name=str(room.pk),
                 identity=str(serializer.validated_data["participant_identity"]),
                 metadata=serializer.validated_data.get("metadata"),
                 attributes=serializer.validated_data.get("attributes"),
@@ -653,7 +653,7 @@ class RoomViewSet(
 
         try:
             ParticipantsManagement().remove(
-                room_name=str(room.id),
+                room_name=str(room.pk),
                 identity=str(serializer.validated_data["participant_identity"]),
             )
         except ParticipantsManagementException:
