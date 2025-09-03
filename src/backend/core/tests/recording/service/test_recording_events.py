@@ -2,7 +2,7 @@
 Test RecordingEventsService service.
 """
 
-# pylint: disable=W0621
+# pylint: disable=redefined-outer-name
 
 from unittest import mock
 

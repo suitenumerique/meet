@@ -2,7 +2,7 @@
 Test event authentication.
 """
 
-# pylint: disable=E1128
+# pylint: disable=assignment-from-no-return
 
 from django.test import RequestFactory
 
