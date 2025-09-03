@@ -1,6 +1,6 @@
 """Participants management service for LiveKit rooms."""
 
-# pylint: disable=R0913,E0611,R0917
+# pylint: disable=too-many-arguments,no-name-in-module,too-many-positional-arguments
 # ruff: noqa:PLR0913
 
 import json

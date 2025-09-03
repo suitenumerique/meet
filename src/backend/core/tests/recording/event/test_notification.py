@@ -2,7 +2,7 @@
 Test event notification.
 """
 
-# pylint: disable=E1128,W0621,W0613,W0212
+# pylint: disable=assignment-from-no-return,redefined-outer-name,unused-argument,protected-access
 
 import datetime
 import smtplib

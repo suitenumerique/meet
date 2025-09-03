@@ -2,7 +2,7 @@
 Test LiveKit webhook endpoint on the rooms API.
 """
 
-# pylint: disable=R0913,W0621,R0917,W0613
+# pylint: disable=too-many-arguments,redefined-outer-name,too-many-positional-arguments,unused-argument
 import base64
 import hashlib
 import json

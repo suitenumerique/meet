@@ -1,6 +1,6 @@
 """Client serializers for the Meet core app."""
 
-# pylint: disable=W0223,E0611
+# pylint: disable=abstract-method,no-name-in-module
 
 from django.utils.translation import gettext_lazy as _
 

@@ -2,7 +2,7 @@
 Test recordings API endpoints in the Meet core app: save recording.
 """
 
-# pylint: disable=W0621,W0613
+# pylint: disable=redefined-outer-name,unused-argument
 
 import uuid
 from unittest import mock

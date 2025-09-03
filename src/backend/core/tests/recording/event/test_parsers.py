@@ -2,7 +2,7 @@
 Test event parsers.
 """
 
-# pylint: disable=W0212,W0621,W0613
+# pylint: disable=protected-access,redefined-outer-name,unused-argument
 
 from unittest import mock
 

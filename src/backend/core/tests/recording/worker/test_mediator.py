@@ -1,6 +1,6 @@
 """Test WorkerServiceMediator class."""
 
-# pylint: disable=W0621,W0613
+# pylint: disable=redefined-outer-name,unused-argument
 
 from unittest.mock import Mock
 

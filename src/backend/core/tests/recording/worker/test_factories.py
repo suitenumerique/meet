@@ -2,7 +2,7 @@
 Test worker service factories.
 """
 
-# pylint: disable=W0212,W0621,W0613
+# pylint: disable=protected-access,redefined-outer-name,unused-argument
 
 from dataclasses import FrozenInstanceError
 from unittest.mock import Mock

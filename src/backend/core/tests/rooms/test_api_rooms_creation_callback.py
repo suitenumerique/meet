@@ -2,7 +2,7 @@
 Test rooms API endpoints in the Meet core app: creation callback functionality.
 """
 
-# pylint: disable=W0621,W0613
+# pylint: disable=redefined-outer-name,unused-argument
 from django.core.cache import cache
 
 import pytest
