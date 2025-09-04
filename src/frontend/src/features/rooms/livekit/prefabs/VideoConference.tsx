@@ -11,7 +11,6 @@ import { useState } from 'react'
 import {
   ConnectionStateToast,
   FocusLayoutContainer,
-  GridLayout,
   LayoutContextProvider,
   RoomAudioRenderer,
   usePinnedTracks,
@@ -36,6 +35,7 @@ import { SettingsDialogProvider } from '@/features/settings/components/SettingsD
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
 import { Subtitles } from '@/features/subtitle/component/Subtitles'
 import { CarouselLayout } from '../components/layout/CarouselLayout'
+import { GridLayout } from '../components/layout/GridLayout'
 
 const LayoutWrapper = styled(
   'div',
