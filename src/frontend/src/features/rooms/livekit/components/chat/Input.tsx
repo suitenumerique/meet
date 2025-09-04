@@ -101,7 +101,7 @@ export const ChatInput = ({
         }}
         placeholderStyle={'strong'}
         spellCheck={false}
-        maxLength={500}
+        maxLength={2000}
         aria-label={t('textArea.label')}
       />
       <Button
