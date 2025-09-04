@@ -90,6 +90,11 @@
       "pinCode": "Code:"
     }
   },
+  "pagination": {
+    "count": "{{currentPage}} van {{totalPageCount}}",
+    "next": "volgende pagina",
+    "previous": "vorige pagina"
+  },
   "mediaErrorDialog": {
     "DeviceInUse": {
       "title": {
