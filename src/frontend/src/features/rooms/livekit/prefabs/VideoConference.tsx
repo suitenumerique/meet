@@ -9,7 +9,6 @@ import { RoomEvent, Track } from 'livekit-client'
 import * as React from 'react'
 import { useState } from 'react'
 import {
-  CarouselLayout,
   ConnectionStateToast,
   FocusLayoutContainer,
   GridLayout,
@@ -36,6 +35,7 @@ import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubsc
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
 import { Subtitles } from '@/features/subtitle/component/Subtitles'
+import { CarouselLayout } from '../components/layout/CarouselLayout'
 
 const LayoutWrapper = styled(
   'div',
