@@ -23,7 +23,7 @@ export const PaginationIndicator: (
   })
 
   return (
-    <div ref={ref} className="lk-pagination-indicator">
+    <div ref={ref} className="lk-pagination-indicator" aria-hidden="true">
       {bubbles}
     </div>
   )
