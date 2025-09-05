@@ -1,19 +1,16 @@
 import * as React from 'react'
 import { createInteractingObservable } from '@livekit/components-core'
-import { usePagination } from '@livekit/components-react'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { Button } from '@/primitives'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 
-export interface PaginationControlProps
-  extends Pick<
-    ReturnType<typeof usePagination>,
-    'totalPageCount' | 'nextPage' | 'prevPage' | 'currentPage'
-  > {
-  /** Reference to an HTML element that holds the pages, while interacting (`mouseover`)
-   *  with it, the pagination controls will appear for a while. */
+export interface PaginationControlProps {
+  totalPageCount: number
+  nextPage: () => void
+  prevPage: () => void
+  currentPage: number
   pagesContainer?: React.RefObject<HTMLElement>
 }
 
