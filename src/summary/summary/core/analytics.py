@@ -48,32 +48,22 @@ class Analytics:
         except Exception as e:
             raise AnalyticsException("Failed to capture analytics event") from e
 
-    def feature_enabled(
-        self, feature_name: str, distinct_id: str = None, email: str = None
+    def is_feature_enabled(
+        self, feature_name: str, distinct_id: str = None
     ) -> bool:
         """
-        Vérifie si un feature flag est activé dans PostHog.
-        distinct_id optionnel pour les flags ciblés.
+        Check if a feature flag is enabled in PostHog for a dinstinct_id.
         """
         if self.is_disabled:
             return False
 
-        if email:
-            self.capture(
-                "user_identified",
-                distinct_id=distinct_id,
-                properties={"$set": {"email": email}},
-            )
-            logger.info(f"[Analytics] Identify user {distinct_id} with email {email}")
         try:
             logger.info(
-                f"[Analytics] Check feature flag {feature_name} for user {distinct_id}"
+                f"Check feature flag {feature_name} for user {distinct_id}"
             )
-            return self._client.is_feature_enabled(feature_name, distinct_id)
+            return self._client.feature_enabled(feature_name, distinct_id)
         except Exception as e:
-            logger.warning(
-                f"[Analytics] Impossible de vérifier le flag {feature_name}: {e}"
-            )
+            logger.error(f"Error checking feature flag {feature_name}: {e}")
             return False
 
 
