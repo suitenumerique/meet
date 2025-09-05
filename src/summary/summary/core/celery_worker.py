@@ -321,7 +321,7 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
-    if not analytics.feature_enabled("summary_enabled", distinct_id=sub, email=email):
+    if not analytics.feature_enabled("summary-enabled", distinct_id=sub, email=email):
         print("Summary generation skipped (feature flag disabled).")
         logger.info("Summary generation skipped (feature flag disabled).")
     else:

@@ -59,7 +59,6 @@ class Analytics:
             return False
 
         if email:
-            # On attache l’email en tant que propriété utilisateur
             self.capture(
                 "user_identified",
                 distinct_id=distinct_id,
@@ -67,7 +66,6 @@ class Analytics:
             )
             logger.info(f"[Analytics] Identify user {distinct_id} with email {email}")
         try:
-            # PostHog Python client propose `is_feature_enabled`
             logger.info(
                 f"[Analytics] Check feature flag {feature_name} for user {distinct_id}"
             )
