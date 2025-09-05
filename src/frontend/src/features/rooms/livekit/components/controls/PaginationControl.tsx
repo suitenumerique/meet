@@ -44,6 +44,8 @@ export function PaginationControl({
     }
   }, [connectedElement])
 
+  if (totalPageCount <= 1) return null
+
   return (
     <div
       className={css({
@@ -66,6 +68,7 @@ export function PaginationControl({
       data-lk-user-interaction={interactive}
     >
       <Button
+        isDisabled={currentPage == 1}
         onPress={prevPage}
         size="xs"
         variant="quaternaryText"
@@ -85,6 +88,7 @@ export function PaginationControl({
         })}
       </span>
       <Button
+        isDisabled={currentPage == totalPageCount}
         onPress={nextPage}
         size="xs"
         variant="quaternaryText"
