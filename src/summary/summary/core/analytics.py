@@ -48,6 +48,24 @@ class Analytics:
         except Exception as e:
             raise AnalyticsException("Failed to capture analytics event") from e
 
+    def is_feature_enabled(
+        self, feature_name: str, distinct_id: str = None
+    ) -> bool:
+        """
+        Check if a feature flag is enabled in PostHog for a dinstinct_id.
+        """
+        if self.is_disabled:
+            return False
+
+        try:
+            logger.info(
+                f"Check feature flag {feature_name} for user {distinct_id}"
+            )
+            return self._client.feature_enabled(feature_name, distinct_id)
+        except Exception as e:
+            logger.error(f"Error checking feature flag {feature_name}: {e}")
+            return False
+
 
 @lru_cache
 def get_analytics():
