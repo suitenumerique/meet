@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     openai_api_key: str
     openai_base_url: str = "https://api.openai.com/v1"
     openai_asr_model: str = "whisper-1"
-    openai_llm_model: str = "gpt-4o"
+    resume_llm_model: str = "Qwen/Qwen2.5-Coder-32B-Instruct-AWQ"
     openai_max_retries: int = 0
     resume_api_key: str
     resume_endpoint: str
@@ -68,7 +68,9 @@ class Settings(BaseSettings):
     task_tracker_redis_url: str = "redis://redis/0"
     task_tracker_prefix: str = "task_metadata:"
 
-
+    # Queue redis
+    summarize_queue: str = "summarize_queue"
+    transcribe_queue: str = "transcribe_queue"
 @lru_cache
 def get_settings():
     """Load and cache application settings."""

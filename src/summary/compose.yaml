@@ -16,7 +16,7 @@ services:
       ".env"
     depends_on:
       - redis
-  celery_transcribe_worker:
+  celery_worker:
     container_name: celery_worker_transcribe
     build: .
     command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q transcribe_queue

@@ -175,7 +175,7 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
 
     instructions = get_instructions(transcription)
     summary_response = openai_client.chat.completions.create(
-        model=settings.openai_llm_model, messages=instructions
+        model=settings.resume_llm_model, messages=instructions
     )
 
     summary = summary_response.choices[0].message.content
@@ -202,7 +202,7 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     bind=True,
     autoretry_for=[exceptions.HTTPError],
     max_retries=settings.celery_max_retries,
-    queue="transcribe_queue",
+    queue=settings.transcribe_queue,
 )
 def process_audio_transcribe_summarize_v2(
     self,
@@ -320,12 +320,10 @@ def process_audio_transcribe_summarize_v2(
     logger.debug("Response body: %s", response.text)
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
-
-    if not analytics.feature_enabled("summary-enabled", distinct_id=sub, email=email):
-        print("Summary generation skipped (feature flag disabled).")
+    if not analytics.is_feature_enabled("summary-enabled", distinct_id=sub):
         logger.info("Summary generation skipped (feature flag disabled).")
     else:
         logger.info("Queuing summary generation task.")
         summarize_transcription.apply_async(
-            args=[formatted_transcription, email, sub, title], queue="summarize_queue"
+            args=[formatted_transcription, email, sub, title], queue=settings.summarize_queue
         )

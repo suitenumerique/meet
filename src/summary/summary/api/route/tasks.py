@@ -6,12 +6,13 @@ from typing import Optional
 from celery.result import AsyncResult
 from fastapi import APIRouter
 from pydantic import BaseModel
-
+from summary.core.config import get_settings
 from summary.core.celery_worker import (
     process_audio_transcribe_summarize,
     process_audio_transcribe_summarize_v2,
 )
 
+settings = get_settings()
 
 class TaskCreation(BaseModel):
     """Task data."""
@@ -46,7 +47,7 @@ async def create_task(request: TaskCreation):
                 request.recording_date,
                 request.recording_time,
             ],           
-            queue="transcribe_queue",
+            queue=settings.transcribe_queue,
         )
 
     return {"id": task.id, "message": "Task created"}

@@ -50,7 +50,7 @@ def post_with_retries(url, data):
 def LLM_call(client, system_prompt, user_prompt, retry=2):
 
     data = {
-        "model": "Qwen/Qwen2.5-Coder-32B-Instruct-AWQ",
+        "model": settings.resume_llm_model,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -59,26 +59,17 @@ def LLM_call(client, system_prompt, user_prompt, retry=2):
 
     try:
         response = client.chat.completions.create(**data)
-        print(response)
         return response.choices[0].message.content
     except Exception as e:
-        if retry > 0:
-            print(f"Erreur lors de l'appel à l'API : {e}. Nouvelle tentative...")
-            return LLM_call(system_prompt, user_prompt, retry=retry - 1)
-        else:
-            print(f"Erreur lors de l'appel à l'API : {e}")
-            return False
+        logger.error("LLM call failed: %s", e)
+        return False
 
 
 @celery.task(
-    bind=True, autoretry_for=[Exception], max_retries=3, queue="summarize_queue"
+    bind=True, autoretry_for=[Exception], max_retries=3, queue=settings.summarize_queue
 )
 def summarize_transcription(self, transcript: str, email: str, sub: str, title: str):
     logger.info("Starting summarization task")
-
-    prompt_system_TLDR = PROMPT_SYSTEM_TLDR
-    prompt_system_plan = PROMPT_SYSTEM_PLAN
-    prompt_system_part = PROMPT_SYSTEM_PART
 
     logger.info("Initiating summarize client")
 
@@ -86,11 +77,11 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
         base_url=settings.resume_endpoint, api_key=settings.resume_api_key
     )
 
-    out = LLM_call(client_summary, prompt_system_TLDR, transcript)
+    tldr = LLM_call(client_summary, PROMPT_SYSTEM_TLDR, transcript)
 
     logger.info("TLDR generated")
 
-    parts = LLM_call(client_summary, prompt_system_plan, transcript)
+    parts = LLM_call(client_summary, PROMPT_SYSTEM_PLAN, transcript)
     logger.info("Plan generated")
 
     parts = parts.split("\n")
@@ -103,7 +94,7 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
         logger.info("Summarizing part: %s", part)
         parts_summarized.append(
             LLM_call(
-                client_summary, prompt_system_part, prompt_user_part.format(part=part)
+                client_summary, PROMPT_SYSTEM_PART, prompt_user_part.format(part=part)
             )
         )
 
@@ -111,14 +102,11 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
 
     raw_summary = "\n\n".join(parts_summarized)
 
-    prompt_system_next_steps = PROMPT_SYSTEM_NEXT_STEP
-    prompt_system_cleaning = PROMPT_SYSTEM_CLEANING
-
-    next_steps = LLM_call(client_summary, prompt_system_next_steps, transcript)
+    next_steps = LLM_call(client_summary, PROMPT_SYSTEM_NEXT_STEP, transcript)
     logger.info("Next steps generated")
-    cleaned_summary = LLM_call(client_summary, prompt_system_cleaning, raw_summary)
+    cleaned_summary = LLM_call(client_summary, PROMPT_SYSTEM_CLEANING, raw_summary)
     logger.info("Summary cleaned")
-    summary = out + "\n\n" + cleaned_summary + "\n\n" + next_steps
+    summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
 
     data = {
         "title": title + " - Summary",
