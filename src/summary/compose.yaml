@@ -16,10 +16,19 @@ services:
       ".env"
     depends_on:
       - redis
-  celery_worker:
-    container_name: celery_worker
+  celery_transcribe_worker:
+    container_name: celery_worker_transcribe
     build: .
-    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug
+    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q transcribe_queue
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - app
+  celery_summarize_worker:
+    container_name: celery_worker_summarize
+    build: .
+    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q summarize_queue
     volumes:
       - .:/app
     depends_on:

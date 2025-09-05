@@ -19,32 +19,17 @@ from requests import Session, exceptions
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
-from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
 from summary.core.prompt import get_instructions
+from summary.core.celery_summarize_worker import summarize_transcription
+from summary.core.celery_app import celery
+from summary.core.celery_signals import metadata_manager
+from summary.core.analytics import get_analytics
 
 settings = get_settings()
 analytics = get_analytics()
 
-metadata_manager = MetadataManager()
-
 logger = get_task_logger(__name__)
-
-celery = Celery(
-    __name__,
-    broker=settings.celery_broker_url,
-    backend=settings.celery_result_backend,
-    broker_connection_retry_on_startup=True,
-)
-
-celery.config_from_object("summary.core.celery_config")
-
-if settings.sentry_dsn and settings.sentry_is_enabled:
-
-    @signals.celeryd_init.connect
-    def init_sentry(**_kwargs):
-        """Initialize sentry."""
-        sentry_sdk.init(dsn=settings.sentry_dsn, enable_tracing=True)
 
 
 DEFAULT_EMPTY_TRANSCRIPTION = """
@@ -137,25 +122,6 @@ def post_with_retries(url, data):
         session.close()
 
 
-@signals.task_prerun.connect
-def task_started(task_id=None, task=None, args=None, **kwargs):
-    """Signal handler called before task execution begins."""
-    task_args = args or []
-    metadata_manager.create(task_id, task_args)
-
-
-@signals.task_retry.connect
-def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
-    """Signal handler called when task execution retries."""
-    metadata_manager.retry(request.id)
-
-
-@signals.task_failure.connect
-def task_failure_handler(task_id, exception=None, **kwargs):
-    """Signal handler called when task execution fails permanently."""
-    metadata_manager.capture(task_id, settings.posthog_event_failure)
-
-
 @celery.task(max_retries=settings.celery_max_retries)
 def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     """Process an audio file by transcribing it and generating a summary.
@@ -236,6 +202,7 @@ def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
     bind=True,
     autoretry_for=[exceptions.HTTPError],
     max_retries=settings.celery_max_retries,
+    queue="transcribe_queue",
 )
 def process_audio_transcribe_summarize_v2(
     self,
@@ -354,4 +321,11 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
-    # TODO - integrate summarize the transcript and create a new document.
+    if not analytics.feature_enabled("summary_enabled", distinct_id=sub, email=email):
+        print("Summary generation skipped (feature flag disabled).")
+        logger.info("Summary generation skipped (feature flag disabled).")
+    else:
+        logger.info("Queuing summary generation task.")
+        summarize_transcription.apply_async(
+            args=[formatted_transcription, email, sub, title], queue="summarize_queue"
+        )

@@ -45,7 +45,8 @@ async def create_task(request: TaskCreation):
                 request.room,
                 request.recording_date,
                 request.recording_time,
-            ]
+            ],           
+            queue="transcribe_queue",
         )
 
     return {"id": task.id, "message": "Task created"}

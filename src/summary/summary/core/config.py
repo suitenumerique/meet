@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     openai_asr_model: str = "whisper-1"
     openai_llm_model: str = "gpt-4o"
     openai_max_retries: int = 0
+    resume_api_key: str
+    resume_endpoint: str
 
     # Webhook-related settings
     webhook_max_retries: int = 2
