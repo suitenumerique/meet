@@ -205,6 +205,10 @@ export const buttonRecipe = cva({
           backgroundColor: 'greyscale.100',
           color: 'greyscale.700',
         },
+        '&[data-disabled]': {
+          backgroundColor: 'transparent',
+          color: 'greyscale.300',
+        },
       },
       greyscale: {
         backgroundColor: 'transparent',
