@@ -16,6 +16,9 @@ repositories:
 - name: livekit
   url: https://helm.livekit.io
 
+- name: dev-backends
+  url: https://suitenumerique.github.io/helm-dev-backend
+
 releases:
   - name: extra
     installed: {{ regexMatch "^dev.*" .Environment.Name | toYaml }}
@@ -65,3 +68,61 @@ releases:
       - env.d/{{ .Environment.Name }}/values.secrets.yaml
     secrets:
       - env.d/{{ .Environment.Name }}/secrets.enc.yaml
+
+  - name: dev-backend
+    namespace: {{ .Namespace }}
+    chart: dev-backends/dev-backend
+    version: 0.0.1
+    values:
+      - postgres:
+          enabled: true
+          name: postgres
+          #serviceNameOverride: postgres
+          image: postgres:16-alpine
+          username: dinum
+          password: pass
+          database: dinum
+          size: 1Gi
+      - redis:
+          enabled: true
+          name: redis
+          #serviceNameOverride: redis
+          image: redis:8.2-alpine
+          username: user
+          password: pass
+      - minio:
+          enabled: true
+          image: minio/minio
+          name: minio
+          #serviceNameOverride: minio
+          hostname: minio.127.0.0.1.nip.io
+          tls:
+            enabled: true
+            secretName: meet-tls
+          username: dinum
+          password: password
+          bucket: meet-media-storage
+          size: 1Gi
+      - keycloak:
+          enabled: true
+          image: quay.io/keycloak/keycloak:20.0.1
+          name: keycloak
+          #serviceNameOverride: keycloak
+          hostname: keycloak.127.0.0.1.nip.io
+          username: admin
+          password: pass
+          tls:
+            enabled: true
+            secretName: meet-tls
+          db:
+            username: dinum
+            password: pass
+            database: keycloak
+            size: 1Gi
+            image: postgres:16-alpine
+          realm:
+            name: meet
+            username: meet
+            password: meet
+            email: meet@example.com
+
