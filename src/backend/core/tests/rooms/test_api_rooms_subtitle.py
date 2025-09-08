@@ -128,8 +128,8 @@ def test_start_subtitle_disabled_by_default(mock_livekit_token):
         {"token": mock_livekit_token},
     )
 
-    assert response.status_code == 403
-    assert response.json() == {"detail": "Access denied, subtitles are disabled."}
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not found."}
 
 
 def test_start_subtitle_valid_token(

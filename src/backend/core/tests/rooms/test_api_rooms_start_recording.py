@@ -55,8 +55,9 @@ def test_start_recording_anonymous():
     assert Recording.objects.count() == 0
 
 
-def test_start_recording_non_owner_and_non_administrator():
+def test_start_recording_non_owner_and_non_administrator(settings):
     """Non-owner and Non-Administrator users should not be allowed to start room recordings."""
+    settings.RECORDING_ENABLE = True
     room = RoomFactory()
     user = UserFactory()
     client = APIClient()
@@ -88,8 +89,8 @@ def test_start_recording_recording_disabled(settings):
         {"mode": "screen_recording"},
     )
 
-    assert response.status_code == 403
-    assert response.json() == {"detail": "Access denied, recording is disabled."}
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not found."}
     assert Recording.objects.count() == 0
 
 
