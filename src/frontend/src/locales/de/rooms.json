@@ -303,7 +303,7 @@
   "transcript": {
     "start": {
       "heading": "Dieses Gespräch transkribieren",
-      "body": "Dieses Gespräch automatisch transkribieren und die Zusammenfassung in Docs erhalten.",
+      "body": "Dieses Gespräch automatisch transkribieren {{duration_message}} und die Zusammenfassung in Docs erhalten.",
       "button": "Transkription starten",
       "loading": "Transkription wird gestartet",
       "linkMore": "Mehr erfahren"
@@ -334,12 +334,13 @@
         "start": "Die Transkription konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
       },
       "button": "OK"
-    }
+    },
+    "durationMessage": "(begrenzt auf {{max_duration}}) "
   },
   "screenRecording": {
     "start": {
       "heading": "Dieses Gespräch aufzeichnen",
-      "body": "Zeichne dieses Gespräch auf, um es später anzusehen. Du erhältst die Videoaufnahme per E-Mail.",
+      "body": "Zeichne dieses Gespräch auf, um es später anzusehen {{duration_message}}. Du erhältst die Videoaufnahme per E-Mail.",
       "button": "Aufzeichnung starten",
       "loading": "Aufzeichnung wird gestartet",
       "linkMore": "Mehr erfahren"
@@ -365,7 +366,8 @@
         "start": "Die Aufzeichnung konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
       },
       "button": "OK"
-    }
+    },
+    "durationMessage": "(begrenzt auf {{max_duration}})"
   },
   "admin": {
     "description": "Diese Einstellungen für Organisatoren ermöglichen dir die Kontrolle über dein Meeting. Nur Organisatoren haben Zugriff auf diese Optionen.",

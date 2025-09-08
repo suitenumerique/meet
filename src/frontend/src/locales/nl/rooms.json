@@ -303,7 +303,7 @@
   "transcript": {
     "start": {
       "heading": "Transcribeer dit gesprek",
-      "body": "Transcribeer dit gesprek automatisch en ontvang het verslag in Docs.",
+      "body": "Transcribeer dit gesprek automatisch {{duration_message}} en ontvang het verslag in Docs.",
       "button": "Transcriptie starten",
       "loading": "Transcriptie begint",
       "linkMore": "Meer informatie"
@@ -334,12 +334,13 @@
         "start": "We konden de transcriptie niet starten. Probeer het over enkele ogenblikken opnieuw."
       },
       "button": "Opnieuw proberen"
-    }
+    },
+    "durationMessage": "(beperkt tot {{max_duration}}) "
   },
   "screenRecording": {
     "start": {
       "heading": "Dit gesprek opnemen",
-      "body": "Neem dit gesprek op om het later terug te kijken. Je ontvangt de video-opname per e-mail.",
+      "body": "Neem dit gesprek op om het later terug te kijken {{duration_message}}. Je ontvangt de video-opname per e-mail.",
       "button": "Opname starten",
       "loading": "Opname gestarten",
       "linkMore": "Meer informatie"
@@ -365,7 +366,8 @@
         "start": "We konden de opname niet starten. Probeer het over enkele ogenblikken opnieuw."
       },
       "button": "Opnieuw proberen"
-    }
+    },
+    "durationMessage": "(beperkt tot {{max_duration}})"
   },
   "admin": {
     "description": "Deze organisatorinstellingen geven u controle over uw vergadering. Alleen organisatoren hebben toegang tot deze bedieningselementen.",

@@ -303,7 +303,7 @@
   "transcript": {
     "start": {
       "heading": "Transcrire cet appel",
-      "body": "Transcrivez cet appel automatiquement et recevez le compte rendu dans Docs.",
+      "body": "Transcrivez cet appel automatiquement {{duration_message}} et recevez le compte rendu dans Docs.",
       "button": "Démarrer la transcription",
       "loading": "Démarrage de la transcription",
       "linkMore": "En savoir plus"
@@ -334,12 +334,13 @@
         "start": "Nous n'avons pas pu démarrer la transcription. Veuillez réessayer dans quelques instants."
       },
       "button": "OK"
-    }
+    },
+    "durationMessage": "(limité à {{max_duration}}) "
   },
   "screenRecording": {
     "start": {
       "heading": "Enregistrer cet appel",
-      "body": "Enregistrez cet appel pour plus tard et recevez l'enregistrement vidéo par mail.",
+      "body": "Enregistrez cet appel pour plus tard {{duration_message}} et recevez l'enregistrement vidéo par mail.",
       "button": "Démarrer l'enregistrement",
       "loading": "Démarrage de l'enregistrement",
       "linkMore": "En savoir plus"
@@ -365,7 +366,8 @@
         "start": "Nous n'avons pas pu démarrer l'enregistrement. Veuillez réessayer dans quelques instants."
       },
       "button": "OK"
-    }
+    },
+    "durationMessage": "(limité à {{max_duration}}) "
   },
   "admin": {
     "description": "Ces paramètres organisateur vous permettent de garder le contrôle de votre réunion. Seuls les organisateurs peuvent accéder à ces commandes.",
