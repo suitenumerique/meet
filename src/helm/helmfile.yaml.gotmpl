@@ -1,0 +1,69 @@
+environments:
+  dev-keycloak:
+    values:
+      - version: 0.0.1
+      - env.d/dev-keycloak/values.secrets.yaml
+  dev-dinum:
+    values:
+      - version: 0.0.1
+      - env.d/dev-dinum/values.secrets.yaml
+  dev:
+    values:
+      - version: 0.0.1
+      - env.d/dev/values.secrets.yaml
+
+---
+repositories:
+- name: livekit
+  url: https://helm.livekit.io
+
+releases:
+- name: extra
+  installed: {{ regexMatch "^dev.*" .Environment.Name }}
+  missingFileHandler: Warn
+  namespace: {{ .Namespace }}
+  chart: ./extra
+  secrets:
+  - env.d/{{ .Environment.Name }}/secrets.enc.yaml
+  values:
+  - env.d/{{ .Environment.Name }}/values.meet.yaml.gotmpl
+  - addRedirect: {{ .Values | get "addRedirect" "False" }}
+  - enablePermanentRedirect: {{ .Values | get "enablePermanentRedirect" "False"}}
+  - oldDomain: {{ .Values | get "oldDomain" "demo.com" }}
+  - newDomain: {{ .Values | get "newDomain" "demo.com" }}
+  - realm: |
+{{ readFile "../../docker/auth/realm.json" | replace "http://localhost:3200" "https://meet.127.0.0.1.nip.io" | indent 8 }}
+
+
+- name: meet
+  version: {{ .Values.version }}
+  namespace: {{ .Namespace }}
+  missingFileHandler: Warn
+  chart: ./meet
+  values:
+  - env.d/{{ .Environment.Name }}/values.meet.yaml.gotmpl
+  - env.d/{{ .Environment.Name }}/values.secrets.yaml
+  secrets:
+  - env.d/{{ .Environment.Name }}/secrets.enc.yaml
+
+- name: livekit
+  installed: {{ regexMatch "^dev.*" .Environment.Name }}
+  missingFileHandler: Warn
+  namespace: {{ .Namespace }}
+  chart: livekit/livekit-server
+  values:
+  - env.d/{{ .Environment.Name }}/values.livekit.yaml.gotmpl
+  - env.d/{{ .Environment.Name }}/values.secrets.yaml
+  secrets:
+  - env.d/{{ .Environment.Name }}/secrets.enc.yaml
+
+- name: livekit-egress
+  installed: {{ regexMatch "^dev.*" .Environment.Name }}
+  missingFileHandler: Warn
+  namespace: {{ .Namespace }}
+  chart: livekit/egress
+  values:
+  - env.d/{{ .Environment.Name }}/values.egress.yaml.gotmpl
+  - env.d/{{ .Environment.Name }}/values.secrets.yaml
+  secrets:
+  - env.d/{{ .Environment.Name }}/secrets.enc.yaml
