@@ -303,7 +303,7 @@
   "transcript": {
     "start": {
       "heading": "Transcribe this call",
-      "body": "Automatically transcribe this call and receive the summary in Docs.",
+      "body": "Automatically transcribe this call {{duration_message}} and receive the summary in Docs.",
       "button": "Start transcription",
       "loading": "Transcription starting",
       "linkMore": "Learn more"
@@ -334,12 +334,13 @@
         "start": "We were unable to start the transcription. Please try again in a moment."
       },
       "button": "OK"
-    }
+    },
+    "durationMessage": "(limited to {{max_duration}}) "
   },
   "screenRecording": {
     "start": {
       "heading": "Record this call",
-      "body": "Record this call to watch it later and receive the video recording by email.",
+      "body": "Record this call to watch it later {{duration_message}} and receive the video recording by email.",
       "button": "Start recording",
       "loading": "Recording starting",
       "linkMore": "Learn more"
@@ -365,7 +366,8 @@
         "start": "We were unable to start the recording. Please try again in a moment."
       },
       "button": "OK"
-    }
+    },
+    "durationMessage": "(limited to {{max_duration}}) "
   },
   "admin": {
     "description": "These organizer settings allow you to maintain control of your meeting. Only organizers can access these controls.",

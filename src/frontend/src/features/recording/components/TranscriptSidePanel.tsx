@@ -25,6 +25,8 @@ import posthog from 'posthog-js'
 import { useSnapshot } from 'valtio/index'
 import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
+import humanizeDuration from 'humanize-duration'
+import i18n from 'i18next'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -263,7 +265,7 @@ export const TranscriptSidePanel = () => {
                   </H>
                   <Text
                     variant="note"
-                    wrap={'pretty'}
+                    wrap="balance"
                     centered
                     className={css({
                       textStyle: 'sm',
@@ -272,7 +274,18 @@ export const TranscriptSidePanel = () => {
                       marginTop: '0.25rem',
                     })}
                   >
-                    {t('start.body')} <br />{' '}
+                    {t('start.body', {
+                      duration_message: data?.recording?.max_duration
+                        ? t('durationMessage', {
+                            max_duration: humanizeDuration(
+                              data?.recording?.max_duration,
+                              {
+                                language: i18n.language,
+                              }
+                            ),
+                          })
+                        : '',
+                    })}{' '}
                     {data?.support?.help_article_transcript && (
                       <A
                         href={data.support.help_article_transcript}
