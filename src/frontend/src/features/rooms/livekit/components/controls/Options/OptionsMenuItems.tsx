@@ -5,6 +5,7 @@ import { SettingsMenuItem } from './SettingsMenuItem'
 import { FeedbackMenuItem } from './FeedbackMenuItem'
 import { EffectsMenuItem } from './EffectsMenuItem'
 import { SupportMenuItem } from './SupportMenuItem'
+import { ScreenRecordingMenuItem } from './ScreenRecordingMenuItem'
 
 // @todo try refactoring it to use MenuList component
 export const OptionsMenuItems = () => {
@@ -16,6 +17,7 @@ export const OptionsMenuItems = () => {
       }}
     >
       <MenuSection>
+        <ScreenRecordingMenuItem />
         <FullScreenMenuItem />
         <EffectsMenuItem />
       </MenuSection>
