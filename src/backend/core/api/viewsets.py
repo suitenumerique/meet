@@ -59,6 +59,7 @@ from core.services.subtitle import SubtitleException, SubtitleService
 
 from ..authentication.livekit import LiveKitTokenAuthentication
 from . import permissions, serializers
+from .feature_flag import FeatureFlag
 
 # pylint: disable=too-many-ancestors
 
@@ -293,9 +294,9 @@ class RoomViewSet(
         url_path="start-recording",
         permission_classes=[
             permissions.HasPrivilegesOnRoom,
-            permissions.IsRecordingEnabled,
         ],
     )
+    @FeatureFlag.require("recording")
     def start_room_recording(self, request, pk=None):  # pylint: disable=unused-argument
         """Start recording a room."""
 
@@ -338,9 +339,9 @@ class RoomViewSet(
         url_path="stop-recording",
         permission_classes=[
             permissions.HasPrivilegesOnRoom,
-            permissions.IsRecordingEnabled,
         ],
     )
+    @FeatureFlag.require("recording")
     def stop_room_recording(self, request, pk=None):  # pylint: disable=unused-argument
         """Stop room recording."""
 
@@ -542,11 +543,11 @@ class RoomViewSet(
         methods=["post"],
         url_path="start-subtitle",
         permission_classes=[
-            permissions.IsSubtitleEnabled,
             permissions.HasLiveKitRoomAccess,
         ],
         authentication_classes=[LiveKitTokenAuthentication],
     )
+    @FeatureFlag.require("subtitle")
     def start_subtitle(self, request, pk=None):  # pylint: disable=unused-argument
         """Start realtime transcription for the room.
 
@@ -732,8 +733,8 @@ class RecordingViewSet(
         methods=["post"],
         url_path="storage-hook",
         authentication_classes=[StorageEventAuthentication],
-        permission_classes=[permissions.IsStorageEventEnabled],
     )
+    @FeatureFlag.require("storage_event")
     def on_storage_event_received(self, request, pk=None):  # pylint: disable=unused-argument
         """Handle incoming storage hook events for recordings."""
 

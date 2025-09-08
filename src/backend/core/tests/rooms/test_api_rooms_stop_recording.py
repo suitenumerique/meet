@@ -54,8 +54,9 @@ def test_stop_recording_anonymous():
     assert Recording.objects.filter(status=RecordingStatusChoices.ACTIVE).count() == 1
 
 
-def test_stop_recording_non_owner_and_non_administrator():
+def test_stop_recording_non_owner_and_non_administrator(settings):
     """Non-owner and Non-Administrator users should not be allowed to stop room recordings."""
+    settings.RECORDING_ENABLE = True
     room = RoomFactory()
     user = UserFactory()
     RecordingFactory(room=room, status=RecordingStatusChoices.ACTIVE)
@@ -84,8 +85,8 @@ def test_stop_recording_recording_disabled(settings):
 
     response = client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
 
-    assert response.status_code == 403
-    assert response.json() == {"detail": "Access denied, recording is disabled."}
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not found."}
     # Verify no recording exists
     assert Recording.objects.count() == 0
 
