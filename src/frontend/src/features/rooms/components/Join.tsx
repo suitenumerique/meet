@@ -474,7 +474,7 @@ export const Join = ({
           width: '100%',
           flexDirection: 'column',
           flexGrow: 1,
-          gap: { base: '1rem', sm: '2rem', lg: 0 },
+          gap: { base: '1rem', sm: '2rem', lg: '2rem' },
           lg: {
             flexDirection: 'row',
           },
@@ -771,7 +771,7 @@ export const Join = ({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            flex: '0 0 448px',
+            flex: '0 0 360px',
             position: 'relative',
             margin: '1rem 1rem 1rem 0.5rem',
           })}
