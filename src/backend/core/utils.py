@@ -90,6 +90,7 @@ def generate_token(
         can_update_own_metadata=True,
         can_publish=bool(sources),
         can_publish_sources=sources,
+        can_subscribe=True,
     )
 
     if user.is_anonymous:
