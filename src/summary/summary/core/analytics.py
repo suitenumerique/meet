@@ -48,6 +48,17 @@ class Analytics:
         except Exception as e:
             raise AnalyticsException("Failed to capture analytics event") from e
 
+    def is_feature_enabled(self, feature_name: str, distinct_id: str = None) -> bool:
+        """Check if a feature flag is enabled for a user."""
+        if self.is_disabled:
+            return False
+
+        try:
+            return self._client.feature_enabled(feature_name, distinct_id)
+        except Exception as e:
+            logger.error("Error checking feature flag %s: %s", feature_name, e)
+            return False
+
 
 @lru_cache
 def get_analytics():
