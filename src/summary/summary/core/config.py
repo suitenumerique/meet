@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     celery_result_backend: str = "redis://redis/0"
     celery_max_retries: int = 1
 
+    transcribe_queue: str = "transcribe-queue"
+
     # Minio settings
     aws_storage_bucket_name: str
     aws_s3_endpoint_url: str

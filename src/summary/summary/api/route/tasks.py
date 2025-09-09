@@ -10,6 +10,9 @@ from pydantic import BaseModel
 from summary.core.celery_worker import (
     process_audio_transcribe_summarize_v2,
 )
+from summary.core.config import get_settings
+
+settings = get_settings()
 
 
 class TaskCreation(BaseModel):
@@ -39,7 +42,8 @@ async def create_task(request: TaskCreation):
             request.room,
             request.recording_date,
             request.recording_time,
-        ]
+        ],
+        queue=settings.transcribe_queue,
     )
 
     return {"id": task.id, "message": "Task created"}
