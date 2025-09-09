@@ -215,19 +215,19 @@ def process_audio_transcribe_summarize_v2(
         logger.error(error_msg)
         raise AudioValidationError(error_msg)
 
-    logger.info("Initiating OpenAI client")
-    openai_client = openai.OpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
-        max_retries=settings.openai_max_retries,
+    logger.info("Initiating WhisperX client")
+    whisperx_client = openai.OpenAI(
+        api_key=settings.whisperx_api_key,
+        base_url=settings.whisperx_base_url,
+        max_retries=settings.whisperx_max_retries,
     )
 
     try:
         logger.info("Querying transcription …")
         transcription_start_time = time.time()
         with open(temp_file_path, "rb") as audio_file:
-            transcription = openai_client.audio.transcriptions.create(
-                model=settings.openai_asr_model, file=audio_file
+            transcription = whisperx_client.audio.transcriptions.create(
+                model=settings.whisperx_asr_model, file=audio_file
             )
             metadata_manager.track(
                 task_id,

@@ -114,7 +114,7 @@ class MetadataManager:
 
         initial_metadata = {
             "start_time": time.time(),
-            "asr_model": settings.openai_asr_model,
+            "asr_model": settings.whisperx_asr_model,
             "retries": 0,
         }
 
