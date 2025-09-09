@@ -221,3 +221,40 @@ services:
         - ./docker/livekit/out:/out
       depends_on:
         - redis
+
+  redis-summary:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  app-summary-dev:
+    build:
+      context: src/summary
+      target: development
+      args:
+        DOCKER_USER: ${DOCKER_USER:-1000}
+    user: ${DOCKER_USER:-1000}
+    env_file:
+      - env.d/development/summary
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./src/summary:/app
+    depends_on:
+        - redis-summary
+
+  celery-summary:
+    container_name: celery-summary
+    build:
+      context: ./src/summary
+      dockerfile: Dockerfile
+      target: production
+    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug
+    env_file:
+      - env.d/development/summary
+    volumes:
+      - ./src/summary:/app
+    depends_on:
+      - redis-summary
+      - app-summary-dev
+      - minio

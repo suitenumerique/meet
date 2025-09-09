@@ -1,0 +1,14 @@
+APP_NAME="meet-app-summary-dev"
+APP_API_TOKEN="dev-apikey"
+
+AWS_STORAGE_BUCKET_NAME="meet-media-storage"
+AWS_S3_ENDPOINT_URL="minio:9000"
+AWS_S3_SECURE_ACCESS=false
+
+AWS_S3_ACCESS_KEY_ID="meet"
+AWS_S3_SECRET_ACCESS_KEY="password"
+
+OPENAI_API_KEY="your-openai-key"
+
+WEBHOOK_API_TOKEN="secret"
+WEBHOOK_URL="https://configure-your-url.com"
