@@ -8,7 +8,6 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from summary.core.celery_worker import (
-    process_audio_transcribe_summarize,
     process_audio_transcribe_summarize_v2,
 )
 
@@ -31,22 +30,17 @@ router = APIRouter(prefix="/tasks")
 @router.post("/")
 async def create_task(request: TaskCreation):
     """Create a task."""
-    if request.version == 1:
-        task = process_audio_transcribe_summarize.delay(
-            request.filename, request.email, request.sub
-        )
-    else:
-        task = process_audio_transcribe_summarize_v2.apply_async(
-            args=[
-                request.filename,
-                request.email,
-                request.sub,
-                time.time(),
-                request.room,
-                request.recording_date,
-                request.recording_time,
-            ]
-        )
+    task = process_audio_transcribe_summarize_v2.apply_async(
+        args=[
+            request.filename,
+            request.email,
+            request.sub,
+            time.time(),
+            request.room,
+            request.recording_date,
+            request.recording_time,
+        ]
+    )
 
     return {"id": task.id, "message": "Task created"}
 
