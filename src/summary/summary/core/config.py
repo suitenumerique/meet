@@ -35,7 +35,6 @@ class Settings(BaseSettings):
     openai_api_key: str
     openai_base_url: str = "https://api.openai.com/v1"
     openai_asr_model: str = "whisper-1"
-    openai_llm_model: str = "gpt-4o"
     openai_max_retries: int = 0
 
     # Webhook-related settings

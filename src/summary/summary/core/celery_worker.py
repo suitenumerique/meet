@@ -21,7 +21,6 @@ from urllib3.util import Retry
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
-from summary.core.prompt import get_instructions
 
 settings = get_settings()
 analytics = get_analytics()
@@ -154,82 +153,6 @@ def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
 def task_failure_handler(task_id, exception=None, **kwargs):
     """Signal handler called when task execution fails permanently."""
     metadata_manager.capture(task_id, settings.posthog_event_failure)
-
-
-@celery.task(max_retries=settings.celery_max_retries)
-def process_audio_transcribe_summarize(filename: str, email: str, sub: str):
-    """Process an audio file by transcribing it and generating a summary.
-
-    This Celery task performs the following operations:
-    1. Retrieves the audio file from MinIO storage
-    2. Transcribes the audio using OpenAI-compliant API's ASR model
-    3. Generates a summary of the transcription using OpenAI-compliant API's LLM
-    4. Sends the results via webhook
-    """
-    logger.info("Notification received")
-    logger.debug("filename: %s", filename)
-
-    minio_client = Minio(
-        settings.aws_s3_endpoint_url,
-        access_key=settings.aws_s3_access_key_id,
-        secret_key=settings.aws_s3_secret_access_key,
-        secure=settings.aws_s3_secure_access,
-    )
-
-    logger.debug("Connection to the Minio bucket successful")
-
-    audio_file_stream = minio_client.get_object(
-        settings.aws_storage_bucket_name, object_name=filename
-    )
-
-    temp_file_path = save_audio_stream(audio_file_stream)
-    logger.debug("Recording successfully downloaded, filepath: %s", temp_file_path)
-
-    logger.info("Initiating OpenAI client")
-
-    openai_client = openai.OpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
-        max_retries=settings.openai_max_retries,
-    )
-
-    try:
-        logger.info("Querying transcription …")
-        with open(temp_file_path, "rb") as audio_file:
-            transcription = openai_client.audio.transcriptions.create(
-                model=settings.openai_asr_model, file=audio_file
-            )
-            transcription = transcription.text
-
-            logger.debug("Transcription: \n %s", transcription)
-    finally:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-            logger.debug("Temporary file removed: %s", temp_file_path)
-
-    instructions = get_instructions(transcription)
-    summary_response = openai_client.chat.completions.create(
-        model=settings.openai_llm_model, messages=instructions
-    )
-
-    summary = summary_response.choices[0].message.content
-    logger.debug("Summary: \n %s", summary)
-
-    # fixme - generate a title using LLM
-    data = {
-        "title": "Votre résumé",
-        "content": summary,
-        "email": email,
-        "sub": sub,
-    }
-
-    logger.debug("Submitting webhook to %s", settings.webhook_url)
-    logger.debug("Request payload: %s", json.dumps(data, indent=2))
-
-    response = post_with_retries(settings.webhook_url, data)
-
-    logger.info("Webhook submitted successfully. Status: %s", response.status_code)
-    logger.debug("Response body: %s", response.text)
 
 
 @celery.task(
