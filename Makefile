@@ -71,7 +71,8 @@ create-env-files: \
 	env.d/development/common \
 	env.d/development/crowdin \
 	env.d/development/postgresql \
-	env.d/development/kc_postgresql
+	env.d/development/kc_postgresql \
+	env.d/development/summary
 .PHONY: create-env-files
 
 bootstrap: ## Prepare Docker images for the project
@@ -116,9 +117,14 @@ run-backend: ## start only the backend application and all needed services
 	@$(WAIT_DB)
 .PHONY: run-backend
 
+run-summary: ## start only the summary application and all needed services
+	@$(COMPOSE) up --force-recreate -d celery-summary
+.PHONY: run-summary
+
 run:
 run: ## start the wsgi (production) and development server
 	@$(MAKE) run-backend
+	@$(MAKE) run-summary
 	@$(COMPOSE) up --force-recreate -d frontend
 .PHONY: run
 
@@ -245,6 +251,9 @@ env.d/development/postgresql:
 
 env.d/development/kc_postgresql:
 	cp -n env.d/development/kc_postgresql.dist env.d/development/kc_postgresql
+
+env.d/development/summary:
+	cp -n env.d/development/summary.dist env.d/development/summary
 
 # -- Internationalization
 
