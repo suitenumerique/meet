@@ -142,4 +142,4 @@ Once the Kubernetes cluster is ready, start the application stack locally:
 $ make start-tilt-keycloak
 ```
 
-Monitor Tilt’s progress at [http://localhost:10350/](http://localhost:10350/). After Tilt actions finish, you can access the app at [https://visio.127.0.0.1.nip.io/](https://visio.127.0.0.1.nip.io/).
+Monitor Tilt’s progress at [http://localhost:10350/](http://localhost:10350/). After Tilt actions finish, you can access the app at [https://meet.127.0.0.1.nip.io/](https://meet.127.0.0.1.nip.io/).
