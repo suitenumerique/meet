@@ -21,6 +21,14 @@ from urllib3.util import Retry
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
+from summary.core.prompt import (
+    PROMPT_SYSTEM_CLEANING,
+    PROMPT_SYSTEM_NEXT_STEP,
+    PROMPT_SYSTEM_PART,
+    PROMPT_SYSTEM_PLAN,
+    PROMPT_SYSTEM_TLDR,
+    PROMPT_USER_PART,
+)
 
 settings = get_settings()
 analytics = get_analytics()
@@ -92,6 +100,39 @@ def create_retry_session():
     )
     session.mount("https://", HTTPAdapter(max_retries=retries))
     return session
+
+
+class LLMException(Exception):
+    """LLM call failed."""
+
+
+class LLMService:
+    """Service for performing calls to the LLM configured in the settings."""
+
+    def __init__(self):
+        """Init the LLMService once."""
+        self._client = openai.OpenAI(
+            base_url=settings.llm_base_url, api_key=settings.llm_api_key
+        )
+
+    def call(self, system_prompt: str, user_prompt: str):
+        """Call the LLM service.
+
+        Takes a system prompt and a user prompt, and returns the LLM's response
+        Returns None if the call fails.
+        """
+        try:
+            response = self._client.chat.completions.create(
+                model=settings.llm_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error("LLM call failed: %s", e)
+            raise LLMException("LLM call failed.") from e
 
 
 def format_segments(transcription_data):
@@ -277,4 +318,77 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
-    # TODO - integrate summarize the transcript and create a new document.
+    if analytics.is_feature_enabled("summary-enabled", distinct_id=sub):
+        logger.info("Queuing summary generation task.")
+        summarize_transcription.apply_async(
+            args=[formatted_transcription, email, sub, title],
+            queue=settings.summarize_queue,
+        )
+    else:
+        logger.info("Summary generation not enabled for this user.")
+
+
+@celery.task(
+    bind=True,
+    autoretry_for=[LLMException, Exception],
+    max_retries=settings.celery_max_retries,
+    queue=settings.summarize_queue,
+)
+def summarize_transcription(self, transcript: str, email: str, sub: str, title: str):
+    """Generate a summary from the provided transcription text.
+
+    This Celery task performs the following operations:
+    1. Uses an LLM to generate a TL;DR summary of the transcription.
+    2. Breaks the transcription into parts and summarizes each part.
+    3. Cleans up the combined summary
+    4. Generates next steps.
+    5. Sends the final summary via webhook.
+    """
+    logger.info("Starting summarization task")
+
+    llm_service = LLMService()
+
+    tldr = llm_service.call(PROMPT_SYSTEM_TLDR, transcript)
+
+    logger.info("TLDR generated")
+
+    parts = llm_service.call(PROMPT_SYSTEM_PLAN, transcript)
+    logger.info("Plan generated")
+
+    parts = parts.split("\n")
+    parts = [x for x in parts if x.strip() != ""]
+    logger.info("Empty parts removed")
+
+    parts_summarized = []
+    for part in parts:
+        prompt_user_part = PROMPT_USER_PART.format(part=part, transcript=transcript)
+        logger.info("Summarizing part: %s", part)
+        parts_summarized.append(llm_service.call(PROMPT_SYSTEM_PART, prompt_user_part))
+
+    logger.info("Parts summarized")
+
+    raw_summary = "\n\n".join(parts_summarized)
+
+    next_steps = llm_service.call(PROMPT_SYSTEM_NEXT_STEP, transcript)
+    logger.info("Next steps generated")
+
+    cleaned_summary = llm_service.call(PROMPT_SYSTEM_CLEANING, raw_summary)
+    logger.info("Summary cleaned")
+
+    summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
+
+    data = {
+        "title": settings.summary_title_template.format(
+            title=title,
+        ),
+        "content": summary,
+        "email": email,
+        "sub": sub,
+    }
+
+    logger.debug("Submitting webhook to %s", settings.webhook_url)
+
+    response = post_with_retries(settings.webhook_url, data)
+
+    logger.info("Webhook submitted successfully. Status: %s", response.status_code)
+    logger.debug("Response body: %s", response.text)

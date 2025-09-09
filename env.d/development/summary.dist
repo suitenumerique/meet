@@ -12,6 +12,10 @@ WHISPERX_BASE_URL="https://configure-your-url.com"
 WHISPERX_ASR_MODEL="large-v2"
 WHISPERX_API_KEY="your-secret-key"
 
+LLM_BASE_URL="https://configure-your-url.com"
+LLM_API_KEY="dev-apikey"
+LLM_MODEL="Qwen/Qwen2.5-Coder-32B-Instruct-AWQ"
+
 WEBHOOK_API_TOKEN="secret"
 WEBHOOK_URL="https://configure-your-url.com"
 
