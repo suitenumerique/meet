@@ -8,6 +8,14 @@ COPY pyproject.toml .
 
 RUN pip3 install --no-cache-dir .
 
+FROM base AS development
+WORKDIR /app
+
+COPY . .
+RUN pip3 install --no-cache-dir -e ".[dev]" || pip3 install --no-cache-dir -e .
+
+CMD ["uvicorn", "summary.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
 FROM base AS production
 
 WORKDIR /app
