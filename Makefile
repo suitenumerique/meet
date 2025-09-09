@@ -119,6 +119,7 @@ run-backend: ## start only the backend application and all needed services
 
 run-summary: ## start only the summary application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-summary-transcribe
+	@$(COMPOSE) up --force-recreate -d celery-summary-summarize
 .PHONY: run-summary
 
 run:
