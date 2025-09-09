@@ -243,13 +243,13 @@ services:
     depends_on:
         - redis-summary
 
-  celery-summary:
-    container_name: celery-summary
+  celery-summary-transcribe:
+    container_name: celery-summary-transcribe
     build:
       context: ./src/summary
       dockerfile: Dockerfile
       target: production
-    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug
+    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q transcribe-queue
     env_file:
       - env.d/development/summary
     volumes:
