@@ -21,6 +21,14 @@ from urllib3.util import Retry
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
+from summary.core.prompt import (
+    PROMPT_SYSTEM_CLEANING,
+    PROMPT_SYSTEM_NEXT_STEP,
+    PROMPT_SYSTEM_PART,
+    PROMPT_SYSTEM_PLAN,
+    PROMPT_SYSTEM_TLDR,
+    PROMPT_USER_PART,
+)
 
 settings = get_settings()
 analytics = get_analytics()
@@ -92,6 +100,31 @@ def create_retry_session():
     )
     session.mount("https://", HTTPAdapter(max_retries=retries))
     return session
+
+
+class LLMService:
+    """Wip."""
+
+    def __init__(self):
+        """Wip."""
+        self._client = openai.OpenAI(
+            base_url=settings.llm_base_url, api_key=settings.llm_api_key
+        )
+
+    def call(self, system_prompt: str, user_prompt: str):
+        """Wip."""
+        try:
+            response = self._client.chat.completions.create(
+                model=settings.llm_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error("Call failed: %s", e)
+            return None
 
 
 def format_segments(transcription_data):
@@ -277,4 +310,64 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
-    # TODO - integrate summarize the transcript and create a new document.
+    if not analytics.is_feature_enabled("summary-enabled", distinct_id=sub):
+        logger.info("Queuing summary generation task.")
+        summarize_transcription.apply_async(
+            args=[formatted_transcription, email, sub, title],
+            queue=settings.summarize_queue,
+        )
+
+
+@celery.task(
+    bind=True, autoretry_for=[Exception], max_retries=3, queue=settings.summarize_queue
+)
+def summarize_transcription(self, transcript: str, email: str, sub: str, title: str):
+    """Wip."""
+    logger.info("Starting summarization task")
+
+    llm_service = LLMService()
+
+    tldr = llm_service.call(PROMPT_SYSTEM_TLDR, transcript)
+
+    logger.info("TLDR generated")
+
+    parts = llm_service.call(PROMPT_SYSTEM_PLAN, transcript)
+    logger.info("Plan generated")
+
+    parts = parts.split("\n")
+    parts = [x for x in parts if x.strip() != ""]
+    logger.info("Empty parts removed")
+
+    parts_summarized = []
+    for part in parts:
+        prompt_user_part = PROMPT_USER_PART.format(part=part, transcript=transcript)
+        logger.info("Summarizing part: %s", part)
+        parts_summarized.append(
+            llm_service.call(PROMPT_SYSTEM_PART, prompt_user_part.format(part=part))
+        )
+
+    logger.info("Parts summarized")
+
+    raw_summary = "\n\n".join(parts_summarized)
+
+    next_steps = llm_service.call(PROMPT_SYSTEM_NEXT_STEP, transcript)
+    logger.info("Next steps generated")
+
+    cleaned_summary = llm_service.call(PROMPT_SYSTEM_CLEANING, raw_summary)
+    logger.info("Summary cleaned")
+
+    summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
+
+    data = {
+        "title": title + " - Summary",
+        "content": summary,
+        "email": email,
+        "sub": sub,
+    }
+
+    logger.debug("Submitting webhook to %s", settings.webhook_url)
+
+    response = post_with_retries(settings.webhook_url, data)
+
+    logger.info("Webhook submitted successfully. Status: %s", response.status_code)
+    logger.debug("Response body: %s", response.text)

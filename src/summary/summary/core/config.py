@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     celery_max_retries: int = 1
 
     transcribe_queue: str = "transcribe-queue"
+    summarize_queue: str = "summarize-queue"
 
     # Minio settings
     aws_storage_bucket_name: str
@@ -38,6 +39,9 @@ class Settings(BaseSettings):
     whisperx_base_url: str = "https://api.openai.com/v1"
     whisperx_asr_model: str = "whisper-1"
     whisperx_retries: int = 0
+    llm_base_url: str
+    llm_api_key: str
+    llm_model: str
 
     # Webhook-related settings
     webhook_max_retries: int = 2

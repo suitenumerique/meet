@@ -258,3 +258,19 @@ services:
       - redis-summary
       - app-summary-dev
       - minio
+
+  celery-summary-summarize:
+    container_name: celery-summary-summarize
+    build:
+      context: ./src/summary
+      dockerfile: Dockerfile
+      target: production
+    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q summarize-queue
+    env_file:
+      - env.d/development/summary
+    volumes:
+      - ./src/summary:/app
+    depends_on:
+      - redis-summary
+      - app-summary-dev
+      - minio
