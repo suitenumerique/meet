@@ -63,11 +63,13 @@ export function MobileControlBar({
             onDeviceError={(error) =>
               onDeviceError?.({ source: Track.Source.Microphone, error })
             }
+            hideMenu={true}
           />
           <VideoDeviceControl
             onDeviceError={(error) =>
               onDeviceError?.({ source: Track.Source.Camera, error })
             }
+            hideMenu={true}
           />
           <HandToggle />
           <Button
