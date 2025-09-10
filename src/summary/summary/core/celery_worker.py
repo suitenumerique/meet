@@ -310,7 +310,7 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
-    if not analytics.is_feature_enabled("summary-enabled", distinct_id=sub):
+    if analytics.is_feature_enabled("summary-enabled", distinct_id=sub):
         logger.info("Queuing summary generation task.")
         summarize_transcription.apply_async(
             args=[formatted_transcription, email, sub, title],
