@@ -254,7 +254,7 @@ env.d/development/kc_postgresql:
 	cp -n env.d/development/kc_postgresql.dist env.d/development/kc_postgresql
 
 env.d/development/summary:
-	cp -n env.d/development/summary.dist env.d/development/summaryn
+	cp -n env.d/development/summary.dist env.d/development/summary
 
 # -- Internationalization
 
