@@ -4,6 +4,8 @@ from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
 from django.utils.translation import gettext_lazy as _
 
+from rest_framework_api_key.admin import APIKeyModelAdmin
+
 from . import models
 
 
@@ -150,3 +152,19 @@ class RecordingAdmin(admin.ModelAdmin):
             return _("Multiple owners")
 
         return str(owners[0].user)
+
+
+@admin.register(models.ServiceAccount)
+class ServiceAccountAdmin(admin.ModelAdmin):
+    """Wip."""
+
+    list_display = ("id", "name")
+    readonly_fields = ["id", "created_at", "updated_at"]
+
+
+@admin.register(models.ServiceAccountAPIKey)
+class OrganizationAPIKeyModelAdmin(APIKeyModelAdmin):
+    """Wip."""
+
+    list_display = [*APIKeyModelAdmin.list_display, "service_account__name"]
+    search_fields = [*APIKeyModelAdmin.search_fields, "service_account__name"]

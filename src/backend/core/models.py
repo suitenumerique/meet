@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext_lazy as _
 
+from rest_framework_api_key.models import AbstractAPIKey
 from timezone_field import TimeZoneField
 
 from .recording.enums import FileExtension
@@ -717,3 +718,33 @@ class RecordingAccess(BaseAccess):
         Compute and return abilities for a given user on the recording access.
         """
         return self._get_abilities(self.recording, user)
+
+
+class ServiceAccount(BaseModel):
+    """Wip."""
+
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_("Service account name"),
+        help_text=_("Descriptive name for this service account."),
+    )
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "meet_service_account"
+        ordering = ("-created_at",)
+        verbose_name = _("Service account")
+        verbose_name_plural = _("Service accounts")
+
+    def __str__(self):
+        return f"{self.name!s}"
+
+
+class ServiceAccountAPIKey(AbstractAPIKey):
+    """Wip."""
+
+    service_account = models.ForeignKey(
+        ServiceAccount,
+        on_delete=models.CASCADE,
+        related_name="api_keys",
+    )
