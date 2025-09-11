@@ -226,6 +226,7 @@ class Base(Configuration):
         "corsheaders",
         "dockerflow.django",
         "rest_framework",
+        "rest_framework_api_key",
         "parler",
         "easy_thumbnails",
         # Django

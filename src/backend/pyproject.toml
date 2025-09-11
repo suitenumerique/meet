@@ -40,6 +40,7 @@ dependencies = [
     "django-timezone-field>=5.1",
     "django==5.2.6",
     "djangorestframework==3.16.0",
+    "djangorestframework-api-key==3.1.0",
     "drf_spectacular==0.28.0",
     "dockerflow==2024.4.2",
     "easy_thumbnails==2.10",
