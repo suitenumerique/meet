@@ -1,8 +1,9 @@
 """Permission handlers for the Meet core app."""
 
 from rest_framework import permissions
+from rest_framework_api_key.permissions import BaseHasAPIKey
 
-from ..models import RoleChoices
+from ..models import RoleChoices, ServiceAccountAPIKey
 
 ACTION_FOR_METHOD_TO_PERMISSION = {
     "versions_detail": {"DELETE": "versions_destroy", "GET": "versions_retrieve"}
@@ -106,3 +107,6 @@ class HasLiveKitRoomAccess(permissions.BasePermission):
         if not request.auth or not hasattr(request.auth, "video"):
             return False
         return request.auth.video.room == str(obj.id)
+
+class HasServiceAccountAPIKey(BaseHasAPIKey):
+    model = ServiceAccountAPIKey
