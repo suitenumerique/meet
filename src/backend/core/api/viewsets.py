@@ -863,3 +863,21 @@ class RecordingViewSet(
         request = utils.generate_s3_authorization_headers(recording.key)
 
         return drf_response.Response("authorized", headers=request.headers, status=200)
+
+class WipViewSet(viewsets.GenericViewSet):
+    """Wip."""
+
+    permission_classes = [permissions.HasServiceAccountAPIKey]
+
+    @decorators.action(
+        detail=False,
+        methods=["get"],
+        url_path="ping",
+        url_name="ping",
+    )
+    def ping(self, request, *args, **kwargs):
+        """Wip."""
+        return drf_response.Response(
+            {"message": "pong"},
+            status=drf_status.HTTP_200_OK,
+        )

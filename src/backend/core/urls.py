@@ -12,6 +12,7 @@ from core.api import get_frontend_configuration, viewsets
 router = DefaultRouter()
 router.register("users", viewsets.UserViewSet, basename="users")
 router.register("rooms", viewsets.RoomViewSet, basename="rooms")
+router.register("wip", viewsets.WipViewSet, basename="wip")
 router.register("recordings", viewsets.RecordingViewSet, basename="recordings")
 router.register(
     "resource-accesses", viewsets.ResourceAccessViewSet, basename="resource_accesses"
