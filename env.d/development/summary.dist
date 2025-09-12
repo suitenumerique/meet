@@ -1,5 +1,5 @@
 APP_NAME="meet-app-summary-dev"
-APP_API_TOKEN="dev-apikey"
+APP_API_TOKEN="password"
 
 AWS_STORAGE_BUCKET_NAME="meet-media-storage"
 AWS_S3_ENDPOINT_URL="minio:9000"
