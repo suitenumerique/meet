@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     whisperx_api_key: str
     whisperx_base_url: str = "https://api.openai.com/v1"
     whisperx_asr_model: str = "whisper-1"
-    whisperx_retries: int = 0
+    whisperx_max_retries: int = 0
     llm_base_url: str
     llm_api_key: str
     llm_model: str

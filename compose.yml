@@ -194,6 +194,9 @@ services:
       KC_DB_USERNAME: meet
       KC_DB_SCHEMA: public
       PROXY_ADDRESS_FORWARDING: 'true'
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
     ports:
       - "8080:8080"
     depends_on:
