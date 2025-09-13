@@ -180,7 +180,9 @@ summary:
     WEBHOOK_URL: https://www.mock-impress.com/webhook/
     CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
     CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
-
+    LLM_BASE_URL="URL_LLM"
+    LLM_API_KEY="YOUR_API_KEY"
+    LLM_MODEL="Qwen/Qwen2.5-Coder-32B-Instruct-AWQ"
   image:
     repository: localhost:5001/meet-summary
     pullPolicy: Always
