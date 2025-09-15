@@ -15,6 +15,7 @@ import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import Source = Track.Source
+import { isSafari } from '@/utils/livekit'
 
 type AudioDevicesControlProps = Omit<
   UseTrackToggleProps<Source.Microphone>,
@@ -111,19 +112,21 @@ export const AudioDevicesControl = ({
                   onSubmit={saveAudioInputDeviceId}
                 />
               </div>
-              <div
-                style={{
-                  flex: '1 1 0',
-                  minWidth: 0,
-                }}
-              >
-                <SelectDevice
-                  context="room"
-                  kind="audiooutput"
-                  id={audioOutputDeviceId}
-                  onSubmit={saveAudioOutputDeviceId}
-                />
-              </div>
+              {!isSafari() && (
+                <div
+                  style={{
+                    flex: '1 1 0',
+                    minWidth: 0,
+                  }}
+                >
+                  <SelectDevice
+                    context="room"
+                    kind="audiooutput"
+                    id={audioOutputDeviceId}
+                    onSubmit={saveAudioOutputDeviceId}
+                  />
+                </div>
+              )}
               <SettingsButton
                 settingTab={SettingsDialogExtendedKey.AUDIO}
                 onPress={close}
