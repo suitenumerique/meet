@@ -12,3 +12,6 @@ OPENAI_API_KEY="your-openai-key"
 
 WEBHOOK_API_TOKEN="secret"
 WEBHOOK_URL="https://configure-your-url.com"
+
+POSTHOG_API_KEY="your-posthog-key"
+POSTHOG_ENABLED="False"
