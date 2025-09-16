@@ -40,6 +40,7 @@ export const ScreenShareToggle = ({
       isDisabled={!canShareScreen}
       square
       variant={variant}
+      aria-label={t(tooltipLabel)}
       tooltip={t(tooltipLabel)}
       onPress={(e) => {
         buttonProps.onClick?.(
