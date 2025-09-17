@@ -176,12 +176,21 @@ Requires top level scope
 {{- end }}
 
 {{/*
-Full name for the Celery
+Full name for the Celery Transcribe
 
 Requires top level scope
 */}}
-{{- define "meet.celery.fullname" -}}
-{{ include "meet.fullname" . }}-celery
+{{- define "meet.celeryTranscribe.fullname" -}}
+{{ include "meet.fullname" . }}-celery-transcribe
+{{- end }}
+
+{{/*
+Full name for the Celery Summarize
+
+Requires top level scope
+*/}}
+{{- define "meet.celerySummarize.fullname" -}}
+{{ include "meet.fullname" . }}-celery-summarize
 {{- end }}
 
 {{/*

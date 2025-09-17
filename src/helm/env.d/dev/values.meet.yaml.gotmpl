@@ -197,7 +197,7 @@ summary:
     - "8000"
     - "--reload"
 
-celery:
+celeryTranscribe:
   replicas: 1
   envVars:
     APP_NAME: summary-microservice
@@ -217,6 +217,7 @@ celery:
     WEBHOOK_URL: https://www.mock-impress.com/webhook/
     CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
     CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
+    TASK_TRACKER_REDIS_URL: redis://default:pass@redis-master:6379/1
 
   image:
     repository: localhost:5001/meet-summary
@@ -230,6 +231,43 @@ celery:
     - "worker"
     - "--pool=solo"
     - "--loglevel=info"
+    - "-Q transcribe-queue"
+
+celerySummarize:
+  replicas: 1
+  envVars:
+    APP_NAME: summary-microservice
+    APP_API_TOKEN: password
+    AWS_STORAGE_BUCKET_NAME: meet-media-storage
+    AWS_S3_ENDPOINT_URL: minio.meet.svc.cluster.local:9000
+    AWS_S3_ACCESS_KEY_ID: meet
+    AWS_S3_SECRET_ACCESS_KEY: password
+    AWS_S3_SECURE_ACCESS: False
+    WHISPERX_API_KEY: your-secret-value
+    WHISPERX_BASE_URL: https://configure-your-url.com
+    WHISPERX_ASR_MODEL: large-v2
+    LLM_BASE_URL: https://configure-your-url.com
+    LLM_API_KEY: your-secret-value
+    LLM_MODEL: meta-llama/Llama-3.1-8B-Instruct
+    WEBHOOK_API_TOKEN: password
+    WEBHOOK_URL: https://www.mock-impress.com/webhook/
+    CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
+    CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
+    TASK_TRACKER_REDIS_URL: redis://default:pass@redis-master:6379/1
+
+  image:
+    repository: localhost:5001/meet-summary
+    pullPolicy: Always
+    tag: "latest"
+
+  command:
+    - "celery"
+    - "-A"
+    - "summary.core.celery_worker"
+    - "worker"
+    - "--pool=solo"
+    - "--loglevel=info"
+    - "-Q summarize-queue"
 
 ingressMedia:
   enabled: true

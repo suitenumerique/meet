@@ -1,26 +1,26 @@
-{{- $envVars := include "meet.common.env" (list . .Values.celery) -}}
-{{- $fullName := include "meet.celery.fullname" . -}}
-{{- $component := "celery" -}}
+{{- $envVars := include "meet.common.env" (list . .Values.celerySummarize) -}}
+{{- $fullName := include "meet.celerySummarize.fullname" . -}}
+{{- $component := "celery-summarize" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullName }}
   annotations:
-   {{- with .Values.celery.dpAnnotations }}
+   {{- with .Values.celerySummarize.dpAnnotations }}
    {{- toYaml . | nindent 4 }}
    {{- end }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "meet.common.labels" (list . $component) | nindent 4 }}
 spec:
-  replicas: {{ .Values.celery.replicas }}
+  replicas: {{ .Values.celerySummarize.replicas }}
   selector:
     matchLabels:
       {{- include "meet.common.selectorLabels" (list . $component) | nindent 6 }}
   template:
     metadata:
       annotations:
-        {{- with .Values.celery.podAnnotations }}
+        {{- with .Values.celerySummarize.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
@@ -30,19 +30,19 @@ spec:
       imagePullSecrets:
         - name: {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" .) "imageCredentials" $.Values.image.credentials) }}
       {{- end }}
-      shareProcessNamespace: {{ .Values.celery.shareProcessNamespace }}
+      shareProcessNamespace: {{ .Values.celerySummarize.shareProcessNamespace }}
       containers:
-        {{- with .Values.celery.sidecars }}
+        {{- with .Values.celerySummarize.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
         - name: {{ .Chart.Name }}
-          image: "{{ (.Values.celery.image | default dict).repository | default .Values.image.repository }}:{{ (.Values.celery.image | default dict).tag | default .Values.image.tag }}"
-          imagePullPolicy: {{ (.Values.celery.image | default dict).pullPolicy | default .Values.image.pullPolicy }}
-          {{- with .Values.celery.command }}
+          image: "{{ (.Values.celerySummarize.image | default dict).repository | default .Values.image.repository }}:{{ (.Values.celerySummarize.image | default dict).tag | default .Values.image.tag }}"
+          imagePullPolicy: {{ (.Values.celerySummarize.image | default dict).pullPolicy | default .Values.image.pullPolicy }}
+          {{- with .Values.celerySummarize.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.celery.args }}
+          {{- with .Values.celerySummarize.args }}
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -50,27 +50,27 @@ spec:
             {{- if $envVars }}
             {{- $envVars | indent 12 }}
             {{- end }}
-          {{- with .Values.celery.securityContext }}
+          {{- with .Values.celerySummarize.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.celery.service.targetPort }}
+              containerPort: {{ .Values.celerySummarize.service.targetPort }}
               protocol: TCP
-          {{- if .Values.celery.probes.liveness }}
+          {{- if .Values.celerySummarize.probes.liveness }}
           livenessProbe:
-            {{- include "meet.probes.abstract" (merge .Values.celery.probes.liveness (dict "targetPort" .Values.celery.service.targetPort )) | nindent 12 }}
+            {{- include "meet.probes.abstract" (merge .Values.celerySummarize.probes.liveness (dict "targetPort" .Values.celerySummarize.service.targetPort )) | nindent 12 }}
           {{- end }}
-          {{- if .Values.celery.probes.readiness }}
+          {{- if .Values.celerySummarize.probes.readiness }}
           readinessProbe:
-            {{- include "meet.probes.abstract" (merge .Values.celery.probes.readiness (dict "targetPort" .Values.celery.service.targetPort )) | nindent 12 }}
+            {{- include "meet.probes.abstract" (merge .Values.celerySummarize.probes.readiness (dict "targetPort" .Values.celerySummarize.service.targetPort )) | nindent 12 }}
           {{- end }}
-          {{- if .Values.celery.probes.startup }}
+          {{- if .Values.celerySummarize.probes.startup }}
           startupProbe:
-            {{- include "meet.probes.abstract" (merge .Values.celery.probes.startup (dict "targetPort" .Values.celery.service.targetPort )) | nindent 12 }}
+            {{- include "meet.probes.abstract" (merge .Values.celerySummarize.probes.startup (dict "targetPort" .Values.celerySummarize.service.targetPort )) | nindent 12 }}
           {{- end }}
-          {{- with .Values.celery.resources }}
+          {{- with .Values.celerySummarize.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -80,25 +80,25 @@ spec:
               mountPath: {{ $value.path }}
               subPath: content
             {{- end }}
-            {{- range $name, $volume := .Values.celery.persistence }}
+            {{- range $name, $volume := .Values.celerySummarize.persistence }}
             - name: "{{ $name }}"
               mountPath: "{{ $volume.mountPath }}"
             {{- end }}
-            {{- range .Values.celery.extraVolumeMounts }}
+            {{- range .Values.celerySummarize.extraVolumeMounts }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
               subPath: {{ .subPath | default "" }}
               readOnly: {{ .readOnly }}
             {{- end }}
-      {{- with .Values.celery.nodeSelector }}
+      {{- with .Values.celerySummarize.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.celery.affinity }}
+      {{- with .Values.celerySummarize.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.celery.tolerations }}
+      {{- with .Values.celerySummarize.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -108,7 +108,7 @@ spec:
           configMap:
             name: "{{ include "meet.fullname" $ }}-files-{{ $index }}"
         {{- end }}
-        {{- range $name, $volume := .Values.celery.persistence }}
+        {{- range $name, $volume := .Values.celerySummarize.persistence }}
         - name: "{{ $name }}"
           {{- if eq $volume.type "emptyDir" }}
           emptyDir: {}
@@ -117,7 +117,7 @@ spec:
             claimName: "{{ $fullName }}-{{ $name }}"
           {{- end }}
         {{- end }}
-        {{- range .Values.celery.extraVolumes }}
+        {{- range .Values.celerySummarize.extraVolumes }}
         - name: {{ .name }}
           {{- if .existingClaim }}
           persistentVolumeClaim:
@@ -139,7 +139,7 @@ spec:
           {{- end }}
         {{- end }}
 ---
-{{ if .Values.celery.pdb.enabled }}
+{{ if .Values.celerySummarize.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
