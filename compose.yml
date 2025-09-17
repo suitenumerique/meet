@@ -258,6 +258,10 @@ services:
       - redis-summary
       - app-summary-dev
       - minio
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/summary
 
   celery-summary-summarize:
     container_name: celery-summary-summarize
@@ -274,3 +278,7 @@ services:
       - redis-summary
       - app-summary-dev
       - minio
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/summary
