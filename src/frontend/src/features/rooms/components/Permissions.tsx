@@ -80,13 +80,17 @@ export const Permissions = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          flexDirection: 'column',
+          md: {
+            flexDirection: 'row',
+          },
         })}
       >
         <img
           src="/assets/camera_mic_permission.svg"
           alt=""
           className={css({
-            minWidth: '290px',
+            width: '100%',
             minHeight: '290px',
             maxWidth: '290px',
           })}
