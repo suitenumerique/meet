@@ -39,6 +39,22 @@ export const Permissions = () => {
   useEffect(() => {
     if (
       permissions.isPermissionDialogOpen &&
+      permissions.isMicrophoneGranted &&
+      permissions.requestOrigin == 'audioinput'
+    ) {
+      closePermissionsDialog()
+    }
+
+    if (
+      permissions.isPermissionDialogOpen &&
+      permissions.isCameraGranted &&
+      permissions.requestOrigin == 'videoinput'
+    ) {
+      closePermissionsDialog()
+    }
+
+    if (
+      permissions.isPermissionDialogOpen &&
       permissions.isCameraGranted &&
       permissions.isMicrophoneGranted
     ) {

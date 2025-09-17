@@ -19,7 +19,7 @@ export const PermissionNeededButton = () => {
       <Button
         aria-label={t('ariaLabel')}
         tooltip={t('tooltip')}
-        onPress={openPermissionsDialog}
+        onPress={() => openPermissionsDialog()}
         variant="permission"
       >
         <div
