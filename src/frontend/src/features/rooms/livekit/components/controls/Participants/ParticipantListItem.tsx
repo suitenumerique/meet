@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/Avatar'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
 import { getParticipantIsRoomAdmin } from '@/features/rooms/utils/getParticipantIsRoomAdmin'
-import { Participant, Track } from 'livekit-client'
+import { LocalParticipant, Participant, Track } from 'livekit-client'
 import { isLocal } from '@/utils/livekit'
 import {
   useIsSpeaking,
@@ -54,9 +54,11 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
         tooltip={label}
         aria-label={label}
         isDisabled={isMuted || !canMute}
-        onPress={() =>
+        onPress={async () =>
           !isMuted && isLocal(participant)
-            ? muteParticipant(participant)
+            ? await (participant as LocalParticipant)?.setMicrophoneEnabled(
+                false
+              )
             : setIsAlertOpen(true)
         }
         data-attr="participants-mute"
