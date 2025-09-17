@@ -638,7 +638,7 @@ export const Join = ({
                       <Button
                         size="sm"
                         variant="tertiary"
-                        onPress={openPermissionsDialog}
+                        onPress={() => openPermissionsDialog()}
                       >
                         {t(`permissionsButton.${permissionsButtonLabel}`)}
                       </Button>

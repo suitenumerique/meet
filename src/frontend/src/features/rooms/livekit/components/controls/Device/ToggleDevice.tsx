@@ -107,9 +107,7 @@ export const ToggleDevice = <T extends ToggleSource>({
   }, [enabled, kind, deviceShortcut, t])
 
   const Icon =
-    isDisabled || cannotUseDevice || !enabled
-      ? deviceIcons.toggleOff
-      : deviceIcons.toggleOn
+    isDisabled || !enabled ? deviceIcons.toggleOff : deviceIcons.toggleOn
 
   const roomContext = useMaybeRoomContext()
   if (kind === 'audioinput' && pushToTalk && roomContext) {
@@ -126,7 +124,12 @@ export const ToggleDevice = <T extends ToggleSource>({
           isDisabled || cannotUseDevice || !enabled ? errorVariant : variant
         }
         shySelected
-        onPress={() => (cannotUseDevice ? openPermissionsDialog() : toggle())}
+        onPress={() => {
+          if (cannotUseDevice) {
+            openPermissionsDialog(kind)
+          }
+          toggle()
+        }}
         aria-label={toggleLabel}
         tooltip={
           cannotUseDevice

@@ -13,6 +13,7 @@ type BaseState = {
   microphonePermission: PermissionState
   isLoading: boolean
   isPermissionDialogOpen: boolean
+  requestOrigin?: 'audioinput' | 'videoinput'
 }
 
 type DerivedState = {
@@ -31,6 +32,7 @@ export const permissionsStore = proxy<BaseState>({
   microphonePermission: undefined,
   isLoading: true,
   isPermissionDialogOpen: false,
+  requestOrigin: undefined,
 }) as State
 
 derive(
@@ -52,8 +54,11 @@ derive(
   }
 )
 
-export const openPermissionsDialog = () => {
+export const openPermissionsDialog = (
+  requestOrigin?: 'audioinput' | 'videoinput'
+) => {
   permissionsStore.isPermissionDialogOpen = true
+  permissionsStore.requestOrigin = requestOrigin
 }
 
 export const closePermissionsDialog = () => {
