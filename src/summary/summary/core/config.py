@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     )
     summary_title_template: Optional[str] = "Résumé de {title}"
 
+    # Summary related settings
+    is_summary_enabled: bool = True
+
     # Sentry
     sentry_is_enabled: bool = False
     sentry_dsn: Optional[str] = None
