@@ -200,6 +200,7 @@ def task_failure_handler(task_id, exception=None, **kwargs):
     bind=True,
     autoretry_for=[exceptions.HTTPError],
     max_retries=settings.celery_max_retries,
+    queue=settings.transcribe_queue,
 )
 def process_audio_transcribe_summarize_v2(
     self,
