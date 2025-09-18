@@ -212,7 +212,8 @@ celeryTranscribe:
     - "worker"
     - "--pool=solo"
     - "--loglevel=info"
-    - "-Q transcribe-queue"
+    - "-Q"
+    - "transcribe-queue"
 
 celerySummarize:
   replicas: 1
@@ -248,7 +249,8 @@ celerySummarize:
     - "worker"
     - "--pool=solo"
     - "--loglevel=info"
-    - "-Q summarize-queue"
+    - "-Q"
+    - "summarize-queue"
 
 agents:
   replicas: 1
