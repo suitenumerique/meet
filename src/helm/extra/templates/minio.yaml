@@ -111,3 +111,26 @@ spec:
             exit 0
       restartPolicy: Never
   backoffLimit: 1
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-webhook
+spec:
+  template:
+    spec:
+      containers:
+      - name: mc
+        image: minio/mc
+        command:
+          - /bin/sh
+          - -c
+          - |
+            /usr/bin/mc alias set meet http://minio:9000 meet password && \
+            /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint="https://meet.127.0.0.1.nip.io/api/v1.0/recordings/storage-hook/" auth_token="Bearer password" && \
+            /usr/bin/mc admin service restart meet --wait --json && \
+            sleep 15 && \
+            /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put && \
+            exit 0
+      restartPolicy: Never
+  backoffLimit: 1
