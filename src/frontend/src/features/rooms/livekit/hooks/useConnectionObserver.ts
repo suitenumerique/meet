@@ -25,6 +25,18 @@ export const useConnectionObserver = () => {
       posthog.capture('reconnect-event')
     }
 
+    const handleReconnected = () => {
+      posthog.capture('reconnected-event')
+    }
+
+    const handleSignalingConnect = () => {
+      posthog.capture('signaling-connect-event')
+    }
+
+    const handleSignalingReconnect = () => {
+      posthog.capture('signaling-reconnect-event')
+    }
+
     const handleDisconnect = (
       disconnectReason: DisconnectReason | undefined
     ) => {
@@ -43,13 +55,19 @@ export const useConnectionObserver = () => {
     }
 
     room.on(RoomEvent.Connected, handleConnection)
+    room.on(RoomEvent.SignalConnected, handleSignalingConnect)
     room.on(RoomEvent.Disconnected, handleDisconnect)
     room.on(RoomEvent.Reconnecting, handleReconnect)
+    room.on(RoomEvent.Reconnected, handleReconnected)
+    room.on(RoomEvent.SignalReconnecting, handleSignalingReconnect)
 
     return () => {
       room.off(RoomEvent.Connected, handleConnection)
+      room.off(RoomEvent.SignalConnected, handleSignalingConnect)
       room.off(RoomEvent.Disconnected, handleDisconnect)
       room.off(RoomEvent.Reconnecting, handleReconnect)
+      room.off(RoomEvent.Reconnected, handleReconnected)
+      room.off(RoomEvent.SignalReconnecting, handleSignalingReconnect)
     }
   }, [room, isAnalyticsEnabled])
 
