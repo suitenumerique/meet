@@ -82,9 +82,15 @@ spec:
         volumeMounts:
         - mountPath: /data
           name: data
+        - mountPath: /etc/ssl/certs/mkcert-ca.pem
+          name: mkcert
+          subPath: rootCA.pem
       volumes:
       - name: data
         emptyDir:
+      - name: mkcert
+        secret:
+          secretName: mkcert
 ---
 apiVersion: batch/v1
 kind: Job
