@@ -204,6 +204,7 @@ def task_failure_handler(task_id, exception=None, **kwargs):
 )
 def process_audio_transcribe_summarize_v2(
     self,
+    owner_id: str,
     filename: str,
     email: str,
     sub: str,
@@ -320,7 +321,7 @@ def process_audio_transcribe_summarize_v2(
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
     if (
-        analytics.is_feature_enabled("summary-enabled", distinct_id=sub)
+        analytics.is_feature_enabled("summary-enabled", distinct_id=owner_id)
         and settings.is_summary_enabled
     ):
         logger.info("Queuing summary generation task.")

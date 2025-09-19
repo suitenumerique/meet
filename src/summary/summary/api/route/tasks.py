@@ -18,6 +18,7 @@ settings = get_settings()
 class TaskCreation(BaseModel):
     """Task data."""
 
+    owner_id: str
     filename: str
     email: str
     sub: str
@@ -35,6 +36,7 @@ async def create_task(request: TaskCreation):
     """Create a task."""
     task = process_audio_transcribe_summarize_v2.apply_async(
         args=[
+            request.owner_id,
             request.filename,
             request.email,
             request.sub,
