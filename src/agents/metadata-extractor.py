@@ -6,6 +6,9 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 import json
 import pathlib
+from io import BytesIO
+from minio import Minio
+from minio.error import S3Error
 
 from dotenv import load_dotenv
 from livekit import api, rtc
@@ -19,6 +22,7 @@ from livekit.agents import (
 )
 
 load_dotenv()
+
 logger = logging.getLogger("visible-joiner")
 logger.setLevel(logging.INFO)
 logger.propagate = False
@@ -86,13 +90,42 @@ class SpeakerTracker:
             "by_participant": self.by_participant,
         }
 
+
     def write_json(self):
-        if not self.write_json_flag or not self.json_path:
+        def _as_bool(v: str, default=False):
+            if v is None:
+                return default
+            return v.strip().lower() in ("1", "true", "yes", "y")
+    
+        if not self.write_json_flag:
             return
         payload = self.build_json()
-        logger.info("Writing speaker intervals JSON to %s", self.json_path)
-        with self.json_path.open("w") as f:
-            json.dump(payload, f, indent=2)
+        
+        minio_client = Minio(
+            endpoint=os.getenv("AWS_S3_ENDPOINT_URL"),
+            access_key=os.getenv("AWS_S3_ACCESS_KEY_ID"),
+            secret_key=os.getenv("AWS_S3_SECRET_ACCESS_KEY"),
+            secure= _as_bool(os.getenv("AWS_S3_SECURE_ACCESS", "false"))
+        )
+
+        bucket = "meet-media-storage"
+        ts = self._now().strftime("%Y%m%dT%H%M%SZ")
+        object_name = f"speaker_logs/{self.room_name}/speakers_{self.room_name}_{ts}.json"
+
+        data = json.dumps(payload, indent=2).encode("utf-8")
+        stream = BytesIO(data)
+
+        try:
+            minio_client.put_object(
+                bucket,
+                object_name,
+                stream,
+                length=len(data),
+                content_type="application/json",
+            )
+            logger.info("Uploaded speaker intervals JSON to s3://%s/%s", bucket, object_name)
+        except S3Error:
+            logger.exception("Failed to upload JSON to bucket=%s object=%s", bucket, object_name)
 
 
 async def entrypoint(ctx: JobContext):
