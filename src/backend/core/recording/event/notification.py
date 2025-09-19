@@ -9,6 +9,8 @@ from django.template.loader import render_to_string
 from django.utils.translation import get_language, override
 from django.utils.translation import gettext_lazy as _
 
+from uuid import UUID
+
 import requests
 
 from core import models
@@ -131,8 +133,9 @@ class NotificationService:
         if not owner_access:
             logger.error("No owner found for recording %s", recording.id)
             return False
-
+        owner_id = owner_access.user.id
         payload = {
+            "owner_id": str(owner_id) if isinstance(owner_id, UUID) else owner_id,
             "filename": recording.key,
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
