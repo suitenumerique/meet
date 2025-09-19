@@ -75,6 +75,11 @@ class Settings(BaseSettings):
     task_tracker_redis_url: str = "redis://redis/0"
     task_tracker_prefix: str = "task_metadata:"
 
+    # Langfuse
+    langfuse_secret_key: Optional[str] = None
+    langfuse_public_key: Optional[str] = None
+    langfuse_host: Optional[str] = "https://cloud.langfuse.com"
+
 
 @lru_cache
 def get_settings():

@@ -21,3 +21,7 @@ WEBHOOK_URL="https://configure-your-url.com"
 
 POSTHOG_API_KEY="your-posthog-key"
 POSTHOG_ENABLED="False"
+
+LANGFUSE_SECRET_KEY="your-secret-key"
+LANGFUSE_PUBLIC_KEY="your-public-key"
+LANGFUSE_HOST="https://cloud.langfuse.com"
