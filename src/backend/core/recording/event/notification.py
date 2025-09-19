@@ -131,8 +131,8 @@ class NotificationService:
         if not owner_access:
             logger.error("No owner found for recording %s", recording.id)
             return False
-
         payload = {
+            "owner_id": str(owner_access.user.id),
             "filename": recording.key,
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
