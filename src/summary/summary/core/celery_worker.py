@@ -6,6 +6,7 @@ import json
 import os
 import tempfile
 import time
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -29,6 +30,70 @@ from summary.core.prompt import (
     PROMPT_SYSTEM_TLDR,
     PROMPT_USER_PART,
 )
+
+
+def parse_iso(s: str) -> datetime:
+    """Convert ISO 8601 string to datetime object."""
+    return datetime.fromisoformat(s.replace("Z", "+00:00"))
+
+def overlap(a, b):
+    """Calculate overlap duration between two segments."""
+    return max(0.0, min(a["end"], b["end"]) - max(a["start"], b["start"]))
+
+def total_duration(segs):
+    """Total duration of segments."""
+    return sum(s["end"] - s["start"] for s in segs)
+
+def total_overlap(segs_a, segs_b):
+    """Calculate total overlap duration between two sets of segments."""
+    tot = 0.0
+    for a in segs_a:
+        for b in segs_b:
+            tot += overlap(a, b)
+    return tot
+
+def jaccard_score(ov, dur_a, dur_b):
+    """Calculate the Jaccard similarity score."""
+    denom = dur_a + dur_b - ov
+    return ov / denom if denom > 0 else 0.0
+
+def align_participants_seconds(participants, speakers):
+    """Align participant segments to speaker segments in seconds."""
+    min_speaker_start = min(seg["start"] for segs in speakers.values() for seg in segs)
+    min_participant_iso = min(
+        parse_iso(seg["start_iso"])
+        for plist in participants["by_participant"].values()
+        for seg in plist
+    )
+    t0_base = min_participant_iso - timedelta(seconds=min_speaker_start)
+
+    out = {}
+    for pid, segs in participants["by_participant"].items():
+        out[pid] = [
+            {
+                "start": (parse_iso(s["start_iso"]) - t0_base).total_seconds(),
+                "end":   (parse_iso(s["end_iso"])   - t0_base).total_seconds(),
+            }
+            for s in segs
+        ]
+    return out
+
+def map_speakers_to_participants(speakers, participants):
+    """Main function to map speakers to participants."""
+    participants_seconds = align_participants_seconds(participants, speakers)
+
+    mapping = {}
+    for spk, s_segs in speakers.items():
+        s_dur = total_duration(s_segs)
+        best_pid, best_score = None, -1.0
+        for pid, p_segs in participants_seconds.items():
+            p_dur = total_duration(p_segs)
+            ov = total_overlap(s_segs, p_segs)
+            score = jaccard_score(ov, s_dur, p_dur)
+            if score > best_score:
+                best_score, best_pid = score, pid
+        mapping[spk] = best_pid
+    return mapping
 
 settings = get_settings()
 analytics = get_analytics()
@@ -286,10 +351,15 @@ def process_audio_transcribe_summarize_v2(
             os.remove(temp_file_path)
             logger.debug("Temporary file removed: %s", temp_file_path)
 
+    metadata_name = minio_client.get_object(
+        settings.aws_storage_bucket_name,
+        object_name=settings.metadata_file.format(filename=filename)
+    )
+
     formatted_transcription = (
         DEFAULT_EMPTY_TRANSCRIPTION
         if not transcription.segments
-        else format_segments(transcription)
+        else format_segments(transcription,metadata_name)
     )
 
     metadata_manager.track_transcription_metadata(task_id, transcription)

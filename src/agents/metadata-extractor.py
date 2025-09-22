@@ -1,14 +1,12 @@
-"""Visible room join agent (for connection/testing) + JSON speaker intervals per participant."""
+"""Metadata agent that tracks active speakers and their speaking intervals."""
 
+import json
 import logging
 import os
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
-import json
 import pathlib
+from datetime import datetime, timezone
 from io import BytesIO
-from minio import Minio
-from minio.error import S3Error
+from typing import Dict, List, Optional
 
 from dotenv import load_dotenv
 from livekit import api, rtc
@@ -20,6 +18,8 @@ from livekit.agents import (
     WorkerPermissions,
     cli,
 )
+from minio import Minio
+from minio.error import S3Error
 
 load_dotenv()
 
@@ -29,13 +29,18 @@ logger.propagate = False
 
 if not logger.handlers:
     _h = logging.StreamHandler()
-    _h.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s %(name)s - %(message)s"))
+    _h.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s %(name)s - %(message)s")
+    )
     logger.addHandler(_h)
 VISIBLE_AGENT_NAME = os.getenv("VISIBLE_AGENT_NAME", "visible-joiner")
 
 
 class SpeakerTracker:
+    """Track active speakers and their speaking intervals."""
+
     def __init__(self, room_name: str, write_json: bool = True):
+        """Track active speakers and their speaking intervals."""
         self.room_name = room_name
         self.active_since: Dict[str, datetime] = {}
         self.by_participant: Dict[str, List[dict]] = {}
@@ -44,7 +49,10 @@ class SpeakerTracker:
         ts = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
         outdir = pathlib.Path("./speaker_logs")
         outdir.mkdir(parents=True, exist_ok=True)
-        self.json_path: Optional[pathlib.Path] = outdir / f"speakers_{room_name}_{ts}.json" if write_json else None
+        self.json_path: Optional[pathlib.Path] = (
+            outdir / f"speakers_{room_name}_{ts}.json"
+            if write_json else None
+)
 
     def _now(self) -> datetime:
         return datetime.now(timezone.utc)
@@ -59,6 +67,7 @@ class SpeakerTracker:
         self.by_participant.setdefault(identity, []).append(seg)
 
     def update_active_speakers(self, current_identities: List[str]):
+        """Update the list of currently active speakers."""
         now = self._now()
         current = set(current_identities)
         before = set(self.active_since.keys())
@@ -72,18 +81,21 @@ class SpeakerTracker:
                 self._emit_interval(ident, start, now)
 
     def on_participant_disconnected(self, identity: str):
+        """Handle participant disconnection by finalizing their active interval."""
         now = self._now()
         start = self.active_since.pop(identity, None)
         if start:
             self._emit_interval(identity, start, now)
 
     def flush_all(self):
+        """Flush all active speakers as ended now."""
         now = self._now()
         for ident, start in list(self.active_since.items()):
             self._emit_interval(ident, start, now)
         self.active_since.clear()
 
     def build_json(self) -> dict:
+        """Build the JSON structure for the collected speaker intervals."""
         return {
             "room": self.room_name,
             "generated_at": self._now().isoformat(),
@@ -92,15 +104,16 @@ class SpeakerTracker:
 
 
     def write_json(self):
+        """Write the collected speaker intervals to a JSON file and upload to MinIO."""
         def _as_bool(v: str, default=False):
             if v is None:
                 return default
             return v.strip().lower() in ("1", "true", "yes", "y")
-    
+
         if not self.write_json_flag:
             return
         payload = self.build_json()
-        
+
         minio_client = Minio(
             endpoint=os.getenv("AWS_S3_ENDPOINT_URL"),
             access_key=os.getenv("AWS_S3_ACCESS_KEY_ID"),
@@ -110,9 +123,11 @@ class SpeakerTracker:
 
         bucket = "meet-media-storage"
         ts = self._now().strftime("%Y%m%dT%H%M%SZ")
-        object_name = f"speaker_logs/{self.room_name}/speakers_{self.room_name}_{ts}.json"
 
+        prefix = f"speaker_logs/{self.room_name}"
+        object_name = f"{prefix}/speakers_{self.room_name}_{ts}.json"
         data = json.dumps(payload, indent=2).encode("utf-8")
+
         stream = BytesIO(data)
 
         try:
@@ -123,12 +138,17 @@ class SpeakerTracker:
                 length=len(data),
                 content_type="application/json",
             )
-            logger.info("Uploaded speaker intervals JSON to s3://%s/%s", bucket, object_name)
+            logger.info("Uploaded speaker intervals JSON to s3://%s/%s",
+                        bucket,
+                        object_name)
         except S3Error:
-            logger.exception("Failed to upload JSON to bucket=%s object=%s", bucket, object_name)
+            logger.exception("Failed to upload JSON to bucket=%s object=%s",
+                            bucket,
+                            object_name)
 
 
 async def entrypoint(ctx: JobContext):
+    """Main entrypoint for the metadata extractor agent."""
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
     lp = ctx.room.local_participant
@@ -173,6 +193,7 @@ async def entrypoint(ctx: JobContext):
 
 
 async def handle_job_request(job_req: JobRequest) -> None:
+    """Accept or reject the job request based on agent presence in the room."""
     room_name = job_req.room.name
     agent_identity = f"{VISIBLE_AGENT_NAME}-{room_name}"
 
@@ -190,7 +211,9 @@ async def handle_job_request(job_req: JobRequest) -> None:
                 logger.info("Agent already in the room '%s' — reject", room_name)
                 await job_req.reject()
             else:
-                logger.info("Accept job for '%s' — identity=%s", room_name, agent_identity)
+                logger.info("Accept job for '%s' — identity=%s",
+                            room_name,
+                            agent_identity)
                 await job_req.accept(identity=agent_identity)
         except Exception:
             logger.exception("Error treating the job for '%s'", room_name)

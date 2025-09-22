@@ -59,6 +59,7 @@ class Settings(BaseSettings):
 
     # Summary related settings
     is_summary_enabled: bool = True
+    metadata_file: Optional[str] = "{filename}_metadata.json"
 
     # Sentry
     sentry_is_enabled: bool = False
