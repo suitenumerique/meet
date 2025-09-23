@@ -23,7 +23,7 @@ from minio.error import S3Error
 
 load_dotenv()
 
-logger = logging.getLogger("visible-joiner")
+logger = logging.getLogger("metadata-joiner")
 logger.setLevel(logging.INFO)
 logger.propagate = False
 
@@ -33,8 +33,29 @@ if not logger.handlers:
         logging.Formatter("%(asctime)s - %(levelname)s %(name)s - %(message)s")
     )
     logger.addHandler(_h)
-VISIBLE_AGENT_NAME = os.getenv("VISIBLE_AGENT_NAME", "visible-joiner")
+AGENT_NAME = os.getenv("ROOM_METADATA_AGENT_NAME", "metadata-extractor")
 
+def _parse_display_from_metadata(meta: Optional[str]) -> Optional[str]:
+    if not meta:
+        return None
+    try:
+        m = json.loads(meta)
+        for k in ("display_name", "displayName", "name"):
+            if isinstance(m, dict) and m.get(k):
+                return str(m[k])
+    except Exception as e:
+        logger.debug("Failed to parse participant metadata", exc_info=e)
+    return None
+
+def pretty_name(p: rtc.Participant) -> str:
+    """Get the name for a participant.
+
+    Preference order: name attribute, metadata display_name, identity.
+    """
+    if getattr(p, "name", None):
+        return p.name
+    dn = _parse_display_from_metadata(getattr(p, "metadata", None))
+    return dn or p.identity
 
 class SpeakerTracker:
     """Track active speakers and their speaking intervals."""
@@ -45,6 +66,7 @@ class SpeakerTracker:
         self.active_since: Dict[str, datetime] = {}
         self.by_participant: Dict[str, List[dict]] = {}
         self.write_json_flag = write_json
+        self.display_names: Dict[str, str] = {}
 
         ts = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
         outdir = pathlib.Path("./speaker_logs")
@@ -95,11 +117,15 @@ class SpeakerTracker:
         self.active_since.clear()
 
     def build_json(self) -> dict:
-        """Build the JSON structure for the collected speaker intervals."""
+        """Build JSON with names instead of participant ids as keys."""
+        by_name = {
+            self.display_names.get(pid, pid) or pid: segments
+            for pid, segments in self.by_participant.items()
+        }
         return {
             "room": self.room_name,
             "generated_at": self._now().isoformat(),
-            "by_participant": self.by_participant,
+            "by_participant": by_name,
         }
 
 
@@ -162,15 +188,21 @@ async def entrypoint(ctx: JobContext):
     tracker = SpeakerTracker(ctx.room.name, write_json=True)
 
     def _on_participant_connected(p: rtc.RemoteParticipant):
-        logger.info("remote participant connected: %s (%s)", p.identity, p.sid)
+       dn = pretty_name(p)
+       logger.info("remote participant connected: %s (%s)", dn, p.sid)
+       tracker.display_names[p.identity] = dn
 
     def _on_active_speakers_changed(speakers: list[rtc.Participant]):
-        idents = [p.identity for p in speakers]
-        logger.info("active speakers changed: %s", idents)
-        tracker.update_active_speakers(idents)
+       idents = [p.identity for p in speakers]
+       for p in speakers:
+           tracker.display_names[p.identity] = pretty_name(p)
+       logger.info("active speakers changed: %s",
+                   [tracker.display_names.get(i, i) for i in idents])
+       tracker.update_active_speakers(idents)
 
     def _on_participant_disconnected(p: rtc.RemoteParticipant):
-        logger.info("remote participant disconnected: %s", p.identity)
+        logger.info("remote participant disconnected: %s",
+                    tracker.display_names.get(p.identity, p.identity))
         tracker.on_participant_disconnected(p.identity)
 
     if not ctx.proc.userdata.get("events_registered"):
@@ -195,7 +227,7 @@ async def entrypoint(ctx: JobContext):
 async def handle_job_request(job_req: JobRequest) -> None:
     """Accept or reject the job request based on agent presence in the room."""
     room_name = job_req.room.name
-    agent_identity = f"{VISIBLE_AGENT_NAME}-{room_name}"
+    agent_identity = f"{AGENT_NAME}-{room_name}"
 
     async with api.LiveKitAPI() as lk:
         try:
@@ -225,7 +257,7 @@ if __name__ == "__main__":
         WorkerOptions(
             entrypoint_fnc=entrypoint,
             request_fnc=handle_job_request,
-            agent_name=VISIBLE_AGENT_NAME,
+            agent_name=AGENT_NAME,
             permissions=WorkerPermissions(),
         )
     )
