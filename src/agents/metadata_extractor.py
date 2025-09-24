@@ -35,6 +35,7 @@ if not logger.handlers:
     logger.addHandler(_h)
 AGENT_NAME = os.getenv("ROOM_METADATA_AGENT_NAME", "metadata-extractor")
 
+
 def _parse_display_from_metadata(meta: Optional[str]) -> Optional[str]:
     if not meta:
         return None
@@ -47,6 +48,7 @@ def _parse_display_from_metadata(meta: Optional[str]) -> Optional[str]:
         logger.debug("Failed to parse participant metadata", exc_info=e)
     return None
 
+
 def pretty_name(p: rtc.Participant) -> str:
     """Get the name for a participant.
 
@@ -57,10 +59,16 @@ def pretty_name(p: rtc.Participant) -> str:
     dn = _parse_display_from_metadata(getattr(p, "metadata", None))
     return dn or p.identity
 
+
 class SpeakerTracker:
     """Track active speakers and their speaking intervals."""
 
-    def __init__(self, room_name: str, write_json: bool = True):
+    def __init__(
+        self,
+        room_name: str,
+        write_json: bool = True,
+        recording_id: Optional[str] = None,
+    ):
         """Track active speakers and their speaking intervals."""
         self.room_name = room_name
         self.active_since: Dict[str, datetime] = {}
@@ -68,13 +76,9 @@ class SpeakerTracker:
         self.write_json_flag = write_json
         self.display_names: Dict[str, str] = {}
 
-        ts = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
         outdir = pathlib.Path("./speaker_logs")
         outdir.mkdir(parents=True, exist_ok=True)
-        self.json_path: Optional[pathlib.Path] = (
-            outdir / f"speakers_{room_name}_{ts}.json"
-            if write_json else None
-)
+        self.recording_id = recording_id
 
     def _now(self) -> datetime:
         return datetime.now(timezone.utc)
@@ -128,9 +132,9 @@ class SpeakerTracker:
             "by_participant": by_name,
         }
 
-
     def write_json(self):
         """Write the collected speaker intervals to a JSON file and upload to MinIO."""
+
         def _as_bool(v: str, default=False):
             if v is None:
                 return default
@@ -144,14 +148,12 @@ class SpeakerTracker:
             endpoint=os.getenv("AWS_S3_ENDPOINT_URL"),
             access_key=os.getenv("AWS_S3_ACCESS_KEY_ID"),
             secret_key=os.getenv("AWS_S3_SECRET_ACCESS_KEY"),
-            secure= _as_bool(os.getenv("AWS_S3_SECURE_ACCESS", "false"))
+            secure=_as_bool(os.getenv("AWS_S3_SECURE_ACCESS", "false")),
         )
 
         bucket = "meet-media-storage"
-        ts = self._now().strftime("%Y%m%dT%H%M%SZ")
 
-        prefix = f"speaker_logs/{self.room_name}"
-        object_name = f"{prefix}/speakers_{self.room_name}_{ts}.json"
+        object_name = f"speaker_logs/speakers_{self.recording_id}.json"
         data = json.dumps(payload, indent=2).encode("utf-8")
 
         stream = BytesIO(data)
@@ -164,18 +166,26 @@ class SpeakerTracker:
                 length=len(data),
                 content_type="application/json",
             )
-            logger.info("Uploaded speaker intervals JSON to s3://%s/%s",
-                        bucket,
-                        object_name)
+            logger.info(
+                "Uploaded speaker intervals JSON to s3://%s/%s", bucket, object_name
+            )
         except S3Error:
-            logger.exception("Failed to upload JSON to bucket=%s object=%s",
-                            bucket,
-                            object_name)
+            logger.exception(
+                "Failed to upload JSON to bucket=%s object=%s", bucket, object_name
+            )
 
 
 async def entrypoint(ctx: JobContext):
     """Main entrypoint for the metadata extractor agent."""
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
+
+    rec_id = None
+    try:
+        raw = getattr(ctx.job, "metadata", None)
+        if raw:
+            rec_id = json.loads(raw).get("recording_id")
+    except Exception:
+        logger.debug("No/invalid recording_id in job metadata", exc_info=True)
 
     lp = ctx.room.local_participant
     logger.info(
@@ -185,24 +195,28 @@ async def entrypoint(ctx: JobContext):
         getattr(lp, "sid", "<unknown>"),
     )
 
-    tracker = SpeakerTracker(ctx.room.name, write_json=True)
+    tracker = SpeakerTracker(ctx.room.name, write_json=True, recording_id=rec_id)
 
     def _on_participant_connected(p: rtc.RemoteParticipant):
-       dn = pretty_name(p)
-       logger.info("remote participant connected: %s (%s)", dn, p.sid)
-       tracker.display_names[p.identity] = dn
+        dn = pretty_name(p)
+        logger.info("remote participant connected: %s (%s)", dn, p.sid)
+        tracker.display_names[p.identity] = dn
 
     def _on_active_speakers_changed(speakers: list[rtc.Participant]):
-       idents = [p.identity for p in speakers]
-       for p in speakers:
-           tracker.display_names[p.identity] = pretty_name(p)
-       logger.info("active speakers changed: %s",
-                   [tracker.display_names.get(i, i) for i in idents])
-       tracker.update_active_speakers(idents)
+        idents = [p.identity for p in speakers]
+        for p in speakers:
+            tracker.display_names[p.identity] = pretty_name(p)
+        logger.info(
+            "active speakers changed: %s",
+            [tracker.display_names.get(i, i) for i in idents],
+        )
+        tracker.update_active_speakers(idents)
 
     def _on_participant_disconnected(p: rtc.RemoteParticipant):
-        logger.info("remote participant disconnected: %s",
-                    tracker.display_names.get(p.identity, p.identity))
+        logger.info(
+            "remote participant disconnected: %s",
+            tracker.display_names.get(p.identity, p.identity),
+        )
         tracker.on_participant_disconnected(p.identity)
 
     if not ctx.proc.userdata.get("events_registered"):
@@ -221,7 +235,6 @@ async def entrypoint(ctx: JobContext):
         tracker.write_json()
 
     ctx.add_shutdown_callback(cleanup)
-
 
 
 async def handle_job_request(job_req: JobRequest) -> None:
@@ -243,9 +256,9 @@ async def handle_job_request(job_req: JobRequest) -> None:
                 logger.info("Agent already in the room '%s' — reject", room_name)
                 await job_req.reject()
             else:
-                logger.info("Accept job for '%s' — identity=%s",
-                            room_name,
-                            agent_identity)
+                logger.info(
+                    "Accept job for '%s' — identity=%s", room_name, agent_identity
+                )
                 await job_req.accept(identity=agent_identity)
         except Exception:
             logger.exception("Error treating the job for '%s'", room_name)

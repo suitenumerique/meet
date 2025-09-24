@@ -36,13 +36,16 @@ def parse_iso(s: str) -> datetime:
     """Convert ISO 8601 string to datetime object."""
     return datetime.fromisoformat(s.replace("Z", "+00:00"))
 
+
 def overlap(a, b):
     """Calculate overlap duration between two segments."""
     return max(0.0, min(a["end"], b["end"]) - max(a["start"], b["start"]))
 
+
 def total_duration(segs):
     """Total duration of segments."""
     return sum(s["end"] - s["start"] for s in segs)
+
 
 def total_overlap(segs_a, segs_b):
     """Calculate total overlap duration between two sets of segments."""
@@ -52,10 +55,12 @@ def total_overlap(segs_a, segs_b):
             tot += overlap(a, b)
     return tot
 
+
 def jaccard_score(ov, dur_a, dur_b):
     """Calculate the Jaccard similarity score."""
     denom = dur_a + dur_b - ov
     return ov / denom if denom > 0 else 0.0
+
 
 def align_participants_seconds(participants, speakers):
     """Align participant segments to speaker segments in seconds."""
@@ -72,11 +77,12 @@ def align_participants_seconds(participants, speakers):
         out[pid] = [
             {
                 "start": (parse_iso(s["start_iso"]) - t0_base).total_seconds(),
-                "end":   (parse_iso(s["end_iso"])   - t0_base).total_seconds(),
+                "end": (parse_iso(s["end_iso"]) - t0_base).total_seconds(),
             }
             for s in segs
         ]
     return out
+
 
 def map_speakers_to_participants(speakers, participants):
     """Main function to map speakers to participants."""
@@ -94,6 +100,7 @@ def map_speakers_to_participants(speakers, participants):
                 best_score, best_pid = score, pid
         mapping[spk] = best_pid
     return mapping
+
 
 settings = get_settings()
 analytics = get_analytics()
@@ -267,7 +274,7 @@ def task_failure_handler(task_id, exception=None, **kwargs):
     max_retries=settings.celery_max_retries,
     queue=settings.transcribe_queue,
 )
-def process_audio_transcribe_summarize_v2(
+def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
     self,
     filename: str,
     email: str,
@@ -353,13 +360,15 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_name = minio_client.get_object(
         settings.aws_storage_bucket_name,
-        object_name=settings.metadata_file.format(filename=filename)
+        object_name=settings.metadata_file.format(filename=filename),
     )
+
+    logger.info("Downloading metadata file : %s", metadata_name)
 
     formatted_transcription = (
         DEFAULT_EMPTY_TRANSCRIPTION
         if not transcription.segments
-        else format_segments(transcription,metadata_name)
+        else format_segments(transcription)
     )
 
     metadata_manager.track_transcription_metadata(task_id, transcription)

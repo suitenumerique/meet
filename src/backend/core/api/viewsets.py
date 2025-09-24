@@ -5,6 +5,7 @@ from logging import getLogger
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -292,27 +293,23 @@ class RoomViewSet(
         detail=True,
         methods=["post"],
         url_path="start-recording",
-        permission_classes=[
-            permissions.HasPrivilegesOnRoom,
-        ],
+        permission_classes=[permissions.HasPrivilegesOnRoom],
     )
     @FeatureFlag.require("recording")
     def start_room_recording(self, request, pk=None):  # pylint: disable=unused-argument
         """Start recording a room."""
 
         serializer = serializers.StartRecordingSerializer(data=request.data)
-
         if not serializer.is_valid():
             return drf_response.Response(
-                {"detail": "Invalid request."}, status=drf_status.HTTP_400_BAD_REQUEST
+                {"detail": "Invalid request."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
             )
 
         mode = serializer.validated_data["mode"]
         room = self.get_object()
 
-        # May raise exception if an active or initiated recording already exist for the room
         recording = models.Recording.objects.create(room=room, mode=mode)
-
         models.RecordingAccess.objects.create(
             user=self.request.user, role=models.RoleChoices.OWNER, recording=recording
         )
@@ -320,16 +317,19 @@ class RoomViewSet(
         worker_service = get_worker_service(mode=recording.mode)
         worker_manager = WorkerServiceMediator(worker_service=worker_service)
 
-        try:
-            worker_manager.start(recording)
-        except RecordingStartError:
-            return drf_response.Response(
-                {"error": f"Recording failed to start for room {room.slug}"},
-                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        def _start_after_commit():
+            try:
+                worker_manager.start(recording)
+            except RecordingStartError:
+                logger.exception("Recording failed to start for room %s", room.slug)
+
+        transaction.on_commit(_start_after_commit)
 
         return drf_response.Response(
-            {"message": f"Recording successfully started for room {room.slug}"},
+            {
+                "message": f"Recording successfully started for room {room.slug}",
+                "recording_id": str(recording.id),
+            },
             status=drf_status.HTTP_201_CREATED,
         )
 
