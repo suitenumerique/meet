@@ -1,5 +1,11 @@
 log_level: debug
 redis:
   address: redis:6379
+
 keys:
   devkey: secret
+
+webhook:
+  api_key: devkey
+  urls:
+    - "http://app-dev:8000/api/v1.0/rooms/webhooks-livekit/"

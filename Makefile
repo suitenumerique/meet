@@ -108,6 +108,7 @@ bootstrap: \
 build: ## build the project containers
 	@$(MAKE) build-backend
 	@$(MAKE) build-frontend
+	@$(MAKE) build-agents
 .PHONY: build
 
 build-backend: ## build the app-dev container
@@ -118,6 +119,10 @@ build-backend: ## build the app-dev container
 build-frontend: ## build the frontend container
 	@$(COMPOSE) build frontend
 .PHONY: build-frontend
+
+build-agents: ## build the agents image(s)
+	@$(COMPOSE) build metadata-agent
+.PHONY: build-agents
 
 down: ## stop and remove containers, networks, images, and volumes
 	@$(COMPOSE) down
@@ -138,10 +143,15 @@ run-summary: ## start only the summary application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-summary-summarize
 .PHONY: run-summary
 
+run-agents: ## start agents
+	@$(COMPOSE) up --force-recreate -d metadata-agent
+.PHONY: run-agents
+
 run:
 run: ## start the wsgi (production) and development server
 	@$(MAKE) run-backend
 	@$(MAKE) run-summary
+	@$(MAKE) run-agents
 	@$(COMPOSE) up --force-recreate -d frontend
 .PHONY: run
 
