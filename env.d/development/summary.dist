@@ -15,7 +15,7 @@ WHISPERX_DEFAULT_LANGUAGE="fr"
 
 LLM_BASE_URL="https://configure-your-url.com"
 LLM_API_KEY="dev-apikey"
-LLM_MODEL="Qwen/Qwen2.5-Coder-32B-Instruct-AWQ"
+LLM_MODEL="albert-large"
 
 WEBHOOK_API_TOKEN="secret"
 WEBHOOK_URL="https://configure-your-url.com"
