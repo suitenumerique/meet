@@ -60,6 +60,7 @@ class RecordingEventsService:
 
     @staticmethod
     def handle_egress_started(recording):
+        """Start metadata agent after transaction commit."""
         service = MetadataService()
         rec_id = recording.id
         room_id = recording.room_id
