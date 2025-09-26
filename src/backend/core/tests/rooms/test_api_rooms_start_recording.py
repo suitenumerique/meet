@@ -183,9 +183,10 @@ def test_start_recording_success(
     mock_worker_service_factory.assert_called_once_with(mode="screen_recording")
 
     assert response.status_code == 201
-    assert response.json() == {
-        "message": f"Recording successfully started for room {room.slug}"
-    }
+    assert (
+        response.json()["message"]
+        == f"Recording successfully started for room {room.slug}"
+    )
 
     # Verify the mediator was called with the recording
     recording = Recording.objects.first()
