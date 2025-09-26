@@ -64,7 +64,9 @@ def jaccard_score(ov, dur_a, dur_b):
 
 def align_participants_seconds(participants, speakers):
     """Align participant segments to speaker segments in seconds."""
-    min_speaker_start = min(seg["start"] for segs in speakers.values() for seg in segs)
+    min_speaker_start = min(
+        float(seg["start"]) for seg in speakers if seg.get("start") is not None
+    )
     min_participant_iso = min(
         parse_iso(seg["start_iso"])
         for plist in participants["by_participant"].values()
@@ -86,10 +88,22 @@ def align_participants_seconds(participants, speakers):
 
 def map_speakers_to_participants(speakers, participants):
     """Main function to map speakers to participants."""
+    logger.info("speakers: %s", speakers)
+    logger.info("participants: %s", participants)
     participants_seconds = align_participants_seconds(participants, speakers)
-
+    logger.info("participants_seconds: %s", participants_seconds)
+    speakers_by = {}
+    for seg in speakers:
+        spk = seg.get("speaker") or "UNKNOWN_SPEAKER"
+        start = seg.get("start")
+        end = seg.get("end")
+        if start is None or end is None:
+            continue
+        speakers_by.setdefault(spk, []).append(
+            {"start": float(start), "end": float(end)}
+        )
     mapping = {}
-    for spk, s_segs in speakers.items():
+    for spk, s_segs in speakers_by.items():
         s_dur = total_duration(s_segs)
         best_pid, best_score = None, -1.0
         for pid, p_segs in participants_seconds.items():
@@ -207,7 +221,7 @@ class LLMService:
             raise LLMException("LLM call failed.") from e
 
 
-def format_segments(transcription_data):
+def format_segments(transcription_data, metadata):
     """Format transcription segments from WhisperX into a readable conversation format.
 
     Processes transcription data with segments containing speaker information and text,
@@ -215,25 +229,27 @@ def format_segments(transcription_data):
     conversation with speaker labels.
     """
     formatted_output = ""
-    if not transcription_data or not hasattr(transcription_data, "segments"):
-        if isinstance(transcription_data, dict) and "segments" in transcription_data:
-            segments = transcription_data["segments"]
+    logger.info("Formatting segments with metadata: %s", metadata)
+    logger.info("Transcription data: %s", transcription_data)
+    mapping = map_speakers_to_participants(
+        speakers=transcription_data, participants=metadata
+    )
+    logger.info("Speaker to participant mapping: %s", mapping)
+    previous_label = None
+    for segment in transcription_data:
+        spk = segment.get("speaker") or "UNKNOWN_SPEAKER"
+        text = segment.get("text") or ""
+        if not text:
+            continue
+
+        label = mapping.get(spk) or spk
+
+        if label != previous_label:
+            formatted_output += f"\n\n **{label}**: {text}"
         else:
-            return "Error: Invalid transcription data format"
-    else:
-        segments = transcription_data.segments
+            formatted_output += f" {text}"
+        previous_label = label
 
-    previous_speaker = None
-
-    for segment in segments:
-        speaker = segment.get("speaker", "UNKNOWN_SPEAKER")
-        text = segment.get("text", "")
-        if text:
-            if speaker != previous_speaker:
-                formatted_output += f"\n\n **{speaker}**: {text}"
-            else:
-                formatted_output += f" {text}"
-            previous_speaker = speaker
     return formatted_output
 
 
@@ -358,17 +374,25 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
             os.remove(temp_file_path)
             logger.debug("Temporary file removed: %s", temp_file_path)
 
-    metadata_name = minio_client.get_object(
+    file = filename.split("/")[1].split(".")[0]
+    metadata_obj = minio_client.get_object(
         settings.aws_storage_bucket_name,
-        object_name=settings.metadata_file.format(filename=filename),
+        object_name=settings.metadata_file.format(filename=file),
     )
 
-    logger.info("Downloading metadata file : %s", metadata_name)
+    logger.info("Downloading metadata file")
+
+    try:
+        metadata_bytes = metadata_obj.read()
+        metadata_json = json.loads(metadata_bytes.decode("utf-8"))
+    finally:
+        metadata_obj.close()
+        metadata_obj.release_conn()
 
     formatted_transcription = (
         DEFAULT_EMPTY_TRANSCRIPTION
-        if not transcription.segments
-        else format_segments(transcription)
+        if not getattr(transcription, "segments", None)
+        else format_segments(transcription.segments, metadata_json)
     )
 
     metadata_manager.track_transcription_metadata(task_id, transcription)
