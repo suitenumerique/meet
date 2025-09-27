@@ -69,6 +69,7 @@ class Base(Configuration):
     USE_SWAGGER = False
 
     API_VERSION = "v1.0"
+    EXTERNAL_API_VERSION = "v1.0"
 
     DATA_DIR = values.Value(path.join("/", "data"), environ_name="DATA_DIR")
 
@@ -664,6 +665,35 @@ class Base(Configuration):
         environ_name="ROOM_SUBTITLE_AGENT_NAME",
         environ_prefix=None,
     )
+
+    # Integrations settings
+    INTEGRATIONS_JWT_SECRET_KEY = SecretFileValue(None, environ_name="INTEGRATIONS_JWT_SECRET_KEY", environ_prefix=None)
+    INTEGRATIONS_JWT_ALG = values.Value(
+        "HS256",
+        environ_name="INTEGRATIONS_JWT_ALG",
+        environ_prefix=None,
+    )
+    INTEGRATIONS_JWT_ISSUER = values.Value(
+        "lasuite-meet",
+        environ_name="INTEGRATIONS_JWT_ISSUER",
+        environ_prefix=None,
+    )
+    INTEGRATIONS_JWT_EXPIRATION_SECONDS = values.PositiveIntegerValue(
+        3600,
+        environ_name="INTEGRATIONS_JWT_EXPIRATION_SECONDS",
+        environ_prefix=None,
+    )
+    INTEGRATIONS_JWT_TOKEN_TYPE = values.Value(
+        "Bearer",
+        environ_name="INTEGRATIONS_JWT_TOKEN_TYPE",
+        environ_prefix=None,
+    )
+    INTEGRATIONS_APP_BASE_URL = values.Value(
+        None,
+        environ_name="INTEGRATIONS_APP_BASE_URL",
+        environ_prefix=None,
+    )
+
 
     # pylint: disable=invalid-name
     @property

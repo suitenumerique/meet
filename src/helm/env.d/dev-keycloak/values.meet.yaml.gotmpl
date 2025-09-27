@@ -73,6 +73,8 @@ backend:
     ROOM_TELEPHONY_PHONE_NUMBER: '+33901020304'
     SSL_CERT_FILE: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
     ROOM_SUBTITLE_ENABLED: True
+    INTEGRATIONS_JWT_SECRET_KEY: {{ .Values.integrationJwtSecretKey }}
+    INTEGRATIONS_APP_BASE_URL: https://meet.127.0.0.1.nip.io
 
 
   migrate:
