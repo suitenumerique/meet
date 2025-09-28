@@ -11,6 +11,7 @@ from typing import List, Optional
 from django.conf import settings
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.postgres.fields import ArrayField
 from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
@@ -720,6 +721,16 @@ class RecordingAccess(BaseAccess):
         return self._get_abilities(self.recording, user)
 
 
+class ServiceAccountScope(models.TextChoices):
+    """Wip."""
+
+    ROOMS_CREATE = "rooms:create", _("Create rooms")
+    ROOMS_LIST = "rooms:list", _("List rooms")
+    ROOMS_RETRIEVE = "rooms:retrieve", _("Retrieve room details")
+    ROOMS_UPDATE = "rooms:update", _("Update rooms")
+    ROOMS_DELETE = "rooms:delete", _("Delete rooms")
+
+
 class ServiceAccount(BaseModel):
     """Wip."""
 
@@ -729,6 +740,11 @@ class ServiceAccount(BaseModel):
         help_text=_("Descriptive name for this service account."),
     )
     active = models.BooleanField(default=True)
+
+    scopes = ArrayField(
+        models.CharField(max_length=50, choices=ServiceAccountScope.choices),
+        default=list,
+    )
 
     class Meta:
         db_table = "meet_service_account"

@@ -3,26 +3,25 @@
 # pylint: disable=abstract-method,no-name-in-module
 
 from django.conf import settings
+
 from rest_framework import serializers
 
-import random
-import string
-
 from core import models, utils
+from core.api.serializers import BaseValidationOnlySerializer
 
-from core.api.serializers import NestedResourceAccessSerializer, BaseValidationOnlySerializer
 
 class JwtSerializer(BaseValidationOnlySerializer):
     """Validate room creation callback data."""
 
     email = serializers.EmailField(required=True)
 
+
 class RoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for the API."""
 
     class Meta:
         model = models.Room
-        fields = ["id", "slug", "configuration", "pin_code", "access_level"]
+        fields = ["id", "name", "slug", "configuration", "pin_code", "access_level"]
         read_only_fields = ["id", "name", "slug", "pin_code", "access_level"]
 
     def to_representation(self, instance):
@@ -36,7 +35,7 @@ class RoomSerializer(serializers.ModelSerializer):
         if not request:
             return output
 
-        output["url"] = f"{settings.INTEGRATIONS_APP_BASE_URL}/{output["slug"]}"
+        output["url"] = f"{settings.INTEGRATIONS_APP_BASE_URL}/{output['slug']}"
 
         if settings.ROOM_TELEPHONY_ENABLED:
             output["telephony"] = {
@@ -52,14 +51,9 @@ class RoomSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Custom create method."""
 
-        # todo - extract this in an util function
-        def generate_pattern():
-            part1 = ''.join(random.choices(string.ascii_lowercase, k=3))
-            part2 = ''.join(random.choices(string.ascii_lowercase, k=4))
-            part3 = ''.join(random.choices(string.ascii_lowercase, k=3))
-            return f"{part1}-{part2}-{part3}"
+        # todo - track source of creation
 
-        validated_data['name'] = generate_pattern()
-        validated_data['access_level'] = "trusted"
+        validated_data["name"] = utils.generate_slug()
+        validated_data["access_level"] = models.RoomAccessLevel.TRUSTED
 
         return super().create(validated_data)

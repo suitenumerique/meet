@@ -667,7 +667,9 @@ class Base(Configuration):
     )
 
     # Integrations settings
-    INTEGRATIONS_JWT_SECRET_KEY = SecretFileValue(None, environ_name="INTEGRATIONS_JWT_SECRET_KEY", environ_prefix=None)
+    INTEGRATIONS_JWT_SECRET_KEY = SecretFileValue(
+        None, environ_name="INTEGRATIONS_JWT_SECRET_KEY", environ_prefix=None
+    )
     INTEGRATIONS_JWT_ALG = values.Value(
         "HS256",
         environ_name="INTEGRATIONS_JWT_ALG",
@@ -693,7 +695,6 @@ class Base(Configuration):
         environ_name="INTEGRATIONS_APP_BASE_URL",
         environ_prefix=None,
     )
-
 
     # pylint: disable=invalid-name
     @property

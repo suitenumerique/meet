@@ -8,6 +8,8 @@ Utils functions used in the core app
 import hashlib
 import json
 import random
+import secrets
+import string
 from typing import List, Optional
 from uuid import uuid4
 
@@ -25,6 +27,14 @@ from livekit.api import (  # pylint: disable=E0611
     TwirpError,
     VideoGrants,
 )
+
+
+def generate_slug():
+    """Wip."""
+
+    sizes = [3, 4, 3]
+    parts = ["".join(secrets.choices(string.ascii_lowercase, k=size)) for size in sizes]
+    return "-".join(parts)
 
 
 def generate_color(identity: str) -> str:

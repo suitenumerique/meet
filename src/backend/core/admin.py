@@ -1,5 +1,6 @@
 """Admin classes and registrations for core app."""
 
+from django import forms
 from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
 from django.utils.translation import gettext_lazy as _
@@ -154,12 +155,38 @@ class RecordingAdmin(admin.ModelAdmin):
         return str(owners[0].user)
 
 
+class ServiceAccountAdminForm(forms.ModelForm):
+    """Wip."""
+
+    scopes = forms.MultipleChoiceField(
+        choices=models.ServiceAccountScope.choices,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk and self.instance.scopes:
+            self.fields["scopes"].initial = self.instance.scopes
+
+
 @admin.register(models.ServiceAccount)
 class ServiceAccountAdmin(admin.ModelAdmin):
     """Wip."""
 
-    list_display = ("id", "name")
+    form = ServiceAccountAdminForm
+
+    list_display = ("id", "name", "get_scopes_display")
+    fields = ["name", "id", "created_at", "updated_at", "scopes"]
     readonly_fields = ["id", "created_at", "updated_at"]
+
+    def get_scopes_display(self, obj):
+        """Display scopes in list view."""
+        if obj.scopes:
+            return ", ".join(obj.scopes)
+        return "No scopes"
+
+    get_scopes_display.short_description = "Scopes"
 
 
 @admin.register(models.ServiceAccountAPIKey)

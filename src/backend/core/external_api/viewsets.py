@@ -1,13 +1,12 @@
 """Wip."""
 
+from datetime import datetime, timedelta
 from logging import getLogger
 
 from django.conf import settings
 
 import jwt
-from datetime import datetime, timedelta
-
-from rest_framework import decorators, mixins, pagination, throttling, viewsets
+from rest_framework import decorators, mixins, viewsets
 from rest_framework import (
     exceptions as drf_exceptions,
 )
@@ -18,9 +17,10 @@ from rest_framework import (
     status as drf_status,
 )
 
-from core import enums, models, utils
+from core import models
+
+from . import permissions, serializers
 from .authentication import IntegrationJWTAuthentication
-from . import serializers, permissions
 
 # pylint: disable=too-many-ancestors
 
@@ -44,31 +44,43 @@ class IntegrationViewSet(viewsets.GenericViewSet):
         serializer = serializers.JwtSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        key = request.META["HTTP_AUTHORIZATION"].split()[1]
+
+        api_key = models.ServiceAccountAPIKey.objects.get_from_key(key)
+        service_account = api_key.service_account
+
+        # todo  - extract all this logic in a service
+        # todo - check if email is allowed by the regex
+
         try:
             user = models.User.objects.get(email=serializer.validated_data["email"])
-        except models.User.DoesNotExist:
+        except models.User.DoesNotExist as e:
             # todo - create unknown user
-            raise drf_exceptions.NotFound({"error": "User with this email does not exist."})
+            raise drf_exceptions.NotFound(
+                {"error": "User with this email does not exist."}
+            ) from e
 
         now = datetime.utcnow()
         payload = {
-            'user_id': str(user.id),
-            'email': user.email,
-            'full_name': user.full_name,
-            'iat': now,
-            'exp': now + timedelta(seconds=settings.INTEGRATIONS_JWT_EXPIRATION_SECONDS),
-            'iss': settings.INTEGRATIONS_JWT_ISSUER,
-            'aud': 'wip',  # todo - replace with the owner of the api token
-            # todo - add scope
+            "user_id": str(user.id),
+            "email": user.email,
+            "full_name": user.full_name,
+            "iat": now,
+            "exp": now
+            + timedelta(seconds=settings.INTEGRATIONS_JWT_EXPIRATION_SECONDS),
+            "iss": settings.INTEGRATIONS_JWT_ISSUER,
+            "impersonated": True,
+            "client_id": str(service_account.id),  # audience
+            "scope": service_account.scopes,
         }
 
         try:
             token = jwt.encode(
                 payload,
                 settings.INTEGRATIONS_JWT_SECRET_KEY,
-                algorithm=settings.INTEGRATIONS_JWT_ALG
+                algorithm=settings.INTEGRATIONS_JWT_ALG,
             )
-        except Exception as e:
+        except Exception:  # noqa: BLE001
             return drf_response.Response(
                 {"error": "Failed to generate token"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -93,6 +105,35 @@ class RoomViewSet(
     """Wip."""
 
     authentication_classes = [IntegrationJWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasRequiredScope]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
+
+    def list(self, request, *args, **kwargs):
+        """Limit listed rooms to the ones related to the authenticated user."""
+
+        user = self.request.user
+
+        if user.is_authenticated:
+            queryset = (
+                self.filter_queryset(self.get_queryset()).filter(users=user).distinct()
+            )
+        else:
+            queryset = self.get_queryset().none()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return drf_response.Response(serializer.data)
+
+    def perform_create(self, serializer):
+        """Set the current user as owner of the newly created room."""
+        room = serializer.save()
+        models.ResourceAccess.objects.create(
+            resource=room,
+            user=self.request.user,
+            role=models.RoleChoices.OWNER,
+        )

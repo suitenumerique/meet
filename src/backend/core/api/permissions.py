@@ -106,4 +106,3 @@ class HasLiveKitRoomAccess(permissions.BasePermission):
         if not request.auth or not hasattr(request.auth, "video"):
             return False
         return request.auth.video.room == str(obj.id)
-

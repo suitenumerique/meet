@@ -302,10 +302,12 @@ class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
 
         return attrs
 
+
 class IntegrationJwtSerializer(BaseValidationOnlySerializer):
     """Validate room creation callback data."""
 
     email = serializers.EmailField(required=True)
+
 
 class IntegrationRoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for the API."""
