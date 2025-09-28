@@ -33,7 +33,10 @@ def generate_slug():
     """Wip."""
 
     sizes = [3, 4, 3]
-    parts = ["".join(secrets.choices(string.ascii_lowercase, k=size)) for size in sizes]
+    parts = [
+        "".join(secrets.choice(string.ascii_lowercase) for _ in range(size))
+        for size in sizes
+    ]
     return "-".join(parts)
 
 

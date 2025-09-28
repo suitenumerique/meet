@@ -49,11 +49,21 @@ class IntegrationViewSet(viewsets.GenericViewSet):
         api_key = models.ServiceAccountAPIKey.objects.get_from_key(key)
         service_account = api_key.service_account
 
-        # todo  - extract all this logic in a service
-        # todo - check if email is allowed by the regex
+        email = serializer.validated_data["email"]
+
+        if not service_account.can_impersonate_email(email):
+            logger.warning(
+                "Service account %s denied impersonation of %s",
+                service_account.id,
+                email,
+            )
+            return drf_response.Response(
+                {"error": "Access denied"},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
 
         try:
-            user = models.User.objects.get(email=serializer.validated_data["email"])
+            user = models.User.objects.get(email=email)
         except models.User.DoesNotExist as e:
             # todo - create unknown user
             raise drf_exceptions.NotFound(

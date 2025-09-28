@@ -744,6 +744,8 @@ class ServiceAccount(BaseModel):
     scopes = ArrayField(
         models.CharField(max_length=50, choices=ServiceAccountScope.choices),
         default=list,
+        blank=True,
+        null=True,
     )
 
     class Meta:
@@ -754,6 +756,52 @@ class ServiceAccount(BaseModel):
 
     def __str__(self):
         return f"{self.name!s}"
+
+    def can_impersonate_email(self, email):
+        """Check if this service account can impersonate the given email."""
+
+        if not self.allowed_domains.exists():
+            return True  # No domain restrictions
+
+        domain = email.split("@")[-1]
+        return self.allowed_domains.filter(domain__iexact=domain).exists()
+
+
+class ServiceAccountDomain(BaseModel):
+    """Domain allowed for service account impersonation."""
+
+    domain = models.CharField(
+        max_length=253,  # Max domain length per RFC
+        validators=[
+            validators.DomainNameValidator(
+                accept_idna=False,
+                message=_("Enter a valid domain"),
+            )
+        ],
+        verbose_name=_("Domain"),
+        help_text=_("Email domain that can be impersonated."),
+    )
+
+    service_account = models.ForeignKey(
+        "ServiceAccount",
+        on_delete=models.CASCADE,
+        related_name="allowed_domains",
+    )
+
+    class Meta:
+        db_table = "meet_service_account_domain"
+        ordering = ("domain",)
+        verbose_name = _("Service account domain")
+        verbose_name_plural = _("Service account domains")
+        unique_together = [("service_account", "domain")]
+
+    def __str__(self):
+        return self.domain
+
+    def save(self, *args, **kwargs):
+        # Normalize domain to lowercase
+        self.domain = self.domain.lower().strip()
+        super().save(*args, **kwargs)
 
 
 class ServiceAccountAPIKey(AbstractAPIKey):

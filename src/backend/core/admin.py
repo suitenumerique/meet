@@ -155,6 +155,13 @@ class RecordingAdmin(admin.ModelAdmin):
         return str(owners[0].user)
 
 
+class ServiceAccountDomainInline(admin.TabularInline):
+    """Wip."""
+
+    model = models.ServiceAccountDomain
+    extra = 0
+
+
 class ServiceAccountAdminForm(forms.ModelForm):
     """Wip."""
 
@@ -179,14 +186,15 @@ class ServiceAccountAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "get_scopes_display")
     fields = ["name", "id", "created_at", "updated_at", "scopes"]
     readonly_fields = ["id", "created_at", "updated_at"]
+    inlines = [ServiceAccountDomainInline]
 
     def get_scopes_display(self, obj):
         """Display scopes in list view."""
         if obj.scopes:
             return ", ".join(obj.scopes)
-        return "No scopes"
+        return _("No scopes")
 
-    get_scopes_display.short_description = "Scopes"
+    get_scopes_display.short_description = _("Scopes")
 
 
 @admin.register(models.ServiceAccountAPIKey)
