@@ -1,6 +1,6 @@
-"""Wip."""
+"""Client serializers for the external API of the Meet core app."""
 
-# pylint: disable=abstract-method,no-name-in-module
+# pylint: disable=abstract-method
 
 from django.conf import settings
 
@@ -17,7 +17,17 @@ class JwtSerializer(BaseValidationOnlySerializer):
 
 
 class RoomSerializer(serializers.ModelSerializer):
-    """Serialize Room model for the API."""
+    """External API serializer with limited, safe room information.
+
+    Designed for external integrations with:
+    - Read-only access to most fields for security
+    - Additional computed fields (url, telephony info)
+    - Filtered data appropriate for external consumption
+    - Automatic room creation with secure defaults
+
+    Intentionally limits exposed information compared to internal APIs,
+    providing only what external services need while protecting sensitive details.
+    """
 
     class Meta:
         model = models.Room
@@ -25,7 +35,7 @@ class RoomSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name", "slug", "pin_code", "access_level"]
 
     def to_representation(self, instance):
-        """Wip."""
+        """Add external-specific fields and filter sensitive data."""
         output = super().to_representation(instance)
         request = self.context.get("request")
 
@@ -46,10 +56,8 @@ class RoomSerializer(serializers.ModelSerializer):
         return output
 
     def create(self, validated_data):
-        """Custom create method."""
-
+        """Create room with secure defaults for external API."""
         # todo - track source of creation
-
         validated_data["name"] = utils.generate_slug()
         validated_data["access_level"] = models.RoomAccessLevel.TRUSTED
 

@@ -23,9 +23,9 @@ external_router.register(
     "rooms", external_viewsets.RoomViewSet, basename="external_rooms"
 )
 external_router.register(
-    "integrations",
-    external_viewsets.IntegrationViewSet,
-    basename="external_integrations",
+    "service-account",
+    external_viewsets.ServiceAccountViewSet,
+    basename="external_service_account",
 )
 
 urlpatterns = [

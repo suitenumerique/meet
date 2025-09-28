@@ -1,4 +1,4 @@
-"""Wip."""
+"""Authentication Backends for service accounts integrated to the Meet core app."""
 
 import logging
 
@@ -14,13 +14,11 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class IntegrationJWTAuthentication(authentication.BaseAuthentication):
-    """
-    Simple JWT authentication for external-api endpoints.
-    """
+class ServiceAccountJWTAuthentication(authentication.BaseAuthentication):
+    """JWT authentication for external API endpoints."""
 
     def authenticate(self, request):
-        """Wip."""
+        """Extract and validate JWT from Authorization header."""
 
         auth_header = authentication.get_authorization_header(request).split()
 
@@ -28,19 +26,19 @@ class IntegrationJWTAuthentication(authentication.BaseAuthentication):
             return None
 
         if len(auth_header) != 2:
-            logger.error("Invalid token header")
+            logger.warning("Invalid token header")
             raise exceptions.AuthenticationFailed("Invalid token header.")
 
         try:
             token = auth_header[1].decode("utf-8")
         except UnicodeError as e:
-            logger.error("Invalid: %s", e)
+            logger.warning("Invalid: %s", e)
             raise exceptions.AuthenticationFailed("Invalid token.") from e
 
         return self.authenticate_credentials(token)
 
     def authenticate_credentials(self, token):
-        """Wip."""
+        """Authenticate and validate JWT token credentials."""
 
         try:
             payload = jwt.decode(
@@ -50,29 +48,31 @@ class IntegrationJWTAuthentication(authentication.BaseAuthentication):
                 issuer=settings.INTEGRATIONS_JWT_ISSUER,
             )
         except jwt.ExpiredSignatureError as e:
-            logger.error("Token expired")
+            logger.warning("Token expired")
             raise exceptions.AuthenticationFailed("Token expired.") from e
         except jwt.InvalidIssuerError as e:
-            logger.error("Invalid JWT issuer: %s", e)
+            logger.warning("Invalid JWT issuer: %s", e)
             raise exceptions.AuthenticationFailed("Invalid token.") from e
         except jwt.InvalidTokenError as e:
-            logger.error("Invalid JWT token: %s", e)
+            logger.warning("Invalid JWT token: %s", e)
             raise exceptions.AuthenticationFailed("Invalid token.") from e
 
-        if not payload.get("user_id"):
-            logger.warning("Invalid JWT token. Missing 'user_id' in payload")
-            return None
+        user_id = payload.get("user_id")
+        if not user_id:
+            logger.warning("Missing 'user_id' in JWT payload")
+            raise exceptions.AuthenticationFailed("Invalid token.")
 
         try:
-            user = User.objects.get(id=payload["user_id"])
+            user = User.objects.get(id=user_id)
         except User.DoesNotExist as e:
-            logger.warning("User not found")
-            raise exceptions.AuthenticationFailed("User not found.") from e
+            logger.warning("User not found: %s", user_id)
+            raise exceptions.AuthenticationFailed("Invalid token.") from e
 
         if not user.is_active:
-            logger.warning("User inactive")
-            raise exceptions.AuthenticationFailed("User inactive.")
+            logger.warning("Inactive user attempted authentication: %s", user_id)
+            raise exceptions.AuthenticationFailed("Account disabled.")
 
+        # Attach token metadata to user
         user.token_scopes = payload.get("scope", [])
         user.is_impersonated = payload.get("impersonated", False)
         user.client_id = payload.get("client_id")

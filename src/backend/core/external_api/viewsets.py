@@ -1,4 +1,4 @@
-"""Wip."""
+"""External API endpoints"""
 
 from datetime import datetime, timedelta
 from logging import getLogger
@@ -17,18 +17,15 @@ from rest_framework import (
     status as drf_status,
 )
 
-from core import models
+from core import api, models
 
-from . import permissions, serializers
-from .authentication import IntegrationJWTAuthentication
-
-# pylint: disable=too-many-ancestors
+from . import authentication, permissions, serializers
 
 logger = getLogger(__name__)
 
 
-class IntegrationViewSet(viewsets.GenericViewSet):
-    """Wip."""
+class ServiceAccountViewSet(viewsets.GenericViewSet):
+    """Service account management for external integrations."""
 
     permission_classes = [permissions.HasServiceAccountAPIKey]
 
@@ -39,7 +36,14 @@ class IntegrationViewSet(viewsets.GenericViewSet):
         url_name="token",
     )
     def generate_token(self, request, *args, **kwargs):
-        """Generate JWT token for a specific user identified by email."""
+        """Generate JWT token for user impersonation.
+
+        Token generation endpoint for service-to-service authentication.
+
+        Exchanges service account API key for a scoped JWT token that can
+        impersonate a specific user. The service account must have permission
+        to impersonate the user's email domain.
+        """
 
         serializer = serializers.JwtSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -81,7 +85,7 @@ class IntegrationViewSet(viewsets.GenericViewSet):
             "iss": settings.INTEGRATIONS_JWT_ISSUER,
             "impersonated": True,
             "client_id": str(service_account.id),  # audience
-            "scope": service_account.scopes,
+            "scope": service_account.scopes or [],
         }
 
         try:
@@ -112,10 +116,14 @@ class RoomViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    """Wip."""
+    """External API for room management with scope-based permissions.
 
-    authentication_classes = [IntegrationJWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated, permissions.HasRequiredScope]
+    Provides JWT-authenticated access to room operations for external services.
+    All operations are scoped and filtered to authenticated user's accessible rooms.
+    """
+
+    authentication_classes = [authentication.ServiceAccountJWTAuthentication]
+    permission_classes = [api.permissions.IsAuthenticated, permissions.HasRequiredScope]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
 

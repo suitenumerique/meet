@@ -156,14 +156,14 @@ class RecordingAdmin(admin.ModelAdmin):
 
 
 class ServiceAccountDomainInline(admin.TabularInline):
-    """Wip."""
+    """Inline admin for managing allowed domains per service account."""
 
     model = models.ServiceAccountDomain
     extra = 0
 
 
 class ServiceAccountAdminForm(forms.ModelForm):
-    """Wip."""
+    """Custom form for ServiceAccount admin with multi-select scopes."""
 
     scopes = forms.MultipleChoiceField(
         choices=models.ServiceAccountScope.choices,
@@ -179,7 +179,7 @@ class ServiceAccountAdminForm(forms.ModelForm):
 
 @admin.register(models.ServiceAccount)
 class ServiceAccountAdmin(admin.ModelAdmin):
-    """Wip."""
+    """Admin interface for managing service accounts and their permissions."""
 
     form = ServiceAccountAdminForm
 
@@ -198,8 +198,8 @@ class ServiceAccountAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.ServiceAccountAPIKey)
-class OrganizationAPIKeyModelAdmin(APIKeyModelAdmin):
-    """Wip."""
+class ServiceAccountAPIKeyModelAdmin(APIKeyModelAdmin):
+    """Admin interface for managing service account API keys."""
 
     list_display = [*APIKeyModelAdmin.list_display, "service_account__name"]
     search_fields = [*APIKeyModelAdmin.search_fields, "service_account__name"]

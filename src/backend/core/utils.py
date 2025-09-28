@@ -30,7 +30,7 @@ from livekit.api import (  # pylint: disable=E0611
 
 
 def generate_slug():
-    """Wip."""
+    """Generate a random room slug in the format 'xxx-xxxx-xxx'."""
 
     sizes = [3, 4, 3]
     parts = [
