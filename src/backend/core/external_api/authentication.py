@@ -47,10 +47,14 @@ class IntegrationJWTAuthentication(authentication.BaseAuthentication):
                 token,
                 settings.INTEGRATIONS_JWT_SECRET_KEY,
                 algorithms=[settings.INTEGRATIONS_JWT_ALG],
+                issuer=settings.INTEGRATIONS_JWT_ISSUER,
             )
         except jwt.ExpiredSignatureError as e:
             logger.error("Token expired")
             raise exceptions.AuthenticationFailed("Token expired.") from e
+        except jwt.InvalidIssuerError as e:
+            logger.error("Invalid JWT issuer: %s", e)
+            raise exceptions.AuthenticationFailed("Invalid token.") from e
         except jwt.InvalidTokenError as e:
             logger.error("Invalid JWT token: %s", e)
             raise exceptions.AuthenticationFailed("Invalid token.") from e

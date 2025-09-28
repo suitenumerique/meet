@@ -25,10 +25,7 @@ class RoomSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name", "slug", "pin_code", "access_level"]
 
     def to_representation(self, instance):
-        """
-        Add users only for administrator users.
-        Add LiveKit credentials for public instance or related users/groups
-        """
+        """Wip."""
         output = super().to_representation(instance)
         request = self.context.get("request")
 
