@@ -2,7 +2,13 @@
 
 This is an experimental part of the stack.  It currently lacks proper observability, unit tests, and other production-grade features. This serves as the base for AI features in Visio.
 
-## Usage
+## How it works 
+
+Please refer to the [Recording feature documentation](https://github.com/suitenumerique/meet/blob/main/docs/features/recording.md) and the [Transcription feature documentation](https://github.com/suitenumerique/meet/blob/main/docs/features/transcription.md).
+
+## How to develop
+
+(To develop locally follow the instructions on [developing La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md))
 
 From the root of the project:
 
