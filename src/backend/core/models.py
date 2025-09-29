@@ -722,7 +722,7 @@ class RecordingAccess(BaseAccess):
 
 
 class ServiceAccountScope(models.TextChoices):
-    """Wip."""
+    """Available permission scopes for service account operations."""
 
     ROOMS_CREATE = "rooms:create", _("Create rooms")
     ROOMS_LIST = "rooms:list", _("List rooms")
@@ -732,7 +732,7 @@ class ServiceAccountScope(models.TextChoices):
 
 
 class ServiceAccount(BaseModel):
-    """Wip."""
+    """Service account for external API authentication and authorization."""
 
     name = models.CharField(
         max_length=255,
@@ -805,7 +805,7 @@ class ServiceAccountDomain(BaseModel):
 
 
 class ServiceAccountAPIKey(AbstractAPIKey):
-    """Wip."""
+    """API key for service account authentication."""
 
     service_account = models.ForeignKey(
         ServiceAccount,
