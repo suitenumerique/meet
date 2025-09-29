@@ -73,6 +73,8 @@ We're currently working on both technical and user documentation for La Suite Me
 
 We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/) but also support Docker Compose. The community contributed a couple other methods (Nix, YunoHost etc.) check out the [docs](/docs/installation/README.md) to get detailed instructions and examples.
 
+**Questions?** Open an issue on [GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) or join our [Matrix community](https://matrix.to/#/#meet-official:matrix.org).
+
 > [!NOTE]
 > Some advanced features (ex: recording, transcription) lack detailed documentation. We're working hard to provide comprehensive guides soon.
 
