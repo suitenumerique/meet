@@ -10,6 +10,7 @@ We provide a sample configuration for running Meet using Docker Compose. Please 
 - A Postgresql database - we provide [an example in the compose file](../examples/compose/compose.yaml).
 - A Redis database - we provide [an example in the compose file](../examples/compose/compose.yaml).
 - A Livekit server - we provide [an example in the compose file](../examples/compose/compose.yaml).
+- Optionnal requirements - MinIO server - If you want to enable recording and/or transcription features, you need a MinIO server that is outside the scope of this documentation.
 
 ## Software Requirements
 
@@ -92,7 +93,7 @@ To view other customization options, see [config-sample.yaml](https://github.com
 
 The Meet backend is built on the Django Framework.
 
-Generate a secure key for `DJANGO_SECRET_KEY` in `env.d/common`. 
+Generate a [secure key](https://docs.djangoproject.com/en/5.2/ref/settings/#secret-key.) for `DJANGO_SECRET_KEY` in `env.d/common`. 
 
 ### Mail
 
@@ -115,7 +116,7 @@ DJANGO_EMAIL_LOGO_IMG=<logo image to use in email templates.> # e.g. "https://me
 
 ## Step 3: Configure your firewall
 
-If you are using a firewall as it is usually recommanded in a production environment you will need to allow the webservice traffic on ports 80 and 443 but also to allow UDP traffic for the WebRTC service.
+If you are using a firewall as it is usually recommended in a production environment you will need to allow the webservice traffic on ports 80 and 443 but also to allow UDP traffic for the WebRTC service.
 
 The following ports will need to be opened:
 - 80/tcp - for TLS issuance
