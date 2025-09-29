@@ -77,7 +77,7 @@ If you are using an external service, you need to set `REDIS_URL` environment va
 
 ### Livekit
 
-[LiveKit](https://github.com/livekit/livekit) server is used as the WebRTC SFU (Selective Forwarding Unit) allowing multi-user conferencing.
+[LiveKit](https://github.com/livekit/livekit) server is used as the WebRTC SFU (Selective Forwarding Unit) allowing multi-user conferencing. For more information, head to [livekit documentation](https://docs.livekit.io/home/self-hosting/).
 
 Generate a secure key for `LIVEKIT_API_SECRET` in `env.d/common`.
 
