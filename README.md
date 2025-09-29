@@ -34,9 +34,10 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 - Non-persistent, secure chat
 - End-to-end encryption (coming soon)
 - Meeting recording
-- Meeting transcription (currently in beta)
+- Meeting transcription & Summary (currently in beta)
 - Telephony integration
 - Secure participation with robust authentication and access control
+- Customizable frontend style
 - LiveKit Advances features including :
   - speaker detection 
   - simulcast 
@@ -54,6 +55,7 @@ We’re continuously adding new features to enhance your experience, with the la
 
 - [Get started](#get-started)
 - [Docs](#docs)
+- [Self-host](#self-host)
 - [Contributing](#contributing)
 - [Philosophy](#philosophy)
 - [Open source](#open-source)
@@ -61,22 +63,35 @@ We’re continuously adding new features to enhance your experience, with the la
 
 ## Get started
 
-### La Suite Meet Cloud (Recommended)
-Sign up for La Suite Meet Cloud, designed for french public servants. Hosted on SecNumCloud-compliant providers and accessible via government SSO, [ProConnect](https://www.proconnect.gouv.fr/). The easiest way to try our product. Reach out if your entity isn't connected yet to our sso.
-
-### Open-source deployment (Advanced)
-
-Deploy La Suite Meet on your own infrastructure using [our self-hosting guide](https://github.com/suitenumerique/meet/blob/main/docs/installation.md). Our open-source deployment is optimized for Kubernetes, and we're working on supporting additional deployment options. Keycloak integration and any SSO are supported. We offer customer support for open-source setups—just reach out for assistance.  
-
 ## Docs
 
 We're currently working on both technical and user documentation for La Suite Meet. In the meantime, many of the essential aspects are already well covered by the [LiveKit documentation](https://docs.livekit.io/home/) and their [self-hosting guide](https://docs.livekit.io/home/self-hosting/deployment/). Stay tuned for more updates!
+
+## Self-host
+
+### La Suite Meet is easy to install on your own servers
+
+We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/) but also support Docker Compose. The community contributed a couple other methods (Nix, YunoHost etc.) check out the [docs](/docs/installation/README.md) to get detailed instructions and examples.
+
+> [!NOTE]
+> Some advanced features (ex: recording, transcription) lack detailed documentation. We're working hard to provide comprehensive guides soon.
+
+#### Known instances
+We hope to see many more, here is an incomplete list of public La Suite Meet instances. Feel free to make a PR to add ones that are not listed below🙏
+
+| Url                                                           | Org | Access |
+|---------------------------------------------------------------| --- | ------- |
+| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/)   | DINUM    | French public agents working for the central administration and the extended public sphere. ProConnect is required to login in or sign up|
+| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT    | French public agents working for the territorial administration and the extended public sphere. ProConnect is required to login in or sign up|
+| [visio.lasuite.coop](https://visio.lasuite.coop/)             | lasuite.coop    | Free and open demo to all. Content and accounts are reset after one month |
+| [meet.demo.mosacloud.eu](https://meet.demo.mosacloud.eu/)     | mosa.cloud    | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps. |
+
 
 ## Contributing
 
 We <3 contributions of any kind, big and small:
 
-- Vote on features or get early access to beta functionality in our [roadmap](https://github.com/orgs/suitenumerique/projects/3/views/2)
+- Vote on features or get early access to beta functionality in our [roadmap](https://github.com/orgs/suitenumerique/projects/11/views/4)
 - Open a PR (see our instructions on [developing La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md))
 - Submit a [feature request](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=enhancement&template=Feature_request.md) or [bug report](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md)
 
