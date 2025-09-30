@@ -46,6 +46,21 @@ services:
       /usr/bin/mc mb meet/meet-media-storage && \
       exit 0;"
 
+  createwebhook:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+        restart: true
+    entrypoint: >
+      sh -c "
+      /usr/bin/mc alias set meet http://minio:9000 meet password &&
+      /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint='http://app-dev:8000/api/v1.0/recordings/storage-hook/' auth_token='Bearer password' &&
+      /usr/bin/mc admin service restart meet --wait --json &&
+      sleep 15 &&
+      /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put &&
+      exit 0;"
+
   app-dev:
     build:
       context: .
@@ -72,6 +87,7 @@ services:
         - nginx
         - livekit
         - createbuckets
+        - createwebhook
     extra_hosts:
       - "127.0.0.1.nip.io:host-gateway"
   
