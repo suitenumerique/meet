@@ -45,7 +45,6 @@ COMPOSE_RUN         = $(COMPOSE) run --rm
 COMPOSE_RUN_APP     = $(COMPOSE_RUN) app-dev
 COMPOSE_RUN_CROWDIN = $(COMPOSE_RUN) crowdin crowdin
 WAIT_DB             = @$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
-WAIT_MINIO          = @$(COMPOSE_RUN) dockerize -wait tcp://minio:9000 -timeout 60s
 
 # -- Backend
 MANAGE              = $(COMPOSE_RUN_APP) python manage.py
@@ -53,21 +52,6 @@ MAIL_NPM            = $(COMPOSE_RUN) -w /app/src/mail node npm
 
 # -- Frontend
 PATH_FRONT          = ./src/frontend
-
-# -- MinIO / Webhook
-MINIO_ALIAS         ?= meet
-MINIO_ENDPOINT      ?= http://127.0.0.1:9000
-MINIO_ACCESS_KEY    ?= meet
-MINIO_SECRET_KEY    ?= password
-MINIO_BUCKET        ?= meet-media-storage
-MINIO_WEBHOOK_NAME  ?= recording
-
-MINIO_WEBHOOK_ENDPOINT ?= http://app-dev:8000/api/v1.0/recordings/storage-hook/
-
-MINIO_QUEUE_DIR     ?= /data/minio/events
-MINIO_QUEUE_LIMIT   ?= 100000
-
-STORAGE_EVENT_TOKEN ?= password
 
 # ==============================================================================
 # RULES
@@ -152,55 +136,6 @@ status: ## an alias for "docker compose ps"
 stop: ## stop the development server using Docker
 	@$(COMPOSE) stop
 .PHONY: stop
-
-# -- MinIO webhook (configuration & events)
-minio-wait: ## wait for minio to be ready
-	@echo "$(BOLD)Waiting for MinIO$(RESET)"
-	$(WAIT_MINIO)
-.PHONY: minio-wait
-
-minio-queue-dir: minio-wait ## ensure queue dir exists in MinIO container
-	@echo "$(BOLD)Ensuring MinIO queue dir$(RESET)"
-	@$(COMPOSE) exec minio sh -lc 'mkdir -p $(MINIO_QUEUE_DIR) && chmod -R 777 $(dir $(MINIO_QUEUE_DIR)) || true'
-.PHONY: minio-queue-dir
-
-minio-alias: minio-wait ## set mc alias to MinIO
-	@echo "$(BOLD)Setting mc alias $(MINIO_ALIAS) -> $(MINIO_ENDPOINT)$(RESET)"
-	@mc alias set $(MINIO_ALIAS) $(MINIO_ENDPOINT) $(MINIO_ACCESS_KEY) $(MINIO_SECRET_KEY) >/dev/null
-.PHONY: minio-alias
-
-minio-webhook-config: minio-alias minio-queue-dir ## configure webhook on MinIO
-	@echo "$(BOLD)Configuring MinIO webhook $(MINIO_WEBHOOK_NAME)$(RESET)"
-	@mc admin config set $(MINIO_ALIAS) notify_webhook:$(MINIO_WEBHOOK_NAME) \
-	  endpoint="$(MINIO_WEBHOOK_ENDPOINT)" \
-	  auth_token="Bearer $(STORAGE_EVENT_TOKEN)" \
-	  queue_dir="$(MINIO_QUEUE_DIR)" \
-	  queue_limit="$(MINIO_QUEUE_LIMIT)"
-.PHONY: minio-webhook-config
-
-minio-restart: minio-alias ## restart MinIO after config change
-	@echo "$(BOLD)Restarting MinIO service$(RESET)"
-	@mc admin service restart $(MINIO_ALIAS)
-.PHONY: minio-restart
-
-minio-events-reset: minio-alias ## remove all bucket notifications
-	@echo "$(BOLD)Removing existing bucket events on $(MINIO_BUCKET)$(RESET)"
-	@mc event remove --force $(MINIO_ALIAS)/$(MINIO_BUCKET) >/dev/null || true
-.PHONY: minio-events-reset
-
-minio-event-add: minio-alias ## add put event -> webhook
-	@echo "$(BOLD)Adding put event -> webhook $(MINIO_WEBHOOK_NAME)$(RESET)"
-	@mc event add $(MINIO_ALIAS)/$(MINIO_BUCKET) arn:minio:sqs::$(MINIO_WEBHOOK_NAME):webhook --event put
-	@mc event list $(MINIO_ALIAS)/$(MINIO_BUCKET)
-.PHONY: minio-event-add
-
-minio-webhook-setup: ## full setup: alias, config, restart, reset events, add event
-minio-webhook-setup: \
-	minio-webhook-config \
-	minio-restart \
-	minio-events-reset \
-	minio-event-add
-.PHONY: minio-webhook-setup
 
 # -- Front
 
