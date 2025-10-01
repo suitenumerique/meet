@@ -365,6 +365,10 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
         )
     else:
         logger.info("Summary generation not enabled for this user.")
+    summarize_transcription.apply_async(
+        args=[formatted_transcription, email, sub, title],
+        queue=settings.summarize_queue,
+    )
 
 
 @celery.task(
@@ -407,7 +411,6 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
         with gen_ctx(
             name=name,
             model=settings.llm_model,
-            input={"system": system, "user": user[:2000]},
         ):
             return llm_service.call(system, user)
 
