@@ -120,7 +120,7 @@ class MetadataManager:
 
         _required_args_count = 8
         if len(task_args) != _required_args_count:
-            logger.error("Invalid number of arguments.")
+            logger.error("Invalid number of arguments to enable metadata manager.")
             return
 
         filename, email, _, received_at, *_ = task_args
