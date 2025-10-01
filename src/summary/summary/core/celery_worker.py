@@ -297,20 +297,25 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
     try:
         logger.info("Querying transcription …")
         transcription_start_time = time.time()
-        with open(temp_file_path, "rb") as audio_file:
-            transcription = whisperx_client.audio.transcriptions.create(
-                model=settings.whisperx_asr_model, file=audio_file
-            )
-            metadata_manager.track(
-                task_id,
-                {
-                    "transcription_time": round(
-                        time.time() - transcription_start_time, 2
-                    )
-                },
-            )
-            logger.info("Transcription received.")
-            logger.debug("Transcription: \n %s", transcription)
+        with span_ctx(
+            name="whisperx.transcribe",
+            input={
+                "model": settings.whisperx_asr_model,
+                "audio_seconds": round(audio_file.info.length, 2),
+                "endpoint": settings.whisperx_base_url,
+            },
+        ):
+            with open(temp_file_path, "rb") as audio_file_rb:
+                transcription = whisperx_client.audio.transcriptions.create(
+                    model=settings.whisperx_asr_model,
+                    file=audio_file_rb,
+                )
+        metadata_manager.track(
+            task_id,
+            {"transcription_time": round(time.time() - transcription_start_time, 2)},
+        )
+        logger.info("Transcription received.")
+        logger.debug("Transcription: \n %s", transcription)
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
