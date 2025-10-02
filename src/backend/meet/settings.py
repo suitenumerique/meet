@@ -676,6 +676,34 @@ class Base(Configuration):
         environ_name="APPLICATION_CLIENT_SECRET_LENGTH",
         environ_prefix=None,
     )
+    APPLICATION_JWT_SECRET_KEY = SecretFileValue(
+        None, environ_name="APPLICATION_JWT_SECRET_KEY", environ_prefix=None
+    )
+    APPLICATION_JWT_ALG = values.Value(
+        "HS256",
+        environ_name="APPLICATION_JWT_ALG",
+        environ_prefix=None,
+    )
+    APPLICATION_JWT_ISSUER = values.Value(
+        "lasuite-meet",
+        environ_name="APPLICATION_JWT_ISSUER",
+        environ_prefix=None,
+    )
+    APPLICATION_JWT_AUDIENCE = values.Value(
+        None,
+        environ_name="APPLICATION_JWT_AUDIENCE",
+        environ_prefix=None,
+    )
+    APPLICATION_JWT_EXPIRATION_SECONDS = values.PositiveIntegerValue(
+        3600,
+        environ_name="APPLICATION_JWT_EXPIRATION_SECONDS",
+        environ_prefix=None,
+    )
+    APPLICATION_JWT_TOKEN_TYPE = values.Value(
+        "Bearer",
+        environ_name="APPLICATION_JWT_TOKEN_TYPE",
+        environ_prefix=None,
+    )
 
     # pylint: disable=invalid-name
     @property
