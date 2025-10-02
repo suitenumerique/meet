@@ -69,3 +69,4 @@ FRONTEND_USE_PROCONNECT_BUTTON=False
 # External Applications
 APPLICATION_JWT_AUDIENCE=http://localhost:8071/external-api/v1.0/
 APPLICATION_JWT_SECRET_KEY=devKey
+APPLICATION_BASE_URL=http://localhost:3000

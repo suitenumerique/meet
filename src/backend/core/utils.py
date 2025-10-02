@@ -8,6 +8,7 @@ Utils functions used in the core app
 import hashlib
 import json
 import random
+import secrets
 import string
 from typing import List, Optional
 from uuid import uuid4
@@ -280,3 +281,14 @@ def generate_client_secret() -> str:
         Cryptographically secure client secret
     """
     return generate_secure_token(settings.APPLICATION_CLIENT_SECRET_LENGTH)
+
+
+def generate_room_slug():
+    """Generate a random room slug in the format 'xxx-xxxx-xxx'."""
+
+    sizes = [3, 4, 3]
+    parts = [
+        "".join(secrets.choice(string.ascii_lowercase) for _ in range(size))
+        for size in sizes
+    ]
+    return "-".join(parts)
