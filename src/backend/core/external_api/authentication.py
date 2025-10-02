@@ -46,6 +46,7 @@ class ServiceAccountJWTAuthentication(authentication.BaseAuthentication):
                 settings.INTEGRATIONS_JWT_SECRET_KEY,
                 algorithms=[settings.INTEGRATIONS_JWT_ALG],
                 issuer=settings.INTEGRATIONS_JWT_ISSUER,
+                audience=settings.INTEGRATIONS_JWT_AUDIENCE,
             )
         except jwt.ExpiredSignatureError as e:
             logger.warning("Token expired")

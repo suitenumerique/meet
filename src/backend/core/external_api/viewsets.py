@@ -27,8 +27,6 @@ logger = getLogger(__name__)
 class ServiceAccountViewSet(viewsets.GenericViewSet):
     """Service account management for external integrations."""
 
-    permission_classes = [permissions.HasServiceAccountAPIKey]
-
     @decorators.action(
         detail=False,
         methods=["post"],
@@ -40,20 +38,37 @@ class ServiceAccountViewSet(viewsets.GenericViewSet):
 
         Token generation endpoint for service-to-service authentication.
 
-        Exchanges service account API key for a scoped JWT token that can
-        impersonate a specific user. The service account must have permission
+        Exchanges service account client_id / client_secret for a scoped JWT token
+        that can impersonate a specific user. The service account must have permission
         to impersonate the user's email domain.
         """
 
         serializer = serializers.JwtSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        key = request.META["HTTP_AUTHORIZATION"].split()[1]
+        client_id = serializer.validated_data["client_id"]
+        client_secret = serializer.validated_data["client_secret"]
 
-        api_key = models.ServiceAccountAPIKey.objects.get_from_key(key)
-        service_account = api_key.service_account
+        try:
+            service_account = models.ServiceAccount.objects.get(client_id=client_id)
+        except models.ServiceAccount.DoesNotExist as e:
+            raise drf_exceptions.AuthenticationFailed("Invalid client_id") from e
 
-        email = serializer.validated_data["email"]
+        try:
+            service_account_secret = models.ServiceAccountSecret.objects.get_from_key(
+                client_secret
+            )
+        except models.ServiceAccountSecret.DoesNotExist as e:
+            raise drf_exceptions.AuthenticationFailed("Invalid client_secret") from e
+
+        if (
+            service_account.client_id
+            != service_account_secret.service_account.client_id
+        ):
+            raise drf_exceptions.AuthenticationFailed("Invalid client_secret")
+
+        # todo - explain why scope is an email here
+        email = serializer.validated_data["scope"]
 
         if not service_account.can_impersonate_email(email):
             logger.warning(
@@ -62,7 +77,10 @@ class ServiceAccountViewSet(viewsets.GenericViewSet):
                 email,
             )
             return drf_response.Response(
-                {"error": "Access denied"},
+                {
+                    "error": "Access denied",
+                    "detail": "Cannot impersonate this user. The user's domain may not be authorized in the domain delegation settings for this service account.",
+                },
                 status=drf_status.HTTP_403_FORBIDDEN,
             )
 
@@ -71,22 +89,27 @@ class ServiceAccountViewSet(viewsets.GenericViewSet):
         except models.User.DoesNotExist as e:
             # todo - create unknown user
             raise drf_exceptions.NotFound(
-                {"error": "User with this email does not exist."}
+                {
+                    "error": "User not found",
+                    "message": f"No user with email '{email}' exists.",
+                }
             ) from e
 
         now = datetime.utcnow()
         scopes = service_account.scopes or []
         payload = {
-            "user_id": str(user.id),
-            "email": user.email,
-            "full_name": user.full_name,
+            # Standard JWT claims
+            "iss": settings.INTEGRATIONS_JWT_ISSUER,
+            "aud": settings.INTEGRATIONS_JWT_AUDIENCE,
             "iat": now,
             "exp": now
             + timedelta(seconds=settings.INTEGRATIONS_JWT_EXPIRATION_SECONDS),
-            "iss": settings.INTEGRATIONS_JWT_ISSUER,
+            # Application claims
+            "client_id": str(client_id),
+            "scope": " ".join(scopes),
+            # Minimal user info
+            "user_id": str(user.id),
             "impersonated": True,
-            "client_id": str(service_account.id),  # audience
-            "scope": scopes,
         }
 
         try:

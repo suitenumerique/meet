@@ -740,6 +740,13 @@ class ServiceAccount(BaseModel):
         help_text=_("Descriptive name for this service account."),
     )
     active = models.BooleanField(default=True)
+    client_id = models.UUIDField(
+        verbose_name=_("client_id"),
+        help_text=_(
+            "Unique public identifier for the client, auto-generated UUID used for external integration"
+        ),
+        default=uuid.uuid4,
+    )
 
     scopes = ArrayField(
         models.CharField(max_length=50, choices=ServiceAccountScope.choices),
@@ -804,11 +811,11 @@ class ServiceAccountDomain(BaseModel):
         super().save(*args, **kwargs)
 
 
-class ServiceAccountAPIKey(AbstractAPIKey):
+class ServiceAccountSecret(AbstractAPIKey):
     """API key for service account authentication."""
 
-    service_account = models.ForeignKey(
+    service_account = models.OneToOneField(
         ServiceAccount,
         on_delete=models.CASCADE,
-        related_name="api_keys",
+        related_name="client_secret",
     )

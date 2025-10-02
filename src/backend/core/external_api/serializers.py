@@ -11,9 +11,12 @@ from core.api.serializers import BaseValidationOnlySerializer
 
 
 class JwtSerializer(BaseValidationOnlySerializer):
-    """Validate room creation callback data."""
+    """Validate OAuth2 JWT token request data."""
 
-    email = serializers.EmailField(required=True)
+    client_id = serializers.UUIDField()
+    client_secret = serializers.CharField(write_only=True)
+    grant_type = serializers.ChoiceField(choices=["client_credentials"])
+    scope = serializers.EmailField()
 
 
 class RoomSerializer(serializers.ModelSerializer):
@@ -52,6 +55,7 @@ class RoomSerializer(serializers.ModelSerializer):
                 "default_country": settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
             }
         del output["pin_code"]
+        del output["name"]
 
         return output
 

@@ -680,6 +680,11 @@ class Base(Configuration):
         environ_name="INTEGRATIONS_JWT_ISSUER",
         environ_prefix=None,
     )
+    INTEGRATIONS_JWT_AUDIENCE = values.Value(
+        "http://localhost:8071/external-api/v1.0/",
+        environ_name="INTEGRATIONS_JWT_AUDIENCE",
+        environ_prefix=None,
+    )
     INTEGRATIONS_JWT_EXPIRATION_SECONDS = values.PositiveIntegerValue(
         3600,
         environ_name="INTEGRATIONS_JWT_EXPIRATION_SECONDS",

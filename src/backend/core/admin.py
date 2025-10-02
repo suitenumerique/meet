@@ -183,9 +183,9 @@ class ServiceAccountAdmin(admin.ModelAdmin):
 
     form = ServiceAccountAdminForm
 
-    list_display = ("id", "name", "get_scopes_display")
-    fields = ["name", "id", "created_at", "updated_at", "scopes"]
-    readonly_fields = ["id", "created_at", "updated_at"]
+    list_display = ("id", "name", "client_id", "get_scopes_display")
+    fields = ["name", "id", "created_at", "updated_at", "scopes", "client_id"]
+    readonly_fields = ["id", "created_at", "updated_at", "client_id"]
     inlines = [ServiceAccountDomainInline]
 
     def get_scopes_display(self, obj):
@@ -197,8 +197,8 @@ class ServiceAccountAdmin(admin.ModelAdmin):
     get_scopes_display.short_description = _("Scopes")
 
 
-@admin.register(models.ServiceAccountAPIKey)
-class ServiceAccountAPIKeyModelAdmin(APIKeyModelAdmin):
+@admin.register(models.ServiceAccountSecret)
+class ServiceAccountSecretModelAdmin(APIKeyModelAdmin):
     """Admin interface for managing service account API keys."""
 
     list_display = [*APIKeyModelAdmin.list_display, "service_account__name"]
