@@ -9,7 +9,7 @@ from django.utils.text import slugify
 import factory.fuzzy
 from faker import Faker
 
-from core import models
+from core import models, utils
 
 fake = Faker()
 
@@ -117,3 +117,39 @@ class TeamRecordingAccessFactory(factory.django.DjangoModelFactory):
     recording = factory.SubFactory(RecordingFactory)
     team = factory.Sequence(lambda n: f"team{n}")
     role = factory.fuzzy.FuzzyChoice(models.RoleChoices.values)
+
+
+class ApplicationFactory(factory.django.DjangoModelFactory):
+    """Create fake applications for testing."""
+
+    class Meta:
+        model = models.Application
+
+    name = factory.Faker("company")
+    active = True
+    client_id = factory.LazyFunction(utils.generate_client_id)
+    client_secret = factory.LazyFunction(utils.generate_client_secret)
+    scopes = []
+
+    class Params:
+        """Factory traits for common application configurations."""
+
+        with_all_scopes = factory.Trait(
+            scopes=[
+                models.ApplicationScope.ROOMS_LIST,
+                models.ApplicationScope.ROOMS_RETRIEVE,
+                models.ApplicationScope.ROOMS_CREATE,
+                models.ApplicationScope.ROOMS_UPDATE,
+                models.ApplicationScope.ROOMS_DELETE,
+            ]
+        )
+
+
+class ApplicationDomainFactory(factory.django.DjangoModelFactory):
+    """Create fake application domains for testing."""
+
+    class Meta:
+        model = models.ApplicationDomain
+
+    domain = factory.Faker("domain_name")
+    application = factory.SubFactory(ApplicationFactory)

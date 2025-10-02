@@ -8,6 +8,7 @@ Utils functions used in the core app
 import hashlib
 import json
 import random
+import string
 from typing import List, Optional
 from uuid import uuid4
 
@@ -240,3 +241,42 @@ async def notify_participants(room_name: str, notification_data: dict):
         raise NotificationError("Failed to notify room participants") from e
     finally:
         await lkapi.aclose()
+
+
+ALPHANUMERIC_CHARSET = string.ascii_letters + string.digits
+
+
+def generate_secure_token(length: int = 30, charset: str = ALPHANUMERIC_CHARSET) -> str:
+    """Generate a cryptographically secure random token.
+
+    Uses SystemRandom for proper entropy, suitable for OAuth tokens
+    and API credentials that must be non-guessable.
+
+    Inspired by: https://github.com/oauthlib/oauthlib/blob/master/oauthlib/common.py
+
+    Args:
+        length: Token length in characters (default: 30)
+        charset: Character set to use for generation
+
+    Returns:
+        Cryptographically secure random token
+    """
+    return "".join(secrets.choice(charset) for _ in range(length))
+
+
+def generate_client_id() -> str:
+    """Generate a unique client ID for application authentication.
+
+    Returns:
+        Random client ID string
+    """
+    return generate_secure_token(settings.APPLICATION_CLIENT_ID_LENGTH)
+
+
+def generate_client_secret() -> str:
+    """Generate a secure client secret for application authentication.
+
+    Returns:
+        Cryptographically secure client secret
+    """
+    return generate_secure_token(settings.APPLICATION_CLIENT_SECRET_LENGTH)

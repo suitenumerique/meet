@@ -1,5 +1,6 @@
 """Admin classes and registrations for core app."""
 
+from django import forms
 from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
 from django.utils.translation import gettext_lazy as _
@@ -150,3 +151,66 @@ class RecordingAdmin(admin.ModelAdmin):
             return _("Multiple owners")
 
         return str(owners[0].user)
+
+
+class ApplicationDomainInline(admin.TabularInline):
+    """Inline admin for managing allowed domains per application."""
+
+    model = models.ApplicationDomain
+    extra = 0
+
+
+class ApplicationAdminForm(forms.ModelForm):
+    """Custom form for Application admin with multi-select scopes."""
+
+    scopes = forms.MultipleChoiceField(
+        choices=models.ApplicationScope.choices,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk and self.instance.scopes:
+            self.fields["scopes"].initial = self.instance.scopes
+
+
+@admin.register(models.Application)
+class ApplicationAdmin(admin.ModelAdmin):
+    """Admin interface for managing applications and their permissions."""
+
+    form = ApplicationAdminForm
+
+    list_display = ("id", "name", "client_id", "get_scopes_display")
+    fields = [
+        "name",
+        "id",
+        "created_at",
+        "updated_at",
+        "scopes",
+        "client_id",
+        "client_secret",
+    ]
+    readonly_fields = ["id", "created_at", "updated_at"]
+    inlines = [ApplicationDomainInline]
+
+    def get_readonly_fields(self, request, obj=None):
+        """Make client_id and client_secret readonly after creation."""
+        if obj:  # Editing existing object
+            return self.readonly_fields + ["client_id", "client_secret"]
+        return self.readonly_fields
+
+    def get_fields(self, request, obj=None):
+        """Hide client_secret after creation."""
+        fields = super().get_fields(request, obj)
+        if obj:
+            return [f for f in fields if f != "client_secret"]
+        return fields
+
+    def get_scopes_display(self, obj):
+        """Display scopes in list view."""
+        if obj.scopes:
+            return ", ".join(obj.scopes)
+        return _("No scopes")
+
+    get_scopes_display.short_description = _("Scopes")

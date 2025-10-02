@@ -664,6 +664,18 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # External Applications
+    APPLICATION_CLIENT_ID_LENGTH = values.PositiveIntegerValue(
+        40,
+        environ_name="APPLICATION_CLIENT_ID_LENGTH",
+        environ_prefix=None,
+    )
+    APPLICATION_CLIENT_SECRET_LENGTH = values.PositiveIntegerValue(
+        128,
+        environ_name="APPLICATION_CLIENT_SECRET_LENGTH",
+        environ_prefix=None,
+    )
+
     # pylint: disable=invalid-name
     @property
     def ENVIRONMENT(self):

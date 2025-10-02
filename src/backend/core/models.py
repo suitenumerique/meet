@@ -11,6 +11,7 @@ from typing import List, Optional
 from django.conf import settings
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.postgres.fields import ArrayField
 from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
@@ -18,8 +19,10 @@ from django.utils import timezone
 from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext_lazy as _
 
+from lasuite.tools.email import get_domain_from_email
 from timezone_field import TimeZoneField
 
+from . import fields, utils
 from .recording.enums import FileExtension
 
 logger = getLogger(__name__)
@@ -717,3 +720,101 @@ class RecordingAccess(BaseAccess):
         Compute and return abilities for a given user on the recording access.
         """
         return self._get_abilities(self.recording, user)
+
+
+class ApplicationScope(models.TextChoices):
+    """Available permission scopes for application operations."""
+
+    ROOMS_CREATE = "rooms:create", _("Create rooms")
+    ROOMS_LIST = "rooms:list", _("List rooms")
+    ROOMS_RETRIEVE = "rooms:retrieve", _("Retrieve room details")
+    ROOMS_UPDATE = "rooms:update", _("Update rooms")
+    ROOMS_DELETE = "rooms:delete", _("Delete rooms")
+
+
+class Application(BaseModel):
+    """External application for API authentication and authorization.
+
+    Represents a third-party integration or automated system that accesses
+    the API using OAuth2-style client credentials (client_id/client_secret).
+    Supports scoped permissions and optional domain restrictions for delegation.
+    """
+
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_("Application name"),
+        help_text=_("Descriptive name for this application."),
+    )
+    active = models.BooleanField(default=True)
+    client_id = models.CharField(
+        max_length=100, unique=True, default=utils.generate_client_id
+    )
+    client_secret = fields.SecretField(
+        max_length=255,
+        blank=True,
+        default=utils.generate_client_secret,
+        help_text=_("Hashed on Save. Copy it now if this is a new secret."),
+    )
+    scopes = ArrayField(
+        models.CharField(max_length=50, choices=ApplicationScope.choices),
+        default=list,
+        blank=True,
+    )
+
+    class Meta:
+        db_table = "meet_application"
+        ordering = ("-created_at",)
+        verbose_name = _("Application")
+        verbose_name_plural = _("Applications")
+
+    def __str__(self):
+        return f"{self.name!s}"
+
+    def can_delegate_email(self, email):
+        """Check if this application can delegate the given email."""
+
+        if not self.allowed_domains.exists():
+            return True  # No domain restrictions
+
+        domain = get_domain_from_email(email)
+        return self.allowed_domains.filter(domain__iexact=domain).exists()
+
+
+class ApplicationDomain(BaseModel):
+    """Domain authorized for application delegation."""
+
+    domain = models.CharField(
+        max_length=253,  # Max domain length per RFC 1035
+        validators=[
+            validators.DomainNameValidator(
+                accept_idna=False,
+                message=_("Enter a valid domain"),
+            )
+        ],
+        verbose_name=_("Domain"),
+        help_text=_("Email domain this application can act on behalf of."),
+    )
+
+    application = models.ForeignKey(
+        "Application",
+        on_delete=models.CASCADE,
+        related_name="allowed_domains",
+    )
+
+    class Meta:
+        db_table = "meet_application_domain"
+        ordering = ("domain",)
+        verbose_name = _("Application domain")
+        verbose_name_plural = _("Application domains")
+        unique_together = [("application", "domain")]
+
+    def __str__(self):
+        """Return string representation of the domain."""
+
+        return self.domain
+
+    def save(self, *args, **kwargs):
+        """Save the domain after normalizing to lowercase."""
+
+        self.domain = self.domain.lower().strip()
+        super().save(*args, **kwargs)
