@@ -704,6 +704,11 @@ class Base(Configuration):
         environ_name="APPLICATION_JWT_TOKEN_TYPE",
         environ_prefix=None,
     )
+    APPLICATION_BASE_URL = values.Value(
+        None,
+        environ_name="APPLICATION_BASE_URL",
+        environ_prefix=None,
+    )
 
     # pylint: disable=invalid-name
     @property

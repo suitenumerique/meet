@@ -26,6 +26,12 @@ external_router.register(
     basename="external_application",
 )
 
+external_router.register(
+    "rooms",
+    external_viewsets.RoomViewSet,
+    basename="external_room",
+)
+
 urlpatterns = [
     path(
         f"api/{settings.API_VERSION}/",

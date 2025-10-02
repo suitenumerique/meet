@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
 import jwt
-from rest_framework import decorators, viewsets
+from rest_framework import decorators, mixins, viewsets
 from rest_framework import (
     exceptions as drf_exceptions,
 )
@@ -20,9 +20,9 @@ from rest_framework import (
     status as drf_status,
 )
 
-from core import models
+from core import api, models
 
-from . import serializers
+from . import authentication, permissions, serializers
 
 logger = getLogger(__name__)
 
@@ -128,4 +128,67 @@ class ApplicationViewSet(viewsets.GenericViewSet):
                 "scope": scope,
             },
             status=drf_status.HTTP_200_OK,
+        )
+
+
+class RoomViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Application-delegated API for room management.
+
+    Provides JWT-authenticated access to room operations for external applications
+    acting on behalf of users. All operations are scope-based and filtered to the
+    authenticated user's accessible rooms.
+
+    Supported operations:
+    - list: List rooms the user has access to (requires 'rooms:list' scope)
+    - retrieve: Get room details (requires 'rooms:retrieve' scope)
+    - create: Create a new room owned by the user (requires 'rooms:create' scope)
+    """
+
+    authentication_classes = [authentication.ApplicationJWTAuthentication]
+    permission_classes = [
+        api.permissions.IsAuthenticated & permissions.HasRequiredRoomScope
+    ]
+    queryset = models.Room.objects.all()
+    serializer_class = serializers.RoomSerializer
+
+    def list(self, request, *args, **kwargs):
+        """Limit listed rooms to the ones related to the authenticated user."""
+
+        user = self.request.user
+
+        if user.is_authenticated:
+            queryset = (
+                self.filter_queryset(self.get_queryset()).filter(users=user).distinct()
+            )
+        else:
+            queryset = self.get_queryset().none()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return drf_response.Response(serializer.data)
+
+    def perform_create(self, serializer):
+        """Set the current user as owner of the newly created room."""
+        room = serializer.save()
+        models.ResourceAccess.objects.create(
+            resource=room,
+            user=self.request.user,
+            role=models.RoleChoices.OWNER,
+        )
+
+        # Log for auditing
+        logger.info(
+            "Room created via application: room_id=%s, user_id=%s, client_id=%s",
+            room.id,
+            self.request.user.id,
+            getattr(self.request.auth, "client_id", "unknown"),
         )
