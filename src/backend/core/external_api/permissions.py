@@ -14,7 +14,6 @@ class HasRequiredScope(permissions.BasePermission):
     services can access (principle of least privilege).
     """
 
-    # Map ViewSet actions to required scopes
     scope_map = {
         "list": models.ServiceAccountScope.ROOMS_LIST,
         "retrieve": models.ServiceAccountScope.ROOMS_RETRIEVE,
