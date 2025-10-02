@@ -75,6 +75,7 @@ class ServiceAccountViewSet(viewsets.GenericViewSet):
             ) from e
 
         now = datetime.utcnow()
+        scopes = service_account.scopes or []
         payload = {
             "user_id": str(user.id),
             "email": user.email,
@@ -85,7 +86,7 @@ class ServiceAccountViewSet(viewsets.GenericViewSet):
             "iss": settings.INTEGRATIONS_JWT_ISSUER,
             "impersonated": True,
             "client_id": str(service_account.id),  # audience
-            "scope": service_account.scopes or [],
+            "scope": scopes,
         }
 
         try:
@@ -102,9 +103,10 @@ class ServiceAccountViewSet(viewsets.GenericViewSet):
 
         return drf_response.Response(
             {
-                "token": token,
+                "access_token": token,
                 "token_type": settings.INTEGRATIONS_JWT_TOKEN_TYPE,
                 "expires_in": settings.INTEGRATIONS_JWT_EXPIRATION_SECONDS,
+                "scope": " ".join(scopes),
             },
             status=drf_status.HTTP_200_OK,
         )
