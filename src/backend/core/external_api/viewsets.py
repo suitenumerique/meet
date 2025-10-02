@@ -91,7 +91,7 @@ class ServiceAccountViewSet(viewsets.GenericViewSet):
             raise drf_exceptions.NotFound(
                 {
                     "error": "User not found",
-                    "message": f"No user with email '{email}' exists.",
+                    "detail": f"No user with email '{email}' exists.",
                 }
             ) from e
 
@@ -119,8 +119,12 @@ class ServiceAccountViewSet(viewsets.GenericViewSet):
                 algorithm=settings.INTEGRATIONS_JWT_ALG,
             )
         except Exception:  # noqa: BLE001
+            logger.exception("Unexpected error during JWT token generation")
             return drf_response.Response(
-                {"error": "Failed to generate token"},
+                {
+                    "error": "Internal server error",
+                    "detail": "An unexpected error occurred during JWT token generation. Please contact support.",
+                },
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
