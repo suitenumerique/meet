@@ -69,6 +69,7 @@ class Base(Configuration):
     USE_SWAGGER = False
 
     API_VERSION = "v1.0"
+    EXTERNAL_API_VERSION = "v1.0"
 
     DATA_DIR = values.Value(path.join("/", "data"), environ_name="DATA_DIR")
 

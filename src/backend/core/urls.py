@@ -17,6 +17,9 @@ router.register(
     "resource-accesses", viewsets.ResourceAccessViewSet, basename="resource_accesses"
 )
 
+# - External API
+external_router = DefaultRouter()
+
 urlpatterns = [
     path(
         f"api/{settings.API_VERSION}/",
@@ -25,6 +28,14 @@ urlpatterns = [
                 *router.urls,
                 *oidc_urls,
                 path("config/", get_frontend_configuration, name="config"),
+            ]
+        ),
+    ),
+    path(
+        f"external-api/{settings.EXTERNAL_API_VERSION}/",
+        include(
+            [
+                *external_router.urls,
             ]
         ),
     ),
