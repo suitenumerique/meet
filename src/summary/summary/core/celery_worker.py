@@ -267,19 +267,10 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
 
     logger.debug("Connection to the Minio bucket successful")
 
-    with obs.span(
-        name="minio.get_object",
-        input={
-            "bucket": settings.aws_storage_bucket_name,
-            "key": filename,
-            "endpoint": settings.aws_s3_endpoint_url,
-            "secure": settings.aws_s3_secure_access,
-        },
-    ):
-        audio_file_stream = minio_client.get_object(
-            settings.aws_storage_bucket_name, object_name=filename
-        )
-        temp_file_path = save_audio_stream(audio_file_stream)
+    audio_file_stream = minio_client.get_object(
+        settings.aws_storage_bucket_name, object_name=filename
+    )
+    temp_file_path = save_audio_stream(audio_file_stream)
 
     logger.info("Recording successfully downloaded")
     logger.debug("Recording filepath: %s", temp_file_path)
