@@ -10,6 +10,7 @@ from django.db import DatabaseError, transaction
 import aiohttp
 
 from core import models, utils
+from core.api.feature_flag import FeatureFlag
 from core.services.metadata import MetadataService
 
 logging.basicConfig(level=logging.DEBUG)
@@ -19,6 +20,19 @@ logger = getLogger(__name__)
 
 class RecordingEventsError(Exception):
     """Recording event handling fails."""
+
+
+def get_recording_creator_id(recording: models.Recording) -> str | None:
+    """Get the user ID of the recording creator (owner)."""
+    owner = (
+        models.RecordingAccess.objects.select_related("user")
+        .filter(
+            role=models.RoleChoices.OWNER,
+            recording_id=recording.id,
+        )
+        .first()
+    )
+    return str(owner.user.id)
 
 
 class RecordingEventsService:
@@ -61,9 +75,14 @@ class RecordingEventsService:
     @staticmethod
     def handle_egress_started(recording):
         """Start metadata agent after transaction commit."""
-        service = MetadataService()
         rec_id = recording.id
         room_id = recording.room_id
+        creator_id = get_recording_creator_id(recording)
+        if not FeatureFlag.flag_is_active("metadata_agent", distinct_id=creator_id):
+            logger.info("Metadata agent disabled by PostHog flag for id=%s", creator_id)
+            return
+
+        service = MetadataService()
 
         logger.info(
             "Scheduling metadata start for recording=%s room_id=%s", rec_id, room_id
