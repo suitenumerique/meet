@@ -231,25 +231,39 @@ def format_segments(transcription_data, metadata):
     formatted_output = ""
     logger.info("Formatting segments with metadata: %s", metadata)
     logger.info("Transcription data: %s", transcription_data)
-    mapping = map_speakers_to_participants(
-        speakers=transcription_data, participants=metadata
-    )
-    logger.info("Speaker to participant mapping: %s", mapping)
-    previous_label = None
+    if metadata:
+        mapping = map_speakers_to_participants(
+            speakers=transcription_data, participants=metadata
+        )
+        logger.info("Speaker to participant mapping: %s", mapping)
+        previous_label = None
+        for segment in transcription_data:
+            spk = segment.get("speaker") or "UNKNOWN_SPEAKER"
+            text = segment.get("text") or ""
+            if not text:
+                continue
+
+            label = mapping.get(spk) or spk
+
+            if label != previous_label:
+                formatted_output += f"\n\n **{label}**: {text}"
+            else:
+                formatted_output += f" {text}"
+            previous_label = label
+
+        return formatted_output
+    else:
+        previous_speaker = None
+
     for segment in transcription_data:
-        spk = segment.get("speaker") or "UNKNOWN_SPEAKER"
-        text = segment.get("text") or ""
-        if not text:
-            continue
-
-        label = mapping.get(spk) or spk
-
-        if label != previous_label:
-            formatted_output += f"\n\n **{label}**: {text}"
-        else:
-            formatted_output += f" {text}"
-        previous_label = label
-
+        speaker = segment.get("speaker", "UNKNOWN_SPEAKER")
+        text = segment.get("text", "")
+        if text:
+            if speaker != previous_speaker:
+                formatted_output += f"\n\n **{speaker}**: {text}"
+            else:
+                formatted_output += f" {text}"
+            previous_speaker = speaker
     return formatted_output
 
 
@@ -374,27 +388,36 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
             os.remove(temp_file_path)
             logger.debug("Temporary file removed: %s", temp_file_path)
 
-    file = filename.split("/")[1].split(".")[0]
-    metadata_obj = minio_client.get_object(
-        settings.aws_storage_bucket_name,
-        object_name=settings.metadata_file.format(filename=file),
-    )
+    if (
+        analytics.is_feature_enabled("is_metadata_agent_enabled", distinct_id=sub)
+        and settings.is_summary_enabled
+    ):
+        file = filename.split("/")[1].split(".")[0]
+        metadata_obj = minio_client.get_object(
+            settings.aws_storage_bucket_name,
+            object_name=settings.metadata_file.format(filename=file),
+        )
 
-    logger.info("Downloading metadata file")
+        logger.info("Downloading metadata file")
 
-    try:
-        metadata_bytes = metadata_obj.read()
-        metadata_json = json.loads(metadata_bytes.decode("utf-8"))
-    finally:
-        metadata_obj.close()
-        metadata_obj.release_conn()
+        try:
+            metadata_bytes = metadata_obj.read()
+            metadata_json = json.loads(metadata_bytes.decode("utf-8"))
+        finally:
+            metadata_obj.close()
+            metadata_obj.release_conn()
 
-    formatted_transcription = (
-        DEFAULT_EMPTY_TRANSCRIPTION
-        if not getattr(transcription, "segments", None)
-        else format_segments(transcription.segments, metadata_json)
-    )
-
+        formatted_transcription = (
+            DEFAULT_EMPTY_TRANSCRIPTION
+            if not getattr(transcription, "segments", None)
+            else format_segments(transcription.segments, metadata_json)
+        )
+    else:
+        formatted_transcription = (
+            DEFAULT_EMPTY_TRANSCRIPTION
+            if not transcription.segments
+            else format_segments(transcription.segments, None)
+        )
     metadata_manager.track_transcription_metadata(task_id, transcription)
 
     if not room or not recording_date or not recording_time:
