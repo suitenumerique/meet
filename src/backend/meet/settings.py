@@ -664,6 +664,12 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    ROOM_METADATA_AGENT_NAME = values.Value(
+        "metadata-extractor",
+        environ_name="ROOM_METADATA_AGENT_NAME",
+        environ_prefix=None,
+    )
+
     # pylint: disable=invalid-name
     @property
     def ENVIRONMENT(self):

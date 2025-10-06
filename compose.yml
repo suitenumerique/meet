@@ -282,3 +282,23 @@ services:
       watch:
         - action: rebuild
           path: ./src/summary
+
+  metadata-agent:
+    image: python:3.13-slim
+    working_dir: /app
+    volumes:
+      - ./src/agents:/app
+    command: ["sh","-lc","python -m pip install -U pip && python -m pip install --no-cache-dir livekit-agents livekit minio python-dotenv && python metadata_extractor.py start"]
+    environment:
+      LIVEKIT_URL: "ws://livekit:7880"
+      LIVEKIT_API_KEY: "devkey"
+      LIVEKIT_API_SECRET: "secret"
+      ROOM_METADATA_AGENT_NAME: "metadata-extractor"
+      AWS_S3_ENDPOINT_URL: "minio:9000"
+      AWS_S3_ACCESS_KEY_ID: "meet"
+      AWS_S3_SECRET_ACCESS_KEY: "password"
+      AWS_S3_SECURE_ACCESS: "false"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      - livekit
+      - minio

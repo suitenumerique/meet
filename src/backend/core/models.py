@@ -573,6 +573,7 @@ class Recording(BaseModel):
         verbose_name=_("Recording mode"),
         help_text=_("Defines the mode of recording being called."),
     )
+    metadata_dispatch_id = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
         db_table = "meet_recording"
