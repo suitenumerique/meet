@@ -1,4 +1,5 @@
-# core/api/feature_flag.py
+"""Feature flag handler for the Meet core app."""
+
 import logging
 import os
 from functools import wraps
@@ -7,11 +8,11 @@ from logging import getLogger
 from django.conf import settings
 from django.http import Http404
 
+from posthog import Posthog
+
 logging.basicConfig(level=logging.DEBUG)
 
 logger = getLogger(__name__)
-
-from posthog import Posthog
 
 
 class FeatureFlagError(Exception):
