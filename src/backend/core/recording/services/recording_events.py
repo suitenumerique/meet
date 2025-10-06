@@ -24,15 +24,17 @@ class RecordingEventsError(Exception):
 
 def get_recording_creator_id(recording: models.Recording) -> str | None:
     """Get the user ID of the recording creator (owner)."""
-    owner = (
-        models.RecordingAccess.objects.select_related("user")
-        .filter(
+    owner_id = (
+        models.RecordingAccess.objects.filter(
             role=models.RoleChoices.OWNER,
             recording_id=recording.id,
+            user__isnull=False,
         )
+        .order_by("created_at")
+        .values_list("user_id", flat=True)
         .first()
     )
-    return str(owner.user.id)
+    return str(owner_id) if owner_id else None
 
 
 class RecordingEventsService:
