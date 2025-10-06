@@ -271,6 +271,11 @@ if __name__ == "__main__":
             entrypoint_fnc=entrypoint,
             request_fnc=handle_job_request,
             agent_name=AGENT_NAME,
-            permissions=WorkerPermissions(),
+            permissions=WorkerPermissions(
+                can_publish=False,
+                can_publish_data=False,
+                can_subscribe=True,
+                hidden=True,
+            ),
         )
     )

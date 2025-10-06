@@ -139,6 +139,10 @@ class RecordingEventsService:
         service = MetadataService()
         rec_id = recording.id
         room_id = recording.room_id
+        creator_id = get_recording_creator_id(recording)
+        if not FeatureFlag.flag_is_active("metadata_agent", distinct_id=creator_id):
+            logger.info("Metadata agent disabled by PostHog flag for id=%s", creator_id)
+            return
 
         def _stop():
             try:
