@@ -43,12 +43,16 @@ urlpatterns = [
             ]
         ),
     ),
-    path(
-        f"external-api/{settings.EXTERNAL_API_VERSION}/",
-        include(
-            [
-                *external_router.urls,
-            ]
-        ),
-    ),
 ]
+
+if settings.EXTERNAL_API_ENABLED:
+    urlpatterns.append(
+        path(
+            f"external-api/{settings.EXTERNAL_API_VERSION}/",
+            include(
+                [
+                    *external_router.urls,
+                ]
+            ),
+        )
+    )

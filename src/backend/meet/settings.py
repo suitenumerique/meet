@@ -70,6 +70,9 @@ class Base(Configuration):
 
     API_VERSION = "v1.0"
     EXTERNAL_API_VERSION = "v1.0"
+    EXTERNAL_API_ENABLED = values.BooleanValue(
+        False, environ_name="EXTERNAL_API_ENABLED", environ_prefix=None
+    )
 
     DATA_DIR = values.Value(path.join("/", "data"), environ_name="DATA_DIR")
 
@@ -828,6 +831,7 @@ class Test(Base):
         "django.contrib.auth.hashers.MD5PasswordHasher",
     ]
     USE_SWAGGER = True
+    EXTERNAL_API_ENABLED = True
 
     CELERY_TASK_ALWAYS_EAGER = values.BooleanValue(True)
 
