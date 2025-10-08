@@ -9,6 +9,9 @@ import { Switch, Route } from 'wouter'
 import { I18nProvider } from 'react-aria-components'
 import { Layout } from './layout/Layout'
 import { NotFoundScreen } from './components/NotFoundScreen'
+import { AccessibilityHelper } from './components/AccessibilityHelper'
+import { PerformanceMonitor } from './components/PerformanceMonitor'
+import { ThemeToggle } from './components/ThemeToggle'
 import { routes } from './routes'
 import './i18n/init'
 import { queryClient } from '@/api/queryClient'
@@ -23,16 +26,21 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AccessibilityHelper />
+      <PerformanceMonitor enabled={process.env.NODE_ENV === 'development'} />
+      <ThemeToggle />
       {!isSDKContext && <AppInitialization />}
       <Suspense fallback={null}>
         <I18nProvider locale={i18n.language}>
           <Layout>
-            <Switch>
-              {Object.entries(routes).map(([, route], i) => (
-                <Route key={i} path={route.path} component={route.Component} />
-              ))}
-              <Route component={NotFoundScreen} />
-            </Switch>
+            <main id="main-content">
+              <Switch>
+                {Object.entries(routes).map(([, route], i) => (
+                  <Route key={i} path={route.path} component={route.Component} />
+                ))}
+                <Route component={NotFoundScreen} />
+              </Switch>
+            </main>
           </Layout>
           <ReactQueryDevtools
             initialIsOpen={false}

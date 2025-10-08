@@ -1,9 +1,28 @@
 @import './livekit.css';
 @layer reset, base, tokens, recipes, utilities;
+
+/* Theme variables */
+:root {
+  --theme-bg: #ffffff;
+  --theme-text: #333333;
+  --theme-border: #e1e5e9;
+  --theme-accent: #3498db;
+}
+
+[data-theme="dark"] {
+  --theme-bg: #1a1a1a;
+  --theme-text: #ffffff;
+  --theme-border: #333333;
+  --theme-accent: #5dade2;
+}
+
 html,
 body,
 #root {
   height: 100%;
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 * {

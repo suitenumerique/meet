@@ -38,6 +38,12 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 - Telephony integration
 - Secure participation with robust authentication and access control
 - Customizable frontend style
+- **Enhanced UI/UX improvements:**
+  - Animated loading screens with better visual feedback
+  - Improved error handling with retry functionality
+  - Built-in accessibility features and screen reader support
+  - Dark/light theme toggle with system preference detection
+  - Performance monitoring for development environments
 - LiveKit Advances features including :
   - speaker detection 
   - simulcast 
