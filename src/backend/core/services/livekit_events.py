@@ -2,6 +2,7 @@
 
 # pylint: disable=no-member
 
+import re
 import uuid
 from enum import Enum
 from logging import getLogger
@@ -105,6 +106,11 @@ class LiveKitEventsService:
             )
         except Exception as e:
             raise InvalidPayloadError("Invalid webhook payload") from e
+
+        if settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX and re.search(
+            settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX, data.room.name
+        ):
+            return
 
         try:
             webhook_type = LiveKitWebhookEventType(data.event)
