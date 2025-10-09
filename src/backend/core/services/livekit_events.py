@@ -2,6 +2,7 @@
 
 # pylint: disable=no-member
 
+import re
 import uuid
 from enum import Enum
 from logging import getLogger
@@ -92,6 +93,17 @@ class LiveKitEventsService:
         self.telephony_service = TelephonyService()
         self.recording_events = RecordingEventsService()
 
+        self._filter_regex = None
+        if settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX:
+            try:
+                self._filter_regex = re.compile(
+                    settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX
+                )
+            except re.error:
+                logger.exception(
+                    "Invalid LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX. Webhook filtering disabled."
+                )
+
     def receive(self, request):
         """Process webhook and route to appropriate handler."""
 
@@ -105,6 +117,10 @@ class LiveKitEventsService:
             )
         except Exception as e:
             raise InvalidPayloadError("Invalid webhook payload") from e
+
+        if self._filter_regex and not self._filter_regex.search(data.room.name):
+            logger.info("Filtered webhook event for room '%s'", data.room.name)
+            return
 
         try:
             webhook_type = LiveKitWebhookEventType(data.event)
