@@ -6,12 +6,12 @@ export const useDeviceShortcut = (kind: MediaDeviceKind) => {
     switch (kind) {
       case 'audioinput':
         return {
-          key: 'e',
+          key: 'd',
           ctrlKey: true,
         }
       case 'videoinput':
         return {
-          key: 'd',
+          key: 'e',
           ctrlKey: true,
         }
       default:
