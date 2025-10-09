@@ -343,3 +343,99 @@ def test_receive_unsupported_event(mock_receive, service):
         UnsupportedEventTypeError, match="Unknown webhook type: unsupported_event"
     ):
         service.receive(mock_request)
+
+
+@mock.patch.object(api.WebhookReceiver, "receive")
+@mock.patch.object(LiveKitEventsService, "_handle_room_started")
+def test_receive_no_filter_processes_all_events(
+    mock_handle_room_started, mock_receive, mock_livekit_config, settings
+):
+    """Should process all events when filter regex is not configured."""
+    settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = None
+
+    mock_request = mock.MagicMock()
+    mock_request.headers = {"Authorization": "test_token"}
+    mock_request.body = b"{}"
+
+    mock_data = mock.MagicMock()
+    mock_data.room.name = "!JIfCxVLcKKkWrmVBOb:your-domain.com"
+    mock_data.event = "room_started"
+    mock_receive.return_value = mock_data
+
+    service = LiveKitEventsService()
+    service.receive(mock_request)
+
+    mock_handle_room_started.assert_called_once()
+
+
+@mock.patch.object(api.WebhookReceiver, "receive")
+@mock.patch.object(LiveKitEventsService, "_handle_room_started")
+def test_receive_invalid_filter_regex_processes_all_events(
+    mock_handle_room_started, mock_receive, mock_livekit_config, settings
+):
+    """Should process all events when filter regex is invalid (fail-safe)."""
+    settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = "(abc"
+
+    mock_request = mock.MagicMock()
+    mock_request.headers = {"Authorization": "test_token"}
+    mock_request.body = b"{}"
+
+    mock_data = mock.MagicMock()
+    mock_data.room.name = "!JIfCxVLcKKkWrmVBOb:your-domain.com"
+    mock_data.event = "room_started"
+    mock_receive.return_value = mock_data
+
+    service = LiveKitEventsService()
+    service.receive(mock_request)
+
+    mock_handle_room_started.assert_called_once()
+
+
+@mock.patch.object(api.WebhookReceiver, "receive")
+@mock.patch.object(LiveKitEventsService, "_handle_room_started")
+def test_receive_filter_drops_non_matching_events(
+    mock_handle_room_started, mock_receive, mock_livekit_config, settings
+):
+    """Should drop events when room name does not match filter regex."""
+    settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = (
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    )
+
+    mock_request = mock.MagicMock()
+    mock_request.headers = {"Authorization": "test_token"}
+    mock_request.body = b"{}"
+
+    mock_data = mock.MagicMock()
+    mock_data.room.name = "!JIfCxVLcKKkWrmVBOb:your-domain.com"
+    mock_data.event = "room_started"
+    mock_receive.return_value = mock_data
+
+    service = LiveKitEventsService()
+    service.receive(mock_request)
+
+    mock_handle_room_started.assert_not_called()
+
+
+@mock.patch.object(api.WebhookReceiver, "receive")
+@mock.patch.object(LiveKitEventsService, "_handle_room_started")
+def test_receive_filter_processes_matching_events(
+    mock_handle_room_started, mock_receive, mock_livekit_config, settings
+):
+    """Should process events when room name matches filter regex."""
+    settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = (
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    )
+
+    mock_request = mock.MagicMock()
+    mock_request.headers = {"Authorization": "test_token"}
+    mock_request.body = b"{}"
+
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(uuid.uuid4())
+    mock_data.event = "room_started"
+    mock_receive.return_value = mock_data
+
+    service = LiveKitEventsService()
+    service.receive(mock_request)
+
+    mock_handle_room_started.assert_called_once()
