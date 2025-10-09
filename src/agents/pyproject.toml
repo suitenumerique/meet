@@ -9,7 +9,8 @@ dependencies = [
     "livekit-plugins-silero==1.4.5",
     "livekit-plugins-kyutai-lasuite==0.0.6",
     "python-dotenv==1.2.2",
-    "protobuf==6.33.5"
+    "protobuf==6.33.5",
+    "minio==7.2.15"
 ]
 
 [project.optional-dependencies]
