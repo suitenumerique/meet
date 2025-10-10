@@ -4,7 +4,6 @@ import asyncio
 import json
 import logging
 import os
-import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from io import BytesIO
@@ -35,7 +34,7 @@ load_dotenv()
 
 logger = logging.getLogger("metadata-extractor")
 
-AGENT_NAME = os.getenv("ROOM_METADATA_AGENT_NAME", "metadata-extractor")
+AGENT_NAME = os.getenv("ROOM_METADATA_EXTRACTOR_AGENT_NAME", "metadata-extractor")
 
 
 @dataclass
