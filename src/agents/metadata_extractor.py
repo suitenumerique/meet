@@ -97,7 +97,7 @@ class MetadataAgent:
     participants for insights like speaking activity and engagement.
     """
 
-    def __init__(self, ctx: JobContext):
+    def __init__(self, ctx: JobContext, recording_id: str):
         """Initialize metadata agent."""
         self.minio_client = Minio(
             endpoint=os.getenv("AWS_S3_ENDPOINT_URL"),
@@ -112,6 +112,10 @@ class MetadataAgent:
         self.ctx = ctx
         self._sessions: dict[str, AgentSession] = {}
         self._tasks: set[asyncio.Task] = set()
+
+        self.output_filename = (
+            f"{os.getenv('AWS_S3_OUTPUT_FOLDER', 'metadata')}/{recording_id}-metadata.json"
+        )
 
         # Storage for events
         self.events = []
@@ -170,15 +174,13 @@ class MetadataAgent:
             "participants": participants,
         }
 
-        object_name = f"speaker_logs/{str(uuid.uuid4())}.json"
         data = json.dumps(payload, indent=2).encode("utf-8")
-
         stream = BytesIO(data)
 
         try:
             self.minio_client.put_object(
                 self.bucket_name,
-                object_name,
+                self.output_filename,
                 stream,
                 length=len(data),
                 content_type="application/json",
@@ -321,8 +323,8 @@ class MetadataAgent:
 async def entrypoint(ctx: JobContext):
     """Initialize and run the multi-user VAD monitor."""
     logger.info("Starting metadata agent in room: %s", ctx.room.name)
-
-    vad_monitor = MetadataAgent(ctx)
+    recording_id = ctx.job.metadata
+    vad_monitor = MetadataAgent(ctx, recording_id)
     vad_monitor.start()
 
     # Connect to room and subscribe to audio only
@@ -342,6 +344,7 @@ async def entrypoint(ctx: JobContext):
 async def handle_job_request(job_req: JobRequest) -> None:
     """Accept or reject the job request based on agent presence in the room."""
     room_name = job_req.room.name
+    recording_id = job_req.job.metadata
     agent_identity = f"{AGENT_NAME}-{room_name}"
 
     async with api.LiveKitAPI() as lk:
@@ -361,7 +364,7 @@ async def handle_job_request(job_req: JobRequest) -> None:
                 logger.info(
                     "Accept job for '%s' — identity=%s", room_name, agent_identity
                 )
-                await job_req.accept(identity=agent_identity)
+                await job_req.accept(identity=agent_identity, metadata=recording_id)
         except Exception:
             logger.exception("Error treating the job for '%s'", room_name)
             await job_req.reject()
