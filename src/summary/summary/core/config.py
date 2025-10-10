@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Annotated, List, Optional
 
 from fastapi import Depends
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -74,6 +75,12 @@ class Settings(BaseSettings):
     # TaskTracker
     task_tracker_redis_url: str = "redis://redis/0"
     task_tracker_prefix: str = "task_metadata:"
+
+    # Langfuse
+    langfuse_is_enabled: bool = True
+    langfuse_host: Optional[str] = None
+    langfuse_public_key: Optional[str] = None
+    langfuse_secret_key: Optional[SecretStr] = None
 
 
 @lru_cache

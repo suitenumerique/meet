@@ -15,6 +15,7 @@ dependencies = [
     "posthog==6.0.3",
     "requests==2.32.4",
     "sentry-sdk[fastapi, celery]==2.30.0",
+    "langfuse==3.4.0",
 ]
 
 [project.optional-dependencies]

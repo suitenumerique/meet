@@ -9,18 +9,19 @@ import time
 from pathlib import Path
 from typing import Optional
 
-import openai
 import sentry_sdk
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
 from minio import Minio
 from mutagen import File
+from openai import OpenAI
 from requests import Session, exceptions
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
+from summary.core.observability import Observability
 from summary.core.prompt import (
     PROMPT_SYSTEM_CLEANING,
     PROMPT_SYSTEM_NEXT_STEP,
@@ -45,6 +46,14 @@ celery = Celery(
 )
 
 celery.config_from_object("summary.core.celery_config")
+
+obs = Observability(
+    is_enabled=settings.langfuse_is_enabled,
+    langfuse_host=settings.langfuse_host,
+    langfuse_public_key=settings.langfuse_public_key,
+    langfuse_secret_key=settings.langfuse_secret_key,
+)
+logger.info("Observability enabled: %s", obs.is_enabled)
 
 if settings.sentry_dsn and settings.sentry_is_enabled:
 
@@ -111,9 +120,10 @@ class LLMService:
 
     def __init__(self):
         """Init the LLMService once."""
-        self._client = openai.OpenAI(
+        self._client = OpenAI(
             base_url=settings.llm_base_url, api_key=settings.llm_api_key
         )
+        self.gen_ctx = obs.generation
 
     def call(self, system_prompt: str, user_prompt: str):
         """Call the LLM service.
@@ -133,6 +143,14 @@ class LLMService:
         except Exception as e:
             logger.error("LLM call failed: %s", e)
             raise LLMException("LLM call failed.") from e
+
+    def call_llm_gen(self, name, system, user):
+        """Call the LLM service within a generation context."""
+        with self.gen_ctx(
+            name=name,
+            model=settings.llm_model,
+        ):
+            return self.call(system, user)
 
 
 def format_segments(transcription_data):
@@ -202,7 +220,8 @@ def task_failure_handler(task_id, exception=None, **kwargs):
     max_retries=settings.celery_max_retries,
     queue=settings.transcribe_queue,
 )
-def process_audio_transcribe_summarize_v2(
+@obs.observe(name="process-audio", capture_input=True, capture_output=False)
+def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
     self,
     owner_id: str,
     filename: str,
@@ -224,6 +243,21 @@ def process_audio_transcribe_summarize_v2(
     logger.info("Notification received")
     logger.debug("filename: %s", filename)
 
+    try:
+        obs.update_current_trace(
+            user_id=sub or email,
+            tags=["celery", "transcription", "whisperx"],
+            metadata={
+                "filename": filename,
+                "room": room,
+                "recording_date": recording_date,
+                "recording_time": recording_time,
+            },
+        )
+    except Exception as e:
+        logger.warning("Langfuse update trace failed: %s", e)
+        pass
+
     task_id = self.request.id
 
     minio_client = Minio(
@@ -238,7 +272,6 @@ def process_audio_transcribe_summarize_v2(
     audio_file_stream = minio_client.get_object(
         settings.aws_storage_bucket_name, object_name=filename
     )
-
     temp_file_path = save_audio_stream(audio_file_stream)
 
     logger.info("Recording successfully downloaded")
@@ -259,7 +292,7 @@ def process_audio_transcribe_summarize_v2(
         raise AudioValidationError(error_msg)
 
     logger.info("Initiating WhisperX client")
-    whisperx_client = openai.OpenAI(
+    whisperx_client = OpenAI(
         api_key=settings.whisperx_api_key,
         base_url=settings.whisperx_base_url,
         max_retries=settings.whisperx_max_retries,
@@ -268,20 +301,25 @@ def process_audio_transcribe_summarize_v2(
     try:
         logger.info("Querying transcription …")
         transcription_start_time = time.time()
-        with open(temp_file_path, "rb") as audio_file:
-            transcription = whisperx_client.audio.transcriptions.create(
-                model=settings.whisperx_asr_model, file=audio_file
-            )
-            metadata_manager.track(
-                task_id,
-                {
-                    "transcription_time": round(
-                        time.time() - transcription_start_time, 2
-                    )
-                },
-            )
-            logger.info("Transcription received.")
-            logger.debug("Transcription: \n %s", transcription)
+        with obs.span(
+            name="whisperx.transcribe",
+            input={
+                "model": settings.whisperx_asr_model,
+                "audio_seconds": round(audio_file.info.length, 2),
+                "endpoint": settings.whisperx_base_url,
+            },
+        ):
+            with open(temp_file_path, "rb") as audio_file_rb:
+                transcription = whisperx_client.audio.transcriptions.create(
+                    model=settings.whisperx_asr_model,
+                    file=audio_file_rb,
+                )
+        metadata_manager.track(
+            task_id,
+            {"transcription_time": round(time.time() - transcription_start_time, 2)},
+        )
+        logger.info("Transcription received.")
+        logger.debug("Transcription: \n %s", transcription)
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
@@ -339,6 +377,7 @@ def process_audio_transcribe_summarize_v2(
     max_retries=settings.celery_max_retries,
     queue=settings.summarize_queue,
 )
+@obs.observe(name="summarize-transcription", capture_input=False, capture_output=False)
 def summarize_transcription(self, transcript: str, email: str, sub: str, title: str):
     """Generate a summary from the provided transcription text.
 
@@ -353,11 +392,21 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
 
     llm_service = LLMService()
 
-    tldr = llm_service.call(PROMPT_SYSTEM_TLDR, transcript)
+    try:
+        obs.update_current_trace(
+            user_id=sub or email,
+            tags=["celery", "summarization"],
+            metadata={"title": title},
+        )
+    except Exception as e:
+        logger.warning("Langfuse update trace failed: %s", e)
+        pass
+
+    tldr = llm_service.call_llm_gen("tldr", PROMPT_SYSTEM_TLDR, transcript)
 
     logger.info("TLDR generated")
 
-    parts = llm_service.call(PROMPT_SYSTEM_PLAN, transcript)
+    parts = llm_service.call_llm_gen("plan", PROMPT_SYSTEM_PLAN, transcript)
     logger.info("Plan generated")
 
     parts = parts.split("\n")
@@ -368,16 +417,22 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
     for part in parts:
         prompt_user_part = PROMPT_USER_PART.format(part=part, transcript=transcript)
         logger.info("Summarizing part: %s", part)
-        parts_summarized.append(llm_service.call(PROMPT_SYSTEM_PART, prompt_user_part))
+        parts_summarized.append(
+            llm_service.call_llm_gen("part", PROMPT_SYSTEM_PART, prompt_user_part)
+        )
 
     logger.info("Parts summarized")
 
     raw_summary = "\n\n".join(parts_summarized)
 
-    next_steps = llm_service.call(PROMPT_SYSTEM_NEXT_STEP, transcript)
+    next_steps = llm_service.call_llm_gen(
+        "next_steps", PROMPT_SYSTEM_NEXT_STEP, transcript
+    )
     logger.info("Next steps generated")
 
-    cleaned_summary = llm_service.call(PROMPT_SYSTEM_CLEANING, raw_summary)
+    cleaned_summary = llm_service.call_llm_gen(
+        "cleaning", PROMPT_SYSTEM_CLEANING, raw_summary
+    )
     logger.info("Summary cleaned")
 
     summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
@@ -397,3 +452,8 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
 
     logger.info("Webhook submitted successfully. Status: %s", response.status_code)
     logger.debug("Response body: %s", response.text)
+    try:
+        obs.flush()
+    except Exception as e:
+        logger.warning("Langfuse flush failed: %s", e)
+        pass
