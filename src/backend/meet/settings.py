@@ -668,6 +668,16 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Metadata Extractor settings
+    ROOM_METADATA_EXTRACTOR_ENABLED = values.BooleanValue(
+        False, environ_name="ROOM_METADATA_EXTRACTOR_ENABLED", environ_prefix=None
+    )
+    ROOM_METADATA_EXTRACTOR_AGENT_NAME = values.Value(
+        "metadata-extractor",
+        environ_name="ROOM_METADATA_EXTRACTOR_AGENT_NAME",
+        environ_prefix=None,
+    )
+
     # External Applications
     APPLICATION_CLIENT_ID_LENGTH = values.PositiveIntegerValue(
         40,

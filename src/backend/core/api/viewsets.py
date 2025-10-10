@@ -31,6 +31,10 @@ from core.recording.event.exceptions import (
 )
 from core.recording.event.notification import notification_service
 from core.recording.event.parsers import get_parser
+from core.recording.services.metadata_extractor import (
+    MetadataExtractorException,
+    MetadataExtractorService,
+)
 from core.recording.worker.exceptions import (
     RecordingStartError,
     RecordingStopError,
@@ -327,6 +331,15 @@ class RoomViewSet(
                 {"error": f"Recording failed to start for room {room.slug}"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        if (
+            settings.ROOM_METADATA_EXTRACTOR_ENABLED
+            and recording.mode == models.RecordingModeChoices.TRANSCRIPT
+        ):
+            try:
+                MetadataExtractorService().start(recording)
+            except MetadataExtractorException:
+                pass
 
         return drf_response.Response(
             {"message": f"Recording successfully started for room {room.slug}"},
