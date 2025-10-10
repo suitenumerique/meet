@@ -6,7 +6,7 @@ import logging
 import os
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from io import BytesIO
 from typing import List, Optional
 
@@ -67,7 +67,7 @@ class VADAgent(Agent):
         """Initialize VAD monitoring for this participant."""
         @self.session.on("user_state_changed")
         def on_user_state(event):
-            timestamp = datetime.now()
+            timestamp = datetime.now(timezone.utc)
 
             if event.new_state == "speaking":
                 event = MetadataEvent(
@@ -135,7 +135,7 @@ class MetadataAgent:
             MetadataEvent(
                 participant_id=participant_identity,
                 type="chat_received",
-                timestamp=datetime.now(),
+                timestamp=datetime.now(timezone.utc),
                 data=full_text
             )
         )
@@ -210,7 +210,7 @@ class MetadataAgent:
             MetadataEvent(
                 participant_id=participant.identity,
                 type="participant_connected",
-                timestamp=datetime.now(),
+                timestamp=datetime.now(timezone.utc),
             )
         )
 
@@ -236,7 +236,7 @@ class MetadataAgent:
             MetadataEvent(
                 participant_id=participant.identity,
                 type="participant_disconnected",
-                timestamp=datetime.now(),
+                timestamp=datetime.now(timezone.utc),
             )
         )
 
