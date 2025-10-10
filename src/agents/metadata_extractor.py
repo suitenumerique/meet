@@ -111,7 +111,7 @@ class MetadataAgent:
 
         # Storage for events
         self.events = []
-        self.participants_seen = {}
+        self.participants = {}
 
         logger.info("MetadataAgent initialized")
 
@@ -127,7 +127,7 @@ class MetadataAgent:
         logger.info("Persisting processed metadata output to disk…")
 
         participants = []
-        for k, v in self.participants_seen.items():
+        for k, v in self.participants.items():
             participants.append({"participantId": k, "name": v})
 
         sorted_event = sorted(self.events, key=lambda e: e.timestamp)
@@ -189,7 +189,7 @@ class MetadataAgent:
             )
         )
 
-        self.participants_seen[participant.identity] = participant.name
+        self.participants[participant.identity] = participant.name
 
         logger.info("New participant connected: %s", participant.identity)
         task = asyncio.create_task(self._start_session(participant))
