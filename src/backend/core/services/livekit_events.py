@@ -12,6 +12,10 @@ from django.conf import settings
 from livekit import api
 
 from core import models, utils
+from core.recording.services.metadata_extractor import (
+    MetadataExtractorException,
+    MetadataExtractorService,
+)
 from core.recording.services.recording_events import (
     RecordingEventsError,
     RecordingEventsService,
@@ -158,7 +162,7 @@ class LiveKitEventsService:
         """Handle 'egress_ended' event."""
 
         try:
-            recording = models.Recording.objects.get(
+            recording = models.Recording.objects.select_related("room").get(
                 worker_id=data.egress_info.egress_id
             )
         except models.Recording.DoesNotExist as err:
@@ -173,6 +177,15 @@ class LiveKitEventsService:
             )
         except utils.MetadataUpdateException as e:
             logger.exception("Failed to update room's metadata: %s", e)
+
+        if (
+            settings.ROOM_METADATA_EXTRACTOR_ENABLED
+            and recording.mode == models.RecordingModeChoices.TRANSCRIPT
+        ):
+            try:
+                MetadataExtractorService().stop(recording)
+            except MetadataExtractorException:
+                pass
 
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
