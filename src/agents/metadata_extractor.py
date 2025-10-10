@@ -8,7 +8,7 @@ import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from io import BytesIO
-from typing import List
+from typing import List, Optional
 
 from dotenv import load_dotenv
 from livekit import rtc
@@ -43,6 +43,7 @@ class MetadataEvent:
     participant_id: str
     type: str
     timestamp: datetime
+    data: Optional[str] = None
 
     def to_dict(self) -> dict:
         """Return a JSON-serializable dictionary representation of the event."""
@@ -121,7 +122,29 @@ class MetadataAgent:
         self.ctx.room.on("participant_disconnected", self.on_participant_disconnected)
         self.ctx.room.on("participant_name_changed", self.on_participant_name_changed)
 
+        self.ctx.room.register_text_stream_handler("lk.chat", self.handle_chat_stream)
+
         logger.info("Started listening for participant events")
+
+    async def on_chat_message_received(self, reader: rtc.TextStreamReader, participant_identity: str):
+        """Wip."""
+        full_text = await reader.read_all()
+        logger.info("Received chat message from %s: '%s'", participant_identity, full_text)
+
+        self.events.append(
+            MetadataEvent(
+                participant_id=participant_identity,
+                type="chat_received",
+                timestamp=datetime.now(),
+                data=full_text
+            )
+        )
+
+    def handle_chat_stream(self, reader, participant_identity):
+        """Wip."""
+        task = asyncio.create_task(self.on_chat_message_received(reader, participant_identity))
+        self._tasks.add(task)
+        task.add_done_callback(lambda _: self._tasks.remove(task))
 
     def save(self):
         """Wip."""
