@@ -177,25 +177,6 @@ def post_with_retries(url, data):
         session.close()
 
 
-@signals.task_prerun.connect
-def task_started(task_id=None, task=None, args=None, **kwargs):
-    """Signal handler called before task execution begins."""
-    task_args = args or []
-    metadata_manager.create(task_id, task_args)
-
-
-@signals.task_retry.connect
-def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
-    """Signal handler called when task execution retries."""
-    metadata_manager.retry(request.id)
-
-
-@signals.task_failure.connect
-def task_failure_handler(task_id, exception=None, **kwargs):
-    """Signal handler called when task execution fails permanently."""
-    metadata_manager.capture(task_id, settings.posthog_event_failure)
-
-
 @celery.task(
     bind=True,
     autoretry_for=[exceptions.HTTPError],
@@ -333,6 +314,25 @@ def process_audio_transcribe_summarize_v2(
         )
     else:
         logger.info("Summary generation not enabled for this user.")
+
+
+@signals.task_prerun.connect(sender=process_audio_transcribe_summarize_v2)
+def task_started(task_id=None, task=None, args=None, **kwargs):
+    """Signal handler called before task execution begins."""
+    task_args = args or []
+    metadata_manager.create(task_id, task_args)
+
+
+@signals.task_retry.connect(sender=process_audio_transcribe_summarize_v2)
+def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
+    """Signal handler called when task execution retries."""
+    metadata_manager.retry(request.id)
+
+
+@signals.task_failure.connect(sender=process_audio_transcribe_summarize_v2)
+def task_failure_handler(task_id, exception=None, **kwargs):
+    """Signal handler called when task execution fails permanently."""
+    metadata_manager.capture(task_id, settings.posthog_event_failure)
 
 
 @celery.task(
