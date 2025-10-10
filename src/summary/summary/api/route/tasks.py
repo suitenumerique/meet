@@ -25,7 +25,7 @@ class TaskCreation(BaseModel):
     room: Optional[str]
     recording_date: Optional[str]
     recording_time: Optional[str]
-
+    worker_id: Optional[str]
 
 router = APIRouter(prefix="/tasks")
 
@@ -42,6 +42,7 @@ async def create_task(request: TaskCreation):
             request.room,
             request.recording_date,
             request.recording_time,
+            request.worker_id,
         ],
         queue=settings.transcribe_queue,
     )

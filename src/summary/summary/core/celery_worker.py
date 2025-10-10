@@ -313,6 +313,7 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
     room: Optional[str],
     recording_date: Optional[str],
     recording_time: Optional[str],
+    worker_id: Optional[str],
 ):
     """Process an audio file by transcribing it and generating a summary.
 
@@ -398,15 +399,28 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
             object_name=settings.metadata_file.format(filename=file),
         )
 
+        file_manifest = "recordings/"+ worker_id + ".json"
+        manifest_obj = minio_client.get_object(
+            settings.aws_storage_bucket_name,
+            object_name=file_manifest,
+        )
+        logger.info("Manifest file downloaded: %s", file_manifest)
+
         logger.info("Downloading metadata file")
 
         try:
             metadata_bytes = metadata_obj.read()
             metadata_json = json.loads(metadata_bytes.decode("utf-8"))
+            manifest_bytes = manifest_obj.read()
+            manifest_json = json.loads(manifest_bytes.decode("utf-8"))
         finally:
             metadata_obj.close()
             metadata_obj.release_conn()
+            manifest_obj.close()
+            manifest_obj.release_conn()
 
+        logger.info("Metadata file successfully downloaded")
+        logger.debug("Manifest: %s", manifest_json)
         formatted_transcription = (
             DEFAULT_EMPTY_TRANSCRIPTION
             if not getattr(transcription, "segments", None)

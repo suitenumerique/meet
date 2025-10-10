@@ -132,6 +132,8 @@ class NotificationService:
             logger.error("No owner found for recording %s", recording.id)
             return False
 
+        worker_id = recording.worker_id
+
         payload = {
             "filename": recording.key,
             "email": owner_access.user.email,
@@ -143,6 +145,7 @@ class NotificationService:
             "recording_time": recording.created_at.astimezone(
                 owner_access.user.timezone
             ).strftime("%H:%M"),
+            "worker_id": worker_id,
         }
 
         headers = {
