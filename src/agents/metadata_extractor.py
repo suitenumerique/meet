@@ -119,6 +119,7 @@ class MetadataAgent:
         """Start listening for participant connection events."""
         self.ctx.room.on("participant_connected", self.on_participant_connected)
         self.ctx.room.on("participant_disconnected", self.on_participant_disconnected)
+        self.ctx.room.on("participant_name_changed", self.on_participant_name_changed)
 
         logger.info("Started listening for participant events")
 
@@ -171,6 +172,7 @@ class MetadataAgent:
 
         self.ctx.room.off("participant_connected", self.on_participant_connected)
         self.ctx.room.off("participant_disconnected", self.on_participant_disconnected)
+        self.ctx.room.off("participant_name_changed", self.on_participant_name_changed)
 
         logger.info("All VAD sessions closed")
         self.save()
@@ -233,6 +235,11 @@ class MetadataAgent:
             )
 
         task.add_done_callback(on_close_done)
+
+    def on_participant_name_changed(self, participant: rtc.RemoteParticipant):
+        """Wip."""
+        logger.info("Participant's name changed: %s", participant.identity)
+        self.participants[participant.identity] = participant.name
 
     async def _start_session(self, participant: rtc.RemoteParticipant) -> AgentSession:
         """Create and start VAD monitoring session for participant."""
