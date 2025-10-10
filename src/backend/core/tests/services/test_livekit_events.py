@@ -343,3 +343,25 @@ def test_receive_unsupported_event(mock_receive, service):
         UnsupportedEventTypeError, match="Unknown webhook type: unsupported_event"
     ):
         service.receive(mock_request)
+
+
+@mock.patch.object(api.WebhookReceiver, "receive")
+def test_receive_filter_room_name(mock_receive, service, settings):
+    """Should raise error for excluded room names by default,
+    but ignore them when filter regex is configured."""
+    mock_request = mock.MagicMock()
+    mock_request.headers = {"Authorization": "test_token"}
+    mock_request.body = b"{}"
+
+    # Mock returned data with unsupported room's name
+    mock_data = mock.MagicMock()
+    mock_data.room.name = "!JIfCxVLcKKkWrmVBOb:your-domain.com"
+    mock_data.event = "room_started"
+    mock_receive.return_value = mock_data
+
+    with pytest.raises(ActionFailedError, match="Failed to process room started event"):
+        service.receive(mock_request)
+
+    settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = r":your-domain\.com"
+
+    service.receive(mock_request)
