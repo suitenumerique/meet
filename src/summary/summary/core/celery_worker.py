@@ -7,7 +7,7 @@ import os
 import tempfile
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Mapping, Optional
 
 import openai
 import sentry_sdk
@@ -22,6 +22,8 @@ from urllib3.util import Retry
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
 from summary.core.prompt import (
+    FORMAT_NEXT_STEPS,
+    FORMAT_PLAN,
     PROMPT_SYSTEM_CLEANING,
     PROMPT_SYSTEM_NEXT_STEP,
     PROMPT_SYSTEM_PART,
@@ -115,24 +117,53 @@ class LLMService:
             base_url=settings.llm_base_url, api_key=settings.llm_api_key
         )
 
-    def call(self, system_prompt: str, user_prompt: str):
+    def call(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        response_format: Optional[Mapping[str, Any]] = None,
+    ):
         """Call the LLM service.
 
         Takes a system prompt and a user prompt, and returns the LLM's response
         Returns None if the call fails.
         """
         try:
-            response = self._client.chat.completions.create(
-                model=settings.llm_model,
-                messages=[
+            params: dict[str, Any] = {
+                "model": settings.llm_model,
+                "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-            )
+            }
+            if response_format is not None:
+                params["response_format"] = response_format
+
+            response = self._client.chat.completions.create(**params)
+
             return response.choices[0].message.content
+
         except Exception as e:
-            logger.error("LLM call failed: %s", e)
-            raise LLMException("LLM call failed.") from e
+            logger.exception("LLM call failed: %s", e)
+            raise LLMException("LLM call failed: {e}") from e
+
+
+def format_actions(llm_output: dict) -> str:
+    """Format the actions from the LLM output into a markdown list.
+
+    fomat:
+    - [ ] Action title Assignée à : assignee1, assignee2, Échéance : due_date
+    """
+    lines = []
+    for action in llm_output.get("actions", []):
+        title = action.get("title", "").strip()
+        assignees = ", ".join(action.get("assignees", [])) or "-"
+        due_date = action.get("due_date") or "-"
+        line = f"- [ ] {title} Assignée à : {assignees}, Échéance : {due_date}"
+        lines.append(line)
+    if lines:
+        return "### Prochaines étapes\n\n" + "\n".join(lines)
+    return ""
 
 
 def format_segments(transcription_data):
@@ -359,13 +390,14 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
 
     logger.info("TLDR generated")
 
-    parts = llm_service.call(PROMPT_SYSTEM_PLAN, transcript)
+    parts = llm_service.call(
+        PROMPT_SYSTEM_PLAN, transcript, response_format=FORMAT_PLAN
+    )
     logger.info("Plan generated")
 
-    parts = parts.split("\n")
-    parts = [x for x in parts if x.strip() != ""]
-    logger.info("Empty parts removed")
-
+    res = json.loads(parts)
+    parts = res.get("titles", [])
+    logger.info("Parts to summarize: %s", parts)
     parts_summarized = []
     for part in parts:
         prompt_user_part = PROMPT_USER_PART.format(part=part, transcript=transcript)
@@ -376,7 +408,12 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
 
     raw_summary = "\n\n".join(parts_summarized)
 
-    next_steps = llm_service.call(PROMPT_SYSTEM_NEXT_STEP, transcript)
+    next_steps = llm_service.call(
+        PROMPT_SYSTEM_NEXT_STEP, transcript, response_format=FORMAT_NEXT_STEPS
+    )
+
+    next_steps = format_actions(json.loads(next_steps))
+
     logger.info("Next steps generated")
 
     cleaned_summary = llm_service.call(PROMPT_SYSTEM_CLEANING, raw_summary)
