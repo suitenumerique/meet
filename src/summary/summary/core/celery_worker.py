@@ -144,8 +144,8 @@ class LLMService:
             return response.choices[0].message.content
 
         except Exception as e:
-            logger.error("LLM call failed: %s", e, exc_info=True)
-            raise LLMException("LLM call failed.") from e
+            logger.exception("LLM call failed: %s", e)
+            raise LLMException("LLM call failed: {e}") from e
 
 
 def format_actions(llm_output: dict) -> str:
@@ -161,7 +161,9 @@ def format_actions(llm_output: dict) -> str:
         due_date = action.get("due_date") or "-"
         line = f"- [ ] {title} Assignée à : {assignees}, Échéance : {due_date}"
         lines.append(line)
-    return "\n".join(lines)
+    if lines:
+        return "### Prochaines étapes\n\n" + "\n".join(lines)
+    return ""
 
 
 def format_segments(transcription_data):
@@ -407,7 +409,7 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
         PROMPT_SYSTEM_NEXT_STEP, transcript, response_format=FORMAT_NEXT_STEPS
     )
 
-    next_steps = "### Prochaines étapes\n\n" + format_actions(json.loads(next_steps))
+    next_steps = format_actions(json.loads(next_steps))
 
     logger.info("Next steps generated")
 
