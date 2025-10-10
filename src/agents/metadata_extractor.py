@@ -11,17 +11,19 @@ from io import BytesIO
 from typing import List, Optional
 
 from dotenv import load_dotenv
-from livekit import rtc
+from livekit import api, rtc
 from livekit.agents import (
     Agent,
     AgentSession,
     AutoSubscribe,
     JobContext,
     JobProcess,
+    JobRequest,
     RoomInputOptions,
     RoomIO,
     RoomOutputOptions,
     WorkerOptions,
+    WorkerPermissions,
     cli,
     utils,
 )
@@ -330,6 +332,34 @@ async def entrypoint(ctx: JobContext):
     ctx.add_shutdown_callback(cleanup)
 
 
+async def handle_job_request(job_req: JobRequest) -> None:
+    """Accept or reject the job request based on agent presence in the room."""
+    room_name = job_req.room.name
+    agent_identity = f"{AGENT_NAME}-{room_name}"
+
+    async with api.LiveKitAPI() as lk:
+        try:
+            resp = await lk.room.list_participants(
+                list=api.ListParticipantsRequest(room=room_name)
+            )
+            already_present = any(
+                p.kind == rtc.ParticipantKind.PARTICIPANT_KIND_AGENT
+                and p.identity == agent_identity
+                for p in resp.participants
+            )
+            if already_present:
+                logger.info("Agent already in the room '%s' — reject", room_name)
+                await job_req.reject()
+            else:
+                logger.info(
+                    "Accept job for '%s' — identity=%s", room_name, agent_identity
+                )
+                await job_req.accept(identity=agent_identity)
+        except Exception:
+            logger.exception("Error treating the job for '%s'", room_name)
+            await job_req.reject()
+
+
 def prewarm(proc: JobProcess):
     """Preload voice activity detection model."""
     proc.userdata["vad"] = silero.VAD.load()
@@ -340,5 +370,13 @@ if __name__ == "__main__":
         WorkerOptions(
             entrypoint_fnc=entrypoint,
             prewarm_fnc=prewarm,
+            request_fnc=handle_job_request,
+            agent_name=AGENT_NAME,
+            permissions=WorkerPermissions(
+                can_publish=False,
+                can_publish_data=False,
+                can_subscribe=True,
+                hidden=True,
+            ),
         )
     )
