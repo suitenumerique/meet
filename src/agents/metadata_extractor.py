@@ -67,6 +67,7 @@ class VADAgent(Agent):
 
     async def on_enter(self) -> None:
         """Initialize VAD monitoring for this participant."""
+
         @self.session.on("user_state_changed")
         def on_user_state(event):
             timestamp = datetime.now(timezone.utc)
@@ -128,23 +129,29 @@ class MetadataAgent:
 
         logger.info("Started listening for participant events")
 
-    async def on_chat_message_received(self, reader: rtc.TextStreamReader, participant_identity: str):
+    async def on_chat_message_received(
+        self, reader: rtc.TextStreamReader, participant_identity: str
+    ):
         """Wip."""
         full_text = await reader.read_all()
-        logger.info("Received chat message from %s: '%s'", participant_identity, full_text)
+        logger.info(
+            "Received chat message from %s: '%s'", participant_identity, full_text
+        )
 
         self.events.append(
             MetadataEvent(
                 participant_id=participant_identity,
                 type="chat_received",
                 timestamp=datetime.now(timezone.utc),
-                data=full_text
+                data=full_text,
             )
         )
 
     def handle_chat_stream(self, reader, participant_identity):
         """Wip."""
-        task = asyncio.create_task(self.on_chat_message_received(reader, participant_identity))
+        task = asyncio.create_task(
+            self.on_chat_message_received(reader, participant_identity)
+        )
         self._tasks.add(task)
         task.add_done_callback(lambda _: self._tasks.remove(task))
 
