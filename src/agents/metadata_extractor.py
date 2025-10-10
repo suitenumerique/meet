@@ -45,7 +45,7 @@ class MetadataEvent:
     timestamp: datetime
     data: Optional[str] = None
 
-    def to_dict(self) -> dict:
+    def serialize(self) -> dict:
         """Return a JSON-serializable dictionary representation of the event."""
         data = asdict(self)
         data["timestamp"] = self.timestamp.isoformat()
@@ -157,7 +157,7 @@ class MetadataAgent:
         sorted_event = sorted(self.events, key=lambda e: e.timestamp)
 
         payload = {
-            "events": [event.to_dict() for event in sorted_event],
+            "events": [event.serialize() for event in sorted_event],
             "participants": participants,
         }
 
