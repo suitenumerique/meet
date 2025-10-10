@@ -270,7 +270,9 @@ def process_audio_transcribe_summarize_v2(
         transcription_start_time = time.time()
         with open(temp_file_path, "rb") as audio_file:
             transcription = whisperx_client.audio.transcriptions.create(
-                model=settings.whisperx_asr_model, file=audio_file
+                model=settings.whisperx_asr_model,
+                file=audio_file,
+                language=settings.whisperx_default_language,
             )
             metadata_manager.track(
                 task_id,
