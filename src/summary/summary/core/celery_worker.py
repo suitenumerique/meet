@@ -8,6 +8,7 @@ import tempfile
 import time
 from pathlib import Path
 from typing import Any, Mapping, Optional
+import math
 
 import openai
 import sentry_sdk
@@ -103,6 +104,12 @@ def create_retry_session():
     session.mount("https://", HTTPAdapter(max_retries=retries))
     return session
 
+def add_line_numbers(transcript: str):
+    """Add line numbers to a text file."""
+    lines = transcript.splitlines()
+    lines = [line for line in lines if line.strip()] 
+    numbered_lines = [f"{i + 1}: {line}" for i, line in enumerate(lines)]
+    return "\n".join(numbered_lines)
 
 class LLMException(Exception):
     """LLM call failed."""
@@ -386,27 +393,35 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
 
     llm_service = LLMService()
 
-    tldr = llm_service.call(PROMPT_SYSTEM_TLDR, transcript)
+    token_estimate = len(transcript) // 3.6
+    t = round(0.5 + 2.3 * math.log1p((token_estimate / 3800) ** 2))
+    nb_parts = max(1, t)
 
     logger.info("TLDR generated")
 
+    transcript = add_line_numbers(transcript)
+
+    logger.info("Transcription with line numbers: \n%s", transcript)
     parts = llm_service.call(
-        PROMPT_SYSTEM_PLAN, transcript, response_format=FORMAT_PLAN
+        PROMPT_SYSTEM_PLAN.format(nb_parts_min=nb_parts-2, nb_parts_max=nb_parts+2), "Transcript : \n" + transcript, response_format=FORMAT_PLAN
     )
     logger.info("Plan generated")
 
     res = json.loads(parts)
-    parts = res.get("titles", [])
+    parts = res.get("parts", [])
+
     logger.info("Parts to summarize: %s", parts)
-    parts_summarized = []
+
+    parts_titles = ""
     for part in parts:
-        prompt_user_part = PROMPT_USER_PART.format(part=part, transcript=transcript)
-        logger.info("Summarizing part: %s", part)
-        parts_summarized.append(llm_service.call(PROMPT_SYSTEM_PART, prompt_user_part))
+        parts_titles += f"- {part['title']}, lignes {part['plages_lignes']}\n"
+
+    raw_summary = llm_service.call(
+        PROMPT_SYSTEM_PART,
+        f"Plan:\n{parts_titles}\n\nTranscript:\n{transcript}",
+    )
 
     logger.info("Parts summarized")
-
-    raw_summary = "\n\n".join(parts_summarized)
 
     next_steps = llm_service.call(
         PROMPT_SYSTEM_NEXT_STEP, transcript, response_format=FORMAT_NEXT_STEPS
@@ -419,7 +434,12 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
     cleaned_summary = llm_service.call(PROMPT_SYSTEM_CLEANING, raw_summary)
     logger.info("Summary cleaned")
 
-    summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
+    tldr = llm_service.call(
+        PROMPT_SYSTEM_TLDR,
+        "transcript :\n" + transcript + "\n\nsummary :\n" + cleaned_summary,
+    )
+
+    summary = tldr + "\n\n" + raw_summary + "\n\n" + next_steps
 
     data = {
         "title": settings.summary_title_template.format(

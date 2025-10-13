@@ -4,14 +4,50 @@ PROMPT_SYSTEM_TLDR = """Tu es un agent dont le rôle est de créer un TL;DR (ré
 ### Résumé TL;DR
 [Résumé concis et structuré]"""
 
-PROMPT_SYSTEM_PLAN = """Ta tâche est de diviser le contenu du transcript en sujets concrets correspondant aux grands axes discutés durant la réunion. Ne crée pas de catégories génériques. Les titres doivent être courts, précis et représentatifs des échanges. Veille à ce que chaque sujet soit distinct et qu’aucun thème ne soit répété. Tu te limiteras à 5 ou 6 sujets maximum. 
-L'introduction, ordre du jour, conclusion, etc. seront rajoutés a posteriori. Si il n'y a pas de sujets clairs, réponds "Général".
-"""
+PROMPT_SYSTEM_PLAN = """Ta tâche consiste à identifier les sujets abordés dans un transcript, c’est-à-dire les thèmes précis et concrets correspondant aux grands axes réellement discutés durant la réunion.
+- N’inclus pas de catégories génériques.
+- Les titres doivent être courts, précis et représentatifs des échanges.
+- Chaque sujet doit être distinct, sans répétition de thèmes.
+- Tu fera entre {nb_parts_min} et {nb_parts_max} sujets.
+Pour chaque sujet identifié :
+- Donne le titre du sujet
+- Indique la ou les plages de lignes (numérotées) du transcript correspondant à ce sujet (une ou plusieurs par sujet, si nécessaire : [[début, fin], ...]).
+L’introduction, l’ordre du jour, la conclusion, etc., seront ajoutés ultérieurement.
+Si aucun sujet clair n’est repéré, réponds exactement : "Général"."""
 
-PROMPT_SYSTEM_PART = """Tu es un agent dont le rôle est de créer une partie du résumé d'un compte rendu de réunion. Tu utiliseras un style synthétique, administratif, à la troisième personne, sans affect. Tu recevras en entrée le transcript, et le titre du sujet correspondant. Ta tâche est de rédiger un résumé concis de cette partie et uniquement cette partie, en te concentrant uniquement sur les informations essentielles et pertinentes. Le résumé de chaque partie doit tenir en 4 à 6 phrases maximum, sans entrer dans les détails mineurs. Tu répondras dans le format suivant :
-    ### Titre du sujet [Traduire ce titre selon la langue du transcript]
-    [Résumé concis et structuré de la partie du transcript]
-    """
+
+PROMPT_SYSTEM_PART = """
+Tu es un agent dont le rôle est de rédiger le résumé complet d’un compte rendu de réunion. 
+Tu utiliseras un style synthétique, administratif, à la troisième personne, sans affect. 
+
+En entrée, tu recevras :
+- L’intégralité du transcript de la réunion,
+- Un plan indiquant pour chaque sujet : son titre et la plage de lignes correspondante.
+- Les notes prises par un utilisateur durant la réunion contenant des points important à aborder dans le transcript.
+
+Consignes :
+- Générer un résumé pour chacune des parties définies dans le plan.
+- Pour chaque partie :
+  - Résumer les lignes indiquées et en lien avec le sujet.,
+  - Utiliser exclusivement des bullet points clairs et concis,
+  - Ne pas dépasser 4 ou 5 bullet points par partie,
+  - Se limiter aux informations essentielles et pertinentes,
+  - Éviter tout détail secondaire ou interprétation.
+- mettre en avant les points écrits dans les notes de l'utilisateur.
+- mettre en gras les noms propres (personnes, entreprises, produits, etc.)
+
+Format de sortie attendu : un enchaînement de résumés, un par sujet, par exemple :
+
+### [Titre du sujet 1]
+- [Point essentiel 1]
+- [Point essentiel 2]
+- [Point essentiel 3]
+
+### [Titre du sujet 2]
+- [Point essentiel 1]
+- [Point essentiel 2]
+(...)
+"""
 
 PROMPT_USER_PART = """Titre de la partie à résumer : {part}
 Transcript complet :
@@ -57,15 +93,37 @@ FORMAT_NEXT_STEPS = {
 }
 
 FORMAT_PLAN = {
-    "type": "json_schema",
-    "json_schema": {
-        "name": "Titles",
-        "schema": {
+  "type": "json_schema",
+  "json_schema": {
+    "name": "PlanWithLineRanges",
+    "strict": True,
+    "schema": {
+      "type": "object",
+      "additionalProperties": False,
+      "required": ["parts"],
+      "properties": {
+        "parts": {
+          "type": "array",
+          "items": {
             "type": "object",
-            "properties": {"titles": {"type": "array", "items": {"type": "string"}}},
-            "required": ["titles"],
             "additionalProperties": False,
-        },
-        "strict": True,
-    },
+            "required": ["title", "plages_lignes"],
+            "properties": {
+              "title": { "type": "string" },
+              "plages_lignes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "array",
+                  "items": { "type": "integer", "minimum": 1 },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
