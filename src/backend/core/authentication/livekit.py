@@ -30,7 +30,7 @@ class LiveKitTokenAuthentication(authentication.BaseAuthentication):
                 raise exceptions.AuthenticationFailed("Token missing user identity")
 
             try:
-                user = UserModel.objects.get(id=user_id)
+                user = UserModel.objects.get(sub=user_id)
             except UserModel.DoesNotExist:
                 user = AnonymousUser()
 
