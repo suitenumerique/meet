@@ -326,6 +326,11 @@ class Base(Configuration):
         "is_silent_login_enabled": values.BooleanValue(
             True, environ_name="FRONTEND_IS_SILENT_LOGIN_ENABLED", environ_prefix=None
         ),
+        "idle_disconnect_warning_delay": values.PositiveIntegerValue(
+            None,
+            environ_name="FRONTEND_IDLE_DISCONNECT_WARNING_DELAY",
+            environ_prefix=None,
+        ),
         "feedback": values.DictValue(
             {}, environ_name="FRONTEND_FEEDBACK", environ_prefix=None
         ),
