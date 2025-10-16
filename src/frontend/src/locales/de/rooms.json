@@ -149,6 +149,13 @@
       "newTab": "Neues Fenster"
     }
   },
+  "isIdleDisconnectModal": {
+    "title": "Bist du noch da?",
+    "body": "Du bist der einzige Teilnehmer. Dieses Gespräch endet in {{duration}}. Möchtest du das Gespräch fortsetzen?",
+    "settings": "Um diese Nachricht nicht mehr zu sehen, gehe zu Einstellungen > Allgemein.",
+    "stayButton": "Gespräch fortsetzen",
+    "leaveButton": "Jetzt verlassen"
+  },
   "controls": {
     "microphone": "Mikrofon",
     "camera": "Kamera",

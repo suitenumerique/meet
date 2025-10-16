@@ -149,6 +149,13 @@
       "newTab": "Nouvelle fenêtre"
     }
   },
+  "isIdleDisconnectModal": {
+    "title": "Êtes-vous toujours là ?",
+    "body": "Vous êtes le seul participant. Cet appel va donc se terminer dans {{duration}}. Voulez-vous poursuivre l'appel ?",
+    "settings": "Pour ne plus voir ce message, accèder à Paramètres > Général.",
+    "stayButton": "Poursuivre l'appel",
+    "leaveButton": "Quitter maintenant"
+  },
   "controls": {
     "microphone": "Microphone",
     "camera": "Camera",
