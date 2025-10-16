@@ -259,6 +259,7 @@ export const Field = <T extends object>({
   }
 
   if (type === 'switch') {
+    const SWITCH_COMPONENT_WIDTH = '41px'
     return (
       <FieldWrapper {...props.wrapperProps}>
         <div
@@ -273,10 +274,11 @@ export const Field = <T extends object>({
         {description && (
           <Text
             variant="note"
-            wrap={'pretty'}
+            wrap={'balance'}
             className={css({
               textStyle: 'sm',
               marginBottom: '0.5rem',
+              marginRight: SWITCH_COMPONENT_WIDTH,
             })}
           >
             {description}
