@@ -80,7 +80,7 @@ export type DialogProps = RACDialogProps & {
    * after user interaction
    */
   onOpenChange?: (isOpen: boolean) => void
-  type?: 'flex'
+  type?: 'flex' | 'alert'
   innerRef?: MutableRefObject<HTMLDivElement | null>
   size?: 'full' | 'large'
 }
@@ -96,7 +96,12 @@ export const Dialog = ({
   ...dialogProps
 }: DialogProps) => {
   const isAlert = dialogProps['role'] === 'alertdialog'
-  const boxType = dialogProps['type'] !== 'flex' ? 'dialog' : undefined
+  const boxType =
+    dialogProps['type'] === 'alert'
+      ? 'alert'
+      : dialogProps['type'] !== 'flex'
+        ? 'dialog'
+        : undefined
   return (
     <StyledModalOverlay
       isKeyboardDismissDisabled={isAlert}
