@@ -149,6 +149,13 @@
       "newTab": "Nieuw venster"
     }
   },
+  "isIdleDisconnectModal": {
+    "title": "Ben je er nog?",
+    "body": "Je bent de enige deelnemer. Dit gesprek wordt over {{duration}} beëindigd. Wil je het gesprek voortzetten?",
+    "settings": "Om dit bericht niet meer te zien, ga naar Instellingen > Algemeen.",
+    "stayButton": "Gesprek voortzetten",
+    "leaveButton": "Nu verlaten"
+  },
   "controls": {
     "microphone": "Microfoon",
     "camera": "Camera",

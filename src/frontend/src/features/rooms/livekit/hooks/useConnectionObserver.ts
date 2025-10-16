@@ -1,14 +1,62 @@
-import { useRoomContext } from '@livekit/components-react'
+import {
+  useRemoteParticipants,
+  useRoomContext,
+} from '@livekit/components-react'
 import { useEffect, useRef } from 'react'
 import { DisconnectReason, RoomEvent } from 'livekit-client'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import posthog from 'posthog-js'
+import { connectionObserverStore } from '@/stores/connectionObserver'
+import { useConfig } from '@/api/useConfig'
 
 export const useConnectionObserver = () => {
   const room = useRoomContext()
   const connectionStartTimeRef = useRef<number | null>(null)
 
+  const { data } = useConfig()
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
+
+  const idleDisconnectModalTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null)
+
+  const remoteParticipants = useRemoteParticipants({
+    updateOnlyOn: [
+      RoomEvent.ParticipantConnected,
+      RoomEvent.ParticipantDisconnected,
+    ],
+  })
+
+  useEffect(() => {
+    // Always clear existing timer on dependency change
+    if (idleDisconnectModalTimeoutRef.current) {
+      clearTimeout(idleDisconnectModalTimeoutRef.current)
+      idleDisconnectModalTimeoutRef.current = null
+    }
+
+    const delay = data?.idle_disconnect_warning_delay
+
+    // Disabled or invalid delay: ensure modal is closed
+    if (!delay) {
+      connectionObserverStore.isIdleDisconnectModalOpen = false
+      return
+    }
+
+    if (remoteParticipants.length === 0) {
+      idleDisconnectModalTimeoutRef.current = setTimeout(() => {
+        connectionObserverStore.isIdleDisconnectModalOpen = true
+      }, delay)
+    } else {
+      connectionObserverStore.isIdleDisconnectModalOpen = false
+    }
+
+    return () => {
+      if (idleDisconnectModalTimeoutRef.current) {
+        clearTimeout(idleDisconnectModalTimeoutRef.current)
+        idleDisconnectModalTimeoutRef.current = null
+      }
+    }
+  }, [remoteParticipants.length, data?.idle_disconnect_warning_delay])
 
   useEffect(() => {
     if (!isAnalyticsEnabled) return
