@@ -428,6 +428,13 @@ posthog:
 ## @section summary
 
 summary:
+  ## @param summary.image.repository Repository to use to pull meet's summary container image
+  ## @param summary.image.tag meet's summary container tag
+  ## @param summary.image.pullPolicy summary container image pull policy
+  image:
+    repository: lasuite/meet-summary
+    pullPolicy: IfNotPresent
+    tag: "latest"
 
   ## @param summary.dpAnnotations Annotations to add to the summary Deployment
   dpAnnotations: {}
@@ -527,6 +534,14 @@ summary:
 ## @section celeryTranscribe
 
 celeryTranscribe:
+  ## @param celeryTranscribe.image.repository Repository to use to pull meet's celeryTranscribe container image
+  ## @param celeryTranscribe.image.tag meet's celeryTranscribe container tag
+  ## @param celeryTranscribe.image.pullPolicy celeryTranscribe container image pull policy
+  image:
+    repository: lasuite/meet-summary
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
   ## @param celeryTranscribe.dpAnnotations Annotations to add to the celeryTranscribe Deployment
   dpAnnotations: {}
 
@@ -620,6 +635,14 @@ celeryTranscribe:
 ## @section celerySummarize
 
 celerySummarize:
+  ## @param celerySummarize.image.repository Repository to use to pull meet's celerySummarize container image
+  ## @param celerySummarize.image.tag meet's celerySummarize container tag
+  ## @param celerySummarize.image.pullPolicy celerySummarize container image pull policy
+  image:
+    repository: lasuite/meet-summary
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
   ## @param celerySummarize.dpAnnotations Annotations to add to the celerySummarize Deployment
   dpAnnotations: {}
 
