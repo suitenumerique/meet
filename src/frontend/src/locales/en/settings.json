@@ -7,6 +7,13 @@
     "authentication": "Authentication",
     "nameError": "Your name cannot be empty"
   },
+  "preferences": {
+    "title": "Preferences",
+    "idleDisconnectModal": {
+      "label": "Leave calls with no participants",
+      "description": "Automatically leaves a call after a few minutes if no other participant joins"
+    }
+  },
   "audio": {
     "microphone": {
       "heading": "Microphone",

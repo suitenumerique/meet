@@ -7,6 +7,13 @@
     "authentication": "Authenticatie",
     "nameError": "Uw naam mag niet leeg zijn"
   },
+  "preferences": {
+    "title": "Voorkeuren",
+    "idleDisconnectModal": {
+      "label": "Verlaat oproepen zonder deelnemers",
+      "description": "Verlaat automatisch een oproep na een paar minuten als geen andere deelnemer meedoet"
+    }
+  },
   "audio": {
     "microphone": {
       "heading": "Microfoon",

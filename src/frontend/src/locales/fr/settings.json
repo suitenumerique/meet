@@ -7,6 +7,13 @@
     "authentication": "Authentification",
     "nameError": "Votre Nom ne peut pas être vide"
   },
+  "preferences": {
+    "title": "Préférences",
+    "idleDisconnectModal": {
+      "label": "Quitter les appels sans autre participant",
+      "description": "Vous fait quitter un appel au bout de quelques minutes si aucun autre participant ne vous rejoint"
+    }
+  },
   "audio": {
     "microphone": {
       "heading": "Micro",
