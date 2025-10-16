@@ -28,6 +28,10 @@ const box = cva({
         width: '30rem',
         maxWidth: '100%',
       },
+      alert: {
+        width: '24rem',
+        maxWidth: '100%',
+      },
     },
     variant: {
       light: {
