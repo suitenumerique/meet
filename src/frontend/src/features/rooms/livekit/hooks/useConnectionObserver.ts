@@ -8,6 +8,8 @@ import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalytics
 import posthog from 'posthog-js'
 import { connectionObserverStore } from '@/stores/connectionObserver'
 import { useConfig } from '@/api/useConfig'
+import { userPreferencesStore } from '@/stores/userPreferences'
+import { useSnapshot } from 'valtio'
 
 export const useConnectionObserver = () => {
   const room = useRoomContext()
@@ -15,6 +17,8 @@ export const useConnectionObserver = () => {
 
   const { data } = useConfig()
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
+
+  const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
   const idleDisconnectModalTimeoutRef = useRef<ReturnType<
     typeof setTimeout
@@ -34,10 +38,11 @@ export const useConnectionObserver = () => {
       idleDisconnectModalTimeoutRef.current = null
     }
 
+    const isEnabled = userPreferencesSnap.is_idle_disconnect_modal_enabled
     const delay = data?.idle_disconnect_warning_delay
 
     // Disabled or invalid delay: ensure modal is closed
-    if (!delay) {
+    if (!isEnabled || !delay) {
       connectionObserverStore.isIdleDisconnectModalOpen = false
       return
     }
@@ -56,7 +61,11 @@ export const useConnectionObserver = () => {
         idleDisconnectModalTimeoutRef.current = null
       }
     }
-  }, [remoteParticipants.length, data?.idle_disconnect_warning_delay])
+  }, [
+    remoteParticipants.length,
+    data?.idle_disconnect_warning_delay,
+    userPreferencesSnap.is_idle_disconnect_modal_enabled,
+  ])
 
   useEffect(() => {
     if (!isAnalyticsEnabled) return

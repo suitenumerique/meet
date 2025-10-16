@@ -7,6 +7,13 @@
     "authentication": "Authentifizierung",
     "nameError": "Ihr Name darf nicht leer sein"
   },
+  "preferences": {
+    "title": "Einstellungen",
+    "idleDisconnectModal": {
+      "label": "Anrufe ohne Teilnehmer verlassen",
+      "description": "Verlässt automatisch einen Anruf nach einigen Minuten, wenn kein anderer Teilnehmer beitritt"
+    }
+  },
   "audio": {
     "microphone": {
       "heading": "Mikrofon",
