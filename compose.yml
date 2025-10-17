@@ -288,7 +288,7 @@ services:
     working_dir: /app
     volumes:
       - ./src/agents:/app
-    command: ["sh","-lc","python -m pip install -U pip && python -m pip install --no-cache-dir livekit-agents livekit minio python-dotenv && python metadata_extractor.py start"]
+    command: ["sh","-lc","python -m pip install -U pip && python -m pip install --no-cache-dir 'livekit-agents==1.2.*' 'livekit-plugins-silero==1.2.*' 'livekit-plugins-deepgram==1.2.*' 'minio==7.2.*' 'python-dotenv==1.1.*' && python metadata_extractor.py start"]
     environment:
       LIVEKIT_URL: "ws://livekit:7880"
       LIVEKIT_API_KEY: "devkey"
@@ -299,6 +299,8 @@ services:
       AWS_S3_SECRET_ACCESS_KEY: "password"
       AWS_S3_SECURE_ACCESS: "false"
       PYTHONUNBUFFERED: "1"
+      AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
+      AWS_S3_REGION_NAME: "local"
     depends_on:
       - livekit
       - minio
