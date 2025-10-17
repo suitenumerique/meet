@@ -6,11 +6,13 @@ import json
 import os
 import tempfile
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
+import numpy as np
 import openai
+import pandas as pd
 import sentry_sdk
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
@@ -32,88 +34,156 @@ from summary.core.prompt import (
 )
 
 
-def parse_iso(s: str) -> datetime:
-    """Convert ISO 8601 string to datetime object."""
-    return datetime.fromisoformat(s.replace("Z", "+00:00"))
+def nanoseconds_to_seconds(nanoseconds: int) -> float:
+    """Convert nanoseconds timestamp to seconds since epoch."""
+    return nanoseconds / 1_000_000_000
 
 
-def overlap(a, b):
-    """Calculate overlap duration between two segments."""
-    return max(0.0, min(a["end"], b["end"]) - max(a["start"], b["start"]))
+def parse_iso_timestamp(iso_string: str) -> float:
+    """Convert ISO timestamp to seconds since epoch."""
+    dt = datetime.fromisoformat(iso_string.replace("+00:00", ""))
+    return dt.timestamp()
 
 
-def total_duration(segs):
-    """Total duration of segments."""
-    return sum(s["end"] - s["start"] for s in segs)
+def calculate_overlap_vectorized(starts1, ends1, starts2, ends2):
+    """Calculate overlap duration between two sets of time intervals (vectorized)."""
+    overlap_starts = np.maximum(starts1[:, None], starts2)
+    overlap_ends = np.minimum(ends1[:, None], ends2)
+    return np.maximum(0, overlap_ends - overlap_starts)
 
 
-def total_overlap(segs_a, segs_b):
-    """Calculate total overlap duration between two sets of segments."""
-    tot = 0.0
-    for a in segs_a:
-        for b in segs_b:
-            tot += overlap(a, b)
-    return tot
+def build_speech_segments_df(events: List[Dict[str, Any]]) -> pd.DataFrame:
+    """Build speech segments DataFrame from events.
 
+    Returns: DataFrame with columns [participant_id, start_time, end_time]
+    """
+    df = pd.DataFrame(events)
+    df["timestamp"] = df["timestamp"].apply(parse_iso_timestamp)
 
-def jaccard_score(ov, dur_a, dur_b):
-    """Calculate the Jaccard similarity score."""
-    denom = dur_a + dur_b - ov
-    return ov / denom if denom > 0 else 0.0
+    starts = df[df["type"] == "speech_start"][["participant_id", "timestamp"]]
+    ends = df[df["type"] == "speech_end"][["participant_id", "timestamp"]]
 
+    starts = starts.sort_values("timestamp").reset_index(drop=True)
+    ends = ends.sort_values("timestamp").reset_index(drop=True)
 
-def align_participants_seconds(participants, speakers):
-    """Align participant segments to speaker segments in seconds."""
-    min_speaker_start = min(
-        float(seg["start"]) for seg in speakers if seg.get("start") is not None
+    segments = pd.merge(
+        starts.rename(columns={"timestamp": "start_time"}),
+        ends.rename(columns={"timestamp": "end_time"}),
+        left_index=True,
+        right_index=True,
+        suffixes=("_start", "_end"),
     )
-    min_participant_iso = min(
-        parse_iso(seg["start_iso"])
-        for plist in participants["by_participant"].values()
-        for seg in plist
-    )
-    t0_base = min_participant_iso - timedelta(seconds=min_speaker_start)
 
-    out = {}
-    for pid, segs in participants["by_participant"].items():
-        out[pid] = [
-            {
-                "start": (parse_iso(s["start_iso"]) - t0_base).total_seconds(),
-                "end": (parse_iso(s["end_iso"]) - t0_base).total_seconds(),
-            }
-            for s in segs
-        ]
-    return out
+    segments = segments[
+        segments["participant_id_start"] == segments["participant_id_end"]
+    ]
+    segments = segments.rename(columns={"participant_id_start": "participant_id"})
+    segments = segments[["participant_id", "start_time", "end_time"]]
+    return segments
 
 
-def map_speakers_to_participants(speakers, participants):
-    """Main function to map speakers to participants."""
-    logger.info("speakers: %s", speakers)
-    logger.info("participants: %s", participants)
-    participants_seconds = align_participants_seconds(participants, speakers)
-    logger.info("participants_seconds: %s", participants_seconds)
-    speakers_by = {}
-    for seg in speakers:
-        spk = seg.get("speaker") or "UNKNOWN_SPEAKER"
-        start = seg.get("start")
-        end = seg.get("end")
-        if start is None or end is None:
-            continue
-        speakers_by.setdefault(spk, []).append(
-            {"start": float(start), "end": float(end)}
+def assign_participant_ids(  # noqa: PLR0912
+    diarization_output: Dict[str, Any],
+    metadatas: List[Dict[str, Any]],
+    recording_metadata: Dict[str, Any],
+    overlap_threshold: float = 0.3,
+) -> Dict[str, Any]:
+    """Assign participant IDs to WhisperX diarization speakers."""
+    recording_start = nanoseconds_to_seconds(recording_metadata["started_at"])
+
+    participant_segments_df = build_speech_segments_df(metadatas.get("events"))
+
+    if participant_segments_df.empty:
+        return {}
+
+    words_df = pd.DataFrame(diarization_output)
+
+    if words_df.empty:
+        return {}
+    words_df = words_df.dropna(subset=["start", "end"])
+
+    if words_df.empty:
+        return {}
+
+    if "speaker" not in words_df.columns:
+        words_df["speaker"] = "UNKNOWN"
+    words_df["speaker"] = words_df["speaker"].fillna("UNKNOWN")
+
+    words_df["abs_start"] = recording_start + words_df["start"]
+    words_df["abs_end"] = recording_start + words_df["end"]
+    speaker_segments_list = []
+
+    for speaker, group in words_df.groupby("speaker"):
+        grp = group.sort_values("abs_start").reset_index(drop=True)
+        segments = []
+        current_start = grp.iloc[0]["abs_start"]
+        current_end = grp.iloc[0]["abs_end"]
+
+        for idx in range(1, len(grp)):
+            if grp.iloc[idx]["abs_start"] - current_end < 1.0:
+                current_end = grp.iloc[idx]["abs_end"]
+            else:
+                segments.append(
+                    {
+                        "speaker": speaker,
+                        "start_time": current_start,
+                        "end_time": current_end,
+                    }
+                )
+                current_start = grp.iloc[idx]["abs_start"]
+                current_end = grp.iloc[idx]["abs_end"]
+
+        segments.append(
+            {"speaker": speaker, "start_time": current_start, "end_time": current_end}
         )
-    mapping = {}
-    for spk, s_segs in speakers_by.items():
-        s_dur = total_duration(s_segs)
-        best_pid, best_score = None, -1.0
-        for pid, p_segs in participants_seconds.items():
-            p_dur = total_duration(p_segs)
-            ov = total_overlap(s_segs, p_segs)
-            score = jaccard_score(ov, s_dur, p_dur)
-            if score > best_score:
-                best_score, best_pid = score, pid
-        mapping[spk] = best_pid
-    return mapping
+        speaker_segments_list.extend(segments)
+
+    speaker_segments_df = pd.DataFrame(speaker_segments_list)
+
+    speaker_to_participant = {}
+
+    for speaker in speaker_segments_df["speaker"].unique():
+        spk_segs = speaker_segments_df[speaker_segments_df["speaker"] == speaker]
+
+        best_match = None
+        best_overlap = 0
+
+        for participant_id in participant_segments_df["participant_id"].unique():
+            part_segs = participant_segments_df[
+                participant_segments_df["participant_id"] == participant_id
+            ]
+
+            overlaps = calculate_overlap_vectorized(
+                spk_segs["start_time"].values,
+                spk_segs["end_time"].values,
+                part_segs["start_time"].values,
+                part_segs["end_time"].values,
+            )
+
+            total_overlap = overlaps.sum()
+            total_speaker_duration = (
+                spk_segs["end_time"] - spk_segs["start_time"]
+            ).sum()
+
+            if total_speaker_duration > 0:
+                overlap_ratio = total_overlap / total_speaker_duration
+
+                if overlap_ratio > best_overlap and overlap_ratio >= overlap_threshold:
+                    best_overlap = overlap_ratio
+                    best_match = participant_id
+
+        speaker_to_participant[speaker] = {
+            "participant_id": best_match,
+            "confidence": best_overlap,
+        }
+    for speaker, mapping in speaker_to_participant.items():
+        for participant in metadatas.get("participants", []):
+            if participant["participantId"] == mapping["participant_id"]:
+                speaker_to_participant[speaker] = participant["name"]
+                if mapping["confidence"] < overlap_threshold + 0.2:
+                    speaker_to_participant[speaker] += "?"
+                break
+    return speaker_to_participant
 
 
 settings = get_settings()
@@ -221,7 +291,7 @@ class LLMService:
             raise LLMException("LLM call failed.") from e
 
 
-def format_segments(transcription_data, metadata):
+def format_segments(transcription_data, metadata=None, manifest=None):
     """Format transcription segments from WhisperX into a readable conversation format.
 
     Processes transcription data with segments containing speaker information and text,
@@ -232,8 +302,11 @@ def format_segments(transcription_data, metadata):
     logger.info("Formatting segments with metadata: %s", metadata)
     logger.info("Transcription data: %s", transcription_data)
     if metadata:
-        mapping = map_speakers_to_participants(
-            speakers=transcription_data, participants=metadata
+        mapping = assign_participant_ids(
+            diarization_output=transcription_data,
+            metadatas=metadata,
+            recording_metadata=manifest,
+            overlap_threshold=0.5,
         )
         logger.info("Speaker to participant mapping: %s", mapping)
         previous_label = None
@@ -399,7 +472,7 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
             object_name=settings.metadata_file.format(filename=file),
         )
 
-        file_manifest = "recordings/"+ worker_id + ".json"
+        file_manifest = "recordings/" + worker_id + ".json"
         manifest_obj = minio_client.get_object(
             settings.aws_storage_bucket_name,
             object_name=file_manifest,
@@ -424,7 +497,7 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
         formatted_transcription = (
             DEFAULT_EMPTY_TRANSCRIPTION
             if not getattr(transcription, "segments", None)
-            else format_segments(transcription.segments, metadata_json)
+            else format_segments(transcription.segments, metadata_json, manifest_json)
         )
     else:
         formatted_transcription = (

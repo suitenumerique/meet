@@ -59,7 +59,7 @@ class Settings(BaseSettings):
 
     # Summary related settings
     is_summary_enabled: bool = True
-    metadata_file: Optional[str] = "speaker_logs/speakers_{filename}.json"
+    metadata_file: Optional[str] = "recordings/{filename}-metadata.json"
 
     # Sentry
     sentry_is_enabled: bool = False
