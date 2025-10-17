@@ -1,238 +1,343 @@
-"""Metadata agent that tracks active speakers and their speaking intervals."""
+"""Metadata agent that extracts metadata from active room."""
 
+import asyncio
 import json
 import logging
 import os
-import pathlib
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from io import BytesIO
-from typing import Dict, List, Optional
-
-from dotenv import load_dotenv
+from typing import List, Optional
+import json
+from dotenv import load_dotenv, find_dotenv
 from livekit import api, rtc
 from livekit.agents import (
+    Agent,
+    AgentSession,
     AutoSubscribe,
     JobContext,
+    JobProcess,
     JobRequest,
+    RoomInputOptions,
+    RoomIO,
+    RoomOutputOptions,
     WorkerOptions,
     WorkerPermissions,
     cli,
+    utils,
 )
+from livekit.plugins import silero
 from minio import Minio
 from minio.error import S3Error
 
 load_dotenv()
 
-logger = logging.getLogger("metadata-joiner")
-logger.setLevel(logging.INFO)
-logger.propagate = False
+logger = logging.getLogger("metadata-extractor")
 
-if not logger.handlers:
-    _h = logging.StreamHandler()
-    _h.setFormatter(
-        logging.Formatter("%(asctime)s - %(levelname)s %(name)s - %(message)s")
-    )
-    logger.addHandler(_h)
-AGENT_NAME = os.getenv("ROOM_METADATA_AGENT_NAME", "metadata-extractor")
+AGENT_NAME = os.getenv("ROOM_METADATA_EXTRACTOR_AGENT_NAME", "metadata-extractor")
 
 
-def _parse_display_from_metadata(meta: Optional[str]) -> Optional[str]:
-    if not meta:
-        return None
-    try:
-        m = json.loads(meta)
-        for k in ("display_name", "displayName", "name"):
-            if isinstance(m, dict) and m.get(k):
-                return str(m[k])
-    except Exception as e:
-        logger.debug("Failed to parse participant metadata", exc_info=e)
-    return None
+@dataclass
+class MetadataEvent:
+    """Wip."""
+
+    participant_id: str
+    type: str
+    timestamp: datetime
+    data: Optional[str] = None
+
+    def serialize(self) -> dict:
+        """Return a JSON-serializable dictionary representation of the event."""
+        data = asdict(self)
+        data["timestamp"] = self.timestamp.isoformat()
+        return data
 
 
-def pretty_name(p: rtc.Participant) -> str:
-    """Get the name for a participant.
+class VADAgent(Agent):
+    """Agent that monitors voice activity for a specific participant."""
 
-    Preference order: name attribute, metadata display_name, identity.
+    def __init__(self, participant_identity: str, events: List):
+        """Wip."""
+        super().__init__(
+            instructions="not-needed",
+        )
+        self.participant_identity = participant_identity
+        self.events = events
+
+    async def on_enter(self) -> None:
+        """Initialize VAD monitoring for this participant."""
+
+        @self.session.on("user_state_changed")
+        def on_user_state(event):
+            timestamp = datetime.now(timezone.utc)
+
+            if event.new_state == "speaking":
+                event = MetadataEvent(
+                    participant_id=self.participant_identity,
+                    type="speech_start",
+                    timestamp=timestamp,
+                )
+                self.events.append(event)
+
+            elif event.old_state == "speaking":
+                event = MetadataEvent(
+                    participant_id=self.participant_identity,
+                    type="speech_end",
+                    timestamp=timestamp,
+                )
+                self.events.append(event)
+
+
+class MetadataAgent:
+    """Monitor and manage real-time metadata extraction from meeting rooms.
+    Oversees VAD (Voice Activity Detection) and participant metadata streams
+    to track and analyze real-time events, coordinating data collection across
+    participants for insights like speaking activity and engagement.
     """
-    if getattr(p, "name", None):
-        return p.name
-    dn = _parse_display_from_metadata(getattr(p, "metadata", None))
-    return dn or p.identity
 
-
-class SpeakerTracker:
-    """Track active speakers and their speaking intervals."""
-
-    def __init__(
-        self,
-        room_name: str,
-        write_json: bool = True,
-        recording_id: Optional[str] = None,
-    ):
-        """Track active speakers and their speaking intervals."""
-        self.room_name = room_name
-        self.active_since: Dict[str, datetime] = {}
-        self.by_participant: Dict[str, List[dict]] = {}
-        self.write_json_flag = write_json
-        self.display_names: Dict[str, str] = {}
-
-        outdir = pathlib.Path("./speaker_logs")
-        outdir.mkdir(parents=True, exist_ok=True)
-        self.recording_id = recording_id
-
-    def _now(self) -> datetime:
-        return datetime.now(timezone.utc)
-
-    def _emit_interval(self, identity: str, start: datetime, end: datetime):
-        dur = max(0.0, (end - start).total_seconds())
-        seg = {
-            "start_iso": start.isoformat(),
-            "end_iso": end.isoformat(),
-            "duration_sec": round(dur, 3),
-        }
-        self.by_participant.setdefault(identity, []).append(seg)
-
-    def update_active_speakers(self, current_identities: List[str]):
-        """Update the list of currently active speakers."""
-        now = self._now()
-        current = set(current_identities)
-        before = set(self.active_since.keys())
-
-        for ident in current - before:
-            self.active_since[ident] = now
-
-        for ident in before - current:
-            start = self.active_since.pop(ident, None)
-            if start:
-                self._emit_interval(ident, start, now)
-
-    def on_participant_disconnected(self, identity: str):
-        """Handle participant disconnection by finalizing their active interval."""
-        now = self._now()
-        start = self.active_since.pop(identity, None)
-        if start:
-            self._emit_interval(identity, start, now)
-
-    def flush_all(self):
-        """Flush all active speakers as ended now."""
-        now = self._now()
-        for ident, start in list(self.active_since.items()):
-            self._emit_interval(ident, start, now)
-        self.active_since.clear()
-
-    def build_json(self) -> dict:
-        """Build JSON with names instead of participant ids as keys."""
-        by_name = {
-            self.display_names.get(pid, pid) or pid: segments
-            for pid, segments in self.by_participant.items()
-        }
-        return {
-            "room": self.room_name,
-            "generated_at": self._now().isoformat(),
-            "by_participant": by_name,
-        }
-
-    def write_json(self):
-        """Write the collected speaker intervals to a JSON file and upload to MinIO."""
-
-        def _as_bool(v: str, default=False):
-            if v is None:
-                return default
-            return v.strip().lower() in ("1", "true", "yes", "y")
-
-        if not self.write_json_flag:
-            return
-        payload = self.build_json()
-
-        minio_client = Minio(
+    def __init__(self, ctx: JobContext, recording_id: str):
+        """Initialize metadata agent."""
+        self.minio_client = Minio(
             endpoint=os.getenv("AWS_S3_ENDPOINT_URL"),
             access_key=os.getenv("AWS_S3_ACCESS_KEY_ID"),
             secret_key=os.getenv("AWS_S3_SECRET_ACCESS_KEY"),
-            secure=_as_bool(os.getenv("AWS_S3_SECURE_ACCESS", "false")),
+            secure=os.getenv("AWS_S3_SECURE_ACCESS", "False").lower() == "true",
         )
 
-        bucket = "meet-media-storage"
+        # todo - raise error if none
+        self.bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
+        logger.info("Using S3 bucket: %s", self.bucket_name)
+        dotenv_path = find_dotenv()
+        logger.info(f"Fichier .env trouvé : {dotenv_path}")
+        self.ctx = ctx
+        self._sessions: dict[str, AgentSession] = {}
+        self._tasks: set[asyncio.Task] = set()
 
-        object_name = f"speaker_logs/speakers_{self.recording_id}.json"
+        self.output_filename = (
+            f"{os.getenv('AWS_S3_OUTPUT_FOLDER', 'metadata')}/{json.loads(recording_id).get("recording_id")}-metadata.json"
+        )
+
+        # Storage for events
+        self.events = []
+        self.participants = {}
+
+        logger.info("MetadataAgent initialized")
+
+    def start(self):
+        """Start listening for participant connection events."""
+        self.ctx.room.on("participant_connected", self.on_participant_connected)
+        self.ctx.room.on("participant_disconnected", self.on_participant_disconnected)
+        self.ctx.room.on("participant_name_changed", self.on_participant_name_changed)
+
+        self.ctx.room.register_text_stream_handler("lk.chat", self.handle_chat_stream)
+
+        logger.info("Started listening for participant events")
+
+    async def on_chat_message_received(
+        self, reader: rtc.TextStreamReader, participant_identity: str
+    ):
+        """Wip."""
+        full_text = await reader.read_all()
+        logger.info(
+            "Received chat message from %s: '%s'", participant_identity, full_text
+        )
+
+        self.events.append(
+            MetadataEvent(
+                participant_id=participant_identity,
+                type="chat_received",
+                timestamp=datetime.now(timezone.utc),
+                data=full_text,
+            )
+        )
+
+    def handle_chat_stream(self, reader, participant_identity):
+        """Wip."""
+        task = asyncio.create_task(
+            self.on_chat_message_received(reader, participant_identity)
+        )
+        self._tasks.add(task)
+        task.add_done_callback(lambda _: self._tasks.remove(task))
+
+    def save(self):
+        """Wip."""
+        logger.info("Persisting processed metadata output to disk…")
+
+        participants = []
+        for k, v in self.participants.items():
+            participants.append({"participantId": k, "name": v})
+
+        sorted_event = sorted(self.events, key=lambda e: e.timestamp)
+
+        payload = {
+            "events": [event.serialize() for event in sorted_event],
+            "participants": participants,
+        }
+
         data = json.dumps(payload, indent=2).encode("utf-8")
-
         stream = BytesIO(data)
 
         try:
-            minio_client.put_object(
-                bucket,
-                object_name,
+            self.minio_client.put_object(
+                self.bucket_name,
+                self.output_filename,
                 stream,
                 length=len(data),
                 content_type="application/json",
             )
             logger.info(
-                "Uploaded speaker intervals JSON to s3://%s/%s", bucket, object_name
+                "Uploaded speaker meeting metadata",
             )
         except S3Error:
             logger.exception(
-                "Failed to upload JSON to bucket=%s object=%s", bucket, object_name
+                "Failed to upload meeting metadata",
             )
+
+    async def aclose(self):
+        """Close all sessions and cleanup resources."""
+        logger.info("Closing all VAD monitoring sessions…")
+
+        await utils.aio.cancel_and_wait(*self._tasks)
+
+        await asyncio.gather(
+            *[self._close_session(session) for session in self._sessions.values()],
+            return_exceptions=True,
+        )
+
+        self.ctx.room.off("participant_connected", self.on_participant_connected)
+        self.ctx.room.off("participant_disconnected", self.on_participant_disconnected)
+        self.ctx.room.off("participant_name_changed", self.on_participant_name_changed)
+
+        logger.info("All VAD sessions closed")
+        self.save()
+
+    def on_participant_connected(self, participant: rtc.RemoteParticipant):
+        """Handle new participant connection by starting VAD monitoring."""
+        if participant.identity in self._sessions:
+            logger.debug("Session already exists for %s", participant.identity)
+            return
+
+        self.events.append(
+            MetadataEvent(
+                participant_id=participant.identity,
+                type="participant_connected",
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
+
+        self.participants[participant.identity] = participant.name
+
+        logger.info("New participant connected: %s", participant.identity)
+        task = asyncio.create_task(self._start_session(participant))
+        self._tasks.add(task)
+
+        def on_task_done(task: asyncio.Task):
+            try:
+                self._sessions[participant.identity] = task.result()
+            except Exception:
+                logger.exception("Failed to start session for %s", participant.identity)
+            finally:
+                self._tasks.discard(task)
+
+        task.add_done_callback(on_task_done)
+
+    def on_participant_disconnected(self, participant: rtc.RemoteParticipant):
+        """Handle participant disconnection by closing VAD monitoring."""
+        self.events.append(
+            MetadataEvent(
+                participant_id=participant.identity,
+                type="participant_disconnected",
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
+
+        session = self._sessions.pop(participant.identity, None)
+        if session is None:
+            logger.debug("No session found for %s", participant.identity)
+            return
+
+        logger.info("Participant disconnected: %s", participant.identity)
+        task = asyncio.create_task(self._close_session(session))
+        self._tasks.add(task)
+
+        def on_close_done(_):
+            self._tasks.discard(task)
+            logger.info(
+                "VAD session closed for %s (remaining sessions: %d)",
+                participant.identity,
+                len(self._sessions),
+            )
+
+        task.add_done_callback(on_close_done)
+
+    def on_participant_name_changed(self, participant: rtc.RemoteParticipant):
+        """Wip."""
+        logger.info("Participant's name changed: %s", participant.identity)
+        self.participants[participant.identity] = participant.name
+
+    async def _start_session(self, participant: rtc.RemoteParticipant) -> AgentSession:
+        """Create and start VAD monitoring session for participant."""
+        if participant.identity in self._sessions:
+            return self._sessions[participant.identity]
+
+        # Create session with VAD only - no STT, LLM, or TTS
+        session = AgentSession(
+            vad=self.ctx.proc.userdata["vad"],
+            turn_detection="vad",
+            user_away_timeout=30.0,
+        )
+
+        # Set up room IO to receive audio from this specific participant
+        room_io = RoomIO(
+            agent_session=session,
+            room=self.ctx.room,
+            participant=participant,
+            input_options=RoomInputOptions(
+                audio_enabled=True,
+                text_enabled=False,
+            ),
+            output_options=RoomOutputOptions(
+                audio_enabled=False,
+                transcription_enabled=False,
+            ),
+        )
+
+        await room_io.start()
+        await session.start(
+            agent=VADAgent(
+                participant_identity=participant.identity, events=self.events
+            )
+        )
+
+        return session
+
+    async def _close_session(self, session: AgentSession) -> None:
+        """Close and cleanup VAD monitoring session."""
+        try:
+            await session.drain()
+            await session.aclose()
+        except Exception:
+            logger.exception("Error closing session")
 
 
 async def entrypoint(ctx: JobContext):
-    """Main entrypoint for the metadata extractor agent."""
+    """Initialize and run the multi-user VAD monitor."""
+    logger.info("Starting metadata agent in room: %s", ctx.room.name)
+    recording_id = ctx.job.metadata
+    logger.info("Recording ID: %s", recording_id)
+    vad_monitor = MetadataAgent(ctx, recording_id)
+    vad_monitor.start()
+
+    # Connect to room and subscribe to audio only
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
-    rec_id = None
-    try:
-        raw = getattr(ctx.job, "metadata", None)
-        if raw:
-            rec_id = json.loads(raw).get("recording_id")
-    except Exception:
-        logger.debug("No/invalid recording_id in job metadata", exc_info=True)
-
-    lp = ctx.room.local_participant
-    logger.info(
-        "Connected to SFU; room=%s identity=%s sid=%s",
-        ctx.room.name,
-        getattr(lp, "identity", "<unknown>"),
-        getattr(lp, "sid", "<unknown>"),
-    )
-
-    tracker = SpeakerTracker(ctx.room.name, write_json=True, recording_id=rec_id)
-
-    def _on_participant_connected(p: rtc.RemoteParticipant):
-        dn = pretty_name(p)
-        logger.info("remote participant connected: %s (%s)", dn, p.sid)
-        tracker.display_names[p.identity] = dn
-
-    def _on_active_speakers_changed(speakers: list[rtc.Participant]):
-        idents = [p.identity for p in speakers]
-        for p in speakers:
-            tracker.display_names[p.identity] = pretty_name(p)
-        logger.info(
-            "active speakers changed: %s",
-            [tracker.display_names.get(i, i) for i in idents],
-        )
-        tracker.update_active_speakers(idents)
-
-    def _on_participant_disconnected(p: rtc.RemoteParticipant):
-        logger.info(
-            "remote participant disconnected: %s",
-            tracker.display_names.get(p.identity, p.identity),
-        )
-        tracker.on_participant_disconnected(p.identity)
-
-    if not ctx.proc.userdata.get("events_registered"):
-        ctx.room.on("participant_connected", _on_participant_connected)
-        ctx.room.on("active_speakers_changed", _on_active_speakers_changed)
-        ctx.room.on("participant_disconnected", _on_participant_disconnected)
-        ctx.proc.userdata["events_registered"] = True
+    existing_participants = list(ctx.room.remote_participants.values())
+    for participant in existing_participants:
+        vad_monitor.on_participant_connected(participant)
 
     async def cleanup():
-        if ctx.proc.userdata.get("events_registered"):
-            ctx.room.off("participant_connected", _on_participant_connected)
-            ctx.room.off("active_speakers_changed", _on_active_speakers_changed)
-            ctx.room.off("participant_disconnected", _on_participant_disconnected)
-            ctx.proc.userdata["events_registered"] = False
-        tracker.flush_all()
-        tracker.write_json()
+        logger.info("Shutting down VAD monitor...")
+        await vad_monitor.aclose()
 
     ctx.add_shutdown_callback(cleanup)
 
@@ -240,6 +345,7 @@ async def entrypoint(ctx: JobContext):
 async def handle_job_request(job_req: JobRequest) -> None:
     """Accept or reject the job request based on agent presence in the room."""
     room_name = job_req.room.name
+    recording_id = job_req.job.metadata
     agent_identity = f"{AGENT_NAME}-{room_name}"
 
     async with api.LiveKitAPI() as lk:
@@ -259,16 +365,22 @@ async def handle_job_request(job_req: JobRequest) -> None:
                 logger.info(
                     "Accept job for '%s' — identity=%s", room_name, agent_identity
                 )
-                await job_req.accept(identity=agent_identity)
+                await job_req.accept(identity=agent_identity, metadata=recording_id)
         except Exception:
             logger.exception("Error treating the job for '%s'", room_name)
             await job_req.reject()
+
+
+def prewarm(proc: JobProcess):
+    """Preload voice activity detection model."""
+    proc.userdata["vad"] = silero.VAD.load()
 
 
 if __name__ == "__main__":
     cli.run_app(
         WorkerOptions(
             entrypoint_fnc=entrypoint,
+            prewarm_fnc=prewarm,
             request_fnc=handle_job_request,
             agent_name=AGENT_NAME,
             permissions=WorkerPermissions(
