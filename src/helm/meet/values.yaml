@@ -546,7 +546,15 @@ celeryTranscribe:
   dpAnnotations: {}
 
   ## @param celeryTranscribe.command Override the celeryTranscribe container command
-  command: []
+  command:
+    - "celery"
+    - "-A"
+    - "summary.core.celery_worker"
+    - "worker"
+    - "--pool=solo"
+    - "--loglevel=info"
+    - "-Q"
+    - "transcribe-queue"
 
   ## @param celeryTranscribe.args Override the celeryTranscribe container args
   args: []
@@ -647,7 +655,15 @@ celerySummarize:
   dpAnnotations: {}
 
   ## @param celerySummarize.command Override the celerySummarize container command
-  command: []
+  command:
+    - "celery"
+    - "-A"
+    - "summary.core.celery_worker"
+    - "worker"
+    - "--pool=solo"
+    - "--loglevel=info"
+    - "-Q"
+    - "summarize-queue"
 
   ## @param celerySummarize.args Override the celerySummarize container args
   args: []
