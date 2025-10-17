@@ -8,8 +8,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from io import BytesIO
 from typing import List, Optional
-import json
-from dotenv import load_dotenv, find_dotenv
+
+from dotenv import find_dotenv, load_dotenv
 from livekit import api, rtc
 from livekit.agents import (
     Agent,
@@ -90,6 +90,7 @@ class VADAgent(Agent):
 
 class MetadataAgent:
     """Monitor and manage real-time metadata extraction from meeting rooms.
+
     Oversees VAD (Voice Activity Detection) and participant metadata streams
     to track and analyze real-time events, coordinating data collection across
     participants for insights like speaking activity and engagement.
@@ -114,7 +115,8 @@ class MetadataAgent:
         self._tasks: set[asyncio.Task] = set()
 
         self.output_filename = (
-            f"{os.getenv('AWS_S3_OUTPUT_FOLDER', 'metadata')}/{json.loads(recording_id).get("recording_id")}-metadata.json"
+            f"{os.getenv('AWS_S3_OUTPUT_FOLDER', 'recordings').strip('/')}/"
+            f"{json.loads(recording_id).get('recording_id')}-metadata.json"
         )
 
         # Storage for events
