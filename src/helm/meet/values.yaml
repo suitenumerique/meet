@@ -834,3 +834,21 @@ agents:
   ## @param agents.pdb.enabled Enable pdb on agents
   pdb:
     enabled: false
+
+## @section Extra Manifests
+
+## @param extraManifests Extra Kubernetes manifests to deploy
+## @extra extraManifests[].apiVersion API version of the resource
+## @extra extraManifests[].kind Kind of the resource (Deployment, Service, ConfigMap, etc.)
+## @extra extraManifests[].metadata Resource metadata
+## @extra extraManifests[].spec Resource specification
+extraManifests: []
+#  - apiVersion: v1
+#    kind: ConfigMap
+#    metadata:
+#      name: my-custom-config
+#    data:
+#      config.json: |
+#        {
+#          "feature": "enabled"
+#        }
