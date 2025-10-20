@@ -21,4 +21,4 @@ COPY --from=builder /install /usr/local
 
 COPY . .
 
-CMD ["python", "multi-user-transcriber.py", "start"]
+CMD ["python", "multi_user_transcriber.py", "start"]
