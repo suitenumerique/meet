@@ -182,7 +182,9 @@ def assign_participant_ids(  # noqa: PLR0912
                 speaker_to_participant[speaker] = participant["name"]
                 if mapping["confidence"] < overlap_threshold + 0.2:
                     speaker_to_participant[speaker] += "?"
+                logger.info(speaker, "->", speaker_to_participant[speaker], "conf:", mapping["confidence"])
                 break
+
     return speaker_to_participant
 
 
@@ -306,7 +308,7 @@ def format_segments(transcription_data, metadata=None, manifest=None):
             diarization_output=transcription_data,
             metadatas=metadata,
             recording_metadata=manifest,
-            overlap_threshold=0.5,
+            overlap_threshold=0.3,
         )
         logger.info("Speaker to participant mapping: %s", mapping)
         previous_label = None
@@ -462,7 +464,7 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
             os.remove(temp_file_path)
             logger.debug("Temporary file removed: %s", temp_file_path)
 
-    if (
+    if not (
         analytics.is_feature_enabled("is_metadata_agent_enabled", distinct_id=sub)
         and settings.is_summary_enabled
     ):
@@ -543,6 +545,10 @@ def process_audio_transcribe_summarize_v2(  # noqa: PLR0915
         )
     else:
         logger.info("Summary generation not enabled for this user.")
+        summarize_transcription.apply_async(
+            args=[formatted_transcription, email, sub, title],
+            queue=settings.summarize_queue,
+        )
 
 
 @celery.task(
