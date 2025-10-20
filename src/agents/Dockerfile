@@ -20,5 +20,3 @@ USER ${DOCKER_USER}
 COPY --from=builder /install /usr/local
 
 COPY . .
-
-CMD ["python", "multi-user-transcriber.py", "start"]

@@ -284,11 +284,11 @@ services:
           path: ./src/summary
 
   metadata-agent:
-    image: python:3.13-slim
+    build:
+      context: ./src/agents
+      dockerfile: Dockerfile
     working_dir: /app
-    volumes:
-      - ./src/agents:/app
-    command: ["sh","-lc","python -m pip install -U pip && python -m pip install --no-cache-dir 'livekit-agents==1.2.*' 'livekit-plugins-silero==1.2.*' 'livekit-plugins-deepgram==1.2.*' 'minio==7.2.*' 'python-dotenv==1.1.*' && python metadata_extractor.py start"]
+    command: ["python", "metadata_extractor.py", "start"]
     environment:
       LIVEKIT_URL: "ws://livekit:7880"
       LIVEKIT_API_KEY: "devkey"
@@ -304,3 +304,17 @@ services:
     depends_on:
       - livekit
       - minio
+
+  transcriber-agent:
+    build:
+      context: ./src/agents
+      dockerfile: Dockerfile
+    working_dir: /app
+    command: ["python", "multi-user-transcriber.py", "start"]
+    environment:
+      LIVEKIT_URL: "ws://livekit:7880"
+      LIVEKIT_API_KEY: "devkey"
+      LIVEKIT_API_SECRET: "secret"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      - livekit

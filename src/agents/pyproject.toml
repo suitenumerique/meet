@@ -7,7 +7,8 @@ dependencies = [
     "livekit-agents==1.2.6",
     "livekit-plugins-deepgram==1.2.6",
     "livekit-plugins-silero==1.2.6",
-    "python-dotenv==1.1.1"
+    "python-dotenv==1.1.1",
+    "minio==7.2.15",
 ]
 
 [project.optional-dependencies]
