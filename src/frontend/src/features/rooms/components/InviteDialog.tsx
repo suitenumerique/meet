@@ -23,12 +23,14 @@ const StyledRACDialog = styled(Dialog, {
   base: {
     position: 'fixed',
     left: '0.75rem',
+    right: '0.75rem',
     bottom: 80,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
-    width: '24.5rem',
+    maxWidth: '24.5rem',
+    width: 'calc(100% - 1.5rem)',
     borderRadius: '8px',
     padding: '1.5rem',
     boxShadow:
