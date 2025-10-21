@@ -28,6 +28,7 @@ import { LocalUserChoices } from '@/stores/userChoices'
 import { navigateTo } from '@/navigation/navigateTo'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
 import { usePostHog } from 'posthog-js/react'
+import { openPermissionsDialog } from '@/stores/permissions'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 
@@ -232,8 +233,12 @@ export const Conference = ({
             }
           }}
           onMediaDeviceFailure={(e, kind) => {
-            if (e == MediaDeviceFailure.DeviceInUse && !!kind) {
+            if (e == MediaDeviceFailure.DeviceInUse && kind) {
               setMediaDeviceError({ error: e, kind })
+            }
+            // Handle PermissionDenied by opening permissions dialog
+            if (e == MediaDeviceFailure.PermissionDenied && kind) {
+              openPermissionsDialog(kind)
             }
           }}
         >
