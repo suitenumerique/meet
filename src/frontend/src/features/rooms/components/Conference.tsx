@@ -233,16 +233,13 @@ export const Conference = ({
             }
           }}
           onMediaDeviceFailure={(e, kind) => {
-            if (e == MediaDeviceFailure.DeviceInUse && kind) {
+            if (e === MediaDeviceFailure.DeviceInUse && kind) {
               setMediaDeviceError({ error: e, kind })
             }
-            // Handle PermissionDenied by opening permissions dialog
-            if (e == MediaDeviceFailure.PermissionDenied && kind) {
-              // openPermissionsDialog accepts only 'audioinput' or 'videoinput'
-              if (kind === 'audioinput' || kind === 'videoinput') {
-                openPermissionsDialog(kind)
-              }
+            if (e === MediaDeviceFailure.PermissionDenied && kind && (kind === 'audioinput' || kind === 'videoinput')) {
+              openPermissionsDialog(kind)
             }
+          }}
         >
           <VideoConference />
           {showInviteDialog && (
