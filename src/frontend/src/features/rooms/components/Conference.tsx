@@ -238,9 +238,11 @@ export const Conference = ({
             }
             // Handle PermissionDenied by opening permissions dialog
             if (e == MediaDeviceFailure.PermissionDenied && kind) {
-              openPermissionsDialog(kind)
+              // openPermissionsDialog accepts only 'audioinput' or 'videoinput'
+              if (kind === 'audioinput' || kind === 'videoinput') {
+                openPermissionsDialog(kind)
+              }
             }
-          }}
         >
           <VideoConference />
           {showInviteDialog && (
