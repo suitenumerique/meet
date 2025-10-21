@@ -15,7 +15,7 @@ i18n
   .use(LanguageDetector)
   .init({
     supportedLngs: ['en', 'fr', 'nl', 'de'],
-    fallbackLng: 'fr',
+    fallbackLng: 'en',
     ns: i18nDefaultNamespace,
     detection: {
       order: ['localStorage', 'navigator'],
