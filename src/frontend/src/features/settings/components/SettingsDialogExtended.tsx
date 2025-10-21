@@ -22,12 +22,11 @@ import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 const getTabsStyle = (isMobile: boolean) =>
   css({
-    maxHeight: isMobile ? 'calc(100vh - 2rem)' : '40.625rem',
-    width: isMobile ? '100%' : '50rem',
+    maxHeight: isMobile ? 'calc(100vh - 2rem)' : '650px',
+    width: isMobile ? '100%' : '800px',
     marginY: '-1rem', // fixme hacky solution to cancel modal padding
     maxWidth: '100%',
     overflow: 'hidden',
-    height: 'calc(100vh - 2rem)',
   })
 
 const tabListContainerStyle = css({
@@ -70,7 +69,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
         <div
           className={tabListContainerStyle}
           style={{
-            flex: isWideScreen ? '0 0 16rem' : undefined,
+            flex: isWideScreen ? '0 0 16rem' : '0 0 4rem',
             paddingTop: !isWideScreen ? '64px' : undefined,
             paddingRight: !isWideScreen ? '1rem' : undefined,
           }}

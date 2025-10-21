@@ -236,7 +236,11 @@ export const Conference = ({
             if (e === MediaDeviceFailure.DeviceInUse && kind) {
               setMediaDeviceError({ error: e, kind })
             }
-            if (e === MediaDeviceFailure.PermissionDenied && kind && (kind === 'audioinput' || kind === 'videoinput')) {
+            if (
+              e === MediaDeviceFailure.PermissionDenied &&
+              kind &&
+              (kind === 'audioinput' || kind === 'videoinput')
+            ) {
               openPermissionsDialog(kind)
             }
           }}

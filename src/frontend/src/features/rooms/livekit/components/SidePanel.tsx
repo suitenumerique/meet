@@ -71,52 +71,52 @@ const StyledSidePanel = ({
           : 'none',
       }}
     >
-    <Heading
-      slot="title"
-      level={1}
-      className={text({ variant: 'h2' })}
-      style={{
-        paddingLeft: '1.5rem',
-        paddingTop: '1rem',
-        display: isClosed ? 'none' : 'flex',
-        justifyContent: 'start',
-        alignItems: 'center',
-      }}
-    >
-      {isSubmenu && (
-        <Button
-          variant="secondaryText"
-          size={'sm'}
-          square
-          className={css({ marginRight: '0.5rem' })}
-          onPress={onBack}
-        >
-          <RiArrowLeftLine size={20} />
-        </Button>
-      )}
-      {title}
-    </Heading>
-    <Div
-      position="absolute"
-      top="5"
-      right="5"
-      style={{
-        display: isClosed ? 'none' : undefined,
-      }}
-    >
-      <Button
-        invisible
-        variant="tertiaryText"
-        size="xs"
-        onPress={onClose}
-        aria-label={closeButtonTooltip}
-        tooltip={closeButtonTooltip}
+      <Heading
+        slot="title"
+        level={1}
+        className={text({ variant: 'h2' })}
+        style={{
+          paddingLeft: '1.5rem',
+          paddingTop: '1rem',
+          display: isClosed ? 'none' : 'flex',
+          justifyContent: 'start',
+          alignItems: 'center',
+        }}
       >
-        <RiCloseLine />
-      </Button>
-    </Div>
-    {children}
-  </div>
+        {isSubmenu && (
+          <Button
+            variant="secondaryText"
+            size={'sm'}
+            square
+            className={css({ marginRight: '0.5rem' })}
+            onPress={onBack}
+          >
+            <RiArrowLeftLine size={20} />
+          </Button>
+        )}
+        {title}
+      </Heading>
+      <Div
+        position="absolute"
+        top="5"
+        right="5"
+        style={{
+          display: isClosed ? 'none' : undefined,
+        }}
+      >
+        <Button
+          invisible
+          variant="tertiaryText"
+          size="xs"
+          onPress={onClose}
+          aria-label={closeButtonTooltip}
+          tooltip={closeButtonTooltip}
+        >
+          <RiCloseLine />
+        </Button>
+      </Div>
+      {children}
+    </div>
   )
 }
 

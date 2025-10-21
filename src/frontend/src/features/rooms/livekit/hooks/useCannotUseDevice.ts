@@ -16,7 +16,9 @@ export const useCannotUseDevice = (kind: MediaDeviceKind) => {
     // iOS WebKit Permissions API workaround
     // Always return false on iOS to prevent false positive warnings
     // Real permission errors are handled via onMediaDeviceFailure
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
+    const isIOS = /iPhone|iPad|iPod/.test(
+      navigator.platform || navigator.userAgent
+    )
     if (isIOS) {
       return false
     }
