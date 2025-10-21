@@ -13,6 +13,13 @@ export const useCannotUseDevice = (kind: MediaDeviceKind) => {
 
   return useMemo(() => {
     if (isLoading) return true
+    // iOS WebKit Permissions API workaround
+    // Always return false on iOS to prevent false positive warnings
+    // Real permission errors are handled via onMediaDeviceFailure
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
+    if (isIOS) {
+      return false
+    }
 
     switch (kind) {
       case 'audioinput':
