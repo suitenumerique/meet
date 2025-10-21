@@ -20,14 +20,15 @@ import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
-const tabsStyle = css({
-  maxHeight: '40.625rem', // fixme size copied from meet settings modal
-  width: '50rem', // fixme size copied from meet settings modal
-  marginY: '-1rem', // fixme hacky solution to cancel modal padding
-  maxWidth: '100%',
-  overflow: 'hidden',
-  height: 'calc(100vh - 2rem)',
-})
+const getTabsStyle = (isMobile: boolean) =>
+  css({
+    maxHeight: isMobile ? 'calc(100vh - 2rem)' : '40.625rem',
+    width: isMobile ? '100%' : '50rem',
+    marginY: '-1rem', // fixme hacky solution to cancel modal padding
+    maxWidth: '100%',
+    overflow: 'hidden',
+    height: 'calc(100vh - 2rem)',
+  })
 
 const tabListContainerStyle = css({
   display: 'flex',
@@ -57,12 +58,13 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
 
   const dialogEl = useRef<HTMLDivElement>(null)
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
+  const isMobile = !useMediaQuery('(min-width: 768px)')
 
   return (
     <Dialog innerRef={dialogEl} {...props} role="dialog" type="flex">
       <Tabs
         orientation="vertical"
-        className={tabsStyle}
+        className={getTabsStyle(isMobile)}
         defaultSelectedKey={props.defaultSelectedTab}
       >
         <div

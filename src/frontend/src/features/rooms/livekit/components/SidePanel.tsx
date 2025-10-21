@@ -13,6 +13,7 @@ import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 
 type StyledSidePanelProps = {
   title: string
@@ -22,6 +23,7 @@ type StyledSidePanelProps = {
   closeButtonTooltip: string
   isSubmenu: boolean
   onBack: () => void
+  isMobile: boolean
 }
 
 const StyledSidePanel = ({
@@ -32,33 +34,43 @@ const StyledSidePanel = ({
   closeButtonTooltip,
   isSubmenu = false,
   onBack,
-}: StyledSidePanelProps) => (
-  <div
-    className={css({
-      borderWidth: '1px',
-      borderStyle: 'solid',
-      borderColor: 'box.border',
-      backgroundColor: 'box.bg',
-      color: 'box.text',
-      borderRadius: 8,
-      flex: 1,
-      position: 'absolute',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      margin: '1.5rem 1.5rem 1.5rem 0',
-      padding: 0,
-      gap: 0,
-      right: 0,
-      top: 0,
-      bottom: '80px',
-      width: '360px',
-      transition: '.5s cubic-bezier(.4,0,.2,1) 5ms',
-    })}
-    style={{
-      transform: isClosed ? 'translateX(calc(360px + 1.5rem))' : 'none',
-    }}
-  >
+  isMobile,
+}: StyledSidePanelProps) => {
+  const sidebarWidth = isMobile ? 'calc(100vw - 1rem)' : '360px'
+  const sidebarMargin = isMobile ? '0.5rem' : '1.5rem'
+
+  return (
+    <div
+      className={css({
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderColor: 'box.border',
+        backgroundColor: 'box.bg',
+        color: 'box.text',
+        borderRadius: 8,
+        flex: 1,
+        position: 'absolute',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: 0,
+        gap: 0,
+        right: 0,
+        top: 0,
+        bottom: '80px',
+        transition: '.5s cubic-bezier(.4,0,.2,1) 5ms',
+      })}
+      style={{
+        width: sidebarWidth,
+        maxWidth: isMobile ? undefined : '360px',
+        margin: isMobile
+          ? `${sidebarMargin} ${sidebarMargin} ${sidebarMargin} 0`
+          : `${sidebarMargin} ${sidebarMargin} ${sidebarMargin} 0`,
+        transform: isClosed
+          ? `translateX(calc(${sidebarWidth} + ${sidebarMargin}))`
+          : 'none',
+      }}
+    >
     <Heading
       slot="title"
       level={1}
@@ -105,7 +117,8 @@ const StyledSidePanel = ({
     </Div>
     {children}
   </div>
-)
+  )
+}
 
 type PanelProps = {
   isOpen: boolean
@@ -140,6 +153,7 @@ export const SidePanel = () => {
     activeSubPanelId,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
+  const isMobile = !useMediaQuery('(min-width: 768px)')
 
   return (
     <StyledSidePanel
@@ -154,6 +168,7 @@ export const SidePanel = () => {
       isClosed={!isSidePanelOpen}
       isSubmenu={isSubPanelOpen}
       onBack={() => (layoutStore.activeSubPanelId = null)}
+      isMobile={isMobile}
     >
       <Panel isOpen={isParticipantsOpen}>
         <ParticipantsList />
