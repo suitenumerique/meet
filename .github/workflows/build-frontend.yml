@@ -32,7 +32,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./src/frontend
+          context: .
           file: ./src/frontend/Dockerfile
           target: frontend-production
           push: true
