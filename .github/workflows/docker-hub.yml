@@ -47,7 +47,7 @@ jobs:
         with:
           context: .
           target: backend-production
-          build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
+          build-args: DOCKER_USER=${{ env.DOCKER_USER }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -84,7 +84,7 @@ jobs:
           context: .
           file: ./src/frontend/Dockerfile
           target: frontend-production
-          build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
+          build-args: DOCKER_USER=${{ env.DOCKER_USER }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -121,7 +121,7 @@ jobs:
           context: .
           file: ./docker/dinum-frontend/Dockerfile
           target: frontend-production
-          build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
+          build-args: DOCKER_USER=${{ env.DOCKER_USER }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -152,7 +152,7 @@ jobs:
           context: ./src/summary
           file: ./src/summary/Dockerfile
           target: production
-          build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
+          build-args: DOCKER_USER=${{ env.DOCKER_USER }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -183,7 +183,7 @@ jobs:
           context: ./src/agents
           file: ./src/agents/Dockerfile
           target: production
-          build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
+          build-args: DOCKER_USER=${{ env.DOCKER_USER }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
