@@ -24,7 +24,7 @@ RUN npm run build
 # Inject PostHog sourcemap metadata into the built assets
 # This metadata is essential for correctly mapping errors to source maps in production
 RUN set -e && \
-    npx @posthog/cli sourcemap inject --directory ./dist/assets
+    npx @posthog/cli@0.4.8 sourcemap inject --directory ./dist/assets
 
 COPY ./docker/dinum-frontend/dinum-styles.css \
     ./dist/assets/
