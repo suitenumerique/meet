@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     llm_api_key: str
     llm_model: str
 
+    # Transcription processing
+    hallucination_patterns: List[str] = ["Vap'n'Roll Thierry"]
+    hallucination_replacement_text: str = "[Texte impossible à transcrire]"
+
     # Webhook-related settings
     webhook_max_retries: int = 2
     webhook_status_forcelist: List[int] = [502, 503, 504]

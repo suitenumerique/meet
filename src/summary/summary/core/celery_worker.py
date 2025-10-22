@@ -31,6 +31,7 @@ from summary.core.prompt import (
     PROMPT_SYSTEM_TLDR,
     PROMPT_USER_PART,
 )
+from summary.core.transcript_formatter import TranscriptFormatter
 
 settings = get_settings()
 analytics = get_analytics()
@@ -54,28 +55,6 @@ if settings.sentry_dsn and settings.sentry_is_enabled:
     def init_sentry(**_kwargs):
         """Initialize sentry."""
         sentry_sdk.init(dsn=settings.sentry_dsn, enable_tracing=True)
-
-
-DEFAULT_EMPTY_TRANSCRIPTION = """
-**Aucun contenu audio n’a été détecté dans votre transcription.**
-
-
-*Si vous pensez qu’il s’agit d’une erreur, n’hésitez pas à contacter
-notre support technique : visio@numerique.gouv.fr*
-
-.
-
-.
-
-.
-
-Quelques points que nous vous conseillons de vérifier :
-- Un micro était-il activé ?
-- Étiez-vous suffisamment proche ?
-- Le micro est-il de bonne qualité ?
-- L’enregistrement dure-t-il plus de 30 secondes ?
-
-"""
 
 
 class AudioValidationError(Exception):
@@ -164,36 +143,6 @@ def format_actions(llm_output: dict) -> str:
     if lines:
         return "### Prochaines étapes\n\n" + "\n".join(lines)
     return ""
-
-
-def format_segments(transcription_data):
-    """Format transcription segments from WhisperX into a readable conversation format.
-
-    Processes transcription data with segments containing speaker information and text,
-    combining consecutive segments from the same speaker and formatting them as a
-    conversation with speaker labels.
-    """
-    formatted_output = ""
-    if not transcription_data or not hasattr(transcription_data, "segments"):
-        if isinstance(transcription_data, dict) and "segments" in transcription_data:
-            segments = transcription_data["segments"]
-        else:
-            return "Error: Invalid transcription data format"
-    else:
-        segments = transcription_data.segments
-
-    previous_speaker = None
-
-    for segment in segments:
-        speaker = segment.get("speaker", "UNKNOWN_SPEAKER")
-        text = segment.get("text", "")
-        if text:
-            if speaker != previous_speaker:
-                formatted_output += f"\n\n **{speaker}**: {text}"
-            else:
-                formatted_output += f" {text}"
-            previous_speaker = speaker
-    return formatted_output
 
 
 def post_with_retries(url, data):
@@ -306,25 +255,20 @@ def process_audio_transcribe_summarize_v2(
             os.remove(temp_file_path)
             logger.debug("Temporary file removed: %s", temp_file_path)
 
-    formatted_transcription = (
-        DEFAULT_EMPTY_TRANSCRIPTION
-        if not transcription.segments
-        else format_segments(transcription)
-    )
-
     metadata_manager.track_transcription_metadata(task_id, transcription)
 
-    if not room or not recording_date or not recording_time:
-        title = settings.document_default_title
-    else:
-        title = settings.document_title_template.format(
-            room=room,
-            room_recording_date=recording_date,
-            room_recording_time=recording_time,
-        )
+    formatter = TranscriptFormatter()
+
+    content, title = formatter.format(
+        transcription,
+        room=room,
+        recording_date=recording_date,
+        recording_time=recording_time,
+    )
+
     data = {
         "title": title,
-        "content": formatted_transcription,
+        "content": content,
         "email": email,
         "sub": sub,
     }
@@ -356,7 +300,7 @@ def process_audio_transcribe_summarize_v2(
     ):
         logger.info("Queuing summary generation task.")
         summarize_transcription.apply_async(
-            args=[formatted_transcription, email, sub, title],
+            args=[content, email, sub, title],
             queue=settings.summarize_queue,
         )
     else:
