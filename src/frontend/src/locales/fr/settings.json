@@ -76,9 +76,15 @@
       "enable": "Activer"
     },
     "items": {
-      "participantJoined": "Un nouveau participant",
-      "handRaised": "Une main levée",
-      "messageReceived": "Un message reçu"
+      "participantJoined": {
+        "label": "Un nouveau participant"
+      },
+      "handRaised": {
+        "label": "Une main levée"
+      },
+      "messageReceived": {
+        "label": "Un message reçu"
+      }
     }
   },
   "dialog": {

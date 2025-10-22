@@ -76,9 +76,15 @@
       "enable": "Aktivieren"
     },
     "items": {
-      "participantJoined": "Teilnehmer beigetreten",
-      "handRaised": "Hand gehoben",
-      "messageReceived": "Nachricht erhalten"
+      "participantJoined": {
+        "label": "Teilnehmer beigetreten"
+      },
+      "handRaised": {
+        "label": "Hand gehoben"
+      },
+      "messageReceived": {
+        "label": "Nachricht erhalten"
+      }
     }
   },
   "dialog": {
