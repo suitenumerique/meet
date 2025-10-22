@@ -1,9 +1,11 @@
 """Admin classes and registrations for core app."""
 
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth import admin as auth_admin
 from django.utils.translation import gettext_lazy as _
+
+from core.recording.event import notification
 
 from . import models
 
@@ -121,6 +123,58 @@ class RecordingAccessInline(admin.TabularInline):
     extra = 0
 
 
+@admin.action(description=_("Resend notification to external service"))
+def resend_notification(modeladmin, request, queryset):  # pylint: disable=unused-argument
+    """Resend notification to external service for selected recordings."""
+
+    notification_service = notification.NotificationService()
+    processed = 0
+    skipped = 0
+    failed = 0
+
+    for recording in queryset:
+        if recording.is_expired:
+            skipped += 1
+            continue
+
+        try:
+            success = notification_service.notify_external_services(recording)
+
+            if success:
+                processed += 1
+            else:
+                failed += 1
+                modeladmin.message_user(
+                    request,
+                    _("Failed to notify for recording %(id)s") % {"id": recording.id},
+                    level=messages.ERROR,
+                )
+
+        except Exception as e:  # noqa: BLE001 # pylint: disable=broad-except
+            failed += 1
+            modeladmin.message_user(
+                request,
+                _("Failed to notify for recording %(id)s: %(error)s")
+                % {"id": recording.id, "error": str(e)},
+                level=messages.ERROR,
+            )
+
+    if processed > 0:
+        modeladmin.message_user(
+            request,
+            _("Successfully sent notifications for %(count)s recording(s).")
+            % {"count": processed},
+            level=messages.SUCCESS,
+        )
+
+    if skipped > 0:
+        modeladmin.message_user(
+            request,
+            _("Skipped %(count)s expired recording(s).") % {"count": skipped},
+            level=messages.WARNING,
+        )
+
+
 @admin.register(models.Recording)
 class RecordingAdmin(admin.ModelAdmin):
     """Recording admin interface declaration."""
@@ -130,6 +184,7 @@ class RecordingAdmin(admin.ModelAdmin):
     list_display = ("id", "status", "room", "get_owner", "created_at", "worker_id")
     list_filter = ["status", "room", "created_at"]
     readonly_fields = ["id", "created_at", "updated_at"]
+    actions = [resend_notification]
 
     def get_queryset(self, request):
         """Optimize queries by prefetching related access and user data to avoid N+1 queries."""
