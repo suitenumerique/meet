@@ -76,9 +76,15 @@
       "enable": "Inschakelen"
     },
     "items": {
-      "participantJoined": "Deelnemer is toegevoegd",
-      "handRaised": "Hand opgestoken",
-      "messageReceived": "Bericht ontvangen"
+      "participantJoined": {
+        "label": "Deelnemer is toegevoegd"
+      },
+      "handRaised": {
+        "label": "Hand opgestoken"
+      },
+      "messageReceived": {
+        "label": "Bericht ontvangen"
+      }
     }
   },
   "dialog": {

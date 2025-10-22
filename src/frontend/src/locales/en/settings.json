@@ -76,9 +76,15 @@
       "enable": "Enable"
     },
     "items": {
-      "participantJoined": "Participant joined",
-      "handRaised": "Hand raised",
-      "messageReceived": "Message received"
+      "participantJoined": {
+        "label": "Participant joined"
+      },
+      "handRaised": {
+        "label": "Hand raised"
+      },
+      "messageReceived": {
+        "label": "Message received"
+      }
     }
   },
   "dialog": {

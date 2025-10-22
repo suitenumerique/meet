@@ -1,5 +1,5 @@
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
-import { H, Switch } from '@/primitives'
+import { Field, H } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
@@ -23,15 +23,19 @@ export const NotificationsTab = ({ id }: NotificationsTabProps) => {
         {Array.from(notificationsSnap.soundNotifications).map(
           ([key, value]) => (
             <li key={key}>
-              <Switch
-                aria-label={`${t(`actions.${value ? 'disable' : 'enable'}`)} ${t('label')} "${t(`items.${key}`)}"`}
+              <Field
+                type="switch"
+                aria-label={`${t(`actions.${value ? 'disable' : 'enable'}`)} ${t('label')} "${t(`items.${key}.label`)}"`}
+                label={t(`items.${key}.label`)}
                 isSelected={value}
                 onChange={(v) => {
                   notificationsStore.soundNotifications.set(key, v)
                 }}
-              >
-                {t(`items.${key}`)}
-              </Switch>
+                wrapperProps={{
+                  noMargin: true,
+                  fullWidth: true,
+                }}
+              />
             </li>
           )
         )}
