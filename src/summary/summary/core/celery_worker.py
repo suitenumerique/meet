@@ -193,6 +193,9 @@ def format_segments(transcription_data):
             else:
                 formatted_output += f" {text}"
             previous_speaker = speaker
+    formatted_output = formatted_output.replace(
+        "Vap'n'Roll Thierry", "[texte impossible à transcrire]"
+    )
     return formatted_output
 
 
