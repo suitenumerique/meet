@@ -123,7 +123,7 @@ class MetadataManager:
             logger.error("Invalid number of arguments to enable metadata manager.")
             return
 
-        filename, email, _, received_at, *_ = task_args
+        _, filename, email, _, received_at, *_ = task_args
 
         initial_metadata = {
             **initial_metadata,
