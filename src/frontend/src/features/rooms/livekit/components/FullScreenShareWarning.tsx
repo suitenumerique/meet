@@ -71,7 +71,6 @@ export const FullScreenShareWarning = ({
     <div
       className={css({
         position: 'absolute',
-        zIndex: '1000',
         height: '100%',
         width: '100%',
       })}
@@ -81,7 +80,6 @@ export const FullScreenShareWarning = ({
         <div
           className={css({
             position: 'absolute',
-            zIndex: '1000',
             height: '100%',
             width: '100%',
             backgroundColor: 'rgba(22, 22, 34, 0.9)',
