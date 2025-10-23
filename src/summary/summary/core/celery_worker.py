@@ -7,7 +7,7 @@ import os
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 import openai
 import sentry_sdk
@@ -166,6 +166,91 @@ def format_actions(llm_output: dict) -> str:
     return ""
 
 
+def _split_src(src: str) -> List[str]:
+    """Split the source string into words, ignoring extra spaces."""
+    return [w for w in src.split() if w]
+
+
+def _find_consecutive_exact(
+    tokens: List[str], src_words: List[str]
+) -> List[Tuple[int, int]]:
+    """Find all occurrences of src_words as consecutive tokens in the tokens list."""
+    wins: List[Tuple[int, int]] = []
+    if not tokens or not src_words:
+        return wins
+    n, m = len(tokens), len(src_words)
+    i = 0
+    while i <= n - m:
+        if tokens[i : i + m] == src_words:
+            wins.append((i, i + m - 1))
+            i += m
+        else:
+            i += 1
+    return wins
+
+
+def _merge_slice(words: List[Dict[str, Any]], i: int, j: int, dst: str) -> None:
+    """Merge a slice of word dicts from index i to j into a single word dict."""
+    first, last = words[i], words[j]
+    merged = dict(first)
+    merged["word"] = dst
+    if "start" in first:
+        merged["start"] = first["start"]
+    if "end" in last:
+        merged["end"] = last["end"]
+    words[i : j + 1] = [merged]
+
+
+def _apply_seq_replacements_exact(
+    words: List[Dict[str, Any]], repls: List[Tuple[str, str]]
+) -> None:
+    """Aplly sequential exact replacements in a list of word dicts."""
+    tokens = [w.get("word", "") for w in words]
+    for old, new in repls:
+        if not old:
+            continue
+        src_words = _split_src(old)
+        if not src_words:
+            continue
+        matches = _find_consecutive_exact(tokens, src_words)
+        if not matches:
+            continue
+        for i, j in reversed(matches):
+            _merge_slice(words, i, j, new)
+            tokens[i : j + 1] = [new]
+
+
+def replace_in_transcription(
+    transcription: Dict[str, Any] | Any,
+    replacements: List[Tuple[str, str]],
+) -> Dict[str, Any] | Any:
+    """Apply string replacements in the transcription data structure."""
+    segments = (
+        transcription.segments
+        if hasattr(transcription, "segments")
+        else transcription.get("segments", [])
+    )
+    word_segments = (
+        transcription.word_segments
+        if hasattr(transcription, "word_segments")
+        else transcription.get("word_segments", [])
+    )
+
+    for seg in segments:
+        if isinstance(seg, dict) and isinstance(seg.get("text"), str):
+            txt = seg["text"]
+            for old, new in replacements:
+                if old and old in txt:
+                    txt = txt.replace(old, new)
+                    if isinstance(seg, dict) and isinstance(seg.get("words"), list):
+                        _apply_seq_replacements_exact(seg["words"], replacements)
+            seg["text"] = txt
+    if isinstance(word_segments, list):
+        _apply_seq_replacements_exact(word_segments, replacements)
+
+    return transcription
+
+
 def format_segments(transcription_data):
     """Format transcription segments from WhisperX into a readable conversation format.
 
@@ -193,9 +278,6 @@ def format_segments(transcription_data):
             else:
                 formatted_output += f" {text}"
             previous_speaker = speaker
-    formatted_output = formatted_output.replace(
-        "Vap'n'Roll Thierry", "[texte impossible à transcrire]"
-    )
     return formatted_output
 
 
@@ -304,6 +386,11 @@ def process_audio_transcribe_summarize_v2(
             os.remove(temp_file_path)
             logger.debug("Temporary file removed: %s", temp_file_path)
 
+    transcription = replace_in_transcription(
+        transcription, replacements=settings.replacement_sequence
+    )
+
+    logger.debug("Transcription after replacements: \n %s", transcription)
     formatted_transcription = (
         DEFAULT_EMPTY_TRANSCRIPTION
         if not transcription.segments
