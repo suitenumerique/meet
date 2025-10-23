@@ -233,10 +233,15 @@ def process_audio_transcribe_summarize_v2(
     3. Sends the results via webhook
 
     """
-    logger.info("Notification received")
-    logger.debug("filename: %s", filename)
+    logger.info(
+        "Notification received | Owner: %s | Room: %s",
+        owner_id,
+        room,
+    )
 
     task_id = self.request.id
+
+    logger.info("Download recording | Filename: %s", filename)
 
     minio_client = Minio(
         settings.aws_s3_endpoint_url,
@@ -278,7 +283,9 @@ def process_audio_transcribe_summarize_v2(
     )
 
     try:
-        logger.info("Querying transcription …")
+        logger.info(
+            "Querying transcription for %s seconds of audio …", audio_file.info.length
+        )
         transcription_start_time = time.time()
         with open(temp_file_path, "rb") as audio_file:
             transcription = whisperx_client.audio.transcriptions.create(
@@ -286,15 +293,13 @@ def process_audio_transcribe_summarize_v2(
                 file=audio_file,
                 language=settings.whisperx_default_language,
             )
+
+            transcription_time = round(time.time() - transcription_start_time, 2)
             metadata_manager.track(
                 task_id,
-                {
-                    "transcription_time": round(
-                        time.time() - transcription_start_time, 2
-                    )
-                },
+                {"transcription_time": transcription_time},
             )
-            logger.info("Transcription received.")
+            logger.info("Transcription received in %s seconds.", transcription_time)
             logger.debug("Transcription: \n %s", transcription)
     finally:
         if os.path.exists(temp_file_path):
@@ -329,8 +334,19 @@ def process_audio_transcribe_summarize_v2(
 
     response = post_with_retries(settings.webhook_url, data)
 
-    logger.info("Webhook submitted successfully. Status: %s", response.status_code)
-    logger.debug("Response body: %s", response.text)
+    try:
+        response_data = response.json()
+        document_id = response_data.get("id", "N/A")
+    except (json.JSONDecodeError, AttributeError):
+        document_id = "Unable to parse response"
+        response_data = response.text
+
+    logger.info(
+        "Webhook success | Document %s submitted (HTTP %s)",
+        document_id,
+        response.status_code,
+    )
+    logger.debug("Full response: %s", response_data)
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
@@ -344,7 +360,7 @@ def process_audio_transcribe_summarize_v2(
             queue=settings.summarize_queue,
         )
     else:
-        logger.info("Summary generation not enabled for this user.")
+        logger.info("Summary generation not enabled for this user. Skipping.")
 
 
 @signals.task_prerun.connect(sender=process_audio_transcribe_summarize_v2)
