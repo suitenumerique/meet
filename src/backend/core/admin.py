@@ -111,9 +111,26 @@ class RoomAdmin(admin.ModelAdmin):
 
     inlines = (ResourceAccessInline,)
     search_fields = ["name", "slug", "=id"]
-    list_display = ["name", "slug", "access_level", "created_at"]
+    list_display = ["name", "slug", "access_level", "get_owner", "created_at"]
     list_filter = ["access_level", "created_at"]
     readonly_fields = ["id", "created_at", "updated_at"]
+
+    def get_owner(self, obj):
+        """Return the owner of the room for display in the admin list."""
+
+        owners = [
+            access
+            for access in obj.accesses.all()
+            if access.role == models.RoleChoices.OWNER
+        ]
+
+        if not owners:
+            return _("No owner")
+
+        if len(owners) > 1:
+            return _("Multiple owners")
+
+        return str(owners[0].user)
 
 
 class RecordingAccessInline(admin.TabularInline):
