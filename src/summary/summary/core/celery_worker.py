@@ -1,6 +1,6 @@
 """Celery workers."""
 
-# ruff: noqa: PLR0913
+# ruff: noqa: PLR0913, PLR0915
 
 import json
 import os
