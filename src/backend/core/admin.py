@@ -181,7 +181,15 @@ class RecordingAdmin(admin.ModelAdmin):
 
     inlines = (RecordingAccessInline,)
     search_fields = ["status", "=id", "worker_id", "room__slug", "=room__id"]
-    list_display = ("id", "status", "room", "get_owner", "created_at", "worker_id")
+    list_display = (
+        "id",
+        "status",
+        "mode",
+        "room",
+        "get_owner",
+        "created_at",
+        "worker_id",
+    )
     list_filter = ["status", "room", "created_at"]
     readonly_fields = ["id", "created_at", "updated_at"]
     actions = [resend_notification]
