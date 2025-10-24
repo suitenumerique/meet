@@ -29,15 +29,72 @@ logger = logging.getLogger("transcriber")
 
 TRANSCRIBER_AGENT_NAME = os.getenv("TRANSCRIBER_AGENT_NAME", "multi-user-transcriber")
 
+# Default Deepgram STT configuration
+DEEPGRAM_STT_DEFAULTS = {
+    "model": "nova-3",
+    "language": "multi",
+}
+
+# Supported parameters for LiveKit's deepgram.STT() in streaming mode
+# Note: Not all Deepgram API parameters are supported by the LiveKit plugin
+# detect_language is NOT supported for real-time streaming
+# Use language="multi" instead for automatic multilingual support
+DEEPGRAM_STT_SUPPORTED_PARAMS = {
+    "model",
+    "language",
+}
+
+
+def _build_deepgram_stt_kwargs():
+    """Build Deepgram STT kwargs from DEEPGRAM_STT_* environment variables.
+
+    Only parameters supported by LiveKit's deepgram.STT() are included.
+    Unsupported parameters are logged as warnings.
+    """
+    stt_kwargs = DEEPGRAM_STT_DEFAULTS.copy()
+
+    # Scan environment variables for DEEPGRAM_STT_* pattern
+    for key, value in os.environ.items():
+        if key.startswith("DEEPGRAM_STT_"):
+            # Extract parameter name and convert to lowercase
+            param_name = key.replace("DEEPGRAM_STT_", "", 1).lower()
+
+            # Check if parameter is supported by LiveKit plugin
+            if param_name not in DEEPGRAM_STT_SUPPORTED_PARAMS:
+                supported = ", ".join(sorted(DEEPGRAM_STT_SUPPORTED_PARAMS))
+                logger.warning(
+                    f"Ignoring unsupported Deepgram STT parameter: {param_name}. "
+                    f"Supported parameters: {supported}"
+                )
+                continue
+
+            # Parse value type
+            value_lower = value.lower()
+            if value_lower in ("true", "false"):
+                # Boolean values
+                stt_kwargs[param_name] = value_lower == "true"
+            elif value.isdigit():
+                # Integer values
+                stt_kwargs[param_name] = int(value)
+            else:
+                # String values
+                stt_kwargs[param_name] = value
+
+    logger.info(f"Deepgram STT configuration: {stt_kwargs}")
+    return stt_kwargs
+
 
 class Transcriber(Agent):
     """Create a transcription agent for a specific participant."""
 
     def __init__(self, *, participant_identity: str):
         """Init transcription agent."""
+        # Build STT configuration from environment variables
+        stt_kwargs = _build_deepgram_stt_kwargs()
+
         super().__init__(
             instructions="not-needed",
-            stt=deepgram.STT(),
+            stt=deepgram.STT(**stt_kwargs),
         )
         self.participant_identity = participant_identity
 
