@@ -788,9 +788,21 @@ agents:
   ## @extra agents.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
   ## @extra agents.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
   ## @extra agents.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @extra agents.envVars.DEEPGRAM_STT_MODEL Deepgram model to use for speech-to-text (default: nova-3)
+  ## @extra agents.envVars.DEEPGRAM_STT_LANGUAGE Language code for transcription or 'multi' for automatic multilingual support with real-time code-switching (default: multi, supports: en, es, fr, de, hi, ru, pt, ja, it, nl)
   ## @skip agents.envVars
   envVars:
     <<: *commonEnvVars
+    # Deepgram Speech-to-Text configuration for real-time streaming
+    # Only 'model' and 'language' parameters are supported by the LiveKit plugin
+    #
+    # DEEPGRAM_STT_MODEL: "nova-3"              # Model selection (default)
+    # DEEPGRAM_STT_LANGUAGE: "multi"            # Multilingual mode with auto-detection (default)
+    # DEEPGRAM_STT_LANGUAGE: "fr"               # Force French only
+    #
+    # Note: Advanced features (diarization, smart_format, punctuate, detect_language)
+    # are NOT supported by the LiveKit Deepgram plugin in streaming mode.
+    # Use language="multi" for automatic multilingual support (10 languages).
 
   ## @param agents.podAnnotations Annotations to add to the agents Pod
   podAnnotations: {}
