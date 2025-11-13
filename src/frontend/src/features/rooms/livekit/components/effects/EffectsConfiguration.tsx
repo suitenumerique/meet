@@ -152,8 +152,10 @@ export const EffectsConfiguration = ({
     )
   }
 
-  const tooltipLabel = (type: ProcessorType, options: BackgroundOptions) => {
-    return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
+  const tooltipBlur = (type: ProcessorType, options: BackgroundOptions) => {
+    return t(
+      `${type}.${options.blurRadius == BlurRadius.LIGHT ? 'light' : 'normal'}.${isSelected(type, options) ? 'clear' : 'apply'}`
+    )
   }
 
   const tooltipVirtualBackground = (index: number): string => {
@@ -276,10 +278,7 @@ export const EffectsConfiguration = ({
               >
                 <ToggleButton
                   variant="bigSquare"
-                  aria-label={tooltipLabel(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.LIGHT,
-                  })}
-                  tooltip={tooltipLabel(ProcessorType.BLUR, {
+                  tooltip={tooltipBlur(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.LIGHT,
                   })}
                   isDisabled={processorPendingReveal || isDisabled}
@@ -297,10 +296,7 @@ export const EffectsConfiguration = ({
                 </ToggleButton>
                 <ToggleButton
                   variant="bigSquare"
-                  aria-label={tooltipLabel(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.NORMAL,
-                  })}
-                  tooltip={tooltipLabel(ProcessorType.BLUR, {
+                  tooltip={tooltipBlur(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.NORMAL,
                   })}
                   isDisabled={processorPendingReveal || isDisabled}
