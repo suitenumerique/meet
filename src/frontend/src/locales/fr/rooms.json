@@ -270,6 +270,7 @@
     }
   },
   "sidePanel": {
+    "ariaLabel": "Panneau latéral",
     "heading": {
       "participants": "Participants",
       "effects": "Arrière-plans et effets",

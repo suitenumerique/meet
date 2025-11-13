@@ -270,6 +270,7 @@
     }
   },
   "sidePanel": {
+    "ariaLabel": "Seitenleiste",
     "heading": {
       "participants": "Teilnehmer",
       "effects": "Effekte",
