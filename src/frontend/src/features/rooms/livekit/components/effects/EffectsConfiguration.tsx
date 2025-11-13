@@ -157,6 +157,10 @@ export const EffectsConfiguration = ({
     return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
   }
 
+  const tooltipVirtualBackground = (index: number): string => {
+    return t(`virtual.descriptions.${index}`)
+  }
+
   return (
     <div
       className={css(
@@ -354,12 +358,16 @@ export const EffectsConfiguration = ({
                       <ToggleButton
                         key={i}
                         variant="bigSquare"
-                        aria-label={tooltipLabel(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
-                        tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
+                        tooltip={tooltipVirtualBackground(i)}
+                        aria-label={t(
+                          `virtual.${
+                            isSelected(ProcessorType.VIRTUAL, {
+                              imagePath,
+                            })
+                              ? 'selectedLabel'
+                              : 'apply'
+                          }`
+                        )}
                         isDisabled={processorPendingReveal || isDisabled}
                         onChange={async () =>
                           await toggleEffect(ProcessorType.VIRTUAL, {
