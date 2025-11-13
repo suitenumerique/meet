@@ -270,6 +270,7 @@
     }
   },
   "sidePanel": {
+    "ariaLabel": "Sidepanel",
     "heading": {
       "participants": "Participants",
       "effects": "Backgrounds and Effects",
