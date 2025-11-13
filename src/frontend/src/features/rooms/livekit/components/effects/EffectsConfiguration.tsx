@@ -15,7 +15,6 @@ import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
-import { RiProhibited2Line } from '@remixicon/react'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
 
@@ -275,17 +274,6 @@ export const EffectsConfiguration = ({
                   gap: '1.25rem',
                 })}
               >
-                <ToggleButton
-                  variant="bigSquare"
-                  aria-label={t('clear')}
-                  onPress={async () => {
-                    await clearEffect()
-                  }}
-                  isSelected={!getProcessor()}
-                  isDisabled={processorPendingReveal || isDisabled}
-                >
-                  <RiProhibited2Line />
-                </ToggleButton>
                 <ToggleButton
                   variant="bigSquare"
                   aria-label={tooltipLabel(ProcessorType.BLUR, {
