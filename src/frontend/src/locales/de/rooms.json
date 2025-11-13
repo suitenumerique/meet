@@ -233,10 +233,14 @@
     "clear": "Effekt deaktivieren",
     "blur": {
       "title": "Hintergrundunschärfe",
-      "light": "Leichte Unschärfe",
-      "normal": "Unschärfe",
-      "apply": "Unschärfe aktivieren",
-      "clear": "Unschärfe deaktivieren"
+      "light": {
+        "apply": "Hintergrund leicht verwischen",
+        "clear": "Unschärfe deaktivieren"
+      },
+      "normal": {
+        "apply": "Hintergrund verwischen",
+        "clear": "Unschärfe deaktivieren"
+      }
     },
     "virtual": {
       "title": "Virtueller Hintergrund",

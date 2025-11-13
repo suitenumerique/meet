@@ -233,10 +233,14 @@
     "clear": "Désactiver l'effect",
     "blur": {
       "title": "Flou d'arrière-plan",
-      "light": "Flou léger",
-      "normal": "Flou",
-      "apply": "Activer le flou",
-      "clear": "Désactiver le flou"
+      "light": {
+        "apply": "Flouter légèrement votre arrière-plan",
+        "clear": "Désactiver le flou"
+      },
+      "normal": {
+        "apply": "Flouter votre arrière-plan",
+        "clear": "Désactiver le flou"
+      }
     },
     "virtual": {
       "title": "Arrière-plan virtuel",

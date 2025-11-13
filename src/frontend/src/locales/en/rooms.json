@@ -233,10 +233,14 @@
     "clear": "Disable effect",
     "blur": {
       "title": "Background blur",
-      "light": "Light blur",
-      "normal": "Blur",
-      "apply": "Enable blur",
-      "clear": "Disable blur"
+      "light": {
+        "apply": "Slightly blur your background",
+        "clear": "Disable blur"
+      },
+      "normal": {
+        "apply": "Blur your background",
+        "clear": "Disable blur"
+      }
     },
     "virtual": {
       "title": "Virtual background",

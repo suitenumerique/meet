@@ -233,10 +233,14 @@
     "clear": "Effect uitschakelen",
     "blur": {
       "title": "Achtergrondvervaging",
-      "light": "Lichte vervaging",
-      "normal": "Vervaging",
-      "apply": "Vervaging inschakelen",
-      "clear": "Vervaging uitschakelen"
+      "light": {
+        "apply": "Vervaag je achtergrond lichtjes",
+        "clear": "Vervaging uitschakelen"
+      },
+      "normal": {
+        "apply": "Vervaag je achtergrond",
+        "clear": "Vervaging uitschakelen"
+      }
     },
     "virtual": {
       "title": "Virtuele achtergrond",
