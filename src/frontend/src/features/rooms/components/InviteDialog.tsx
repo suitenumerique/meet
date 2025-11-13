@@ -115,7 +115,11 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
                     aria-label={t('copyUrl')}
                     tooltip={t('copyUrl')}
                   >
-                    {isRoomUrlCopied ? <RiCheckLine /> : <RiFileCopyLine />}
+                    {isRoomUrlCopied ? (
+                      <RiCheckLine aria-hidden="true" />
+                    ) : (
+                      <RiFileCopyLine aria-hidden="true" />
+                    )}
                   </Button>
                 )}
               </div>
@@ -147,13 +151,18 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
               >
                 {isCopied ? (
                   <>
-                    <RiCheckLine size={18} style={{ marginRight: '8px' }} />
+                    <RiCheckLine
+                      size={18}
+                      style={{ marginRight: '8px' }}
+                      aria-hidden="true"
+                    />
                     {t('copied')}
                   </>
                 ) : (
                   <>
                     <RiFileCopyLine
                       style={{ marginRight: '6px', minWidth: '18px' }}
+                      aria-hidden="true"
                     />
                     {t('copy')}
                   </>
