@@ -71,7 +71,11 @@ export const LaterMeetingDialog = ({
                     aria-label={t('copyUrl')}
                     tooltip={t('copyUrl')}
                   >
-                    {isRoomUrlCopied ? <RiCheckLine /> : <RiFileCopyLine />}
+                    {isRoomUrlCopied ? (
+                      <RiCheckLine aria-hidden="true" />
+                    ) : (
+                      <RiFileCopyLine aria-hidden="true" />
+                    )}
                   </Button>
                 )}
               </div>
@@ -103,13 +107,18 @@ export const LaterMeetingDialog = ({
               >
                 {isCopied ? (
                   <>
-                    <RiCheckLine size={18} style={{ marginRight: '8px' }} />
+                    <RiCheckLine
+                      size={18}
+                      style={{ marginRight: '8px' }}
+                      aria-hidden="true"
+                    />
                     {t('copied')}
                   </>
                 ) : (
                   <>
                     <RiFileCopyLine
                       style={{ marginRight: '6px', minWidth: '18px' }}
+                      aria-hidden="true"
                     />
                     {t('copy')}
                   </>
@@ -131,7 +140,11 @@ export const LaterMeetingDialog = ({
             >
               {isCopied ? (
                 <>
-                  <RiCheckLine size={18} style={{ marginRight: '8px' }} />
+                  <RiCheckLine
+                    size={18}
+                    style={{ marginRight: '8px' }}
+                    aria-hidden="true"
+                  />
                   {t('copied')}
                 </>
               ) : (
@@ -139,6 +152,7 @@ export const LaterMeetingDialog = ({
                   <RiFileCopyLine
                     size={18}
                     style={{ marginRight: '8px', minWidth: '18px' }}
+                    aria-hidden="true"
                   />
                   {isHovered ? (
                     t('copy')
@@ -173,6 +187,7 @@ export const LaterMeetingDialog = ({
                   className={css({
                     fill: 'primary.500',
                   })}
+                  aria-hidden="true"
                 />
               </div>
               <Text variant="sm" style={{ marginTop: '1rem' }}>

@@ -78,12 +78,20 @@ export const Info = () => {
         >
           {isCopied ? (
             <>
-              <RiCheckLine size={24} style={{ marginRight: '6px' }} />
+              <RiCheckLine
+                size={24}
+                style={{ marginRight: '6px' }}
+                aria-hidden="true"
+              />
               {t('roomInformation.button.copied')}
             </>
           ) : (
             <>
-              <RiFileCopyLine size={24} style={{ marginRight: '6px' }} />
+              <RiFileCopyLine
+                size={24}
+                style={{ marginRight: '6px' }}
+                aria-hidden="true"
+              />
               {t('roomInformation.button.copy')}
             </>
           )}
