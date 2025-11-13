@@ -27,6 +27,7 @@ export function FloatingReaction({
   speed = 1,
   scale = 1,
 }: FloatingReactionProps) {
+  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
   const [deltaY, setDeltaY] = useState(0)
   const [opacity, setOpacity] = useState(1)
 
@@ -76,6 +77,7 @@ export function FloatingReaction({
       <img
         src={`/assets/reactions/${emoji}.png`}
         alt={''}
+        alt={t(`emojis.${emoji}`)}
         className={css({
           height: '50px',
         })}

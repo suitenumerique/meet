@@ -39,6 +39,8 @@ export const ReactionsToggle = () => {
   const room = useRoomContext()
 
   const [isVisible, setIsVisible] = useState(false)
+  const [announcement, setAnnouncement] = useState('')
+  const lastAnnouncementRef = useRef<{ emoji: string; timestamp: number } | null>(null)
 
   const sendReaction = async (emoji: string) => {
     const encoder = new TextEncoder()
@@ -57,6 +59,25 @@ export const ReactionsToggle = () => {
       participant: room.localParticipant,
     }
     setReactions((prev) => [...prev, newReaction])
+
+    // Announce reaction to screen readers (with throttling to avoid overwhelming users)
+    const now = Date.now()
+    const shouldAnnounce =
+      !lastAnnouncementRef.current ||
+      lastAnnouncementRef.current.emoji !== emoji ||
+      now - lastAnnouncementRef.current.timestamp > 3000 // 3 seconds throttle
+
+    if (shouldAnnounce) {
+      const participantName = room.localParticipant.isLocal
+        ? t('you')
+        : room.localParticipant.name || ''
+      const emojiName = t(`emojis.${emoji}`)
+      setAnnouncement(t('announced', { name: participantName, emoji: emojiName }))
+      lastAnnouncementRef.current = { emoji, timestamp: now }
+
+      // Clear announcement after it's been read
+      setTimeout(() => setAnnouncement(''), 1000)
+    }
 
     // Remove this reaction after animation
     setTimeout(() => {
@@ -145,7 +166,7 @@ export const ReactionsToggle = () => {
                 <Button
                   key={index}
                   onPress={() => debouncedSendReaction(emoji)}
-                  aria-label={t('send', { emoji })}
+                  aria-label={t('send', { emoji: t(`emojis.${emoji}`) })}
                   variant="primaryTextDark"
                   size="sm"
                   square
@@ -153,7 +174,7 @@ export const ReactionsToggle = () => {
                 >
                   <img
                     src={`/assets/reactions/${emoji}.png`}
-                    alt=""
+                    alt={t(`emojis.${emoji}`)}
                     className={css({
                       minHeight: '28px',
                       minWidth: '28px',
@@ -168,6 +189,25 @@ export const ReactionsToggle = () => {
         )}
       </div>
       <ReactionPortals reactions={reactions} />
+      {/* ARIA live region for screen reader announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className={css({
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        })}
+      >
+        {announcement}
+      </div>
     </>
   )
 }

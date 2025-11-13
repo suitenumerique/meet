@@ -205,7 +205,18 @@
     "reactions": {
       "button": "Send reaction",
       "send": "Send reaction {{emoji}}",
-      "you": "you"
+      "you": "you",
+      "emojis": {
+        "thumbs-up": "thumbs up",
+        "thumbs-down": "thumbs down",
+        "clapping-hands": "clapping hands",
+        "red-heart": "red heart",
+        "face-with-tears-of-joy": "laughing face",
+        "face-with-open-mouth": "surprised face",
+        "party-popper": "party popper",
+        "folded-hands": "folded hands"
+      },
+      "announced": "{{name}} reacted with {{emoji}}"
     }
   },
   "options": {

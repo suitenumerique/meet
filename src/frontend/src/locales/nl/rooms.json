@@ -205,7 +205,18 @@
     "reactions": {
       "button": "Stuur reactie",
       "send": "Stuur reactie {{emoji}}",
-      "you": "U"
+      "you": "U",
+      "emojis": {
+        "thumbs-up": "duim omhoog",
+        "thumbs-down": "duim omlaag",
+        "clapping-hands": "klappende handen",
+        "red-heart": "rood hart",
+        "face-with-tears-of-joy": "lachend gezicht met tranen",
+        "face-with-open-mouth": "verrast gezicht",
+        "party-popper": "feestknaller",
+        "folded-hands": "gevouwen handen"
+      },
+      "announced": "{{name}} reageerde met {{emoji}}"
     }
   },
   "options": {

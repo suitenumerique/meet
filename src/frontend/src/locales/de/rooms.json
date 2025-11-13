@@ -205,7 +205,18 @@
     "reactions": {
       "button": "Reaktion senden",
       "send": "Reaktion {{emoji}} senden",
-      "you": "Sie"
+      "you": "Sie",
+      "emojis": {
+        "thumbs-up": "Daumen hoch",
+        "thumbs-down": "Daumen runter",
+        "clapping-hands": "klatschende Hände",
+        "red-heart": "rotes Herz",
+        "face-with-tears-of-joy": "lachendes Gesicht mit Tränen",
+        "face-with-open-mouth": "überraschtes Gesicht",
+        "party-popper": "Partykonfetti",
+        "folded-hands": "gefaltete Hände"
+      },
+      "announced": "{{name}} hat mit {{emoji}} reagiert"
     }
   },
   "options": {

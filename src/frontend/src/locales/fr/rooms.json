@@ -205,7 +205,18 @@
     "reactions": {
       "button": "Envoyer une réaction",
       "send": "Envoyer la réaction {{emoji}}",
-      "you": "vous"
+      "you": "vous",
+      "emojis": {
+        "thumbs-up": "pouce levé",
+        "thumbs-down": "pouce baissé",
+        "clapping-hands": "mains qui applaudissent",
+        "red-heart": "cœur rouge",
+        "face-with-tears-of-joy": "visage riant aux larmes",
+        "face-with-open-mouth": "visage surpris",
+        "party-popper": "cotillons de fête",
+        "folded-hands": "mains jointes"
+      },
+      "announced": "{{name}} a réagi avec {{emoji}}"
     }
   },
   "options": {
