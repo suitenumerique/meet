@@ -345,7 +345,9 @@ def test_authentication_getter_existing_user_change_fields(
     monkeypatch.setattr(OIDCAuthenticationBackend, "get_userinfo", get_userinfo_mocked)
 
     # One and only one additional update query when a field has changed
-    with django_assert_num_queries(2):
+    # Note: .save() triggers uniqueness validation queries for unique fields,
+    # adding extra SELECT queries before the UPDATE (e.g., checking unique=True on 'sub')
+    with django_assert_num_queries(3):
         authenticated_user = klass.get_or_create_user(
             access_token="test-token", id_token=None, payload=None
         )
