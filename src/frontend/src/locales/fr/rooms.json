@@ -15,7 +15,7 @@
       "audio": "Paramètres audio",
       "video": "Paramètres video"
     },
-    "effects": "Effets d'arrière-plan",
+    "effects": "Arrière-plans et effets",
     "videoinput": {
       "choose": "Choisir la webcam",
       "permissionsNeeded": "Choisir la webcam - autorisations nécessaires",
@@ -39,8 +39,8 @@
   "join": {
     "heading": "Rejoindre la réunion ?",
     "effects": {
-      "description": "Effets d'arrière-plan",
-      "title": "Effets",
+      "description": "Arrière-plans et effets",
+      "title": "Arrière-plans et effets",
       "subTitle": "Paramétrez les effets de votre caméra."
     },
     "joinLabel": "Rejoindre",
@@ -216,7 +216,7 @@
       "screenRecording": "Enregistrement",
       "transcript": "Transcription",
       "username": "Choisir votre nom",
-      "effects": "Effets d'arrière-plan",
+      "effects": "Arrière-plans et effets",
       "switchCamera": "Changer de caméra",
       "fullscreen": {
         "enter": "Plein écran",
@@ -258,7 +258,7 @@
   "sidePanel": {
     "heading": {
       "participants": "Participants",
-      "effects": "Effets",
+      "effects": "Arrière-plans et effets",
       "chat": "Messages dans l'appel",
       "transcript": "Transcrire",
       "screenRecording": "Enregistrer",
@@ -543,7 +543,7 @@
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"
     },
-    "effects": "Effets d'arrière-plan",
+    "effects": "Arrière-plans et effets",
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
   },

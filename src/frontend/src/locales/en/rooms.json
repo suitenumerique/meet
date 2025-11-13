@@ -15,7 +15,7 @@
       "audio": "Audio settings",
       "video": "Video settings"
     },
-    "effects": "Effects",
+    "effects": "Backgrounds and Effects",
     "videoinput": {
       "choose": "Select camera",
       "permissionsNeeded": "Select camera - permission needed",
@@ -38,7 +38,7 @@
   },
   "join": {
     "effects": {
-      "description": "Apply effects",
+      "description": "Apply backgrounds and effects",
       "title": "Effects",
       "subTitle": "Configure your camera's effects."
     },
@@ -216,7 +216,7 @@
       "screenRecording": "Screen recording",
       "transcript": "Transcription",
       "username": "Update Your Name",
-      "effects": "Apply effects",
+      "effects": "Backgrounds and Effects",
       "switchCamera": "Switch camera",
       "fullscreen": {
         "enter": "Fullscreen",
@@ -258,7 +258,7 @@
   "sidePanel": {
     "heading": {
       "participants": "Participants",
-      "effects": "Effects",
+      "effects": "Backgrounds and Effects",
       "chat": "Messages in the chat",
       "transcript": "Transcribe",
       "screenRecording": "Record",
@@ -268,7 +268,7 @@
     },
     "content": {
       "participants": "participants",
-      "effects": "effects",
+      "effects": "Backgrounds and Effects",
       "chat": "messages",
       "transcript": "transcribe",
       "screenRecording": "record",
@@ -543,7 +543,7 @@
       "enable": "Pin",
       "disable": "Unpin"
     },
-    "effects": "Apply visual effects",
+    "effects": "Apply backgrounds and effects",
     "muteParticipant": "Mute {{name}}",
     "fullScreen": "Full screen"
   },
