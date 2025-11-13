@@ -240,8 +240,18 @@
     },
     "virtual": {
       "title": "Virtueller Hintergrund",
-      "apply": "Virtuellen Hintergrund aktivieren",
-      "clear": "Virtuellen Hintergrund deaktivieren"
+      "selectedLabel": "Hintergrund angewendet:",
+      "apply": "Ersetze deinen Hintergrund:",
+      "descriptions": {
+        "0": "Gerilltes Holzmöbel",
+        "1": "Besprechungsraum",
+        "2": "Loft mit schwarzer Glaswand",
+        "3": "Esszimmer",
+        "4": "Holzregale",
+        "5": "Holztreppe",
+        "6": "Graue Bibliothek",
+        "7": "Kaffeetheke"
+      }
     },
     "faceLandmarks": {
       "title": "Visuelle Effekte",

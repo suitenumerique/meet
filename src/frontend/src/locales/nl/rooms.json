@@ -240,8 +240,18 @@
     },
     "virtual": {
       "title": "Virtuele achtergrond",
-      "apply": "Virtuele achtergrond inschakelen",
-      "clear": "Virtuele achtergrond uitschakelen"
+      "selectedLabel": "Achtergrond toegepast:",
+      "apply": "Vervang je achtergrond:",
+      "descriptions": {
+        "0": "Geprofileerd houten meubel",
+        "1": "Vergaderruimte",
+        "2": "Loft met zwarte glaswand",
+        "3": "Eetkamer",
+        "4": "Houten planken",
+        "5": "Houten trap",
+        "6": "Grijze bibliotheek",
+        "7": "Koffiebar"
+      }
     },
     "faceLandmarks": {
       "title": "Visuele effecten",

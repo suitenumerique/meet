@@ -240,8 +240,18 @@
     },
     "virtual": {
       "title": "Virtual background",
-      "apply": "Enable virtual background",
-      "clear": "Disable virtual background"
+      "selectedLabel": "Background applied:",
+      "apply": "Replace your background:",
+      "descriptions": {
+        "0": "Fluted wooden furniture",
+        "1": "Meeting room",
+        "2": "Loft with black glass partition",
+        "3": "Dining room",
+        "4": "Wooden shelves",
+        "5": "Wooden staircase",
+        "6": "Gray library",
+        "7": "Coffee counter"
+      }
     },
     "faceLandmarks": {
       "title": "Visual Effects",
