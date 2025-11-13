@@ -343,6 +343,7 @@ export const EffectsConfiguration = ({
                   className={css({
                     display: 'flex',
                     gap: '1.25rem',
+                    paddingBottom: '0.5rem',
                     flexWrap: 'wrap',
                   })}
                 >
