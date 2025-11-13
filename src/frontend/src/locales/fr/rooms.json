@@ -240,8 +240,18 @@
     },
     "virtual": {
       "title": "Arrière-plan virtuel",
-      "apply": "Activer l'arrière-plan virtuel",
-      "clear": "Désactiver l'arrière-plan virtuel"
+      "selectedLabel": "Arrière-plan appliqué :",
+      "apply": "Remplacer votre arrière plan :",
+      "descriptions": {
+        "0": "Meuble cannelé en bois",
+        "1": "Salle de réunion",
+        "2": "Loft avec verrière noire",
+        "3": "Salle à manger",
+        "4": "Étagères en bois",
+        "5": "Escalier en bois",
+        "6": "Bibliothèque grise",
+        "7": "Comptoir de café"
+      }
     },
     "faceLandmarks": {
       "title": "Effets visuels",
