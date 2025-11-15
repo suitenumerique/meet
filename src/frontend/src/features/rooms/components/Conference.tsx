@@ -232,7 +232,17 @@ export const Conference = ({
             }
           }}
           onMediaDeviceFailure={(e, kind) => {
-            if (e == MediaDeviceFailure.DeviceInUse && !!kind) {
+            // Avoid showing a likely false 'DeviceInUse' alert on Firefox in
+            // certain proxy / driver setups. Suppression can be enabled from
+            // the server config under `livekit.suppress_firefox_deviceinuse_alert`.
+            const suppressOnFirefox = !!apiConfig?.livekit
+              ?.suppress_firefox_deviceinuse_alert
+
+            if (
+              e == MediaDeviceFailure.DeviceInUse &&
+              !!kind &&
+              !(isFireFox() && suppressOnFirefox)
+            ) {
               setMediaDeviceError({ error: e, kind })
             }
           }}
