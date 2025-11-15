@@ -15,7 +15,7 @@
       "audio": "Paramètres audio",
       "video": "Paramètres video"
     },
-    "effects": "Effets d'arrière-plan",
+    "effects": "Arrière-plans et effets",
     "videoinput": {
       "choose": "Choisir la webcam",
       "permissionsNeeded": "Choisir la webcam - autorisations nécessaires",
@@ -39,8 +39,8 @@
   "join": {
     "heading": "Rejoindre la réunion ?",
     "effects": {
-      "description": "Effets d'arrière-plan",
-      "title": "Effets",
+      "description": "Arrière-plans et effets",
+      "title": "Arrière-plans et effets",
       "subTitle": "Paramétrez les effets de votre caméra."
     },
     "joinLabel": "Rejoindre",
@@ -216,7 +216,7 @@
       "screenRecording": "Enregistrement",
       "transcript": "Transcription",
       "username": "Choisir votre nom",
-      "effects": "Effets d'arrière-plan",
+      "effects": "Arrière-plans et effets",
       "switchCamera": "Changer de caméra",
       "fullscreen": {
         "enter": "Plein écran",
@@ -233,15 +233,29 @@
     "clear": "Désactiver l'effect",
     "blur": {
       "title": "Flou d'arrière-plan",
-      "light": "Flou léger",
-      "normal": "Flou",
-      "apply": "Activer le flou",
-      "clear": "Désactiver le flou"
+      "light": {
+        "apply": "Flouter légèrement votre arrière-plan",
+        "clear": "Désactiver le flou"
+      },
+      "normal": {
+        "apply": "Flouter votre arrière-plan",
+        "clear": "Désactiver le flou"
+      }
     },
     "virtual": {
       "title": "Arrière-plan virtuel",
-      "apply": "Activer l'arrière-plan virtuel",
-      "clear": "Désactiver l'arrière-plan virtuel"
+      "selectedLabel": "Arrière-plan appliqué :",
+      "apply": "Remplacer votre arrière plan :",
+      "descriptions": {
+        "0": "Meuble cannelé en bois",
+        "1": "Salle de réunion",
+        "2": "Loft avec verrière noire",
+        "3": "Salle à manger",
+        "4": "Étagères en bois",
+        "5": "Escalier en bois",
+        "6": "Bibliothèque grise",
+        "7": "Comptoir de café"
+      }
     },
     "faceLandmarks": {
       "title": "Effets visuels",
@@ -256,9 +270,10 @@
     }
   },
   "sidePanel": {
+    "ariaLabel": "Panneau latéral",
     "heading": {
       "participants": "Participants",
-      "effects": "Effets",
+      "effects": "Arrière-plans et effets",
       "chat": "Messages dans l'appel",
       "transcript": "Transcription",
       "screenRecording": "Enregistrement",
@@ -516,7 +531,7 @@
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"
     },
-    "effects": "Effets d'arrière-plan",
+    "effects": "Arrière-plans et effets",
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
   },
