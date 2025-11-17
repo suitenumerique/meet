@@ -9,6 +9,7 @@ export enum NotificationType {
   TranscriptionStarted = 'transcriptionStarted',
   TranscriptionStopped = 'transcriptionStopped',
   TranscriptionLimitReached = 'transcriptionLimitReached',
+  TranscriptionRequested = 'transcriptionRequested',
   ScreenRecordingStarted = 'screenRecordingStarted',
   ScreenRecordingStopped = 'screenRecordingStopped',
   ScreenRecordingLimitReached = 'screenRecordingLimitReached',

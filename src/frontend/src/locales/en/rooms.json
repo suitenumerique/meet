@@ -322,6 +322,10 @@
       "body": "For security reasons, only the meeting creator or an admin can start a transcription (beta).",
       "linkMore": "Learn more"
     },
+    "request": {
+      "button": "Request transcription",
+      "sent": "Request sent"
+    },
     "stop": {
       "heading": "Transcription in progress...",
       "body": "The transcription of your meeting is in progress. You will receive the result by email once the meeting is finished.",

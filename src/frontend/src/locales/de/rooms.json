@@ -322,6 +322,10 @@
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
       "linkMore": "Mehr erfahren"
     },
+    "request": {
+      "button": "Transkription anfordern",
+      "sent": "Anfrage gesendet"
+    },
     "stop": {
       "heading": "Transkription läuft...",
       "body": "Die Transkription deines Meetings läuft. Du erhältst das Ergebnis per E-Mail, sobald das Meeting beendet ist.",

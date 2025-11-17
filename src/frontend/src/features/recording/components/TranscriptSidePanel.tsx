@@ -27,11 +27,13 @@ import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
 import humanizeDuration from 'humanize-duration'
 import i18n from 'i18next'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
 
   const [isLoading, setIsLoading] = useState(false)
+  const [requestSent, setRequestSent] = useState(false)
   const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
 
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
@@ -49,6 +51,8 @@ export const TranscriptSidePanel = () => {
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
+
+  const isAdminOrOwner = useIsAdminOrOwner()
 
   const roomId = useRoomId()
 
@@ -118,6 +122,18 @@ export const TranscriptSidePanel = () => {
     }
   }
 
+  const handleRequestTranscription = async () => {
+    try {
+      await notifyParticipants({
+        type: NotificationType.TranscriptionRequested,
+      })
+      setRequestSent(true)
+      posthog.capture('transcript-requested', {})
+    } catch (error) {
+      console.error('Failed to request transcription:', error)
+    }
+  }
+
   const isDisabled = useMemo(
     () =>
       isLoading ||
@@ -170,6 +186,17 @@ export const TranscriptSidePanel = () => {
                   </A>
                 )}
               </Text>
+              {!isAdminOrOwner && (
+                <Button
+                  isDisabled={requestSent || !isRoomConnected}
+                  onPress={handleRequestTranscription}
+                  data-attr="request-transcript"
+                  size="sm"
+                  variant="tertiary"
+                >
+                  {requestSent ? t('request.sent') : t('request.button')}
+                </Button>
+              )}
             </>
           ) : (
             <>

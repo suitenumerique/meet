@@ -32,6 +32,12 @@
     "stopped": "{{name}} stopped the meeting transcription.",
     "limitReached": "The transcription has exceeded the maximum allowed duration and will be automatically saved."
   },
+  "transcriptionRequest": {
+    "message": "{{name}} requested to start transcription.",
+    "multiple": "{{count}} participants requested transcription.",
+    "start": "Start",
+    "dismiss": "Dismiss"
+  },
   "screenRecording": {
     "started": "{{name}} started the meeting recording.",
     "stopped": "{{name}} stopped the meeting recording.",
