@@ -5,6 +5,6 @@ export const authUrl = ({
   returnTo = window.location.href,
 } = {}) => {
   return apiUrl(
-    `/authenticate?silent=${encodeURIComponent(silent)}&returnTo=${encodeURIComponent(returnTo)}`
+    `/authenticate/?silent=${encodeURIComponent(silent)}&returnTo=${encodeURIComponent(returnTo)}`
   )
 }
