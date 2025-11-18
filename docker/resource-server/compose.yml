@@ -1,0 +1,23 @@
+version: '3'
+
+# You can add any necessary service here that will join the same docker network
+# sharing keycloak. Services added to the 'meet_resource-server' network will be
+# able to communicate with keycloak and the backend on that network.
+services:
+  # busybox service is only used for testing purposes. It provides curl to test
+  # connectivity to the backend and keycloak services. Replace this with your
+  # relevant application services that need to communicate with keycloak.
+  busybox:
+    image: alpine:latest
+    privileged: true
+    command: sh -c "apk add --no-cache curl && sleep infinity"
+    stdin_open: true
+    tty: true
+    networks:
+      - default
+      - meet_resource-server
+
+networks:
+  default: {}
+  meet_resource-server:
+    external: true
