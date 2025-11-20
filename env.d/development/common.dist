@@ -32,6 +32,8 @@ OIDC_OP_JWKS_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/cert
 OIDC_OP_AUTHORIZATION_ENDPOINT=http://localhost:8083/realms/meet/protocol/openid-connect/auth
 OIDC_OP_TOKEN_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/token
 OIDC_OP_USER_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/userinfo
+OIDC_OP_INTROSPECTION_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/token/introspect
+OIDC_OP_URL=http://localhost:8083/realms/meet
 
 OIDC_RP_CLIENT_ID=meet
 OIDC_RP_CLIENT_SECRET=ThisIsAnExampleKeyForDevPurposeOnly
@@ -44,6 +46,9 @@ LOGOUT_REDIRECT_URL=http://localhost:3000
 
 OIDC_REDIRECT_ALLOWED_HOSTS=localhost:8083,localhost:3000
 OIDC_AUTH_REQUEST_EXTRA_PARAMS={"acr_values": "eidas1"}
+
+OIDC_RS_CLIENT_ID=meet
+OIDC_RS_CLIENT_SECRET=ThisIsAnExampleKeyForDevPurposeOnly
 
 # Livekit Token settings
 LIVEKIT_API_SECRET=secret

@@ -15,6 +15,7 @@ from drf_spectacular.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("core.urls")),
+    path("", include("lasuite.oidc_resource_server.urls")),
 ]
 
 if settings.DEBUG:

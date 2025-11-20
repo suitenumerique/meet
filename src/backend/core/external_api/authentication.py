@@ -4,8 +4,10 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import SuspiciousOperation
 
-import jwt
+import jwt as pyJwt
+from lasuite.oidc_resource_server.backend import ResourceServerBackend as LaSuiteBackend
 from rest_framework import authentication, exceptions
 
 User = get_user_model()
@@ -25,9 +27,11 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
         Returns:
             Tuple of (user, payload) if authentication successful, None otherwise
         """
+
         auth_header = authentication.get_authorization_header(request).split()
 
         if not auth_header or auth_header[0].lower() != b"bearer":
+            # Defer to next authentication backend
             return None
 
         if len(auth_header) != 2:
@@ -45,6 +49,8 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
     def authenticate_credentials(self, token):
         """Validate JWT token and return authenticated user.
 
+        If token is invalid, defer to next authentication backend.
+
         Args:
             token: JWT token string
 
@@ -52,29 +58,29 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
             Tuple of (user, payload)
 
         Raises:
-            AuthenticationFailed: If token is invalid, expired, or user not found
+            AuthenticationFailed: If token is expired, or user not found
         """
         # Decode and validate JWT
         try:
-            payload = jwt.decode(
+            payload = pyJwt.decode(
                 token,
                 settings.APPLICATION_JWT_SECRET_KEY,
                 algorithms=[settings.APPLICATION_JWT_ALG],
                 issuer=settings.APPLICATION_JWT_ISSUER,
                 audience=settings.APPLICATION_JWT_AUDIENCE,
             )
-        except jwt.ExpiredSignatureError as e:
+        except pyJwt.ExpiredSignatureError as e:
             logger.warning("Token expired")
             raise exceptions.AuthenticationFailed("Token expired.") from e
-        except jwt.InvalidIssuerError as e:
+        except pyJwt.InvalidIssuerError as e:
             logger.warning("Invalid JWT issuer: %s", e)
             raise exceptions.AuthenticationFailed("Invalid token.") from e
-        except jwt.InvalidAudienceError as e:
+        except pyJwt.InvalidAudienceError as e:
             logger.warning("Invalid JWT audience: %s", e)
             raise exceptions.AuthenticationFailed("Invalid token.") from e
-        except jwt.InvalidTokenError as e:
-            logger.warning("Invalid JWT token: %s", e)
-            raise exceptions.AuthenticationFailed("Invalid token.") from e
+        except pyJwt.InvalidTokenError:
+            # Invalid JWT token - defer to next authentication backend
+            return None
 
         user_id = payload.get("user_id")
         client_id = payload.get("client_id")
@@ -107,3 +113,55 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
     def authenticate_header(self, request):
         """Return authentication scheme for WWW-Authenticate header."""
         return "Bearer"
+
+
+class ResourceServerBackend(LaSuiteBackend):
+    """OIDC Resource Server backend for user creation and retrieval."""
+
+    def get_or_create_user(self, access_token, id_token, payload):
+        """Get or create user from OIDC token claims.
+
+        Despite the LaSuiteBackend's method name suggesting "get_or_create",
+        its implementation only performs a GET operation.
+        Create new user from the sub claim.
+
+        Args:
+            access_token: The access token string
+            id_token: The ID token string (unused)
+            payload: Token payload dict (unused)
+
+        Returns:
+            User instance
+
+        Raises:
+            SuspiciousOperation: If user info validation fails
+        """
+
+        sub = payload.get("sub")
+
+        if sub is None:
+            message = "User info contained no recognizable user identification"
+            logger.debug(message)
+            raise SuspiciousOperation(message)
+
+        user = self.get_user(access_token, id_token, payload)
+
+        if user is None and settings.OIDC_CREATE_USER:
+            user = self.create_user(sub)
+
+        return user
+
+    def create_user(self, sub):
+        """Create new user from subject claim.
+
+        Args:
+            sub: Subject identifier from token
+
+        Returns:
+            Newly created User instance
+        """
+        user = self.UserModel(sub=sub)
+        user.set_unusable_password()
+        user.save()
+
+        return user

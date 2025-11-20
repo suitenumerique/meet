@@ -10,13 +10,14 @@ from django.conf import settings
 
 import jwt
 import pytest
+import responses
 from rest_framework.test import APIClient
 
 from core.factories import (
     RoomFactory,
     UserFactory,
 )
-from core.models import ApplicationScope, RoleChoices, Room
+from core.models import ApplicationScope, RoleChoices, Room, RoomAccessLevel, User
 
 pytestmark = pytest.mark.django_db
 
@@ -90,13 +91,29 @@ def test_api_rooms_list_with_expired_token(settings):
     assert "expired" in str(response.data).lower()
 
 
-def test_api_rooms_list_with_invalid_token():
-    """Listing rooms with invalid token should return 401."""
+@responses.activate
+def test_api_rooms_list_with_invalid_token(settings):
+    """Listing rooms with invalid token should return 400."""
+
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "active": False,
+        },
+    )
+
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION="Bearer invalid-token-123")
     response = client.get("/external-api/v1.0/rooms/")
 
-    assert response.status_code == 401
+    # Return 400 instead of 401 because ResourceServerAuthentication raises
+    # SuspiciousOperation when the introspected user is not active
+    assert response.status_code == 400
 
 
 def test_api_rooms_list_missing_scope(settings):
@@ -332,3 +349,219 @@ def test_api_rooms_token_missing_client_id(settings):
 
     assert response.status_code == 401
     assert "Invalid token claims." in str(response.data)
+
+
+@responses.activate
+def test_resource_server_creates_user_on_first_authentication(settings):
+    """New user should be created during first authentication.
+
+    Verifies that the ResourceServerBackend.get_or_create_user() creates a user
+    in the database when authenticating with a token from an unknown subject (sub).
+    This tests the user creation workflow during the OIDC introspection process.
+    """
+
+    with pytest.raises(
+        User.DoesNotExist,
+        match="User matching query does not exist.",
+    ):
+        User.objects.get(sub="very-specific-sub")
+
+    assert (
+        settings.OIDC_RS_BACKEND_CLASS
+        == "core.external_api.authentication.ResourceServerBackend"
+    )
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet rooms:list",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+
+    results = response.json()["results"]
+    assert len(results) == 0
+
+    db_user = User.objects.get(sub="very-specific-sub")
+    assert db_user is not None
+    assert db_user.email is None
+
+
+@responses.activate
+def test_resource_server_skips_user_creation_when_auto_creation_disabled(settings):
+    """Verify that ResourceServerBackend respects the user auto-creation setting.
+
+    This ensures that the OIDC introspection process respects the configuration flag
+    that controls whether new users should be automatically provisioned during
+    authentication, preventing unwanted user proliferation when auto-creation is
+    explicitly disabled.
+    """
+
+    settings.OIDC_CREATE_USER = False
+
+    with pytest.raises(
+        User.DoesNotExist,
+        match="User matching query does not exist.",
+    ):
+        User.objects.get(sub="very-specific-sub")
+
+    assert (
+        settings.OIDC_RS_BACKEND_CLASS
+        == "core.external_api.authentication.ResourceServerBackend"
+    )
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet rooms:list",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 401
+
+
+@responses.activate
+def test_resource_server_authentication_successful(settings):
+    """Authenticated requests should be processed and user-specific data is returned.
+
+    Verifies that once a user is authenticated via OIDC token introspection,
+    the API correctly identifies the user and returns only data accessible to that user
+    (e.g., rooms with appropriate access levels).
+    """
+
+    user = UserFactory(sub="very-specific-sub")
+
+    other_user = UserFactory()
+
+    RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    RoomFactory(access_level=RoomAccessLevel.TRUSTED)
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    room_user_accesses = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED, users=[user]
+    )
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED, users=[other_user])
+
+    assert (
+        settings.OIDC_RS_BACKEND_CLASS
+        == "core.external_api.authentication.ResourceServerBackend"
+    )
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet rooms:list",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    results = response.json()["results"]
+    assert len(results) == 1
+    expected_ids = {
+        str(room_user_accesses.id),
+    }
+    results_id = {result["id"] for result in results}
+    assert expected_ids == results_id
+
+
+@responses.activate
+def test_resource_server_denies_access_with_insufficient_scopes(settings):
+    """Requests should be denied when the token lacks required scopes.
+
+    Verifies that the ResourceServerBackend validates token scopes during introspection
+    and returns 403 Forbidden when the token is missing required scopes for the endpoint.
+    """
+
+    assert (
+        settings.OIDC_RS_BACKEND_CLASS
+        == "core.external_api.authentication.ResourceServerBackend"
+    )
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet",  # missing rooms:list scope
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 403
