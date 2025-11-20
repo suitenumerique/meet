@@ -183,6 +183,10 @@ jobs:
       AWS_S3_ENDPOINT_URL: http://localhost:9000
       AWS_S3_ACCESS_KEY_ID: meet
       AWS_S3_SECRET_ACCESS_KEY: password
+      OIDC_RS_CLIENT_ID: meet
+      OIDC_RS_CLIENT_SECRET: ThisIsAnExampleKeyForDevPurposeOnly
+      OIDC_OP_INTROSPECTION_ENDPOINT: https://oidc.example.com/introspect
+      OIDC_OP_URL: https://oidc.example.com
 
     steps:
       - name: Checkout repository

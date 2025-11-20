@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
 import jwt
+from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 from rest_framework import decorators, mixins, viewsets
 from rest_framework import (
     exceptions as drf_exceptions,
@@ -149,7 +150,10 @@ class RoomViewSet(
     - create: Create a new room owned by the user (requires 'rooms:create' scope)
     """
 
-    authentication_classes = [authentication.ApplicationJWTAuthentication]
+    authentication_classes = [
+        authentication.ApplicationJWTAuthentication,
+        ResourceServerAuthentication,
+    ]
     permission_classes = [
         api.permissions.IsAuthenticated & permissions.HasRequiredRoomScope
     ]

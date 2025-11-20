@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+# pylint: disable=too-many-lines
+
 import json
 from os import path
 from socket import gethostbyname, gethostname
@@ -404,6 +406,10 @@ class Base(Configuration):
         default=False,
         environ_name="OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION",
     )
+    OIDC_TIMEOUT = values.IntegerValue(
+        5, environ_name="OIDC_TIMEOUT", environ_prefix=None
+    )
+    OIDC_PROXY = values.Value(None, environ_name="OIDC_PROXY", environ_prefix=None)
     OIDC_RP_SIGN_ALGO = values.Value(
         "RS256", environ_name="OIDC_RP_SIGN_ALGO", environ_prefix=None
     )
@@ -427,12 +433,16 @@ class Base(Configuration):
     OIDC_OP_USER_ENDPOINT = values.Value(
         None, environ_name="OIDC_OP_USER_ENDPOINT", environ_prefix=None
     )
+    OIDC_OP_INTROSPECTION_ENDPOINT = values.Value(
+        None, environ_name="OIDC_OP_INTROSPECTION_ENDPOINT", environ_prefix=None
+    )
     OIDC_OP_USER_ENDPOINT_FORMAT = values.Value(
         "AUTO", environ_name="OIDC_OP_USER_ENDPOINT_FORMAT", environ_prefix=None
     )
     OIDC_OP_LOGOUT_ENDPOINT = values.Value(
         None, environ_name="OIDC_OP_LOGOUT_ENDPOINT", environ_prefix=None
     )
+    OIDC_OP_URL = values.Value(None, environ_name="OIDC_OP_URL", environ_prefix=None)
     OIDC_AUTH_REQUEST_EXTRA_PARAMS = values.DictValue(
         {}, environ_name="OIDC_AUTH_REQUEST_EXTRA_PARAMS", environ_prefix=None
     )
@@ -491,6 +501,42 @@ class Base(Configuration):
         default=[],
         environ_name="OIDC_USERINFO_ESSENTIAL_CLAIMS",
         environ_prefix=None,
+    )
+
+    # OIDC Resource Server Backend
+    OIDC_RS_BACKEND_CLASS = "core.external_api.authentication.ResourceServerBackend"
+    OIDC_RS_CLIENT_ID = values.Value(
+        "meet", environ_name="OIDC_RS_CLIENT_ID", environ_prefix=None
+    )
+    OIDC_RS_CLIENT_SECRET = SecretFileValue(
+        None,
+        environ_name="OIDC_RS_CLIENT_SECRET",
+        environ_prefix=None,
+    )
+    OIDC_RS_AUDIENCE_CLAIM = values.Value(
+        default="client_id", environ_name="OIDC_RS_AUDIENCE_CLAIM", environ_prefix=None
+    )
+    OIDC_RS_ENCRYPTION_ENCODING = values.Value(
+        default="A256GCM",
+        environ_name="OIDC_RS_ENCRYPTION_ENCODING",
+        environ_prefix=None,
+    )
+    OIDC_RS_ENCRYPTION_ALGO = values.Value(
+        default="RSA-OAEP", environ_name="OIDC_RS_ENCRYPTION_ALGO", environ_prefix=None
+    )
+    OIDC_RS_SIGNING_ALGO = values.Value(
+        default="ES256", environ_name="OIDC_RS_SIGNING_ALGO", environ_prefix=None
+    )
+    OIDC_RS_SCOPES = values.ListValue(
+        default=["lasuite_meet"],
+        environ_name="OIDC_RS_SCOPES",
+        environ_prefix=None,
+    )
+    OIDC_RS_PRIVATE_KEY_STR = SecretFileValue(
+        environ_name="OIDC_RS_PRIVATE_KEY_STR", environ_prefix=None
+    )
+    OIDC_RS_ENCRYPTION_KEY_TYPE = values.Value(
+        default="RSA", environ_name="OIDC_RS_ENCRYPTION_KEY_TYPE", environ_prefix=None
     )
 
     # Video conference configuration
