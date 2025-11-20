@@ -149,7 +149,10 @@ class RoomViewSet(
     - create: Create a new room owned by the user (requires 'rooms:create' scope)
     """
 
-    authentication_classes = [authentication.ApplicationJWTAuthentication]
+    authentication_classes = [
+        authentication.ApplicationJWTAuthentication,
+        authentication.ResourceServerAuthentication,
+    ]
     permission_classes = [
         api.permissions.IsAuthenticated & permissions.HasRequiredRoomScope
     ]
