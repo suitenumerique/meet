@@ -32,6 +32,8 @@ OIDC_OP_JWKS_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/cert
 OIDC_OP_AUTHORIZATION_ENDPOINT=http://localhost:8083/realms/meet/protocol/openid-connect/auth
 OIDC_OP_TOKEN_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/token
 OIDC_OP_USER_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/userinfo
+OIDC_OP_INTROSPECTION_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/token/introspect
+OIDC_OP_URL=http://localhost:8083/realms/meet
 
 OIDC_RP_CLIENT_ID=meet
 OIDC_RP_CLIENT_SECRET=ThisIsAnExampleKeyForDevPurposeOnly
@@ -44,6 +46,38 @@ LOGOUT_REDIRECT_URL=http://localhost:3000
 
 OIDC_REDIRECT_ALLOWED_HOSTS=localhost:8083,localhost:3000
 OIDC_AUTH_REQUEST_EXTRA_PARAMS={"acr_values": "eidas1"}
+
+OIDC_RS_CLIENT_ID=meet
+OIDC_RS_CLIENT_SECRET=ThisIsAnExampleKeyForDevPurposeOnly
+
+OIDC_RS_PRIVATE_KEY_STR="-----BEGIN PRIVATE KEY-----
+MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCiOouvAgtRz7+V
+9O8U7sCfFRPo5icBD43X0yT+v1UwxSal4jo80eTzVCs6Tp1l07ZofxvLxhl01N4V
+/1FSSszamIYW6pJ97HXMzkSpdIHH+rpfJORbr9gaTahatSF/9rIupN/aTYsBHyDW
+VIB0bBBz2O6F1EkVEdGGnEsGDYwcAA0AovPgbBlQlGgErB2KSXv/IeChyY2SB8Kc
+5wIMhJ0x38QxQagNhI1ZMpHLItBpjxAPH9vzAKIQvlMhQLjMErtW486rorL+Q8jv
+1lmRiu3a3syV67pWAyJzV/QlJYM8UA7ZQNHbFcYeKDehBkEJ9iXeH0dKC5W0mv3c
+Tic3Lrh3AgMBAAECggEAAaKfZP3up74t4kxhPSAsRi+5XgZeq8Srw6Hd0/iRS68c
+9+t24WvsxCJ9S2KD2hEBI4LuiX46lWobm7nmU7d4AIC7mCrL7yF5s+a/0Bs7MIEu
+K5AvZ1KWrGkb5BJFkSakPFFuWPZUQLIJcdC/ZzF839n5qLFEXP7MGe2J2XRUBA8y
+79hUjBDvFJR0Tjq6MtjnuOuqE33HrNyAUaR84w0G4rIjkJhUfQCJFl+T9ApR/Uem
+6/EuCM5+Dv7uVVLhZia5Zh+ip6iUjydO1332sBlfbcfNezGcBC2Re6Ath5eqRobr
+kfcNKHqcnEcaBVrjWxZGkvMG3Gv97qggymQmg5QBoQKBgQDT4rcES6cE9KoNU1l2
+gHF7bOh3z0NAGcK6HU1zL4H3y1cycc7WTp9U+OGmMV0kLky+hjbLgc1JFhMAimu8
+cqxIYCy5EsjgKIm8DXUvIWRNLcfz12uY5WcwpgUKAq6ya3Xo46u1U/HJcX7vLhCk
+aIoxk8zXu6w9v0IbzsA9/B6U2QKBgQDEASsafNq3Dhq2g6CarSY5N5ni2Zwg73ft
+XsDThEF3tUNvXH/dG4W6gJw5xqxIcPwEecjhvw9XksWXfNttwVXAqaODv0lrC6vL
+fQE+FA8XLAa2awokkYCbWFnf98CDr+1J3P2dMAKGs+kU5xSgbOEZimQeet0tunAv
+t4mz+9klzwKBgQesttMwUX5VVjgSeXy65kgo98RmZc34J5dqNTQ6ie5XFExI16TKG
+wOewSrfh6e9NcjNjgYuhaYoWB/X4JxO9CD3Byfx8msNV/tC3Ya2wRltP9BMjiuy7
+8GoFbeJIY12w3Swdo635s99KosQQbx02bln63AJrd0iNVNJzACi+DMe5AoGALdPE
+GzZUAPbYQhI2i9OuGzSn00Vj3sN+u84qsYm7sNx9vtzWvIDB3KBTZqLQB0P7eKRs
+1nNQh/42GrxDpb7NaPWA2L3x0YhyC2rXzobsHFPb4ezW+0PV2PxoTxhjN6b7iQiV
+d5oRDSOlfJCm3vd2Df2wePvrGNT9g/qaxK0+0TsCgYB+L3Lyotu1zzeaUAuaspmj
+ho2Ee3zi//roFu6dfj9XZ9oVkXcR4AwxVQgbAxmf95pmLBvNP6ogjFjS3hHHSI3W
+YkcexDbtfoR4nvFecquGPb8KGLoQfQLBGhHdQhz9liTBfZl7uvQd43unF2LqVzhF
+ERFB74ggJ83xE+bg046m3g==
+-----END PRIVATE KEY-----"
 
 # Livekit Token settings
 LIVEKIT_API_SECRET=secret
