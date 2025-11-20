@@ -322,6 +322,10 @@
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een transcriptie starten (beta).",
       "linkMore": "Meer informatie"
     },
+    "request": {
+      "button": "Transcriptie aanvragen",
+      "sent": "Verzoek verzonden"
+    },
     "stop": {
       "heading": "Transcriptie bezig...",
       "body": "De transcriptie van uw vergadering is bezig. U ontvangt het resultaat per e-mail zodra de vergadering is afgelopen.",

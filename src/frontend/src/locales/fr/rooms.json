@@ -322,6 +322,10 @@
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta).",
       "linkMore": "En savoir plus"
     },
+    "request": {
+      "button": "Demander la transcription",
+      "sent": "Demande envoyée"
+    },
     "stop": {
       "heading": "Transcription en cours …",
       "body": "La transcription de votre réunion est en cours. Vous recevrez le resultat par email une fois la réunion terminée.",
