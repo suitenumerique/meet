@@ -15,7 +15,6 @@ import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
-import { RiProhibited2Line } from '@remixicon/react'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
 
@@ -153,8 +152,14 @@ export const EffectsConfiguration = ({
     )
   }
 
-  const tooltipLabel = (type: ProcessorType, options: BackgroundOptions) => {
-    return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
+  const tooltipBlur = (type: ProcessorType, options: BackgroundOptions) => {
+    return t(
+      `${type}.${options.blurRadius == BlurRadius.LIGHT ? 'light' : 'normal'}.${isSelected(type, options) ? 'clear' : 'apply'}`
+    )
+  }
+
+  const tooltipVirtualBackground = (index: number): string => {
+    return t(`virtual.descriptions.${index}`)
   }
 
   return (
@@ -273,21 +278,7 @@ export const EffectsConfiguration = ({
               >
                 <ToggleButton
                   variant="bigSquare"
-                  aria-label={t('clear')}
-                  onPress={async () => {
-                    await clearEffect()
-                  }}
-                  isSelected={!getProcessor()}
-                  isDisabled={processorPendingReveal || isDisabled}
-                >
-                  <RiProhibited2Line />
-                </ToggleButton>
-                <ToggleButton
-                  variant="bigSquare"
-                  aria-label={tooltipLabel(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.LIGHT,
-                  })}
-                  tooltip={tooltipLabel(ProcessorType.BLUR, {
+                  tooltip={tooltipBlur(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.LIGHT,
                   })}
                   isDisabled={processorPendingReveal || isDisabled}
@@ -305,10 +296,7 @@ export const EffectsConfiguration = ({
                 </ToggleButton>
                 <ToggleButton
                   variant="bigSquare"
-                  aria-label={tooltipLabel(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.NORMAL,
-                  })}
-                  tooltip={tooltipLabel(ProcessorType.BLUR, {
+                  tooltip={tooltipBlur(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.NORMAL,
                   })}
                   isDisabled={processorPendingReveal || isDisabled}
@@ -343,6 +331,7 @@ export const EffectsConfiguration = ({
                   className={css({
                     display: 'flex',
                     gap: '1.25rem',
+                    paddingBottom: '0.5rem',
                     flexWrap: 'wrap',
                   })}
                 >
@@ -353,12 +342,16 @@ export const EffectsConfiguration = ({
                       <ToggleButton
                         key={i}
                         variant="bigSquare"
-                        aria-label={tooltipLabel(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
-                        tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
+                        tooltip={tooltipVirtualBackground(i)}
+                        aria-label={t(
+                          `virtual.${
+                            isSelected(ProcessorType.VIRTUAL, {
+                              imagePath,
+                            })
+                              ? 'selectedLabel'
+                              : 'apply'
+                          }`
+                        )}
                         isDisabled={processorPendingReveal || isDisabled}
                         onChange={async () =>
                           await toggleEffect(ProcessorType.VIRTUAL, {
