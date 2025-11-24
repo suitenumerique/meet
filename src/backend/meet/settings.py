@@ -538,6 +538,9 @@ class Base(Configuration):
     OIDC_RS_ENCRYPTION_KEY_TYPE = values.Value(
         default="RSA", environ_name="OIDC_RS_ENCRYPTION_KEY_TYPE", environ_prefix=None
     )
+    OIDC_RS_SCOPES_PREFIX = values.Value(
+        default=None, environ_name="OIDC_RS_SCOPES_PREFIX", environ_prefix=None
+    )
 
     # Video conference configuration
     LIVEKIT_CONFIGURATION = {
