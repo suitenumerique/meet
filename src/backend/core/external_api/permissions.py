@@ -3,6 +3,8 @@
 import logging
 from typing import Dict
 
+from django.conf import settings
+
 from rest_framework import exceptions, permissions
 
 from .. import models
@@ -54,6 +56,12 @@ class BaseScopePermission(permissions.BasePermission):
         # Ensure scopes is a list (handle both list and space-separated string)
         if isinstance(token_scopes, str):
             token_scopes = token_scopes.split()
+
+        if settings.OIDC_RS_SCOPES_PREFIX:
+            token_scopes = [
+                scope.replace(f"{settings.OIDC_RS_SCOPES_PREFIX}:", "")
+                for scope in token_scopes
+            ]
 
         if required_scope not in token_scopes:
             raise exceptions.PermissionDenied(

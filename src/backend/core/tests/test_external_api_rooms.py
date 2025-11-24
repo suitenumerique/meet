@@ -373,6 +373,7 @@ def test_resource_server_creates_user_on_first_authentication(settings):
 
     settings.OIDC_RS_CLIENT_ID = "some_client_id"
     settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
 
     settings.OIDC_OP_URL = "https://oidc.example.com"
     settings.OIDC_VERIFY_SSL = False
@@ -389,7 +390,7 @@ def test_resource_server_creates_user_on_first_authentication(settings):
             "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
             "sub": "very-specific-sub",
             "client_id": "some_service_provider",
-            "scope": "openid lasuite_meet rooms:list",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:list",
             "active": True,
         },
     )
@@ -489,6 +490,7 @@ def test_resource_server_authentication_successful(settings):
 
     settings.OIDC_RS_CLIENT_ID = "some_client_id"
     settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
 
     settings.OIDC_OP_URL = "https://oidc.example.com"
     settings.OIDC_VERIFY_SSL = False
@@ -505,7 +507,7 @@ def test_resource_server_authentication_successful(settings):
             "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
             "sub": "very-specific-sub",
             "client_id": "some_service_provider",
-            "scope": "openid lasuite_meet rooms:list",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:list",
             "active": True,
         },
     )
