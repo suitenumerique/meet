@@ -11,24 +11,17 @@ from .exceptions import WorkerConnectionError, WorkerResponseError
 from .factories import WorkerServiceConfig
 
 
-class BaseEgressService:
-    """Base egress defining common methods to manage and interact with LiveKit egress processes."""
+class LiveKitAPIClient:
+    """Handles all LiveKit API communication including client creation and request execution."""
 
-    def __init__(self, config: WorkerServiceConfig):
-        self._config = config
-        self._s3 = livekit_api.S3Upload(**config.bucket_args)
-
-    def _get_filepath(self, filename: str, extension: str) -> str:
-        """Construct the file path for a given filename and extension.
-        Unsecure method, doesn't handle paths robustly and securely.
-        """
-        return f"{self._config.output_folder}/{filename}.{extension}"
+    def __init__(self, server_configurations):
+        self._server_configurations = server_configurations
 
     @async_to_sync
-    async def _handle_request(self, request, method_name: str):
-        """Handle making a request to the LiveKit API and returns the response."""
+    async def execute_request(self, request, method_name: str):
+        """Execute a LiveKit API request and return the response."""
 
-        lkapi = utils.create_livekit_client(self._config.server_configurations)
+        lkapi = utils.create_livekit_client(self._server_configurations)
 
         # ruff: noqa: SLF001
         # pylint: disable=protected-access
@@ -49,6 +42,21 @@ class BaseEgressService:
         finally:
             await lkapi.aclose()
 
+
+class BaseEgressService:
+    """Base egress defining common methods to manage and interact with LiveKit egress processes."""
+
+    def __init__(self, config: WorkerServiceConfig):
+        self._config = config
+        self._s3 = livekit_api.S3Upload(**config.bucket_args)
+        self._api_client = LiveKitAPIClient(config.server_configurations)
+
+    def _get_filepath(self, filename: str, extension: str) -> str:
+        """Construct the file path for a given filename and extension.
+        Unsecure method, doesn't handle paths robustly and securely.
+        """
+        return f"{self._config.output_folder}/{filename}.{extension}"
+
     def stop(self, worker_id: str) -> str:
         """Stop an ongoing egress worker.
         The StopEgressRequest is shared among all types of egress,
@@ -59,7 +67,7 @@ class BaseEgressService:
             egress_id=worker_id,
         )
 
-        response = self._handle_request(request, "stop_egress")
+        response = self._api_client.execute_request(request, "stop_egress")
 
         if not response.status:
             raise WorkerResponseError(
@@ -108,7 +116,7 @@ class VideoCompositeEgressService(BaseEgressService):
             room_name=room_name, file_outputs=[file_output], layout="speaker-light"
         )
 
-        response = self._handle_request(request, "start_room_composite_egress")
+        response = self._api_client.execute_request(request, "start_room_composite_egress")
 
         if not response.egress_id:
             raise WorkerResponseError("Egress ID not found in the response.")
@@ -140,7 +148,7 @@ class AudioCompositeEgressService(BaseEgressService):
             room_name=room_name, file_outputs=[file_output], audio_only=True
         )
 
-        response = self._handle_request(request, "start_room_composite_egress")
+        response = self._api_client.execute_request(request, "start_room_composite_egress")
 
         if not response.egress_id:
             raise WorkerResponseError("Egress ID not found in the response.")
