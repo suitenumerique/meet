@@ -46,21 +46,18 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
 
         return self.authenticate_credentials(token)
 
-    def authenticate_credentials(self, token):
-        """Validate JWT token and return authenticated user.
-
-        If token is invalid, defer to next authentication backend.
-
+    def _decode_jwt_token(self, token):
+        """Decode and validate JWT token structure.
+        
         Args:
             token: JWT token string
-
+            
         Returns:
-            Tuple of (user, payload)
-
+            Decoded payload dict or None if invalid
+            
         Raises:
-            AuthenticationFailed: If token is expired, or user not found
+            AuthenticationFailed: If token is expired or has invalid issuer/audience
         """
-        # Decode and validate JWT
         try:
             payload = pyJwt.decode(
                 token,
@@ -69,6 +66,7 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
                 issuer=settings.APPLICATION_JWT_ISSUER,
                 audience=settings.APPLICATION_JWT_AUDIENCE,
             )
+            return payload
         except pyJwt.ExpiredSignatureError as e:
             logger.warning("Token expired")
             raise exceptions.AuthenticationFailed("Token expired.") from e
@@ -82,6 +80,15 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
             # Invalid JWT token - defer to next authentication backend
             return None
 
+    def _validate_token_claims(self, payload):
+        """Validate required claims in JWT payload.
+        
+        Args:
+            payload: Decoded JWT payload dict
+            
+        Raises:
+            AuthenticationFailed: If required claims are missing or invalid
+        """
         user_id = payload.get("user_id")
         client_id = payload.get("client_id")
         is_delegated = payload.get("delegated", False)
@@ -98,6 +105,20 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
             logger.warning("Token is not marked as delegated")
             raise exceptions.AuthenticationFailed("Invalid token type.")
 
+    def _get_user_from_payload(self, payload):
+        """Retrieve and validate user from JWT payload.
+        
+        Args:
+            payload: Decoded JWT payload dict
+            
+        Returns:
+            User instance
+            
+        Raises:
+            AuthenticationFailed: If user not found or inactive
+        """
+        user_id = payload.get("user_id")
+        
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist as e:
@@ -107,6 +128,30 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
         if not user.is_active:
             logger.warning("Inactive user attempted authentication: %s", user_id)
             raise exceptions.AuthenticationFailed("User account is disabled.")
+
+        return user
+
+    def authenticate_credentials(self, token):
+        """Validate JWT token and return authenticated user.
+
+        If token is invalid, defer to next authentication backend.
+
+        Args:
+            token: JWT token string
+
+        Returns:
+            Tuple of (user, payload)
+
+        Raises:
+            AuthenticationFailed: If token is expired, or user not found
+        """
+        payload = self._decode_jwt_token(token)
+        
+        if payload is None:
+            return None
+        
+        self._validate_token_claims(payload)
+        user = self._get_user_from_payload(payload)
 
         return (user, payload)
 
