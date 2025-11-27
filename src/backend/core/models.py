@@ -303,6 +303,47 @@ class Resource(BaseModel):
         """Check if a user is owner of the resource."""
         return RoleChoices.check_owner_role(self.get_role(user))
 
+    def get_access_abilities(self, access, user):
+        """
+        Compute and return abilities for a given user accessing a specific access object,
+        taking into account the current state of the resource and access.
+        """
+
+        roles = get_resource_roles(self, user)
+
+        is_owner = RoleChoices.OWNER in roles
+        has_privileges = is_owner or RoleChoices.ADMIN in roles
+
+        # Default values for unprivileged users
+        set_role_to = set()
+        can_delete = False
+
+        # Special handling when modifying an owner's access
+        if access.role == RoleChoices.OWNER:
+            # Prevent orphaning the resource
+            can_delete = (
+                is_owner
+                and self.accesses.filter(role=RoleChoices.OWNER).count() > 1
+            )
+            if can_delete:
+                set_role_to = {RoleChoices.ADMIN, RoleChoices.OWNER, RoleChoices.MEMBER}
+        elif has_privileges:
+            can_delete = True
+            set_role_to = {RoleChoices.ADMIN, RoleChoices.MEMBER}
+            if is_owner:
+                set_role_to.add(RoleChoices.OWNER)
+
+        # Remove the current role as we don't want to propose it as an option
+        set_role_to.discard(access.role)
+
+        return {
+            "destroy": can_delete,
+            "update": bool(set_role_to),
+            "partial_update": bool(set_role_to),
+            "retrieve": bool(roles),
+            "set_role_to": sorted(r.value for r in set_role_to),
+        }
+
 
 class ResourceAccess(BaseModel):
     """Link table between resources and users"""
@@ -491,42 +532,10 @@ class BaseAccess(BaseModel):
         """
         Compute and return abilities for a given user taking into account
         the current state of the object.
+        
+        Delegates to resource.get_access_abilities to avoid feature envy.
         """
-
-        roles = get_resource_roles(resource, user)
-
-        is_owner = RoleChoices.OWNER in roles
-        has_privileges = is_owner or RoleChoices.ADMIN in roles
-
-        # Default values for unprivileged users
-        set_role_to = set()
-        can_delete = False
-
-        # Special handling when modifying an owner's access
-        if self.role == RoleChoices.OWNER:
-            # Prevent orphaning the resource
-            can_delete = (
-                is_owner
-                and resource.accesses.filter(role=RoleChoices.OWNER).count() > 1
-            )
-            if can_delete:
-                set_role_to = {RoleChoices.ADMIN, RoleChoices.OWNER, RoleChoices.MEMBER}
-        elif has_privileges:
-            can_delete = True
-            set_role_to = {RoleChoices.ADMIN, RoleChoices.MEMBER}
-            if is_owner:
-                set_role_to.add(RoleChoices.OWNER)
-
-        # Remove the current role as we don't want to propose it as an option
-        set_role_to.discard(self.role)
-
-        return {
-            "destroy": can_delete,
-            "update": bool(set_role_to),
-            "partial_update": bool(set_role_to),
-            "retrieve": bool(roles),
-            "set_role_to": sorted(r.value for r in set_role_to),
-        }
+        return resource.get_access_abilities(self, user)
 
 
 class Recording(BaseModel):
