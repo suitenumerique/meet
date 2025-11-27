@@ -29,31 +29,54 @@ class ResourceAccessSerializerMixin:
     is administrator on the targeted room.
     """
 
-    # pylint: disable=too-many-boolean-expressions
+    def _is_attempting_unauthorized_owner_assignment(self, user, new_role):
+        """Check if user is trying to assign owner role without being an owner."""
+        is_assigning_owner_role = new_role == models.RoleChoices.OWNER
+        user_lacks_owner_permission = not self.instance.resource.is_owner(user)
+        return is_assigning_owner_role and user_lacks_owner_permission
+
+    def _is_attempting_to_remove_another_owner(self, user):
+        """Check if user is trying to modify or remove a different owner."""
+        target_is_owner = self.instance.role == models.RoleChoices.OWNER
+        target_is_different_user = self.instance.user != user
+        return target_is_owner and target_is_different_user
+
+    def _violates_update_owner_rules(self, user, data):
+        """Check if update operation violates owner assignment rules."""
+        new_role = data.get("role")
+        return (
+            self._is_attempting_unauthorized_owner_assignment(user, new_role)
+            or self._is_attempting_to_remove_another_owner(user)
+        )
+
+    def _violates_create_owner_rules(self, user, data):
+        """Check if create operation violates owner assignment rules."""
+        new_role = data.get("role")
+        is_assigning_owner_role = new_role == models.RoleChoices.OWNER
+        user_lacks_owner_permission = not data["resource"].is_owner(user)
+        return is_assigning_owner_role and user_lacks_owner_permission
+
+    def _raise_owner_permission_error(self):
+        """Raise permission denied error for unauthorized owner operations."""
+        raise PermissionDenied(
+            "Only owners of a room can assign other users as owners."
+        )
+
     def validate(self, data):
         """
         Check access rights specific to writing (create/update)
         """
         request = self.context.get("request", None)
         user = getattr(request, "user", None)
-        if (
-            # Update
-            self.instance
-            and (
-                data.get("role") == models.RoleChoices.OWNER
-                and not self.instance.resource.is_owner(user)
-                or self.instance.role == models.RoleChoices.OWNER
-                and self.instance.user != user
-            )
-        ) or (
-            # Create
-            not self.instance
-            and data.get("role") == models.RoleChoices.OWNER
-            and not data["resource"].is_owner(user)
-        ):
-            raise PermissionDenied(
-                "Only owners of a room can assign other users as owners."
-            )
+
+        is_update = self.instance is not None
+
+        if is_update and self._violates_update_owner_rules(user, data):
+            self._raise_owner_permission_error()
+
+        if not is_update and self._violates_create_owner_rules(user, data):
+            self._raise_owner_permission_error()
+
         return data
 
     def validate_resource(self, resource):
