@@ -176,8 +176,7 @@ class LobbyService:
             self.refresh_waiting_status(room.id, participant_id)
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
-            # wrongly named, contains access token to join a room
-            livekit_config = utils.generate_livekit_config(
+            access_token = utils.generate_livekit_config(
                 room_id=room_id,
                 user=request.user,
                 username=username,
@@ -187,7 +186,7 @@ class LobbyService:
                 participant_id=participant_id,
             )
 
-        return participant, livekit_config
+        return participant, access_token
 
     def refresh_waiting_status(self, room_id: UUID, participant_id: str):
         """Refresh timeout for waiting participant.
