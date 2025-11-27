@@ -39,11 +39,11 @@ class ResourceFactory(factory.django.DjangoModelFactory):
     def users(self, create, extracted, **kwargs):
         """Add users to resource from a given list of users."""
         if create and extracted:
-            for item in extracted:
-                if isinstance(item, models.User):
-                    UserResourceAccessFactory(resource=self, user=item)
+            for user_entry in extracted:
+                if isinstance(user_entry, models.User):
+                    UserResourceAccessFactory(resource=self, user=user_entry)
                 else:
-                    UserResourceAccessFactory(resource=self, user=item[0], role=item[1])
+                    UserResourceAccessFactory(resource=self, user=user_entry[0], role=user_entry[1])
 
         self.save()
 
@@ -86,12 +86,12 @@ class RecordingFactory(factory.django.DjangoModelFactory):
     def users(self, create, extracted, **kwargs):
         """Add users to recording from a given list of users with or without roles."""
         if create and extracted:
-            for item in extracted:
-                if isinstance(item, models.User):
-                    UserRecordingAccessFactory(recording=self, user=item)
+            for user_entry in extracted:
+                if isinstance(user_entry, models.User):
+                    UserRecordingAccessFactory(recording=self, user=user_entry)
                 else:
                     UserRecordingAccessFactory(
-                        recording=self, user=item[0], role=item[1]
+                        recording=self, user=user_entry[0], role=user_entry[1]
                     )
 
             self.save()

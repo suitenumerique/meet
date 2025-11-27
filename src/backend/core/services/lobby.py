@@ -156,7 +156,7 @@ class LobbyService:
             else:
                 participant.status = LobbyParticipantStatus.ACCEPTED
 
-            livekit_config = utils.generate_livekit_config(
+            access_token = utils.generate_livekit_config(
                 room_id=room_id,
                 user=request.user,
                 username=username,
@@ -165,9 +165,9 @@ class LobbyService:
                 is_admin_or_owner=False,
                 participant_id=participant_id,
             )
-            return participant, livekit_config
+            return participant, access_token
 
-        livekit_config = None
+        access_token = None
 
         if participant is None:
             participant = self.enter(room.id, participant_id, username)
