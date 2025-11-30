@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "i18n:extract": "npx i18next -c i18next-parser.config.json",
     "format": "prettier --write ./src",
-    "check": "prettier --check ./src"
+    "check": "prettier --check ./src",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@livekit/components-react": "2.9.13",
@@ -57,6 +60,7 @@
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-react-refresh": "0.4.20",
+    "@playwright/test": "^1.48.0",
     "postcss": "8.5.6",
     "prettier": "3.6.2",
     "typescript": "5.8.3",
