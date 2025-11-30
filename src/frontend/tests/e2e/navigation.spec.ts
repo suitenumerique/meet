@@ -1,35 +1,22 @@
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
+import { navigateAndVerifyLoad, navigateAndWait, expectPageLoaded } from './test-helpers'
 
 test.describe('Navigation', () => {
   test('should navigate to accessibility page', async ({ page }) => {
-    await page.goto('/accessibilite')
-    await page.waitForLoadState('networkidle')
-    
-    // Page should load without errors
-    await expect(page.locator('body')).toBeVisible()
+    await navigateAndVerifyLoad(page, '/accessibilite')
   })
 
   test('should navigate to terms of service page', async ({ page }) => {
-    await page.goto('/conditions-utilisation')
-    await page.waitForLoadState('networkidle')
-    
-    await expect(page.locator('body')).toBeVisible()
+    await navigateAndVerifyLoad(page, '/conditions-utilisation')
   })
 
   test('should navigate to legal terms page', async ({ page }) => {
-    await page.goto('/mentions-legales')
-    await page.waitForLoadState('networkidle')
-    
-    await expect(page.locator('body')).toBeVisible()
+    await navigateAndVerifyLoad(page, '/mentions-legales')
   })
 
   test('should show 404 for invalid routes', async ({ page }) => {
-    await page.goto('/invalid-route-that-does-not-exist')
-    await page.waitForLoadState('networkidle')
-    
-    // Should show some error or not found message
-    const body = page.locator('body')
-    await expect(body).toBeVisible()
+    await navigateAndWait(page, '/invalid-route-that-does-not-exist')
+    await expectPageLoaded(page)
   })
 })
 
