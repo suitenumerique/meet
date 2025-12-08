@@ -1,9 +1,11 @@
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
-import { RecordingMode } from '../types'
+import { RecordingMode, RecordingPermission } from '../types'
 import { useIsRecordingModeEnabled } from './useIsRecordingModeEnabled'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { FeatureFlags } from '@/features/analytics/enums'
+import { useConfig } from '@/api/useConfig'
+import { useUser } from '@/features/auth'
 
 export const useHasFeatureWithoutAdminRights = (
   mode: RecordingMode,
@@ -13,10 +15,22 @@ export const useHasFeatureWithoutAdminRights = (
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
   const isRecordingModeEnabled = useIsRecordingModeEnabled(mode)
   const isAdminOrOwner = useIsAdminOrOwner()
+  const { data: config } = useConfig()
+  const { isLoggedIn } = useUser()
+
+  const permissionLevel =
+    mode === RecordingMode.ScreenRecording
+      ? config?.recording?.screen_recording_permission
+      : config?.recording?.transcript_permission
+
+  const hasPermission =
+    permissionLevel === RecordingPermission.Authenticated
+      ? isLoggedIn
+      : isAdminOrOwner
 
   return (
     (featureEnabled || !isAnalyticsEnabled) &&
     isRecordingModeEnabled &&
-    !isAdminOrOwner
+    !hasPermission
   )
 }
