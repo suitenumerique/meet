@@ -8,7 +8,7 @@ export { useHasFeatureWithoutAdminRights } from './hooks/useHasFeatureWithoutAdm
 // api
 export { useStartRecording } from './api/startRecording'
 export { useStopRecording } from './api/stopRecording'
-export { RecordingMode, RecordingStatus } from './types'
+export { RecordingMode, RecordingPermission, RecordingStatus } from './types'
 
 // components
 export { RecordingStateToast } from './components/RecordingStateToast'
