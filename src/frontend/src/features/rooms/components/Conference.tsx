@@ -30,6 +30,7 @@ import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
 import { usePostHog } from 'posthog-js/react'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
+import { useIsMobile } from '@/utils/useIsMobile'
 
 export const Conference = ({
   roomId,
@@ -169,6 +170,8 @@ export const Conference = ({
     kind: null,
   })
 
+  const isMobile = useIsMobile()
+
   /*
    * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
    * (Firefox <124, Chrome <125, Edge <125) where HTTPS URLs in WebSocket() constructor
@@ -238,7 +241,7 @@ export const Conference = ({
           }}
         >
           <VideoConference />
-          {showInviteDialog && (
+          {showInviteDialog && !isMobile && (
             <InviteDialog
               isOpen={showInviteDialog}
               onOpenChange={setShowInviteDialog}

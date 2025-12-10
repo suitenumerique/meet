@@ -60,7 +60,7 @@
     "postcss": "8.5.6",
     "prettier": "3.6.2",
     "typescript": "5.8.3",
-    "vite": "7.0.2",
+    "vite": "7.0.8",
     "vite-tsconfig-paths": "5.1.4"
   }
 }
