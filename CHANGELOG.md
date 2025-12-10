@@ -9,4 +9,4 @@ and this project adheres to
 
 ## [Unreleased]
 
-- 🔧(backend) support `_FILE` for secret environment variables #566 
+-  
