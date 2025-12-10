@@ -8,6 +8,7 @@ and this project adheres to
 
 ## [Unreleased]
 
+
 ### Added
 
 - ✨(summary) add dutch and german languages
@@ -16,6 +17,7 @@ and this project adheres to
 ### Changed
 
 - 📈(frontend) track new recording's modes
+- ♿️(frontend) improve accessibility of the background and effects menu
 - ♿️(frontend) improve SR and focus for transcript and recording #810
 - 💄(frontend) adjust spacing in the recording side panels
 - 🚸(frontend) remove the default comma delimiter in humanized durations
