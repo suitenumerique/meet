@@ -153,9 +153,11 @@ export const EffectsConfiguration = ({
   }
 
   const tooltipBlur = (type: ProcessorType, options: BackgroundOptions) => {
-    return t(
-      `${type}.${options.blurRadius == BlurRadius.LIGHT ? 'light' : 'normal'}.${isSelected(type, options) ? 'clear' : 'apply'}`
-    )
+    const strength =
+      options.blurRadius === BlurRadius.LIGHT ? 'light' : 'normal'
+    const action = isSelected(type, options) ? 'clear' : 'apply'
+
+    return t(`${type}.${strength}.${action}`)
   }
 
   const tooltipVirtualBackground = (index: number): string => {
@@ -278,6 +280,9 @@ export const EffectsConfiguration = ({
               >
                 <ToggleButton
                   variant="bigSquare"
+                  aria-label={tooltipBlur(ProcessorType.BLUR, {
+                    blurRadius: BlurRadius.LIGHT,
+                  })}
                   tooltip={tooltipBlur(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.LIGHT,
                   })}
@@ -296,6 +301,9 @@ export const EffectsConfiguration = ({
                 </ToggleButton>
                 <ToggleButton
                   variant="bigSquare"
+                  aria-label={tooltipBlur(ProcessorType.BLUR, {
+                    blurRadius: BlurRadius.NORMAL,
+                  })}
                   tooltip={tooltipBlur(ProcessorType.BLUR, {
                     blurRadius: BlurRadius.NORMAL,
                   })}
@@ -343,7 +351,7 @@ export const EffectsConfiguration = ({
                         key={i}
                         variant="bigSquare"
                         tooltip={tooltipVirtualBackground(i)}
-                        aria-label={t(
+                        aria-label={`${t(
                           `virtual.${
                             isSelected(ProcessorType.VIRTUAL, {
                               imagePath,
@@ -351,7 +359,7 @@ export const EffectsConfiguration = ({
                               ? 'selectedLabel'
                               : 'apply'
                           }`
-                        )}
+                        )} ${tooltipVirtualBackground(i)}`}
                         isDisabled={processorPendingReveal || isDisabled}
                         onChange={async () =>
                           await toggleEffect(ProcessorType.VIRTUAL, {

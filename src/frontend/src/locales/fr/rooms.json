@@ -230,15 +230,15 @@
     "cameraDisabled": "Votre caméra est désactivée.",
     "notAvailable": "Les effets vidéo seront bientôt disponibles sur votre navigateur. Nous y travaillons ! En attendant, vous pouvez utiliser Google Chrome pour de meilleures performances ou Firefox :(",
     "heading": "Flou",
-    "clear": "Désactiver l'effect",
+    "clear": "Désactiver l'effet",
     "blur": {
       "title": "Flou d'arrière-plan",
       "light": {
-        "apply": "Flouter légèrement votre arrière-plan",
+        "apply": "Flouter l'arrière-plan",
         "clear": "Désactiver le flou"
       },
       "normal": {
-        "apply": "Flouter votre arrière-plan",
+        "apply": "Flouter encore plus l'arrière-plan",
         "clear": "Désactiver le flou"
       }
     },

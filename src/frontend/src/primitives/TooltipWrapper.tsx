@@ -27,7 +27,7 @@ export const TooltipWrapper = ({
   return tooltip ? (
     <TooltipTrigger delay={tooltipType === 'instant' ? 150 : 1000}>
       {children}
-      <Tooltip>{tooltip}</Tooltip>
+      <Tooltip aria-hidden="true">{tooltip}</Tooltip>
     </TooltipTrigger>
   ) : (
     children
