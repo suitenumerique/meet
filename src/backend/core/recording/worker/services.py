@@ -57,6 +57,10 @@ class BaseEgressService:
         """
         return f"{self._config.output_folder}/{filename}.{extension}"
 
+    def _handle_request(self, request, method_name: str):
+        """Execute a LiveKit API request and return the response."""
+        return self._api_client.execute_request(request, method_name)
+
     def stop(self, worker_id: str) -> str:
         """Stop an ongoing egress worker.
         The StopEgressRequest is shared among all types of egress,
@@ -67,7 +71,7 @@ class BaseEgressService:
             egress_id=worker_id,
         )
 
-        response = self._api_client.execute_request(request, "stop_egress")
+        response = self._handle_request(request, "stop_egress")
 
         if not response.status:
             raise WorkerResponseError(
@@ -116,7 +120,7 @@ class VideoCompositeEgressService(BaseEgressService):
             room_name=room_name, file_outputs=[file_output], layout="speaker-light"
         )
 
-        response = self._api_client.execute_request(request, "start_room_composite_egress")
+        response = self._handle_request(request, "start_room_composite_egress")
 
         if not response.egress_id:
             raise WorkerResponseError("Egress ID not found in the response.")
@@ -148,7 +152,7 @@ class AudioCompositeEgressService(BaseEgressService):
             room_name=room_name, file_outputs=[file_output], audio_only=True
         )
 
-        response = self._api_client.execute_request(request, "start_room_composite_egress")
+        response = self._handle_request(request, "start_room_composite_egress")
 
         if not response.egress_id:
             raise WorkerResponseError("Egress ID not found in the response.")

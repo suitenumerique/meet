@@ -626,6 +626,47 @@ class Recording(BaseModel):
             "update": False,
         }
 
+    def get_access_abilities(self, access, user):
+        """
+        Compute and return abilities for a given user accessing a specific access object,
+        taking into account the current state of the recording and access.
+        """
+
+        roles = get_resource_roles(self, user)
+
+        is_owner = RoleChoices.OWNER in roles
+        has_privileges = is_owner or RoleChoices.ADMIN in roles
+
+        # Default values for unprivileged users
+        set_role_to = set()
+        can_delete = False
+
+        # Special handling when modifying an owner's access
+        if access.role == RoleChoices.OWNER:
+            # Prevent orphaning the recording
+            can_delete = (
+                is_owner
+                and self.accesses.filter(role=RoleChoices.OWNER).count() > 1
+            )
+            if can_delete:
+                set_role_to = {RoleChoices.ADMIN, RoleChoices.OWNER, RoleChoices.MEMBER}
+        elif has_privileges:
+            can_delete = True
+            set_role_to = {RoleChoices.ADMIN, RoleChoices.MEMBER}
+            if is_owner:
+                set_role_to.add(RoleChoices.OWNER)
+
+        # Remove the current role as we don't want to propose it as an option
+        set_role_to.discard(access.role)
+
+        return {
+            "destroy": can_delete,
+            "update": bool(set_role_to),
+            "partial_update": bool(set_role_to),
+            "retrieve": bool(roles),
+            "set_role_to": sorted(r.value for r in set_role_to),
+        }
+
     def is_savable(self) -> bool:
         """Determine if the recording can be saved based on its current status."""
 
