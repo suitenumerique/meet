@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     app_name: str = "app"
     app_api_v1_str: str = "/api/v1"
-    app_api_token: str
+    app_api_token: SecretStr
 
     # Audio recordings
     recording_max_duration: Optional[int] = None
@@ -32,18 +32,18 @@ class Settings(BaseSettings):
     aws_storage_bucket_name: str
     aws_s3_endpoint_url: str
     aws_s3_access_key_id: str
-    aws_s3_secret_access_key: str
+    aws_s3_secret_access_key: SecretStr
     aws_s3_secure_access: bool = True
 
     # AI-related settings
-    whisperx_api_key: str
+    whisperx_api_key: SecretStr
     whisperx_base_url: str = "https://api.openai.com/v1"
     whisperx_asr_model: str = "whisper-1"
     whisperx_max_retries: int = 0
     # ISO 639-1 language code (e.g., "en", "fr", "es")
     whisperx_default_language: Optional[str] = None
     llm_base_url: str
-    llm_api_key: str
+    llm_api_key: SecretStr
     llm_model: str
 
     # Transcription processing
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     webhook_max_retries: int = 2
     webhook_status_forcelist: List[int] = [502, 503, 504]
     webhook_backoff_factor: float = 0.1
-    webhook_api_token: str
+    webhook_api_token: SecretStr
     webhook_url: str
 
     # Output related settings
