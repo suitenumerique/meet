@@ -512,7 +512,8 @@
     }
   },
   "participantTileFocus": {
-    "containerLabel": "Options for {{name}}",
+    "containerLabel": "Options for {{name}}, F2: go to the bottom toolbar.",
+    "toolbarHint": "F2: go to the bottom toolbar.",
     "pin": {
       "enable": "Pin",
       "disable": "Unpin"

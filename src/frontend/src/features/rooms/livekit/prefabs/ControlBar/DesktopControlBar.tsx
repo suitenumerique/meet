@@ -11,6 +11,7 @@ import { OptionsButton } from '../../components/controls/Options/OptionsButton'
 import { StartMediaButton } from '../../components/controls/StartMediaButton'
 import { MoreOptions } from './MoreOptions'
 import { useRef } from 'react'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 
@@ -19,6 +20,18 @@ export function DesktopControlBar({
 }: Readonly<ControlBarAuxProps>) {
   const browserSupportsScreenSharing = supportsScreenSharing()
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
+
+  useRegisterKeyboardShortcut({
+    shortcut: { key: 'F2' },
+    handler: () => {
+      const root = desktopControlBarEl.current
+      if (!root) return
+      const firstButton = root.querySelector<HTMLButtonElement>(
+        'button, [role="button"], [tabindex="0"]'
+      )
+      firstButton?.focus()
+    },
+  })
   return (
     <div
       ref={desktopControlBarEl}

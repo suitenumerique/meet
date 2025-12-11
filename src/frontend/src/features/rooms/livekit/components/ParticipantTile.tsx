@@ -31,6 +31,7 @@ import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { ParticipantName } from './ParticipantName'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useTranslation } from 'react-i18next'
+import { css } from '@/styled-system/css'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -109,14 +110,8 @@ export const ParticipantTile: (
   const participantName = getParticipantName(trackReference.participant)
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
 
-  // Avoid double announcements: LiveKit's useParticipantTile may set its own
-  // aria-label / aria-labelledby / aria-describedby. We strip them here
-  // and provide a single, explicit label for the focusable tile container.
-  const { 'aria-label': _ignoredAriaLabel, ...safeElementProps } = elementProps
-  void _ignoredAriaLabel
-
   const interactiveProps = {
-    ...safeElementProps,
+    ...elementProps,
     // Ensure the tile is focusable to expose contextual controls to keyboard users.
     tabIndex: 0,
     'aria-label': t('containerLabel', { name: participantName }),
@@ -232,6 +227,23 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
+      {hasKeyboardFocus && (
+        <div
+          className={css({
+            position: 'absolute',
+            top: '0.75rem',
+            left: '0.75rem',
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            color: 'white',
+            borderRadius: '999px',
+            paddingInline: '0.5rem',
+            paddingBlock: '0.1rem',
+            fontSize: '0.75rem',
+          })}
+        >
+          {t('toolbarHint')}
+        </div>
+      )}
     </div>
   )
 })
