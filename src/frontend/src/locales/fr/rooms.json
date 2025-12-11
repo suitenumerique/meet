@@ -233,6 +233,11 @@
     "clear": "Désactiver l'effet",
     "blur": {
       "title": "Flou d'arrière-plan",
+      "status": {
+        "none": "Arrière-plan net.",
+        "light": "Arrière-plan légèrement flouté.",
+        "strong": "Arrière-plan fortement flouté."
+      },
       "light": {
         "apply": "Flouter l'arrière-plan",
         "clear": "Désactiver le flou"
