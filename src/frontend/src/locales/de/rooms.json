@@ -512,7 +512,7 @@
     }
   },
   "participantTileFocus": {
-    "containerLabel": "Optionen für {{name}}, F2: zur Symbolleiste unten.",
+    "containerLabel": "Optionen für {{name}}",
     "toolbarHint": "F2: zur Symbolleiste unten.",
 
     "pin": {

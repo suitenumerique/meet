@@ -512,7 +512,7 @@
     }
   },
   "participantTileFocus": {
-    "containerLabel": "Opties voor {{name}}, F2: naar de werkbalk onderaan.",
+    "containerLabel": "Opties voor {{name}}",
     "toolbarHint": "F2: naar de werkbalk onderaan.",
     "pin": {
       "enable": "Pinnen",
