@@ -16,6 +16,7 @@ import { Info } from './Info'
 
 type StyledSidePanelProps = {
   title: string
+  ariaLabel: string
   children: ReactNode
   onClose: () => void
   isClosed: boolean
@@ -26,6 +27,7 @@ type StyledSidePanelProps = {
 
 const StyledSidePanel = ({
   title,
+  ariaLabel,
   children,
   onClose,
   isClosed,
@@ -33,7 +35,7 @@ const StyledSidePanel = ({
   isSubmenu = false,
   onBack,
 }: StyledSidePanelProps) => (
-  <div
+  <aside
     className={css({
       borderWidth: '1px',
       borderStyle: 'solid',
@@ -58,6 +60,8 @@ const StyledSidePanel = ({
     style={{
       transform: isClosed ? 'translateX(calc(360px + 1.5rem))' : 'none',
     }}
+    aria-hidden={isClosed}
+    aria-label={ariaLabel}
   >
     <Heading
       slot="title"
@@ -74,7 +78,7 @@ const StyledSidePanel = ({
       {isSubmenu && (
         <Button
           variant="secondaryText"
-          size={'sm'}
+          size="sm"
           square
           className={css({ marginRight: '0.5rem' })}
           onPress={onBack}
@@ -104,7 +108,7 @@ const StyledSidePanel = ({
       </Button>
     </Div>
     {children}
-  </div>
+  </aside>
 )
 
 type PanelProps = {
@@ -144,6 +148,7 @@ export const SidePanel = () => {
   return (
     <StyledSidePanel
       title={t(`heading.${activeSubPanelId || activePanelId}`)}
+      ariaLabel={t('ariaLabel')}
       onClose={() => {
         layoutStore.activePanelId = null
         layoutStore.activeSubPanelId = null
