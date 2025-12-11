@@ -11,6 +11,7 @@ and this project adheres to
 ### Added 
 
 - ✨(backend) enable user creation via email for external integrations
+- ✨(summary) add Langfuse observability for LLM API calls
 
 ## [1.0.1] - 2025-12-17
 
