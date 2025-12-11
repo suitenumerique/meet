@@ -512,6 +512,7 @@
     }
   },
   "participantTileFocus": {
+    "containerLabel": "Options pour {{name}}",
     "pin": {
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"

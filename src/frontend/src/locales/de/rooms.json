@@ -512,6 +512,7 @@
     }
   },
   "participantTileFocus": {
+    "containerLabel": "Optionen für {{name}}",
     "pin": {
       "enable": "Anheften",
       "disable": "Lösen"
