@@ -35,6 +35,7 @@ export const ParticipantName = ({
       style={{
         paddingBottom: '0.1rem',
       }}
+      aria-hidden="true"
     >
       {displayedName}
     </Text>

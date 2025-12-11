@@ -29,6 +29,8 @@ import { ParticipantPlaceholder } from './ParticipantPlaceholder'
 import { ParticipantTileFocus } from './ParticipantTileFocus'
 import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { ParticipantName } from './ParticipantName'
+import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
+import { useTranslation } from 'react-i18next'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -102,9 +104,37 @@ export const ParticipantTile: (
   })
 
   const isScreenShare = trackReference.source != Track.Source.Camera
+  const [hasKeyboardFocus, setHasKeyboardFocus] = React.useState(false)
+
+  const participantName = getParticipantName(trackReference.participant)
+  const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
+
+  // Avoid double announcements: LiveKit's useParticipantTile may set its own
+  // aria-label / aria-labelledby / aria-describedby. We strip them here
+  // and provide a single, explicit label for the focusable tile container.
+  const { 'aria-label': _ignoredAriaLabel, ...safeElementProps } = elementProps
+  void _ignoredAriaLabel
+
+  const interactiveProps = {
+    ...safeElementProps,
+    // Ensure the tile is focusable to expose contextual controls to keyboard users.
+    tabIndex: 0,
+    'aria-label': t('containerLabel', { name: participantName }),
+    onFocus: (event: React.FocusEvent<HTMLDivElement>) => {
+      elementProps.onFocus?.(event)
+      setHasKeyboardFocus(true)
+    },
+    onBlur: (event: React.FocusEvent<HTMLDivElement>) => {
+      elementProps.onBlur?.(event)
+      const nextTarget = event.relatedTarget as Node | null
+      if (!event.currentTarget.contains(nextTarget)) {
+        setHasKeyboardFocus(false)
+      }
+    },
+  }
 
   return (
-    <div ref={ref} style={{ position: 'relative' }} {...elementProps}>
+    <div ref={ref} style={{ position: 'relative' }} {...interactiveProps}>
       <TrackRefContextIfNeeded trackRef={trackReference}>
         <ParticipantContextIfNeeded participant={trackReference.participant}>
           <FullScreenShareWarning trackReference={trackReference} />
@@ -195,7 +225,10 @@ export const ParticipantTile: (
             </>
           )}
           {!disableMetadata && (
-            <ParticipantTileFocus trackRef={trackReference} />
+            <ParticipantTileFocus
+              trackRef={trackReference}
+              hasKeyboardFocus={hasKeyboardFocus}
+            />
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>

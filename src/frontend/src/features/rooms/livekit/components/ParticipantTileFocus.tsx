@@ -131,8 +131,10 @@ const MOUSE_IDLE_TIME = 3000
 
 export const ParticipantTileFocus = ({
   trackRef,
+  hasKeyboardFocus,
 }: {
   trackRef: TrackReferenceOrPlaceholder
+  hasKeyboardFocus: boolean
 }) => {
   const [hovered, setHovered] = useState(false)
   const [opacity, setOpacity] = useState(0)
@@ -140,8 +142,10 @@ export const ParticipantTileFocus = ({
   const idleTimerRef = useRef<number | null>(null)
   const [isIdleRef, setIsIdleRef] = useState(false)
 
+  const isVisible = hasKeyboardFocus || (hovered && !isIdleRef)
+
   useEffect(() => {
-    if (hovered && !isIdleRef) {
+    if (isVisible) {
       // Wait for next frame to ensure element is mounted
       requestAnimationFrame(() => {
         setOpacity(0.6)
@@ -149,7 +153,7 @@ export const ParticipantTileFocus = ({
     } else {
       setOpacity(0)
     }
-  }, [hovered, isIdleRef])
+  }, [isVisible])
 
   const handleMouseMove = () => {
     if (idleTimerRef.current) {
@@ -180,11 +184,12 @@ export const ParticipantTileFocus = ({
         width: '100%',
         height: '100%',
       })}
+      aria-hidden={!isVisible}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onMouseMove={handleMouseMove}
     >
-      {hovered && (
+      {isVisible && (
         <div
           className={css({
             backgroundColor: 'primaryDark.50',
