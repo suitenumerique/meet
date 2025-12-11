@@ -83,6 +83,7 @@ class Settings(BaseSettings):
     langfuse_host: Optional[str] = None
     langfuse_public_key: Optional[str] = None
     langfuse_secret_key: Optional[SecretStr] = None
+    langfuse_environment: Optional[str] = "development"
 
     # TaskTracker
     task_tracker_redis_url: str = "redis://redis/0"

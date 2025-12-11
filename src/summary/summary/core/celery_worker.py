@@ -21,7 +21,7 @@ from urllib3.util import Retry
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
-from summary.core.llm_service import LLMException, LLMService
+from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
     FORMAT_PLAN,
@@ -40,6 +40,7 @@ analytics = get_analytics()
 metadata_manager = MetadataManager()
 
 logger = get_task_logger(__name__)
+
 
 celery = Celery(
     __name__,
@@ -259,7 +260,7 @@ def process_audio_transcribe_summarize_v2(
     ):
         logger.info("Queuing summary generation task.")
         summarize_transcription.apply_async(
-            args=[content, email, sub, title],
+            args=[owner_id, content, email, sub, title],
             queue=settings.summarize_queue,
         )
     else:
@@ -291,7 +292,9 @@ def task_failure_handler(task_id, exception=None, **kwargs):
     max_retries=settings.celery_max_retries,
     queue=settings.summarize_queue,
 )
-def summarize_transcription(self, transcript: str, email: str, sub: str, title: str):
+def summarize_transcription(
+    self, owner_id: str, transcript: str, email: str, sub: str, title: str
+):
     """Generate a summary from the provided transcription text.
 
     This Celery task performs the following operations:
@@ -301,16 +304,34 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
     4. Generates next steps.
     5. Sends the final summary via webhook.
     """
-    logger.info("Starting summarization task")
+    logger.info(
+        "Starting summarization task | Owner: %s",
+        owner_id,
+    )
 
-    llm_service = LLMService()
+    user_has_tracing_consent = analytics.is_feature_enabled(
+        "summary-tracing-consent", distinct_id=owner_id
+    )
 
-    tldr = llm_service.call(PROMPT_SYSTEM_TLDR, transcript)
+    # NOTE: We must instantiate a new LLMObservability client for each task invocation
+    # because the masking function needs to be user-specific. The masking function is
+    # baked into the Langfuse client at initialization time, so we can't reuse
+    # a singleton client. This is a performance trade-off we accept to ensure per-user
+    # privacy controls in observability traces.
+    llm_observability = LLMObservability(
+        logger=logger,
+        user_has_tracing_consent=user_has_tracing_consent,
+        session_id=self.request.id,
+        user_id=owner_id,
+    )
+    llm_service = LLMService(llm_observability=llm_observability, logger=logger)
+
+    tldr = llm_service.call(PROMPT_SYSTEM_TLDR, transcript, name="tldr")
 
     logger.info("TLDR generated")
 
     parts = llm_service.call(
-        PROMPT_SYSTEM_PLAN, transcript, response_format=FORMAT_PLAN
+        PROMPT_SYSTEM_PLAN, transcript, name="parts", response_format=FORMAT_PLAN
     )
     logger.info("Plan generated")
 
@@ -321,21 +342,28 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
     for part in parts:
         prompt_user_part = PROMPT_USER_PART.format(part=part, transcript=transcript)
         logger.info("Summarizing part: %s", part)
-        parts_summarized.append(llm_service.call(PROMPT_SYSTEM_PART, prompt_user_part))
+        parts_summarized.append(
+            llm_service.call(PROMPT_SYSTEM_PART, prompt_user_part, name="part")
+        )
 
     logger.info("Parts summarized")
 
     raw_summary = "\n\n".join(parts_summarized)
 
     next_steps = llm_service.call(
-        PROMPT_SYSTEM_NEXT_STEP, transcript, response_format=FORMAT_NEXT_STEPS
+        PROMPT_SYSTEM_NEXT_STEP,
+        transcript,
+        name="next-steps",
+        response_format=FORMAT_NEXT_STEPS,
     )
 
     next_steps = format_actions(json.loads(next_steps))
 
     logger.info("Next steps generated")
 
-    cleaned_summary = llm_service.call(PROMPT_SYSTEM_CLEANING, raw_summary)
+    cleaned_summary = llm_service.call(
+        PROMPT_SYSTEM_CLEANING, raw_summary, name="cleaning"
+    )
     logger.info("Summary cleaned")
 
     summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
@@ -355,3 +383,6 @@ def summarize_transcription(self, transcript: str, email: str, sub: str, title: 
 
     logger.info("Webhook submitted successfully. Status: %s", response.status_code)
     logger.debug("Response body: %s", response.text)
+
+    llm_observability.flush()
+    logger.debug("LLM observability flushed")
