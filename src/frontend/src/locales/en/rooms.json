@@ -233,6 +233,11 @@
     "clear": "Disable effect",
     "blur": {
       "title": "Background blur",
+      "status": {
+        "none": "Background clear.",
+        "light": "Background slightly blurred.",
+        "strong": "Background strongly blurred."
+      },
       "light": {
         "apply": "Slightly blur your background",
         "clear": "Disable blur"

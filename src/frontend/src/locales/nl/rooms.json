@@ -233,6 +233,11 @@
     "clear": "Effect uitschakelen",
     "blur": {
       "title": "Achtergrondvervaging",
+      "status": {
+        "none": "Achtergrond scherp.",
+        "light": "Achtergrond licht vervaagd.",
+        "strong": "Achtergrond sterk vervaagd."
+      },
       "light": {
         "apply": "Vervaag je achtergrond lichtjes",
         "clear": "Vervaging uitschakelen"

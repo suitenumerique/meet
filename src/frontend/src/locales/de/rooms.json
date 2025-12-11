@@ -233,6 +233,11 @@
     "clear": "Effekt deaktivieren",
     "blur": {
       "title": "Hintergrundunschärfe",
+      "status": {
+        "none": "Hintergrund scharf.",
+        "light": "Hintergrund leicht verschwommen.",
+        "strong": "Hintergrund stark verschwommen."
+      },
       "light": {
         "apply": "Hintergrund leicht verwischen",
         "clear": "Unschärfe deaktivieren"
