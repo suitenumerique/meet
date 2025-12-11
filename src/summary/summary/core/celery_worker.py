@@ -93,7 +93,8 @@ class LLMService:
     def __init__(self):
         """Init the LLMService once."""
         self._client = openai.OpenAI(
-            base_url=settings.llm_base_url, api_key=settings.llm_api_key
+            base_url=settings.llm_base_url,
+            api_key=settings.llm_api_key.get_secret_value(),
         )
 
     def call(
@@ -148,7 +149,9 @@ def format_actions(llm_output: dict) -> str:
 def post_with_retries(url, data):
     """Send POST request with automatic retries."""
     session = create_retry_session()
-    session.headers.update({"Authorization": f"Bearer {settings.webhook_api_token}"})
+    session.headers.update(
+        {"Authorization": f"Bearer {settings.webhook_api_token.get_secret_value()}"}
+    )
     try:
         response = session.post(url, json=data)
         response.raise_for_status()
@@ -195,7 +198,7 @@ def process_audio_transcribe_summarize_v2(
     minio_client = Minio(
         settings.aws_s3_endpoint_url,
         access_key=settings.aws_s3_access_key_id,
-        secret_key=settings.aws_s3_secret_access_key,
+        secret_key=settings.aws_s3_secret_access_key.get_secret_value(),
         secure=settings.aws_s3_secure_access,
     )
 
@@ -226,7 +229,7 @@ def process_audio_transcribe_summarize_v2(
 
     logger.info("Initiating WhisperX client")
     whisperx_client = openai.OpenAI(
-        api_key=settings.whisperx_api_key,
+        api_key=settings.whisperx_api_key.get_secret_value(),
         base_url=settings.whisperx_base_url,
         max_retries=settings.whisperx_max_retries,
     )

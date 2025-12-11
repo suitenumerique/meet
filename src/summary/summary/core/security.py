@@ -14,6 +14,6 @@ def verify_token(
 ):
     """Verify the bearer token from the Authorization header."""
     token = credentials.credentials
-    if token != settings.app_api_token:
+    if token != settings.app_api_token.get_secret_value():
         raise HTTPException(status_code=401, detail="Invalid token")
     return token
