@@ -68,6 +68,7 @@ export const Avatar = ({
       {...props}
     >
       <span
+        aria-hidden="true"
         className={css({
           marginTop: '-0.3rem',
         })}

@@ -29,6 +29,9 @@ import { ParticipantPlaceholder } from './ParticipantPlaceholder'
 import { ParticipantTileFocus } from './ParticipantTileFocus'
 import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { ParticipantName } from './ParticipantName'
+import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
+import { useTranslation } from 'react-i18next'
+import { css } from '@/styled-system/css'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -102,9 +105,31 @@ export const ParticipantTile: (
   })
 
   const isScreenShare = trackReference.source != Track.Source.Camera
+  const [hasKeyboardFocus, setHasKeyboardFocus] = React.useState(false)
+
+  const participantName = getParticipantName(trackReference.participant)
+  const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
+
+  const interactiveProps = {
+    ...elementProps,
+    // Ensure the tile is focusable to expose contextual controls to keyboard users.
+    tabIndex: 0,
+    'aria-label': t('containerLabel', { name: participantName }),
+    onFocus: (event: React.FocusEvent<HTMLDivElement>) => {
+      elementProps.onFocus?.(event)
+      setHasKeyboardFocus(true)
+    },
+    onBlur: (event: React.FocusEvent<HTMLDivElement>) => {
+      elementProps.onBlur?.(event)
+      const nextTarget = event.relatedTarget as Node | null
+      if (!event.currentTarget.contains(nextTarget)) {
+        setHasKeyboardFocus(false)
+      }
+    },
+  }
 
   return (
-    <div ref={ref} style={{ position: 'relative' }} {...elementProps}>
+    <div ref={ref} style={{ position: 'relative' }} {...interactiveProps}>
       <TrackRefContextIfNeeded trackRef={trackReference}>
         <ParticipantContextIfNeeded participant={trackReference.participant}>
           <FullScreenShareWarning trackReference={trackReference} />
@@ -195,10 +220,30 @@ export const ParticipantTile: (
             </>
           )}
           {!disableMetadata && (
-            <ParticipantTileFocus trackRef={trackReference} />
+            <ParticipantTileFocus
+              trackRef={trackReference}
+              hasKeyboardFocus={hasKeyboardFocus}
+            />
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
+      {hasKeyboardFocus && (
+        <div
+          className={css({
+            position: 'absolute',
+            top: '0.75rem',
+            left: '0.75rem',
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            color: 'white',
+            borderRadius: '999px',
+            paddingInline: '0.5rem',
+            paddingBlock: '0.1rem',
+            fontSize: '0.75rem',
+          })}
+        >
+          {t('toolbarHint')}
+        </div>
+      )}
     </div>
   )
 })

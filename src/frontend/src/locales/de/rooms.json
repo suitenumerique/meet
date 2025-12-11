@@ -512,6 +512,9 @@
     }
   },
   "participantTileFocus": {
+    "containerLabel": "Optionen für {{name}}",
+    "toolbarHint": "F2: zur Symbolleiste unten.",
+
     "pin": {
       "enable": "Anheften",
       "disable": "Lösen"
