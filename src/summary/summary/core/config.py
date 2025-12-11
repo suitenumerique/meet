@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Annotated, List, Optional
 
 from fastapi import Depends
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -76,6 +77,12 @@ class Settings(BaseSettings):
     posthog_api_host: Optional[str] = "https://eu.i.posthog.com"
     posthog_event_failure: str = "transcript-failure"
     posthog_event_success: str = "transcript-success"
+
+    # Langfuse (LLM Observability)
+    langfuse_enabled: bool = False
+    langfuse_host: Optional[str] = None
+    langfuse_public_key: Optional[str] = None
+    langfuse_secret_key: Optional[SecretStr] = None
 
     # TaskTracker
     task_tracker_redis_url: str = "redis://redis/0"
