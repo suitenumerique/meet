@@ -9,4 +9,8 @@ and this project adheres to
 
 ## [Unreleased]
 
--  
+### Changed
+
+- ♿(frontend) improve accessibility:
+ - ♿️(frontend) hover controls, focus, SR 
+

@@ -512,8 +512,8 @@
     }
   },
   "participantTileFocus": {
-    "containerLabel": "Options pour {{name}}, raccourci F2 pour aller à la barre d'outils en bas.",
-    "toolbarHint": "F2: raccourci barre d'outils en bas.",
+    "containerLabel": "Options pour {{name}}",
+    "toolbarHint": "F2 : raccourci barre d'outils en bas.",
     "pin": {
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"
