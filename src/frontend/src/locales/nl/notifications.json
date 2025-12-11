@@ -32,6 +32,12 @@
     "stopped": "{{name}} heeft de transcriptie van de vergadering gestopt.",
     "limitReached": "De transcriptie heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen."
   },
+  "transcriptionRequest": {
+    "message": "{{name}} heeft gevraagd om transcriptie te starten.",
+    "multiple": "{{count}} deelnemers hebben om transcriptie gevraagd.",
+    "start": "Starten",
+    "dismiss": "Negeren"
+  },
   "screenRecording": {
     "started": "{{name}} is begonnen met het opnemen van de vergadering.",
     "stopped": "{{name}} is gestopt met het opnemen van de vergadering.",

@@ -10,6 +10,7 @@ import { decodeNotificationDataReceived } from './utils'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
 import { ToastProvider, toastQueue } from './components/ToastProvider'
 import { WaitingParticipantNotification } from './components/WaitingParticipantNotification'
+import { TranscriptionRequestNotification } from './components/TranscriptionRequestNotification'
 import {
   Emoji,
   Reaction,
@@ -228,6 +229,7 @@ export const MainNotificationToast = () => {
     <Div position="absolute" bottom={0} right={5} zIndex={1000}>
       <ToastProvider />
       <WaitingParticipantNotification />
+      <TranscriptionRequestNotification />
       <ReactionPortals reactions={reactions} />
     </Div>
   )
