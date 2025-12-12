@@ -310,13 +310,21 @@
     }
   },
   "transcript": {
-    "start": {
-      "heading": "Dieses Gespräch transkribieren",
-      "body": "Dieses Gespräch automatisch transkribieren {{duration_message}} und die Zusammenfassung in Docs erhalten.",
-      "button": "Transkription starten",
-      "loading": "Transkription wird gestartet",
-      "linkMore": "Mehr erfahren"
+    "heading": "Transkribieren Sie Ihr Meeting mit dem KI-Assistenten",
+    "body": "Transkribieren Sie bis zu {{max_duration}} Meetingdauer.",
+    "bodyWithoutMaxDuration": "Transkribieren Sie Ihr Meeting ohne Begrenzung.",
+    "details": {
+      "receiver": "Das Transkript wird an den Organisator und die Mitorganisatoren gesendet.",
+      "destination": "Ein neues Dokument wird erstellt auf",
+      "language": "Meeting-Sprachen: Französisch (fr)",
+      "recording": "Auch eine Aufzeichnung starten"
     },
+    "button": {
+      "start": "Meeting transkribieren starten",
+      "stop": "Meeting transkribieren beenden",
+      "saving": "Speichern…"
+    },
+    "linkMore": "Mehr erfahren",
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
@@ -325,15 +333,6 @@
         "heading": "Anmeldung erforderlich",
         "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
       }
-    },
-    "stop": {
-      "heading": "Transkription läuft...",
-      "body": "Die Transkription deines Meetings läuft. Du erhältst das Ergebnis per E-Mail, sobald das Meeting beendet ist.",
-      "button": "Transkription stoppen"
-    },
-    "stopping": {
-      "heading": "Daten werden gespeichert…",
-      "body": "Sie können das Meeting verlassen, wenn Sie möchten; die Aufzeichnung wird automatisch beendet."
     },
     "premium": {
       "heading": "Premium-Funktion",
@@ -350,8 +349,7 @@
         "start": "Die Transkription konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
       },
       "button": "OK"
-    },
-    "durationMessage": "(begrenzt auf {{max_duration}}) "
+    }
   },
   "screenRecording": {
     "start": {

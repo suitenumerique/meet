@@ -310,13 +310,21 @@
     }
   },
   "transcript": {
-    "start": {
-      "heading": "Transcribeer dit gesprek",
-      "body": "Transcribeer dit gesprek automatisch {{duration_message}} en ontvang het verslag in Docs.",
-      "button": "Transcriptie starten",
-      "loading": "Transcriptie begint",
-      "linkMore": "Meer informatie"
+    "heading": "Transcribeer uw vergadering met de AI-assistent",
+    "body": "Transcribeer tot {{max_duration}} aan vergadertijd.",
+    "bodyWithoutMaxDuration": "Transcribeer uw vergadering zonder limiet.",
+    "details": {
+      "receiver": "Het transcript wordt verzonden naar de organisator en medeorganisatoren.",
+      "destination": "Er wordt een nieuw document aangemaakt op",
+      "language": "Vergadertalen: Frans (fr)",
+      "recording": "Start ook een opname"
     },
+    "button": {
+      "start": "Begin met het transcriberen van de vergadering",
+      "stop": "Stop met het transcriberen van de vergadering",
+      "saving": "Opslaan…"
+    },
+    "linkMore": "Meer informatie",
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een transcriptie starten (beta).",
@@ -325,15 +333,6 @@
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
       }
-    },
-    "stop": {
-      "heading": "Transcriptie bezig...",
-      "body": "De transcriptie van uw vergadering is bezig. U ontvangt het resultaat per e-mail zodra de vergadering is afgelopen.",
-      "button": "Transcriptie stoppen"
-    },
-    "stopping": {
-      "heading": "Uw gegevens worden opgeslagen…",
-      "body": "U kunt de vergadering verlaten als u dat wilt; de opname wordt automatisch voltooid."
     },
     "premium": {
       "heading": "Premiumfunctie",
@@ -350,8 +349,7 @@
         "start": "We konden de transcriptie niet starten. Probeer het over enkele ogenblikken opnieuw."
       },
       "button": "Opnieuw proberen"
-    },
-    "durationMessage": "(beperkt tot {{max_duration}}) "
+    }
   },
   "screenRecording": {
     "start": {
