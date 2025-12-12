@@ -310,13 +310,21 @@
     }
   },
   "transcript": {
-    "start": {
-      "heading": "Transcribe this call",
-      "body": "Automatically transcribe this call {{duration_message}} and receive the summary in Docs.",
-      "button": "Start transcription",
-      "loading": "Transcription starting",
-      "linkMore": "Learn more"
+    "heading": "Transcribe your meeting with the AI Assistant",
+    "body": "Transcribe up to {{max_duration}} of meeting time.",
+    "bodyWithoutMaxDuration": "Transcribe your meeting without limits.",
+    "details": {
+      "receiver": "The transcript will be sent to the host and co-hosts.",
+      "destination": "A new document will be created on",
+      "language": "Meeting language: French (fr)",
+      "recording": "Also start a recording"
     },
+    "button": {
+      "start": "Start transcribing the meeting",
+      "stop": "Stop transcribing the meeting",
+      "saving": "Saving…"
+    },
+    "linkMore": "Learn more",
     "notAdminOrOwner": {
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a transcription (beta).",
@@ -325,15 +333,6 @@
         "heading": "Login Required",
         "body": "Only the meeting creator or an admin can start a transcription. Log in to verify your permissions."
       }
-    },
-    "stop": {
-      "heading": "Transcription in progress...",
-      "body": "The transcription of your meeting is in progress. You will receive the result by email once the meeting is finished.",
-      "button": "Stop transcription"
-    },
-    "stopping": {
-      "heading": "Saving your data…",
-      "body": "You can leave the meeting if you wish; the recording will finish automatically."
     },
     "premium": {
       "heading": "Premium feature",
@@ -350,8 +349,7 @@
         "start": "We were unable to start the transcription. Please try again in a moment."
       },
       "button": "OK"
-    },
-    "durationMessage": "(limited to {{max_duration}}) "
+    }
   },
   "screenRecording": {
     "start": {

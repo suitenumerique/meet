@@ -310,13 +310,21 @@
     }
   },
   "transcript": {
-    "start": {
-      "heading": "Transcrire cet appel",
-      "body": "Transcrivez cet appel automatiquement {{duration_message}} et recevez le compte rendu dans Docs.",
-      "button": "Démarrer la transcription",
-      "loading": "Démarrage de la transcription",
-      "linkMore": "En savoir plus"
+    "heading": "Transcrivez votre réunion avec l'Assistant IA",
+    "body": "Transcrivez jusqu'à {{max_duration}} de réunion.",
+    "bodyWithoutMaxDuration": "Transcrivez votre réunion sans limite.",
+    "details": {
+      "receiver": "La transcription sera envoyée à l'organisateur et aux coorganisateurs.",
+      "destination": "Un nouveau document sera créé sur",
+      "language": "Langues de la réunion : Français (fr)",
+      "recording": "Démarrer aussi un enregistrement"
     },
+    "button": {
+      "start": "Commencer à transcrire la réunion",
+      "stop": "Arrêter de transcrire la réunion",
+      "saving": "Sauvegarde…"
+    },
+    "linkMore": "En savoir plus",
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta).",
@@ -325,15 +333,6 @@
         "heading": "Connexion requise",
         "body": "Seul le créateur de la réunion ou un administrateur peut démarrer la transcription. Connectez-vous pour vérifier vos autorisations."
       }
-    },
-    "stop": {
-      "heading": "Transcription en cours …",
-      "body": "La transcription de votre réunion est en cours. Vous recevrez le resultat par email une fois la réunion terminée.",
-      "button": "Arrêter la transcription"
-    },
-    "stopping": {
-      "heading": "Sauvegarde de vos données…",
-      "body": "Vous pouvez quitter la réunion si vous le souhaitez, la sauvegarde se terminera automatiquement."
     },
     "premium": {
       "heading": "Fonctionnalité premium",
@@ -350,8 +349,7 @@
         "start": "Nous n'avons pas pu démarrer la transcription. Veuillez réessayer dans quelques instants."
       },
       "button": "OK"
-    },
-    "durationMessage": "(limité à {{max_duration}}) "
+    }
   },
   "screenRecording": {
     "start": {
