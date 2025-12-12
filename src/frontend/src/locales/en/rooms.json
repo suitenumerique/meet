@@ -260,8 +260,8 @@
       "participants": "Participants",
       "effects": "Effects",
       "chat": "Messages in the chat",
-      "transcript": "Transcription",
-      "screenRecording": "Recording",
+      "transcript": "Transcribe",
+      "screenRecording": "Record",
       "admin": "Admin settings",
       "tools": "More tools",
       "info": "Meeting information"
@@ -270,8 +270,8 @@
       "participants": "participants",
       "effects": "effects",
       "chat": "messages",
-      "transcript": "transcription",
-      "screenRecording": "recording",
+      "transcript": "transcribe",
+      "screenRecording": "record",
       "admin": "admin settings",
       "tools": "more tools",
       "info": "meeting information"
@@ -286,12 +286,12 @@
     "moreLink": "Learn more",
     "tools": {
       "transcript": {
-        "title": "Transcription",
-        "body": "Keep a written record of your meeting."
+        "title": "Transcribe",
+        "body": "Record the conversation."
       },
       "screenRecording": {
-        "title": "Recording",
-        "body": "Record your meeting to watch it again whenever you like."
+        "title": "Record",
+        "body": "Record the meeting."
       }
     }
   },
