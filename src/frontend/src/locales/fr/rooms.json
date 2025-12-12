@@ -194,8 +194,8 @@
       "closed": "Afficher les participants"
     },
     "tools": {
-      "open": "Masquer plus d'outils",
-      "closed": "Afficher plus d'outils"
+      "open": "Masquer les outils de réunion",
+      "closed": "Afficher les outils de réunion"
     },
     "admin": {
       "open": "Masquer l'admin",
@@ -260,20 +260,20 @@
       "participants": "Participants",
       "effects": "Effets",
       "chat": "Messages dans l'appel",
-      "transcript": "Transcription",
-      "screenRecording": "Enregistrement",
+      "transcript": "Transcrire",
+      "screenRecording": "Enregistrer",
       "admin": "Commandes de l'organisateur",
-      "tools": "Plus d'outils",
+      "tools": "Outils de réunion",
       "info": "Informations sur la réunion"
     },
     "content": {
       "participants": "les participants",
       "effects": "les effets",
       "chat": "les messages",
-      "transcript": "transcription",
-      "screenRecording": "enregistrement",
+      "transcript": "transcrire",
+      "screenRecording": "enregistrer",
       "admin": "commandes de l'organisateur",
-      "tools": "plus d'outils",
+      "tools": "outils de réunion",
       "info": "informations sur la réunion"
     },
     "closeButton": "Masquer {{content}}"
@@ -286,12 +286,12 @@
     "moreLink": "En savoir plus",
     "tools": {
       "transcript": {
-        "title": "Transcription",
-        "body": "Conservez une trace écrite de votre réunion."
+        "title": "Transcrire",
+        "body": "Enregistrer la conversation."
       },
       "screenRecording": {
-        "title": "Enregistrement",
-        "body": "Enregistrez votre réunion pour la revoir quand vous le souhaitez."
+        "title": "Enregistrer",
+        "body": "Enregistrer la réunion."
       }
     }
   },

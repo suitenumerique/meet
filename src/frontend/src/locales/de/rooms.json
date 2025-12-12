@@ -260,8 +260,8 @@
       "participants": "Teilnehmer",
       "effects": "Effekte",
       "chat": "Nachrichten im Chat",
-      "transcript": "Transkription",
-      "screenRecording": "Aufzeichnung",
+      "transcript": "Transkribieren",
+      "screenRecording": "Aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
       "info": "Meeting-Informationen"
@@ -270,8 +270,8 @@
       "participants": "Teilnehmer",
       "effects": "Effekte",
       "chat": "Nachrichten",
-      "transcript": "Transkription",
-      "screenRecording": "Aufzeichnung",
+      "transcript": "transkribieren",
+      "screenRecording": "aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
       "info": "Meeting-Informationen"
@@ -286,12 +286,12 @@
     "moreLink": "Mehr erfahren",
     "tools": {
       "transcript": {
-        "title": "Transkription",
-        "body": "Führen Sie ein schriftliches Protokoll Ihres Meetings."
+        "title": "Transkribieren",
+        "body": "Das Gespräch aufzeichnen."
       },
       "screenRecording": {
-        "title": "Aufzeichnung",
-        "body": "Zeichnen Sie Ihr Meeting auf, um es später erneut anzusehen."
+        "title": "Aufzeichnen",
+        "body": "Das Meeting aufzeichnen."
       }
     }
   },

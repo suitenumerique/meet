@@ -260,8 +260,8 @@
       "participants": "Deelnemers",
       "effects": "Effecten",
       "chat": "Berichten in de chat",
-      "transcript": "Transcriptie",
-      "screenRecording": "Schermopname",
+      "transcript": "Transcriberen",
+      "screenRecording": "Opnemen",
       "admin": "Beheerdersbediening",
       "tools": "Meer tools",
       "info": "Vergaderinformatie"
@@ -270,8 +270,8 @@
       "participants": "deelnemers",
       "effects": "effecten",
       "chat": "berichten",
-      "screenRecording": "transcriptie",
-      "transcript": "schermopname",
+      "screenRecording": "opnemen",
+      "transcript": "transcriberen",
       "admin": "beheerdersbediening",
       "tools": "meer tools",
       "info": "vergaderinformatie"
@@ -286,12 +286,12 @@
     "moreLink": "Lees meer",
     "tools": {
       "transcript": {
-        "title": "Transcriptie",
-        "body": "Bewaar een schriftelijk verslag van je vergadering."
+        "title": "Transcriberen",
+        "body": "Het gesprek opnemen."
       },
       "screenRecording": {
-        "title": "Opname",
-        "body": "Neem je vergadering op om die later opnieuw te bekijken."
+        "title": "Opnemen",
+        "body": "De vergadering opnemen."
       }
     }
   },
