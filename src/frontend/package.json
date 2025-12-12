@@ -13,6 +13,8 @@
     "check": "prettier --check ./src"
   },
   "dependencies": {
+    "@fontsource-variable/material-symbols-outlined": "5.2.30",
+    "@fontsource/material-icons-outlined": "5.2.6",
     "@livekit/components-react": "2.9.13",
     "@livekit/components-styles": "1.1.6",
     "@livekit/track-processors": "0.6.1",
