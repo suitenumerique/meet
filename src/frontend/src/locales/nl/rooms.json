@@ -320,7 +320,11 @@
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een transcriptie starten (beta).",
-      "linkMore": "Meer informatie"
+      "linkMore": "Meer informatie",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
+      }
     },
     "stop": {
       "heading": "Transcriptie bezig...",
@@ -331,10 +335,13 @@
       "heading": "Uw gegevens worden opgeslagen…",
       "body": "U kunt de vergadering verlaten als u dat wilt; de opname wordt automatisch voltooid."
     },
-    "beta": {
-      "heading": "Word betatester",
-      "body": "Neem uw vergadering op voor later. U ontvangt een samenvatting per e-mail zodra de vergadering is afgelopen.",
-      "button": "Aanmelden"
+    "premium": {
+      "heading": "Premiumfunctie",
+      "body": "Deze functie is voorbehouden aan openbare medewerkers. Als uw e-mailadres niet is toegestaan, neem dan contact op met de support om toegang te krijgen.",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
+      }
     },
     "alert": {
       "title": "Transcriptie mislukt",
@@ -357,7 +364,11 @@
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een opname starten (beta).",
-      "linkMore": "Meer informatie"
+      "linkMore": "Meer informatie",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Alleen de maker van de vergadering of een beheerder kan de opname starten. Log in om uw machtigingen te controleren."
+      }
     },
     "stopping": {
       "heading": "Uw gegevens worden opgeslagen…",

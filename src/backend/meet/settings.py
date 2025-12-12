@@ -342,9 +342,6 @@ class Base(Configuration):
         "use_proconnect_button": values.BooleanValue(
             False, environ_name="FRONTEND_USE_PROCONNECT_BUTTON", environ_prefix=None
         ),
-        "transcript": values.DictValue(
-            {}, environ_name="FRONTEND_TRANSCRIPT", environ_prefix=None
-        ),
         "manifest_link": values.Value(
             None, environ_name="FRONTEND_MANIFEST_LINK", environ_prefix=None
         ),
