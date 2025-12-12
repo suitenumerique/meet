@@ -1,10 +1,9 @@
 import { styled } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
-import { Button, LinkButton } from '@/primitives'
+import { Button } from '@/primitives'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useConfig } from '@/api/useConfig'
 
 const Heading = styled('h2', {
   base: {
@@ -165,14 +164,7 @@ export const IntroSlider = () => {
   const [slideIndex, setSlideIndex] = useState(0)
   const { t } = useTranslation('home', { keyPrefix: 'introSlider' })
 
-  const { data } = useConfig()
-
-  const filteredSlides = useMemo(
-    () => (data?.transcript?.form_beta_users ? SLIDES : SLIDES.slice(0, 2)),
-    [data]
-  )
-
-  const NUMBER_SLIDES = filteredSlides.length
+  const NUMBER_SLIDES = SLIDES.length
 
   return (
     <Container>
@@ -198,24 +190,12 @@ export const IntroSlider = () => {
           </ButtonVerticalCenter>
         </ButtonContainer>
         <SlideContainer>
-          {filteredSlides.map((slide, index) => (
+          {SLIDES.map((slide, index) => (
             <Slide visible={index == slideIndex} key={index}>
               <Image src={slide.src} alt={t(`${slide.key}.imgAlt`)} />
               <TextAnimation visible={index == slideIndex}>
                 <Heading>{t(`${slide.key}.title`)}</Heading>
                 <Body>{t(`${slide.key}.body`)}</Body>
-                {slide.isAvailableInBeta && (
-                  <LinkButton
-                    href={data?.transcript.form_beta_users}
-                    target="_blank"
-                    tooltip={t('beta.tooltip')}
-                    variant={'primary'}
-                    size={'sm'}
-                    style={{ marginTop: '1rem', width: 'fit-content' }}
-                  >
-                    {t('beta.text')}
-                  </LinkButton>
-                )}
               </TextAnimation>
             </Slide>
           ))}
@@ -241,7 +221,7 @@ export const IntroSlider = () => {
           display: { base: 'none', xsm: 'block' },
         })}
       >
-        {filteredSlides.map((_, index) => (
+        {SLIDES.map((_, index) => (
           <Dot key={index} selected={index == slideIndex} />
         ))}
       </div>

@@ -5,6 +5,7 @@ import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
+  useHasFeatureWithoutAdminRights,
   useIsRecordingTransitioning,
   useStartRecording,
   useStopRecording,
@@ -25,6 +26,9 @@ import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
 import humanizeDuration from 'humanize-duration'
 import i18n from 'i18next'
+import { FeatureFlags } from '@/features/analytics/enums'
+import { LoginButton } from '@/components/LoginButton'
+import { useUser } from '@/features/auth'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -33,6 +37,13 @@ export const ScreenRecordingSidePanel = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
 
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
+
+  const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
+    RecordingMode.ScreenRecording,
+    FeatureFlags.ScreenRecording
+  )
+
+  const { isLoggedIn } = useUser()
 
   const { notifyParticipants } = useNotifyParticipants()
 
@@ -116,6 +127,97 @@ export const ScreenRecordingSidePanel = () => {
       !isRoomConnected,
     [isLoading, isRecordingTransitioning, statuses, isRoomConnected]
   )
+
+  if (hasFeatureWithoutAdminRights) {
+    return (
+      <Div
+        display="flex"
+        overflowY="scroll"
+        padding="0 1.5rem"
+        flexGrow={1}
+        flexDirection="column"
+        alignItems="center"
+      >
+        <img
+          src="/assets/intro-slider/4.png"
+          alt={''}
+          className={css({
+            minHeight: '309px',
+            height: '309px',
+            marginBottom: '1rem',
+            '@media (max-height: 700px)': {
+              height: 'auto',
+              minHeight: 'auto',
+              maxHeight: '45%',
+              marginBottom: '0.3rem',
+            },
+            '@media (max-height: 530px)': {
+              height: 'auto',
+              minHeight: 'auto',
+              maxHeight: '40%',
+              marginBottom: '0.1rem',
+            },
+          })}
+        />
+        <Text>{t('notAdminOrOwner.heading')}</Text>
+        <Text
+          variant="note"
+          wrap="balance"
+          centered
+          className={css({
+            textStyle: 'sm',
+            marginBottom: '2.5rem',
+            marginTop: '0.25rem',
+            '@media (max-height: 700px)': {
+              marginBottom: '1rem',
+            },
+          })}
+        >
+          {t('notAdminOrOwner.body')}
+          <br />
+          {data?.support?.help_article_recording && (
+            <A href={data.support.help_article_recording} target="_blank">
+              {t('notAdminOrOwner.linkMore')}
+            </A>
+          )}
+        </Text>
+        {!isLoggedIn && (
+          <div
+            className={css({
+              backgroundColor: 'primary.50',
+              borderRadius: '5px',
+              paddingY: '1rem',
+              paddingX: '1rem',
+              marginTop: '1rem',
+              display: 'flex',
+              flexDirection: 'column',
+            })}
+          >
+            <H
+              lvl={3}
+              className={css({
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '0.35rem',
+              })}
+            >
+              {t('notAdminOrOwner.login.heading')}
+            </H>
+            <Text variant="smNote" wrap="balance">
+              {t('notAdminOrOwner.login.body')}
+            </Text>
+            <div
+              className={css({
+                marginTop: '1rem',
+              })}
+            >
+              <LoginButton proConnectHint={false} />
+            </div>
+          </div>
+        )}
+      </Div>
+    )
+  }
 
   return (
     <Div
