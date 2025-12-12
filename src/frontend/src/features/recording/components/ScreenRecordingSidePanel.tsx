@@ -131,7 +131,20 @@ export const ScreenRecordingSidePanel = () => {
         alt={''}
         className={css({
           minHeight: '309px',
+          height: '309px',
           marginBottom: '1rem',
+          '@media (max-height: 700px)': {
+            height: 'auto',
+            minHeight: 'auto',
+            maxHeight: '45%',
+            marginBottom: '0.3rem',
+          },
+          '@media (max-height: 530px)': {
+            height: 'auto',
+            minHeight: 'auto',
+            maxHeight: '40%',
+            marginBottom: '0.1rem',
+          },
         })}
       />
 
@@ -148,6 +161,9 @@ export const ScreenRecordingSidePanel = () => {
               textStyle: 'sm',
               marginBottom: '2.5rem',
               marginTop: '0.25rem',
+              '@media (max-height: 700px)': {
+                marginBottom: '1rem',
+              },
             })}
           >
             {t('stop.body')}
@@ -178,6 +194,9 @@ export const ScreenRecordingSidePanel = () => {
                   maxWidth: '90%',
                   marginBottom: '2.5rem',
                   marginTop: '0.25rem',
+                  '@media (max-height: 700px)': {
+                    marginBottom: '1rem',
+                  },
                 })}
               >
                 {t('stopping.body')}
@@ -198,6 +217,9 @@ export const ScreenRecordingSidePanel = () => {
                   maxWidth: '90%',
                   marginBottom: '2.5rem',
                   marginTop: '0.25rem',
+                  '@media (max-height: 700px)': {
+                    marginBottom: '1rem',
+                  },
                 })}
               >
                 {t('start.body', {
