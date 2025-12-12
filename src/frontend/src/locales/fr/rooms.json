@@ -320,7 +320,11 @@
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta).",
-      "linkMore": "En savoir plus"
+      "linkMore": "En savoir plus",
+      "login": {
+        "heading": "Connexion requise",
+        "body": "Seul le créateur de la réunion ou un administrateur peut démarrer la transcription. Connectez-vous pour vérifier vos autorisations."
+      }
     },
     "stop": {
       "heading": "Transcription en cours …",
@@ -331,10 +335,13 @@
       "heading": "Sauvegarde de vos données…",
       "body": "Vous pouvez quitter la réunion si vous le souhaitez, la sauvegarde se terminera automatiquement."
     },
-    "beta": {
-      "heading": "Devenez beta testeur",
-      "body": "Enregistrer votre réunion pour plus tard. Vous recevrez un compte-rendu par email une fois la réunion terminée.",
-      "button": "Inscrivez-vous"
+    "premium": {
+      "heading": "Fonctionnalité premium",
+      "body": "Cette fonctionnalité est réservée aux agents publics. Si votre adresse email n’est pas autorisée, contactez le support pour obtenir l'accès.",
+      "login": {
+        "heading": "Vous n'êtes pas connecté !",
+        "body": "Vous devez être connecté pour utiliser cette fonctionnalité. Connectez-vous, puis réessayez."
+      }
     },
     "alert": {
       "title": "Échec de transcription",
@@ -357,7 +364,11 @@
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer un enregistrement (beta).",
-      "linkMore": "En savoir plus"
+      "linkMore": "En savoir plus",
+      "login": {
+        "heading": "Connexion requise",
+        "body": "Seul le créateur de la réunion ou un administrateur peut démarrer l'enregistrement. Connectez-vous pour vérifier vos autorisations."
+      }
     },
     "stopping": {
       "heading": "Sauvegarde de vos données…",

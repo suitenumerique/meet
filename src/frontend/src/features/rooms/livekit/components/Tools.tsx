@@ -7,11 +7,9 @@ import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
 import {
   useIsRecordingModeEnabled,
   RecordingMode,
-  useHasRecordingAccess,
   TranscriptSidePanel,
   ScreenRecordingSidePanel,
 } from '@/features/recording'
-import { FeatureFlags } from '@/features/analytics/enums'
 import { useConfig } from '@/api/useConfig'
 
 export interface ToolsButtonProps {
@@ -104,9 +102,8 @@ export const Tools = () => {
     RecordingMode.Transcript
   )
 
-  const hasScreenRecordingAccess = useHasRecordingAccess(
-    RecordingMode.ScreenRecording,
-    FeatureFlags.ScreenRecording
+  const isScreenRecordingEnabled = useIsRecordingModeEnabled(
+    RecordingMode.ScreenRecording
   )
 
   switch (activeSubPanelId) {
@@ -155,7 +152,7 @@ export const Tools = () => {
           onPress={() => openTranscript()}
         />
       )}
-      {hasScreenRecordingAccess && (
+      {isScreenRecordingEnabled && (
         <ToolButton
           icon={<span className="material-symbols">mode_standby</span>}
           title={t('tools.screenRecording.title')}

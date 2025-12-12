@@ -320,7 +320,11 @@
     "notAdminOrOwner": {
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a transcription (beta).",
-      "linkMore": "Learn more"
+      "linkMore": "Learn more",
+      "login": {
+        "heading": "Login Required",
+        "body": "Only the meeting creator or an admin can start a transcription. Log in to verify your permissions."
+      }
     },
     "stop": {
       "heading": "Transcription in progress...",
@@ -331,10 +335,13 @@
       "heading": "Saving your data…",
       "body": "You can leave the meeting if you wish; the recording will finish automatically."
     },
-    "beta": {
-      "heading": "Become a beta tester",
-      "body": "Record your meeting for later. You will receive a summary by email once the meeting is finished.",
-      "button": "Sign up"
+    "premium": {
+      "heading": "Premium feature",
+      "body": "This feature is reserved for public agents. If your email address is not authorized, please contact support to get access.",
+      "login": {
+        "heading": "You are not logged in!",
+        "body": "You must be logged in to use this feature. Please log in, then try again."
+      }
     },
     "alert": {
       "title": "Transcription Failed",
@@ -357,7 +364,11 @@
     "notAdminOrOwner": {
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a recording (beta).",
-      "linkMore": "Learn more"
+      "linkMore": "Learn more",
+      "login": {
+        "heading": "Login Required",
+        "body": "Only the meeting creator or an admin can start screen recording. Log in to verify your permissions."
+      }
     },
     "stopping": {
       "heading": "Saving your data…",

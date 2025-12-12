@@ -320,7 +320,11 @@
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
-      "linkMore": "Mehr erfahren"
+      "linkMore": "Mehr erfahren",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+      }
     },
     "stop": {
       "heading": "Transkription läuft...",
@@ -331,10 +335,13 @@
       "heading": "Daten werden gespeichert…",
       "body": "Sie können das Meeting verlassen, wenn Sie möchten; die Aufzeichnung wird automatisch beendet."
     },
-    "beta": {
-      "heading": "Werde Beta-Tester",
-      "body": "Zeichne dein Meeting auf. Du erhältst eine Zusammenfassung per E-Mail nach dem Meeting.",
-      "button": "Anmelden"
+    "premium": {
+      "heading": "Premium-Funktion",
+      "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn Ihre E-Mail-Adresse nicht autorisiert ist, kontaktieren Sie bitte den Support, um Zugriff zu erhalten.",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+      }
     },
     "alert": {
       "title": "Transkription fehlgeschlagen",
@@ -356,8 +363,12 @@
     },
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
-      "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine videoaufnahme (Beta) starten.",
-      "linkMore": "Mehr erfahren"
+      "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Videoaufnahme (Beta) starten.",
+      "linkMore": "Mehr erfahren",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Nur der Ersteller der Besprechung oder ein Administrator kann die Aufzeichnung starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+      }
     },
     "stopping": {
       "heading": "Daten werden gespeichert…",
