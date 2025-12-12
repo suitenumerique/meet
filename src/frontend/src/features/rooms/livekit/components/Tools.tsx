@@ -3,7 +3,6 @@ import { css } from '@/styled-system/css'
 import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { ReactNode } from 'react'
-import { RiFileTextFill, RiLiveFill } from '@remixicon/react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
 import {
   useIsRecordingModeEnabled,
@@ -11,7 +10,6 @@ import {
   useHasRecordingAccess,
   TranscriptSidePanel,
   ScreenRecordingSidePanel,
-  useIsRecordingActive,
 } from '@/features/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { useConfig } from '@/api/useConfig'
@@ -22,7 +20,6 @@ export interface ToolsButtonProps {
   description: string
   onPress: () => void
   isBetaFeature?: boolean
-  isActive?: boolean
 }
 
 const ToolButton = ({
@@ -31,7 +28,6 @@ const ToolButton = ({
   description,
   onPress,
   isBetaFeature = false,
-  isActive = false,
 }: ToolsButtonProps) => {
   return (
     <RACButton
@@ -42,9 +38,9 @@ const ToolButton = ({
         justifyContent: 'start',
         paddingY: '0.5rem',
         paddingX: '0.75rem 1.5rem',
-        borderRadius: '5px',
-        gap: '1.25rem',
+        borderRadius: '30px',
         width: 'full',
+        backgroundColor: 'gray.50',
         textAlign: 'start',
         '&[data-hovered]': {
           backgroundColor: 'primary.50',
@@ -55,58 +51,63 @@ const ToolButton = ({
     >
       <div
         className={css({
-          height: '50px',
-          minWidth: '50px',
+          height: '40px',
+          minWidth: '40px',
           borderRadius: '25px',
-          backgroundColor: 'primary.800',
+          marginRight: '0.75rem',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           position: 'relative',
+          background: 'primary.800',
+          color: 'white',
         })}
       >
         {icon}
-        {isBetaFeature && (
-          <div
-            className={css({
-              position: 'absolute',
-              backgroundColor: 'primary.50',
-              color: 'primary.800',
-              fontSize: '12px',
-              fontWeight: 500,
-              borderRadius: '4px',
-              paddingX: '4px',
-              paddingBottom: '1px',
-              bottom: -8,
-              right: -8,
-            })}
-          >
-            BETA
-          </div>
-        )}
       </div>
       <div>
         <Text
           margin={false}
           as="h3"
-          className={css({ display: 'flex', gap: 0.25 })}
+          className={css({
+            display: 'flex',
+            gap: 0.25,
+            fontWeight: 'semibold',
+          })}
         >
           {title}
-          {isActive && (
+          {isBetaFeature && (
             <div
               className={css({
-                backgroundColor: 'primary.500',
-                height: '10px',
-                width: '10px',
-                marginTop: '5px',
-                borderRadius: '100%',
+                display: 'flex',
+                backgroundColor: 'primary.50',
+                color: 'primary.600',
+                fontSize: '12px',
+                lineHeight: '24px',
+                fontWeight: 700,
+                borderRadius: '10px',
+                paddingX: '4px',
+                marginLeft: '5px',
               })}
-            />
+            >
+              BETA
+            </div>
           )}
         </Text>
         <Text as="p" variant="smNote" wrap="pretty">
           {description}
         </Text>
+      </div>
+      <div
+        className={css({
+          marginLeft: 'auto',
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        })}
+      >
+        <span className="material-symbols">chevron_forward</span>
       </div>
     </RACButton>
   )
@@ -122,15 +123,9 @@ export const Tools = () => {
     RecordingMode.Transcript
   )
 
-  const isTranscriptActive = useIsRecordingActive(RecordingMode.Transcript)
-
   const hasScreenRecordingAccess = useHasRecordingAccess(
     RecordingMode.ScreenRecording,
     FeatureFlags.ScreenRecording
-  )
-
-  const isScreenRecordingActive = useIsRecordingActive(
-    RecordingMode.ScreenRecording
   )
 
   switch (activeSubPanelId) {
@@ -150,6 +145,7 @@ export const Tools = () => {
       flexGrow={1}
       flexDirection="column"
       alignItems="start"
+      gap={0.5}
     >
       <Text
         variant="note"
@@ -157,8 +153,8 @@ export const Tools = () => {
         className={css({
           textStyle: 'sm',
           paddingX: '0.75rem',
+          marginBottom: '1rem',
         })}
-        margin="md"
       >
         {t('body')}{' '}
         {data?.support?.help_article_more_tools && (
@@ -172,22 +168,20 @@ export const Tools = () => {
       </Text>
       {isTranscriptEnabled && (
         <ToolButton
-          icon={<RiFileTextFill size={24} color="white" />}
+          icon={<span className="material-symbols">speech_to_text</span>}
           title={t('tools.transcript.title')}
           description={t('tools.transcript.body')}
           onPress={() => openTranscript()}
           isBetaFeature
-          isActive={isTranscriptActive}
         />
       )}
       {hasScreenRecordingAccess && (
         <ToolButton
-          icon={<RiLiveFill size={24} color="white" />}
+          icon={<span className="material-symbols">mode_standby</span>}
           title={t('tools.screenRecording.title')}
           description={t('tools.screenRecording.body')}
           onPress={() => openScreenRecording()}
           isBetaFeature
-          isActive={isScreenRecordingActive}
         />
       )}
     </Div>
