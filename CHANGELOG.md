@@ -10,9 +10,10 @@ and this project adheres to
 
 ## [1.0.1] - 2025-12-17
 
-### Changed
+### Changes
 
 - ♿(frontend) improve accessibility:
+ - ♿️(frontend) Improve SR and focus for transcript and recording #810
 - ♿️(frontend) hover controls, focus, SR #803
 - ♿️(frontend) change ptt keybinding from space to v #813
 - ♿(frontend) indicate external link opens in new window on feedback #816 

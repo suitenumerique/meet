@@ -11,7 +11,7 @@ import {
   useStopRecording,
   useHasFeatureWithoutAdminRights,
 } from '../index'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
@@ -76,6 +76,13 @@ export const TranscriptSidePanel = () => {
 
   const room = useRoomContext()
   const isRoomConnected = room.state == ConnectionState.Connected
+
+  // Focus management: focus the primary action button when this side panel opens.
+  const primaryActionRef = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    primaryActionRef.current?.focus()
+  }, [])
 
   useEffect(() => {
     const handleRecordingStatusChanged = () => {
@@ -227,6 +234,7 @@ export const TranscriptSidePanel = () => {
                 {t('stop.body')}
               </Text>
               <Button
+                ref={primaryActionRef}
                 isDisabled={isDisabled}
                 onPress={() => handleTranscript()}
                 data-attr="stop-transcript"
@@ -296,6 +304,7 @@ export const TranscriptSidePanel = () => {
                     )}
                   </Text>
                   <Button
+                    ref={primaryActionRef}
                     isDisabled={isDisabled}
                     onPress={() => handleTranscript()}
                     data-attr="start-transcript"

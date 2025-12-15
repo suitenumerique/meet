@@ -9,7 +9,7 @@ import {
   useStartRecording,
   useStopRecording,
 } from '@/features/recording'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { RecordingStatus, recordingStore } from '@/stores/recording'
@@ -63,6 +63,13 @@ export const ScreenRecordingSidePanel = () => {
   const room = useRoomContext()
   const isRoomConnected = room.state == ConnectionState.Connected
   const isRecordingTransitioning = useIsRecordingTransitioning()
+
+  // Focus management: focus the primary action button when this side panel opens.
+  const primaryActionRef = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    primaryActionRef.current?.focus()
+  }, [])
 
   useEffect(() => {
     const handleRecordingStatusChanged = () => {
@@ -153,6 +160,7 @@ export const ScreenRecordingSidePanel = () => {
             {t('stop.body')}
           </Text>
           <Button
+            ref={primaryActionRef}
             isDisabled={isDisabled}
             onPress={() => handleScreenRecording()}
             data-attr="stop-screen-recording"
@@ -219,6 +227,7 @@ export const ScreenRecordingSidePanel = () => {
                 )}
               </Text>
               <Button
+                ref={primaryActionRef}
                 isDisabled={isDisabled}
                 onPress={() => handleScreenRecording()}
                 data-attr="start-screen-recording"
