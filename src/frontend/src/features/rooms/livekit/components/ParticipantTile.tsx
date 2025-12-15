@@ -232,13 +232,13 @@ export const ParticipantTile: (
           className={css({
             position: 'absolute',
             top: '0.75rem',
-            left: '0.75rem',
-            backgroundColor: 'rgba(0,0,0,0.6)',
+            right: '0.75rem',
+            backgroundColor: 'rgba(0,0,0,0.5)',
             color: 'white',
-            borderRadius: '999px',
+            borderRadius: 'calc(var(--lk-border-radius) / 2)',
             paddingInline: '0.5rem',
             paddingBlock: '0.1rem',
-            fontSize: '0.75rem',
+            fontSize: '0.875rem',
           })}
         >
           {t('toolbarHint')}
