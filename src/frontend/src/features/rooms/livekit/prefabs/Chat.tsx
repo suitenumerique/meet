@@ -36,9 +36,31 @@ export function Chat({ ...props }: ChatProps) {
   const { isChatOpen } = useSidePanel()
   const chatSnap = useSnapshot(chatStore)
 
+  // Keep track of the element that opened the chat so we can restore focus
+  // when the chat panel is closed.
+  const prevIsChatOpenRef = React.useRef(false)
+  const chatTriggerRef = React.useRef<HTMLElement | null>(null)
+
   useEffect(() => {
-    if (!isChatOpen || !inputRef.current) return
-    inputRef.current.focus()
+    const wasChatOpen = prevIsChatOpenRef.current
+    const isChatPanelOpen = isChatOpen
+
+    // Chat just opened
+    if (!wasChatOpen && isChatPanelOpen) {
+      chatTriggerRef.current = document.activeElement as HTMLElement | null
+      inputRef.current?.focus()
+    }
+
+    // Chat just closed
+    if (wasChatOpen && !isChatPanelOpen) {
+      const trigger = chatTriggerRef.current
+      if (trigger && document.contains(trigger)) {
+        trigger.focus()
+      }
+      chatTriggerRef.current = null
+    }
+
+    prevIsChatOpenRef.current = isChatPanelOpen
   }, [isChatOpen])
 
   // Use useParticipants hook to trigger a re-render when the participant list changes.
