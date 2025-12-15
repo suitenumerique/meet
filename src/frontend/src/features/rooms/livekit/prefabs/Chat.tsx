@@ -1,5 +1,5 @@
 import type { ChatMessage, ChatOptions } from '@livekit/components-core'
-import * as React from 'react'
+import React, { useEffect } from 'react'
 import {
   formatChatMessageLinks,
   useChat,
@@ -35,6 +35,11 @@ export function Chat({ ...props }: ChatProps) {
 
   const { isChatOpen } = useSidePanel()
   const chatSnap = useSnapshot(chatStore)
+
+  useEffect(() => {
+    if (!isChatOpen || !inputRef.current) return
+    inputRef.current.focus()
+  }, [isChatOpen])
 
   // Use useParticipants hook to trigger a re-render when the participant list changes.
   const participants = useParticipants()
