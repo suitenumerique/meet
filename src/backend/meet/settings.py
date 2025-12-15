@@ -770,6 +770,14 @@ class Base(Configuration):
         environ_name="APPLICATION_BASE_URL",
         environ_prefix=None,
     )
+    # Allows third-party platforms to create users with email-only identification.
+    # Required for external integrations, but fragile due to deferred user reconciliation
+    # on sub. Enable it with care /!\
+    APPLICATION_ALLOW_USER_CREATION = values.BooleanValue(
+        False,
+        environ_name="APPLICATION_ALLOW_USER_CREATION",
+        environ_prefix=None,
+    )
 
     # pylint: disable=invalid-name
     @property

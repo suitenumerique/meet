@@ -95,11 +95,29 @@ class ApplicationViewSet(viewsets.GenericViewSet):
         try:
             user = models.User.objects.get(email=email)
         except models.User.DoesNotExist as e:
-            raise drf_exceptions.NotFound(
-                {
-                    "error": "User not found.",
-                }
-            ) from e
+            if (
+                settings.APPLICATION_ALLOW_USER_CREATION
+                and settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION
+            ):
+                # Create a pending user without sub, but with an email.
+                user = models.User(
+                    sub=None,
+                    email=email,
+                )
+                user.set_unusable_password()
+                user.save()
+                logger.info(
+                    "Provisional user created via application: user_id=%s, email=%s, client_id=%s",
+                    user.id,
+                    email,
+                    application.client_id,
+                )
+            else:
+                raise drf_exceptions.NotFound(
+                    {
+                        "error": "User not found.",
+                    }
+                ) from e
 
         now = datetime.now(timezone.utc)
         scope = " ".join(application.scopes or [])

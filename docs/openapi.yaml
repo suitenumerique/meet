@@ -21,7 +21,6 @@ info:
     
     #### Upcoming Features
     
-    * **Create rooms for unknown users from the web app:** Support for generating rooms for users who are not yet registered in the system.
     * **Add attendees to a room:** You will be able to update a room to include a list of attendees, allowing them to bypass the lobby system automatically.
     * **Delete application-generated rooms:** Rooms created via the application can be deleted when no longer needed.
 
