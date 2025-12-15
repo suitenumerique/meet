@@ -31,7 +31,7 @@ import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { ParticipantName } from './ParticipantName'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useTranslation } from 'react-i18next'
-import { css } from '@/styled-system/css'
+import { KeyboardShortcutHint } from './KeyboardShortcutHint'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -228,21 +228,7 @@ export const ParticipantTile: (
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
       {hasKeyboardFocus && (
-        <div
-          className={css({
-            position: 'absolute',
-            top: '0.75rem',
-            right: '0.75rem',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            color: 'white',
-            borderRadius: 'calc(var(--lk-border-radius) / 2)',
-            paddingInline: '0.5rem',
-            paddingBlock: '0.1rem',
-            fontSize: '0.875rem',
-          })}
-        >
-          {t('toolbarHint')}
-        </div>
+        <KeyboardShortcutHint>{t('toolbarHint')}</KeyboardShortcutHint>
       )}
     </div>
   )
