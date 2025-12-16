@@ -93,7 +93,7 @@ export const ToggleDevice = <T extends ToggleSource>({
     isDisabled: cannotUseDevice,
   })
   useLongPress({
-    keyCode: kind === 'audioinput' ? 'Space' : undefined,
+    keyCode: kind === 'audioinput' ? 'KeyV' : undefined,
     onKeyDown,
     onKeyUp,
     isDisabled: cannotUseDevice,

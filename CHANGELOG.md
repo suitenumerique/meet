@@ -12,5 +12,6 @@ and this project adheres to
 ### Changed
 
 - ♿(frontend) improve accessibility:
- - ♿️(frontend) hover controls, focus, SR 
+ - ♿️(frontend) hover controls, focus, SR #803
+ - ♿️(frontend) change ptt keybinding from space to v #813
 
