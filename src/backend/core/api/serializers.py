@@ -159,6 +159,8 @@ class RoomSerializer(serializers.ModelSerializer):
                 configuration=configuration,
                 is_admin_or_owner=is_admin_or_owner,
             )
+        else:
+            del output["pin_code"]
 
         output["is_administrable"] = is_admin_or_owner
 
