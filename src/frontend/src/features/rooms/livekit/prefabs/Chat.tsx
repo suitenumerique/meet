@@ -48,14 +48,17 @@ export function Chat({ ...props }: ChatProps) {
     // Chat just opened
     if (!wasChatOpen && isChatPanelOpen) {
       chatTriggerRef.current = document.activeElement as HTMLElement | null
-      inputRef.current?.focus()
+      // Avoid layout "jump" during the side panel slide-in animation.
+      // Focusing can trigger scroll into view; preventScroll keeps the animation smooth.
+      requestAnimationFrame(() => {
+        inputRef.current?.focus({ preventScroll: true })
+      })
     }
-
     // Chat just closed
     if (wasChatOpen && !isChatPanelOpen) {
       const trigger = chatTriggerRef.current
       if (trigger && document.contains(trigger)) {
-        trigger.focus()
+        trigger.focus({ preventScroll: true })
       }
       chatTriggerRef.current = null
     }
@@ -72,7 +75,7 @@ export function Chat({ ...props }: ChatProps) {
   async function handleSubmit(text: string) {
     if (!send || !text) return
     await send(text)
-    inputRef?.current?.focus()
+    inputRef?.current?.focus({ preventScroll: true })
   }
 
   // TEMPORARY: This is a brittle workaround that relies on message count tracking
