@@ -32,7 +32,6 @@ def test_api_rooms_retrieve_anonymous_private_pk():
         "id": str(room.id),
         "is_administrable": False,
         "name": room.name,
-        "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
@@ -52,7 +51,6 @@ def test_api_rooms_retrieve_anonymous_trusted_pk():
         "id": str(room.id),
         "is_administrable": False,
         "name": room.name,
-        "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
@@ -71,7 +69,6 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
         "id": str(room.id),
         "is_administrable": False,
         "name": room.name,
-        "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
@@ -88,7 +85,6 @@ def test_api_rooms_retrieve_anonymous_private_slug():
         "id": str(room.id),
         "is_administrable": False,
         "name": room.name,
-        "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
@@ -105,7 +101,6 @@ def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
         "id": str(room.id),
         "is_administrable": False,
         "name": room.name,
-        "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
@@ -347,7 +342,6 @@ def test_api_rooms_retrieve_authenticated():
         "id": str(room.id),
         "is_administrable": False,
         "name": room.name,
-        "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
