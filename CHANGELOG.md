@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -12,6 +11,6 @@ and this project adheres to
 ### Changed
 
 - ♿(frontend) improve accessibility:
- - ♿️(frontend) hover controls, focus, SR #803
- - ♿️(frontend) change ptt keybinding from space to v #813
-
+- ♿️(frontend) hover controls, focus, SR #803
+- ♿️(frontend) change ptt keybinding from space to v #813
+- ♿(frontend) indicate external link opens in new window on feedback #816
