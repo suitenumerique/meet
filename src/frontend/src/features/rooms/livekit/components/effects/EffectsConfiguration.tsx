@@ -49,6 +49,7 @@ export const EffectsConfiguration = ({
   layout = 'horizontal',
 }: EffectsConfigurationProps) => {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const blurLightRef = useRef<HTMLButtonElement | null>(null)
   const { t } = useTranslation('rooms', { keyPrefix: 'effects' })
   const { toggle, enabled } = useTrackToggle({ source: Track.Source.Camera })
   const [processorPending, setProcessorPending] = useState(false)
@@ -68,6 +69,18 @@ export const EffectsConfiguration = ({
       videoTrack.detach(videoElement)
     }
   }, [videoTrack, videoTrack?.isMuted])
+
+  useEffect(() => {
+    if (!blurLightRef.current) return
+
+    const rafId = requestAnimationFrame(() => {
+      blurLightRef.current?.focus({ preventScroll: true })
+    })
+
+    return () => {
+      cancelAnimationFrame(rafId)
+    }
+  }, [])
 
   const clearEffect = async () => {
     await videoTrack.stopProcessor()
@@ -301,6 +314,7 @@ export const EffectsConfiguration = ({
                   })}
                 >
                   <ToggleButton
+                    ref={blurLightRef}
                     variant="bigSquare"
                     aria-label={tooltipBlur(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.LIGHT,
