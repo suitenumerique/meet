@@ -146,7 +146,8 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
     sub = models.CharField(
         _("sub"),
         help_text=_(
-            "Required. 255 characters or fewer. Letters, numbers, and @/./+/-/_ characters only."
+            "Optional for pending users; required upon account activation. "
+            "255 characters or fewer. Letters, numbers, and @/./+/-/_ characters only."
         ),
         max_length=255,
         unique=True,
