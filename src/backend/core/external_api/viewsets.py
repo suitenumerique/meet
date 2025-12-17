@@ -98,6 +98,7 @@ class ApplicationViewSet(viewsets.GenericViewSet):
             if (
                 settings.APPLICATION_ALLOW_USER_CREATION
                 and settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION
+                and not settings.OIDC_USER_SUB_FIELD_IMMUTABLE
             ):
                 # Create a pending user without sub, but with an email.
                 user = models.User(

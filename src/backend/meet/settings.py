@@ -406,6 +406,10 @@ class Base(Configuration):
         default=False,
         environ_name="OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION",
     )
+    OIDC_USER_SUB_FIELD_IMMUTABLE = values.BooleanValue(
+        default=True,
+        environ_name="OIDC_USER_SUB_FIELD_IMMUTABLE",
+    )
     OIDC_TIMEOUT = values.IntegerValue(
         5, environ_name="OIDC_TIMEOUT", environ_prefix=None
     )
