@@ -114,11 +114,7 @@ class ApplicationViewSet(viewsets.GenericViewSet):
                     application.client_id,
                 )
             else:
-                raise drf_exceptions.NotFound(
-                    {
-                        "error": "User not found.",
-                    }
-                ) from e
+                raise drf_exceptions.NotFound("User not found.") from e
 
         now = datetime.now(timezone.utc)
         scope = " ".join(application.scopes or [])
