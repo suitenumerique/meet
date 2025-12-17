@@ -81,7 +81,11 @@ export const TranscriptSidePanel = () => {
   const primaryActionRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
-    primaryActionRef.current?.focus()
+    if (primaryActionRef.current) {
+      requestAnimationFrame(() => {
+        primaryActionRef.current?.focus({ preventScroll: true })
+      })
+    }
   }, [])
 
   useEffect(() => {

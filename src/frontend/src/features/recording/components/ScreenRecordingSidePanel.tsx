@@ -68,7 +68,11 @@ export const ScreenRecordingSidePanel = () => {
   const primaryActionRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
-    primaryActionRef.current?.focus()
+    requestAnimationFrame(() => {
+      if (primaryActionRef.current) {
+        primaryActionRef.current.focus({ preventScroll: true })
+      }
+    })
   }, [])
 
   useEffect(() => {
