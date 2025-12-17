@@ -376,7 +376,6 @@ export const EffectsConfiguration = ({
                       <ToggleButton
                         key={i}
                         variant="bigSquare"
-                        tooltip={tooltipVirtualBackground(i)}
                         aria-label={`${t(
                           `virtual.${
                             isSelected(ProcessorType.VIRTUAL, {
