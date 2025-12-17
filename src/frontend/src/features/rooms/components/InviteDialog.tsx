@@ -67,7 +67,7 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
           gap={0}
           style={{ maxWidth: '100%', overflow: 'hidden' }}
         >
-          <Heading slot="title" level={3} className={text({ variant: 'h2' })}>
+          <Heading slot="title" level={2} className={text({ variant: 'h2' })}>
             {t('heading')}
           </Heading>
           <Div position="absolute" top="5" right="5">
