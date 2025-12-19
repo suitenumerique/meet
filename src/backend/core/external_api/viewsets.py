@@ -100,7 +100,15 @@ class ApplicationViewSet(viewsets.GenericViewSet):
                 and settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION
                 and not settings.OIDC_USER_SUB_FIELD_IMMUTABLE
             ):
-                # Create a pending user without sub, but with an email.
+                # Create a provisional user without `sub`, identified by email only.
+                #
+                # This relies on Django LaSuite implicitly updating the `sub` field on the
+                # user's first successful OIDC authentication. If this stops working,
+                # check for behavior changes in Django LaSuite.
+                #
+                # `OIDC_USER_SUB_FIELD_IMMUTABLE` comes from Django LaSuite and prevents `sub`
+                # updates. We override its default value to allow setting `sub` for
+                # provisional users.
                 user = models.User(
                     sub=None,
                     email=email,
