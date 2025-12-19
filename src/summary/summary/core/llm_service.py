@@ -141,4 +141,4 @@ class LLMService:
 
         except Exception as e:
             self._logger.exception("LLM call failed: %s", e)
-            raise LLMException("LLM call failed: {e}") from e
+            raise LLMException(f"LLM call failed: {e}") from e
