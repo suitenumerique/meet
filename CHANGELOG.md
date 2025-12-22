@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-12-22
+
 ### Added 
 
 - ✨(backend) enable user creation via email for external integrations
