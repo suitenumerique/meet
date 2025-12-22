@@ -7,7 +7,7 @@ info:
     
     #### Authentication Flow
     
-    1. Exchange application credentials for a JWT token via `/external-api/v1.0/application/token`.
+    1. Exchange application credentials for a JWT token via `/external-api/v1.0/application/token/`.
     2. Use the JWT token in the `Authorization: Bearer <token>` header for all subsequent requests.
     3. Tokens are scoped and allow applications to act on behalf of specific users.
     
@@ -39,7 +39,7 @@ tags:
     description: Room management operations
 
 paths:
-  /application/token:
+  /application/token/:
     post:
       tags:
         - Authentication
@@ -282,7 +282,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: |
-        JWT token obtained from the `/application/token` endpoint.
+        JWT token obtained from the `/application/token/` endpoint.
         Include in requests as: `Authorization: Bearer <token>`
 
   schemas:
