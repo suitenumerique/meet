@@ -293,7 +293,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="start-recording",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.HasRecordingPermission,
         ],
     )
     @FeatureFlag.require("recording")
@@ -338,7 +338,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="stop-recording",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.HasRecordingPermission,
         ],
     )
     @FeatureFlag.require("recording")
