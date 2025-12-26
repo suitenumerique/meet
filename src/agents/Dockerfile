@@ -1,5 +1,11 @@
 FROM python:3.13-slim AS base
 
+# Install system dependencies required by LiveKit
+RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libgobject-2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
 FROM base AS builder
 
 WORKDIR /builder
