@@ -15,7 +15,6 @@ import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
 import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
-import { RiProhibited2Line } from '@remixicon/react'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
 
@@ -50,11 +49,13 @@ export const EffectsConfiguration = ({
   layout = 'horizontal',
 }: EffectsConfigurationProps) => {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const blurLightRef = useRef<HTMLButtonElement | null>(null)
   const { t } = useTranslation('rooms', { keyPrefix: 'effects' })
   const { toggle, enabled } = useTrackToggle({ source: Track.Source.Camera })
   const [processorPending, setProcessorPending] = useState(false)
   const processorPendingReveal = useSyncAfterDelay(processorPending)
   const hasFunnyEffectsAccess = useHasFunnyEffectsAccess()
+  const [blurStatusMessage, setBlurStatusMessage] = useState('')
 
   useEffect(() => {
     const videoElement = videoRef.current
@@ -69,9 +70,37 @@ export const EffectsConfiguration = ({
     }
   }, [videoTrack, videoTrack?.isMuted])
 
+  useEffect(() => {
+    if (!blurLightRef.current) return
+
+    const rafId = requestAnimationFrame(() => {
+      blurLightRef.current?.focus({ preventScroll: true })
+    })
+
+    return () => {
+      cancelAnimationFrame(rafId)
+    }
+  }, [])
+
   const clearEffect = async () => {
     await videoTrack.stopProcessor()
     onSubmit?.(undefined)
+  }
+
+  const updateBlurStatusMessage = (
+    type: ProcessorType,
+    options: BackgroundOptions,
+    wasSelectedBeforeToggle: boolean
+  ) => {
+    if (type !== ProcessorType.BLUR) return
+
+    if (wasSelectedBeforeToggle) {
+      setBlurStatusMessage(t('blur.status.none'))
+    } else if (options.blurRadius === BlurRadius.LIGHT) {
+      setBlurStatusMessage(t('blur.status.light'))
+    } else if (options.blurRadius === BlurRadius.NORMAL) {
+      setBlurStatusMessage(t('blur.status.strong'))
+    }
   }
 
   const toggleEffect = async (
@@ -79,6 +108,8 @@ export const EffectsConfiguration = ({
     options: BackgroundOptions
   ) => {
     setProcessorPending(true)
+    const wasSelectedBeforeToggle = isSelected(type, options)
+
     if (!videoTrack) {
       /**
        * Special case: if no video track is available, then we must pass directly the processor into the
@@ -104,7 +135,7 @@ export const EffectsConfiguration = ({
 
     const processor = getProcessor()
     try {
-      if (isSelected(type, options)) {
+      if (wasSelectedBeforeToggle) {
         // Stop processor.
         await clearEffect()
       } else if (
@@ -131,6 +162,8 @@ export const EffectsConfiguration = ({
         // We want to trigger onSubmit when options changes so the parent component is aware of it.
         onSubmit?.(processor)
       }
+
+      updateBlurStatusMessage(type, options, wasSelectedBeforeToggle)
     } catch (error) {
       console.error('Error applying effect:', error)
     } finally {
@@ -153,8 +186,16 @@ export const EffectsConfiguration = ({
     )
   }
 
-  const tooltipLabel = (type: ProcessorType, options: BackgroundOptions) => {
-    return t(`${type}.${isSelected(type, options) ? 'clear' : 'apply'}`)
+  const tooltipBlur = (type: ProcessorType, options: BackgroundOptions) => {
+    const strength =
+      options.blurRadius === BlurRadius.LIGHT ? 'light' : 'normal'
+    const action = isSelected(type, options) ? 'clear' : 'apply'
+
+    return t(`${type}.${strength}.${action}`)
+  }
+
+  const tooltipVirtualBackground = (index: number): string => {
+    return t(`virtual.descriptions.${index}`)
   }
 
   return (
@@ -265,65 +306,60 @@ export const EffectsConfiguration = ({
               >
                 {t('blur.title')}
               </H>
-              <div
-                className={css({
-                  display: 'flex',
-                  gap: '1.25rem',
-                })}
-              >
-                <ToggleButton
-                  variant="bigSquare"
-                  aria-label={t('clear')}
-                  onPress={async () => {
-                    await clearEffect()
-                  }}
-                  isSelected={!getProcessor()}
-                  isDisabled={processorPendingReveal || isDisabled}
+              <div>
+                <div
+                  className={css({
+                    display: 'flex',
+                    gap: '1.25rem',
+                  })}
                 >
-                  <RiProhibited2Line />
-                </ToggleButton>
-                <ToggleButton
-                  variant="bigSquare"
-                  aria-label={tooltipLabel(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.LIGHT,
-                  })}
-                  tooltip={tooltipLabel(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.LIGHT,
-                  })}
-                  isDisabled={processorPendingReveal || isDisabled}
-                  onChange={async () =>
-                    await toggleEffect(ProcessorType.BLUR, {
+                  <ToggleButton
+                    ref={blurLightRef}
+                    variant="bigSquare"
+                    aria-label={tooltipBlur(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.LIGHT,
-                    })
-                  }
-                  isSelected={isSelected(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.LIGHT,
-                  })}
-                  data-attr="toggle-blur-light"
-                >
-                  <BlurOn />
-                </ToggleButton>
-                <ToggleButton
-                  variant="bigSquare"
-                  aria-label={tooltipLabel(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.NORMAL,
-                  })}
-                  tooltip={tooltipLabel(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.NORMAL,
-                  })}
-                  isDisabled={processorPendingReveal || isDisabled}
-                  onChange={async () =>
-                    await toggleEffect(ProcessorType.BLUR, {
+                    })}
+                    tooltip={tooltipBlur(ProcessorType.BLUR, {
+                      blurRadius: BlurRadius.LIGHT,
+                    })}
+                    isDisabled={processorPendingReveal || isDisabled}
+                    onChange={async () =>
+                      await toggleEffect(ProcessorType.BLUR, {
+                        blurRadius: BlurRadius.LIGHT,
+                      })
+                    }
+                    isSelected={isSelected(ProcessorType.BLUR, {
+                      blurRadius: BlurRadius.LIGHT,
+                    })}
+                    data-attr="toggle-blur-light"
+                  >
+                    <BlurOn />
+                  </ToggleButton>
+                  <ToggleButton
+                    variant="bigSquare"
+                    aria-label={tooltipBlur(ProcessorType.BLUR, {
                       blurRadius: BlurRadius.NORMAL,
-                    })
-                  }
-                  isSelected={isSelected(ProcessorType.BLUR, {
-                    blurRadius: BlurRadius.NORMAL,
-                  })}
-                  data-attr="toggle-blur-normal"
-                >
-                  <BlurOnStrong />
-                </ToggleButton>
+                    })}
+                    tooltip={tooltipBlur(ProcessorType.BLUR, {
+                      blurRadius: BlurRadius.NORMAL,
+                    })}
+                    isDisabled={processorPendingReveal || isDisabled}
+                    onChange={async () =>
+                      await toggleEffect(ProcessorType.BLUR, {
+                        blurRadius: BlurRadius.NORMAL,
+                      })
+                    }
+                    isSelected={isSelected(ProcessorType.BLUR, {
+                      blurRadius: BlurRadius.NORMAL,
+                    })}
+                    data-attr="toggle-blur-normal"
+                  >
+                    <BlurOnStrong />
+                  </ToggleButton>
+                </div>
+                <div aria-live="polite" className="sr-only">
+                  {blurStatusMessage}
+                </div>
               </div>
               <div
                 className={css({
@@ -343,6 +379,7 @@ export const EffectsConfiguration = ({
                   className={css({
                     display: 'flex',
                     gap: '1.25rem',
+                    paddingBottom: '0.5rem',
                     flexWrap: 'wrap',
                   })}
                 >
@@ -353,12 +390,15 @@ export const EffectsConfiguration = ({
                       <ToggleButton
                         key={i}
                         variant="bigSquare"
-                        aria-label={tooltipLabel(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
-                        tooltip={tooltipLabel(ProcessorType.VIRTUAL, {
-                          imagePath,
-                        })}
+                        aria-label={`${t(
+                          `virtual.${
+                            isSelected(ProcessorType.VIRTUAL, {
+                              imagePath,
+                            })
+                              ? 'selectedLabel'
+                              : 'apply'
+                          }`
+                        )} ${tooltipVirtualBackground(i)}`}
                         isDisabled={processorPendingReveal || isDisabled}
                         onChange={async () =>
                           await toggleEffect(ProcessorType.VIRTUAL, {

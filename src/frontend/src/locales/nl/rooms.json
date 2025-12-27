@@ -233,15 +233,34 @@
     "clear": "Effect uitschakelen",
     "blur": {
       "title": "Achtergrondvervaging",
-      "light": "Lichte vervaging",
-      "normal": "Vervaging",
-      "apply": "Vervaging inschakelen",
-      "clear": "Vervaging uitschakelen"
+      "status": {
+        "none": "Achtergrond scherp.",
+        "light": "Achtergrond licht vervaagd.",
+        "strong": "Achtergrond sterk vervaagd."
+      },
+      "light": {
+        "apply": "Vervaag je achtergrond lichtjes",
+        "clear": "Vervaging uitschakelen"
+      },
+      "normal": {
+        "apply": "Vervaag je achtergrond",
+        "clear": "Vervaging uitschakelen"
+      }
     },
     "virtual": {
       "title": "Virtuele achtergrond",
-      "apply": "Virtuele achtergrond inschakelen",
-      "clear": "Virtuele achtergrond uitschakelen"
+      "selectedLabel": "Achtergrond toegepast:",
+      "apply": "Vervang je achtergrond:",
+      "descriptions": {
+        "0": "Geprofileerd houten meubel",
+        "1": "Vergaderruimte",
+        "2": "Loft met zwarte glaswand",
+        "3": "Eetkamer",
+        "4": "Houten planken",
+        "5": "Houten trap",
+        "6": "Grijze bibliotheek",
+        "7": "Koffiebar"
+      }
     },
     "faceLandmarks": {
       "title": "Visuele effecten",
@@ -256,6 +275,7 @@
     }
   },
   "sidePanel": {
+    "ariaLabel": "Zijbalk",
     "heading": {
       "participants": "Deelnemers",
       "effects": "Effecten",
