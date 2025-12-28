@@ -14,13 +14,14 @@ from livekit.agents import (
     JobContext,
     JobProcess,
     JobRequest,
-    RoomInputOptions,
     RoomIO,
-    RoomOutputOptions,
     WorkerOptions,
     WorkerPermissions,
     cli,
     utils,
+)
+from livekit.agents import (
+    room_io as lk_room_io,
 )
 from livekit.plugins import deepgram, silero
 
@@ -128,12 +129,8 @@ class MultiUserTranscriber:
             agent_session=session,
             room=self.ctx.room,
             participant=participant,
-            input_options=RoomInputOptions(
-                text_enabled=False,
-            ),
-            output_options=RoomOutputOptions(
-                transcription_enabled=True,
-                audio_enabled=False,
+            options=lk_room_io.RoomOptions(
+                text_input=False, audio_output=False, text_output=True
             ),
         )
         await room_io.start()
