@@ -133,6 +133,7 @@ def process_audio_transcribe_summarize_v2(
     room: Optional[str],
     recording_date: Optional[str],
     recording_time: Optional[str],
+    language: Optional[str],
 ):
     """Process an audio file by transcribing it and generating a summary.
 
@@ -193,14 +194,16 @@ def process_audio_transcribe_summarize_v2(
 
     try:
         logger.info(
-            "Querying transcription for %s seconds of audio …", audio_file.info.length
+            "Querying transcription for %s seconds of audio in %s …",
+            audio_file.info.length,
+            language,
         )
         transcription_start_time = time.time()
         with open(temp_file_path, "rb") as audio_file:
             transcription = whisperx_client.audio.transcriptions.create(
                 model=settings.whisperx_asr_model,
                 file=audio_file,
-                language=settings.whisperx_default_language,
+                language=language or settings.whisperx_default_language,
             )
 
             transcription_time = round(time.time() - transcription_start_time, 2)

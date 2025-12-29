@@ -118,7 +118,7 @@ class MetadataManager:
             "retries": 0,
         }
 
-        _required_args_count = 8
+        _required_args_count = 9
         if len(task_args) != _required_args_count:
             logger.error("Invalid number of arguments to enable metadata manager.")
             return
