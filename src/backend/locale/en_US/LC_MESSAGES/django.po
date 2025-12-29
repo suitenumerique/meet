@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 15:12+0000\n"
+"POT-Creation-Date: 2025-12-29 15:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -309,95 +309,99 @@ msgstr "Recording mode"
 msgid "Defines the mode of recording being called."
 msgstr "Defines the mode of recording being called."
 
-#: core/models.py:584
+#: core/models.py:583 core/models.py:584
+msgid "Recording options"
+msgstr "Recording options"
+
+#: core/models.py:590
 msgid "Recording"
 msgstr "Recording"
 
-#: core/models.py:585
+#: core/models.py:591
 msgid "Recordings"
 msgstr "Recordings"
 
-#: core/models.py:693
+#: core/models.py:699
 msgid "Recording/user relation"
 msgstr "Recording/user relation"
 
-#: core/models.py:694
+#: core/models.py:700
 msgid "Recording/user relations"
 msgstr "Recording/user relations"
 
-#: core/models.py:700
+#: core/models.py:706
 msgid "This user is already in this recording."
 msgstr "This user is already in this recording."
 
-#: core/models.py:706
+#: core/models.py:712
 msgid "This team is already in this recording."
 msgstr "This team is already in this recording."
 
-#: core/models.py:712
+#: core/models.py:718
 msgid "Either user or team must be set, not both."
 msgstr "Either user or team must be set, not both."
 
-#: core/models.py:729
+#: core/models.py:735
 #, fuzzy
 #| msgid "created on"
 msgid "Create rooms"
 msgstr "Create rooms"
 
-#: core/models.py:730
+#: core/models.py:736
 msgid "List rooms"
 msgstr "List rooms"
 
-#: core/models.py:731
+#: core/models.py:737
 msgid "Retrieve room details"
 msgstr "Retrieve room details"
 
-#: core/models.py:732
+#: core/models.py:738
 #, fuzzy
 #| msgid "updated on"
 msgid "Update rooms"
 msgstr "Update rooms"
 
-#: core/models.py:733
+#: core/models.py:739
 msgid "Delete rooms"
 msgstr "Delete rooms"
 
-#: core/models.py:746
+#: core/models.py:752
 msgid "Application name"
 msgstr "Application name"
 
-#: core/models.py:747
+#: core/models.py:753
 msgid "Descriptive name for this application."
 msgstr "Descriptive name for this application."
 
-#: core/models.py:757
+#: core/models.py:763
 msgid "Hashed on Save. Copy it now if this is a new secret."
 msgstr "Hashed on Save. Copy it now if this is a new secret."
 
-#: core/models.py:768
+#: core/models.py:774
 msgid "Application"
 msgstr "Application"
 
-#: core/models.py:769
+#: core/models.py:775
 msgid "Applications"
 msgstr "Applications"
 
-#: core/models.py:792
+#: core/models.py:798
 msgid "Enter a valid domain"
 msgstr "Enter a valid domain"
 
-#: core/models.py:795
+#: core/models.py:801
 msgid "Domain"
 msgstr "Domain"
 
-#: core/models.py:796
+#: core/models.py:802
 msgid "Email domain this application can act on behalf of."
 msgstr "Email domain this application can act on behalf of."
 
-#: core/models.py:808
+#: core/models.py:814
 msgid "Application domain"
 msgstr "Application domain"
 
-#: core/models.py:809
+#: core/models.py:815
 msgid "Application domains"
 msgstr "Application domains"
 

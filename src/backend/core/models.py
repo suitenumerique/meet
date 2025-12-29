@@ -577,6 +577,12 @@ class Recording(BaseModel):
         verbose_name=_("Recording mode"),
         help_text=_("Defines the mode of recording being called."),
     )
+    options = models.JSONField(
+        blank=True,
+        default=dict,
+        verbose_name=_("Recording options"),
+        help_text=_("Recording options"),
+    )
 
     class Meta:
         db_table = "meet_recording"
