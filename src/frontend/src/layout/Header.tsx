@@ -13,29 +13,6 @@ import { LoginButton } from '@/components/LoginButton'
 
 import { useLoginHint } from '@/hooks/useLoginHint'
 
-const BetaBadge = () => (
-  <span
-    className={css({
-      content: '"Beta"',
-      display: 'block',
-      letterSpacing: '-0.02rem',
-      padding: '0 0.25rem',
-      backgroundColor: '#E8EDFF',
-      color: '#0063CB',
-      fontSize: '12px',
-      fontWeight: 500,
-      margin: '0 0 0.9375rem 0.3125rem',
-      lineHeight: '1rem',
-      borderRadius: '4px',
-      width: 'fit-content',
-      height: 'fit-content',
-      marginTop: { base: '10px', sm: '5px' },
-    })}
-  >
-    Beta
-  </span>
-)
-
 const Logo = () => (
   <img
     src="/assets/logo.svg"
@@ -158,7 +135,6 @@ export const Header = () => {
                 />
                 <HStack gap={0}>
                   <Logo />
-                  <BetaBadge />
                 </HStack>
               </Link>
             </Stack>

@@ -9,6 +9,7 @@ and this project adheres to
 ## [Unreleased]
 
 - ✨(agent) support Kyutai client for subtitle
+- ✨(frontend) remove the beta badge
 
 ## [1.1.0] - 2025-12-22
 
