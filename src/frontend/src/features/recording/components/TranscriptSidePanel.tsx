@@ -40,6 +40,7 @@ export const TranscriptSidePanel = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
 
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
+  const [includeScreenRecording, setIncludeScreenRecording] = useState(false)
 
   const recordingSnap = useSnapshot(recordingStore)
 
@@ -99,6 +100,7 @@ export const TranscriptSidePanel = () => {
       setIsLoading(true)
       if (room.isRecording) {
         await stopRecordingRoom({ id: roomId })
+        setIncludeScreenRecording(false)
         recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
         await notifyParticipants({
           type: NotificationType.TranscriptionStopped,
@@ -108,7 +110,20 @@ export const TranscriptSidePanel = () => {
           room.localParticipant
         )
       } else {
-        await startRecordingRoom({ id: roomId, mode: RecordingMode.Transcript })
+        const recordingMode = includeScreenRecording
+          ? RecordingMode.ScreenRecording
+          : RecordingMode.Transcript
+
+        const recordingOptions = {
+          language: 'fr', // fix hardcoded language
+          ...(includeScreenRecording && { transcribe: true }),
+        }
+
+        await startRecordingRoom({
+          id: roomId,
+          mode: recordingMode,
+          options: recordingOptions,
+        })
         recordingStore.status = RecordingStatus.TRANSCRIPT_STARTING
         await notifyParticipants({
           type: NotificationType.TranscriptionStarted,
@@ -454,6 +469,8 @@ export const TranscriptSidePanel = () => {
         >
           <Checkbox
             size="sm"
+            isSelected={includeScreenRecording}
+            onChange={setIncludeScreenRecording}
             isDisabled={
               statuses.isStarting || statuses.isStarted || isPendingToStart
             }
