@@ -137,6 +137,7 @@ class NotificationService:
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
             "room": recording.room.name,
+            "language": recording.options.get("language"),
             "recording_date": recording.created_at.astimezone(
                 owner_access.user.timezone
             ).strftime("%Y-%m-%d"),
