@@ -95,6 +95,7 @@ def test_api_recording_retrieve_administrators(settings):
         "updated_at": recording.updated_at.isoformat().replace("+00:00", "Z"),
         "status": str(recording.status),
         "mode": str(recording.mode),
+        "options": {},
         "expired_at": None,
         "is_expired": False,
     }
@@ -130,6 +131,7 @@ def test_api_recording_retrieve_owners(settings):
         "updated_at": recording.updated_at.isoformat().replace("+00:00", "Z"),
         "status": str(recording.status),
         "mode": str(recording.mode),
+        "options": {},
         "expired_at": None,
         "is_expired": False,
     }
@@ -169,6 +171,7 @@ def test_api_recording_retrieve_compute_expiration_date_correctly(settings):
         "updated_at": "2023-01-15T12:00:00Z",
         "status": str(recording.status),
         "mode": str(recording.mode),
+        "options": {},
         "expired_at": "2023-01-16T12:00:00Z",
         "is_expired": False,  # Ensure the recording is still valid and hasn't expired
     }
@@ -209,6 +212,7 @@ def test_api_recording_retrieve_expired(settings):
         "updated_at": "2023-01-15T12:00:00Z",
         "status": str(recording.status),
         "mode": str(recording.mode),
+        "options": {},
         "expired_at": "2023-01-17T12:00:00Z",
         "is_expired": True,  # Ensure the recording has expired
     }
