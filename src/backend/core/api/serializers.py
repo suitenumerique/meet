@@ -181,6 +181,7 @@ class RecordingSerializer(serializers.ModelSerializer):
             "updated_at",
             "status",
             "mode",
+            "options",
             "key",
             "is_expired",
             "expired_at",
@@ -211,6 +212,11 @@ class StartRecordingSerializer(BaseValidationOnlySerializer):
             "invalid_choice": "Invalid recording mode. Choose between "
             "screen_recording or transcript.",
         },
+    )
+    options = serializers.JSONField(
+        required=False,
+        allow_null=True,
+        default=dict,
     )
 
 
