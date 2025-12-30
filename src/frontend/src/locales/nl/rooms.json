@@ -316,6 +316,7 @@
     "details": {
       "receiver": "Het transcript wordt verzonden naar de organisator en medeorganisatoren.",
       "destination": "Er wordt een nieuw document aangemaakt op",
+      "destinationUnknown": "Een nieuw document wordt aangemaakt",
       "language": "Vergadertalen: Frans (fr)",
       "recording": "Start ook een opname"
     },
