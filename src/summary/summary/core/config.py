@@ -1,7 +1,7 @@
 """Application configuration and settings."""
 
 from functools import lru_cache
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Optional, Set
 
 from fastapi import Depends
 from pydantic import SecretStr
@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     # Audio recordings
     recording_max_duration: Optional[int] = None
+    recording_allowed_extensions: Set[str] = {".ogg"}
 
     # Celery settings
     celery_broker_url: str = "redis://redis/0"

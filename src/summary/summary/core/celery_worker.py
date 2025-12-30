@@ -1,26 +1,22 @@
 """Celery workers."""
 
-# ruff: noqa: PLR0913, PLR0915
+# ruff: noqa: PLR0913
 
 import json
-import os
-import tempfile
 import time
-from pathlib import Path
 from typing import Optional
 
 import openai
 import sentry_sdk
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
-from minio import Minio
-from mutagen import File
 from requests import Session, exceptions
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
+from summary.core.file_service import FileService
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
@@ -59,17 +55,7 @@ if settings.sentry_dsn and settings.sentry_is_enabled:
         sentry_sdk.init(dsn=settings.sentry_dsn, enable_tracing=True)
 
 
-class AudioValidationError(Exception):
-    """Custom exception for audio validation errors."""
-
-    pass
-
-
-def save_audio_stream(audio_stream, chunk_size=32 * 1024):
-    """Save an audio stream to a temporary OGG file."""
-    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
-        tmp.writelines(audio_stream.stream(chunk_size))
-        return Path(tmp.name)
+file_service = FileService(logger=logger)
 
 
 def create_retry_session():
@@ -151,40 +137,6 @@ def process_audio_transcribe_summarize_v2(
 
     task_id = self.request.id
 
-    logger.info("Download recording | Filename: %s", filename)
-
-    minio_client = Minio(
-        settings.aws_s3_endpoint_url,
-        access_key=settings.aws_s3_access_key_id,
-        secret_key=settings.aws_s3_secret_access_key.get_secret_value(),
-        secure=settings.aws_s3_secure_access,
-    )
-
-    logger.debug("Connection to the Minio bucket successful")
-
-    audio_file_stream = minio_client.get_object(
-        settings.aws_storage_bucket_name, object_name=filename
-    )
-
-    temp_file_path = save_audio_stream(audio_file_stream)
-
-    logger.info("Recording successfully downloaded")
-    logger.debug("Recording filepath: %s", temp_file_path)
-
-    audio_file = File(temp_file_path)
-    metadata_manager.track(task_id, {"audio_length": audio_file.info.length})
-
-    if (
-        settings.recording_max_duration is not None
-        and audio_file.info.length > settings.recording_max_duration
-    ):
-        error_msg = "Recording too long: %.2fs > %.2fs limit" % (
-            audio_file.info.length,
-            settings.recording_max_duration,
-        )
-        logger.error(error_msg)
-        raise AudioValidationError(error_msg)
-
     logger.info("Initiating WhisperX client")
     whisperx_client = openai.OpenAI(
         api_key=settings.whisperx_api_key.get_secret_value(),
@@ -192,31 +144,31 @@ def process_audio_transcribe_summarize_v2(
         max_retries=settings.whisperx_max_retries,
     )
 
-    try:
+    with (
+        file_service.prepare_audio_file(filename) as (audio_file, metadata),
+    ):
+        metadata_manager.track(task_id, {"audio_length": metadata["duration"]})
+
         logger.info(
-            "Querying transcription for %s seconds of audio in %s …",
-            audio_file.info.length,
+            "Querying transcription in '%s' language …",
             language,
         )
-        transcription_start_time = time.time()
-        with open(temp_file_path, "rb") as audio_file:
-            transcription = whisperx_client.audio.transcriptions.create(
-                model=settings.whisperx_asr_model,
-                file=audio_file,
-                language=language or settings.whisperx_default_language,
-            )
 
-            transcription_time = round(time.time() - transcription_start_time, 2)
-            metadata_manager.track(
-                task_id,
-                {"transcription_time": transcription_time},
-            )
-            logger.info("Transcription received in %s seconds.", transcription_time)
-            logger.debug("Transcription: \n %s", transcription)
-    finally:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-            logger.debug("Temporary file removed: %s", temp_file_path)
+        transcription_start_time = time.time()
+
+        transcription = whisperx_client.audio.transcriptions.create(
+            model=settings.whisperx_asr_model,
+            file=audio_file,
+            language=language or settings.whisperx_default_language,
+        )
+
+        transcription_time = round(time.time() - transcription_start_time, 2)
+        metadata_manager.track(
+            task_id,
+            {"transcription_time": transcription_time},
+        )
+        logger.info("Transcription received in %.2f seconds.", transcription_time)
+        logger.debug("Transcription: \n %s", transcription)
 
     metadata_manager.track_transcription_metadata(task_id, transcription)
 
