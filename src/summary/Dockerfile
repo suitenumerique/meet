@@ -1,5 +1,13 @@
 FROM python:3.13-slim AS base
 
+
+# Install ffmpeg for audio/video processing (format conversion, extraction, compression)
+# See summary/core/file_service.py for usage.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg=7:7.1.3-* && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 FROM base AS builder
 
 WORKDIR /app
