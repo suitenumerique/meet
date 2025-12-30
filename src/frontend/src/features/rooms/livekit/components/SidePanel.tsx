@@ -164,7 +164,7 @@ export const SidePanel = () => {
       <Panel isOpen={isChatOpen} keepAlive={true}>
         <Chat />
       </Panel>
-      <Panel isOpen={isToolsOpen}>
+      <Panel isOpen={isToolsOpen} keepAlive={true}>
         <Tools />
       </Panel>
       <Panel isOpen={isAdminOpen}>
