@@ -345,6 +345,9 @@ class Base(Configuration):
         "manifest_link": values.Value(
             None, environ_name="FRONTEND_MANIFEST_LINK", environ_prefix=None
         ),
+        "transcription_destination": values.Value(
+            None, environ_name="FRONTEND_TRANSCRIPTION_DESTINATION", environ_prefix=None
+        ),
     }
 
     # Mail

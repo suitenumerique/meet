@@ -389,14 +389,20 @@ export const TranscriptSidePanel = () => {
             })}
           >
             <Text variant="sm">
-              {t('details.destination')}{' '}
-              <A
-                href="https://docs.numerique.gouv.fr"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                docs.numerique.gouv.fr
-              </A>
+              {data?.transcription_destination ? (
+                <>
+                  {t('details.destination')}{' '}
+                  <A
+                    href={data.transcription_destination}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {data.transcription_destination.replace('https://', '')}
+                  </A>
+                </>
+              ) : (
+                t('details.destinationUnknown')
+              )}
             </Text>
           </div>
         </div>
