@@ -316,6 +316,7 @@
     "details": {
       "receiver": "Das Transkript wird an den Organisator und die Mitorganisatoren gesendet.",
       "destination": "Ein neues Dokument wird erstellt auf",
+      "destinationUnknown": "Ein neues Dokument wird erstellt",
       "language": "Meeting-Sprachen: Französisch (fr)",
       "recording": "Auch eine Aufzeichnung starten"
     },

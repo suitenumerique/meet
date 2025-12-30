@@ -44,6 +44,7 @@ export interface ApiConfig {
     enable_firefox_proxy_workaround: boolean
     default_sources: string[]
   }
+  transcription_destination?: string
 }
 
 const fetchConfig = (): Promise<ApiConfig> => {

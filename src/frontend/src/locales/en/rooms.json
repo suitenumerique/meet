@@ -316,6 +316,7 @@
     "details": {
       "receiver": "The transcript will be sent to the host and co-hosts.",
       "destination": "A new document will be created on",
+      "destinationUnknown": "A new document will be created",
       "language": "Meeting language: French (fr)",
       "recording": "Also start a recording"
     },
