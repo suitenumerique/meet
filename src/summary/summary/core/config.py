@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     # Audio recordings
     recording_max_duration: Optional[int] = None
     recording_allowed_extensions: Set[str] = {".ogg", ".mp4"}
+    recording_video_extensions: Set[str] = {".mp4"}
 
     # Celery settings
     celery_broker_url: str = "redis://redis/0"
