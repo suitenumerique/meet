@@ -1,6 +1,7 @@
 """File service to encapsulate files' manipulations."""
 
 import os
+import subprocess
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -95,6 +96,46 @@ class FileService:
 
         return duration
 
+    def _extract_audio_from_video(self, video_path: Path) -> Path:
+        """Extract audio from video file (e.g., MP4) and save as audio file."""
+        self._logger.info("Extracting audio from video file: %s", video_path)
+
+        with tempfile.NamedTemporaryFile(
+            suffix=".m4a", delete=False, prefix="audio_extract_"
+        ) as tmp:
+            output_path = Path(tmp.name)
+
+        try:
+            command = [
+                "ffmpeg",
+                "-i",
+                str(video_path),
+                "-vn",  # No video
+                "-acodec",
+                "copy",
+                "-y",  # Overwrite output file if exists
+                str(output_path),
+            ]
+
+            # ruff: noqa: S603
+            subprocess.run(
+                command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+            )
+
+            self._logger.info("Audio successfully extracted to: %s", output_path)
+            return output_path
+
+        except FileNotFoundError as e:
+            self._logger.error("ffmpeg not found. Please install ffmpeg.")
+            if output_path.exists():
+                os.remove(output_path)
+            raise RuntimeError("ffmpeg is not installed or not in PATH") from e
+        except subprocess.CalledProcessError as e:
+            self._logger.error("Audio extraction failed: %s", e.stderr.decode())
+            if output_path.exists():
+                os.remove(output_path)
+            raise RuntimeError("Failed to extract audio.") from e
+
     @contextmanager
     def prepare_audio_file(self, remote_object_key: str):
         """Download and prepare audio file for processing.
@@ -104,6 +145,7 @@ class FileService:
         when the context exits.
         """
         downloaded_path = None
+        processed_path = None
         file_handle = None
 
         try:
@@ -111,16 +153,24 @@ class FileService:
             duration = self._validate_duration(downloaded_path)
 
             extension = downloaded_path.suffix.lower()
+
+            if extension in settings.recording_video_extensions:
+                self._logger.info("Video file detected, extracting audio...")
+                extracted_audio_path = self._extract_audio_from_video(downloaded_path)
+                processed_path = extracted_audio_path
+            else:
+                processed_path = downloaded_path
+
             metadata = {"duration": duration, "extension": extension}
 
-            file_handle = open(downloaded_path, "rb")
+            file_handle = open(processed_path, "rb")
             yield file_handle, metadata
 
         finally:
             if file_handle:
                 file_handle.close()
 
-            for path in [downloaded_path]:
+            for path in [downloaded_path, processed_path]:
                 if path is None or not os.path.exists(path):
                     continue
 
