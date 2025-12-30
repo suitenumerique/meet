@@ -60,6 +60,26 @@ def test_notify_external_services_screen_recording_mode(mock_notify_email):
     mock_notify_email.assert_called_once_with(recording)
 
 
+@mock.patch.object(NotificationService, "_notify_summary_service", return_value=True)
+@mock.patch.object(NotificationService, "_notify_user_by_email", return_value=True)
+def test_notify_external_services_screen_recording_mode_with_transcribe(
+    mock_notify_email, mock_notify_summary
+):
+    """Test notification routing for screen recording mode with transcribe option."""
+
+    service = NotificationService()
+
+    recording = factories.RecordingFactory(
+        mode=models.RecordingModeChoices.SCREEN_RECORDING, options={"transcribe": True}
+    )
+
+    result = service.notify_external_services(recording)
+
+    assert result is True
+    mock_notify_email.assert_called_once_with(recording)
+    mock_notify_summary.assert_called_once_with(recording)
+
+
 def test_notify_external_services_unknown_mode(caplog):
     """Test notification for unknown recording mode."""
     recording = factories.RecordingFactory()

@@ -26,7 +26,12 @@ class NotificationService:
             return self._notify_summary_service(recording)
 
         if recording.mode == models.RecordingModeChoices.SCREEN_RECORDING:
-            return self._notify_user_by_email(recording)
+            summary_success = True
+            if recording.options.get("transcribe", False):
+                summary_success = self._notify_summary_service(recording)
+
+            email_success = self._notify_user_by_email(recording)
+            return email_success and summary_success
 
         logger.error(
             "Unknown recording mode %s for recording %s",
