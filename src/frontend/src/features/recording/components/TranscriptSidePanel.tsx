@@ -10,11 +10,10 @@ import {
   useStopRecording,
   useHasFeatureWithoutAdminRights,
   useHumanizeRecordingMaxDuration,
+  useRecordingStatuses,
 } from '../index'
-import { useEffect, useMemo, useState } from 'react'
-import { ConnectionState, RoomEvent } from 'livekit-client'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RecordingStatus } from '@store/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 import {
   NotificationType,
@@ -22,8 +21,6 @@ import {
   notifyRecordingSaveInProgress,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
-import { useSnapshot } from 'valtio/index'
-import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
 import { VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox.tsx'
@@ -34,19 +31,18 @@ import {
   useTranscriptionLanguage,
 } from '@/features/settings'
 import { NoAccessView } from './NoAccessView'
+import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
   const recordingMaxDuration = useHumanizeRecordingMaxDuration()
 
-  const [isLoading, setIsLoading] = useState(false)
-  const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
+  const keyPrefix = 'transcript'
+  const { t } = useTranslation('rooms', { keyPrefix })
 
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
   const [includeScreenRecording, setIncludeScreenRecording] = useState(false)
-
-  const recordingSnap = useSnapshot(recordingStore)
 
   const { notifyParticipants } = useNotifyParticipants()
   const { selectedLanguageKey, selectedLanguageLabel, isLanguageSetToAuto } =
@@ -76,28 +72,9 @@ export const TranscriptSidePanel = () => {
       onError: () => setIsErrorDialogOpen('stop'),
     })
 
-  const statuses = useMemo(() => {
-    return {
-      isAnotherModeStarted:
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTED,
-      isStarting: recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTING,
-      isStarted: recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTED,
-      isStopping: recordingSnap.status == RecordingStatus.TRANSCRIPT_STOPPING,
-    }
-  }, [recordingSnap])
+  const statuses = useRecordingStatuses(RecordingMode.Transcript)
 
   const room = useRoomContext()
-  const isRoomConnected = room.state == ConnectionState.Connected
-
-  useEffect(() => {
-    const handleRecordingStatusChanged = () => {
-      setIsLoading(false)
-    }
-    room.on(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    return () => {
-      room.off(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    }
-  }, [room])
 
   const handleTranscript = async () => {
     if (!roomId) {
@@ -105,11 +82,10 @@ export const TranscriptSidePanel = () => {
       return
     }
     try {
-      setIsLoading(true)
-      if (room.isRecording) {
+      if (statuses.isStarted || statuses.isStarting) {
         await stopRecordingRoom({ id: roomId })
         setIncludeScreenRecording(false)
-        recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
+
         await notifyParticipants({
           type: NotificationType.TranscriptionStopped,
         })
@@ -126,8 +102,10 @@ export const TranscriptSidePanel = () => {
           ...(!isLanguageSetToAuto && {
             language: selectedLanguageKey,
           }),
+          ...(includeScreenRecording && {
+            transcribe: true,
+            original_mode: RecordingMode.Transcript,
           }),
-          ...(includeScreenRecording && { transcribe: true }),
         }
 
         await startRecordingRoom({
@@ -135,7 +113,7 @@ export const TranscriptSidePanel = () => {
           mode: recordingMode,
           options: recordingOptions,
         })
-        recordingStore.status = RecordingStatus.TRANSCRIPT_STARTING
+
         await notifyParticipants({
           type: NotificationType.TranscriptionStarted,
         })
@@ -143,14 +121,13 @@ export const TranscriptSidePanel = () => {
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)
-      setIsLoading(false)
     }
   }
 
   if (hasFeatureWithoutAdminRights) {
     return (
       <NoAccessView
-        i18nKeyPrefix="transcript"
+        i18nKeyPrefix={keyPrefix}
         i18nKey="notAdminOrOwner"
         helpArticle={data?.support?.help_article_transcript}
         imagePath="/assets/intro-slider/3.png"
@@ -161,7 +138,7 @@ export const TranscriptSidePanel = () => {
   if (!hasTranscriptAccess) {
     return (
       <NoAccessView
-        i18nKeyPrefix="transcript"
+        i18nKeyPrefix={keyPrefix}
         i18nKey="premium"
         helpArticle={data?.support?.help_article_transcript}
         imagePath="/assets/intro-slider/3.png"
@@ -251,7 +228,6 @@ export const TranscriptSidePanel = () => {
           </Text>
         </RowWrapper>
         <div className={css({ height: '15px' })} />
-
         <div
           className={css({
             width: '100%',
@@ -262,51 +238,19 @@ export const TranscriptSidePanel = () => {
             size="sm"
             isSelected={includeScreenRecording}
             onChange={setIncludeScreenRecording}
-            isDisabled={
-              statuses.isStarting || statuses.isStarted || isPendingToStart
-            }
+            isDisabled={statuses.isActive || isPendingToStart}
           >
             <Text variant="sm">{t('details.recording')}</Text>
           </Checkbox>
         </div>
       </VStack>
-      <div
-        className={css({
-          marginBottom: '80px',
-          width: '100%',
-        })}
-      >
-        {statuses.isStopping || isPendingToStop ? (
-          <HStack width={'100%'} height={'46px'} justify="center">
-            <Spinner size={30} />
-            <Text variant="body">{t('button.saving')}</Text>
-          </HStack>
-        ) : (
-          <>
-            {statuses.isStarted || statuses.isStarting || room.isRecording ? (
-              <Button
-                variant="tertiary"
-                fullWidth
-                onPress={() => handleTranscript()}
-                isDisabled={statuses.isStopping || isPendingToStop || isLoading}
-                data-attr="stop-transcript"
-              >
-                {t('button.stop')}
-              </Button>
-            ) : (
-              <Button
-                variant="tertiary"
-                fullWidth
-                onPress={() => handleTranscript()}
-                isDisabled={isPendingToStart || !isRoomConnected || isLoading}
-                data-attr="start-transcript"
-              >
-                {t('button.start')}
-              </Button>
-            )}
-          </>
-        )}
-      </div>
+      <ControlsButton
+        i18nKeyPrefix={keyPrefix}
+        handle={handleTranscript}
+        statuses={statuses}
+        isPendingToStart={isPendingToStart}
+        isPendingToStop={isPendingToStop}
+      />
       <Dialog
         isOpen={!!isErrorDialogOpen}
         role="alertdialog"

@@ -323,7 +323,8 @@
     "button": {
       "start": "Meeting transkribieren starten",
       "stop": "Meeting transkribieren beenden",
-      "saving": "Speichern…"
+      "saving": "Speichern…",
+      "starting": "Wird gestartet…"
     },
     "linkMore": "Mehr erfahren",
     "notAdminOrOwner": {
@@ -368,7 +369,8 @@
     "button": {
       "start": "Meeting-Aufzeichnung starten",
       "stop": "Meeting-Aufzeichnung beenden",
-      "saving": "Wird gespeichert…"
+      "saving": "Wird gespeichert…",
+      "starting": "Wird gestartet…"
     },
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
@@ -507,7 +509,7 @@
       "starting": "Transkription wird gestartet",
       "stopping": "Transkription wird gestoppt"
     },
-    "screenRecording": {
+    "screen_recording": {
       "started": "Aufzeichnung läuft",
       "starting": "Aufzeichnung wird gestartet",
       "stopping": "Aufzeichnung wird gestoppt"

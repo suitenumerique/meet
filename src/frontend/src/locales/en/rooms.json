@@ -323,7 +323,8 @@
     "button": {
       "start": "Start transcribing the meeting",
       "stop": "Stop transcribing the meeting",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "starting": "Starting…"
     },
     "linkMore": "Learn more",
     "notAdminOrOwner": {
@@ -368,7 +369,8 @@
     "button": {
       "start": "Start recording the meeting",
       "stop": "Stop recording the meeting",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "starting": "Starting…"
     },
     "notAdminOrOwner": {
       "heading": "Restricted Access",
@@ -507,7 +509,7 @@
       "starting": "Transcription starting",
       "stopping": "Transcription stopping"
     },
-    "screenRecording": {
+    "screen_recording": {
       "started": "Recording in progress",
       "starting": "Starting recording",
       "stopping": "Stopping recording"

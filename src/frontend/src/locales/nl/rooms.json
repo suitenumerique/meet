@@ -323,7 +323,8 @@
     "button": {
       "start": "Begin met het transcriberen van de vergadering",
       "stop": "Stop met het transcriberen van de vergadering",
-      "saving": "Opslaan…"
+      "saving": "Opslaan…",
+      "starting": "Wordt gestart…"
     },
     "linkMore": "Meer informatie",
     "notAdminOrOwner": {
@@ -368,7 +369,8 @@
     "button": {
       "start": "Start met opnemen van de vergadering",
       "stop": "Stop met opnemen van de vergadering",
-      "saving": "Bezig met opslaan…"
+      "saving": "Bezig met opslaan…",
+      "starting": "Wordt gestart…"
     },
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
@@ -507,7 +509,7 @@
       "starting": "Transcriptie begint",
       "stopping": "Transcriptie stopt"
     },
-    "screenRecording": {
+    "screen_recording": {
       "started": "Opname bezig",
       "starting": "Opname starten",
       "stopping": "Opname stoppen"
