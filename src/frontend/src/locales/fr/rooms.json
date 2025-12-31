@@ -323,7 +323,8 @@
     "button": {
       "start": "Commencer à transcrire la réunion",
       "stop": "Arrêter de transcrire la réunion",
-      "saving": "Sauvegarde…"
+      "saving": "Sauvegarde…",
+      "starting": "Démarrage…"
     },
     "linkMore": "En savoir plus",
     "notAdminOrOwner": {
@@ -368,7 +369,8 @@
     "button": {
       "start": "Commencer à enregistrer la réunion",
       "stop": "Arrêter d'enregistrer la réunion",
-      "saving": "Sauvegarde…"
+      "saving": "Sauvegarde…",
+      "starting": "Démarrage…"
     },
     "notAdminOrOwner": {
       "heading": "Accès restreint",
@@ -507,7 +509,7 @@
       "starting": "Démarrage de la transcription",
       "stopping": "Arrêt de la transcription"
     },
-    "screenRecording": {
+    "screen_recording": {
       "started": "Enregistrement en cours",
       "starting": "Démarrage de l'enregistrement",
       "stopping": "Arrêt de l'enregistrement"

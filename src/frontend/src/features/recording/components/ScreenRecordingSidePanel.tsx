@@ -9,11 +9,10 @@ import {
   useStartRecording,
   useStopRecording,
   useHumanizeRecordingMaxDuration,
+  useRecordingStatuses,
 } from '@/features/recording'
-import { useEffect, useMemo, useState } from 'react'
-import { ConnectionState, RoomEvent } from 'livekit-client'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RecordingStatus, recordingStore } from '@/stores/recording'
 
 import {
   NotificationType,
@@ -21,13 +20,12 @@ import {
   useNotifyParticipants,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
-import { useSnapshot } from 'valtio/index'
-import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { NoAccessView } from './NoAccessView'
-import { HStack, VStack } from '@/styled-system/jsx'
+import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
+import { VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox'
 import { useTranscriptionLanguage } from '@/features/settings'
 
@@ -35,9 +33,8 @@ export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
   const recordingMaxDuration = useHumanizeRecordingMaxDuration()
 
-  const [isLoading, setIsLoading] = useState(false)
-  const recordingSnap = useSnapshot(recordingStore)
-  const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
+  const keyPrefix = 'screenRecording'
+  const { t } = useTranslation('rooms', { keyPrefix })
 
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
 
@@ -63,31 +60,9 @@ export const ScreenRecordingSidePanel = () => {
       onError: () => setIsErrorDialogOpen('stop'),
     })
 
-  const statuses = useMemo(() => {
-    return {
-      isAnotherModeStarted:
-        recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTED,
-      isStarting:
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTING,
-      isStarted:
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTED,
-      isStopping:
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STOPPING,
-    }
-  }, [recordingSnap])
+  const statuses = useRecordingStatuses(RecordingMode.ScreenRecording)
 
   const room = useRoomContext()
-  const isRoomConnected = room.state == ConnectionState.Connected
-
-  useEffect(() => {
-    const handleRecordingStatusChanged = () => {
-      setIsLoading(false)
-    }
-    room.on(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    return () => {
-      room.off(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    }
-  }, [room])
 
   const handleScreenRecording = async () => {
     if (!roomId) {
@@ -95,11 +70,10 @@ export const ScreenRecordingSidePanel = () => {
       return
     }
     try {
-      setIsLoading(true)
-      if (room.isRecording) {
+      if (statuses.isStarted || statuses.isStarting) {
         setIncludeTranscript(false)
         await stopRecordingRoom({ id: roomId })
-        recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
+
         await notifyParticipants({
           type: NotificationType.ScreenRecordingStopped,
         })
@@ -120,7 +94,7 @@ export const ScreenRecordingSidePanel = () => {
           mode: RecordingMode.ScreenRecording,
           options: recordingOptions,
         })
-        recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTING
+
         await notifyParticipants({
           type: NotificationType.ScreenRecordingStarted,
         })
@@ -128,14 +102,13 @@ export const ScreenRecordingSidePanel = () => {
       }
     } catch (error) {
       console.error('Failed to handle recording:', error)
-      setIsLoading(false)
     }
   }
 
   if (hasFeatureWithoutAdminRights) {
     return (
       <NoAccessView
-        i18nKeyPrefix="screenRecording"
+        i18nKeyPrefix={keyPrefix}
         i18nKey="notAdminOrOwner"
         helpArticle={data?.support?.help_article_recording}
         imagePath="/assets/intro-slider/4.png"
@@ -208,51 +181,19 @@ export const ScreenRecordingSidePanel = () => {
             size="sm"
             isSelected={includeTranscript}
             onChange={setIncludeTranscript}
-            isDisabled={
-              statuses.isStarting || statuses.isStarted || isPendingToStart
-            }
+            isDisabled={statuses.isActive || isPendingToStart}
           >
             <Text variant="sm">{t('details.transcription')}</Text>
           </Checkbox>
         </div>
       </VStack>
-      <div
-        className={css({
-          marginBottom: '80px',
-          width: '100%',
-        })}
-      >
-        {statuses.isStopping || isPendingToStop ? (
-          <HStack width={'100%'} height={'46px'} justify="center">
-            <Spinner size={30} />
-            <Text variant="body">{t('button.saving')}</Text>
-          </HStack>
-        ) : (
-          <>
-            {statuses.isStarted || statuses.isStarting || room.isRecording ? (
-              <Button
-                variant="tertiary"
-                fullWidth
-                onPress={() => handleScreenRecording()}
-                isDisabled={statuses.isStopping || isPendingToStop || isLoading}
-                data-attr="stop-transcript"
-              >
-                {t('button.stop')}
-              </Button>
-            ) : (
-              <Button
-                variant="tertiary"
-                fullWidth
-                onPress={() => handleScreenRecording()}
-                isDisabled={isPendingToStart || !isRoomConnected || isLoading}
-                data-attr="start-transcript"
-              >
-                {t('button.start')}
-              </Button>
-            )}
-          </>
-        )}
-      </div>
+      <ControlsButton
+        i18nKeyPrefix={keyPrefix}
+        handle={handleScreenRecording}
+        statuses={statuses}
+        isPendingToStart={isPendingToStart}
+        isPendingToStop={isPendingToStop}
+      />
       <Dialog
         isOpen={!!isErrorDialogOpen}
         role="alertdialog"

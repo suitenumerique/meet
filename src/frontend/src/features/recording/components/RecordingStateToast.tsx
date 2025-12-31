@@ -1,132 +1,69 @@
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
-import { useSnapshot } from 'valtio'
-import { useRoomContext } from '@livekit/components-react'
 import { Spinner } from '@/primitives/Spinner'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Text } from '@/primitives'
-import { RoomEvent } from 'livekit-client'
-import { decodeNotificationDataReceived } from '@/features/notifications/utils'
-import { NotificationType } from '@/features/notifications/NotificationType'
-import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { RiRecordCircleLine } from '@remixicon/react'
 import {
   RecordingMode,
   useHasRecordingAccess,
-  useIsRecordingActive,
+  useRecordingStatuses,
 } from '@/features/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { Button as RACButton } from 'react-aria-components'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { LimitReachedAlertDialog } from './LimitReachedAlertDialog'
+import { useRoomMetadata } from '../hooks/useRoomMetadata'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
     keyPrefix: 'recordingStateToast',
   })
-  const room = useRoomContext()
+
   const isAdminOrOwner = useIsAdminOrOwner()
 
   const { openTranscript, openScreenRecording } = useSidePanel()
   const [isAlertOpen, setIsAlertOpen] = useState(false)
-
-  const recordingSnap = useSnapshot(recordingStore)
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
 
-  const isTranscriptActive = useIsRecordingActive(RecordingMode.Transcript)
-
   const hasScreenRecordingAccess = useHasRecordingAccess(
     RecordingMode.ScreenRecording,
     FeatureFlags.ScreenRecording
   )
 
-  const isScreenRecordingActive = useIsRecordingActive(
-    RecordingMode.ScreenRecording
-  )
+  const {
+    isStarted: isScreenRecordingStarted,
+    isStarting: isScreenRecordingStarting,
+    isActive: isScreenRecordingActive,
+  } = useRecordingStatuses(RecordingMode.ScreenRecording)
 
-  useEffect(() => {
-    if (room.isRecording && recordingSnap.status == RecordingStatus.STOPPED) {
-      recordingStore.status = RecordingStatus.ANY_STARTED
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room.isRecording])
+  const {
+    isStarted: isTranscriptStarted,
+    isStarting: isTranscriptStarting,
+    isActive: isTranscriptActive,
+  } = useRecordingStatuses(RecordingMode.Transcript)
 
-  useEffect(() => {
-    const handleDataReceived = (payload: Uint8Array) => {
-      const notification = decodeNotificationDataReceived(payload)
+  const isStarted = isScreenRecordingStarted || isTranscriptStarted
+  const isStarting = isTranscriptStarting || isScreenRecordingStarting
 
-      if (!notification) return
-
-      switch (notification.type) {
-        case NotificationType.TranscriptionStarted:
-          recordingStore.status = RecordingStatus.TRANSCRIPT_STARTING
-          break
-        case NotificationType.TranscriptionStopped:
-          recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
-          break
-        case NotificationType.TranscriptionLimitReached:
-          if (isAdminOrOwner) setIsAlertOpen(true)
-          recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
-          break
-        case NotificationType.ScreenRecordingStarted:
-          recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTING
-          break
-        case NotificationType.ScreenRecordingStopped:
-          recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
-          break
-        case NotificationType.ScreenRecordingLimitReached:
-          if (isAdminOrOwner) setIsAlertOpen(true)
-          recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
-          break
-        default:
-          return
-      }
-    }
-
-    const handleRecordingStatusChanged = (status: boolean) => {
-      if (!status) {
-        recordingStore.status = RecordingStatus.STOPPED
-      } else if (recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTING) {
-        recordingStore.status = RecordingStatus.TRANSCRIPT_STARTED
-      } else if (
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTING
-      ) {
-        recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTED
-      } else {
-        recordingStore.status = RecordingStatus.ANY_STARTED
-      }
-    }
-
-    room.on(RoomEvent.DataReceived, handleDataReceived)
-    room.on(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-
-    return () => {
-      room.off(RoomEvent.DataReceived, handleDataReceived)
-      room.off(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    }
-  }, [room, recordingSnap, setIsAlertOpen, isAdminOrOwner])
+  const metadata = useRoomMetadata()
 
   const key = useMemo(() => {
-    switch (recordingSnap.status) {
-      case RecordingStatus.TRANSCRIPT_STARTED:
-        return 'transcript.started'
-      case RecordingStatus.TRANSCRIPT_STARTING:
-        return 'transcript.starting'
-      case RecordingStatus.SCREEN_RECORDING_STARTED:
-        return 'screenRecording.started'
-      case RecordingStatus.SCREEN_RECORDING_STARTING:
-        return 'screenRecording.starting'
-      case RecordingStatus.ANY_STARTED:
-        return 'any.started'
-      default:
-        return
+    if (!metadata?.recording_status || !metadata?.recording_mode) {
+      return undefined
     }
-  }, [recordingSnap])
+
+    if (!isStarting && !isStarted) {
+      return undefined
+    }
+
+    return `${metadata.recording_mode}.${metadata.recording_status}`
+  }, [metadata, isStarted, isStarting])
 
   if (!key)
     return isAdminOrOwner ? (
@@ -136,8 +73,6 @@ export const RecordingStateToast = () => {
         aria-label="Recording limit exceeded"
       />
     ) : null
-
-  const isStarted = key?.includes('started')
 
   const hasScreenRecordingAccessAndActive =
     isScreenRecordingActive && hasScreenRecordingAccess
