@@ -25,6 +25,7 @@ from livekit.api import (  # pylint: disable=E0611
     LiveKitAPI,
     SendDataRequest,
     TwirpError,
+    UpdateRoomMetadataRequest,
     VideoGrants,
 )
 
@@ -240,6 +241,57 @@ async def notify_participants(room_name: str, notification_data: dict):
         )
     except TwirpError as e:
         raise NotificationError("Failed to notify room participants") from e
+    finally:
+        await lkapi.aclose()
+
+
+class MetadataUpdateException(Exception):
+    """Room's metadata update fails."""
+
+
+@async_to_sync
+async def update_room_metadata(
+    room_name: str, metadata: dict, remove_keys: Optional[list[str]] = None
+):
+    """Update LiveKit room metadata by merging new values with existing metadata.
+
+    Args:
+        room_name: Name of the room to update
+        metadata: Dictionary of metadata key-values to add/update
+        remove_keys: Optional list of keys to remove from existing metadata.
+    """
+
+    lkapi = create_livekit_client()
+
+    try:
+        response = await lkapi.room.list_rooms(
+            ListRoomsRequest(
+                names=[room_name],
+            )
+        )
+
+        if not response.rooms:
+            return
+
+        room = response.rooms[0]
+
+        existing_metadata = json.loads(room.metadata) if room.metadata else {}
+
+        if remove_keys:
+            for key in remove_keys:
+                existing_metadata.pop(key, None)
+
+        updated_metadata = {**existing_metadata, **metadata}
+
+        await lkapi.room.update_room_metadata(
+            UpdateRoomMetadataRequest(
+                room=room_name, metadata=json.dumps(updated_metadata).encode("utf-8")
+            )
+        )
+    except TwirpError as e:
+        raise MetadataUpdateException(
+            f"Failed to update metadata for room {room_name}: {e}"
+        ) from e
     finally:
         await lkapi.aclose()
 
