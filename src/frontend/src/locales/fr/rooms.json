@@ -317,7 +317,7 @@
       "receiver": "La transcription sera envoyée à l'organisateur et aux coorganisateurs.",
       "destination": "Un nouveau document sera créé sur",
       "destinationUnknown": "Un nouveau document sera créé",
-      "language": "Langues de la réunion : Français (fr)",
+      "language": "Langue de la réunion :",
       "recording": "Démarrer aussi un enregistrement"
     },
     "button": {

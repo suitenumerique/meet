@@ -317,7 +317,7 @@
       "receiver": "The transcript will be sent to the host and co-hosts.",
       "destination": "A new document will be created on",
       "destinationUnknown": "A new document will be created",
-      "language": "Meeting language: French (fr)",
+      "language": "Meeting language:",
       "recording": "Also start a recording"
     },
     "button": {

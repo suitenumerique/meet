@@ -68,6 +68,17 @@
     },
     "permissionsRequired": "Autorisations nécessaires"
   },
+  "transcription": {
+    "heading": "Transcription",
+    "language": {
+      "label": "Langue de la réunion",
+      "options": {
+        "french": "Français (fr)",
+        "english": "Anglais (en)",
+        "auto": "Automatique"
+      }
+    }
+  },
   "notifications": {
     "heading": "Notifications sonores",
     "label": "la notification sonore pour",
@@ -100,6 +111,7 @@
     "audio": "Audio",
     "video": "Vidéo",
     "general": "Général",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "transcription": "Transcription"
   }
 }

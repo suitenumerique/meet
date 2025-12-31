@@ -68,6 +68,17 @@
     },
     "permissionsRequired": "Berechtigungen erforderlich"
   },
+  "transcription": {
+    "heading": "Transkription",
+    "language": {
+      "label": "Besprechungssprache",
+      "options": {
+        "french": "Französisch (fr)",
+        "english": "Englisch (en)",
+        "auto": "Automatisch"
+      }
+    }
+  },
   "notifications": {
     "heading": "Tonbenachrichtigungen",
     "label": "Tonbenachrichtigungen für",
@@ -100,6 +111,7 @@
     "audio": "Audio",
     "video": "Video",
     "general": "Allgemein",
-    "notifications": "Benachrichtigungen"
+    "notifications": "Benachrichtigungen",
+    "transcription": "Transkription"
   }
 }

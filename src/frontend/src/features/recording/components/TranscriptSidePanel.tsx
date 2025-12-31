@@ -13,7 +13,11 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
-import { RecordingStatus, recordingStore } from '@/stores/recording'
+import {
+  RecordingLanguage,
+  RecordingStatus,
+  recordingStore,
+} from '@/stores/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 import {
   NotificationType,
@@ -31,6 +35,12 @@ import { LoginButton } from '@/components/LoginButton'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox.tsx'
 
+import {
+  useSettingsDialog,
+  SettingsDialogExtendedKey,
+  useTranscriptionLanguageOptions,
+} from '@/features/settings'
+
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
 
@@ -45,6 +55,9 @@ export const TranscriptSidePanel = () => {
   const recordingSnap = useSnapshot(recordingStore)
 
   const { notifyParticipants } = useNotifyParticipants()
+  const languageOptions = useTranscriptionLanguageOptions()
+
+  const { openSettingsDialog } = useSettingsDialog()
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
@@ -115,7 +128,9 @@ export const TranscriptSidePanel = () => {
           : RecordingMode.Transcript
 
         const recordingOptions = {
-          language: 'fr', // fix hardcoded language
+          ...(recordingSnap.language != RecordingLanguage.AUTOMATIC && {
+            language: recordingSnap.language,
+          }),
           ...(includeScreenRecording && { transcribe: true }),
         }
 
@@ -459,9 +474,27 @@ export const TranscriptSidePanel = () => {
           <div
             className={css({
               flex: 5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
             })}
           >
             <Text variant="sm">{t('details.language')}</Text>
+            <Text variant="sm">
+              <Button
+                variant="text"
+                size="xs"
+                onPress={() =>
+                  openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
+                }
+              >
+                {
+                  languageOptions.find(
+                    (option) => option.key == recordingSnap.language
+                  )?.label
+                }
+              </Button>
+            </Text>
           </div>
         </div>
 

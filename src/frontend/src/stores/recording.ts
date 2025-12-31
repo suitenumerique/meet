@@ -1,5 +1,11 @@
 import { proxy } from 'valtio'
 
+export enum RecordingLanguage {
+  ENGLISH = 'en',
+  FRENCH = 'fr',
+  AUTOMATIC = 'auto',
+}
+
 export enum RecordingStatus {
   TRANSCRIPT_STARTING,
   TRANSCRIPT_STARTED,
@@ -13,8 +19,10 @@ export enum RecordingStatus {
 
 type State = {
   status: RecordingStatus
+  language: RecordingLanguage
 }
 
 export const recordingStore = proxy<State>({
   status: RecordingStatus.STOPPED,
+  language: RecordingLanguage.FRENCH,
 })
