@@ -68,6 +68,17 @@
     },
     "permissionsRequired": "Machtigingen vereist"
   },
+  "transcription": {
+    "heading": "Transcriptie",
+    "language": {
+      "label": "Vergadertaal",
+      "options": {
+        "french": "Frans (fr)",
+        "english": "Engels (en)",
+        "auto": "Automatisch"
+      }
+    }
+  },
   "notifications": {
     "heading": "Geluidsmeldingen",
     "label": "Geluidsmeldingen voor",
@@ -100,6 +111,7 @@
     "audio": "Audio",
     "video": "Video",
     "general": "Algemeen",
-    "notifications": "Meldingen"
+    "notifications": "Meldingen",
+    "transcription": "Transcriptie"
   }
 }
