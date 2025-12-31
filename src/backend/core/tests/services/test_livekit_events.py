@@ -21,7 +21,7 @@ from core.services.livekit_events import (
 )
 from core.services.lobby import LobbyService
 from core.services.telephony import TelephonyException, TelephonyService
-from core.utils import NotificationError
+from core.utils import MetadataUpdateException, NotificationError
 
 pytestmark = pytest.mark.django_db
 
@@ -70,7 +70,10 @@ def test_initialization(
     ),
 )
 @mock.patch("core.utils.notify_participants")
-def test_handle_egress_ended_success(mock_notify, mode, notification_type, service):
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_success(
+    mock_update_room_metadata, mock_notify, mode, notification_type, service
+):
     """Should successfully stop recording and notifies all participant."""
 
     recording = RecordingFactory(worker_id="worker-1", mode=mode, status="active")
@@ -83,13 +86,65 @@ def test_handle_egress_ended_success(mock_notify, mode, notification_type, servi
     mock_notify.assert_called_once_with(
         room_name=str(recording.room.id), notification_data={"type": notification_type}
     )
+    mock_update_room_metadata.assert_called_once_with(
+        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    )
 
     recording.refresh_from_db()
     assert recording.status == "stopped"
 
 
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_started_success(mock_update_room_metadata, service):
+    """Should successfully start recording and update room's metadata."""
+
+    recording = RecordingFactory(worker_id="worker-1", status="initiated")
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = EgressStatus.EGRESS_ACTIVE
+
+    service._handle_egress_started(mock_data)
+
+    mock_update_room_metadata.assert_called_once_with(
+        str(recording.room.id), {"recording_status": "started"}
+    )
+
+
+@pytest.mark.parametrize(
+    ("mode", "notification_type"),
+    (
+        ("screen_recording", "screenRecordingLimitReached"),
+        ("transcript", "transcriptionLimitReached"),
+    ),
+)
 @mock.patch("core.utils.notify_participants")
-def test_handle_egress_ended_notification_fails(mock_notify, service):
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_metadata_update_fails(
+    mock_update_room_metadata, mock_notify, mode, notification_type, service
+):
+    """Should successfully stop recording when metadata's update fails."""
+
+    recording = RecordingFactory(worker_id="worker-1", mode=mode, status="active")
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = EgressStatus.EGRESS_LIMIT_REACHED
+
+    mock_update_room_metadata.side_effect = MetadataUpdateException("Error notifying")
+
+    service._handle_egress_ended(mock_data)
+
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id), notification_data={"type": notification_type}
+    )
+    recording.refresh_from_db()
+    assert recording.status == "stopped"
+
+
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_notification_fails(
+    mock_update_room_metadata, mock_notify, service
+):
     """Should raise ActionFailedError when notification fails but still stop recording."""
 
     recording = RecordingFactory(worker_id="worker-1", status="active")
@@ -108,9 +163,16 @@ def test_handle_egress_ended_notification_fails(mock_notify, service):
     recording.refresh_from_db()
     assert recording.status == "stopped"
 
+    mock_update_room_metadata.assert_called_once_with(
+        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    )
+
 
 @mock.patch("core.utils.notify_participants")
-def test_handle_egress_ended_recording_not_found(mock_notify, service):
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_recording_not_found(
+    mock_update_room_metadata, mock_notify, service
+):
     """Should raise ActionFailedError when recording doesn't exist."""
 
     recording = RecordingFactory(worker_id="worker-1", status="active")
@@ -124,13 +186,17 @@ def test_handle_egress_ended_recording_not_found(mock_notify, service):
         service._handle_egress_ended(mock_data)
 
     mock_notify.assert_not_called()
+    mock_update_room_metadata.assert_not_called()
 
     recording.refresh_from_db()
     assert recording.status == "active"
 
 
 @mock.patch("core.utils.notify_participants")
-def test_handle_egress_ended_recording_not_active(mock_notify, service):
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_recording_not_active(
+    mock_update_room_metadata, mock_notify, service
+):
     """Should ignore non-active recordings."""
 
     recording = RecordingFactory(worker_id="worker-1", status="failed_to_stop")
@@ -141,13 +207,19 @@ def test_handle_egress_ended_recording_not_active(mock_notify, service):
     service._handle_egress_ended(mock_data)
 
     mock_notify.assert_not_called()
+    mock_update_room_metadata.assert_called_once_with(
+        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    )
 
     recording.refresh_from_db()
     assert recording.status == "failed_to_stop"
 
 
 @mock.patch("core.utils.notify_participants")
-def test_handle_egress_ended_recording_not_limit_reached(mock_notify, service):
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_recording_not_limit_reached(
+    mock_update_room_metadata, mock_notify, service
+):
     """Should ignore egress non-limit-reached statuses."""
 
     recording = RecordingFactory(worker_id="worker-1", status="stopped")
@@ -158,6 +230,9 @@ def test_handle_egress_ended_recording_not_limit_reached(mock_notify, service):
     service._handle_egress_ended(mock_data)
 
     mock_notify.assert_not_called()
+    mock_update_room_metadata.assert_called_once_with(
+        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    )
     assert recording.status == "stopped"
 
 
