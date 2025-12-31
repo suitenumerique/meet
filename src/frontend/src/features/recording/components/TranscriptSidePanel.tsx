@@ -9,6 +9,7 @@ import {
   useStartRecording,
   useStopRecording,
   useHasFeatureWithoutAdminRights,
+  useHumanizeRecordingMaxDuration,
 } from '../index'
 import { useEffect, useMemo, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
@@ -28,8 +29,6 @@ import posthog from 'posthog-js'
 import { useSnapshot } from 'valtio/index'
 import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
-import humanizeDuration from 'humanize-duration'
-import i18n from 'i18next'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox.tsx'
 
@@ -42,6 +41,7 @@ import { NoAccessView } from './NoAccessView'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
+  const recordingMaxDuration = useHumanizeRecordingMaxDuration()
 
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
@@ -203,11 +203,9 @@ export const TranscriptSidePanel = () => {
           {t('heading')}
         </H>
         <Text variant="body" fullWidth>
-          {data?.recording?.max_duration
+          {recordingMaxDuration
             ? t('body', {
-                max_duration: humanizeDuration(data?.recording?.max_duration, {
-                  language: i18n.language,
-                }),
+                max_duration: recordingMaxDuration,
               })
             : t('bodyWithoutMaxDuration')}{' '}
           {data?.support?.help_article_transcript && (

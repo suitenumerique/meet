@@ -8,6 +8,7 @@ import {
   useHasFeatureWithoutAdminRights,
   useStartRecording,
   useStopRecording,
+  useHumanizeRecordingMaxDuration,
 } from '@/features/recording'
 import { useEffect, useMemo, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
@@ -27,8 +28,6 @@ import posthog from 'posthog-js'
 import { useSnapshot } from 'valtio/index'
 import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
-import humanizeDuration from 'humanize-duration'
-import i18n from 'i18next'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { NoAccessView } from './NoAccessView'
 import { HStack, VStack } from '@/styled-system/jsx'
@@ -36,6 +35,8 @@ import { Checkbox } from '@/primitives/Checkbox'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
+  const recordingMaxDuration = useHumanizeRecordingMaxDuration()
+
   const [isLoading, setIsLoading] = useState(false)
   const recordingSnap = useSnapshot(recordingStore)
   const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
@@ -175,11 +176,9 @@ export const ScreenRecordingSidePanel = () => {
           {t('heading')}
         </H>
         <Text variant="body" fullWidth>
-          {data?.recording?.max_duration
+          {recordingMaxDuration
             ? t('body', {
-                max_duration: humanizeDuration(data?.recording?.max_duration, {
-                  language: i18n.language,
-                }),
+                max_duration: recordingMaxDuration,
               })
             : t('bodyWithoutMaxDuration')}{' '}
           {data?.support?.help_article_recording && (

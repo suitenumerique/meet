@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Button, Dialog, P } from '@/primitives'
 import { HStack } from '@/styled-system/jsx'
-import { useConfig } from '@/api/useConfig'
-import humanizeDuration from 'humanize-duration'
+import { useHumanizeRecordingMaxDuration } from '@/features/recording'
 
 export const LimitReachedAlertDialog = ({
   isOpen,
@@ -11,19 +10,19 @@ export const LimitReachedAlertDialog = ({
   isOpen: boolean
   onClose: () => void
 }) => {
-  const { t, i18n } = useTranslation('rooms', {
+  const { t } = useTranslation('rooms', {
     keyPrefix: 'recordingStateToast.limitReachedAlert',
   })
-  const { data } = useConfig()
+
+  const maxDuration = useHumanizeRecordingMaxDuration()
+
   return (
     <Dialog isOpen={isOpen} role="alertdialog" title={t('title')}>
       <P>
         {t('description', {
-          duration_message: data?.recording?.max_duration
+          duration_message: maxDuration
             ? t('durationMessage', {
-                duration: humanizeDuration(data?.recording?.max_duration, {
-                  language: i18n.language,
-                }),
+                duration: maxDuration,
               })
             : '',
         })}
