@@ -338,6 +338,7 @@
     "premium": {
       "heading": "Premium-Funktion",
       "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn Ihre E-Mail-Adresse nicht autorisiert ist, kontaktieren Sie bitte den Support, um Zugriff zu erhalten.",
+      "linkMore": "Mehr erfahren",
       "login": {
         "heading": "Anmeldung erforderlich",
         "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."

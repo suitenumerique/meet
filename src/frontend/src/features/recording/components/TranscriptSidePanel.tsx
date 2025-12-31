@@ -30,8 +30,6 @@ import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
 import humanizeDuration from 'humanize-duration'
 import i18n from 'i18next'
-import { useUser } from '@/features/auth'
-import { LoginButton } from '@/components/LoginButton'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox.tsx'
 
@@ -40,11 +38,10 @@ import {
   SettingsDialogExtendedKey,
   useTranscriptionLanguageOptions,
 } from '@/features/settings'
+import { NoAccessView } from './NoAccessView'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
-
-  const { isLoggedIn } = useUser()
 
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
@@ -153,179 +150,23 @@ export const TranscriptSidePanel = () => {
 
   if (hasFeatureWithoutAdminRights) {
     return (
-      <Div
-        display="flex"
-        overflowY="scroll"
-        padding="0 1.5rem"
-        flexGrow={1}
-        flexDirection="column"
-        alignItems="center"
-      >
-        <img
-          src="/assets/intro-slider/3.png"
-          alt={''}
-          className={css({
-            minHeight: '309px',
-            height: '309px',
-            marginBottom: '1rem',
-            '@media (max-height: 700px)': {
-              height: 'auto',
-              minHeight: 'auto',
-              maxHeight: '45%',
-              marginBottom: '0.3rem',
-            },
-            '@media (max-height: 530px)': {
-              height: 'auto',
-              minHeight: 'auto',
-              maxHeight: '40%',
-              marginBottom: '0.1rem',
-            },
-          })}
-        />
-        <Text>{t('notAdminOrOwner.heading')}</Text>
-        <Text
-          variant="note"
-          wrap="balance"
-          centered
-          className={css({
-            textStyle: 'sm',
-            marginBottom: '2.5rem',
-            marginTop: '0.25rem',
-            '@media (max-height: 700px)': {
-              marginBottom: '1rem',
-            },
-          })}
-        >
-          {t('notAdminOrOwner.body')}
-          <br />
-          {data?.support?.help_article_transcript && (
-            <A href={data.support.help_article_transcript} target="_blank">
-              {t('notAdminOrOwner.linkMore')}
-            </A>
-          )}
-        </Text>
-        {!isLoggedIn && (
-          <div
-            className={css({
-              backgroundColor: 'primary.50',
-              borderRadius: '5px',
-              paddingY: '1rem',
-              paddingX: '1rem',
-              marginTop: '1rem',
-              display: 'flex',
-              flexDirection: 'column',
-            })}
-          >
-            <H
-              lvl={3}
-              className={css({
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '0.35rem',
-              })}
-            >
-              {t('notAdminOrOwner.login.heading')}
-            </H>
-            <Text variant="smNote" wrap="balance">
-              {t('notAdminOrOwner.login.body')}
-            </Text>
-            <div
-              className={css({
-                marginTop: '1rem',
-              })}
-            >
-              <LoginButton proConnectHint={false} />
-            </div>
-          </div>
-        )}
-      </Div>
+      <NoAccessView
+        i18nKeyPrefix="transcript"
+        i18nKey="notAdminOrOwner"
+        helpArticle={data?.support?.help_article_transcript}
+        imagePath="/assets/intro-slider/3.png"
+      />
     )
   }
 
   if (!hasTranscriptAccess) {
     return (
-      <Div
-        display="flex"
-        overflowY="scroll"
-        padding="0 1.5rem"
-        flexGrow={1}
-        flexDirection="column"
-        alignItems="center"
-      >
-        <img
-          src="/assets/intro-slider/3.png"
-          alt={''}
-          className={css({
-            minHeight: '309px',
-            height: '309px',
-            marginBottom: '1rem',
-            '@media (max-height: 700px)': {
-              height: 'auto',
-              minHeight: 'auto',
-              maxHeight: '45%',
-              marginBottom: '0.3rem',
-            },
-            '@media (max-height: 530px)': {
-              height: 'auto',
-              minHeight: 'auto',
-              maxHeight: '40%',
-              marginBottom: '0.1rem',
-            },
-          })}
-        />
-        <Text>{t('premium.heading')}</Text>
-        <Text
-          variant="note"
-          centered
-          className={css({
-            textStyle: 'sm',
-            marginBottom: '2.5rem',
-            marginTop: '0.25rem',
-            '@media (max-height: 700px)': {
-              marginBottom: '1rem',
-            },
-          })}
-        >
-          {t('premium.body')}{' '}
-          {data?.support?.help_article_transcript && (
-            <A href={data.support.help_article_transcript} target="_blank">
-              {t('linkMore')}
-            </A>
-          )}
-        </Text>
-        {!isLoggedIn && (
-          <div
-            className={css({
-              backgroundColor: 'primary.50',
-              borderRadius: '5px',
-              paddingY: '1rem',
-              paddingX: '1rem',
-              marginTop: '1rem',
-              display: 'flex',
-              flexDirection: 'column',
-            })}
-          >
-            <H
-              lvl={3}
-              className={css({
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '0.35rem',
-              })}
-            >
-              {t('premium.login.heading')}
-            </H>
-            <Text variant="smNote">{t('premium.login.body')}</Text>
-            <div
-              className={css({
-                marginTop: '1rem',
-              })}
-            >
-              <LoginButton proConnectHint={false} />
-            </div>
-          </div>
-        )}
-      </Div>
+      <NoAccessView
+        i18nKeyPrefix="transcript"
+        i18nKey="premium"
+        helpArticle={data?.support?.help_article_transcript}
+        imagePath="/assets/intro-slider/3.png"
+      />
     )
   }
 
