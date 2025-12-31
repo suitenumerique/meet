@@ -13,11 +13,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
-import {
-  RecordingLanguage,
-  RecordingStatus,
-  recordingStore,
-} from '@/stores/recording'
+import { RecordingStatus, recordingStore } from '@/stores/recording'
 
 import {
   NotificationType,
@@ -32,6 +28,7 @@ import { FeatureFlags } from '@/features/analytics/enums'
 import { NoAccessView } from './NoAccessView'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox'
+import { useTranscriptionLanguage } from '@/features/settings'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -51,6 +48,8 @@ export const ScreenRecordingSidePanel = () => {
   )
 
   const { notifyParticipants } = useNotifyParticipants()
+  const { selectedLanguageKey, isLanguageSetToAuto } =
+    useTranscriptionLanguage()
 
   const roomId = useRoomId()
 
@@ -109,8 +108,8 @@ export const ScreenRecordingSidePanel = () => {
         )
       } else {
         const recordingOptions = {
-          ...(recordingSnap.language != RecordingLanguage.AUTOMATIC && {
-            language: recordingSnap.language,
+          ...(!isLanguageSetToAuto && {
+            language: selectedLanguageKey,
           }),
           ...(includeTranscript && { transcribe: true }),
         }

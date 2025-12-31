@@ -14,11 +14,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
-import {
-  RecordingLanguage,
-  RecordingStatus,
-  recordingStore,
-} from '@/stores/recording'
+import { RecordingStatus } from '@store/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 import {
   NotificationType,
@@ -35,7 +31,7 @@ import { Checkbox } from '@/primitives/Checkbox.tsx'
 import {
   useSettingsDialog,
   SettingsDialogExtendedKey,
-  useTranscriptionLanguageOptions,
+  useTranscriptionLanguage,
 } from '@/features/settings'
 import { NoAccessView } from './NoAccessView'
 
@@ -52,7 +48,8 @@ export const TranscriptSidePanel = () => {
   const recordingSnap = useSnapshot(recordingStore)
 
   const { notifyParticipants } = useNotifyParticipants()
-  const languageOptions = useTranscriptionLanguageOptions()
+  const { selectedLanguageKey, selectedLanguageLabel, isLanguageSetToAuto } =
+    useTranscriptionLanguage()
 
   const { openSettingsDialog } = useSettingsDialog()
 
@@ -125,8 +122,9 @@ export const TranscriptSidePanel = () => {
           : RecordingMode.Transcript
 
         const recordingOptions = {
-          ...(recordingSnap.language != RecordingLanguage.AUTOMATIC && {
-            language: recordingSnap.language,
+          ...(!isLanguageSetToAuto && {
+            language: selectedLanguageKey,
+          }),
           }),
           ...(includeScreenRecording && { transcribe: true }),
         }
@@ -327,11 +325,7 @@ export const TranscriptSidePanel = () => {
                   openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
                 }
               >
-                {
-                  languageOptions.find(
-                    (option) => option.key == recordingSnap.language
-                  )?.label
-                }
+                {selectedLanguageLabel}
               </Button>
             </Text>
           </div>
