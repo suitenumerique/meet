@@ -11,7 +11,7 @@ export { useStopRecording } from './api/stopRecording'
 export { RecordingMode, RecordingStatus } from './types'
 
 // components
-export { RecordingStateToast } from './components/RecordingStateToast'
+export { RecordingProvider } from './components/RecordingProvider'
 export { TranscriptSidePanel } from './components/TranscriptSidePanel'
 export { ScreenRecordingSidePanel } from './components/ScreenRecordingSidePanel'
 
