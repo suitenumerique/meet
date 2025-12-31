@@ -1,7 +1,7 @@
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { Spinner } from '@/primitives/Spinner'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Text } from '@/primitives'
 import { RiRecordCircleLine } from '@remixicon/react'
 import {
@@ -12,8 +12,6 @@ import {
 import { FeatureFlags } from '@/features/analytics/enums'
 import { Button as RACButton } from 'react-aria-components'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
-import { LimitReachedAlertDialog } from './LimitReachedAlertDialog'
 import { useRoomMetadata } from '../hooks/useRoomMetadata'
 
 export const RecordingStateToast = () => {
@@ -21,10 +19,7 @@ export const RecordingStateToast = () => {
     keyPrefix: 'recordingStateToast',
   })
 
-  const isAdminOrOwner = useIsAdminOrOwner()
-
   const { openTranscript, openScreenRecording } = useSidePanel()
-  const [isAlertOpen, setIsAlertOpen] = useState(false)
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
@@ -65,14 +60,7 @@ export const RecordingStateToast = () => {
     return `${metadata.recording_mode}.${metadata.recording_status}`
   }, [metadata, isStarted, isStarting])
 
-  if (!key)
-    return isAdminOrOwner ? (
-      <LimitReachedAlertDialog
-        isOpen={isAlertOpen}
-        onClose={() => setIsAlertOpen(false)}
-        aria-label="Recording limit exceeded"
-      />
-    ) : null
+  if (!key) return null
 
   const hasScreenRecordingAccessAndActive =
     isScreenRecordingActive && hasScreenRecordingAccess
