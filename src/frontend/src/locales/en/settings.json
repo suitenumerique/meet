@@ -68,6 +68,17 @@
     },
     "permissionsRequired": "Permissions required"
   },
+  "transcription": {
+    "heading": "Transcription",
+    "language": {
+      "label": "Meeting language",
+      "options": {
+        "french": "French (fr)",
+        "english": "English (en)",
+        "auto": "Automatic"
+      }
+    }
+  },
   "notifications": {
     "heading": "Sound notifications",
     "label": "sound notifications for",
@@ -100,6 +111,7 @@
     "audio": "Audio",
     "video": "Video",
     "general": "General",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "transcription": "Transcription"
   }
 }
