@@ -354,12 +354,21 @@
     }
   },
   "screenRecording": {
-    "start": {
-      "heading": "Enregistrer cet appel",
-      "body": "Enregistrez cet appel pour plus tard {{duration_message}} et recevez l'enregistrement vidéo par mail.",
-      "button": "Démarrer l'enregistrement",
+    "heading": "Enregistrez cet appel pour plus tard",
+    "body": "Enregistrez jusqu'à {{max_duration}} de réunion.",
+    "bodyWithoutMaxDuration": "Enregistrez votre réunion sans limite.",
+    "linkMore": "En savoir plus",
+    "details": {
+      "receiver": "L'enregistrement sera envoyé à l'organisateur et aux coorganisateurs.",
+      "destination": "Cet enregistrement sera conservé temporairement sur nos serveurs",
       "loading": "Démarrage de l'enregistrement",
-      "linkMore": "En savoir plus"
+      "linkMore": "En savoir plus",
+      "transcription": "Transcrire cet enregistrement"
+    },
+    "button": {
+      "start": "Commencer à enregistrer la réunion",
+      "stop": "Arrêter d'enregistrer la réunion",
+      "saving": "Sauvegarde…"
     },
     "notAdminOrOwner": {
       "heading": "Accès restreint",
@@ -369,15 +378,6 @@
         "heading": "Connexion requise",
         "body": "Seul le créateur de la réunion ou un administrateur peut démarrer l'enregistrement. Connectez-vous pour vérifier vos autorisations."
       }
-    },
-    "stopping": {
-      "heading": "Sauvegarde de vos données…",
-      "body": "Vous pouvez quitter la réunion si vous le souhaitez, la sauvegarde se terminera automatiquement."
-    },
-    "stop": {
-      "heading": "Enregistrement en cours …",
-      "body": "Vous recevrez le resultat par email une fois l'enregistrement terminé.",
-      "button": "Arrêter l'enregistrement"
     },
     "alert": {
       "title": "Échec de l'enregistrement",

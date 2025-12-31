@@ -1,6 +1,5 @@
 // hooks
 export { useIsRecordingModeEnabled } from './hooks/useIsRecordingModeEnabled'
-export { useIsRecordingTransitioning } from './hooks/useIsRecordingTransitioning'
 export { useHasRecordingAccess } from './hooks/useHasRecordingAccess'
 export { useIsRecordingActive } from './hooks/useIsRecordingActive'
 export { useHasFeatureWithoutAdminRights } from './hooks/useHasFeatureWithoutAdminRights'

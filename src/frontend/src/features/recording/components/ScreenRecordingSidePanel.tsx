@@ -6,14 +6,17 @@ import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
   useHasFeatureWithoutAdminRights,
-  useIsRecordingTransitioning,
   useStartRecording,
   useStopRecording,
 } from '@/features/recording'
 import { useEffect, useMemo, useState } from 'react'
 import { ConnectionState, RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
-import { RecordingStatus, recordingStore } from '@/stores/recording'
+import {
+  RecordingLanguage,
+  RecordingStatus,
+  recordingStore,
+} from '@/stores/recording'
 
 import {
   NotificationType,
@@ -28,6 +31,8 @@ import humanizeDuration from 'humanize-duration'
 import i18n from 'i18next'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { NoAccessView } from './NoAccessView'
+import { HStack, VStack } from '@/styled-system/jsx'
+import { Checkbox } from '@/primitives/Checkbox'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -36,6 +41,8 @@ export const ScreenRecordingSidePanel = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
 
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
+
+  const [includeTranscript, setIncludeTranscript] = useState(false)
 
   const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
     RecordingMode.ScreenRecording,
@@ -70,7 +77,6 @@ export const ScreenRecordingSidePanel = () => {
 
   const room = useRoomContext()
   const isRoomConnected = room.state == ConnectionState.Connected
-  const isRecordingTransitioning = useIsRecordingTransitioning()
 
   useEffect(() => {
     const handleRecordingStatusChanged = () => {
@@ -90,6 +96,7 @@ export const ScreenRecordingSidePanel = () => {
     try {
       setIsLoading(true)
       if (room.isRecording) {
+        setIncludeTranscript(false)
         await stopRecordingRoom({ id: roomId })
         recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
         await notifyParticipants({
@@ -100,9 +107,17 @@ export const ScreenRecordingSidePanel = () => {
           room.localParticipant
         )
       } else {
+        const recordingOptions = {
+          ...(recordingSnap.language != RecordingLanguage.AUTOMATIC && {
+            language: recordingSnap.language,
+          }),
+          ...(includeTranscript && { transcribe: true }),
+        }
+
         await startRecordingRoom({
           id: roomId,
           mode: RecordingMode.ScreenRecording,
+          options: recordingOptions,
         })
         recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTING
         await notifyParticipants({
@@ -115,15 +130,6 @@ export const ScreenRecordingSidePanel = () => {
       setIsLoading(false)
     }
   }
-
-  const isDisabled = useMemo(
-    () =>
-      isLoading ||
-      isRecordingTransitioning ||
-      statuses.isAnotherModeStarted ||
-      !isRoomConnected,
-    [isLoading, isRecordingTransitioning, statuses, isRoomConnected]
-  )
 
   if (hasFeatureWithoutAdminRights) {
     return (
@@ -147,138 +153,158 @@ export const ScreenRecordingSidePanel = () => {
     >
       <img
         src="/assets/intro-slider/4.png"
-        alt={''}
+        alt=""
         className={css({
-          minHeight: '309px',
-          height: '309px',
+          minHeight: '250px',
+          height: '250px',
           marginBottom: '1rem',
-          '@media (max-height: 700px)': {
+          marginTop: '-16px',
+          '@media (max-height: 900px)': {
             height: 'auto',
             minHeight: 'auto',
-            maxHeight: '45%',
-            marginBottom: '0.3rem',
+            maxHeight: '25%',
+            marginBottom: '0.75rem',
           },
-          '@media (max-height: 530px)': {
-            height: 'auto',
-            minHeight: 'auto',
-            maxHeight: '40%',
-            marginBottom: '0.1rem',
+          '@media (max-height: 770px)': {
+            display: 'none',
           },
         })}
       />
-
-      {statuses.isStarted ? (
-        <>
-          <H lvl={3} margin={false}>
-            {t('stop.heading')}
-          </H>
-          <Text
-            variant="note"
-            wrap={'pretty'}
-            centered
+      <VStack gap={0} marginBottom={30}>
+        <H lvl={1} margin={'sm'} fullWidth>
+          {t('heading')}
+        </H>
+        <Text variant="body" fullWidth>
+          {data?.recording?.max_duration
+            ? t('body', {
+                max_duration: humanizeDuration(data?.recording?.max_duration, {
+                  language: i18n.language,
+                }),
+              })
+            : t('bodyWithoutMaxDuration')}{' '}
+          {data?.support?.help_article_recording && (
+            <A href={data.support.help_article_recording} target="_blank">
+              {t('linkMore')}
+            </A>
+          )}
+        </Text>
+      </VStack>
+      <VStack gap={0} marginBottom={40}>
+        <div
+          className={css({
+            width: '100%',
+            background: 'gray.100',
+            borderRadius: '4px 4px 0 0',
+            paddingLeft: '4px',
+            padding: '8px',
+            display: 'flex',
+          })}
+        >
+          <div
             className={css({
-              textStyle: 'sm',
-              marginBottom: '2.5rem',
-              marginTop: '0.25rem',
-              '@media (max-height: 700px)': {
-                marginBottom: '1rem',
-              },
+              flex: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
             })}
           >
-            {t('stop.body')}
-          </Text>
-          <Button
-            isDisabled={isDisabled}
-            onPress={() => handleScreenRecording()}
-            data-attr="stop-screen-recording"
-            size="sm"
-            variant="tertiary"
+            <span className="material-icons">cloud_download</span>
+          </div>
+          <div
+            className={css({
+              flex: 5,
+            })}
           >
-            {t('stop.button')}
-          </Button>
-        </>
-      ) : (
-        <>
-          {statuses.isStopping || isPendingToStop ? (
-            <>
-              <H lvl={3} margin={false}>
-                {t('stopping.heading')}
-              </H>
-              <Text
-                variant="note"
-                wrap={'pretty'}
-                centered
-                className={css({
-                  textStyle: 'sm',
-                  maxWidth: '90%',
-                  marginBottom: '2.5rem',
-                  marginTop: '0.25rem',
-                  '@media (max-height: 700px)': {
-                    marginBottom: '1rem',
-                  },
-                })}
-              >
-                {t('stopping.body')}
-              </Text>
-              <Spinner />
-            </>
-          ) : (
-            <>
-              <H lvl={3} margin={false}>
-                {t('start.heading')}
-              </H>
-              <Text
-                variant="note"
-                wrap="balance"
-                centered
-                className={css({
-                  textStyle: 'sm',
-                  maxWidth: '90%',
-                  marginBottom: '2.5rem',
-                  marginTop: '0.25rem',
-                  '@media (max-height: 700px)': {
-                    marginBottom: '1rem',
-                  },
-                })}
-              >
-                {t('start.body', {
-                  duration_message: data?.recording?.max_duration
-                    ? t('durationMessage', {
-                        max_duration: humanizeDuration(
-                          data?.recording?.max_duration,
-                          {
-                            language: i18n.language,
-                          }
-                        ),
-                      })
-                    : '',
-                })}{' '}
-                {data?.support?.help_article_recording && (
-                  <A href={data.support.help_article_recording} target="_blank">
-                    {t('start.linkMore')}
-                  </A>
-                )}
-              </Text>
+            <Text variant="sm">{t('details.destination')}</Text>
+          </div>
+        </div>
+        <div
+          className={css({
+            width: '100%',
+            background: 'gray.100',
+            borderRadius: '0 0 4px 4px',
+            paddingLeft: '4px',
+            padding: '8px',
+            display: 'flex',
+            marginTop: '4px',
+          })}
+        >
+          <div
+            className={css({
+              flex: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            })}
+          >
+            <span className="material-icons">mail</span>
+          </div>
+          <div
+            className={css({
+              flex: 5,
+            })}
+          >
+            <Text variant="sm">{t('details.receiver')}</Text>
+          </div>
+        </div>
+
+        <div className={css({ height: '15px' })} />
+
+        <div
+          className={css({
+            width: '100%',
+            marginLeft: '20px',
+          })}
+        >
+          <Checkbox
+            size="sm"
+            isSelected={includeTranscript}
+            onChange={setIncludeTranscript}
+            isDisabled={
+              statuses.isStarting || statuses.isStarted || isPendingToStart
+            }
+          >
+            <Text variant="sm">{t('details.transcription')}</Text>
+          </Checkbox>
+        </div>
+      </VStack>
+      <div
+        className={css({
+          marginBottom: '80px',
+          width: '100%',
+        })}
+      >
+        {statuses.isStopping || isPendingToStop ? (
+          <HStack width={'100%'} height={'46px'} justify="center">
+            <Spinner size={30} />
+            <Text variant="body">{t('button.saving')}</Text>
+          </HStack>
+        ) : (
+          <>
+            {statuses.isStarted || statuses.isStarting || room.isRecording ? (
               <Button
-                isDisabled={isDisabled}
-                onPress={() => handleScreenRecording()}
-                data-attr="start-screen-recording"
-                size="sm"
                 variant="tertiary"
+                fullWidth
+                onPress={() => handleScreenRecording()}
+                isDisabled={statuses.isStopping || isPendingToStop || isLoading}
+                data-attr="stop-transcript"
               >
-                {statuses.isStarting || isPendingToStart ? (
-                  <>
-                    <Spinner size={20} />
-                    {t('start.loading')}
-                  </>
-                ) : (
-                  t('start.button')
-                )}
+                {t('button.stop')}
               </Button>
-            </>
-          )}
-        </>
-      )}
+            ) : (
+              <Button
+                variant="tertiary"
+                fullWidth
+                onPress={() => handleScreenRecording()}
+                isDisabled={isPendingToStart || !isRoomConnected || isLoading}
+                data-attr="start-transcript"
+              >
+                {t('button.start')}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
       <Dialog
         isOpen={!!isErrorDialogOpen}
         role="alertdialog"

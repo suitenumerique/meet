@@ -354,12 +354,21 @@
     }
   },
   "screenRecording": {
-    "start": {
-      "heading": "Dieses Gespräch aufzeichnen",
-      "body": "Zeichne dieses Gespräch auf, um es später anzusehen {{duration_message}}. Du erhältst die Videoaufnahme per E-Mail.",
-      "button": "Aufzeichnung starten",
+    "heading": "Diesen Anruf für später aufzeichnen",
+    "body": "Zeichnen Sie bis zu {{max_duration}} des Meetings auf.",
+    "bodyWithoutMaxDuration": "Zeichnen Sie Ihr Meeting unbegrenzt auf.",
+    "linkMore": "Mehr erfahren",
+    "details": {
+      "receiver": "Die Aufzeichnung wird an den Organisator und die Mitorganisatoren gesendet.",
+      "destination": "Diese Aufzeichnung wird vorübergehend auf unseren Servern gespeichert",
       "loading": "Aufzeichnung wird gestartet",
-      "linkMore": "Mehr erfahren"
+      "linkMore": "Mehr erfahren",
+      "transcription": "Diese Aufzeichnung transkribieren"
+    },
+    "button": {
+      "start": "Meeting-Aufzeichnung starten",
+      "stop": "Meeting-Aufzeichnung beenden",
+      "saving": "Wird gespeichert…"
     },
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
@@ -369,15 +378,6 @@
         "heading": "Anmeldung erforderlich",
         "body": "Nur der Ersteller der Besprechung oder ein Administrator kann die Aufzeichnung starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
       }
-    },
-    "stopping": {
-      "heading": "Daten werden gespeichert…",
-      "body": "Sie können das Meeting verlassen, wenn Sie möchten; die Aufzeichnung wird automatisch beendet."
-    },
-    "stop": {
-      "heading": "Aufzeichnung läuft…",
-      "body": "Du erhältst das Ergebnis per E-Mail, sobald die Aufzeichnung abgeschlossen ist.",
-      "button": "Aufzeichnung stoppen"
     },
     "alert": {
       "title": "Aufzeichnung fehlgeschlagen",

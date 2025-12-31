@@ -354,12 +354,21 @@
     }
   },
   "screenRecording": {
-    "start": {
-      "heading": "Record this call",
-      "body": "Record this call to watch it later {{duration_message}} and receive the video recording by email.",
-      "button": "Start recording",
-      "loading": "Recording starting",
-      "linkMore": "Learn more"
+    "heading": "Record this call for later",
+    "body": "Record up to {{max_duration}} of meeting.",
+    "bodyWithoutMaxDuration": "Record your meeting without limit.",
+    "linkMore": "Learn more",
+    "details": {
+      "receiver": "The recording will be sent to the host and co-hosts.",
+      "destination": "This recording will be temporarily stored on our servers",
+      "loading": "Starting recording",
+      "linkMore": "Learn more",
+      "transcription": "Transcribe this recording"
+    },
+    "button": {
+      "start": "Start recording the meeting",
+      "stop": "Stop recording the meeting",
+      "saving": "Saving…"
     },
     "notAdminOrOwner": {
       "heading": "Restricted Access",
@@ -369,15 +378,6 @@
         "heading": "Login Required",
         "body": "Only the meeting creator or an admin can start screen recording. Log in to verify your permissions."
       }
-    },
-    "stopping": {
-      "heading": "Saving your data…",
-      "body": "You can leave the meeting if you wish; the recording will finish automatically."
-    },
-    "stop": {
-      "heading": "Recording in progress…",
-      "body": "You will receive the result by email once the recording is complete.",
-      "button": "Stop recording"
     },
     "alert": {
       "title": "Recording Failed",

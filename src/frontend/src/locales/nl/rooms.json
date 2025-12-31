@@ -314,7 +314,7 @@
     "body": "Transcribeer tot {{max_duration}} aan vergadertijd.",
     "bodyWithoutMaxDuration": "Transcribeer uw vergadering zonder limiet.",
     "details": {
-      "receiver": "Het transcript wordt verzonden naar de organisator en medeorganisatoren.",
+      "receiver": "Het transcript wordt verzonden naar de host en de co-host.",
       "destination": "Er wordt een nieuw document aangemaakt op",
       "destinationUnknown": "Een nieuw document wordt aangemaakt",
       "language": "Vergadertalen:",
@@ -354,12 +354,21 @@
     }
   },
   "screenRecording": {
-    "start": {
-      "heading": "Dit gesprek opnemen",
-      "body": "Neem dit gesprek op om het later terug te kijken {{duration_message}}. Je ontvangt de video-opname per e-mail.",
-      "button": "Opname starten",
-      "loading": "Opname gestarten",
-      "linkMore": "Meer informatie"
+    "heading": "Neem dit gesprek op voor later",
+    "body": "Neem tot {{max_duration}} van de vergadering op.",
+    "bodyWithoutMaxDuration": "Neem je vergadering onbeperkt op.",
+    "linkMore": "Meer informatie",
+    "details": {
+      "receiver": "De opname wordt verzonden naar de organisator en co-organisatoren.",
+      "destination": "Deze opname wordt tijdelijk op onze servers bewaard",
+      "loading": "Opname wordt gestart",
+      "linkMore": "Meer informatie",
+      "transcription": "Transcribeer deze opname"
+    },
+    "button": {
+      "start": "Start met opnemen van de vergadering",
+      "stop": "Stop met opnemen van de vergadering",
+      "saving": "Bezig met opslaan…"
     },
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
@@ -369,15 +378,6 @@
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de opname starten. Log in om uw machtigingen te controleren."
       }
-    },
-    "stopping": {
-      "heading": "Uw gegevens worden opgeslagen…",
-      "body": "U kunt de vergadering verlaten als u dat wilt; de opname wordt automatisch voltooid."
-    },
-    "stop": {
-      "heading": "Opname bezig …",
-      "body": "Je ontvangt het resultaat per e-mail zodra de opname is voltooid.",
-      "button": "Opname stoppen"
     },
     "alert": {
       "title": "Opname mislukt",
