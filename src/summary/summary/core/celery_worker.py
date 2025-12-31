@@ -149,17 +149,22 @@ def process_audio_transcribe_summarize_v2(
     ):
         metadata_manager.track(task_id, {"audio_length": metadata["duration"]})
 
-        logger.info(
-            "Querying transcription in '%s' language …",
-            language,
-        )
+        if language is None:
+            language = settings.whisperx_default_language
+            logger.info(
+                "No language specified, using default from settings: %s",
+                (language or "auto-detect"),
+            )
+        else:
+            logger.info(
+                "Querying transcription in '%s' language",
+                language,
+            )
 
         transcription_start_time = time.time()
 
         transcription = whisperx_client.audio.transcriptions.create(
-            model=settings.whisperx_asr_model,
-            file=audio_file,
-            language=language or settings.whisperx_default_language,
+            model=settings.whisperx_asr_model, file=audio_file, language=language
         )
 
         transcription_time = round(time.time() - transcription_start_time, 2)
