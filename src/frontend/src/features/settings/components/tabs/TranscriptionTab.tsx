@@ -3,7 +3,7 @@ import { Field, H } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { RecordingLanguage, recordingStore } from '@/stores/recording'
 import { useSnapshot } from 'valtio'
-import { useTranscriptionLanguageOptions } from '../../hook/useTranscriptionLanguageOptions'
+import { useTranscriptionLanguage } from '@/features/settings'
 
 export type TranscriptionTabProps = Pick<TabPanelProps, 'id'>
 
@@ -11,7 +11,7 @@ export const TranscriptionTab = ({ id }: TranscriptionTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'transcription' })
   const recordingSnap = useSnapshot(recordingStore)
 
-  const languageOptions = useTranscriptionLanguageOptions()
+  const { languageOptions } = useTranscriptionLanguage()
 
   return (
     <TabPanel padding={'md'} flex id={id}>
