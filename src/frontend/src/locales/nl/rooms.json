@@ -338,6 +338,7 @@
     "premium": {
       "heading": "Premiumfunctie",
       "body": "Deze functie is voorbehouden aan openbare medewerkers. Als uw e-mailadres niet is toegestaan, neem dan contact op met de support om toegang te krijgen.",
+      "linkMore": "Meer informatie",
       "login": {
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
