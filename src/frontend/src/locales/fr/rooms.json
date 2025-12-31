@@ -338,6 +338,7 @@
     "premium": {
       "heading": "Fonctionnalité premium",
       "body": "Cette fonctionnalité est réservée aux agents publics. Si votre adresse email n’est pas autorisée, contactez le support pour obtenir l'accès.",
+      "linkMore": "En savoir plus",
       "login": {
         "heading": "Vous n'êtes pas connecté !",
         "body": "Vous devez être connecté pour utiliser cette fonctionnalité. Connectez-vous, puis réessayez."

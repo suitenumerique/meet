@@ -338,6 +338,7 @@
     "premium": {
       "heading": "Premium feature",
       "body": "This feature is reserved for public agents. If your email address is not authorized, please contact support to get access.",
+      "linkMore": "Learn more",
       "login": {
         "heading": "You are not logged in!",
         "body": "You must be logged in to use this feature. Please log in, then try again."
