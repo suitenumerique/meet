@@ -25,7 +25,7 @@ import posthog from 'posthog-js'
 import { useSnapshot } from 'valtio/index'
 import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
-import { HStack, VStack } from '@/styled-system/jsx'
+import { VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox.tsx'
 
 import {
@@ -34,6 +34,7 @@ import {
   useTranscriptionLanguage,
 } from '@/features/settings'
 import { NoAccessView } from './NoAccessView'
+import { RowWrapper } from './RowWrapper'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -214,123 +215,41 @@ export const TranscriptSidePanel = () => {
         </Text>
       </VStack>
       <VStack gap={0} marginBottom={40}>
-        <div
-          className={css({
-            width: '100%',
-            // border: '1px solid black',
-            background: 'gray.100',
-            borderRadius: '4px 4px 0 0',
-            paddingLeft: '4px',
-            padding: '8px',
-            display: 'flex',
-          })}
-        >
-          <div
-            className={css({
-              flex: 1,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            })}
-          >
-            <span className="material-icons">article</span>
-          </div>
-          <div
-            className={css({
-              flex: 5,
-            })}
-          >
-            <Text variant="sm">
-              {data?.transcription_destination ? (
-                <>
-                  {t('details.destination')}{' '}
-                  <A
-                    href={data.transcription_destination}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {data.transcription_destination.replace('https://', '')}
-                  </A>
-                </>
-              ) : (
-                t('details.destinationUnknown')
-              )}
-            </Text>
-          </div>
-        </div>
-        <div
-          className={css({
-            width: '100%',
-            // border: '1px solid black',
-            background: 'gray.100',
-            paddingLeft: '4px',
-            padding: '8px',
-            display: 'flex',
-            marginTop: '4px',
-          })}
-        >
-          <div
-            className={css({
-              flex: 1,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            })}
-          >
-            <span className="material-icons">mail</span>
-          </div>
-          <div
-            className={css({
-              flex: 5,
-            })}
-          >
-            <Text variant="sm">{t('details.receiver')}</Text>
-          </div>
-        </div>
-        <div
-          className={css({
-            width: '100%',
-            background: 'gray.100',
-            borderRadius: '0 0 4px 4px',
-            paddingLeft: '4px',
-            padding: '8px',
-            display: 'flex',
-            marginTop: '4px',
-          })}
-        >
-          <div
-            className={css({
-              flex: 1,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            })}
-          >
-            <span className="material-icons">language</span>
-          </div>
-          <div
-            className={css({
-              flex: 5,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-            })}
-          >
-            <Text variant="sm">{t('details.language')}</Text>
-            <Text variant="sm">
-              <Button
-                variant="text"
-                size="xs"
-                onPress={() =>
-                  openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
-                }
-              >
-                {selectedLanguageLabel}
-              </Button>
-            </Text>
-          </div>
-        </div>
-
+        <RowWrapper iconName="article" position="first">
+          <Text variant="sm">
+            {data?.transcription_destination ? (
+              <>
+                {t('details.destination')}{' '}
+                <A
+                  href={data.transcription_destination}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {data.transcription_destination.replace('https://', '')}
+                </A>
+              </>
+            ) : (
+              t('details.destinationUnknown')
+            )}
+          </Text>
+        </RowWrapper>
+        <RowWrapper iconName="mail">
+          <Text variant="sm">{t('details.receiver')}</Text>
+        </RowWrapper>
+        <RowWrapper iconName="language" position="last">
+          <Text variant="sm">{t('details.language')}</Text>
+          <Text variant="sm">
+            <Button
+              variant="text"
+              size="xs"
+              onPress={() =>
+                openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
+              }
+            >
+              {selectedLanguageLabel}
+            </Button>
+          </Text>
+        </RowWrapper>
         <div className={css({ height: '15px' })} />
 
         <div

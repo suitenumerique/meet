@@ -27,6 +27,7 @@ import { useConfig } from '@/api/useConfig'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { NoAccessView } from './NoAccessView'
 import { HStack, VStack } from '@/styled-system/jsx'
+import { RowWrapper } from './RowWrapper'
 import { Checkbox } from '@/primitives/Checkbox'
 import { useTranscriptionLanguage } from '@/features/settings'
 
@@ -188,63 +189,12 @@ export const ScreenRecordingSidePanel = () => {
         </Text>
       </VStack>
       <VStack gap={0} marginBottom={40}>
-        <div
-          className={css({
-            width: '100%',
-            background: 'gray.100',
-            borderRadius: '4px 4px 0 0',
-            paddingLeft: '4px',
-            padding: '8px',
-            display: 'flex',
-          })}
-        >
-          <div
-            className={css({
-              flex: 1,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            })}
-          >
-            <span className="material-icons">cloud_download</span>
-          </div>
-          <div
-            className={css({
-              flex: 5,
-            })}
-          >
-            <Text variant="sm">{t('details.destination')}</Text>
-          </div>
-        </div>
-        <div
-          className={css({
-            width: '100%',
-            background: 'gray.100',
-            borderRadius: '0 0 4px 4px',
-            paddingLeft: '4px',
-            padding: '8px',
-            display: 'flex',
-            marginTop: '4px',
-          })}
-        >
-          <div
-            className={css({
-              flex: 1,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            })}
-          >
-            <span className="material-icons">mail</span>
-          </div>
-          <div
-            className={css({
-              flex: 5,
-            })}
-          >
-            <Text variant="sm">{t('details.receiver')}</Text>
-          </div>
-        </div>
+        <RowWrapper iconName="cloud_download" position="first">
+          <Text variant="sm">{t('details.destination')}</Text>
+        </RowWrapper>
+        <RowWrapper iconName="mail" position="last">
+          <Text variant="sm">{t('details.receiver')}</Text>
+        </RowWrapper>
 
         <div className={css({ height: '15px' })} />
 
