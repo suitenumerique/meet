@@ -11,7 +11,7 @@ from django.conf import settings
 
 from livekit import api
 
-from core import models
+from core import models, utils
 from core.recording.services.recording_events import (
     RecordingEventsError,
     RecordingEventsService,
@@ -138,6 +138,24 @@ class LiveKitEventsService:
         # pylint: disable=not-callable
         handler(data)
 
+    def _handle_egress_started(self, data):
+        """Handle 'egress_started' event."""
+
+        try:
+            recording = models.Recording.objects.get(
+                worker_id=data.egress_info.egress_id
+            )
+        except models.Recording.DoesNotExist as err:
+            raise ActionFailedError(
+                f"Recording with worker ID {data.egress_info.egress_id} does not exist"
+            ) from err
+
+        try:
+            room_name = str(recording.room.id)
+            utils.update_room_metadata(room_name, {"recording_status": "started"})
+        except utils.MetadataUpdateException as e:
+            logger.exception("Failed to update room's metadata: %s", e)
+
     def _handle_egress_ended(self, data):
         """Handle 'egress_ended' event."""
 
@@ -149,6 +167,14 @@ class LiveKitEventsService:
             raise ActionFailedError(
                 f"Recording with worker ID {data.egress_info.egress_id} does not exist"
             ) from err
+
+        try:
+            room_name = str(recording.room.id)
+            utils.update_room_metadata(
+                room_name, {}, ["recording_mode", "recording_status"]
+            )
+        except utils.MetadataUpdateException as e:
+            logger.exception("Failed to update room's metadata: %s", e)
 
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED

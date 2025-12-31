@@ -2,6 +2,7 @@
 
 # pylint: disable=redefined-outer-name,unused-argument
 
+from unittest import mock
 from unittest.mock import Mock
 
 import pytest
@@ -33,14 +34,18 @@ def mediator(mock_worker_service):
     return WorkerServiceMediator(mock_worker_service)
 
 
-def test_start_recording_success(mediator, mock_worker_service):
+@mock.patch("core.utils.update_room_metadata")
+def test_start_recording_success(
+    mock_update_room_metadata, mediator, mock_worker_service
+):
     """Test successful recording start"""
     # Setup
     worker_id = "test-worker-123"
     mock_worker_service.start.return_value = worker_id
 
     mock_recording = RecordingFactory(
-        status=RecordingStatusChoices.INITIATED, worker_id=None
+        status=RecordingStatusChoices.INITIATED,
+        worker_id=None,
     )
     mediator.start(mock_recording)
 
@@ -55,12 +60,18 @@ def test_start_recording_success(mediator, mock_worker_service):
     assert mock_recording.worker_id == worker_id
     assert mock_recording.status == RecordingStatusChoices.ACTIVE
 
+    mock_update_room_metadata.assert_called_once_with(
+        str(mock_recording.room.id),
+        {"recording_mode": mock_recording.mode, "recording_status": "starting"},
+    )
+
 
 @pytest.mark.parametrize(
     "error_class", [WorkerRequestError, WorkerConnectionError, WorkerResponseError]
 )
+@mock.patch("core.utils.update_room_metadata")
 def test_mediator_start_recording_worker_errors(
-    mediator, mock_worker_service, error_class
+    mock_update_room_metadata, mediator, mock_worker_service, error_class
 ):
     """Test handling of various worker errors during start"""
     # Setup
@@ -78,6 +89,8 @@ def test_mediator_start_recording_worker_errors(
     assert mock_recording.status == RecordingStatusChoices.FAILED_TO_START
     assert mock_recording.worker_id is None
 
+    mock_update_room_metadata.assert_not_called()
+
 
 @pytest.mark.parametrize(
     "status",
@@ -90,8 +103,9 @@ def test_mediator_start_recording_worker_errors(
         RecordingStatusChoices.ABORTED,
     ],
 )
+@mock.patch("core.utils.update_room_metadata")
 def test_mediator_start_recording_from_forbidden_status(
-    mediator, mock_worker_service, status
+    mock_update_room_metadata, mediator, mock_worker_service, status
 ):
     """Test handling of various worker errors during start"""
     # Setup
@@ -105,8 +119,13 @@ def test_mediator_start_recording_from_forbidden_status(
     mock_recording.refresh_from_db()
     assert mock_recording.status == status
 
+    mock_update_room_metadata.assert_not_called()
 
-def test_mediator_stop_recording_success(mediator, mock_worker_service):
+
+@mock.patch("core.utils.update_room_metadata")
+def test_mediator_stop_recording_success(
+    mock_update_room_metadata, mediator, mock_worker_service
+):
     """Test successful recording stop"""
     # Setup
     mock_recording = RecordingFactory(
@@ -124,8 +143,15 @@ def test_mediator_stop_recording_success(mediator, mock_worker_service):
     mock_recording.refresh_from_db()
     assert mock_recording.status == RecordingStatusChoices.STOPPED
 
+    mock_update_room_metadata.assert_called_once_with(
+        str(mock_recording.room.id), {"recording_status": "saving"}
+    )
 
-def test_mediator_stop_recording_aborted(mediator, mock_worker_service):
+
+@mock.patch("core.utils.update_room_metadata")
+def test_mediator_stop_recording_aborted(
+    mock_update_room_metadata, mediator, mock_worker_service
+):
     """Test recording stop when worker returns ABORTED"""
     # Setup
     mock_recording = RecordingFactory(
@@ -140,10 +166,15 @@ def test_mediator_stop_recording_aborted(mediator, mock_worker_service):
     mock_recording.refresh_from_db()
     assert mock_recording.status == RecordingStatusChoices.ABORTED
 
+    mock_update_room_metadata.assert_called_once_with(
+        str(mock_recording.room.id), {"recording_status": "saving"}
+    )
+
 
 @pytest.mark.parametrize("error_class", [WorkerConnectionError, WorkerResponseError])
+@mock.patch("core.utils.update_room_metadata")
 def test_mediator_stop_recording_worker_errors(
-    mediator, mock_worker_service, error_class
+    mock_update_room_metadata, mediator, mock_worker_service, error_class
 ):
     """Test handling of worker errors during stop"""
     # Setup
@@ -159,3 +190,5 @@ def test_mediator_stop_recording_worker_errors(
     # Verify recording updates
     mock_recording.refresh_from_db()
     assert mock_recording.status == RecordingStatusChoices.FAILED_TO_STOP
+
+    mock_update_room_metadata.assert_not_called()
