@@ -8,8 +8,10 @@ export enum RecordingLanguage {
 
 type State = {
   language: RecordingLanguage
+  isErrorDialogOpen: string
 }
 
 export const recordingStore = proxy<State>({
   language: RecordingLanguage.FRENCH,
+  isErrorDialogOpen: '',
 })

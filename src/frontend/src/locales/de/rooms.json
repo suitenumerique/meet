@@ -344,14 +344,6 @@
         "heading": "Anmeldung erforderlich",
         "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
       }
-    },
-    "alert": {
-      "title": "Transkription fehlgeschlagen",
-      "body": {
-        "stop": "Die Transkription konnte nicht gestoppt werden. Bitte versuche es in einem Moment erneut.",
-        "start": "Die Transkription konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
-      },
-      "button": "OK"
     }
   },
   "screenRecording": {
@@ -381,15 +373,15 @@
         "body": "Nur der Ersteller der Besprechung oder ein Administrator kann die Aufzeichnung starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
       }
     },
-    "alert": {
-      "title": "Aufzeichnung fehlgeschlagen",
-      "body": {
-        "stop": "Die Aufzeichnung konnte nicht gestoppt werden. Bitte versuche es in einem Moment erneut.",
-        "start": "Die Aufzeichnung konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
-      },
-      "button": "OK"
-    },
     "durationMessage": "(begrenzt auf {{max_duration}})"
+  },
+  "errorRecordingAlertDialog": {
+    "title": "Aufzeichnung fehlgeschlagen",
+    "body": {
+      "stop": "Die Aufzeichnung konnte nicht gestoppt werden. Bitte versuche es in einem Moment erneut.",
+      "start": "Die Aufzeichnung konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
+    },
+    "button": "OK"
   },
   "admin": {
     "description": "Diese Einstellungen für Organisatoren ermöglichen dir die Kontrolle über dein Meeting. Nur Organisatoren haben Zugriff auf diese Optionen.",

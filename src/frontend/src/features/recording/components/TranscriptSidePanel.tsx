@@ -1,4 +1,4 @@
-import { A, Button, Dialog, Div, H, P, Text } from '@/primitives'
+import { A, Button, Div, H, Text } from '@/primitives'
 
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
@@ -6,8 +6,6 @@ import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
   useHasRecordingAccess,
-  useStartRecording,
-  useStopRecording,
   useHasFeatureWithoutAdminRights,
   useHumanizeRecordingMaxDuration,
   useRecordingStatuses,
@@ -33,6 +31,7 @@ import {
 import { NoAccessView } from './NoAccessView'
 import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
+import { useMutateRecording } from '../hooks/useMutateRecording'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -41,7 +40,6 @@ export const TranscriptSidePanel = () => {
   const keyPrefix = 'transcript'
   const { t } = useTranslation('rooms', { keyPrefix })
 
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
   const [includeScreenRecording, setIncludeScreenRecording] = useState(false)
 
   const { notifyParticipants } = useNotifyParticipants()
@@ -62,15 +60,8 @@ export const TranscriptSidePanel = () => {
 
   const roomId = useRoomId()
 
-  const { mutateAsync: startRecordingRoom, isPending: isPendingToStart } =
-    useStartRecording({
-      onError: () => setIsErrorDialogOpen('start'),
-    })
-
-  const { mutateAsync: stopRecordingRoom, isPending: isPendingToStop } =
-    useStopRecording({
-      onError: () => setIsErrorDialogOpen('stop'),
-    })
+  const { startRecording, isPendingToStart, stopRecording, isPendingToStop } =
+    useMutateRecording()
 
   const statuses = useRecordingStatuses(RecordingMode.Transcript)
 
@@ -83,7 +74,7 @@ export const TranscriptSidePanel = () => {
     }
     try {
       if (statuses.isStarted || statuses.isStarting) {
-        await stopRecordingRoom({ id: roomId })
+        await stopRecording({ id: roomId })
         setIncludeScreenRecording(false)
 
         await notifyParticipants({
@@ -108,7 +99,7 @@ export const TranscriptSidePanel = () => {
           }),
         }
 
-        await startRecordingRoom({
+        await startRecording({
           id: roomId,
           mode: recordingMode,
           options: recordingOptions,
@@ -251,20 +242,6 @@ export const TranscriptSidePanel = () => {
         isPendingToStart={isPendingToStart}
         isPendingToStop={isPendingToStop}
       />
-      <Dialog
-        isOpen={!!isErrorDialogOpen}
-        role="alertdialog"
-        aria-label={t('alert.title')}
-      >
-        <P>{t(`alert.body.${isErrorDialogOpen}`)}</P>
-        <Button
-          variant="text"
-          size="sm"
-          onPress={() => setIsErrorDialogOpen('')}
-        >
-          {t('alert.button')}
-        </Button>
-      </Dialog>
     </Div>
   )
 }

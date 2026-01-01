@@ -344,14 +344,6 @@
         "heading": "You are not logged in!",
         "body": "You must be logged in to use this feature. Please log in, then try again."
       }
-    },
-    "alert": {
-      "title": "Transcription Failed",
-      "body": {
-        "stop": "We were unable to stop the transcription. Please try again in a moment.",
-        "start": "We were unable to start the transcription. Please try again in a moment."
-      },
-      "button": "OK"
     }
   },
   "screenRecording": {
@@ -381,15 +373,15 @@
         "body": "Only the meeting creator or an admin can start screen recording. Log in to verify your permissions."
       }
     },
-    "alert": {
-      "title": "Recording Failed",
-      "body": {
-        "stop": "We were unable to stop the recording. Please try again in a moment.",
-        "start": "We were unable to start the recording. Please try again in a moment."
-      },
-      "button": "OK"
-    },
     "durationMessage": "(limited to {{max_duration}}) "
+  },
+  "errorRecordingAlertDialog": {
+    "title": "Recording Failed",
+    "body": {
+      "stop": "We were unable to stop the recording. Please try again in a moment.",
+      "start": "We were unable to start the recording. Please try again in a moment."
+    },
+    "button": "OK"
   },
   "admin": {
     "description": "These organizer settings allow you to maintain control of your meeting. Only organizers can access these controls.",
