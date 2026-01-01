@@ -344,14 +344,6 @@
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
       }
-    },
-    "alert": {
-      "title": "Transcriptie mislukt",
-      "body": {
-        "stop": "We konden de transcriptie niet stoppen. Probeer het over enkele ogenblikken opnieuw.",
-        "start": "We konden de transcriptie niet starten. Probeer het over enkele ogenblikken opnieuw."
-      },
-      "button": "Opnieuw proberen"
     }
   },
   "screenRecording": {
@@ -381,15 +373,15 @@
         "body": "Alleen de maker van de vergadering of een beheerder kan de opname starten. Log in om uw machtigingen te controleren."
       }
     },
-    "alert": {
-      "title": "Opname mislukt",
-      "body": {
-        "stop": "We konden de opname niet stoppen. Probeer het over enkele ogenblikken opnieuw.",
-        "start": "We konden de opname niet starten. Probeer het over enkele ogenblikken opnieuw."
-      },
-      "button": "Opnieuw proberen"
-    },
     "durationMessage": "(beperkt tot {{max_duration}})"
+  },
+  "errorRecordingAlertDialog": {
+    "title": "Opname mislukt",
+    "body": {
+      "stop": "We konden de opname niet stoppen. Probeer het over enkele ogenblikken opnieuw.",
+      "start": "We konden de opname niet starten. Probeer het over enkele ogenblikken opnieuw."
+    },
+    "button": "Opnieuw proberen"
   },
   "admin": {
     "description": "Deze organisatorinstellingen geven u controle over uw vergadering. Alleen organisatoren hebben toegang tot deze bedieningselementen.",

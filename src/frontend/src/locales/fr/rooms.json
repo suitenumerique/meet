@@ -344,14 +344,6 @@
         "heading": "Vous n'êtes pas connecté !",
         "body": "Vous devez être connecté pour utiliser cette fonctionnalité. Connectez-vous, puis réessayez."
       }
-    },
-    "alert": {
-      "title": "Échec de transcription",
-      "body": {
-        "stop": "Nous n'avons pas pu stopper la transcription. Veuillez réessayer dans quelques instants.",
-        "start": "Nous n'avons pas pu démarrer la transcription. Veuillez réessayer dans quelques instants."
-      },
-      "button": "OK"
     }
   },
   "screenRecording": {
@@ -381,15 +373,15 @@
         "body": "Seul le créateur de la réunion ou un administrateur peut démarrer l'enregistrement. Connectez-vous pour vérifier vos autorisations."
       }
     },
-    "alert": {
-      "title": "Échec de l'enregistrement",
-      "body": {
-        "stop": "Nous n'avons pas pu stopper l'enregistrement. Veuillez réessayer dans quelques instants.",
-        "start": "Nous n'avons pas pu démarrer l'enregistrement. Veuillez réessayer dans quelques instants."
-      },
-      "button": "OK"
-    },
     "durationMessage": "(limité à {{max_duration}}) "
+  },
+  "errorRecordingAlertDialog": {
+    "title": "Échec de l'enregistrement",
+    "body": {
+      "stop": "Nous n'avons pas pu stopper l'enregistrement. Veuillez réessayer dans quelques instants.",
+      "start": "Nous n'avons pas pu démarrer l'enregistrement. Veuillez réessayer dans quelques instants."
+    },
+    "button": "OK"
   },
   "admin": {
     "description": "Ces paramètres organisateur vous permettent de garder le contrôle de votre réunion. Seuls les organisateurs peuvent accéder à ces commandes.",
