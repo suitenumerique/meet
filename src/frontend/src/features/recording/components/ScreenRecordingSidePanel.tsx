@@ -57,6 +57,13 @@ export const ScreenRecordingSidePanel = () => {
   const room = useRoomContext()
   const { openTranscript } = useSidePanel()
 
+  const handleRequestScreenRecording = async () => {
+    await notifyParticipants({
+      type: NotificationType.ScreenRecordingRequested,
+    })
+    posthog.capture('screen-recording-requested', {})
+  }
+
   const handleScreenRecording = async () => {
     if (!roomId) {
       console.warn('No room ID found')
@@ -105,6 +112,8 @@ export const ScreenRecordingSidePanel = () => {
         i18nKey="notAdminOrOwner"
         helpArticle={data?.support?.help_article_recording}
         imagePath="/assets/intro-slider/4.png"
+        handleRequest={handleRequestScreenRecording}
+        isActive={statuses.isActive}
       />
     )
   }

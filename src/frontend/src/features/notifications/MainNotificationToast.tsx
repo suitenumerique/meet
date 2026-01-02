@@ -104,6 +104,16 @@ export const MainNotificationToast = () => {
             { timeout: NotificationDuration.ALERT }
           )
           break
+        case NotificationType.TranscriptionRequested:
+        case NotificationType.ScreenRecordingRequested:
+          toastQueue.add(
+            {
+              participant,
+              type: notification.type,
+            },
+            { timeout: NotificationDuration.RECORDING_REQUESTED }
+          )
+          break
         case NotificationType.PermissionsRemoved: {
           const removedSources = notification?.data?.removedSources
           if (!removedSources?.length) break
