@@ -1,6 +1,7 @@
 import { H, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { LoginButton } from '@/components/LoginButton'
+import { HStack } from '@/styled-system/jsx'
 
 interface LoginPromptProps {
   heading: string
@@ -22,16 +23,14 @@ export const LoginPrompt = ({ heading, body }: LoginPromptProps) => {
         flexDirection: 'column',
       })}
     >
-      <H
-        lvl={3}
-        className={css({
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '0.35rem',
-        })}
-      >
-        {heading}
-      </H>
+      <HStack justify="start" alignItems="center" marginBottom="0.5rem">
+        <span className="material-symbols" aria-hidden={true}>
+          login
+        </span>
+        <H lvl={3} margin={false} padding={false}>
+          {heading}
+        </H>
+      </HStack>
       <Text variant="smNote" wrap="pretty">
         {body}
       </Text>
