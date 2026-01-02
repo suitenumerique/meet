@@ -32,6 +32,7 @@ import { NoAccessView } from './NoAccessView'
 import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
 import { useMutateRecording } from '../hooks/useMutateRecording'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -66,6 +67,7 @@ export const TranscriptSidePanel = () => {
   const statuses = useRecordingStatuses(RecordingMode.Transcript)
 
   const room = useRoomContext()
+  const { openScreenRecording } = useSidePanel()
 
   const handleTranscript = async () => {
     if (!roomId) {
@@ -241,6 +243,7 @@ export const TranscriptSidePanel = () => {
         statuses={statuses}
         isPendingToStart={isPendingToStart}
         isPendingToStop={isPendingToStop}
+        openSidePanel={openScreenRecording}
       />
     </Div>
   )
