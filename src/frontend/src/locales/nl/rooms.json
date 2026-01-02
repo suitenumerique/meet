@@ -332,18 +332,30 @@
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een transcriptie starten (beta).",
       "linkMore": "Meer informatie",
+      "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
+      },
+      "request": {
+        "heading": "Transcriptie aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de transcriptie voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
       }
     },
     "premium": {
       "heading": "Premiumfunctie",
       "body": "Deze functie is voorbehouden aan openbare medewerkers. Als uw e-mailadres niet is toegestaan, neem dan contact op met de support om toegang te krijgen.",
       "linkMore": "Meer informatie",
+      "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
+      },
+      "request": {
+        "heading": "Transcriptie aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de transcriptie voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
       }
     }
   },
@@ -370,9 +382,15 @@
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een opname starten (beta).",
       "linkMore": "Meer informatie",
+      "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de opname starten. Log in om uw machtigingen te controleren."
+      },
+      "request": {
+        "heading": "Opname aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de opname voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
       }
     },
     "durationMessage": "(beperkt tot {{max_duration}})"

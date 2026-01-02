@@ -332,18 +332,30 @@
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta).",
       "linkMore": "En savoir plus",
+      "dividerLabel": "OU",
       "login": {
         "heading": "Connexion requise",
         "body": "Seul le créateur de la réunion ou un administrateur peut démarrer la transcription. Connectez-vous pour vérifier vos autorisations."
+      },
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer la transcription pour vous.",
+        "buttonLabel": "Demander"
       }
     },
     "premium": {
       "heading": "Fonctionnalité premium",
       "body": "Cette fonctionnalité est réservée aux agents publics. Si votre adresse email n’est pas autorisée, contactez le support pour obtenir l'accès.",
       "linkMore": "En savoir plus",
+      "dividerLabel": "OU",
       "login": {
         "heading": "Vous n'êtes pas connecté !",
         "body": "Vous devez être connecté pour utiliser cette fonctionnalité. Connectez-vous, puis réessayez."
+      },
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer la transcription pour vous.",
+        "buttonLabel": "Demander"
       }
     }
   },
@@ -370,9 +382,15 @@
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer un enregistrement (beta).",
       "linkMore": "En savoir plus",
+      "dividerLabel": "OU",
       "login": {
         "heading": "Connexion requise",
         "body": "Seul le créateur de la réunion ou un administrateur peut démarrer l'enregistrement. Connectez-vous pour vérifier vos autorisations."
+      },
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer l'enregistrement pour vous.",
+        "buttonLabel": "Demander"
       }
     },
     "durationMessage": "(limité à {{max_duration}}) "

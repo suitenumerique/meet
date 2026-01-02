@@ -69,6 +69,13 @@ export const TranscriptSidePanel = () => {
   const room = useRoomContext()
   const { openScreenRecording } = useSidePanel()
 
+  const handleRequestTranscription = async () => {
+    await notifyParticipants({
+      type: NotificationType.TranscriptionRequested,
+    })
+    posthog.capture('transcript-requested', {})
+  }
+
   const handleTranscript = async () => {
     if (!roomId) {
       console.warn('No room ID found')
@@ -124,6 +131,8 @@ export const TranscriptSidePanel = () => {
         i18nKey="notAdminOrOwner"
         helpArticle={data?.support?.help_article_transcript}
         imagePath="/assets/intro-slider/3.png"
+        handleRequest={handleRequestTranscription}
+        isActive={statuses.isActive}
       />
     )
   }
@@ -135,6 +144,8 @@ export const TranscriptSidePanel = () => {
         i18nKey="premium"
         helpArticle={data?.support?.help_article_transcript}
         imagePath="/assets/intro-slider/3.png"
+        handleRequest={handleRequestTranscription}
+        isActive={statuses.isActive}
       />
     )
   }

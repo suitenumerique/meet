@@ -332,18 +332,30 @@
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
       "linkMore": "Mehr erfahren",
+      "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
         "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+      },
+      "request": {
+        "heading": "Anfrage an Moderator",
+        "body": "Der Moderator wird benachrichtigt und kann die Transkription starten.",
+        "buttonLabel": "Anfordern"
       }
     },
     "premium": {
       "heading": "Premium-Funktion",
       "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn Ihre E-Mail-Adresse nicht autorisiert ist, kontaktieren Sie bitte den Support, um Zugriff zu erhalten.",
       "linkMore": "Mehr erfahren",
+      "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
         "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+      },
+      "request": {
+        "heading": "Anfrage an Moderator",
+        "body": "Der Moderator wird benachrichtigt und kann die Transkription starten.",
+        "buttonLabel": "Anfordern"
       }
     }
   },
@@ -370,9 +382,15 @@
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Videoaufnahme (Beta) starten.",
       "linkMore": "Mehr erfahren",
+      "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
         "body": "Nur der Ersteller der Besprechung oder ein Administrator kann die Aufzeichnung starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+      },
+      "request": {
+        "heading": "Aufnahme anfordern",
+        "body": "Der Moderator wird benachrichtigt und kann die Aufnahme für Sie starten.",
+        "buttonLabel": "Anfrage senden"
       }
     },
     "durationMessage": "(begrenzt auf {{max_duration}})"

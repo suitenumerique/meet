@@ -12,6 +12,7 @@ import { ToastLowerHand } from './ToastLowerHand'
 import { ToastAnyRecording } from './ToastAnyRecording'
 import { ToastRecordingSaving } from './ToastRecordingSaving'
 import { ToastPermissionsRemoved } from './ToastPermissionsRemoved'
+import { ToastRecordingRequest } from './ToastRecordingRequest'
 
 interface ToastRegionProps extends AriaToastRegionProps {
   state: ToastState<ToastData>
@@ -51,6 +52,12 @@ const renderToast = (
     case NotificationType.ScreenRecordingStopped:
     case NotificationType.ScreenRecordingLimitReached:
       return <ToastAnyRecording key={toast.key} toast={toast} state={state} />
+
+    case NotificationType.TranscriptionRequested:
+    case NotificationType.ScreenRecordingRequested:
+      return (
+        <ToastRecordingRequest key={toast.key} toast={toast} state={state} />
+      )
 
     case NotificationType.RecordingSaving:
       return (

@@ -30,12 +30,14 @@
   "transcript": {
     "started": "{{name}} is de transcriptie van de vergadering gestart.",
     "stopped": "{{name}} heeft de transcriptie van de vergadering gestopt.",
-    "limitReached": "De transcriptie heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen."
+    "limitReached": "De transcriptie heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen.",
+    "requested": "{{name}} wil graag de transcriptie starten."
   },
   "screenRecording": {
     "started": "{{name}} is begonnen met het opnemen van de vergadering.",
     "stopped": "{{name}} is gestopt met het opnemen van de vergadering.",
-    "limitReached": "De opname heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen."
+    "limitReached": "De opname heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen.",
+    "requested": "{{name}} wil graag de opname starten."
   },
   "recordingSave": {
     "transcript": {
@@ -46,5 +48,6 @@
       "message": "We zijn uw opname aan het voltooien! U ontvangt een e-mail op <strong>{{email}}</strong> zodra deze klaar is.",
       "default": "We zijn uw opname aan het voltooien! U ontvangt een e-mail zodra deze klaar is."
     }
-  }
+  },
+  "openMenu": "Menu openen"
 }
