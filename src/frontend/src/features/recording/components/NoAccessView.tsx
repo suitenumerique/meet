@@ -2,14 +2,25 @@ import { A, Div, H, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { LoginPrompt } from './LoginPrompt'
+import { RequestRecording } from './RequestRecording'
 import { useUser } from '@/features/auth'
-import { VStack } from '@/styled-system/jsx'
+import { HStack, VStack } from '@/styled-system/jsx'
+
+const Divider = ({ label }: { label: string }) => (
+  <HStack gap="1rem" alignItems="center" width="100%" marginY="1rem">
+    <div className={css({ flex: 1, height: '1px', bg: 'neutral.200' })} />
+    <Text variant="xsNote">{label}</Text>
+    <div className={css({ flex: 1, height: '1px', bg: 'neutral.200' })} />
+  </HStack>
+)
 
 interface NoAccessViewProps {
   i18nKeyPrefix: string
   i18nKey: string
   helpArticle?: string
   imagePath: string
+  handleRequest: () => Promise<void>
+  isActive: boolean
 }
 
 export const NoAccessView = ({
@@ -17,6 +28,8 @@ export const NoAccessView = ({
   i18nKey,
   helpArticle,
   imagePath,
+  handleRequest,
+  isActive,
 }: NoAccessViewProps) => {
   const { isLoggedIn } = useUser()
   const { t } = useTranslation('rooms', { keyPrefix: i18nKeyPrefix })
@@ -34,20 +47,18 @@ export const NoAccessView = ({
         src={imagePath}
         alt=""
         className={css({
-          minHeight: '309px',
-          height: '309px',
+          minHeight: '250px',
+          height: '250px',
           marginBottom: '1rem',
-          '@media (max-height: 700px)': {
+          marginTop: '-16px',
+          '@media (max-height: 900px)': {
             height: 'auto',
             minHeight: 'auto',
-            maxHeight: '45%',
-            marginBottom: '0.3rem',
+            maxHeight: '25%',
+            marginBottom: '0.75rem',
           },
-          '@media (max-height: 530px)': {
-            height: 'auto',
-            minHeight: 'auto',
-            maxHeight: '40%',
-            marginBottom: '0.1rem',
+          '@media (max-height: 770px)': {
+            display: 'none',
           },
         })}
       />
@@ -80,6 +91,17 @@ export const NoAccessView = ({
         <LoginPrompt
           heading={t(`${i18nKey}.login.heading`)}
           body={t(`${i18nKey}.login.body`)}
+        />
+      )}
+      {!isLoggedIn && !isActive && (
+        <Divider label={t(`${i18nKey}.dividerLabel`)} />
+      )}
+      {!isActive && (
+        <RequestRecording
+          heading={t(`${i18nKey}.request.heading`)}
+          body={t(`${i18nKey}.request.body`)}
+          buttonLabel={t(`${i18nKey}.request.buttonLabel`)}
+          handleRequest={handleRequest}
         />
       )}
     </Div>

@@ -332,18 +332,30 @@
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a transcription (beta).",
       "linkMore": "Learn more",
+      "dividerLabel": "OR",
       "login": {
         "heading": "Login Required",
         "body": "Only the meeting creator or an admin can start a transcription. Log in to verify your permissions."
+      },
+      "request": {
+        "heading": "Request Transcription",
+        "body": "The host will be notified and can enable transcription for you.",
+        "buttonLabel": "Request"
       }
     },
     "premium": {
       "heading": "Premium feature",
       "body": "This feature is reserved for public agents. If your email address is not authorized, please contact support to get access.",
       "linkMore": "Learn more",
+      "dividerLabel": "OR",
       "login": {
         "heading": "You are not logged in!",
         "body": "You must be logged in to use this feature. Please log in, then try again."
+      },
+      "request": {
+        "heading": "Request Transcription",
+        "body": "The host will be notified and can enable transcription for you.",
+        "buttonLabel": "Request"
       }
     }
   },
@@ -370,9 +382,15 @@
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a recording (beta).",
       "linkMore": "Learn more",
+      "dividerLabel": "OR",
       "login": {
         "heading": "Login Required",
         "body": "Only the meeting creator or an admin can start screen recording. Log in to verify your permissions."
+      },
+      "request": {
+        "heading": "Request Recording",
+        "body": "The host will be notified and can enable recording for you.",
+        "buttonLabel": "Request"
       }
     },
     "durationMessage": "(limited to {{max_duration}}) "

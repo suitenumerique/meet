@@ -30,12 +30,14 @@
   "transcript": {
     "started": "{{name}} a démarré la transcription de la réunion.",
     "stopped": "{{name}} a arrêté la transcription de la réunion.",
-    "limitReached": "La transcription a dépassé la durée maximale autorisée, elle va être automatiquement sauvegardée."
+    "limitReached": "La transcription a dépassé la durée maximale autorisée, elle va être automatiquement sauvegardée.",
+    "requested": "{{name}} a demandé à démarrer la transcription."
   },
   "screenRecording": {
     "started": "{{name}} a démarré l'enregistrement de la réunion.",
     "stopped": "{{name}} a arrêté l'enregistrement de la réunion.",
-    "limitReached": "L'enregistrement a dépassé la durée maximale autorisée, il va être automatiquement sauvegardé."
+    "limitReached": "L'enregistrement a dépassé la durée maximale autorisée, il va être automatiquement sauvegardé.",
+    "requested": "{{name}} a demandé à démarrer l'enregistrement."
   },
   "recordingSave": {
     "transcript": {
@@ -46,5 +48,6 @@
       "message": "Nous finalisons votre enregistrement ! Vous recevrez un e-mail à <strong>{{email}}</strong> dès qu’il sera prêt.",
       "default": "Nous finalisons votre enregistrement ! Vous recevrez un e-mail dès qu’il sera prêt."
     }
-  }
+  },
+  "openMenu": "Ouvrir le menu"
 }

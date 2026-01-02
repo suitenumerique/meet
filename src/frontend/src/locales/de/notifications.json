@@ -30,12 +30,14 @@
   "transcript": {
     "started": "{{name}} hat die Transkription des Treffens gestartet.",
     "stopped": "{{name}} hat die Transkription des Treffens gestoppt.",
-    "limitReached": "Die Transkription hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert."
+    "limitReached": "Die Transkription hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert.",
+    "requested": "{{name}} will die Transkription starten."
   },
   "screenRecording": {
     "started": "{{name}} hat die Aufzeichnung des Treffens gestartet.",
     "stopped": "{{name}} hat die Aufzeichnung des Treffens gestoppt.",
-    "limitReached": "Die Aufzeichnung hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert."
+    "limitReached": "Die Aufzeichnung hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert.",
+    "requested": "{{name}} will die Aufnahme starten."
   },
   "recordingSave": {
     "transcript": {
@@ -46,5 +48,6 @@
       "message": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail an <strong>{{email}}</strong>, sobald sie fertig ist.",
       "default": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail, sobald sie fertig ist."
     }
-  }
+  },
+  "openMenu": "Menü öffnen"
 }

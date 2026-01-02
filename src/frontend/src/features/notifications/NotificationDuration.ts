@@ -13,4 +13,5 @@ export const NotificationDuration = {
   LOWER_HAND: ToastDuration.EXTRA_LONG,
   RECORDING_SAVING: ToastDuration.EXTRA_LONG,
   REACTION_RECEIVED: ToastDuration.SHORT,
+  RECORDING_REQUESTED: ToastDuration.LONG,
 } as const
