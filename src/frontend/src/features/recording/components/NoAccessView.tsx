@@ -1,8 +1,9 @@
-import { A, Div, Text } from '@/primitives'
+import { A, Div, H, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { LoginPrompt } from './LoginPrompt'
 import { useUser } from '@/features/auth'
+import { VStack } from '@/styled-system/jsx'
 
 interface NoAccessViewProps {
   i18nKeyPrefix: string
@@ -50,27 +51,31 @@ export const NoAccessView = ({
           },
         })}
       />
-      <Text>{t(`${i18nKey}.heading`)}</Text>
-      <Text
-        variant="note"
-        centered
-        className={css({
-          textStyle: 'sm',
-          marginBottom: '2.5rem',
-          marginTop: '0.25rem',
-          '@media (max-height: 700px)': {
-            marginBottom: '1rem',
-          },
-        })}
-      >
-        {t(`${i18nKey}.body`)}
-        <br />
-        {helpArticle && (
-          <A href={helpArticle} target="_blank">
-            {t(`${i18nKey}.linkMore`)}
-          </A>
-        )}
-      </Text>
+      <VStack gap={0} marginBottom={0}>
+        <H lvl={1} margin={'sm'} fullWidth centered>
+          {t(`${i18nKey}.heading`)}
+        </H>
+        <Text
+          variant="note"
+          centered
+          className={css({
+            textStyle: 'sm',
+            marginBottom: '2.5rem',
+            marginTop: '0.25rem',
+            '@media (max-height: 700px)': {
+              marginBottom: '1rem',
+            },
+          })}
+        >
+          {t(`${i18nKey}.body`)}
+          <br />
+          {helpArticle && (
+            <A href={helpArticle} target="_blank">
+              {t(`${i18nKey}.linkMore`)}
+            </A>
+          )}
+        </Text>
+      </VStack>
       {!isLoggedIn && (
         <LoginPrompt
           heading={t(`${i18nKey}.login.heading`)}
