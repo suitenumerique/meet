@@ -1,9 +1,7 @@
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
-import { Spinner } from '@/primitives/Spinner'
 import { useMemo } from 'react'
 import { Text } from '@/primitives'
-import { RiRecordCircleLine } from '@remixicon/react'
 import {
   RecordingMode,
   useHasRecordingAccess,
@@ -13,6 +11,7 @@ import { FeatureFlags } from '@/features/analytics/enums'
 import { Button as RACButton } from 'react-aria-components'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useRoomMetadata } from '../hooks/useRoomMetadata'
+import { RecordingStatusIcon } from './RecordingStatusIcon'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
@@ -83,16 +82,10 @@ export const RecordingStateToast = () => {
         gap: '0.5rem',
       })}
     >
-      {isStarted ? (
-        <RiRecordCircleLine
-          size={20}
-          className={css({
-            animation: 'pulse_background 1s infinite',
-          })}
-        />
-      ) : (
-        <Spinner size={20} variant="dark" />
-      )}
+      <RecordingStatusIcon
+        isStarted={isStarted}
+        isTranscriptActive={isTranscriptActive}
+      />
 
       {!hasScreenRecordingAccessAndActive && !hasTranscriptAccessAndActive && (
         <Text
