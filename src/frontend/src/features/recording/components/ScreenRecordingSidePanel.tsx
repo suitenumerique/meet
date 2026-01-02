@@ -27,6 +27,7 @@ import { VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox'
 import { useTranscriptionLanguage } from '@/features/settings'
 import { useMutateRecording } from '../hooks/useMutateRecording'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -54,6 +55,7 @@ export const ScreenRecordingSidePanel = () => {
   const statuses = useRecordingStatuses(RecordingMode.ScreenRecording)
 
   const room = useRoomContext()
+  const { openTranscript } = useSidePanel()
 
   const handleScreenRecording = async () => {
     if (!roomId) {
@@ -184,6 +186,7 @@ export const ScreenRecordingSidePanel = () => {
         statuses={statuses}
         isPendingToStart={isPendingToStart}
         isPendingToStop={isPendingToStop}
+        openSidePanel={openTranscript}
       />
     </Div>
   )
