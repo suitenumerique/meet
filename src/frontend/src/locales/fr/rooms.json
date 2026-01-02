@@ -324,7 +324,8 @@
       "start": "Commencer à transcrire la réunion",
       "stop": "Arrêter de transcrire la réunion",
       "saving": "Sauvegarde…",
-      "starting": "Démarrage…"
+      "starting": "Démarrage…",
+      "anotherModeStarted": "Un enregistrement est en cours. <br/> Changez de menu et arrêtez le."
     },
     "linkMore": "En savoir plus",
     "notAdminOrOwner": {
@@ -362,7 +363,8 @@
       "start": "Commencer à enregistrer la réunion",
       "stop": "Arrêter d'enregistrer la réunion",
       "saving": "Sauvegarde…",
-      "starting": "Démarrage…"
+      "starting": "Démarrage…",
+      "anotherModeStarted": "Une transcription est en cours. <br/> Changez de menu et arrêtez la."
     },
     "notAdminOrOwner": {
       "heading": "Accès restreint",
