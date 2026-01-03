@@ -65,6 +65,7 @@ class TranscriptFormatter:
         room: Optional[str] = None,
         recording_date: Optional[str] = None,
         recording_time: Optional[str] = None,
+        download_link: Optional[str] = None,
     ) -> Tuple[str, str]:
         """Format transcription into the final document and its title."""
         segments = self._get_segments(transcription)
@@ -74,6 +75,7 @@ class TranscriptFormatter:
         else:
             content = self._format_speaker(segments)
             content = self._remove_hallucinations(content)
+            content = self._add_header(content, download_link)
 
         title = self._generate_title(room, recording_date, recording_time)
 
@@ -103,6 +105,19 @@ class TranscriptFormatter:
                 previous_speaker = speaker
 
         return formatted_output
+
+    def _add_header(self, content, download_link: Optional[str]) -> str:
+        """Add download link header to the document content."""
+        if not download_link:
+            return content
+
+        header = (
+            f"\n*Télécharger votre enregistrement "
+            f"en [suivant ce lien]({download_link})*\n"
+        )
+        content = header + content
+
+        return content
 
     def _generate_title(
         self,

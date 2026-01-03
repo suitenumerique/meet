@@ -120,6 +120,7 @@ def process_audio_transcribe_summarize_v2(
     recording_date: Optional[str],
     recording_time: Optional[str],
     language: Optional[str],
+    download_link: Optional[str],
 ):
     """Process an audio file by transcribing it and generating a summary.
 
@@ -184,6 +185,7 @@ def process_audio_transcribe_summarize_v2(
         room=room,
         recording_date=recording_date,
         recording_time=recording_time,
+        download_link=download_link,
     )
 
     data = {
