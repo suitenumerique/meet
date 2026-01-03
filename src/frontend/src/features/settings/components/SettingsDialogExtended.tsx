@@ -20,6 +20,7 @@ import { TranscriptionTab } from './tabs/TranscriptionTab'
 import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 
 const tabsStyle = css({
   maxHeight: '40.625rem', // fixme size copied from meet settings modal
@@ -58,6 +59,8 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
 
   const dialogEl = useRef<HTMLDivElement>(null)
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
+
+  const isAdminOrOwner = useIsAdminOrOwner()
 
   return (
     <Dialog innerRef={dialogEl} {...props} role="dialog" type="flex">
@@ -101,11 +104,13 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               {isWideScreen &&
                 t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             </Tab>
-            <Tab icon highlight id={SettingsDialogExtendedKey.TRANSCRIPTION}>
-              <span className="material-symbols">speech_to_text</span>
-              {isWideScreen &&
-                t(`tabs.${SettingsDialogExtendedKey.TRANSCRIPTION}`)}
-            </Tab>
+            {isAdminOrOwner && (
+              <Tab icon highlight id={SettingsDialogExtendedKey.TRANSCRIPTION}>
+                <span className="material-symbols">speech_to_text</span>
+                {isWideScreen &&
+                  t(`tabs.${SettingsDialogExtendedKey.TRANSCRIPTION}`)}
+              </Tab>
+            )}
           </TabList>
         </div>
         <div className={tabPanelContainerStyle}>
