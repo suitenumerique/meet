@@ -5,7 +5,7 @@ from typing import Optional
 
 from celery.result import AsyncResult
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from summary.core.celery_worker import (
     process_audio_transcribe_summarize_v2,
@@ -26,6 +26,19 @@ class TaskCreation(BaseModel):
     room: Optional[str]
     recording_date: Optional[str]
     recording_time: Optional[str]
+    language: Optional[str]
+    download_link: Optional[str]
+
+    @field_validator("language")
+    @classmethod
+    def validate_language(cls, v):
+        """Validate 'language' parameter."""
+        if v is not None and v not in settings.whisperx_allowed_languages:
+            raise ValueError(
+                f"Language '{v}' is not allowed. "
+                f"Allowed languages: {', '.join(settings.whisperx_allowed_languages)}"
+            )
+        return v
 
 
 router = APIRouter(prefix="/tasks")
@@ -44,6 +57,8 @@ async def create_task(request: TaskCreation):
             request.room,
             request.recording_date,
             request.recording_time,
+            request.language,
+            request.download_link,
         ],
         queue=settings.transcribe_queue,
     )

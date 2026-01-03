@@ -260,8 +260,8 @@
       "participants": "Deelnemers",
       "effects": "Effecten",
       "chat": "Berichten in de chat",
-      "transcript": "Transcriptie",
-      "screenRecording": "Schermopname",
+      "transcript": "Transcriberen",
+      "screenRecording": "Opnemen",
       "admin": "Beheerdersbediening",
       "tools": "Meer tools",
       "info": "Vergaderinformatie"
@@ -270,8 +270,8 @@
       "participants": "deelnemers",
       "effects": "effecten",
       "chat": "berichten",
-      "screenRecording": "transcriptie",
-      "transcript": "schermopname",
+      "screenRecording": "opnemen",
+      "transcript": "transcriberen",
       "admin": "beheerdersbediening",
       "tools": "meer tools",
       "info": "vergaderinformatie"
@@ -286,12 +286,12 @@
     "moreLink": "Lees meer",
     "tools": {
       "transcript": {
-        "title": "Transcriptie",
-        "body": "Bewaar een schriftelijk verslag van je vergadering."
+        "title": "Transcriberen",
+        "body": "Het gesprek opnemen."
       },
       "screenRecording": {
-        "title": "Opname",
-        "body": "Neem je vergadering op om die later opnieuw te bekijken."
+        "title": "Opnemen",
+        "body": "De vergadering opnemen."
       }
     }
   },
@@ -310,73 +310,98 @@
     }
   },
   "transcript": {
-    "start": {
-      "heading": "Transcribeer dit gesprek",
-      "body": "Transcribeer dit gesprek automatisch {{duration_message}} en ontvang het verslag in Docs.",
-      "button": "Transcriptie starten",
-      "loading": "Transcriptie begint",
-      "linkMore": "Meer informatie"
+    "heading": "Transcribeer uw vergadering met de AI-assistent",
+    "body": "Transcribeer tot {{max_duration}} aan vergadertijd.",
+    "bodyWithoutMaxDuration": "Transcribeer uw vergadering zonder limiet.",
+    "details": {
+      "receiver": "Het transcript wordt verzonden naar de organisator en medeorganisatoren.",
+      "destination": "Er wordt een nieuw document aangemaakt op",
+      "destinationUnknown": "Een nieuw document wordt aangemaakt",
+      "language": "Vergadertalen:",
+      "recording": "Start ook een opname"
     },
+    "button": {
+      "start": "Begin met het transcriberen van de vergadering",
+      "stop": "Stop met het transcriberen van de vergadering",
+      "saving": "Opslaan…",
+      "starting": "Wordt gestart…",
+      "anotherModeStarted": "Er loopt een opname. <br/> Ga naar een ander menu en stop deze."
+    },
+    "linkMore": "Meer informatie",
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een transcriptie starten (beta).",
-      "linkMore": "Meer informatie"
-    },
-    "stop": {
-      "heading": "Transcriptie bezig...",
-      "body": "De transcriptie van uw vergadering is bezig. U ontvangt het resultaat per e-mail zodra de vergadering is afgelopen.",
-      "button": "Transcriptie stoppen"
-    },
-    "stopping": {
-      "heading": "Uw gegevens worden opgeslagen…",
-      "body": "U kunt de vergadering verlaten als u dat wilt; de opname wordt automatisch voltooid."
-    },
-    "beta": {
-      "heading": "Word betatester",
-      "body": "Neem uw vergadering op voor later. U ontvangt een samenvatting per e-mail zodra de vergadering is afgelopen.",
-      "button": "Aanmelden"
-    },
-    "alert": {
-      "title": "Transcriptie mislukt",
-      "body": {
-        "stop": "We konden de transcriptie niet stoppen. Probeer het over enkele ogenblikken opnieuw.",
-        "start": "We konden de transcriptie niet starten. Probeer het over enkele ogenblikken opnieuw."
+      "linkMore": "Meer informatie",
+      "dividerLabel": "OF",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
       },
-      "button": "Opnieuw proberen"
+      "request": {
+        "heading": "Transcriptie aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de transcriptie voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
+      }
     },
-    "durationMessage": "(beperkt tot {{max_duration}}) "
+    "premium": {
+      "heading": "Premiumfunctie",
+      "body": "Deze functie is voorbehouden aan openbare medewerkers. Als uw e-mailadres niet is toegestaan, neem dan contact op met de support om toegang te krijgen.",
+      "linkMore": "Meer informatie",
+      "dividerLabel": "OF",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Alleen de maker van de vergadering of een beheerder kan de transcriptie starten. Log in om uw machtigingen te controleren."
+      },
+      "request": {
+        "heading": "Transcriptie aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de transcriptie voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
+      }
+    }
   },
   "screenRecording": {
-    "start": {
-      "heading": "Dit gesprek opnemen",
-      "body": "Neem dit gesprek op om het later terug te kijken {{duration_message}}. Je ontvangt de video-opname per e-mail.",
-      "button": "Opname starten",
-      "loading": "Opname gestarten",
-      "linkMore": "Meer informatie"
+    "heading": "Neem dit gesprek op voor later",
+    "body": "Neem tot {{max_duration}} van de vergadering op.",
+    "bodyWithoutMaxDuration": "Neem je vergadering onbeperkt op.",
+    "linkMore": "Meer informatie",
+    "details": {
+      "receiver": "De opname wordt verzonden naar de organisator en co-organisatoren.",
+      "destination": "Deze opname wordt tijdelijk op onze servers bewaard",
+      "loading": "Opname wordt gestart",
+      "linkMore": "Meer informatie",
+      "transcription": "Transcribeer deze opname"
+    },
+    "button": {
+      "start": "Start met opnemen van de vergadering",
+      "stop": "Stop met opnemen van de vergadering",
+      "saving": "Bezig met opslaan…",
+      "starting": "Wordt gestart…",
+      "anotherModeStarted": "Er loopt een transcriptie. <br/> Ga naar een ander menu en stop deze."
     },
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een opname starten (beta).",
-      "linkMore": "Meer informatie"
-    },
-    "stopping": {
-      "heading": "Uw gegevens worden opgeslagen…",
-      "body": "U kunt de vergadering verlaten als u dat wilt; de opname wordt automatisch voltooid."
-    },
-    "stop": {
-      "heading": "Opname bezig …",
-      "body": "Je ontvangt het resultaat per e-mail zodra de opname is voltooid.",
-      "button": "Opname stoppen"
-    },
-    "alert": {
-      "title": "Opname mislukt",
-      "body": {
-        "stop": "We konden de opname niet stoppen. Probeer het over enkele ogenblikken opnieuw.",
-        "start": "We konden de opname niet starten. Probeer het over enkele ogenblikken opnieuw."
+      "linkMore": "Meer informatie",
+      "dividerLabel": "OF",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Alleen de maker van de vergadering of een beheerder kan de opname starten. Log in om uw machtigingen te controleren."
       },
-      "button": "Opnieuw proberen"
+      "request": {
+        "heading": "Opname aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de opname voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
+      }
     },
     "durationMessage": "(beperkt tot {{max_duration}})"
+  },
+  "errorRecordingAlertDialog": {
+    "title": "Opname mislukt",
+    "body": {
+      "stop": "We konden de opname niet stoppen. Probeer het over enkele ogenblikken opnieuw.",
+      "start": "We konden de opname niet starten. Probeer het over enkele ogenblikken opnieuw."
+    },
+    "button": "Opnieuw proberen"
   },
   "admin": {
     "description": "Deze organisatorinstellingen geven u controle over uw vergadering. Alleen organisatoren hebben toegang tot deze bedieningselementen.",
@@ -496,7 +521,7 @@
       "starting": "Transcriptie begint",
       "stopping": "Transcriptie stopt"
     },
-    "screenRecording": {
+    "screen_recording": {
       "started": "Opname bezig",
       "starting": "Opname starten",
       "stopping": "Opname stoppen"

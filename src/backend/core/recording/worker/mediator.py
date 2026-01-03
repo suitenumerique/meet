@@ -2,6 +2,7 @@
 
 import logging
 
+from core import utils
 from core.models import Recording, RecordingStatusChoices
 
 from .exceptions import (
@@ -60,6 +61,15 @@ class WorkerServiceMediator:
         finally:
             recording.save()
 
+        mode = recording.options.get("original_mode", None) or recording.mode
+
+        try:
+            utils.update_room_metadata(
+                room_name, {"recording_mode": mode, "recording_status": "starting"}
+            )
+        except utils.MetadataUpdateException as e:
+            logger.exception("Failed to update room's metadata: %s", e)
+
         logger.info(
             "Worker started for room %s (worker ID: %s)",
             recording.room,
@@ -94,5 +104,11 @@ class WorkerServiceMediator:
             recording.status = RecordingStatusChoices[response]
         finally:
             recording.save()
+
+        try:
+            room_name = str(recording.room.id)
+            utils.update_room_metadata(room_name, {"recording_status": "saving"})
+        except utils.MetadataUpdateException as e:
+            logger.exception("Failed to update room's metadata: %s", e)
 
         logger.info("Worker stopped for room %s", recording.room)

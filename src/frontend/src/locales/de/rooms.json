@@ -260,8 +260,8 @@
       "participants": "Teilnehmer",
       "effects": "Effekte",
       "chat": "Nachrichten im Chat",
-      "transcript": "Transkription",
-      "screenRecording": "Aufzeichnung",
+      "transcript": "Transkribieren",
+      "screenRecording": "Aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
       "info": "Meeting-Informationen"
@@ -270,8 +270,8 @@
       "participants": "Teilnehmer",
       "effects": "Effekte",
       "chat": "Nachrichten",
-      "transcript": "Transkription",
-      "screenRecording": "Aufzeichnung",
+      "transcript": "transkribieren",
+      "screenRecording": "aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
       "info": "Meeting-Informationen"
@@ -286,12 +286,12 @@
     "moreLink": "Mehr erfahren",
     "tools": {
       "transcript": {
-        "title": "Transkription",
-        "body": "Führen Sie ein schriftliches Protokoll Ihres Meetings."
+        "title": "Transkribieren",
+        "body": "Das Gespräch aufzeichnen."
       },
       "screenRecording": {
-        "title": "Aufzeichnung",
-        "body": "Zeichnen Sie Ihr Meeting auf, um es später erneut anzusehen."
+        "title": "Aufzeichnen",
+        "body": "Das Meeting aufzeichnen."
       }
     }
   },
@@ -310,73 +310,98 @@
     }
   },
   "transcript": {
-    "start": {
-      "heading": "Dieses Gespräch transkribieren",
-      "body": "Dieses Gespräch automatisch transkribieren {{duration_message}} und die Zusammenfassung in Docs erhalten.",
-      "button": "Transkription starten",
-      "loading": "Transkription wird gestartet",
-      "linkMore": "Mehr erfahren"
+    "heading": "Transkribieren Sie Ihr Meeting mit dem KI-Assistenten",
+    "body": "Transkribieren Sie bis zu {{max_duration}} Meetingdauer.",
+    "bodyWithoutMaxDuration": "Transkribieren Sie Ihr Meeting ohne Begrenzung.",
+    "details": {
+      "receiver": "Das Transkript wird an den Organisator und die Mitorganisatoren gesendet.",
+      "destination": "Ein neues Dokument wird erstellt auf",
+      "destinationUnknown": "Ein neues Dokument wird erstellt",
+      "language": "Meeting-Sprachen:",
+      "recording": "Auch eine Aufzeichnung starten"
     },
+    "button": {
+      "start": "Meeting transkribieren starten",
+      "stop": "Meeting transkribieren beenden",
+      "saving": "Speichern…",
+      "starting": "Wird gestartet…",
+      "anotherModeStarted": "Eine Aufnahme läuft. <br/> Wechseln Sie das Menü und stoppen Sie sie."
+    },
+    "linkMore": "Mehr erfahren",
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
-      "linkMore": "Mehr erfahren"
-    },
-    "stop": {
-      "heading": "Transkription läuft...",
-      "body": "Die Transkription deines Meetings läuft. Du erhältst das Ergebnis per E-Mail, sobald das Meeting beendet ist.",
-      "button": "Transkription stoppen"
-    },
-    "stopping": {
-      "heading": "Daten werden gespeichert…",
-      "body": "Sie können das Meeting verlassen, wenn Sie möchten; die Aufzeichnung wird automatisch beendet."
-    },
-    "beta": {
-      "heading": "Werde Beta-Tester",
-      "body": "Zeichne dein Meeting auf. Du erhältst eine Zusammenfassung per E-Mail nach dem Meeting.",
-      "button": "Anmelden"
-    },
-    "alert": {
-      "title": "Transkription fehlgeschlagen",
-      "body": {
-        "stop": "Die Transkription konnte nicht gestoppt werden. Bitte versuche es in einem Moment erneut.",
-        "start": "Die Transkription konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
+      "linkMore": "Mehr erfahren",
+      "dividerLabel": "ODER",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
       },
-      "button": "OK"
+      "request": {
+        "heading": "Anfrage an Moderator",
+        "body": "Der Moderator wird benachrichtigt und kann die Transkription starten.",
+        "buttonLabel": "Anfordern"
+      }
     },
-    "durationMessage": "(begrenzt auf {{max_duration}}) "
+    "premium": {
+      "heading": "Premium-Funktion",
+      "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn Ihre E-Mail-Adresse nicht autorisiert ist, kontaktieren Sie bitte den Support, um Zugriff zu erhalten.",
+      "linkMore": "Mehr erfahren",
+      "dividerLabel": "ODER",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+      },
+      "request": {
+        "heading": "Anfrage an Moderator",
+        "body": "Der Moderator wird benachrichtigt und kann die Transkription starten.",
+        "buttonLabel": "Anfordern"
+      }
+    }
   },
   "screenRecording": {
-    "start": {
-      "heading": "Dieses Gespräch aufzeichnen",
-      "body": "Zeichne dieses Gespräch auf, um es später anzusehen {{duration_message}}. Du erhältst die Videoaufnahme per E-Mail.",
-      "button": "Aufzeichnung starten",
+    "heading": "Diesen Anruf für später aufzeichnen",
+    "body": "Zeichnen Sie bis zu {{max_duration}} des Meetings auf.",
+    "bodyWithoutMaxDuration": "Zeichnen Sie Ihr Meeting unbegrenzt auf.",
+    "linkMore": "Mehr erfahren",
+    "details": {
+      "receiver": "Die Aufzeichnung wird an den Organisator und die Co-Organisatoren gesendet.",
+      "destination": "Diese Aufzeichnung wird vorübergehend auf unseren Servern gespeichert",
       "loading": "Aufzeichnung wird gestartet",
-      "linkMore": "Mehr erfahren"
+      "linkMore": "Mehr erfahren",
+      "transcription": "Diese Aufzeichnung transkribieren"
+    },
+    "button": {
+      "start": "Meeting-Aufzeichnung starten",
+      "stop": "Meeting-Aufzeichnung beenden",
+      "saving": "Wird gespeichert…",
+      "starting": "Wird gestartet…",
+      "anotherModeStarted": "Eine Transkription läuft. <br/> Wechseln Sie das Menü und stoppen Sie sie."
     },
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine videoaufnahme (Beta) starten.",
-      "linkMore": "Mehr erfahren"
-    },
-    "stopping": {
-      "heading": "Daten werden gespeichert…",
-      "body": "Sie können das Meeting verlassen, wenn Sie möchten; die Aufzeichnung wird automatisch beendet."
-    },
-    "stop": {
-      "heading": "Aufzeichnung läuft…",
-      "body": "Du erhältst das Ergebnis per E-Mail, sobald die Aufzeichnung abgeschlossen ist.",
-      "button": "Aufzeichnung stoppen"
-    },
-    "alert": {
-      "title": "Aufzeichnung fehlgeschlagen",
-      "body": {
-        "stop": "Die Aufzeichnung konnte nicht gestoppt werden. Bitte versuche es in einem Moment erneut.",
-        "start": "Die Aufzeichnung konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
+      "linkMore": "Mehr erfahren",
+      "dividerLabel": "ODER",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Nur der Ersteller der Besprechung oder ein Administrator kann die Aufzeichnung starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
       },
-      "button": "OK"
+      "request": {
+        "heading": "Aufnahme anfordern",
+        "body": "Der Moderator wird benachrichtigt und kann die Aufnahme für Sie starten.",
+        "buttonLabel": "Anfrage senden"
+      }
     },
     "durationMessage": "(begrenzt auf {{max_duration}})"
+  },
+  "errorRecordingAlertDialog": {
+    "title": "Aufzeichnung fehlgeschlagen",
+    "body": {
+      "stop": "Die Aufzeichnung konnte nicht gestoppt werden. Bitte versuche es in einem Moment erneut.",
+      "start": "Die Aufzeichnung konnte nicht gestartet werden. Bitte versuche es in einem Moment erneut."
+    },
+    "button": "OK"
   },
   "admin": {
     "description": "Diese Einstellungen für Organisatoren ermöglichen dir die Kontrolle über dein Meeting. Nur Organisatoren haben Zugriff auf diese Optionen.",
@@ -496,7 +521,7 @@
       "starting": "Transkription wird gestartet",
       "stopping": "Transkription wird gestoppt"
     },
-    "screenRecording": {
+    "screen_recording": {
       "started": "Aufzeichnung läuft",
       "starting": "Aufzeichnung wird gestartet",
       "stopping": "Aufzeichnung wird gestoppt"

@@ -7,16 +7,19 @@ import { RecordingMode } from '../types'
 export interface StartRecordingParams {
   id: string
   mode?: RecordingMode
+  options?: Record<string, string | boolean>
 }
 
 const startRecording = ({
   id,
   mode = RecordingMode.Transcript,
+  options,
 }: StartRecordingParams): Promise<ApiRoom> => {
   return fetchApi(`rooms/${id}/start-recording/`, {
     method: 'POST',
     body: JSON.stringify({
       mode: mode,
+      options: options,
     }),
   })
 }

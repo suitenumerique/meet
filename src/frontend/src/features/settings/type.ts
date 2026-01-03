@@ -4,4 +4,5 @@ export enum SettingsDialogExtendedKey {
   VIDEO = 'video',
   GENERAL = 'general',
   NOTIFICATIONS = 'notifications',
+  TRANSCRIPTION = 'transcription',
 }

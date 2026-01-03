@@ -1,4 +1,4 @@
-import { A, Button, Dialog, Div, H, LinkButton, P, Text } from '@/primitives'
+import { A, Button, Div, H, Text } from '@/primitives'
 
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
@@ -6,15 +6,12 @@ import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
   useHasRecordingAccess,
-  useIsRecordingTransitioning,
-  useStartRecording,
-  useStopRecording,
   useHasFeatureWithoutAdminRights,
+  useHumanizeRecordingMaxDuration,
+  useRecordingStatuses,
 } from '../index'
-import { useEffect, useMemo, useState } from 'react'
-import { ConnectionState, RoomEvent } from 'livekit-client'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RecordingStatus, recordingStore } from '@/stores/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 import {
   NotificationType,
@@ -22,23 +19,35 @@ import {
   notifyRecordingSaveInProgress,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
-import { useSnapshot } from 'valtio/index'
-import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
-import humanizeDuration from 'humanize-duration'
-import i18n from 'i18next'
+import { VStack } from '@/styled-system/jsx'
+import { Checkbox } from '@/primitives/Checkbox.tsx'
+
+import {
+  useSettingsDialog,
+  SettingsDialogExtendedKey,
+  useTranscriptionLanguage,
+} from '@/features/settings'
+import { NoAccessView } from './NoAccessView'
+import { ControlsButton } from './ControlsButton'
+import { RowWrapper } from './RowWrapper'
+import { useMutateRecording } from '../hooks/useMutateRecording'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
+  const recordingMaxDuration = useHumanizeRecordingMaxDuration()
 
-  const [isLoading, setIsLoading] = useState(false)
-  const { t } = useTranslation('rooms', { keyPrefix: 'transcript' })
+  const keyPrefix = 'transcript'
+  const { t } = useTranslation('rooms', { keyPrefix })
 
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
-
-  const recordingSnap = useSnapshot(recordingStore)
+  const [includeScreenRecording, setIncludeScreenRecording] = useState(false)
 
   const { notifyParticipants } = useNotifyParticipants()
+  const { selectedLanguageKey, selectedLanguageLabel, isLanguageSetToAuto } =
+    useTranscriptionLanguage()
+
+  const { openSettingsDialog } = useSettingsDialog()
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
@@ -52,40 +61,20 @@ export const TranscriptSidePanel = () => {
 
   const roomId = useRoomId()
 
-  const { mutateAsync: startRecordingRoom, isPending: isPendingToStart } =
-    useStartRecording({
-      onError: () => setIsErrorDialogOpen('start'),
-    })
+  const { startRecording, isPendingToStart, stopRecording, isPendingToStop } =
+    useMutateRecording()
 
-  const { mutateAsync: stopRecordingRoom, isPending: isPendingToStop } =
-    useStopRecording({
-      onError: () => setIsErrorDialogOpen('stop'),
-    })
-
-  const statuses = useMemo(() => {
-    return {
-      isAnotherModeStarted:
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTED,
-      isStarting: recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTING,
-      isStarted: recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTED,
-      isStopping: recordingSnap.status == RecordingStatus.TRANSCRIPT_STOPPING,
-    }
-  }, [recordingSnap])
-
-  const isRecordingTransitioning = useIsRecordingTransitioning()
+  const statuses = useRecordingStatuses(RecordingMode.Transcript)
 
   const room = useRoomContext()
-  const isRoomConnected = room.state == ConnectionState.Connected
+  const { openScreenRecording } = useSidePanel()
 
-  useEffect(() => {
-    const handleRecordingStatusChanged = () => {
-      setIsLoading(false)
-    }
-    room.on(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    return () => {
-      room.off(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    }
-  }, [room])
+  const handleRequestTranscription = async () => {
+    await notifyParticipants({
+      type: NotificationType.TranscriptionRequested,
+    })
+    posthog.capture('transcript-requested', {})
+  }
 
   const handleTranscript = async () => {
     if (!roomId) {
@@ -93,10 +82,10 @@ export const TranscriptSidePanel = () => {
       return
     }
     try {
-      setIsLoading(true)
-      if (room.isRecording) {
-        await stopRecordingRoom({ id: roomId })
-        recordingStore.status = RecordingStatus.TRANSCRIPT_STOPPING
+      if (statuses.isStarted || statuses.isStarting) {
+        await stopRecording({ id: roomId })
+        setIncludeScreenRecording(false)
+
         await notifyParticipants({
           type: NotificationType.TranscriptionStopped,
         })
@@ -105,8 +94,26 @@ export const TranscriptSidePanel = () => {
           room.localParticipant
         )
       } else {
-        await startRecordingRoom({ id: roomId, mode: RecordingMode.Transcript })
-        recordingStore.status = RecordingStatus.TRANSCRIPT_STARTING
+        const recordingMode = includeScreenRecording
+          ? RecordingMode.ScreenRecording
+          : RecordingMode.Transcript
+
+        const recordingOptions = {
+          ...(!isLanguageSetToAuto && {
+            language: selectedLanguageKey,
+          }),
+          ...(includeScreenRecording && {
+            transcribe: true,
+            original_mode: RecordingMode.Transcript,
+          }),
+        }
+
+        await startRecording({
+          id: roomId,
+          mode: recordingMode,
+          options: recordingOptions,
+        })
+
         await notifyParticipants({
           type: NotificationType.TranscriptionStarted,
         })
@@ -114,18 +121,34 @@ export const TranscriptSidePanel = () => {
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)
-      setIsLoading(false)
     }
   }
 
-  const isDisabled = useMemo(
-    () =>
-      isLoading ||
-      isRecordingTransitioning ||
-      statuses.isAnotherModeStarted ||
-      !isRoomConnected,
-    [isLoading, isRecordingTransitioning, statuses, isRoomConnected]
-  )
+  if (hasFeatureWithoutAdminRights) {
+    return (
+      <NoAccessView
+        i18nKeyPrefix={keyPrefix}
+        i18nKey="notAdminOrOwner"
+        helpArticle={data?.support?.help_article_transcript}
+        imagePath="/assets/intro-slider/3.png"
+        handleRequest={handleRequestTranscription}
+        isActive={statuses.isActive}
+      />
+    )
+  }
+
+  if (!hasTranscriptAccess) {
+    return (
+      <NoAccessView
+        i18nKeyPrefix={keyPrefix}
+        i18nKey="premium"
+        helpArticle={data?.support?.help_article_transcript}
+        imagePath="/assets/intro-slider/3.png"
+        handleRequest={handleRequestTranscription}
+        isActive={statuses.isActive}
+      />
+    )
+  }
 
   return (
     <Div
@@ -138,199 +161,101 @@ export const TranscriptSidePanel = () => {
     >
       <img
         src="/assets/intro-slider/3.png"
-        alt={''}
+        alt=""
         className={css({
-          minHeight: '309px',
+          minHeight: '250px',
+          height: '250px',
           marginBottom: '1rem',
+          marginTop: '-16px',
+          '@media (max-height: 900px)': {
+            height: 'auto',
+            minHeight: 'auto',
+            maxHeight: '25%',
+            marginBottom: '0.75rem',
+          },
+          '@media (max-height: 770px)': {
+            display: 'none',
+          },
         })}
       />
-      {!hasTranscriptAccess ? (
-        <>
-          {hasFeatureWithoutAdminRights ? (
-            <>
-              <Text>{t('notAdminOrOwner.heading')}</Text>
-              <Text
-                variant="note"
-                wrap="balance"
-                centered
-                className={css({
-                  textStyle: 'sm',
-                  marginBottom: '2.5rem',
-                  marginTop: '0.25rem',
-                })}
-              >
-                {t('notAdminOrOwner.body')}
-                <br />
-                {data?.support?.help_article_transcript && (
-                  <A
-                    href={data.support.help_article_transcript}
-                    target="_blank"
-                  >
-                    {t('notAdminOrOwner.linkMore')}
-                  </A>
-                )}
-              </Text>
-            </>
-          ) : (
-            <>
-              <Text>{t('beta.heading')}</Text>
-              <Text
-                variant="note"
-                wrap={'pretty'}
-                centered
-                className={css({
-                  textStyle: 'sm',
-                  marginBottom: '2.5rem',
-                  marginTop: '0.25rem',
-                })}
-              >
-                {t('beta.body')}{' '}
-                {data?.support?.help_article_transcript && (
-                  <A
-                    href={data.support.help_article_transcript}
-                    target="_blank"
-                  >
-                    {t('start.linkMore')}
-                  </A>
-                )}
-              </Text>
-              {data?.transcript.form_beta_users && (
-                <LinkButton
-                  size="sm"
-                  variant="tertiary"
-                  href={data?.transcript.form_beta_users}
+      <VStack gap={0} marginBottom={30}>
+        <H lvl={1} margin={'sm'}>
+          {t('heading')}
+        </H>
+        <Text variant="body" fullWidth>
+          {recordingMaxDuration
+            ? t('body', {
+                max_duration: recordingMaxDuration,
+              })
+            : t('bodyWithoutMaxDuration')}{' '}
+          {data?.support?.help_article_transcript && (
+            <A href={data.support.help_article_transcript} target="_blank">
+              {t('linkMore')}
+            </A>
+          )}
+        </Text>
+      </VStack>
+      <VStack gap={0} marginBottom={40}>
+        <RowWrapper iconName="article" position="first">
+          <Text variant="sm">
+            {data?.transcription_destination ? (
+              <>
+                {t('details.destination')}{' '}
+                <A
+                  href={data.transcription_destination}
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  {t('beta.button')}
-                </LinkButton>
-              )}
-            </>
-          )}
-        </>
-      ) : (
-        <>
-          {statuses.isStarted ? (
-            <>
-              <H lvl={3} margin={false}>
-                {t('stop.heading')}
-              </H>
-              <Text
-                variant="note"
-                wrap={'pretty'}
-                centered
-                className={css({
-                  textStyle: 'sm',
-                  marginBottom: '2.5rem',
-                  marginTop: '0.25rem',
-                })}
-              >
-                {t('stop.body')}
-              </Text>
-              <Button
-                isDisabled={isDisabled}
-                onPress={() => handleTranscript()}
-                data-attr="stop-transcript"
-                size="sm"
-                variant="tertiary"
-              >
-                {t('stop.button')}
-              </Button>
-            </>
-          ) : (
-            <>
-              {statuses.isStopping || isPendingToStop ? (
-                <>
-                  <H lvl={3} margin={false}>
-                    {t('stopping.heading')}
-                  </H>
-                  <Text
-                    variant="note"
-                    wrap={'pretty'}
-                    centered
-                    className={css({
-                      textStyle: 'sm',
-                      maxWidth: '90%',
-                      marginBottom: '2.5rem',
-                      marginTop: '0.25rem',
-                    })}
-                  >
-                    {t('stopping.body')}
-                  </Text>
-                  <Spinner />
-                </>
-              ) : (
-                <>
-                  <H lvl={3} margin={false}>
-                    {t('start.heading')}
-                  </H>
-                  <Text
-                    variant="note"
-                    wrap="balance"
-                    centered
-                    className={css({
-                      textStyle: 'sm',
-                      maxWidth: '90%',
-                      marginBottom: '2.5rem',
-                      marginTop: '0.25rem',
-                    })}
-                  >
-                    {t('start.body', {
-                      duration_message: data?.recording?.max_duration
-                        ? t('durationMessage', {
-                            max_duration: humanizeDuration(
-                              data?.recording?.max_duration,
-                              {
-                                language: i18n.language,
-                              }
-                            ),
-                          })
-                        : '',
-                    })}{' '}
-                    {data?.support?.help_article_transcript && (
-                      <A
-                        href={data.support.help_article_transcript}
-                        target="_blank"
-                      >
-                        {t('start.linkMore')}
-                      </A>
-                    )}
-                  </Text>
-                  <Button
-                    isDisabled={isDisabled}
-                    onPress={() => handleTranscript()}
-                    data-attr="start-transcript"
-                    size="sm"
-                    variant="tertiary"
-                  >
-                    {statuses.isStarting || isPendingToStart ? (
-                      <>
-                        <Spinner size={20} />
-                        {t('start.loading')}
-                      </>
-                    ) : (
-                      t('start.button')
-                    )}
-                  </Button>
-                </>
-              )}
-            </>
-          )}
-        </>
-      )}
-      <Dialog
-        isOpen={!!isErrorDialogOpen}
-        role="alertdialog"
-        aria-label={t('alert.title')}
-      >
-        <P>{t(`alert.body.${isErrorDialogOpen}`)}</P>
-        <Button
-          variant="text"
-          size="sm"
-          onPress={() => setIsErrorDialogOpen('')}
+                  {data.transcription_destination.replace('https://', '')}
+                </A>
+              </>
+            ) : (
+              t('details.destinationUnknown')
+            )}
+          </Text>
+        </RowWrapper>
+        <RowWrapper iconName="mail">
+          <Text variant="sm">{t('details.receiver')}</Text>
+        </RowWrapper>
+        <RowWrapper iconName="language" position="last">
+          <Text variant="sm">{t('details.language')}</Text>
+          <Text variant="sm">
+            <Button
+              variant="text"
+              size="xs"
+              onPress={() =>
+                openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
+              }
+            >
+              {selectedLanguageLabel}
+            </Button>
+          </Text>
+        </RowWrapper>
+        <div className={css({ height: '15px' })} />
+        <div
+          className={css({
+            width: '100%',
+            marginLeft: '20px',
+          })}
         >
-          {t('alert.button')}
-        </Button>
-      </Dialog>
+          <Checkbox
+            size="sm"
+            isSelected={includeScreenRecording}
+            onChange={setIncludeScreenRecording}
+            isDisabled={statuses.isActive || isPendingToStart}
+          >
+            <Text variant="sm">{t('details.recording')}</Text>
+          </Checkbox>
+        </div>
+      </VStack>
+      <ControlsButton
+        i18nKeyPrefix={keyPrefix}
+        handle={handleTranscript}
+        statuses={statuses}
+        isPendingToStart={isPendingToStart}
+        isPendingToStop={isPendingToStop}
+        openSidePanel={openScreenRecording}
+      />
     </Div>
   )
 }

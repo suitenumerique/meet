@@ -106,6 +106,11 @@ export const text = cva({
         marginBottom: 1,
       },
     },
+    padding: {
+      false: {
+        padding: '0!',
+      },
+    },
     fullWidth: {
       true: {
         width: '100%',

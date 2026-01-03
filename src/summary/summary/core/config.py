@@ -1,7 +1,7 @@
 """Application configuration and settings."""
 
 from functools import lru_cache
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Optional, Set
 
 from fastapi import Depends
 from pydantic import SecretStr
@@ -19,6 +19,8 @@ class Settings(BaseSettings):
 
     # Audio recordings
     recording_max_duration: Optional[int] = None
+    recording_allowed_extensions: Set[str] = {".ogg", ".mp4"}
+    recording_video_extensions: Set[str] = {".mp4"}
 
     # Celery settings
     celery_broker_url: str = "redis://redis/0"
@@ -42,6 +44,7 @@ class Settings(BaseSettings):
     whisperx_max_retries: int = 0
     # ISO 639-1 language code (e.g., "en", "fr", "es")
     whisperx_default_language: Optional[str] = None
+    whisperx_allowed_languages: Set[str] = {"en", "fr"}
     llm_base_url: str
     llm_api_key: SecretStr
     llm_model: str

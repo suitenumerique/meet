@@ -194,8 +194,8 @@
       "closed": "Afficher les participants"
     },
     "tools": {
-      "open": "Masquer plus d'outils",
-      "closed": "Afficher plus d'outils"
+      "open": "Masquer les outils de réunion",
+      "closed": "Afficher les outils de réunion"
     },
     "admin": {
       "open": "Masquer l'admin",
@@ -260,20 +260,20 @@
       "participants": "Participants",
       "effects": "Effets",
       "chat": "Messages dans l'appel",
-      "transcript": "Transcription",
-      "screenRecording": "Enregistrement",
+      "transcript": "Transcrire",
+      "screenRecording": "Enregistrer",
       "admin": "Commandes de l'organisateur",
-      "tools": "Plus d'outils",
+      "tools": "Outils de réunion",
       "info": "Informations sur la réunion"
     },
     "content": {
       "participants": "les participants",
       "effects": "les effets",
       "chat": "les messages",
-      "transcript": "transcription",
-      "screenRecording": "enregistrement",
+      "transcript": "transcrire",
+      "screenRecording": "enregistrer",
       "admin": "commandes de l'organisateur",
-      "tools": "plus d'outils",
+      "tools": "outils de réunion",
       "info": "informations sur la réunion"
     },
     "closeButton": "Masquer {{content}}"
@@ -286,12 +286,12 @@
     "moreLink": "En savoir plus",
     "tools": {
       "transcript": {
-        "title": "Transcription",
-        "body": "Conservez une trace écrite de votre réunion."
+        "title": "Transcrire",
+        "body": "Enregistrer la conversation."
       },
       "screenRecording": {
-        "title": "Enregistrement",
-        "body": "Enregistrez votre réunion pour la revoir quand vous le souhaitez."
+        "title": "Enregistrer",
+        "body": "Enregistrer la réunion."
       }
     }
   },
@@ -310,73 +310,98 @@
     }
   },
   "transcript": {
-    "start": {
-      "heading": "Transcrire cet appel",
-      "body": "Transcrivez cet appel automatiquement {{duration_message}} et recevez le compte rendu dans Docs.",
-      "button": "Démarrer la transcription",
-      "loading": "Démarrage de la transcription",
-      "linkMore": "En savoir plus"
+    "heading": "Transcrivez votre réunion avec l'Assistant IA",
+    "body": "Transcrivez jusqu'à {{max_duration}} de réunion.",
+    "bodyWithoutMaxDuration": "Transcrivez votre réunion sans limite.",
+    "details": {
+      "receiver": "La transcription sera envoyée à l'organisateur et aux coorganisateurs.",
+      "destination": "Un nouveau document sera créé sur",
+      "destinationUnknown": "Un nouveau document sera créé",
+      "language": "Langue de la réunion :",
+      "recording": "Démarrer aussi un enregistrement"
     },
+    "button": {
+      "start": "Commencer à transcrire la réunion",
+      "stop": "Arrêter de transcrire la réunion",
+      "saving": "Sauvegarde…",
+      "starting": "Démarrage…",
+      "anotherModeStarted": "Un enregistrement est en cours. <br/> Changez de menu et arrêtez le."
+    },
+    "linkMore": "En savoir plus",
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta).",
-      "linkMore": "En savoir plus"
-    },
-    "stop": {
-      "heading": "Transcription en cours …",
-      "body": "La transcription de votre réunion est en cours. Vous recevrez le resultat par email une fois la réunion terminée.",
-      "button": "Arrêter la transcription"
-    },
-    "stopping": {
-      "heading": "Sauvegarde de vos données…",
-      "body": "Vous pouvez quitter la réunion si vous le souhaitez, la sauvegarde se terminera automatiquement."
-    },
-    "beta": {
-      "heading": "Devenez beta testeur",
-      "body": "Enregistrer votre réunion pour plus tard. Vous recevrez un compte-rendu par email une fois la réunion terminée.",
-      "button": "Inscrivez-vous"
-    },
-    "alert": {
-      "title": "Échec de transcription",
-      "body": {
-        "stop": "Nous n'avons pas pu stopper la transcription. Veuillez réessayer dans quelques instants.",
-        "start": "Nous n'avons pas pu démarrer la transcription. Veuillez réessayer dans quelques instants."
+      "linkMore": "En savoir plus",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Connexion requise",
+        "body": "Seul le créateur de la réunion ou un administrateur peut démarrer la transcription. Connectez-vous pour vérifier vos autorisations."
       },
-      "button": "OK"
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer la transcription pour vous.",
+        "buttonLabel": "Demander"
+      }
     },
-    "durationMessage": "(limité à {{max_duration}}) "
+    "premium": {
+      "heading": "Fonctionnalité premium",
+      "body": "Cette fonctionnalité est réservée aux agents publics. Si votre adresse email n’est pas autorisée, contactez le support pour obtenir l'accès.",
+      "linkMore": "En savoir plus",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Vous n'êtes pas connecté !",
+        "body": "Vous devez être connecté pour utiliser cette fonctionnalité. Connectez-vous, puis réessayez."
+      },
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer la transcription pour vous.",
+        "buttonLabel": "Demander"
+      }
+    }
   },
   "screenRecording": {
-    "start": {
-      "heading": "Enregistrer cet appel",
-      "body": "Enregistrez cet appel pour plus tard {{duration_message}} et recevez l'enregistrement vidéo par mail.",
-      "button": "Démarrer l'enregistrement",
+    "heading": "Enregistrez cet appel pour plus tard",
+    "body": "Enregistrez jusqu'à {{max_duration}} de réunion.",
+    "bodyWithoutMaxDuration": "Enregistrez votre réunion sans limite.",
+    "linkMore": "En savoir plus",
+    "details": {
+      "receiver": "L'enregistrement sera envoyé à l'organisateur et aux coorganisateurs.",
+      "destination": "Cet enregistrement sera conservé temporairement sur nos serveurs",
       "loading": "Démarrage de l'enregistrement",
-      "linkMore": "En savoir plus"
+      "linkMore": "En savoir plus",
+      "transcription": "Transcrire cet enregistrement"
+    },
+    "button": {
+      "start": "Commencer à enregistrer la réunion",
+      "stop": "Arrêter d'enregistrer la réunion",
+      "saving": "Sauvegarde…",
+      "starting": "Démarrage…",
+      "anotherModeStarted": "Une transcription est en cours. <br/> Changez de menu et arrêtez la."
     },
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer un enregistrement (beta).",
-      "linkMore": "En savoir plus"
-    },
-    "stopping": {
-      "heading": "Sauvegarde de vos données…",
-      "body": "Vous pouvez quitter la réunion si vous le souhaitez, la sauvegarde se terminera automatiquement."
-    },
-    "stop": {
-      "heading": "Enregistrement en cours …",
-      "body": "Vous recevrez le resultat par email une fois l'enregistrement terminé.",
-      "button": "Arrêter l'enregistrement"
-    },
-    "alert": {
-      "title": "Échec de l'enregistrement",
-      "body": {
-        "stop": "Nous n'avons pas pu stopper l'enregistrement. Veuillez réessayer dans quelques instants.",
-        "start": "Nous n'avons pas pu démarrer l'enregistrement. Veuillez réessayer dans quelques instants."
+      "linkMore": "En savoir plus",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Connexion requise",
+        "body": "Seul le créateur de la réunion ou un administrateur peut démarrer l'enregistrement. Connectez-vous pour vérifier vos autorisations."
       },
-      "button": "OK"
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer l'enregistrement pour vous.",
+        "buttonLabel": "Demander"
+      }
     },
     "durationMessage": "(limité à {{max_duration}}) "
+  },
+  "errorRecordingAlertDialog": {
+    "title": "Échec de l'enregistrement",
+    "body": {
+      "stop": "Nous n'avons pas pu stopper l'enregistrement. Veuillez réessayer dans quelques instants.",
+      "start": "Nous n'avons pas pu démarrer l'enregistrement. Veuillez réessayer dans quelques instants."
+    },
+    "button": "OK"
   },
   "admin": {
     "description": "Ces paramètres organisateur vous permettent de garder le contrôle de votre réunion. Seuls les organisateurs peuvent accéder à ces commandes.",
@@ -496,7 +521,7 @@
       "starting": "Démarrage de la transcription",
       "stopping": "Arrêt de la transcription"
     },
-    "screenRecording": {
+    "screen_recording": {
       "started": "Enregistrement en cours",
       "starting": "Démarrage de l'enregistrement",
       "stopping": "Arrêt de l'enregistrement"

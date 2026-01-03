@@ -1,18 +1,16 @@
-import { A, Button, Dialog, Div, H, P, Text } from '@/primitives'
+import { A, Div, H, Text } from '@/primitives'
 
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
-  useIsRecordingTransitioning,
-  useStartRecording,
-  useStopRecording,
+  useHasFeatureWithoutAdminRights,
+  useHumanizeRecordingMaxDuration,
+  useRecordingStatuses,
 } from '@/features/recording'
-import { useEffect, useMemo, useState } from 'react'
-import { ConnectionState, RoomEvent } from 'livekit-client'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RecordingStatus, recordingStore } from '@/stores/recording'
 
 import {
   NotificationType,
@@ -20,59 +18,51 @@ import {
   useNotifyParticipants,
 } from '@/features/notifications'
 import posthog from 'posthog-js'
-import { useSnapshot } from 'valtio/index'
-import { Spinner } from '@/primitives/Spinner'
 import { useConfig } from '@/api/useConfig'
-import humanizeDuration from 'humanize-duration'
-import i18n from 'i18next'
+import { FeatureFlags } from '@/features/analytics/enums'
+import { NoAccessView } from './NoAccessView'
+import { ControlsButton } from './ControlsButton'
+import { RowWrapper } from './RowWrapper'
+import { VStack } from '@/styled-system/jsx'
+import { Checkbox } from '@/primitives/Checkbox'
+import { useTranscriptionLanguage } from '@/features/settings'
+import { useMutateRecording } from '../hooks/useMutateRecording'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
-  const [isLoading, setIsLoading] = useState(false)
-  const recordingSnap = useSnapshot(recordingStore)
-  const { t } = useTranslation('rooms', { keyPrefix: 'screenRecording' })
+  const recordingMaxDuration = useHumanizeRecordingMaxDuration()
 
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState('')
+  const keyPrefix = 'screenRecording'
+  const { t } = useTranslation('rooms', { keyPrefix })
+
+  const [includeTranscript, setIncludeTranscript] = useState(false)
+
+  const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
+    RecordingMode.ScreenRecording,
+    FeatureFlags.ScreenRecording
+  )
 
   const { notifyParticipants } = useNotifyParticipants()
+  const { selectedLanguageKey, isLanguageSetToAuto } =
+    useTranscriptionLanguage()
 
   const roomId = useRoomId()
 
-  const { mutateAsync: startRecordingRoom, isPending: isPendingToStart } =
-    useStartRecording({
-      onError: () => setIsErrorDialogOpen('start'),
-    })
-  const { mutateAsync: stopRecordingRoom, isPending: isPendingToStop } =
-    useStopRecording({
-      onError: () => setIsErrorDialogOpen('stop'),
-    })
+  const { startRecording, isPendingToStart, stopRecording, isPendingToStop } =
+    useMutateRecording()
 
-  const statuses = useMemo(() => {
-    return {
-      isAnotherModeStarted:
-        recordingSnap.status == RecordingStatus.TRANSCRIPT_STARTED,
-      isStarting:
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTING,
-      isStarted:
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STARTED,
-      isStopping:
-        recordingSnap.status == RecordingStatus.SCREEN_RECORDING_STOPPING,
-    }
-  }, [recordingSnap])
+  const statuses = useRecordingStatuses(RecordingMode.ScreenRecording)
 
   const room = useRoomContext()
-  const isRoomConnected = room.state == ConnectionState.Connected
-  const isRecordingTransitioning = useIsRecordingTransitioning()
+  const { openTranscript } = useSidePanel()
 
-  useEffect(() => {
-    const handleRecordingStatusChanged = () => {
-      setIsLoading(false)
-    }
-    room.on(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    return () => {
-      room.off(RoomEvent.RecordingStatusChanged, handleRecordingStatusChanged)
-    }
-  }, [room])
+  const handleRequestScreenRecording = async () => {
+    await notifyParticipants({
+      type: NotificationType.ScreenRecordingRequested,
+    })
+    posthog.capture('screen-recording-requested', {})
+  }
 
   const handleScreenRecording = async () => {
     if (!roomId) {
@@ -80,10 +70,10 @@ export const ScreenRecordingSidePanel = () => {
       return
     }
     try {
-      setIsLoading(true)
-      if (room.isRecording) {
-        await stopRecordingRoom({ id: roomId })
-        recordingStore.status = RecordingStatus.SCREEN_RECORDING_STOPPING
+      if (statuses.isStarted || statuses.isStarting) {
+        setIncludeTranscript(false)
+        await stopRecording({ id: roomId })
+
         await notifyParticipants({
           type: NotificationType.ScreenRecordingStopped,
         })
@@ -92,11 +82,19 @@ export const ScreenRecordingSidePanel = () => {
           room.localParticipant
         )
       } else {
-        await startRecordingRoom({
+        const recordingOptions = {
+          ...(!isLanguageSetToAuto && {
+            language: selectedLanguageKey,
+          }),
+          ...(includeTranscript && { transcribe: true }),
+        }
+
+        await startRecording({
           id: roomId,
           mode: RecordingMode.ScreenRecording,
+          options: recordingOptions,
         })
-        recordingStore.status = RecordingStatus.SCREEN_RECORDING_STARTING
+
         await notifyParticipants({
           type: NotificationType.ScreenRecordingStarted,
         })
@@ -104,18 +102,21 @@ export const ScreenRecordingSidePanel = () => {
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)
-      setIsLoading(false)
     }
   }
 
-  const isDisabled = useMemo(
-    () =>
-      isLoading ||
-      isRecordingTransitioning ||
-      statuses.isAnotherModeStarted ||
-      !isRoomConnected,
-    [isLoading, isRecordingTransitioning, statuses, isRoomConnected]
-  )
+  if (hasFeatureWithoutAdminRights) {
+    return (
+      <NoAccessView
+        i18nKeyPrefix={keyPrefix}
+        i18nKey="notAdminOrOwner"
+        helpArticle={data?.support?.help_article_recording}
+        imagePath="/assets/intro-slider/4.png"
+        handleRequest={handleRequestScreenRecording}
+        isActive={statuses.isActive}
+      />
+    )
+  }
 
   return (
     <Div
@@ -128,130 +129,74 @@ export const ScreenRecordingSidePanel = () => {
     >
       <img
         src="/assets/intro-slider/4.png"
-        alt={''}
+        alt=""
         className={css({
-          minHeight: '309px',
+          minHeight: '250px',
+          height: '250px',
           marginBottom: '1rem',
+          marginTop: '-16px',
+          '@media (max-height: 900px)': {
+            height: 'auto',
+            minHeight: 'auto',
+            maxHeight: '25%',
+            marginBottom: '0.75rem',
+          },
+          '@media (max-height: 770px)': {
+            display: 'none',
+          },
         })}
       />
-
-      {statuses.isStarted ? (
-        <>
-          <H lvl={3} margin={false}>
-            {t('stop.heading')}
-          </H>
-          <Text
-            variant="note"
-            wrap={'pretty'}
-            centered
-            className={css({
-              textStyle: 'sm',
-              marginBottom: '2.5rem',
-              marginTop: '0.25rem',
-            })}
-          >
-            {t('stop.body')}
-          </Text>
-          <Button
-            isDisabled={isDisabled}
-            onPress={() => handleScreenRecording()}
-            data-attr="stop-screen-recording"
-            size="sm"
-            variant="tertiary"
-          >
-            {t('stop.button')}
-          </Button>
-        </>
-      ) : (
-        <>
-          {statuses.isStopping || isPendingToStop ? (
-            <>
-              <H lvl={3} margin={false}>
-                {t('stopping.heading')}
-              </H>
-              <Text
-                variant="note"
-                wrap={'pretty'}
-                centered
-                className={css({
-                  textStyle: 'sm',
-                  maxWidth: '90%',
-                  marginBottom: '2.5rem',
-                  marginTop: '0.25rem',
-                })}
-              >
-                {t('stopping.body')}
-              </Text>
-              <Spinner />
-            </>
-          ) : (
-            <>
-              <H lvl={3} margin={false}>
-                {t('start.heading')}
-              </H>
-              <Text
-                variant="note"
-                wrap="balance"
-                centered
-                className={css({
-                  textStyle: 'sm',
-                  maxWidth: '90%',
-                  marginBottom: '2.5rem',
-                  marginTop: '0.25rem',
-                })}
-              >
-                {t('start.body', {
-                  duration_message: data?.recording?.max_duration
-                    ? t('durationMessage', {
-                        max_duration: humanizeDuration(
-                          data?.recording?.max_duration,
-                          {
-                            language: i18n.language,
-                          }
-                        ),
-                      })
-                    : '',
-                })}{' '}
-                {data?.support?.help_article_recording && (
-                  <A href={data.support.help_article_recording} target="_blank">
-                    {t('start.linkMore')}
-                  </A>
-                )}
-              </Text>
-              <Button
-                isDisabled={isDisabled}
-                onPress={() => handleScreenRecording()}
-                data-attr="start-screen-recording"
-                size="sm"
-                variant="tertiary"
-              >
-                {statuses.isStarting || isPendingToStart ? (
-                  <>
-                    <Spinner size={20} />
-                    {t('start.loading')}
-                  </>
-                ) : (
-                  t('start.button')
-                )}
-              </Button>
-            </>
+      <VStack gap={0} marginBottom={30}>
+        <H lvl={1} margin={'sm'} fullWidth>
+          {t('heading')}
+        </H>
+        <Text variant="body" fullWidth>
+          {recordingMaxDuration
+            ? t('body', {
+                max_duration: recordingMaxDuration,
+              })
+            : t('bodyWithoutMaxDuration')}{' '}
+          {data?.support?.help_article_transcript && (
+            <A href={data.support.help_article_transcript} target="_blank">
+              {t('linkMore')}
+            </A>
           )}
-        </>
-      )}
-      <Dialog
-        isOpen={!!isErrorDialogOpen}
-        role="alertdialog"
-        aria-label={t('alert.title')}
-      >
-        <P>{t(`alert.body.${isErrorDialogOpen}`)}</P>
-        <Button
-          variant="text"
-          size="sm"
-          onPress={() => setIsErrorDialogOpen('')}
+        </Text>
+      </VStack>
+      <VStack gap={0} marginBottom={40}>
+        <RowWrapper iconName="cloud_download" position="first">
+          <Text variant="sm">{t('details.destination')}</Text>
+        </RowWrapper>
+        <RowWrapper iconName="mail" position="last">
+          <Text variant="sm">{t('details.receiver')}</Text>
+        </RowWrapper>
+
+        <div className={css({ height: '15px' })} />
+
+        <div
+          className={css({
+            width: '100%',
+            marginLeft: '20px',
+          })}
         >
-          {t('alert.button')}
-        </Button>
-      </Dialog>
+          <Checkbox
+            size="sm"
+            isSelected={includeTranscript}
+            onChange={setIncludeTranscript}
+            isDisabled={statuses.isActive || isPendingToStart}
+          >
+            <Text variant="sm">{t('details.transcription')}</Text>
+          </Checkbox>
+        </div>
+      </VStack>
+      <ControlsButton
+        i18nKeyPrefix={keyPrefix}
+        handle={handleScreenRecording}
+        statuses={statuses}
+        isPendingToStart={isPendingToStart}
+        isPendingToStop={isPendingToStop}
+        openSidePanel={openTranscript}
+      />
     </Div>
   )
 }

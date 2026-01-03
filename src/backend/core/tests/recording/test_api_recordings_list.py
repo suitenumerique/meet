@@ -82,6 +82,7 @@ def test_api_recordings_list_authenticated_direct(role, settings):
         "key": recording.key,
         "created_at": recording.created_at.isoformat().replace("+00:00", "Z"),
         "mode": recording.mode,
+        "options": {},
         "room": {
             "access_level": str(room.access_level),
             "id": str(room.id),

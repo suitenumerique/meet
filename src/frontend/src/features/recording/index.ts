@@ -1,9 +1,9 @@
 // hooks
 export { useIsRecordingModeEnabled } from './hooks/useIsRecordingModeEnabled'
-export { useIsRecordingTransitioning } from './hooks/useIsRecordingTransitioning'
 export { useHasRecordingAccess } from './hooks/useHasRecordingAccess'
-export { useIsRecordingActive } from './hooks/useIsRecordingActive'
 export { useHasFeatureWithoutAdminRights } from './hooks/useHasFeatureWithoutAdminRights'
+export { useHumanizeRecordingMaxDuration } from './hooks/useHumanizeRecordingMaxDuration'
+export { useRecordingStatuses } from './hooks/useRecordingStatuses'
 
 // api
 export { useStartRecording } from './api/startRecording'
@@ -11,7 +11,7 @@ export { useStopRecording } from './api/stopRecording'
 export { RecordingMode, RecordingStatus } from './types'
 
 // components
-export { RecordingStateToast } from './components/RecordingStateToast'
+export { RecordingProvider } from './components/RecordingProvider'
 export { TranscriptSidePanel } from './components/TranscriptSidePanel'
 export { ScreenRecordingSidePanel } from './components/ScreenRecordingSidePanel'
 
