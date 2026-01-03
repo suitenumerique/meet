@@ -16,6 +16,23 @@ from core import models
 logger = logging.getLogger(__name__)
 
 
+def get_recording_download_base_url() -> str:
+    """Get the recording download base URL with backward compatibility."""
+    new_setting = settings.RECORDING_DOWNLOAD_BASE_URL
+    old_setting = settings.SCREEN_RECORDING_BASE_URL
+
+    if old_setting:
+        logger.warning(
+            "SCREEN_RECORDING_BASE_URL is deprecated and will be removed in a future version. "
+            "Please use RECORDING_DOWNLOAD_BASE_URL instead."
+        )
+
+    if new_setting:
+        return new_setting
+
+    return old_setting
+
+
 class NotificationService:
     """Service for processing recordings and notifying external services."""
 
@@ -69,7 +86,7 @@ class NotificationService:
             "domain": settings.EMAIL_DOMAIN,
             "room_name": recording.room.name,
             "recording_expiration_days": settings.RECORDING_EXPIRATION_DAYS,
-            "link": f"{settings.SCREEN_RECORDING_BASE_URL}/{recording.id}",
+            "link": f"{get_recording_download_base_url()}/{recording.id}",
         }
 
         has_failures = False
@@ -149,6 +166,7 @@ class NotificationService:
             "recording_time": recording.created_at.astimezone(
                 owner_access.user.timezone
             ).strftime("%H:%M"),
+            "download_link": f"{get_recording_download_base_url()}/{recording.id}",
         }
 
         headers = {

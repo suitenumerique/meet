@@ -634,6 +634,9 @@ class Base(Configuration):
     SCREEN_RECORDING_BASE_URL = values.Value(
         None, environ_name="SCREEN_RECORDING_BASE_URL", environ_prefix=None
     )
+    RECORDING_DOWNLOAD_BASE_URL = values.Value(
+        None, environ_name="RECORDING_DOWNLOAD_BASE_URL", environ_prefix=None
+    )
 
     # Marketing and communication settings
     SIGNUP_NEW_USER_TO_MARKETING_EMAIL = values.BooleanValue(
