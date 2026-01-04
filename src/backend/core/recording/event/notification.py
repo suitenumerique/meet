@@ -16,24 +16,56 @@ from core import models
 logger = logging.getLogger(__name__)
 
 
+class RecordingNotificationStrategy:
+    """Base strategy for recording notifications."""
+
+    @staticmethod
+    def notify(recording):
+        """Notify about the recording. Must be implemented by subclasses."""
+        raise NotImplementedError("Subclass must implement notify method")
+
+
+class TranscriptNotificationStrategy(RecordingNotificationStrategy):
+    """Strategy for notifying about transcript recordings."""
+
+    @staticmethod
+    def notify(recording):
+        """Notify summary service about a transcript recording."""
+        return NotificationService._notify_summary_service(recording)
+
+
+class ScreenRecordingNotificationStrategy(RecordingNotificationStrategy):
+    """Strategy for notifying about screen recordings."""
+
+    @staticmethod
+    def notify(recording):
+        """Notify users by email about a screen recording."""
+        return NotificationService._notify_user_by_email(recording)
+
+
 class NotificationService:
     """Service for processing recordings and notifying external services."""
 
+    # Strategy mapping for different recording modes
+    _notification_strategies = {
+        models.RecordingModeChoices.TRANSCRIPT: TranscriptNotificationStrategy,
+        models.RecordingModeChoices.SCREEN_RECORDING: ScreenRecordingNotificationStrategy,
+    }
+
     def notify_external_services(self, recording):
-        """Process a recording based on its mode."""
+        """Process a recording based on its mode using strategy pattern."""
 
-        if recording.mode == models.RecordingModeChoices.TRANSCRIPT:
-            return self._notify_summary_service(recording)
-
-        if recording.mode == models.RecordingModeChoices.SCREEN_RECORDING:
-            return self._notify_user_by_email(recording)
-
-        logger.error(
-            "Unknown recording mode %s for recording %s",
-            recording.mode,
-            recording.id,
-        )
-        return False
+        strategy_class = self._notification_strategies.get(recording.mode)
+        
+        if not strategy_class:
+            logger.error(
+                "Unknown recording mode %s for recording %s",
+                recording.mode,
+                recording.id,
+            )
+            return False
+        
+        return strategy_class.notify(recording)
 
     @staticmethod
     def _notify_user_by_email(recording) -> bool:
