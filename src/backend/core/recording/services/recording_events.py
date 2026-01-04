@@ -1,6 +1,10 @@
 """Recording-related LiveKit Events Service"""
 
+# pylint: disable=no-member
+
 from logging import getLogger
+
+from livekit import api
 
 from core import models, utils
 
@@ -13,6 +17,27 @@ class RecordingEventsError(Exception):
 
 class RecordingEventsService:
     """Handles recording-related Livekit webhook events."""
+
+    @staticmethod
+    def handle_update(recording, egress_status):
+        """Handle egress status updates and sync recording state to room metadata."""
+
+        room_name = str(recording.room.id)
+
+        status_mapping = {
+            api.EgressStatus.EGRESS_ACTIVE: "started",
+            api.EgressStatus.EGRESS_ENDING: "saving",
+            api.EgressStatus.EGRESS_ABORTED: "aborted",
+        }
+
+        recording_status = status_mapping.get(egress_status)
+        if recording_status:
+            try:
+                utils.update_room_metadata(
+                    room_name, {"recording_status": recording_status}
+                )
+            except utils.MetadataUpdateException as e:
+                logger.exception("Failed to update room's metadata: %s", e)
 
     @staticmethod
     def handle_limit_reached(recording):
