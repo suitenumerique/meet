@@ -12,6 +12,7 @@ import { Button as RACButton } from 'react-aria-components'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useRoomMetadata } from '../hooks/useRoomMetadata'
 import { RecordingStatusIcon } from './RecordingStatusIcon'
+import { useIsRecording } from '@livekit/components-react'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
@@ -46,6 +47,7 @@ export const RecordingStateToast = () => {
   const isStarting = isTranscriptStarting || isScreenRecordingStarting
 
   const metadata = useRoomMetadata()
+  const isRecording = useIsRecording()
 
   const key = useMemo(() => {
     if (!metadata?.recording_status || !metadata?.recording_mode) {
@@ -56,8 +58,14 @@ export const RecordingStateToast = () => {
       return undefined
     }
 
-    return `${metadata.recording_mode}.${metadata.recording_status}`
-  }, [metadata, isStarted, isStarting])
+    let status = metadata.recording_status
+
+    if (isStarted && !isRecording) {
+      status = 'starting'
+    }
+
+    return `${metadata.recording_mode}.${status}`
+  }, [metadata, isStarted, isStarting, isRecording])
 
   if (!key) return null
 
