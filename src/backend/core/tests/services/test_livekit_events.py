@@ -94,20 +94,53 @@ def test_handle_egress_ended_success(
     assert recording.status == "stopped"
 
 
+@pytest.mark.parametrize(
+    ("egress_status", "status"),
+    (
+        (EgressStatus.EGRESS_ACTIVE, "started"),
+        (EgressStatus.EGRESS_ENDING, "saving"),
+        (EgressStatus.EGRESS_ABORTED, "aborted"),
+    ),
+)
 @mock.patch("core.utils.update_room_metadata")
-def test_handle_egress_started_success(mock_update_room_metadata, service):
-    """Should successfully start recording and update room's metadata."""
+def test_handle_egress_updated_success(
+    mock_update_room_metadata, egress_status, status, service
+):
+    """Should successfully update room's metadata."""
 
     recording = RecordingFactory(worker_id="worker-1", status="initiated")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
-    mock_data.egress_info.status = EgressStatus.EGRESS_ACTIVE
+    mock_data.egress_info.status = egress_status
 
-    service._handle_egress_started(mock_data)
+    service._handle_egress_updated(mock_data)
 
     mock_update_room_metadata.assert_called_once_with(
-        str(recording.room.id), {"recording_status": "started"}
+        str(recording.room.id), {"recording_status": status}
     )
+
+
+@pytest.mark.parametrize(
+    "egress_status",
+    (
+        EgressStatus.EGRESS_FAILED,
+        EgressStatus.EGRESS_LIMIT_REACHED,
+    ),
+)
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_updated_non_handled(
+    mock_update_room_metadata, egress_status, service
+):
+    """Should ignore certain egress status and don't trigger metadata updates."""
+
+    recording = RecordingFactory(worker_id="worker-1", status="initiated")
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = egress_status
+
+    service._handle_egress_updated(mock_data)
+
+    mock_update_room_metadata.assert_not_called()
 
 
 @pytest.mark.parametrize(

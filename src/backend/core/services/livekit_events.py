@@ -138,23 +138,19 @@ class LiveKitEventsService:
         # pylint: disable=not-callable
         handler(data)
 
-    def _handle_egress_started(self, data):
-        """Handle 'egress_started' event."""
+    def _handle_egress_updated(self, data):
+        """Handle 'egress_updated' event."""
 
+        egress_id = data.egress_info.egress_id
         try:
-            recording = models.Recording.objects.get(
-                worker_id=data.egress_info.egress_id
-            )
+            recording = models.Recording.objects.get(worker_id=egress_id)
         except models.Recording.DoesNotExist as err:
             raise ActionFailedError(
-                f"Recording with worker ID {data.egress_info.egress_id} does not exist"
+                f"Recording with worker ID {egress_id} does not exist"
             ) from err
 
-        try:
-            room_name = str(recording.room.id)
-            utils.update_room_metadata(room_name, {"recording_status": "started"})
-        except utils.MetadataUpdateException as e:
-            logger.exception("Failed to update room's metadata: %s", e)
+        egress_status = data.egress_info.status
+        self.recording_events.handle_update(recording, egress_status)
 
     def _handle_egress_ended(self, data):
         """Handle 'egress_ended' event."""

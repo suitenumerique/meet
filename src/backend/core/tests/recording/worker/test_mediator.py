@@ -122,10 +122,7 @@ def test_mediator_start_recording_from_forbidden_status(
     mock_update_room_metadata.assert_not_called()
 
 
-@mock.patch("core.utils.update_room_metadata")
-def test_mediator_stop_recording_success(
-    mock_update_room_metadata, mediator, mock_worker_service
-):
+def test_mediator_stop_recording_success(mediator, mock_worker_service):
     """Test successful recording stop"""
     # Setup
     mock_recording = RecordingFactory(
@@ -143,15 +140,8 @@ def test_mediator_stop_recording_success(
     mock_recording.refresh_from_db()
     assert mock_recording.status == RecordingStatusChoices.STOPPED
 
-    mock_update_room_metadata.assert_called_once_with(
-        str(mock_recording.room.id), {"recording_status": "saving"}
-    )
 
-
-@mock.patch("core.utils.update_room_metadata")
-def test_mediator_stop_recording_aborted(
-    mock_update_room_metadata, mediator, mock_worker_service
-):
+def test_mediator_stop_recording_aborted(mediator, mock_worker_service):
     """Test recording stop when worker returns ABORTED"""
     # Setup
     mock_recording = RecordingFactory(
@@ -166,15 +156,10 @@ def test_mediator_stop_recording_aborted(
     mock_recording.refresh_from_db()
     assert mock_recording.status == RecordingStatusChoices.ABORTED
 
-    mock_update_room_metadata.assert_called_once_with(
-        str(mock_recording.room.id), {"recording_status": "saving"}
-    )
-
 
 @pytest.mark.parametrize("error_class", [WorkerConnectionError, WorkerResponseError])
-@mock.patch("core.utils.update_room_metadata")
 def test_mediator_stop_recording_worker_errors(
-    mock_update_room_metadata, mediator, mock_worker_service, error_class
+    mediator, mock_worker_service, error_class
 ):
     """Test handling of worker errors during stop"""
     # Setup
@@ -190,5 +175,3 @@ def test_mediator_stop_recording_worker_errors(
     # Verify recording updates
     mock_recording.refresh_from_db()
     assert mock_recording.status == RecordingStatusChoices.FAILED_TO_STOP
-
-    mock_update_room_metadata.assert_not_called()

@@ -105,10 +105,4 @@ class WorkerServiceMediator:
         finally:
             recording.save()
 
-        try:
-            room_name = str(recording.room.id)
-            utils.update_room_metadata(room_name, {"recording_status": "saving"})
-        except utils.MetadataUpdateException as e:
-            logger.exception("Failed to update room's metadata: %s", e)
-
         logger.info("Worker stopped for room %s", recording.room)
