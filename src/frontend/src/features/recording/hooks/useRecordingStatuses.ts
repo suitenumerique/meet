@@ -1,6 +1,7 @@
 import { RecordingMode } from '@/features/recording'
 import { useRoomMetadata } from './useRoomMetadata'
 import { useMemo } from 'react'
+import { useIsRecording } from '@livekit/components-react'
 
 export enum RecordingStatus {
   Starting = 'starting',
@@ -26,13 +27,18 @@ export const useRecordingStatuses = (
   mode: RecordingMode
 ): RecordingStatuses => {
   const metadata = useRoomMetadata()
+  const isRecording = useIsRecording()
 
   return useMemo(() => {
     if (metadata && metadata?.recording_mode === mode) {
       return {
         isAnotherModeStarted: false,
-        isStarting: metadata.recording_status === RecordingStatus.Starting,
-        isStarted: metadata.recording_status === RecordingStatus.Started,
+        isStarting:
+          metadata.recording_status === RecordingStatus.Starting ||
+          (metadata.recording_status === RecordingStatus.Started &&
+            !isRecording),
+        isStarted:
+          metadata.recording_status === RecordingStatus.Started && isRecording,
         isSaving: metadata.recording_status === RecordingStatus.Saving,
         isActive: ACTIVE_STATUSES.includes(
           metadata.recording_status as RecordingStatus
@@ -52,5 +58,5 @@ export const useRecordingStatuses = (
       isSaving: false,
       isActive: false,
     }
-  }, [mode, metadata])
+  }, [mode, metadata, isRecording])
 }
