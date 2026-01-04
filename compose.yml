@@ -235,7 +235,7 @@ services:
       - livekit-egress
 
   livekit-egress:
-      image: livekit/egress
+      image: livekit/egress:v1.11.0
       environment:
         EGRESS_CONFIG_FILE: ./livekit-egress.yaml
       volumes:
