@@ -161,6 +161,7 @@ export const ControlsButton = ({
         fullWidth
         onPress={handle}
         isDisabled={isDisabled}
+        size="compact"
       >
         {t('button.start')}
       </Button>

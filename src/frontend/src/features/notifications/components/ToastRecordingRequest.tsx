@@ -66,16 +66,22 @@ export function ToastRecordingRequest({
           name: participant?.name,
         })}
         {!options.isMenuOpen && (
-          <Button
-            size="sm"
-            variant="text"
+          <div
             className={css({
-              color: 'primary.300',
+              marginLeft: '0.5rem',
             })}
-            onPress={options.openMenu}
           >
-            {t('openMenu')}
-          </Button>
+            <Button
+              size="sm"
+              variant="text"
+              className={css({
+                color: 'primary.300',
+              })}
+              onPress={options.openMenu}
+            >
+              {t('openMenu')}
+            </Button>
+          </div>
         )}
       </HStack>
     </StyledToastContainer>

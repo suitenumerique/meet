@@ -29,9 +29,10 @@ export const RowWrapper = ({
       className={css({
         width: '100%',
         background: 'gray.100',
-        padding: '8px',
+        paddingBlock: '0.5rem',
+        paddingInline: '0',
         display: 'flex',
-        marginTop: '4px',
+        marginTop: '0.25rem',
       })}
     >
       <div
@@ -40,6 +41,7 @@ export const RowWrapper = ({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          paddingInline: '0.25rem',
         })}
       >
         {/*  fixme - doesn't handle properly material-symbols  */}
@@ -47,10 +49,11 @@ export const RowWrapper = ({
       </div>
       <div
         className={css({
-          flex: 5,
+          flex: 6,
           display: 'flex',
           alignItems: 'center',
           gap: '0.25rem',
+          paddingInlineEnd: '8px',
         })}
       >
         {children}
