@@ -118,8 +118,10 @@ class LiveKitEventsService:
         except Exception as e:
             raise InvalidPayloadError("Invalid webhook payload") from e
 
-        if self._filter_regex and not self._filter_regex.search(data.room.name):
-            logger.info("Filtered webhook event for room '%s'", data.room.name)
+        room_name = data.room.name or data.egress_info.room_name
+
+        if self._filter_regex and not self._filter_regex.search(room_name):
+            logger.info("Filtered webhook event for room '%s'", room_name)
             return
 
         try:
