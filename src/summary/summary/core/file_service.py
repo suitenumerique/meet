@@ -21,8 +21,14 @@ class FileService:
         """Initialize FileService with MinIO client and configuration."""
         self._logger = logger
 
+        endpoint = (
+            settings.aws_s3_endpoint_url.removeprefix("https://")
+            .removeprefix("http://")
+            .rstrip("/")
+        )
+
         self._minio_client = Minio(
-            settings.aws_s3_endpoint_url,
+            endpoint,
             access_key=settings.aws_s3_access_key_id,
             secret_key=settings.aws_s3_secret_access_key.get_secret_value(),
             secure=settings.aws_s3_secure_access,
