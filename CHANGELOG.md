@@ -8,13 +8,20 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-01-05
+
+### Added
+
 - ✨(agent) support Kyutai client for subtitle
-- ✨(frontend) remove the beta badge
 - ✨(all) support starting transcription and recording simultaneously
 - ✨(backend) persist options on a recording
 - ✨(all) support choosing the transcription language
 - ✨(summary) add a download link to the audio/video file
 - ✨(frontend) allow unprivileged users to request a recording
+
+### Changed
+
+- 🚸(frontend) remove the beta badge
 - ♻️(summary) extract file handling in a robust service
 - ♻️(all) manage recording state on the backend side
 
