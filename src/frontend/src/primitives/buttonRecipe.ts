@@ -31,6 +31,12 @@ export const buttonRecipe = cva({
         borderRadius: 4,
         '--square-padding': '0',
       },
+      compact: {
+        borderRadius: 4,
+        paddingX: '0.5',
+        paddingY: '0.625',
+        '--square-padding': '{spacing.0.625}',
+      },
     },
     square: {
       true: {
