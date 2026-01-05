@@ -150,7 +150,7 @@ summary:
     APP_NAME: summary-microservice
     APP_API_TOKEN: password
     AWS_STORAGE_BUCKET_NAME: meet-media-storage
-    AWS_S3_ENDPOINT_URL: minio.meet.svc.cluster.local:9000
+    AWS_S3_ENDPOINT_URL: http://minio.meet.svc.cluster.local:9000/
     AWS_S3_ACCESS_KEY_ID: meet
     AWS_S3_SECRET_ACCESS_KEY: password
     AWS_S3_SECURE_ACCESS: False
@@ -187,7 +187,7 @@ celeryTranscribe:
     APP_NAME: summary-microservice
     APP_API_TOKEN: password
     AWS_STORAGE_BUCKET_NAME: meet-media-storage
-    AWS_S3_ENDPOINT_URL: minio.meet.svc.cluster.local:9000
+    AWS_S3_ENDPOINT_URL: http://minio.meet.svc.cluster.local:9000/
     AWS_S3_ACCESS_KEY_ID: meet
     AWS_S3_SECRET_ACCESS_KEY: password
     AWS_S3_SECURE_ACCESS: False
@@ -225,7 +225,7 @@ celerySummarize:
     APP_NAME: summary-microservice
     APP_API_TOKEN: password
     AWS_STORAGE_BUCKET_NAME: meet-media-storage
-    AWS_S3_ENDPOINT_URL: minio.meet.svc.cluster.local:9000
+    AWS_S3_ENDPOINT_URL: http://minio.meet.svc.cluster.local:9000/
     AWS_S3_ACCESS_KEY_ID: meet
     AWS_S3_SECRET_ACCESS_KEY: password
     AWS_S3_SECURE_ACCESS: False
