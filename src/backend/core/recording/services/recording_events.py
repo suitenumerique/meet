@@ -24,6 +24,8 @@ class RecordingEventsService:
 
         room_name = str(recording.room.id)
 
+        print('$$ handle_update')
+
         status_mapping = {
             api.EgressStatus.EGRESS_ACTIVE: "started",
             api.EgressStatus.EGRESS_ENDING: "saving",
@@ -31,12 +33,18 @@ class RecordingEventsService:
         }
 
         recording_status = status_mapping.get(egress_status)
+
+        print('$$ recording_status')
+        print(recording_status)
+
         if recording_status:
             try:
+                print('$$ update')
                 utils.update_room_metadata(
                     room_name, {"recording_status": recording_status}
                 )
             except utils.MetadataUpdateException as e:
+                print('$$ exception')
                 logger.exception("Failed to update room's metadata: %s", e)
 
     @staticmethod

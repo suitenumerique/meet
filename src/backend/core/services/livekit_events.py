@@ -122,12 +122,19 @@ class LiveKitEventsService:
             logger.info("Filtered webhook event for room '%s'", data.room.name)
             return
 
+        print('$$ data.event')
+        print(data.event)
+        print(data)
+
         try:
             webhook_type = LiveKitWebhookEventType(data.event)
         except ValueError as e:
             raise UnsupportedEventTypeError(
                 f"Unknown webhook type: {data.event}"
             ) from e
+
+        print("$$ webhook_type")
+        print(webhook_type)
 
         handler_name = f"_handle_{webhook_type.value}"
         handler = getattr(self, handler_name, None)
@@ -141,6 +148,8 @@ class LiveKitEventsService:
     def _handle_egress_updated(self, data):
         """Handle 'egress_updated' event."""
 
+        print("$$ _handle_egress_updated")
+
         egress_id = data.egress_info.egress_id
         try:
             recording = models.Recording.objects.get(worker_id=egress_id)
@@ -149,7 +158,11 @@ class LiveKitEventsService:
                 f"Recording with worker ID {egress_id} does not exist"
             ) from err
 
+        print("$$ egress found")
+
         egress_status = data.egress_info.status
+        print('$$ egress_status')
+        print(egress_status)
         self.recording_events.handle_update(recording, egress_status)
 
     def _handle_egress_ended(self, data):

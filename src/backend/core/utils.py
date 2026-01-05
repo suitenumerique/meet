@@ -276,12 +276,17 @@ async def update_room_metadata(
         room = response.rooms[0]
 
         existing_metadata = json.loads(room.metadata) if room.metadata else {}
+        print('$$ existing_metadata')
+        print(existing_metadata)
 
         if remove_keys:
             for key in remove_keys:
                 existing_metadata.pop(key, None)
 
         updated_metadata = {**existing_metadata, **metadata}
+
+        print('$$ updated_metadata')
+        print(updated_metadata)
 
         await lkapi.room.update_room_metadata(
             UpdateRoomMetadataRequest(
