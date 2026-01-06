@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - 📈(frontend) track new recording's modes
+- ♿️(frontend) improve SR and focus for transcript and recording #810
 
 ## [1.2.0] - 2026-01-05
 
