@@ -5,7 +5,6 @@ import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
-  useHasFeatureWithoutAdminRights,
   useHumanizeRecordingMaxDuration,
   useRecordingStatuses,
 } from '@/features/recording'
@@ -19,7 +18,6 @@ import {
 } from '@/features/notifications'
 import posthog from 'posthog-js'
 import { useConfig } from '@/api/useConfig'
-import { FeatureFlags } from '@/features/analytics/enums'
 import { NoAccessView } from './NoAccessView'
 import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
@@ -28,6 +26,7 @@ import { Checkbox } from '@/primitives/Checkbox'
 import { useTranscriptionLanguage } from '@/features/settings'
 import { useMutateRecording } from '../hooks/useMutateRecording'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner.ts'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -38,10 +37,7 @@ export const ScreenRecordingSidePanel = () => {
 
   const [includeTranscript, setIncludeTranscript] = useState(false)
 
-  const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
-    RecordingMode.ScreenRecording,
-    FeatureFlags.ScreenRecording
-  )
+  const isAdminOrOwner = useIsAdminOrOwner()
 
   const { notifyParticipants } = useNotifyParticipants()
   const { selectedLanguageKey, isLanguageSetToAuto } =
@@ -108,7 +104,7 @@ export const ScreenRecordingSidePanel = () => {
     }
   }
 
-  if (hasFeatureWithoutAdminRights) {
+  if (!isAdminOrOwner) {
     return (
       <NoAccessView
         i18nKeyPrefix={keyPrefix}
