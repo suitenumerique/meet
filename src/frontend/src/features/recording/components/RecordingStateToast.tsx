@@ -1,6 +1,6 @@
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
-import { useMemo } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { Text } from '@/primitives'
 import {
   RecordingMode,
@@ -20,6 +20,9 @@ export const RecordingStateToast = () => {
   })
 
   const { openTranscript, openScreenRecording } = useSidePanel()
+
+  const [srMessage, setSrMessage] = useState('')
+  const lastKeyRef = useRef('')
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
@@ -67,6 +70,23 @@ export const RecordingStateToast = () => {
     return `${metadata.recording_mode}.${status}`
   }, [metadata, isStarted, isStarting, isRecording])
 
+  // Update screen reader message only when the key actually changes
+  // This prevents duplicate announcements caused by re-renders
+  useEffect(() => {
+    if (key && key !== lastKeyRef.current) {
+      lastKeyRef.current = key
+      const message = t(key)
+      setSrMessage(message)
+
+      // Clear message after 3 seconds to prevent it from being announced again
+      const timer = setTimeout(() => {
+        setSrMessage('')
+      }, 3000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [key, t])
+
   if (!key) return null
 
   const hasScreenRecordingAccessAndActive =
@@ -74,61 +94,74 @@ export const RecordingStateToast = () => {
   const hasTranscriptAccessAndActive = isTranscriptActive && hasTranscriptAccess
 
   return (
-    <div
-      className={css({
-        display: 'flex',
-        position: 'fixed',
-        top: '10px',
-        left: '10px',
-        paddingY: '0.25rem',
-        paddingX: '0.75rem 0.75rem',
-        backgroundColor: 'danger.700',
-        borderColor: 'white',
-        border: '1px solid',
-        color: 'white',
-        borderRadius: '4px',
-        gap: '0.5rem',
-      })}
-    >
-      <RecordingStatusIcon
-        isStarted={isStarted}
-        isTranscriptActive={isTranscriptActive}
-      />
+    <>
+      {/* Screen reader only message to announce state changes once */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {srMessage}
+      </div>
+      {/* Visual banner (without aria-live to avoid duplicate announcements) */}
+      <div
+        className={css({
+          display: 'flex',
+          position: 'fixed',
+          top: '10px',
+          left: '10px',
+          paddingY: '0.25rem',
+          paddingX: '0.75rem 0.75rem',
+          backgroundColor: 'danger.700',
+          borderColor: 'white',
+          border: '1px solid',
+          color: 'white',
+          borderRadius: '4px',
+          gap: '0.5rem',
+        })}
+      >
+        <RecordingStatusIcon
+          isStarted={isStarted}
+          isTranscriptActive={isTranscriptActive}
+        />
 
-      {!hasScreenRecordingAccessAndActive && !hasTranscriptAccessAndActive && (
-        <Text
-          variant={'sm'}
-          className={css({
-            fontWeight: '500 !important',
-          })}
-        >
-          {t(key)}
-        </Text>
-      )}
-      {hasScreenRecordingAccessAndActive && (
-        <RACButton
-          onPress={openScreenRecording}
-          className={css({
-            textStyle: 'sm !important',
-            fontWeight: '500 !important',
-            cursor: 'pointer',
-          })}
-        >
-          {t(key)}
-        </RACButton>
-      )}
-      {hasTranscriptAccessAndActive && (
-        <RACButton
-          onPress={openTranscript}
-          className={css({
-            textStyle: 'sm !important',
-            fontWeight: '500 !important',
-            cursor: 'pointer',
-          })}
-        >
-          {t(key)}
-        </RACButton>
-      )}
-    </div>
+        {!hasScreenRecordingAccessAndActive &&
+          !hasTranscriptAccessAndActive && (
+            <Text
+              variant={'sm'}
+              className={css({
+                fontWeight: '500 !important',
+              })}
+            >
+              {t(key)}
+            </Text>
+          )}
+        {hasScreenRecordingAccessAndActive && (
+          <RACButton
+            onPress={openScreenRecording}
+            className={css({
+              textStyle: 'sm !important',
+              fontWeight: '500 !important',
+              cursor: 'pointer',
+            })}
+          >
+            {t(key)}
+          </RACButton>
+        )}
+        {hasTranscriptAccessAndActive && (
+          <RACButton
+            onPress={openTranscript}
+            className={css({
+              textStyle: 'sm !important',
+              fontWeight: '500 !important',
+              cursor: 'pointer',
+            })}
+          >
+            {t(key)}
+          </RACButton>
+        )}
+      </div>
+    </>
   )
 }
