@@ -9,6 +9,7 @@ export const OptionsButton = () => {
   return (
     <Menu variant="dark">
       <Button
+        id="room-options-trigger"
         square
         variant="primaryDark"
         aria-label={t('options.buttonLabel')}

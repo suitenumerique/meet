@@ -37,6 +37,7 @@ export const LateralMenu = () => {
   return (
     <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
       <Button
+        id="controlbar-more-options-trigger"
         square
         variant="secondaryDark"
         aria-label={t('controls.moreOptions')}

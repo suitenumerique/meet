@@ -73,6 +73,7 @@ export function MobileControlBar({
           />
           <HandToggle />
           <Button
+            id="room-options-trigger"
             square
             variant="primaryDark"
             aria-label={t('options.buttonLabel')}
