@@ -111,15 +111,13 @@ export const TermsOfServiceRoute = () => {
         ))}
 
         {/* Article 7 */}
-        <H lvl={2} margin={false}>
-          {t('articles.article7.title')}
-        </H>
+        <H lvl={2}>{t('articles.article7.title')}</H>
+        <P>{t('articles.article7.content')}</P>
 
         {/* Section 7.1 */}
         <H lvl={3} bold>
           {t('articles.article7.sections.section1.title')}
         </H>
-        <P>{t('articles.article7.sections.section1.content')}</P>
         {ensureArray(
           t('articles.article7.sections.section1.paragraphs', {
             returnObjects: true,
@@ -132,16 +130,51 @@ export const TermsOfServiceRoute = () => {
         <H lvl={3} bold>
           {t('articles.article7.sections.section2.title')}
         </H>
+        {ensureArray(
+          t('articles.article7.sections.section2.paragraphs', {
+            returnObjects: true,
+          })
+        ).map((paragraph, index) => (
+          <P key={index}>{paragraph}</P>
+        ))}
+
+        {/* Section 7.3 */}
+        <H lvl={3} bold>
+          {t('articles.article7.sections.section3.title')}
+        </H>
+        {ensureArray(
+          t('articles.article7.sections.section3.paragraphs', {
+            returnObjects: true,
+          })
+        ).map((paragraph, index) => (
+          <P key={index}>{paragraph}</P>
+        ))}
+
+        {/* Section 7.4 */}
+        <H lvl={3} bold>
+          {t('articles.article7.sections.section4.title')}
+        </H>
+        {ensureArray(
+          t('articles.article7.sections.section4.paragraphs', {
+            returnObjects: true,
+          })
+        ).map((paragraph, index) => (
+          <P key={index}>{paragraph}</P>
+        ))}
+
+        {/* Section 7.5 */}
+        <H lvl={3} bold>
+          {t('articles.article7.sections.section5.title')}
+        </H>
         <P>
-          {t('articles.article7.sections.section2.content')
+          {t('articles.article7.sections.section5.content')
             .split('https://github.com/suitenumerique/meet')[0]
             .replace('https://github.com/suitenumerique/meet', '')}{' '}
           <A href="https://github.com/suitenumerique/meet" color="primary">
             https://github.com/suitenumerique/meet
           </A>
-          {'. '}
           {
-            t('articles.article7.sections.section2.content').split(
+            t('articles.article7.sections.section5.content').split(
               'https://github.com/suitenumerique/meet'
             )[1]
           }

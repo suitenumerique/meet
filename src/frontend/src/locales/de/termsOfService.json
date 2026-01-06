@@ -70,19 +70,42 @@
     },
     "article7": {
       "title": "7. Verpflichtungen und Verantwortlichkeiten von DINUM",
+      "content": "DINUM ist für die allgemeine Verwaltung des Dienstes verantwortlich. Sie stellt den Bediensteten alle erforderlichen Informationen zur Verfügung, um die Nutzung zu erleichtern. Sie bietet technische und funktionale Unterstützung, um den ordnungsgemäßen Betrieb des Dienstes sicherzustellen. Sie informiert die Nutzer auf jede zumutbare Weise über jede Schwierigkeit, die diesen ordnungsgemäßen Betrieb beeinträchtigen könnte.",
       "sections": {
         "section1": {
-          "title": "7.1. Sicherheit und Plattformzugang",
-          "content": "DINUM verpflichtet sich, Visio zu sichern, insbesondere durch alle notwendigen Maßnahmen zur Gewährleistung der Sicherheit und Vertraulichkeit der bereitgestellten Informationen.",
+          "title": "7.1. Verfügbarkeitsniveau",
           "paragraphs": [
-            "DINUM verpflichtet sich, die notwendigen und angemessenen Mittel bereitzustellen, um einen kontinuierlichen Zugang zu Visio zu gewährleisten.",
-            "DINUM behält sich das Recht vor, den Dienst aus Wartungsgründen oder aus anderen als notwendig erachteten Gründen ohne Vorankündigung zu ändern, zu modifizieren oder auszusetzen.",
-            "DINUM behält sich das Recht vor, ein Nutzerkonto des Dienstes zu sperren oder zu löschen, das gegen diese Nutzungsbedingungen verstoßen hat, unbeschadet etwaiger strafrechtlicher und zivilrechtlicher Maßnahmen, die gegen den Nutzer ergriffen werden könnten."
+            "Der Dienst ist 24/7 verfügbar, vorbehaltlich Wartungszeiten.",
+            "DINUM verfolgt ein jährliches Verfügbarkeitsziel von 99,5 % (ohne geplante Ausfälle). Bei einem Vorfall oder einer Wartung strebt sie eine Wiederherstellungszeit von 72 Stunden außerhalb der Geschäftszeiten an.",
+            "Im Rahmen der Wartung der Ausführungsumgebung des Dienstes behält sich DINUM das Recht vor, den Betrieb des Dienstes vorübergehend auszusetzen. Sie informiert die Nutzer mindestens 48 Stunden im Voraus. In dringenden Fällen kann diese Aussetzung ohne Vorankündigung erfolgen.",
+            "Diese außergewöhnlichen Stillstände können beispielsweise für Maßnahmen zur Datenverwaltung im Back Office, Produktionsbereitstellungen oder Architekturänderungen erforderlich sein.",
+            "Eine Nichtverfügbarkeit des Dienstes begründet keinerlei Anspruch auf Entschädigung."
           ]
         },
         "section2": {
-          "title": "7.2. Open Source und Lizenzen",
-          "content": "Der Quellcode von Visio ist frei und hier verfügbar: https://github.com/suitenumerique/meet\nDie von DINUM angebotenen Inhalte stehen unter einer Open License, mit Ausnahme von Logos sowie ikonografischen und fotografischen Darstellungen, die möglicherweise eigenen Lizenzen unterliegen."
+          "title": "7.2. Sicherheit des Dienstes",
+          "paragraphs": [
+            "DINUM ergreift alle erforderlichen Vorsichtsmaßnahmen, um die Sicherheit der Plattform und der im Rahmen des Dienstes eingesetzten Werkzeuge zu gewährleisten, insbesondere in Bezug auf den Zugang zum Dienst, die Verwaltung der Nutzerkonten und die Verarbeitung der erhobenen Daten."
+          ]
+        },
+        "section3": {
+          "title": "7.3. Support-Management",
+          "paragraphs": [
+            "DINUM leistet First-Level-Support für die Nutzer, ausschließlich zu den technischen Teilen des Dienstes.",
+            "Dieser Support ist über unser Online-Kontaktformular erreichbar.",
+            "Die angestrebte Antwortzeit auf Anfragen beträgt zwei Werktage ab Absenden; dieser Zeitraum kann je nach Komplexität und Anzahl der zu bearbeitenden Anfragen variieren."
+          ]
+        },
+        "section4": {
+          "title": "7.4. Kontrolle der Dienstenutzung",
+          "paragraphs": [
+            "DINUM behält sich das Recht vor, ein Agentenkonto zu sperren oder zu löschen, das gegen diese Nutzungsbedingungen verstoßen hat, unbeschadet etwaiger straf- und zivilrechtlicher Maßnahmen gegen den betreffenden Agenten.",
+            "Die Sperrung oder Aufhebung eines oder mehrerer Konten begründet keinen Anspruch auf irgendeine Entschädigung."
+          ]
+        },
+        "section5": {
+          "title": "7.5. Open Source und Lizenzen",
+          "content": "Der Quellcode des Dienstes ist frei und hier verfügbar: https://github.com/suitenumerique/meet. Die von DINUM angebotenen Inhalte stehen unter einer Open License, mit Ausnahme von Logos sowie ikonografischen und fotografischen Darstellungen, die möglicherweise eigenen Lizenzen unterliegen."
         }
       }
     },

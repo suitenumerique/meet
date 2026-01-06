@@ -70,19 +70,42 @@
     },
     "article7": {
       "title": "7. DINUM Commitments and Responsibilities",
+      "content": "De DINUM is verantwoordelijk voor de algemene administratie van de dienst. Zij verstrekt de medewerkers alle nodige informatie om het gebruik te vergemakkelijken. Zij biedt technische en functionele ondersteuning om de goede werking van de dienst te verzekeren. Zij informeert de gebruikers met elk redelijk middel over moeilijkheden die deze goede werking kunnen beïnvloeden.",
       "sections": {
         "section1": {
-          "title": "7.1. Security and Platform Access",
-          "content": "DINUM is committed to securing Visio, notably by taking all necessary measures to ensure the security and confidentiality of the information provided.",
+          "title": "7.1. Beschikbaarheidsniveau",
           "paragraphs": [
-            "DINUM commits to providing the necessary and reasonable means to ensure continuous access to Visio.",
-            "DINUM reserves the right to evolve, modify, or suspend the service without notice for maintenance reasons or for any other reason deemed necessary.",
-            "DINUM reserves the right to suspend or delete a user account of the service that has violated these terms of use, without prejudice to any potential criminal and civil liability actions that could be taken against the user."
+            "De dienstverlening is 24u/24 en 7d/7 beschikbaar, behalve tijdens onderhoudsonderbrekingen.",
+            "DINUM streeft naar een jaarlijkse beschikbaarheid van 99,5% van de dienst, buiten geplande onbeschikbaarheden. Bij een incident of onderhoud mikt zij op een hersteltermijn van 72 uur buiten kantooruren.",
+            "In het kader van onderhoud van de uitvoeringsomgeving van de dienst behoudt DINUM zich het recht voor de werking tijdelijk op te schorten. Zij informeert de gebruikers minstens 48 uur vooraf. In noodgevallen kan deze opschorting zonder voorafgaande kennisgeving plaatsvinden.",
+            "Deze uitzonderlijke stilstanden kunnen bijvoorbeeld nodig zijn voor backoffice-gegevensbeheer, inproductiestellingen of architectuurwijzigingen.",
+            "Onbeschikbaarheid van de dienst geeft geen recht op enige vorm van compensatie."
           ]
         },
         "section2": {
-          "title": "7.2 Open Source and Licenses",
-          "content": "The source code of Visio is free and available here: https://github.com/suitenumerique/meet\nThe content offered by DINUM is under an Open License, with the exception of logos and iconographic and photographic representations that may be governed by their own licenses."
+          "title": "7.2. Beveiliging van de dienst",
+          "paragraphs": [
+            "DINUM neemt alle nodige voorzorgsmaatregelen om de veiligheid van het platform en de in het kader van de dienst gebruikte hulpmiddelen te bewaren, met name wat betreft de toegang tot de dienst, het beheer van gebruikersaccounts en de verwerking van verzamelde gegevens."
+          ]
+        },
+        "section3": {
+          "title": "7.3. Supportbeheer",
+          "paragraphs": [
+            "DINUM verzorgt eerstelijns support voor de gebruikers, uitsluitend over de technische onderdelen van de dienst.",
+            "Deze support is bereikbaar via ons online contactformulier.",
+            "De streefantwoordtermijn op verzoeken is twee werkdagen vanaf de verzending; deze termijn kan variëren naargelang de complexiteit en het aantal te behandelen aanvragen."
+          ]
+        },
+        "section4": {
+          "title": "7.4. Controle van het gebruik van de dienst",
+          "paragraphs": [
+            "DINUM behoudt zich het recht voor om een agentaccount te schorsen of te verwijderen dat deze gebruiksvoorwaarden heeft geschonden, onverminderd eventuele strafrechtelijke en civielrechtelijke stappen tegen de betrokken agent.",
+            "De schorsing of intrekking van één of meer accounts geeft geen recht op enige vorm van compensatie."
+          ]
+        },
+        "section5": {
+          "title": "7.5. Open Source en licenties",
+          "content": "De broncode van de dienst is vrij beschikbaar op: https://github.com/suitenumerique/meet. De inhoud die door DINUM wordt aangeboden valt onder een Open License, met uitzondering van logo's en iconografische en fotografische voorstellingen die onder hun eigen licenties kunnen vallen."
         }
       }
     },
