@@ -42,6 +42,13 @@ export const ControlsButton = ({
 }: ControlsButtonProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: i18nKeyPrefix })
 
+  // Focus management: focus the primary action button when this side panel opens.
+  const primaryActionRef = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    primaryActionRef.current?.focus()
+  }, [])
+
   const room = useRoomContext()
   const isRoomConnected = room.state == ConnectionState.Connected
 
@@ -97,6 +104,7 @@ export const ControlsButton = ({
           fullWidth
           onPress={handle}
           isDisabled={isDisabled}
+          ref={primaryActionRef}
         >
           {t('button.stop')}
         </Button>
@@ -162,6 +170,7 @@ export const ControlsButton = ({
         onPress={handle}
         isDisabled={isDisabled}
         size="compact"
+        ref={primaryActionRef}
       >
         {t('button.start')}
       </Button>
