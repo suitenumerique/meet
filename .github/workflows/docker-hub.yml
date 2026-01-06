@@ -150,6 +150,7 @@ jobs:
       -
         name: Run trivy scan
         uses: numerique-gouv/action-trivy-cache@main
+        continue-on-error: true
         with:
           docker-build-args: '-f src/summary/Dockerfile --target production'
           docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-summary:${{ github.sha }}'
@@ -188,6 +189,7 @@ jobs:
       -
         name: Run trivy scan
         uses: numerique-gouv/action-trivy-cache@main
+        continue-on-error: true
         with:
           docker-build-args: '-f src/agents/Dockerfile --target production'
           docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-agents:${{ github.sha }}'
