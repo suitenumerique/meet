@@ -98,7 +98,10 @@ export const ScreenRecordingSidePanel = () => {
         await notifyParticipants({
           type: NotificationType.ScreenRecordingStarted,
         })
-        posthog.capture('screen-recording-started', {})
+        posthog.capture('screen-recording-started', {
+          includeTranscript: includeTranscript,
+          language: selectedLanguageKey,
+        })
       }
     } catch (error) {
       console.error('Failed to handle recording:', error)

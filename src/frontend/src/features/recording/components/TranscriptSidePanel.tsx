@@ -117,7 +117,10 @@ export const TranscriptSidePanel = () => {
         await notifyParticipants({
           type: NotificationType.TranscriptionStarted,
         })
-        posthog.capture('transcript-started', {})
+        posthog.capture('transcript-started', {
+          includeScreenRecording: includeScreenRecording,
+          language: selectedLanguageKey,
+        })
       }
     } catch (error) {
       console.error('Failed to handle transcript:', error)

@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- 📈(frontend) track new recording's modes
+
 ## [1.2.0] - 2026-01-05
 
 ### Added
