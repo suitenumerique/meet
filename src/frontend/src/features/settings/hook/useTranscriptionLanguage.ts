@@ -19,6 +19,14 @@ export const useTranscriptionLanguage = () => {
         label: t('language.options.english'),
       },
       {
+        key: RecordingLanguage.GERMAN,
+        label: t('language.options.german'),
+      },
+      {
+        key: RecordingLanguage.DUTCH,
+        label: t('language.options.dutch'),
+      },
+      {
         key: RecordingLanguage.AUTOMATIC,
         label: t('language.options.auto'),
       },

@@ -3,6 +3,8 @@ import { proxy } from 'valtio'
 export enum RecordingLanguage {
   ENGLISH = 'en',
   FRENCH = 'fr',
+  DUTCH = 'nl',
+  GERMAN = 'de',
   AUTOMATIC = 'auto',
 }
 

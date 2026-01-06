@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     whisperx_max_retries: int = 0
     # ISO 639-1 language code (e.g., "en", "fr", "es")
     whisperx_default_language: Optional[str] = None
-    whisperx_allowed_languages: Set[str] = {"en", "fr"}
+    whisperx_allowed_languages: Set[str] = {"en", "fr", "de", "nl"}
     llm_base_url: str
     llm_api_key: SecretStr
     llm_model: str

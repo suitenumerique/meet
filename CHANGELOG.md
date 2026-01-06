@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(summary) add dutch and german languages
+
 ### Changed
 
 - 📈(frontend) track new recording's modes
