@@ -75,6 +75,8 @@
       "options": {
         "french": "Französisch (fr)",
         "english": "Englisch (en)",
+        "dutch": "Niederländisch (nl)",
+        "german": "Deutsch (de)",
         "auto": "Automatisch"
       }
     }
