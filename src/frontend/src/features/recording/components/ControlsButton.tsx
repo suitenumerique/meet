@@ -46,7 +46,11 @@ export const ControlsButton = ({
   const primaryActionRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
-    primaryActionRef.current?.focus()
+    requestAnimationFrame(() => {
+      if (primaryActionRef.current) {
+        primaryActionRef.current.focus({ preventScroll: true })
+      }
+    })
   }, [])
 
   const room = useRoomContext()
