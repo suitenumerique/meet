@@ -70,19 +70,42 @@
     },
     "article7": {
       "title": "7. DINUM Commitments and Responsibilities",
+      "content": "DINUM is responsible for the overall administration of the service. It provides agents with all necessary information to facilitate its use. It offers technical and functional assistance to ensure the proper operation of the service. It informs users by any reasonable means of any difficulty that may affect this proper operation.",
       "sections": {
         "section1": {
-          "title": "7.1. Security and Platform Access",
-          "content": "DINUM is committed to securing Visio, notably by taking all necessary measures to ensure the security and confidentiality of the information provided.",
+          "title": "7.1. Service Availability",
           "paragraphs": [
-            "DINUM commits to providing the necessary and reasonable means to ensure continuous access to Visio.",
-            "DINUM reserves the right to evolve, modify, or suspend the service without notice for maintenance reasons or for any other reason deemed necessary.",
-            "DINUM reserves the right to suspend or delete a user account of the service that has violated these terms of use, without prejudice to any potential criminal and civil liability actions that could be taken against the user."
+            "The service is available 24/7, except during maintenance windows.",
+            "DINUM targets an annual service availability of 99.5%, excluding planned outages. In case of an incident or maintenance, it aims for a recovery time of 72 hours outside business hours.",
+            "As part of maintaining the service runtime environment, DINUM reserves the right to temporarily suspend the operation of the service. It informs users at least 48 hours in advance. In emergencies, this suspension may occur without notice.",
+            "These exceptional stoppages may be necessary, for example, for back-office data management operations, production deployments, or architecture changes.",
+            "Service unavailability does not give rise to any compensation of any kind."
           ]
         },
         "section2": {
-          "title": "7.2 Open Source and Licenses",
-          "content": "The source code of Visio is free and available here: https://github.com/suitenumerique/meet\nThe content offered by DINUM is under an Open License, with the exception of logos and iconographic and photographic representations that may be governed by their own licenses."
+          "title": "7.2. Service Security",
+          "paragraphs": [
+            "DINUM takes all necessary precautions to preserve the security of the platform and the tools used within the service, particularly regarding access to the service, management of user accounts, and processing of collected data."
+          ]
+        },
+        "section3": {
+          "title": "7.3. Support Management",
+          "paragraphs": [
+            "DINUM provides first-level support to users, exclusively on the technical parts of the service.",
+            "This support can be reached via our online contact form.",
+            "The target response time to requests is two business days from submission; this timeframe may vary depending on the complexity and number of requests to be processed."
+          ]
+        },
+        "section4": {
+          "title": "7.4. Monitoring Service Use",
+          "paragraphs": [
+            "DINUM reserves the right to suspend or delete an agent account that has violated these terms of use, without prejudice to any potential criminal and civil liability actions that could be taken against the agent concerned.",
+            "The suspension or revocation of one or more accounts does not entitle the user to any compensation of any kind."
+          ]
+        },
+        "section5": {
+          "title": "7.5. Open Source and Licenses",
+          "content": "The service source code is free and available here: https://github.com/suitenumerique/meet. The content offered by DINUM is under an Open License, with the exception of logos and iconographic and photographic representations that may be governed by their own licenses."
         }
       }
     },

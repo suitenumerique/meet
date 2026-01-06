@@ -16,7 +16,7 @@
     },
     "article4": {
       "title": "4. Utilisation",
-      "content": "L'utilisation du service est libre et gratuite, pour administration un salon de visioconférence, il est nécessaire de se connecter par ProConnect."
+      "content": "L'utilisation du service est libre et gratuite, pour administrer un salon de visioconférence, il est nécessaire de se connecter par ProConnect."
     },
     "article5": {
       "title": "5. Fonctionnalités",
@@ -70,19 +70,42 @@
     },
     "article7": {
       "title": "7. Engagements et responsabilités de la DINUM",
+      "content": "La DINUM est responsable de l’administration générale du service. Elle transmet aux agents toutes les informations nécessaires pour faciliter son utilisation. Elle propose une assistance technique et fonctionnelle en vue d’assurer le bon fonctionnement du service. Elle informe par tout moyen raisonnable les utilisateurs de toute difficulté de nature à affecter ce bon fonctionnement.",
       "sections": {
         "section1": {
-          "title": "7.1. Sécurité et accès à la plateforme",
-          "content": "La DINUM s'engage à la sécurisation de Visio, notamment en prenant toutes les mesures nécessaires permettant de garantir la sécurité et la confidentialité des informations fournies.",
+          "title": "7.1. Niveau de disponibilité",
           "paragraphs": [
-            "La DINUM s'engage à fournir les moyens nécessaires et raisonnables pour assurer un accès continu à Visio.",
-            "La DINUM se réserve le droit de faire évoluer, de modifier ou de suspendre, sans préavis, le service pour des raisons de maintenance ou pour tout autre motif jugé nécessaire.",
-            "La DINUM se réserve le droit de suspendre ou supprimer un compte utilisateur ou utilisatrice du service qui aurait méconnu les présentes modalités d'utilisation, sans préjudice des éventuelles actions en responsabilité pénale et civile qui pourraient être engagées à l'encontre de l'utilisateur ou l'utilisatrice."
+            "La plage d’ouverture du Service est 24h/24 7j/7, hors période d’indisponibilité pour maintenance.",
+            "La DINUM poursuit un objectif de disponibilité annuelle du service de 99,5%, hors indisponibilités planifiées. En cas d’incident ou de maintenance, elle vise un délai de rétablissement de 72h en heures non ouvrables.",
+            "Dans le cadre d’une maintenance de l’environnement d’exécution du service, La DINUM se réserve le droit de suspendre temporairement le fonctionnement du service. Elle tient informée les utilisateurs au minimum 48h à l’avance. En cas d’urgence, cette suspension peut intervenir sans préavis.",
+            "Ces arrêts exceptionnels peuvent être rendus nécessaires par exemple pour des opérations de gestion des données en back office, des opérations de mise en production ou des changements d’architecture.",
+            "L’indisponibilité du service n’ouvre droit à aucune compensation de quelque nature que ce soit."
           ]
         },
         "section2": {
-          "title": "7.2 Open Source et Licences",
-          "content": "Le code source de Visio est libre et disponible ici : https://github.com/suitenumerique/meet\nLes contenus proposés par la DINUM sont sous Licence Ouverte, à l'exception des logos et des représentations iconographiques et photographiques pouvant être régis par leurs licences propres."
+          "title": "7.2. Sécurité du service",
+          "paragraphs": [
+            "La DINUM prend toutes les précautions utiles pour préserver la sécurité de la plateforme et des outils mis en œuvre dans le cadre du service, notamment s’agissant de l’accès au service, de la gestion des comptes utilisateurs et du traitement des données collectées."
+          ]
+        },
+        "section3": {
+          "title": "7.3. Gestion du support",
+          "paragraphs": [
+            "La DINUM assure le support de premier niveau auprès des utilisateurs, exclusivement sur les parties techniques du service.",
+            "Ce support est joignable sur notre formulaire de contact en ligne.",
+            "L’objectif de réponse aux sollicitations est de deux jours ouvrés à compter de l’envoi du courriel, ce délai peut varier selon la complexité et le nombre de demandes à traiter."
+          ]
+        },
+        "section4": {
+          "title": "7.4. Contrôle de l’utilisation du service",
+          "paragraphs": [
+            "La DINUM se réserve le droit de suspendre ou supprimer un compte agent qui aurait méconnu les présentes modalités d’utilisation, sans préjudice des éventuelles actions en responsabilité pénale et civile qui pourraient être engagées à l’encontre de l’agent concerné.",
+            "La suspension ou la révocation d’un ou plusieurs comptes ne donne lieu à aucune compensation d’aucune sorte."
+          ]
+        },
+        "section5": {
+          "title": "7.5. Open Source et Licences",
+          "content": "Le code source du service est libre et disponible ici : https://github.com/suitenumerique/meet. Les contenus proposés par la DINUM sont sous Licence Ouverte, à l’exception des logos et des représentations iconographiques et photographiques pouvant être régis par leurs licences propres."
         }
       }
     },
