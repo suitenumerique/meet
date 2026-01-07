@@ -6,6 +6,8 @@ import { Participant } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { Reaction } from '@/features/rooms/livekit/components/controls/ReactionsToggle'
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
+import { accessibilityStore } from '@/stores/accessibility'
+import { useSnapshot } from 'valtio'
 
 export const ANIMATION_DURATION = 3000
 export const ANIMATION_DISTANCE = 300
@@ -155,6 +157,7 @@ export function ReactionPortal({
 
 export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
+  const { announceReactions } = useSnapshot(accessibilityStore)
   const [announcement, setAnnouncement] = useState<string | null>(null)
   const [lastAnnouncedId, setLastAnnouncedId] = useState<number | null>(null)
 
@@ -162,6 +165,10 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
     reactions.length > 0 ? reactions[reactions.length - 1] : undefined
 
   useEffect(() => {
+    if (!announceReactions) {
+      setAnnouncement(null)
+      return
+    }
     if (!latestReaction) return
     const isNewReaction = latestReaction.id !== lastAnnouncedId
     if (!isNewReaction) return
@@ -175,7 +182,7 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
 
     const timer = setTimeout(() => setAnnouncement(null), 1200)
     return () => clearTimeout(timer)
-  }, [latestReaction, lastAnnouncedId, t])
+  }, [latestReaction, lastAnnouncedId, announceReactions, t])
 
   return (
     <>
