@@ -2,8 +2,9 @@ import { A, Div, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
-import { ReactNode, useEffect, useRef } from 'react'
+import { ReactNode } from 'react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
+import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import {
   useIsRecordingModeEnabled,
   RecordingMode,
@@ -100,42 +101,19 @@ export const Tools = () => {
 
   // Restore focus to the element that opened the Tools panel
   // following the same pattern as Chat.
-  const toolsTriggerRef = useRef<HTMLElement | null>(null)
-  const prevIsToolsOpenRef = useRef(false)
-
-  useEffect(() => {
-    const wasOpen = prevIsToolsOpenRef.current
-    const isOpen = isToolsOpen
-
-    // Tools just opened
-    if (!wasOpen && isOpen) {
-      const activeEl = document.activeElement as HTMLElement | null
-
-      // If the active element is a MenuItem (DIV) that will be unmounted when the menu closes,
-      // find the "more options" button ("Plus d'options") that opened the menu
+  useRestoreFocus(isToolsOpen, {
+    // If the active element is a MenuItem (DIV) that will be unmounted when the menu closes,
+    // find the "more options" button ("Plus d'options") that opened the menu
+    resolveTrigger: (activeEl) => {
       if (activeEl?.tagName === 'DIV') {
-        toolsTriggerRef.current = document.querySelector<HTMLButtonElement>(
-          '#room-options-trigger'
-        )
-      } else {
-        // For direct button clicks (e.g. "Plus d'outils"), use the active element as is
-        toolsTriggerRef.current = activeEl
+        return document.querySelector<HTMLElement>('#room-options-trigger')
       }
-    }
-
-    // Tools just closed
-    if (wasOpen && !isOpen) {
-      const trigger = toolsTriggerRef.current
-      if (trigger && document.contains(trigger)) {
-        requestAnimationFrame(() => {
-          trigger.focus({ preventScroll: true })
-        })
-      }
-      toolsTriggerRef.current = null
-    }
-
-    prevIsToolsOpenRef.current = isOpen
-  }, [isToolsOpen])
+      // For direct button clicks (e.g. "Plus d'outils"), use the active element as is
+      return activeEl
+    },
+    restoreFocusRaf: true,
+    preventScroll: true,
+  })
 
   const isTranscriptEnabled = useIsRecordingModeEnabled(
     RecordingMode.Transcript

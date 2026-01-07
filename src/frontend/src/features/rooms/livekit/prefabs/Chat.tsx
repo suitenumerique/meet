@@ -1,5 +1,5 @@
 import type { ChatMessage, ChatOptions } from '@livekit/components-core'
-import React, { useEffect } from 'react'
+import React from 'react'
 import {
   formatChatMessageLinks,
   useChat,
@@ -15,6 +15,7 @@ import { ChatEntry } from '../components/chat/Entry'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { LocalParticipant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { css } from '@/styled-system/css'
+import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 
 export interface ChatProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -38,33 +39,16 @@ export function Chat({ ...props }: ChatProps) {
 
   // Keep track of the element that opened the chat so we can restore focus
   // when the chat panel is closed.
-  const prevIsChatOpenRef = React.useRef(false)
-  const chatTriggerRef = React.useRef<HTMLElement | null>(null)
-
-  useEffect(() => {
-    const wasChatOpen = prevIsChatOpenRef.current
-    const isChatPanelOpen = isChatOpen
-
-    // Chat just opened
-    if (!wasChatOpen && isChatPanelOpen) {
-      chatTriggerRef.current = document.activeElement as HTMLElement | null
-      // Avoid layout "jump" during the side panel slide-in animation.
-      // Focusing can trigger scroll into view; preventScroll keeps the animation smooth.
+  useRestoreFocus(isChatOpen, {
+    // Avoid layout "jump" during the side panel slide-in animation.
+    // Focusing can trigger scroll into view; preventScroll keeps the animation smooth.
+    onOpened: () => {
       requestAnimationFrame(() => {
         inputRef.current?.focus({ preventScroll: true })
       })
-    }
-    // Chat just closed
-    if (wasChatOpen && !isChatPanelOpen) {
-      const trigger = chatTriggerRef.current
-      if (trigger && document.contains(trigger)) {
-        trigger.focus({ preventScroll: true })
-      }
-      chatTriggerRef.current = null
-    }
-
-    prevIsChatOpenRef.current = isChatPanelOpen
-  }, [isChatOpen])
+    },
+    preventScroll: true,
+  })
 
   // Use useParticipants hook to trigger a re-render when the participant list changes.
   const participants = useParticipants()
