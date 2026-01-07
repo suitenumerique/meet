@@ -11,6 +11,7 @@ export const useHumanizeRecordingMaxDuration = () => {
 
     return humanizeDuration(data?.recording?.max_duration, {
       language: i18n.language,
+      delimiter: ' ',
     })
   }, [data])
 }
