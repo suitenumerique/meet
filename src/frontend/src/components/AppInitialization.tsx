@@ -29,9 +29,8 @@ export const AppInitialization = () => {
     document.head.appendChild(link)
 
     return () => {
-      const existingLink = document.getElementById('meet-custom-css')
-      if (existingLink) {
-        existingLink.remove()
+      if (link && link.parentNode) {
+        link.remove()
       }
     }
   }, [custom_css_url])
