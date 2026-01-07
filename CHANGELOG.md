@@ -16,6 +16,10 @@ and this project adheres to
 
 - 📈(frontend) track new recording's modes
 
+### Fixed
+
+- 🐛(frontend) remove unexpected F2 tooltip when clicking video screen
+
 ## [1.2.0] - 2026-01-05
 
 ### Added
@@ -35,7 +39,7 @@ and this project adheres to
 
 ## [1.1.0] - 2025-12-22
 
-### Added 
+### Added
 
 - ✨(backend) enable user creation via email for external integrations
 - ✨(summary) add Langfuse observability for LLM API calls
@@ -47,6 +51,6 @@ and this project adheres to
 - ♿(frontend) improve accessibility:
 - ♿️(frontend) hover controls, focus, SR #803
 - ♿️(frontend) change ptt keybinding from space to v #813
-- ♿(frontend) indicate external link opens in new window on feedback #816 
+- ♿(frontend) indicate external link opens in new window on feedback #816
 - ♿(frontend) fix heading level in modal to maintain semantic hierarchy #815
 - ♿️(frontend) Improve focus management when opening and closing chat #807
