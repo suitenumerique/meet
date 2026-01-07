@@ -108,6 +108,11 @@
     "label": "Langue de l'application"
   },
   "settingsButtonLabel": "Paramètres",
+  "accessibility": {
+    "announceReactions": {
+      "label": "Vocaliser les réactions"
+    }
+  },
   "tabs": {
     "account": "Profil",
     "audio": "Audio",

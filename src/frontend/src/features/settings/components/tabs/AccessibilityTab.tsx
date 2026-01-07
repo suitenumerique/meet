@@ -2,15 +2,18 @@ import { Field, H } from '@/primitives'
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
+import { useSnapshot } from 'valtio'
+import { accessibilityStore } from '@/stores/accessibility'
 
 export type AccessibilityTabProps = Pick<TabPanelProps, 'id'>
 
 export const AccessibilityTab = ({ id }: AccessibilityTabProps) => {
-  const { t } = useTranslation('settings', { keyPrefix: 'tabs' })
+  const { t } = useTranslation('settings')
+  const snap = useSnapshot(accessibilityStore)
 
   return (
     <TabPanel padding={'md'} flex id={id}>
-      <H lvl={2}>{t('accessibility')}</H>
+      <H lvl={2}>{t('tabs.accessibility')}</H>
       <ul
         className={css({
           display: 'flex',
@@ -19,7 +22,15 @@ export const AccessibilityTab = ({ id }: AccessibilityTabProps) => {
         })}
       >
         <li>
-          <Field type="switch" label={t('accessibility.label')} />
+          <Field
+            type="switch"
+            label={t('accessibility.announceReactions.label')}
+            isSelected={snap.announceReactions}
+            onChange={(value) => {
+              accessibilityStore.announceReactions = value
+            }}
+            wrapperProps={{ noMargin: true, fullWidth: true }}
+          />
         </li>
       </ul>
     </TabPanel>
