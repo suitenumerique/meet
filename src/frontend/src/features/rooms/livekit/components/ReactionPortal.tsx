@@ -12,6 +12,41 @@ export const FADE_OUT_THRESHOLD = 0.7
 export const REACTION_SPAWN_WIDTH_RATIO = 0.2
 export const INITIAL_POSITION = 200
 
+const srOnly = css({
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+})
+
+const getEmojiLabel = (
+  emoji: string,
+  t: ReturnType<typeof useTranslation>['t']
+) => {
+  const emojiLabels: Record<string, string> = {
+    'thumbs-up': t('emojis.thumbs-up', { defaultValue: 'thumbs up' }),
+    'thumbs-down': t('emojis.thumbs-down', { defaultValue: 'thumbs down' }),
+    'clapping-hands': t('emojis.clapping-hands', {
+      defaultValue: 'clapping hands',
+    }),
+    'red-heart': t('emojis.red-heart', { defaultValue: 'red heart' }),
+    'face-with-tears-of-joy': t('emojis.face-with-tears-of-joy', {
+      defaultValue: 'face with tears of joy',
+    }),
+    'face-with-open-mouth': t('emojis.face-with-open-mouth', {
+      defaultValue: 'surprised face',
+    }),
+    'party-popper': t('emojis.party-popper', { defaultValue: 'party popper' }),
+    'folded-hands': t('emojis.folded-hands', { defaultValue: 'folded hands' }),
+  }
+  return emojiLabels[emoji] ?? emoji
+}
+
 interface FloatingReactionProps {
   emoji: string
   name?: string
@@ -140,11 +175,47 @@ export function ReactionPortal({
   )
 }
 
-export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) =>
-  reactions.map((instance) => (
-    <ReactionPortal
-      key={instance.id}
-      emoji={instance.emoji}
-      participant={instance.participant}
-    />
-  ))
+export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
+  const [announcement, setAnnouncement] = useState<string | null>(null)
+  const [lastAnnouncedId, setLastAnnouncedId] = useState<number | null>(null)
+
+  const latestReaction =
+    reactions.length > 0 ? reactions[reactions.length - 1] : undefined
+
+  useEffect(() => {
+    if (!latestReaction) return
+    const isNewReaction = latestReaction.id !== lastAnnouncedId
+    if (!isNewReaction) return
+
+    const emojiLabel = getEmojiLabel(latestReaction.emoji, t)
+    const participantName = latestReaction.participant?.isLocal
+      ? t('you')
+      : (latestReaction.participant?.name ?? '')
+    setAnnouncement(t('announce', { name: participantName, emoji: emojiLabel }))
+    setLastAnnouncedId(latestReaction.id)
+
+    const timer = setTimeout(() => setAnnouncement(null), 1200)
+    return () => clearTimeout(timer)
+  }, [latestReaction, lastAnnouncedId, t])
+
+  return (
+    <>
+      {reactions.map((instance) => (
+        <ReactionPortal
+          key={instance.id}
+          emoji={instance.emoji}
+          participant={instance.participant}
+        />
+      ))}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className={srOnly}
+      >
+        {announcement ?? ''}
+      </div>
+    </>
+  )
+}
