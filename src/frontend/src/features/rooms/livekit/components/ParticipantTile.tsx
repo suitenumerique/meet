@@ -117,7 +117,9 @@ export const ParticipantTile: (
     'aria-label': t('containerLabel', { name: participantName }),
     onFocus: (event: React.FocusEvent<HTMLDivElement>) => {
       elementProps.onFocus?.(event)
-      setHasKeyboardFocus(true)
+      const target = event.target as HTMLElement | null
+      const isFocusVisible = !!target?.matches?.(':focus-visible')
+      setHasKeyboardFocus(isFocusVisible)
     },
     onBlur: (event: React.FocusEvent<HTMLDivElement>) => {
       elementProps.onBlur?.(event)
