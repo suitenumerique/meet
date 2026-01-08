@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(summary) add dutch and german languages
+- 🔧(agents) make Silero VAD optional
 
 ### Changed
 
