@@ -1,5 +1,3 @@
-import '@fontsource/material-icons-outlined'
-import '@fontsource-variable/material-symbols-outlined'
 import '@livekit/components-styles'
 import '@/styles/index.css'
 import { Suspense } from 'react'
