@@ -8,24 +8,13 @@ import { Reaction } from '@/features/rooms/livekit/components/controls/Reactions
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { accessibilityStore } from '@/stores/accessibility'
 import { useSnapshot } from 'valtio'
+import { srOnly } from '@/styles/a11y'
 
 export const ANIMATION_DURATION = 3000
 export const ANIMATION_DISTANCE = 300
 export const FADE_OUT_THRESHOLD = 0.7
 export const REACTION_SPAWN_WIDTH_RATIO = 0.2
 export const INITIAL_POSITION = 200
-
-const srOnly = css({
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  padding: 0,
-  margin: '-1px',
-  overflow: 'hidden',
-  clip: 'rect(0, 0, 0, 0)',
-  whiteSpace: 'nowrap',
-  border: 0,
-})
 
 interface FloatingReactionProps {
   emoji: string
