@@ -15,18 +15,6 @@ export const FADE_OUT_THRESHOLD = 0.7
 export const REACTION_SPAWN_WIDTH_RATIO = 0.2
 export const INITIAL_POSITION = 200
 
-const srOnly = css({
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  padding: 0,
-  margin: '-1px',
-  overflow: 'hidden',
-  clip: 'rect(0, 0, 0, 0)',
-  whiteSpace: 'nowrap',
-  border: 0,
-})
-
 interface FloatingReactionProps {
   emoji: string
   name?: string
@@ -176,7 +164,8 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
     const emojiLabel = getEmojiLabel(latestReaction.emoji, t)
     const participantName = latestReaction.participant?.isLocal
       ? t('you')
-      : (latestReaction.participant?.name ?? '')
+      : latestReaction.participant?.name?.trim() ||
+        t('someone', { defaultValue: 'Someone' })
     setAnnouncement(t('announce', { name: participantName, emoji: emojiLabel }))
     setLastAnnouncedId(latestReaction.id)
 
@@ -197,7 +186,7 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className={srOnly}
+        className="sr-only"
       >
         {announcement ?? ''}
       </div>
