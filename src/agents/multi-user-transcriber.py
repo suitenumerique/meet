@@ -31,6 +31,7 @@ logger = logging.getLogger("transcriber")
 
 TRANSCRIBER_AGENT_NAME = os.getenv("TRANSCRIBER_AGENT_NAME", "multi-user-transcriber")
 STT_PROVIDER = os.getenv("STT_PROVIDER", "deepgram")
+ENABLE_SILERO_VAD = os.getenv("ENABLE_SILERO_VAD", "true").lower() == "true"
 
 
 def create_stt_provider():
@@ -122,9 +123,8 @@ class MultiUserTranscriber:
         if participant.identity in self._sessions:
             return self._sessions[participant.identity]
 
-        session = AgentSession(
-            vad=self.ctx.proc.userdata["vad"],
-        )
+        vad = self.ctx.proc.userdata.get("vad", None)
+        session = AgentSession(vad=vad)
         room_io = RoomIO(
             agent_session=session,
             room=self.ctx.room,
@@ -193,7 +193,8 @@ async def handle_transcriber_job_request(job_req: JobRequest) -> None:
 
 def prewarm(proc: JobProcess):
     """Preload voice activity detection model."""
-    proc.userdata["vad"] = silero.VAD.load()
+    if ENABLE_SILERO_VAD:
+        proc.userdata["vad"] = silero.VAD.load()
 
 
 if __name__ == "__main__":
