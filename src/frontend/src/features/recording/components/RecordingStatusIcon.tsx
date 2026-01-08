@@ -1,4 +1,5 @@
 import { Spinner } from '@/primitives/Spinner'
+import { Icon } from '@/primitives'
 
 interface RecordingStatusIconProps {
   isStarted: boolean
@@ -14,8 +15,8 @@ export const RecordingStatusIcon = ({
   }
 
   if (isTranscriptActive) {
-    return <span className="material-symbols">speech_to_text</span>
+    return <Icon type="symbols" name="speech_to_text" />
   }
 
-  return <span className="material-symbols">screen_record</span>
+  return <Icon type="symbols" name="screen_record" />
 }

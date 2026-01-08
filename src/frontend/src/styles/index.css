@@ -1,5 +1,4 @@
 @import './livekit.css';
-@import './icons.css';
 @layer reset, base, tokens, recipes, utilities;
 html,
 body,

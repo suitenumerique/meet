@@ -1,7 +1,7 @@
-import { css, cx } from '@/styled-system/css'
+import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { Spinner } from '@/primitives/Spinner'
-import { Button, Text } from '@/primitives'
+import { Button, Icon, Text } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { RecordingStatuses } from '../hooks/useRecordingStatuses'
 import { ReactNode, useEffect, useRef, useState } from 'react'
@@ -141,31 +141,23 @@ export const ControlsButton = ({
           })}
           onPress={() => openSidePanel()}
         >
-          <span
-            className={cx(
-              'material-icons',
-              css({
-                color: 'primary.500',
-                marginRight: '1rem',
-              })
-            )}
-          >
-            info
-          </span>
+          <Icon
+            className={css({
+              color: 'primary.500',
+              marginRight: '1rem',
+            })}
+            name="info"
+          />
           <Text variant={'smNote'}>
             {parseLineBreaks(t('button.anotherModeStarted'))}
           </Text>
-          <span
-            className={cx(
-              'material-icons',
-              css({
-                color: 'primary.500',
-                marginLeft: 'auto',
-              })
-            )}
-          >
-            chevron_right
-          </span>
+          <Icon
+            className={css({
+              color: 'primary.500',
+              marginLeft: 'auto',
+            })}
+            name="chevron_right"
+          />
         </RACButton>
       )}
       <Button

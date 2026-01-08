@@ -1,4 +1,4 @@
-import { H, Text } from '@/primitives'
+import { H, Text, Icon } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { LoginButton } from '@/components/LoginButton'
 import { HStack } from '@/styled-system/jsx'
@@ -24,9 +24,7 @@ export const LoginPrompt = ({ heading, body }: LoginPromptProps) => {
       })}
     >
       <HStack justify="start" alignItems="center" marginBottom="0.5rem">
-        <span className="material-symbols" aria-hidden={true}>
-          login
-        </span>
+        <Icon type="symbols" name="login" />
         <H lvl={3} margin={false} padding={false}>
           {heading}
         </H>
