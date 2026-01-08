@@ -22,7 +22,8 @@ and this project adheres to
 
 ### Fixed
 
-- 🐛(frontend) remove unexpected F2 tooltip when clicking video screen
+- 🐛(frontend) remove unexpected F2 tooltip when clicking video screen 
+- 🩹(frontend) icon font loading to avoid text/icon flickering
 
 ## [1.2.0] - 2026-01-05
 
