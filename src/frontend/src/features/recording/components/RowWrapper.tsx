@@ -1,5 +1,6 @@
 import { css } from '@/styled-system/css'
 import { ReactNode } from 'react'
+import { Icon } from '@/primitives'
 
 type RowPosition = 'first' | 'middle' | 'last' | 'single'
 
@@ -45,7 +46,7 @@ export const RowWrapper = ({
         })}
       >
         {/*  fixme - doesn't handle properly material-symbols  */}
-        <span className="material-icons">{iconName}</span>
+        <Icon name={iconName} />
       </div>
       <div
         className={css({
