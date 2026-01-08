@@ -181,7 +181,7 @@ export const TranscriptSidePanel = () => {
           },
         })}
       />
-      <VStack gap={0} marginBottom={30}>
+      <VStack gap={0} marginBottom={15}>
         <H lvl={1} margin={'sm'}>
           {t('heading')}
         </H>
@@ -198,7 +198,7 @@ export const TranscriptSidePanel = () => {
           )}
         </Text>
       </VStack>
-      <VStack gap={0} marginBottom={40}>
+      <VStack gap={0} marginBottom={25}>
         <RowWrapper iconName="article" position="first">
           <Text variant="sm">
             {data?.transcription_destination ? (

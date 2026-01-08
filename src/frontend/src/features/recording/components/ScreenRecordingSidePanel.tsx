@@ -145,7 +145,7 @@ export const ScreenRecordingSidePanel = () => {
           },
         })}
       />
-      <VStack gap={0} marginBottom={30}>
+      <VStack gap={0} marginBottom={15}>
         <H lvl={1} margin={'sm'} fullWidth>
           {t('heading')}
         </H>
@@ -162,7 +162,7 @@ export const ScreenRecordingSidePanel = () => {
           )}
         </Text>
       </VStack>
-      <VStack gap={0} marginBottom={40}>
+      <VStack gap={0} marginBottom={25}>
         <RowWrapper iconName="cloud_download" position="first">
           <Text variant="sm">{t('details.destination')}</Text>
         </RowWrapper>
