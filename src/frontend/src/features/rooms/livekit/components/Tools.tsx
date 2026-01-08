@@ -1,4 +1,4 @@
-import { A, Div, Text } from '@/primitives'
+import { A, Div, Icon, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
@@ -87,7 +87,7 @@ const ToolButton = ({
           alignItems: 'center',
         })}
       >
-        <span className="material-symbols">chevron_forward</span>
+        <Icon type="symbols" name="chevron_forward" />
       </div>
     </RACButton>
   )
@@ -163,7 +163,7 @@ export const Tools = () => {
       </Text>
       {isTranscriptEnabled && (
         <ToolButton
-          icon={<span className="material-symbols">speech_to_text</span>}
+          icon={<Icon type="symbols" name="speech_to_text" />}
           title={t('tools.transcript.title')}
           description={t('tools.transcript.body')}
           onPress={() => openTranscript()}
@@ -171,7 +171,7 @@ export const Tools = () => {
       )}
       {isScreenRecordingEnabled && (
         <ToolButton
-          icon={<span className="material-symbols">mode_standby</span>}
+          icon={<Icon type="symbols" name="mode_standby" />}
           title={t('tools.screenRecording.title')}
           description={t('tools.screenRecording.body')}
           onPress={() => openScreenRecording()}

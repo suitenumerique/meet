@@ -1,4 +1,4 @@
-import { Button, H, Text } from '@/primitives'
+import { Button, Icon, H, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { useEffect, useRef, useState } from 'react'
@@ -59,7 +59,7 @@ export const RequestRecording = ({
       })}
     >
       <HStack justify="start" alignItems="center" marginBottom="0.5rem">
-        <span className="material-symbols">person_raised_hand</span>
+        <Icon type="symbols" name="person_raised_hand" />
         <H lvl={3} margin={false} padding={false}>
           {heading}
         </H>

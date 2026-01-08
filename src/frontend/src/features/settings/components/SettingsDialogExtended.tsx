@@ -2,6 +2,7 @@ import { Dialog, type DialogProps } from '@/primitives'
 import { Tab, Tabs, TabList } from '@/primitives/Tabs.tsx'
 import { css } from '@/styled-system/css'
 import { text } from '@/primitives/Text.tsx'
+import { Icon } from '@/primitives/Icon'
 import { Heading } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import {
@@ -106,7 +107,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
             </Tab>
             {isAdminOrOwner && (
               <Tab icon highlight id={SettingsDialogExtendedKey.TRANSCRIPTION}>
-                <span className="material-symbols">speech_to_text</span>
+                <Icon type="symbols" name="speech_to_text" />
                 {isWideScreen &&
                   t(`tabs.${SettingsDialogExtendedKey.TRANSCRIPTION}`)}
               </Tab>
