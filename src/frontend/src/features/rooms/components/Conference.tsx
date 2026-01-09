@@ -228,10 +228,13 @@ export const Conference = ({
             posthog.captureException(e)
           }}
           onDisconnected={(e) => {
-            if (e == DisconnectReason.CLIENT_INITIATED) {
-              navigateTo('feedback', { duplicateIdentity: false })
-            } else if (e == DisconnectReason.DUPLICATE_IDENTITY) {
-              navigateTo('feedback', { duplicateIdentity: true })
+            switch (e) {
+              case DisconnectReason.CLIENT_INITIATED:
+                navigateTo('feedback', { duplicateIdentity: false })
+                return
+              case DisconnectReason.DUPLICATE_IDENTITY:
+                navigateTo('feedback', { duplicateIdentity: true })
+                return
             }
           }}
           onMediaDeviceFailure={(e, kind) => {
