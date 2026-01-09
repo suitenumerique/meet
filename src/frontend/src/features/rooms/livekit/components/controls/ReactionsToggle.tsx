@@ -10,6 +10,7 @@ import {
   ANIMATION_DURATION,
   ReactionPortals,
 } from '@/features/rooms/livekit/components/ReactionPortal'
+import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { Toolbar as RACToolbar } from 'react-aria-components'
 import { Participant } from 'livekit-client'
 import useRateLimiter from '@/hooks/useRateLimiter'
@@ -145,7 +146,7 @@ export const ReactionsToggle = () => {
                 <Button
                   key={index}
                   onPress={() => debouncedSendReaction(emoji)}
-                  aria-label={t('send', { emoji })}
+                  aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
                   variant="primaryTextDark"
                   size="sm"
                   square
