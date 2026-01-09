@@ -12,6 +12,7 @@ import { StartMediaButton } from '../../components/controls/StartMediaButton'
 import { MoreOptions } from './MoreOptions'
 import { useRef } from 'react'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { openShortcutHelp } from '@/stores/shortcutHelp'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 
@@ -23,6 +24,14 @@ export function DesktopControlBar({
 
   useRegisterKeyboardShortcut({
     shortcut: { key: '?' },
+    handler: () => {
+      openShortcutHelp()
+    },
+  })
+
+  // Keep legacy behavior: F2 focuses the first button in the bottom toolbar.
+  useRegisterKeyboardShortcut({
+    shortcut: { key: 'F2' },
     handler: () => {
       const root = desktopControlBarEl.current
       if (!root) return

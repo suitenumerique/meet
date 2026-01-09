@@ -31,7 +31,7 @@ import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { ParticipantName } from './ParticipantName'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useTranslation } from 'react-i18next'
-import { KeyboardShortcutHint } from './KeyboardShortcutHint'
+import { ShortcutHelpTooltip } from './ShortcutHelpTooltip'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -229,9 +229,10 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
-      {hasKeyboardFocus && (
-        <KeyboardShortcutHint>{t('toolbarHint')}</KeyboardShortcutHint>
-      )}
+      <ShortcutHelpTooltip
+        triggerLabel={t('toolbarHint')}
+        isVisible={hasKeyboardFocus}
+      />
     </div>
   )
 })
