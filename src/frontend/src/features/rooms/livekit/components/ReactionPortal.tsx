@@ -165,7 +165,8 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
     const emojiLabel = getEmojiLabel(latestReaction.emoji, t)
     const participantName = latestReaction.participant?.isLocal
       ? t('you')
-      : (latestReaction.participant?.name ?? '')
+      : latestReaction.participant?.name?.trim() ||
+        t('someone', { defaultValue: 'Someone' })
     setAnnouncement(t('announce', { name: participantName, emoji: emojiLabel }))
     setLastAnnouncedId(latestReaction.id)
 
