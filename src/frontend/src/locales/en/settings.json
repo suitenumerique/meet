@@ -108,12 +108,18 @@
     "label": "Language"
   },
   "settingsButtonLabel": "Settings",
+  "accessibility": {
+    "announceReactions": {
+      "label": "Announce reactions aloud"
+    }
+  },
   "tabs": {
     "account": "Profile",
     "audio": "Audio",
     "video": "Video",
     "general": "General",
     "notifications": "Notifications",
+    "accessibility": "Accessibility",
     "transcription": "Transcription"
   }
 }

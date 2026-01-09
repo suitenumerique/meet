@@ -5,6 +5,9 @@ import { css } from '@/styled-system/css'
 import { Participant } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { Reaction } from '@/features/rooms/livekit/components/controls/ReactionsToggle'
+import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
+import { accessibilityStore } from '@/stores/accessibility'
+import { useSnapshot } from 'valtio'
 
 export const ANIMATION_DURATION = 3000
 export const ANIMATION_DISTANCE = 300
@@ -140,11 +143,53 @@ export function ReactionPortal({
   )
 }
 
-export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) =>
-  reactions.map((instance) => (
-    <ReactionPortal
-      key={instance.id}
-      emoji={instance.emoji}
-      participant={instance.participant}
-    />
-  ))
+export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
+  const { announceReactions } = useSnapshot(accessibilityStore)
+  const [announcement, setAnnouncement] = useState<string | null>(null)
+  const [lastAnnouncedId, setLastAnnouncedId] = useState<number | null>(null)
+
+  const latestReaction =
+    reactions.length > 0 ? reactions[reactions.length - 1] : undefined
+
+  useEffect(() => {
+    if (!announceReactions) {
+      setAnnouncement(null)
+      return
+    }
+    if (!latestReaction) return
+    const isNewReaction = latestReaction.id !== lastAnnouncedId
+    if (!isNewReaction) return
+
+    const emojiLabel = getEmojiLabel(latestReaction.emoji, t)
+    const participantName = latestReaction.participant?.isLocal
+      ? t('you')
+      : latestReaction.participant?.name?.trim() ||
+        t('someone', { defaultValue: 'Someone' })
+    setAnnouncement(t('announce', { name: participantName, emoji: emojiLabel }))
+    setLastAnnouncedId(latestReaction.id)
+
+    const timer = setTimeout(() => setAnnouncement(null), 1200)
+    return () => clearTimeout(timer)
+  }, [latestReaction, lastAnnouncedId, announceReactions, t])
+
+  return (
+    <>
+      {reactions.map((instance) => (
+        <ReactionPortal
+          key={instance.id}
+          emoji={instance.emoji}
+          participant={instance.participant}
+        />
+      ))}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement ?? ''}
+      </div>
+    </>
+  )
+}
