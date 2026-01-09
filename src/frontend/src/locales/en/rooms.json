@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options for {{name}}",
-    "toolbarHint": "F2: go to the bottom toolbar.",
+    "toolbarHint": "?: show keyboard shortcuts.",
     "pin": {
       "enable": "Pin",
       "disable": "Unpin"

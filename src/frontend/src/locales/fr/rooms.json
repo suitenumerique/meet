@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options pour {{name}}",
-    "toolbarHint": "F2 : raccourci barre d'outils en bas.",
+    "toolbarHint": "? : voir les raccourcis clavier.",
     "pin": {
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"

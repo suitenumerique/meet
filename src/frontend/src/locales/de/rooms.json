@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Optionen für {{name}}",
-    "toolbarHint": "F2: zur Symbolleiste unten.",
+    "toolbarHint": "?: Tastenkürzel anzeigen.",
     "pin": {
       "enable": "Anheften",
       "disable": "Lösen"

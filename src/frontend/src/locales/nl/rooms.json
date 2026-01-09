@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Opties voor {{name}}",
-    "toolbarHint": "F2: naar de werkbalk onderaan.",
+    "toolbarHint": "?: sneltoetsen bekijken.",
     "pin": {
       "enable": "Pinnen",
       "disable": "Losmaken"
