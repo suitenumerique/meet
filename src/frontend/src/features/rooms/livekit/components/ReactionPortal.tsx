@@ -8,7 +8,6 @@ import { Reaction } from '@/features/rooms/livekit/components/controls/Reactions
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { accessibilityStore } from '@/stores/accessibility'
 import { useSnapshot } from 'valtio'
-import { srOnly } from '@/styles/a11y'
 
 export const ANIMATION_DURATION = 3000
 export const ANIMATION_DISTANCE = 300
@@ -187,7 +186,7 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className={srOnly}
+        className="sr-only"
       >
         {announcement ?? ''}
       </div>
