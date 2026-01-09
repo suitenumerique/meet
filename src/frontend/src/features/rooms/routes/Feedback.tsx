@@ -3,7 +3,7 @@ import { Button } from '@/primitives'
 import { Screen } from '@/layout/Screen'
 import { Center, HStack, styled, VStack } from '@/styled-system/jsx'
 import { Rating } from '@/features/rooms/components/Rating.tsx'
-import { useLocation, useSearchParams } from 'wouter'
+import { useLocation } from 'wouter'
 
 // fixme - duplicated with home, refactor in a proper style
 const Heading = styled('h1', {
@@ -24,16 +24,14 @@ export const FeedbackRoute = () => {
   const { t } = useTranslation('rooms')
   const [, setLocation] = useLocation()
 
-  const [searchParams] = useSearchParams()
+  const state = window.history.state
 
   return (
     <Screen layout="centered" footer={false}>
       <Center>
         <VStack>
           <Heading>
-            {t(
-              `feedback.heading.${searchParams.get('duplicateIdentity') ? 'duplicateIdentity' : 'normal'}`
-            )}
+            {t(`feedback.heading.${state?.reason || 'normal'}`)}
           </Heading>
           <HStack>
             <Button variant="secondary" onPress={() => window.history.back()}>
