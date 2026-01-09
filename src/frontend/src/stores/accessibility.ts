@@ -31,10 +31,23 @@ function getAccessibilityState(): AccessibilityState {
       try {
         const parsedLegacy = JSON.parse(legacy, deserializeToProxyMap)
         if (typeof parsedLegacy?.announceReactions === 'boolean') {
-          return {
+          const migratedState: AccessibilityState = {
             ...DEFAULT_STATE,
+            ...parsedLegacy,
             announceReactions: parsedLegacy.announceReactions,
           }
+
+          try {
+            localStorage.setItem(
+              STORAGE_KEYS.ACCESSIBILITY,
+              JSON.stringify(migratedState)
+            )
+            localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS)
+          } catch {
+            // ignore persistence issues during migration
+          }
+
+          return migratedState
         }
       } catch {
         // ignore legacy parsing issues
