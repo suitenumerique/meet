@@ -25,12 +25,12 @@ import { VideoConference } from '../livekit/prefabs/VideoConference'
 import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
-import { navigateTo } from '@/navigation/navigateTo'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
 import { usePostHog } from 'posthog-js/react'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
+import { navigateTo } from '@/navigation/navigateTo'
 
 export const Conference = ({
   roomId,
@@ -230,10 +230,16 @@ export const Conference = ({
           onDisconnected={(e) => {
             switch (e) {
               case DisconnectReason.CLIENT_INITIATED:
-                navigateTo('feedback', { duplicateIdentity: false })
+                navigateTo('feedback')
                 return
               case DisconnectReason.DUPLICATE_IDENTITY:
-                navigateTo('feedback', { duplicateIdentity: true })
+                navigateTo(
+                  'feedback',
+                  {},
+                  {
+                    state: { reason: 'duplicateIdentity' },
+                  }
+                )
                 return
             }
           }}
