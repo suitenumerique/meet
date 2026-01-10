@@ -2,7 +2,8 @@
   "feedback": {
     "heading": {
       "normal": "Je hebt de vergadering verlaten",
-      "duplicateIdentity": "U heeft de vergadering via een ander apparaat geopend"
+      "duplicateIdentity": "U heeft de vergadering via een ander apparaat geopend",
+      "participantRemoved": "U bent door een beheerder uit het gesprek verwijderd"
     },
     "home": "Keer terug naar het hoofdscherm",
     "back": "Sluit weer bij de vergadering aan"

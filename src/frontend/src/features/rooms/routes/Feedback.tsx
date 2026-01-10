@@ -4,6 +4,8 @@ import { Screen } from '@/layout/Screen'
 import { Center, HStack, styled, VStack } from '@/styled-system/jsx'
 import { Rating } from '@/features/rooms/components/Rating.tsx'
 import { useLocation } from 'wouter'
+import { useMemo } from 'react'
+import { DisconnectReason } from 'livekit-client'
 
 // fixme - duplicated with home, refactor in a proper style
 const Heading = styled('h1', {
@@ -24,15 +26,23 @@ export const FeedbackRoute = () => {
   const { t } = useTranslation('rooms')
   const [, setLocation] = useLocation()
 
-  const state = window.history.state
+  const reasonKey = useMemo(() => {
+    const state = window.history.state
+
+    if (!state?.reason) return
+    switch (state.reason) {
+      case DisconnectReason.DUPLICATE_IDENTITY:
+        return 'duplicateIdentity'
+      case DisconnectReason.PARTICIPANT_REMOVED:
+        return 'participantRemoved'
+    }
+  }, [])
 
   return (
     <Screen layout="centered" footer={false}>
       <Center>
         <VStack>
-          <Heading>
-            {t(`feedback.heading.${state?.reason || 'normal'}`)}
-          </Heading>
+          <Heading>{t(`feedback.heading.${reasonKey || 'normal'}`)}</Heading>
           <HStack>
             <Button variant="secondary" onPress={() => window.history.back()}>
               {t('feedback.back')}
