@@ -25,12 +25,12 @@ import { VideoConference } from '../livekit/prefabs/VideoConference'
 import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
-import { navigateTo } from '@/navigation/navigateTo'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
 import { usePostHog } from 'posthog-js/react'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
+import { navigateTo } from '@/navigation/navigateTo'
 
 export const Conference = ({
   roomId,
@@ -228,10 +228,20 @@ export const Conference = ({
             posthog.captureException(e)
           }}
           onDisconnected={(e) => {
-            if (e == DisconnectReason.CLIENT_INITIATED) {
-              navigateTo('feedback', { duplicateIdentity: false })
-            } else if (e == DisconnectReason.DUPLICATE_IDENTITY) {
-              navigateTo('feedback', { duplicateIdentity: true })
+            switch (e) {
+              case DisconnectReason.CLIENT_INITIATED:
+                navigateTo('feedback')
+                return
+              case DisconnectReason.DUPLICATE_IDENTITY:
+              case DisconnectReason.PARTICIPANT_REMOVED:
+                navigateTo(
+                  'feedback',
+                  {},
+                  {
+                    state: { reason: e },
+                  }
+                )
+                return
             }
           }}
           onMediaDeviceFailure={(e, kind) => {

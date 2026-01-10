@@ -2,7 +2,8 @@
   "feedback": {
     "heading": {
       "normal": "Sie haben das Meeting verlassen",
-      "duplicateIdentity": "Sie haben dem Meeting von einem anderen Gerät aus beigetreten"
+      "duplicateIdentity": "Sie haben dem Meeting von einem anderen Gerät aus beigetreten",
+      "participantRemoved": "Sie wurden von einem Administrator aus dem Anruf entfernt"
     },
     "home": "Zur Startseite zurückkehren",
     "back": "Dem Meeting erneut beitreten"
