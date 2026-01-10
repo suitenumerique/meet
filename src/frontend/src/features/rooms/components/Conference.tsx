@@ -233,11 +233,12 @@ export const Conference = ({
                 navigateTo('feedback')
                 return
               case DisconnectReason.DUPLICATE_IDENTITY:
+              case DisconnectReason.PARTICIPANT_REMOVED:
                 navigateTo(
                   'feedback',
                   {},
                   {
-                    state: { reason: 'duplicateIdentity' },
+                    state: { reason: e },
                   }
                 )
                 return

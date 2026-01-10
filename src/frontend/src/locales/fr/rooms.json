@@ -2,7 +2,8 @@
   "feedback": {
     "heading": {
       "normal": "Vous avez quitté la réunion",
-      "duplicateIdentity": "Vous avez rejoint la réunion depuis un autre appareil"
+      "duplicateIdentity": "Vous avez rejoint la réunion depuis un autre appareil",
+      "participantRemoved": "Vous avez été exclu de l'appel par un administrateur"
     },
     "home": "Retourner à l'accueil",
     "back": "Réintégrer la réunion"

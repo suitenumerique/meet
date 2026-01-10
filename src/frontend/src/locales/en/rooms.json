@@ -2,7 +2,8 @@
   "feedback": {
     "heading": {
       "normal": "You have left the meeting",
-      "duplicateIdentity": "You have joined the meeting from another device"
+      "duplicateIdentity": "You have joined the meeting from another device",
+      "participantRemoved": "You have been removed from the meeting by an administrator"
     },
     "home": "Return to home",
     "back": "Rejoin the meeting"
