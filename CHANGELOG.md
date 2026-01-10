@@ -13,6 +13,7 @@ and this project adheres to
 
 - ✨(summary) add dutch and german languages
 - 🔧(agents) make Silero VAD optional
+- 🚸(frontend) explain to a user they were ejected
 
 ### Changed
 
