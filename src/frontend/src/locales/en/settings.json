@@ -120,6 +120,17 @@
     "general": "General",
     "notifications": "Notifications",
     "accessibility": "Accessibility",
-    "transcription": "Transcription"
+    "transcription": "Transcription",
+    "shortcuts": "Shortcuts"
+  },
+  "shortcutsEditor": {
+    "description": "Customize keyboard shortcuts (local to this device).",
+    "pressHint": "Press the desired keys to set a new shortcut.",
+    "longPressHint": "Hold a key to set a long-press shortcut.",
+    "edit": "Edit",
+    "capture": "Press keys…",
+    "reset": "Reset",
+    "custom": "custom",
+    "limitations": "Shortcuts are saved locally and may not apply to all actions yet."
   }
 }

@@ -114,6 +114,17 @@
     "video": "Video",
     "general": "Allgemein",
     "notifications": "Benachrichtigungen",
-    "transcription": "Transkription"
+    "transcription": "Transkription",
+    "shortcuts": "Tastenkürzel"
+  },
+  "shortcutsEditor": {
+    "description": "Tastenkürzel anpassen (lokal auf diesem Gerät).",
+    "pressHint": "Drücken Sie die gewünschten Tasten, um ein Kürzel zu setzen.",
+    "longPressHint": "Halten Sie eine Taste gedrückt, um ein Long-Press-Kürzel zu setzen.",
+    "edit": "Bearbeiten",
+    "capture": "Tasten drücken …",
+    "reset": "Zurücksetzen",
+    "custom": "benutzerdefiniert",
+    "limitations": "Die Kürzel werden lokal gespeichert und gelten nicht zwingend für alle Aktionen."
   }
 }

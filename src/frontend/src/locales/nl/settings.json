@@ -114,6 +114,17 @@
     "video": "Video",
     "general": "Algemeen",
     "notifications": "Meldingen",
-    "transcription": "Transcriptie"
+    "transcription": "Transcriptie",
+    "shortcuts": "Sneltoetsen"
+  },
+  "shortcutsEditor": {
+    "description": "Sneltoetsen aanpassen (lokaal op dit apparaat).",
+    "pressHint": "Druk op de gewenste toetsen om een sneltoets in te stellen.",
+    "longPressHint": "Houd een toets ingedrukt voor een long-press sneltoets.",
+    "edit": "Bewerken",
+    "capture": "Toetsen indrukken…",
+    "reset": "Resetten",
+    "custom": "aangepast",
+    "limitations": "Sneltoetsen worden lokaal opgeslagen en gelden mogelijk niet voor alle acties."
   }
 }

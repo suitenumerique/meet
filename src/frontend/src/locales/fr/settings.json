@@ -120,6 +120,17 @@
     "general": "Général",
     "notifications": "Notifications",
     "accessibility": "Accessibilité",
-    "transcription": "Transcription"
+    "transcription": "Transcription",
+    "shortcuts": "Raccourcis"
+  },
+  "shortcutsEditor": {
+    "description": "Personnaliser les raccourcis clavier (local à cet appareil).",
+    "pressHint": "Appuyez sur les touches souhaitées pour définir un raccourci.",
+    "longPressHint": "Maintenez une touche pour définir un raccourci long.",
+    "edit": "Modifier",
+    "capture": "Appuyez sur les touches…",
+    "reset": "Réinitialiser",
+    "custom": "personnalisé",
+    "limitations": "Les raccourcis sont enregistrés localement et peuvent ne pas s’appliquer à toutes les actions."
   }
 }
