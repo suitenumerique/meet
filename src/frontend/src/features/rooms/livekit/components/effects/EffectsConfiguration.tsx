@@ -8,7 +8,7 @@ import {
   ProcessorType,
 } from '../blur'
 import { css } from '@/styled-system/css'
-import { H, P, Text, ToggleButton } from '@/primitives'
+import { Button, H, P, Text, ToggleButton } from '@/primitives'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { styled } from '@/styled-system/jsx'
 import { BlurOn } from '@/components/icons/BlurOn'
@@ -18,6 +18,8 @@ import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
+import { RiImageAddFill } from '@remixicon/react'
+import { FileTrigger } from 'react-aria-components'
 
 enum BlurRadius {
   NONE = 0,
@@ -405,6 +407,17 @@ export const EffectsConfiguration = ({
                   >
                     <BlurOnStrong />
                   </ToggleButton>
+                  <FileTrigger
+                    acceptedFileTypes={['image/*']}
+                    allowsMultiple={false}
+                    onSelect={(e) => {
+                      console.log(e)
+                    }}
+                  >
+                    <Button variant="bigSquare">
+                      <RiImageAddFill />
+                    </Button>
+                  </FileTrigger>
                 </div>
                 <div aria-live="polite" className="sr-only">
                   {blurStatusMessage}
