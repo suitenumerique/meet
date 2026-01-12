@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Optionen für {{name}}",
-    "toolbarHint": "/: Tastenkürzel anzeigen.",
+    "toolbarHint": "{{modifier}} + /: Tastenkürzel anzeigen.",
     "pin": {
       "enable": "Anheften",
       "disable": "Lösen"
@@ -605,7 +605,14 @@
       "focus-toolbar": "Fokus auf die untere Symbolleiste",
       "toggle-microphone": "Mikrofon umschalten",
       "toggle-camera": "Kamera umschalten",
-      "push-to-talk": "Push-to-talk (gedrückt halten zum Einschalten)"
+      "push-to-talk": "Push-to-talk (gedrückt halten zum Einschalten)",
+      "reaction": "Reaktionspanel",
+      "fullscreen": "Vollbild umschalten",
+      "recording": "Aufnahmepanel umschalten",
+      "raise-hand": "Hand heben oder senken",
+      "toggle-chat": "Chat anzeigen/ausblenden",
+      "toggle-participants": "Teilnehmer anzeigen/ausblenden",
+      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen"
     },
     "sr": {
       "control": "Steuerung",

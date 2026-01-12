@@ -11,11 +11,13 @@ export const useKeyboardShortcuts = () => {
     // This approach handles basic shortcuts but isn't comprehensive.
     // Issues might occur. First draft.
     const onKeyDown = async (e: KeyboardEvent) => {
-      const { key, metaKey, ctrlKey } = e
+      const { key, metaKey, ctrlKey, shiftKey, altKey } = e
       if (!key) return
       const shortcutKey = formatShortcutKey({
         key,
         ctrlKey: ctrlKey || (isMacintosh() && metaKey),
+        shiftKey,
+        altKey,
       })
       const shortcut = shortcutsSnap.shortcuts.get(shortcutKey)
       if (!shortcut) return

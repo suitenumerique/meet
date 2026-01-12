@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options pour {{name}}",
-    "toolbarHint": "/ : voir les raccourcis clavier.",
+    "toolbarHint": "{{modifier}} + / : voir les raccourcis clavier.",
     "pin": {
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"
@@ -605,7 +605,14 @@
       "focus-toolbar": "Mettre le focus sur la barre d’outils du bas",
       "toggle-microphone": "Activer/Désactiver le micro",
       "toggle-camera": "Activer/Désactiver la caméra",
-      "push-to-talk": "Appuyer pour parler (maintenir pour réactiver)"
+      "push-to-talk": "Appuyer pour parler (maintenir pour réactiver)",
+      "reaction": "Panneau des réactions",
+      "fullscreen": "Basculer en plein écran",
+      "recording": "Basculer le panneau d’enregistrement",
+      "raise-hand": "Lever ou baisser la main",
+      "toggle-chat": "Afficher/Masquer le chat",
+      "toggle-participants": "Afficher/Masquer les participants",
+      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis"
     },
     "sr": {
       "control": "Contrôle",

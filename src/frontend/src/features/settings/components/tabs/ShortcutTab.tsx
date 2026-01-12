@@ -87,12 +87,21 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
   const handleKeyCapture = useCallback(
     (e: React.KeyboardEvent<HTMLButtonElement>, shortcutId: string) => {
       e.preventDefault()
-      const { key, ctrlKey } = e
+      const { key, ctrlKey, shiftKey, altKey } = e
       // Ignore modifier-only keys
-      if (!key || key === 'Control' || key === 'Meta' || key === 'Shift') return
+      if (
+        !key ||
+        key === 'Control' ||
+        key === 'Meta' ||
+        key === 'Shift' ||
+        key === 'Alt'
+      )
+        return
       const normalized: Shortcut = {
         key,
         ctrlKey,
+        shiftKey,
+        altKey,
       }
       const next = { ...overrides, [shortcutId]: normalized }
       setOverrides(next)

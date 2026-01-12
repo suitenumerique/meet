@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Opties voor {{name}}",
-    "toolbarHint": "/: open de sneltoetsen.",
+    "toolbarHint": "{{modifier}} + /: open de sneltoetsen.",
     "pin": {
       "enable": "Pinnen",
       "disable": "Losmaken"
@@ -605,7 +605,14 @@
       "focus-toolbar": "Focus op de onderste werkbalk",
       "toggle-microphone": "Microfoon aan/uit",
       "toggle-camera": "Camera aan/uit",
-      "push-to-talk": "Push-to-talk (ingedrukt houden om te activeren)"
+      "push-to-talk": "Push-to-talk (ingedrukt houden om te activeren)",
+      "reaction": "Reactiepaneel",
+      "fullscreen": "Volledig scherm wisselen",
+      "recording": "Opnamepaneel wisselen",
+      "raise-hand": "Hand opsteken of laten zakken",
+      "toggle-chat": "Chat tonen/verbergen",
+      "toggle-participants": "Deelnemers tonen/verbergen",
+      "open-shortcuts-settings": "Sneltoets-instellingen openen"
     },
     "sr": {
       "control": "Control",

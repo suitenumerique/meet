@@ -6,6 +6,7 @@ import { ToggleButton } from '@/primitives'
 import { chatStore } from '@/stores/chat'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 
 export const ChatToggle = ({
   onPress,
@@ -17,6 +18,11 @@ export const ChatToggle = ({
 
   const { isChatOpen, toggleChat } = useSidePanel()
   const tooltipLabel = isChatOpen ? 'open' : 'closed'
+
+  useRegisterKeyboardShortcut({
+    shortcutId: 'toggle-chat',
+    handler: toggleChat,
+  })
 
   return (
     <div

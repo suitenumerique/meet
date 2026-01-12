@@ -6,6 +6,7 @@ import { css } from '@/styled-system/css'
 import { useParticipants } from '@livekit/components-react'
 import { useSidePanel } from '../../../hooks/useSidePanel'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 
 export const ParticipantsToggle = ({
   onPress,
@@ -26,6 +27,11 @@ export const ParticipantsToggle = ({
   const { isParticipantsOpen, toggleParticipants } = useSidePanel()
 
   const tooltipLabel = isParticipantsOpen ? 'open' : 'closed'
+
+  useRegisterKeyboardShortcut({
+    shortcutId: 'toggle-participants',
+    handler: toggleParticipants,
+  })
 
   return (
     <div

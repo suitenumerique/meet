@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options for {{name}}",
-    "toolbarHint": "/: show keyboard shortcuts.",
+    "toolbarHint": "{{modifier}} + / : show keyboard shortcuts.",
     "pin": {
       "enable": "Pin",
       "disable": "Unpin"
@@ -605,7 +605,14 @@
       "focus-toolbar": "Focus bottom toolbar",
       "toggle-microphone": "Toggle microphone",
       "toggle-camera": "Toggle camera",
-      "push-to-talk": "Push-to-talk (hold to unmute)"
+      "push-to-talk": "Push-to-talk (hold to unmute)",
+      "reaction": "Emoji reaction panel",
+      "fullscreen": "Toggle fullscreen",
+      "recording": "Toggle recording panel",
+      "raise-hand": "Raise or lower hand",
+      "toggle-chat": "Toggle chat",
+      "toggle-participants": "Toggle participants",
+      "open-shortcuts-settings": "Open shortcuts settings"
     },
     "sr": {
       "control": "Control",

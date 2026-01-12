@@ -198,6 +198,7 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
         tabIndex={-1}
         className={css({
           overflow: 'hidden',
+          overflowY: 'hidden',
           maxHeight: '0px',
           opacity: 0,
           mt: '0',
@@ -207,6 +208,8 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
             maxHeight: '400px',
             opacity: 1,
             mt: '0.35rem',
+            overflowY: 'auto',
+            paddingRight: '0.25rem',
           },
         })}
       >
