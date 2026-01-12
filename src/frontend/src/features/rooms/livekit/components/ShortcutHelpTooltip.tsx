@@ -1,41 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { css } from '@/styled-system/css'
 import { shortcutCatalog } from '@/features/shortcuts/catalog'
-import { isMacintosh } from '@/utils/livekit'
+import {
+  formatLongPressLabel,
+  formatShortcutLabel,
+  formatShortcutLabelForSR as formatShortcutLabelForSRHelper,
+  getKeyLabelFromCode,
+} from '@/features/shortcuts/formatLabels'
+import { useFocusTrap } from '@/features/shortcuts/useFocusTrap'
 import {
   closeShortcutHelp,
   shortcutHelpStore,
   toggleShortcutHelp,
 } from '@/stores/shortcutHelp'
 import { useSnapshot } from 'valtio'
-import { Shortcut } from '@/features/shortcuts/types'
 import { useTranslation } from 'react-i18next'
+import { Shortcut } from '@/features/shortcuts/types'
 
 type ShortcutHelpTooltipProps = {
   triggerLabel: string
   isVisible?: boolean
-}
-
-// Visible label for a shortcut (uses ⌘/Ctrl prefix when needed).
-const formatShortcutLabel = (shortcut?: Shortcut) => {
-  if (!shortcut) return '—'
-  const key = shortcut.key?.toUpperCase()
-  if (!key) return '—'
-  if (shortcut.ctrlKey) return `${isMacintosh() ? '⌘' : 'Ctrl'}+${key}`
-  return key
-}
-
-// Extract displayable key name from KeyboardEvent.code (ex: KeyV -> V).
-const getKeyLabelFromCode = (code?: string) => {
-  if (!code) return ''
-  if (code.startsWith('Key') && code.length === 4) return code.slice(3)
-  return code
-}
-
-// Long-press label (visual or SR), e.g. “Hold V”.
-const formatLongPressLabel = (codeLabel: string, holdTemplate: string) => {
-  if (!codeLabel) return holdTemplate.replace('{{key}}', '?')
-  return holdTemplate.replace('{{key}}', codeLabel)
 }
 
 export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
@@ -48,6 +32,10 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const wasOpenRef = useRef(false)
+
+  useFocusTrap(panelRef, { isActive: isOpen, fallbackRef: panelRef })
+
+  useFocusTrap(panelRef, { isActive: isOpen, fallbackRef: panelRef })
 
   const grouped = useMemo(() => {
     return shortcutCatalog.reduce<Record<string, typeof shortcutCatalog>>(
@@ -74,17 +62,13 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
 
   // SR-friendly label for a shortcut (reads “Control plus D”).
   const formatShortcutLabelForSR = useCallback(
-    (shortcut?: Shortcut) => {
-      if (!shortcut) return t('shortcutsPanel.sr.noShortcut')
-      const key = shortcut.key?.toUpperCase()
-      if (!key) return t('shortcutsPanel.sr.noShortcut')
-      const ctrlWord = isMacintosh()
-        ? t('shortcutsPanel.sr.command')
-        : t('shortcutsPanel.sr.control')
-      const plusWord = t('shortcutsPanel.sr.plus')
-      if (shortcut.ctrlKey) return `${ctrlWord} ${plusWord} ${key}`
-      return key
-    },
+    (shortcut?: Shortcut) =>
+      formatShortcutLabelForSRHelper(shortcut, {
+        controlLabel: t('shortcutsPanel.sr.control'),
+        commandLabel: t('shortcutsPanel.sr.command'),
+        plusLabel: t('shortcutsPanel.sr.plus'),
+        noShortcutLabel: t('shortcutsPanel.sr.noShortcut'),
+      }),
     [t]
   )
 
@@ -114,39 +98,6 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
     toggleShortcutHelp()
   }, [])
 
-  // Simple focus trap inside the panel when open.
-  const handlePanelKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (!isOpen) return
-      if (e.key !== 'Tab') return
-      const panel = panelRef.current
-      if (!panel) return
-      const focusable = panel.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )
-      if (focusable.length === 0) {
-        e.preventDefault()
-        panel.focus()
-        return
-      }
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      const active = document.activeElement
-      if (e.shiftKey) {
-        if (active === first || active === panel) {
-          e.preventDefault()
-          last.focus()
-        }
-      } else {
-        if (active === last) {
-          e.preventDefault()
-          first.focus()
-        }
-      }
-    },
-    [isOpen]
-  )
-
   // Close the panel when Escape is pressed.
   useEffect(() => {
     if (!isOpen) return
@@ -164,15 +115,8 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
   // Focus management: move focus into the panel when opened, return to trigger when closed.
   useEffect(() => {
     if (isOpen) {
-      // Focus the first category heading if present; fallback to the panel.
-      const firstHeading = panelRef.current?.querySelector<HTMLElement>(
-        '[data-shortcuts-heading]'
-      )
-      if (firstHeading) {
-        firstHeading.focus()
-      } else if (panelRef.current) {
-        panelRef.current.focus()
-      }
+      // Focus the panel container to avoid double announcement of headings.
+      panelRef.current?.focus()
     } else if (wasOpenRef.current && !isOpen && triggerRef.current) {
       triggerRef.current.focus()
     }
@@ -252,7 +196,6 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
         data-open={isOpen}
         ref={panelRef}
         tabIndex={-1}
-        onKeyDown={handlePanelKeyDown}
         className={css({
           overflow: 'hidden',
           maxHeight: '0px',
