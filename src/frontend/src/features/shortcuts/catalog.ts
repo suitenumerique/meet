@@ -14,7 +14,6 @@ export type ShortcutId =
 
 export type ShortcutDescriptor = {
   id: ShortcutId
-  label: string
   category: ShortcutCategory
   shortcut?: Shortcut
   kind?: 'press' | 'longPress'
@@ -25,32 +24,26 @@ export type ShortcutDescriptor = {
 export const shortcutCatalog: ShortcutDescriptor[] = [
   {
     id: 'open-shortcuts',
-    label: 'Open shortcuts help',
     category: 'navigation',
     shortcut: { key: '/' },
-    description: 'Open the shortcuts panel.',
   },
   {
     id: 'focus-toolbar',
-    label: 'Focus bottom toolbar',
     category: 'navigation',
     shortcut: { key: 'F2' },
   },
   {
     id: 'toggle-microphone',
-    label: 'Toggle microphone',
     category: 'media',
     shortcut: { key: 'd', ctrlKey: true },
   },
   {
     id: 'toggle-camera',
-    label: 'Toggle camera',
     category: 'media',
     shortcut: { key: 'e', ctrlKey: true },
   },
   {
     id: 'push-to-talk',
-    label: 'Push-to-talk (hold to unmute)',
     category: 'media',
     kind: 'longPress',
     code: 'KeyV',
