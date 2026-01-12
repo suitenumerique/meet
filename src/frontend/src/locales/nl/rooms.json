@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Opties voor {{name}}",
-    "toolbarHint": "?: sneltoetsen bekijken.",
+    "toolbarHint": "/: open de sneltoetsen.",
     "pin": {
       "enable": "Pinnen",
       "disable": "Losmaken"

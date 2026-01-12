@@ -27,9 +27,8 @@ export const shortcutCatalog: ShortcutDescriptor[] = [
     id: 'open-shortcuts',
     label: 'Open shortcuts help',
     category: 'navigation',
-    shortcut: { key: '?' },
-    description:
-      'Currently focuses the bottom toolbar; will open the shortcuts panel next.',
+    shortcut: { key: '/' },
+    description: 'Open the shortcuts panel.',
   },
   {
     id: 'focus-toolbar',

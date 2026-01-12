@@ -23,7 +23,7 @@ export function DesktopControlBar({
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: '?' },
+    shortcut: { key: '/' },
     handler: () => {
       openShortcutHelp()
     },
