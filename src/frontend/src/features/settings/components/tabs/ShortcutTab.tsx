@@ -120,28 +120,24 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       >
         {rows.map(({ item, override, visualShortcut, srShortcut }) => {
           const actionLabel = tRooms(`shortcutsPanel.actions.${item.id}`)
+          const srCustomLabel = override
+            ? t('shortcutsEditor.customAria', {
+                defaultValue: 'custom',
+              })
+            : ''
 
           return (
             <div key={item.id} role="listitem" className={rowStyle}>
               <div>
                 <div className={text({ variant: 'body' })}>{actionLabel}</div>
               </div>
-              <div
-                aria-label={t('shortcutsEditor.shortcutAria', {
-                  defaultValue: 'Shortcut for {{action}}: {{shortcut}}',
-                  action: actionLabel,
-                  shortcut: srShortcut,
-                })}
-                className={badgeStyle}
-              >
+              <div className={badgeStyle} aria-hidden="true">
                 <span aria-hidden="true">{visualShortcut}</span>
                 {override && (
                   <span
                     className={text({ variant: 'smNote' })}
                     style={{ marginLeft: '0.4rem' }}
-                    aria-label={t('shortcutsEditor.customAria', {
-                      defaultValue: 'custom',
-                    })}
+                    aria-hidden="true"
                   >
                     <span aria-hidden="true">
                       ({t('shortcutsEditor.custom')})
@@ -149,6 +145,10 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
                   </span>
                 )}
               </div>
+              <span className="sr-only">
+                {srShortcut}
+                {srCustomLabel ? ` (${srCustomLabel})` : ''}
+              </span>
               {/* Edit and reset feature, uncomment when ready to use */}
               {/* <ShortcutEditActions
                 shortcutId={item.id}

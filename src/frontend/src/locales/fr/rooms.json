@@ -603,8 +603,8 @@
     "actions": {
       "open-shortcuts": "Ouvrir l’aide des raccourcis",
       "focus-toolbar": "Mettre le focus sur la barre d’outils du bas",
-      "toggle-microphone": "Activer/Désactiver le micro",
-      "toggle-camera": "Activer/Désactiver la caméra",
+      "toggle-microphone": "Activer ou désactiver le micro",
+      "toggle-camera": "Activer ou désactiver la caméra",
       "push-to-talk": "Appuyer pour parler (maintenir pour réactiver)",
       "reaction": "Panneau des réactions",
       "fullscreen": "Basculer en plein écran",

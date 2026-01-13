@@ -41,8 +41,6 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
 
   useFocusTrap(panelRef, { isActive: isOpen, fallbackRef: panelRef })
 
-  useFocusTrap(panelRef, { isActive: isOpen, fallbackRef: panelRef })
-
   const grouped = useMemo(() => {
     return shortcutCatalog.reduce<
       Record<
@@ -277,7 +275,6 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
                   return (
                     <li
                       key={item.id}
-                      aria-label={`${getActionLabel(item.id)}, ${srShortcut}`}
                       className={css({
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -286,7 +283,10 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
                         fontSize: '0.85rem',
                       })}
                     >
-                      <span>{getActionLabel(item.id)}</span>
+                      <span>
+                        {getActionLabel(item.id)}
+                        <span className="sr-only">, {srShortcut}</span>
+                      </span>
                       <span
                         aria-hidden
                         className={css({
