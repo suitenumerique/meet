@@ -22,6 +22,11 @@ const Heading = styled('h1', {
   },
 })
 
+enum DisconnectReasonKey {
+  DuplicateIdentity = 'duplicateIdentity',
+  ParticipantRemoved = 'participantRemoved',
+}
+
 export const FeedbackRoute = () => {
   const { t } = useTranslation('rooms')
   const [, setLocation] = useLocation()
@@ -32,11 +37,13 @@ export const FeedbackRoute = () => {
     if (!state?.reason) return
     switch (state.reason) {
       case DisconnectReason.DUPLICATE_IDENTITY:
-        return 'duplicateIdentity'
+        return DisconnectReasonKey.DuplicateIdentity
       case DisconnectReason.PARTICIPANT_REMOVED:
-        return 'participantRemoved'
+        return DisconnectReasonKey.ParticipantRemoved
     }
   }, [])
+
+  const showBackButton = reasonKey !== DisconnectReasonKey.ParticipantRemoved
 
   return (
     <Screen layout="centered" footer={false}>
@@ -44,9 +51,11 @@ export const FeedbackRoute = () => {
         <VStack>
           <Heading>{t(`feedback.heading.${reasonKey || 'normal'}`)}</Heading>
           <HStack>
-            <Button variant="secondary" onPress={() => window.history.back()}>
-              {t('feedback.back')}
-            </Button>
+            {showBackButton && (
+              <Button variant="secondary" onPress={() => window.history.back()}>
+                {t('feedback.back')}
+              </Button>
+            )}
             <Button variant="primary" onPress={() => setLocation('/')}>
               {t('feedback.home')}
             </Button>
