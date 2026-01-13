@@ -7,6 +7,7 @@ import { Heading } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import {
   RiAccountCircleLine,
+  RiKeyboardBoxLine,
   RiNotification3Line,
   RiSettings3Line,
   RiSpeakerLine,
@@ -109,9 +110,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
                 t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             </Tab>
             <Tab icon highlight id={SettingsDialogExtendedKey.SHORTCUTS}>
-              <span className="material-symbols" aria-hidden="true">
-                keyboard
-              </span>
+              <RiKeyboardBoxLine />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
             </Tab>
             {isAdminOrOwner && (
