@@ -63,3 +63,30 @@ export const loadShortcutOverrides = () => {
 export const getOverride = (id: string): Shortcut | undefined => {
   return shortcutOverridesStore.overrides.get(id)
 }
+
+const saveOverridesToStorage = () => {
+  if (typeof window === 'undefined') return
+  try {
+    const overridesObj: Record<string, Shortcut> = {}
+    shortcutOverridesStore.overrides.forEach((value, key) => {
+      overridesObj[key] = value
+    })
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(overridesObj))
+  } catch (e) {
+    console.warn('Failed to save shortcut overrides', e)
+  }
+}
+
+export const setOverride = (id: string, shortcut: Shortcut) => {
+  shortcutOverridesStore.overrides.set(id, shortcut)
+  // Force reactivity by creating a new Map reference
+  shortcutOverridesStore.overrides = new Map(shortcutOverridesStore.overrides)
+  saveOverridesToStorage()
+}
+
+export const removeOverride = (id: string) => {
+  shortcutOverridesStore.overrides.delete(id)
+  // Force reactivity by creating a new Map reference
+  shortcutOverridesStore.overrides = new Map(shortcutOverridesStore.overrides)
+  saveOverridesToStorage()
+}

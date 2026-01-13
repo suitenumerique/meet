@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Shortcut } from '@/features/shortcuts/types'
 import { shortcutCatalog } from '@/features/shortcuts/catalog'
 import {
@@ -12,27 +12,13 @@ import { useTranslation } from 'react-i18next'
 import { text } from '@/primitives/Text'
 import { buttonRecipe } from '@/primitives/buttonRecipe'
 import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
-
-type ShortcutOverrides = Record<string, Shortcut>
-
-const STORAGE_KEY = 'shortcuts:overrides'
-
-const loadOverrides = (): ShortcutOverrides => {
-  if (typeof window === 'undefined') return {}
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return {}
-    return JSON.parse(raw) as ShortcutOverrides
-  } catch (e) {
-    console.warn('Failed to parse shortcut overrides', e)
-    return {}
-  }
-}
-
-const saveOverrides = (overrides: ShortcutOverrides) => {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides))
-}
+import { useSnapshot } from 'valtio'
+import {
+  loadShortcutOverrides,
+  removeOverride,
+  setOverride,
+  shortcutOverridesStore,
+} from '@/stores/shortcutOverrides'
 
 const rowStyle = css({
   display: 'grid',
@@ -63,13 +49,10 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       t(key, { ns: 'rooms', ...options }),
     [t]
   )
-  const [overrides, setOverrides] = useState<ShortcutOverrides>({})
+  loadShortcutOverrides()
+  const { overrides } = useSnapshot(shortcutOverridesStore)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmationMessage, setConfirmationMessage] = useState<string>('')
-
-  useEffect(() => {
-    setOverrides(loadOverrides())
-  }, [])
 
   const handleStartEdit = useCallback((shortcutId: string) => {
     setEditingId(shortcutId)
@@ -77,10 +60,7 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
 
   const handleReset = useCallback(
     (shortcutId: string) => {
-      const next = { ...overrides }
-      delete next[shortcutId]
-      setOverrides(next)
-      saveOverrides(next)
+      removeOverride(shortcutId)
       setConfirmationMessage(
         t('shortcutsEditor.resetConfirmation', {
           defaultValue: 'Shortcut reset',
@@ -88,7 +68,7 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       )
       setTimeout(() => setConfirmationMessage(''), 3000)
     },
-    [overrides, t]
+    [t]
   )
 
   const handleKeyCapture = useCallback(
@@ -111,9 +91,7 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
         shiftKey,
         altKey,
       }
-      const next = { ...overrides, [shortcutId]: normalized }
-      setOverrides(next)
-      saveOverrides(next)
+      setOverride(shortcutId, normalized)
       setEditingId(null)
       setConfirmationMessage(
         t('shortcutsEditor.modifiedConfirmation', {
@@ -122,12 +100,28 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       )
       setTimeout(() => setConfirmationMessage(''), 3000)
     },
-    [overrides, t]
+    [t]
+  )
+
+  const handleEditButtonKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLButtonElement>, shortcutId: string) => {
+      // If already in edit mode, capture the key
+      if (editingId === shortcutId) {
+        handleKeyCapture(e, shortcutId)
+        return
+      }
+      // Otherwise, if it's Enter or Space, start edit mode (like a click)
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        handleStartEdit(shortcutId)
+      }
+    },
+    [editingId, handleKeyCapture, handleStartEdit]
   )
 
   const rows = useMemo(() => {
     return shortcutCatalog.map((item) => {
-      const override = overrides[item.id]
+      const override = overrides.get(item.id)
       const effectiveShortcut = override ?? item.shortcut
       const visualShortcut =
         item.kind === 'longPress'
@@ -260,7 +254,7 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
                 <button
                   type="button"
                   className={buttonLink}
-                  onKeyDown={(e) => handleKeyCapture(e, item.id)}
+                  onKeyDown={(e) => handleEditButtonKeyDown(e, item.id)}
                   onClick={() => handleStartEdit(item.id)}
                   aria-pressed={editingId === item.id}
                   aria-label={editButtonAriaLabel}
