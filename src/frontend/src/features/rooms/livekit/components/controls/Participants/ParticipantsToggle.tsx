@@ -30,7 +30,7 @@ export const ParticipantsToggle = ({
 
   useRegisterKeyboardShortcut({
     shortcutId: 'toggle-participants',
-    handler: toggleParticipants,
+    handler: async () => toggleParticipants(),
   })
 
   return (

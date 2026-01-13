@@ -82,7 +82,8 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
         key === 'Meta' ||
         key === 'Shift' ||
         key === 'Alt' ||
-        key === 'Tab'
+        key === 'Tab' ||
+        key === 'Escape'
       )
         return
       const normalized: Shortcut = {

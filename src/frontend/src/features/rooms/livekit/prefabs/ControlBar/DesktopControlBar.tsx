@@ -30,7 +30,7 @@ export function DesktopControlBar({
   const { openSettingsDialog } = useSettingsDialog()
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: '/', ctrlKey: true },
+    shortcutId: 'open-shortcuts',
     handler: () => {
       openShortcutHelp()
     },
@@ -38,7 +38,7 @@ export function DesktopControlBar({
 
   // Keep legacy behavior: F2 focuses the first button in the bottom toolbar.
   useRegisterKeyboardShortcut({
-    shortcut: { key: 'F2' },
+    shortcutId: 'focus-toolbar',
     handler: () => {
       const root = desktopControlBarEl.current
       if (!root) return
@@ -50,17 +50,17 @@ export function DesktopControlBar({
   })
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: 'P', ctrlKey: true, shiftKey: true },
+    shortcutId: 'toggle-participants',
     handler: () => toggleParticipants(),
   })
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: 'C', ctrlKey: true, shiftKey: true },
+    shortcutId: 'toggle-chat',
     handler: () => toggleChat(),
   })
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: 'F', ctrlKey: true, shiftKey: true },
+    shortcutId: 'fullscreen',
     handler: () => {
       if (!isFullscreenAvailable) return
       toggleFullScreen()
@@ -68,12 +68,12 @@ export function DesktopControlBar({
   })
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: 'L', ctrlKey: true, shiftKey: true },
+    shortcutId: 'recording',
     handler: () => openScreenRecording(),
   })
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: 'K', ctrlKey: true, altKey: true },
+    shortcutId: 'open-shortcuts-settings',
     handler: () => openSettingsDialog(SettingsDialogExtendedKey.SHORTCUTS),
   })
   return (
