@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { Shortcut } from '@/features/shortcuts/types'
+import { useCallback, useEffect, useMemo } from 'react'
 import { shortcutCatalog } from '@/features/shortcuts/catalog'
 import {
   formatLongPressLabel,
@@ -10,19 +9,20 @@ import {
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { text } from '@/primitives/Text'
-import { buttonRecipe } from '@/primitives/buttonRecipe'
 import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import { useSnapshot } from 'valtio'
 import {
   loadShortcutOverrides,
-  removeOverride,
-  setOverride,
   shortcutOverridesStore,
 } from '@/stores/shortcutOverrides'
+// Edit and reset feature, uncomment when ready to use
+// import { ShortcutEditActions } from './ShortcutEditActions'
+// import { useShortcutConfirmation } from './useShortcutConfirmation.tsx'
 
 const rowStyle = css({
   display: 'grid',
-  gridTemplateColumns: '1.25fr auto auto',
+  // Edit and reset feature: uncomment 'auto auto' when ShortcutEditActions is used
+  gridTemplateColumns: '1.25fr auto', // '1.25fr auto auto' when ShortcutEditActions is used
   alignItems: 'center',
   gap: '0.75rem',
   padding: '0.65rem 0',
@@ -40,8 +40,6 @@ const badgeStyle = css({
   textAlign: 'center',
 })
 
-const buttonLink = buttonRecipe({ variant: 'secondary', size: 'sm' })
-
 const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
   const { t } = useTranslation(['settings', 'rooms'])
   const tRooms = useCallback(
@@ -49,76 +47,13 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       t(key, { ns: 'rooms', ...options }),
     [t]
   )
-  loadShortcutOverrides()
-  const { overrides } = useSnapshot(shortcutOverridesStore)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [confirmationMessage, setConfirmationMessage] = useState<string>('')
-
-  const handleStartEdit = useCallback((shortcutId: string) => {
-    setEditingId(shortcutId)
+  useEffect(() => {
+    loadShortcutOverrides()
   }, [])
+  const { overrides } = useSnapshot(shortcutOverridesStore)
 
-  const handleReset = useCallback(
-    (shortcutId: string) => {
-      removeOverride(shortcutId)
-      setConfirmationMessage(
-        t('shortcutsEditor.resetConfirmation', {
-          defaultValue: 'Shortcut reset',
-        })
-      )
-      setTimeout(() => setConfirmationMessage(''), 3000)
-    },
-    [t]
-  )
-
-  const handleKeyCapture = useCallback(
-    (e: React.KeyboardEvent<HTMLButtonElement>, shortcutId: string) => {
-      e.preventDefault()
-      const { key, ctrlKey, shiftKey, altKey } = e
-      // Ignore modifier-only keys
-      if (
-        !key ||
-        key === 'Control' ||
-        key === 'Meta' ||
-        key === 'Shift' ||
-        key === 'Alt' ||
-        key === 'Tab' ||
-        key === 'Escape'
-      )
-        return
-      const normalized: Shortcut = {
-        key,
-        ctrlKey,
-        shiftKey,
-        altKey,
-      }
-      setOverride(shortcutId, normalized)
-      setEditingId(null)
-      setConfirmationMessage(
-        t('shortcutsEditor.modifiedConfirmation', {
-          defaultValue: 'Shortcut modified',
-        })
-      )
-      setTimeout(() => setConfirmationMessage(''), 3000)
-    },
-    [t]
-  )
-
-  const handleEditButtonKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLButtonElement>, shortcutId: string) => {
-      // If already in edit mode, capture the key
-      if (editingId === shortcutId) {
-        handleKeyCapture(e, shortcutId)
-        return
-      }
-      // Otherwise, if it's Enter or Space, start edit mode (like a click)
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        handleStartEdit(shortcutId)
-      }
-    },
-    [editingId, handleKeyCapture, handleStartEdit]
-  )
+  // Edit and reset feature, uncomment when ready to use
+  // const { setConfirmationMessage, ConfirmationMessage } = useShortcutConfirmation()
 
   const rows = useMemo(() => {
     return shortcutCatalog.map((item) => {
@@ -168,16 +103,8 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       <div className={text({ variant: 'body' })}>
         {t('shortcutsEditor.description')}
       </div>
-      {confirmationMessage && (
-        <div
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          className={text({ variant: 'smNote' })}
-        >
-          {confirmationMessage}
-        </div>
-      )}
+      {/* Edit and reset feature, uncomment when ready to use */}
+      {/* <ConfirmationMessage /> */}
       <div
         role="list"
         aria-label={t('shortcutsEditor.listLabel', {
@@ -193,24 +120,6 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       >
         {rows.map(({ item, override, visualShortcut, srShortcut }) => {
           const actionLabel = tRooms(`shortcutsPanel.actions.${item.id}`)
-          const editButtonLabel =
-            editingId === item.id
-              ? t('shortcutsEditor.capture')
-              : t('shortcutsEditor.edit')
-          const editButtonAriaLabel =
-            editingId === item.id
-              ? t('shortcutsEditor.captureAria', {
-                  defaultValue: 'Press keys to set shortcut for {{action}}',
-                  action: actionLabel,
-                })
-              : t('shortcutsEditor.editAria', {
-                  defaultValue: 'Edit shortcut for {{action}}',
-                  action: actionLabel,
-                })
-          const resetButtonAriaLabel = t('shortcutsEditor.resetAria', {
-            defaultValue: 'Reset shortcut for {{action}}',
-            action: actionLabel,
-          })
 
           return (
             <div key={item.id} role="listitem" className={rowStyle}>
@@ -240,51 +149,14 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
                   </span>
                 )}
               </div>
-              <div
-                role="group"
-                aria-label={t('shortcutsEditor.actionsGroupAria', {
-                  defaultValue: 'Actions for {{action}}',
-                  action: actionLabel,
-                })}
-                className={css({
-                  display: 'flex',
-                  gap: '0.35rem',
-                  justifyContent: 'flex-end',
-                })}
-              >
-                <button
-                  type="button"
-                  className={buttonLink}
-                  onKeyDown={(e) => handleEditButtonKeyDown(e, item.id)}
-                  onClick={() => handleStartEdit(item.id)}
-                  aria-pressed={editingId === item.id}
-                  aria-label={editButtonAriaLabel}
-                  aria-describedby={`shortcut-${item.id}-description`}
-                >
-                  {editButtonLabel}
-                </button>
-                <button
-                  type="button"
-                  className={buttonLink}
-                  onClick={() => handleReset(item.id)}
-                  aria-disabled={!override}
-                  disabled={!override}
-                  aria-label={resetButtonAriaLabel}
-                  aria-describedby={`shortcut-${item.id}-description`}
-                  style={{ opacity: !override ? 0.5 : 1 }}
-                >
-                  {t('shortcutsEditor.reset')}
-                </button>
-                <span
-                  id={`shortcut-${item.id}-description`}
-                  className="sr-only"
-                >
-                  {t('shortcutsEditor.currentShortcut', {
-                    defaultValue: 'Current shortcut: {{shortcut}}',
-                    shortcut: srShortcut,
-                  })}
-                </span>
-              </div>
+              {/* Edit and reset feature, uncomment when ready to use */}
+              {/* <ShortcutEditActions
+                shortcutId={item.id}
+                actionLabel={actionLabel}
+                srShortcut={srShortcut}
+                hasOverride={!!override}
+                onConfirmationChange={setConfirmationMessage}
+              /> */}
             </div>
           )
         })}

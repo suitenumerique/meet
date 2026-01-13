@@ -15,16 +15,18 @@ export const formatShortcutKey = (shortcut: Shortcut) => {
 
 export const appendShortcutLabel = (label: string, shortcut: Shortcut) => {
   if (!shortcut.key) return
-  let formattedKeyLabel = shortcut.key.toLowerCase()
+  const parts: string[] = []
   if (shortcut.ctrlKey) {
-    formattedKeyLabel = `${isMacintosh() ? '⌘' : 'Ctrl'}+${formattedKeyLabel}`
+    parts.push(isMacintosh() ? '⌘' : 'Ctrl')
   }
   if (shortcut.altKey) {
-    formattedKeyLabel = `${isMacintosh() ? '⌥' : 'Alt'}+${formattedKeyLabel}`
+    parts.push(isMacintosh() ? '⌥' : 'Alt')
   }
   if (shortcut.shiftKey) {
-    formattedKeyLabel = `Shift+${formattedKeyLabel}`
+    parts.push('Shift')
   }
+  parts.push(shortcut.key.toLowerCase())
+  const formattedKeyLabel = parts.join('+')
   return `${label} (${formattedKeyLabel})`
 }
 
