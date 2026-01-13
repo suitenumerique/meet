@@ -131,6 +131,16 @@
     "capture": "Appuyez sur les touches…",
     "reset": "Réinitialiser",
     "custom": "personnalisé",
-    "limitations": "Les raccourcis sont enregistrés localement et peuvent ne pas s’appliquer à toutes les actions."
+    "limitations": "Les raccourcis sont enregistrés localement et peuvent ne pas s'appliquer à toutes les actions.",
+    "listLabel": "Liste des raccourcis clavier",
+    "shortcutAria": "Raccourci pour {{action}} : {{shortcut}}",
+    "customAria": "personnalisé",
+    "editAria": "Modifier le raccourci pour {{action}}",
+    "captureAria": "Appuyez sur les touches pour définir le raccourci pour {{action}}",
+    "resetAria": "Réinitialiser le raccourci pour {{action}}",
+    "actionsGroupAria": "Actions pour {{action}}",
+    "currentShortcut": "Raccourci actuel : {{shortcut}}",
+    "modifiedConfirmation": "Raccourci modifié",
+    "resetConfirmation": "Raccourci réinitialisé"
   }
 }

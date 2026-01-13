@@ -65,6 +65,7 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
   )
   const [overrides, setOverrides] = useState<ShortcutOverrides>({})
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [confirmationMessage, setConfirmationMessage] = useState<string>('')
 
   useEffect(() => {
     setOverrides(loadOverrides())
@@ -80,8 +81,14 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       delete next[shortcutId]
       setOverrides(next)
       saveOverrides(next)
+      setConfirmationMessage(
+        t('shortcutsEditor.resetConfirmation', {
+          defaultValue: 'Shortcut reset',
+        })
+      )
+      setTimeout(() => setConfirmationMessage(''), 3000)
     },
-    [overrides]
+    [overrides, t]
   )
 
   const handleKeyCapture = useCallback(
@@ -94,7 +101,8 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
         key === 'Control' ||
         key === 'Meta' ||
         key === 'Shift' ||
-        key === 'Alt'
+        key === 'Alt' ||
+        key === 'Tab'
       )
         return
       const normalized: Shortcut = {
@@ -107,8 +115,14 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       setOverrides(next)
       saveOverrides(next)
       setEditingId(null)
+      setConfirmationMessage(
+        t('shortcutsEditor.modifiedConfirmation', {
+          defaultValue: 'Shortcut modified',
+        })
+      )
+      setTimeout(() => setConfirmationMessage(''), 3000)
     },
-    [overrides]
+    [overrides, t]
   )
 
   const rows = useMemo(() => {
@@ -159,7 +173,21 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
       <div className={text({ variant: 'body' })}>
         {t('shortcutsEditor.description')}
       </div>
+      {confirmationMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className={text({ variant: 'smNote' })}
+        >
+          {confirmationMessage}
+        </div>
+      )}
       <div
+        role="list"
+        aria-label={t('shortcutsEditor.listLabel', {
+          defaultValue: 'List of keyboard shortcuts',
+        })}
         className={css({
           display: 'grid',
           gap: '0.25rem',
@@ -168,53 +196,103 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
           paddingRight: '0.35rem',
         })}
       >
-        {rows.map(({ item, override, visualShortcut, srShortcut }) => (
-          <div key={item.id} className={rowStyle}>
-            <div>
-              <div className={text({ variant: 'body' })}>
-                {tRooms(`shortcutsPanel.actions.${item.id}`)}
+        {rows.map(({ item, override, visualShortcut, srShortcut }) => {
+          const actionLabel = tRooms(`shortcutsPanel.actions.${item.id}`)
+          const editButtonLabel =
+            editingId === item.id
+              ? t('shortcutsEditor.capture')
+              : t('shortcutsEditor.edit')
+          const editButtonAriaLabel =
+            editingId === item.id
+              ? t('shortcutsEditor.captureAria', {
+                  defaultValue: 'Press keys to set shortcut for {{action}}',
+                  action: actionLabel,
+                })
+              : t('shortcutsEditor.editAria', {
+                  defaultValue: 'Edit shortcut for {{action}}',
+                  action: actionLabel,
+                })
+          const resetButtonAriaLabel = t('shortcutsEditor.resetAria', {
+            defaultValue: 'Reset shortcut for {{action}}',
+            action: actionLabel,
+          })
+
+          return (
+            <div key={item.id} role="listitem" className={rowStyle}>
+              <div>
+                <div className={text({ variant: 'body' })}>{actionLabel}</div>
+              </div>
+              <div
+                aria-label={t('shortcutsEditor.shortcutAria', {
+                  defaultValue: 'Shortcut for {{action}}: {{shortcut}}',
+                  action: actionLabel,
+                  shortcut: srShortcut,
+                })}
+                className={badgeStyle}
+              >
+                <span aria-hidden="true">{visualShortcut}</span>
+                {override && (
+                  <span
+                    className={text({ variant: 'smNote' })}
+                    style={{ marginLeft: '0.4rem' }}
+                    aria-label={t('shortcutsEditor.customAria', {
+                      defaultValue: 'custom',
+                    })}
+                  >
+                    <span aria-hidden="true">
+                      ({t('shortcutsEditor.custom')})
+                    </span>
+                  </span>
+                )}
+              </div>
+              <div
+                role="group"
+                aria-label={t('shortcutsEditor.actionsGroupAria', {
+                  defaultValue: 'Actions for {{action}}',
+                  action: actionLabel,
+                })}
+                className={css({
+                  display: 'flex',
+                  gap: '0.35rem',
+                  justifyContent: 'flex-end',
+                })}
+              >
+                <button
+                  type="button"
+                  className={buttonLink}
+                  onKeyDown={(e) => handleKeyCapture(e, item.id)}
+                  onClick={() => handleStartEdit(item.id)}
+                  aria-pressed={editingId === item.id}
+                  aria-label={editButtonAriaLabel}
+                  aria-describedby={`shortcut-${item.id}-description`}
+                >
+                  {editButtonLabel}
+                </button>
+                <button
+                  type="button"
+                  className={buttonLink}
+                  onClick={() => handleReset(item.id)}
+                  aria-disabled={!override}
+                  disabled={!override}
+                  aria-label={resetButtonAriaLabel}
+                  aria-describedby={`shortcut-${item.id}-description`}
+                  style={{ opacity: !override ? 0.5 : 1 }}
+                >
+                  {t('shortcutsEditor.reset')}
+                </button>
+                <span
+                  id={`shortcut-${item.id}-description`}
+                  className="sr-only"
+                >
+                  {t('shortcutsEditor.currentShortcut', {
+                    defaultValue: 'Current shortcut: {{shortcut}}',
+                    shortcut: srShortcut,
+                  })}
+                </span>
               </div>
             </div>
-            <div aria-label={srShortcut} className={badgeStyle}>
-              {visualShortcut}
-              {override && (
-                <span
-                  className={text({ variant: 'smNote' })}
-                  style={{ marginLeft: '0.4rem' }}
-                >
-                  ({t('shortcutsEditor.custom')})
-                </span>
-              )}
-            </div>
-            <div
-              className={css({
-                display: 'flex',
-                gap: '0.35rem',
-                justifyContent: 'flex-end',
-              })}
-            >
-              <button
-                type="button"
-                className={buttonLink}
-                onKeyDown={(e) => handleKeyCapture(e, item.id)}
-                onClick={() => handleStartEdit(item.id)}
-                aria-pressed={editingId === item.id}
-              >
-                {editingId === item.id
-                  ? t('shortcutsEditor.capture')
-                  : t('shortcutsEditor.edit')}
-              </button>
-              <button
-                type="button"
-                className={buttonLink}
-                onClick={() => handleReset(item.id)}
-                disabled={!override}
-              >
-                {t('shortcutsEditor.reset')}
-              </button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
       <div className={text({ variant: 'smNote' })}>
         {t('shortcutsEditor.limitations')}

@@ -125,6 +125,16 @@
     "capture": "Toetsen indrukken…",
     "reset": "Resetten",
     "custom": "aangepast",
-    "limitations": "Sneltoetsen worden lokaal opgeslagen en gelden mogelijk niet voor alle acties."
+    "limitations": "Sneltoetsen worden lokaal opgeslagen en gelden mogelijk niet voor alle acties.",
+    "listLabel": "Lijst van sneltoetsen",
+    "shortcutAria": "Sneltoets voor {{action}}: {{shortcut}}",
+    "customAria": "aangepast",
+    "editAria": "Sneltoets voor {{action}} bewerken",
+    "captureAria": "Druk op toetsen om sneltoets voor {{action}} in te stellen",
+    "resetAria": "Sneltoets voor {{action}} resetten",
+    "actionsGroupAria": "Acties voor {{action}}",
+    "currentShortcut": "Huidige sneltoets: {{shortcut}}",
+    "modifiedConfirmation": "Sneltoets gewijzigd",
+    "resetConfirmation": "Sneltoets gereset"
   }
 }

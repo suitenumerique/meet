@@ -131,6 +131,16 @@
     "capture": "Press keys…",
     "reset": "Reset",
     "custom": "custom",
-    "limitations": "Shortcuts are saved locally and may not apply to all actions yet."
+    "limitations": "Shortcuts are saved locally and may not apply to all actions yet.",
+    "listLabel": "List of keyboard shortcuts",
+    "shortcutAria": "Shortcut for {{action}}: {{shortcut}}",
+    "customAria": "custom",
+    "editAria": "Edit shortcut for {{action}}",
+    "captureAria": "Press keys to set shortcut for {{action}}",
+    "resetAria": "Reset shortcut for {{action}}",
+    "actionsGroupAria": "Actions for {{action}}",
+    "currentShortcut": "Current shortcut: {{shortcut}}",
+    "modifiedConfirmation": "Shortcut modified",
+    "resetConfirmation": "Shortcut reset"
   }
 }

@@ -125,6 +125,16 @@
     "capture": "Tasten drücken …",
     "reset": "Zurücksetzen",
     "custom": "benutzerdefiniert",
-    "limitations": "Die Kürzel werden lokal gespeichert und gelten nicht zwingend für alle Aktionen."
+    "limitations": "Die Kürzel werden lokal gespeichert und gelten nicht zwingend für alle Aktionen.",
+    "listLabel": "Liste der Tastenkürzel",
+    "shortcutAria": "Tastenkürzel für {{action}}: {{shortcut}}",
+    "customAria": "benutzerdefiniert",
+    "editAria": "Tastenkürzel für {{action}} bearbeiten",
+    "captureAria": "Tasten drücken, um Tastenkürzel für {{action}} festzulegen",
+    "resetAria": "Tastenkürzel für {{action}} zurücksetzen",
+    "actionsGroupAria": "Aktionen für {{action}}",
+    "currentShortcut": "Aktuelles Tastenkürzel: {{shortcut}}",
+    "modifiedConfirmation": "Tastenkürzel geändert",
+    "resetConfirmation": "Tastenkürzel zurückgesetzt"
   }
 }
