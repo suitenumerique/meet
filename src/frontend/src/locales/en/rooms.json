@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options for {{name}}",
-    "toolbarHint": "{{modifier}} + / : show keyboard shortcuts.",
+    "toolbarHint": "{{binding}} : show keyboard shortcuts.",
     "pin": {
       "enable": "Pin",
       "disable": "Unpin"

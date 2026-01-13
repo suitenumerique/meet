@@ -3,11 +3,13 @@ import { useSnapshot } from 'valtio'
 import { keyboardShortcutsStore } from '@/stores/keyboardShortcuts'
 import { isMacintosh } from '@/utils/livekit'
 import { formatShortcutKey } from './utils'
+import { loadShortcutOverrides } from '@/stores/shortcutOverrides'
 
 export const useKeyboardShortcuts = () => {
   const shortcutsSnap = useSnapshot(keyboardShortcutsStore)
 
   useEffect(() => {
+    loadShortcutOverrides()
     // This approach handles basic shortcuts but isn't comprehensive.
     // Issues might occur. First draft.
     const onKeyDown = async (e: KeyboardEvent) => {

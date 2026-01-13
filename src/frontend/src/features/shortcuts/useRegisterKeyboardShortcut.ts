@@ -5,20 +5,21 @@ import {
   getEffectiveShortcut,
 } from '@/features/shortcuts/utils'
 import { Shortcut } from '@/features/shortcuts/types'
-import { ShortcutId, getShortcutById } from './catalog'
-import {
-  loadShortcutOverrides,
-  shortcutOverridesStore,
-} from '@/stores/shortcutOverrides'
+import { ShortcutId } from './catalog'
+import { getOverride, loadShortcutOverrides } from '@/stores/shortcutOverrides'
 
 export type useRegisterKeyboardShortcutProps = {
   shortcut?: Shortcut
+  shortcutId?: ShortcutId
+  fallbackShortcut?: Shortcut
   handler: () => Promise<void | boolean | undefined> | void
   isDisabled?: boolean
 }
 
 export const useRegisterKeyboardShortcut = ({
   shortcut,
+  shortcutId,
+  fallbackShortcut,
   handler,
   isDisabled = false,
 }: useRegisterKeyboardShortcutProps) => {
@@ -31,39 +32,13 @@ export const useRegisterKeyboardShortcut = ({
   }, [])
 
   useEffect(() => {
-    let effectiveShortcut: Shortcut | undefined
-
-    if (shortcutId) {
-      // Try override first, then fallback to catalog default
-      effectiveShortcut = getEffectiveShortcut(
-        shortcutId,
-        overrides,
-        getShortcutById
-      )
-    }
-
-    // Fallback to provided shortcuts if no shortcutId or catalog item found
-    effectiveShortcut = effectiveShortcut || fallbackShortcut || shortcut
-
-    if (!effectiveShortcut) {
-      // Clean up previous shortcut if exists
-      if (previousKeyRef.current) {
-        keyboardShortcutsStore.shortcuts.delete(previousKeyRef.current)
-        previousKeyRef.current = null
-      }
-      return
-    }
-
+    loadShortcutOverrides()
+    const effectiveShortcut =
+      (shortcutId ? getOverride(shortcutId) : undefined) ||
+      fallbackShortcut ||
+      shortcut
+    if (!effectiveShortcut) return
     const formattedKey = formatShortcutKey(effectiveShortcut)
-
-    // Capture the key for unmount cleanup at the start of the effect
-    unmountKeyRef.current = formattedKey
-
-    // Clean up previous shortcut if the key changed
-    if (previousKeyRef.current && previousKeyRef.current !== formattedKey) {
-      keyboardShortcutsStore.shortcuts.delete(previousKeyRef.current)
-    }
-
     if (isDisabled) {
       keyboardShortcutsStore.shortcuts.delete(formattedKey)
     } else {
@@ -78,5 +53,5 @@ export const useRegisterKeyboardShortcut = ({
         unmountKeyRef.current = null
       }
     }
-  }, [handler, shortcut, isDisabled])
+  }, [handler, shortcutId, shortcut, fallbackShortcut, isDisabled])
 }

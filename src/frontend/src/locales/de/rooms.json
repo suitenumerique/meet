@@ -584,7 +584,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Optionen für {{name}}",
-    "toolbarHint": "{{modifier}} + /: Tastenkürzel anzeigen.",
+    "toolbarHint": "{{binding}}: Tastenkürzel anzeigen.",
     "pin": {
       "enable": "Anheften",
       "disable": "Lösen"

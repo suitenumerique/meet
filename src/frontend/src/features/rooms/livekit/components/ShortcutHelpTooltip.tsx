@@ -16,6 +16,10 @@ import {
 import { useSnapshot } from 'valtio'
 import { useTranslation } from 'react-i18next'
 import { Shortcut } from '@/features/shortcuts/types'
+import {
+  loadShortcutOverrides,
+  shortcutOverridesStore,
+} from '@/stores/shortcutOverrides'
 
 type ShortcutHelpTooltipProps = {
   triggerLabel: string
@@ -28,6 +32,8 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
 }) => {
   const { t } = useTranslation('rooms')
   const { isOpen } = useSnapshot(shortcutHelpStore)
+  loadShortcutOverrides()
+  const { overrides } = useSnapshot(shortcutOverridesStore)
   const isContainerVisible = isVisible || isOpen
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
@@ -38,15 +44,21 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
   useFocusTrap(panelRef, { isActive: isOpen, fallbackRef: panelRef })
 
   const grouped = useMemo(() => {
-    return shortcutCatalog.reduce<Record<string, typeof shortcutCatalog>>(
-      (acc, item) => {
-        acc[item.category] = acc[item.category] || []
-        acc[item.category].push(item)
-        return acc
-      },
-      {}
-    )
-  }, [])
+    return shortcutCatalog.reduce<
+      Record<
+        string,
+        {
+          item: (typeof shortcutCatalog)[number]
+          effective: Shortcut | undefined
+        }[]
+      >
+    >((acc, item) => {
+      const effective = overrides.get(item.id) ?? item.shortcut
+      acc[item.category] = acc[item.category] || []
+      acc[item.category].push({ item, effective })
+      return acc
+    }, {})
+  }, [overrides])
   const entries = Object.entries(grouped)
   const hasItems = entries.length > 0
 
@@ -253,15 +265,15 @@ export const ShortcutHelpTooltip: React.FC<ShortcutHelpTooltipProps> = ({
                   gap: '0.25rem',
                 })}
               >
-                {items.map((item) => {
+                {items.map(({ item, effective }) => {
                   const visualShortcut =
                     item.kind === 'longPress'
                       ? formatLongPressVisual(item.code)
-                      : formatShortcutLabel(item.shortcut)
+                      : formatShortcutLabel(effective)
                   const srShortcut =
                     item.kind === 'longPress'
                       ? formatLongPressSR(item.code)
-                      : formatShortcutLabelForSR(item.shortcut)
+                      : formatShortcutLabelForSR(effective)
                   return (
                     <li
                       key={item.id}

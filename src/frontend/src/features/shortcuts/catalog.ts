@@ -19,6 +19,9 @@ export type ShortcutId =
   | 'toggle-participants'
   | 'open-shortcuts-settings'
 
+export const getShortcutById = (id: ShortcutId) =>
+  shortcutCatalog.find((item) => item.id === id)
+
 export type ShortcutDescriptor = {
   id: ShortcutId
   category: ShortcutCategory
