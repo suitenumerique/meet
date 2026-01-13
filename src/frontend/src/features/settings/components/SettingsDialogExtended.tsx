@@ -109,7 +109,9 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
                 t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             </Tab>
             <Tab icon highlight id={SettingsDialogExtendedKey.SHORTCUTS}>
-              <span className="material-symbols">keyboard</span>
+              <span className="material-symbols" aria-hidden="true">
+                keyboard
+              </span>
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
             </Tab>
             {isAdminOrOwner && (
