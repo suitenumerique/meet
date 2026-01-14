@@ -17,6 +17,7 @@ and this project adheres to
 ### Fixed
 
 - 🔒(backend) prevent automatic upgrade setuptools
+- ♿(frontend) improve contrast for selected options #863
 
 ## [1.3.0] - 2026-01-13
 
