@@ -6,7 +6,7 @@ type UseFocusTrapOptions = {
 }
 
 const focusableSelector =
-  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  'button:not([disabled]):not([hidden]):not([aria-hidden="true"]), [href]:not([disabled]):not([hidden]):not([aria-hidden="true"]), input:not([disabled]):not([hidden]):not([aria-hidden="true"]), select:not([disabled]):not([hidden]):not([aria-hidden="true"]), textarea:not([disabled]):not([hidden]):not([aria-hidden="true"]), [tabindex]:not([tabindex="-1"]):not([disabled]):not([hidden]):not([aria-hidden="true"])'
 
 // Adds a simple focus trap on the given container: Tab/Shift+Tab loop inside.
 export const useFocusTrap = (
