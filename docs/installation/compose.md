@@ -1,6 +1,6 @@
 # Installation with docker compose
 
-We provide a sample configuration for running Meet using Docker Compose. Please note that this configuration is experimental, and the official way to deploy Meet in production is to use [k8s](../installation/k8s.md)
+We provide a sample configuration for running Meet using Docker Compose. Please note that this configuration is experimental, and the official way to deploy Meet in production is to use [k8s](../installation/kubernetes.md).
 
 ## Requirements
 
