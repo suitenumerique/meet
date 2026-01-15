@@ -69,6 +69,7 @@ export function useRestoreFocus(
               once: true,
             })
             // Store cleanup for unmount case
+            cleanupRef.current?.()
             cleanupRef.current = () => {
               if (document.contains(trigger)) {
                 trigger.removeAttribute('data-focus-visible')
