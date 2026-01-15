@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 type UseEscapeKeyOptions = {
   isActive: boolean
@@ -16,6 +16,8 @@ export const useEscapeKey = (
     stopPropagation = false,
   }: UseEscapeKeyOptions
 ) => {
+  const handleRef = useRef(handler)
+  handleRef.current = handler
   useEffect(() => {
     if (!isActive) return
 
@@ -23,12 +25,12 @@ export const useEscapeKey = (
       if (event.key !== 'Escape') return
       if (preventDefault) event.preventDefault()
       if (stopPropagation) event.stopPropagation()
-      handler()
+      handleRef.current()
     }
 
     document.addEventListener('keydown', onKeyDown, capture)
     return () => {
       document.removeEventListener('keydown', onKeyDown, capture)
     }
-  }, [capture, handler, isActive, preventDefault, stopPropagation])
+  }, [capture, isActive, preventDefault, stopPropagation])
 }
