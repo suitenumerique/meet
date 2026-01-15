@@ -7,12 +7,14 @@ import { useCanPublishTrack } from '@/features/rooms/livekit/hooks/useCanPublish
 import { TrackSource } from '@livekit/protocol'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { useSidePanelRef } from '../../hooks/useSidePanelRef'
 
 export const Effects = () => {
   const { cameraTrack } = useLocalParticipant()
   const localCameraTrack = cameraTrack?.track as LocalVideoTrack
   const { saveProcessorSerialized } = usePersistentUserChoices()
   const { isEffectsOpen } = useSidePanel()
+  const panelRef = useSidePanelRef()
 
   const canPublishCamera = useCanPublishTrack(TrackSource.CAMERA)
 
@@ -27,12 +29,15 @@ export const Effects = () => {
     // Focus the first focusable element when the panel opens
     onOpened: () => {
       requestAnimationFrame(() => {
-        // Find the first toggle button (blur light button)
-        const firstButton = document.querySelector<HTMLElement>(
-          '[data-attr="toggle-blur-light"]'
-        )
-        if (firstButton) {
-          firstButton.focus({ preventScroll: true })
+        const panel = panelRef.current
+        if (panel) {
+          // Find the first toggle button (blur light button)
+          const firstButton = panel.querySelector<HTMLElement>(
+            '[data-attr="toggle-blur-light"]'
+          )
+          if (firstButton) {
+            firstButton.focus({ preventScroll: true })
+          }
         }
       })
     },

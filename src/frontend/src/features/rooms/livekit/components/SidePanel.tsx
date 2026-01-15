@@ -13,6 +13,8 @@ import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
+import { SidePanelProvider } from '../contexts/SidePanelContext'
+import { useSidePanelRef } from '../hooks/useSidePanelRef'
 import { HStack } from '@/styled-system/jsx'
 
 type StyledSidePanelProps = {
@@ -24,6 +26,7 @@ type StyledSidePanelProps = {
   closeButtonTooltip: string
   isSubmenu: boolean
   onBack: () => void
+  panelRef: React.RefObject<HTMLElement>
   backButtonLabel: string
 }
 
@@ -36,9 +39,11 @@ const StyledSidePanel = ({
   closeButtonTooltip,
   isSubmenu = false,
   onBack,
+  panelRef,
   backButtonLabel,
 }: StyledSidePanelProps) => (
   <aside
+    ref={panelRef}
     className={css({
       borderWidth: '1px',
       borderStyle: 'solid',
@@ -135,7 +140,7 @@ const Panel = ({ isOpen, keepAlive = false, children }: PanelProps) => (
     {keepAlive || isOpen ? children : null}
   </div>
 )
-export const SidePanel = () => {
+const SidePanelContent = () => {
   const {
     activePanelId,
     isParticipantsOpen,
@@ -149,6 +154,7 @@ export const SidePanel = () => {
     activeSubPanelId,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
+  const panelRef = useSidePanelRef()
 
   return (
     <StyledSidePanel
@@ -165,8 +171,9 @@ export const SidePanel = () => {
       isSubmenu={isSubPanelOpen}
       backButtonLabel={t('backToTools')}
       onBack={() => (layoutStore.activeSubPanelId = null)}
+      panelRef={panelRef}
     >
-      <Panel isOpen={isParticipantsOpen}>
+      <Panel isOpen={isParticipantsOpen} keepAlive={true}>
         <ParticipantsList />
       </Panel>
       <Panel isOpen={isEffectsOpen} keepAlive={true}>
@@ -178,12 +185,20 @@ export const SidePanel = () => {
       <Panel isOpen={isToolsOpen} keepAlive={true}>
         <Tools />
       </Panel>
-      <Panel isOpen={isAdminOpen}>
+      <Panel isOpen={isAdminOpen} keepAlive={true}>
         <Admin />
       </Panel>
-      <Panel isOpen={isInfoOpen}>
+      <Panel isOpen={isInfoOpen} keepAlive={true}>
         <Info />
       </Panel>
     </StyledSidePanel>
+  )
+}
+
+export const SidePanel = () => {
+  return (
+    <SidePanelProvider>
+      <SidePanelContent />
+    </SidePanelProvider>
   )
 }

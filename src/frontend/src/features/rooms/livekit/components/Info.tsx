@@ -9,9 +9,14 @@ import { useRoomData } from '../hooks/useRoomData'
 import { formatPinCode } from '../../utils/telephony'
 import { useTelephony } from '../hooks/useTelephony'
 import { useCopyRoomToClipboard } from '../hooks/useCopyRoomToClipboard'
+import { useSidePanel } from '../hooks/useSidePanel'
+import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { useSidePanelRef } from '../hooks/useSidePanelRef'
 
 export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
+  const { isInfoOpen } = useSidePanel()
+  const panelRef = useSidePanelRef()
 
   const data = useRoomData()
   const roomUrl = getRouteUrl('room', data?.slug)
@@ -23,6 +28,30 @@ export const Info = () => {
   }, [telephony?.enabled, data?.pin_code])
 
   const { isCopied, copyRoomToClipboard } = useCopyRoomToClipboard(data)
+
+  // Restore focus to the element that opened the Info panel
+  useRestoreFocus(isInfoOpen, {
+    resolveTrigger: () => {
+      // Find the Info toggle button
+      return document.querySelector<HTMLElement>('[data-attr*="controls-info"]')
+    },
+    // Focus the first focusable element when the panel opens
+    onOpened: () => {
+      requestAnimationFrame(() => {
+        const panel = panelRef.current
+        if (panel) {
+          const firstButton = panel.querySelector<HTMLElement>(
+            '[data-attr="copy-info-sidepannel"]'
+          )
+          if (firstButton) {
+            firstButton.focus({ preventScroll: true })
+          }
+        }
+      })
+    },
+    restoreFocusRaf: true,
+    preventScroll: true,
+  })
 
   return (
     <Div

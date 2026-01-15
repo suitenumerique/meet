@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ReactNode } from 'react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { useSidePanelRef } from '../hooks/useSidePanelRef'
 import {
   useIsRecordingModeEnabled,
   RecordingMode,
@@ -98,6 +99,7 @@ export const Tools = () => {
   const { openTranscript, openScreenRecording, activeSubPanelId, isToolsOpen } =
     useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
+  const panelRef = useSidePanelRef()
 
   // Restore focus to the element that opened the Tools panel
   // following the same pattern as Chat.
@@ -110,6 +112,26 @@ export const Tools = () => {
       }
       // For direct button clicks (e.g. "Plus d'outils"), use the active element as is
       return activeEl
+    },
+    // Focus the first focusable element when the panel opens
+    onOpened: () => {
+      requestAnimationFrame(() => {
+        const panel = panelRef.current
+        if (panel) {
+          // Find the first ToolButton in the tools list (transcript or screen recording button)
+          const toolsList = panel.querySelector<HTMLElement>(
+            '[data-attr="tools-list"]'
+          )
+          if (toolsList) {
+            const firstToolButton = toolsList.querySelector<HTMLElement>(
+              'button:first-of-type'
+            )
+            if (firstToolButton) {
+              firstToolButton.focus({ preventScroll: true })
+            }
+          }
+        }
+      })
     },
     restoreFocusRaf: true,
     preventScroll: true,
@@ -141,6 +163,7 @@ export const Tools = () => {
       flexDirection="column"
       alignItems="start"
       gap={0.5}
+      data-attr="tools-list"
     >
       <Text
         variant="note"
