@@ -40,7 +40,7 @@ export const Info = () => {
         const panel = panelRef.current
         if (panel) {
           const firstButton = panel.querySelector<HTMLElement>(
-            '[data-attr="copy-info-sidepannel"]'
+            '[data-attr="copy-info-sidepanel"]'
           )
           if (firstButton) {
             firstButton.focus({ preventScroll: true })
@@ -99,7 +99,7 @@ export const Info = () => {
           variant={isCopied ? 'success' : 'tertiaryText'}
           aria-label={t('roomInformation.button.ariaLabel')}
           onPress={copyRoomToClipboard}
-          data-attr="copy-info-sidepannel"
+          data-attr="copy-info-sidepanel"
           style={{
             marginLeft: '-8px',
           }}
