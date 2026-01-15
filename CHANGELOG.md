@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ♿️(frontend) fix form labels and autocomplete wiring #932
+- ♿(frontend) improve menu focus management #869
 
 ## [1.5.0] - 2026-01-28
 
@@ -30,14 +31,15 @@ and this project adheres to
 ### Added
 
 - ✨(frontend) add configurable redirect for unauthenticated users #904
-
 ### Changed
 
+- 📝(frontend) document focus management pattern for side panels and menus
 - ♿️(frontend) add accessible back button in side panel #881
 - ♿️(frontend) improve participants toggle a11y label #880
 - ♿️(frontend) make carousel image decorative #871
 - ♿️(frontend) reactions are now vocalized and configurable #849
 - ♿️(frontend) improve background effect announcements #879
+- ♿(frontend) improve menu focus management #869
 
 ### Fixed
 
