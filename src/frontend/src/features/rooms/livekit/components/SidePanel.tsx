@@ -14,6 +14,7 @@ import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
 import { useSidePanelRef } from '../hooks/useSidePanelRef'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { HStack } from '@/styled-system/jsx'
 
 type StyledSidePanelProps = {
@@ -154,6 +155,22 @@ const SidePanelContent = () => {
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
   const panelRef = useSidePanelRef()
+
+  useEscapeKey(
+    () => {
+      // Close subpanel + panel together for a consistent Escape behavior
+      if (isSubPanelOpen) {
+        layoutStore.activeSubPanelId = null
+        layoutStore.activePanelId = null
+        return
+      }
+      layoutStore.activePanelId = null
+    },
+    {
+      isActive: isSidePanelOpen,
+      capture: true,
+    }
+  )
 
   return (
     <StyledSidePanel
