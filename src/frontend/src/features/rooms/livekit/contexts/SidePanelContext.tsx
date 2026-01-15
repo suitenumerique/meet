@@ -10,6 +10,7 @@ export const SidePanelProvider = ({ children }: { children: ReactNode }) => {
     admin: null,
     options: null,
     effects: null,
+    cameraMenu: null,
   })
 
   const setTrigger = (key: SidePanelTriggerKey, el: HTMLElement | null) => {

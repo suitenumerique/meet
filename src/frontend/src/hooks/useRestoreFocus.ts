@@ -41,6 +41,13 @@ export function useRestoreFocus(
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('mousedown', handleMouseDown)
 
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('mousedown', handleMouseDown)
+    }
+  }, [])
+
+  useEffect(() => {
     const wasOpen = prevIsOpenRef.current
 
     // Just opened
@@ -87,8 +94,6 @@ export function useRestoreFocus(
 
     // Cleanup: remove focus ring if component unmounts before focus changes
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.removeEventListener('mousedown', handleMouseDown)
       cleanupRef.current?.()
       cleanupRef.current = null
     }
