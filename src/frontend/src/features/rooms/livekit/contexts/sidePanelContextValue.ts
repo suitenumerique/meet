@@ -7,6 +7,7 @@ export type SidePanelTriggerKey =
   | 'admin'
   | 'options'
   | 'effects'
+  | 'cameraMenu'
 
 export type SidePanelContextValue = {
   panelRef: React.RefObject<HTMLElement>
