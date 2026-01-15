@@ -8,6 +8,7 @@ import { TrackSource } from '@livekit/protocol'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { useSidePanelRef } from '../../hooks/useSidePanelRef'
+import { useSidePanelTriggers } from '../../hooks/useSidePanelTriggers'
 
 export const Effects = () => {
   const { cameraTrack } = useLocalParticipant()
@@ -15,13 +16,14 @@ export const Effects = () => {
   const { saveProcessorSerialized } = usePersistentUserChoices()
   const { isEffectsOpen } = useSidePanel()
   const panelRef = useSidePanelRef()
+  const { getTrigger } = useSidePanelTriggers()
 
   const canPublishCamera = useCanPublishTrack(TrackSource.CAMERA)
 
   useRestoreFocus(isEffectsOpen, {
     resolveTrigger: (activeEl) => {
       if (activeEl?.tagName === 'DIV') {
-        return document.querySelector<HTMLElement>('#room-options-trigger')
+        return getTrigger('options') ?? activeEl
       }
       // For direct button clicks, use the active element as is
       return activeEl

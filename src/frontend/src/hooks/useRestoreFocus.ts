@@ -58,20 +58,20 @@ export function useRestoreFocus(
           trigger.focus({ preventScroll })
           // Only show focus ring if last interaction was keyboard (like native :focus-visible)
           if (lastInteractionRef.current === 'keyboard') {
-            trigger.setAttribute('data-focus-visible', '')
-            // Remove focus ring when focus moves to another element
-            const handleFocusChange = (e: FocusEvent) => {
-              if (e.target !== trigger && document.contains(trigger)) {
-                trigger.removeAttribute('data-focus-visible')
+            trigger.setAttribute('data-restore-focus-visible', '')
+            // Remove focus ring only when the trigger loses focus
+            const handleBlur = () => {
+              if (document.contains(trigger)) {
+                trigger.removeAttribute('data-restore-focus-visible')
               }
             }
-            document.addEventListener('focusin', handleFocusChange, {
-              once: true,
-            })
+            trigger.addEventListener('blur', handleBlur, { once: true })
             // Store cleanup for unmount case
+            cleanupRef.current?.()
             cleanupRef.current = () => {
+              trigger.removeEventListener('blur', handleBlur)
               if (document.contains(trigger)) {
-                trigger.removeAttribute('data-focus-visible')
+                trigger.removeAttribute('data-restore-focus-visible')
               }
             }
           }

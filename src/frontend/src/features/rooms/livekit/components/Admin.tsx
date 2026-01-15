@@ -13,11 +13,13 @@ import { usePublishSourcesManager } from '@/features/rooms/livekit/hooks/usePubl
 import { useSidePanel } from '../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { useSidePanelRef } from '../hooks/useSidePanelRef'
+import { useSidePanelTriggers } from '../hooks/useSidePanelTriggers'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
   const { isAdminOpen } = useSidePanel()
   const panelRef = useSidePanelRef()
+  const { getTrigger } = useSidePanelTriggers()
 
   const { roomId } = useParams()
 
@@ -46,11 +48,7 @@ export const Admin = () => {
   // Restore focus to the element that opened the Admin panel
   useRestoreFocus(isAdminOpen, {
     resolveTrigger: (activeEl) => {
-      // Find the Admin toggle button - it doesn't have a data-attr, so we'll search by aria-label
-      const adminButton = Array.from(
-        document.querySelectorAll<HTMLElement>('button')
-      ).find((btn) => btn.getAttribute('aria-label')?.includes('admin'))
-      return adminButton || activeEl
+      return getTrigger('admin') ?? activeEl
     },
     // Focus the first focusable element when the panel opens (first Field switch)
     onOpened: () => {
@@ -58,9 +56,8 @@ export const Admin = () => {
         const panel = panelRef.current
         if (panel) {
           // Find the first switch in the moderation section
-          const firstSwitch = panel.querySelector<HTMLElement>(
-            '[role="switch"]:first-of-type'
-          )
+          const firstSwitch =
+            panel.querySelector<HTMLElement>('[role="switch"]')
           if (firstSwitch) {
             firstSwitch.focus({ preventScroll: true })
           }
