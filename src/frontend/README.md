@@ -57,6 +57,7 @@ useRestoreFocus(isOpen, {
     const first = panelRef.current?.querySelector(
       '[data-attr="tools-list"] button'
     )
+    // Leading semicolon avoids ASI issues when a line starts with '('
     ;(first as HTMLElement | null)?.focus({ preventScroll: true })
   },
 })
