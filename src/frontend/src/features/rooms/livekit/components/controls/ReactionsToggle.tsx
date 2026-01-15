@@ -14,6 +14,7 @@ import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { Toolbar as RACToolbar } from 'react-aria-components'
 import { Participant } from 'livekit-client'
 import useRateLimiter from '@/hooks/useRateLimiter'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export enum Emoji {
@@ -37,6 +38,7 @@ export const ReactionsToggle = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
   const [reactions, setReactions] = useState<Reaction[]>([])
   const instanceIdRef = useRef(0)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
   const room = useRoomContext()
 
   const [isVisible, setIsVisible] = useState(false)
@@ -102,6 +104,22 @@ export const ReactionsToggle = () => {
     }
   }, [isVisible, isRendered])
 
+  useEscapeKey(
+    () => {
+      // Mirror the trigger button behavior (Enter toggles open/close)
+      triggerRef.current?.click()
+      requestAnimationFrame(() => {
+        triggerRef.current?.focus({ preventScroll: true })
+      })
+    },
+    {
+      isActive: isVisible,
+      capture: true,
+      preventDefault: true,
+      stopPropagation: true,
+    }
+  )
+
   return (
     <>
       <div
@@ -114,6 +132,7 @@ export const ReactionsToggle = () => {
           variant="primaryDark"
           aria-label={t('button')}
           tooltip={t('button')}
+          ref={triggerRef}
           onPress={() => setIsVisible(!isVisible)}
         >
           <RiEmotionLine />
