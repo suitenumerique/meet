@@ -6,6 +6,7 @@ import { ReactNode } from 'react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { useSidePanelRef } from '../hooks/useSidePanelRef'
+import { useSidePanelTriggers } from '../hooks/useSidePanelTriggers'
 import {
   useIsRecordingModeEnabled,
   RecordingMode,
@@ -100,6 +101,7 @@ export const Tools = () => {
     useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
   const panelRef = useSidePanelRef()
+  const { getTrigger } = useSidePanelTriggers()
 
   // Restore focus to the element that opened the Tools panel
   // following the same pattern as Chat.
@@ -108,10 +110,10 @@ export const Tools = () => {
     // find the "more options" button ("Plus d'options") that opened the menu
     resolveTrigger: (activeEl) => {
       if (activeEl?.tagName === 'DIV') {
-        return document.querySelector<HTMLElement>('#room-options-trigger')
+        return getTrigger('options') ?? activeEl
       }
       // For direct button clicks (e.g. "Plus d'outils"), use the active element as is
-      return activeEl
+      return getTrigger('tools') ?? activeEl
     },
     // Focus the first focusable element when the panel opens
     onOpened: () => {

@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiGroupLine, RiInfinityLine } from '@remixicon/react'
 import { ToggleButton } from '@/primitives'
@@ -6,6 +7,7 @@ import { css } from '@/styled-system/css'
 import { useParticipants } from '@livekit/components-react'
 import { useSidePanel } from '../../../hooks/useSidePanel'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import { useSidePanelTriggers } from '../../../hooks/useSidePanelTriggers'
 
 export const ParticipantsToggle = ({
   onPress,
@@ -24,8 +26,15 @@ export const ParticipantsToggle = ({
     numParticipants && numParticipants > 0 ? numParticipants : 1
 
   const { isParticipantsOpen, toggleParticipants } = useSidePanel()
+  const { setTrigger } = useSidePanelTriggers()
 
   const tooltipLabel = isParticipantsOpen ? 'open' : 'closed'
+  const setParticipantsTriggerRef = useCallback(
+    (el: HTMLElement | null) => {
+      setTrigger('participants', el)
+    },
+    [setTrigger]
+  )
 
   return (
     <div
@@ -42,6 +51,7 @@ export const ParticipantsToggle = ({
             count: announcedCount,
           })}.`}
           isSelected={isParticipantsOpen}
+          ref={setParticipantsTriggerRef}
           onPress={(e) => {
             toggleParticipants()
             onPress?.(e)
