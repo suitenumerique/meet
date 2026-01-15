@@ -13,7 +13,6 @@ import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
-import { SidePanelProvider } from '../contexts/SidePanelContext'
 import { useSidePanelRef } from '../hooks/useSidePanelRef'
 import { HStack } from '@/styled-system/jsx'
 
@@ -196,9 +195,5 @@ const SidePanelContent = () => {
 }
 
 export const SidePanel = () => {
-  return (
-    <SidePanelProvider>
-      <SidePanelContent />
-    </SidePanelProvider>
-  )
+  return <SidePanelContent />
 }

@@ -12,11 +12,13 @@ import { useCopyRoomToClipboard } from '../hooks/useCopyRoomToClipboard'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { useSidePanelRef } from '../hooks/useSidePanelRef'
+import { useSidePanelTriggers } from '../hooks/useSidePanelTriggers'
 
 export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
   const { isInfoOpen } = useSidePanel()
   const panelRef = useSidePanelRef()
+  const { getTrigger } = useSidePanelTriggers()
 
   const data = useRoomData()
   const roomUrl = getRouteUrl('room', data?.slug)
@@ -31,10 +33,7 @@ export const Info = () => {
 
   // Restore focus to the element that opened the Info panel
   useRestoreFocus(isInfoOpen, {
-    resolveTrigger: () => {
-      // Find the Info toggle button
-      return document.querySelector<HTMLElement>('[data-attr*="controls-info"]')
-    },
+    resolveTrigger: (activeEl) => getTrigger('info') ?? activeEl,
     // Focus the first focusable element when the panel opens
     onOpened: () => {
       requestAnimationFrame(() => {

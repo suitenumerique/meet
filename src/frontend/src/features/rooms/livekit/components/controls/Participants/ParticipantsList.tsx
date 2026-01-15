@@ -15,12 +15,14 @@ import { MuteEveryoneButton } from './MuteEveryoneButton'
 import { useSidePanel } from '../../../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { useSidePanelRef } from '../../../hooks/useSidePanelRef'
+import { useSidePanelTriggers } from '../../../hooks/useSidePanelTriggers'
 
 // TODO: Optimize rendering performance, especially for longer participant lists, even though they are generally short.
 export const ParticipantsList = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participants' })
   const { isParticipantsOpen } = useSidePanel()
   const panelRef = useSidePanelRef()
+  const { getTrigger } = useSidePanelTriggers()
 
   // Preferred using the 'useParticipants' hook rather than the separate remote and local hooks,
   // because the 'useLocalParticipant' hook does not update the participant's information when their
@@ -56,12 +58,7 @@ export const ParticipantsList = () => {
   // Restore focus to the element that opened the Participants panel
   useRestoreFocus(isParticipantsOpen, {
     resolveTrigger: (activeEl) => {
-      // Find the Participants toggle button
-      return (
-        document.querySelector<HTMLElement>(
-          '[data-attr*="controls-participants"]'
-        ) || activeEl
-      )
+      return getTrigger('participants') ?? activeEl
     },
     // Focus the first focusable element when the panel opens
     onOpened: () => {
