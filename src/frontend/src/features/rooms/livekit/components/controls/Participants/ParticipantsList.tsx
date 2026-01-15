@@ -68,10 +68,8 @@ export const ParticipantsList = () => {
           const panel = panelRef.current
           if (panel) {
             // Find the first ToggleHeader (collapsable list header) in the participants panel
-            // Look for buttons with aria-label containing "liste" (list headers)
-            // Exclude close/back buttons
             const firstListHeader = panel.querySelector<HTMLElement>(
-              'button[aria-label*="liste"]:not([aria-label*="Masquer les participants"])'
+              'button[data-focus-target="list-header"]'
             )
             firstListHeader?.focus({ preventScroll: true })
           }
