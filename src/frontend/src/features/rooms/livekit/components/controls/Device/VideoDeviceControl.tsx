@@ -10,6 +10,7 @@ import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoice
 import { useCanPublishTrack } from '../../../hooks/useCanPublishTrack'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useSidePanel } from '../../../hooks/useSidePanel'
+import { useSidePanelTriggers } from '../../../hooks/useSidePanelTriggers'
 import { BackgroundProcessorFactory } from '../../blur'
 import Source = Track.Source
 import * as React from 'react'
@@ -17,10 +18,12 @@ import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
+import { useFocusOnOpen } from '@/hooks/useFocusOnOpen'
 
 const EffectsButton = ({ onPress }: { onPress: () => void }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
   const { isEffectsOpen, toggleEffects } = useSidePanel()
+  const { setTrigger } = useSidePanelTriggers()
   return (
     <Button
       size="sm"
@@ -28,6 +31,7 @@ const EffectsButton = ({ onPress }: { onPress: () => void }) => {
       tooltip={t('effects')}
       aria-label={t('effects')}
       variant="primaryDark"
+      ref={(el) => setTrigger('effects', el)}
       onPress={() => {
         if (!isEffectsOpen) toggleEffects()
         onPress()
@@ -50,6 +54,9 @@ export const VideoDeviceControl = ({
   ...props
 }: VideoDeviceControlProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+  const popoverContentRef = React.useRef<HTMLDivElement>(null)
+  const { setTrigger } = useSidePanelTriggers()
 
   const { userChoices, saveVideoInputDeviceId, saveVideoInputEnabled } =
     usePersistentUserChoices()
@@ -99,6 +106,12 @@ export const VideoDeviceControl = ({
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.VIDEO}`)
   const canPublishTrack = useCanPublishTrack(TrackSource.CAMERA)
 
+  useFocusOnOpen(isMenuOpen, popoverContentRef, {
+    selector:
+      '[data-attr="video-input-select"] button, [data-attr="video-input-select"] [role="combobox"]',
+    delayMs: 250,
+  })
+
   return (
     <div
       className={css({
@@ -120,12 +133,18 @@ export const VideoDeviceControl = ({
         }}
       />
       {!hideMenu && (
-        <Popover variant="dark" withArrow={false}>
+        <Popover
+          variant="dark"
+          withArrow={false}
+          isOpen={isMenuOpen}
+          onOpenChange={setIsMenuOpen}
+        >
           <Button
             tooltip={selectLabel}
             aria-label={selectLabel}
             groupPosition="right"
             square
+            ref={(el) => setTrigger('cameraMenu', el)}
             variant={
               !canPublishTrack || !trackProps.enabled || cannotUseDevice
                 ? 'error2'
@@ -136,6 +155,7 @@ export const VideoDeviceControl = ({
           </Button>
           {({ close }) => (
             <div
+              ref={popoverContentRef}
               className={css({
                 maxWidth: '36rem',
                 padding: '0.15rem',
@@ -144,6 +164,7 @@ export const VideoDeviceControl = ({
               })}
             >
               <div
+                data-attr="video-input-select"
                 style={{
                   flex: '1 1 0',
                   minWidth: 0,
