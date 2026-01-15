@@ -169,7 +169,7 @@ export const SidePanel = () => {
       <Panel isOpen={isParticipantsOpen}>
         <ParticipantsList />
       </Panel>
-      <Panel isOpen={isEffectsOpen}>
+      <Panel isOpen={isEffectsOpen} keepAlive={true}>
         <Effects />
       </Panel>
       <Panel isOpen={isChatOpen} keepAlive={true}>
