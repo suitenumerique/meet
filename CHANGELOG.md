@@ -7,14 +7,15 @@ and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
 ### Changed
 
+- 📝(frontend) document focus management pattern for side panels and menus
 - ♿️(frontend) add accessible back button in side panel #881
 - ♿️(frontend) improve participants toggle a11y label #880
 - ♿️(frontend) make carousel image decorative #871
 - ♿️(frontend) reactions are now vocalized and configurable #849
 - ♿️(frontend) improve background effect announcements #879
+- ♿(frontend) improve menu focus management #869
 
 ### Fixed
 
