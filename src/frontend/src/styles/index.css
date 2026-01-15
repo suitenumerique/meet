@@ -25,7 +25,9 @@ body,
 [data-rac][data-focus-visible]:not(label, .react-aria-Select),
 :is(a, button, input[type='text'], select, textarea):not(
     [data-rac]
-  ):focus-visible {
+  ):focus-visible,
+/* Show focus ring when data-focus-visible is set programmatically (e.g., when restoring focus) */
+[data-focus-visible]:is(a, button, input[type='text'], select, textarea):focus {
   outline: 2px solid var(--colors-focus-ring);
   outline-offset: 1px;
 }
