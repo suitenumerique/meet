@@ -192,7 +192,9 @@
     "leave": "Quitter",
     "participants": {
       "open": "Masquer les participants",
-      "closed": "Afficher les participants"
+      "closed": "Afficher les participants",
+      "count_one": "{{count}} participant",
+      "count_other": "{{count}} participants"
     },
     "tools": {
       "open": "Masquer les outils de réunion",
