@@ -112,8 +112,8 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
                     square
                     size={'sm'}
                     onPress={copyRoomUrlToClipboard}
-                    aria-label={t('copyUrl')}
-                    tooltip={t('copyUrl')}
+                    aria-label={isRoomUrlCopied ? t('copied') : t('copyUrl')}
+                    tooltip={isRoomUrlCopied ? t('copied') : t('copyUrl')}
                   >
                     {isRoomUrlCopied ? (
                       <RiCheckLine aria-hidden="true" />
@@ -138,11 +138,12 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
                   {formatPinCode(roomData?.pin_code)}
                 </Text>
               </div>
+
               <Button
                 variant={isCopied ? 'success' : 'secondaryText'}
                 size="sm"
                 fullWidth
-                aria-label={t('copy')}
+                aria-label={isCopied ? t('copied') : t('copy')}
                 style={{
                   justifyContent: 'start',
                 }}
@@ -173,7 +174,7 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
             <Button
               variant={isCopied ? 'success' : 'tertiary'}
               fullWidth
-              aria-label={t('copy')}
+              aria-label={isCopied ? t('copied') : t('copy')}
               onPress={copyRoomToClipboard}
               data-attr="share-dialog-copy"
             >
