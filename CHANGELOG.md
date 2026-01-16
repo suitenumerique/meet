@@ -14,6 +14,7 @@ and this project adheres to
 - ♿️(frontend) improve participants toggle a11y label #880
 - ♿️(frontend) make carousel image decorative #871
 - ♿️(frontend) reactions are now vocalized and configurable #849
+- ♿️(frontend) improve background effect announcements #879
 
 ### Fixed
 

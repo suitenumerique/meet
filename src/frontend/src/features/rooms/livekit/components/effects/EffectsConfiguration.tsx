@@ -56,11 +56,11 @@ export const EffectsConfiguration = ({
   const [processorPending, setProcessorPending] = useState(false)
   const processorPendingReveal = useSyncAfterDelay(processorPending)
   const hasFunnyEffectsAccess = useHasFunnyEffectsAccess()
-  const [blurStatusMessage, setBlurStatusMessage] = useState('')
-  const blurAnnouncementTimeout = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  )
-  const blurAnnouncementId = useRef(0)
+  const [effectStatusMessage, setEffectStatusMessage] = useState('')
+  const effectAnnouncementTimeout = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null)
+  const effectAnnouncementId = useRef(0)
 
   useEffect(() => {
     const videoElement = videoRef.current
@@ -89,27 +89,27 @@ export const EffectsConfiguration = ({
 
   useEffect(
     () => () => {
-      if (blurAnnouncementTimeout.current) {
-        clearTimeout(blurAnnouncementTimeout.current)
+      if (effectAnnouncementTimeout.current) {
+        clearTimeout(effectAnnouncementTimeout.current)
       }
     },
     []
   )
 
-  const announceBlurStatusMessage = (message: string) => {
-    blurAnnouncementId.current += 1
-    const currentId = blurAnnouncementId.current
+  const announceEffectStatusMessage = (message: string) => {
+    effectAnnouncementId.current += 1
+    const currentId = effectAnnouncementId.current
 
-    if (blurAnnouncementTimeout.current) {
-      clearTimeout(blurAnnouncementTimeout.current)
+    if (effectAnnouncementTimeout.current) {
+      clearTimeout(effectAnnouncementTimeout.current)
     }
 
     // Clear the region first so screen readers drop queued announcements.
-    setBlurStatusMessage('')
+    setEffectStatusMessage('')
 
-    blurAnnouncementTimeout.current = setTimeout(() => {
-      if (currentId !== blurAnnouncementId.current) return
-      setBlurStatusMessage(message)
+    effectAnnouncementTimeout.current = setTimeout(() => {
+      if (currentId !== effectAnnouncementId.current) return
+      setEffectStatusMessage(message)
     }, 80)
   }
 
@@ -118,25 +118,42 @@ export const EffectsConfiguration = ({
     onSubmit?.(undefined)
   }
 
-  const updateBlurStatusMessage = (
+  const getVirtualBackgroundName = (imagePath?: string) => {
+    if (!imagePath) return ''
+    const match = imagePath.match(/\/backgrounds\/(\d+)\.jpg$/)
+    if (!match) return ''
+    const index = Number(match[1]) - 1
+    if (Number.isNaN(index)) return ''
+    return t(`virtual.descriptions.${index}`)
+  }
+
+  const updateEffectStatusMessage = (
     type: ProcessorType,
     options: BackgroundOptions,
     wasSelectedBeforeToggle: boolean
   ) => {
-    if (type !== ProcessorType.BLUR) return
-
-    let message = ''
-
     if (wasSelectedBeforeToggle) {
-      message = t('blur.status.none')
-    } else if (options.blurRadius === BlurRadius.LIGHT) {
-      message = t('blur.status.light')
-    } else if (options.blurRadius === BlurRadius.NORMAL) {
-      message = t('blur.status.strong')
+      announceEffectStatusMessage(t('blur.status.none'))
+      return
     }
 
-    if (message) {
-      announceBlurStatusMessage(message)
+    if (type === ProcessorType.BLUR) {
+      const message =
+        options.blurRadius === BlurRadius.LIGHT
+          ? t('blur.status.light')
+          : t('blur.status.strong')
+      announceEffectStatusMessage(message)
+      return
+    }
+
+    if (type === ProcessorType.VIRTUAL) {
+      const backgroundName = getVirtualBackgroundName(options.imagePath)
+      if (backgroundName) {
+        announceEffectStatusMessage(
+          `${t('virtual.selectedLabel')} ${backgroundName}`
+        )
+        return
+      }
     }
   }
 
@@ -200,7 +217,7 @@ export const EffectsConfiguration = ({
         onSubmit?.(processor)
       }
 
-      updateBlurStatusMessage(type, options, wasSelectedBeforeToggle)
+      updateEffectStatusMessage(type, options, wasSelectedBeforeToggle)
     } catch (error) {
       console.error('Error applying effect:', error)
     } finally {
@@ -407,7 +424,7 @@ export const EffectsConfiguration = ({
                   </ToggleButton>
                 </div>
                 <div aria-live="polite" className="sr-only">
-                  {blurStatusMessage}
+                  {effectStatusMessage}
                 </div>
               </div>
               <div
