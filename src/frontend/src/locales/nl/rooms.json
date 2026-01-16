@@ -86,6 +86,7 @@
     "heading": "Uw vergadering is klaar",
     "description": "Deel deze link met mensen die u wilt uitnodigen voor de vergadering.",
     "permissions": "Mensen met deze link hebben uw toestemming niet nodig om deel te nemen aan deze vergadering.",
+    "closeDialog": "Sluit het dialoogvenster",
     "phone": {
       "call": "Bel:",
       "pinCode": "Code:"

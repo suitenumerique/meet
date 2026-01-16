@@ -21,6 +21,7 @@ and this project adheres to
 - 🔒(backend) prevent automatic upgrade setuptools
 - ♿(frontend) improve contrast for selected options #863
 - ♿️(frontend) announce copy state in invite dialog #877
+- 📝(frontend) align close dialog label in rooms locale #878
 
 ## [1.3.0] - 2026-01-13
 

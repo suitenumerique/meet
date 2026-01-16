@@ -86,6 +86,7 @@
     "heading": "Your meeting is ready",
     "description": "Share this link with people you want to invite to the meeting.",
     "permissions": "People with this link do not need your permission to join this meeting.",
+    "closeDialog": "Close dialog",
     "phone": {
       "call": "Call:",
       "pinCode": "Code:"

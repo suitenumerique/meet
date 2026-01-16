@@ -86,6 +86,7 @@
     "heading": "Ihr Meeting ist bereit",
     "description": "Teilen Sie diesen Link mit Personen, die Sie zum Meeting einladen möchten.",
     "permissions": "Personen mit diesem Link benötigen keine Erlaubnis, um diesem Meeting beizutreten.",
+    "closeDialog": "Dialogfenster schließen",
     "phone": {
       "call": "Rufen Sie an:",
       "pinCode": "Code:"
