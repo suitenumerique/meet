@@ -12,6 +12,7 @@ and this project adheres to
 
 - ♿️(frontend) add accessible back button in side panel #881
 - ♿️(frontend) improve participants toggle a11y label #880
+- ♿️(frontend) make carousel image decorative #871
 
 ### Fixed
 

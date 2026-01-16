@@ -192,7 +192,7 @@ export const IntroSlider = () => {
         <SlideContainer>
           {SLIDES.map((slide, index) => (
             <Slide visible={index == slideIndex} key={index}>
-              <Image src={slide.src} alt={t(`${slide.key}.imgAlt`)} />
+              <Image src={slide.src} alt="" role="presentation" />
               <TextAnimation visible={index == slideIndex}>
                 <Heading>{t(`${slide.key}.title`)}</Heading>
                 <Body>{t(`${slide.key}.body`)}</Body>
