@@ -8,9 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♿️(frontend) add accessible back button in side panel #881
+
 ### Fixed
 
-🔒(backend) prevent automatic upgrade setuptools
+- 🔒(backend) prevent automatic upgrade setuptools
+
 
 ## [1.3.0] - 2026-01-13
 
@@ -30,7 +35,7 @@ and this project adheres to
 
 ### Fixed
 
-- 🐛(frontend) remove unexpected F2 tooltip when clicking video screen 
+- 🐛(frontend) remove unexpected F2 tooltip when clicking video screen
 - 🩹(frontend) icon font loading to avoid text/icon flickering
 
 ## [1.2.0] - 2026-01-05

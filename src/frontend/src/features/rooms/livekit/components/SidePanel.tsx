@@ -13,6 +13,7 @@ import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
+import { HStack } from '@/styled-system/jsx'
 
 type StyledSidePanelProps = {
   title: string
@@ -23,6 +24,7 @@ type StyledSidePanelProps = {
   closeButtonTooltip: string
   isSubmenu: boolean
   onBack: () => void
+  backButtonLabel: string
 }
 
 const StyledSidePanel = ({
@@ -34,6 +36,7 @@ const StyledSidePanel = ({
   closeButtonTooltip,
   isSubmenu = false,
   onBack,
+  backButtonLabel,
 }: StyledSidePanelProps) => (
   <aside
     className={css({
@@ -63,31 +66,34 @@ const StyledSidePanel = ({
     aria-hidden={isClosed}
     aria-label={ariaLabel}
   >
-    <Heading
-      slot="title"
-      level={1}
-      className={text({ variant: 'h2' })}
-      style={{
-        paddingLeft: '1.5rem',
-        paddingTop: '1rem',
-        display: isClosed ? 'none' : 'flex',
-        justifyContent: 'start',
-        alignItems: 'center',
-      }}
-    >
+    <HStack alignItems="center">
       {isSubmenu && (
         <Button
           variant="secondaryText"
           size="sm"
           square
-          className={css({ marginRight: '0.5rem' })}
+          className={css({ marginRight: '0.5rem', marginLeft: '1rem' })}
+          aria-label={backButtonLabel}
           onPress={onBack}
         >
-          <RiArrowLeftLine size={20} />
+          <RiArrowLeftLine size={20} aria-hidden="true" />
         </Button>
       )}
-      {title}
-    </Heading>
+      <Heading
+        slot="title"
+        level={1}
+        className={text({ variant: 'h2' })}
+        style={{
+          paddingLeft: isSubmenu ? 0 : '1.5rem',
+          paddingTop: '1rem',
+          display: isClosed ? 'none' : 'flex',
+          justifyContent: 'start',
+          alignItems: 'center',
+        }}
+      >
+        {title}
+      </Heading>
+    </HStack>
     <Div
       position="absolute"
       top="5"
@@ -129,7 +135,6 @@ const Panel = ({ isOpen, keepAlive = false, children }: PanelProps) => (
     {keepAlive || isOpen ? children : null}
   </div>
 )
-
 export const SidePanel = () => {
   const {
     activePanelId,
@@ -158,6 +163,7 @@ export const SidePanel = () => {
       })}
       isClosed={!isSidePanelOpen}
       isSubmenu={isSubPanelOpen}
+      backButtonLabel={t('backToTools')}
       onBack={() => (layoutStore.activeSubPanelId = null)}
     >
       <Panel isOpen={isParticipantsOpen}>
