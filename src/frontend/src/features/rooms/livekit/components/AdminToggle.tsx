@@ -26,7 +26,7 @@ export const AdminToggle = ({
   )
 
   const hasAdminAccess = useIsAdminOrOwner()
-  if (!hasAdminAccess) return
+  if (!hasAdminAccess) return null
 
   return (
     <div
