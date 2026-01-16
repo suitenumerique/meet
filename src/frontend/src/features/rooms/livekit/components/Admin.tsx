@@ -56,9 +56,8 @@ export const Admin = () => {
         const panel = panelRef.current
         if (panel) {
           // Find the first switch in the moderation section
-          const firstSwitch = panel.querySelector<HTMLElement>(
-            '[role="switch"]:first-of-type'
-          )
+          const firstSwitch =
+            panel.querySelector<HTMLElement>('[role="switch"]')
           if (firstSwitch) {
             firstSwitch.focus({ preventScroll: true })
           }
