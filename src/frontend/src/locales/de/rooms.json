@@ -192,7 +192,9 @@
     "leave": "Verlassen",
     "participants": {
       "open": "Alle ausblenden",
-      "closed": "Alle anzeigen"
+      "closed": "Alle anzeigen",
+      "count": "{{count}} Teilnehmer",
+      "count_plural": "{{count}} Teilnehmer"
     },
     "tools": {
       "open": "Weitere Tools ausblenden",

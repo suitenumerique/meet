@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { RiGroupLine, RiInfinityLine } from '@remixicon/react'
 import { ToggleButton } from '@/primitives'
+import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { css } from '@/styled-system/css'
 import { useParticipants } from '@livekit/components-react'
 import { useSidePanel } from '../../../hooks/useSidePanel'
@@ -19,6 +20,8 @@ export const ParticipantsToggle = ({
    */
   const participants = useParticipants()
   const numParticipants = participants?.length
+  const announcedCount =
+    numParticipants && numParticipants > 0 ? numParticipants : 1
 
   const { isParticipantsOpen, toggleParticipants } = useSidePanel()
 
@@ -31,21 +34,24 @@ export const ParticipantsToggle = ({
         display: 'inline-block',
       })}
     >
-      <ToggleButton
-        square
-        variant="primaryTextDark"
-        aria-label={t(tooltipLabel)}
-        tooltip={t(tooltipLabel)}
-        isSelected={isParticipantsOpen}
-        onPress={(e) => {
-          toggleParticipants()
-          onPress?.(e)
-        }}
-        data-attr={`controls-participants-${tooltipLabel}`}
-        {...props}
-      >
-        <RiGroupLine />
-      </ToggleButton>
+      <VisualOnlyTooltip tooltip={t(tooltipLabel)}>
+        <ToggleButton
+          square
+          variant="primaryTextDark"
+          aria-label={`${t(tooltipLabel)}. ${t('count', {
+            count: announcedCount,
+          })}.`}
+          isSelected={isParticipantsOpen}
+          onPress={(e) => {
+            toggleParticipants()
+            onPress?.(e)
+          }}
+          data-attr={`controls-participants-${tooltipLabel}`}
+          {...props}
+        >
+          <RiGroupLine />
+        </ToggleButton>
+      </VisualOnlyTooltip>
       <div
         className={css({
           position: 'absolute',

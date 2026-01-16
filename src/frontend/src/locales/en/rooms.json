@@ -192,7 +192,9 @@
     "leave": "Leave",
     "participants": {
       "open": "Hide everyone",
-      "closed": "See everyone"
+      "closed": "See everyone",
+      "count": "{{count}} participant",
+      "count_plural": "{{count}} participants"
     },
     "tools": {
       "open": "Hide more tools",

@@ -192,7 +192,9 @@
     "leave": "Vertrekken",
     "participants": {
       "open": "Verberg iedereen",
-      "closed": "Toon iedereen"
+      "closed": "Toon iedereen",
+      "count": "{{count}} deelnemer",
+      "count_plural": "{{count}} deelnemers"
     },
     "tools": {
       "open": "Meer tools verbergen",
