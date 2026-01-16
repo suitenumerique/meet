@@ -86,6 +86,7 @@
     "heading": "Votre réunion est prête",
     "description": "Partagez ces informations avec les personnes que vous souhaitez inviter à la réunion.",
     "permissions": "Les personnes disposant de ce lien n'ont pas besoin de votre autorisation pour rejoindre cette réunion.",
+    "closeDialog": "Fermer la fenêtre modale",
     "phone": {
       "call": "Appelez le :",
       "pinCode": "Code :"
