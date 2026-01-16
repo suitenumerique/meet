@@ -11,11 +11,11 @@ and this project adheres to
 ### Changed
 
 - ♿️(frontend) add accessible back button in side panel #881
+- ♿️(frontend) improve participants toggle a11y label #880
 
 ### Fixed
 
 - 🔒(backend) prevent automatic upgrade setuptools
-
 
 ## [1.3.0] - 2026-01-13
 
