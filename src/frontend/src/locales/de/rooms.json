@@ -277,6 +277,7 @@
   },
   "sidePanel": {
     "ariaLabel": "Seitenleiste",
+    "backToTools": "Zurück zu den Meeting-Tools",
     "heading": {
       "participants": "Teilnehmer",
       "effects": "Effekte",

@@ -277,6 +277,7 @@
   },
   "sidePanel": {
     "ariaLabel": "Zijbalk",
+    "backToTools": "Terug naar vergadertools",
     "heading": {
       "participants": "Deelnemers",
       "effects": "Effecten",
