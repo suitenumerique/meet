@@ -23,11 +23,20 @@ body,
 }
 
 [data-rac][data-focus-visible]:not(label, .react-aria-Select),
+[data-rac][data-restore-focus-visible]:not(label, .react-aria-Select),
 :is(a, button, input[type='text'], select, textarea):not(
     [data-rac]
   ):focus-visible,
 /* Show focus ring when data-focus-visible is set programmatically (e.g., when restoring focus) */
-[data-focus-visible]:is(a, button, input[type='text'], select, textarea):focus {
+[data-focus-visible]:is(a, button, input[type='text'], select, textarea):focus,
+/* Show focus ring when restoring focus on react-aria buttons without overriding its focus state */
+[data-restore-focus-visible]:is(
+    a,
+    button,
+    input[type='text'],
+    select,
+    textarea
+  ):focus {
   outline: 2px solid var(--colors-focus-ring);
   outline-offset: 1px;
 }
