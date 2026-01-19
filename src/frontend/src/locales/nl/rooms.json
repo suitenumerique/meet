@@ -193,8 +193,8 @@
     "participants": {
       "open": "Verberg iedereen",
       "closed": "Toon iedereen",
-      "count": "{{count}} deelnemer",
-      "count_plural": "{{count}} deelnemers"
+      "count_one": "{{count}} deelnemer",
+      "count_other": "{{count}} deelnemers"
     },
     "tools": {
       "open": "Meer tools verbergen",

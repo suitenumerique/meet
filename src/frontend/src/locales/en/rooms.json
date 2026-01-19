@@ -193,8 +193,8 @@
     "participants": {
       "open": "Hide everyone",
       "closed": "See everyone",
-      "count": "{{count}} participant",
-      "count_plural": "{{count}} participants"
+      "count_one": "{{count}} participant",
+      "count_other": "{{count}} participants"
     },
     "tools": {
       "open": "Hide more tools",

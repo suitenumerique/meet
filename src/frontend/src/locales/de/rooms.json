@@ -193,8 +193,8 @@
     "participants": {
       "open": "Alle ausblenden",
       "closed": "Alle anzeigen",
-      "count": "{{count}} Teilnehmer",
-      "count_plural": "{{count}} Teilnehmer"
+      "count_one": "{{count}} Teilnehmer",
+      "count_other": "{{count}} Teilnehmer"
     },
     "tools": {
       "open": "Weitere Tools ausblenden",
