@@ -24,6 +24,7 @@ and this project adheres to
 - 📝(frontend) align close dialog label in rooms locale #878
 - 🩹(backend) use case-insensitive email matching in the external api #887
 - 🐛(frontend) ensure transcript segments are sorted by their timestamp #899
+- 🐛(frontend) scope scrollbar gutter override to video rooms #882
 
 ## [1.3.0] - 2026-01-13
 

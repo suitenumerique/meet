@@ -45,6 +45,10 @@ body:has(.lk-video-conference) #crisp-chatbox > * > div[role='button'] {
   display: none !important;
 }
 
+html:has(.lk-video-conference) {
+  scrollbar-gutter: auto !important;
+}
+
 @keyframes slide-full {
   from {
     transform: translateY(100%);
