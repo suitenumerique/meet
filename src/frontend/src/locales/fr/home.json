@@ -44,18 +44,15 @@
     },
     "slide1": {
       "title": "Passez à la simplicité. Essayez-nous dès maintenant !",
-      "body": "Découvrez une solution intuitive et accessible, conçue pour tous les agents publics et leurs partenaires, et bien plus encore.",
-      "imgAlt": "Illustration d'une plateforme de collaboration simple et accessible"
+      "body": "Découvrez une solution intuitive et accessible, conçue pour tous les agents publics et leurs partenaires, et bien plus encore."
     },
     "slide2": {
       "title": "Organisez des appels de groupe sans limite",
-      "body": "Réunions sans limite de temps, avec une communication fluide et de haute qualité, quel que soit le nombre.",
-      "imgAlt": "Image d'une réunion virtuelle avec plusieurs participants collaborant efficacement"
+      "body": "Réunions sans limite de temps, avec une communication fluide et de haute qualité, quel que soit le nombre."
     },
     "slide3": {
       "title": "Transformez vos réunions avec l'IA",
-      "body": "Obtenez des transcriptions précises et actionnables, pour booster votre productivité. Fonctionnalité en beta, essayez-la maintenant !",
-      "imgAlt": "Illustration de prise de notes assistée par l'IA dans une réunion virtuelle"
+      "body": "Obtenez des transcriptions précises et actionnables, pour booster votre productivité. Fonctionnalité en beta, essayez-la maintenant !"
     }
   }
 }

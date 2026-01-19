@@ -44,18 +44,15 @@
     },
     "slide1": {
       "title": "Make the switch to simplicity. Try us now!",
-      "body": "Discover an intuitive and accessible solution, designed for all public agents, their partners, and much more.",
-      "imgAlt": "Illustration of a user-friendly and accessible collaboration platform"
+      "body": "Discover an intuitive and accessible solution, designed for all public agents, their partners, and much more."
     },
     "slide2": {
       "title": "Host group calls without limits",
-      "body": "Unlimited time meetings, with smooth and high-quality communication, no matter the group size.",
-      "imgAlt": "Image of a virtual meeting with multiple participants collaborating seamlessly"
+      "body": "Unlimited time meetings, with smooth and high-quality communication, no matter the group size."
     },
     "slide3": {
       "title": "Transform your meetings with AI",
-      "body": "Get accurate and actionable transcripts to boost your productivity. Feature in beta—try it now!",
-      "imgAlt": "Illustration of AI-powered note-taking in a virtual meeting"
+      "body": "Get accurate and actionable transcripts to boost your productivity. Feature in beta—try it now!"
     }
   }
 }

@@ -44,18 +44,15 @@
     },
     "slide1": {
       "title": "Wechseln Sie zur Einfachheit. Testen Sie uns jetzt!",
-      "body": "Entdecken Sie eine intuitive und zugängliche Lösung, entwickelt für alle Mitarbeitenden im öffentlichen Dienst, ihre Partner und viele weitere.",
-      "imgAlt": "Illustration einer benutzerfreundlichen und barrierefreien Kollaborationsplattform"
+      "body": "Entdecken Sie eine intuitive und zugängliche Lösung, entwickelt für alle Mitarbeitenden im öffentlichen Dienst, ihre Partner und viele weitere."
     },
     "slide2": {
       "title": "Gruppenanrufe ohne Einschränkungen",
-      "body": "Unbegrenzte Meeting-Dauer mit flüssiger, hochwertiger Kommunikation – unabhängig von der Gruppengröße.",
-      "imgAlt": "Bild eines virtuellen Meetings mit mehreren nahtlos zusammenarbeitenden Teilnehmenden"
+      "body": "Unbegrenzte Meeting-Dauer mit flüssiger, hochwertiger Kommunikation – unabhängig von der Gruppengröße."
     },
     "slide3": {
       "title": "Verwandeln Sie Ihre Meetings mit KI",
-      "body": "Erhalten Sie präzise und verwertbare Transkripte zur Steigerung Ihrer Produktivität. Funktion in der Beta – jetzt testen!",
-      "imgAlt": "Illustration KI-gestützter Notizen in einem virtuellen Meeting"
+      "body": "Erhalten Sie präzise und verwertbare Transkripte zur Steigerung Ihrer Produktivität. Funktion in der Beta – jetzt testen!"
     }
   }
 }
