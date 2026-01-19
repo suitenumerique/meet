@@ -4,7 +4,7 @@
 FROM python:3.13.5-alpine3.21 AS base
 
 # Upgrade pip to its latest release to speed up dependencies installation
-RUN python -m pip install --upgrade pip setuptools
+RUN python -m pip install --upgrade pip
 
 # Upgrade system packages to install security updates
 RUN apk update && \
