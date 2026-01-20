@@ -34,6 +34,8 @@ import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
+import { RoomPiP } from '../components/RoomPiP'
+import { RoomPiPProvider } from '../hooks/RoomPiPProvider'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
@@ -238,10 +240,11 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       }}
     >
       {isWeb() && (
-        <LayoutContextProvider
-          value={layoutContext}
-          // onPinChange={handleFocusStateChange}
-        >
+        <RoomPiPProvider>
+          <LayoutContextProvider
+            value={layoutContext}
+            // onPinChange={handleFocusStateChange}
+          >
           <ScreenShareErrorModal
             isOpen={isShareErrorVisible}
             onClose={() => setIsShareErrorVisible(false)}
@@ -289,7 +292,9 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             }}
           />
           <SidePanel />
-        </LayoutContextProvider>
+          <RoomPiP />
+          </LayoutContextProvider>
+        </RoomPiPProvider>
       )}
       <RoomAudioRenderer />
       <ConnectionStateToast />
