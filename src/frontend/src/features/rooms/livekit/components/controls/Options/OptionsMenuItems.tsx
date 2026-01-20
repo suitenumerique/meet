@@ -7,6 +7,7 @@ import { EffectsMenuItem } from './EffectsMenuItem'
 import { SupportMenuItem } from './SupportMenuItem'
 import { TranscriptMenuItem } from './TranscriptMenuItem'
 import { ScreenRecordingMenuItem } from './ScreenRecordingMenuItem'
+import { PictureInPictureMenuItem } from './PictureInPictureMenuItem'
 
 // @todo try refactoring it to use MenuList component
 export const OptionsMenuItems = () => {
@@ -21,6 +22,7 @@ export const OptionsMenuItems = () => {
         <TranscriptMenuItem />
         <ScreenRecordingMenuItem />
         <FullScreenMenuItem />
+        <PictureInPictureMenuItem />
         <EffectsMenuItem />
       </MenuSection>
       <Separator />
