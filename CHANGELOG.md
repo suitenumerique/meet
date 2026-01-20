@@ -22,6 +22,7 @@ and this project adheres to
 - ♿(frontend) improve contrast for selected options #863
 - ♿️(frontend) announce copy state in invite dialog #877
 - 📝(frontend) align close dialog label in rooms locale #878
+- 🩹(backend) use case-insensitive email matching in the external api #887
 
 ## [1.3.0] - 2026-01-13
 
