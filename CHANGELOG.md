@@ -15,6 +15,7 @@ and this project adheres to
 - ♿️(frontend) make carousel image decorative #871
 - ♿️(frontend) reactions are now vocalized and configurable #849
 - ♿️(frontend) improve background effect announcements #879
+- 🐛(brevo) use django-lasuite for marketing management #885
 
 ### Fixed
 
