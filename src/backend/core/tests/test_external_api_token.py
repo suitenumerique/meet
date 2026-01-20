@@ -22,7 +22,7 @@ pytestmark = pytest.mark.django_db
 def test_api_applications_generate_token_success(settings):
     """Valid credentials should return a JWT token."""
     settings.APPLICATION_JWT_SECRET_KEY = "devKey"
-    user = UserFactory(email="user@example.com")
+    UserFactory(email="User.Family@example.com")
     application = ApplicationFactory(
         active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
@@ -40,7 +40,7 @@ def test_api_applications_generate_token_success(settings):
             "client_id": application.client_id,
             "client_secret": plain_secret,
             "grant_type": "client_credentials",
-            "scope": user.email,
+            "scope": "user.family@example.com",
         },
         format="json",
     )

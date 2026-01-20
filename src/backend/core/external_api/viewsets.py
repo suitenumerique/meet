@@ -5,7 +5,7 @@ from logging import getLogger
 
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
-from django.core.exceptions import ValidationError
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.core.validators import validate_email
 
 import jwt
@@ -93,7 +93,7 @@ class ApplicationViewSet(viewsets.GenericViewSet):
             )
 
         try:
-            user = models.User.objects.get(email=email)
+            user = models.User.objects.get(email__iexact=email)
         except models.User.DoesNotExist as e:
             if (
                 settings.APPLICATION_ALLOW_USER_CREATION
@@ -123,6 +123,10 @@ class ApplicationViewSet(viewsets.GenericViewSet):
                 )
             else:
                 raise drf_exceptions.NotFound("User not found.") from e
+        except models.User.MultipleObjectsReturned as e:
+            raise SuspiciousOperation(
+                "Multiple user accounts share a common email."
+            ) from e
 
         now = datetime.now(timezone.utc)
         scope = " ".join(application.scopes or [])
