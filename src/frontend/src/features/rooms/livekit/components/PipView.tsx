@@ -23,7 +23,11 @@ const pickTrackForPip = (
   return tracks[0]
 }
 
-// Renders the PiP viewport and a compact control bar inside the PiP window.
+/**
+ * Main view component for the Picture-in-Picture window.
+ * Handles track selection (prioritizes screen share), layout switching (grid for multiple participants),
+ * and renders the control bar and side panel within the PiP window.
+ */
 export const PipView = () => {
   const tracks = useTracks(
     [

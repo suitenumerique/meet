@@ -9,7 +9,10 @@ import { HandToggle } from './controls/HandToggle'
 import { OptionsButton } from './controls/Options/OptionsButton'
 import { StartMediaButton } from './controls/StartMediaButton'
 
-// Compact PiP toolbar; keep all PiP-specific controls in one place.
+/**
+ * Compact control bar for the Picture-in-Picture window.
+ * Centralizes all PiP controls (devices, reactions, screen share, options, etc.) in one reusable component.
+ */
 export const PipControlBar = ({
   showScreenShare,
 }: {
