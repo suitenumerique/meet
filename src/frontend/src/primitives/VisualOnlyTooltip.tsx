@@ -2,11 +2,12 @@ import {
   type ReactElement,
   cloneElement,
   isValidElement,
-  useRef,
+  useMemo, useRef,
   useState,
 } from 'react'
 import { createPortal } from 'react-dom'
 import { css } from '@/styled-system/css'
+import { useUNSAFE_PortalContext } from '@react-aria/overlays'
 
 export type VisualOnlyTooltipProps = {
   children: ReactElement
@@ -32,6 +33,7 @@ export const VisualOnlyTooltip = ({
   tooltipPosition = 'top',
 }: VisualOnlyTooltipProps) => {
   const [isVisible, setIsVisible] = useState(false)
+  const { getContainer } = useUNSAFE_PortalContext()
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState<{
     top: number
@@ -56,6 +58,11 @@ export const VisualOnlyTooltip = ({
   }
 
   const tooltipData = isVisible && position ? { isVisible, position } : null
+
+  const portalContainer = useMemo(() => {
+    if (getContainer) return getContainer()
+    return wrapperRef.current?.ownerDocument?.body ?? document.body
+  }, [getContainer])
   const wrappedChild = isValidElement(children)
     ? cloneElement(children, {
         ...(ariaLabel ? { 'aria-label': ariaLabel } : {}),
@@ -73,7 +80,7 @@ export const VisualOnlyTooltip = ({
       >
         {wrappedChild}
       </div>
-      {tooltipData &&
+      {tooltipData && portalContainer &&
         createPortal(
           <div
             aria-hidden="true"
@@ -116,7 +123,7 @@ export const VisualOnlyTooltip = ({
           >
             {tooltip}
           </div>,
-          document.body
+          portalContainer
         )}
     </>
   )
