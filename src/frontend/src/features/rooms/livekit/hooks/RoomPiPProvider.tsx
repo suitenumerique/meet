@@ -1,6 +1,11 @@
 import { useCallback, useMemo, useState } from 'react'
 import { RoomPiPContext } from './roomPiPContext'
 
+/**
+ * Context Provider that manages Picture-in-Picture state at the room level.
+ * Handles open/closed state, browser support detection, and exposes open/close/toggle functions.
+ * Components access PiP state via the useRoomPiP hook.
+ */
 export const RoomPiPProvider = ({
   children,
 }: {
