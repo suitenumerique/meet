@@ -11,14 +11,17 @@ type PipOptionsMenuProps = {
   label: string
 }
 
-// PiP-specific options menu positioned locally above the trigger button.
+/**
+ * PiP-specific options menu with absolute positioning for correct alignment in PiP window.
+ * Renders locally (unlike standard Menu) and closes automatically on item click or outside click.
+ */
 export const PipOptionsMenu = ({
   wrapperRef,
   isOpen,
   setIsOpen,
   label,
 }: PipOptionsMenuProps) => {
-  // Close menu when a menu item action completes (e.g., transcription, effects).
+  // Close menu when a menu item action completes (e.g., transcription, effects, recording).
   useEffect(() => {
     if (!isOpen) return
     const doc = wrapperRef.current?.ownerDocument ?? document

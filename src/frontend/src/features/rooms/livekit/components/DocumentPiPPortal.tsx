@@ -29,6 +29,12 @@ const copyStyles = (source: Document, target: Document) => {
   })
 }
 
+/**
+ * React Portal that renders children into a Document Picture-in-Picture window.
+ * Handles PiP window lifecycle, style injection, React root management, and uses UNSAFE_PortalProvider
+ * to ensure React Aria overlays render correctly within the PiP window.
+ * Creates a fresh React root on reopen to prevent black screen issues.
+ */
 export const DocumentPiPPortal = ({
   isOpen,
   width,
