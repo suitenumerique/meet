@@ -6,18 +6,10 @@ import {
 } from '@livekit/components-core'
 import { useTracks } from '@livekit/components-react'
 import { Track } from 'livekit-client'
-import { AudioDevicesControl } from './controls/Device/AudioDevicesControl'
-import { VideoDeviceControl } from './controls/Device/VideoDeviceControl'
-import { ScreenShareToggle } from './controls/ScreenShareToggle'
-import { LeaveButton } from './controls/LeaveButton'
 import { ParticipantTile } from './ParticipantTile'
 import { GridLayout } from './layout/GridLayout'
-import { ReactionsToggle } from './controls/ReactionsToggle'
-import { SubtitlesToggle } from './controls/SubtitlesToggle'
-import { HandToggle } from './controls/HandToggle'
-import { OptionsButton } from './controls/Options/OptionsButton'
-import { StartMediaButton } from './controls/StartMediaButton'
 import { SidePanel } from './SidePanel'
+import { PipControlBar } from './PipControlBar'
 
 const pickTrackForPip = (
   tracks: TrackReferenceOrPlaceholder[]
@@ -31,6 +23,7 @@ const pickTrackForPip = (
   return tracks[0]
 }
 
+// Renders the PiP viewport and a compact control bar inside the PiP window.
 export const PipView = () => {
   const tracks = useTracks(
     [
@@ -59,9 +52,7 @@ export const PipView = () => {
         )}
       </PipStage>
       {/* Compact control bar for PiP; extend here when adding more actions. */}
-      <PipControlsBar
-        showScreenShare={browserSupportsScreenSharing}
-      />
+      <PipControlBar showScreenShare={browserSupportsScreenSharing} />
       {/* Side panel (effects, settings, etc.) opens within PiP window. */}
       <SidePanel />
     </PipContainer>
@@ -98,36 +89,4 @@ const PipStage = styled('div', {
     minHeight: 0,
   },
 })
-
-const PipControls = styled('div', {
-  base: {
-    flex: '0 0 auto',
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: '0.4rem',
-    padding: '0.5rem 0.75rem',
-    backgroundColor: 'var(--lk-controlbar-bg)',
-    borderTop: '1px solid',
-    borderColor: 'var(--lk-control-border-color)',
-  },
-})
-
-const PipControlsBar = ({
-  showScreenShare,
-}: {
-  showScreenShare: boolean
-}) => (
-  <PipControls>
-    <AudioDevicesControl hideMenu />
-    <VideoDeviceControl hideMenu />
-    <ReactionsToggle />
-    {showScreenShare && <ScreenShareToggle />}
-    <SubtitlesToggle />
-    <HandToggle />
-    <OptionsButton />
-    <LeaveButton />
-    <StartMediaButton />
-  </PipControls>
-)
 
