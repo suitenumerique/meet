@@ -234,6 +234,10 @@
       "username": "Verander uw naam",
       "effects": "Pas effecten toe",
       "switchCamera": "Selecteer camera",
+      "pictureInPicture": {
+        "enter": "Picture-in-picture",
+        "exit": "Picture-in-picture sluiten"
+      },
       "fullscreen": {
         "enter": "Volledig scherm",
         "exit": "Stop volledig scherm stand"

@@ -15,6 +15,7 @@ import { ParticipantTile } from './ParticipantTile'
 const pickTrackForPip = (
   tracks: TrackReferenceOrPlaceholder[]
 ): TrackReferenceOrPlaceholder | undefined => {
+  // Prefer screen share when present; otherwise fallback to first available track.
   const screenShareTrack = tracks
     .filter(isTrackReference)
     .find((track) => track.publication.source === Track.Source.ScreenShare)
@@ -39,9 +40,11 @@ export const PipView = () => {
 
   return (
     <PipContainer>
+      {/* Keep stage height stable to avoid layout shifting on track changes. */}
       <PipStage>
         <ParticipantTile trackRef={trackRef} disableMetadata />
       </PipStage>
+      {/* Compact control bar for PiP; extend here when adding more actions. */}
       <PipControlsBar
         showScreenShare={browserSupportsScreenSharing}
       />

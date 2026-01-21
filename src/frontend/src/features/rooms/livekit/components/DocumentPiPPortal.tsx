@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDocumentPiP } from '../hooks/useDocumentPiP'
 
+// Minimal base styles so the PiP window renders correctly on first paint.
 const ensureBaseStyles = (target: Document) => {
   if (target.getElementById('pip-base-styles')) return
   const style = target.createElement('style')
@@ -13,6 +14,7 @@ const ensureBaseStyles = (target: Document) => {
   target.head.appendChild(style)
 }
 
+// Clone existing styles to keep the PiP window visually consistent.
 const copyStyles = (source: Document, target: Document) => {
   if (target.getElementById('pip-style-clone')) return
   const marker = target.createElement('meta')
@@ -81,6 +83,7 @@ export const DocumentPiPPortal = ({
   useEffect(() => {
     if (!pipWindow) return
     const handleClose = () => {
+      // Reset container so reopening PiP mounts a fresh root.
       containerRef.current = null
       setContainer(null)
       onClose?.()
