@@ -241,6 +241,10 @@
       "username": "Deinen Namen aktualisieren",
       "effects": "Effekte anwenden",
       "switchCamera": "Kamera wechseln",
+      "pictureInPicture": {
+        "enter": "Bild-im-Bild",
+        "exit": "Bild-im-Bild schließen"
+      },
       "fullscreen": {
         "enter": "Vollbild",
         "exit": "Vollbildmodus verlassen"
