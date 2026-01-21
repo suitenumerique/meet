@@ -8,6 +8,7 @@ import {
 } from 'react-aria-components'
 import { styled } from '@/styled-system/jsx'
 import { Box } from './Box'
+import { useOverlayBoundaryElement } from './useOverlayPortalContainer'
 
 export const StyledPopover = styled(RACPopover, {
   base: {
@@ -65,6 +66,8 @@ const StyledOverlayArrow = styled(OverlayArrow, {
  *
  * Note: to show a list of actionable items, like a dropdown menu, prefer using a <Menu> or <Select>.
  * This is here when needing to show unrestricted content in a box.
+ *
+ * Uses UNSAFE_PortalProvider context automatically for portal container (no need for UNSTABLE_portalContainer).
  */
 export const Popover = ({
   children,
@@ -82,10 +85,11 @@ export const Popover = ({
   withArrow?: boolean
 } & Omit<DialogProps, 'children'>) => {
   const [trigger, popoverContent] = children
+  const boundaryElement = useOverlayBoundaryElement()
   return (
     <DialogTrigger>
       {trigger}
-      <StyledPopover>
+      <StyledPopover boundaryElement={boundaryElement}>
         {withArrow && (
           <StyledOverlayArrow variant={variant}>
             <svg width={12} height={12} viewBox="0 0 12 12">
