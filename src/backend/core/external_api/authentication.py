@@ -180,6 +180,19 @@ class ApplicationJWTAuthentication(BaseJWTAuthentication):
             raise exceptions.AuthenticationFailed("Invalid token type.")
 
 
+class AddonsJWTAuthentication(BaseJWTAuthentication):
+    """JWT authentication for addons API access.
+
+    Validates JWT tokens issued by addons for authenticating users.
+    Tokens must include user_id to identify the authenticated user.
+    """
+
+    secret_key = settings.ADDONS_JWT_SECRET_KEY
+    algorithm = settings.ADDONS_JWT_ALG
+    issuer = settings.ADDONS_JWT_ISSUER
+    audience = settings.ADDONS_JWT_AUDIENCE
+
+
 class ResourceServerBackend(LaSuiteBackend):
     """OIDC Resource Server backend for user creation and retrieval."""
 

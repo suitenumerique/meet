@@ -290,6 +290,11 @@ class Base(Configuration):
                 environ_name="CREATION_CALLBACK_THROTTLE_RATES",
                 environ_prefix=None,
             ),
+            "addons_auth_sessions": values.Value(
+                default="150/minute",
+                environ_name="ADDONS_AUTH_SESSION_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
         },
     }
 
@@ -783,6 +788,61 @@ class Base(Configuration):
     APPLICATION_ALLOW_USER_CREATION = values.BooleanValue(
         False,
         environ_name="APPLICATION_ALLOW_USER_CREATION",
+        environ_prefix=None,
+    )
+
+    # Addons
+    ADDONS_SESSION_ID_LENGTH = values.PositiveIntegerValue(
+        32,
+        environ_name="ADDONS_SESSION_ID_LENGTH",
+        environ_prefix=None,
+    )
+    # Used in cache key generation
+    ADDONS_SESSION_KEY_PREFIX = values.Value(
+        "addons_session_id",
+        environ_name="ADDONS_SESSION_KEY_PREFIX",
+        environ_prefix=None,
+    )
+    # Used as the Django session key in transit page
+    ADDONS_SESSION_KEY_AUTH = values.Value(
+        "addons_session_id",
+        environ_name="ADDONS_SESSION_KEY_AUTH",
+        environ_prefix=None,
+    )
+    ADDONS_SESSION_TIMEOUT = values.PositiveIntegerValue(
+        600, environ_name="ADDONS_SESSION_TIMEOUT", environ_prefix=None
+    )
+    ADDONS_JWT_SECRET_KEY = SecretFileValue(
+        None, environ_name="ADDONS_JWT_SECRET_KEY", environ_prefix=None
+    )
+    ADDONS_JWT_ALG = values.Value(
+        "HS256",
+        environ_name="ADDONS_JWT_ALG",
+        environ_prefix=None,
+    )
+    ADDONS_SCOPES = values.Value(
+        "rooms:create rooms:list",
+        environ_name="ADDONS_SCOPES",
+        environ_prefix=None,
+    )
+    ADDONS_JWT_ISSUER = values.Value(
+        "lasuite-meet",
+        environ_name="ADDONS_JWT_ISSUER",
+        environ_prefix=None,
+    )
+    ADDONS_JWT_AUDIENCE = values.Value(
+        None,
+        environ_name="ADDONS_JWT_AUDIENCE",
+        environ_prefix=None,
+    )
+    ADDONS_JWT_EXPIRATION_SECONDS = values.PositiveIntegerValue(
+        3600,
+        environ_name="ADDONS_JWT_EXPIRATION_SECONDS",
+        environ_prefix=None,
+    )
+    ADDONS_JWT_TOKEN_TYPE = values.Value(
+        "Bearer",
+        environ_name="ADDONS_JWT_TOKEN_TYPE",
         environ_prefix=None,
     )
 

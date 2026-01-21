@@ -1,0 +1,17 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Authentication Success" %}</title>
+</head>
+<body>
+    <script>
+      window.close();
+    </script>
+    <p>{% trans "Session stored successfully. This window will close automatically." %}</p>
+    <p>{% trans "If it doesn't close" %}, <a href="javascript:window.close()">{% trans "click here" %}</a>.</p>
+</body>
+</html>
+
