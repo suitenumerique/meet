@@ -26,6 +26,7 @@ export const useDocumentPiP = ({
     if (!isSupported) return null
     if (pipWindow && !pipWindow.closed) return pipWindow
 
+    // Request a new PiP window from the browser API.
     const pip = (window as WindowWithDocumentPiP).documentPictureInPicture
     if (!pip) return null
 
