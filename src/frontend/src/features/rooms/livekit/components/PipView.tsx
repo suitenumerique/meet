@@ -11,6 +11,13 @@ import { VideoDeviceControl } from './controls/Device/VideoDeviceControl'
 import { ScreenShareToggle } from './controls/ScreenShareToggle'
 import { LeaveButton } from './controls/LeaveButton'
 import { ParticipantTile } from './ParticipantTile'
+import { GridLayout } from './layout/GridLayout'
+import { ReactionsToggle } from './controls/ReactionsToggle'
+import { SubtitlesToggle } from './controls/SubtitlesToggle'
+import { HandToggle } from './controls/HandToggle'
+import { OptionsButton } from './controls/Options/OptionsButton'
+import { StartMediaButton } from './controls/StartMediaButton'
+import { SidePanel } from './SidePanel'
 
 const pickTrackForPip = (
   tracks: TrackReferenceOrPlaceholder[]
@@ -35,19 +42,28 @@ export const PipView = () => {
 
   const trackRef = pickTrackForPip(tracks)
   const browserSupportsScreenSharing = supportsScreenSharing()
+  const hasMultipleTiles = tracks.length > 1
 
-  if (!trackRef) return null
+  if (!trackRef && !hasMultipleTiles) return null
 
   return (
     <PipContainer>
       {/* Keep stage height stable to avoid layout shifting on track changes. */}
       <PipStage>
-        <ParticipantTile trackRef={trackRef} disableMetadata />
+        {hasMultipleTiles ? (
+          <GridLayout tracks={tracks} style={{ height: '100%' }}>
+            <ParticipantTile disableMetadata />
+          </GridLayout>
+        ) : (
+          <ParticipantTile trackRef={trackRef} disableMetadata />
+        )}
       </PipStage>
       {/* Compact control bar for PiP; extend here when adding more actions. */}
       <PipControlsBar
         showScreenShare={browserSupportsScreenSharing}
       />
+      {/* Side panel (effects, settings, etc.) opens within PiP window. */}
+      <SidePanel />
     </PipContainer>
   )
 }
@@ -69,6 +85,10 @@ const PipContainer = styled('div', {
       height: '100%',
       objectFit: 'cover',
     },
+    '& .lk-grid-layout': {
+      height: '100%',
+      width: '100%',
+    },
   },
 })
 
@@ -83,12 +103,13 @@ const PipControls = styled('div', {
   base: {
     flex: '0 0 auto',
     display: 'flex',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: '0.5rem',
-    padding: '0.5rem',
-    backgroundColor: 'primaryDark.100',
+    gap: '0.4rem',
+    padding: '0.5rem 0.75rem',
+    backgroundColor: 'var(--lk-controlbar-bg)',
     borderTop: '1px solid',
-    borderColor: 'primaryDark.200',
+    borderColor: 'var(--lk-control-border-color)',
   },
 })
 
@@ -100,8 +121,13 @@ const PipControlsBar = ({
   <PipControls>
     <AudioDevicesControl hideMenu />
     <VideoDeviceControl hideMenu />
+    <ReactionsToggle />
     {showScreenShare && <ScreenShareToggle />}
+    <SubtitlesToggle />
+    <HandToggle />
+    <OptionsButton />
     <LeaveButton />
+    <StartMediaButton />
   </PipControls>
 )
 
