@@ -18,6 +18,11 @@ import {
   ANIMATION_DURATION,
   ReactionPortals,
 } from '@/features/rooms/livekit/components/ReactionPortal'
+import {
+  addReaction,
+  removeReaction,
+  clearAllReactions,
+} from '@/stores/chatReactions'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -90,6 +95,21 @@ export const MainNotificationToast = () => {
           if (notification.data?.emoji && participant)
             handleEmoji(notification.data.emoji, participant)
           break
+        case NotificationType.ChatReactionReceived: {
+          const { messageId, emoji, action, participantName } =
+            notification.data || {}
+          if (!messageId || !emoji || !action || !participant) break
+          if (action === 'add') {
+            addReaction(messageId, {
+              emoji,
+              participantIdentity: participant.identity,
+              participantName: participantName || participant.name,
+            })
+          } else {
+            removeReaction(messageId, participant.identity, emoji)
+          }
+          break
+        }
         case NotificationType.TranscriptionStarted:
         case NotificationType.TranscriptionStopped:
         case NotificationType.ScreenRecordingStarted:
@@ -221,12 +241,13 @@ export const MainNotificationToast = () => {
   }, [room, triggerNotificationSound])
 
   useEffect(() => {
-    const closeAllToasts = () => {
+    const handleDisconnect = () => {
       toastQueue.visibleToasts.forEach(({ key }) => toastQueue.close(key))
+      clearAllReactions()
     }
-    room.on(RoomEvent.Disconnected, closeAllToasts)
+    room.on(RoomEvent.Disconnected, handleDisconnect)
     return () => {
-      room.off(RoomEvent.Disconnected, closeAllToasts)
+      room.off(RoomEvent.Disconnected, handleDisconnect)
     }
   }, [room])
 

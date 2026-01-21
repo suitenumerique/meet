@@ -13,9 +13,29 @@ import { Div, Text } from '@/primitives'
 import { ChatInput } from '../components/chat/Input'
 import { ChatEntry } from '../components/chat/Entry'
 import { useSidePanel } from '../hooks/useSidePanel'
+import { useChatReactions } from '../hooks/useChatReactions'
 import { LocalParticipant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { css } from '@/styled-system/css'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+
+// Generate a stable message ID
+// Prefer the message's own id if available (consistent across participants)
+// Fall back to sender identity + message content hash for stability
+const getMessageId = (
+  msgId: string | undefined,
+  from: { identity?: string } | undefined,
+  message: string
+): string => {
+  if (msgId) {
+    return msgId
+  }
+  // Fallback: use identity + simple hash of message content
+  const identity = from?.identity || 'unknown'
+  const hash = message.split('').reduce((acc, char) => {
+    return ((acc << 5) - acc + char.charCodeAt(0)) | 0
+  }, 0)
+  return `${identity}-${hash}`
+}
 
 export interface ChatProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -36,6 +56,7 @@ export function Chat({ ...props }: ChatProps) {
 
   const { isChatOpen } = useSidePanel()
   const chatSnap = useSnapshot(chatStore)
+  const { reactions, toggleReaction } = useChatReactions()
 
   // Keep track of the element that opened the chat so we can restore focus
   // when the chat panel is closed.
@@ -113,18 +134,31 @@ export function Chat({ ...props }: ChatProps) {
         msg.timestamp - allMsg[idx - 1].timestamp < 60_000 &&
         allMsg[idx - 1].from === msg.from
 
+      const messageId = getMessageId(msg.id, msg.from, msg.message)
+      const messageReactions = reactions[messageId] || []
+
       return (
         <ChatEntry
           key={msg.id ?? idx}
           hideMetadata={hideMetadata}
           entry={msg}
           messageFormatter={formatChatMessageLinks}
+          messageId={messageId}
+          reactions={messageReactions}
+          currentUserIdentity={room.localParticipant.identity}
+          onReactionToggle={(emoji) => toggleReaction(messageId, emoji)}
         />
       )
     })
     // This ensures that the chat message list is updated to reflect any changes in participant information.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatMessages, participants])
+  }, [
+    chatMessages,
+    participants,
+    reactions,
+    room.localParticipant.identity,
+    toggleReaction,
+  ])
 
   return (
     <Div

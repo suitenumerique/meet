@@ -5,6 +5,7 @@ export enum NotificationType {
   MessageReceived = 'messageReceived',
   LowerHand = 'lowerHand',
   ReactionReceived = 'reactionReceived',
+  ChatReactionReceived = 'chatReactionReceived',
   ParticipantWaiting = 'participantWaiting',
   TranscriptionStarted = 'transcriptionStarted',
   TranscriptionStopped = 'transcriptionStopped',

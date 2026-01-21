@@ -315,7 +315,16 @@
     "closeButton": "Masquer {{content}}"
   },
   "chat": {
-    "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel."
+    "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel.",
+    "reactions": {
+      "add": "Ajouter une réaction",
+      "sendReaction": "Réagir avec {{emoji}}",
+      "addReaction": "Ajouter la réaction {{emoji}}",
+      "removeReaction": "Retirer la réaction {{emoji}}",
+      "you": "Vous",
+      "reactedBy": "Réaction de {{names}}",
+      "reactedByWithOthers": "Réaction de {{names}} et {{count}} autres"
+    }
   },
   "moreTools": {
     "body": "Accèder à d'avantage d'outils pour améliorer vos réunions.",
