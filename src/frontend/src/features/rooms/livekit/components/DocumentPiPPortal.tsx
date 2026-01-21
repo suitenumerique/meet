@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDocumentPiP } from '../hooks/useDocumentPiP'
+import { UNSAFE_PortalProvider } from '@react-aria/overlays'
 
 // Minimal base styles so the PiP window renders correctly on first paint.
 const ensureBaseStyles = (target: Document) => {
@@ -9,6 +10,7 @@ const ensureBaseStyles = (target: Document) => {
   style.id = 'pip-base-styles'
   style.textContent = `
     html, body { margin: 0; padding: 0; height: 100%; background: #0b0f19; }
+    body { overflow: hidden; }
     * { box-sizing: border-box; }
   `
   target.head.appendChild(style)
@@ -67,6 +69,11 @@ export const DocumentPiPPortal = ({
       if (!existingContainer || existingContainer.ownerDocument !== doc) {
         const nextContainer = doc.createElement('div')
         nextContainer.id = 'pip-root'
+        nextContainer.style.width = '100%'
+        nextContainer.style.height = '100%'
+        nextContainer.style.display = 'flex'
+        nextContainer.style.alignItems = 'stretch'
+        nextContainer.style.justifyContent = 'center'
         doc.body.appendChild(nextContainer)
         containerRef.current = nextContainer
         setContainer(nextContainer)
@@ -98,7 +105,14 @@ export const DocumentPiPPortal = ({
 
   const portal = useMemo(() => {
     if (!container) return null
-    return createPortal(children, container)
+    return createPortal(
+      // "UNSAFE" because it bypasses react-aria's default portal container.
+      // We need it to target the PiP document; otherwise overlays render in the main window.
+      <UNSAFE_PortalProvider getContainer={() => container}>
+        {children}
+      </UNSAFE_PortalProvider>,
+      container
+    )
   }, [children, container])
 
   return portal
