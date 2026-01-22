@@ -30,10 +30,10 @@ export const PipOptionsMenu = ({
       const target = event.target as HTMLElement | null
       const wrapper = wrapperRef.current
       if (!wrapper || !target) return
-      
+
       // Don't close if clicking the trigger button
       if (wrapper.querySelector('button')?.contains(target)) return
-      
+
       // Close if clicking a menu item (action will have fired)
       if (target.closest('[role="menuitem"]')) {
         // Use requestAnimationFrame to ensure action completes first, without visible delay

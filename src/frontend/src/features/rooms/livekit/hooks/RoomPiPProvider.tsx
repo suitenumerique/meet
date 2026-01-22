@@ -19,10 +19,7 @@ export const RoomPiPProvider = ({
 
   const open = useCallback(() => setIsOpen(true), [])
   const close = useCallback(() => setIsOpen(false), [])
-  const toggle = useCallback(
-    () => setIsOpen((current) => !current),
-    []
-  )
+  const toggle = useCallback(() => setIsOpen((current) => !current), [])
 
   const value = useMemo(
     () => ({
@@ -36,9 +33,6 @@ export const RoomPiPProvider = ({
   )
 
   return (
-    <RoomPiPContext.Provider value={value}>
-      {children}
-    </RoomPiPContext.Provider>
+    <RoomPiPContext.Provider value={value}>{children}</RoomPiPContext.Provider>
   )
 }
-

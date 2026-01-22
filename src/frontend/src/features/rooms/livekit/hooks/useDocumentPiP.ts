@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 type DocumentPictureInPicture = {
-  requestWindow: (options?: { width?: number; height?: number }) => Promise<Window>
+  requestWindow: (options?: {
+    width?: number
+    height?: number
+  }) => Promise<Window>
 }
 
 type WindowWithDocumentPiP = Window & {
@@ -67,4 +70,3 @@ export const useDocumentPiP = ({
     closePiP,
   }
 }
-

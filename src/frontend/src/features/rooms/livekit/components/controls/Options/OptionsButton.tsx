@@ -9,8 +9,7 @@ import { PipOptionsMenu } from './PipOptionsMenu'
 export const OptionsButton = () => {
   const { t } = useTranslation('rooms')
   const portalContainer = useOverlayPortalContainer()
-  const isInPiP =
-    portalContainer && portalContainer.ownerDocument !== document
+  const isInPiP = portalContainer && portalContainer.ownerDocument !== document
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -32,8 +31,6 @@ export const OptionsButton = () => {
       doc.removeEventListener('pointerdown', handlePointerDown, true)
     }
   }, [isInPiP, isOpen])
-
-
 
   if (isInPiP) {
     return (
