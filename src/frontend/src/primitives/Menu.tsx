@@ -24,7 +24,7 @@ export const Menu = ({
   const [trigger, menu] = children
   const boundaryElement = useOverlayBoundaryElement()
   const portalContainer = useOverlayPortalContainer()
-  
+
   // Detect if we're in PiP: portal container is in a different document than the main window
   const isInPiP = useMemo(
     () =>

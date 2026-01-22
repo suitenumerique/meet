@@ -8,4 +8,3 @@ export const useRoomPiP = () => {
   }
   return context
 }
-
