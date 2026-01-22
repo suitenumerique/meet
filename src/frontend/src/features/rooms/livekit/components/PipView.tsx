@@ -48,9 +48,11 @@ export const PipView = () => {
       {/* Keep stage height stable to avoid layout shifting on track changes. */}
       <PipStage>
         {hasMultipleTiles ? (
-          <GridLayout tracks={tracks} style={{ height: '100%' }}>
-            <ParticipantTile disableMetadata />
-          </GridLayout>
+          <PipGridWrapper>
+            <GridLayout tracks={tracks} style={{ height: '100%' }}>
+              <ParticipantTile disableMetadata />
+            </GridLayout>
+          </PipGridWrapper>
         ) : (
           <ParticipantTile trackRef={trackRef} disableMetadata />
         )}
@@ -91,6 +93,18 @@ const PipStage = styled('div', {
   base: {
     position: 'relative',
     minHeight: 0,
+  },
+})
+
+const PipGridWrapper = styled('div', {
+  base: {
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
 })
 

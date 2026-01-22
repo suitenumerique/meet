@@ -180,6 +180,8 @@ and this project adheres to
 
 - ✨(backend) monitor throttling rate failure through sentry #964
 - 🚀(paas) add PaaS deployment scripts, tested on Scalingo #957
+- ✨(feat) Introduce Picture-in-Picture (PiP) #890
+
 
 ### Changed
 
