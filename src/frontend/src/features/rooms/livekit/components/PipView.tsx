@@ -107,4 +107,3 @@ const PipGridWrapper = styled('div', {
     height: '100%',
   },
 })
-

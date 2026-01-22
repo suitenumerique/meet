@@ -22,4 +22,3 @@ export const useOverlayBoundaryElement = () => {
     return undefined
   }, [portalContainer])
 }
-

@@ -134,10 +134,7 @@ const Tooltip = ({
   children: ReactNode
 } & Partial<Omit<TooltipProps, 'children'>>) => {
   return (
-    <StyledTooltip
-      arrowBoundaryOffset={arrowBoundaryOffset ?? 0}
-      {...props}
-    >
+    <StyledTooltip arrowBoundaryOffset={arrowBoundaryOffset ?? 0} {...props}>
       <TooltipArrow />
       {children}
     </StyledTooltip>

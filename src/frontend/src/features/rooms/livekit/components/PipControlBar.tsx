@@ -71,4 +71,3 @@ const PipControlsRight = styled('div', {
     right: '1.35rem',
   },
 })
-
