@@ -1,6 +1,5 @@
 """External API endpoints"""
 
-from datetime import datetime, timedelta, timezone
 from logging import getLogger
 
 from django.conf import settings
@@ -8,7 +7,6 @@ from django.contrib.auth.hashers import check_password
 from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.core.validators import validate_email
 
-import jwt
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 from rest_framework import decorators, mixins, viewsets
 from rest_framework import (
@@ -22,6 +20,7 @@ from rest_framework import (
 )
 
 from core import api, models
+from core.services.jwt_token import JwtTokenService
 
 from . import authentication, permissions, serializers
 
@@ -128,33 +127,28 @@ class ApplicationViewSet(viewsets.ViewSet):
                 "Multiple user accounts share a common email."
             ) from e
 
-        now = datetime.now(timezone.utc)
         scope = " ".join(application.scopes or [])
 
-        payload = {
-            "iss": settings.APPLICATION_JWT_ISSUER,
-            "aud": settings.APPLICATION_JWT_AUDIENCE,
-            "iat": now,
-            "exp": now + timedelta(seconds=settings.APPLICATION_JWT_EXPIRATION_SECONDS),
-            "client_id": client_id,
-            "scope": scope,
-            "user_id": str(user.id),
-            "delegated": True,
-        }
-
-        token = jwt.encode(
-            payload,
-            settings.APPLICATION_JWT_SECRET_KEY,
+        token_service = JwtTokenService(
+            secret_key=settings.APPLICATION_JWT_SECRET_KEY,
             algorithm=settings.APPLICATION_JWT_ALG,
+            issuer=settings.APPLICATION_JWT_ISSUER,
+            audience=settings.APPLICATION_JWT_AUDIENCE,
+            expiration_seconds=settings.APPLICATION_JWT_EXPIRATION_SECONDS,
+            token_type=settings.APPLICATION_JWT_TOKEN_TYPE,
+        )
+
+        data = token_service.generate_jwt(
+            user,
+            scope,
+            {
+                "client_id": client_id,
+                "delegated": True,
+            },
         )
 
         return drf_response.Response(
-            {
-                "access_token": token,
-                "token_type": settings.APPLICATION_JWT_TOKEN_TYPE,
-                "expires_in": settings.APPLICATION_JWT_EXPIRATION_SECONDS,
-                "scope": scope,
-            },
+            data,
             status=drf_status.HTTP_200_OK,
         )
 
