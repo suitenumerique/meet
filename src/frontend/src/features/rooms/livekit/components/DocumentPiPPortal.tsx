@@ -29,6 +29,34 @@ const copyStyles = (source: Document, target: Document) => {
   })
 }
 
+const syncThemeAttribute = (source: Document, target: Document) => {
+  const theme = source.documentElement.getAttribute('data-lk-theme')
+  if (theme) {
+    target.documentElement.setAttribute('data-lk-theme', theme)
+  }
+}
+
+const syncCssVariables = (source: Document, target: Document) => {
+  const sourceView = source.defaultView
+  if (!sourceView) return
+
+  const applyVarsFrom = (element: HTMLElement | null) => {
+    if (!element) return
+    const styles = sourceView.getComputedStyle(element)
+    for (let i = 0; i < styles.length; i += 1) {
+      const property = styles[i]
+      if (!property.startsWith('--')) continue
+      const value = styles.getPropertyValue(property)
+      if (value) {
+        target.documentElement.style.setProperty(property, value)
+      }
+    }
+  }
+
+  applyVarsFrom(source.documentElement)
+  applyVarsFrom(source.body)
+}
+
 /**
  * React Portal that renders children into a Document Picture-in-Picture window.
  * Handles PiP window lifecycle, style injection, React root management, and uses UNSAFE_PortalProvider
@@ -71,6 +99,8 @@ export const DocumentPiPPortal = ({
       const doc = win.document
       ensureBaseStyles(doc)
       copyStyles(document, doc)
+      syncThemeAttribute(document, doc)
+      syncCssVariables(document, doc)
       const existingContainer = containerRef.current
       if (!existingContainer || existingContainer.ownerDocument !== doc) {
         const nextContainer = doc.createElement('div')
