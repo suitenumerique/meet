@@ -58,6 +58,8 @@ export const TooltipWrapper = ({
  *
  * Style taken from example at https://react-spectrum.adobe.com/react-aria/Tooltip.html
  */
+const DEFAULT_TOOLTIP_GAP_PX = 8
+
 const StyledTooltip = styled(RACTooltip, {
   base: {
     boxShadow: '0 8px 20px rgba(0 0 0 / 0.1)',
@@ -72,11 +74,11 @@ const StyledTooltip = styled(RACTooltip, {
     fontSize: 14,
     transform: 'translate3d(0, 0, 0)',
     '&[data-placement=top]': {
-      marginBottom: '2px',
+      marginBottom: `${DEFAULT_TOOLTIP_GAP_PX}px`,
       '--origin': 'translateY(4px)',
     },
     '&[data-placement=bottom]': {
-      marginTop: '2px',
+      marginTop: `${DEFAULT_TOOLTIP_GAP_PX}px`,
       '--origin': 'translateY(-4px)',
     },
     '&[data-placement=right]': {
@@ -126,10 +128,16 @@ const TooltipArrow = () => {
 
 const Tooltip = ({
   children,
+  arrowBoundaryOffset,
   ...props
-}: Omit<TooltipProps, 'children'> & { children: ReactNode }) => {
+}: {
+  children: ReactNode
+} & Partial<Omit<TooltipProps, 'children'>>) => {
   return (
-    <StyledTooltip {...props}>
+    <StyledTooltip
+      arrowBoundaryOffset={arrowBoundaryOffset ?? 0}
+      {...props}
+    >
       <TooltipArrow />
       {children}
     </StyledTooltip>

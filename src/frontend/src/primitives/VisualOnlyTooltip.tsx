@@ -16,6 +16,8 @@ export type VisualOnlyTooltipProps = {
   tooltipPosition?: 'top' | 'bottom'
 }
 
+const TOOLTIP_VERTICAL_OFFSET_PX = 8
+
 /**
  * Wrapper component that displays a tooltip visually only (not announced by screen readers).
  *
