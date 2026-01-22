@@ -82,7 +82,8 @@ export const VisualOnlyTooltip = ({
       >
         {wrappedChild}
       </div>
-      {tooltipData && portalContainer &&
+      {tooltipData &&
+        portalContainer &&
         createPortal(
           <div
             aria-hidden="true"

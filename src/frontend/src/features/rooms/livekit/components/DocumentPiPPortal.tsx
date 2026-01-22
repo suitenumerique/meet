@@ -153,4 +153,3 @@ export const DocumentPiPPortal = ({
 
   return portal
 }
-
