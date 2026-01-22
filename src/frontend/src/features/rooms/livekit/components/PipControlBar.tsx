@@ -8,6 +8,7 @@ import { SubtitlesToggle } from './controls/SubtitlesToggle'
 import { HandToggle } from './controls/HandToggle'
 import { OptionsButton } from './controls/Options/OptionsButton'
 import { StartMediaButton } from './controls/StartMediaButton'
+import { PipLateralMenu } from './controls/PipLateralMenu'
 
 /**
  * Compact control bar for the Picture-in-Picture window.
@@ -19,15 +20,20 @@ export const PipControlBar = ({
   showScreenShare: boolean
 }) => (
   <PipControls>
-    <AudioDevicesControl hideMenu />
-    <VideoDeviceControl hideMenu />
-    <ReactionsToggle />
-    {showScreenShare && <ScreenShareToggle />}
-    <SubtitlesToggle />
-    <HandToggle />
-    <OptionsButton />
-    <LeaveButton />
-    <StartMediaButton />
+    <PipControlsCenter>
+      <AudioDevicesControl hideMenu />
+      <VideoDeviceControl hideMenu />
+      <ReactionsToggle />
+      {showScreenShare && <ScreenShareToggle />}
+      <SubtitlesToggle />
+      <HandToggle />
+      <OptionsButton />
+      <LeaveButton />
+      <StartMediaButton />
+    </PipControlsCenter>
+    <PipControlsRight>
+      <PipLateralMenu />
+    </PipControlsRight>
   </PipControls>
 )
 
@@ -35,13 +41,36 @@ const PipControls = styled('div', {
   base: {
     flex: '0 0 auto',
     display: 'flex',
-    flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: '0.4rem',
+    alignItems: 'center',
+    gap: '0.5rem',
     padding: '0.5rem 0.75rem',
     backgroundColor: 'var(--lk-controlbar-bg)',
     borderTop: '1px solid',
     borderColor: 'var(--lk-control-border-color)',
+    width: '100%',
+    position: 'relative',
+  },
+})
+
+const PipControlsCenter = styled('div', {
+  base: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '0.4rem',
+    flex: '1 1 auto',
+  },
+})
+
+const PipControlsRight = styled('div', {
+  base: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    position: 'absolute',
+    right: '1.35rem',
   },
 })
 
