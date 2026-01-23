@@ -5,9 +5,8 @@ import {
   isWeb,
   log,
 } from '@livekit/components-core'
-import { RoomEvent, Track } from 'livekit-client'
-import * as React from 'react'
-import { useState } from 'react'
+import { Participant, RoomEvent, Track } from 'livekit-client'
+import React, { useCallback, useRef, useState, useEffect } from 'react'
 import {
   ConnectionStateToast,
   FocusLayoutContainer,
@@ -16,7 +15,9 @@ import {
   usePinnedTracks,
   useTracks,
   useCreateLayoutContext,
+  useRoomContext,
 } from '@livekit/components-react'
+import { useTranslation } from 'react-i18next'
 
 import { ControlBar } from './ControlBar/ControlBar'
 import { styled } from '@/styled-system/jsx'
@@ -37,6 +38,7 @@ import { Subtitles } from '@/features/subtitle/component/Subtitles'
 import { CarouselLayout } from '../components/layout/CarouselLayout'
 import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
+import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 
 const LayoutWrapper = styled(
   'div',
@@ -89,7 +91,22 @@ export interface VideoConferenceProps
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
   const lastAutoFocusedScreenShareTrack =
-    React.useRef<TrackReferenceOrPlaceholder | null>(null)
+    useRef<TrackReferenceOrPlaceholder | null>(null)
+  const lastPinnedParticipantIdentityRef = useRef<string | null>(null)
+  const [pinAnnouncement, setPinAnnouncement] = useState('')
+  const { t } = useTranslation('rooms', { keyPrefix: 'pinAnnouncements' })
+  const { t: tRooms } = useTranslation('rooms')
+  const room = useRoomContext()
+
+  const getAnnouncementName = useCallback(
+    (participant?: Participant | null) => {
+      if (!participant) return tRooms('participants.unknown')
+      return participant.isLocal
+        ? tRooms('participants.you')
+        : getParticipantName(participant)
+    },
+    [tRooms]
+  )
 
   useConnectionObserver()
   useVideoResolutionSubscription()
@@ -115,9 +132,61 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
     (track) => !isEqualTrackRef(track, focusTrack)
   )
 
+  // handle pin announcements
+
+  useEffect(() => {
+    const participant = focusTrack?.participant
+
+    // 1. unpin
+    if (!participant) {
+      if (!lastPinnedParticipantIdentityRef.current) return
+
+      const lastIdentity = lastPinnedParticipantIdentityRef.current
+      const lastParticipant =
+        room.localParticipant.identity === lastIdentity
+          ? room.localParticipant
+          : room.remoteParticipants.get(lastIdentity)
+      const announcementName = getAnnouncementName(lastParticipant)
+
+      setPinAnnouncement(
+        lastParticipant?.isLocal
+          ? t('self.unpin')
+          : t('unpin', {
+              name: announcementName,
+            })
+      )
+
+      lastPinnedParticipantIdentityRef.current = null
+      return
+    }
+
+    // 2. same pin → do nothing
+    if (lastPinnedParticipantIdentityRef.current === participant.identity) {
+      return
+    }
+
+    // 3. new pin
+    const participantName = participant.isLocal
+      ? tRooms('participants.you')
+      : getParticipantName(participant)
+
+    lastPinnedParticipantIdentityRef.current = participant.identity
+
+    setPinAnnouncement(
+      participant.isLocal ? t('self.pin') : t('pin', { name: participantName })
+    )
+  }, [
+    focusTrack,
+    getAnnouncementName,
+    room.localParticipant,
+    room.remoteParticipants,
+    t,
+    tRooms,
+  ])
+
   /* eslint-disable react-hooks/exhaustive-deps */
   // Code duplicated from LiveKit; this warning will be addressed in the refactoring.
-  React.useEffect(() => {
+  useEffect(() => {
     // If screen share tracks are published, and no pin is set explicitly, auto set the screen share.
     if (
       screenShareTracks.some((track) => track.publication.isSubscribed) &&
@@ -188,6 +257,14 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
           value={layoutContext}
           // onPinChange={handleFocusStateChange}
         >
+          <div
+            id="pin-announcer"
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+          >
+            {pinAnnouncement}
+          </div>
           <ScreenShareErrorModal
             isOpen={isShareErrorVisible}
             onClose={() => setIsShareErrorVisible(false)}

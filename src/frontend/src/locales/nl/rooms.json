@@ -505,6 +505,7 @@
   "participants": {
     "subheading": "In de ruimte",
     "you": "U",
+    "unknown": "Onbekende deelnemer",
     "host": "Host",
     "contributors": "Deelnemers",
     "collapsable": {
@@ -550,6 +551,14 @@
     "pin": {
       "label": "Pinnen",
       "ariaLabel": "Maak {{name}} vast"
+    }
+  },
+  "pinAnnouncements": {
+    "pin": "De video van {{name}} is vastgezet.",
+    "unpin": "De video van {{name}} is niet meer vastgezet.",
+    "self": {
+      "pin": "Uw video is vastgezet.",
+      "unpin": "Uw video is niet meer vastgezet."
     }
   },
   "recordingStateToast": {

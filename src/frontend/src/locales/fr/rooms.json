@@ -505,6 +505,7 @@
   "participants": {
     "subheading": "Dans la réunion",
     "you": "Vous",
+    "unknown": "Participant inconnu",
     "contributors": "Contributeurs",
     "host": "Organisateur de la réunion",
     "collapsable": {
@@ -550,6 +551,14 @@
     "pin": {
       "label": "Épingler",
       "ariaLabel": "Épingler {{name}}"
+    }
+  },
+  "pinAnnouncements": {
+    "pin": "La vidéo de {{name}} est épinglée.",
+    "unpin": "La vidéo de {{name}} n’est plus épinglée.",
+    "self": {
+      "pin": "Votre vidéo est épinglée.",
+      "unpin": "Votre vidéo n’est plus épinglée."
     }
   },
   "recordingStateToast": {
