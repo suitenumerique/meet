@@ -40,6 +40,7 @@ const useTranscriptionState = () => {
     segments: TranscriptionSegment[],
     participant?: Participant
   ) => {
+    console.log(participant, segments)
     if (!participant || segments.length === 0) return
 
     setTranscriptionRows((prevRows) => {
