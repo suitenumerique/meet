@@ -505,6 +505,7 @@
   "participants": {
     "subheading": "In room",
     "you": "You",
+    "unknown": "Unknown participant",
     "host": "Host",
     "contributors": "Contributors",
     "collapsable": {
@@ -550,6 +551,14 @@
     "pin": {
       "label": "Pin",
       "ariaLabel": "Pin {{name}}"
+    }
+  },
+  "pinAnnouncements": {
+    "pin": "The video of {{name}} is pinned.",
+    "unpin": "The video of {{name}} is no longer pinned.",
+    "self": {
+      "pin": "Your video is pinned.",
+      "unpin": "Your video is no longer pinned."
     }
   },
   "recordingStateToast": {

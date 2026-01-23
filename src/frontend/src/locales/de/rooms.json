@@ -505,6 +505,7 @@
   "participants": {
     "subheading": "Im Raum",
     "you": "Du",
+    "unknown": "Unbekannter Teilnehmer",
     "host": "Host",
     "contributors": "Mitwirkende",
     "collapsable": {
@@ -550,6 +551,14 @@
     "pin": {
       "label": "Anheften",
       "ariaLabel": "Hefte {{name}} an"
+    }
+  },
+  "pinAnnouncements": {
+    "pin": "Das Video von {{name}} ist angeheftet.",
+    "unpin": "Das Video von {{name}} ist nicht mehr angeheftet.",
+    "self": {
+      "pin": "Dein Video ist angeheftet.",
+      "unpin": "Dein Video ist nicht mehr angeheftet."
     }
   },
   "recordingStateToast": {
