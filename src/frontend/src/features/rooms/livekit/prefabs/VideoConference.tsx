@@ -43,6 +43,11 @@ import { RoomPiPProvider } from '../hooks/RoomPiPProvider'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
+const SIDE_PANEL_WIDTH = '358px'
+const CONTROL_BAR_HEIGHT = '80px'
+const SIDE_PANEL_OFFSET = '16px'
+const SIDE_PANEL_GAP = '3rem'
+
 const LayoutWrapper = styled(
   'div',
   cva({
@@ -247,6 +252,12 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   const { areSubtitlesOpen } = useSubtitles()
 
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
+  const layoutInsetVars = {
+    '--lk-side-panel-width': SIDE_PANEL_WIDTH,
+    '--lk-controlbar-height': CONTROL_BAR_HEIGHT,
+    '--lk-side-panel-offset': SIDE_PANEL_OFFSET,
+    '--lk-side-panel-gap': SIDE_PANEL_GAP,
+  } as React.CSSProperties
 
   return (
     <div
@@ -268,12 +279,12 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             />
             <IsIdleDisconnectModal />
             <div
-              // todo - extract these magic values into constant
               style={{
                 position: 'absolute',
+                ...layoutInsetVars,
                 inset: isSidePanelOpen
-                  ? `var(--lk-grid-gap) calc(358px + 3rem) calc(80px + var(--lk-grid-gap)) 16px`
-                  : `var(--lk-grid-gap) var(--lk-grid-gap) calc(80px + var(--lk-grid-gap))`,
+                  ? `var(--lk-grid-gap) calc(var(--lk-side-panel-width) + var(--lk-side-panel-gap)) calc(var(--lk-controlbar-height) + var(--lk-grid-gap)) var(--lk-side-panel-offset)`
+                  : `var(--lk-grid-gap) var(--lk-grid-gap) calc(var(--lk-controlbar-height) + var(--lk-grid-gap))`,
                 transition: 'inset .5s cubic-bezier(0.4,0,0.2,1) 5ms',
                 maxHeight: '100%',
               }}
