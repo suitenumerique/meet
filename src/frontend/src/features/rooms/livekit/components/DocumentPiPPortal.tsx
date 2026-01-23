@@ -36,25 +36,63 @@ const syncThemeAttribute = (source: Document, target: Document) => {
   }
 }
 
+const cssVarNameCacheByElement = new WeakMap<HTMLElement, string[]>()
+const cssVarNameCacheByUri = new Map<string, string[]>()
+
 const syncCssVariables = (source: Document, target: Document) => {
   const sourceView = source.defaultView
   if (!sourceView) return
 
-  const applyVarsFrom = (element: HTMLElement | null) => {
-    if (!element) return
-    const styles = sourceView.getComputedStyle(element)
-    for (let i = 0; i < styles.length; i += 1) {
-      const property = styles[i]
-      if (!property.startsWith('--')) continue
-      const value = styles.getPropertyValue(property)
-      if (value) {
-        target.documentElement.style.setProperty(property, value)
+  const getCachedVarNames = () => {
+    const docEl = source.documentElement
+    if (!docEl) return []
+
+    const cachedByElement = cssVarNameCacheByElement.get(docEl)
+    if (cachedByElement) return cachedByElement
+
+    const cachedByUri = source.baseURI
+      ? cssVarNameCacheByUri.get(source.baseURI)
+      : undefined
+    if (cachedByUri) return cachedByUri
+
+    const varNames = new Set<string>()
+    const collectVarsFrom = (element: HTMLElement | null) => {
+      if (!element) return
+      const styles = sourceView.getComputedStyle(element)
+      for (let i = 0; i < styles.length; i += 1) {
+        const property = styles[i]
+        if (property.startsWith('--')) {
+          varNames.add(property)
+        }
       }
     }
+
+    collectVarsFrom(source.documentElement)
+    collectVarsFrom(source.body)
+
+    const result = Array.from(varNames)
+    cssVarNameCacheByElement.set(docEl, result)
+    if (source.baseURI) {
+      cssVarNameCacheByUri.set(source.baseURI, result)
+    }
+    return result
   }
 
-  applyVarsFrom(source.documentElement)
-  applyVarsFrom(source.body)
+  const varNames = getCachedVarNames()
+  if (!varNames.length) return
+
+  const rootStyles = sourceView.getComputedStyle(source.documentElement)
+  const bodyStyles = source.body
+    ? sourceView.getComputedStyle(source.body)
+    : null
+
+  varNames.forEach((property) => {
+    const bodyValue = bodyStyles?.getPropertyValue(property)
+    const value = bodyValue || rootStyles.getPropertyValue(property)
+    if (value) {
+      target.documentElement.style.setProperty(property, value)
+    }
+  })
 }
 
 /**
