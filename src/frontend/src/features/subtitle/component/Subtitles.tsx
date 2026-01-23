@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSubtitles } from '../hooks/useSubtitles'
 import { css, cva } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
@@ -20,6 +20,11 @@ export interface TranscriptionSegment {
   lastReceivedTime: number
 }
 
+export interface TranscriptionSegmentWithParticipant
+  extends TranscriptionSegment {
+  participant: Participant
+}
+
 export interface TranscriptionRow {
   id: string
   participant: Participant
@@ -30,88 +35,41 @@ export interface TranscriptionRow {
 }
 
 const useTranscriptionState = () => {
-  const [transcriptionRows, setTranscriptionRows] = useState<
-    TranscriptionRow[]
+  const [transcriptionSegments, setTranscriptionSegments] = useState<
+    TranscriptionSegmentWithParticipant[]
   >([])
-  const [lastActiveParticipantIdentity, setLastActiveParticipantIdentity] =
-    useState<string | null>(null)
 
-  const updateTranscriptions = (
+  const updateTranscriptionSegments = (
     segments: TranscriptionSegment[],
     participant?: Participant
   ) => {
     console.log(participant, segments)
+
     if (!participant || segments.length === 0) return
 
-    setTranscriptionRows((prevRows) => {
-      const updatedRows = [...prevRows]
-      const now = Date.now()
+    if (segments.length > 1) {
+      console.warn('Unexpected error more segments')
+      return
+    }
 
-      const shouldAppendToLastRow =
-        lastActiveParticipantIdentity === participant.identity &&
-        updatedRows.length > 0
+    const segment = segments[0]
 
-      if (shouldAppendToLastRow) {
-        const lastRowIndex = updatedRows.length - 1
-        const lastRow = updatedRows[lastRowIndex]
-
-        const existingSegmentIds = new Set(lastRow.segments.map((s) => s.id))
-        const newSegments = segments.filter(
-          (segment) => !existingSegmentIds.has(segment.id)
-        )
-        const updatedSegments = lastRow.segments.map((existing) => {
-          const update = segments.find((s) => s.id === existing.id)
-          return update && update.final ? update : existing
-        })
-
-        updatedRows[lastRowIndex] = {
-          ...lastRow,
-          segments: [...updatedSegments, ...newSegments],
-          lastUpdateTime: now,
-        }
-      } else {
-        const newRow: TranscriptionRow = {
-          id: `${participant.identity}-${now}`,
-          participant,
-          segments: [...segments],
-          lastReceivedTime: Math.min(
-            ...segments.map((s) => s.lastReceivedTime)
-          ),
-          lastUpdateTime: now,
-        }
-        updatedRows.push(newRow)
-      }
-
-      return updatedRows
-    })
-
-    setLastActiveParticipantIdentity(participant.identity)
-  }
-
-  const clearTranscriptions = () => {
-    setTranscriptionRows([])
-    setLastActiveParticipantIdentity(null)
-  }
-
-  const updateParticipant = (_name: string, participant: Participant) => {
-    setTranscriptionRows((prevRows) => {
-      return prevRows.map((row) => {
-        if (row.participant.identity === participant.identity) {
-          return {
-            ...row,
-            participant,
-          }
-        }
-        return row
-      })
+    setTranscriptionSegments((prevSegments) => {
+      const existingSegmentIds = new Set(prevSegments.map((s) => s.id))
+      if (existingSegmentIds.has(segment.id)) return prevSegments
+      return [
+        ...prevSegments,
+        {
+          participant: participant,
+          ...segment,
+        },
+      ]
     })
   }
 
   return {
-    transcriptionRows,
-    updateTranscriptions,
-    clearTranscriptions,
-    updateParticipant,
+    updateTranscriptionSegments,
+    transcriptionSegments,
   }
 }
 
@@ -196,24 +154,54 @@ const SubtitlesWrapper = styled(
 export const Subtitles = () => {
   const { areSubtitlesOpen } = useSubtitles()
   const room = useRoomContext()
-  const { transcriptionRows, updateTranscriptions, updateParticipant } =
+
+  const { transcriptionSegments, updateTranscriptionSegments } =
     useTranscriptionState()
 
   useEffect(() => {
     if (!room) return
-    room.on(RoomEvent.TranscriptionReceived, updateTranscriptions)
+    room.on(RoomEvent.TranscriptionReceived, updateTranscriptionSegments)
     return () => {
-      room.off(RoomEvent.TranscriptionReceived, updateTranscriptions)
+      room.off(RoomEvent.TranscriptionReceived, updateTranscriptionSegments)
     }
-  }, [room, updateTranscriptions])
+  }, [room, updateTranscriptionSegments])
 
-  useEffect(() => {
-    if (!room) return
-    room.on(RoomEvent.ParticipantNameChanged, updateParticipant)
-    return () => {
-      room.off(RoomEvent.ParticipantNameChanged, updateParticipant)
+  const transcriptionRows = useMemo(() => {
+    if (transcriptionSegments.length === 0) return []
+
+    const rows: TranscriptionRow[] = []
+    let currentRow: TranscriptionRow | null = null
+
+    for (const segment of transcriptionSegments) {
+      const shouldStartNewRow =
+        !currentRow ||
+        currentRow.participant.identity !== segment.participant.identity
+
+      if (shouldStartNewRow) {
+        currentRow = {
+          id: `${segment.participant.identity}-${segment.firstReceivedTime}`,
+          participant: segment.participant,
+          segments: [segment],
+          startTime: segment.startTime,
+          lastUpdateTime: segment.lastReceivedTime,
+          lastReceivedTime: segment.lastReceivedTime,
+        }
+        rows.push(currentRow)
+      } else if (currentRow) {
+        currentRow.segments.push(segment)
+        currentRow.lastUpdateTime = Math.max(
+          currentRow.lastUpdateTime,
+          segment.lastReceivedTime
+        )
+        currentRow.lastReceivedTime = Math.max(
+          currentRow.lastReceivedTime,
+          segment.lastReceivedTime
+        )
+      }
     }
-  }, [room, updateParticipant])
+
+    return rows
+  }, [transcriptionSegments])
 
   return (
     <SubtitlesWrapper areOpen={areSubtitlesOpen}>
@@ -232,11 +220,7 @@ export const Subtitles = () => {
       >
         {transcriptionRows
           .slice()
-          .sort(
-            (a, b) =>
-              (b.startTime ?? b.lastUpdateTime) -
-              (a.startTime ?? a.lastUpdateTime)
-          )
+          .reverse()
           .map((row) => (
             <Transcription key={row.id} row={row} />
           ))}
