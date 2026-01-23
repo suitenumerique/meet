@@ -13,7 +13,7 @@ export interface TranscriptionSegment {
   id: string
   text: string
   language: string
-  startTime: number
+  startTime?: number
   endTime: number
   final: boolean
   firstReceivedTime: number
@@ -24,8 +24,9 @@ export interface TranscriptionRow {
   id: string
   participant: Participant
   segments: TranscriptionSegment[]
-  startTime: number
+  startTime?: number
   lastUpdateTime: number
+  lastReceivedTime: number
 }
 
 const useTranscriptionState = () => {
@@ -72,7 +73,9 @@ const useTranscriptionState = () => {
           id: `${participant.identity}-${now}`,
           participant,
           segments: [...segments],
-          startTime: Math.min(...segments.map((s) => s.startTime)),
+          lastReceivedTime: Math.min(
+            ...segments.map((s) => s.lastReceivedTime)
+          ),
           lastUpdateTime: now,
         }
         updatedRows.push(newRow)
@@ -228,7 +231,11 @@ export const Subtitles = () => {
       >
         {transcriptionRows
           .slice()
-          .reverse()
+          .sort(
+            (a, b) =>
+              (b.startTime ?? b.lastUpdateTime) -
+              (a.startTime ?? a.lastUpdateTime)
+          )
           .map((row) => (
             <Transcription key={row.id} row={row} />
           ))}
