@@ -17,8 +17,5 @@ export const useOverlayPortalContainer = () => {
  */
 export const useOverlayBoundaryElement = () => {
   const portalContainer = useOverlayPortalContainer()
-  return useMemo(() => {
-    if (portalContainer) return portalContainer
-    return undefined
-  }, [portalContainer])
+  return portalContainer
 }
