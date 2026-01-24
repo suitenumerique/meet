@@ -47,7 +47,7 @@ curl -o default.conf.template https://raw.githubusercontent.com/suitenumerique/m
 
 ## Step 2: Configuration
 
-Meet configuration is achieved through environment variables. We provide a [detailed description of all variables](../env.md).
+Meet configuration is achieved through environment variables. We provide a [detailed description of all variables](../../src/helm/meet/README.md).
 
 In this example, we assume the following services:
 
