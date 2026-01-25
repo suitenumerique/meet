@@ -336,6 +336,9 @@ class Base(Configuration):
         "feedback": values.DictValue(
             {}, environ_name="FRONTEND_FEEDBACK", environ_prefix=None
         ),
+        "external_home_url": values.Value(
+            None, environ_name="FRONTEND_EXTERNAL_HOME_URL", environ_prefix=None
+        ),
         "use_french_gov_footer": values.BooleanValue(
             False, environ_name="FRONTEND_USE_FRENCH_GOV_FOOTER", environ_prefix=None
         ),

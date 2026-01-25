@@ -11,7 +11,7 @@ import { RiAddLine, RiLink } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
 import { IntroSlider } from '@/features/home/components/IntroSlider'
 import { MoreLink } from '@/features/home/components/MoreLink'
-import { ReactNode, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 
 import { css } from '@/styled-system/css'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
@@ -19,6 +19,7 @@ import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePers
 import { useConfig } from '@/api/useConfig'
 import { LoginButton } from '@/components/LoginButton'
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import { LoadingScreen } from '@/components/LoadingScreen'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -155,8 +156,33 @@ export const Home = () => {
 
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
+  const [redirectFailed, setRedirectFailed] = useState(false)
 
   const { data } = useConfig()
+
+  useEffect(() => {
+    const checkSiteAndRedirect = async () => {
+      if (!data?.external_home_url) return
+      if (isLoggedIn === false) {
+        try {
+          await fetch(data.external_home_url, {
+            method: 'HEAD', // Use HEAD to avoid downloading the full page
+            mode: 'no-cors', // Needed for cross-origin requests
+          })
+          window.location.replace(data.external_home_url)
+        } catch (error) {
+          setRedirectFailed(true)
+          console.error('Site is not reachable:', error)
+        }
+      }
+    }
+
+    checkSiteAndRedirect()
+  }, [isLoggedIn, data])
+
+  if (data?.external_home_url && isLoggedIn == false && !redirectFailed) {
+    return <LoadingScreen header={false} footer={false} delay={0} />
+  }
 
   return (
     <UserAware>

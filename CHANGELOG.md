@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) add configurable redirect for unauthenticated users #904
+
 ### Changed
 
 - ♿️(frontend) add accessible back button in side panel #881
