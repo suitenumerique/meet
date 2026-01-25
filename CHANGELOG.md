@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-01-25
+
 ### Added
 
 - ✨(frontend) add configurable redirect for unauthenticated users #904
