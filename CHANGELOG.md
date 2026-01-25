@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(feat) Introduce Picture-in-Picture (PiP) #890
+
 ### Changed
 
 - ♿️(frontend) add accessible back button in side panel #881
