@@ -1,3 +1,4 @@
+import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
@@ -9,13 +10,13 @@ import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
 import { useCanPublishTrack } from '../../../hooks/useCanPublishTrack'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
-import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import Source = Track.Source
 import { isSafari } from '@/utils/livekit'
+import { useFocusOnOpen } from '@/hooks/useFocusOnOpen'
 
 type AudioDevicesControlProps = Omit<
   UseTrackToggleProps<Source.Microphone>,
@@ -29,6 +30,8 @@ export const AudioDevicesControl = ({
   ...props
 }: AudioDevicesControlProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+  const popoverContentRef = React.useRef<HTMLDivElement>(null)
 
   const {
     userChoices: { audioDeviceId, audioOutputDeviceId },
@@ -55,6 +58,12 @@ export const AudioDevicesControl = ({
 
   const canPublishTrack = useCanPublishTrack(TrackSource.MICROPHONE)
 
+  useFocusOnOpen(isMenuOpen, popoverContentRef, {
+    selector:
+      '[data-attr="audio-input-select"] button, [data-attr="audio-input-select"] [role="combobox"]',
+    delayMs: 250,
+  })
+
   return (
     <div
       className={css({
@@ -76,7 +85,12 @@ export const AudioDevicesControl = ({
         }}
       />
       {!hideMenu && (
-        <Popover variant="dark" withArrow={false}>
+        <Popover
+          variant="dark"
+          withArrow={false}
+          isOpen={isMenuOpen}
+          onOpenChange={setIsMenuOpen}
+        >
           <Button
             tooltip={selectLabel}
             aria-label={selectLabel}
@@ -92,6 +106,7 @@ export const AudioDevicesControl = ({
           </Button>
           {({ close }) => (
             <div
+              ref={popoverContentRef}
               className={css({
                 maxWidth: '36rem',
                 padding: '0.15rem',
@@ -100,6 +115,7 @@ export const AudioDevicesControl = ({
               })}
             >
               <div
+                data-attr="audio-input-select"
                 style={{
                   flex: '1 1 0',
                   minWidth: 0,

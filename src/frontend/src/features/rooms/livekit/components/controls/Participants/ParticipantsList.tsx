@@ -12,10 +12,17 @@ import { useWaitingParticipants } from '@/features/rooms/hooks/useWaitingPartici
 import { Participant } from 'livekit-client'
 import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
 import { MuteEveryoneButton } from './MuteEveryoneButton'
+import { useSidePanel } from '../../../hooks/useSidePanel'
+import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { useSidePanelRef } from '../../../hooks/useSidePanelRef'
+import { useSidePanelTriggers } from '../../../hooks/useSidePanelTriggers'
 
 // TODO: Optimize rendering performance, especially for longer participant lists, even though they are generally short.
 export const ParticipantsList = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participants' })
+  const { isParticipantsOpen } = useSidePanel()
+  const panelRef = useSidePanelRef()
+  const { getTrigger } = useSidePanelTriggers()
 
   // Preferred using the 'useParticipants' hook rather than the separate remote and local hooks,
   // because the 'useLocalParticipant' hook does not update the participant's information when their
@@ -47,6 +54,31 @@ export const ParticipantsList = () => {
 
   const { waitingParticipants, handleParticipantEntry } =
     useWaitingParticipants()
+
+  // Restore focus to the element that opened the Participants panel
+  useRestoreFocus(isParticipantsOpen, {
+    resolveTrigger: (activeEl) => {
+      return getTrigger('participants') ?? activeEl
+    },
+    // Focus the first focusable element when the panel opens
+    onOpened: () => {
+      // Use setTimeout + RAF to ensure DOM is fully rendered and transition completed
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          const panel = panelRef.current
+          if (panel) {
+            // Find the first ToggleHeader (collapsable list header) in the participants panel
+            const firstListHeader = panel.querySelector<HTMLElement>(
+              'button[data-focus-target="list-header"]'
+            )
+            firstListHeader?.focus({ preventScroll: true })
+          }
+        })
+      }, 100) // Wait for panel slide-in animation to complete
+    },
+    restoreFocusRaf: true,
+    preventScroll: true,
+  })
 
   // TODO - extract inline styling in a centralized styling file, and avoid magic numbers
   return (

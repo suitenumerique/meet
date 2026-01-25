@@ -9,9 +9,16 @@ import { useRoomData } from '../hooks/useRoomData'
 import { formatPinCode } from '../../utils/telephony'
 import { useTelephony } from '../hooks/useTelephony'
 import { useCopyRoomToClipboard } from '../hooks/useCopyRoomToClipboard'
+import { useSidePanel } from '../hooks/useSidePanel'
+import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { useSidePanelRef } from '../hooks/useSidePanelRef'
+import { useSidePanelTriggers } from '../hooks/useSidePanelTriggers'
 
 export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
+  const { isInfoOpen } = useSidePanel()
+  const panelRef = useSidePanelRef()
+  const { getTrigger } = useSidePanelTriggers()
 
   const data = useRoomData()
   const roomUrl = getRouteUrl('room', data?.slug)
@@ -23,6 +30,27 @@ export const Info = () => {
   }, [telephony?.enabled, data?.pin_code])
 
   const { isCopied, copyRoomToClipboard } = useCopyRoomToClipboard(data)
+
+  // Restore focus to the element that opened the Info panel
+  useRestoreFocus(isInfoOpen, {
+    resolveTrigger: (activeEl) => getTrigger('info') ?? activeEl,
+    // Focus the first focusable element when the panel opens
+    onOpened: () => {
+      requestAnimationFrame(() => {
+        const panel = panelRef.current
+        if (panel) {
+          const firstButton = panel.querySelector<HTMLElement>(
+            '[data-attr="copy-info-sidepanel"]'
+          )
+          if (firstButton) {
+            firstButton.focus({ preventScroll: true })
+          }
+        }
+      })
+    },
+    restoreFocusRaf: true,
+    preventScroll: true,
+  })
 
   return (
     <Div
@@ -71,7 +99,7 @@ export const Info = () => {
           variant={isCopied ? 'success' : 'tertiaryText'}
           aria-label={t('roomInformation.button.ariaLabel')}
           onPress={copyRoomToClipboard}
-          data-attr="copy-info-sidepannel"
+          data-attr="copy-info-sidepanel"
           style={{
             marginLeft: '-8px',
           }}
