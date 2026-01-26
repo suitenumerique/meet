@@ -163,6 +163,7 @@ class RoomSerializer(serializers.ModelSerializer):
             del output["pin_code"]
 
         output["is_administrable"] = is_admin_or_owner
+        output["is_owner"] = models.RoleChoices.check_owner_role(role)
 
         return output
 
@@ -309,3 +310,37 @@ class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
                 ) from e
 
         return attrs
+
+
+class PromoteParticipantSerializer(BaseValidationOnlySerializer):
+    """Validate promote participant to owner request."""
+
+    participant_identity = serializers.CharField(
+        help_text="LiveKit participant identity (user sub)"
+    )
+
+    def validate_participant_identity(self, value):
+        """Validate participant_identity is a valid authenticated user sub."""
+        # Verify the user exists - anonymous users don't have User records
+        if not models.User.objects.filter(sub=value).exists():
+            raise serializers.ValidationError(
+                "No user found with this identity. Anonymous participants cannot be promoted."
+            )
+
+        return value
+
+
+class DemoteParticipantSerializer(BaseValidationOnlySerializer):
+    """Validate demote participant from owner request."""
+
+    participant_identity = serializers.CharField(
+        help_text="LiveKit participant identity (user sub)"
+    )
+
+    def validate_participant_identity(self, value):
+        """Validate participant_identity corresponds to a valid user."""
+        # Verify the user exists
+        if not models.User.objects.filter(sub=value).exists():
+            raise serializers.ValidationError("No user found with this identity.")
+
+        return value

@@ -16,4 +16,5 @@ export enum NotificationType {
   ScreenRecordingLimitReached = 'screenRecordingLimitReached',
   RecordingSaving = 'recordingSaving',
   PermissionsRemoved = 'permissionsRemoved',
+  RoleChanged = 'roleChanged',
 }

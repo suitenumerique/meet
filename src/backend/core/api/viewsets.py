@@ -670,6 +670,162 @@ class RoomViewSet(
             {"status": "success"}, status=drf_status.HTTP_200_OK
         )
 
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="promote-participant",
+        url_name="promote-participant",
+        permission_classes=[permissions.IsRoomOwner],
+    )
+    def promote_participant(self, request, pk=None):  # pylint: disable=unused-argument
+        """Promote a participant to room owner.
+
+        This endpoint allows room owners to grant owner privileges to authenticated
+        participants currently in the meeting. Anonymous participants cannot be promoted.
+        """
+        room = self.get_object()
+
+        serializer = serializers.PromoteParticipantSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        participant_identity = serializer.validated_data["participant_identity"]
+
+        # Get the user by their sub (identity)
+        try:
+            user = models.User.objects.get(sub=participant_identity)
+        except models.User.DoesNotExist:
+            return drf_response.Response(
+                {"error": "User not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
+
+        # Create or update ResourceAccess with OWNER role
+        _, created = models.ResourceAccess.objects.update_or_create(
+            resource=room,
+            user=user,
+            defaults={"role": models.RoleChoices.OWNER},
+        )
+
+        # Update LiveKit participant's room_admin attribute
+        try:
+            ParticipantsManagement().update(
+                room_name=str(room.pk),
+                identity=participant_identity,
+                attributes={"room_admin": "true"},
+            )
+        except ParticipantsManagementException:
+            # Log but don't fail - the database update succeeded
+            logger.warning(
+                "Failed to update LiveKit attributes for promoted participant %s",
+                participant_identity,
+            )
+
+        # Notify participants about role change so they can refresh their data
+        try:
+            utils.notify_participants(
+                room_name=str(room.pk),
+                notification_data={"type": "roleChanged"},
+            )
+        except utils.NotificationError:
+            logger.warning("Failed to notify participants about role change")
+
+        return drf_response.Response(
+            {
+                "status": "success",
+                "message": "Participant promoted to owner",
+                "created": created,
+            },
+            status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="demote-participant",
+        url_name="demote-participant",
+        permission_classes=[permissions.IsRoomOwner],
+    )
+    def demote_participant(self, request, pk=None):  # pylint: disable=unused-argument
+        """Demote a participant from room owner.
+
+        This endpoint allows room owners to revoke owner privileges from other owners.
+        The room must keep at least one owner.
+        """
+        room = self.get_object()
+
+        serializer = serializers.DemoteParticipantSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        participant_identity = serializer.validated_data["participant_identity"]
+
+        # Get the user by their sub (identity)
+        try:
+            user = models.User.objects.get(sub=participant_identity)
+        except models.User.DoesNotExist:
+            return drf_response.Response(
+                {"error": "User not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if user has owner access to this room
+        try:
+            access = models.ResourceAccess.objects.get(
+                resource=room,
+                user=user,
+                role=models.RoleChoices.OWNER,
+            )
+        except models.ResourceAccess.DoesNotExist:
+            return drf_response.Response(
+                {"error": "User is not an owner of this room"},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if this is the last owner
+        owner_count = models.ResourceAccess.objects.filter(
+            resource=room,
+            role=models.RoleChoices.OWNER,
+        ).count()
+
+        if owner_count <= 1:
+            return drf_response.Response(
+                {"error": "Cannot demote the last owner of the room"},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Remove the ResourceAccess (or could set to MEMBER if preferred)
+        access.delete()
+
+        # Update LiveKit participant's room_admin attribute
+        try:
+            ParticipantsManagement().update(
+                room_name=str(room.pk),
+                identity=participant_identity,
+                attributes={"room_admin": "false"},
+            )
+        except ParticipantsManagementException:
+            # Log but don't fail - the database update succeeded
+            logger.warning(
+                "Failed to update LiveKit attributes for demoted participant %s",
+                participant_identity,
+            )
+
+        # Notify participants about role change so they can refresh their data
+        try:
+            utils.notify_participants(
+                room_name=str(room.pk),
+                notification_data={"type": "roleChanged"},
+            )
+        except utils.NotificationError:
+            logger.warning("Failed to notify participants about role change")
+
+        return drf_response.Response(
+            {
+                "status": "success",
+                "message": "Participant demoted from owner",
+            },
+            status=drf_status.HTTP_200_OK,
+        )
+
 
 class ResourceAccessViewSet(
     mixins.CreateModelMixin,

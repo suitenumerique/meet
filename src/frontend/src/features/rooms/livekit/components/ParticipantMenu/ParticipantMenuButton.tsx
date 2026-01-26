@@ -12,6 +12,7 @@ export const ParticipantMenuButton = ({
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participants' })
   const isAdminOrOwner = useIsAdminOrOwner()
+
   if (!isAdminOrOwner) return null
   return (
     <Menu>

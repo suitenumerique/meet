@@ -106,3 +106,13 @@ class HasLiveKitRoomAccess(permissions.BasePermission):
         if not request.auth or not hasattr(request.auth, "video"):
             return False
         return request.auth.video.room == str(obj.id)
+
+
+class IsRoomOwner(IsAuthenticated):
+    """Check if user is an owner of the room."""
+
+    message = "You must be an owner of the room to perform this action."
+
+    def has_object_permission(self, request, view, obj):
+        """Determine if user is an owner of the room."""
+        return obj.is_owner(request.user)

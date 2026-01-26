@@ -37,6 +37,7 @@ import { Subtitles } from '@/features/subtitle/component/Subtitles'
 import { CarouselLayout } from '../components/layout/CarouselLayout'
 import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
+import { useRoleChangeNotification } from '../hooks/useRoleChangeNotification'
 
 const LayoutWrapper = styled(
   'div',
@@ -93,6 +94,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
 
   useConnectionObserver()
   useVideoResolutionSubscription()
+  useRoleChangeNotification()
 
   const tracks = useTracks(
     [

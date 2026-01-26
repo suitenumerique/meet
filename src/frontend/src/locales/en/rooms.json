@@ -549,6 +549,14 @@
     "pin": {
       "label": "Pin",
       "ariaLabel": "Pin {{name}}"
+    },
+    "makeOwner": {
+      "label": "Make Owner",
+      "ariaLabel": "Make {{name}} an owner"
+    },
+    "removeOwner": {
+      "label": "Remove Owner",
+      "ariaLabel": "Remove {{name}} as owner"
     }
   },
   "recordingStateToast": {
