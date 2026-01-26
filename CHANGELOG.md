@@ -12,6 +12,10 @@ and this project adheres to
 
 - 🔒️(frontend) fix an XSS vulnerability on the recording page #911
 
+### Changed
+
+- ♿(frontend) adjust sr announcements for idle disconnect timer #908
+
 ## [1.4.0] - 2026-01-25
 
 ### Added

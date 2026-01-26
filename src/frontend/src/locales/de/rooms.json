@@ -156,7 +156,8 @@
     "body": "Du bist der einzige Teilnehmer. Dieses Gespräch endet in {{duration}}. Möchtest du das Gespräch fortsetzen?",
     "settings": "Um diese Nachricht nicht mehr zu sehen, gehe zu Einstellungen > Allgemein.",
     "stayButton": "Gespräch fortsetzen",
-    "leaveButton": "Jetzt verlassen"
+    "leaveButton": "Jetzt verlassen",
+    "countdownAnnouncement": "Das Gespräch endet in {{duration}}."
   },
   "controls": {
     "microphone": "Mikrofon",
