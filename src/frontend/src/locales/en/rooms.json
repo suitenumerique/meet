@@ -156,7 +156,8 @@
     "body": "You are the only participant. This call will end in {{duration}}. Would you like to continue the call?",
     "settings": "To stop seeing this message, go to Settings > General.",
     "stayButton": "Continue the call",
-    "leaveButton": "Leave now"
+    "leaveButton": "Leave now",
+    "countdownAnnouncement": "Call ends in {{duration}}."
   },
   "controls": {
     "microphone": "Microphone",

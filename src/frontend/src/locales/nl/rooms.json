@@ -156,7 +156,8 @@
     "body": "Je bent de enige deelnemer. Dit gesprek wordt over {{duration}} beëindigd. Wil je het gesprek voortzetten?",
     "settings": "Om dit bericht niet meer te zien, ga naar Instellingen > Algemeen.",
     "stayButton": "Gesprek voortzetten",
-    "leaveButton": "Nu verlaten"
+    "leaveButton": "Nu verlaten",
+    "countdownAnnouncement": "Het gesprek eindigt over {{duration}}."
   },
   "controls": {
     "microphone": "Microfoon",

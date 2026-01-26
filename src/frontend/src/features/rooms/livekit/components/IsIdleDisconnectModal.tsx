@@ -4,16 +4,20 @@ import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
 import { connectionObserverStore } from '@/stores/connectionObserver'
 import { HStack } from '@/styled-system/jsx'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { navigateTo } from '@/navigation/navigateTo'
 import humanizeDuration from 'humanize-duration'
 import i18n from 'i18next'
 
 const IDLE_DISCONNECT_TIMEOUT_MS = 120000 // 2 minutes
+const COUNTDOWN_ANNOUNCEMENT_SECONDS = [120, 90, 60, 30]
+const FINAL_COUNTDOWN_SECONDS = 10
 
 export const IsIdleDisconnectModal = () => {
   const connectionObserverSnap = useSnapshot(connectionObserverStore)
   const [timeRemaining, setTimeRemaining] = useState(IDLE_DISCONNECT_TIMEOUT_MS)
+  const [srMessage, setSrMessage] = useState('')
+  const lastAnnouncementRef = useRef<number | null>(null)
 
   const { t } = useTranslation('rooms', { keyPrefix: 'isIdleDisconnectModal' })
 
@@ -35,9 +39,42 @@ export const IsIdleDisconnectModal = () => {
     }
   }, [connectionObserverSnap.isIdleDisconnectModalOpen])
 
-  const minutes = Math.floor(timeRemaining / 1000 / 60)
-  const seconds = (timeRemaining / 1000) % 60
+  useEffect(() => {
+    if (!connectionObserverSnap.isIdleDisconnectModalOpen) {
+      lastAnnouncementRef.current = null
+      setSrMessage('')
+    }
+  }, [connectionObserverSnap.isIdleDisconnectModalOpen])
+
+  const remainingSeconds = Math.ceil(timeRemaining / 1000)
+  const minutes = Math.floor(remainingSeconds / 60)
+  const seconds = remainingSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
+
+  useEffect(() => {
+    if (!connectionObserverSnap.isIdleDisconnectModalOpen) return
+
+    const shouldAnnounce =
+      COUNTDOWN_ANNOUNCEMENT_SECONDS.includes(remainingSeconds) ||
+      remainingSeconds <= FINAL_COUNTDOWN_SECONDS
+
+    if (shouldAnnounce && remainingSeconds !== lastAnnouncementRef.current) {
+      lastAnnouncementRef.current = remainingSeconds
+      const message = t('countdownAnnouncement', {
+        duration: humanizeDuration(remainingSeconds * 1000, {
+          language: i18n.language,
+          round: true,
+        }),
+      })
+      setSrMessage(message)
+
+      const timer = setTimeout(() => {
+        setSrMessage('')
+      }, 3000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [connectionObserverSnap.isIdleDisconnectModalOpen, remainingSeconds, t])
 
   return (
     <Dialog
@@ -65,8 +102,12 @@ export const IsIdleDisconnectModal = () => {
                 color: 'blue.800',
                 margin: 'auto',
               })}
+              aria-hidden="true"
             >
               {formattedTime}
+            </div>
+            <div className="sr-only" aria-live="polite" aria-atomic="true">
+              {srMessage}
             </div>
             <H lvl={2} centered>
               {t('title')}
