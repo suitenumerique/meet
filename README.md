@@ -50,6 +50,9 @@ La Suite Meet is fully self-hostable and released under the MIT License, ensurin
 
 We’re continuously adding new features to enhance your experience, with the latest updates coming soon!
 
+### 🚀 Major roll out to all French public servants
+
+On the 25th of January 2026, David Amiel, France’s Minister for Civil Service and State Reform, announced the full deployment of Visio—the French government’s dedicated Meet platform—to all public servants. ([Source in French](https://www.latribune.fr/article/la-tribune-dimanche/politique/73157688099661/david-amiel-ministre-delegue-de-la-fonction-publique-nous-allons-sortir-de-la-dependance-aux-outils-americains))
 
 ## Table of Contents
 
