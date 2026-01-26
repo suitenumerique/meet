@@ -11,6 +11,22 @@ from django.core.exceptions import ImproperlyConfigured
 import jwt
 
 
+class JWTError(Exception):
+    """Base exception for all JWT token errors."""
+
+
+class TokenExpiredError(JWTError):
+    """Raised when the JWT token has expired."""
+
+
+class TokenInvalidError(JWTError):
+    """Raised when the JWT token has an invalid issuer or audience."""
+
+
+class TokenDecodeError(JWTError):
+    """Raised for any other unrecoverable JWT decode failure."""
+
+
 class JwtTokenService:
     """Generic JWT token service with configurable settings."""
 
@@ -104,3 +120,34 @@ class JwtTokenService:
             response["scope"] = scope
 
         return response
+
+    def decode_jwt(self, token):
+        """Decode and validate JWT token.
+
+        Args:
+            token: JWT token string
+
+        Returns:
+            Decoded payload dict.
+
+        Raises:
+            TokenExpiredError: If the token has expired.
+            TokenInvalidError: If the token has an invalid issuer or audience.
+            TokenDecodeError: If the token is malformed or cannot be decoded.
+        """
+
+        try:
+            payload = jwt.decode(
+                token,
+                self._key,
+                algorithms=[self._algorithm],
+                issuer=self._issuer,
+                audience=self._audience,
+            )
+            return payload
+        except jwt.ExpiredSignatureError as e:
+            raise TokenExpiredError("Token expired.") from e
+        except (jwt.InvalidIssuerError, jwt.InvalidAudienceError) as e:
+            raise TokenInvalidError("Invalid token.") from e
+        except jwt.InvalidTokenError as e:
+            raise TokenDecodeError("Token decode error.") from e

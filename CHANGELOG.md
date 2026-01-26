@@ -18,6 +18,7 @@ and this project adheres to
 ### Changed
 
 - ✨(frontend) add clickable settings general link in idle modal #974
+- ♻️(backend) refactor external API token-related items #1006
 
 ## [1.6.0] - 2026-02-10
 
