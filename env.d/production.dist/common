@@ -20,7 +20,7 @@ DJANGO_EMAIL_FROM=<your email address>
 #DJANGO_EMAIL_USE_SSL=true # A flag to enable or disable SSL for email sending.
 
 DJANGO_EMAIL_BRAND_NAME="La Suite Numérique" 
-DJANGO_EMAIL_LOGO_IMG="https://${meet_HOST}/assets/logo-suite-numerique.png"
+DJANGO_EMAIL_LOGO_IMG="https://${MEET_HOST}/assets/logo-suite-numerique.png"
 
 # Backend url
 MEET_BASE_URL="https://${MEET_HOST}"
