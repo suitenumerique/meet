@@ -106,6 +106,8 @@ def generate_token(
     if color is None:
         color = generate_color(identity)
 
+    is_authenticated = not user.is_anonymous
+
     token = (
         AccessToken(
             api_key=settings.LIVEKIT_CONFIGURATION["api_key"],
@@ -115,7 +117,11 @@ def generate_token(
         .with_identity(identity)
         .with_name(username or default_username)
         .with_attributes(
-            {"color": color, "room_admin": "true" if is_admin_or_owner else "false"}
+            {
+                "color": color,
+                "room_admin": "true" if is_admin_or_owner else "false",
+                "authenticated": "true" if is_authenticated else "false",
+            }
         )
     )
 

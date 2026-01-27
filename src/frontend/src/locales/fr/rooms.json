@@ -550,6 +550,14 @@
     "pin": {
       "label": "Épingler",
       "ariaLabel": "Épingler {{name}}"
+    },
+    "makeOwner": {
+      "label": "Nommer organisateur",
+      "ariaLabel": "Nommer {{name}} organisateur"
+    },
+    "removeOwner": {
+      "label": "Retirer organisateur",
+      "ariaLabel": "Retirer {{name}} du rôle d'organisateur"
     }
   },
   "recordingStateToast": {
