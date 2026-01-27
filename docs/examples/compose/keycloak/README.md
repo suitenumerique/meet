@@ -8,7 +8,7 @@
 ### Step 1: Prepare your working environment:
 
 ```bash
-mkdir keycloak/env.d && cd keycloak
+mkdir -p keycloak/env.d && cd keycloak
 curl -o compose.yaml https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main/docs/examples/compose/keycloak/compose.yaml
 curl -o env.d/kc_postgresql https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main/env.d/production.dist/kc_postgresql
 curl -o env.d/keycloak https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main/env.d/production.dist/keycloak
