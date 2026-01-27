@@ -87,6 +87,11 @@ If you are using an external service, you need to set `REDIS_URL` environment va
 
 Generate a secure key for `LIVEKIT_API_SECRET` in `env.d/common`.
 
+For example, using OpenSSL:
+```shell
+openssl rand -base64 32
+```
+
 We provide a minimal recommanded config for production environment in `livekit-server.yaml`. Set the previously generated API secret key in the config file.
 
 To view other customization options, see [config-sample.yaml](https://github.com/livekit/livekit/blob/master/config-sample.yaml)
@@ -99,6 +104,11 @@ To view other customization options, see [config-sample.yaml](https://github.com
 The Meet backend is built on the Django Framework.
 
 Generate a [secure key](https://docs.djangoproject.com/en/5.2/ref/settings/#secret-key.) for `DJANGO_SECRET_KEY` in `env.d/common`. 
+
+Best not to re-use the secret key from the LiveKit API:
+```shell
+openssl rand -base64 32
+```
 
 ### Mail
 
