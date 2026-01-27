@@ -17,7 +17,7 @@
   },
   "success": {
     "title": "Je opname is klaar!",
-    "body": "Opname van de vergadering <b>{{room}}</b> op {{created_at}}.",
+    "body": "Opname van de vergadering {{room}} op {{created_at}}.",
     "expiration": "Let op, deze opname verloopt na {{expiration_days}} dag(en).",
     "button": "Downloaden",
     "warning": {

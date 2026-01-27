@@ -17,7 +17,7 @@
   },
   "success": {
     "title": "Your recording is ready!",
-    "body": "Recording of the meeting <b>{{room}}</b> from {{created_at}}.",
+    "body": "Recording of the meeting {{room}} from {{created_at}}.",
     "expiration": "Attention, this recording will expire after {{expiration_days}} day(s).",
     "button": "Download",
     "warning": {

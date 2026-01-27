@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🔒️(frontend) fix an XSS vulnerability on the recording page #911
+
 ## [1.4.0] - 2026-01-25
 
 ### Added

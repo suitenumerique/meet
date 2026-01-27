@@ -104,14 +104,12 @@ export const RecordingDownload = () => {
               {t('success.title')}
             </H>
             <Text centered margin="md" wrap={'balance'}>
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: t('success.body', {
-                    room: data.room.name,
-                    created_at: formatDate(data.created_at, 'YYYY-MM-DD HH:mm'),
-                  }),
-                }}
-              />
+              <span>
+                {t('success.body', {
+                  room: data.room.name,
+                  created_at: formatDate(data.created_at, 'YYYY-MM-DD HH:mm'),
+                })}
+              </span>
               <span>
                 {configData?.recording?.expiration_days && (
                   <>
