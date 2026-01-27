@@ -1,10 +1,18 @@
-import { type ReactNode, useRef, useState } from 'react'
+import {
+  type ReactElement,
+  cloneElement,
+  isValidElement,
+  useRef,
+  useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { css } from '@/styled-system/css'
 
 export type VisualOnlyTooltipProps = {
-  children: ReactNode
+  children: ReactElement
   tooltip: string
+  ariaLabel?: string
+  tooltipPosition?: 'top' | 'bottom'
 }
 
 /**
@@ -20,32 +28,50 @@ export type VisualOnlyTooltipProps = {
 export const VisualOnlyTooltip = ({
   children,
   tooltip,
+  ariaLabel,
+  tooltipPosition = 'top',
 }: VisualOnlyTooltipProps) => {
-  const wrapperRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [position, setPosition] = useState<{
+    top: number
+    left: number
+  } | null>(null)
 
-  const getPosition = () => {
-    if (!wrapperRef.current) return null
+  const isBottom = tooltipPosition === 'bottom'
+
+  const showTooltip = () => {
+    if (!wrapperRef.current) return
     const rect = wrapperRef.current.getBoundingClientRect()
-    return {
-      top: rect.top - 8,
+    setPosition({
+      top: isBottom ? rect.bottom + 8 : rect.top - 8,
       left: rect.left + rect.width / 2,
-    }
+    })
+    setIsVisible(true)
   }
 
-  const position = getPosition()
+  const hideTooltip = () => {
+    setIsVisible(false)
+    setPosition(null)
+  }
+
   const tooltipData = isVisible && position ? { isVisible, position } : null
+  const wrappedChild = isValidElement(children)
+    ? cloneElement(children, {
+        ...(ariaLabel ? { 'aria-label': ariaLabel } : {}),
+      })
+    : children
 
   return (
     <>
       <div
         ref={wrapperRef}
-        onMouseEnter={() => setIsVisible(true)}
-        onMouseLeave={() => setIsVisible(false)}
-        onFocus={() => setIsVisible(true)}
-        onBlur={() => setIsVisible(false)}
+        onMouseEnter={showTooltip}
+        onMouseLeave={hideTooltip}
+        onFocus={showTooltip}
+        onBlur={hideTooltip}
       >
-        {children}
+        {wrappedChild}
       </div>
       {tooltipData &&
         createPortal(
@@ -66,17 +92,26 @@ export const VisualOnlyTooltip = ({
               '&::after': {
                 content: '""',
                 position: 'absolute',
-                top: '100%',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 border: '4px solid transparent',
-                borderTopColor: 'primaryDark.100',
+                ...(isBottom
+                  ? {
+                      bottom: '100%',
+                      borderBottomColor: 'primaryDark.100',
+                    }
+                  : {
+                      top: '100%',
+                      borderTopColor: 'primaryDark.100',
+                    }),
               },
             })}
             style={{
               top: `${tooltipData.position.top}px`,
               left: `${tooltipData.position.left}px`,
-              transform: 'translate(-50%, -100%)',
+              transform: isBottom
+                ? 'translate(-50%, 0)'
+                : 'translate(-50%, -100%)',
             }}
           >
             {tooltip}

@@ -10,6 +10,7 @@ import { FeedbackBanner } from '@/components/FeedbackBanner'
 import { Menu } from '@/primitives/Menu'
 import { MenuList } from '@/primitives/MenuList'
 import { LoginButton } from '@/components/LoginButton'
+import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 
 import { useLoginHint } from '@/hooks/useLoginHint'
 
@@ -90,6 +91,11 @@ export const Header = () => {
   const isTermsOfService = useMatchesRoute('termsOfService')
   const isRoom = useMatchesRoute('room')
   const { user, isLoggedIn, logout } = useUser()
+  const userLabel = user?.full_name || user?.email
+  const loggedInTooltip = t('loggedInUserTooltip')
+  const loggedInAriaLabel = userLabel
+    ? `${loggedInTooltip} ${userLabel}`
+    : loggedInTooltip
 
   return (
     <>
@@ -153,23 +159,24 @@ export const Header = () => {
                 )}
               {!!user && (
                 <Menu>
-                  <Button
-                    size="sm"
-                    variant="secondaryText"
-                    tooltip={t('loggedInUserTooltip')}
-                    tooltipType="delayed"
-                  >
-                    <span
-                      className={css({
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '350px',
-                        display: { base: 'none', xsm: 'block' },
-                      })}
+                  <Button size="sm" variant="secondaryText">
+                    <VisualOnlyTooltip
+                      tooltip={loggedInTooltip}
+                      ariaLabel={loggedInAriaLabel}
+                      tooltipPosition="bottom"
                     >
-                      {user?.full_name || user?.email}
-                    </span>
+                      <span
+                        className={css({
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: '350px',
+                          display: { base: 'none', xsm: 'block' },
+                        })}
+                      >
+                        {user?.full_name || user?.email}
+                      </span>
+                    </VisualOnlyTooltip>
                   </Button>
                   <MenuList
                     variant={'light'}

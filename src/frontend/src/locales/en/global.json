@@ -13,7 +13,7 @@
     "heading": "You don't have the permission to view this page"
   },
   "loading": "Loading…",
-  "loggedInUserTooltip": "Logged in as…",
+  "loggedInUserTooltip": "Logged in as ",
   "login": {
     "buttonLabel": "Login",
     "proconnectButtonLabel": "Login with ProConnect",

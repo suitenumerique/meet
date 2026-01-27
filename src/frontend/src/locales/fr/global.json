@@ -13,7 +13,7 @@
     "heading": "Accès interdit"
   },
   "loading": "Chargement…",
-  "loggedInUserTooltip": "Connecté en tant que…",
+  "loggedInUserTooltip": "Connecté en tant que ",
   "login": {
     "buttonLabel": "Se connecter",
     "proconnectButtonLabel": "S'identifier avec ProConnect",

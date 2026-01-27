@@ -8,13 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♿️(frontend) adjust visual-only tooltip a11y labels #910
+- ♿(frontend) adjust sr announcements for idle disconnect timer #908
+
 ### Fixed
 
 - 🔒️(frontend) fix an XSS vulnerability on the recording page #911
-
-### Changed
-
-- ♿(frontend) adjust sr announcements for idle disconnect timer #908
 
 ## [1.4.0] - 2026-01-25
 
