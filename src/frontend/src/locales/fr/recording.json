@@ -17,7 +17,7 @@
   },
   "success": {
     "title": "Votre enregistrement est prêt !",
-    "body": "Enregistrement de la réunion <b>{{room}}</b> du {{created_at}}.",
+    "body": "Enregistrement de la réunion {{room}} du {{created_at}}.",
     "expiration": "Attention cet enregistrement expirera au bout de {{expiration_days}} jour(s).",
     "button": "Télécharger",
     "warning": {

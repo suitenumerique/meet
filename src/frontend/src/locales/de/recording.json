@@ -17,7 +17,7 @@
   },
   "success": {
     "title": "Ihre Aufzeichnung ist bereit!",
-    "body": "Aufzeichnung des Treffens <b>{{room}}</b> vom {{created_at}}.",
+    "body": "Aufzeichnung des Treffens {{room}} vom {{created_at}}.",
     "expiration": "Achtung, diese Aufzeichnung wird nach {{expiration_days}} Tag(en) gelöscht.",
     "button": "Herunterladen",
     "warning": {
