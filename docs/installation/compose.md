@@ -87,11 +87,6 @@ If you are using an external service, you need to set `REDIS_URL` environment va
 
 Generate a secure key for `LIVEKIT_API_SECRET` in `env.d/common`.
 
-For example, using OpenSSL:
-```shell
-openssl rand -base64 32
-```
-
 We provide a minimal recommanded config for production environment in `livekit-server.yaml`. Set the previously generated API secret key in the config file.
 
 To view other customization options, see [config-sample.yaml](https://github.com/livekit/livekit/blob/master/config-sample.yaml)
@@ -104,11 +99,6 @@ To view other customization options, see [config-sample.yaml](https://github.com
 The Meet backend is built on the Django Framework.
 
 Generate a [secure key](https://docs.djangoproject.com/en/5.2/ref/settings/#secret-key.) for `DJANGO_SECRET_KEY` in `env.d/common`. 
-
-Best not to re-use the secret key from the LiveKit API:
-```shell
-openssl rand -base64 32
-```
 
 ### Mail
 
@@ -139,7 +129,7 @@ The following ports will need to be opened:
 - 7881/tcp - WebRTC ICE over TCP
 - 7882/udp - for WebRTC multiplexing over UDP
 
-If you are using ufw, enter the follwoing:
+If you are using ufw, enter the following:
 ```
 ufw allow 80/tcp
 ufw allow 443/tcp
@@ -185,6 +175,15 @@ You will need to uncomment the environment and network sections in compose file 
 #networks:
 #  proxy-tier:
 #    external: true
+```
+
+#### Caddy Reverse Proxy
+Expose the Frontend port to the host
+```yaml
+frontend:
+…
+	ports:
+		- “8086:8086”
 ```
 
 ## Step 5: Start Meet
@@ -235,3 +234,4 @@ Your database schema may need to be updated, run:
 ```bash
 docker compose run --rm backend python manage.py migrate
 ```
+                                                                                                                                                                
