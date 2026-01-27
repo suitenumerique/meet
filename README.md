@@ -89,7 +89,7 @@ We hope to see many more, here is an incomplete list of public La Suite Meet ins
 | [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/)   | DINUM    | French public agents working for the central administration and the extended public sphere. ProConnect is required to login in or sign up|
 | [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT    | French public agents working for the territorial administration and the extended public sphere. ProConnect is required to login in or sign up|
 | [visio.lasuite.coop](https://visio.lasuite.coop/)             | lasuite.coop    | Free and open demo to all. Content and accounts are reset after one month |
-| [meet.demo.mosacloud.eu](https://meet.demo.mosacloud.eu/)     | mosa.cloud    | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps. |
+| [mosacloud.cloud](https://mosa.cloud/)                        | mosa.cloud    | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps. |
 
 
 ## Contributing
