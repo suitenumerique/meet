@@ -10,7 +10,7 @@ services:
     - env.d/postgresql
     - env.d/common
     volumes:
-    - ./data/databases/backend:/var/lib/postgresql/data/pgdata
+    - ./data/databases/backend:/var/lib/postgresql/data
 
   redis:
     image: redis:5
