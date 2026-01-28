@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:15+0000\n"
+"POT-Creation-Date: 2026-01-26 15:40+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,30 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: core/addons/views.py:24
+msgid "Session ID is required."
+msgstr "Session ID is required."
+
+#: core/addons/views.py:29
+msgid "Session not found or expired."
+msgstr "Session not found or expired."
+
+#: core/addons/views.py:32
+msgid "Invalid session state."
+msgstr "Invalid session state."
+
+#: core/addons/views.py:45
+msgid "Authentication required."
+msgstr "Authentication required."
+
+#: core/addons/views.py:50
+msgid "No active session found."
+msgstr "No active session found."
+
+#: core/addons/views.py:55
+msgid "Invalid or expired session."
+msgstr "Invalid or expired session."
 
 #: core/admin.py:29
 msgid "Personal info"
@@ -405,7 +429,7 @@ msgstr "Application domain"
 msgid "Application domains"
 msgstr "Application domains"
 
-#: core/recording/event/notification.py:94
+#: core/recording/event/notification.py:116
 msgid "Your recording is ready"
 msgstr "Your recording is ready"
 
@@ -413,6 +437,30 @@ msgstr "Your recording is ready"
 #, python-brace-format
 msgid "Video call in progress: {sender.email} is waiting for you to connect"
 msgstr "Video call in progress: {sender.email} is waiting for you to connect"
+
+#: core/templates/addons/error.html:7 core/templates/addons/error.html:11
+msgid "Error"
+msgstr "Error"
+
+#: core/templates/addons/error.html:12
+msgid "Something went wrong."
+msgstr "Something went wrong."
+
+#: core/templates/addons/error.html:13
+msgid "Close"
+msgstr "Close"
+
+#: core/templates/addons/redirect_success.html:7
+msgid "Authentication Success"
+msgstr "Authentication Success"
+
+#: core/templates/addons/redirect_success.html:13
+msgid "Session stored successfully. This window will close automatically."
+msgstr "Session stored successfully. This window will close automatically."
+
+#: core/templates/addons/redirect_success.html:14
+msgid "If it doesn't close"
+msgstr "If it doesn't close"
 
 #: core/templates/mail/html/invitation.html:159
 #: core/templates/mail/html/screen_recording.html:159

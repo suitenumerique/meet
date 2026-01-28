@@ -6,6 +6,8 @@ from django.urls import include, path
 from lasuite.oidc_login.urls import urlpatterns as oidc_urls
 from rest_framework.routers import DefaultRouter
 
+from core.addons import views as addons_views
+from core.addons import viewsets as addons_viewsets
 from core.api import get_frontend_configuration, viewsets
 from core.external_api import viewsets as external_viewsets
 
@@ -26,6 +28,14 @@ external_router.register(
     basename="external_application",
 )
 
+# - Addons API
+addons_router = DefaultRouter()
+addons_router.register(
+    "addons/sessions",
+    addons_viewsets.AuthSessionViewSet,
+    basename="addons_auth_sessions",
+)
+
 external_router.register(
     "rooms",
     external_viewsets.RoomViewSet,
@@ -39,7 +49,17 @@ urlpatterns = [
             [
                 *router.urls,
                 *oidc_urls,
+                *addons_router.urls,
                 path("config/", get_frontend_configuration, name="config"),
+            ]
+        ),
+    ),
+    path(
+        "addons/",
+        include(
+            [
+                path("transit/", addons_views.transit_page, name="transit_page"),
+                path("redirect/", addons_views.redirect_page, name="redirect_page"),
             ]
         ),
     ),
