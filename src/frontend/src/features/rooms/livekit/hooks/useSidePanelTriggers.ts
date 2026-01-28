@@ -1,15 +1,13 @@
-import { useContext } from 'react'
-import { SidePanelContext } from '../contexts/sidePanelContextValue'
+import { layoutStore } from '@/stores/layout'
+import type { SidePanelTriggerKey } from '../types/sidePanelTypes'
 
 export const useSidePanelTriggers = () => {
-  const context = useContext(SidePanelContext)
-  if (!context) {
-    throw new Error(
-      'useSidePanelTriggers must be used within SidePanelProvider'
-    )
-  }
   return {
-    setTrigger: context.setTrigger,
-    getTrigger: context.getTrigger,
+    setTrigger: (key: SidePanelTriggerKey, el: HTMLElement | null) => {
+      layoutStore.sidePanelTriggers[key] = el
+    },
+    getTrigger: (key: SidePanelTriggerKey) => {
+      return layoutStore.sidePanelTriggers[key] ?? null
+    },
   }
 }

@@ -189,12 +189,11 @@ const SidePanelContent = () => {
       onBack={() => (layoutStore.activeSubPanelId = null)}
       panelRef={panelRef}
     >
-      {/* keepAlive preserves focus restoration + state (e.g. scroll/input) across panels;
-          revisit if memory becomes a concern */}
-      <Panel isOpen={isParticipantsOpen} keepAlive={true}>
+      {/* keepAlive stays only for Info to reduce memory footprint */}
+      <Panel isOpen={isParticipantsOpen}>
         <ParticipantsList />
       </Panel>
-      <Panel isOpen={isEffectsOpen} keepAlive={true}>
+      <Panel isOpen={isEffectsOpen}>
         <Effects />
       </Panel>
       <Panel isOpen={isChatOpen} keepAlive={true}>
@@ -203,10 +202,10 @@ const SidePanelContent = () => {
       <Panel isOpen={isToolsOpen} keepAlive={true}>
         <Tools />
       </Panel>
-      <Panel isOpen={isAdminOpen} keepAlive={true}>
+      <Panel isOpen={isAdminOpen}>
         <Admin />
       </Panel>
-      <Panel isOpen={isInfoOpen} keepAlive={true}>
+      <Panel isOpen={isInfoOpen} >
         <Info />
       </Panel>
     </StyledSidePanel>

@@ -1,10 +1,5 @@
-import { useContext } from 'react'
-import { SidePanelContext } from '../contexts/sidePanelContextValue'
+import { layoutStore } from '@/stores/layout'
 
 export const useSidePanelRef = () => {
-  const context = useContext(SidePanelContext)
-  if (!context) {
-    throw new Error('useSidePanelRef must be used within SidePanelProvider')
-  }
-  return context.panelRef
+  return layoutStore.sidePanelRef
 }
