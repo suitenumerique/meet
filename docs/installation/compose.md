@@ -181,9 +181,9 @@ You will need to uncomment the environment and network sections in compose file 
 Expose the Frontend port to the host
 ```yaml
 frontend:
-…
-	ports:
-		- “8086:8086”
+  …
+  ports:
+    - "8086:8086"
 ```
 
 ## Step 5: Start Meet
@@ -207,7 +207,7 @@ Replace `<admin email>` with the email of your admin user and generate a secure 
 
 Your Meet instance is now available on the domain you defined, https://meet.yourdomain.tld.
 
-THe admin interface is available on https://meet.yourdomain.tld/admin with the admin user you just created.
+The admin interface is available on https://meet.yourdomain.tld/admin with the admin user you just created.
 
 ## How to upgrade your Meet application
 
@@ -234,4 +234,3 @@ Your database schema may need to be updated, run:
 ```bash
 docker compose run --rm backend python manage.py migrate
 ```
-                                                                                                                                                                
