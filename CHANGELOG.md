@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-01-28
+
 ### Changed
 
 - ♿️(frontend) adjust visual-only tooltip a11y labels #910
