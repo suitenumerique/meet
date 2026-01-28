@@ -59,6 +59,9 @@ ALLOW_UNREGISTERED_ROOMS=False
 
 # Recording
 RECORDING_ENABLE=True
+# Recording permissions: admin_owner (default) | authenticated
+RECORDING_SCREEN_PERMISSION=admin_owner
+RECORDING_TRANSCRIPT_PERMISSION=admin_owner
 RECORDING_STORAGE_EVENT_ENABLE=True
 RECORDING_STORAGE_EVENT_TOKEN=password
 SUMMARY_SERVICE_ENDPOINT=http://app-summary-dev:8000/api/v1/tasks/

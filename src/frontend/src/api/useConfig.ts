@@ -1,7 +1,7 @@
 import { fetchApi } from './fetchApi'
 import { keys } from './queryKeys'
 import { useQuery } from '@tanstack/react-query'
-import { RecordingMode } from '@/features/recording'
+import { RecordingMode, RecordingPermission } from '@/features/recording'
 
 export interface ApiConfig {
   analytics?: {
@@ -29,6 +29,8 @@ export interface ApiConfig {
     available_modes?: RecordingMode[]
     expiration_days?: number
     max_duration?: number
+    screen_recording_permission?: RecordingPermission
+    transcript_permission?: RecordingPermission
   }
   subtitle: {
     enabled: boolean
