@@ -13,6 +13,7 @@ and this project adheres to
 - ♿️(frontend) adjust visual-only tooltip a11y labels #910
 - ♿️(frontend) sr pin/unpin announcements with dedicated messages #898
 - ♿(frontend) adjust sr announcements for idle disconnect timer #908
+- ♿️(frontend) add global screen reader announcer#922
 
 ### Fixed
 

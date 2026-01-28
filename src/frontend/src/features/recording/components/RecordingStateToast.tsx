@@ -1,6 +1,6 @@
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import { Text } from '@/primitives'
 import {
   RecordingMode,
@@ -13,6 +13,7 @@ import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useRoomMetadata } from '../hooks/useRoomMetadata'
 import { RecordingStatusIcon } from './RecordingStatusIcon'
 import { useIsRecording } from '@livekit/components-react'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
@@ -21,8 +22,8 @@ export const RecordingStateToast = () => {
 
   const { openTranscript, openScreenRecording } = useSidePanel()
 
-  const [srMessage, setSrMessage] = useState('')
   const lastKeyRef = useRef('')
+  const announce = useScreenReaderAnnounce()
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
@@ -76,16 +77,9 @@ export const RecordingStateToast = () => {
     if (key && key !== lastKeyRef.current) {
       lastKeyRef.current = key
       const message = t(key)
-      setSrMessage(message)
-
-      // Clear message after 3 seconds to prevent it from being announced again
-      const timer = setTimeout(() => {
-        setSrMessage('')
-      }, 3000)
-
-      return () => clearTimeout(timer)
+      announce(message)
     }
-  }, [key, t])
+  }, [announce, key, t])
 
   if (!key) return null
 
@@ -95,15 +89,6 @@ export const RecordingStateToast = () => {
 
   return (
     <>
-      {/* Screen reader only message to announce state changes once */}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
-        {srMessage}
-      </div>
       {/* Visual banner (without aria-live to avoid duplicate announcements) */}
       <div
         className={css({

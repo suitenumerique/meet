@@ -18,6 +18,7 @@ import { Loader } from '@/primitives/Loader'
 import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 enum BlurRadius {
   NONE = 0,
@@ -56,7 +57,7 @@ export const EffectsConfiguration = ({
   const [processorPending, setProcessorPending] = useState(false)
   const processorPendingReveal = useSyncAfterDelay(processorPending)
   const hasFunnyEffectsAccess = useHasFunnyEffectsAccess()
-  const [effectStatusMessage, setEffectStatusMessage] = useState('')
+  const announce = useScreenReaderAnnounce()
   const effectAnnouncementTimeout = useRef<ReturnType<
     typeof setTimeout
   > | null>(null)
@@ -104,12 +105,9 @@ export const EffectsConfiguration = ({
       clearTimeout(effectAnnouncementTimeout.current)
     }
 
-    // Clear the region first so screen readers drop queued announcements.
-    setEffectStatusMessage('')
-
     effectAnnouncementTimeout.current = setTimeout(() => {
       if (currentId !== effectAnnouncementId.current) return
-      setEffectStatusMessage(message)
+      announce(message)
     }, 80)
   }
 
@@ -422,9 +420,6 @@ export const EffectsConfiguration = ({
                   >
                     <BlurOnStrong />
                   </ToggleButton>
-                </div>
-                <div aria-live="polite" className="sr-only">
-                  {effectStatusMessage}
                 </div>
               </div>
               <div

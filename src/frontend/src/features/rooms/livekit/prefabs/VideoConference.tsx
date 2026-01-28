@@ -39,6 +39,7 @@ import { CarouselLayout } from '../components/layout/CarouselLayout'
 import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 const LayoutWrapper = styled(
   'div',
@@ -93,10 +94,10 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   const lastAutoFocusedScreenShareTrack =
     useRef<TrackReferenceOrPlaceholder | null>(null)
   const lastPinnedParticipantIdentityRef = useRef<string | null>(null)
-  const [pinAnnouncement, setPinAnnouncement] = useState('')
   const { t } = useTranslation('rooms', { keyPrefix: 'pinAnnouncements' })
   const { t: tRooms } = useTranslation('rooms')
   const room = useRoomContext()
+  const announce = useScreenReaderAnnounce()
 
   const getAnnouncementName = useCallback(
     (participant?: Participant | null) => {
@@ -148,7 +149,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
           : room.remoteParticipants.get(lastIdentity)
       const announcementName = getAnnouncementName(lastParticipant)
 
-      setPinAnnouncement(
+      announce(
         lastParticipant?.isLocal
           ? t('self.unpin')
           : t('unpin', {
@@ -172,10 +173,11 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
 
     lastPinnedParticipantIdentityRef.current = participant.identity
 
-    setPinAnnouncement(
+    announce(
       participant.isLocal ? t('self.pin') : t('pin', { name: participantName })
     )
   }, [
+    announce,
     focusTrack,
     getAnnouncementName,
     room.localParticipant,
@@ -257,14 +259,6 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
           value={layoutContext}
           // onPinChange={handleFocusStateChange}
         >
-          <div
-            id="pin-announcer"
-            aria-live="polite"
-            aria-atomic="true"
-            className="sr-only"
-          >
-            {pinAnnouncement}
-          </div>
           <ScreenShareErrorModal
             isOpen={isShareErrorVisible}
             onClose={() => setIsShareErrorVisible(false)}
