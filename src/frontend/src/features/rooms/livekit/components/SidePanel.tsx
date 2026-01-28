@@ -206,7 +206,7 @@ const SidePanelContent = () => {
       <Panel isOpen={isAdminOpen} keepAlive={true}>
         <Admin />
       </Panel>
-      <Panel isOpen={isInfoOpen} keepAlive={true}>
+      <Panel isOpen={isInfoOpen}>
         <Info />
       </Panel>
     </StyledSidePanel>

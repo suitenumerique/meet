@@ -1,5 +1,6 @@
-import { useSnapshot } from 'valtio'
+import { ref, useSnapshot } from 'valtio'
 import { layoutStore } from '@/stores/layout'
+import { useEffect } from 'react'
 
 export enum PanelId {
   PARTICIPANTS = 'participants',
@@ -56,8 +57,13 @@ export const useSidePanel = () => {
     if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
   }
 
-  const toggleInfo = () => {
+  const toggleInfo = (wip) => {
     layoutStore.activePanelId = isInfoOpen ? null : PanelId.INFO
+
+    if (!isInfoOpen) {
+      layoutStore.genericRef = ref(wip)
+    }
+
     if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
   }
 
@@ -70,6 +76,18 @@ export const useSidePanel = () => {
     layoutStore.activeSubPanelId = SubPanelId.SCREEN_RECORDING
     layoutStore.activePanelId = PanelId.TOOLS
   }
+
+  useEffect(() => {
+    if (!layoutSnap.activePanelId) {
+      console.log('$$prout closing')
+      const trigger = layoutSnap?.genericRef?.current
+      console.log(trigger)
+      if (trigger) {
+        trigger.focus({ preventScroll: true })
+        trigger.setAttribute('data-restore-focus-visible', '')
+      }
+    }
+  }, [layoutSnap.activePanelId, layoutSnap?.genericRef])
 
   return {
     activePanelId,

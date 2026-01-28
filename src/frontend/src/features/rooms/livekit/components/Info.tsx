@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { RiCheckLine, RiFileCopyLine } from '@remixicon/react'
@@ -9,16 +9,24 @@ import { useRoomData } from '../hooks/useRoomData'
 import { formatPinCode } from '../../utils/telephony'
 import { useTelephony } from '../hooks/useTelephony'
 import { useCopyRoomToClipboard } from '../hooks/useCopyRoomToClipboard'
-import { useSidePanel } from '../hooks/useSidePanel'
-import { useRestoreFocus } from '@/hooks/useRestoreFocus'
-import { useSidePanelRef } from '../hooks/useSidePanelRef'
-import { useSidePanelTriggers } from '../hooks/useSidePanelTriggers'
+
+const useFocusOnOpen = ({ ref, key }) => {
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      const panel = ref.current
+      if (panel) {
+        const firstButton = panel.querySelector<HTMLElement>(key)
+        if (firstButton) {
+          firstButton.focus({ preventScroll: true })
+        }
+      }
+    })
+  }, [])
+}
 
 export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
-  const { isInfoOpen } = useSidePanel()
-  const panelRef = useSidePanelRef()
-  const { getTrigger } = useSidePanelTriggers()
+  const panelRef = useRef()
 
   const data = useRoomData()
   const roomUrl = getRouteUrl('room', data?.slug)
@@ -31,26 +39,7 @@ export const Info = () => {
 
   const { isCopied, copyRoomToClipboard } = useCopyRoomToClipboard(data)
 
-  // Restore focus to the element that opened the Info panel
-  useRestoreFocus(isInfoOpen, {
-    resolveTrigger: (activeEl) => getTrigger('info') ?? activeEl,
-    // Focus the first focusable element when the panel opens
-    onOpened: () => {
-      requestAnimationFrame(() => {
-        const panel = panelRef.current
-        if (panel) {
-          const firstButton = panel.querySelector<HTMLElement>(
-            '[data-attr="copy-info-sidepanel"]'
-          )
-          if (firstButton) {
-            firstButton.focus({ preventScroll: true })
-          }
-        }
-      })
-    },
-    restoreFocusRaf: true,
-    preventScroll: true,
-  })
+  useFocusOnOpen({ ref: panelRef, key: '[data-attr="copy-info-sidepanel"]' })
 
   return (
     <Div
@@ -60,6 +49,7 @@ export const Info = () => {
       flexGrow={1}
       flexDirection="column"
       alignItems="start"
+      ref={panelRef}
     >
       <VStack alignItems="start">
         <Text

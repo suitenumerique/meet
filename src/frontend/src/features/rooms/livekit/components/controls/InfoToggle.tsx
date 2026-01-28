@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiInformationLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
@@ -14,14 +14,17 @@ export const InfoToggle = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.info' })
 
   const { isInfoOpen, toggleInfo } = useSidePanel()
-  const { setTrigger } = useSidePanelTriggers()
+  // const { setTrigger } = useSidePanelTriggers()
   const tooltipLabel = isInfoOpen ? 'open' : 'closed'
-  const setInfoTriggerRef = useCallback(
-    (el: HTMLElement | null) => {
-      setTrigger('info', el)
-    },
-    [setTrigger]
-  )
+
+  const wip = useRef<HTMLElement | null>()
+
+  // const setInfoTriggerRef = useCallback(
+  //   (el: HTMLElement | null) => {
+  //     setTrigger('info', el)
+  //   },
+  //   [setTrigger]
+  // )
 
   return (
     <div
@@ -36,9 +39,9 @@ export const InfoToggle = ({
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isInfoOpen}
-        ref={setInfoTriggerRef}
+        ref={wip}
         onPress={(e) => {
-          toggleInfo()
+          toggleInfo(wip)
           onPress?.(e)
         }}
         data-attr={`controls-info-${tooltipLabel}`}
