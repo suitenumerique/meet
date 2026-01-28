@@ -14,6 +14,7 @@ import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { Toolbar as RACToolbar } from 'react-aria-components'
 import { Participant } from 'livekit-client'
 import useRateLimiter from '@/hooks/useRateLimiter'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export enum Emoji {
@@ -40,6 +41,11 @@ export const ReactionsToggle = () => {
   const room = useRoomContext()
 
   const [isVisible, setIsVisible] = useState(false)
+
+  useRegisterKeyboardShortcut({
+    shortcutId: 'reaction',
+    handler: () => setIsVisible((prev) => !prev),
+  })
 
   const sendReaction = async (emoji: string) => {
     const encoder = new TextEncoder()
