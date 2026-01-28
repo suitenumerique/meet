@@ -1,6 +1,6 @@
 import { proxy } from 'valtio'
 
-type Politeness = 'polite' | 'assertive'
+export type Politeness = 'polite' | 'assertive'
 
 type ScreenReaderAnnouncement = {
   message: string

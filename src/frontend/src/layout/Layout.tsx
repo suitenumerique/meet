@@ -4,6 +4,7 @@ import { Header } from './Header'
 import { layoutStore } from '@/stores/layout'
 import { useSnapshot } from 'valtio'
 import { Footer } from '@/layout/Footer'
+import { ScreenReaderAnnouncer } from '@/primitives'
 
 export type Layout = 'fullpage' | 'centered'
 
@@ -41,6 +42,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
             flexDirection: 'column',
           })}
         >
+          <ScreenReaderAnnouncer />
           {children}
         </main>
       </div>
