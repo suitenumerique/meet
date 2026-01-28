@@ -8,6 +8,7 @@ import { Reaction } from '@/features/rooms/livekit/components/controls/Reactions
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { accessibilityStore } from '@/stores/accessibility'
 import { useSnapshot } from 'valtio'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 export const ANIMATION_DURATION = 3000
 export const ANIMATION_DISTANCE = 300
@@ -146,15 +147,14 @@ export function ReactionPortal({
 export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
   const { announceReactions } = useSnapshot(accessibilityStore)
-  const [announcement, setAnnouncement] = useState<string | null>(null)
   const [lastAnnouncedId, setLastAnnouncedId] = useState<number | null>(null)
+  const announce = useScreenReaderAnnounce()
 
   const latestReaction =
     reactions.length > 0 ? reactions[reactions.length - 1] : undefined
 
   useEffect(() => {
     if (!announceReactions) {
-      setAnnouncement(null)
       return
     }
     if (!latestReaction) return
@@ -166,12 +166,9 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
       ? t('you')
       : latestReaction.participant?.name?.trim() ||
         t('someone', { defaultValue: 'Someone' })
-    setAnnouncement(t('announce', { name: participantName, emoji: emojiLabel }))
+    announce(t('announce', { name: participantName, emoji: emojiLabel }))
     setLastAnnouncedId(latestReaction.id)
-
-    const timer = setTimeout(() => setAnnouncement(null), 1200)
-    return () => clearTimeout(timer)
-  }, [latestReaction, lastAnnouncedId, announceReactions, t])
+  }, [announce, latestReaction, lastAnnouncedId, announceReactions, t])
 
   return (
     <>
@@ -182,14 +179,6 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
           participant={instance.participant}
         />
       ))}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
-        {announcement ?? ''}
-      </div>
     </>
   )
 }
