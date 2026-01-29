@@ -1,19 +1,12 @@
-import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiMoreFill } from '@remixicon/react'
 import { Button, Menu } from '@/primitives'
 import { OptionsMenuItems } from './OptionsMenuItems'
-import { useSidePanelTriggers } from '../../../hooks/useSidePanelTriggers'
+import { useSidePanelTriggerRef } from '../../../hooks/useSidePanelTriggerRef'
 
 export const OptionsButton = () => {
   const { t } = useTranslation('rooms')
-  const { setTrigger } = useSidePanelTriggers()
-  const setOptionsTriggerRef = useCallback(
-    (el: HTMLElement | null) => {
-      setTrigger('options', el)
-    },
-    [setTrigger]
-  )
+  const setOptionsTriggerRef = useSidePanelTriggerRef('options')
 
   return (
     <Menu variant="dark">

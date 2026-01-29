@@ -152,6 +152,7 @@ const SidePanelContent = () => {
     isInfoOpen,
     isSubPanelOpen,
     activeSubPanelId,
+    closeSidePanel,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
   const panelRef = useSidePanelRef()
@@ -159,12 +160,7 @@ const SidePanelContent = () => {
   useEscapeKey(
     () => {
       // Close subpanel + panel together for a consistent Escape behavior
-      if (isSubPanelOpen) {
-        layoutStore.activeSubPanelId = null
-        layoutStore.activePanelId = null
-        return
-      }
-      layoutStore.activePanelId = null
+      closeSidePanel()
     },
     {
       isActive: isSidePanelOpen,
@@ -176,10 +172,7 @@ const SidePanelContent = () => {
     <StyledSidePanel
       title={t(`heading.${activeSubPanelId || activePanelId}`)}
       ariaLabel={t('ariaLabel')}
-      onClose={() => {
-        layoutStore.activePanelId = null
-        layoutStore.activeSubPanelId = null
-      }}
+      onClose={closeSidePanel}
       closeButtonTooltip={t('closeButton', {
         content: t(`content.${activeSubPanelId || activePanelId}`),
       })}

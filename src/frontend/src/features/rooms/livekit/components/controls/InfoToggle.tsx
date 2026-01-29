@@ -1,11 +1,10 @@
-import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiInformationLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { ToggleButton } from '@/primitives'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
-import { useSidePanelTriggers } from '../../hooks/useSidePanelTriggers'
+import { useSidePanelTriggerRef } from '../../hooks/useSidePanelTriggerRef'
 
 export const InfoToggle = ({
   onPress,
@@ -14,14 +13,8 @@ export const InfoToggle = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.info' })
 
   const { isInfoOpen, toggleInfo } = useSidePanel()
-  const { setTrigger } = useSidePanelTriggers()
   const tooltipLabel = isInfoOpen ? 'open' : 'closed'
-  const setInfoTriggerRef = useCallback(
-    (el: HTMLElement | null) => {
-      setTrigger('info', el)
-    },
-    [setTrigger]
-  )
+  const setInfoTriggerRef = useSidePanelTriggerRef('info')
 
   return (
     <div

@@ -16,7 +16,7 @@ import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import Source = Track.Source
 import { isSafari } from '@/utils/livekit'
-import { useFocusOnOpen } from '@/hooks/useFocusOnOpen'
+import { AUDIO_INPUT_FOCUS_SELECTOR } from './deviceFocusSelectors'
 
 type AudioDevicesControlProps = Omit<
   UseTrackToggleProps<Source.Microphone>,
@@ -31,7 +31,6 @@ export const AudioDevicesControl = ({
 }: AudioDevicesControlProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
-  const popoverContentRef = React.useRef<HTMLDivElement>(null)
 
   const {
     userChoices: { audioDeviceId, audioOutputDeviceId },
@@ -57,12 +56,6 @@ export const AudioDevicesControl = ({
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.AUDIO}`)
 
   const canPublishTrack = useCanPublishTrack(TrackSource.MICROPHONE)
-
-  useFocusOnOpen(isMenuOpen, popoverContentRef, {
-    selector:
-      '[data-attr="audio-input-select"] button, [data-attr="audio-input-select"] [role="combobox"]',
-    delayMs: 250,
-  })
 
   return (
     <div
@@ -90,6 +83,10 @@ export const AudioDevicesControl = ({
           withArrow={false}
           isOpen={isMenuOpen}
           onOpenChange={setIsMenuOpen}
+          focusOnOpen={{
+            selector: AUDIO_INPUT_FOCUS_SELECTOR,
+            delayMs: 250,
+          }}
         >
           <Button
             tooltip={selectLabel}
@@ -106,7 +103,6 @@ export const AudioDevicesControl = ({
           </Button>
           {({ close }) => (
             <div
-              ref={popoverContentRef}
               className={css({
                 maxWidth: '36rem',
                 padding: '0.15rem',
