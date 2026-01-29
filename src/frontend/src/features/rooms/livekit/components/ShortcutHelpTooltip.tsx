@@ -48,7 +48,7 @@ const containerStyle = css({
 
 const triggerStyle = css({
   all: 'unset',
-  cursor: 'pointer',
+  cursor: 'default',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',

@@ -40,6 +40,7 @@ import {
 import { useSnapshot } from 'valtio'
 import { getShortcutById } from '@/features/shortcuts/catalog'
 import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
+import { participantLayoutStore } from '@/stores/participantLayout'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -125,6 +126,18 @@ export const ParticipantTile: (
   const openShortcutLabel =
     formatShortcutLabel(openShortcutEffective) ??
     `${isMacintosh() ? '⌘' : 'Ctrl'} + /`
+
+  // Check if we should show the shortcut helper tooltip
+  // Only show on the first tile when in grid layout (not in carousel/left column, not in focus mode)
+  const { layoutType, firstGridTileTrackId } = useSnapshot(participantLayoutStore)
+  const currentTrackId = isTrackReference(trackReference)
+    ? `${trackReference.participant.sid}-${trackReference.source}`
+    : null
+  
+  const shouldShowShortcutHelper =
+    hasKeyboardFocus &&
+    layoutType === 'grid' && // Only show in grid layout
+    currentTrackId === firstGridTileTrackId // Only show on first tile
 
   const interactiveProps = {
     ...elementProps,
@@ -245,12 +258,14 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
-      <ShortcutHelpTooltip
-        triggerLabel={t('toolbarHint', {
-          binding: openShortcutLabel,
-        })}
-        isVisible={hasKeyboardFocus}
-      />
+      {shouldShowShortcutHelper && (
+        <ShortcutHelpTooltip
+          triggerLabel={t('toolbarHint', {
+            binding: openShortcutLabel,
+          })}
+          isVisible={hasKeyboardFocus}
+        />
+      )}
     </div>
   )
 })

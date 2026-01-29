@@ -10,6 +10,8 @@ import { mergeProps } from '@/utils/mergeProps'
 import { PaginationIndicator } from '../controls/PaginationIndicator'
 import { useGridLayout } from '../../hooks/useGridLayout'
 import { PaginationControl } from '../controls/PaginationControl'
+import { setGridLayout, resetLayout } from '@/stores/participantLayout'
+import { isTrackReference } from '@livekit/components-core'
 
 /** @public */
 export interface GridLayoutProps
@@ -35,6 +37,11 @@ export interface GridLayoutProps
  * ```
  * @public
  */
+const getTrackId = (trackRef: TrackReferenceOrPlaceholder): string | null => {
+  if (!isTrackReference(trackRef)) return null
+  return `${trackRef.participant.sid}-${trackRef.source}`
+}
+
 export function GridLayout({ tracks, ...props }: GridLayoutProps) {
   const gridEl = React.createRef<HTMLDivElement>()
 
@@ -49,6 +56,17 @@ export function GridLayout({ tracks, ...props }: GridLayoutProps) {
     onLeftSwipe: pagination.nextPage,
     onRightSwipe: pagination.prevPage,
   })
+
+  // Update store when tracks change - set first tile ID for grid layout
+  React.useEffect(() => {
+    const firstTrack = pagination.tracks[0]
+    const firstTrackId = firstTrack ? getTrackId(firstTrack) : null
+    setGridLayout(firstTrackId)
+    
+    return () => {
+      resetLayout()
+    }
+  }, [pagination.tracks])
 
   return (
     <div
