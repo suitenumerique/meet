@@ -110,6 +110,15 @@ export const useSidePanel = () => {
     layoutStore.activePanelId = PanelId.TOOLS
   }
 
+  const closeSidePanel = () => {
+    if (isSubPanelOpen) {
+      layoutStore.activeSubPanelId = null
+      layoutStore.activePanelId = null
+      return
+    }
+    layoutStore.activePanelId = null
+  }
+
   useEffect(() => {
     const handleKeyDown = () => {
       lastInteractionRef.current = 'keyboard'
@@ -160,6 +169,7 @@ export const useSidePanel = () => {
     toggleInfo,
     openTranscript,
     openScreenRecording,
+    closeSidePanel,
     isSubPanelOpen,
     isChatOpen,
     isParticipantsOpen,
