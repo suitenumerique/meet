@@ -3,11 +3,18 @@ import * as React from 'react'
 import { css } from '@/styled-system/css'
 import { Text } from '@/primitives'
 import { MessageFormatter } from '@livekit/components-react'
+import { ChatReaction } from '@/stores/chatReactions'
+import { ReactionPicker } from './ReactionPicker'
+import { ReactionsDisplay } from './ReactionsDisplay'
 
 export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   entry: ReceivedChatMessage
   hideMetadata?: boolean
   messageFormatter?: MessageFormatter
+  messageId?: string
+  reactions?: ChatReaction[]
+  currentUserIdentity?: string
+  onReactionToggle?: (emoji: string) => void
 }
 
 export const ChatEntry: (
@@ -16,14 +23,33 @@ export const ChatEntry: (
   HTMLLIElement,
   ChatEntryProps
 >(function ChatEntry(
-  { entry, hideMetadata = false, messageFormatter, ...props }: ChatEntryProps,
+  {
+    entry,
+    hideMetadata = false,
+    messageFormatter,
+    messageId,
+    reactions = [],
+    currentUserIdentity,
+    onReactionToggle,
+    ...props
+  }: ChatEntryProps,
   ref
 ) {
+  const [isHovered, setIsHovered] = React.useState(false)
   const formattedMessage = React.useMemo(() => {
     return messageFormatter ? messageFormatter(entry.message) : entry.message
   }, [entry.message, messageFormatter])
   const time = new Date(entry.timestamp)
   const locale = navigator ? navigator.language : 'en-US'
+
+  const handleReactionSelect = React.useCallback(
+    (emoji: string) => {
+      if (onReactionToggle) {
+        onReactionToggle(emoji)
+      }
+    },
+    [onReactionToggle]
+  )
 
   return (
     <li
@@ -31,10 +57,13 @@ export const ChatEntry: (
         display: 'flex',
         flexDirection: 'column',
         gap: '0.25rem',
+        position: 'relative',
       })}
       ref={ref}
       title={time.toLocaleTimeString(locale, { timeStyle: 'full' })}
       data-lk-message-origin={entry.from?.isLocal ? 'local' : 'remote'}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       {...props}
     >
       {!hideMetadata && (
@@ -53,19 +82,46 @@ export const ChatEntry: (
           </Text>
         </span>
       )}
-      <Text
-        variant="sm"
-        margin={false}
+      <div
         className={css({
-          whiteSpace: 'pre-wrap',
-          '& .lk-chat-link': {
-            color: 'blue',
-            textDecoration: 'underline',
-          },
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.5rem',
         })}
       >
-        {formattedMessage}
-      </Text>
+        <Text
+          variant="sm"
+          margin={false}
+          className={css({
+            whiteSpace: 'pre-wrap',
+            flex: 1,
+            '& .lk-chat-link': {
+              color: 'blue',
+              textDecoration: 'underline',
+            },
+          })}
+        >
+          {formattedMessage}
+        </Text>
+        {messageId && onReactionToggle && (
+          <div
+            className={css({
+              opacity: isHovered ? 1 : 0,
+              transition: 'opacity 0.15s ease',
+              flexShrink: 0,
+            })}
+          >
+            <ReactionPicker onReactionSelect={handleReactionSelect} />
+          </div>
+        )}
+      </div>
+      {messageId && currentUserIdentity && reactions.length > 0 && (
+        <ReactionsDisplay
+          reactions={reactions}
+          currentUserIdentity={currentUserIdentity}
+          onReactionToggle={handleReactionSelect}
+        />
+      )}
     </li>
   )
 })
