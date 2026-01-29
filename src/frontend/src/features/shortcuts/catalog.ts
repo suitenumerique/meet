@@ -35,7 +35,7 @@ export const shortcutCatalog: ShortcutDescriptor[] = [
   {
     id: 'open-shortcuts',
     category: 'navigation',
-    shortcut: { key: '/', ctrlKey: true },
+    shortcut: { key: '/', ctrlKey: true, shiftKey: true },
   },
   {
     id: 'focus-toolbar',
@@ -81,7 +81,7 @@ export const shortcutCatalog: ShortcutDescriptor[] = [
   {
     id: 'toggle-chat',
     category: 'interaction',
-    shortcut: { key: 'C', ctrlKey: true, shiftKey: true },
+    shortcut: { key: 'M', ctrlKey: true, shiftKey: true },
   },
   {
     id: 'toggle-participants',
