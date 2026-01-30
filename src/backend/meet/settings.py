@@ -792,6 +792,11 @@ class Base(Configuration):
     )
 
     # Addons
+    ADDONS_ENABLED = values.BooleanValue(
+        False,
+        environ_name="ADDONS_ENABLED",
+        environ_prefix=None,
+    )
     ADDONS_SESSION_ID_LENGTH = values.PositiveIntegerValue(
         32,
         environ_name="ADDONS_SESSION_ID_LENGTH",

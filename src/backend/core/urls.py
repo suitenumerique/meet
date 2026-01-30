@@ -42,6 +42,10 @@ external_router.register(
     basename="external_room",
 )
 
+
+addons_urls = addons_router.urls if settings.ADDONS_ENABLED else []
+
+
 urlpatterns = [
     path(
         f"api/{settings.API_VERSION}/",
@@ -49,21 +53,25 @@ urlpatterns = [
             [
                 *router.urls,
                 *oidc_urls,
-                *addons_router.urls,
+                *addons_urls,
                 path("config/", get_frontend_configuration, name="config"),
             ]
         ),
     ),
-    path(
-        "addons/",
-        include(
-            [
-                path("transit/", addons_views.transit_page, name="transit_page"),
-                path("redirect/", addons_views.redirect_page, name="redirect_page"),
-            ]
-        ),
-    ),
 ]
+
+if settings.ADDONS_ENABLED:
+    urlpatterns.append(
+        path(
+            "addons/",
+            include(
+                [
+                    path("transit/", addons_views.transit_page, name="transit_page"),
+                    path("redirect/", addons_views.redirect_page, name="redirect_page"),
+                ]
+            ),
+        ),
+    )
 
 if settings.EXTERNAL_API_ENABLED:
     urlpatterns.append(
