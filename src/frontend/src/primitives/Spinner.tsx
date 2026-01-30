@@ -1,5 +1,12 @@
 import { ProgressBar } from 'react-aria-components'
-import { css } from '@/styled-system/css'
+import { RiHourglassFill } from '@remixicon/react'
+import { css, cx } from '@/styled-system/css'
+
+const rotatingArcClassName = css({
+  animation: 'rotate 1s ease-in-out infinite',
+  transformOrigin: 'center',
+  transition: 'transform 16ms linear',
+})
 
 export const Spinner = ({
   size = 56,
@@ -44,37 +51,44 @@ export const Spinner = ({
               className={css({
                 stroke: variant == 'light' ? 'primary.100' : 'transparent',
               })}
-              style={{}}
             />
             <circle
               cx={center}
               cy={center}
               r={r}
               strokeDasharray={`${c} ${c}`}
-              strokeDashoffset={percentage && c - (percentage / 100) * c}
+              strokeDashoffset={
+                typeof percentage === 'number'
+                  ? c - (percentage / 100) * c
+                  : undefined
+              }
               strokeLinecap="round"
-              className={css({
-                stroke: variant == 'light' ? 'primary.800' : 'white',
-              })}
-              style={{
-                animation: `rotate 1s ease-in-out infinite`,
-                transformOrigin: 'center',
-                transition: 'transform 16ms linear',
-              }}
+              className={cx(
+                rotatingArcClassName,
+                css({
+                  stroke: variant == 'light' ? 'primary.800' : 'white',
+                })
+              )}
             />
           </svg>
           <span
             aria-hidden="true"
             className={css({
               display: 'none',
-              color: variant == 'light' ? 'primary.800' : 'white',
-              fontSize: 'sm',
+              color: 'black',
               '@media (prefers-reduced-motion: reduce)': {
-                display: 'inline',
+                display: 'inline-flex',
               },
             })}
           >
-            ⏳
+            <RiHourglassFill
+              size={Math.max(16, Math.round(size * 0.4))}
+              style={{
+                display: 'block',
+                transform: 'translateY(1px)',
+                color: variant == 'light' ? 'primary.800' : 'white',
+              }}
+            />
           </span>
         </div>
       )}
