@@ -17,6 +17,7 @@ import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 
 const EffectsButton = ({ onPress }: { onPress: () => void }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
@@ -98,6 +99,14 @@ export const VideoDeviceControl = ({
 
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.VIDEO}`)
   const canPublishTrack = useCanPublishTrack(TrackSource.CAMERA)
+
+  useRegisterKeyboardShortcut({
+    shortcut: { key: 'V', ctrlKey: true, shiftKey: true },
+    handler: async () => {
+      if (!canPublishTrack || cannotUseDevice) return
+      await toggleWithProcessor()
+    },
+  })
 
   return (
     <div
