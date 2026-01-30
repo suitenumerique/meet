@@ -446,16 +446,14 @@ export const Join = ({
                 type="text"
                 onChange={saveUsername}
                 label={t('usernameLabel')}
-                aria-label={t('usernameLabel')}
+                id="input-name"
                 defaultValue={username}
                 validate={(value) => !value && t('errors.usernameEmpty')}
                 wrapperProps={{
                   noMargin: true,
                   fullWidth: true,
                 }}
-                labelProps={{
-                  center: true,
-                }}
+                autoComplete="name"
                 maxLength={50}
               />
             </VStack>
