@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♿️(frontend) Improve spinner reduced‑motion fallback #931
+
 ## [1.5.0] - 2026-01-28
 
 ### Changed
