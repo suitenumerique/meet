@@ -16,7 +16,7 @@ from urllib3.util import Retry
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
-from summary.core.file_service import FileService
+from summary.core.file_service import FileService, FileServiceException
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
@@ -145,36 +145,41 @@ def process_audio_transcribe_summarize_v2(
         max_retries=settings.whisperx_max_retries,
     )
 
-    with (
-        file_service.prepare_audio_file(filename) as (audio_file, metadata),
-    ):
-        metadata_manager.track(task_id, {"audio_length": metadata["duration"]})
+    try:
+        with (
+            file_service.prepare_audio_file(filename) as (audio_file, metadata),
+        ):
+            metadata_manager.track(task_id, {"audio_length": metadata["duration"]})
 
-        if language is None:
-            language = settings.whisperx_default_language
-            logger.info(
-                "No language specified, using default from settings: %s",
-                (language or "auto-detect"),
+            if language is None:
+                language = settings.whisperx_default_language
+                logger.info(
+                    "No language specified, using default from settings: %s",
+                    (language or "auto-detect"),
+                )
+            else:
+                logger.info(
+                    "Querying transcription in '%s' language",
+                    language,
+                )
+
+            transcription_start_time = time.time()
+
+            transcription = whisperx_client.audio.transcriptions.create(
+                model=settings.whisperx_asr_model, file=audio_file, language=language
             )
-        else:
-            logger.info(
-                "Querying transcription in '%s' language",
-                language,
+
+            transcription_time = round(time.time() - transcription_start_time, 2)
+            metadata_manager.track(
+                task_id,
+                {"transcription_time": transcription_time},
             )
+            logger.info("Transcription received in %.2f seconds.", transcription_time)
+            logger.debug("Transcription: \n %s", transcription)
 
-        transcription_start_time = time.time()
-
-        transcription = whisperx_client.audio.transcriptions.create(
-            model=settings.whisperx_asr_model, file=audio_file, language=language
-        )
-
-        transcription_time = round(time.time() - transcription_start_time, 2)
-        metadata_manager.track(
-            task_id,
-            {"transcription_time": transcription_time},
-        )
-        logger.info("Transcription received in %.2f seconds.", transcription_time)
-        logger.debug("Transcription: \n %s", transcription)
+    except FileServiceException:
+        logger.exception("Unexpected error for filename: %s", filename)
+        return
 
     metadata_manager.track_transcription_metadata(task_id, transcription)
 
