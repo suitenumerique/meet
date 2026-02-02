@@ -8,10 +8,17 @@ from pathlib import Path
 
 import mutagen
 from minio import Minio
+from minio.error import MinioException, S3Error
 
 from summary.core.config import get_settings
 
 settings = get_settings()
+
+
+class FileServiceException(Exception):
+    """Base exception for file service operations."""
+
+    pass
 
 
 class FileService:
@@ -78,6 +85,11 @@ class FileService:
                 self._logger.debug("Recording local file path: %s", local_path)
 
                 return local_path
+
+        except (MinioException, S3Error) as e:
+            raise FileServiceException(
+                "Unexpected error while downloading object."
+            ) from e
 
         finally:
             if response:
