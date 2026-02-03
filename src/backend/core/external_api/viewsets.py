@@ -28,7 +28,7 @@ from . import authentication, permissions, serializers
 logger = getLogger(__name__)
 
 
-class ApplicationViewSet(viewsets.GenericViewSet):
+class ApplicationViewSet(viewsets.ViewSet):
     """API endpoints for application authentication and token generation."""
 
     @decorators.action(
