@@ -142,6 +142,7 @@ class RecordingAccessInline(admin.TabularInline):
 
     model = models.RecordingAccess
     extra = 0
+    autocomplete_fields = ["user"]
 
 
 @admin.action(description=_("Resend notification to external service"))
