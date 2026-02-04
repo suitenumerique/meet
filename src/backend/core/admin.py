@@ -213,7 +213,16 @@ class RecordingAdmin(admin.ModelAdmin):
     )
     list_filter = ["created_at"]
     list_select_related = ("room",)
-    readonly_fields = ["id", "created_at", "updated_at"]
+    readonly_fields = (
+        "id",
+        "created_at",
+        "options",
+        "mode",
+        "room",
+        "status",
+        "updated_at",
+        "worker_id",
+    )
     actions = [resend_notification]
 
     def get_queryset(self, request):
