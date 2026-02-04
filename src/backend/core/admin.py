@@ -115,6 +115,10 @@ class RoomAdmin(admin.ModelAdmin):
     list_filter = ["access_level", "created_at"]
     readonly_fields = ["id", "created_at", "updated_at"]
 
+    def get_queryset(self, request):
+        """Optimize queries by prefetching related access and user data to avoid N+1 queries."""
+        return super().get_queryset(request).prefetch_related("accesses__user")
+
     def get_owner(self, obj):
         """Return the owner of the room for display in the admin list."""
 
