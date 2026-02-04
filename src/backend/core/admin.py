@@ -208,6 +208,7 @@ class RecordingAdmin(admin.ModelAdmin):
         "worker_id",
     )
     list_filter = ["created_at"]
+    list_select_related = ("room",)
     readonly_fields = ["id", "created_at", "updated_at"]
     actions = [resend_notification]
 
