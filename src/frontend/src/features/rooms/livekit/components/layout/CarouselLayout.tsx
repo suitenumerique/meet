@@ -3,6 +3,7 @@ import { getScrollBarWidth } from '@livekit/components-core'
 import * as React from 'react'
 import { TrackLoop, useVisualStableUpdate } from '@livekit/components-react'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
+import { setCarouselLayout, resetLayout } from '@/stores/participantLayout'
 
 const MIN_HEIGHT = 130
 const MIN_WIDTH = 140
@@ -78,6 +79,15 @@ export function CarouselLayout({
       )
     }
   }, [maxVisibleTiles, carouselOrientation])
+
+  // Update store when carousel layout is active
+  React.useEffect(() => {
+    setCarouselLayout()
+    
+    return () => {
+      resetLayout()
+    }
+  }, [])
 
   return (
     <aside

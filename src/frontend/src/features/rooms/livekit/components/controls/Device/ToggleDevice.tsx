@@ -1,7 +1,10 @@
 import { ToggleButton } from '@/primitives'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { useMemo, useState } from 'react'
-import { appendShortcutLabel } from '@/features/shortcuts/utils'
+import {
+  appendShortcutLabel,
+  getEffectiveShortcut,
+} from '@/features/shortcuts/utils'
 import { useTranslation } from 'react-i18next'
 import { PermissionNeededButton } from './PermissionNeededButton'
 import useLongPress from '@/features/shortcuts/useLongPress'
@@ -16,8 +19,10 @@ import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
-import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
 import { ToggleSource, CaptureOptionsBySource } from '@livekit/components-core'
+import { getShortcutById } from '@/features/shortcuts/catalog'
+import { useSnapshot } from 'valtio'
+import { shortcutOverridesStore } from '@/stores/shortcutOverrides'
 
 type ToggleDeviceStyleProps = {
   variant?: NonNullable<ButtonRecipeProps>['variant']
@@ -85,10 +90,12 @@ export const ToggleDevice = <T extends ToggleSource>({
 
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
-  const deviceShortcut = useDeviceShortcut(kind)
+  const shortcutId =
+    kind === 'audioinput' ? 'toggle-microphone' : 'toggle-camera'
+  const { overrides } = useSnapshot(shortcutOverridesStore)
 
   useRegisterKeyboardShortcut({
-    shortcut: deviceShortcut,
+    shortcutId,
     handler: async () => await toggle(),
     isDisabled: cannotUseDevice,
   })
@@ -98,6 +105,13 @@ export const ToggleDevice = <T extends ToggleSource>({
     onKeyUp,
     isDisabled: cannotUseDevice,
   })
+
+  const deviceShortcut = useMemo(() => {
+    const override = overrides.get(shortcutId)
+    if (override) return override
+    const catalogItem = getShortcutById(shortcutId)
+    return catalogItem?.shortcut
+  }, [shortcutId, overrides])
 
   const toggleLabel = useMemo(() => {
     const label = t(enabled ? 'disable' : 'enable', {
