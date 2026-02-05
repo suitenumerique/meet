@@ -138,7 +138,8 @@ export const Popover = ({
   }
 
   useEffect(() => {
-    if (!effectiveOpen || !focusOnOpen) return
+    const wasOpen = prevOpenRef.current
+    if (wasOpen || !effectiveOpen || !focusOnOpen) return
     const first = popoverContentRef.current?.querySelector<HTMLElement>(
       focusOnOpen.selector
     )

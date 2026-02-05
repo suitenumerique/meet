@@ -152,6 +152,7 @@ export const VideoDeviceControl = ({
           </Button>
           {({ close }) => (
             <div
+              data-attr="camera-menu-popover"
               className={css({
                 maxWidth: '36rem',
                 padding: '0.15rem',

@@ -30,6 +30,12 @@ export const useSidePanel = () => {
         return layoutStore.sidePanelTriggers.options ?? activeEl
       }
     }
+    if (
+      panelId === PanelId.EFFECTS &&
+      activeEl?.closest('[data-attr="camera-menu-popover"]')
+    ) {
+      return layoutStore.sidePanelTriggers.cameraMenu ?? activeEl
+    }
     const triggerKeyByPanel: Partial<Record<PanelId, SidePanelTriggerKey>> = {
       [PanelId.PARTICIPANTS]: 'participants',
       [PanelId.TOOLS]: 'tools',

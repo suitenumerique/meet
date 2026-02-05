@@ -25,6 +25,9 @@ export const Effects = () => {
       if (activeEl?.tagName === 'DIV') {
         return getTrigger('options') ?? activeEl
       }
+      if (activeEl?.closest('[data-attr="camera-menu-popover"]')) {
+        return getTrigger('cameraMenu') ?? activeEl
+      }
       // For direct button clicks, use the active element as is
       return activeEl
     },
