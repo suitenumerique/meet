@@ -320,8 +320,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
               console.error(e)
               if (
                 e.source == Track.Source.ScreenShare &&
-                e.error.toString() ==
-                  'NotAllowedError: Permission denied by system'
+                e.error.toString() == 'NotAllowedError: Permission denied by system'
               ) {
                 setIsShareErrorVisible(true)
               }

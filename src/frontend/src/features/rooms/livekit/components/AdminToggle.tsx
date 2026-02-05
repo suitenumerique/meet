@@ -5,6 +5,7 @@ import { css } from '@/styled-system/css'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
 import { useSidePanel } from '../hooks/useSidePanel'
+import { useSidePanelTriggerRef } from '../hooks/useSidePanelTriggerRef'
 
 export const AdminToggle = ({
   variant = 'primaryTextDark',
@@ -15,9 +16,10 @@ export const AdminToggle = ({
 
   const { isAdminOpen, toggleAdmin } = useSidePanel()
   const tooltipLabel = isAdminOpen ? 'open' : 'closed'
+  const setAdminTriggerRef = useSidePanelTriggerRef('admin')
 
   const hasAdminAccess = useIsAdminOrOwner()
-  if (!hasAdminAccess) return
+  if (!hasAdminAccess) return null
 
   return (
     <div
@@ -32,6 +34,7 @@ export const AdminToggle = ({
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isAdminOpen}
+        ref={setAdminTriggerRef}
         onPress={(e) => {
           toggleAdmin()
           onPress?.(e)

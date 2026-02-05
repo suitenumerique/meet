@@ -70,6 +70,7 @@ export function ParticipantsCollapsableList<T>({
       <ToggleHeader
         isSelected={isOpen}
         aria-label={label}
+        data-focus-target="list-header"
         onPress={() => setIsOpen(!isOpen)}
         style={{
           borderRadius: !isOpen ? '7px' : undefined,

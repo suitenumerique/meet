@@ -26,6 +26,26 @@ export function useRestoreFocus(
 
   const prevIsOpenRef = useRef(false)
   const triggerRef = useRef<HTMLElement | null>(null)
+  const cleanupRef = useRef<(() => void) | null>(null)
+  const lastInteractionRef = useRef<'keyboard' | 'mouse' | null>(null)
+
+  useEffect(() => {
+    // Track last interaction type (like native :focus-visible behavior)
+    const handleKeyDown = () => {
+      lastInteractionRef.current = 'keyboard'
+    }
+    const handleMouseDown = () => {
+      lastInteractionRef.current = 'mouse'
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('mousedown', handleMouseDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('mousedown', handleMouseDown)
+    }
+  }, [])
 
   useEffect(() => {
     const wasOpen = prevIsOpenRef.current
@@ -41,7 +61,28 @@ export function useRestoreFocus(
     if (wasOpen && !isOpen) {
       const trigger = triggerRef.current
       if (trigger && document.contains(trigger)) {
-        const focus = () => trigger.focus({ preventScroll })
+        const focus = () => {
+          trigger.focus({ preventScroll })
+          // Only show focus ring if last interaction was keyboard (like native :focus-visible)
+          if (lastInteractionRef.current === 'keyboard') {
+            trigger.setAttribute('data-restore-focus-visible', '')
+            // Remove focus ring only when the trigger loses focus
+            const handleBlur = () => {
+              if (document.contains(trigger)) {
+                trigger.removeAttribute('data-restore-focus-visible')
+              }
+            }
+            trigger.addEventListener('blur', handleBlur, { once: true })
+            // Store cleanup for unmount case
+            cleanupRef.current?.()
+            cleanupRef.current = () => {
+              trigger.removeEventListener('blur', handleBlur)
+              if (document.contains(trigger)) {
+                trigger.removeAttribute('data-restore-focus-visible')
+              }
+            }
+          }
+        }
         if (restoreFocusRaf) requestAnimationFrame(focus)
         else focus()
       }
@@ -50,6 +91,12 @@ export function useRestoreFocus(
     }
 
     prevIsOpenRef.current = isOpen
+
+    // Cleanup: remove focus ring if component unmounts before focus changes
+    return () => {
+      cleanupRef.current?.()
+      cleanupRef.current = null
+    }
   }, [
     isOpen,
     onClosed,

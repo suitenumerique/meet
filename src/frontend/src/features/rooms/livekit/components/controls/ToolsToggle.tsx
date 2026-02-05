@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { css } from '@/styled-system/css'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import { useSidePanelTriggerRef } from '../../hooks/useSidePanelTriggerRef'
 
 export const ToolsToggle = ({
   variant = 'primaryTextDark',
@@ -14,6 +15,7 @@ export const ToolsToggle = ({
 
   const { isToolsOpen, toggleTools } = useSidePanel()
   const tooltipLabel = isToolsOpen ? 'open' : 'closed'
+  const setToolsTriggerRef = useSidePanelTriggerRef('tools')
 
   return (
     <div
@@ -28,6 +30,7 @@ export const ToolsToggle = ({
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isToolsOpen}
+        ref={setToolsTriggerRef}
         onPress={(e) => {
           toggleTools()
           onPress?.(e)

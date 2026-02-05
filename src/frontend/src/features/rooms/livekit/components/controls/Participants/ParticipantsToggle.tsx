@@ -6,6 +6,7 @@ import { css } from '@/styled-system/css'
 import { useParticipants } from '@livekit/components-react'
 import { useSidePanel } from '../../../hooks/useSidePanel'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import { useSidePanelTriggerRef } from '../../../hooks/useSidePanelTriggerRef'
 
 export const ParticipantsToggle = ({
   onPress,
@@ -24,6 +25,7 @@ export const ParticipantsToggle = ({
     numParticipants && numParticipants > 0 ? numParticipants : 1
 
   const { isParticipantsOpen, toggleParticipants } = useSidePanel()
+  const setParticipantsTriggerRef = useSidePanelTriggerRef('participants')
 
   const tooltipLabel = isParticipantsOpen ? 'open' : 'closed'
 
@@ -42,6 +44,7 @@ export const ParticipantsToggle = ({
             count: announcedCount,
           })}.`}
           isSelected={isParticipantsOpen}
+          ref={setParticipantsTriggerRef}
           onPress={(e) => {
             toggleParticipants()
             onPress?.(e)

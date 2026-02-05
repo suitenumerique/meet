@@ -1,3 +1,4 @@
+import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
@@ -9,13 +10,13 @@ import { css } from '@/styled-system/css'
 import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
 import { useCanPublishTrack } from '../../../hooks/useCanPublishTrack'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
-import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import Source = Track.Source
 import { isSafari } from '@/utils/livekit'
+import { AUDIO_INPUT_FOCUS_SELECTOR } from './deviceFocusSelectors'
 
 type AudioDevicesControlProps = Omit<
   UseTrackToggleProps<Source.Microphone>,
@@ -29,6 +30,7 @@ export const AudioDevicesControl = ({
   ...props
 }: AudioDevicesControlProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
 
   const {
     userChoices: { audioDeviceId, audioOutputDeviceId },
@@ -76,7 +78,16 @@ export const AudioDevicesControl = ({
         }}
       />
       {!hideMenu && (
-        <Popover variant="dark" withArrow={false}>
+        <Popover
+          variant="dark"
+          withArrow={false}
+          isOpen={isMenuOpen}
+          onOpenChange={setIsMenuOpen}
+          focusOnOpen={{
+            selector: AUDIO_INPUT_FOCUS_SELECTOR,
+            delayMs: 250,
+          }}
+        >
           <Button
             tooltip={selectLabel}
             aria-label={selectLabel}
@@ -100,6 +111,7 @@ export const AudioDevicesControl = ({
               })}
             >
               <div
+                data-attr="audio-input-select"
                 style={{
                   flex: '1 1 0',
                   minWidth: 0,

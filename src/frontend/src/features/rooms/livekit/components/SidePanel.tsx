@@ -13,6 +13,8 @@ import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
+import { useSidePanelRef } from '../hooks/useSidePanelRef'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { HStack } from '@/styled-system/jsx'
 
 type StyledSidePanelProps = {
@@ -24,6 +26,7 @@ type StyledSidePanelProps = {
   closeButtonTooltip: string
   isSubmenu: boolean
   onBack: () => void
+  panelRef: React.RefObject<HTMLElement>
   backButtonLabel: string
 }
 
@@ -36,9 +39,11 @@ const StyledSidePanel = ({
   closeButtonTooltip,
   isSubmenu = false,
   onBack,
+  panelRef,
   backButtonLabel,
 }: StyledSidePanelProps) => (
   <aside
+    ref={panelRef}
     className={css({
       borderWidth: '1px',
       borderStyle: 'solid',
@@ -135,7 +140,7 @@ const Panel = ({ isOpen, keepAlive = false, children }: PanelProps) => (
     {keepAlive || isOpen ? children : null}
   </div>
 )
-export const SidePanel = () => {
+const SidePanelContent = () => {
   const {
     activePanelId,
     isParticipantsOpen,
@@ -147,17 +152,27 @@ export const SidePanel = () => {
     isInfoOpen,
     isSubPanelOpen,
     activeSubPanelId,
+    closeSidePanel,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
+  const panelRef = useSidePanelRef()
+
+  useEscapeKey(
+    () => {
+      // Close subpanel + panel together for a consistent Escape behavior
+      closeSidePanel()
+    },
+    {
+      isActive: isSidePanelOpen,
+      capture: true,
+    }
+  )
 
   return (
     <StyledSidePanel
       title={t(`heading.${activeSubPanelId || activePanelId}`)}
       ariaLabel={t('ariaLabel')}
-      onClose={() => {
-        layoutStore.activePanelId = null
-        layoutStore.activeSubPanelId = null
-      }}
+      onClose={closeSidePanel}
       closeButtonTooltip={t('closeButton', {
         content: t(`content.${activeSubPanelId || activePanelId}`),
       })}
@@ -165,7 +180,9 @@ export const SidePanel = () => {
       isSubmenu={isSubPanelOpen}
       backButtonLabel={t('backToTools')}
       onBack={() => (layoutStore.activeSubPanelId = null)}
+      panelRef={panelRef}
     >
+      {/* keepAlive stays only for Info to reduce memory footprint */}
       <Panel isOpen={isParticipantsOpen}>
         <ParticipantsList />
       </Panel>
@@ -181,9 +198,13 @@ export const SidePanel = () => {
       <Panel isOpen={isAdminOpen}>
         <Admin />
       </Panel>
-      <Panel isOpen={isInfoOpen}>
+      <Panel isOpen={isInfoOpen} >
         <Info />
       </Panel>
     </StyledSidePanel>
   )
+}
+
+export const SidePanel = () => {
+  return <SidePanelContent />
 }

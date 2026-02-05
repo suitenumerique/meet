@@ -1,4 +1,5 @@
-import { ReactNode } from 'react'
+import type { RefObject } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import {
   DialogProps,
   DialogTrigger,
@@ -60,6 +61,37 @@ const StyledOverlayArrow = styled(OverlayArrow, {
   },
 })
 
+type FocusOnOpenOptions = {
+  selector: string
+  delayMs?: number
+  preventScroll?: boolean
+}
+
+type FocusOnCloseOptions = {
+  ref?: RefObject<HTMLElement>
+  selector?: string
+  delayMs?: number
+  preventScroll?: boolean
+}
+
+const scheduleFocus = (
+  target: HTMLElement,
+  { delayMs = 0, preventScroll = true }: { delayMs?: number; preventScroll?: boolean }
+) => {
+  const timer = setTimeout(() => {
+    requestAnimationFrame(() => {
+      target.focus({ preventScroll })
+    })
+  }, delayMs)
+  return () => clearTimeout(timer)
+}
+
+const resolveFocusTarget = (options: FocusOnCloseOptions) => {
+  if (options.ref?.current) return options.ref.current
+  if (!options.selector) return null
+  return document.querySelector<HTMLElement>(options.selector)
+}
+
 /**
  * a Popover is a tuple of a trigger component (most usually a Button) that toggles some content in a tooltip around the trigger
  *
@@ -70,6 +102,11 @@ export const Popover = ({
   children,
   variant = 'light',
   withArrow = true,
+  isOpen,
+  defaultOpen,
+  onOpenChange,
+  focusOnOpen,
+  focusOnClose,
   ...dialogProps
 }: {
   children: [
@@ -80,10 +117,52 @@ export const Popover = ({
   ]
   variant?: 'dark' | 'light'
   withArrow?: boolean
+  isOpen?: boolean
+  defaultOpen?: boolean
+  onOpenChange?: (isOpen: boolean) => void
+  focusOnOpen?: FocusOnOpenOptions
+  focusOnClose?: FocusOnCloseOptions
 } & Omit<DialogProps, 'children'>) => {
   const [trigger, popoverContent] = children
+  const popoverContentRef = useRef<HTMLDivElement>(null)
+  const isControlled = isOpen !== undefined
+  const [internalOpen, setInternalOpen] = useState(!!defaultOpen)
+  const effectiveOpen = isControlled ? isOpen : internalOpen
+  const prevOpenRef = useRef(effectiveOpen)
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(nextOpen)
+    }
+    onOpenChange?.(nextOpen)
+  }
+
+  useEffect(() => {
+    const wasOpen = prevOpenRef.current
+    if (wasOpen || !effectiveOpen || !focusOnOpen) return
+    const first = popoverContentRef.current?.querySelector<HTMLElement>(
+      focusOnOpen.selector
+    )
+    if (!first) return
+    return scheduleFocus(first, focusOnOpen)
+  }, [effectiveOpen, focusOnOpen])
+
+  useEffect(() => {
+    const wasOpen = prevOpenRef.current
+    let cleanup: (() => void) | undefined
+    if (wasOpen && !effectiveOpen && focusOnClose) {
+      const target = resolveFocusTarget(focusOnClose)
+      if (target) cleanup = scheduleFocus(target, focusOnClose)
+    }
+    prevOpenRef.current = effectiveOpen
+    return cleanup
+  }, [effectiveOpen, focusOnClose])
   return (
-    <DialogTrigger>
+    <DialogTrigger
+      isOpen={effectiveOpen}
+      defaultOpen={defaultOpen}
+      onOpenChange={handleOpenChange}
+    >
       {trigger}
       <StyledPopover>
         {withArrow && (
@@ -95,7 +174,12 @@ export const Popover = ({
         )}
         <Dialog {...dialogProps}>
           {({ close }) => (
-            <Box size="sm" type="popover" variant={variant}>
+            <Box
+              size="sm"
+              type="popover"
+              variant={variant}
+              ref={popoverContentRef}
+            >
               {typeof popoverContent === 'function'
                 ? popoverContent({ close })
                 : popoverContent}
