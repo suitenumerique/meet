@@ -25,15 +25,27 @@ export const TermsOfServiceRoute = () => {
         {/* Article 2 */}
         <H lvl={2}>{t('articles.article2.title')}</H>
         <P>{t('articles.article2.content')}</P>
-        <P>{t('articles.article2.purposes')}</P>
+        {ensureArray(
+          t('articles.article2.paragraphs', {
+            returnObjects: true,
+          })
+        ).map((paragraph, index) => (
+          <P key={index}>{paragraph}</P>
+        ))}
 
         {/* Article 3 */}
         <H lvl={2}>{t('articles.article3.title')}</H>
-        <P>{t('articles.article3.definition')}</P>
+        {ensureArray(
+          t('articles.article3.paragraphs', {
+            returnObjects: true,
+          })
+        ).map((paragraph, index) => (
+          <P key={index}>{paragraph}</P>
+        ))}
 
         {/* Article 4 */}
         <H lvl={2}>{t('articles.article4.title')}</H>
-        <P>{t('articles.article4.content')}</P>
+        <P>{t('articles.article4.definition')}</P>
 
         {/* Article 5 */}
         <H lvl={2} margin={false}>
@@ -62,6 +74,7 @@ export const TermsOfServiceRoute = () => {
             __html: t('articles.article5.sections.section1.paragraph3'),
           }}
         ></P>
+        <P>{t('articles.article5.sections.section1.paragraph4')}</P>
 
         {/* Section 5.2 */}
         <H lvl={3} bold>
@@ -112,7 +125,6 @@ export const TermsOfServiceRoute = () => {
 
         {/* Article 7 */}
         <H lvl={2}>{t('articles.article7.title')}</H>
-        <P>{t('articles.article7.content')}</P>
 
         {/* Section 7.1 */}
         <H lvl={3} bold>

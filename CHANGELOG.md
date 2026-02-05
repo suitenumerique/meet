@@ -11,6 +11,8 @@ and this project adheres to
 ### Changed
 
 - ♿️(frontend) fix form labels and autocomplete wiring #932
+- 🥅(summary) catch file-related exceptions when handling recording #944
+- 📝(frontend) update legal terms #956
 
 ## [1.5.0] - 2026-01-28
 
@@ -20,7 +22,6 @@ and this project adheres to
 - ♿️(frontend) sr pin/unpin announcements with dedicated messages #898
 - ♿(frontend) adjust sr announcements for idle disconnect timer #908
 - ♿️(frontend) add global screen reader announcer#922
-- 🥅(summary) catch file-related exceptions when handling recording #944
 
 ### Fixed
 

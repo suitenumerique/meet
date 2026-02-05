@@ -3,115 +3,127 @@
   "articles": {
     "article1": {
       "title": "1. Scope",
-      "content": "This document defines the terms of use for Visio, the videoconferencing service of the administration."
+      "content": "This document defines the terms of use of Visio (hereinafter “Visio” or “the application”), a videoconferencing application specifically designed for State administrations and the bodies under their supervision."
     },
     "article2": {
-      "title": "2. Purpose of the Platform",
-      "content": "The service promotes team cooperation and remote work, and facilitates the organization of meetings, conferences, or training sessions.",
-      "purposes": "Visio is developed and operated by DINUM. Any use of the service must comply with these terms of use."
+      "title": "2. Purpose of the application",
+      "content": "Visio helps foster cooperation among teams of State administrations and bodies under their supervision, supports remote work, and facilitates the organization of meetings, conferences, or training sessions.",
+      "paragraphs": [
+        "Visio is developed and operated by the Interministerial Directorate for Digital Affairs (DINUM).",
+        "The application is made available by DINUM to State administrations and bodies under their supervision, for use by their staff members, partners, and invited service providers.",
+        "Any use of Visio must comply with these terms of use and, where applicable, the usage policy of the relevant supervising administration."
+      ]
     },
     "article3": {
-      "title": "3. Access to the Service",
-      "definition": "Visio is made available to public agents connected through ProConnect for the purpose of administering a videoconference room. The connected public agent can then transmit a link allowing access to the room to any person, under their responsibility."
+      "title": "3. Definitions",
+      "paragraphs": [
+        "Visio is the product whose use is described in these terms and presented on the following page: https://visio.numerique.gouv.fr.",
+        "Users of Visio are any persons using Visio for videoconferencing communication purposes, whether they are staff members, partners, or service providers of the relevant administrations. The supervising administration is the State administration or body under its supervision that makes Visio available to its staff members, partners, or service providers.",
+        "Room organizers are users who are responsible for a videoconference room after logging in via ProConnect."
+      ]
     },
     "article4": {
-      "title": "4. Usage",
-      "content": "The use of the service is free of charge. To administer a videoconference room, it is necessary to connect through ProConnect."
+      "title": "4. Access to the application",
+      "definition": "Visio is made available to users by their supervising administration. Organizers may then share a link granting access to the room with any person, under their responsibility."
     },
     "article5": {
       "title": "5. Features",
       "sections": {
         "section1": {
-          "title": "5.1. Features Available to Public Agents",
-          "content": "Visio offers public agents the ability to create a videoconference room from a standard workstation, linked to their ProConnect account.",
-          "paragraph1": "Any State agent whose activities are compatible with the use of Visio or who is not subject to specific confidentiality obligations or professional secrecy, can create a videoconference. They can then share the meeting link with other participants, whether they are part of the administration or not.",
-          "paragraph2": "To this end, each room organizer can:",
+          "title": "5.1. Features available to organizers",
+          "content": "Visio allows staff of State administrations and bodies under their supervision to create a videoconference room from a standard workstation, linked to their ProConnect account.",
+          "paragraph1": "Any State staff member or staff member of a body under State supervision, whose activities are compatible with the use of Visio or who is not subject to specific confidentiality or professional secrecy obligations, may create and organize a videoconference. They may then share the meeting link with other persons, users, whether or not they belong to the administration.",
+          "paragraph2": "For this purpose, each room organizer may:",
           "capabilities": [
             "Protect access to the room with a waiting room;",
-            "Authorize the entry of each participant into the room;",
-            "Mute the microphones and cameras of participants;",
-            "Remove a participant from the room."
+            "Authorize each user’s entry into the room;",
+            "Mute users’ microphones and cameras;",
+            "Remove a user from the room;",
+            "Use the meeting transcription tool after obtaining the consent of users, under their responsibility."
           ],
-          "paragraph3": "Only agents whose field of activity is authorized to use Visio or who <u>are not subject to specific confidentiality obligations or professional secrecy</u>, may use or have control of this service and its features."
+          "paragraph3": "Only staff members whose ProConnect account belongs to a domain authorized to organize rooms on Visio or who are not subject to specific confidentiality or professional secrecy obligations may use or have control over the application and its features.",
+          "paragraph4": "The automatic transcription tool can be used by organizers from the room settings menu. Organizers are responsible for ensuring the consent of users participating in the transcribed meeting. The transcription language can be changed from the same menu. At the end of the meeting, a link is sent to the organizer to access the transcription stored in the tool called Docs operated by DINUM."
         },
         "section2": {
-          "title": "5.2. Features Available to Users",
-          "content": "Visio allows any user, whether a public agent or not, to participate in any Visio room to which they are invited by a State agent and to benefit from all its features.",
-          "paragraph": "To this end, each participant can:",
+          "title": "5.2. Features available to users",
+          "content": "Visio allows any user, whether a public official or not, to participate in any Visio room to which they are invited by an organizer and to benefit from its features.",
+          "paragraph": "For this purpose, each user may:",
           "capabilities": [
-            "Set their displayed identity when entering the room;",
+            "Provide a display name when entering the room;",
             "Communicate remotely via audio and/or video;",
             "Share their screen;",
-            "Exchange messages during the session publicly with everyone;",
-            "View information about the conference;",
-            "Enable or disable their camera and/or microphone at any time;",
-            "Protect the privacy of their workstation by selecting and activating a background before entering the room or even during the videoconference."
+            "Exchange messages during the session publicly with all users in the room;",
+            "Access technical information about the room and accessibility features;",
+            "Turn their camera and/or microphone on or off at any time;",
+            "Protect the privacy of their surroundings when the camera is on by selecting and activating a background before entering the room or during the videoconference."
           ]
         }
       }
     },
     "article6": {
-      "title": "6. User Commitments and Responsibilities",
+      "title": "6. Commitments and responsibilities of users",
       "sections": {
         "section1": {
-          "title": "6.1 Compliant Uses",
+          "title": "6.1 Permitted uses",
           "paragraphs": [
-            "The service is made available to public agents through ProConnect.",
-            "The user is responsible for the data or content they enter in the videoconference room's messaging service. They must ensure they only enter appropriate messages."
+            "Visio is provided to facilitate professional exchanges between staff of State administrations and bodies under their supervision and external collaborators.",
+            "Users are responsible for the images and sounds they make accessible in the videoconference room. This responsibility applies both to what their camera or microphone may broadcast and to what their device may make accessible to third parties. To this end, users must use the application in a professional environment and must not disclose any information covered by professional confidentiality obligations to third parties (for example: use of privacy filters, headphones, etc.).",
+            "Users are responsible for the data or content they enter into the room’s messaging service. They must ensure that only appropriate messages are entered."
           ]
         },
         "section2": {
-          "title": "6.2 Prohibited Uses",
+          "title": "6.2 Prohibited uses",
           "paragraphs": [
-            "The user agrees not to enter content or information in the Visio room's messaging service that is contrary to current legal and regulatory provisions."
+            "Users undertake not to enter into the Visio room messaging service, or make accessible via image or sound, any content or information that violates applicable laws and regulations."
           ]
         }
       }
     },
     "article7": {
-      "title": "7. DINUM Commitments and Responsibilities",
-      "content": "DINUM is responsible for the overall administration of the service. It provides agents with all necessary information to facilitate its use. It offers technical and functional assistance to ensure the proper operation of the service. It informs users by any reasonable means of any difficulty that may affect this proper operation.",
+      "title": "7. Commitments and responsibilities of DINUM",
       "sections": {
         "section1": {
-          "title": "7.1. Service Availability",
+          "title": "7.1. Application security",
           "paragraphs": [
-            "The service is available 24/7, except during maintenance windows.",
-            "DINUM targets an annual service availability of 99.5%, excluding planned outages. In case of an incident or maintenance, it aims for a recovery time of 72 hours outside business hours.",
-            "As part of maintaining the service runtime environment, DINUM reserves the right to temporarily suspend the operation of the service. It informs users at least 48 hours in advance. In emergencies, this suspension may occur without notice.",
-            "These exceptional stoppages may be necessary, for example, for back-office data management operations, production deployments, or architecture changes.",
-            "Service unavailability does not give rise to any compensation of any kind."
+            "DINUM undertakes to secure Visio, in particular by taking all necessary measures to ensure the security and confidentiality of exchanges.",
+            "The application is certified under the conditions provided for by amended Decree No. 2010-112."
           ]
         },
         "section2": {
-          "title": "7.2. Service Security",
+          "title": "7.2. Access to the application",
           "paragraphs": [
-            "DINUM takes all necessary precautions to preserve the security of the platform and the tools used within the service, particularly regarding access to the service, management of user accounts, and processing of collected data."
+            "DINUM undertakes to provide the necessary and reasonable means to ensure continuous access to the application.",
+            "The application is available 24/7, except during maintenance downtime.",
+            "DINUM aims for an annual application availability rate of 99.5%, excluding planned downtime. In the event of an incident or maintenance, it aims for a restoration time of 72 hours outside business hours.",
+            "As part of maintenance of the application’s runtime environment, DINUM reserves the right to temporarily suspend the operation of the application. Whenever possible, users will be informed at least 48 hours in advance. In emergencies, such suspension may occur without prior notice.",
+            "These exceptional outages may be required, for example, for data management operations, production releases, or architectural changes.",
+            "Application unavailability does not entitle users to any form of compensation."
           ]
         },
         "section3": {
-          "title": "7.3. Support Management",
+          "title": "7.3. Support management",
           "paragraphs": [
-            "DINUM provides first-level support to users, exclusively on the technical parts of the service.",
-            "This support can be reached via our online contact form.",
-            "The target response time to requests is two business days from submission; this timeframe may vary depending on the complexity and number of requests to be processed."
+            "DINUM provides first-level support to users, exclusively on the technical aspects of the application.",
+            "This support can be reached via the online contact form.",
+            "The target response time to requests is two business days from the sending of the email; this timeframe may vary depending on the complexity and number of requests to be processed."
           ]
         },
         "section4": {
-          "title": "7.4. Monitoring Service Use",
+          "title": "7.4. Monitoring application use",
           "paragraphs": [
-            "DINUM reserves the right to suspend or delete an agent account that has violated these terms of use, without prejudice to any potential criminal and civil liability actions that could be taken against the agent concerned.",
-            "The suspension or revocation of one or more accounts does not entitle the user to any compensation of any kind."
+            "DINUM reserves the right to suspend or delete a user account that has failed to comply with these terms of use, without prejudice to any criminal or civil liability actions that may be brought against the person concerned. Information may be transmitted to the user’s supervising administration, which is responsible for making the application available.",
+            "The suspension or revocation of one or more accounts does not give rise to any compensation of any kind."
           ]
         },
         "section5": {
           "title": "7.5. Open Source and Licenses",
-          "content": "The service source code is free and available here: https://github.com/suitenumerique/meet. The content offered by DINUM is under an Open License, with the exception of logos and iconographic and photographic representations that may be governed by their own licenses."
+          "content": "The source code of the service is open and available here: https://github.com/suitenumerique/meet. Content provided by DINUM is licensed under the Open License 2.0, with the exception of logos and iconographic or photographic representations, which may be governed by their own licenses."
         }
       }
     },
     "article8": {
-      "title": "8. Evolution of Terms of Use",
-      "content": "The terms of these terms of use may be modified or supplemented at any time, without notice, depending on changes made to the service, changes in legislation, or for any other reason deemed necessary.\nThese modifications and updates are binding on the user who must, consequently, regularly refer to this section to verify the terms in force."
+      "title": "8. Changes to the terms of use",
+      "content": "The terms of these conditions of use may be modified or supplemented at any time, without notice, depending on changes made to the service, developments in legislation, or for any other reason deemed necessary.\nThese changes and updates are binding on the user, who must therefore regularly refer to this section to verify the current terms."
     }
   }
 }
