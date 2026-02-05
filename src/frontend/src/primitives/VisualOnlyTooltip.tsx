@@ -2,7 +2,9 @@ import {
   type ReactElement,
   cloneElement,
   isValidElement,
-  useMemo, useRef,
+  useLayoutEffect,
+  useMemo,
+  useRef,
   useState,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -15,8 +17,6 @@ export type VisualOnlyTooltipProps = {
   ariaLabel?: string
   tooltipPosition?: 'top' | 'bottom'
 }
-
-const TOOLTIP_VERTICAL_OFFSET_PX = 8
 
 /**
  * Wrapper component that displays a tooltip visually only (not announced by screen readers).
@@ -37,9 +37,14 @@ export const VisualOnlyTooltip = ({
   const [isVisible, setIsVisible] = useState(false)
   const { getContainer } = useUNSAFE_PortalContext()
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState<{
     top: number
     left: number
+  } | null>(null)
+  const [computedStyle, setComputedStyle] = useState<{
+    left: number
+    arrowLeft: number
   } | null>(null)
 
   const isBottom = tooltipPosition === 'bottom'
@@ -57,9 +62,23 @@ export const VisualOnlyTooltip = ({
   const hideTooltip = () => {
     setIsVisible(false)
     setPosition(null)
+    setComputedStyle(null)
   }
 
-  const tooltipData = isVisible && position ? { isVisible, position } : null
+  useLayoutEffect(() => {
+    if (!tooltipRef.current || !isVisible || !position) return
+    const tooltipWidth = tooltipRef.current.getBoundingClientRect().width
+    const doc = tooltipRef.current.ownerDocument
+    const viewportWidth = doc.defaultView?.innerWidth ?? window.innerWidth
+    const padding = 8
+    const desiredLeft = position.left - tooltipWidth / 2
+    const maxLeft = viewportWidth - padding - tooltipWidth
+    if (desiredLeft <= maxLeft) {
+      setComputedStyle(null)
+      return
+    }
+    setComputedStyle({ left: maxLeft, arrowLeft: position.left - maxLeft })
+  }, [isVisible, position])
 
   const portalContainer = useMemo(() => {
     if (getContainer) return getContainer()
@@ -82,12 +101,14 @@ export const VisualOnlyTooltip = ({
       >
         {wrappedChild}
       </div>
-      {tooltipData &&
+      {isVisible &&
+        position &&
         portalContainer &&
         createPortal(
           <div
             aria-hidden="true"
             role="presentation"
+            ref={tooltipRef}
             className={css({
               position: 'fixed',
               padding: '2px 8px',
@@ -97,12 +118,12 @@ export const VisualOnlyTooltip = ({
               fontSize: 14,
               whiteSpace: 'nowrap',
               pointerEvents: 'none',
-              zIndex: 9999,
+              zIndex: 100001,
               boxShadow: '0 8px 20px rgba(0 0 0 / 0.1)',
               '&::after': {
                 content: '""',
                 position: 'absolute',
-                left: '50%',
+                left: 'var(--tooltip-arrow-left, 50%)',
                 transform: 'translateX(-50%)',
                 border: '4px solid transparent',
                 ...(isBottom
@@ -117,11 +138,22 @@ export const VisualOnlyTooltip = ({
               },
             })}
             style={{
-              top: `${tooltipData.position.top}px`,
-              left: `${tooltipData.position.left}px`,
-              transform: isBottom
-                ? 'translate(-50%, 0)'
-                : 'translate(-50%, -100%)',
+              top: `${position.top}px`,
+              left: computedStyle
+                ? `${computedStyle.left}px`
+                : `${position.left}px`,
+              transform: computedStyle
+                ? isBottom
+                  ? 'translateY(0)'
+                  : 'translateY(-100%)'
+                : isBottom
+                  ? 'translate(-50%, 0)'
+                  : 'translate(-50%, -100%)',
+              ...(computedStyle
+                ? {
+                    '--tooltip-arrow-left': `${computedStyle.arrowLeft}px`,
+                  }
+                : null),
             }}
           >
             {tooltip}
