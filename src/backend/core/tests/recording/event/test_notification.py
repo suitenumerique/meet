@@ -102,6 +102,7 @@ def test_notify_user_by_email_success(mocked_current_site, settings):
     settings.EMAIL_SUPPORT_EMAIL = "support@acme.com"
     settings.EMAIL_LOGO_IMG = "https://acme.com/logo"
     settings.SCREEN_RECORDING_BASE_URL = "https://acme.com/recordings"
+    settings.RECORDING_DOWNLOAD_BASE_URL = None
     settings.EMAIL_FROM = "notifications@acme.com"
 
     recording = factories.RecordingFactory(room__name="Conference Room A")
