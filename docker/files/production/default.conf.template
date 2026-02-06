@@ -1,9 +1,9 @@
 upstream meet_backend {
-    server ${BACKEND_HOST}:8000 fail_timeout=0;
+    server ${BACKEND_INTERNAL_HOST}:8000 fail_timeout=0;
 }
 
 upstream meet_frontend {
-    server ${FRONTEND_HOST}:8080 fail_timeout=0;
+    server ${FRONTEND_INTERNAL_HOST}:8080 fail_timeout=0;
 }
 
 server {

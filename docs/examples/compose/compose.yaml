@@ -21,7 +21,6 @@ services:
     restart: always
     env_file:
     - env.d/common
-    - env.d/backend
     - env.d/postgresql
     healthcheck:
       test: ["CMD", "python", "manage.py", "check"]
