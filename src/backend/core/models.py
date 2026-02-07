@@ -45,6 +45,11 @@ class RoleChoices(models.TextChoices):
         """Check if a role is owner."""
         return role == cls.OWNER
 
+    @classmethod
+    def check_member_role(cls, role):
+        """Check if a role is member."""
+        return role == cls.MEMBER
+
 
 class RecordingStatusChoices(models.TextChoices):
     """Enumeration of possible states for a recording operation."""
@@ -291,6 +296,13 @@ class Resource(BaseModel):
             if access.role == RoleChoices.MEMBER and role != RoleChoices.ADMIN:
                 role = RoleChoices.MEMBER
         return role
+
+    def has_any_role(self, user):
+        """Check if a user has any role on the resource."""
+        role = self.get_role(user)
+        return self.is_administrator_or_owner(user) or RoleChoices.check_member_role(
+            role
+        )
 
     def is_administrator_or_owner(self, user):
         """
