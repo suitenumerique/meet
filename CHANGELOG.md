@@ -16,6 +16,10 @@ and this project adheres to
 - 📝(frontend) update legal terms #956
 - ⚡️(backend) enhance django admin's loading performance #954
 
+### Fixed
+
+- 🔐(backend) enforce object-level permission checks on room endpoint #959
+
 ## [1.5.0] - 2026-01-28
 
 ### Changed

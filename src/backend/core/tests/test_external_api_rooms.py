@@ -222,6 +222,7 @@ def test_api_rooms_retrieve_success_by_user(settings):
     room1 = RoomFactory(users=[(user1, RoleChoices.OWNER)])
     room2 = RoomFactory(users=[(user2, RoleChoices.OWNER)])
     room3 = RoomFactory(users=[(user1, RoleChoices.MEMBER)])
+    room4 = RoomFactory(users=[(user1, RoleChoices.ADMIN)])
 
     token = generate_test_token(user1, [ApplicationScope.ROOMS_RETRIEVE])
 
@@ -240,6 +241,12 @@ def test_api_rooms_retrieve_success_by_user(settings):
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     response = client.get(f"/external-api/v1.0/rooms/{room3.id}/")
+
+    assert response.status_code == 200
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room4.id}/")
 
     assert response.status_code == 200
 

@@ -292,6 +292,10 @@ class Resource(BaseModel):
                 role = RoleChoices.MEMBER
         return role
 
+    def has_any_role(self, user):
+        """Check if a user has any role on the resource."""
+        return self.get_role(user) is not None
+
     def is_administrator_or_owner(self, user):
         """
         Check if a user is administrator or owner of the resource."""
