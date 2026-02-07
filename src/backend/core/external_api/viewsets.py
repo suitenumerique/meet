@@ -182,7 +182,9 @@ class RoomViewSet(
         ResourceServerAuthentication,
     ]
     permission_classes = [
-        api.permissions.IsAuthenticated & permissions.HasRequiredRoomScope
+        api.permissions.IsAuthenticated
+        & permissions.HasRequiredRoomScope
+        & permissions.RoomPermissions
     ]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer

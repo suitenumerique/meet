@@ -17,6 +17,10 @@ and this project adheres to
 - ⚡️(backend) enhance django admin's loading performance #954
 - 🌐(frontend) add missing DE translation for accessibility settings
 
+### Fixed
+
+- 🔐(backend) enforce object-level permission checks on room endpoint #959
+
 ## [1.5.0] - 2026-01-28
 
 ### Changed
