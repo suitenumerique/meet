@@ -7,6 +7,7 @@ import { Heading } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import {
   RiAccountCircleLine,
+  RiKeyboardBoxLine,
   RiNotification3Line,
   RiSettings3Line,
   RiSpeakerLine,
@@ -23,6 +24,7 @@ import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
+import ShortcutTab from './tabs/ShortcutTab'
 import AccessibilityTab from './tabs/AccessibilityTab'
 
 const tabsStyle = css({
@@ -107,6 +109,10 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               {isWideScreen &&
                 t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             </Tab>
+            <Tab icon highlight id={SettingsDialogExtendedKey.SHORTCUTS}>
+              <RiKeyboardBoxLine />
+              {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
+            </Tab>
             {isAdminOrOwner && (
               <Tab icon highlight id={SettingsDialogExtendedKey.TRANSCRIPTION}>
                 <Icon type="symbols" name="speech_to_text" />
@@ -130,6 +136,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
           <VideoTab id={SettingsDialogExtendedKey.VIDEO} />
           <GeneralTab id={SettingsDialogExtendedKey.GENERAL} />
           <NotificationsTab id={SettingsDialogExtendedKey.NOTIFICATIONS} />
+          <ShortcutTab id={SettingsDialogExtendedKey.SHORTCUTS} />
           {/* Transcription tab won't be accessible if the tab is not active in the tab list */}
           <TranscriptionTab id={SettingsDialogExtendedKey.TRANSCRIPTION} />
           <AccessibilityTab id={SettingsDialogExtendedKey.ACCESSIBILITY} />

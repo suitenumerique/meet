@@ -12,17 +12,33 @@ import { StartMediaButton } from '../../components/controls/StartMediaButton'
 import { MoreOptions } from './MoreOptions'
 import { useRef } from 'react'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { openShortcutHelp } from '@/stores/shortcutHelp'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
+import { useSidePanel } from '../../hooks/useSidePanel'
+import { useFullScreen } from '../../hooks/useFullScreen'
+import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
+import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 export function DesktopControlBar({
   onDeviceError,
 }: Readonly<ControlBarAuxProps>) {
   const browserSupportsScreenSharing = supportsScreenSharing()
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
+  const { toggleParticipants, toggleChat, openScreenRecording } = useSidePanel()
+  const { toggleFullScreen, isFullscreenAvailable } = useFullScreen({})
+  const { openSettingsDialog } = useSettingsDialog()
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: 'F2' },
+    shortcutId: 'open-shortcuts',
+    handler: () => {
+      openShortcutHelp()
+    },
+  })
+
+  // Keep legacy behavior: F2 focuses the first button in the bottom toolbar.
+  useRegisterKeyboardShortcut({
+    shortcutId: 'focus-toolbar',
     handler: () => {
       const root = desktopControlBarEl.current
       if (!root) return
@@ -31,6 +47,34 @@ export function DesktopControlBar({
       )
       firstButton?.focus()
     },
+  })
+
+  useRegisterKeyboardShortcut({
+    shortcutId: 'toggle-participants',
+    handler: () => toggleParticipants(),
+  })
+
+  useRegisterKeyboardShortcut({
+    shortcutId: 'toggle-chat',
+    handler: () => toggleChat(),
+  })
+
+  useRegisterKeyboardShortcut({
+    shortcutId: 'fullscreen',
+    handler: () => {
+      if (!isFullscreenAvailable) return
+      toggleFullScreen()
+    },
+  })
+
+  useRegisterKeyboardShortcut({
+    shortcutId: 'recording',
+    handler: () => openScreenRecording(),
+  })
+
+  useRegisterKeyboardShortcut({
+    shortcutId: 'open-shortcuts-settings',
+    handler: () => openSettingsDialog(SettingsDialogExtendedKey.SHORTCUTS),
   })
   return (
     <div
