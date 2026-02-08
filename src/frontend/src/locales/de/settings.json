@@ -108,12 +108,18 @@
     "label": "Sprache"
   },
   "settingsButtonLabel": "Einstellungen",
+  "accessibility": {
+    "announceReactions": {
+      "label": "Reaktionen vorlesen"
+    }
+  },
   "tabs": {
     "account": "Profil",
     "audio": "Audio",
     "video": "Video",
     "general": "Allgemein",
     "notifications": "Benachrichtigungen",
+    "accessibility": "Barrierefreiheit",
     "transcription": "Transkription"
   }
 }
