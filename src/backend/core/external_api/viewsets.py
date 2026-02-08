@@ -182,7 +182,9 @@ class RoomViewSet(
         ResourceServerAuthentication,
     ]
     permission_classes = [
-        api.permissions.IsAuthenticated & permissions.HasRequiredRoomScope
+        api.permissions.IsAuthenticated
+        & permissions.HasRequiredRoomScope
+        & permissions.RoomPermissions
     ]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
@@ -192,12 +194,9 @@ class RoomViewSet(
 
         user = self.request.user
 
-        if user.is_authenticated:
-            queryset = (
-                self.filter_queryset(self.get_queryset()).filter(users=user).distinct()
-            )
-        else:
-            queryset = self.get_queryset().none()
+        queryset = (
+            self.filter_queryset(self.get_queryset()).filter(users=user).distinct()
+        )
 
         page = self.paginate_queryset(queryset)
         if page is not None:

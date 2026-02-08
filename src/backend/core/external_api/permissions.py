@@ -82,3 +82,23 @@ class HasRequiredRoomScope(BaseScopePermission):
         "partial_update": models.ApplicationScope.ROOMS_UPDATE,
         "destroy": models.ApplicationScope.ROOMS_DELETE,
     }
+
+
+class RoomPermissions(permissions.BasePermission):
+    """Permissions applying to the room API endpoint."""
+
+    def has_permission(self, request, view):
+        """Allow access only to authenticated users."""
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        """Enforce role-based access: read=any role, delete=owner, write=admin or owner."""
+        user = request.user
+
+        if request.method in permissions.SAFE_METHODS:
+            return obj.has_any_role(user)
+
+        if request.method == "DELETE":
+            return obj.is_owner(user)
+
+        return obj.is_administrator_or_owner(user)

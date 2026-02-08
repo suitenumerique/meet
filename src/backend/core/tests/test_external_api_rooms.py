@@ -212,6 +212,38 @@ def test_api_rooms_retrieve_success(settings):
     }
 
 
+def test_api_rooms_retrieve_success_by_user(settings):
+    """Retrieve should only return rooms accessible to the authenticated user."""
+    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
+
+    user1 = UserFactory()
+    user2 = UserFactory()
+
+    room1 = RoomFactory(users=[(user1, RoleChoices.OWNER)])
+    room2 = RoomFactory(users=[(user2, RoleChoices.OWNER)])
+    room3 = RoomFactory(users=[(user1, RoleChoices.MEMBER)])
+
+    token = generate_test_token(user1, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room2.id}/")
+
+    assert response.status_code == 403
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room1.id}/")
+
+    assert response.status_code == 200
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room3.id}/")
+
+    assert response.status_code == 200
+
+
 def test_api_rooms_create_requires_scope(settings):
     """Creating a room requires ROOMS_CREATE scope."""
     settings.APPLICATION_JWT_SECRET_KEY = "devKey"
