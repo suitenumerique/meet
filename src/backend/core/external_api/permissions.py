@@ -57,6 +57,9 @@ class BaseScopePermission(permissions.BasePermission):
         if isinstance(token_scopes, str):
             token_scopes = token_scopes.split()
 
+        # Ensure scopes is a deduplicated list (preserving order) and lowercase all scopes
+        token_scopes = list(dict.fromkeys(scope.lower() for scope in token_scopes))
+
         if settings.OIDC_RS_SCOPES_PREFIX:
             token_scopes = [
                 scope.removeprefix(f"{settings.OIDC_RS_SCOPES_PREFIX}:")
