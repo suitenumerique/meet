@@ -611,15 +611,15 @@ def test_api_rooms_unknown_actions(settings):
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
 
-    assert response.status_code == 403
-    assert "insufficient permissions. unknown action." in str(response.data).lower()
+    assert response.status_code == 405
+    assert 'method "delete" not allowed.' in str(response.data).lower()
 
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     response = client.patch(f"/external-api/v1.0/rooms/{room.id}/")
 
-    assert response.status_code == 403
-    assert "insufficient permissions. unknown action." in str(response.data).lower()
+    assert response.status_code == 405
+    assert 'method "patch" not allowed.' in str(response.data).lower()
 
 
 def test_api_rooms_response_no_url(settings):
