@@ -59,7 +59,7 @@ class BaseScopePermission(permissions.BasePermission):
 
         if settings.OIDC_RS_SCOPES_PREFIX:
             token_scopes = [
-                scope.replace(f"{settings.OIDC_RS_SCOPES_PREFIX}:", "")
+                scope.removeprefix(f"{settings.OIDC_RS_SCOPES_PREFIX}:")
                 for scope in token_scopes
             ]
 
