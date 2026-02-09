@@ -24,6 +24,7 @@ and this project adheres to
 ### Fixed
 
 - 🔐(backend) enforce object-level permission checks on room endpoint #959
+- 🔒️(backend) add application validation when consuming external JWT #963
 
 ## [1.5.0] - 2026-01-28
 
