@@ -10,7 +10,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 
-from rest_framework import decorators, mixins, pagination, throttling, viewsets
+from rest_framework import decorators, mixins, pagination, viewsets
 from rest_framework import (
     exceptions as drf_exceptions,
 )
@@ -58,7 +58,7 @@ from core.services.room_creation import RoomCreation
 from core.services.subtitle import SubtitleException, SubtitleService
 
 from ..authentication.livekit import LiveKitTokenAuthentication
-from . import permissions, serializers
+from . import permissions, serializers, throttling
 from .feature_flag import FeatureFlag
 
 # pylint: disable=too-many-ancestors
@@ -189,18 +189,6 @@ class UserViewSet(
         return drf_response.Response(
             self.serializer_class(request.user, context=context).data
         )
-
-
-class RequestEntryAnonRateThrottle(throttling.AnonRateThrottle):
-    """Throttle Anonymous user requesting room entry"""
-
-    scope = "request_entry"
-
-
-class CreationCallbackAnonRateThrottle(throttling.AnonRateThrottle):
-    """Throttle Anonymous user requesting room generation callback"""
-
-    scope = "creation_callback"
 
 
 class RoomViewSet(
@@ -379,7 +367,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="request-entry",
         permission_classes=[],
-        throttle_classes=[RequestEntryAnonRateThrottle],
+        throttle_classes=[throttling.RequestEntryAnonRateThrottle],
     )
     def request_entry(self, request, pk=None):  # pylint: disable=unused-argument
         """Request entry to a room"""
@@ -489,7 +477,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="creation-callback",
         permission_classes=[],
-        throttle_classes=[CreationCallbackAnonRateThrottle],
+        throttle_classes=[throttling.CreationCallbackAnonRateThrottle],
     )
     def creation_callback(self, request):
         """Retrieve cached room data via an unauthenticated request with a unique ID.
