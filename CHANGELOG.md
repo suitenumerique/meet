@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) monitor throttling rate failure through sentry #964
+
 ### Changed
 
 - ♿️(frontend) improve spinner reduced‑motion fallback #931
