@@ -9,6 +9,10 @@ La Suite Meet maintainers use only the Kubernetes deployment method in productio
 We understand that not everyone has a Kubernetes cluster available, please follow the instructions provided [here](/docs/installation/compose.md) to set up a docker compose instance.
 We also provide [Docker images](https://hub.docker.com/u/lasuite?page=1&search=meet) that can be deployed using Compose.
 
+## Scalingo
+
+La Suite Meet can be deployed on Scalingo PaaS using the Suite Numérique buildpack. See the [Scalingo deployment guide](./scalingo.md) for detailed instructions.
+
 ## Other ways to install La Suite Meet
 Community members have contributed alternative ways to install La Suite Meet 🙏. While maintainers may not provide direct support, we help keep these instructions up to date, and you can reach out to contributors or the community for assistance.
 
