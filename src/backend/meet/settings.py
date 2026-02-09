@@ -292,6 +292,9 @@ class Base(Configuration):
             ),
         },
     }
+    MONITORED_THROTTLE_FAILURE_CALLBACK = (
+        "core.api.throttling.sentry_monitoring_throttle_failure"
+    )
 
     SPECTACULAR_SETTINGS = {
         "TITLE": "Meet API",
