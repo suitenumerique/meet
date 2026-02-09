@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 # pylint: disable=too-many-lines
 
 import json
-from os import environ, path
+from os import path
 from socket import gethostbyname, gethostname
 
 from django.utils.translation import gettext_lazy as _
@@ -94,7 +94,9 @@ class Base(Configuration):
     # Database
     DATABASES = {
         "default": dj_database_url.config()
-        if environ.get("DATABASE_URL")
+        if values.DatabaseURLValue(
+            None, environ_name="DATABASE_URL", environ_prefix=None
+        )
         else {
             "ENGINE": values.Value(
                 "django.db.backends.postgresql_psycopg2",
