@@ -10,6 +10,8 @@ import jwt as pyJwt
 from lasuite.oidc_resource_server.backend import ResourceServerBackend as LaSuiteBackend
 from rest_framework import authentication, exceptions
 
+from core.models import Application
+
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
@@ -93,6 +95,18 @@ class ApplicationJWTAuthentication(authentication.BaseAuthentication):
         if not client_id:
             logger.warning("Missing 'client_id' in JWT payload")
             raise exceptions.AuthenticationFailed("Invalid token claims.")
+
+        try:
+            application = Application.objects.get(client_id=client_id)
+        except Application.DoesNotExist as e:
+            logger.warning("Application not found: %s", client_id)
+            raise exceptions.AuthenticationFailed("Application not found.") from e
+
+        if not application.active:
+            logger.warning(
+                "Inactive application attempted authentication: %s", client_id
+            )
+            raise exceptions.AuthenticationFailed("Application is disabled.")
 
         if not is_delegated:
             logger.warning("Token is not marked as delegated")
