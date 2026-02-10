@@ -18,6 +18,7 @@ import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
 import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
 import { ToggleSource, CaptureOptionsBySource } from '@livekit/components-core'
+import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 
 type ToggleDeviceStyleProps = {
   variant?: NonNullable<ButtonRecipeProps>['variant']
@@ -88,12 +89,14 @@ export const ToggleDevice = <T extends ToggleSource>({
   const deviceShortcut = useDeviceShortcut(kind)
 
   useRegisterKeyboardShortcut({
-    shortcut: deviceShortcut,
+    id: deviceShortcut?.id,
     handler: async () => await toggle(),
     isDisabled: cannotUseDevice,
   })
+
+  const pushToTalkShortcut = getShortcutDescriptorById('push-to-talk')
   useLongPress({
-    keyCode: kind === 'audioinput' ? 'KeyV' : undefined,
+    keyCode: kind === 'audioinput' ? pushToTalkShortcut?.code : undefined,
     onKeyDown,
     onKeyUp,
     isDisabled: cannotUseDevice,
@@ -103,7 +106,9 @@ export const ToggleDevice = <T extends ToggleSource>({
     const label = t(enabled ? 'disable' : 'enable', {
       keyPrefix: `selectDevice.${kind}`,
     })
-    return deviceShortcut ? appendShortcutLabel(label, deviceShortcut) : label
+    return deviceShortcut?.shortcut
+      ? appendShortcutLabel(label, deviceShortcut.shortcut)
+      : label
   }, [enabled, kind, deviceShortcut, t])
 
   const Icon =
