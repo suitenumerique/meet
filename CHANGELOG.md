@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-02-10
+
 ### Added
 
 - ✨(backend) monitor throttling rate failure through sentry #964
