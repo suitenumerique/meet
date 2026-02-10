@@ -3,6 +3,8 @@ import * as React from 'react'
 import { css } from '@/styled-system/css'
 import { Text } from '@/primitives'
 import { MessageFormatter } from '@livekit/components-react'
+import { useTranslation } from 'react-i18next'
+import { formatBytes, parseAttachmentMessage } from './attachments'
 
 export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   entry: ReceivedChatMessage
@@ -19,9 +21,14 @@ export const ChatEntry: (
   { entry, hideMetadata = false, messageFormatter, ...props }: ChatEntryProps,
   ref
 ) {
+  const { t } = useTranslation('rooms', { keyPrefix: 'chat.attachment' })
   const formattedMessage = React.useMemo(() => {
     return messageFormatter ? messageFormatter(entry.message) : entry.message
   }, [entry.message, messageFormatter])
+  const attachment = React.useMemo(
+    () => parseAttachmentMessage(entry.message),
+    [entry.message]
+  )
   const time = new Date(entry.timestamp)
   const locale = navigator ? navigator.language : 'en-US'
 
@@ -64,7 +71,32 @@ export const ChatEntry: (
           },
         })}
       >
-        {formattedMessage}
+        {attachment ? (
+          <a
+            href={attachment.downloadUrl}
+            download={attachment.filename}
+            className={css({
+              display: 'inline-flex',
+              flexDirection: 'column',
+              gap: '0.1rem',
+              padding: '0.4rem 0.6rem',
+              borderRadius: 'md',
+              backgroundColor: 'gray.100',
+              textDecoration: 'none',
+              color: 'blue.800',
+            })}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <strong>{attachment.filename}</strong>
+            <span>
+              {formatBytes(attachment.size)} · {attachment.contentType}
+            </span>
+            <span>{t('download')}</span>
+          </a>
+        ) : (
+          formattedMessage
+        )}
       </Text>
     </li>
   )
