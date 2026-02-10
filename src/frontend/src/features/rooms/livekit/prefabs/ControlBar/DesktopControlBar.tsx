@@ -22,7 +22,7 @@ export function DesktopControlBar({
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
 
   useRegisterKeyboardShortcut({
-    shortcut: { key: 'F2' },
+    id: 'focus-toolbar',
     handler: () => {
       const root = desktopControlBarEl.current
       if (!root) return

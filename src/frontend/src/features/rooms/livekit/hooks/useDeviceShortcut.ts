@@ -1,19 +1,16 @@
 import { useMemo } from 'react'
-import { Shortcut } from '@/features/shortcuts/types'
+import {
+  getShortcutDescriptorById,
+  ShortcutDescriptor,
+} from '@/features/shortcuts/catalog'
 
 export const useDeviceShortcut = (kind: MediaDeviceKind) => {
-  return useMemo<Shortcut | undefined>(() => {
+  return useMemo<ShortcutDescriptor | undefined>(() => {
     switch (kind) {
       case 'audioinput':
-        return {
-          key: 'd',
-          ctrlKey: true,
-        }
+        return getShortcutDescriptorById('toggle-microphone')
       case 'videoinput':
-        return {
-          key: 'e',
-          ctrlKey: true,
-        }
+        return getShortcutDescriptorById('toggle-camera')
       default:
         return undefined
     }
