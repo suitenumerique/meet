@@ -39,6 +39,7 @@ import { CarouselLayout } from '../components/layout/CarouselLayout'
 import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { RoomPiP } from '@/features/pip/components/RoomPiP'
+import { useRoomPiP } from '@/features/pip/hooks/useRoomPiP'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
@@ -249,6 +250,8 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
 
   const { isSidePanelOpen } = useSidePanel()
   const { areSubtitlesOpen } = useSubtitles()
+  const { isOpen: isPiPOpen } = useRoomPiP()
+  const shouldRenderMainLayout = !isPiPOpen
 
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
   const layoutInsetVars = {
@@ -287,43 +290,45 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
                 maxHeight: '100%',
               }}
             >
-              <LayoutWrapper areSubtitlesOpen={areSubtitlesOpen}>
-                <div
-                  style={{
-                    display: 'flex',
-                    position: 'relative',
-                    width: '100%',
-                  }}
-                >
-                  {!focusTrack ? (
-                    <div
-                      className="lk-grid-layout-wrapper"
-                      style={{ height: 'auto' }}
-                    >
-                      <GridLayout tracks={tracks} style={{ padding: 0 }}>
-                        <ParticipantTile />
-                      </GridLayout>
-                    </div>
-                  ) : (
-                    <div
-                      className="lk-focus-layout-wrapper"
-                      style={{ height: 'auto' }}
-                    >
-                      <FocusLayoutContainer style={{ padding: 0 }}>
-                        <CarouselLayout
-                          tracks={carouselTracks}
-                          style={{
-                            minWidth: '200px',
-                          }}
-                        >
+              {shouldRenderMainLayout && (
+                <LayoutWrapper areSubtitlesOpen={areSubtitlesOpen}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      position: 'relative',
+                      width: '100%',
+                    }}
+                  >
+                    {!focusTrack ? (
+                      <div
+                        className="lk-grid-layout-wrapper"
+                        style={{ height: 'auto' }}
+                      >
+                        <GridLayout tracks={tracks} style={{ padding: 0 }}>
                           <ParticipantTile />
-                        </CarouselLayout>
-                        {focusTrack && <FocusLayout trackRef={focusTrack} />}
-                      </FocusLayoutContainer>
-                    </div>
-                  )}
-                </div>
-              </LayoutWrapper>
+                        </GridLayout>
+                      </div>
+                    ) : (
+                      <div
+                        className="lk-focus-layout-wrapper"
+                        style={{ height: 'auto' }}
+                      >
+                        <FocusLayoutContainer style={{ padding: 0 }}>
+                          <CarouselLayout
+                            tracks={carouselTracks}
+                            style={{
+                              minWidth: '200px',
+                            }}
+                          >
+                            <ParticipantTile />
+                          </CarouselLayout>
+                          {focusTrack && <FocusLayout trackRef={focusTrack} />}
+                        </FocusLayoutContainer>
+                      </div>
+                    )}
+                  </div>
+                </LayoutWrapper>
+              )}
               <Subtitles />
               <MainNotificationToast />
             </div>
