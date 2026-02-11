@@ -2,7 +2,7 @@ import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { RiPictureInPicture2Line } from '@remixicon/react'
 import { menuRecipe } from '@/primitives/menuRecipe'
-import { useRoomPiP } from '../../../hooks/useRoomPiP'
+import { useRoomPiP } from '@/features/pip/hooks/useRoomPiP'
 
 export const PictureInPictureMenuItem = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })

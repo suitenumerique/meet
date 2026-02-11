@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { RiMoreFill } from '@remixicon/react'
 import { Box, Button } from '@/primitives'
 import { css } from '@/styled-system/css'
-import { OptionsMenuItems } from './OptionsMenuItems'
+import { OptionsMenuItems } from '@/features/rooms/livekit/components/controls/Options/OptionsMenuItems'
 
 type PipOptionsMenuProps = {
   wrapperRef: React.RefObject<HTMLDivElement>

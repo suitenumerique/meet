@@ -6,11 +6,11 @@ import { RiArrowDownSLine, RiArrowUpSLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { StyledPopover } from '@/primitives/Popover'
 import { useOverlayBoundaryElement } from '@/primitives/useOverlayPortalContainer'
-import { ChatToggle } from './ChatToggle'
-import { ParticipantsToggle } from './Participants/ParticipantsToggle'
-import { ToolsToggle } from './ToolsToggle'
-import { InfoToggle } from './InfoToggle'
-import { AdminToggle } from '../AdminToggle'
+import { ChatToggle } from '@/features/rooms/livekit/components/controls/ChatToggle'
+import { ParticipantsToggle } from '@/features/rooms/livekit/components/controls/Participants/ParticipantsToggle'
+import { ToolsToggle } from '@/features/rooms/livekit/components/controls/ToolsToggle'
+import { InfoToggle } from '@/features/rooms/livekit/components/controls/InfoToggle'
+import { AdminToggle } from '@/features/rooms/livekit/components/AdminToggle'
 
 const NavigationControls = ({ onPress }: { onPress?: () => void }) => (
   <>
