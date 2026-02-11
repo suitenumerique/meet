@@ -6,13 +6,13 @@ import { Button, Text } from '@/primitives'
 import { SettingsButton } from '@/features/settings'
 import { useUser } from '@/features/auth'
 import { useMatchesRoute } from '@/navigation/useMatchesRoute'
-import { FeedbackBanner } from '@/components/FeedbackBanner'
 import { Menu } from '@/primitives/Menu'
 import { MenuList } from '@/primitives/MenuList'
 import { LoginButton } from '@/components/LoginButton'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { IncidentBanner } from '@/components/IncidentBanner'
 
 const Logo = () => (
   <img
@@ -99,7 +99,8 @@ export const Header = () => {
 
   return (
     <>
-      <FeedbackBanner />
+      {/*<FeedbackBanner />*/}
+      <IncidentBanner />
       <div
         className={css({
           paddingBottom: 1,

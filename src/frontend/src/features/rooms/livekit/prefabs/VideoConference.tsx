@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next'
 
 import { ControlBar } from './ControlBar/ControlBar'
 import { styled } from '@/styled-system/jsx'
-import { cva } from '@/styled-system/css'
+import { css, cva } from '@/styled-system/css'
 import { MainNotificationToast } from '@/features/notifications/MainNotificationToast'
 import { FocusLayout } from '../components/FocusLayout'
 import { ParticipantTile } from '../components/ParticipantTile'
@@ -40,6 +40,7 @@ import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { IncidentBanner } from '@/components/IncidentBanner'
 
 const LayoutWrapper = styled(
   'div',
@@ -254,6 +255,16 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
         overflowX: 'hidden',
       }}
     >
+      <div
+        className={css({
+          display: 'flex',
+          width: '100%',
+          position: 'absolute',
+          zIndex: '1000',
+        })}
+      >
+        <IncidentBanner />
+      </div>
       {isWeb() && (
         <LayoutContextProvider
           value={layoutContext}
