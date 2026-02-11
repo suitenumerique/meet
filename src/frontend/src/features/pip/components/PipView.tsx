@@ -6,9 +6,9 @@ import {
 } from '@livekit/components-core'
 import { useTracks } from '@livekit/components-react'
 import { Track } from 'livekit-client'
-import { ParticipantTile } from './ParticipantTile'
-import { GridLayout } from './layout/GridLayout'
-import { SidePanel } from './SidePanel'
+import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { GridLayout } from '@/features/rooms/livekit/components/layout/GridLayout'
+import { SidePanel } from '@/features/rooms/livekit/components/SidePanel'
 import { PipControlBar } from './PipControlBar'
 
 const pickTrackForPip = (

@@ -38,7 +38,7 @@ import { Subtitles } from '@/features/subtitle/component/Subtitles'
 import { CarouselLayout } from '../components/layout/CarouselLayout'
 import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
-import { RoomPiP } from '../components/RoomPiP'
+import { RoomPiP } from '@/features/pip/components/RoomPiP'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
