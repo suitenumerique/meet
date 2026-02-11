@@ -20,8 +20,8 @@ services:
     user: ${DOCKER_USER:-1000}
     restart: always
     env_file:
+    - .env
     - env.d/common
-    - env.d/backend
     - env.d/postgresql
     healthcheck:
       test: ["CMD", "python", "manage.py", "check"]
@@ -45,6 +45,7 @@ services:
     - /docker-entrypoint.sh
     command: ["nginx", "-g", "daemon off;"]
     env_file:
+    - .env
     - env.d/common
     # Uncomment and set your values if using our nginx proxy example
     # environment:
