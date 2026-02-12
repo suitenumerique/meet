@@ -8,8 +8,6 @@ export const useKeyboardShortcuts = () => {
   const shortcutsSnap = useSnapshot(keyboardShortcutsStore)
 
   useEffect(() => {
-    // This approach handles basic shortcuts but isn't comprehensive.
-    // Issues might occur. First draft.
     const onKeyDown = async (e: KeyboardEvent) => {
       const { key, metaKey, ctrlKey, shiftKey, altKey } = e
       if (!key) return
