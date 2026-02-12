@@ -601,6 +601,15 @@ class Base(Configuration):
     RECORDING_ENABLE = values.BooleanValue(
         False, environ_name="RECORDING_ENABLE", environ_prefix=None
     )
+    # Recording permission levels: "admin_owner" (default) or "authenticated"
+    RECORDING_SCREEN_PERMISSION = values.Value(
+        "admin_owner", environ_name="RECORDING_SCREEN_PERMISSION", environ_prefix=None
+    )
+    RECORDING_TRANSCRIPT_PERMISSION = values.Value(
+        "admin_owner",
+        environ_name="RECORDING_TRANSCRIPT_PERMISSION",
+        environ_prefix=None,
+    )
     RECORDING_OUTPUT_FOLDER = values.Value(
         "recordings", environ_name="RECORDING_OUTPUT_FOLDER", environ_prefix=None
     )

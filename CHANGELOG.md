@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend,frontend) add configurable recording permissions
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

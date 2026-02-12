@@ -3,6 +3,11 @@ export enum RecordingMode {
   ScreenRecording = 'screen_recording',
 }
 
+export enum RecordingPermission {
+  AdminOwner = 'admin_owner',
+  Authenticated = 'authenticated',
+}
+
 export enum RecordingStatus {
   Initiated = 'initiated',
   Active = 'active',
