@@ -10,6 +10,105 @@ import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
+import { RecordingMode, RecordingPermission } from '@/features/recording/types'
+import { useIsRecordingModeEnabled } from '@/features/recording/hooks/useIsRecordingModeEnabled'
+import {
+  NotificationType,
+  useNotifyParticipants,
+} from '@/features/notifications'
+
+interface AdminSectionProps {
+  title: string
+  description: string
+  children: React.ReactNode
+  marginTop?: string
+}
+
+const AdminSection = ({
+  title,
+  description,
+  children,
+  marginTop,
+}: AdminSectionProps) => (
+  <div
+    className={css({
+      display: 'flex',
+      flexDirection: 'column',
+      ...(marginTop && { marginTop }),
+    })}
+  >
+    <RACSeparator
+      className={css({
+        border: 'none',
+        height: '1px',
+        width: '100%',
+        background: 'greyscale.250',
+      })}
+    />
+    <H
+      lvl={2}
+      className={css({
+        fontWeight: 500,
+      })}
+      margin="sm"
+    >
+      {title}
+    </H>
+    <Text
+      variant="note"
+      wrap="balance"
+      className={css({
+        textStyle: 'sm',
+      })}
+      margin={'md'}
+    >
+      {description}
+    </Text>
+    {children}
+  </div>
+)
+
+interface RecordingPermissionFieldProps {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}
+
+const RecordingPermissionField = ({
+  label,
+  value,
+  onChange,
+}: RecordingPermissionFieldProps) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
+
+  return (
+    <Field
+      type="radioGroup"
+      label={label}
+      aria-label={label}
+      labelProps={{
+        className: css({
+          fontSize: '1rem',
+          paddingBottom: '1rem',
+        }),
+      }}
+      value={value}
+      onChange={onChange}
+      items={[
+        {
+          value: RecordingPermission.AdminOwner,
+          label: t('recording.levels.adminOwner.label'),
+          description: t('recording.levels.adminOwner.description'),
+        },
+        {
+          value: RecordingPermission.Authenticated,
+          label: t('recording.levels.authenticated.label'),
+          description: t('recording.levels.authenticated.description'),
+        },
+      ]}
+    />
+  )
+}
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -38,6 +137,35 @@ export const Admin = () => {
     isScreenShareEnabled,
   } = usePublishSourcesManager()
 
+  const { notifyParticipants } = useNotifyParticipants()
+
+  const handleRecordingPermissionChange =
+    (configKey: 'screen_recording_permission' | 'transcript_permission') =>
+    (value: string) =>
+      patchRoom({
+        roomId,
+        room: {
+          configuration: {
+            ...readOnlyData?.configuration,
+            [configKey]: value,
+          },
+        },
+      })
+        .then((room) => {
+          queryClient.setQueryData([keys.room, roomId], room)
+          notifyParticipants({
+            type: NotificationType.RecordingPermissionsChanged,
+          })
+        })
+        .catch((e) => console.error(e))
+
+  const isScreenRecordingEnabled = useIsRecordingModeEnabled(
+    RecordingMode.ScreenRecording
+  )
+  const isTranscriptEnabled = useIsRecordingModeEnabled(
+    RecordingMode.Transcript
+  )
+
   return (
     <Div
       display="flex"
@@ -57,39 +185,10 @@ export const Admin = () => {
       >
         {t('description')}
       </Text>
-      <div
-        className={css({
-          display: 'flex',
-          flexDirection: 'column',
-        })}
+      <AdminSection
+        title={t('moderation.title')}
+        description={t('moderation.description')}
       >
-        <RACSeparator
-          className={css({
-            border: 'none',
-            height: '1px',
-            width: '100%',
-            background: 'greyscale.250',
-          })}
-        />
-        <H
-          lvl={2}
-          className={css({
-            fontWeight: 500,
-          })}
-          margin="sm"
-        >
-          {t('moderation.title')}
-        </H>
-        <Text
-          variant="note"
-          wrap="balance"
-          className={css({
-            textStyle: 'sm',
-          })}
-          margin={'md'}
-        >
-          {t('moderation.description')}
-        </Text>
         <div
           className={css({
             display: 'flex',
@@ -131,41 +230,12 @@ export const Admin = () => {
             }}
           />
         </div>
-      </div>
-      <div
-        className={css({
-          display: 'flex',
-          flexDirection: 'column',
-          marginTop: '1rem',
-        })}
+      </AdminSection>
+      <AdminSection
+        title={t('access.title')}
+        description={t('access.description')}
+        marginTop="1rem"
       >
-        <RACSeparator
-          className={css({
-            border: 'none',
-            height: '1px',
-            width: '100%',
-            background: 'greyscale.250',
-          })}
-        />
-        <H
-          lvl={2}
-          className={css({
-            fontWeight: 500,
-          })}
-          margin="sm"
-        >
-          {t('access.title')}
-        </H>
-        <Text
-          variant="note"
-          wrap="balance"
-          className={css({
-            textStyle: 'sm',
-          })}
-          margin={'md'}
-        >
-          {t('access.description')}
-        </Text>
         <Field
           type="radioGroup"
           label={t('access.type')}
@@ -205,7 +275,38 @@ export const Admin = () => {
             },
           ]}
         />
-      </div>
+      </AdminSection>
+      {(isScreenRecordingEnabled || isTranscriptEnabled) && (
+        <AdminSection
+          title={t('recording.title')}
+          description={t('recording.description')}
+          marginTop="1rem"
+        >
+          {isScreenRecordingEnabled && (
+            <RecordingPermissionField
+              label={t('recording.screenRecording.label')}
+              value={
+                readOnlyData?.recording_permissions
+                  ?.screen_recording_permission ??
+                RecordingPermission.AdminOwner
+              }
+              onChange={handleRecordingPermissionChange(
+                'screen_recording_permission'
+              )}
+            />
+          )}
+          {isTranscriptEnabled && (
+            <RecordingPermissionField
+              label={t('recording.transcript.label')}
+              value={
+                readOnlyData?.recording_permissions?.transcript_permission ??
+                RecordingPermission.AdminOwner
+              }
+              onChange={handleRecordingPermissionChange('transcript_permission')}
+            />
+          )}
+        </AdminSection>
+      )}
     </Div>
   )
 }

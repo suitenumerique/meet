@@ -8,8 +8,6 @@ from urllib.parse import quote
 
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
-
-# pylint: disable=abstract-method,no-name-in-module
 from django.utils.translation import gettext_lazy as _
 
 from django_pydantic_field.rest_framework import SchemaField
@@ -123,6 +121,9 @@ class ListRoomSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "slug"]
 
 
+VALID_RECORDING_PERMISSIONS = {"admin_owner", "authenticated"}
+
+
 class RoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for the API."""
 
@@ -130,6 +131,19 @@ class RoomSerializer(serializers.ModelSerializer):
         model = models.Room
         fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
         read_only_fields = ["id", "slug", "pin_code"]
+
+    def validate_configuration(self, value):
+        """Validate recording permission values in configuration."""
+        if not isinstance(value, dict):
+            return value
+
+        for key in ("screen_recording_permission", "transcript_permission"):
+            if key in value and value[key] not in VALID_RECORDING_PERMISSIONS:
+                raise serializers.ValidationError(
+                    {key: f"Must be one of: {', '.join(sorted(VALID_RECORDING_PERMISSIONS))}"}
+                )
+
+        return value
 
     def to_representation(self, instance):
         """
@@ -156,6 +170,17 @@ class RoomSerializer(serializers.ModelSerializer):
             output["accesses"] = access_serializer.data
 
         configuration = output["configuration"]
+
+        output["recording_permissions"] = {
+            "screen_recording_permission": configuration.get(
+                "screen_recording_permission",
+                settings.RECORDING_SCREEN_PERMISSION,
+            ),
+            "transcript_permission": configuration.get(
+                "transcript_permission",
+                settings.RECORDING_TRANSCRIPT_PERMISSION,
+            ),
+        }
 
         if not is_admin_or_owner:
             del output["configuration"]

@@ -1,10 +1,15 @@
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { useParams } from 'wouter'
 import { keys } from '@/api/queryKeys'
-import { queryClient } from '@/api/queryClient'
+import { fetchRoom } from '@/features/rooms/api/fetchRoom'
+import { useQuery } from '@tanstack/react-query'
 
 export const useRoomData = (): ApiRoom | undefined => {
   const { roomId } = useParams()
-  const queryKey = [keys.room, roomId]
-  return queryClient.getQueryData<ApiRoom>(queryKey)
+  const { data } = useQuery({
+    queryKey: [keys.room, roomId],
+    queryFn: () => fetchRoom({ roomId: roomId! }),
+    enabled: false,
+  })
+  return data
 }

@@ -418,3 +418,231 @@ def test_stop_recording_follows_mode_permission_authenticated(
     # Any authenticated user should be able to stop
     response = client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
     assert response.status_code == 200
+
+
+# =============================================================================
+# Tests for per-room recording permission overrides via room.configuration
+# =============================================================================
+
+
+def test_room_config_overrides_global_screen_recording_permission(
+    mock_worker_service_factory, mock_worker_manager, settings
+):
+    """Room configuration should override global screen recording permission."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_SCREEN_PERMISSION = "admin_owner"
+
+    room = RoomFactory(configuration={"screen_recording_permission": "authenticated"})
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    # Global is admin_owner, but room overrides to authenticated
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+    )
+    assert response.status_code == 201
+    assert Recording.objects.count() == 1
+
+
+def test_room_config_overrides_global_transcript_permission(
+    mock_worker_service_factory, mock_worker_manager, settings
+):
+    """Room configuration should override global transcript permission."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_TRANSCRIPT_PERMISSION = "admin_owner"
+
+    room = RoomFactory(configuration={"transcript_permission": "authenticated"})
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    # Global is admin_owner, but room overrides to authenticated
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "transcript"},
+    )
+    assert response.status_code == 201
+    assert Recording.objects.count() == 1
+
+
+def test_room_config_restricts_when_global_is_permissive(settings):
+    """Room configuration can restrict permissions even when global is permissive."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_SCREEN_PERMISSION = "authenticated"
+
+    room = RoomFactory(configuration={"screen_recording_permission": "admin_owner"})
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    # Global is authenticated, but room overrides to admin_owner
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+    )
+    assert response.status_code == 403
+    assert Recording.objects.count() == 0
+
+
+def test_room_config_empty_falls_back_to_global(settings):
+    """Without room configuration override, global permission applies."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_SCREEN_PERMISSION = "admin_owner"
+
+    room = RoomFactory(configuration={})
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    # No room override, global admin_owner applies
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+    )
+    assert response.status_code == 403
+    assert Recording.objects.count() == 0
+
+
+def test_recording_permissions_in_room_response_for_admin(settings):
+    """recording_permissions should be present in room response for admin users."""
+    settings.RECORDING_SCREEN_PERMISSION = "admin_owner"
+    settings.RECORDING_TRANSCRIPT_PERMISSION = "authenticated"
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="administrator")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id}/")
+    assert response.status_code == 200
+    assert "recording_permissions" in response.json()
+    assert (
+        response.json()["recording_permissions"]["screen_recording_permission"]
+        == "admin_owner"
+    )
+    assert (
+        response.json()["recording_permissions"]["transcript_permission"]
+        == "authenticated"
+    )
+
+
+def test_recording_permissions_in_room_response_for_non_admin(settings):
+    """recording_permissions should be present in room response for non-admin users."""
+    settings.RECORDING_SCREEN_PERMISSION = "authenticated"
+    settings.RECORDING_TRANSCRIPT_PERMISSION = "admin_owner"
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="member")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id}/")
+    assert response.status_code == 200
+    assert "recording_permissions" in response.json()
+    assert (
+        response.json()["recording_permissions"]["screen_recording_permission"]
+        == "authenticated"
+    )
+    assert (
+        response.json()["recording_permissions"]["transcript_permission"]
+        == "admin_owner"
+    )
+    # configuration should NOT be visible to non-admin
+    assert "configuration" not in response.json()
+
+
+def test_recording_permissions_reflect_room_override(settings):
+    """recording_permissions should reflect room configuration override."""
+    settings.RECORDING_SCREEN_PERMISSION = "admin_owner"
+    settings.RECORDING_TRANSCRIPT_PERMISSION = "admin_owner"
+
+    room = RoomFactory(
+        configuration={
+            "screen_recording_permission": "authenticated",
+            "transcript_permission": "authenticated",
+        }
+    )
+    user = UserFactory()
+    room.accesses.create(user=user, role="member")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id}/")
+    assert response.status_code == 200
+    assert (
+        response.json()["recording_permissions"]["screen_recording_permission"]
+        == "authenticated"
+    )
+    assert (
+        response.json()["recording_permissions"]["transcript_permission"]
+        == "authenticated"
+    )
+
+
+def test_admin_can_patch_room_recording_config(settings):
+    """Admin should be able to patch room configuration with recording permissions."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_SCREEN_PERMISSION = "admin_owner"
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="administrator")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id}/",
+        {"configuration": {"screen_recording_permission": "authenticated"}},
+        format="json",
+    )
+    assert response.status_code == 200
+    assert (
+        response.json()["recording_permissions"]["screen_recording_permission"]
+        == "authenticated"
+    )
+
+
+def test_patch_room_rejects_invalid_recording_permission(settings):
+    """Invalid recording permission values should be rejected with 400."""
+    settings.RECORDING_ENABLE = True
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="administrator")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id}/",
+        {"configuration": {"screen_recording_permission": "everyone"}},
+        format="json",
+    )
+    assert response.status_code == 400
+
+
+def test_patch_room_rejects_invalid_transcript_permission(settings):
+    """Invalid transcript permission values should be rejected with 400."""
+    settings.RECORDING_ENABLE = True
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="administrator")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id}/",
+        {"configuration": {"transcript_permission": "foobar"}},
+        format="json",
+    )
+    assert response.status_code == 400

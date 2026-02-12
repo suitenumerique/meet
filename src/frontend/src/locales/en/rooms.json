@@ -482,6 +482,26 @@
         "label": "Share their screen",
         "description": "Disabling this option will prevent participants from sharing their screen, and any ongoing screen sharing will be stopped immediately."
       }
+    },
+    "recording": {
+      "title": "Recording Permissions",
+      "description": "Control who can start recordings and transcriptions in this room.",
+      "screenRecording": {
+        "label": "Screen recording"
+      },
+      "transcript": {
+        "label": "Transcription"
+      },
+      "levels": {
+        "adminOwner": {
+          "label": "Admins and owners only",
+          "description": "Only admins and owners of this room can start this feature."
+        },
+        "authenticated": {
+          "label": "All authenticated users",
+          "description": "Any logged-in user can start this feature."
+        }
+      }
     }
   },
   "rating": {

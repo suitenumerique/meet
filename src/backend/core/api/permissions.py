@@ -107,13 +107,20 @@ class HasRecordingPermission(IsAuthenticated):
 
     message = "You do not have permission to perform this recording action."
 
-    def _get_permission_level(self, mode):
-        """Return the permission level for the given mode."""
+    def _get_permission_level(self, mode, room=None):
+        """Return the permission level for the given mode, checking room config first."""
         if mode == "screen_recording":
-            return getattr(settings, "RECORDING_SCREEN_PERMISSION", "admin_owner")
-        if mode == "transcript":
-            return getattr(settings, "RECORDING_TRANSCRIPT_PERMISSION", "admin_owner")
-        return "admin_owner"
+            key = "screen_recording_permission"
+            default = getattr(settings, "RECORDING_SCREEN_PERMISSION", "admin_owner")
+        elif mode == "transcript":
+            key = "transcript_permission"
+            default = getattr(settings, "RECORDING_TRANSCRIPT_PERMISSION", "admin_owner")
+        else:
+            return "admin_owner"
+
+        if room and room.configuration:
+            return room.configuration.get(key, default)
+        return default
 
     def has_object_permission(self, request, view, obj):
         """Check object-level permissions based on recording mode."""
@@ -130,7 +137,7 @@ class HasRecordingPermission(IsAuthenticated):
                 # No active recording, let the view handle the error
                 return True
 
-        permission_level = self._get_permission_level(mode)
+        permission_level = self._get_permission_level(mode, room=obj)
 
         if permission_level == "authenticated":
             # Already authenticated via IsAuthenticated.has_permission
