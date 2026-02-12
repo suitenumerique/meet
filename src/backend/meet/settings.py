@@ -250,6 +250,8 @@ class Base(Configuration):
         "django.contrib.staticfiles",
         # OIDC third party
         "mozilla_django_oidc",
+        # LaSuite common
+        "lasuite.marketing",
     ]
 
     # Cache
@@ -655,24 +657,18 @@ class Base(Configuration):
         environ_name="SIGNUP_NEW_USER_TO_MARKETING_EMAIL",
         environ_prefix=None,
     )
-    MARKETING_SERVICE_CLASS = values.Value(
-        "core.services.marketing.BrevoMarketingService",
-        environ_name="MARKETING_SERVICE_CLASS",
-        environ_prefix=None,
-    )
-    BREVO_API_KEY = SecretFileValue(
-        None, environ_name="BREVO_API_KEY", environ_prefix=None
-    )
-    BREVO_API_CONTACT_LIST_IDS = values.ListValue(
-        [],
-        environ_name="BREVO_API_CONTACT_LIST_IDS",
-        environ_prefix=None,
-        converter=lambda x: int(x),  # pylint: disable=unnecessary-lambda
-    )
-    BREVO_API_CONTACT_ATTRIBUTES = values.DictValue({"VISIO_USER": True})
-    BREVO_API_TIMEOUT = values.PositiveIntegerValue(
-        1, environ_name="BREVO_API_TIMEOUT", environ_prefix=None
-    )
+    LASUITE_MARKETING = {
+        "BACKEND": values.Value(
+            "lasuite.marketing.backends.dummy.DummyBackend",
+            environ_name="LASUITE_MARKETING_BACKEND",
+            environ_prefix=None,
+        ),
+        "PARAMETERS": values.DictValue(
+            default={},
+            environ_name="LASUITE_MARKETING_PARAMETERS",
+            environ_prefix=None,
+        ),
+    }
 
     # Lobby configurations
     LOBBY_KEY_PREFIX = values.Value(
