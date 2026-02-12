@@ -172,6 +172,11 @@
         },
         "button": {
           "label": "Nachricht senden"
+        },
+        "upload": {
+          "buttonLabel": "Datei anhängen",
+          "loading": "Datei wird hochgeladen…",
+          "error": "Diese Datei konnte nicht hochgeladen werden."
         }
       }
     },
@@ -316,7 +321,10 @@
     "closeButton": "{{content}} ausblenden"
   },
   "chat": {
-    "disclaimer": "Die Nachrichten sind nur für Teilnehmer zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Anrufs gelöscht."
+    "disclaimer": "Die Nachrichten sind nur für Teilnehmer zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Anrufs gelöscht.",
+    "attachment": {
+      "download": "Datei herunterladen"
+    }
   },
   "moreTools": {
     "body": "Greifen Sie auf weitere Tools zu, um Ihre Meetings zu verbessern.",
