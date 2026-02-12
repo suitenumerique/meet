@@ -5,5 +5,8 @@ export interface NotificationPayload {
   data?: {
     emoji?: string
     removedSources?: string[]
+    messageId?: string
+    action?: 'add' | 'remove'
+    participantName?: string
   }
 }
