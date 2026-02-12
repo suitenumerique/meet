@@ -4,15 +4,27 @@ import { Shortcut } from '@/features/shortcuts/types'
 export const CTRL = 'ctrl'
 
 export const formatShortcutKey = (shortcut: Shortcut) => {
-  if (shortcut.ctrlKey) return `${CTRL}+${shortcut.key.toUpperCase()}`
-  return shortcut.key.toUpperCase()
+  const parts = []
+  if (shortcut.ctrlKey) parts.push(CTRL)
+  if (shortcut.altKey) parts.push('alt')
+  if (shortcut.shiftKey) parts.push('shift')
+  parts.push(shortcut.key.toUpperCase())
+  return parts.join('+')
 }
 
 export const appendShortcutLabel = (label: string, shortcut: Shortcut) => {
   if (!shortcut.key) return
-  let formattedKeyLabel = shortcut.key.toLowerCase()
+  const parts: string[] = []
   if (shortcut.ctrlKey) {
-    formattedKeyLabel = `${isMacintosh() ? '⌘' : 'Ctrl'}+${formattedKeyLabel}`
+    parts.push(isMacintosh() ? '⌘' : 'Ctrl')
   }
+  if (shortcut.altKey) {
+    parts.push(isMacintosh() ? '⌥' : 'Alt')
+  }
+  if (shortcut.shiftKey) {
+    parts.push('Shift')
+  }
+  parts.push(shortcut.key.toLowerCase())
+  const formattedKeyLabel = parts.join('+')
   return `${label} (${formattedKeyLabel})`
 }
