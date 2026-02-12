@@ -20,12 +20,18 @@ export const AppInitialization = () => {
   useSupport(support)
 
   useEffect(() => {
-    if (custom_css_url) {
-      const link = document.createElement('link')
-      link.href = custom_css_url
-      link.id = 'meet-custom-css'
-      link.rel = 'stylesheet'
-      document.head.appendChild(link)
+    if (!custom_css_url) return
+
+    const link = document.createElement('link')
+    link.href = custom_css_url
+    link.id = 'meet-custom-css'
+    link.rel = 'stylesheet'
+    document.head.appendChild(link)
+
+    return () => {
+      if (link && link.parentNode) {
+        link.remove()
+      }
     }
   }, [custom_css_url])
 
