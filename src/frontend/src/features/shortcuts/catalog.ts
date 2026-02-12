@@ -9,6 +9,12 @@ export type ShortcutId =
   | 'toggle-microphone'
   | 'toggle-camera'
   | 'push-to-talk'
+  | 'toggle-chat'
+  | 'toggle-participants'
+  | 'raise-hand'
+  | 'recording'
+  | 'reaction'
+  | 'fullscreen'
 
 export const getShortcutDescriptorById = (id: ShortcutId) =>
   shortcutCatalog.find((item) => item.id === id)
@@ -43,5 +49,35 @@ export const shortcutCatalog: ShortcutDescriptor[] = [
     category: 'media',
     kind: 'longPress',
     code: 'KeyV',
+  },
+  {
+    id: 'reaction',
+    category: 'interaction',
+    shortcut: { key: 'E', ctrlKey: true, shiftKey: true },
+  },
+  {
+    id: 'fullscreen',
+    category: 'interaction',
+    shortcut: { key: 'F', ctrlKey: true, shiftKey: true },
+  },
+  {
+    id: 'recording',
+    category: 'interaction',
+    shortcut: { key: 'L', ctrlKey: true, shiftKey: true },
+  },
+  {
+    id: 'raise-hand',
+    category: 'interaction',
+    shortcut: { key: 'H', ctrlKey: true, shiftKey: true },
+  },
+  {
+    id: 'toggle-chat',
+    category: 'interaction',
+    shortcut: { key: 'M', ctrlKey: true, shiftKey: true },
+  },
+  {
+    id: 'toggle-participants',
+    category: 'interaction',
+    shortcut: { key: 'P', ctrlKey: true, shiftKey: true },
   },
 ]
