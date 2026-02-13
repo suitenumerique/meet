@@ -8,7 +8,6 @@ import { SubtitlesToggle } from '@/features/rooms/livekit/components/controls/Su
 import { HandToggle } from '@/features/rooms/livekit/components/controls/HandToggle'
 import { OptionsButton } from '@/features/rooms/livekit/components/controls/Options/OptionsButton'
 import { StartMediaButton } from '@/features/rooms/livekit/components/controls/StartMediaButton'
-import { PipLateralMenu } from './controls/PipLateralMenu'
 
 /**
  * Compact control bar for the Picture-in-Picture window.
@@ -31,9 +30,6 @@ export const PipControlBar = ({
       <LeaveButton />
       <StartMediaButton />
     </PipControlsCenter>
-    <PipControlsRight>
-      <PipLateralMenu />
-    </PipControlsRight>
   </PipControls>
 )
 
@@ -59,15 +55,5 @@ const PipControlsCenter = styled('div', {
     alignItems: 'center',
     gap: '0.4rem',
     flex: '1 1 auto',
-  },
-})
-
-const PipControlsRight = styled('div', {
-  base: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    position: 'absolute',
-    right: '1.35rem',
   },
 })

@@ -9,6 +9,7 @@ import { Track } from 'livekit-client'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
 import { GridLayout } from '@/features/rooms/livekit/components/layout/GridLayout'
 import { SidePanel } from '@/features/rooms/livekit/components/SidePanel'
+import { pipLayoutStore } from '../stores/pipLayoutStore'
 import { PipControlBar } from './PipControlBar'
 
 const pickTrackForPip = (
@@ -60,7 +61,7 @@ export const PipView = () => {
       {/* Compact control bar for PiP; extend here when adding more actions. */}
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
       {/* Side panel (effects, settings, etc.) opens within PiP window. */}
-      <SidePanel />
+      <SidePanel store={pipLayoutStore} />
     </PipContainer>
   )
 }

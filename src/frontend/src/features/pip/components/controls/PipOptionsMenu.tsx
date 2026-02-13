@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { RiMoreFill } from '@remixicon/react'
 import { Box, Button } from '@/primitives'
 import { css } from '@/styled-system/css'
-import { OptionsMenuItems } from '@/features/rooms/livekit/components/controls/Options/OptionsMenuItems'
+import { PipOptionsMenuItems } from './PipOptionsMenuItems'
 
 type PipOptionsMenuProps = {
   wrapperRef: React.RefObject<HTMLDivElement>
@@ -77,7 +77,7 @@ export const PipOptionsMenu = ({
           })}
         >
           <Box size="sm" type="popover" variant="dark">
-            <OptionsMenuItems />
+            <PipOptionsMenuItems />
           </Box>
         </div>
       )}

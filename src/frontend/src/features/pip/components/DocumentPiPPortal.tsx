@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDocumentPiP } from '../hooks/useDocumentPiP'
 import { UNSAFE_PortalProvider } from '@react-aria/overlays'
@@ -113,7 +113,7 @@ export const DocumentPiPPortal = ({
   height?: number
   children: React.ReactNode
   onClose?: () => void
-}) => {
+}): ReactNode => {
   const { openPiP, closePiP, pipWindow, isSupported } = useDocumentPiP({
     width,
     height,
@@ -189,5 +189,5 @@ export const DocumentPiPPortal = ({
     )
   }, [children, container])
 
-  return portal
+  return portal as unknown as ReactNode
 }
