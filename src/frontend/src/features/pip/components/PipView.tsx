@@ -7,8 +7,9 @@ import {
 import { useTracks } from '@livekit/components-react'
 import { Track } from 'livekit-client'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
-import { GridLayout } from '@/features/rooms/livekit/components/layout/GridLayout'
+import { GridLayout } from '@/features/layout/components/GridLayout'
 import { SidePanel } from '@/features/rooms/livekit/components/SidePanel'
+import { pipLayoutStore } from '../stores/pipLayoutStore'
 import { PipControlBar } from './PipControlBar'
 
 const pickTrackForPip = (
@@ -16,7 +17,7 @@ const pickTrackForPip = (
 ): TrackReferenceOrPlaceholder | undefined => {
   // Prefer screen share when present; otherwise fallback to first available track.
   const screenShareTrack = tracks
-    .filter(isTrackReference)
+    .filter((track) => isTrackReference(track))
     .find((track) => track.publication.source === Track.Source.ScreenShare)
 
   if (screenShareTrack) return screenShareTrack
@@ -60,7 +61,7 @@ export const PipView = () => {
       {/* Compact control bar for PiP; extend here when adding more actions. */}
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
       {/* Side panel (effects, settings, etc.) opens within PiP window. */}
-      <SidePanel />
+      <SidePanel store={pipLayoutStore} />
     </PipContainer>
   )
 }
