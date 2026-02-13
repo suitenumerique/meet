@@ -2,11 +2,11 @@ import { RiImageCircleAiFill } from '@remixicon/react'
 import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { menuRecipe } from '@/primitives/menuRecipe'
-import { useSidePanel } from '../../../hooks/useSidePanel'
+import { type SidePanelStore, useSidePanel } from '../../../hooks/useSidePanel'
 
-export const EffectsMenuItem = () => {
+export const EffectsMenuItem = ({ store }: { store?: SidePanelStore }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
-  const { toggleEffects } = useSidePanel()
+  const { toggleEffects } = useSidePanel(store)
 
   return (
     <MenuItem
