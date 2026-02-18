@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) expose Windows app web link #976
+
 ### Changed
 
 - ✨(frontend) add clickable settings general link in idle modal #974
