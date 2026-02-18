@@ -8,15 +8,8 @@ import {
   getKeyLabelFromCode,
 } from '../formatLabels'
 
-type UseShortcutFormattingOptions = {
-  namespace?: string
-}
-
-export const useShortcutFormatting = (
-  options: UseShortcutFormattingOptions = {}
-) => {
-  const { namespace = 'rooms' } = options
-  const { t } = useTranslation(namespace)
+export const useShortcutFormatting = () => {
+  const { t } = useTranslation('rooms')
 
   const formatVisual = useCallback(
     (shortcut?: Shortcut, code?: string, holdTemplate?: string) => {
