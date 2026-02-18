@@ -11,4 +11,3 @@ export const useSidePanelTriggerRef = (key: SidePanelTriggerKey) => {
     [key, setTrigger]
   )
 }
-

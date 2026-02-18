@@ -6,4 +6,3 @@ export type SidePanelTriggerKey =
   | 'options'
   | 'effects'
   | 'cameraMenu'
-

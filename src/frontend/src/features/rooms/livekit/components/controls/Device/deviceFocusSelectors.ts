@@ -3,4 +3,3 @@ export const AUDIO_INPUT_FOCUS_SELECTOR =
 
 export const VIDEO_INPUT_FOCUS_SELECTOR =
   '[data-attr="video-input-select"] button, [data-attr="video-input-select"] [role="combobox"]'
-

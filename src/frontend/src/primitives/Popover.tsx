@@ -76,7 +76,10 @@ type FocusOnCloseOptions = {
 
 const scheduleFocus = (
   target: HTMLElement,
-  { delayMs = 0, preventScroll = true }: { delayMs?: number; preventScroll?: boolean }
+  {
+    delayMs = 0,
+    preventScroll = true,
+  }: { delayMs?: number; preventScroll?: boolean }
 ) => {
   const timer = setTimeout(() => {
     requestAnimationFrame(() => {

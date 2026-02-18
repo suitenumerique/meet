@@ -45,7 +45,7 @@ export const useSidePanel = () => {
     }
     const triggerKey = triggerKeyByPanel[panelId]
     return triggerKey
-      ? layoutStore.sidePanelTriggers[triggerKey] ?? activeEl
+      ? (layoutStore.sidePanelTriggers[triggerKey] ?? activeEl)
       : activeEl
   }
 
