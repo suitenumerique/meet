@@ -13,8 +13,7 @@ export interface ProcessorSerialized {
   options: BackgroundOptions
 }
 
-export interface BackgroundProcessorInterface
-  extends TrackProcessor<Track.Kind> {
+export interface BackgroundProcessorInterface extends TrackProcessor<Track.Kind> {
   update(opts: BackgroundOptions): Promise<void>
   options: BackgroundOptions
   clone(): BackgroundProcessorInterface

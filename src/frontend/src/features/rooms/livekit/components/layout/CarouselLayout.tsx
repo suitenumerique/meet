@@ -11,8 +11,7 @@ const ASPECT_RATIO = 16 / 10
 const ASPECT_RATIO_INVERT = (1 - ASPECT_RATIO) * -1
 
 /** @public */
-export interface CarouselLayoutProps
-  extends React.HTMLAttributes<HTMLMediaElement> {
+export interface CarouselLayoutProps extends React.HTMLAttributes<HTMLMediaElement> {
   tracks: TrackReferenceOrPlaceholder[]
   children: React.ReactNode
   /** Place the tiles vertically or horizontally next to each other.

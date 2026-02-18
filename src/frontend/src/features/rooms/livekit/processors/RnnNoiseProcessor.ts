@@ -9,8 +9,7 @@ import NoiseSuppressorWorklet from '@timephy/rnnoise-wasm/NoiseSuppressorWorklet
 // and suspend/resume it as needed to manage audio state
 let audioContext: AudioContext
 
-export interface AudioProcessorInterface
-  extends TrackProcessor<Track.Kind.Audio> {
+export interface AudioProcessorInterface extends TrackProcessor<Track.Kind.Audio> {
   name: string
 }
 
