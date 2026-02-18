@@ -21,12 +21,12 @@ const rowStyle = css({
 
 export const ShortcutRow: React.FC<ShortcutRowProps> = ({ descriptor }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'shortcutsPanel' })
-  const { formatVisual, formatForSR, getHoldTemplate } = useShortcutFormatting()
+  const { formatVisual, formatForSR } = useShortcutFormatting()
 
   const visualShortcut = formatVisual(
     descriptor.shortcut,
     descriptor.code,
-    descriptor.kind === 'longPress' ? getHoldTemplate('visual') : undefined
+    descriptor.kind
   )
   const srShortcut = formatForSR(descriptor.shortcut, descriptor.code)
 

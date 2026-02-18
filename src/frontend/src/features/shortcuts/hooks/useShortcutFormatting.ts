@@ -11,15 +11,22 @@ import {
 export const useShortcutFormatting = () => {
   const { t } = useTranslation('rooms')
 
+  const getHoldTemplate = useCallback(
+    (type: 'visual' | 'sr' = 'visual') => {
+      return t(`shortcutsPanel.${type}.hold`, { key: '{{key}}' })
+    },
+    [t]
+  )
+
   const formatVisual = useCallback(
-    (shortcut?: Shortcut, code?: string, holdTemplate?: string) => {
-      if (code && holdTemplate) {
+    (shortcut?: Shortcut, code?: string, kind?: string) => {
+      if (code && kind === 'longPress') {
         const label = getKeyLabelFromCode(code)
-        return formatLongPressLabel(label, holdTemplate)
+        return formatLongPressLabel(label, getHoldTemplate('visual'))
       }
       return formatShortcutLabel(shortcut)
     },
-    []
+    [getHoldTemplate]
   )
 
   const formatForSR = useCallback(
@@ -41,16 +48,8 @@ export const useShortcutFormatting = () => {
     [t]
   )
 
-  const getHoldTemplate = useCallback(
-    (type: 'visual' | 'sr' = 'visual') => {
-      return t(`shortcutsPanel.${type}.hold`, { key: '{{key}}' })
-    },
-    [t]
-  )
-
   return {
     formatVisual,
     formatForSR,
-    getHoldTemplate,
   }
 }
