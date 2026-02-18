@@ -33,7 +33,6 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
         className={css({
           display: 'grid',
           gap: '0.25rem',
-          maxHeight: '420px',
           overflowY: 'auto',
           paddingRight: '0.35rem',
           outline: 'none',
