@@ -100,6 +100,9 @@
       }
     }
   },
+  "shortcuts": {
+    "listLabel": "Liste des raccourcis clavier"
+  },
   "dialog": {
     "heading": "Paramètres"
   },
@@ -120,6 +123,7 @@
     "general": "Général",
     "notifications": "Notifications",
     "accessibility": "Accessibilité",
-    "transcription": "Transcription"
+    "transcription": "Transcription",
+    "shortcuts": "Raccourcis"
   }
 }
