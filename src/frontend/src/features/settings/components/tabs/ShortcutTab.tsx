@@ -45,11 +45,7 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
         })}
       >
         {shortcutCatalog.map((item) => (
-          <ShortcutRow
-            key={item?.id}
-            descriptor={item}
-            actionLabel={tRooms(`shortcutsPanel.actions.${item?.id}`)}
-          />
+          <ShortcutRow key={item?.id} descriptor={item} />
         ))}
       </div>
     </TabPanel>

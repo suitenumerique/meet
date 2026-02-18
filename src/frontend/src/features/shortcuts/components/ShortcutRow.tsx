@@ -4,10 +4,10 @@ import { text } from '@/primitives/Text'
 import { ShortcutDescriptor } from '../catalog'
 import { ShortcutBadge } from './ShortcutBadge'
 import { useShortcutFormatting } from '../hooks/useShortcutFormatting'
+import { useTranslation } from 'react-i18next'
 
 type ShortcutRowProps = {
   descriptor: ShortcutDescriptor
-  actionLabel: string
 }
 
 const rowStyle = css({
@@ -19,10 +19,8 @@ const rowStyle = css({
   borderBottom: '1px solid rgba(255,255,255,0.08)',
 })
 
-export const ShortcutRow: React.FC<ShortcutRowProps> = ({
-  descriptor,
-  actionLabel,
-}) => {
+export const ShortcutRow: React.FC<ShortcutRowProps> = ({ descriptor }) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'shortcutsPanel' })
   const { formatVisual, formatForSR, getHoldTemplate } = useShortcutFormatting({
     namespace: 'rooms',
   })
@@ -36,7 +34,9 @@ export const ShortcutRow: React.FC<ShortcutRowProps> = ({
 
   return (
     <div role="listitem" className={rowStyle}>
-      <div className={text({ variant: 'body' })}>{actionLabel}</div>
+      <div className={text({ variant: 'body' })}>
+        {t(`actions.${descriptor.id}`)}
+      </div>
       <ShortcutBadge visualLabel={visualShortcut} srLabel={srShortcut} />
     </div>
   )
