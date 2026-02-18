@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ✨(frontend) add clickable settings general link in idle modal #974
+
 ## [1.6.0] - 2026-02-10
 
 ### Added
