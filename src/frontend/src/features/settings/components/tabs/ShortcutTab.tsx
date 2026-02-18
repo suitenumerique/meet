@@ -29,9 +29,7 @@ const ShortcutTab = ({ id }: Pick<TabPanelProps, 'id'>) => {
         role="list"
         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
         tabIndex={0}
-        aria-label={t('shortcuts.listLabel', {
-          defaultValue: 'List of keyboard shortcuts',
-        })}
+        aria-label={t('shortcuts.listLabel')}
         className={css({
           display: 'grid',
           gap: '0.25rem',
