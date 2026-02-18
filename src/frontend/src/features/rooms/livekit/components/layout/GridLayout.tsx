@@ -13,7 +13,8 @@ import { PaginationControl } from '../controls/PaginationControl'
 
 /** @public */
 export interface GridLayoutProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Pick<UseParticipantsOptions, 'updateOnlyOn'> {
   children: React.ReactNode
   tracks: TrackReferenceOrPlaceholder[]

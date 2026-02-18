@@ -11,9 +11,7 @@ import {
   ProcessorType,
 } from '.'
 
-export class UnifiedBackgroundTrackProcessor
-  implements BackgroundProcessorInterface
-{
+export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInterface {
   processor: ProcessorWrapper<BackgroundOptions>
   opts: BackgroundOptions
   processorType: ProcessorType

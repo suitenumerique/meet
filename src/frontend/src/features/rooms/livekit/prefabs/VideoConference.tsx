@@ -66,8 +66,7 @@ const LayoutWrapper = styled(
 /**
  * @public
  */
-export interface VideoConferenceProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElement> {
   /** @alpha */
   SettingsComponent?: React.ComponentType
 }

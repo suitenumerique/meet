@@ -12,6 +12,6 @@ export function useCanPublishTrack(trackSource: TrackSource): boolean {
 
   return Boolean(
     permissions?.canPublish &&
-      permissions?.canPublishSources?.includes(trackSource)
+    permissions?.canPublishSources?.includes(trackSource)
   )
 }

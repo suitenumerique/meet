@@ -18,8 +18,7 @@ import { css } from '@/styled-system/css'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 
 export interface ChatProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    ChatOptions {}
+  extends React.HTMLAttributes<HTMLDivElement>, ChatOptions {}
 
 /**
  * The Chat component adds a basis chat functionality to the LiveKit room. The messages are distributed to all participants

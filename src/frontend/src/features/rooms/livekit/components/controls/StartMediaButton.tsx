@@ -6,8 +6,7 @@ import {
 import React from 'react'
 
 /** @public */
-export interface AllowMediaPlaybackProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface AllowMediaPlaybackProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label?: string
 }
 

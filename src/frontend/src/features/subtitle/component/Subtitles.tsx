@@ -20,8 +20,7 @@ export interface TranscriptionSegment {
   lastReceivedTime: number
 }
 
-export interface TranscriptionSegmentWithParticipant
-  extends TranscriptionSegment {
+export interface TranscriptionSegmentWithParticipant extends TranscriptionSegment {
   participant: Participant
 }
 
