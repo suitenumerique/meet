@@ -595,6 +595,38 @@
     "muteParticipant": "Demp {{name}}",
     "fullScreen": "Volledig scherm"
   },
+  "shortcutsPanel": {
+    "title": "Sneltoetsen",
+    "categories": {
+      "navigation": "Navigatie",
+      "media": "Media",
+      "interaction": "Interactie"
+    },
+    "actions": {
+      "open-shortcuts": "Sneltoetsenhulp openen",
+      "focus-toolbar": "Focus op de onderste werkbalk",
+      "toggle-microphone": "Microfoon aan/uit",
+      "toggle-camera": "Camera aan/uit",
+      "push-to-talk": "Push-to-talk (ingedrukt houden om te activeren)",
+      "reaction": "Reactiepaneel",
+      "fullscreen": "Volledig scherm wisselen",
+      "recording": "Opnamepaneel wisselen",
+      "raise-hand": "Hand opsteken of laten zakken",
+      "toggle-chat": "Chat tonen/verbergen",
+      "toggle-participants": "Deelnemers tonen/verbergen",
+      "open-shortcuts-settings": "Sneltoets-instellingen openen"
+    },
+    "sr": {
+      "control": "Control",
+      "command": "Command",
+      "plus": "plus",
+      "hold": "Houd {{key}} ingedrukt",
+      "noShortcut": "Geen sneltoets"
+    },
+    "visual": {
+      "hold": "Houd {{key}} ingedrukt"
+    }
+  },
   "fullScreenWarning": {
     "message": "Om niet oneindige uw scherm in zichzelf te delen, kunt u beter niet het hele scherm delen. Deel in plaats daarvan een tab of een ander venster.",
     "stop": "Stop met presenteren",

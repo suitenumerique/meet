@@ -100,6 +100,11 @@
       }
     }
   },
+  "shortcuts": {
+    "listLabel": "Sneltoetsen",
+    "columnAction": "Actie",
+    "columnShortcut": "Sneltoets"
+  },
   "dialog": {
     "heading": "Instellingen"
   },
@@ -114,6 +119,7 @@
     "video": "Video",
     "general": "Algemeen",
     "notifications": "Meldingen",
-    "transcription": "Transcriptie"
+    "transcription": "Transcriptie",
+    "shortcuts": "Sneltoetsen"
   }
 }

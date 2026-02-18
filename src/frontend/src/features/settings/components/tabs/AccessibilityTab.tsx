@@ -36,5 +36,3 @@ export const AccessibilityTab = ({ id }: AccessibilityTabProps) => {
     </TabPanel>
   )
 }
-
-export default AccessibilityTab

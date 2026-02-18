@@ -100,6 +100,11 @@
       }
     }
   },
+  "shortcuts": {
+    "listLabel": "Keyboard shortcuts",
+    "columnAction": "Action",
+    "columnShortcut": "Shortcut"
+  },
   "dialog": {
     "heading": "Settings"
   },
@@ -120,6 +125,7 @@
     "general": "General",
     "notifications": "Notifications",
     "accessibility": "Accessibility",
-    "transcription": "Transcription"
+    "transcription": "Transcription",
+    "shortcuts": "Shortcuts"
   }
 }

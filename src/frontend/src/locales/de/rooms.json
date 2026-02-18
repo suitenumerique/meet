@@ -595,6 +595,38 @@
     "muteParticipant": "{{name}} stummschalten",
     "fullScreen": "Vollbild"
   },
+  "shortcutsPanel": {
+    "title": "Tastenkombinationen",
+    "categories": {
+      "navigation": "Navigation",
+      "media": "Medien",
+      "interaction": "Interaktion"
+    },
+    "actions": {
+      "open-shortcuts": "Tastenkürzel-Hilfe öffnen",
+      "focus-toolbar": "Fokus auf die untere Symbolleiste",
+      "toggle-microphone": "Mikrofon umschalten",
+      "toggle-camera": "Kamera umschalten",
+      "push-to-talk": "Push-to-talk (gedrückt halten zum Einschalten)",
+      "reaction": "Reaktionspanel",
+      "fullscreen": "Vollbild umschalten",
+      "recording": "Aufnahmepanel umschalten",
+      "raise-hand": "Hand heben oder senken",
+      "toggle-chat": "Chat anzeigen/ausblenden",
+      "toggle-participants": "Teilnehmer anzeigen/ausblenden",
+      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen"
+    },
+    "sr": {
+      "control": "Steuerung",
+      "command": "Befehl",
+      "plus": "plus",
+      "hold": "Halte {{key}} gedrückt",
+      "noShortcut": "Kein Tastenkürzel"
+    },
+    "visual": {
+      "hold": "Halte {{key}} gedrückt"
+    }
+  },
   "fullScreenWarning": {
     "message": "Um eine Endlosschleife zu vermeiden, teile nicht deinen gesamten Bildschirm. Teile stattdessen einen Tab oder ein anderes Fenster.",
     "stop": "Präsentation beenden",

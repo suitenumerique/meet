@@ -595,6 +595,38 @@
     "muteParticipant": "Mute {{name}}",
     "fullScreen": "Full screen"
   },
+  "shortcutsPanel": {
+    "title": "Keyboard shortcuts",
+    "categories": {
+      "navigation": "Navigation",
+      "media": "Media",
+      "interaction": "Interaction"
+    },
+    "actions": {
+      "open-shortcuts": "Open shortcuts help",
+      "focus-toolbar": "Focus bottom toolbar",
+      "toggle-microphone": "Toggle microphone",
+      "toggle-camera": "Toggle camera",
+      "push-to-talk": "Push-to-talk (hold to unmute)",
+      "reaction": "Emoji reaction panel",
+      "fullscreen": "Toggle fullscreen",
+      "recording": "Toggle recording panel",
+      "raise-hand": "Raise or lower hand",
+      "toggle-chat": "Toggle chat",
+      "toggle-participants": "Toggle participants",
+      "open-shortcuts-settings": "Open shortcuts settings"
+    },
+    "sr": {
+      "control": "Control",
+      "command": "Command",
+      "plus": "plus",
+      "hold": "Hold {{key}}",
+      "noShortcut": "No shortcut"
+    },
+    "visual": {
+      "hold": "Hold {{key}}"
+    }
+  },
   "fullScreenWarning": {
     "message": "To avoid infinite loop display, do not share your entire screen. Instead, share a tab or another window.",
     "stop": "Stop presenting",
