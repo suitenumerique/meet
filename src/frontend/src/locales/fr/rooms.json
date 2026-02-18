@@ -154,7 +154,9 @@
   "isIdleDisconnectModal": {
     "title": "Êtes-vous toujours là ?",
     "body": "Vous êtes le seul participant. Cet appel va donc se terminer dans {{duration}}. Voulez-vous poursuivre l'appel ?",
-    "settings": "Pour ne plus voir ce message, accèder à Paramètres > Général.",
+    "settingsPrefix": "Pour ne plus voir ce message, allez dans",
+    "settingsLink": "Paramètres > Général",
+    "settingsSuffix": ".",
     "stayButton": "Poursuivre l'appel",
     "leaveButton": "Quitter maintenant",
     "countdownAnnouncement": "L'appel se termine dans {{duration}}."

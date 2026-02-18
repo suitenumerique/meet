@@ -1,4 +1,4 @@
-import { Button, Dialog, H, P, ScreenReaderAnnouncer } from '@/primitives'
+import { A, Button, Dialog, H, P, ScreenReaderAnnouncer } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
@@ -9,6 +9,8 @@ import { navigateTo } from '@/navigation/navigateTo'
 import humanizeDuration from 'humanize-duration'
 import i18n from 'i18next'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
+import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 const IDLE_DISCONNECT_TIMEOUT_MS = 120000 // 2 minutes
 const COUNTDOWN_ANNOUNCEMENT_SECONDS = [90, 60, 30]
@@ -18,6 +20,7 @@ export const IsIdleDisconnectModal = () => {
   const connectionObserverSnap = useSnapshot(connectionObserverStore)
   const [timeRemaining, setTimeRemaining] = useState(IDLE_DISCONNECT_TIMEOUT_MS)
   const lastAnnouncementRef = useRef<number | null>(null)
+  const { openSettingsDialog } = useSettingsDialog()
 
   const { t } = useTranslation('rooms', { keyPrefix: 'isIdleDisconnectModal' })
   const announce = useScreenReaderAnnounce()
@@ -117,7 +120,19 @@ export const IsIdleDisconnectModal = () => {
                 }),
               })}
             </P>
-            <P>{t('settings')}</P>
+            <P>
+              {t('settingsPrefix')}{' '}
+              <A
+                color="primary"
+                onPress={() => {
+                  connectionObserverStore.isIdleDisconnectModalOpen = false
+                  openSettingsDialog(SettingsDialogExtendedKey.GENERAL)
+                }}
+              >
+                {t('settingsLink')}
+              </A>
+              {t('settingsSuffix')}
+            </P>
             <HStack marginTop="2rem">
               <Button
                 onPress={() => {

@@ -154,7 +154,9 @@
   "isIdleDisconnectModal": {
     "title": "Ben je er nog?",
     "body": "Je bent de enige deelnemer. Dit gesprek wordt over {{duration}} beëindigd. Wil je het gesprek voortzetten?",
-    "settings": "Om dit bericht niet meer te zien, ga naar Instellingen > Algemeen.",
+    "settingsPrefix": "Om dit bericht niet meer te zien, ga naar",
+    "settingsLink": "Instellingen > Algemeen",
+    "settingsSuffix": ".",
     "stayButton": "Gesprek voortzetten",
     "leaveButton": "Nu verlaten",
     "countdownAnnouncement": "Het gesprek eindigt over {{duration}}."

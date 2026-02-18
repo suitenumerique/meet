@@ -154,7 +154,9 @@
   "isIdleDisconnectModal": {
     "title": "Bist du noch da?",
     "body": "Du bist der einzige Teilnehmer. Dieses Gespräch endet in {{duration}}. Möchtest du das Gespräch fortsetzen?",
-    "settings": "Um diese Nachricht nicht mehr zu sehen, gehe zu Einstellungen > Allgemein.",
+    "settingsPrefix": "Um diese Nachricht nicht mehr zu sehen, gehe zu",
+    "settingsLink": "Einstellungen > Allgemein",
+    "settingsSuffix": ".",
     "stayButton": "Gespräch fortsetzen",
     "leaveButton": "Jetzt verlassen",
     "countdownAnnouncement": "Das Gespräch endet in {{duration}}."
