@@ -18,6 +18,7 @@ docker_build(
     'localhost:5001/meet-backend:latest',
     context='..',
     dockerfile='../Dockerfile',
+    build_args={'DOCKER_USER': '1001:127'},
     only=['./src/backend', './src/mail', './docker'],
     target = 'backend-production',
     live_update=[
@@ -33,6 +34,7 @@ clean_old_images('localhost:5001/meet-backend')
 docker_build(
     'localhost:5001/meet-frontend-dinum:latest',
     context='..',
+    build_args={'DOCKER_USER': '1001:127'},
     dockerfile='../docker/dinum-frontend/Dockerfile',
     only=['./src/frontend', './docker', './.dockerignore'],
     target = 'frontend-production',
@@ -57,6 +59,7 @@ clean_old_images('localhost:5001/meet-frontend-generic')
 docker_build(
     'localhost:5001/meet-summary:latest',
     context='../src/summary',
+    build_args={'DOCKER_USER': '1001:127'},
     dockerfile='../src/summary/Dockerfile',
     only=['.'],
     target = 'production',
@@ -69,6 +72,7 @@ clean_old_images('localhost:5001/meet-summary')
 docker_build(
     'localhost:5001/meet-agents:latest',
     context='../src/agents',
+    build_args={'DOCKER_USER': '1001:127'},
     dockerfile='../src/agents/Dockerfile',
     only=['.'],
     target = 'production',
