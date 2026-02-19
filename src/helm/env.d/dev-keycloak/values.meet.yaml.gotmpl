@@ -75,6 +75,11 @@ backend:
     ROOM_TELEPHONY_PHONE_NUMBER: '+33901020304'
     SSL_CERT_FILE: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
     ROOM_SUBTITLE_ENABLED: True
+    EXTERNAL_API_ENABLED: True
+    APPLICATION_JWT_AUDIENCE: https://meet.127.0.0.1.nip.io/external-api/v1.0/
+    APPLICATION_JWT_SECRET_KEY: devKeyApplication
+    APPLICATION_BASE_URL: https://meet.127.0.0.1.nip.io
+    ADDONS_JWT_SECRET_KEY: devKeyApplicationAddons
 
 
   migrate:
