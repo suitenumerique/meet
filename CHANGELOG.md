@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- 👷(docker) add arm64 platform support for image builds
+
 ### Changed
 
 - ♻️(frontend) replace custom reactions toolbar with react aria popover #985
