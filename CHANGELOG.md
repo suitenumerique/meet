@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(frontend) expose Windows app web link #976
+- ✨(frontend) support additional shortcuts to broaden accessibility
 
 ### Changed
 
