@@ -101,7 +101,9 @@
     }
   },
   "shortcuts": {
-    "listLabel": "Liste des raccourcis clavier"
+    "listLabel": "Liste des raccourcis clavier",
+    "columnAction": "Action",
+    "columnShortcut": "Raccourci"
   },
   "dialog": {
     "heading": "Paramètres"

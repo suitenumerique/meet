@@ -10,13 +10,8 @@ type ShortcutRowProps = {
   descriptor: ShortcutDescriptor
 }
 
-const rowStyle = css({
-  display: 'grid',
-  gridTemplateColumns: '1.25fr auto',
-  alignItems: 'center',
-  gap: '0.75rem',
-  padding: '0.65rem 0',
-  borderBottom: '1px solid rgba(255,255,255,0.08)',
+const shortcutCellStyle = css({
+  textAlign: 'right',
 })
 
 export const ShortcutRow: React.FC<ShortcutRowProps> = ({ descriptor }) => {
@@ -31,11 +26,13 @@ export const ShortcutRow: React.FC<ShortcutRowProps> = ({ descriptor }) => {
   const srShortcut = formatForSR(descriptor.shortcut, descriptor.code)
 
   return (
-    <div role="listitem" className={rowStyle}>
-      <div className={text({ variant: 'body' })}>
+    <tr>
+      <td className={text({ variant: 'body' })}>
         {t(`actions.${descriptor.id}`)}
-      </div>
-      <ShortcutBadge visualLabel={visualShortcut} srLabel={srShortcut} />
-    </div>
+      </td>
+      <td className={shortcutCellStyle}>
+        <ShortcutBadge visualLabel={visualShortcut} srLabel={srShortcut} />
+      </td>
+    </tr>
   )
 }
