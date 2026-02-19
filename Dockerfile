@@ -127,6 +127,9 @@ ARG MEET_STATIC_ROOT=/data/static
 RUN mkdir -p /usr/local/etc/gunicorn
 COPY docker/files/usr/local/etc/gunicorn/meet.py /usr/local/etc/gunicorn/meet.py
 
+# Remove pip to reduce attack surface in production
+RUN pip uninstall -y pip
+
 # Un-privileged user running the application
 ARG DOCKER_USER
 USER ${DOCKER_USER}
