@@ -70,7 +70,7 @@ docker_build(
     'localhost:5001/meet-agents:latest',
     context='../src/agents',
     dockerfile='../src/agents/Dockerfile',
-   only=['.'],
+    only=['.'],
     target = 'production',
     live_update=[
         sync('../src/agents', '/app'),
