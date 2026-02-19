@@ -46,6 +46,7 @@ const StyledRACDialog = styled(RACDialog, {
     width: 'full',
     height: 'full',
     pointerEvents: 'none',
+    outline: 'none', // focus moves to tab, avoid outline on container
   },
 })
 

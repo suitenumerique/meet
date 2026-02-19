@@ -22,6 +22,18 @@ body,
   outline: 2px solid transparent;
 }
 
+/* Suppress focus ring on dialog/tabpanel containers - focus moves to tab */
+[role='dialog']:focus,
+[role='dialog'][data-focus-visible],
+[role='tabpanel'][data-focus-visible],
+[role='tablist'][data-focus-visible],
+[role='dialog']
+  [data-rac][data-focus-visible]:not([role='tab']):not(button):not(a):not(
+    input
+  ):not(select):not(textarea) {
+  outline: none !important;
+}
+
 [data-rac][data-focus-visible]:not(label, .react-aria-Select),
 [data-rac][data-restore-focus-visible]:not(label, .react-aria-Select),
 :is(a, button, input[type='text'], select, textarea):not(

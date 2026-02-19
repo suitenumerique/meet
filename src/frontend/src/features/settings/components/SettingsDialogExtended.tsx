@@ -19,7 +19,7 @@ import { GeneralTab } from './tabs/GeneralTab'
 import { AudioTab } from './tabs/AudioTab'
 import { VideoTab } from './tabs/VideoTab'
 import { TranscriptionTab } from './tabs/TranscriptionTab'
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
@@ -61,8 +61,20 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   const { t } = useTranslation('settings')
 
   const dialogEl = useRef<HTMLDivElement>(null)
-  const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
 
+  useLayoutEffect(() => {
+    if (!props.isOpen) return
+    console.warn('[a11y] useLayoutEffect fired, dialogEl:', dialogEl.current)
+    console.warn('[a11y] tabs found:', dialogEl.current?.querySelectorAll('[role="tab"]').length)
+    const selected = dialogEl.current?.querySelector<HTMLElement>(
+      '[role="tab"][aria-selected="true"]',
+    )
+    console.warn('[a11y] selected tab:', selected?.textContent)
+    selected?.focus({ preventScroll: true })
+    console.warn('[a11y] activeElement after focus:', document.activeElement?.tagName, document.activeElement?.getAttribute('role'))
+  }, [props.isOpen])
+
+  const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
   const isAdminOrOwner = useIsAdminOrOwner()
 
   return (

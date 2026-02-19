@@ -11,7 +11,10 @@ export const SettingsMenuItem = () => {
   return (
     <MenuItem
       className={menuRecipe({ icon: true, variant: 'dark' }).item}
-      onAction={() => openSettingsDialog()}
+      onAction={() => {
+        // Let MenuTrigger close first to avoid stacked overlays (menu + dialog).
+        window.setTimeout(() => openSettingsDialog(), 0)
+      }}
     >
       <RiSettings3Line size={20} />
       {t('settings')}
