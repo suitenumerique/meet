@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-02-19
+
 ### Added
 
 - ✨(frontend) expose Windows app web link #976
