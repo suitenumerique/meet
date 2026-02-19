@@ -147,6 +147,7 @@ def process_audio_transcribe_summarize_v2(
         max_retries=settings.whisperx_max_retries,
     )
 
+    # Transcription
     try:
         with (
             file_service.prepare_audio_file(filename) as (audio_file, metadata),
@@ -224,6 +225,7 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
+    # LLM Summarization
     if (
         analytics.is_feature_enabled("summary-enabled", distinct_id=owner_id)
         and settings.is_summary_enabled

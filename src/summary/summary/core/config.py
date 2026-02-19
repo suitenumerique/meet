@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     webhook_api_token: SecretStr
     webhook_url: str
 
+    # Locale
+    default_additional_text_language: str = "fr"
+
     # Output related settings
     summary_title_template: Optional[str] = "Résumé de {title}"
 
