@@ -28,6 +28,7 @@ class TaskCreation(BaseModel):
     recording_time: Optional[str]
     language: Optional[str]
     download_link: Optional[str]
+    user_language: Optional[str] = None
 
     @field_validator("language")
     @classmethod
@@ -59,6 +60,7 @@ async def create_task(request: TaskCreation):
             request.recording_time,
             request.language,
             request.download_link,
+            request.user_language,
         ],
         queue=settings.transcribe_queue,
     )

@@ -4,32 +4,11 @@ import logging
 from typing import Optional, Tuple
 
 from summary.core.config import get_settings
+from summary.core.locales import LocaleStrings
 
 settings = get_settings()
 
 logger = logging.getLogger(__name__)
-
-
-DEFAULT_EMPTY_TRANSCRIPTION = """
-**Aucun contenu audio n’a été détecté dans votre transcription.**
-
-
-*Si vous pensez qu’il s’agit d’une erreur, n’hésitez pas à contacter
-notre support technique : visio@numerique.gouv.fr*
-
-.
-
-.
-
-.
-
-Quelques points que nous vous conseillons de vérifier :
-- Un micro était-il activé ?
-- Étiez-vous suffisamment proche ?
-- Le micro est-il de bonne qualité ?
-- L’enregistrement dure-t-il plus de 30 secondes ?
-
-"""
 
 
 class TranscriptFormatter:
@@ -42,12 +21,10 @@ class TranscriptFormatter:
     - Generating descriptive titles from context
     """
 
-    def __init__(self):
-        """Initialize formatter with settings."""
+    def __init__(self, locale: LocaleStrings):
+        """Initialize formatter with settings and locale."""
         self.hallucination_patterns = settings.hallucination_patterns
-        self.hallucination_replacement_text = settings.hallucination_replacement_text
-        self.default_title = settings.document_default_title
-        self.default_empty_transcription = DEFAULT_EMPTY_TRANSCRIPTION
+        self._locale = locale
 
     def _get_segments(self, transcription):
         """Extract segments from transcription object or dictionary."""
@@ -71,7 +48,7 @@ class TranscriptFormatter:
         segments = self._get_segments(transcription)
 
         if not segments:
-            content = self.default_empty_transcription
+            content = self._locale.empty_transcription
         else:
             content = self._format_speaker(segments)
             content = self._remove_hallucinations(content)
@@ -83,7 +60,7 @@ class TranscriptFormatter:
 
     def _remove_hallucinations(self, content: str) -> str:
         """Remove hallucination patterns from content."""
-        replacement = self.hallucination_replacement_text or ""
+        replacement = self._locale.hallucination_replacement_text or ""
 
         for pattern in self.hallucination_patterns:
             content = content.replace(pattern, replacement)
@@ -111,9 +88,8 @@ class TranscriptFormatter:
         if not download_link:
             return content
 
-        header = (
-            f"\n*Télécharger votre enregistrement "
-            f"en [suivant ce lien]({download_link})*\n"
+        header = self._locale.download_header_template.format(
+            download_link=download_link
         )
         content = header + content
 
@@ -127,9 +103,9 @@ class TranscriptFormatter:
     ) -> str:
         """Generate title from context or return default."""
         if not room or not recording_date or not recording_time:
-            return self.default_title
+            return self._locale.document_default_title
 
-        return settings.document_title_template.format(
+        return self._locale.document_title_template.format(
             room=room,
             room_recording_date=recording_date,
             room_recording_time=recording_time,
