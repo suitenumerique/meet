@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♻️(frontend) replace custom reactions toolbar with react aria popover #985
+
 ## [1.8.0] - 2026-02-20
 
 ### Changed
