@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-02-20
+
 ### Changed
 
 - 🔒️(agents) uninstall pip from the agents image
