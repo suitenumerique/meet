@@ -174,6 +174,11 @@
         },
         "button": {
           "label": "Send message"
+        },
+        "upload": {
+          "buttonLabel": "Attach a file",
+          "loading": "Uploading file…",
+          "error": "Could not upload this file."
         }
       }
     },
@@ -318,7 +323,10 @@
     "closeButton": "Hide {{content}}"
   },
   "chat": {
-    "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call."
+    "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call.",
+    "attachment": {
+      "download": "Download file"
+    }
   },
   "moreTools": {
     "body": "Access more tools to enhance your meetings.",

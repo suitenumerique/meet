@@ -245,6 +245,25 @@ class RoomInviteSerializer(serializers.Serializer):
     emails = serializers.ListField(child=serializers.EmailField(), allow_empty=False)
 
 
+class ChatFileUploadUrlSerializer(BaseValidationOnlySerializer):
+    """Validate chat attachment upload requests."""
+
+    filename = serializers.CharField(max_length=255, required=True)
+    content_type = serializers.CharField(
+        max_length=255,
+        required=False,
+        allow_blank=True,
+        default="application/octet-stream",
+    )
+
+    def validate_filename(self, value):
+        """Ensure filename is not empty after trimming."""
+        filename = value.strip()
+        if not filename:
+            raise serializers.ValidationError("Filename cannot be empty.")
+        return filename
+
+
 class BaseParticipantsManagementSerializer(BaseValidationOnlySerializer):
     """Base serializer for participant management operations."""
 

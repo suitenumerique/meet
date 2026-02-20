@@ -1,10 +1,13 @@
 """API endpoints"""
 
+import mimetypes
 import uuid
 from logging import getLogger
+from pathlib import Path
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -526,6 +529,61 @@ class RoomViewSet(
 
         return drf_response.Response(
             {"status": "success", "message": "invitations sent"},
+            status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="chat-file-upload-url",
+        permission_classes=[
+            permissions.HasLiveKitRoomAccess,
+        ],
+        authentication_classes=[LiveKitTokenAuthentication],
+    )
+    def chat_file_upload_url(self, request, pk=None):  # pylint: disable=unused-argument
+        """Generate presigned upload/download URLs for chat attachments."""
+
+        room = self.get_object()
+        serializer = serializers.ChatFileUploadUrlSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        filename = serializer.validated_data["filename"]
+        file_extension = Path(filename).suffix[:20]
+        key = (
+            f"chat-files/{room.id}/{uuid.uuid4()}"
+            f"{file_extension if file_extension else ''}"
+        )
+
+        requested_content_type = serializer.validated_data["content_type"]
+        content_type = requested_content_type or mimetypes.guess_type(filename)[0]
+        content_type = content_type or "application/octet-stream"
+
+        upload_url = default_storage.connection.meta.client.generate_presigned_url(
+            "put_object",
+            Params={
+                "Bucket": default_storage.bucket_name,
+                "Key": key,
+                "ContentType": content_type,
+            },
+            ExpiresIn=3600,
+        )
+        unsigned_connection = getattr(
+            default_storage, "unsigned_connection", default_storage.connection
+        )
+        download_url = unsigned_connection.meta.client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": default_storage.bucket_name, "Key": key},
+            ExpiresIn=3600,
+        )
+
+        return drf_response.Response(
+            {
+                "upload_url": upload_url,
+                "download_url": download_url,
+                "filename": filename,
+                "content_type": content_type,
+            },
             status=drf_status.HTTP_200_OK,
         )
 

@@ -10,12 +10,15 @@ import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { chatStore } from '@/stores/chat'
 import { Div, Text } from '@/primitives'
+import { requestChatFileUploadUrl } from '../../api/requestChatFileUploadUrl'
 import { ChatInput } from '../components/chat/Input'
 import { ChatEntry } from '../components/chat/Entry'
 import { useSidePanel } from '../hooks/useSidePanel'
+import { useRoomData } from '../hooks/useRoomData'
 import { LocalParticipant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { css } from '@/styled-system/css'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { createAttachmentMessage } from '../components/chat/attachments'
 
 export interface ChatProps
   extends React.HTMLAttributes<HTMLDivElement>, ChatOptions {}
@@ -31,6 +34,7 @@ export function Chat({ ...props }: ChatProps) {
   const ulRef = React.useRef<HTMLUListElement>(null)
 
   const room = useRoomContext()
+  const roomData = useRoomData()
   const { send, chatMessages, isSending } = useChat()
 
   const { isChatOpen } = useSidePanel()
@@ -59,6 +63,44 @@ export function Chat({ ...props }: ChatProps) {
     if (!send || !text) return
     await send(text)
     inputRef?.current?.focus({ preventScroll: true })
+  }
+
+  async function handleUploadFiles(files: FileList | File[]) {
+    if (!send || !roomData?.id || !roomData.livekit?.token) {
+      throw new Error('Room metadata is unavailable for file uploads.')
+    }
+
+    const uploadQueue = Array.from(files)
+
+    for (const file of uploadQueue) {
+      const uploadMetadata = await requestChatFileUploadUrl({
+        roomId: roomData.id,
+        token: roomData.livekit.token,
+        filename: file.name,
+        contentType: file.type,
+      })
+
+      const uploadResponse = await fetch(uploadMetadata.upload_url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': uploadMetadata.content_type,
+        },
+        body: file,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed for ${file.name}`)
+      }
+
+      await send(
+        createAttachmentMessage({
+          filename: uploadMetadata.filename,
+          size: file.size,
+          contentType: uploadMetadata.content_type,
+          downloadUrl: uploadMetadata.download_url,
+        })
+      )
+    }
   }
 
   // TEMPORARY: This is a brittle workaround that relies on message count tracking
@@ -158,6 +200,7 @@ export function Chat({ ...props }: ChatProps) {
       <ChatInput
         inputRef={inputRef}
         onSubmit={(e) => handleSubmit(e)}
+        onUploadFiles={handleUploadFiles}
         isSending={isSending}
       />
     </Div>
