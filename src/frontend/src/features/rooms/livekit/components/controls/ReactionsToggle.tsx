@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { RiEmotionLine } from '@remixicon/react'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { css } from '@/styled-system/css'
 import { useRoomContext } from '@livekit/components-react'
 import { ToggleButton, Button } from '@/primitives'
@@ -12,7 +12,12 @@ import {
 } from '@/features/rooms/livekit/components/ReactionPortal'
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
-import { Toolbar as RACToolbar } from 'react-aria-components'
+import {
+  Popover as RACPopover,
+  Dialog,
+  DialogTrigger,
+} from 'react-aria-components'
+import { FocusScope } from '@react-aria/focus'
 import { Participant } from 'livekit-client'
 import useRateLimiter from '@/hooks/useRateLimiter'
 
@@ -40,11 +45,11 @@ export const ReactionsToggle = () => {
   const instanceIdRef = useRef(0)
   const room = useRoomContext()
 
-  const [isVisible, setIsVisible] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   useRegisterKeyboardShortcut({
     id: 'reaction',
-    handler: () => setIsVisible((prev) => !prev),
+    handler: () => setIsOpen((prev) => !prev),
   })
 
   const sendReaction = async (emoji: string) => {
@@ -79,100 +84,76 @@ export const ReactionsToggle = () => {
     windowMs: 1000,
   })
 
-  // Custom animation implementation for the emoji toolbar
-  // Could not use a menu and its animation, because a menu would make the toolbar inaccessible by keyboard
-  // animation isn't perfect
-  const [isRendered, setIsRendered] = useState(isVisible)
-  const [opacity, setOpacity] = useState(isVisible ? 1 : 0)
-
-  useEffect(() => {
-    if (isVisible) {
-      // Show: first render, then animate in
-      setIsRendered(true)
-      // Need to delay setting opacity to ensure CSS transition works
-      // (using requestAnimationFrame to ensure DOM has updated)
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setOpacity(1)
-        })
-      })
-    } else if (isRendered) {
-      // Hide: first animate out, then unrender
-      setOpacity(0)
-
-      // Wait for animation to complete before removing from DOM
-      const timer = setTimeout(() => {
-        setIsRendered(false)
-      }, 200) // Match this to your animation duration
-      return () => clearTimeout(timer)
-    }
-  }, [isVisible, isRendered])
-
   return (
     <>
-      <div
-        className={css({
-          position: 'relative',
-        })}
-      >
-        <ToggleButton
-          square
-          variant="primaryDark"
-          aria-label={t('button')}
-          tooltip={t('button')}
-          onPress={() => setIsVisible(!isVisible)}
-        >
-          <RiEmotionLine />
-        </ToggleButton>
-        {isRendered && (
-          <div
+      <div className={css({ position: 'relative' })}>
+        <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
+          <ToggleButton
+            square
+            variant="primaryDark"
+            aria-label={t('button')}
+            tooltip={t('button')}
+            isSelected={isOpen}
+            onChange={setIsOpen}
+          >
+            <RiEmotionLine />
+          </ToggleButton>
+          <RACPopover
+            placement="top"
+            offset={8}
+            isNonModal
+            shouldCloseOnInteractOutside={() => false}
             className={css({
-              position: 'absolute',
-              top: -63,
-              left: -162,
               borderRadius: '8px',
               padding: '0.35rem',
               backgroundColor: 'primaryDark.50',
-              opacity: opacity,
-              transition: 'opacity 0.2s ease',
+              '&[data-entering]': {
+                animation: 'fade 200ms ease',
+              },
+              '&[data-exiting]': {
+                animation: 'fade 200ms ease-in reverse',
+              },
             })}
-            onTransitionEnd={() => {
-              if (!isVisible) {
-                setIsRendered(false)
-              }
-            }}
           >
-            <RACToolbar
-              className={css({
-                display: 'flex',
-                gap: '0.5rem',
-              })}
-            >
-              {Object.values(Emoji).map((emoji, index) => (
-                <Button
-                  key={index}
-                  onPress={() => debouncedSendReaction(emoji)}
-                  aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
-                  variant="primaryTextDark"
-                  size="sm"
-                  square
-                  data-attr={`send-reaction-${emoji}`}
+            <Dialog className={css({ outline: 'none' })}>
+              {/* eslint-disable-next-line jsx-a11y/no-autofocus -- FocusScope autoFocus is programmatic focus for overlays, not the HTML autofocus attribute */}
+              <FocusScope contain autoFocus restoreFocus>
+                <div
+                  role="toolbar"
+                  aria-orientation="horizontal"
+                  aria-label={t('button')}
+                  className={css({
+                    display: 'flex',
+                    gap: '0.5rem',
+                  })}
                 >
-                  <img
-                    src={`/assets/reactions/${emoji}.png`}
-                    alt=""
-                    className={css({
-                      minHeight: '28px',
-                      minWidth: '28px',
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                    })}
-                  />
-                </Button>
-              ))}
-            </RACToolbar>
-          </div>
-        )}
+                  {Object.values(Emoji).map((emoji, index) => (
+                    <Button
+                      key={index}
+                      onPress={() => debouncedSendReaction(emoji)}
+                      aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
+                      variant="primaryTextDark"
+                      size="sm"
+                      square
+                      data-attr={`send-reaction-${emoji}`}
+                    >
+                      <img
+                        src={`/assets/reactions/${emoji}.png`}
+                        alt=""
+                        className={css({
+                          width: '28px',
+                          height: '28px',
+                          pointerEvents: 'none',
+                          userSelect: 'none',
+                        })}
+                      />
+                    </Button>
+                  ))}
+                </div>
+              </FocusScope>
+            </Dialog>
+          </RACPopover>
+        </DialogTrigger>
       </div>
       <ReactionPortals reactions={reactions} />
     </>
