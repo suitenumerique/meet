@@ -595,6 +595,38 @@
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
   },
+  "shortcutsPanel": {
+    "title": "Raccourcis clavier",
+    "categories": {
+      "navigation": "Navigation",
+      "media": "Média",
+      "interaction": "Interaction"
+    },
+    "actions": {
+      "open-shortcuts": "Ouvrir l’aide des raccourcis",
+      "focus-toolbar": "Mettre le focus sur la barre d’outils du bas",
+      "toggle-microphone": "Activer ou désactiver le micro",
+      "toggle-camera": "Activer ou désactiver la caméra",
+      "push-to-talk": "Appuyer pour parler (maintenir pour réactiver)",
+      "reaction": "Panneau des réactions",
+      "fullscreen": "Basculer en plein écran",
+      "recording": "Basculer le panneau d’enregistrement",
+      "raise-hand": "Lever ou baisser la main",
+      "toggle-chat": "Afficher/Masquer le chat",
+      "toggle-participants": "Afficher/Masquer les participants",
+      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis"
+    },
+    "sr": {
+      "control": "Contrôle",
+      "command": "Commande",
+      "plus": "plus",
+      "hold": "Maintenir {{key}}",
+      "noShortcut": "Aucun raccourci"
+    },
+    "visual": {
+      "hold": "Maintenir {{key}}"
+    }
+  },
   "fullScreenWarning": {
     "message": "Pour éviter l'affichage en boucle infinie, ne partagez pas l'intégralité de votre écran. Partagez plutôt un onglet ou une autre fenêtre.",
     "stop": "Arrêter la présentation",

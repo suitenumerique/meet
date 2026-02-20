@@ -5,5 +5,6 @@ export enum SettingsDialogExtendedKey {
   GENERAL = 'general',
   NOTIFICATIONS = 'notifications',
   TRANSCRIPTION = 'transcription',
+  SHORTCUTS = 'shortcuts',
   ACCESSIBILITY = 'accessibility',
 }
