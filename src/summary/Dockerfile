@@ -25,6 +25,8 @@ FROM base AS production
 
 WORKDIR /app
 
+COPY --from=builder /usr/local /usr/local
+
 # Remove pip to reduce attack surface in production
 RUN pip uninstall -y pip
 
@@ -32,7 +34,6 @@ RUN pip uninstall -y pip
 ARG DOCKER_USER
 USER ${DOCKER_USER}
 
-COPY --from=builder /usr/local /usr/local
 COPY ./summary /app/summary
 
 CMD ["uvicorn", "summary.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000"]
