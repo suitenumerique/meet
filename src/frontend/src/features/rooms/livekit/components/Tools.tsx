@@ -4,7 +4,6 @@ import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { ReactNode } from 'react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
-import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import {
   useIsRecordingModeEnabled,
   RecordingMode,
@@ -95,25 +94,9 @@ const ToolButton = ({
 
 export const Tools = () => {
   const { data } = useConfig()
-  const { openTranscript, openScreenRecording, activeSubPanelId, isToolsOpen } =
+  const { openTranscript, openScreenRecording, activeSubPanelId } =
     useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
-
-  // Restore focus to the element that opened the Tools panel
-  // following the same pattern as Chat.
-  useRestoreFocus(isToolsOpen, {
-    // If the active element is a MenuItem (DIV) that will be unmounted when the menu closes,
-    // find the "more options" button ("Plus d'options") that opened the menu
-    resolveTrigger: (activeEl) => {
-      if (activeEl?.tagName === 'DIV') {
-        return document.querySelector<HTMLElement>('#room-options-trigger')
-      }
-      // For direct button clicks (e.g. "Plus d'outils"), use the active element as is
-      return activeEl
-    },
-    restoreFocusRaf: true,
-    preventScroll: true,
-  })
 
   const isTranscriptEnabled = useIsRecordingModeEnabled(
     RecordingMode.Transcript
