@@ -25,6 +25,12 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v6
       -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
         name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -48,11 +54,14 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           target: backend-production
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-and-push-frontend-generic:
     runs-on: ubuntu-latest
@@ -60,6 +69,12 @@ jobs:
       -
         name: Checkout repository
         uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -85,11 +100,14 @@ jobs:
         with:
           context: .
           file: ./src/frontend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           target: frontend-production
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-and-push-frontend-dinum:
     runs-on: ubuntu-latest
@@ -97,6 +115,12 @@ jobs:
       -
         name: Checkout repository
         uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -122,11 +146,14 @@ jobs:
         with:
           context: .
           file: ./docker/dinum-frontend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           target: frontend-production
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-and-push-summary:
     runs-on: ubuntu-latest
@@ -134,6 +161,12 @@ jobs:
       -
         name: Checkout repository
         uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -161,11 +194,14 @@ jobs:
         with:
           context: ./src/summary
           file: ./src/summary/Dockerfile
+          platforms: linux/amd64,linux/arm64
           target: production
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-and-push-agents:
     runs-on: ubuntu-latest
@@ -173,6 +209,12 @@ jobs:
       -
         name: Checkout repository
         uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -200,11 +242,14 @@ jobs:
         with:
           context: ./src/agents
           file: ./src/agents/Dockerfile
+          platforms: linux/amd64,linux/arm64
           target: production
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   notify-argocd:
     needs:
