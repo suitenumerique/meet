@@ -32,7 +32,7 @@ Set the following environment variables in your Scalingo app:
 ### Buildpack Configuration
 
 ```bash
-scalingo env-set BUILDBACK_URL="https://github.com/suitenumerique/buildpack#main"
+scalingo env-set BUILDPACK_URL="https://github.com/suitenumerique/buildpack#main"
 scalingo env-set LASUITE_APP_NAME="meet"
 scalingo env-set LASUITE_BACKEND_DIR="."
 scalingo env-set LASUITE_FRONTEND_DIR="src/frontend/"
