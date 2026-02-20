@@ -7,17 +7,20 @@ import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from './controls/Participants/ParticipantsList'
 import { useSidePanel } from '../hooks/useSidePanel'
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useRef } from 'react'
 import { Chat } from '../prefabs/Chat'
 import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
 import { HStack } from '@/styled-system/jsx'
+import { FocusScope } from '@react-aria/focus'
+
+const SIDE_PANEL_HEADING_ID = 'side-panel-heading'
+const SIDE_PANEL_CLOSE_ID = 'side-panel-close'
 
 type StyledSidePanelProps = {
   title: string
-  ariaLabel: string
   children: ReactNode
   onClose: () => void
   isClosed: boolean
@@ -29,7 +32,6 @@ type StyledSidePanelProps = {
 
 const StyledSidePanel = ({
   title,
-  ariaLabel,
   children,
   onClose,
   isClosed,
@@ -38,7 +40,14 @@ const StyledSidePanel = ({
   onBack,
   backButtonLabel,
 }: StyledSidePanelProps) => (
+  // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="dialog" makes this interactive
   <aside
+    role="dialog"
+    aria-labelledby={!isClosed ? SIDE_PANEL_HEADING_ID : undefined}
+    aria-hidden={isClosed || undefined}
+    onKeyDown={(e) => {
+      if (e.key === 'Escape') onClose()
+    }}
     className={css({
       borderWidth: '1px',
       borderStyle: 'solid',
@@ -63,57 +72,59 @@ const StyledSidePanel = ({
     style={{
       transform: isClosed ? 'translateX(calc(360px + 1.5rem))' : 'none',
     }}
-    aria-hidden={isClosed}
-    aria-label={ariaLabel}
   >
-    <HStack alignItems="center">
-      {isSubmenu && (
-        <Button
-          variant="secondaryText"
-          size="sm"
-          square
-          className={css({ marginRight: '0.5rem', marginLeft: '1rem' })}
-          aria-label={backButtonLabel}
-          onPress={onBack}
+    <FocusScope contain={!isClosed}>
+      <HStack alignItems="center">
+        {isSubmenu && (
+          <Button
+            variant="secondaryText"
+            size="sm"
+            square
+            className={css({ marginRight: '0.5rem', marginLeft: '1rem' })}
+            aria-label={backButtonLabel}
+            onPress={onBack}
+          >
+            <RiArrowLeftLine size={20} aria-hidden="true" />
+          </Button>
+        )}
+        <Heading
+          id={SIDE_PANEL_HEADING_ID}
+          slot="title"
+          level={1}
+          className={text({ variant: 'h2' })}
+          style={{
+            paddingLeft: isSubmenu ? 0 : '1.5rem',
+            paddingTop: '1rem',
+            display: isClosed ? 'none' : 'flex',
+            justifyContent: 'start',
+            alignItems: 'center',
+          }}
         >
-          <RiArrowLeftLine size={20} aria-hidden="true" />
-        </Button>
-      )}
-      <Heading
-        slot="title"
-        level={1}
-        className={text({ variant: 'h2' })}
+          {title}
+        </Heading>
+      </HStack>
+      <Div
+        position="absolute"
+        top="5"
+        right="5"
         style={{
-          paddingLeft: isSubmenu ? 0 : '1.5rem',
-          paddingTop: '1rem',
-          display: isClosed ? 'none' : 'flex',
-          justifyContent: 'start',
-          alignItems: 'center',
+          display: isClosed ? 'none' : undefined,
         }}
       >
-        {title}
-      </Heading>
-    </HStack>
-    <Div
-      position="absolute"
-      top="5"
-      right="5"
-      style={{
-        display: isClosed ? 'none' : undefined,
-      }}
-    >
-      <Button
-        invisible
-        variant="tertiaryText"
-        size="xs"
-        onPress={onClose}
-        aria-label={closeButtonTooltip}
-        tooltip={closeButtonTooltip}
-      >
-        <RiCloseLine />
-      </Button>
-    </Div>
-    {children}
+        <Button
+          id={SIDE_PANEL_CLOSE_ID}
+          invisible
+          variant="tertiaryText"
+          size="xs"
+          onPress={onClose}
+          aria-label={closeButtonTooltip}
+          tooltip={closeButtonTooltip}
+        >
+          <RiCloseLine />
+        </Button>
+      </Div>
+      {children}
+    </FocusScope>
   </aside>
 )
 
@@ -135,6 +146,7 @@ const Panel = ({ isOpen, keepAlive = false, children }: PanelProps) => (
     {keepAlive || isOpen ? children : null}
   </div>
 )
+
 export const SidePanel = () => {
   const {
     activePanelId,
@@ -150,14 +162,53 @@ export const SidePanel = () => {
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
 
+  const triggerRef = useRef<HTMLElement | null>(null)
+
+  //  FocusScope handles Tab containment, but autoFocus/restoreFocus rely on mount/unmount
+  //  lifecycle,  which never happens here because the aside stays mounted (CSS slide + keepAlive).
+  //  This effect manually captures the trigger on open and auto-focuses the close button.
+  //  Restore focus is handled in handleClose with a double RAF to let FocusScope release containment.
+ 
+  useEffect(() => {
+    if (!isSidePanelOpen) return
+    const active = document.activeElement as HTMLElement
+    // Menu items render as DIVs that unmount when the menu closes — resolve to the menu trigger
+    triggerRef.current =
+      active?.tagName === 'DIV'
+        ? (document.querySelector<HTMLElement>('#room-options-trigger') ??
+          active)
+        : active
+    requestAnimationFrame(() => {
+      const closeBtn = document.getElementById(SIDE_PANEL_CLOSE_ID)
+      // Skip if a child panel already moved focus inside (e.g. Chat input)
+      if (closeBtn?.closest('aside')?.contains(document.activeElement)) return
+      closeBtn?.focus({ preventScroll: true })
+    })
+  }, [isSidePanelOpen])
+
+  const handleClose = () => {
+    const trigger = triggerRef.current
+    triggerRef.current = null
+    layoutStore.activePanelId = null
+    layoutStore.activeSubPanelId = null
+    // Double RAF: first lets React re-render, second lets FocusScope release containment
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (trigger?.isConnected) {
+          trigger.focus({ preventScroll: true })
+        } else {
+          document
+            .querySelector<HTMLElement>('#room-options-trigger')
+            ?.focus({ preventScroll: true })
+        }
+      })
+    })
+  }
+
   return (
     <StyledSidePanel
       title={t(`heading.${activeSubPanelId || activePanelId}`)}
-      ariaLabel={t('ariaLabel')}
-      onClose={() => {
-        layoutStore.activePanelId = null
-        layoutStore.activeSubPanelId = null
-      }}
+      onClose={handleClose}
       closeButtonTooltip={t('closeButton', {
         content: t(`content.${activeSubPanelId || activePanelId}`),
       })}

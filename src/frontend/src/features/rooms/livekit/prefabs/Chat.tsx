@@ -15,7 +15,6 @@ import { ChatEntry } from '../components/chat/Entry'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { LocalParticipant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { css } from '@/styled-system/css'
-import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 
 export interface ChatProps
   extends React.HTMLAttributes<HTMLDivElement>, ChatOptions {}
@@ -36,18 +35,12 @@ export function Chat({ ...props }: ChatProps) {
   const { isChatOpen } = useSidePanel()
   const chatSnap = useSnapshot(chatStore)
 
-  // Keep track of the element that opened the chat so we can restore focus
-  // when the chat panel is closed.
-  useRestoreFocus(isChatOpen, {
-    // Avoid layout "jump" during the side panel slide-in animation.
-    // Focusing can trigger scroll into view; preventScroll keeps the animation smooth.
-    onOpened: () => {
-      requestAnimationFrame(() => {
-        inputRef.current?.focus({ preventScroll: true })
-      })
-    },
-    preventScroll: true,
-  })
+  React.useEffect(() => {
+    if (!isChatOpen) return
+    requestAnimationFrame(() => {
+      inputRef.current?.focus({ preventScroll: true })
+    })
+  }, [isChatOpen])
 
   // Use useParticipants hook to trigger a re-render when the participant list changes.
   const participants = useParticipants()

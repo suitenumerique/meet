@@ -80,10 +80,12 @@ export const ChatInput = ({
       <TextArea
         ref={inputRef}
         onKeyDown={(e) => {
-          e.stopPropagation()
+          if (e.key !== 'Escape') e.stopPropagation()
           submitOnEnter(e)
         }}
-        onKeyUp={(e) => e.stopPropagation()}
+        onKeyUp={(e) => {
+          if (e.key !== 'Escape') e.stopPropagation()
+        }}
         placeholder={t('textArea.placeholder')}
         value={text}
         onChange={(e) => {

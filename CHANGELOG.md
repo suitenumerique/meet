@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♻️(frontend) Use React Aria FocusScope for side panel accessibility
+
 ## [1.7.0] - 2026-02-19
 
 ### Added
