@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ♻️(frontend) replace custom reactions toolbar with react aria popover #985
+- 🔒️(frontend) uninstall curl from the frontend production image #987
 
 ## [1.8.0] - 2026-02-20
 
