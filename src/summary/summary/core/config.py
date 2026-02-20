@@ -51,7 +51,6 @@ class Settings(BaseSettings):
 
     # Transcription processing
     hallucination_patterns: List[str] = ["Vap'n'Roll Thierry"]
-    hallucination_replacement_text: str = "[Texte impossible à transcrire]"
 
     # Webhook-related settings
     webhook_max_retries: int = 2
@@ -60,11 +59,10 @@ class Settings(BaseSettings):
     webhook_api_token: SecretStr
     webhook_url: str
 
+    # Locale
+    default_additional_text_language: str = "fr"
+
     # Output related settings
-    document_default_title: Optional[str] = "Transcription"
-    document_title_template: Optional[str] = (
-        'Réunion "{room}" du {room_recording_date} à {room_recording_time}'
-    )
     summary_title_template: Optional[str] = "Résumé de {title}"
 
     # Summary related settings

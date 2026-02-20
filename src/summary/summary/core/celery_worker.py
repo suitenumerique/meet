@@ -18,6 +18,7 @@ from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
 from summary.core.file_service import FileService, FileServiceException
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
+from summary.core.locales import get_locale
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
     FORMAT_PLAN,
@@ -121,6 +122,7 @@ def process_audio_transcribe_summarize_v2(
     recording_time: Optional[str],
     language: Optional[str],
     download_link: Optional[str],
+    user_language: Optional[str] = None,
 ):
     """Process an audio file by transcribing it and generating a summary.
 
@@ -145,6 +147,7 @@ def process_audio_transcribe_summarize_v2(
         max_retries=settings.whisperx_max_retries,
     )
 
+    # Transcription
     try:
         with (
             file_service.prepare_audio_file(filename) as (audio_file, metadata),
@@ -183,7 +186,8 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.track_transcription_metadata(task_id, transcription)
 
-    formatter = TranscriptFormatter()
+    locale = get_locale(user_language)
+    formatter = TranscriptFormatter(locale)
 
     content, title = formatter.format(
         transcription,
@@ -221,6 +225,7 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
+    # LLM Summarization
     if (
         analytics.is_feature_enabled("summary-enabled", distinct_id=owner_id)
         and settings.is_summary_enabled
@@ -336,9 +341,7 @@ def summarize_transcription(
     summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
 
     data = {
-        "title": settings.summary_title_template.format(
-            title=title,
-        ),
+        "title": settings.summary_title_template.format(title=title),
         "content": summary,
         "email": email,
         "sub": sub,
