@@ -1,5 +1,5 @@
 import { LocalVideoTrack, Track } from 'livekit-client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BackgroundOptions,
@@ -149,7 +149,7 @@ export const EffectsConfiguration = ({
     } else {
       URL.revokeObjectURL(newUrl)
       customBackgroundUrlRef.current = previousUrl || null
-      setCustomBackgroundUrl(previousUrl || '')
+      setCustomBackgroundUrl(previousUrl || null)
     }
 
     if (fileInputRef.current) {
@@ -322,7 +322,13 @@ export const EffectsConfiguration = ({
     return t(`virtual.descriptions.${index}`)
   }
 
-  const isCustomSelected = !!customBackgroundUrl && isSelected(ProcessorType.VIRTUAL, { imagePath: customBackgroundUrl })
+  const isCustomSelected = useMemo(
+    () =>
+      !!customBackgroundUrl &&
+      typeof isSelected === 'function' &&
+      isSelected(ProcessorType.VIRTUAL, { imagePath: customBackgroundUrl }),
+    [customBackgroundUrl, getProcessor()]
+  )
 
   return (
     <div
