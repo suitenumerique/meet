@@ -268,6 +268,9 @@
     "virtual": {
       "title": "Virtual background",
       "selectedLabel": "Background applied:",
+      "customLabel": "Select your background",
+      "customBackgroundTooLarge": "Selected file is too large. Maximum allowed size is {{maxSize}} MB.",
+      "customBackgroundNotAnImage": "Selected file is not an image. Please select an image file.",
       "apply": "Replace your background:",
       "descriptions": {
         "0": "Fluted wooden furniture",
