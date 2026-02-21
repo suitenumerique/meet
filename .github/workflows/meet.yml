@@ -12,6 +12,8 @@ jobs:
   lint-git:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' # Makes sense only for pull requests
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -39,6 +41,8 @@ jobs:
     if: |
       contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false &&
       github.event_name == 'pull_request'
+    permissions:
+        contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -49,6 +53,8 @@ jobs:
 
   lint-changelog:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -62,6 +68,8 @@ jobs:
 
   build-mails:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: src/mail
@@ -102,6 +110,8 @@ jobs:
 
   lint-back:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: src/backend
@@ -124,6 +134,8 @@ jobs:
 
   lint-agents:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: src/agents
@@ -144,6 +156,8 @@ jobs:
 
   lint-summary:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: src/summary
@@ -165,7 +179,8 @@ jobs:
   test-back:
     runs-on: ubuntu-latest
     needs: build-mails
-
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: src/backend
@@ -279,6 +294,8 @@ jobs:
 
   lint-front:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -294,6 +311,8 @@ jobs:
 
   lint-sdk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: src/sdk/library
@@ -312,6 +331,8 @@ jobs:
 
   build-sdk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: lint-sdk
     defaults:
       run:
