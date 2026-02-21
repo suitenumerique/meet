@@ -270,6 +270,7 @@
       "selectedLabel": "Arrière-plan appliqué :",
       "customLabel": "Sélectionner votre arrière-plan",
       "customBackgroundTooLarge": "Le fichier sélectionné est trop volumineux. La taille maximale autorisée est de {{maxSize}} Mo.",
+      "customBackgroundNotAnImage": "Le fichier sélectionné n'est pas une image.",
       "apply": "Remplacer votre arrière plan :",
       "descriptions": {
         "0": "Meuble cannelé en bois",

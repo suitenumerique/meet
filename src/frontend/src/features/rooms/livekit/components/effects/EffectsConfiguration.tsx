@@ -29,6 +29,8 @@ enum BlurRadius {
 
 const isSupported = BackgroundProcessorFactory.isSupported()
 
+const MAX_FILE_SIZE_MB = 10
+
 const Information = styled('div', {
   base: {
     backgroundColor: 'orange.50',
@@ -104,17 +106,26 @@ export const EffectsConfiguration = ({
     []
   )
 
-  const MAX_FILE_SIZE_MB = 10
-
   const handleCustomBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
+    if (!file.type.startsWith('image/')) {
+      console.warn('Selected file is not an image.')
+      announce(
+        t('virtual.customBackgroundNotAnImage', {
+          defaultValue: 'Selected file is not an image. Please select an image file.',
+        })
+      )
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      console.warn(`Custom background file is too large (max ${MAX_FILE_SIZE_MB}MB).`)
+      console.warn(`Custom background file is too large (max ${MAX_FILE_SIZE_MB} MB).`)
       announce(
         t('virtual.customBackgroundTooLarge', {
-          defaultValue: `Selected file is too large. Maximum allowed size is ${MAX_FILE_SIZE_MB}MB.`,
+          defaultValue: `Selected file is too large. Maximum allowed size is ${MAX_FILE_SIZE_MB} MB.`,
           maxSize: MAX_FILE_SIZE_MB,
         })
       )
@@ -122,14 +133,24 @@ export const EffectsConfiguration = ({
       return
     }
 
-    if (customBackgroundUrlRef.current) {
-      URL.revokeObjectURL(customBackgroundUrlRef.current)
-    }
-
+    const previousUrl = customBackgroundUrlRef.current
     const newUrl = URL.createObjectURL(file)
     customBackgroundUrlRef.current = newUrl
-    setCustomBackgroundUrl(newUrl)
     await toggleEffect(ProcessorType.VIRTUAL, { imagePath: newUrl })
+
+    const isVirtualSelected =
+      typeof isSelected === 'function' ? isSelected(ProcessorType.VIRTUAL, { imagePath: newUrl }) : false
+
+    if (isVirtualSelected) {
+      setCustomBackgroundUrl(newUrl)
+      if (previousUrl && previousUrl !== newUrl) {
+        URL.revokeObjectURL(previousUrl)
+      }
+    } else {
+      URL.revokeObjectURL(newUrl)
+      customBackgroundUrlRef.current = previousUrl || null
+      setCustomBackgroundUrl(previousUrl || '')
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -498,9 +519,14 @@ export const EffectsConfiguration = ({
                       aria-label={t('virtual.customLabel')}
                       isDisabled={processorPendingReveal || isDisabled}
                       onChange={async () => {
-                        if (customBackgroundUrl) {
+                        if (isCustomSelected) {
+                          // Already active, clicking again should disable it (or whatever toggleEffect does when passing same args)
+                          await toggleEffect(ProcessorType.VIRTUAL, { imagePath: customBackgroundUrl as string })
+                        } else if (customBackgroundUrl) {
+                          // Has URL but not active, re-apply it
                           await toggleEffect(ProcessorType.VIRTUAL, { imagePath: customBackgroundUrl })
                         } else {
+                          // No URL yet, open file picker
                           fileInputRef.current?.click()
                         }
                       }}
