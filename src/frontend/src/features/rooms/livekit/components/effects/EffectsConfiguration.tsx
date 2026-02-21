@@ -19,6 +19,7 @@ import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { Icon } from '@/primitives/Icon'
 
 enum BlurRadius {
   NONE = 0,
@@ -27,6 +28,8 @@ enum BlurRadius {
 }
 
 const isSupported = BackgroundProcessorFactory.isSupported()
+
+const MAX_FILE_SIZE_MB = 10
 
 const Information = styled('div', {
   base: {
@@ -58,6 +61,9 @@ export const EffectsConfiguration = ({
   const processorPendingReveal = useSyncAfterDelay(processorPending)
   const hasFunnyEffectsAccess = useHasFunnyEffectsAccess()
   const announce = useScreenReaderAnnounce()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string | null>(null)
+  const customBackgroundUrlRef = useRef<string | null>(null)
   const effectAnnouncementTimeout = useRef<ReturnType<
     typeof setTimeout
   > | null>(null)
@@ -93,9 +99,63 @@ export const EffectsConfiguration = ({
       if (effectAnnouncementTimeout.current) {
         clearTimeout(effectAnnouncementTimeout.current)
       }
+      if (customBackgroundUrlRef.current) {
+        URL.revokeObjectURL(customBackgroundUrlRef.current)
+      }
     },
     []
   )
+
+  const handleCustomBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      console.warn('Selected file is not an image.')
+      announce(
+        t('virtual.customBackgroundNotAnImage', {
+          defaultValue: 'Selected file is not an image. Please select an image file.',
+        })
+      )
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      console.warn(`Custom background file is too large (max ${MAX_FILE_SIZE_MB} MB).`)
+      announce(
+        t('virtual.customBackgroundTooLarge', {
+          defaultValue: `Selected file is too large. Maximum allowed size is ${MAX_FILE_SIZE_MB} MB.`,
+          maxSize: MAX_FILE_SIZE_MB,
+        })
+      )
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    const previousUrl = customBackgroundUrlRef.current
+    const newUrl = URL.createObjectURL(file)
+    customBackgroundUrlRef.current = newUrl
+    await toggleEffect(ProcessorType.VIRTUAL, { imagePath: newUrl })
+
+    const isVirtualSelected =
+      typeof isSelected === 'function' ? isSelected(ProcessorType.VIRTUAL, { imagePath: newUrl }) : false
+
+    if (isVirtualSelected) {
+      setCustomBackgroundUrl(newUrl)
+      if (previousUrl && previousUrl !== newUrl) {
+        URL.revokeObjectURL(previousUrl)
+      }
+    } else {
+      URL.revokeObjectURL(newUrl)
+      customBackgroundUrlRef.current = previousUrl || null
+      setCustomBackgroundUrl(previousUrl || '')
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
 
   const announceEffectStatusMessage = (message: string) => {
     effectAnnouncementId.current += 1
@@ -262,24 +322,26 @@ export const EffectsConfiguration = ({
     return t(`virtual.descriptions.${index}`)
   }
 
+  const isCustomSelected = !!customBackgroundUrl && isSelected(ProcessorType.VIRTUAL, { imagePath: customBackgroundUrl })
+
   return (
     <div
       className={css(
         layout === 'vertical'
           ? {
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1.5rem',
-            }
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+          }
           : {
-              display: 'flex',
-              gap: '1.5rem',
-              flexDirection: 'column',
-              md: {
-                flexDirection: 'row',
-                overflow: 'hidden',
-              },
-            }
+            display: 'flex',
+            gap: '1.5rem',
+            flexDirection: 'column',
+            md: {
+              flexDirection: 'row',
+              overflow: 'hidden',
+            },
+          }
       )}
     >
       <div
@@ -341,13 +403,13 @@ export const EffectsConfiguration = ({
         className={css(
           layout === 'horizontal'
             ? {
-                md: {
-                  borderLeft: '1px solid greyscale.250',
-                  paddingLeft: '1.5rem',
-                  width: '420px',
-                  flexShrink: 0,
-                },
-              }
+              md: {
+                borderLeft: '1px solid greyscale.250',
+                paddingLeft: '1.5rem',
+                width: '420px',
+                flexShrink: 0,
+              },
+            }
             : {}
         )}
       >
@@ -444,6 +506,47 @@ export const EffectsConfiguration = ({
                     flexWrap: 'wrap',
                   })}
                 >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleCustomBackgroundUpload}
+                  />
+                  <VisualOnlyTooltip tooltip={t('virtual.customLabel')}>
+                    <ToggleButton
+                      variant="bigSquare"
+                      aria-label={t('virtual.customLabel')}
+                      isDisabled={processorPendingReveal || isDisabled}
+                      onChange={async () => {
+                        if (isCustomSelected) {
+                          // Already active, clicking again should disable it (or whatever toggleEffect does when passing same args)
+                          await toggleEffect(ProcessorType.VIRTUAL, { imagePath: customBackgroundUrl as string })
+                        } else if (customBackgroundUrl) {
+                          // Has URL but not active, re-apply it
+                          await toggleEffect(ProcessorType.VIRTUAL, { imagePath: customBackgroundUrl })
+                        } else {
+                          // No URL yet, open file picker
+                          fileInputRef.current?.click()
+                        }
+                      }}
+                      isSelected={isCustomSelected}
+                      className={css({
+                        bgSize: 'cover',
+                        backgroundColor: 'greyscale.100',
+                      })}
+                      style={
+                        customBackgroundUrl
+                          ? { backgroundImage: `url(${customBackgroundUrl})` }
+                          : undefined
+                      }
+                      data-attr="toggle-virtual-custom"
+                    >
+                      {!customBackgroundUrl && (
+                        <Icon name="add_photo_alternate" type="icons" aria-hidden={true} />
+                      )}
+                    </ToggleButton>
+                  </VisualOnlyTooltip>
                   {[...Array(8).keys()].map((i) => {
                     const imagePath = `/assets/backgrounds/${i + 1}.jpg`
                     const thumbnailPath = `/assets/backgrounds/thumbnails/${i + 1}.jpg`
