@@ -6,11 +6,16 @@ import {
   type TooltipProps,
 } from 'react-aria-components'
 import { styled } from '@/styled-system/jsx'
+import { useOverlayPortalContainer } from './useOverlayPortalContainer'
+import { VisualOnlyTooltip } from './VisualOnlyTooltip'
 
 export type TooltipWrapperProps = {
   tooltip?: string
   tooltipType?: 'instant' | 'delayed'
 }
+
+const INSTANT_TOOLTIP_DELAY_MS = 150
+const DELAYED_TOOLTIP_DELAY_MS = 1000
 
 /**
  * Wrap a component you want to apply a tooltip on (for example a Button)
@@ -24,11 +29,25 @@ export const TooltipWrapper = ({
 }: {
   children: ReactNode
 } & TooltipWrapperProps) => {
+  const portalContainer = useOverlayPortalContainer()
+  const isExternalDocument =
+    portalContainer && portalContainer.ownerDocument !== document
+
   return tooltip ? (
-    <TooltipTrigger delay={tooltipType === 'instant' ? 150 : 1000}>
-      {children}
-      <Tooltip>{tooltip}</Tooltip>
-    </TooltipTrigger>
+    isExternalDocument ? (
+      <VisualOnlyTooltip tooltip={tooltip}>{children}</VisualOnlyTooltip>
+    ) : (
+      <TooltipTrigger
+        delay={
+          tooltipType === 'instant'
+            ? INSTANT_TOOLTIP_DELAY_MS
+            : DELAYED_TOOLTIP_DELAY_MS
+        }
+      >
+        {children}
+        <Tooltip>{tooltip}</Tooltip>
+      </TooltipTrigger>
+    )
   ) : (
     children
   )
@@ -39,6 +58,8 @@ export const TooltipWrapper = ({
  *
  * Style taken from example at https://react-spectrum.adobe.com/react-aria/Tooltip.html
  */
+const DEFAULT_TOOLTIP_GAP_PX = 8
+
 const StyledTooltip = styled(RACTooltip, {
   base: {
     boxShadow: '0 8px 20px rgba(0 0 0 / 0.1)',
@@ -53,11 +74,11 @@ const StyledTooltip = styled(RACTooltip, {
     fontSize: 14,
     transform: 'translate3d(0, 0, 0)',
     '&[data-placement=top]': {
-      marginBottom: '8px',
+      marginBottom: `${DEFAULT_TOOLTIP_GAP_PX}px`,
       '--origin': 'translateY(4px)',
     },
     '&[data-placement=bottom]': {
-      marginTop: '8px',
+      marginTop: `${DEFAULT_TOOLTIP_GAP_PX}px`,
       '--origin': 'translateY(-4px)',
     },
     '&[data-placement=right]': {
@@ -107,10 +128,13 @@ const TooltipArrow = () => {
 
 const Tooltip = ({
   children,
+  arrowBoundaryOffset,
   ...props
-}: Omit<TooltipProps, 'children'> & { children: ReactNode }) => {
+}: {
+  children: ReactNode
+} & Partial<Omit<TooltipProps, 'children'>>) => {
   return (
-    <StyledTooltip {...props}>
+    <StyledTooltip arrowBoundaryOffset={arrowBoundaryOffset ?? 0} {...props}>
       <TooltipArrow />
       {children}
     </StyledTooltip>

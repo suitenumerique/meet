@@ -236,6 +236,10 @@
       "username": "Choisir votre nom",
       "effects": "Arrière-plans et effets",
       "switchCamera": "Changer de caméra",
+      "pictureInPicture": {
+        "enter": "Image dans l'image",
+        "exit": "Fermer l'image dans l'image"
+      },
       "fullscreen": {
         "enter": "Plein écran",
         "exit": "Quitter le mode plein écran"

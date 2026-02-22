@@ -236,6 +236,10 @@
       "username": "Update Your Name",
       "effects": "Backgrounds and Effects",
       "switchCamera": "Switch camera",
+      "pictureInPicture": {
+        "enter": "Picture-in-picture",
+        "exit": "Close picture-in-picture"
+      },
       "fullscreen": {
         "enter": "Fullscreen",
         "exit": "Exit fullscreen mode"
