@@ -2,14 +2,14 @@
 
 from unittest import mock
 
-from django.core.exceptions import ImproperlyConfigured, SuspiciousOperation
+from django.core.exceptions import SuspiciousOperation
 
 import pytest
+from lasuite.marketing.tasks import create_or_update_contact
 
 from core import models
 from core.authentication.backends import OIDCAuthenticationBackend
 from core.factories import UserFactory
-from core.services import marketing
 
 pytestmark = pytest.mark.django_db
 
@@ -498,8 +498,8 @@ def test_marketing_signup_existing_user(
     mock_signup.assert_not_called()
 
 
-@mock.patch("core.authentication.backends.get_marketing_service")
-def test_signup_to_marketing_email_success(mock_marketing):
+@mock.patch.object(create_or_update_contact, "delay")
+def test_signup_to_marketing_email_success(mock_create_or_update_contact):
     """Test successful marketing signup."""
 
     email = "test@example.com"
@@ -508,46 +508,6 @@ def test_signup_to_marketing_email_success(mock_marketing):
     OIDCAuthenticationBackend.signup_to_marketing_email(email)
 
     # Verify service interaction
-    mock_service = mock_marketing.return_value
-    mock_service.create_contact.assert_called_once()
-
-
-@pytest.mark.parametrize(
-    "error",
-    [
-        ImportError,
-        ImproperlyConfigured,
-    ],
-)
-@mock.patch("core.authentication.backends.get_marketing_service")
-def test_marketing_signup_handles_service_initialization_errors(
-    mock_marketing, error, settings
-):
-    """Tests errors that occur when trying to get/initialize the marketing service."""
-    settings.SIGNUP_NEW_USER_TO_MARKETING_EMAIL = True
-
-    mock_marketing.side_effect = error
-
-    # Should not raise any exception
-    OIDCAuthenticationBackend.signup_to_marketing_email("test@example.com")
-
-
-@pytest.mark.parametrize(
-    "error",
-    [
-        marketing.ContactCreationError,
-        ImproperlyConfigured,
-        ImportError,
-    ],
-)
-@mock.patch("core.authentication.backends.get_marketing_service")
-def test_marketing_signup_handles_contact_creation_errors(
-    mock_marketing, error, settings
-):
-    """Tests errors that occur during the contact creation process."""
-
-    settings.SIGNUP_NEW_USER_TO_MARKETING_EMAIL = True
-    mock_marketing.return_value.create_contact.side_effect = error
-
-    # Should not raise any exception
-    OIDCAuthenticationBackend.signup_to_marketing_email("test@example.com")
+    mock_create_or_update_contact.assert_called_once_with(
+        email=email, attributes={"VISIO_SOURCE": ["SIGNIN"]}
+    )

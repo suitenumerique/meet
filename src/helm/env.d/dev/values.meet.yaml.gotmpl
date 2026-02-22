@@ -9,11 +9,6 @@ secrets:
     field: password
     podVariable: OIDC_RP_CLIENT_SECRET
     clusterSecretStore: bitwarden-login-meet
-  - name: brevoApiKey
-    itemId: 99107889-6124-4436-97cc-a5193f28443f
-    field: password
-    podVariable: BREVO_API_KEY
-    clusterSecretStore: bitwarden-login-meet
 image:
   repository: localhost:5001/meet-backend
   pullPolicy: Always
@@ -87,11 +82,6 @@ backend:
     SUMMARY_SERVICE_API_TOKEN: password
     RECORDING_DOWNLOAD_BASE_URL: https://meet.127.0.0.1.nip.io/recording
     SIGNUP_NEW_USER_TO_MARKETING_EMAIL: True
-    BREVO_API_KEY:
-      secretKeyRef:
-        name: backend
-        key: BREVO_API_KEY
-    BREVO_API_CONTACT_LIST_IDS: 8
     ROOM_TELEPHONY_ENABLED: True
     SSL_CERT_FILE: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
 
