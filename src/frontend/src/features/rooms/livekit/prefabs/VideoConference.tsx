@@ -3,7 +3,6 @@ import {
   isEqualTrackRef,
   isTrackReference,
   isWeb,
-  log,
 } from '@livekit/components-core'
 import { Participant, RoomEvent, Track } from 'livekit-client'
 import React, { useCallback, useRef, useState, useEffect } from 'react'
