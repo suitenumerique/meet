@@ -16,6 +16,7 @@ import {
   Popover as RACPopover,
   Dialog,
   DialogTrigger,
+  Toolbar,
 } from 'react-aria-components'
 import { FocusScope } from '@react-aria/focus'
 import { Participant } from 'livekit-client'
@@ -78,6 +79,13 @@ export const ReactionsToggle = () => {
     }, ANIMATION_DURATION)
   }
 
+  const closeOnTab = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      setIsOpen(false)
+    }
+  }
+
   const debouncedSendReaction = useRateLimiter({
     callback: sendReaction,
     maxCalls: 10,
@@ -117,10 +125,10 @@ export const ReactionsToggle = () => {
           >
             <Dialog className={css({ outline: 'none' })}>
               {/* eslint-disable-next-line jsx-a11y/no-autofocus -- FocusScope autoFocus is programmatic focus for overlays, not the HTML autofocus attribute */}
-              <FocusScope contain autoFocus restoreFocus>
-                <div
-                  role="toolbar"
-                  aria-orientation="horizontal"
+              <FocusScope autoFocus restoreFocus>
+                <div onKeyDownCapture={closeOnTab}>
+                <Toolbar
+                  orientation="horizontal"
                   aria-label={t('button')}
                   className={css({
                     display: 'flex',
@@ -149,6 +157,7 @@ export const ReactionsToggle = () => {
                       />
                     </Button>
                   ))}
+                </Toolbar>
                 </div>
               </FocusScope>
             </Dialog>
