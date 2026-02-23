@@ -21,8 +21,8 @@
       "disabled": "Microphone disabled"
     },
     "noiseReduction": {
-      "label": "Noise reduction",
-      "heading": "Noise reduction",
+      "label": "Advanced voice optimization",
+      "heading": "Audio filters",
       "ariaLabel": {
         "enable": "Enable noise reduction",
         "disable": "Disable noise reduction"
