@@ -18,7 +18,7 @@
     "@livekit/components-react": "2.9.13",
     "@livekit/components-styles": "1.1.6",
     "@livekit/track-processors": "0.6.1",
-    "@pandacss/preset-panda": "0.54.0",
+    "@pandacss/preset-panda": "1.8.2",
     "@react-aria/toast": "3.0.10",
     "@react-types/overlays": "3.9.3",
     "@remixicon/react": "4.6.0",
@@ -44,7 +44,7 @@
     "wouter": "3.9.0"
   },
   "devDependencies": {
-    "@pandacss/dev": "0.54.0",
+    "@pandacss/dev": "1.8.2",
     "@tanstack/eslint-plugin-query": "5.91.4",
     "@tanstack/react-query-devtools": "5.91.3",
     "@types/humanize-duration": "3.27.4",
