@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ✨(frontend) enhance noise reduction with BBBA audio processing pipeline
+
 ## [1.20.0] - 2026-06-12
 
 ### Changed
