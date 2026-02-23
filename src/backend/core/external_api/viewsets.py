@@ -173,6 +173,7 @@ class RoomViewSet(
 
     authentication_classes = [
         authentication.ApplicationJWTAuthentication,
+        authentication.AddonsJWTAuthentication,
         ResourceServerAuthentication,
     ]
     permission_classes = [

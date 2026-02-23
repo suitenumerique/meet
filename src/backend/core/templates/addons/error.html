@@ -1,0 +1,17 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Error" %}</title>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ title|default:_("Error") }}</h1>
+        <p>{{ message|default:_("Something went wrong.") }}</p>
+        <button onclick="window.close()">{% trans "Close" %}</button>
+    </div>
+</body>
+</html>
+
