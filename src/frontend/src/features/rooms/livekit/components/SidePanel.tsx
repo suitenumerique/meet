@@ -14,7 +14,6 @@ import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
 import { HStack } from '@/styled-system/jsx'
-import { FocusScope } from '@react-aria/focus'
 
 const SIDE_PANEL_HEADING_ID = 'side-panel-heading'
 const SIDE_PANEL_CLOSE_ID = 'side-panel-close'
@@ -73,8 +72,7 @@ const StyledSidePanel = ({
       transform: isClosed ? 'translateX(calc(360px + 1.5rem))' : 'none',
     }}
   >
-    <FocusScope contain={!isClosed}>
-      <HStack alignItems="center">
+    <HStack alignItems="center">
         {isSubmenu && (
           <Button
             variant="secondaryText"
@@ -124,7 +122,6 @@ const StyledSidePanel = ({
         </Button>
       </Div>
       {children}
-    </FocusScope>
   </aside>
 )
 
@@ -164,10 +161,8 @@ export const SidePanel = () => {
 
   const triggerRef = useRef<HTMLElement | null>(null)
 
-  //  FocusScope handles Tab containment, but autoFocus/restoreFocus rely on mount/unmount
-  //  lifecycle,  which never happens here because the aside stays mounted (CSS slide + keepAlive).
-  //  This effect manually captures the trigger on open and auto-focuses the close button.
-  //  Restore focus is handled in handleClose with a double RAF to let FocusScope release containment.
+  // The aside stays mounted (CSS slide + keepAlive), so we manually handle
+  // auto-focus on open and restore focus on close (via handleClose).
  
   useEffect(() => {
     if (!isSidePanelOpen) return
