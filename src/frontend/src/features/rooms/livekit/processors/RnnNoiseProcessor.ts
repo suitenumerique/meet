@@ -1,9 +1,6 @@
-import type { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
-import { NoiseSuppressorWorklet_Name } from '@timephy/rnnoise-wasm'
 
-// This is an example how to get the script path using Vite, may be different when using other build tools
-// NOTE: `?worker&url` is important (`worker` to generate a working script, `url` to get its url to load it)
-import NoiseSuppressorWorklet from '@timephy/rnnoise-wasm/NoiseSuppressorWorklet?worker&url'
+import type { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
+import { createWasmProcessor } from '@libreaudio/la-call'
 
 // Use Jitsi's approach: maintain a global AudioContext variable
 // and suspend/resume it as needed to manage audio state
@@ -20,7 +17,7 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
   private source?: MediaStreamTrack
   private sourceNode?: MediaStreamAudioSourceNode
   private destinationNode?: MediaStreamAudioDestinationNode
-  private noiseSuppressionNode?: AudioWorkletNode
+  private noiseSuppressionNode?: AudioNode
 
   async init(opts: ProcessorOptions<Track.Kind.Audio>) {
     if (!opts.track) {
@@ -35,25 +32,16 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
       await audioContext.resume()
     }
 
-    await audioContext.audioWorklet.addModule(NoiseSuppressorWorklet)
-
     this.sourceNode = audioContext.createMediaStreamSource(
       new MediaStream([this.source])
     )
 
-    this.noiseSuppressionNode = new AudioWorkletNode(
-      audioContext,
-      NoiseSuppressorWorklet_Name,
-      {
-        // RNNoise is a mono algorithm. Its worklet only denoises and writes
-        // channel 0. Force any (possibly stereo) input to down-mix to a single
-        // channel and emit a single channel, so we don't produce a stereo frame
-        // whose right channel is left silent.
-        channelCount: 1,
-        channelCountMode: 'explicit',
-        outputChannelCount: [1],
-      }
-    )
+    this.noiseSuppressionNode = await createWasmProcessor(audioContext, {
+      intensity: 90,
+    })
+    if (!this.noiseSuppressionNode) {
+      throw new Error('Failed to create Wasm processor')
+    }
 
     this.destinationNode = audioContext.createMediaStreamDestination()
 

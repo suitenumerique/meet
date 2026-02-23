@@ -17,6 +17,7 @@
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "5.2.6",
     "@fontsource-variable/lexend": "5.2.11",
+    "@libreaudio/la-call": "0.1.4",
     "@fontsource/opendyslexic": "5.2.5",
     "@livekit/components-react": "2.9.21",
     "@livekit/components-styles": "1.2.0",

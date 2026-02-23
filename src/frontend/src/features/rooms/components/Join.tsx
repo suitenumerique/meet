@@ -216,6 +216,14 @@ export const Join = ({
       try {
         const track = await createLocalAudioTrack({
           deviceId: { exact: audioDeviceId },
+          noiseSuppression: true,
+          echoCancellation: true,
+          autoGainControl: true,
+          voiceIsolation: false,
+          // Audio quality optimized for voice
+          sampleRate: 48000, // High quality sample rate
+          channelCount: 1, // Mono for voice calls (saves bandwidth)
+          sampleSize: 16, // 16-bit audio
         })
         setDynamicAudioTrack(track)
       } catch (error) {
