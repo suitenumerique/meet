@@ -55,9 +55,8 @@ def test_api_rooms_list_requires_authentication():
     assert response.status_code == 401
 
 
-def test_api_rooms_list_inactive_user(settings):
+def test_api_rooms_list_inactive_user():
     """List should return 401 if user is inactive."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user1 = UserFactory(is_active=False)
     RoomFactory(users=[(user1, RoleChoices.OWNER)])
@@ -72,10 +71,8 @@ def test_api_rooms_list_inactive_user(settings):
     assert "user account is disabled" in str(response.data).lower()
 
 
-def test_api_rooms_list_with_valid_token(settings):
+def test_api_rooms_list_with_valid_token():
     """Listing rooms with valid token should succeed."""
-
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
     room = RoomFactory(users=[(user, RoleChoices.OWNER)])
@@ -92,9 +89,8 @@ def test_api_rooms_list_with_valid_token(settings):
     assert response.data["results"][0]["id"] == str(room.id)
 
 
-def test_api_rooms_list_with_no_rooms(settings):
+def test_api_rooms_list_with_no_rooms():
     """Listing rooms with a valid token returns an empty list when there are no rooms."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
 
@@ -112,7 +108,6 @@ def test_api_rooms_list_with_no_rooms(settings):
 
 def test_api_rooms_list_with_expired_token(settings):
     """Listing rooms with expired token should return 401."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.APPLICATION_JWT_EXPIRATION_SECONDS = 0
 
     user = UserFactory()
@@ -153,9 +148,8 @@ def test_api_rooms_list_with_invalid_rs_token(settings):
     assert response.status_code == 400
 
 
-def test_api_rooms_list_missing_scope(settings):
+def test_api_rooms_list_missing_scope():
     """Listing rooms without required scope should return 403."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
 
@@ -173,9 +167,8 @@ def test_api_rooms_list_missing_scope(settings):
     )
 
 
-def test_api_rooms_list_no_scope(settings):
+def test_api_rooms_list_no_scope():
     """Listing rooms without any scope should return 403."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
 
@@ -190,9 +183,8 @@ def test_api_rooms_list_no_scope(settings):
     assert "insufficient permissions." in str(response.data).lower()
 
 
-def test_api_rooms_list_filters_by_user(settings):
+def test_api_rooms_list_filters_by_user():
     """List should only return rooms accessible to the authenticated user."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user1 = UserFactory()
     user2 = UserFactory()
@@ -217,10 +209,8 @@ def test_api_rooms_list_filters_by_user(settings):
     assert str(room2.id) not in returned_ids
 
 
-def test_api_rooms_retrieve_requires_authentication(settings):
+def test_api_rooms_retrieve_requires_authentication():
     """Retrieving rooms without authentication should return 401."""
-
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user1 = UserFactory()
     room1 = RoomFactory(users=[(user1, RoleChoices.OWNER)])
@@ -231,9 +221,8 @@ def test_api_rooms_retrieve_requires_authentication(settings):
     assert response.status_code == 401
 
 
-def test_api_rooms_retrieve_inactive_user(settings):
+def test_api_rooms_retrieve_inactive_user():
     """Retrieve should return 401 if user is inactive."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user1 = UserFactory(is_active=False)
     room1 = RoomFactory(users=[(user1, RoleChoices.OWNER)])
@@ -250,7 +239,6 @@ def test_api_rooms_retrieve_inactive_user(settings):
 
 def test_api_rooms_retrieve_with_expired_token(settings):
     """Retrieving rooms with expired token should return 401."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.APPLICATION_JWT_EXPIRATION_SECONDS = 0
 
     user = UserFactory()
@@ -295,9 +283,8 @@ def test_api_rooms_retrieve_with_invalid_rs_token(settings):
     assert response.status_code == 400
 
 
-def test_api_rooms_retrieve_requires_scope(settings):
+def test_api_rooms_retrieve_requires_scope():
     """Retrieving a room requires ROOMS_RETRIEVE scope."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
     room = RoomFactory(users=[(user, RoleChoices.OWNER)])
@@ -315,9 +302,8 @@ def test_api_rooms_retrieve_requires_scope(settings):
     )
 
 
-def test_api_rooms_retrieve_no_scope(settings):
+def test_api_rooms_retrieve_no_scope():
     """Retrieving rooms without any scope should return 403."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
 
@@ -335,7 +321,6 @@ def test_api_rooms_retrieve_no_scope(settings):
 
 def test_api_rooms_retrieve_success(settings):
     """Retrieving a room with correct scope should succeed."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.APPLICATION_BASE_URL = "http://your-application.com"
     settings.ROOM_TELEPHONY_ENABLED = True
     settings.ROOM_TELEPHONY_PHONE_NUMBER = "+1-555-0100"
@@ -367,9 +352,8 @@ def test_api_rooms_retrieve_success(settings):
     }
 
 
-def test_api_rooms_retrieve_success_by_user(settings):
+def test_api_rooms_retrieve_success_by_user():
     """Retrieve should only return rooms accessible to the authenticated user."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user1 = UserFactory()
     user2 = UserFactory()
@@ -408,9 +392,8 @@ def test_api_rooms_retrieve_success_by_user(settings):
     assert response.status_code == 200
 
 
-def test_api_rooms_retrieve_not_found(settings):
+def test_api_rooms_retrieve_not_found():
     """Retrieving a non-existing room with correct scope should return a 404."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
     token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
@@ -423,10 +406,8 @@ def test_api_rooms_retrieve_not_found(settings):
     assert "no room matches the given query." in str(response.data).lower()
 
 
-def test_api_rooms_create_requires_authentication(settings):
+def test_api_rooms_create_requires_authentication():
     """Creating rooms without authentication should return 401."""
-
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     client = APIClient()
     response = client.post("/external-api/v1.0/rooms/")
@@ -436,7 +417,6 @@ def test_api_rooms_create_requires_authentication(settings):
 
 def test_api_rooms_create_with_expired_token(settings):
     """Creating rooms with expired token should return 401."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.APPLICATION_JWT_EXPIRATION_SECONDS = 0
 
     user = UserFactory()
@@ -477,9 +457,8 @@ def test_api_rooms_create_with_invalid_rs_token(settings):
     assert response.status_code == 400
 
 
-def test_api_rooms_create_inactive_user(settings):
+def test_api_rooms_create_inactive_user():
     """Create should return 401 if user is inactive."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user1 = UserFactory(is_active=False)
 
@@ -493,9 +472,8 @@ def test_api_rooms_create_inactive_user(settings):
     assert "user account is disabled" in str(response.data).lower()
 
 
-def test_api_rooms_create_requires_scope(settings):
+def test_api_rooms_create_requires_scope():
     """Creating a room requires ROOMS_CREATE scope."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory()
 
     # Token without ROOMS_CREATE scope
@@ -512,9 +490,8 @@ def test_api_rooms_create_requires_scope(settings):
     )
 
 
-def test_api_rooms_create_no_scope(settings):
+def test_api_rooms_create_no_scope():
     """Creating rooms without any scope should return 403."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
 
@@ -529,9 +506,8 @@ def test_api_rooms_create_no_scope(settings):
     assert "insufficient permissions." in str(response.data).lower()
 
 
-def test_api_rooms_create_success(settings):
+def test_api_rooms_create_success():
     """Creating a room with correct scope should succeed."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
 
@@ -555,9 +531,8 @@ def test_api_rooms_create_success(settings):
     assert room.access_level == "trusted"
 
 
-def test_api_rooms_create_readonly_enforcement(settings):
+def test_api_rooms_create_readonly_enforcement():
     """Creating a room succeeds and any provided read-only fields are ignored."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
 
@@ -590,9 +565,8 @@ def test_api_rooms_create_readonly_enforcement(settings):
     assert room.access_level == "trusted"
 
 
-def test_api_rooms_unknown_actions(settings):
+def test_api_rooms_unknown_actions():
     """Updating or deleting a room are not supported yet."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     user = UserFactory()
     room = RoomFactory(users=[(user, RoleChoices.OWNER)])
@@ -623,7 +597,6 @@ def test_api_rooms_unknown_actions(settings):
 
 def test_api_rooms_response_no_url(settings):
     """Response should not include url field when APPLICATION_BASE_URL is None."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.APPLICATION_BASE_URL = None
 
     user = UserFactory()
@@ -642,7 +615,6 @@ def test_api_rooms_response_no_url(settings):
 
 def test_api_rooms_response_no_telephony(settings):
     """Response should not include telephony field when ROOM_TELEPHONY_ENABLED is False."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.ROOM_TELEPHONY_ENABLED = False
 
     user = UserFactory()
@@ -661,7 +633,6 @@ def test_api_rooms_response_no_telephony(settings):
 
 def test_api_rooms_token_scope_case_insensitive(settings):
     """Token's scope should be case-insensitive."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory()
     application = ApplicationFactory()
 
@@ -693,7 +664,6 @@ def test_api_rooms_token_scope_case_insensitive(settings):
 
 def test_api_rooms_token_without_delegated_flag(settings):
     """Token without delegated flag should be rejected."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory()
     application = ApplicationFactory()
 
@@ -726,7 +696,6 @@ def test_api_rooms_token_without_delegated_flag(settings):
 @mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
 def test_api_rooms_token_invalid_signature(mock_rs_authenticate, settings):
     """Token signed with an invalid key should defer to the next authentication."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory()
     application = ApplicationFactory()
 
@@ -759,7 +728,6 @@ def test_api_rooms_token_invalid_signature(mock_rs_authenticate, settings):
 @mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
 def test_api_rooms_token_invalid_alg(mock_rs_authenticate, settings):
     """Token signed with an invalid alg should defer to the next authentication."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.APPLICATION_JWT_ALG = "RS256"
     user = UserFactory()
 
@@ -791,7 +759,6 @@ def test_api_rooms_token_invalid_alg(mock_rs_authenticate, settings):
 
 def test_api_rooms_token_missing_client_id(settings):
     """Token without client_id should be rejected."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory()
 
     now = datetime.now(timezone.utc)
@@ -821,7 +788,6 @@ def test_api_rooms_token_missing_client_id(settings):
 
 def test_api_rooms_token_missing_user_id(settings):
     """Token without user_id should be rejected."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     application = ApplicationFactory()
 
     now = datetime.now(timezone.utc)
@@ -851,7 +817,6 @@ def test_api_rooms_token_missing_user_id(settings):
 
 def test_api_rooms_token_invalid_audience(settings):
     """Token with an invalid audience should be rejected."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory()
     application = ApplicationFactory()
 
@@ -882,7 +847,6 @@ def test_api_rooms_token_invalid_audience(settings):
 
 def test_api_rooms_token_unknown_user(settings):
     """Token for unknown user should be rejected."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     application = ApplicationFactory()
 
     now = datetime.now(timezone.utc)
@@ -912,7 +876,6 @@ def test_api_rooms_token_unknown_user(settings):
 
 def test_api_rooms_token_unknown_application(settings):
     """Token for unknown application should be rejected."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
 
     now = datetime.now(timezone.utc)
     payload = {
@@ -941,7 +904,6 @@ def test_api_rooms_token_unknown_application(settings):
 
 def test_api_rooms_token_inactive_application(settings):
     """Token for inactive application should be rejected."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     application = ApplicationFactory(active=False)
 
     now = datetime.now(timezone.utc)

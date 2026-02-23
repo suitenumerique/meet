@@ -21,7 +21,6 @@ pytestmark = pytest.mark.django_db
 
 def test_api_applications_generate_token_success(settings):
     """Valid credentials should return a JWT token."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     UserFactory(email="User.Family@example.com")
     application = ApplicationFactory(
         active=True,
@@ -173,9 +172,8 @@ def test_api_applications_generate_token_domain_not_authorized():
     assert "not authorized for this email domain" in str(response.data)
 
 
-def test_api_applications_generate_token_domain_authorized(settings):
+def test_api_applications_generate_token_domain_authorized():
     """Application with domain authorization should succeed."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory(email="user@allowed.com")
     application = ApplicationFactory(
         active=True,
@@ -230,7 +228,6 @@ def test_api_applications_generate_token_user_not_found():
 @freeze_time("2023-01-15 12:00:00")
 def test_api_applications_token_payload_structure(settings):
     """Generated token should have correct payload structure."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory(email="user@example.com")
 
     application = ApplicationFactory(
@@ -280,7 +277,6 @@ def test_api_applications_token_payload_structure(settings):
 def test_api_applications_token_new_user(settings):
     """Should create a new pending user when creation is allowed and user doesn't exist."""
 
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.APPLICATION_ALLOW_USER_CREATION = True
     settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
     settings.OIDC_USER_SUB_FIELD_IMMUTABLE = False
@@ -337,7 +333,6 @@ def test_api_applications_token_new_user(settings):
 def test_api_applications_token_existing_user(settings):
     """Application should not create a new user when user exist."""
 
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory(email="user@example.com")
 
     settings.APPLICATION_ALLOW_USER_CREATION = True

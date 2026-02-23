@@ -917,6 +917,9 @@ class Test(Base):
     USE_SWAGGER = True
     EXTERNAL_API_ENABLED = True
 
+    APPLICATION_JWT_SECRET_KEY = "devKey"  # noqa:S105
+    APPLICATION_JWT_AUDIENCE = "Test inc."
+
     CELERY_TASK_ALWAYS_EAGER = values.BooleanValue(True)
 
     def __init__(self):
