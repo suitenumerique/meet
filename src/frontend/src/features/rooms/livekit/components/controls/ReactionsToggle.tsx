@@ -14,7 +14,6 @@ import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import {
   Popover as RACPopover,
-  Dialog,
   DialogTrigger,
   Toolbar,
 } from 'react-aria-components'
@@ -79,10 +78,34 @@ export const ReactionsToggle = () => {
     }, ANIMATION_DURATION)
   }
 
-  const closeOnTab = (e: React.KeyboardEvent) => {
+  const handleToolbarKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Tab') {
       e.preventDefault()
-      setIsOpen(false)
+      document.getElementById('reaction-toggle')?.focus()
+      return
+    }
+
+    const buttons = Array.from(
+      (e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>(
+        '[role="toolbar"] button'
+      )
+    )
+    if (buttons.length === 0) return
+
+    if (
+      e.key === 'ArrowRight' &&
+      document.activeElement === buttons[buttons.length - 1]
+    ) {
+      e.preventDefault()
+      e.stopPropagation()
+      buttons[0].focus()
+    } else if (
+      e.key === 'ArrowLeft' &&
+      document.activeElement === buttons[0]
+    ) {
+      e.preventDefault()
+      e.stopPropagation()
+      buttons[buttons.length - 1].focus()
     }
   }
 
@@ -97,6 +120,7 @@ export const ReactionsToggle = () => {
       <div className={css({ position: 'relative' })}>
         <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
           <ToggleButton
+            id="reaction-toggle"
             square
             variant="primaryDark"
             aria-label={t('button')}
@@ -123,10 +147,9 @@ export const ReactionsToggle = () => {
               },
             })}
           >
-            <Dialog className={css({ outline: 'none' })}>
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus -- FocusScope autoFocus is programmatic focus for overlays, not the HTML autofocus attribute */}
-              <FocusScope autoFocus restoreFocus>
-                <div onKeyDownCapture={closeOnTab}>
+            {/* eslint-disable-next-line jsx-a11y/no-autofocus -- FocusScope autoFocus is programmatic focus for overlays, not the HTML autofocus attribute */}
+            <FocusScope autoFocus restoreFocus>
+              <div onKeyDownCapture={handleToolbarKeyDown}>
                 <Toolbar
                   orientation="horizontal"
                   aria-label={t('button')}
@@ -158,9 +181,8 @@ export const ReactionsToggle = () => {
                     </Button>
                   ))}
                 </Toolbar>
-                </div>
-              </FocusScope>
-            </Dialog>
+              </div>
+            </FocusScope>
           </RACPopover>
         </DialogTrigger>
       </div>
