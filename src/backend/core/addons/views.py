@@ -33,7 +33,7 @@ def transit_page(request):
 
     request.session[settings.ADDONS_SESSION_KEY_AUTH] = session_id
 
-    return_to = request.build_absolute_uri("/addons/redirect")
+    return_to = f"{settings.APPLICATION_BASE_URL}/addons/redirect"
     return redirect(f"/api/{settings.API_VERSION}/authenticate/?returnTo={return_to}")
 
 
