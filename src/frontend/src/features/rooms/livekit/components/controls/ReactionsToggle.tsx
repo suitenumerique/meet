@@ -49,7 +49,15 @@ export const ReactionsToggle = () => {
 
   useRegisterKeyboardShortcut({
     id: 'reaction',
-    handler: () => setIsOpen((prev) => !prev),
+    handler: () => {
+      if (isOpen) {
+        document
+          .querySelector<HTMLElement>('[role="toolbar"] button')
+          ?.focus()
+      } else {
+        setIsOpen(true)
+      }
+    },
   })
 
   const sendReaction = async (emoji: string) => {
