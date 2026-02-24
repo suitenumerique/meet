@@ -59,7 +59,7 @@ docker_build(
     context='../src/summary',
     dockerfile='../src/summary/Dockerfile',
     only=['.'],
-    target = 'production',
+    target = 'summary-production',
     live_update=[
         sync('../src/summary', '/app'),
     ]
@@ -71,7 +71,7 @@ docker_build(
     context='../src/agents',
     dockerfile='../src/agents/Dockerfile',
    only=['.'],
-    target = 'production',
+    target = 'agents-production',
     live_update=[
         sync('../src/agents', '/app'),
     ]

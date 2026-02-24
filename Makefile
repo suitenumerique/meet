@@ -227,9 +227,9 @@ back-i18n-generate: ## create the .pot files used for i18n
 	@$(MANAGE) makemessages -a --keep-pot
 .PHONY: back-i18n-generate
 
-shell: ## connect to database shell
+shell: ## open a Django Python shell
 	@$(MANAGE) shell #_plus
-.PHONY: dbshell
+.PHONY: shell
 
 # -- Database
 
@@ -348,16 +348,16 @@ build-k8s-cluster: ## build the kubernetes cluster using kind
 
 install-external-secrets: ## install the kubernetes secrets from Vaultwarden
 	./bin/install-external-secrets.sh
-.PHONY: build-k8s-cluster
+.PHONY: install-external-secrets
 
 start-tilt: ## start the kubernetes cluster using kind
 	tilt up -f ./bin/Tiltfile
-.PHONY: build-k8s-cluster
+.PHONY: start-tilt
 
 start-tilt-keycloak: ## start the kubernetes cluster using kind, without Pro Connect for authentication, use keycloak
 	DEV_ENV=dev-keycloak tilt up -f ./bin/Tiltfile
-.PHONY: build-k8s-cluster
+.PHONY: start-tilt-keycloak
 
 start-tilt-dinum: ## start the kubernetes cluster using kind, without Pro Connect for authentication, but with DINUM styles
 	DEV_ENV=dev-dinum tilt up -f ./bin/Tiltfile
-.PHONY: build-k8s-cluster
+.PHONY: start-tilt-dinum

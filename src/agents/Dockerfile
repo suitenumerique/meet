@@ -15,7 +15,7 @@ COPY pyproject.toml .
 RUN mkdir /install && \
   pip install --prefix=/install .
 
-FROM base AS production
+FROM base AS agents-production
 
 WORKDIR /app
 

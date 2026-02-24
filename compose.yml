@@ -161,7 +161,7 @@ services:
       args:
         VITE_API_BASE_URL: "http://localhost:8071"
         VITE_APP_TITLE: "LaSuite Meet"
-    image: meet:frontend-development
+    image: meet:frontend-production
     ports:
       - "3000:8080"
 
@@ -252,7 +252,7 @@ services:
   app-summary-dev:
     build:
       context: src/summary
-      target: development
+      target: summary-development
       args:
         DOCKER_USER: ${DOCKER_USER:-1000}
     user: ${DOCKER_USER:-1000}
@@ -270,7 +270,7 @@ services:
     build:
       context: ./src/summary
       dockerfile: Dockerfile
-      target: production
+      target: summary-production
     command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q transcribe-queue
     env_file:
       - env.d/development/summary
@@ -290,7 +290,7 @@ services:
     build:
       context: ./src/summary
       dockerfile: Dockerfile
-      target: production
+      target: summary-production
     command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q summarize-queue
     env_file:
       - env.d/development/summary
