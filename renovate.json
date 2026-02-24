@@ -4,6 +4,21 @@
   "labels": ["dependencies", "noChangeLog"],
   "packageRules": [
     {
+        "groupName": "js dependencies",
+        "matchManagers": ["npm"],
+        "schedule": ["on the first day of the month"],
+        "matchPackagePatterns": ["*"],
+        "minimumReleaseAge": "7 days",
+        "internalChecksFilter": "strict"
+      },
+      {
+        "groupName": "python dependencies",
+        "matchManagers": ["setup-cfg", "pep621"],
+        "schedule": ["on the first day of the month"],
+        "matchPackagePatterns": ["*"],
+        "minimumReleaseAge": "7 days"
+      },
+    {
       "enabled": false,
       "groupName": "ignored python dependencies",
       "matchManagers": ["pep621"],
