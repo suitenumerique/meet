@@ -106,7 +106,8 @@
     "columnShortcut": "Shortcut"
   },
   "dialog": {
-    "heading": "Settings"
+    "heading": "Settings",
+    "tablistLabel": "Sections"
   },
   "language": {
     "heading": "Language",
