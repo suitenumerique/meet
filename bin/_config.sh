@@ -89,5 +89,5 @@ function _dc_exec() {
 #
 # ARGS : django's manage.py command arguments
 function _django_manage() {
-    _dc_run "app-dev" python manage.py "$@"
+    _dc_run "app-development" python manage.py "$@"
 }

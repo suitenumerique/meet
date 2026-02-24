@@ -7,4 +7,4 @@ keys:
 webhook:
   api_key: devkey
   urls:
-      - http://app-dev:8000/api/v1.0/rooms/webhooks-livekit/
+      - http://app-development:8000/api/v1.0/rooms/webhooks-livekit/

@@ -55,13 +55,13 @@ services:
     entrypoint: >
       sh -c "
       /usr/bin/mc alias set meet http://minio:9000 meet password &&
-      /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint='http://app-dev:8000/api/v1.0/recordings/storage-hook/' auth_token='Bearer password' &&
+      /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint='http://app-development:8000/api/v1.0/recordings/storage-hook/' auth_token='Bearer password' &&
       /usr/bin/mc admin service restart meet --wait --json &&
       sleep 15 &&
       /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put &&
       exit 0;"
 
-  app-dev:
+  app-development:
     build:
       context: .
       target: backend-development
@@ -94,7 +94,7 @@ services:
       - resource-server
       - default
   
-  celery-dev:
+  celery-development:
     user: ${DOCKER_USER:-1000}
     image: meet:backend-development
     command: ["celery", "-A", "meet.celery_app", "worker", "-l", "DEBUG"]
@@ -107,9 +107,9 @@ services:
       - ./src/backend:/app
       - ./data/static:/data/static
     depends_on:
-      - app-dev
+      - app-development
 
-  app:
+  app-production:
     build:
       context: .
       target: backend-production
@@ -128,7 +128,7 @@ services:
       - livekit
       - minio
 
-  celery:
+  celery-production:
     user: ${DOCKER_USER:-1000}
     image: meet:backend-production
     command: ["celery", "-A", "meet.celery_app", "worker", "-l", "INFO"]
@@ -138,7 +138,7 @@ services:
       - env.d/development/common
       - env.d/development/postgresql
     depends_on:
-      - app
+      - app-production
 
   nginx:
     image: nginx:1.25
@@ -249,7 +249,7 @@ services:
     ports:
       - "6379:6379"
 
-  app-summary-dev:
+  app-summary-development:
     build:
       context: src/summary
       target: summary-development
@@ -278,7 +278,7 @@ services:
       - ./src/summary:/app
     depends_on:
       - redis-summary
-      - app-summary-dev
+      - app-summary-development
       - minio
     develop:
       watch:
@@ -298,7 +298,7 @@ services:
       - ./src/summary:/app
     depends_on:
       - redis-summary
-      - app-summary-dev
+      - app-summary-development
       - minio
     develop:
       watch:

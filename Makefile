@@ -40,9 +40,9 @@ DOCKER_GID          = $(shell id -g)
 DOCKER_USER         = $(DOCKER_UID):$(DOCKER_GID)
 COMPOSE             = DOCKER_USER=$(DOCKER_USER) docker compose
 COMPOSE_EXEC        = $(COMPOSE) exec
-COMPOSE_EXEC_APP    = $(COMPOSE_EXEC) app-dev
+COMPOSE_EXEC_APP    = $(COMPOSE_EXEC) app-development
 COMPOSE_RUN         = $(COMPOSE) run --rm
-COMPOSE_RUN_APP     = $(COMPOSE_RUN) app-dev
+COMPOSE_RUN_APP     = $(COMPOSE_RUN) app-development
 COMPOSE_RUN_CROWDIN = $(COMPOSE_RUN) crowdin crowdin
 WAIT_DB             = @$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
 
@@ -94,8 +94,8 @@ build: ## build the project containers
 	@$(MAKE) build-frontend
 .PHONY: build
 
-build-backend: ## build the app-dev container
-	@$(COMPOSE) build app-dev
+build-backend: ## build the app-development container
+	@$(COMPOSE) build app-development
 .PHONY: build-backend
 
 
@@ -107,12 +107,12 @@ down: ## stop and remove containers, networks, images, and volumes
 	@$(COMPOSE) down
 .PHONY: down
 
-logs: ## display app-dev logs (follow mode)
-	@$(COMPOSE) logs -f app-dev
+logs: ## display app-development logs (follow mode)
+	@$(COMPOSE) logs -f app-development
 .PHONY: logs
 
 run-backend: ## start only the backend application and all needed services
-	@$(COMPOSE) up --force-recreate -d celery-dev
+	@$(COMPOSE) up --force-recreate -d celery-development
 	@echo "Wait for postgresql to be up..."
 	@$(WAIT_DB)
 .PHONY: run-backend
@@ -234,7 +234,7 @@ shell: ## open a Django Python shell
 # -- Database
 
 dbshell: ## connect to database shell
-	docker compose exec app-dev python manage.py dbshell
+	docker compose exec app-development python manage.py dbshell
 .PHONY: dbshell
 
 resetdb: FLUSH_ARGS ?=
