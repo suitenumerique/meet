@@ -667,7 +667,7 @@ class Base(Configuration):
         [],
         environ_name="BREVO_API_CONTACT_LIST_IDS",
         environ_prefix=None,
-        converter=lambda x: int(x),  # pylint: disable=unnecessary-lambda
+        converter=int,
     )
     BREVO_API_CONTACT_ATTRIBUTES = values.DictValue({"VISIO_USER": True})
     BREVO_API_TIMEOUT = values.PositiveIntegerValue(

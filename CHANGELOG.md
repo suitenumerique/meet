@@ -20,6 +20,7 @@ and this project adheres to
 - ✨(frontend) introduce a shortcut settings tab #975
 - 🚚(frontend) rename "wellknown" directory to "well-known" #1009
 - 🌐(frontend) localize SR modifier labels #1010
+- ⬆️(backend) update python dependencies #1011
 
 ## [1.8.0] - 2026-02-20
 
