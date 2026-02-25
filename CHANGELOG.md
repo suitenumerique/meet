@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - 👷(docker) add arm64 platform support for image builds
+- ✨(summary) add localization support for transcription context text
 
 ### Changed
 

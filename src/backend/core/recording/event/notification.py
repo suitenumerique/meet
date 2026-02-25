@@ -167,6 +167,7 @@ class NotificationService:
                 owner_access.user.timezone
             ).strftime("%H:%M"),
             "download_link": f"{get_recording_download_base_url()}/{recording.id}",
+            "context_language": owner_access.user.language,
         }
 
         headers = {

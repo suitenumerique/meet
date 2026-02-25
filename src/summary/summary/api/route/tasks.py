@@ -15,8 +15,8 @@ from summary.core.config import get_settings
 settings = get_settings()
 
 
-class TaskCreation(BaseModel):
-    """Task data."""
+class TranscribeSummarizeTaskCreation(BaseModel):
+    """Transcription and summarization parameters."""
 
     owner_id: str
     filename: str
@@ -28,6 +28,7 @@ class TaskCreation(BaseModel):
     recording_time: Optional[str]
     language: Optional[str]
     download_link: Optional[str]
+    context_language: Optional[str] = None
 
     @field_validator("language")
     @classmethod
@@ -45,8 +46,8 @@ router = APIRouter(prefix="/tasks")
 
 
 @router.post("/")
-async def create_task(request: TaskCreation):
-    """Create a task."""
+async def create_transcribe_summarize_task(request: TranscribeSummarizeTaskCreation):
+    """Create a transcription and summarization task."""
     task = process_audio_transcribe_summarize_v2.apply_async(
         args=[
             request.owner_id,
@@ -59,6 +60,7 @@ async def create_task(request: TaskCreation):
             request.recording_time,
             request.language,
             request.download_link,
+            request.context_language,
         ],
         queue=settings.transcribe_queue,
     )

@@ -2,6 +2,7 @@
 Gitlint extra rule to validate that the message title is of the form
 "<gitmoji>(<scope>) <subject>"
 """
+
 from __future__ import unicode_literals
 
 import re

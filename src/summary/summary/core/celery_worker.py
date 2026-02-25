@@ -18,6 +18,7 @@ from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
 from summary.core.file_service import FileService, FileServiceException
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
+from summary.core.locales import get_locale
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
     FORMAT_PLAN,
@@ -121,6 +122,7 @@ def process_audio_transcribe_summarize_v2(
     recording_time: Optional[str],
     language: Optional[str],
     download_link: Optional[str],
+    context_language: Optional[str] = None,
 ):
     """Process an audio file by transcribing it and generating a summary.
 
@@ -129,6 +131,19 @@ def process_audio_transcribe_summarize_v2(
     2. Transcribes the audio using WhisperX model
     3. Sends the results via webhook
 
+    Args:
+        self: Celery task instance (passed on with bind=True)
+        owner_id: Unique identifier of the recording owner.
+        filename: Name of the audio file in MinIO storage.
+        email: Email address of the recording owner.
+        sub: OIDC subject identifier of the recording owner.
+        received_at: Unix timestamp when the recording was received.
+        room: room name where the recording took place.
+        recording_date: Date of the recording (localized display string).
+        recording_time: Time of the recording (localized display string).
+        language: ISO 639-1 language code for transcription.
+        download_link: URL to download the original recording.
+        context_language: ISO 639-1 language code of the meeting summary context text.
     """
     logger.info(
         "Notification received | Owner: %s | Room: %s",
@@ -145,6 +160,7 @@ def process_audio_transcribe_summarize_v2(
         max_retries=settings.whisperx_max_retries,
     )
 
+    # Transcription
     try:
         with (
             file_service.prepare_audio_file(filename) as (audio_file, metadata),
@@ -183,7 +199,10 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.track_transcription_metadata(task_id, transcription)
 
-    formatter = TranscriptFormatter()
+    # For locale of context, use in decreasing priority context_language,
+    # language (of meeting), default context language
+    locale = get_locale(context_language, language)
+    formatter = TranscriptFormatter(locale)
 
     content, title = formatter.format(
         transcription,
@@ -221,6 +240,7 @@ def process_audio_transcribe_summarize_v2(
 
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
+    # LLM Summarization
     if (
         analytics.is_feature_enabled("summary-enabled", distinct_id=owner_id)
         and settings.is_summary_enabled
@@ -336,9 +356,7 @@ def summarize_transcription(
     summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
 
     data = {
-        "title": settings.summary_title_template.format(
-            title=title,
-        ),
+        "title": settings.summary_title_template.format(title=title),
         "content": summary,
         "email": email,
         "sub": sub,
