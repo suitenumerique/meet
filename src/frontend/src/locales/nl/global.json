@@ -51,6 +51,7 @@
       "label": "OK"
     }
   },
+  "skipLink": "Naar de hoofdinhoud gaan",
   "clipboardContent": {
     "url": "Klik op deze link om deel te nemen aan de videoconferentie: {{roomUrl}}",
     "numberAndPin": "Bel {{phoneNumber}} en voer deze code in om telefonisch deel te nemen: {{pinCode}}"

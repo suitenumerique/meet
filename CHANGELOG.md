@@ -26,6 +26,7 @@ and this project adheres to
 - ♿️(frontend) upgrade join meeting modal accessibility #1027
 - ⬆️(python) bump minimal required python version to 3.13 #1033
 - ♿️(frontend) improve accessibility of the IntroSlider carousel #1026
+- ♿️(frontend) add skip link component for keyboard navigation #1019
 
 ### Fixed
 

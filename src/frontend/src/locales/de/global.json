@@ -52,6 +52,7 @@
       "label": "OK"
     }
   },
+  "skipLink": "Zum Hauptinhalt springen",
   "clipboardContent": {
     "url": "Um an der Videokonferenz teilzunehmen, klicken Sie auf diesen Link: {{roomUrl}}",
     "numberAndPin": "Um telefonisch teilzunehmen, wählen Sie {{phoneNumber}} und geben Sie diesen Code ein: {{pinCode}}"
