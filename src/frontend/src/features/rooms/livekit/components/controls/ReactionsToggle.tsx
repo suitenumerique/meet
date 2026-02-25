@@ -12,11 +12,7 @@ import {
 } from '@/features/rooms/livekit/components/ReactionPortal'
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
-import {
-  Popover as RACPopover,
-  Dialog,
-  DialogTrigger,
-} from 'react-aria-components'
+import { Popover as RACPopover, Toolbar } from 'react-aria-components'
 import { FocusScope } from '@react-aria/focus'
 import { Participant } from 'livekit-client'
 import useRateLimiter from '@/hooks/useRateLimiter'
@@ -44,12 +40,21 @@ export const ReactionsToggle = () => {
   const [reactions, setReactions] = useState<Reaction[]>([])
   const instanceIdRef = useRef(0)
   const room = useRoomContext()
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   const [isOpen, setIsOpen] = useState(false)
 
   useRegisterKeyboardShortcut({
     id: 'reaction',
-    handler: () => setIsOpen((prev) => !prev),
+    handler: () => {
+      if (isOpen) {
+        document
+          .querySelector<HTMLElement>('[role="toolbar"] button')
+          ?.focus()
+      } else {
+        setIsOpen(true)
+      }
+    },
   })
 
   const sendReaction = async (emoji: string) => {
@@ -78,6 +83,37 @@ export const ReactionsToggle = () => {
     }, ANIMATION_DURATION)
   }
 
+  const handleToolbarKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      document.getElementById('reaction-toggle')?.focus()
+      return
+    }
+
+    const buttons = Array.from(
+      (e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>(
+        '[role="toolbar"] button'
+      )
+    )
+    if (buttons.length === 0) return
+
+    if (
+      e.key === 'ArrowRight' &&
+      document.activeElement === buttons[buttons.length - 1]
+    ) {
+      e.preventDefault()
+      e.stopPropagation()
+      buttons[0].focus()
+    } else if (
+      e.key === 'ArrowLeft' &&
+      document.activeElement === buttons[0]
+    ) {
+      e.preventDefault()
+      e.stopPropagation()
+      buttons[buttons.length - 1].focus()
+    }
+  }
+
   const debouncedSendReaction = useRateLimiter({
     callback: sendReaction,
     maxCalls: 10,
@@ -87,73 +123,76 @@ export const ReactionsToggle = () => {
   return (
     <>
       <div className={css({ position: 'relative' })}>
-        <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
-          <ToggleButton
-            square
-            variant="primaryDark"
-            aria-label={t('button')}
-            tooltip={t('button')}
-            isSelected={isOpen}
-            onChange={setIsOpen}
-          >
-            <RiEmotionLine />
-          </ToggleButton>
-          <RACPopover
-            placement="top"
-            offset={8}
-            isNonModal
-            shouldCloseOnInteractOutside={() => false}
-            className={css({
-              borderRadius: '8px',
-              padding: '0.35rem',
-              backgroundColor: 'primaryDark.50',
-              '&[data-entering]': {
-                animation: 'fade 200ms ease',
-              },
-              '&[data-exiting]': {
-                animation: 'fade 200ms ease-in reverse',
-              },
-            })}
-          >
-            <Dialog className={css({ outline: 'none' })}>
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus -- FocusScope autoFocus is programmatic focus for overlays, not the HTML autofocus attribute */}
-              <FocusScope contain autoFocus restoreFocus>
-                <div
-                  role="toolbar"
-                  aria-orientation="horizontal"
-                  aria-label={t('button')}
-                  className={css({
-                    display: 'flex',
-                    gap: '0.5rem',
-                  })}
-                >
-                  {Object.values(Emoji).map((emoji, index) => (
-                    <Button
-                      key={index}
-                      onPress={() => debouncedSendReaction(emoji)}
-                      aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
-                      variant="primaryTextDark"
-                      size="sm"
-                      square
-                      data-attr={`send-reaction-${emoji}`}
-                    >
-                      <img
-                        src={`/assets/reactions/${emoji}.png`}
-                        alt=""
-                        className={css({
-                          width: '28px',
-                          height: '28px',
-                          pointerEvents: 'none',
-                          userSelect: 'none',
-                        })}
-                      />
-                    </Button>
-                  ))}
-                </div>
-              </FocusScope>
-            </Dialog>
-          </RACPopover>
-        </DialogTrigger>
+        <ToggleButton
+          ref={triggerRef}
+          id="reaction-toggle"
+          square
+          variant="primaryDark"
+          aria-label={t('button')}
+          tooltip={t('button')}
+          isSelected={isOpen}
+          onChange={setIsOpen}
+        >
+          <RiEmotionLine />
+        </ToggleButton>
+        <RACPopover
+          triggerRef={triggerRef}
+          isOpen={isOpen}
+          onOpenChange={setIsOpen}
+          placement="top"
+          offset={8}
+          isNonModal
+          shouldCloseOnInteractOutside={() => false}
+          className={css({
+            borderRadius: '8px',
+            padding: '0.35rem',
+            backgroundColor: 'primaryDark.50',
+            '&[data-entering]': {
+              animation: 'fade 200ms ease',
+            },
+            '&[data-exiting]': {
+              animation: 'fade 200ms ease-in reverse',
+            },
+          })}
+        >
+          {/* eslint-disable-next-line jsx-a11y/no-autofocus -- FocusScope autoFocus is programmatic focus for overlays, not the HTML autofocus attribute */}
+          <FocusScope autoFocus restoreFocus>
+            {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- handles Tab exit and arrow wrapping for the portal-rendered toolbar */}
+            <div onKeyDownCapture={handleToolbarKeyDown}>
+              <Toolbar
+                orientation="horizontal"
+                aria-label={t('button')}
+                className={css({
+                  display: 'flex',
+                  gap: '0.5rem',
+                })}
+              >
+                {Object.values(Emoji).map((emoji, index) => (
+                  <Button
+                    key={index}
+                    onPress={() => debouncedSendReaction(emoji)}
+                    aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
+                    variant="primaryTextDark"
+                    size="sm"
+                    square
+                    data-attr={`send-reaction-${emoji}`}
+                  >
+                    <img
+                      src={`/assets/reactions/${emoji}.pPng`}
+                      alt=""
+                      className={css({
+                        width: '28px',
+                        height: '28px',
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                      })}
+                    />
+                  </Button>
+                ))}
+              </Toolbar>
+            </div>
+          </FocusScope>
+        </RACPopover>
       </div>
       <ReactionPortals reactions={reactions} />
     </>
