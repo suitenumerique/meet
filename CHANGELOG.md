@@ -23,6 +23,10 @@ and this project adheres to
 - ⬆️(backend) update python dependencies #1011
 - ♿️(a11y) fix focus ring on tab container components
 
+### Fixed
+
+- 🩹(frontend) fix German language preference update #1021
+
 
 ## [1.8.0] - 2026-02-20
 
