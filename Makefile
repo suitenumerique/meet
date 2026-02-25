@@ -23,9 +23,10 @@
 # ==============================================================================
 # VARIABLES
 
-BOLD := \033[1m
-RESET := \033[0m
-GREEN := \033[1;32m
+ESC := $(shell printf '\033')
+BOLD := $(ESC)[1m
+RESET := $(ESC)[0m
+GREEN := $(ESC)[1;32m
 
 
 # -- Database
