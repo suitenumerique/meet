@@ -28,6 +28,10 @@ from sentry_sdk.integrations.logging import ignore_logger
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
 
+KB = 1024
+MB = 1024 * KB
+GB = 1024 * MB
+
 
 def get_release():
     """
@@ -121,6 +125,9 @@ class Base(Configuration):
     STATIC_ROOT = path.join(DATA_DIR, "static")
     MEDIA_URL = "/media/"
     MEDIA_ROOT = path.join(DATA_DIR, "media")
+    MEDIA_BASE_URL = values.Value(
+        "", environ_name="MEDIA_BASE_URL", environ_prefix=None
+    )
 
     SITE_ID = 1
 
@@ -152,6 +159,40 @@ class Base(Configuration):
     AWS_STORAGE_BUCKET_NAME = values.Value(
         "meet-media-storage",
         environ_name="AWS_STORAGE_BUCKET_NAME",
+        environ_prefix=None,
+    )
+    AWS_S3_SIGNATURE_VERSION = values.Value(
+        "s3v4",
+        environ_name="AWS_S3_SIGNATURE_VERSION",
+        environ_prefix=None,
+    )
+    AWS_S3_UPLOAD_POLICY_EXPIRATION = values.Value(
+        60,  # 1 minute
+        environ_name="AWS_S3_UPLOAD_POLICY_EXPIRATION",
+        environ_prefix=None,
+    )
+    AWS_S3_DOMAIN_REPLACE = values.Value(
+        environ_name="AWS_S3_DOMAIN_REPLACE",
+        environ_prefix=None,
+    )
+
+    FILE_UPLOAD_PATH = values.Value(
+        "files", environ_name="FILE_UPLOAD_PATH", environ_prefix=None
+    )
+
+    FILE_UPLOAD_APPLY_RESTRICTIONS = values.BooleanValue(
+        default=True, environ_name="FILE_UPLOAD_APPLY_RESTRICTIONS", environ_prefix=None
+    )
+
+    FILE_UPLOAD_RESTRICTIONS = values.DictValue(
+        {
+            "background_image": {
+                "max_size": 2 * MB,
+                "allowed_extensions": [".jpeg", ".jpg", ".png"],
+                "allowed_mimetypes": ["image/jpeg", "image/png"],
+            },
+        },
+        environ_name="FILE_UPLOAD_RESTRICTIONS",
         environ_prefix=None,
     )
 
@@ -394,6 +435,9 @@ class Base(Configuration):
     THUMBNAIL_ALIASES = {}
 
     # Celery
+    # Defaults to False to avoid breaking change, async task will be run
+    # synchronously
+    CELERY_ENABLED = values.BooleanValue(False)
     CELERY_BROKER_URL = values.Value("redis://redis:6379/0")
     CELERY_BROKER_TRANSPORT_OPTIONS = values.DictValue({})
 

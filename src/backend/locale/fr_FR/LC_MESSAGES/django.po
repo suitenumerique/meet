@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:15+0000\n"
+"POT-Creation-Date: 2026-02-26 17:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: antoine.lebaud@mail.numerique.gouv.fr\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,143 +29,151 @@ msgstr "Permissions"
 msgid "Important dates"
 msgstr "Dates importantes"
 
-#: core/admin.py:128 core/admin.py:228
+#: core/admin.py:132 core/admin.py:243
 msgid "No owner"
 msgstr "Pas de propriétaire"
 
-#: core/admin.py:131 core/admin.py:231
+#: core/admin.py:135 core/admin.py:246
 msgid "Multiple owners"
 msgstr "Plusieurs propriétaires"
 
-#: core/admin.py:143
+#: core/admin.py:148
 msgid "Resend notification to external service"
 msgstr "Renvoyer la notification au service externe"
 
-#: core/admin.py:166
+#: core/admin.py:171
 #, python-format
 msgid "Failed to notify for recording %(id)s"
 msgstr "Échec de la notification pour l’enregistrement %(id)s"
 
-#: core/admin.py:174
+#: core/admin.py:179
 #, python-format
 msgid "Failed to notify for recording %(id)s: %(error)s"
 msgstr "Échec de la notification pour l’enregistrement %(id)s : %(error)s"
 
-#: core/admin.py:182
+#: core/admin.py:187
 #, python-format
 msgid "Successfully sent notifications for %(count)s recording(s)."
 msgstr "Notifications envoyées avec succès pour %(count)s enregistrement(s)."
 
-#: core/admin.py:190
+#: core/admin.py:195
 #, python-format
 msgid "Skipped %(count)s expired recording(s)."
 msgstr "%(count)s enregistrement(s) expiré(s) ignoré(s)."
 
-#: core/admin.py:294
+#: core/admin.py:309
 msgid "No scopes"
 msgstr "Aucun scopes"
 
-#: core/admin.py:296
+#: core/admin.py:311
 msgid "Scopes"
 msgstr "Scopes"
 
-#: core/api/serializers.py:68
+#: core/api/filters.py:24
+msgid "Creator is me"
+msgstr "Je suis le créateur"
+
+#: core/api/serializers.py:84
 msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr ""
 "Vous devez être administrateur ou propriétaire d'une salle pour y ajouter "
 "des accès."
 
-#: core/models.py:34
+#: core/api/serializers.py:443
+msgid "This file extension is not allowed."
+msgstr "Cette extension n'est pas autorisée"
+
+#: core/models.py:35
 msgid "Member"
 msgstr "Membre"
 
-#: core/models.py:35
+#: core/models.py:36
 msgid "Administrator"
 msgstr "Administrateur"
 
-#: core/models.py:36
+#: core/models.py:37
 msgid "Owner"
 msgstr "Propriétaire"
 
-#: core/models.py:52
+#: core/models.py:53
 msgid "Initiated"
 msgstr "Initié"
 
-#: core/models.py:53
+#: core/models.py:54
 msgid "Active"
 msgstr "Actif"
 
-#: core/models.py:54
+#: core/models.py:55
 msgid "Stopped"
 msgstr "Arrêté"
 
-#: core/models.py:55
+#: core/models.py:56
 msgid "Saved"
 msgstr "Enregistré"
 
-#: core/models.py:56
+#: core/models.py:57
 msgid "Aborted"
 msgstr "Abandonné"
 
-#: core/models.py:57
+#: core/models.py:58
 msgid "Failed to Start"
 msgstr "Échec au démarrage"
 
-#: core/models.py:58
+#: core/models.py:59
 msgid "Failed to Stop"
 msgstr "Échec à l'arrêt"
 
-#: core/models.py:59
+#: core/models.py:60
 msgid "Notification succeeded"
 msgstr "Notification réussie"
 
-#: core/models.py:86
+#: core/models.py:87
 msgid "SCREEN_RECORDING"
 msgstr "ENREGISTREMENT_ÉCRAN"
 
-#: core/models.py:87
+#: core/models.py:88
 msgid "TRANSCRIPT"
 msgstr "TRANSCRIPTION"
 
-#: core/models.py:93
+#: core/models.py:94
 msgid "Public Access"
 msgstr "Accès public"
 
-#: core/models.py:94
+#: core/models.py:95
 msgid "Trusted Access"
 msgstr "Accès de confiance"
 
-#: core/models.py:95
+#: core/models.py:96
 msgid "Restricted Access"
 msgstr "Accès restreint"
 
-#: core/models.py:107
+#: core/models.py:108
 msgid "id"
 msgstr "id"
 
-#: core/models.py:108
+#: core/models.py:109
 msgid "primary key for the record as UUID"
 msgstr "clé primaire pour l'enregistrement sous forme d'UUID"
 
-#: core/models.py:114
+#: core/models.py:115
 msgid "created on"
 msgstr "créé le"
 
-#: core/models.py:115
+#: core/models.py:116
 msgid "date and time at which a record was created"
 msgstr "date et heure auxquelles un enregistrement a été créé"
 
-#: core/models.py:120
+#: core/models.py:121
 msgid "updated on"
 msgstr "mis à jour le"
 
-#: core/models.py:121
+#: core/models.py:122
 msgid "date and time at which a record was last updated"
 msgstr ""
 "date et heure auxquelles un enregistrement a été mis à jour pour la dernière "
 "fois"
 
-#: core/models.py:141
+#: core/models.py:142
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
@@ -173,11 +181,11 @@ msgstr ""
 "Entrez un sub valide. Cette valeur ne peut contenir que des lettres, des "
 "chiffres et les caractères @/./+/-/_."
 
-#: core/models.py:147
+#: core/models.py:148
 msgid "sub"
 msgstr "sub"
 
-#: core/models.py:149
+#: core/models.py:150
 msgid ""
 "Optional for pending users; required upon account activation. 255 characters "
 "or fewer. Letters, numbers, and @/./+/-/_ characters only."
@@ -185,55 +193,55 @@ msgstr ""
 "Optionnel pour les utilisateurs en attente ; requis lors de l'activation du "
 "compte. 255 caractères maximum. Lettres, chiffres et @/./+/-/_ uniquement."
 
-#: core/models.py:158
+#: core/models.py:159
 msgid "identity email address"
 msgstr "adresse e-mail d'identité"
 
-#: core/models.py:163
+#: core/models.py:164
 msgid "admin email address"
 msgstr "adresse e-mail d'administrateur"
 
-#: core/models.py:165
+#: core/models.py:166
 msgid "full name"
 msgstr "nom complet"
 
-#: core/models.py:167
+#: core/models.py:168
 msgid "short name"
 msgstr "nom court"
 
-#: core/models.py:173
+#: core/models.py:174
 msgid "language"
 msgstr "langue"
 
-#: core/models.py:174
+#: core/models.py:175
 msgid "The language in which the user wants to see the interface."
 msgstr "La langue dans laquelle l'utilisateur souhaite voir l'interface."
 
-#: core/models.py:180
+#: core/models.py:181
 msgid "The timezone in which the user wants to see times."
 msgstr "Le fuseau horaire dans lequel l'utilisateur souhaite voir les heures."
 
-#: core/models.py:183
+#: core/models.py:184
 msgid "device"
 msgstr "appareil"
 
-#: core/models.py:185
+#: core/models.py:186
 msgid "Whether the user is a device or a real user."
 msgstr "Si l'utilisateur est un appareil ou un utilisateur réel."
 
-#: core/models.py:188
+#: core/models.py:189
 msgid "staff status"
 msgstr "statut du personnel"
 
-#: core/models.py:190
+#: core/models.py:191
 msgid "Whether the user can log into this admin site."
 msgstr "Si l'utilisateur peut se connecter à ce site d'administration."
 
-#: core/models.py:193
+#: core/models.py:194
 msgid "active"
 msgstr "actif"
 
-#: core/models.py:196
+#: core/models.py:197
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
@@ -241,65 +249,65 @@ msgstr ""
 "Si cet utilisateur doit être traité comme actif. Désélectionnez cette option "
 "au lieu de supprimer des comptes."
 
-#: core/models.py:209
+#: core/models.py:210
 msgid "user"
 msgstr "utilisateur"
 
-#: core/models.py:210
+#: core/models.py:211
 msgid "users"
 msgstr "utilisateurs"
 
-#: core/models.py:269
+#: core/models.py:270
 msgid "Resource"
 msgstr "Ressource"
 
-#: core/models.py:270
+#: core/models.py:271
 msgid "Resources"
 msgstr "Ressources"
 
-#: core/models.py:324
+#: core/models.py:329
 msgid "Resource access"
 msgstr "Accès aux ressources"
 
-#: core/models.py:325
+#: core/models.py:330
 msgid "Resource accesses"
 msgstr "Accès aux ressources"
 
-#: core/models.py:331
+#: core/models.py:336
 msgid "Resource access with this User and Resource already exists."
 msgstr ""
 "L'accès à la ressource avec cet utilisateur et cette ressource existe déjà."
 
-#: core/models.py:387
+#: core/models.py:392
 msgid "Visio room configuration"
 msgstr "Configuration de la salle de visioconférence"
 
-#: core/models.py:388
+#: core/models.py:393
 msgid "Values for Visio parameters to configure the room."
 msgstr "Valeurs des paramètres de visioconférence pour configurer la salle."
 
-#: core/models.py:395
+#: core/models.py:400
 msgid "Room PIN code"
 msgstr "Code PIN de la salle"
 
-#: core/models.py:396
+#: core/models.py:401
 msgid "Unique n-digit code that identifies this room in telephony mode."
 msgstr ""
 "Code unique à n chiffres qui identifie cette salle en mode téléphonique."
 
-#: core/models.py:402 core/models.py:556
+#: core/models.py:407 core/models.py:561
 msgid "Room"
 msgstr "Salle"
 
-#: core/models.py:403
+#: core/models.py:408
 msgid "Rooms"
 msgstr "Salles"
 
-#: core/models.py:567
+#: core/models.py:572
 msgid "Worker ID"
 msgstr "ID du Worker"
 
-#: core/models.py:569
+#: core/models.py:574
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
@@ -307,109 +315,147 @@ msgstr ""
 "Entrez un identifiant pour l'enregistrement du Worker. Cet identifiant est "
 "conservé même lorsque le Worker s'arrête, permettant un suivi facile."
 
-#: core/models.py:577
+#: core/models.py:582
 msgid "Recording mode"
 msgstr "Mode d'enregistrement"
 
-#: core/models.py:578
+#: core/models.py:583
 msgid "Defines the mode of recording being called."
 msgstr "Définit le mode d'enregistrement appelé."
 
-#: core/models.py:583 core/models.py:584
+#: core/models.py:588 core/models.py:589
 msgid "Recording options"
 msgstr "Options d'enregistrement"
 
-#: core/models.py:590
+#: core/models.py:595
 msgid "Recording"
 msgstr "Enregistrement"
 
-#: core/models.py:591
+#: core/models.py:596
 msgid "Recordings"
 msgstr "Enregistrements"
 
-#: core/models.py:699
+#: core/models.py:704
 msgid "Recording/user relation"
 msgstr "Relation enregistrement/utilisateur"
 
-#: core/models.py:700
+#: core/models.py:705
 msgid "Recording/user relations"
 msgstr "Relations enregistrement/utilisateur"
 
-#: core/models.py:706
+#: core/models.py:711
 msgid "This user is already in this recording."
 msgstr "Cet utilisateur est déjà dans cet enregistrement."
 
-#: core/models.py:712
+#: core/models.py:717
 msgid "This team is already in this recording."
 msgstr "Cette équipe est déjà dans cet enregistrement."
 
-#: core/models.py:718
+#: core/models.py:723
 msgid "Either user or team must be set, not both."
 msgstr "Soit l'utilisateur, soit l'équipe doit être défini, pas les deux."
 
-#: core/models.py:735
+#: core/models.py:740
 msgid "Create rooms"
 msgstr "Créer des salles"
 
-#: core/models.py:736
+#: core/models.py:741
 msgid "List rooms"
 msgstr "Lister les salles"
 
-#: core/models.py:737
+#: core/models.py:742
 msgid "Retrieve room details"
 msgstr "Afficher les détails d’une salle"
 
-#: core/models.py:738
+#: core/models.py:743
 msgid "Update rooms"
 msgstr "Mettre à jour les salles"
 
-#: core/models.py:739
+#: core/models.py:744
 msgid "Delete rooms"
 msgstr "Supprimer les salles"
 
-#: core/models.py:752
+#: core/models.py:757
 msgid "Application name"
 msgstr "Nom de l’application"
 
-#: core/models.py:753
+#: core/models.py:758
 msgid "Descriptive name for this application."
 msgstr "Nom descriptif de cette application."
 
-#: core/models.py:763
+#: core/models.py:768
 msgid "Hashed on Save. Copy it now if this is a new secret."
 msgstr ""
 "Haché lors de l’enregistrement. Copiez-le maintenant s’il s’agit d’un "
 "nouveau secret."
 
-#: core/models.py:774
+#: core/models.py:779
 msgid "Application"
 msgstr "Application"
 
-#: core/models.py:775
+#: core/models.py:780
 msgid "Applications"
 msgstr "Applications"
 
-#: core/models.py:798
+#: core/models.py:803
 msgid "Enter a valid domain"
 msgstr "Saisissez un domaine valide"
 
-#: core/models.py:801
+#: core/models.py:806
 msgid "Domain"
 msgstr "Domaine"
 
-#: core/models.py:802
+#: core/models.py:807
 msgid "Email domain this application can act on behalf of."
 msgstr "Domaine de messagerie au nom duquel cette application peut agir."
 
-#: core/models.py:814
+#: core/models.py:819
 msgid "Application domain"
 msgstr "Domaine d’application"
 
-#: core/models.py:815
+#: core/models.py:820
 msgid "Application domains"
 msgstr "Domaines d’application"
 
-#: core/recording/event/notification.py:94
+#: core/models.py:838
+msgid "Pending"
+msgstr "En attente"
+
+#: core/models.py:846
+msgid "Ready"
+msgstr "Prêt"
+
+#: core/models.py:852
+msgid "Background image"
+msgstr "Image de fond"
+
+#: core/models.py:864
+msgid "title"
+msgstr "Titre"
+
+#: core/models.py:890
+msgid "Malware detection info when the analysis status is unsafe."
+msgstr "Information concernant la détection de Malware cand le statut n'est pas sain"
+
+#: core/models.py:895
+msgid "File"
+msgstr "Fichier"
+
+#: core/models.py:896
+msgid "Files"
+msgstr "Fichiers"
+
+#: core/models.py:970
+#, fuzzy
+#| msgid "This user is already in this recording."
+msgid "This file is already hard deleted."
+msgstr "Ce fichier a été supprimé."
+
+#: core/models.py:980
+msgid "To hard delete a file, it must first be soft deleted."
+msgstr "Pour supprimer définitivement un fichier il doit d'abord avoir été marqué comme supprimé (soft delete)"
+
+#: core/recording/event/notification.py:116
 msgid "Your recording is ready"
 msgstr "Votre enregistrement est prêt"
 
@@ -537,18 +583,18 @@ msgstr ""
 " Si vous avez des questions ou besoin d'assistance, veuillez contacter notre "
 "équipe d'assistance à %(support_email)s. "
 
-#: meet/settings.py:169
+#: meet/settings.py:224
 msgid "English"
 msgstr "Anglais"
 
-#: meet/settings.py:170
+#: meet/settings.py:225
 msgid "French"
 msgstr "Français"
 
-#: meet/settings.py:171
+#: meet/settings.py:226
 msgid "Dutch"
 msgstr "Néerlandais"
 
-#: meet/settings.py:172
+#: meet/settings.py:227
 msgid "German"
 msgstr "Allemand"

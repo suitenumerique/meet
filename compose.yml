@@ -84,7 +84,6 @@ services:
         - postgresql
         - mailcatcher
         - redis
-        - nginx
         - livekit
         - createbuckets
         - createwebhook
@@ -148,6 +147,7 @@ services:
       - ./docker/files/etc/nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
       - keycloak
+      - app-dev
     networks:
       - resource-server
       - default

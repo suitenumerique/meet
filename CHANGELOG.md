@@ -31,6 +31,10 @@ and this project adheres to
 - ♿(frontend) prevent focus ring clipping on invite dialog #1078
 - ♿(frontend) dynamic tab title when connected to meeting #1060
 
+### Added
+
+- ✨(backend) add file upload feature #1030
+
 ## [1.9.0] - 2026-03-02
 
 ### Added
