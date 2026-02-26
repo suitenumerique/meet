@@ -32,12 +32,12 @@
   "introSlider": {
     "previous": {
       "label": "Vorherige Folie",
-      "withPosition": "Vorherige Folie anzeigen ({{target}} von {{total}})",
+      "labelWithPosition": "Vorherige Folie ({{current}} von {{total}})",
       "tooltip": "Vorherige Folie"
     },
     "next": {
       "label": "Nächste Folie",
-      "withPosition": "Nächste Folie anzeigen ({{target}} von {{total}})",
+      "labelWithPosition": "Nächste Folie ({{current}} von {{total}})",
       "tooltip": "Nächste Folie"
     },
     "beta": {

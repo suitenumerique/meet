@@ -33,12 +33,12 @@
     "carouselLabel": "Diaporama de présentation",
     "previous": {
       "label": "Diapositive précédente",
-      "withPosition": "Afficher la diapositive précédente ({{target}} sur {{total}})",
+      "labelWithPosition": "Diapositive précédente ({{current}} sur {{total}})",
       "tooltip": "Diapositive précédente"
     },
     "next": {
       "label": "Diapositive suivante",
-      "withPosition": "Afficher la diapositive suivante ({{target}} sur {{total}})",
+      "labelWithPosition": "Diapositive suivante ({{current}} sur {{total}})",
       "tooltip": "Diapositive suivante"
     },
     "slidePosition": "Diapositive {{current}} sur {{total}}",

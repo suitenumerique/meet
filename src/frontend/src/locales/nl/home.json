@@ -32,12 +32,12 @@
   "introSlider": {
     "previous": {
       "label": "Vorige dia",
-      "withPosition": "Vorige dia tonen ({{target}} van {{total}})",
+      "labelWithPosition": "Vorige dia ({{current}} van {{total}})",
       "tooltip": "Vorige dia"
     },
     "next": {
       "label": "Volgende dia",
-      "withPosition": "Volgende dia tonen ({{target}} van {{total}})",
+      "labelWithPosition": "Volgende dia ({{current}} van {{total}})",
       "tooltip": "Volgende dia"
     },
     "beta": {

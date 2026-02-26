@@ -30,13 +30,6 @@ body,
   outline-offset: 1px;
 }
 
-/* Fallback for NVDA / screen readers: ensure focus ring on :focus when
-   focus-visible detection fails (e.g. carousel nav buttons) */
-.carousel-nav-button:focus {
-  outline: 2px solid var(--colors-focus-ring) !important;
-  outline-offset: 1px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

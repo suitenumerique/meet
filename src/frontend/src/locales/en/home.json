@@ -32,12 +32,12 @@
   "introSlider": {
     "previous": {
       "label": "Previous slide",
-      "withPosition": "Go to previous slide ({{target}} of {{total}})",
+      "labelWithPosition": "Previous slide ({{current}} of {{total}})",
       "tooltip": "Previous slide"
     },
     "next": {
       "label": "Next slide",
-      "withPosition": "Go to next slide ({{target}} of {{total}})",
+      "labelWithPosition": "Next slide ({{current}} of {{total}})",
       "tooltip": "Next slide"
     },
     "beta": {

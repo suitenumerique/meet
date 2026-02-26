@@ -25,6 +25,7 @@ and this project adheres to
 - ♿️(frontend) fix focus ring on tab container components #1012
 - ♿️(frontend) upgrade join meeting modal accessibility #1027
 - ⬆️(python) bump minimal required python version to 3.13 #1033
+- ♿️(frontend) improve accessibility of the IntroSlider carousel #1026
 
 ### Fixed
 
