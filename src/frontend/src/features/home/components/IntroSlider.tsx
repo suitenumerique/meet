@@ -206,6 +206,7 @@ export const IntroSlider = () => {
               ref={prevButtonRef}
               variant="secondaryText"
               square
+              className="carousel-nav-button"
               aria-label={previousAriaLabel}
               onPress={() => {
                 focusTargetRef.current = 'prev'
@@ -234,6 +235,7 @@ export const IntroSlider = () => {
               ref={nextButtonRef}
               variant="secondaryText"
               square
+              className="carousel-nav-button"
               aria-label={nextAriaLabel}
               onPress={() => {
                 focusTargetRef.current = 'next'
