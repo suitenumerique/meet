@@ -19,6 +19,7 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 
 import aiohttp
+import boto3
 import botocore
 import magic
 from asgiref.sync import async_to_sync
@@ -382,8 +383,10 @@ def detect_mimetype(file_buffer: bytes, filename: str | None = None) -> str:
         # Use guess_file_type (Python 3.13+) instead of deprecated guess_type
         mimetype_from_extension, _ = mimetypes.guess_file_type(filename, strict=False)
 
-    logger.info("detect_mimetype: mimetype_from_content: %s", mimetype_from_content)
-    logger.info("detect_mimetype: mimetype_from_extension: %s", mimetype_from_extension)
+    logger.debug("detect_mimetype: mimetype_from_content: %s", mimetype_from_content)
+    logger.debug(
+        "detect_mimetype: mimetype_from_extension: %s", mimetype_from_extension
+    )
 
     # Strategy: Prefer content-based detection, but use extension if:
     # 1. Content detection returns generic types (application/octet-stream, text/plain)
@@ -411,3 +414,44 @@ def detect_mimetype(file_buffer: bytes, filename: str | None = None) -> str:
 
     # Default to content-based detection (most reliable)
     return mimetype_from_content or "application/octet-stream"
+
+
+def generate_upload_policy(file):
+    """
+    Generate a S3 upload policy for a given file.
+
+    Notes:
+        Originally taken from https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L102  # pylint: disable=line-too-long
+    """
+
+    key = file.file_key
+
+    # This settings should be used if the backend application and the frontend application
+    # can't connect to the object storage with the same domain. This is the case in the
+    # docker compose stack used in development. The frontend application will use localhost
+    # to connect to the object storage while the backend application will use the object storage
+    # service name declared in the docker compose stack.
+    # This is needed because the domain name is used to compute the signature. So it can't be
+    # changed dynamically by the frontend application.
+    if settings.AWS_S3_DOMAIN_REPLACE:
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
+            endpoint_url=settings.AWS_S3_DOMAIN_REPLACE,
+            config=botocore.client.Config(
+                region_name=settings.AWS_S3_REGION_NAME,
+                signature_version=settings.AWS_S3_SIGNATURE_VERSION,
+            ),
+        )
+    else:
+        s3_client = default_storage.connection.meta.client
+
+    # Generate the policy
+    policy = s3_client.generate_presigned_url(
+        ClientMethod="put_object",
+        Params={"Bucket": default_storage.bucket_name, "Key": key, "ACL": "private"},
+        ExpiresIn=settings.AWS_S3_UPLOAD_POLICY_EXPIRATION,
+    )
+
+    return policy

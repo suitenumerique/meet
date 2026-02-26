@@ -230,6 +230,7 @@ jobs:
       OIDC_RS_CLIENT_SECRET: ThisIsAnExampleKeyForDevPurposeOnly
       OIDC_OP_INTROSPECTION_ENDPOINT: https://oidc.example.com/introspect
       OIDC_OP_URL: https://oidc.example.com
+      MEDIA_BASE_URL: http://localhost:8083
 
     steps:
       - name: Checkout repository

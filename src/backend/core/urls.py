@@ -14,6 +14,7 @@ router = DefaultRouter()
 router.register("users", viewsets.UserViewSet, basename="users")
 router.register("rooms", viewsets.RoomViewSet, basename="rooms")
 router.register("recordings", viewsets.RecordingViewSet, basename="recordings")
+router.register("files", viewsets.FileViewSet, basename="files")
 router.register(
     "resource-accesses", viewsets.ResourceAccessViewSet, basename="resource_accesses"
 )

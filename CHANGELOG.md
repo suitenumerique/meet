@@ -30,6 +30,10 @@ and this project adheres to
 - 💄(frontend) truncate pinned participant name with ellipsis on overflow #1056
 - ♿(frontend) prevent focus ring clipping on invite dialog #1078
 
+### Added
+
+- ✨(backend) add file upload feature #1030
+
 ## [1.9.0] - 2026-03-02
 
 ### Added
