@@ -31,12 +31,14 @@
   },
   "introSlider": {
     "previous": {
-      "label": "vorige",
-      "tooltip": "vorige"
+      "label": "Vorige dia",
+      "withPosition": "Vorige dia tonen ({{target}} van {{total}})",
+      "tooltip": "Vorige dia"
     },
     "next": {
-      "label": "volgende",
-      "tooltip": "volgende"
+      "label": "Volgende dia",
+      "withPosition": "Volgende dia tonen ({{target}} van {{total}})",
+      "tooltip": "Volgende dia"
     },
     "beta": {
       "text": "Word lid van de bèta",
@@ -53,6 +55,8 @@
     "slide3": {
       "title": "Transformeer uw vergaderingen met AI",
       "body": "Krijg nauwkeurige en bruikbare transcripties om uw productiviteit te stimuleren. Deze mogelijkheid is in bèta, probeer het nu!"
-    }
+    },
+    "carouselLabel": "Introductie-diavoorstelling",
+    "slidePosition": "Dia {{current}} van {{total}}"
   }
 }

@@ -31,12 +31,14 @@
   },
   "introSlider": {
     "previous": {
-      "label": "Zurück",
-      "tooltip": "Zurück"
+      "label": "Vorherige Folie",
+      "withPosition": "Vorherige Folie anzeigen ({{target}} von {{total}})",
+      "tooltip": "Vorherige Folie"
     },
     "next": {
-      "label": "Weiter",
-      "tooltip": "Weiter"
+      "label": "Nächste Folie",
+      "withPosition": "Nächste Folie anzeigen ({{target}} von {{total}})",
+      "tooltip": "Nächste Folie"
     },
     "beta": {
       "text": "An der Beta teilnehmen",
@@ -53,6 +55,8 @@
     "slide3": {
       "title": "Verwandeln Sie Ihre Meetings mit KI",
       "body": "Erhalten Sie präzise und verwertbare Transkripte zur Steigerung Ihrer Produktivität. Funktion in der Beta – jetzt testen!"
-    }
+    },
+    "carouselLabel": "Einführungs-Diashow",
+    "slidePosition": "Folie {{current}} von {{total}}"
   }
 }

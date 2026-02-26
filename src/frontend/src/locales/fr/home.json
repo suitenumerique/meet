@@ -30,14 +30,18 @@
     }
   },
   "introSlider": {
+    "carouselLabel": "Diaporama de présentation",
     "previous": {
-      "label": "précédent",
-      "tooltip": "précédent"
+      "label": "Diapositive précédente",
+      "withPosition": "Afficher la diapositive précédente ({{target}} sur {{total}})",
+      "tooltip": "Diapositive précédente"
     },
     "next": {
-      "label": "suivant",
-      "tooltip": "suivant"
+      "label": "Diapositive suivante",
+      "withPosition": "Afficher la diapositive suivante ({{target}} sur {{total}})",
+      "tooltip": "Diapositive suivante"
     },
+    "slidePosition": "Diapositive {{current}} sur {{total}}",
     "beta": {
       "text": "Essayer la beta",
       "tooltip": "Accéder au formulaire"

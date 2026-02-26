@@ -31,12 +31,14 @@
   },
   "introSlider": {
     "previous": {
-      "label": "previous",
-      "tooltip": "previous"
+      "label": "Previous slide",
+      "withPosition": "Go to previous slide ({{target}} of {{total}})",
+      "tooltip": "Previous slide"
     },
     "next": {
-      "label": "next",
-      "tooltip": "next"
+      "label": "Next slide",
+      "withPosition": "Go to next slide ({{target}} of {{total}})",
+      "tooltip": "Next slide"
     },
     "beta": {
       "text": "Join the beta",
@@ -53,6 +55,8 @@
     "slide3": {
       "title": "Transform your meetings with AI",
       "body": "Get accurate and actionable transcripts to boost your productivity. Feature in beta—try it now!"
-    }
+    },
+    "carouselLabel": "Introduction slideshow",
+    "slidePosition": "Slide {{current}} of {{total}}"
   }
 }

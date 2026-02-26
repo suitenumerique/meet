@@ -2,7 +2,7 @@ import { styled } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { Button } from '@/primitives'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 const Heading = styled('h2', {
@@ -162,12 +162,37 @@ const SLIDES: Slide[] = [
 
 export const IntroSlider = () => {
   const [slideIndex, setSlideIndex] = useState(0)
+  const prevButtonRef = useRef<HTMLButtonElement>(null)
+  const nextButtonRef = useRef<HTMLButtonElement>(null)
+  const focusTargetRef = useRef<'prev' | 'next' | null>(null)
   const { t } = useTranslation('home', { keyPrefix: 'introSlider' })
 
   const NUMBER_SLIDES = SLIDES.length
 
+  const prevSlideIndex = slideIndex - 1
+  const nextSlideIndex = slideIndex + 1
+
+  const previousAriaLabel =
+    slideIndex > 0
+      ? t('previous.withPosition', {
+          target: prevSlideIndex + 1,
+          total: NUMBER_SLIDES,
+        })
+      : t('previous.label')
+  const nextAriaLabel =
+    slideIndex < NUMBER_SLIDES - 1
+      ? t('next.withPosition', {
+          target: nextSlideIndex + 1,
+          total: NUMBER_SLIDES,
+        })
+      : t('next.label')
+
   return (
-    <Container>
+    <Container
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={t('carouselLabel')}
+    >
       <div
         className={css({
           display: 'flex',
@@ -178,11 +203,14 @@ export const IntroSlider = () => {
         <ButtonContainer>
           <ButtonVerticalCenter>
             <Button
+              ref={prevButtonRef}
               variant="secondaryText"
               square
-              aria-label={t('previous.label')}
-              tooltip={t('previous.tooltip')}
-              onPress={() => setSlideIndex(slideIndex - 1)}
+              aria-label={previousAriaLabel}
+              onPress={() => {
+                focusTargetRef.current = 'prev'
+                setSlideIndex(prevSlideIndex)
+              }}
               isDisabled={slideIndex == 0}
             >
               <RiArrowLeftSLine />
@@ -203,11 +231,14 @@ export const IntroSlider = () => {
         <ButtonContainer>
           <ButtonVerticalCenter>
             <Button
+              ref={nextButtonRef}
               variant="secondaryText"
               square
-              aria-label={t('next.label')}
-              tooltip={t('next.tooltip')}
-              onPress={() => setSlideIndex(slideIndex + 1)}
+              aria-label={nextAriaLabel}
+              onPress={() => {
+                focusTargetRef.current = 'next'
+                setSlideIndex(nextSlideIndex)
+              }}
               isDisabled={slideIndex == NUMBER_SLIDES - 1}
             >
               <RiArrowRightSLine />
@@ -219,11 +250,21 @@ export const IntroSlider = () => {
         className={css({
           marginTop: '0.5rem',
           display: { base: 'none', xsm: 'block' },
+
         })}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
       >
-        {SLIDES.map((_, index) => (
-          <Dot key={index} selected={index == slideIndex} />
-        ))}
+        <span className="sr-only">
+          {t('slidePosition', {
+            current: slideIndex + 1,
+            total: NUMBER_SLIDES,
+          })}
+        </span>
+          {SLIDES.map((_, index) => (
+            <Dot key={index} selected={index == slideIndex} />
+          ))}
       </div>
     </Container>
   )
