@@ -22,12 +22,12 @@ and this project adheres to
 - 🚚(frontend) rename "wellknown" directory to "well-known" #1009
 - 🌐(frontend) localize SR modifier labels #1010
 - ⬆️(backend) update python dependencies #1011
-- ♿️(a11y) fix focus ring on tab container components
+- ♿️(frontend) fix focus ring on tab container components #1012
+- ♿️(frontend) upgrade join meeting modal accessibility #1027
 
 ### Fixed
 
 - 🩹(frontend) fix German language preference update #1021
-
 
 ## [1.8.0] - 2026-02-20
 
