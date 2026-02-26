@@ -39,6 +39,7 @@ ARG MEET_STATIC_ROOT=/data/static
 
 RUN apk add \
   pango \
+  libmagic \
   rdfind
 
 # Copy installed python dependencies
@@ -68,6 +69,7 @@ RUN apk --no-cache add \
   gettext \
   libffi-dev \
   pango \
+  libmagic \
   shared-mime-info
 
 
