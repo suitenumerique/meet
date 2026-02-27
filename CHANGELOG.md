@@ -29,6 +29,7 @@ and this project adheres to
 
 - 🩹(frontend) fix German language preference update #1021
 - 🐛(backend) make user model independant from app language settings #1035
+- 🐛(backend) add missing user migration #1035
 
 ## [1.8.0] - 2026-02-20
 
