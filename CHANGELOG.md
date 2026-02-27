@@ -28,6 +28,7 @@ and this project adheres to
 ### Fixed
 
 - 🩹(frontend) fix German language preference update #1021
+- 🐛(backend) make user model independant from app language settings #1035
 
 ## [1.8.0] - 2026-02-20
 

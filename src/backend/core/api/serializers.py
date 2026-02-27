@@ -1,7 +1,8 @@
 """Client serializers for the Meet core app."""
 
-# pylint: disable=abstract-method,no-name-in-module
+from django.conf import settings
 
+# pylint: disable=abstract-method,no-name-in-module
 from django.utils.translation import gettext_lazy as _
 
 from livekit.api import ParticipantPermission
@@ -16,11 +17,21 @@ class UserSerializer(serializers.ModelSerializer):
     """Serialize users."""
 
     timezone = TimeZoneSerializerField()
+    language = serializers.ChoiceField(
+        choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, allow_blank=True
+    )
 
     class Meta:
         model = models.User
         fields = ["id", "email", "full_name", "short_name", "timezone", "language"]
         read_only_fields = ["id", "email", "full_name", "short_name"]
+
+    def to_representation(self, instance):
+        """Properly alter the user language based on the supported languages."""
+        output = super().to_representation(instance)
+        if not any(el[0] == output["language"] for el in settings.LANGUAGES):
+            output["language"] = settings.LANGUAGE_CODE
+        return output
 
 
 class ResourceAccessSerializerMixin:

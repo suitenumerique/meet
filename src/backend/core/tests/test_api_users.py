@@ -376,6 +376,57 @@ def test_api_users_patch_authenticated_other():
         assert value == old_user_values[key]
 
 
+def test_api_users_patch_authenticated_self_unsupported_language_rejected():
+    """
+    Users shouldn't be able to patch their own user with an unsupported language.
+    """
+    user = factories.UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/users/{user.id!s}/",
+        {"language": "unsupported"},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"language": ['"unsupported" is not a valid choice.']}
+
+
+def test_api_get_self_with_unsupported_language_fallbacks_to_default(settings):
+    """
+    Getting a user that is configured with an unsupported language in DB will
+    gently return the default language.
+    """
+    settings.LANGUAGE_CODE = "en-us"
+    settings.LANGUAGES = [("en-us", "English (US)")]
+    user = factories.UserFactory()
+    user.language = "unknown"
+    user.save()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(
+        "/api/v1.0/users/me/",
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "email": user.email,
+        "full_name": user.full_name,
+        "id": str(user.id),
+        "language": "en-us",
+        "short_name": user.short_name,
+        "timezone": str(user.timezone),
+    }
+    # The language should stay the same in db
+    user.refresh_from_db()
+    assert user.language == "unknown"
+
+
 def test_api_users_delete_list_anonymous():
     """Anonymous users should not be allowed to delete a list of users."""
     factories.UserFactory.create_batch(2)
