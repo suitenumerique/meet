@@ -24,6 +24,7 @@ and this project adheres to
 - ⬆️(backend) update python dependencies #1011
 - ♿️(frontend) fix focus ring on tab container components #1012
 - ♿️(frontend) upgrade join meeting modal accessibility #1027
+- ⬆️(python) bump minimal required python version to 3.13 #1033
 
 ### Fixed
 
