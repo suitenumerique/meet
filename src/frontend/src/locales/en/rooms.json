@@ -590,7 +590,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options for {{name}}",
-    "toolbarHint": "F2: go to the bottom toolbar.",
+    "toolbarHint": "Ctrl+Shift+/: access shortcuts directly.",
     "pin": {
       "enable": "Pin",
       "disable": "Unpin"

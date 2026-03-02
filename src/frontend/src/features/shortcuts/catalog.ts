@@ -5,6 +5,7 @@ import { Shortcut } from './types'
 export type ShortcutCategory = 'navigation' | 'media' | 'interaction'
 
 export type ShortcutId =
+  | 'open-shortcuts'
   | 'focus-toolbar'
   | 'toggle-microphone'
   | 'toggle-camera'
@@ -29,6 +30,11 @@ export type ShortcutDescriptor = {
 }
 
 export const shortcutCatalog: ShortcutDescriptor[] = [
+  {
+    id: 'open-shortcuts',
+    category: 'navigation',
+    shortcut: { key: '/', ctrlKey: true, shiftKey: true },
+  },
   {
     id: 'focus-toolbar',
     category: 'navigation',

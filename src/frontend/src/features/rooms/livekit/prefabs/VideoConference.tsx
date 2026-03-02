@@ -31,6 +31,9 @@ import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { settingsStore } from '@/stores/settings'
+import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
@@ -110,6 +113,14 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
 
   useConnectionObserver()
   useVideoResolutionSubscription()
+
+  useRegisterKeyboardShortcut({
+    id: 'open-shortcuts',
+    handler: useCallback(() => {
+      settingsStore.defaultSelectedTab = SettingsDialogExtendedKey.SHORTCUTS
+      settingsStore.areSettingsOpen = true
+    }, []),
+  })
 
   const tracks = useTracks(
     [

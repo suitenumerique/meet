@@ -19,7 +19,10 @@ export const useKeyboardShortcuts = () => {
         shiftKey,
         altKey,
       })
-      const shortcut = shortcutsSnap.shortcuts.get(shortcutKey)
+      let shortcut = shortcutsSnap.shortcuts.get(shortcutKey)
+      if (!shortcut && shortcutKey === 'ctrl+shift+?') {
+        shortcut = shortcutsSnap.shortcuts.get('ctrl+shift+/')
+      }
       if (!shortcut) return
       e.preventDefault()
       await shortcut()

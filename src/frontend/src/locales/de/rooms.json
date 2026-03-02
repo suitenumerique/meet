@@ -590,7 +590,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Optionen für {{name}}",
-    "toolbarHint": "F2: zur Symbolleiste unten.",
+    "toolbarHint": "Ctrl+Shift+/: Direkt auf die Tastenkürzel zugreifen.",
     "pin": {
       "enable": "Anheften",
       "disable": "Lösen"
