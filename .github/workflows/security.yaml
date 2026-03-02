@@ -1,0 +1,29 @@
+# /!\
+# Security Note: This action is not hardened against prompt injection attacks and should only be used
+# to review trusted PRs. Configure your repository with "Require approval for all external contributors"
+# to ensure workflows only run after a maintainer has reviewed the PR.
+name: Security Review
+
+permissions:
+  pull-requests: write  # Needed for leaving PR comments
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda
+        with:
+          comment-pr: true
+          exclude-directories: docs,gitlint,LICENSES,bin
+          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
