@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-03-02
+
 ### Added
 
 - 👷(docker) add arm64 platform support for image builds
