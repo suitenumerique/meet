@@ -178,7 +178,7 @@ export const ReactionsToggle = () => {
                     data-attr={`send-reaction-${emoji}`}
                   >
                     <img
-                      src={`/assets/reactions/${emoji}.pPng`}
+                      src={`/assets/reactions/${emoji}.png`}
                       alt=""
                       className={css({
                         width: '28px',
