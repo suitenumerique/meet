@@ -231,9 +231,9 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
-      {hasKeyboardFocus && (
+      <div className="shortcut-hint-wrapper">
         <KeyboardShortcutHint>{t('toolbarHint')}</KeyboardShortcutHint>
-      )}
+      </div>
     </div>
   )
 })
