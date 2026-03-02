@@ -1,5 +1,6 @@
 import { ToggleButton } from '@/primitives'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { useMemo, useState } from 'react'
 import { appendShortcutLabel } from '@/features/shortcuts/utils'
 import { useTranslation } from 'react-i18next'
@@ -87,10 +88,24 @@ export const ToggleDevice = <T extends ToggleSource>({
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
   const deviceShortcut = useDeviceShortcut(kind)
+  const announce = useScreenReaderAnnounce()
 
   useRegisterKeyboardShortcut({
     id: deviceShortcut?.id,
-    handler: async () => await toggle(),
+    handler: async () => {
+      const nextState = !enabled
+      try {
+        const didChange = await toggle(nextState)
+        if (didChange === false) return
+
+        const message = t(nextState ? 'turnedOn' : 'turnedOff', {
+          keyPrefix: `selectDevice.${kind}`,
+        })
+        announce(message, 'assertive')
+      } catch {
+        // no announce
+      }
+    },
     isDisabled: cannotUseDevice,
   })
 

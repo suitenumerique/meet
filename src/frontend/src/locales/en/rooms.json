@@ -22,6 +22,8 @@
       "permissionsNeeded": "Select camera - permission needed",
       "disable": "Disable camera",
       "enable": "Enable camera",
+      "turnedOff": "Camera turned off",
+      "turnedOn": "Camera turned on",
       "label": "Camera",
       "placeholder": "Enable camera to see the preview"
     },
@@ -30,6 +32,8 @@
       "permissionsNeeded": "Select microphone - permission needed",
       "disable": "Disable microphone",
       "enable": "Enable microphone",
+      "turnedOff": "Microphone turned off",
+      "turnedOn": "Microphone turned on",
       "label": "Microphone"
     },
     "audiooutput": {

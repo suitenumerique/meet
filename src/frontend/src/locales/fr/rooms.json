@@ -22,6 +22,8 @@
       "permissionsNeeded": "Choisir la webcam - autorisations nécessaires",
       "disable": "Désactiver la webcam",
       "enable": "Activer la webcam",
+      "turnedOff": "Webcam désactivée",
+      "turnedOn": "Webcam activée",
       "label": "Webcam",
       "placeholder": "Activez la webcam pour prévisualiser l'affichage"
     },
@@ -30,6 +32,8 @@
       "permissionsNeeded": "Choisir le micro - autorisations nécessaires",
       "disable": "Désactiver le micro",
       "enable": "Activer le micro",
+      "turnedOff": "Micro désactivé",
+      "turnedOn": "Micro activé",
       "label": "Microphone"
     },
     "audiooutput": {

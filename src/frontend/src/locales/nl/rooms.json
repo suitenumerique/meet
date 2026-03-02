@@ -22,6 +22,8 @@
       "permissionsNeeded": "Selecteer camera - Toestemming vereist",
       "disable": "Camera uitschakelen",
       "enable": "Camera inschakelen",
+      "turnedOff": "Camera uitgeschakeld",
+      "turnedOn": "Camera ingeschakeld",
       "label": "Camera",
       "placeholder": "Schakel de camera in om de preview te zien"
     },
@@ -30,6 +32,8 @@
       "permissionsNeeded": "Selecteer microfoon - Toestemming vereist",
       "disable": "Microfoon dempen",
       "enable": "Microfoon dempen opheffen",
+      "turnedOff": "Microfoon uitgeschakeld",
+      "turnedOn": "Microfoon ingeschakeld",
       "label": "Microfoon"
     },
     "audiooutput": {

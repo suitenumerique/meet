@@ -22,6 +22,8 @@
       "permissionsNeeded": "Kamera auswählen - genehmigung erforderlich",
       "disable": "Kamera deaktivieren",
       "enable": "Kamera aktivieren",
+      "turnedOff": "Kamera deaktiviert",
+      "turnedOn": "Kamera aktiviert",
       "label": "Kamera",
       "placeholder": "Kamera aktivieren, um die Vorschau zu sehen"
     },
@@ -30,6 +32,8 @@
       "permissionsNeeded": "Mikrofon auswählen - genehmigung erforderlich",
       "disable": "Mikrofon deaktivieren",
       "enable": "Mikrofon aktivieren",
+      "turnedOff": "Mikrofon deaktiviert",
+      "turnedOn": "Mikrofon aktiviert",
       "label": "Mikrofon"
     },
     "audiooutput": {

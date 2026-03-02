@@ -29,6 +29,7 @@ and this project adheres to
 - ⬆️(python) bump minimal required python version to 3.13 #1033
 - ♿️(frontend) improve accessibility of the IntroSlider carousel #1026
 - ♿️(frontend) add skip link component for keyboard navigation #1019
+- ♿️(frontend) announce mic/camera state to SR on shortcut toggle #1052
 
 ### Fixed
 
