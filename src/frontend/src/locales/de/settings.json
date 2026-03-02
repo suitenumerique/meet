@@ -106,7 +106,8 @@
     "columnShortcut": "Tastenkürzel"
   },
   "dialog": {
-    "heading": "Einstellungen"
+    "heading": "Einstellungen",
+    "tablistAriaLabel": "Einstellungskategorien"
   },
   "language": {
     "heading": "Sprache",

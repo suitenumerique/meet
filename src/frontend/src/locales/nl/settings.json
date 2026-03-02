@@ -106,7 +106,8 @@
     "columnShortcut": "Sneltoets"
   },
   "dialog": {
-    "heading": "Instellingen"
+    "heading": "Instellingen",
+    "tablistAriaLabel": "Instellingcategorieën"
   },
   "language": {
     "heading": "Taal",

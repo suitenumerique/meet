@@ -106,7 +106,8 @@
     "columnShortcut": "Shortcut"
   },
   "dialog": {
-    "heading": "Settings"
+    "heading": "Settings",
+    "tablistAriaLabel": "Settings categories"
   },
   "language": {
     "heading": "Language",

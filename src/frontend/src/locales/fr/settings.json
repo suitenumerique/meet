@@ -106,7 +106,8 @@
     "columnShortcut": "Raccourci"
   },
   "dialog": {
-    "heading": "Paramètres"
+    "heading": "Paramètres",
+    "tablistAriaLabel": "Catégories des paramètres"
   },
   "language": {
     "heading": "Langue",

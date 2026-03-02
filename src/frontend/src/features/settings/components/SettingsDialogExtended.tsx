@@ -21,7 +21,6 @@ import { AudioTab } from './tabs/AudioTab'
 import { VideoTab } from './tabs/VideoTab'
 import { TranscriptionTab } from './tabs/TranscriptionTab'
 import { ShortcutTab } from './tabs/ShortcutTab'
-import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
@@ -63,13 +62,12 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   // display only icon on small screen
   const { t } = useTranslation('settings')
 
-  const dialogEl = useRef<HTMLDivElement>(null)
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
 
   const isAdminOrOwner = useIsAdminOrOwner()
 
   return (
-    <Dialog innerRef={dialogEl} {...props} role="dialog" type="flex">
+    <Dialog {...props} role="dialog" type="flex">
       <Tabs
         orientation="vertical"
         className={tabsStyle}
@@ -84,11 +82,11 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
           }}
         >
           {isWideScreen && (
-            <Heading slot="title" level={1} className={text({ variant: 'h1' })}>
+            <Heading slot="title" level={2} className={text({ variant: 'h2' })}>
               {t('dialog.heading')}
             </Heading>
           )}
-          <TabList border={false}>
+          <TabList border={false} aria-label={t('dialog.tablistAriaLabel')}>
             <Tab icon highlight id={SettingsDialogExtendedKey.ACCOUNT}>
               <RiAccountCircleLine />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.ACCOUNT}`)}
