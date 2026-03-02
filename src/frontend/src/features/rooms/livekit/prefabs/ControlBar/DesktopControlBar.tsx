@@ -12,6 +12,7 @@ import { StartMediaButton } from '../../components/controls/StartMediaButton'
 import { MoreOptions } from './MoreOptions'
 import { useRef } from 'react'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { useFullScreen } from '../../hooks/useFullScreen'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 
@@ -20,6 +21,8 @@ export function DesktopControlBar({
 }: Readonly<ControlBarAuxProps>) {
   const browserSupportsScreenSharing = supportsScreenSharing()
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
+
+  const { toggleFullScreen, isFullscreenAvailable } = useFullScreen({})
 
   useRegisterKeyboardShortcut({
     id: 'focus-toolbar',
@@ -32,6 +35,13 @@ export function DesktopControlBar({
       firstButton?.focus()
     },
   })
+
+  useRegisterKeyboardShortcut({
+    id: 'fullscreen',
+    handler: toggleFullScreen,
+    isDisabled: !isFullscreenAvailable,
+  })
+
   return (
     <div
       ref={desktopControlBarEl}
