@@ -607,13 +607,15 @@ class RoomViewSet(
         serializer = serializers.UpdateParticipantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        permission = serializer.validated_data.get("permission")
+
         try:
             ParticipantsManagement().update(
                 room_name=str(room.pk),
                 identity=str(serializer.validated_data["participant_identity"]),
                 metadata=serializer.validated_data.get("metadata"),
                 attributes=serializer.validated_data.get("attributes"),
-                permission=serializer.validated_data.get("permission"),
+                permission=permission.model_dump() if permission else None,
                 name=serializer.validated_data.get("name"),
             )
         except ParticipantsManagementException:
