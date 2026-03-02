@@ -31,9 +31,9 @@ export const ShortcutRow: React.FC<ShortcutRowProps> = ({ descriptor }) => {
 
   return (
     <tr>
-      <td className={text({ variant: 'body' })}>
+      <th scope="row" className={text({ variant: 'body' })}>
         {t(`actions.${descriptor.id}`)}
-      </td>
+      </th>
       <td className={shortcutCellStyle}>
         <ShortcutBadge visualLabel={visualShortcut} srLabel={srShortcut} />
       </td>

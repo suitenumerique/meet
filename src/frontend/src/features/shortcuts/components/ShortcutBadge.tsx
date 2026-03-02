@@ -25,9 +25,9 @@ export const ShortcutBadge: React.FC<ShortcutBadgeProps> = ({
 }) => {
   return (
     <>
-      <div className={cx(badgeStyle, className)} aria-hidden="true">
-        <span>{visualLabel}</span>
-      </div>
+      <kbd className={cx(badgeStyle, className)} aria-hidden="true">
+        {visualLabel}
+      </kbd>
       {srLabel && <span className="sr-only">{srLabel}</span>}
     </>
   )

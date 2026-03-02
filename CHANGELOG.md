@@ -41,6 +41,7 @@ and this project adheres to
 - ♿️(frontend) improve accessibility of the IntroSlider carousel #1026
 - ♿️(frontend) add skip link component for keyboard navigation #1019
 - ♿️(frontend) announce mic/camera state to SR on shortcut toggle #1052
+- ✨(frontend) add Ctrl+Shift+/ to open shortcuts settings #1050
 
 ### Fixed
 

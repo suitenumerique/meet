@@ -32,7 +32,7 @@ import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
-import { settingsStore } from '@/stores/settings'
+import { useSettingsDialog } from '@/features/settings'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
@@ -100,6 +100,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   const { t: tRooms } = useTranslation('rooms')
   const room = useRoomContext()
   const announce = useScreenReaderAnnounce()
+  const { toggleSettingsDialog } = useSettingsDialog()
 
   const getAnnouncementName = useCallback(
     (participant?: Participant | null) => {
@@ -117,9 +118,8 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   useRegisterKeyboardShortcut({
     id: 'open-shortcuts',
     handler: useCallback(() => {
-      settingsStore.defaultSelectedTab = SettingsDialogExtendedKey.SHORTCUTS
-      settingsStore.areSettingsOpen = true
-    }, []),
+      toggleSettingsDialog(SettingsDialogExtendedKey.SHORTCUTS)
+    }, [toggleSettingsDialog]),
   })
 
   const tracks = useTracks(
