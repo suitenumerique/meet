@@ -8,6 +8,7 @@ import random
 from unittest import mock
 from uuid import uuid4
 
+from django.core.exceptions import SuspiciousOperation
 from django.urls import reverse
 
 import pytest
@@ -132,11 +133,7 @@ def test_update_participant_success(mock_livekit_client):
                 1,
                 2,
             ],  # [TrackSource.CAMERA, TrackSource.MICROPHONE]
-            "hidden": False,
-            "recorder": False,
             "can_update_metadata": True,
-            "agent": False,
-            "can_subscribe_metrics": False,
         },
         "name": "John Doe",
     }
@@ -149,6 +146,151 @@ def test_update_participant_success(mock_livekit_client):
 
     mock_livekit_client.room.update_participant.assert_called_once()
     mock_livekit_client.aclose.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "permission_payload",
+    [
+        {},  # empty dict is valid
+        {"can_subscribe": True},
+        {"can_publish": True},
+        {"can_publish_data": True},
+        {"can_publish_sources": [1, 2]},
+        {"can_update_metadata": True},
+    ],
+)
+def test_update_participant_permission_fields_are_optional(
+    mock_livekit_client, permission_payload
+):
+    """Test that each required permission field can be passed individually."""
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    payload = {
+        "participant_identity": str(uuid4()),
+        "permission": permission_payload,
+    }
+
+    url = reverse("rooms-update-participant", kwargs={"pk": room.id})
+    response = client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {"status": "success"}
+
+    mock_livekit_client.room.update_participant.assert_called_once()
+    mock_livekit_client.aclose.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "value,permission_key",
+    [
+        (False, "hidden"),
+        (True, "hidden"),
+        (False, "recorder"),
+        (True, "recorder"),
+        (False, "agent"),
+        (True, "agent"),
+    ],
+)
+@mock.patch("core.api.serializers.SuspiciousOperation", side_effect=SuspiciousOperation)
+def test_update_participant_suspicious_permission(
+    mock_suspicious, value, permission_key
+):
+    """Test update participant raises 400 when a restricted permission is set."""
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    payload = {
+        "participant_identity": str(uuid4()),
+        "permission": {
+            "can_subscribe": True,
+            "can_publish": True,
+            "can_publish_data": True,
+            "can_update_metadata": False,
+            permission_key: value,
+        },
+    }
+
+    url = reverse("rooms-update-participant", kwargs={"pk": room.id})
+    response = client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    mock_suspicious.assert_called_once_with(
+        f"Setting the following participant permissions is not allowed: {permission_key}."
+    )
+
+
+@mock.patch("core.api.serializers.SuspiciousOperation", side_effect=SuspiciousOperation)
+def test_update_participant_suspicious_permission_multiple(mock_suspicious):
+    """Test update participant raises 400 when multiple suspicious permissions are set."""
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    payload = {
+        "participant_identity": str(uuid4()),
+        "permission": {
+            "can_subscribe": True,
+            "can_publish": True,
+            "can_publish_data": True,
+            "hidden": True,
+            "recorder": False,
+            "can_update_metadata": False,
+            "agent": True,
+            "can_subscribe_metrics": False,
+        },
+    }
+
+    url = reverse("rooms-update-participant", kwargs={"pk": room.id})
+    response = client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    mock_suspicious.assert_called_once_with(
+        "Setting the following participant permissions is not allowed: hidden, recorder, agent."
+    )
+
+
+@pytest.mark.parametrize("value", (False, True))
+def test_update_participant_unimplemented_can_subscribe_metrics(value):
+    """Test update participant raises 400 when can_subscribe_metrics is set."""
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    payload = {
+        "participant_identity": str(uuid4()),
+        "permission": {
+            "can_subscribe": True,
+            "can_publish": True,
+            "can_publish_data": True,
+            "can_update_metadata": False,
+            "can_subscribe_metrics": value,
+        },
+    }
+
+    url = reverse("rooms-update-participant", kwargs={"pk": room.id})
+    response = client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "can_subscribe_metrics" in str(response.data)
 
 
 def test_update_participant_forbidden_without_access():
@@ -226,7 +368,17 @@ def test_update_participant_invalid_permission():
     response = client.post(url, payload, format="json")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "Invalid permission" in str(response.data)
+    assert response.json() == {
+        "permission": [
+            {
+                "type": "extra_forbidden",
+                "loc": ["invalid-attributes"],
+                "msg": "Extra inputs are not permitted",
+                "input": "True",
+                "url": "https://errors.pydantic.dev/2.12/v/extra_forbidden",
+            },
+        ]
+    }
 
 
 def test_update_participant_wrong_metadata_attributes():

@@ -2,9 +2,11 @@
 
 # pylint: disable=abstract-method,no-name-in-module
 
+from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import gettext_lazy as _
 
-from livekit.api import ParticipantPermission
+from django_pydantic_field.rest_framework import SchemaField
+from pydantic import BaseModel, Field
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from timezone_field.rest_framework import TimeZoneSerializerField
@@ -261,6 +263,28 @@ class MuteParticipantSerializer(BaseParticipantsManagementSerializer):
     )
 
 
+class ParticipantPermission(BaseModel):
+    """Mirror the LiveKit ParticipantPermission protobuf.
+
+    Control what a participant is allowed to publish, subscribe, and do within a room.
+    Unknown fields are rejected.
+    """
+
+    can_subscribe: bool | None = None
+    can_publish: bool | None = None
+    can_publish_data: bool | None = None
+    can_publish_sources: list[int] = Field(
+        default_factory=list
+    )  # TrackSource enum values
+    hidden: bool | None = None
+    recorder: bool | None = None
+    can_update_metadata: bool | None = None
+    agent: bool | None = None
+    can_subscribe_metrics: bool | None = None
+
+    model_config = {"extra": "forbid"}
+
+
 class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
     """Validate participant update data."""
 
@@ -272,10 +296,11 @@ class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
         allow_null=True,
         help_text="Participant attributes as JSON object",
     )
-    permission = serializers.DictField(
+    permission = SchemaField(
+        schema=ParticipantPermission | None,
         required=False,
         allow_null=True,
-        help_text="Participant permission as JSON object",
+        help_text="Participant permissions",
     )
     name = serializers.CharField(
         max_length=255,
@@ -284,6 +309,33 @@ class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
         allow_null=True,
         help_text="Display name for the participant",
     )
+
+    def validate_permission(self, permission):
+        """Validate that the given permission does not include forbidden or unimplemented fields."""
+
+        if permission is None:
+            return None
+
+        suspicious_fields = [
+            field
+            for field in ("hidden", "recorder", "agent")
+            if getattr(permission, field) is not None
+        ]
+        if suspicious_fields:
+            raise SuspiciousOperation(
+                f"Setting the following participant permissions is not allowed: "
+                f"{', '.join(suspicious_fields)}."
+            )
+        if permission.can_subscribe_metrics is not None:
+            raise serializers.ValidationError(
+                {
+                    "permission": {
+                        "can_subscribe_metrics": "This permission is not implemented."
+                    }
+                }
+            )
+
+        return permission
 
     def validate(self, attrs):
         """Ensure at least one update field is provided."""
@@ -299,13 +351,5 @@ class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
                 f"At least one of the following fields must be provided: "
                 f"{', '.join(update_fields)}."
             )
-
-        if "permission" in attrs:
-            try:
-                ParticipantPermission(**attrs["permission"])
-            except ValueError as e:
-                raise serializers.ValidationError(
-                    {"permission": f"Invalid permission: {str(e)}"}
-                ) from e
 
         return attrs

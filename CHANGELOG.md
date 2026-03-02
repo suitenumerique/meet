@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- 🔒️(backend) enhance API input validation to strengthen security #1053
+
 ## [1.9.0] - 2026-03-02
 
 ### Added
