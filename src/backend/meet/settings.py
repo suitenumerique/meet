@@ -596,6 +596,12 @@ class Base(Configuration):
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
+    # if provided, treat as suspicious (possible privilege escalation attempt).
+    PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(
+        ["hidden", "recorder", "agent"],
+        environ_name="PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS",
+        environ_prefix=None,
+    )
 
     # Recording settings
     RECORDING_ENABLE = values.BooleanValue(

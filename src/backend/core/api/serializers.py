@@ -2,6 +2,7 @@
 
 # pylint: disable=abstract-method,no-name-in-module
 
+from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import gettext_lazy as _
 
@@ -318,7 +319,7 @@ class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
 
         suspicious_fields = [
             field
-            for field in ("hidden", "recorder", "agent")
+            for field in settings.PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS
             if getattr(permission, field) is not None
         ]
         if suspicious_fields:
