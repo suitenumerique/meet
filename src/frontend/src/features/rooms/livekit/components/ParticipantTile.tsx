@@ -183,7 +183,7 @@ export const ParticipantTile: (
                       }}
                     >
                       {isHandRaised && !isScreenShare && (
-                        <>
+                        <span>
                           <span>{positionInQueue}</span>
                           <RiHand
                             color="black"
@@ -197,7 +197,7 @@ export const ParticipantTile: (
                               animationIterationCount: '2',
                             }}
                           />
-                        </>
+                        </span>
                       )}
                       {isScreenShare && (
                         <ScreenShareIcon
@@ -210,10 +210,12 @@ export const ParticipantTile: (
                       {isEncrypted && !isScreenShare && (
                         <LockLockedIcon style={{ marginRight: '0.25rem' }} />
                       )}
-                      <ParticipantName
-                        isScreenShare={isScreenShare}
-                        participant={trackReference.participant}
-                      />
+                      <div className="lk-participant-name-wrapper">
+                        <ParticipantName
+                          isScreenShare={isScreenShare}
+                          participant={trackReference.participant}
+                        />
+                      </div>
                     </div>
                   </HStack>
                   <ConnectionQualityIndicator className="lk-participant-metadata-item" />

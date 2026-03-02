@@ -151,3 +151,24 @@
 [data-lk-theme] .lk-participant-tile {
   box-shadow: var(--lk-box-shadow);
 }
+
+/* Participant name ellipsis: truncate when overflowing */
+.lk-participant-metadata {
+  width: 100%;
+}
+.lk-participant-metadata > *:first-child {
+  min-width: 0;
+}
+.lk-participant-metadata > *:first-child {
+  flex: 1;
+}
+.lk-participant-metadata > *:first-child .lk-participant-metadata-item,
+.lk-participant-metadata
+  .lk-participant-metadata-item
+  .lk-participant-name-wrapper {
+  min-width: 0;
+}
+.lk-participant-metadata > *:first-child .lk-participant-metadata-item {
+  display: flex;
+  align-items: center;
+}

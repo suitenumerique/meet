@@ -17,6 +17,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(migrations) use settings in migrations #1058
+- 💄(frontend) truncate pinned participant name with ellipsis on overflow #1056
 
 ## [1.9.0] - 2026-03-02
 
