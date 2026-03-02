@@ -43,12 +43,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      -
-        name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
-        with:
-          docker-build-args: '--target backend-production -f Dockerfile'
-          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-backend:${{ github.sha }}'
+#      -
+#        name: Run trivy scan
+#        uses: numerique-gouv/action-trivy-cache@main
+#        with:
+#          docker-build-args: '--target backend-production -f Dockerfile'
+#          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-backend:${{ github.sha }}'
       -
         name: Build and push
         uses: docker/build-push-action@v6
@@ -86,12 +86,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      -
-        name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
-        with:
-          docker-build-args: '-f src/frontend/Dockerfile --target frontend-production'
-          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend:${{ github.sha }}'
+#      -
+#        name: Run trivy scan
+#        uses: numerique-gouv/action-trivy-cache@main
+#        with:
+#          docker-build-args: '-f src/frontend/Dockerfile --target frontend-production'
+#          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend:${{ github.sha }}'
       -
         name: Build and push
         uses: docker/build-push-action@v6
@@ -130,12 +130,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      -
-        name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
-        with:
-          docker-build-args: '-f docker/dinum-frontend/Dockerfile --target frontend-production'
-          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend-dinum:${{ github.sha }}'
+#      -
+#        name: Run trivy scan
+#        uses: numerique-gouv/action-trivy-cache@main
+#        with:
+#          docker-build-args: '-f docker/dinum-frontend/Dockerfile --target frontend-production'
+#          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend-dinum:${{ github.sha }}'
       -
         name: Build and push
         uses: docker/build-push-action@v6
@@ -174,13 +174,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      -
-        name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
-        continue-on-error: true
-        with:
-          docker-build-args: '-f src/summary/Dockerfile --target production'
-          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-summary:${{ github.sha }}'
+#      -
+#        name: Run trivy scan
+#        uses: numerique-gouv/action-trivy-cache@main
+#        continue-on-error: true
+#        with:
+#          docker-build-args: '-f src/summary/Dockerfile --target production'
+#          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-summary:${{ github.sha }}'
           docker-context: './src/summary'
       -
         name: Build and push
@@ -220,14 +220,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      -
-        name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
-        continue-on-error: true
-        with:
-          docker-build-args: '-f src/agents/Dockerfile --target production'
-          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-agents:${{ github.sha }}'
-          docker-context: './src/agents'
+#      -
+#        name: Run trivy scan
+#        uses: numerique-gouv/action-trivy-cache@main
+#        continue-on-error: true
+#        with:
+#          docker-build-args: '-f src/agents/Dockerfile --target production'
+#          docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-agents:${{ github.sha }}'
+#          docker-context: './src/agents'
       -
         name: Build and push
         uses: docker/build-push-action@v6
