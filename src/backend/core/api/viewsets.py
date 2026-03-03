@@ -296,12 +296,14 @@ class RoomViewSet(
             )
 
         mode = serializer.validated_data["mode"]
-        options = serializer.validated_data["options"]
+        options = serializer.validated_data.get("options")
         room = self.get_object()
 
         # May raise exception if an active or initiated recording already exist for the room
         recording = models.Recording.objects.create(
-            room=room, mode=mode, options=options
+            room=room,
+            mode=mode,
+            options=options.model_dump(exclude_none=True) if options else {},
         )
 
         models.RecordingAccess.objects.create(

@@ -1,6 +1,7 @@
 """Client serializers for the Meet core app."""
 
 # pylint: disable=abstract-method,no-name-in-module
+from typing import Literal
 
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
@@ -204,6 +205,27 @@ class BaseValidationOnlySerializer(serializers.Serializer):
         raise NotImplementedError(f"{self.__class__.__name__} is validation-only")
 
 
+class RecordingOptions(BaseModel):
+    """Configuration options for recording.
+
+    Attributes:
+        language: ISO 639-1 language code compatible with whisperX.
+            When `None`, the transcription engine will attempt to
+            auto-detect the spoken language.
+        transcribe: Whether to transcribe the recorded audio.
+            When `None`, falls back to the application default.
+        original_mode: The original recording mode before any override.
+            Must be one of the valid RecordingModeChoices values when provided.
+
+    """
+
+    language: str | None = None
+    transcribe: bool | None = None
+    original_mode: Literal["screen_recording", "transcript"] | None = None
+
+    model_config = {"extra": "forbid"}
+
+
 class StartRecordingSerializer(BaseValidationOnlySerializer):
     """Validate start recording requests."""
 
@@ -216,10 +238,11 @@ class StartRecordingSerializer(BaseValidationOnlySerializer):
             "screen_recording or transcript.",
         },
     )
-    options = serializers.JSONField(
+    options = SchemaField(
+        schema=RecordingOptions | None,
         required=False,
         allow_null=True,
-        default=dict,
+        help_text="Recording options",
     )
 
 

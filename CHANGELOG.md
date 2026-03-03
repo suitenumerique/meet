@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - 🔒️(backend) enhance API input validation to strengthen security #1053
+- 🦺(backend) strengthen API validation for recording options #1063
 
 ### Fixed
 
