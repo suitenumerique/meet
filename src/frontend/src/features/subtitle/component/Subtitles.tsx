@@ -8,6 +8,18 @@ import { useRoomContext } from '@livekit/components-react'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { Participant, RoomEvent } from 'livekit-client'
+import { useSnapshot } from 'valtio'
+import { accessibilityStore } from '@/stores/accessibility'
+import type { CaptionTextSize } from '@/stores/accessibility'
+
+const CAPTION_FONT_SIZES: Record<
+  CaptionTextSize,
+  { fontSize: string; lineHeight: string }
+> = {
+  small: { fontSize: '0.875rem', lineHeight: '1.2rem' },
+  medium: { fontSize: '1.5rem', lineHeight: '1.7rem' },
+  large: { fontSize: '2.25rem', lineHeight: '2.5rem' },
+}
 
 export interface TranscriptionSegment {
   id: string
@@ -73,8 +85,10 @@ const useTranscriptionState = () => {
 }
 
 const Transcription = ({ row }: { row: TranscriptionRow }) => {
+  const { captionTextSize } = useSnapshot(accessibilityStore)
   const participantColor = getParticipantColor(row.participant)
   const participantName = getParticipantName(row.participant)
+  const { fontSize, lineHeight } = CAPTION_FONT_SIZES[captionTextSize]
 
   const getDisplayText = (row: TranscriptionRow): string => {
     return row.segments
@@ -116,10 +130,11 @@ const Transcription = ({ row }: { row: TranscriptionRow }) => {
           </Text>
           <p
             className={css({
-              fontSize: '1.5rem',
-              lineHeight: '1.7rem',
+              fontSize,
+              lineHeight,
               fontWeight: '400',
             })}
+            style={{ fontSize, lineHeight }}
           >
             {displayText}
           </p>
@@ -198,7 +213,6 @@ export const Subtitles = () => {
         )
       }
     }
-
     return rows
   }, [transcriptionSegments])
 
