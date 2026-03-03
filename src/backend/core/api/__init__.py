@@ -43,6 +43,21 @@ def get_frontend_configuration(request):
             "expiration_days": settings.RECORDING_EXPIRATION_DAYS,
             "max_duration": settings.RECORDING_MAX_DURATION,
         },
+        "background_image": {
+            "upload_is_enabled": settings.FILE_UPLOAD_ENABLED,
+            "max_count_by_user": settings.FILE_UPLOAD_RESTRICTIONS["background_image"][
+                "max_count_by_user"
+            ],
+            "max_size": settings.FILE_UPLOAD_RESTRICTIONS["background_image"][
+                "max_size"
+            ],
+            "allowed_extensions": settings.FILE_UPLOAD_RESTRICTIONS["background_image"][
+                "allowed_extensions"
+            ],
+            "allowed_mimetypes": settings.FILE_UPLOAD_RESTRICTIONS["background_image"][
+                "allowed_mimetypes"
+            ],
+        },
         "telephony": {
             "enabled": settings.ROOM_TELEPHONY_ENABLED,
             "phone_number": settings.ROOM_TELEPHONY_PHONE_NUMBER
