@@ -176,7 +176,7 @@ def test_api_files_create_file_authenticated_extension_case_insensitive():
 
 def test_api_files_create_file_disabled(settings):
     """
-    Creating a file item with an extension, no matter the case used, should be allowed.
+    Creating a file is denied if file upload is disabled
     """
     settings.FILE_UPLOAD_ENABLED = False
     user = factories.UserFactory()
@@ -191,6 +191,7 @@ def test_api_files_create_file_disabled(settings):
         format="json",
     )
     assert response.status_code == 403
+    assert not File.objects.exists()
 
 
 def test_api_files_create_file_authenticated_not_checking_extension(settings):
@@ -262,7 +263,7 @@ def test_api_files_create_file_too_many(
     settings,
 ):
     """
-    Creating a hidden file (starting with a dot) but checking the extension should fail.
+    Creating a file is forbidden if above user limit.
     """
     settings.FILE_UPLOAD_APPLY_RESTRICTIONS = True
     settings.FILE_UPLOAD_RESTRICTIONS = {
@@ -297,6 +298,7 @@ def test_api_files_create_file_too_many(
     assert response.json() == {
         "type": ["You have reached the maximum number of files for this type."]
     }
+    assert File.objects.count() == 1
 
 
 def test_api_files_create_force_id_success():
