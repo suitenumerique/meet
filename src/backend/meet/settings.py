@@ -398,7 +398,10 @@ class Base(Configuration):
     CELERY_BROKER_TRANSPORT_OPTIONS = values.DictValue({})
 
     # Session
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+
+    SESSION_ENGINE = values.Value(
+        default="django.contrib.sessions.backends.cache",
+        environ_name="SESSION_ENGINE",environ_prefix=None)
     SESSION_CACHE_ALIAS = "default"
     SESSION_COOKIE_AGE = values.PositiveIntegerValue(
         default=60 * 60 * 12, environ_name="SESSION_COOKIE_AGE", environ_prefix=None
