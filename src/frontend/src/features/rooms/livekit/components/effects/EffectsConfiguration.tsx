@@ -1,5 +1,5 @@
 import { LocalVideoTrack, Track } from 'livekit-client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BackgroundOptions,
@@ -8,9 +8,9 @@ import {
   ProcessorType,
 } from '../blur'
 import { css } from '@/styled-system/css'
-import { H, P, Text, ToggleButton } from '@/primitives'
+import { Button, Dialog, H, P, Text, ToggleButton } from '@/primitives'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
-import { styled } from '@/styled-system/jsx'
+import { HStack, styled } from '@/styled-system/jsx'
 import { BlurOn } from '@/components/icons/BlurOn'
 import { BlurOnStrong } from '@/components/icons/BlurOnStrong'
 import { useTrackToggle } from '@livekit/components-react'
@@ -19,6 +19,21 @@ import { useSyncAfterDelay } from '@/hooks/useSyncAfterDelay'
 import { FunnyEffects } from './FunnyEffects'
 import { useHasFunnyEffectsAccess } from '../../hooks/useHasFunnyEffectsAccess'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import {
+  ListFilesParams,
+  useListMyFiles,
+} from '@/features/files/api/listFiles.ts'
+import { useCreateFile } from '@/features/files/api/createFile.ts'
+import { FileTrigger } from 'react-aria-components'
+import {
+  getImageBlobForBackground,
+  getImageBlobFromUrlForBackground,
+} from '@/features/files/utils/getImageBlobFromUrlForBackground.ts'
+import { RiDeleteBinLine, RiImageAddFill } from '@remixicon/react'
+import { useDeleteFile } from '@/features/files/api/deleteFile.ts'
+import { useUser } from '@/features/auth'
+import { ApiFileItem } from '@/features/files/api/types.ts'
+import { useConfig } from '@/api/useConfig.ts'
 
 enum BlurRadius {
   NONE = 0,
@@ -44,6 +59,21 @@ export type EffectsConfigurationProps = {
   layout?: 'vertical' | 'horizontal'
 }
 
+const listFilesQueryParams: ListFilesParams = {
+  filters: {
+    type: 'background_image',
+    upload_state: 'ready',
+    creator_is_me: true,
+    is_deleted: false,
+  },
+  pagination: {
+    page: 1,
+    pageSize: 20,
+  },
+}
+const LOCAL_IMAGE_KEY = 'local-image'
+const LOCAL_IMAGE_RAW_KEY = 'local-image-raw'
+
 export const EffectsConfiguration = ({
   isDisabled,
   videoTrack,
@@ -62,6 +92,125 @@ export const EffectsConfiguration = ({
     typeof setTimeout
   > | null>(null)
   const effectAnnouncementId = useRef(0)
+
+  const { data: appConfig } = useConfig()
+  const { isLoggedIn } = useUser()
+  const canUploadBackground =
+    isLoggedIn === true &&
+    appConfig?.background_image?.upload_is_enabled === true
+  // We split the error state in 2 parts so that there are no visual glitches when closing the alert
+  const [personalBackgroundHasError, setPersonalBackgroundHasError] =
+    useState<boolean>(false)
+  const [personalBackgroundError, setPersonalBackgroundError] = useState<
+    'file_too_large' | 'invalid_file_type' | null
+  >(null)
+  const [localSelectedBackground, setLocalSelectedBackground] =
+    useState<null | { label: string; previewUrl: string; imagePath: string }>(
+      null
+    )
+  const createFileMutation = useCreateFile()
+  const deleteFileMutation = useDeleteFile()
+  const filesQ = useListMyFiles(listFilesQueryParams)
+  const hasReachedMaxNbBackgrounds =
+    (canUploadBackground &&
+      appConfig &&
+      filesQ.data &&
+      filesQ.data.count >= appConfig.background_image.max_count_by_user) ??
+    false
+  const dataUrlByImageId = useRef<Map<string, string>>(new Map())
+  useEffect(() => {
+    return () => {
+      // We cleanup created URL objects on unmount
+      for (const dataUrl of dataUrlByImageId.current.values()) {
+        URL.revokeObjectURL(dataUrl)
+      }
+      dataUrlByImageId.current = new Map()
+    }
+  }, [])
+  const getHandleSelectChangeFile = (file: ApiFileItem) => {
+    return async () => {
+      // We reuse the previous URL objects if possible
+      if (dataUrlByImageId.current.has(file.id)) {
+        const dataUrl = dataUrlByImageId.current.get(file.id)!
+        await toggleEffect(ProcessorType.VIRTUAL, {
+          imagePath: dataUrl,
+        })
+      } else {
+        const imageBlob = await getImageBlobFromUrlForBackground(file.url!)
+        const imagePath = URL.createObjectURL(imageBlob)
+        dataUrlByImageId.current.set(file.id, imagePath)
+
+        await toggleEffect(ProcessorType.VIRTUAL, {
+          imagePath,
+        })
+      }
+    }
+  }
+
+  const handleNewBackgroundFilePicked = async (file: File) => {
+    if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+      setPersonalBackgroundError('invalid_file_type')
+      setPersonalBackgroundHasError(true)
+      return
+    }
+    if (file.size > (appConfig?.background_image?.max_size ?? 0)) {
+      setPersonalBackgroundError('file_too_large')
+      setPersonalBackgroundHasError(true)
+      return
+    }
+
+    // When the user is not logged in, we fallback to just loading that image
+    if (!canUploadBackground) {
+      // For the preview to work, we somehow need to create a data URL from the raw file.
+      const rawImageUrl = URL.createObjectURL(file)
+
+      const transformedImageData = await getImageBlobForBackground(file)
+      const imagePath = URL.createObjectURL(transformedImageData)
+
+      if (dataUrlByImageId.current.get(LOCAL_IMAGE_KEY)) {
+        URL.revokeObjectURL(dataUrlByImageId.current.get(LOCAL_IMAGE_KEY)!)
+      }
+      if (dataUrlByImageId.current.get(LOCAL_IMAGE_RAW_KEY)) {
+        URL.revokeObjectURL(dataUrlByImageId.current.get(LOCAL_IMAGE_RAW_KEY)!)
+      }
+
+      dataUrlByImageId.current.set(LOCAL_IMAGE_KEY, imagePath)
+      dataUrlByImageId.current.set(LOCAL_IMAGE_RAW_KEY, rawImageUrl)
+
+      await toggleEffect(ProcessorType.VIRTUAL, {
+        imagePath,
+      })
+      setLocalSelectedBackground({
+        label: file.name.split('.')[0],
+        previewUrl: rawImageUrl,
+        imagePath: imagePath,
+      })
+    } else {
+      // Otherwise we create the file in the backend and automatically select it
+      // when it's uploaded.
+      createFileMutation.mutate(
+        {
+          file,
+          onProgress: (progress) => {
+            console.debug('upload-progress', progress)
+          },
+        },
+        {
+          onSuccess: (file) => {
+            // We automatically select that created file
+            getHandleSelectChangeFile(file)()
+          },
+        }
+      )
+    }
+  }
+  const filePickerErrorContext = useMemo(
+    () => ({
+      allowedExtension: appConfig?.background_image?.allowed_extensions ?? [],
+      maxSize: (appConfig?.background_image?.max_size ?? 0) / (1024 * 1024),
+    }),
+    [appConfig?.background_image]
+  )
 
   useEffect(() => {
     const videoElement = videoRef.current
@@ -254,8 +403,8 @@ export const EffectsConfiguration = ({
       imagePath,
     })
     const prefix = isSelectedBackground ? 'selectedLabel' : 'apply'
-    const backgroundName = t(`virtual.descriptions.${index}`)
-    return `${t(`virtual.${prefix}`)} ${backgroundName}`
+    const backgroundName = t(`virtual.presets.descriptions.${index}`)
+    return `${t(`virtual.presets.${prefix}`)} ${backgroundName}`
   }
 
   const tooltipVirtualBackground = (index: number): string => {
@@ -362,7 +511,7 @@ export const EffectsConfiguration = ({
           <div>
             <div>
               <H
-                lvl={3}
+                lvl={2}
                 style={{
                   marginBottom: '1rem',
                 }}
@@ -422,19 +571,180 @@ export const EffectsConfiguration = ({
                   </ToggleButton>
                 </div>
               </div>
-              <div
-                className={css({
-                  marginTop: '1.5rem',
-                })}
-              >
+
+              <div className={css({ marginTop: '1.5rem' })}>
                 <H
-                  lvl={3}
+                  lvl={2}
                   style={{
-                    marginBottom: '1rem',
+                    marginBottom: '0.6rem',
                   }}
                   variant="bodyXsBold"
                 >
                   {t('virtual.title')}
+                </H>
+              </div>
+
+              <div
+                className={css({
+                  marginBottom: '1rem',
+                })}
+              >
+                <H
+                  lvl={2}
+                  style={{
+                    marginBottom: '0.4rem',
+                  }}
+                  variant="bodyXsMedium"
+                >
+                  {t('virtual.personal.title')}
+                </H>
+
+                <div
+                  className={css({
+                    display: 'flex',
+                    gap: '1.25rem',
+                    paddingBottom: '0.5rem',
+                    flexWrap: 'wrap',
+                  })}
+                >
+                  {canUploadBackground &&
+                    filesQ.data?.results
+                      .filter((file) => file.url)
+                      .map((file) => (
+                        <div
+                          key={file.id}
+                          className={
+                            'hoverGroup ' + css({ position: 'relative' })
+                          }
+                        >
+                          <VisualOnlyTooltip key={file.id} tooltip={file.title}>
+                            <ToggleButton
+                              variant="bigSquare"
+                              aria-label={file.title}
+                              isDisabled={processorPendingReveal || isDisabled}
+                              onChange={getHandleSelectChangeFile(file)}
+                              isSelected={isSelected(ProcessorType.VIRTUAL, {
+                                imagePath:
+                                  dataUrlByImageId.current.get(file.id!) ??
+                                  file.id!,
+                              })}
+                              className={css({
+                                bgSize: 'cover',
+                              })}
+                              style={{
+                                backgroundImage: `url(${file.url!})`,
+                              }}
+                              data-attr={`toggle-virtual-${file.id}`}
+                            />
+                          </VisualOnlyTooltip>
+                          <Button
+                            className={
+                              'hoverGroupChild ' +
+                              css({
+                                position: 'absolute',
+                                top: '-8px',
+                                right: '-8px',
+                                transition: 'opacity 0.2s ease-in-out',
+                              })
+                            }
+                            size={'xs'}
+                            variant={'tertiary'}
+                            onClick={() =>
+                              deleteFileMutation.mutate({ fileId: file.id })
+                            }
+                            isDisabled={deleteFileMutation.isPending}
+                          >
+                            <RiDeleteBinLine size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                  {!canUploadBackground && localSelectedBackground && (
+                    <VisualOnlyTooltip tooltip={localSelectedBackground.label}>
+                      <ToggleButton
+                        variant="bigSquare"
+                        aria-label={localSelectedBackground.label}
+                        isDisabled={processorPendingReveal || isDisabled}
+                        onChange={() => {
+                          toggleEffect(ProcessorType.VIRTUAL, {
+                            imagePath: localSelectedBackground.imagePath,
+                          })
+                        }}
+                        isSelected={isSelected(ProcessorType.VIRTUAL, {
+                          imagePath: localSelectedBackground.imagePath,
+                        })}
+                        className={css({
+                          bgSize: 'cover',
+                        })}
+                        style={{
+                          backgroundImage: `url(${localSelectedBackground.previewUrl})`,
+                        }}
+                        data-attr={`toggle-virtual-${LOCAL_IMAGE_KEY}`}
+                      />
+                    </VisualOnlyTooltip>
+                  )}
+                  <FileTrigger
+                    acceptedFileTypes={
+                      appConfig?.background_image?.allowed_mimetypes ?? [
+                        'image/png',
+                        'image/jpeg',
+                      ]
+                    }
+                    onSelect={(e) => {
+                      if (e && e.item(0)) {
+                        const file = e.item(0) as File
+                        handleNewBackgroundFilePicked(file)
+                      }
+                    }}
+                  >
+                    <Button
+                      variant="bigSquare"
+                      aria-label={t('virtual.personal.selectFileTooltip')}
+                      tooltip={t('virtual.personal.selectFileTooltip')}
+                      isDisabled={
+                        (canUploadBackground &&
+                          filesQ.data &&
+                          filesQ.data.count >=
+                            (appConfig?.background_image?.max_count_by_user ??
+                              0)) ||
+                        processorPendingReveal ||
+                        isDisabled ||
+                        createFileMutation.isPending
+                      }
+                      data-attr="input-file-select-personal-background"
+                    >
+                      <RiImageAddFill />
+                    </Button>
+                  </FileTrigger>
+                </div>
+                {!isLoggedIn && (
+                  <Text variant="xsNote">
+                    {t('virtual.personal.notLoggedInWarning')}
+                  </Text>
+                )}
+                {!canUploadBackground && isLoggedIn && (
+                  <Text variant="xsNote">
+                    {t('virtual.personal.warningUploadDisabled')}
+                  </Text>
+                )}
+                {hasReachedMaxNbBackgrounds && (
+                  <Text variant="xsNote">
+                    {t('virtual.personal.uploadLimitReached')}
+                  </Text>
+                )}
+              </div>
+              <div
+                className={css({
+                  marginTop: '0.4rem',
+                })}
+              >
+                <H
+                  lvl={2}
+                  style={{
+                    marginBottom: '0.4rem',
+                  }}
+                  variant="bodyXsMedium"
+                >
+                  {t('virtual.presets.title')}
                 </H>
                 <div
                   className={css({
@@ -468,7 +778,7 @@ export const EffectsConfiguration = ({
                           style={{
                             backgroundImage: `url(${thumbnailPath})`,
                           }}
-                          data-attr={`toggle-virtual-${i}`}
+                          data-attr={`toggle-virtual-preset-${i}`}
                         />
                       </VisualOnlyTooltip>
                     )
@@ -483,6 +793,32 @@ export const EffectsConfiguration = ({
           </Information>
         )}
       </div>
+      <Dialog
+        isOpen={personalBackgroundHasError}
+        type="alert"
+        title={t(`virtual.personal.errors.${personalBackgroundError}.title`)}
+        aria-label={t(
+          `virtual.personal.errors.${personalBackgroundError}.title`
+        )}
+        onClose={() => setPersonalBackgroundHasError(false)}
+        onOpenChange={() => setPersonalBackgroundHasError(false)}
+      >
+        <P>
+          {t(
+            `virtual.personal.errors.${personalBackgroundError}.description`,
+            filePickerErrorContext
+          )}
+        </P>
+        <HStack justifyContent="end" direction="row">
+          <Button
+            variant="text"
+            size="sm"
+            onPress={() => setPersonalBackgroundHasError(false)}
+          >
+            {t('virtual.personal.errors.close')}
+          </Button>
+        </HStack>
+      </Dialog>
     </div>
   )
 }

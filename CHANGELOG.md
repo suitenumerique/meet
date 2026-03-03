@@ -34,6 +34,8 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add file upload feature #1030
+- ✨(settings) disable file upload by default & max count #1067
+- ✨(frontend) custom background #1067
 
 ## [1.9.0] - 2026-03-02
 

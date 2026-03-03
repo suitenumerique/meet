@@ -3,7 +3,9 @@ import { apiUrl } from './apiUrl'
 
 export const fetchApi = async <T = Record<string, unknown>>(
   url: string,
-  options?: RequestInit
+  options?: RequestInit,
+  transformResponse: (response: Response) => Promise<T> = async (response) =>
+    await response.json()
 ): Promise<T> => {
   const csrfToken = getCsrfToken()
   const response = await fetch(apiUrl(url), {
@@ -15,7 +17,8 @@ export const fetchApi = async <T = Record<string, unknown>>(
       ...options?.headers,
     },
   })
-  const result = await response.json()
+  const result = await transformResponse(response)
+
   if (!response.ok) {
     throw new ApiError(response.status, result)
   }

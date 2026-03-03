@@ -270,18 +270,39 @@
       }
     },
     "virtual": {
-      "title": "Arrière-plan virtuel",
+      "title": "Arrière-plans virtuels",
       "selectedLabel": "Arrière-plan appliqué :",
       "apply": "Remplacer votre arrière plan :",
-      "descriptions": {
-        "0": "Meuble cannelé en bois",
-        "1": "Salle de réunion",
-        "2": "Loft avec verrière noire",
-        "3": "Salle à manger",
-        "4": "Étagères en bois",
-        "5": "Escalier en bois",
-        "6": "Bibliothèque grise",
-        "7": "Comptoir de café"
+      "personal": {
+        "title": "Mes arrière-plans",
+        "selectFileTooltip": "Sélectionnez une image à utiliser comme arrière-plan personnel",
+        "notLoggedInWarning": "Vous n'êtes pas connecté, l'arrière-plan personnel ne sera pas sauvegardé d'une réunion à l'autre.",
+        "warningUploadDisabled": "Les arrière-plans personnels ne sont actuellement pas sauvegardés d'une réunion à l'autre.",
+        "uploadLimitReached": "Vous ne pouvez pas ajouter plus d'arrière-plans personnels.",
+        "errors": {
+          "close": "Fermer",
+          "file_too_large": {
+            "title": "Fichier trop volumineux",
+            "description": "Le fichier est trop volumineux. Veuillez choisir un fichier de moins de {{maxSize, number}} Mo."
+          },
+          "invalid_file_type": {
+            "title": "Type de fichier non valide",
+            "description": "Le type de fichier n'est pas pris en charge. Veuillez choisir un fichier {{allowedExtension}}."
+          }
+        }
+      },
+      "presets": {
+        "title": "Suggestions",
+        "descriptions": {
+          "0": "Meuble cannelé en bois",
+          "1": "Salle de réunion",
+          "2": "Loft avec verrière noire",
+          "3": "Salle à manger",
+          "4": "Étagères en bois",
+          "5": "Escalier en bois",
+          "6": "Bibliothèque grise",
+          "7": "Comptoir de café"
+        }
       }
     },
     "faceLandmarks": {
