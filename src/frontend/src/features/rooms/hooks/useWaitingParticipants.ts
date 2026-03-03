@@ -74,13 +74,17 @@ export const useWaitingParticipants = () => {
   ): Promise<void> => {
     try {
       setListEnabled(false)
-      for (const participant of waitingParticipants) {
-        await enterRoom({
-          roomId: roomId,
-          allowEntry,
-          participantId: participant.id,
-        })
-      }
+
+      await Promise.all(
+        waitingParticipants.map((participant) =>
+          enterRoom({
+            roomId: roomId,
+            allowEntry,
+            participantId: participant.id,
+          })
+        )
+      )
+
       await refetchWaiting()
     } catch (e) {
       console.error(e)
