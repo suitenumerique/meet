@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 17:31+0000\n"
+"POT-Creation-Date: 2026-03-12 13:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: antoine.lebaud@mail.numerique.gouv.fr\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -68,7 +68,8 @@ msgstr "Marquer les enregistrements sélectionnés comme « Échec d’arrêt »
 #: core/admin.py:218
 #, python-format
 msgid "%(count)s recording(s) successfully marked as 'Failed to Stop'."
-msgstr "%(count)s enregistrement(s) marqué(s) avec succès comme « Échec d’arrêt »."
+msgstr ""
+"%(count)s enregistrement(s) marqué(s) avec succès comme « Échec d’arrêt »."
 
 #: core/admin.py:226
 #, fuzzy, python-format
@@ -76,11 +77,11 @@ msgstr "%(count)s enregistrement(s) marqué(s) avec succès comme « Échec d’
 msgid "Skipped %(count)s recording(s) with an ineligible status."
 msgstr "%(count)s enregistrement(s) avec un statut inéligible ignoré(s)."
 
-#: core/admin.py:341
+#: core/admin.py:342
 msgid "No scopes"
 msgstr "Aucun scopes"
 
-#: core/admin.py:343
+#: core/admin.py:344
 msgid "Scopes"
 msgstr "Scopes"
 
@@ -97,6 +98,10 @@ msgstr ""
 #: core/api/serializers.py:516
 msgid "This file extension is not allowed."
 msgstr "Cette extension n'est pas autorisée"
+
+#: core/api/serializers.py:533
+msgid "You have reached the maximum number of files for this type."
+msgstr "Vous avez atteint le nombre maximum de fichiers de ce type"
 
 #: core/models.py:37
 msgid "Member"
@@ -601,18 +606,18 @@ msgstr ""
 " Si vous avez des questions ou besoin d'assistance, veuillez contacter notre "
 "équipe d'assistance à %(support_email)s. "
 
-#: meet/settings.py:215
+#: meet/settings.py:223
 msgid "English"
 msgstr "Anglais"
 
-#: meet/settings.py:216
+#: meet/settings.py:224
 msgid "French"
 msgstr "Français"
 
-#: meet/settings.py:217
+#: meet/settings.py:225
 msgid "Dutch"
 msgstr "Néerlandais"
 
-#: meet/settings.py:218
+#: meet/settings.py:226
 msgid "German"
 msgstr "Allemand"

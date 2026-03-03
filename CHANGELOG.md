@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(helm) support ingress for custom background image #1124
 - ✨(backend) add authenticated user rate throttling on request-entry #1129
 - ✨(backend) expose `is_active` field for Application in Django admin #1133
+- ✨(file-upload) disable by default & limit count by user #1141
 
 ### Changed
 

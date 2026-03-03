@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 17:31+0000\n"
+"POT-Creation-Date: 2026-03-12 13:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -76,11 +76,11 @@ msgstr "%(count)s Aufnahme(n) erfolgreich als ‚Fehler beim Stoppen‘ markiert
 msgid "Skipped %(count)s recording(s) with an ineligible status."
 msgstr "%(count)s abgelaufene Aufnahme(n) übersprungen."
 
-#: core/admin.py:341
+#: core/admin.py:342
 msgid "No scopes"
 msgstr "Keine Scopes"
 
-#: core/admin.py:343
+#: core/admin.py:344
 msgid "Scopes"
 msgstr "Scopes"
 
@@ -97,6 +97,10 @@ msgstr ""
 #: core/api/serializers.py:516
 msgid "This file extension is not allowed."
 msgstr "Diese Dateiendung ist nicht erlaubt."
+
+#: core/api/serializers.py:533
+msgid "You have reached the maximum number of files for this type."
+msgstr "Sie haben die maximale Anzahl an Dateien dieses Typs erreicht."
 
 #: core/models.py:37
 msgid "Member"
@@ -600,18 +604,18 @@ msgstr ""
 " Wenn Sie Fragen haben oder Unterstützung benötigen, wenden Sie sich bitte "
 "an unser Support-Team unter %(support_email)s. "
 
-#: meet/settings.py:215
+#: meet/settings.py:223
 msgid "English"
 msgstr "Englisch"
 
-#: meet/settings.py:216
+#: meet/settings.py:224
 msgid "French"
 msgstr "Französisch"
 
-#: meet/settings.py:217
+#: meet/settings.py:225
 msgid "Dutch"
 msgstr "Niederländisch"
 
-#: meet/settings.py:218
+#: meet/settings.py:226
 msgid "German"
 msgstr "Deutsch"

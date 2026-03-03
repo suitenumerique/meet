@@ -174,6 +174,26 @@ def test_api_files_create_file_authenticated_extension_case_insensitive():
     assert file.title == "file"
 
 
+def test_api_files_create_file_disabled(settings):
+    """
+    Creating a file is denied if file upload is disabled
+    """
+    settings.FILE_UPLOAD_ENABLED = False
+    user = factories.UserFactory()
+    client = APIClient()
+    client.force_login(user)
+    response = client.post(
+        "/api/v1.0/files/",
+        {
+            "type": FileTypeChoices.BACKGROUND_IMAGE,
+            "filename": "file.JPG",
+        },
+        format="json",
+    )
+    assert response.status_code == 404
+    assert not File.objects.exists()
+
+
 def test_api_files_create_file_authenticated_not_checking_extension(settings):
     """
     Creating a file with an extension not allowed should not fail when restrictions are disabled.
@@ -237,6 +257,48 @@ def test_api_files_create_file_authenticated_hidden_file_but_checking_extension_
 
     assert response.status_code == 400
     assert response.json() == {"filename": ["This file extension is not allowed."]}
+
+
+def test_api_files_create_file_too_many(
+    settings,
+):
+    """
+    Creating a file is forbidden if above user limit.
+    """
+    settings.FILE_UPLOAD_APPLY_RESTRICTIONS = True
+    settings.FILE_UPLOAD_RESTRICTIONS = {
+        "background_image": {
+            **settings.FILE_UPLOAD_RESTRICTIONS["background_image"],
+            "max_count_by_user": 1,
+        },
+    }
+
+    user = factories.UserFactory()
+    client = APIClient()
+    client.force_login(user)
+    response = client.post(
+        "/api/v1.0/files/",
+        {
+            "type": FileTypeChoices.BACKGROUND_IMAGE,
+            "filename": "1.png",
+        },
+    )
+
+    assert response.status_code == 201
+
+    response = client.post(
+        "/api/v1.0/files/",
+        {
+            "type": FileTypeChoices.BACKGROUND_IMAGE,
+            "filename": "2.png",
+        },
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {
+        "detail": "You have reached the maximum number of files for this type."
+    }
+    assert File.objects.count() == 1
 
 
 def test_api_files_create_force_id_success():

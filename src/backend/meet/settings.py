@@ -176,6 +176,13 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    FILE_UPLOAD_ENABLED = values.BooleanValue(
+        # False to avoid a breaking change for now
+        default=False,
+        environ_name="FILE_UPLOAD_ENABLED",
+        environ_prefix=None,
+    )
+
     FILE_UPLOAD_PATH = values.Value(
         "files", environ_name="FILE_UPLOAD_PATH", environ_prefix=None
     )
@@ -188,6 +195,7 @@ class Base(Configuration):
         {
             "background_image": {
                 "max_size": 2 * MB,
+                "max_count_by_user": 10,
                 "allowed_extensions": [".jpeg", ".jpg", ".png"],
                 "allowed_mimetypes": ["image/jpeg", "image/png"],
             },
@@ -973,6 +981,7 @@ class Test(Base):
     APPLICATION_JWT_AUDIENCE = "Test inc."
 
     CELERY_TASK_ALWAYS_EAGER = True
+    FILE_UPLOAD_ENABLED = True
 
     def __init__(self):
         # pylint: disable=invalid-name

@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 from django_filters import rest_framework as django_filters
 from rest_framework import (
@@ -76,7 +77,6 @@ from .feature_flag import FeatureFlag
 # pylint: disable=too-many-ancestors
 
 logger = getLogger(__name__)
-
 
 FILE_FOLDER = settings.FILE_UPLOAD_PATH
 UUID_REGEX = (
@@ -973,6 +973,26 @@ class FileViewSet(
 
     def perform_create(self, serializer):
         """Set the current user as creator of the newly created file."""
+
+        if settings.FILE_UPLOAD_APPLY_RESTRICTIONS:
+            file_type = serializer.validated_data["type"]
+            config_for_file_type = settings.FILE_UPLOAD_RESTRICTIONS[file_type]
+
+            count = models.File.objects.filter(
+                creator=self.request.user,
+                deleted_at__isnull=True,
+                type=file_type,
+            ).count()
+
+            if count >= config_for_file_type["max_count_by_user"]:
+                logger.info(
+                    "create_item: user reached max files per user for type %s",
+                    file_type,
+                )
+                raise serializers.PermissionDenied(
+                    _("You have reached the maximum number of files for this type.")
+                )
+
         serializer.save(creator=self.request.user)
 
     def perform_destroy(self, instance):
@@ -980,6 +1000,7 @@ class FileViewSet(
         instance.soft_delete()
 
     @decorators.action(detail=True, methods=["post"], url_path="upload-ended")
+    @FeatureFlag.require("file_upload")
     def upload_ended(self, request, *args, **kwargs):
         """
         Check the actual uploaded file and mark it as ready.
@@ -1162,6 +1183,7 @@ class FileViewSet(
         return url_params, request.user.id, file
 
     @decorators.action(detail=False, methods=["get"], url_path="media-auth")
+    @FeatureFlag.require("file_upload")
     def media_auth(self, request, *args, **kwargs):
         """
         This view is used by an Nginx subrequest to control access to an file's

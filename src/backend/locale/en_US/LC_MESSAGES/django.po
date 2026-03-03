@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 17:31+0000\n"
+"POT-Creation-Date: 2026-03-12 13:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -76,11 +76,11 @@ msgstr "%(count)s recording(s) successfully marked as 'Failed to Stop'."
 msgid "Skipped %(count)s recording(s) with an ineligible status."
 msgstr "Skipped %(count)s expired recording(s)."
 
-#: core/admin.py:341
+#: core/admin.py:342
 msgid "No scopes"
 msgstr "No scopes"
 
-#: core/admin.py:343
+#: core/admin.py:344
 msgid "Scopes"
 msgstr "Scopes"
 
@@ -95,6 +95,10 @@ msgstr "You must be administrator or owner of a room to add accesses to it."
 #: core/api/serializers.py:516
 msgid "This file extension is not allowed."
 msgstr "This file extension is not allowed."
+
+#: core/api/serializers.py:533
+msgid "You have reached the maximum number of files for this type."
+msgstr "You have reached the maximum number of files for this type."
 
 #: core/models.py:37
 msgid "Member"
@@ -596,18 +600,18 @@ msgstr ""
 " If you have any questions or need assistance, please contact our support "
 "team at %(support_email)s. "
 
-#: meet/settings.py:215
+#: meet/settings.py:223
 msgid "English"
 msgstr "English"
 
-#: meet/settings.py:216
+#: meet/settings.py:224
 msgid "French"
 msgstr "French"
 
-#: meet/settings.py:217
+#: meet/settings.py:225
 msgid "Dutch"
 msgstr "Dutch"
 
-#: meet/settings.py:218
+#: meet/settings.py:226
 msgid "German"
 msgstr "German"

@@ -1,5 +1,6 @@
 """Permission handlers for the Meet core app."""
 
+from django.conf import settings
 from django.http import Http404
 
 from rest_framework import permissions
@@ -115,6 +116,13 @@ class FilePermission(IsAuthenticated):
     Permissions applying to the file API endpoint.
     Handling soft deletions specificities
     """
+
+    def has_permission(self, request, view):
+        """Allow access only to authenticated users."""
+        if not settings.FILE_UPLOAD_ENABLED:
+            raise Http404
+
+        return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
         """
