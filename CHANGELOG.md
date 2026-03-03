@@ -12,6 +12,10 @@ and this project adheres to
 
 - 🔒️(backend) enhance API input validation to strengthen security #1053
 
+### Fixed
+
+- 🐛(migrations) use settings in migrations #1058
+
 ## [1.9.0] - 2026-03-02
 
 ### Added
