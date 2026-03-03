@@ -275,9 +275,9 @@
       "apply": "Replace your background:",
       "personal": {
         "title": "My backgrounds",
-        "selectFileTooltip": "Select an image file to use as a personal backgrounds",
-        "notLoggedInWarning": "You are not logged-in, personal background won't be saved from one meeting to the other.",
-        "warningUploadDisabled": "Personal background are currently not saved from one meeting to the other.",
+        "selectFileTooltip": "Select an image file to use as a personal background",
+        "notLoggedInWarning": "You are not logged-in, personal backgrounds won't be saved from one meeting to the other.",
+        "warningUploadDisabled": "Personal backgrounds are currently not saved from one meeting to the other.",
         "uploadLimitReached": "You cannot upload more personal backgrounds.",
         "errors": {
           "close": "Close",

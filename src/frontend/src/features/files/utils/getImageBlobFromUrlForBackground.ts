@@ -9,6 +9,7 @@ export async function getImageBlobForBackground(
   imageDataBlob: Blob
 ): Promise<Blob> {
   const image = new Image()
+  const objectUrl = URL.createObjectURL(imageDataBlob)
 
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')
@@ -65,8 +66,10 @@ export async function getImageBlobForBackground(
 
       canvas.toBlob(
         (data) => {
-          if (!data)
+          URL.revokeObjectURL(objectUrl)
+          if (!data) {
             return reject(new Error('Could not convert canvas to blob'))
+          }
           resolve(data)
         },
         'image/jpeg',
@@ -74,7 +77,12 @@ export async function getImageBlobForBackground(
       )
     }
 
-    image.src = URL.createObjectURL(imageDataBlob)
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Could not load image'))
+    }
+
+    image.src = objectUrl
   })
 }
 
@@ -93,6 +101,10 @@ export async function getImageBlobFromUrlForBackground(
   const imageRequest = await fetch(url, {
     credentials: 'include',
   })
+  if (!imageRequest.ok) {
+    throw new Error(`Image fetch failed with status ${imageRequest.status}`)
+  }
+
   const rawImageData = await imageRequest.blob()
   return getImageBlobForBackground(rawImageData)
 }

@@ -275,7 +275,7 @@
       "apply": "Remplacer votre arrière plan :",
       "personal": {
         "title": "Mes arrière-plans",
-        "selectFileTooltip": "Sélectionnez une image à utiliser comme arrière-plan personnel",
+        "selectFileTooltip": "Sélectionnez une image à utiliser comme arrière-plan",
         "notLoggedInWarning": "Vous n'êtes pas connecté, l'arrière-plan personnel ne sera pas sauvegardé d'une réunion à l'autre.",
         "warningUploadDisabled": "Les arrière-plans personnels ne sont actuellement pas sauvegardés d'une réunion à l'autre.",
         "uploadLimitReached": "Vous ne pouvez pas ajouter plus d'arrière-plans personnels.",

@@ -6,7 +6,7 @@ import { keys } from '@/api/queryKeys.ts'
 /**
  * Upload a file, using XHR so we can report on progress through a handler.
  *
- * @param url The URL to POST the file to.
+ * @param url The URL to PUT the file to.
  * @param file The file to upload.
  * @param progressHandler A handler that receives progress updates as a single integer `0 <= x <= 100`.
  */
@@ -53,7 +53,7 @@ export const uploadFile = (
  * @param {object} params - The parameters for the file creation and upload process.
  * @param {File} params.file - The file object to be uploaded.
  * @param {function} params.onProgress - A callback function that receives the upload progress as a number (0 to 100).
- * @returns {Promise<void>} A promise that resolves when the file has been successfully uploaded and the server process is completed.
+ * @returns {Promise<ApiFileItem>} A promise that resolves when the file has been successfully uploaded and the server process is completed.
  */
 export const createFile = async ({
   file,

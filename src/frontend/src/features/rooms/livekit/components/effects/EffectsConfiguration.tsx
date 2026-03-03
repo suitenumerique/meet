@@ -148,7 +148,12 @@ export const EffectsConfiguration = ({
   }
 
   const handleNewBackgroundFilePicked = async (file: File) => {
-    if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+    if (
+      !(
+        appConfig?.background_image?.allowed_mimetypes?.includes(file.type) ??
+        false
+      )
+    ) {
       setPersonalBackgroundError('invalid_file_type')
       setPersonalBackgroundHasError(true)
       return

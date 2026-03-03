@@ -98,7 +98,11 @@ html:has(.lk-video-conference) {
 
 .hoverGroup .hoverGroupChild {
   opacity: 0;
+  pointer-events: none;
 }
-.hoverGroup:hover .hoverGroupChild {
-  opacity: 100%;
+
+.hoverGroup:hover .hoverGroupChild,
+.hoverGroup:focus-within .hoverGroupChild {
+  opacity: 1;
+  pointer-events: auto;
 }

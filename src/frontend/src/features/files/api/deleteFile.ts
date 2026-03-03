@@ -14,14 +14,9 @@ export const deleteFile = async ({
 }: {
   fileId: string
 }): Promise<void> => {
-  await fetchApi<void>(
-    `/files/${fileId}/`,
-    {
-      method: 'DELETE',
-    },
-    // Override default json transform to avoid errors
-    async () => {}
-  )
+  await fetchApi<void>(`/files/${fileId}/`, {
+    method: 'DELETE',
+  })
 }
 
 export const useDeleteFile = () => {
