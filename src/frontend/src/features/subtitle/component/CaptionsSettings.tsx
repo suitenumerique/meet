@@ -3,14 +3,11 @@ import { css } from '@/styled-system/css'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
-import { accessibilityStore } from '@/stores/accessibility'
-import type { CaptionTextSize } from '@/stores/accessibility'
-
-const CAPTION_TEXT_SIZE_OPTIONS: CaptionTextSize[] = [
-  'small',
-  'medium',
-  'large',
-]
+import {
+  accessibilityStore,
+  type CaptionTextSize,
+  CAPTION_TEXT_SIZE_OPTIONS,
+} from '@/stores/accessibility'
 
 export const CaptionsSettings = () => {
   const { t } = useTranslation('settings')

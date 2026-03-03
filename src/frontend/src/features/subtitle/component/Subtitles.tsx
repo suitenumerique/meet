@@ -9,10 +9,13 @@ import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { Participant, RoomEvent } from 'livekit-client'
 import { useSnapshot } from 'valtio'
-import { accessibilityStore } from '@/stores/accessibility'
-import type { CaptionTextSize } from '@/stores/accessibility'
+import {
+  accessibilityStore,
+  CAPTION_TEXT_SIZE_OPTIONS,
+  type CaptionTextSize,
+} from '@/stores/accessibility'
 
-const CAPTION_FONT_SIZES: Record<
+const FONT_SIZE_CONFIG: Record<
   CaptionTextSize,
   { fontSize: string; lineHeight: string }
 > = {
@@ -20,6 +23,10 @@ const CAPTION_FONT_SIZES: Record<
   medium: { fontSize: '1.5rem', lineHeight: '1.7rem' },
   large: { fontSize: '2.25rem', lineHeight: '2.5rem' },
 }
+
+const CAPTION_FONT_SIZES = Object.fromEntries(
+  CAPTION_TEXT_SIZE_OPTIONS.map((size) => [size, FONT_SIZE_CONFIG[size]])
+) as Record<CaptionTextSize, { fontSize: string; lineHeight: string }>
 
 export interface TranscriptionSegment {
   id: string
