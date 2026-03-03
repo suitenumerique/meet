@@ -30,6 +30,7 @@ import { useSidePanel } from '../hooks/useSidePanel'
 import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
+import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { useSettingsDialog } from '@/features/settings'
@@ -113,6 +114,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   )
 
   useConnectionObserver()
+  useRoomPageTitle()
   useVideoResolutionSubscription()
 
   useRegisterKeyboardShortcut({

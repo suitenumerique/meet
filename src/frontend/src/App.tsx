@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { useLang } from 'hoofd'
+import { useLang, useTitle } from 'hoofd'
 import { Switch, Route } from 'wouter'
 import { I18nProvider } from 'react-aria-components'
 import { Layout } from './layout/Layout'
@@ -18,6 +18,7 @@ import { useIsSdkContext } from '@/features/sdk/hooks/useIsSdkContext'
 function App() {
   const { i18n } = useTranslation()
   useLang(i18n.language)
+  useTitle(import.meta.env.VITE_APP_TITLE ?? '')
 
   const isSDKContext = useIsSdkContext()
 
