@@ -22,6 +22,8 @@ export type VideoTabProps = Pick<DialogProps, 'onOpenChange'> &
 
 type DeviceItems = Array<{ value: string; label: string }>
 
+const EMPTY_PROPS = {}
+
 export const VideoTab = ({ id }: VideoTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'video' })
   const { localParticipant, remoteParticipants } = useRoomContext()
@@ -59,7 +61,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   const isCamEnabled = devicesIn?.length > 0
 
   const disabledProps = isCamEnabled
-    ? {}
+    ? EMPTY_PROPS
     : {
         placeholder: t('permissionsRequired'),
         isDisabled: true,
