@@ -113,12 +113,29 @@
     "label": "Taal"
   },
   "settingsButtonLabel": "Instellingen",
+  "accessibility": {
+    "announceReactions": {
+      "label": "Reacties hardop aankondigen"
+    },
+    "captions": {
+      "heading": "Ondertitels",
+      "textSize": {
+        "label": "Ondertiteltekstgrootte",
+        "options": {
+          "small": "Klein",
+          "medium": "Gemiddeld",
+          "large": "Groot"
+        }
+      }
+    }
+  },
   "tabs": {
     "account": "Profiel",
     "audio": "Audio",
     "video": "Video",
     "general": "Algemeen",
     "notifications": "Meldingen",
+    "accessibility": "Toegankelijkheid",
     "transcription": "Transcriptie",
     "shortcuts": "Sneltoetsen"
   }
