@@ -21,7 +21,15 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ruff==0.14.4",
+    "pytest>=8.0.0",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Fast isolated tests with all externals mocked",
+    "integration: Tests that wire multiple components together",
+]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["setuptools>=61.0"]
