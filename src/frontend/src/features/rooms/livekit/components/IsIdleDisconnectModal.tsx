@@ -13,7 +13,7 @@ import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 const IDLE_DISCONNECT_TIMEOUT_MS = 120000 // 2 minutes
-const COUNTDOWN_ANNOUNCEMENT_SECONDS = [90, 60, 30]
+const COUNTDOWN_ANNOUNCEMENT_SECONDS = new Set([90, 60, 30])
 const FINAL_COUNTDOWN_SECONDS = 10
 
 export const IsIdleDisconnectModal = () => {
@@ -58,7 +58,7 @@ export const IsIdleDisconnectModal = () => {
     if (!connectionObserverSnap.isIdleDisconnectModalOpen) return
 
     const shouldAnnounce =
-      COUNTDOWN_ANNOUNCEMENT_SECONDS.includes(remainingSeconds) ||
+      COUNTDOWN_ANNOUNCEMENT_SECONDS.has(remainingSeconds) ||
       remainingSeconds <= FINAL_COUNTDOWN_SECONDS
 
     if (shouldAnnounce && remainingSeconds !== lastAnnouncementRef.current) {
