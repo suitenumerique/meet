@@ -753,7 +753,7 @@ export const Join = ({
                     try {
                       saveVideoInputDeviceId(id)
                       if (videoTrack) {
-                        await await videoTrack.setDeviceId({ exact: id })
+                        await videoTrack.setDeviceId({ exact: id })
                       }
                     } catch (err) {
                       console.error('Failed to switch camera device', err)
