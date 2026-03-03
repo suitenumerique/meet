@@ -65,6 +65,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add file upload feature #1030
+- ✨(frontend) custom background #1067
 
 ## [1.9.0] - 2026-03-02
 
