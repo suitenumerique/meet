@@ -4,6 +4,7 @@ import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { accessibilityStore } from '@/stores/accessibility'
+import { CaptionsSettings } from '@/features/subtitle/component/CaptionsSettings'
 
 export type AccessibilityTabProps = Pick<TabPanelProps, 'id'>
 
@@ -32,6 +33,7 @@ export const AccessibilityTab = ({ id }: AccessibilityTabProps) => {
             wrapperProps={{ noMargin: true, fullWidth: true }}
           />
         </li>
+        <CaptionsSettings />
       </ul>
     </TabPanel>
   )
