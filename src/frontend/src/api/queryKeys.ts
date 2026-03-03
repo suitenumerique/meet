@@ -5,4 +5,5 @@ export const keys = {
   requestEntry: 'requestEntry',
   waitingParticipants: 'waitingParticipants',
   roomCreationCallback: 'roomCreationCallback',
+  files: 'files',
 }

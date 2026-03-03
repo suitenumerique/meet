@@ -1,28 +1,23 @@
 import { ProcessorOptions, Track } from 'livekit-client'
 import {
   BackgroundBlur,
-  BackgroundTransformer,
   ProcessorWrapper,
   VirtualBackground,
 } from '@livekit/track-processors'
-import {
-  BackgroundOptions,
-  BackgroundProcessorInterface,
-  ProcessorType,
-} from '.'
+import { ProcessorConfig, BackgroundProcessorInterface, ProcessorType } from '.'
 
 export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInterface {
-  processor: ProcessorWrapper<BackgroundOptions>
-  opts: BackgroundOptions
+  processor: ProcessorWrapper<{ imagePath?: string; blurRadius?: number }>
+  opts: ProcessorConfig
   processorType: ProcessorType
 
-  constructor(opts: BackgroundOptions) {
+  constructor(opts: ProcessorConfig) {
     this.opts = opts
 
-    if (opts.imagePath) {
+    if (opts.type === 'virtual') {
       this.processorType = ProcessorType.VIRTUAL
       this.processor = VirtualBackground(opts.imagePath)
-    } else if (opts.blurRadius !== undefined) {
+    } else if (opts.type === 'blur') {
       this.processorType = ProcessorType.BLUR
       this.processor = BackgroundBlur(opts.blurRadius)
     } else {
@@ -44,24 +39,23 @@ export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInter
     return this.processor.destroy()
   }
 
-  async update(opts: BackgroundOptions): Promise<void> {
-    const newProcessorType = opts.imagePath
-      ? ProcessorType.VIRTUAL
-      : ProcessorType.BLUR
+  async update(opts: ProcessorConfig): Promise<void> {
+    this.opts = opts
 
-    let processedOpts = opts
+    const newProcessorType =
+      opts.type === 'virtual' ? ProcessorType.VIRTUAL : ProcessorType.BLUR
+
     if (newProcessorType !== this.processorType) {
       this.processorType = newProcessorType
       if (newProcessorType === ProcessorType.VIRTUAL) {
         this.processor.name = 'virtual-background'
-        processedOpts = { ...opts, blurRadius: undefined }
       } else {
         this.processor.name = 'background-blur'
-        processedOpts = { ...opts, imagePath: undefined }
       }
     }
-    await this.processor.updateTransformerOptions(processedOpts)
-    this.opts = processedOpts
+    await this.processor.updateTransformerOptions(
+      opts as { imagePath?: string; blurRadius?: number }
+    )
   }
 
   get name() {
@@ -73,17 +67,6 @@ export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInter
   }
 
   get options() {
-    return (this.processor.transformer as BackgroundTransformer).options
-  }
-
-  clone() {
-    return new UnifiedBackgroundTrackProcessor(this.options || this.opts)
-  }
-
-  serialize() {
-    return {
-      type: this.processorType,
-      options: this.options,
-    }
+    return this.opts
   }
 }
