@@ -134,7 +134,6 @@ const Transcription = ({ row }: { row: TranscriptionRow }) => {
               lineHeight,
               fontWeight: '400',
             })}
-            style={{ fontSize, lineHeight }}
           >
             {displayText}
           </p>
