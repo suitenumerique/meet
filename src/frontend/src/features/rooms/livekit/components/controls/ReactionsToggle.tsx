@@ -41,6 +41,7 @@ export const ReactionsToggle = () => {
   const instanceIdRef = useRef(0)
   const room = useRoomContext()
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const firstEmojiButtonRef = useRef<HTMLButtonElement>(null)
 
   const [isOpen, setIsOpen] = useState(false)
 
@@ -48,9 +49,7 @@ export const ReactionsToggle = () => {
     id: 'reaction',
     handler: () => {
       if (isOpen) {
-        document
-          .querySelector<HTMLElement>('[role="toolbar"] button')
-          ?.focus()
+        firstEmojiButtonRef.current?.focus()
       } else {
         setIsOpen(true)
       }
@@ -83,10 +82,24 @@ export const ReactionsToggle = () => {
     }, ANIMATION_DURATION)
   }
 
+  const focusNextToolbarControl = () => {
+    const nextContainer = document
+      .getElementById('reaction-toggle')
+      ?.parentElement?.nextElementSibling
+    const focusable = nextContainer?.querySelector<HTMLElement>(
+      'button, [role="button"], [tabindex="0"]'
+    )
+    focusable?.focus()
+  }
+
   const handleToolbarKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Tab') {
       e.preventDefault()
-      document.getElementById('reaction-toggle')?.focus()
+      if (e.shiftKey) {
+        triggerRef.current?.focus()
+      } else {
+        focusNextToolbarControl()
+      }
       return
     }
 
@@ -132,6 +145,9 @@ export const ReactionsToggle = () => {
           tooltip={t('button')}
           isSelected={isOpen}
           onChange={setIsOpen}
+          aria-expanded={isOpen}
+          aria-controls="reactions-toolbar"
+          aria-keyshortcuts="Control+Shift+E"
         >
           <RiEmotionLine />
         </ToggleButton>
@@ -159,17 +175,19 @@ export const ReactionsToggle = () => {
           <FocusScope autoFocus restoreFocus>
             {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- handles Tab exit and arrow wrapping for the portal-rendered toolbar */}
             <div onKeyDownCapture={handleToolbarKeyDown}>
-              <Toolbar
-                orientation="horizontal"
-                aria-label={t('button')}
-                className={css({
-                  display: 'flex',
-                  gap: '0.5rem',
-                })}
-              >
+              <div id="reactions-toolbar">
+                <Toolbar
+                  orientation="horizontal"
+                  aria-label={t('button')}
+                  className={css({
+                    display: 'flex',
+                    gap: '0.5rem',
+                  })}
+                >
                 {Object.values(Emoji).map((emoji, index) => (
                   <Button
                     key={index}
+                    ref={index === 0 ? firstEmojiButtonRef : undefined}
                     onPress={() => debouncedSendReaction(emoji)}
                     aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
                     variant="primaryTextDark"
@@ -189,7 +207,8 @@ export const ReactionsToggle = () => {
                     />
                   </Button>
                 ))}
-              </Toolbar>
+                </Toolbar>
+              </div>
             </div>
           </FocusScope>
         </RACPopover>
