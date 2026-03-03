@@ -11,6 +11,8 @@ import { CreatePopup } from '@/features/sdk/routes/CreatePopup'
 import { CreateMeetingButton } from '@/features/sdk/routes/CreateMeetingButton'
 import { RecordingDownloadRoute } from '@/features/recording'
 
+const roomIdRegex = new RegExp(`^[/](?<roomId>${flexibleRoomIdPattern})$`)
+
 export const routes: Record<
   | 'home'
   | 'room'
@@ -37,7 +39,7 @@ export const routes: Record<
   room: {
     name: 'room',
     to: (roomId: string) => `/${roomId.trim()}`,
-    path: new RegExp(`^[/](?<roomId>${flexibleRoomIdPattern})$`),
+    path: roomIdRegex,
     Component: RoomRoute,
   },
   feedback: {
