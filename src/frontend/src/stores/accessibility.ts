@@ -4,6 +4,12 @@ import { deserializeToProxyMap } from '@/utils/valtio'
 
 export type CaptionTextSize = 'small' | 'medium' | 'large'
 
+export const CAPTION_TEXT_SIZE_OPTIONS: CaptionTextSize[] = [
+  'small',
+  'medium',
+  'large',
+]
+
 type AccessibilityState = {
   announceReactions: boolean
   captionTextSize: CaptionTextSize
@@ -19,7 +25,7 @@ function getAccessibilityState(): AccessibilityState {
     const stored = localStorage.getItem(STORAGE_KEYS.ACCESSIBILITY)
     if (stored) {
       const parsed = JSON.parse(stored)
-      const validCaptionSizes: CaptionTextSize[] = ['small', 'medium', 'large']
+      const validCaptionSizes = CAPTION_TEXT_SIZE_OPTIONS
       const captionTextSize = validCaptionSizes.includes(parsed.captionTextSize)
         ? parsed.captionTextSize
         : DEFAULT_STATE.captionTextSize

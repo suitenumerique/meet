@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Changed
 
+- ♿️(frontend) Caption text size setting for accessibility #1062
 - ♿️(frontend) sync html lang attribute with i18n for screen readers #1111
 - ♿️(frontend) improve MoreLink a11y and UX on home page #1112
 - ♿(frontend) improve chat toast a11y for screen readers #1109
