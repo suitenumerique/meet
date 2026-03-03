@@ -50,6 +50,31 @@ ingress:
   ## @param ingress.customBackends Add custom backends to ingress
   customBackends: []
 
+## @param ingressWebhook.enabled whether to enable the Ingress or not
+## @param ingressWebhook.className IngressClass to use for the Ingress
+## @param ingressWebhook.host Host for the Ingress
+## @param ingressWebhook.path Path to use for the Ingress
+ingressWebhook:
+  enabled: false
+  className: null
+  host: meet.example.com
+  path: /api/v1.0/rooms/webhooks-livekit/
+  ## @param ingressWebhook.hosts Additional host to configure for the Ingress
+  hosts: []
+  #  - chart-example.local
+  ## @param ingressWebhook.tls.enabled Weather to enable TLS for the Ingress
+  ## @param ingressWebhook.tls.secretName Secret name for TLS config
+  ## @skip ingressWebhook.tls.additional
+  ## @extra ingressWebhook.tls.additional[].secretName Secret name for additional TLS config
+  ## @extra ingressWebhook.tls.additional[].hosts[] Hosts for additional TLS config
+  tls:
+    secretName: null
+    enabled: true
+    additional: []
+
+  ## @param ingressWebhook.customBackends Add custom backends to ingress
+  customBackends: []
+
 
 ## @param ingressAdmin.enabled whether to enable the Ingress or not
 ## @param ingressAdmin.className IngressClass to use for the Ingress
