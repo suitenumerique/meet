@@ -1,5 +1,6 @@
 """LLM service to encapsulate LLM's calls."""
 
+import logging
 from typing import Any, Mapping, Optional
 
 import openai
@@ -8,6 +9,9 @@ from langfuse import Langfuse
 from summary.core.config import get_settings
 
 settings = get_settings()
+
+
+logger = logging.getLogger(__name__)
 
 
 class LLMObservability:
@@ -21,13 +25,11 @@ class LLMObservability:
 
     def __init__(
         self,
-        logger,
         session_id: str,
         user_id: str,
         user_has_tracing_consent: bool = False,
     ):
         """Initialize the LLMObservability client."""
-        self._logger = logger
         self._observability_client: Optional[Langfuse] = None
         self.session_id = session_id
         self.user_id = user_id
@@ -75,7 +77,7 @@ class LLMObservability:
         }
 
         if not self.is_enabled:
-            self._logger.debug("Using regular OpenAI client (observability disabled)")
+            logger.debug("Using regular OpenAI client (observability disabled)")
             return openai.OpenAI(**base_args)
 
         # Langfuse's OpenAI wrapper is imported here to avoid triggering client
@@ -83,7 +85,7 @@ class LLMObservability:
         # is missing. Conditional import ensures Langfuse only initializes when enabled.
         from langfuse.openai import openai as langfuse_openai  # noqa: PLC0415
 
-        self._logger.debug("Using LangfuseOpenAI client (observability enabled)")
+        logger.debug("Using LangfuseOpenAI client (observability enabled)")
         return langfuse_openai.OpenAI(**base_args)
 
     def flush(self):
@@ -99,11 +101,10 @@ class LLMException(Exception):
 class LLMService:
     """Service for performing calls to the LLM configured in the settings."""
 
-    def __init__(self, llm_observability, logger):
+    def __init__(self, llm_observability):
         """Init the LLMService once."""
         self._client = llm_observability.get_openai_client()
         self._observability = llm_observability
-        self._logger = logger
 
     def call(
         self,
@@ -140,5 +141,5 @@ class LLMService:
             return response.choices[0].message.content
 
         except Exception as e:
-            self._logger.exception("LLM call failed: %s", e)
+            logger.exception("LLM call failed: %s", e)
             raise LLMException(f"LLM call failed: {e}") from e

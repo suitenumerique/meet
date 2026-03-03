@@ -10,9 +10,7 @@ import openai
 import sentry_sdk
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
-from requests import Session, exceptions
-from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
+from requests import exceptions
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
@@ -30,6 +28,7 @@ from summary.core.prompt import (
     PROMPT_USER_PART,
 )
 from summary.core.transcript_formatter import TranscriptFormatter
+from summary.core.webhook_service import submit_content
 
 settings = get_settings()
 analytics = get_analytics()
@@ -56,103 +55,17 @@ if settings.sentry_dsn and settings.sentry_is_enabled:
         sentry_sdk.init(dsn=settings.sentry_dsn, enable_tracing=True)
 
 
-file_service = FileService(logger=logger)
+file_service = FileService()
 
 
-def create_retry_session():
-    """Create an HTTP session configured with retry logic."""
-    session = Session()
-    retries = Retry(
-        total=settings.webhook_max_retries,
-        backoff_factor=settings.webhook_backoff_factor,
-        status_forcelist=settings.webhook_status_forcelist,
-        allowed_methods={"POST"},
-    )
-    session.mount("https://", HTTPAdapter(max_retries=retries))
-    return session
+def transcribe_audio(task_id, filename, language):
+    """Transcribe an audio file using WhisperX.
 
+    Downloads the audio from MinIO, sends it to WhisperX for transcription,
+    and tracks metadata throughout the process.
 
-def format_actions(llm_output: dict) -> str:
-    """Format the actions from the LLM output into a markdown list.
-
-    fomat:
-    - [ ] Action title Assignée à : assignee1, assignee2, Échéance : due_date
+    Returns the transcription object, or None if the file could not be retrieved.
     """
-    lines = []
-    for action in llm_output.get("actions", []):
-        title = action.get("title", "").strip()
-        assignees = ", ".join(action.get("assignees", [])) or "-"
-        due_date = action.get("due_date") or "-"
-        line = f"- [ ] {title} Assignée à : {assignees}, Échéance : {due_date}"
-        lines.append(line)
-    if lines:
-        return "### Prochaines étapes\n\n" + "\n".join(lines)
-    return ""
-
-
-def post_with_retries(url, data):
-    """Send POST request with automatic retries."""
-    session = create_retry_session()
-    session.headers.update(
-        {"Authorization": f"Bearer {settings.webhook_api_token.get_secret_value()}"}
-    )
-    try:
-        response = session.post(url, json=data)
-        response.raise_for_status()
-        return response
-    finally:
-        session.close()
-
-
-@celery.task(
-    bind=True,
-    autoretry_for=[exceptions.HTTPError],
-    max_retries=settings.celery_max_retries,
-    queue=settings.transcribe_queue,
-)
-def process_audio_transcribe_summarize_v2(
-    self,
-    owner_id: str,
-    filename: str,
-    email: str,
-    sub: str,
-    received_at: float,
-    room: Optional[str],
-    recording_date: Optional[str],
-    recording_time: Optional[str],
-    language: Optional[str],
-    download_link: Optional[str],
-    context_language: Optional[str] = None,
-):
-    """Process an audio file by transcribing it and generating a summary.
-
-    This Celery task performs the following operations:
-    1. Retrieves the audio file from MinIO storage
-    2. Transcribes the audio using WhisperX model
-    3. Sends the results via webhook
-
-    Args:
-        self: Celery task instance (passed on with bind=True)
-        owner_id: Unique identifier of the recording owner.
-        filename: Name of the audio file in MinIO storage.
-        email: Email address of the recording owner.
-        sub: OIDC subject identifier of the recording owner.
-        received_at: Unix timestamp when the recording was received.
-        room: room name where the recording took place.
-        recording_date: Date of the recording (localized display string).
-        recording_time: Time of the recording (localized display string).
-        language: ISO 639-1 language code for transcription.
-        download_link: URL to download the original recording.
-        context_language: ISO 639-1 language code of the meeting summary context text.
-    """
-    logger.info(
-        "Notification received | Owner: %s | Room: %s",
-        owner_id,
-        room,
-    )
-
-    task_id = self.request.id
-
     logger.info("Initiating WhisperX client")
     whisperx_client = openai.OpenAI(
         api_key=settings.whisperx_api_key.get_secret_value(),
@@ -162,9 +75,7 @@ def process_audio_transcribe_summarize_v2(
 
     # Transcription
     try:
-        with (
-            file_service.prepare_audio_file(filename) as (audio_file, metadata),
-        ):
+        with file_service.prepare_audio_file(filename) as (audio_file, metadata):
             metadata_manager.track(task_id, {"audio_length": metadata["duration"]})
 
             if language is None:
@@ -195,16 +106,32 @@ def process_audio_transcribe_summarize_v2(
 
     except FileServiceException:
         logger.exception("Unexpected error for filename: %s", filename)
-        return
+        return None
 
     metadata_manager.track_transcription_metadata(task_id, transcription)
+    return transcription
 
-    # For locale of context, use in decreasing priority context_language,
-    # language (of meeting), default context language
+
+def format_transcript(
+    transcription,
+    context_language,
+    language,
+    room,
+    recording_date,
+    recording_time,
+    download_link,
+):
+    """Format a transcription into readable content with a title.
+
+    Resolves the locale from context_language / language, then uses
+    TranscriptFormatter to produce markdown content and a title.
+
+    Returns a (content, title) tuple.
+    """
     locale = get_locale(context_language, language)
     formatter = TranscriptFormatter(locale)
 
-    content, title = formatter.format(
+    return formatter.format(
         transcription,
         room=room,
         recording_date=recording_date,
@@ -212,32 +139,90 @@ def process_audio_transcribe_summarize_v2(
         download_link=download_link,
     )
 
-    data = {
-        "title": title,
-        "content": content,
-        "email": email,
-        "sub": sub,
-    }
 
-    logger.debug("Submitting webhook to %s", settings.webhook_url)
-    logger.debug("Request payload: %s", json.dumps(data, indent=2))
+def format_actions(llm_output: dict) -> str:
+    """Format the actions from the LLM output into a markdown list.
 
-    response = post_with_retries(settings.webhook_url, data)
+    fomat:
+    - [ ] Action title Assignée à : assignee1, assignee2, Échéance : due_date
+    """
+    lines = []
+    for action in llm_output.get("actions", []):
+        title = action.get("title", "").strip()
+        assignees = ", ".join(action.get("assignees", [])) or "-"
+        due_date = action.get("due_date") or "-"
+        line = f"- [ ] {title} Assignée à : {assignees}, Échéance : {due_date}"
+        lines.append(line)
+    if lines:
+        return "### Prochaines étapes\n\n" + "\n".join(lines)
+    return ""
 
-    try:
-        response_data = response.json()
-        document_id = response_data.get("id", "N/A")
-    except (json.JSONDecodeError, AttributeError):
-        document_id = "Unable to parse response"
-        response_data = response.text
 
+@celery.task(
+    bind=True,
+    autoretry_for=[exceptions.HTTPError],
+    max_retries=settings.celery_max_retries,
+    queue=settings.transcribe_queue,
+)
+def process_audio_transcribe_summarize_v2(
+    self,
+    owner_id: str,
+    filename: str,
+    email: str,
+    sub: str,
+    received_at: float,
+    room: Optional[str],
+    recording_date: Optional[str],
+    recording_time: Optional[str],
+    language: Optional[str],
+    download_link: Optional[str],
+    context_language: Optional[str] = None,
+):
+    """Process an audio file by transcribing it and generating a summary.
+
+    This Celery task orchestrates:
+    1. Audio transcription via WhisperX
+    2. Transcript formatting
+    3. Webhook submission
+    4. Conditional summarization queuing
+
+    Args:
+        self: Celery task instance (passed on with bind=True)
+        owner_id: Unique identifier of the recording owner.
+        filename: Name of the audio file in MinIO storage.
+        email: Email address of the recording owner.
+        sub: OIDC subject identifier of the recording owner.
+        received_at: Unix timestamp when the recording was received.
+        room: room name where the recording took place.
+        recording_date: Date of the recording (localized display string).
+        recording_time: Time of the recording (localized display string).
+        language: ISO 639-1 language code for transcription.
+        download_link: URL to download the original recording.
+        context_language: ISO 639-1 language code of the meeting summary context text.
+    """
     logger.info(
-        "Webhook success | Document %s submitted (HTTP %s)",
-        document_id,
-        response.status_code,
+        "Notification received | Owner: %s | Room: %s",
+        owner_id,
+        room,
     )
-    logger.debug("Full response: %s", response_data)
 
+    task_id = self.request.id
+
+    transcription = transcribe_audio(task_id, filename, language)
+    if transcription is None:
+        return
+
+    content, title = format_transcript(
+        transcription,
+        context_language,
+        language,
+        room,
+        recording_date,
+        recording_time,
+        download_link,
+    )
+
+    submit_content(content, title, email, sub)
     metadata_manager.capture(task_id, settings.posthog_event_success)
 
     # LLM Summarization
@@ -306,12 +291,11 @@ def summarize_transcription(
     # a singleton client. This is a performance trade-off we accept to ensure per-user
     # privacy controls in observability traces.
     llm_observability = LLMObservability(
-        logger=logger,
         user_has_tracing_consent=user_has_tracing_consent,
         session_id=self.request.id,
         user_id=owner_id,
     )
-    llm_service = LLMService(llm_observability=llm_observability, logger=logger)
+    llm_service = LLMService(llm_observability=llm_observability)
 
     tldr = llm_service.call(PROMPT_SYSTEM_TLDR, transcript, name="tldr")
 
@@ -354,20 +338,9 @@ def summarize_transcription(
     logger.info("Summary cleaned")
 
     summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
+    summary_title = settings.summary_title_template.format(title=title)
 
-    data = {
-        "title": settings.summary_title_template.format(title=title),
-        "content": summary,
-        "email": email,
-        "sub": sub,
-    }
-
-    logger.debug("Submitting webhook to %s", settings.webhook_url)
-
-    response = post_with_retries(settings.webhook_url, data)
-
-    logger.info("Webhook submitted successfully. Status: %s", response.status_code)
-    logger.debug("Response body: %s", response.text)
+    submit_content(summary, summary_title, email, sub)
 
     llm_observability.flush()
     logger.debug("LLM observability flushed")
