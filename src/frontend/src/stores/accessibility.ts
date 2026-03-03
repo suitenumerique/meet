@@ -2,12 +2,22 @@ import { proxy, subscribe } from 'valtio'
 import { STORAGE_KEYS } from '@/utils/storageKeys'
 import { deserializeToProxyMap } from '@/utils/valtio'
 
+export type CaptionTextSize = 'small' | 'medium' | 'large'
+
+export const CAPTION_TEXT_SIZE_OPTIONS: CaptionTextSize[] = [
+  'small',
+  'medium',
+  'large',
+]
+
 type AccessibilityState = {
   announceReactions: boolean
+  captionTextSize: CaptionTextSize
 }
 
 const DEFAULT_STATE: AccessibilityState = {
   announceReactions: false,
+  captionTextSize: 'medium',
 }
 
 function getAccessibilityState(): AccessibilityState {
@@ -15,6 +25,10 @@ function getAccessibilityState(): AccessibilityState {
     const stored = localStorage.getItem(STORAGE_KEYS.ACCESSIBILITY)
     if (stored) {
       const parsed = JSON.parse(stored)
+      const validCaptionSizes = CAPTION_TEXT_SIZE_OPTIONS
+      const captionTextSize = validCaptionSizes.includes(parsed.captionTextSize)
+        ? parsed.captionTextSize
+        : DEFAULT_STATE.captionTextSize
       return {
         ...DEFAULT_STATE,
         ...parsed,
@@ -22,6 +36,7 @@ function getAccessibilityState(): AccessibilityState {
           typeof parsed.announceReactions === 'boolean'
             ? parsed.announceReactions
             : DEFAULT_STATE.announceReactions,
+        captionTextSize,
       }
     }
 

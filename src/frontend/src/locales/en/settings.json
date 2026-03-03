@@ -116,6 +116,17 @@
   "accessibility": {
     "announceReactions": {
       "label": "Announce reactions aloud"
+    },
+    "captions": {
+      "heading": "Captions",
+      "textSize": {
+        "label": "Caption text size",
+        "options": {
+          "small": "Small",
+          "medium": "Medium",
+          "large": "Large"
+        }
+      }
     }
   },
   "tabs": {
