@@ -211,6 +211,8 @@
     "moreOptions": "Plus d'options",
     "reactions": {
       "button": "Envoyer une réaction",
+      "tooltip": "Envoyer une réaction ({{shortcut}})",
+      "help": "Flèches gauche/droite pour choisir une réaction. Échap pour fermer.",
       "send": "Envoyer la réaction {{emoji}}",
       "announce": "{{name}} : {{emoji}}",
       "you": "vous",

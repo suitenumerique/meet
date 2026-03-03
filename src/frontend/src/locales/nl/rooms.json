@@ -211,6 +211,8 @@
     "moreOptions": "Meer opties",
     "reactions": {
       "button": "Stuur reactie",
+      "tooltip": "Stuur een reactie ({{shortcut}})",
+      "help": "Gebruik de pijltjestoetsen links en rechts om een reactie te kiezen. Druk op Escape om te sluiten. Druk op Control+Shift+E om te openen of terug te keren naar de reactiebalk.",
       "send": "Stuur reactie {{emoji}}",
       "announce": "{{name}} : {{emoji}}",
       "you": "U",

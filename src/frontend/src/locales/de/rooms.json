@@ -211,6 +211,8 @@
     "moreOptions": "Weitere Optionen",
     "reactions": {
       "button": "Reaktion senden",
+      "tooltip": "Reaktion senden ({{shortcut}})",
+      "help": "Pfeiltasten links und rechts zum Auswählen einer Reaktion. Escape zum Schließen. Strg+Umschalt+E zum Öffnen oder Zurückkehren zur Reaktionsleiste.",
       "send": "Reaktion {{emoji}} senden",
       "announce": "{{name}} : {{emoji}}",
       "you": "Sie",

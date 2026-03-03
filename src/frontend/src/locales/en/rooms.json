@@ -211,6 +211,8 @@
     "moreOptions": "More options",
     "reactions": {
       "button": "Send reaction",
+      "tooltip": "Send a reaction ({{shortcut}})",
+      "help": "Use Left and Right arrow keys to choose a reaction. Press Escape to close. Press Control+Shift+E to open or return to the reactions bar.",
       "send": "Send reaction {{emoji}}",
       "announce": "{{name}} : {{emoji}}",
       "you": "you",

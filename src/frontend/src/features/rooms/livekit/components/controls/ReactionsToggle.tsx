@@ -12,6 +12,8 @@ import {
 } from '@/features/rooms/livekit/components/ReactionPortal'
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
+import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 import { Popover as RACPopover, Toolbar } from 'react-aria-components'
 import { FocusScope } from '@react-aria/focus'
 import { Participant } from 'livekit-client'
@@ -133,6 +135,12 @@ export const ReactionsToggle = () => {
     windowMs: 1000,
   })
 
+  const reactionShortcut = getShortcutDescriptorById('reaction')?.shortcut
+  const tooltipWithShortcut = t('tooltip', {
+    shortcut: formatShortcutLabel(reactionShortcut),
+  })
+  
+
   return (
     <>
       <div className={css({ position: 'relative' })}>
@@ -142,15 +150,19 @@ export const ReactionsToggle = () => {
           square
           variant="primaryDark"
           aria-label={t('button')}
-          tooltip={t('button')}
-          isSelected={isOpen}
-          onChange={setIsOpen}
+          aria-describedby="reactions-help"
+          aria-keyshortcuts="Control+Shift+E"
           aria-expanded={isOpen}
           aria-controls="reactions-toolbar"
-          aria-keyshortcuts="Control+Shift+E"
+          tooltip={tooltipWithShortcut}
+          isSelected={isOpen}
+          onChange={setIsOpen}
         >
           <RiEmotionLine />
         </ToggleButton>
+        <span id="reactions-help" className="sr-only">
+          {t('help')}
+        </span>
         <RACPopover
           triggerRef={triggerRef}
           isOpen={isOpen}
