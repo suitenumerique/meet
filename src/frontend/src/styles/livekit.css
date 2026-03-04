@@ -154,7 +154,7 @@
 
 /* Participant name ellipsis: truncate when overflowing */
 .lk-participant-metadata {
-  width: 100%;
+  gap: 1rem;
 }
 .lk-participant-metadata > *:first-child {
   min-width: 0;
