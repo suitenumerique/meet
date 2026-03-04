@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { styled } from '@/styled-system/jsx'
+import { styled, VisuallyHidden } from '@/styled-system/jsx'
 import { RemixiconComponentType, RiArrowDropDownLine } from '@remixicon/react'
 import {
   Button,
@@ -9,6 +9,7 @@ import {
   SelectProps as RACSelectProps,
   SelectValue,
 } from 'react-aria-components'
+import { useTranslation } from 'react-i18next'
 import { Box } from './Box'
 import { StyledPopover } from './Popover'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
@@ -110,6 +111,7 @@ export const Select = <T extends string | number>({
   ...props
 }: SelectProps<T>) => {
   const IconComponent = iconComponent
+  const { t } = useTranslation('global')
   return (
     <RACSelect {...props}>
       {label}
@@ -138,8 +140,18 @@ export const Select = <T extends string | number>({
                 }
                 id={item.value}
                 key={item.value}
+                textValue={
+                  typeof item.label === 'string' ? item.label : undefined
+                }
               >
-                {item.label}
+                {({ isSelected }) => (
+                  <>
+                    {item.label}
+                    {isSelected && (
+                      <VisuallyHidden>, {t('selected')}</VisuallyHidden>
+                    )}
+                  </>
+                )}
               </ListBoxItem>
             ))}
           </ListBox>

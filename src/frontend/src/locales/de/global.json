@@ -25,6 +25,7 @@
     "heading": "Überprüfen Sie Ihren Meeting-Code",
     "body": "Stellen Sie sicher, dass Sie den richtigen Meeting-Code in der URL eingegeben haben. Beispiel:"
   },
+  "selected": "ausgewählt",
   "submit": "OK",
   "footer": {
     "links": {
