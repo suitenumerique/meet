@@ -45,7 +45,7 @@
     "license": "licence etalab 2.0"
   },
   "loginHint": {
-    "title": "Connectez-vous avec votre compte ProConnect",
+    "title": "Connectez-vous avec votre compte",
     "body": "Au lieu de patienter, connectez-vous avec votre compte ProConnect.",
     "button": {
       "ariaLabel": "Fermer la suggestion",

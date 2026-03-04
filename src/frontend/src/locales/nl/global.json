@@ -44,7 +44,7 @@
     "license": "etalab 2.0 licentie"
   },
   "loginHint": {
-    "title": "Log in met je ProConnect-account",
+    "title": "Log in met je account",
     "body": "In plaats van te wachten, log in met je ProConnect-account.",
     "button": {
       "ariaLabel": "Sluit de suggestie",
