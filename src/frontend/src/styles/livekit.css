@@ -150,6 +150,7 @@
 
 [data-lk-theme] .lk-participant-tile {
   box-shadow: var(--lk-box-shadow);
+  gap: 0;
 }
 
 /* Participant name ellipsis: truncate when overflowing */

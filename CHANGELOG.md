@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🩹(frontend) remove incorrect reference to ProConnect on the prejoin #1080
 - ✨(frontend) add Ctrl+Shift+/ to open shortcuts settings #1050
+- 💄(fix) add consistent bottom spacing to participant name label #1087
 
 ### Changed
 
