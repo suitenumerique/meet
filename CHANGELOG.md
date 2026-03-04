@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🔒️(backend) enhance API input validation to strengthen security #1053
 - 🦺(backend) strengthen API validation for recording options #1063
+- 🩹(backend) use SESSION_ENGINE from environment if defined #1038
 
 ### Fixed
 
