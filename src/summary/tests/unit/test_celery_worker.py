@@ -68,7 +68,7 @@ class TestTranscribeAudio:
         @contextmanager
         def failing_prepare(filename):
             raise FileServiceException("download failed")
-            yield
+            yield  # yield required for contextmanager
 
         mock_file_service.prepare_audio_file = failing_prepare
 
