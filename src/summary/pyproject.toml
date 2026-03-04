@@ -58,11 +58,10 @@ select = [
     "T20", # flake8-print
     "W",  # pycodestyle warning
 ]
+ignore= ["DJ001", "PLR2004"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = [
-    "S101", # use of assert
-]
+"tests/*" = ["S", "SLF"]
 
 [tool.ruff.lint.pydocstyle]
 # Use Google-style docstrings.
