@@ -316,7 +316,7 @@ jobs:
         run: pip install --user .[dev]
 
       - name: Run summary tests
-        run: ~/.local/bin/pytest -n 2
+        run: ~/.local/bin/pytest
 
   lint-front:
     runs-on: ubuntu-latest
