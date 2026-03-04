@@ -19,6 +19,7 @@ and this project adheres to
 - 🦺(backend) strengthen API validation for recording options #1063
 - ⚡️(frontend) optimize few performance caveats #1073
 - 🔒️(helm) introduce a dedicated Kubernetes Ingress for webhook-livekit #1066
+- ⬆️(deps) bump rollup from 4.44.2 to 4.59.0 in /src/frontend #1088
 
 ### Fixed
 
