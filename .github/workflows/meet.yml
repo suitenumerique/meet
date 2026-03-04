@@ -291,8 +291,11 @@ jobs:
       - name: Generate a MO file from strings extracted from the project
         run: python manage.py compilemessages
 
-      - name: Run tests
+      - name: Run backend tests
         run: ~/.local/bin/pytest -n 2
+
+      - name: Run summary tests
+        run: ~/.local/bin/pytest-summary -n 2
 
   lint-front:
     runs-on: ubuntu-latest
