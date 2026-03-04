@@ -1,5 +1,28 @@
 import React, { ReactNode } from 'react'
-import { css } from '@/styled-system/css'
+import { styled } from '@/styled-system/jsx'
+
+const Hint = styled('div', {
+  base: {
+    position: 'absolute',
+    top: '0.75rem',
+    right: '0.75rem',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    color: 'white',
+    borderRadius: 'calc(var(--lk-border-radius) / 2)',
+    paddingInline: '0.5rem',
+    paddingBlock: '0.1rem',
+    fontSize: '0.875rem',
+    opacity: 0,
+    visibility: 'hidden',
+    pointerEvents: 'none',
+    transition: 'opacity 150ms ease',
+    '.lk-grid-layout > *:first-child:focus-within &': {
+      opacity: 1,
+      visibility: 'visible',
+      pointerEvents: 'auto',
+    },
+  },
+})
 
 export interface KeyboardShortcutHintProps {
   children: ReactNode
@@ -12,21 +35,5 @@ export interface KeyboardShortcutHintProps {
 export const KeyboardShortcutHint: React.FC<KeyboardShortcutHintProps> = ({
   children,
 }) => {
-  return (
-    <div
-      className={css({
-        position: 'absolute',
-        top: '0.75rem',
-        right: '0.75rem',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        color: 'white',
-        borderRadius: 'calc(var(--lk-border-radius) / 2)',
-        paddingInline: '0.5rem',
-        paddingBlock: '0.1rem',
-        fontSize: '0.875rem',
-      })}
-    >
-      {children}
-    </div>
-  )
+  return <Hint>{children}</Hint>
 }

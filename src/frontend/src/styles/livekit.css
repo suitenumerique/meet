@@ -172,16 +172,3 @@
   display: flex;
   align-items: center;
 }
-
-/* Shortcut hint: visible only on first grid tile when focused (CSS-based) */
-.shortcut-hint-wrapper {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 150ms ease;
-}
-.lk-grid-layout > *:first-child:focus-within .shortcut-hint-wrapper {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
