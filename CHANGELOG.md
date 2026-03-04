@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🩹(frontend) remove incorrect reference to ProConnect on the prejoin #1080
 - ✨(frontend) add Ctrl+Shift+/ to open shortcuts settings #1050
+- ♿(frontend) announce selected state to screen readers #1081
 
 ### Changed
 
