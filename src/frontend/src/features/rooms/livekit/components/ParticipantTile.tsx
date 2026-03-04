@@ -231,9 +231,7 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
-      <div className="shortcut-hint-wrapper">
-        <KeyboardShortcutHint>{t('toolbarHint')}</KeyboardShortcutHint>
-      </div>
+      <KeyboardShortcutHint>{t('toolbarHint')}</KeyboardShortcutHint>
     </div>
   )
 })
