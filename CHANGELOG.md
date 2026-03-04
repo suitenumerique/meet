@@ -18,6 +18,7 @@ and this project adheres to
 
 - 🐛(migrations) use settings in migrations #1058
 - 💄(frontend) truncate pinned participant name with ellipsis on overflow #1056
+- ♿(frontend) prevent focus ring clipping on invite dialog #1078
 
 ## [1.9.0] - 2026-03-02
 
