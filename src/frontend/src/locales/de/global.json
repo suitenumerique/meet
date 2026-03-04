@@ -45,7 +45,7 @@
     "license": "Etalab 2.0 Lizenz"
   },
   "loginHint": {
-    "title": "Melden Sie sich mit Ihrem ProConnect-Konto an",
+    "title": "Melden Sie sich mit Ihrem Konto an",
     "body": "Statt zu warten, melden Sie sich mit Ihrem ProConnect-Konto an.",
     "button": {
       "ariaLabel": "Hinweis schließen",
