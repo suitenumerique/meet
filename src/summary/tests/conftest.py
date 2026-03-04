@@ -2,7 +2,7 @@
 
 import os
 
-# Set required environment variables BEFORE any summary module imports.
+# Set required environment variables before any summary module imports.
 # This is necessary because several modules call get_settings() at module level,
 # which validates env vars via Pydantic Settings.
 os.environ.setdefault("APP_API_TOKEN", "test-api-token")

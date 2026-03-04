@@ -5,12 +5,20 @@ from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import pytest
+import responses
+
 from summary.core.celery_worker import (
     format_transcript,
     summarize_transcription,
     transcribe_audio,
 )
+from summary.core.config import get_settings
 from summary.core.file_service import FileServiceException
+
+settings = get_settings()
+
+WEBHOOK_URL = settings.webhook_url
 
 # ---------------------------------------------------------------------------
 # transcribe_audio
@@ -92,7 +100,7 @@ class TestFormatTranscript:
             context_language="en",
             language="en",
             room="Daily standup",
-            recording_date="2024-01-15",
+            recording_date="2026-03-04",
             recording_time="09:00",
             download_link="https://example.com/rec.ogg",
         )
@@ -102,8 +110,37 @@ class TestFormatTranscript:
         assert "SPEAKER_01" in content
         assert "Good morning." in content
         assert "Daily standup" in title
-        assert "2024-01-15" in title
+        assert "2026-03-04" in title
         assert "09:00" in title
+
+    @pytest.mark.parametrize(
+        "context_language, expected_string",
+        [
+            ("en", "Download your recording"),
+            ("fr", "Télécharger votre enregistrement"),
+            ("de", "diesem Link folgen"),
+            ("nl", "Download uw opname door"),
+        ],
+    )
+    def test_context_language(self, context_language, expected_string):
+        """Context language parameter modifies output."""
+        transcription = {
+            "segments": [
+                {"speaker": "SPEAKER_00", "text": "Hello everyone."},
+            ],
+        }
+
+        content, title = format_transcript(
+            transcription,
+            context_language=context_language,
+            language="en",
+            room="Daily standup",
+            recording_date="2026-03-04",
+            recording_time="09:00",
+            download_link="https://example.com/rec.ogg",
+        )
+
+        assert expected_string in content
 
     def test_empty_segments(self):
         """Returns empty-transcription message when there are no segments."""
@@ -130,15 +167,22 @@ class TestFormatTranscript:
 class TestSummarizeTranscription:
     """Tests for the summarize_transcription Celery task."""
 
-    @patch("summary.core.celery_worker.submit_content")
+    @responses.activate
     @patch("summary.core.celery_worker.LLMService")
     @patch("summary.core.celery_worker.LLMObservability")
     @patch("summary.core.celery_worker.analytics")
     def test_generates_and_submits_summary(
-        self, mock_analytics, mock_observability_cls, mock_llm_cls, mock_submit
+        self, mock_analytics, mock_observability_cls, mock_llm_cls
     ):
         """Assembles TLDR + parts + next steps + cleaning, then submits."""
         mock_analytics.is_feature_enabled.return_value = False
+
+        # Mock the webhook HTTP endpoint
+        responses.post(
+            WEBHOOK_URL,
+            json={"id": "doc-42"},
+            status=200,
+        )
 
         mock_llm = MagicMock()
         mock_llm_cls.return_value = mock_llm
@@ -148,9 +192,9 @@ class TestSummarizeTranscription:
             {
                 "actions": [
                     {
-                        "title": "Review PR",
-                        "assignees": ["Alice"],
-                        "due_date": "2024-02-01",
+                        "title": "What's nice about Visio",
+                        "assignees": ["Aleb"],
+                        "due_date": "2026-03-04",
                     }
                 ]
             }
@@ -177,20 +221,28 @@ class TestSummarizeTranscription:
                 "Full transcript text",
                 "user@example.com",
                 "oidc-sub-123",
-                "Meeting Daily standup",
+                "99.999% uptime. Is it reasonable ?",
             )
         finally:
             summarize_transcription.pop_request()
 
-        # submit_content should have been called with the assembled summary
-        mock_submit.assert_called_once()
-        submitted_content = mock_submit.call_args[0][0]
-        submitted_title = mock_submit.call_args[0][1]
+        # Verify the webhook was called with the assembled summary
+        assert len(responses.calls) == 1
+        webhook_request = responses.calls[0]
+        submitted_payload = json.loads(webhook_request.request.body)
 
-        assert "TL;DR" in submitted_content
-        assert "Cleaned summary content." in submitted_content
-        assert "Review PR" in submitted_content
-        assert "Meeting Daily standup" in submitted_title
+        assert "TL;DR" in submitted_payload["content"]
+        assert "Cleaned summary content." in submitted_payload["content"]
+        assert "What's nice about Visio" in submitted_payload["content"]
+        assert "99.999% uptime. Is it reasonable ?" in submitted_payload["title"]
+        assert submitted_payload["email"] == "user@example.com"
+        assert submitted_payload["sub"] == "oidc-sub-123"
+
+        # Verify auth header was sent
+        assert (
+            webhook_request.request.headers["Authorization"]
+            == f"Bearer {settings.webhook_api_token.get_secret_value()}"
+        )
 
         # LLM was called for: tldr, plan, part A, part B, next-steps, cleaning
         expected_llm_calls = 6

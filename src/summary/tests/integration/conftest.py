@@ -1,23 +1,23 @@
-"""Integration test configuration — auto-marks and provides shared fixtures."""
-
-from pathlib import Path
+"""Integration test configuration. Provides shared fixtures."""
 
 import pytest
 from fastapi.testclient import TestClient
 
+from summary.core.celery_worker import celery
 from summary.main import app
-
-INTEGRATION_DIR = Path(__file__).parent
-
-
-def pytest_collection_modifyitems(items):
-    """Add the 'integration' marker to every test in the integration directory."""
-    for item in items:
-        if INTEGRATION_DIR in item.path.parents:
-            item.add_marker(pytest.mark.integration)
 
 
 @pytest.fixture()
 def client():
     """Provide a FastAPI TestClient for integration tests."""
     return TestClient(app)
+
+
+@pytest.fixture()
+def eager_celery():
+    """Run Celery tasks synchronously in the same process."""
+    celery.conf.task_always_eager = True
+    celery.conf.task_eager_propagates = True
+    yield
+    celery.conf.task_always_eager = False
+    celery.conf.task_eager_propagates = False
