@@ -102,6 +102,11 @@ export function FloatingReaction({
             paddingTop: '0.15rem',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             lineHeight: '16px',
+            maxWidth: '12rem',
+            display: 'inline-block',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           })}
         >
           {name}
