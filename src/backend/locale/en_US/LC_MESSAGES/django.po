@@ -505,8 +505,8 @@ msgstr "To keep this recording permanently:"
 
 #: core/templates/mail/html/screen_recording.html:208
 #: core/templates/mail/text/screen_recording.txt:13
-msgid "Click the \"Open\" button below "
-msgstr "Click the \"Open\" button below "
+msgid "Click the \"<a href=\"%(link)s\">Open</a>\" link below "
+msgstr "Click the \"<a href=\"%(link)s\">Open</a>\" link below "
 
 #: core/templates/mail/html/screen_recording.html:209
 #: core/templates/mail/text/screen_recording.txt:14
