@@ -16,6 +16,7 @@ and this project adheres to
 - 💄(frontend) truncate long names with ellipsis in reaction overlay #1099
 - 🐛(backend) add link to "Open" text in recording email
 - 🐛(frontend) fix "Discover the Suite" link info loss below 1024px
+- ♿(frontend) close reactions toolbar when focus leaves
 
 ### Changed
 

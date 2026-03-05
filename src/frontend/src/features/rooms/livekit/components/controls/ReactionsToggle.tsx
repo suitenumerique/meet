@@ -102,7 +102,6 @@ export const ReactionsToggle = () => {
             placement="top"
             offset={8}
             isNonModal
-            shouldCloseOnInteractOutside={() => false}
             className={css({
               borderRadius: '8px',
               padding: '0.35rem',
@@ -117,7 +116,7 @@ export const ReactionsToggle = () => {
           >
             <Dialog className={css({ outline: 'none' })}>
               {/* eslint-disable-next-line jsx-a11y/no-autofocus -- FocusScope autoFocus is programmatic focus for overlays, not the HTML autofocus attribute */}
-              <FocusScope contain autoFocus restoreFocus>
+              <FocusScope autoFocus restoreFocus>
                 <div
                   role="toolbar"
                   aria-orientation="horizontal"
