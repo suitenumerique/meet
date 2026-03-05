@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-03-05
+
 ### Fixed
 
 - 🩹(frontend) remove incorrect reference to ProConnect on the prejoin #1080
