@@ -327,6 +327,7 @@
   "moreTools": {
     "body": "Accèder à d'avantage d'outils pour améliorer vos réunions.",
     "moreLink": "En savoir plus",
+    "moreLinkLabel": "En savoir plus - nouvelle fenêtre",
     "tools": {
       "transcript": {
         "title": "Transcrire",
@@ -371,10 +372,12 @@
       "anotherModeStarted": "Un enregistrement est en cours. <br/> Changez de menu et arrêtez le."
     },
     "linkMore": "En savoir plus",
+    "linkMoreLabel": "En savoir plus - nouvelle fenêtre",
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta).",
       "linkMore": "En savoir plus",
+      "linkMoreLabel": "En savoir plus - nouvelle fenêtre",
       "dividerLabel": "OU",
       "login": {
         "heading": "Connexion requise",
@@ -390,6 +393,7 @@
       "heading": "Fonctionnalité premium",
       "body": "Cette fonctionnalité est réservée aux agents publics. Si votre adresse email n’est pas autorisée, contactez le support pour obtenir l'accès.",
       "linkMore": "En savoir plus",
+      "linkMoreLabel": "En savoir plus - nouvelle fenêtre",
       "dividerLabel": "OU",
       "login": {
         "heading": "Vous n'êtes pas connecté !",
@@ -407,11 +411,13 @@
     "body": "Enregistrez jusqu'à {{max_duration}} de réunion.",
     "bodyWithoutMaxDuration": "Enregistrez votre réunion sans limite.",
     "linkMore": "En savoir plus",
+    "linkMoreLabel": "En savoir plus - nouvelle fenêtre",
     "details": {
       "receiver": "L'enregistrement sera envoyé à l'organisateur et aux coorganisateurs.",
       "destination": "Cet enregistrement sera conservé temporairement sur nos serveurs",
       "loading": "Démarrage de l'enregistrement",
       "linkMore": "En savoir plus",
+      "linkMoreLabel": "En savoir plus - nouvelle fenêtre",
       "transcription": "Transcrire cet enregistrement"
     },
     "button": {
@@ -425,6 +431,7 @@
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer un enregistrement (beta).",
       "linkMore": "En savoir plus",
+      "linkMoreLabel": "En savoir plus - nouvelle fenêtre",
       "dividerLabel": "OU",
       "login": {
         "heading": "Connexion requise",

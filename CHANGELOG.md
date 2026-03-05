@@ -17,6 +17,7 @@ and this project adheres to
 - 🐛(backend) add link to "Open" text in recording email
 - 🐛(frontend) fix "Discover the Suite" link info loss below 1024px
 - ♿(frontend) close reactions toolbar when focus leaves
+- ♿(frontend) add external link indication to meeting tools links
 
 ### Changed
 

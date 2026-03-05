@@ -327,6 +327,7 @@
   "moreTools": {
     "body": "Greifen Sie auf weitere Tools zu, um Ihre Meetings zu verbessern.",
     "moreLink": "Mehr erfahren",
+    "moreLinkLabel": "Mehr erfahren - neues Fenster",
     "tools": {
       "transcript": {
         "title": "Transkribieren",
@@ -371,10 +372,12 @@
       "anotherModeStarted": "Eine Aufnahme läuft. <br/> Wechseln Sie das Menü und stoppen Sie sie."
     },
     "linkMore": "Mehr erfahren",
+      "linkMoreLabel": "Mehr erfahren - neues Fenster",
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
       "linkMore": "Mehr erfahren",
+      "linkMoreLabel": "Mehr erfahren - neues Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
@@ -390,6 +393,7 @@
       "heading": "Premium-Funktion",
       "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn Ihre E-Mail-Adresse nicht autorisiert ist, kontaktieren Sie bitte den Support, um Zugriff zu erhalten.",
       "linkMore": "Mehr erfahren",
+      "linkMoreLabel": "Mehr erfahren - neues Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
@@ -407,11 +411,13 @@
     "body": "Zeichnen Sie bis zu {{max_duration}} des Meetings auf.",
     "bodyWithoutMaxDuration": "Zeichnen Sie Ihr Meeting unbegrenzt auf.",
     "linkMore": "Mehr erfahren",
+      "linkMoreLabel": "Mehr erfahren - neues Fenster",
     "details": {
       "receiver": "Die Aufzeichnung wird an den Organisator und die Mitorganisatoren gesendet.",
       "destination": "Diese Aufzeichnung wird vorübergehend auf unseren Servern gespeichert",
       "loading": "Aufzeichnung wird gestartet",
       "linkMore": "Mehr erfahren",
+      "linkMoreLabel": "Mehr erfahren - neues Fenster",
       "transcription": "Diese Aufzeichnung transkribieren"
     },
     "button": {
@@ -425,6 +431,7 @@
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Videoaufnahme (Beta) starten.",
       "linkMore": "Mehr erfahren",
+      "linkMoreLabel": "Mehr erfahren - neues Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",

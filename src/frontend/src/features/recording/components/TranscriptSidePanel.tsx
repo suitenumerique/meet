@@ -188,11 +188,11 @@ export const TranscriptSidePanel = () => {
         <Text variant="body" fullWidth>
           {recordingMaxDuration
             ? t('body', {
-                max_duration: recordingMaxDuration,
-              })
+              max_duration: recordingMaxDuration,
+            })
             : t('bodyWithoutMaxDuration')}{' '}
           {data?.support?.help_article_transcript && (
-            <A href={data.support.help_article_transcript} target="_blank">
+            <A href={data.support.help_article_transcript} target="_blank" externalIcon aria-label={t('linkMoreLabel')}>
               {t('linkMore')}
             </A>
           )}

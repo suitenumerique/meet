@@ -327,6 +327,7 @@
   "moreTools": {
     "body": "Je krijgt toegang tot meer tools om je vergaderingen te verbeteren.",
     "moreLink": "Lees meer",
+    "moreLinkLabel": "Lees meer - nieuw venster",
     "tools": {
       "transcript": {
         "title": "Transcriberen",
@@ -371,10 +372,12 @@
       "anotherModeStarted": "Er loopt een opname. <br/> Ga naar het menu en stop deze."
     },
     "linkMore": "Meer informatie",
+      "linkMoreLabel": "Meer informatie - nieuw venster",
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een transcriptie starten (beta).",
       "linkMore": "Meer informatie",
+      "linkMoreLabel": "Meer informatie - nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
@@ -390,6 +393,7 @@
       "heading": "Premiumfunctie",
       "body": "Deze functie is voorbehouden aan openbare medewerkers. Als uw e-mailadres niet is toegestaan, neem dan contact op met de support om toegang te krijgen.",
       "linkMore": "Meer informatie",
+      "linkMoreLabel": "Meer informatie - nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
@@ -407,11 +411,13 @@
     "body": "Neem tot {{max_duration}} van de vergadering op.",
     "bodyWithoutMaxDuration": "Neem je vergadering onbeperkt op.",
     "linkMore": "Meer informatie",
+      "linkMoreLabel": "Meer informatie - nieuw venster",
     "details": {
       "receiver": "De opname wordt verzonden naar de organisator en co-organisatoren.",
       "destination": "Deze opname wordt tijdelijk op onze servers bewaard",
       "loading": "Opname wordt gestart",
       "linkMore": "Meer informatie",
+      "linkMoreLabel": "Meer informatie - nieuw venster",
       "transcription": "Transcribeer deze opname"
     },
     "button": {
@@ -425,6 +431,7 @@
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een opname starten (beta).",
       "linkMore": "Meer informatie",
+      "linkMoreLabel": "Meer informatie - nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",

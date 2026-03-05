@@ -81,7 +81,7 @@ export const NoAccessView = ({
           {t(`${i18nKey}.body`)}
           <br />
           {helpArticle && (
-            <A href={helpArticle} target="_blank">
+            <A href={helpArticle} target="_blank" externalIcon aria-label={t(`${i18nKey}.linkMoreLabel`)}>
               {t(`${i18nKey}.linkMore`)}
             </A>
           )}

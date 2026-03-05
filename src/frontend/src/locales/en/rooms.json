@@ -327,6 +327,7 @@
   "moreTools": {
     "body": "Access more tools to enhance your meetings.",
     "moreLink": "Learn more",
+    "moreLinkLabel": "Learn more - new window",
     "tools": {
       "transcript": {
         "title": "Transcribe",
@@ -371,10 +372,12 @@
       "anotherModeStarted": "Screen recording is running. Switch panels and stop it."
     },
     "linkMore": "Learn more",
+    "linkMoreLabel": "Learn more - new window",
     "notAdminOrOwner": {
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a transcription (beta).",
       "linkMore": "Learn more",
+      "linkMoreLabel": "Learn more - new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "Login Required",
@@ -390,6 +393,7 @@
       "heading": "Premium feature",
       "body": "This feature is reserved for public agents. If your email address is not authorized, please contact support to get access.",
       "linkMore": "Learn more",
+      "linkMoreLabel": "Learn more - new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "You are not logged in!",
@@ -407,11 +411,13 @@
     "body": "Record up to {{max_duration}} of meeting.",
     "bodyWithoutMaxDuration": "Record your meeting without limit.",
     "linkMore": "Learn more",
+    "linkMoreLabel": "Learn more - new window",
     "details": {
       "receiver": "The recording will be sent to the host and co-hosts.",
       "destination": "This recording will be temporarily stored on our servers",
       "loading": "Starting recording",
       "linkMore": "Learn more",
+      "linkMoreLabel": "Learn more - new window",
       "transcription": "Transcribe this recording"
     },
     "button": {
@@ -425,6 +431,7 @@
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a recording (beta).",
       "linkMore": "Learn more",
+      "linkMoreLabel": "Learn more - new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "Login Required",

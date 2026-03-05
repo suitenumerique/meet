@@ -154,7 +154,7 @@ export const Tools = () => {
         {t('body')}{' '}
         {data?.support?.help_article_more_tools && (
           <>
-            <A href={data?.support?.help_article_more_tools} target="_blank">
+            <A href={data?.support?.help_article_more_tools} target="_blank" externalIcon aria-label={t('moreLinkLabel')}>
               {t('moreLink')}
             </A>
             .
