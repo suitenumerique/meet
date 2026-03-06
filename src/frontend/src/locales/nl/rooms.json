@@ -327,7 +327,8 @@
   },
   "moreTools": {
     "body": "Je krijgt toegang tot meer tools om je vergaderingen te verbeteren.",
-    "moreLink": "Lees meer",
+    "linkAriaLabel": "Documentatie over tools openen - opent in nieuw venster",
+    "moreLink": "Documentatie openen",
     "tools": {
       "transcript": {
         "title": "Transcriberen",
@@ -371,11 +372,13 @@
       "starting": "Wordt gestart…",
       "anotherModeStarted": "Er loopt een opname. <br/> Ga naar het menu en stop deze."
     },
-    "linkMore": "Meer informatie",
+    "linkMore": "Documentatie openen",
+    "linkAriaLabel": "Documentatie over transcriptie openen - opent in nieuw venster",
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een transcriptie starten (beta).",
-      "linkMore": "Meer informatie",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over transcriptietoegang openen - opent in nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
@@ -390,7 +393,8 @@
     "premium": {
       "heading": "Premiumfunctie",
       "body": "Deze functie is voorbehouden aan openbare medewerkers. Als uw e-mailadres niet is toegestaan, neem dan contact op met de support om toegang te krijgen.",
-      "linkMore": "Meer informatie",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over premiumtoegang openen - opent in nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
@@ -407,7 +411,8 @@
     "heading": "Neem dit gesprek op voor later",
     "body": "Neem tot {{max_duration}} van de vergadering op.",
     "bodyWithoutMaxDuration": "Neem je vergadering onbeperkt op.",
-    "linkMore": "Meer informatie",
+    "linkMore": "Documentatie openen",
+    "linkAriaLabel": "Documentatie over opname openen - opent in nieuw venster",
     "details": {
       "receiver": "De opname wordt verzonden naar de organisator en co-organisatoren.",
       "destination": "Deze opname wordt tijdelijk op onze servers bewaard",
@@ -425,7 +430,8 @@
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een opname starten (beta).",
-      "linkMore": "Meer informatie",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over opnametoegang openen - opent in nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",

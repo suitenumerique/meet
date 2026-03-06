@@ -187,12 +187,16 @@ export const TranscriptSidePanel = () => {
         </H>
         <Text variant="body" fullWidth>
           {recordingMaxDuration
-            ? t('body', {
-                max_duration: recordingMaxDuration,
-              })
+            ? t('body', { max_duration: recordingMaxDuration })
             : t('bodyWithoutMaxDuration')}{' '}
           {data?.support?.help_article_transcript && (
-            <A href={data.support.help_article_transcript} target="_blank">
+            <A
+              href={data.support.help_article_transcript}
+              target="_blank"
+              rel="noopener noreferrer"
+              externalIcon
+              aria-label={t('linkAriaLabel')}
+            >
               {t('linkMore')}
             </A>
           )}
@@ -208,6 +212,7 @@ export const TranscriptSidePanel = () => {
                   href={data.transcription_destination}
                   target="_blank"
                   rel="noopener noreferrer"
+                  externalIcon
                 >
                   {data.transcription_destination.replace('https://', '')}
                 </A>

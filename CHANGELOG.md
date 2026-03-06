@@ -14,6 +14,7 @@ and this project adheres to
 - ♿️(frontend) sync html lang attribute with i18n for screen readers #1111
 - ♿️(frontend) improve MoreLink a11y and UX on home page #1112
 - ♿(frontend) improve chat toast a11y for screen readers #1109
+- ♿(frontend) improve ui and qria labels for help article links #1108
 
 ## [1.10.0] - 2026-03-05
 

@@ -327,7 +327,8 @@
   },
   "moreTools": {
     "body": "Greifen Sie auf weitere Tools zu, um Ihre Meetings zu verbessern.",
-    "moreLink": "Mehr erfahren",
+    "linkAriaLabel": "Dokumentation zu den Tools öffnen - öffnet in neuem Fenster",
+    "moreLink": "Dokumentation öffnen",
     "tools": {
       "transcript": {
         "title": "Transkribieren",
@@ -371,11 +372,13 @@
       "starting": "Wird gestartet…",
       "anotherModeStarted": "Eine Aufnahme läuft. <br/> Wechseln Sie das Menü und stoppen Sie sie."
     },
-    "linkMore": "Mehr erfahren",
+    "linkMore": "Dokumentation öffnen",
+    "linkAriaLabel": "Dokumentation zur Transkription öffnen - öffnet in neuem Fenster",
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
-      "linkMore": "Mehr erfahren",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Transkriptionszugang öffnen - öffnet in neuem Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
@@ -390,7 +393,8 @@
     "premium": {
       "heading": "Premium-Funktion",
       "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn Ihre E-Mail-Adresse nicht autorisiert ist, kontaktieren Sie bitte den Support, um Zugriff zu erhalten.",
-      "linkMore": "Mehr erfahren",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Premium-Zugang öffnen - öffnet in neuem Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
@@ -407,7 +411,8 @@
     "heading": "Diesen Anruf für später aufzeichnen",
     "body": "Zeichnen Sie bis zu {{max_duration}} des Meetings auf.",
     "bodyWithoutMaxDuration": "Zeichnen Sie Ihr Meeting unbegrenzt auf.",
-    "linkMore": "Mehr erfahren",
+    "linkMore": "Dokumentation öffnen",
+    "linkAriaLabel": "Dokumentation zur Aufzeichnung öffnen - öffnet in neuem Fenster",
     "details": {
       "receiver": "Die Aufzeichnung wird an den Organisator und die Mitorganisatoren gesendet.",
       "destination": "Diese Aufzeichnung wird vorübergehend auf unseren Servern gespeichert",
@@ -425,7 +430,8 @@
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Videoaufnahme (Beta) starten.",
-      "linkMore": "Mehr erfahren",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Aufzeichnungszugang öffnen - öffnet in neuem Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",

@@ -148,17 +148,22 @@ export const Tools = () => {
         className={css({
           textStyle: 'sm',
           paddingX: '0.75rem',
+          paddingTop: '0.25rem',
           marginBottom: '1rem',
         })}
       >
         {t('body')}{' '}
         {data?.support?.help_article_more_tools && (
-          <>
-            <A href={data?.support?.help_article_more_tools} target="_blank">
-              {t('moreLink')}
-            </A>
-            .
-          </>
+          <A
+            href={data.support.help_article_more_tools}
+            target="_blank"
+            rel="noopener noreferrer"
+            externalIcon
+            color="note"
+            aria-label={t('linkAriaLabel')}
+          >
+            {t('moreLink')}
+          </A>
         )}
       </Text>
       {isTranscriptEnabled && (

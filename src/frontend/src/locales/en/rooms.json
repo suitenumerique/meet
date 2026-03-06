@@ -327,7 +327,8 @@
   },
   "moreTools": {
     "body": "Access more tools to enhance your meetings.",
-    "moreLink": "Learn more",
+    "linkAriaLabel": "Open documentation about tools - opens in new window",
+    "moreLink": "Open documentation",
     "tools": {
       "transcript": {
         "title": "Transcribe",
@@ -371,11 +372,13 @@
       "starting": "Starting…",
       "anotherModeStarted": "Screen recording is running. Switch panels and stop it."
     },
-    "linkMore": "Learn more",
+    "linkMore": "Open documentation",
+    "linkAriaLabel": "Open documentation about transcription - opens in new window",
     "notAdminOrOwner": {
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a transcription (beta).",
-      "linkMore": "Learn more",
+      "linkMore": "Open documentation",
+      "linkAriaLabel": "Open documentation about transcription access - opens in new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "Login Required",
@@ -390,7 +393,8 @@
     "premium": {
       "heading": "Premium feature",
       "body": "This feature is reserved for public agents. If your email address is not authorized, please contact support to get access.",
-      "linkMore": "Learn more",
+      "linkMore": "Open documentation",
+      "linkAriaLabel": "Open documentation about premium access - opens in new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "You are not logged in!",
@@ -407,7 +411,8 @@
     "heading": "Record this call for later",
     "body": "Record up to {{max_duration}} of meeting.",
     "bodyWithoutMaxDuration": "Record your meeting without limit.",
-    "linkMore": "Learn more",
+    "linkMore": "Open documentation",
+    "linkAriaLabel": "Open documentation about recording - opens in new window",
     "details": {
       "receiver": "The recording will be sent to the host and co-hosts.",
       "destination": "This recording will be temporarily stored on our servers",
@@ -425,7 +430,8 @@
     "notAdminOrOwner": {
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a recording (beta).",
-      "linkMore": "Learn more",
+      "linkMore": "Open documentation",
+      "linkAriaLabel": "Open documentation about recording access - opens in new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "Login Required",
