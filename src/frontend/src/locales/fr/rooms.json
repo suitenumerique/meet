@@ -322,7 +322,8 @@
     "closeButton": "Masquer {{content}}"
   },
   "chat": {
-    "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel."
+    "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel.",
+    "messagesLog": "Messages du chat"
   },
   "moreTools": {
     "body": "Accèder à d'avantage d'outils pour améliorer vos réunions.",

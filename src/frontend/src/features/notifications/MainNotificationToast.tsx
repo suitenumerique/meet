@@ -18,10 +18,15 @@ import {
   ANIMATION_DURATION,
   ReactionPortals,
 } from '@/features/rooms/livekit/components/ReactionPortal'
+import { layoutStore } from '@/stores/layout'
+import { PanelId } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
   const { triggerNotificationSound } = useNotificationSound()
+  const { t } = useTranslation('notifications')
+  const announce = useScreenReaderAnnounce()
 
   const [reactions, setReactions] = useState<Reaction[]>([])
   const instanceIdRef = useRef(0)
@@ -41,12 +46,21 @@ export const MainNotificationToast = () => {
         },
         { timeout: NotificationDuration.MESSAGE }
       )
+      if (layoutStore.activePanelId !== PanelId.CHAT) {
+        announce(
+          t('chatMessageReceived', {
+            name: participant.name || t('defaultName'),
+            message: chatMessage.message,
+          }),
+          'polite'
+        )
+      }
     }
     room.on(RoomEvent.ChatMessage, handleChatMessage)
     return () => {
       room.off(RoomEvent.ChatMessage, handleChatMessage)
     }
-  }, [room, triggerNotificationSound])
+  }, [room, triggerNotificationSound, announce, t])
 
   const handleEmoji = (emoji: string, participant: Participant) => {
     if (!emoji || !Object.values(Emoji).includes(emoji as Emoji)) return

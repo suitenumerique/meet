@@ -9,6 +9,7 @@
   },
   "muted": "{{name}} heeft uw microfoon gedempt. Deelnemers kunnen u niet horen.",
   "openChat": "Open chat",
+  "chatMessageReceived": "{{name}} zegt: {{message}}",
   "lowerHand": {
     "auto": "Het lijkt erop dat u bent begonnen te spreken, dus we laten uw hand zakken.",
     "dismiss": "Houdt uw hand opgestoken"
