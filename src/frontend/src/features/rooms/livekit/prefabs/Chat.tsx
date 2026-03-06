@@ -151,7 +151,12 @@ export function Chat({ ...props }: ChatProps) {
         minHeight={0}
         overflowY="scroll"
       >
-        <ul className="lk-list lk-chat-messages" ref={ulRef}>
+        <ul
+          className="lk-list lk-chat-messages"
+          ref={ulRef}
+          role="log"
+          aria-relevant="additions"
+        >
           {renderedMessages}
         </ul>
       </Div>
