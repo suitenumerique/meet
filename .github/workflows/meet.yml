@@ -178,7 +178,7 @@ jobs:
       - name: Lint code with ruff
         run: ~/.local/bin/ruff check .
 
-  test-back:
+  test-backend:
     runs-on: ubuntu-latest
     needs: build-mails
     permissions:
@@ -291,8 +291,32 @@ jobs:
       - name: Generate a MO file from strings extracted from the project
         run: python manage.py compilemessages
 
-      - name: Run tests
+      - name: Run backend tests
         run: ~/.local/bin/pytest -n 2
+
+  test-summary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: src/summary
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install development dependencies
+        run: pip install --user .[dev]
+
+      - name: Run summary tests
+        run: ~/.local/bin/pytest
 
   lint-front:
     runs-on: ubuntu-latest
