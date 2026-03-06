@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♿(frontend) improve chatt toast a11y for screen readers #1109
+
 ## [1.10.0] - 2026-03-05
 
 ### Fixed

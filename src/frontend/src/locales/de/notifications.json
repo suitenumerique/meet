@@ -9,6 +9,7 @@
   },
   "muted": "{{name}} hat dein Mikrofon stummgeschaltet. Kein Teilnehmer kann dich hören.",
   "openChat": "Chat öffnen",
+  "chatMessageReceived": "{{name}} sagt: {{message}}",
   "lowerHand": {
     "auto": "Es scheint, dass du angefangen hast zu sprechen, daher wird deine Hand gesenkt.",
     "dismiss": "Hand oben lassen"
