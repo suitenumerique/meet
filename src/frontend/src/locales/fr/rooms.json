@@ -325,7 +325,8 @@
     "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel."
   },
   "moreTools": {
-    "body": "Accèder à d'avantage d'outils pour améliorer vos réunions.",
+    "body": "Accéder à davantage d'outils pour améliorer vos réunions.",
+    "linkAriaLabel": "Accéder à davantage d'outils pour améliorer vos réunions - ouvre dans une nouvelle fenêtre",
     "moreLink": "En savoir plus",
     "tools": {
       "transcript": {
@@ -371,10 +372,15 @@
       "anotherModeStarted": "Un enregistrement est en cours. <br/> Changez de menu et arrêtez le."
     },
     "linkMore": "En savoir plus",
+    "linkMoreAriaLabel": "En savoir plus - ouvre dans une nouvelle fenêtre",
+    "linkAriaLabel": "Transcrivez jusqu'à {{max_duration}} de réunion. - ouvre dans une nouvelle fenêtre",
+    "linkAriaLabelWithoutMax": "Transcrivez votre réunion sans limite. - ouvre dans une nouvelle fenêtre",
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta).",
       "linkMore": "En savoir plus",
+      "linkMoreAriaLabel": "En savoir plus - ouvre dans une nouvelle fenêtre",
+      "linkAriaLabel": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta). - ouvre dans une nouvelle fenêtre",
       "dividerLabel": "OU",
       "login": {
         "heading": "Connexion requise",
@@ -399,7 +405,9 @@
         "heading": "Demander à l'organisateur",
         "body": "L'hôte recevra une notification et pourra démarrer la transcription pour vous.",
         "buttonLabel": "Demander"
-      }
+      },
+      "linkMoreAriaLabel": "En savoir plus - ouvre dans une nouvelle fenêtre",
+      "linkAriaLabel": "Cette fonctionnalité est réservée aux agents publics. Si votre adresse email n'est pas autorisée, contactez le support pour obtenir l'accès. - ouvre dans une nouvelle fenêtre"
     }
   },
   "screenRecording": {
@@ -407,6 +415,9 @@
     "body": "Enregistrez jusqu'à {{max_duration}} de réunion.",
     "bodyWithoutMaxDuration": "Enregistrez votre réunion sans limite.",
     "linkMore": "En savoir plus",
+    "linkMoreAriaLabel": "En savoir plus - ouvre dans une nouvelle fenêtre",
+    "linkAriaLabel": "Enregistrez jusqu'à {{max_duration}} de réunion. - ouvre dans une nouvelle fenêtre",
+    "linkAriaLabelWithoutMax": "Enregistrez votre réunion sans limite. - ouvre dans une nouvelle fenêtre",
     "details": {
       "receiver": "L'enregistrement sera envoyé à l'organisateur et aux coorganisateurs.",
       "destination": "Cet enregistrement sera conservé temporairement sur nos serveurs",
@@ -425,6 +436,8 @@
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer un enregistrement (beta).",
       "linkMore": "En savoir plus",
+      "linkMoreAriaLabel": "En savoir plus - ouvre dans une nouvelle fenêtre",
+      "linkAriaLabel": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer un enregistrement (beta). - ouvre dans une nouvelle fenêtre",
       "dividerLabel": "OU",
       "login": {
         "heading": "Connexion requise",

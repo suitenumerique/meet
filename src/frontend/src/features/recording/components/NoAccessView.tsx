@@ -78,12 +78,19 @@ export const NoAccessView = ({
             },
           })}
         >
-          {t(`${i18nKey}.body`)}
-          <br />
-          {helpArticle && (
-            <A href={helpArticle} target="_blank">
-              {t(`${i18nKey}.linkMore`)}
+          {helpArticle ? (
+            <A
+              href={helpArticle}
+              target="_blank"
+              rel="noopener noreferrer"
+              externalIcon
+              color="note"
+              aria-label={t(`${i18nKey}.linkAriaLabel`)}
+            >
+              {t(`${i18nKey}.body`)}
             </A>
+          ) : (
+            t(`${i18nKey}.body`)
           )}
         </Text>
       </VStack>
