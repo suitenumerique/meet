@@ -1,0 +1,83 @@
+{{- if .Values.ingressMediaFiles.enabled -}}
+{{- $fullName := include "meet.fullname" . -}}
+{{- if and .Values.ingressMediaFiles.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.ingressMediaFiles.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.ingressMediaFiles.annotations "kubernetes.io/ingress.class" .Values.ingressMediaFiles.className }}
+  {{- end }}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-media-files
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "meet.labels" . | nindent 4 }}
+  {{- with .Values.ingressMediaFiles.annotations }}
+  annotations:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.ingressMediaFiles.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.ingressMediaFiles.className }}
+  {{- end }}
+  {{- if .Values.ingressMediaFiles.tls.enabled }}
+  tls:
+    {{- if .Values.ingressMediaFiles.host }}
+    - secretName: {{ .Values.ingressMediaFiles.tls.secretName | default (printf "%s-tls" $fullName) | quote }}
+      hosts:
+        - {{ .Values.ingressMediaFiles.host | quote }}
+    {{- end }}
+    {{- range .Values.ingressMediaFiles.tls.additional }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- if .Values.ingressMediaFiles.host }}
+    - host: {{ .Values.ingressMediaFiles.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingressMediaFiles.path | quote }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: ImplementationSpecific
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-media-files
+                port:
+                  number: {{ .Values.serviceMediaFiles.port }}
+              {{- else }}
+              serviceName: {{ $fullName }}-media-files
+              servicePort: {{ .Values.serviceMediaFiles.port }}
+            {{- end }}
+    {{- end }}
+    {{- range .Values.ingressMediaFiles.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: {{ $.Values.ingressMediaFiles.path | quote }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: ImplementationSpecific
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}-media-files
+                port:
+                  number: {{ .Values.serviceMediaFiles.port }}
+              {{- else }}
+              serviceName: {{ $fullName }}-media-files
+              servicePort: {{ .Values.serviceMediaFiles.port }}
+            {{- end }}
+    {{- end }}
+{{- end }}

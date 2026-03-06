@@ -125,6 +125,7 @@ ingressMedia:
   ## @param ingressMedia.annotations.nginx.ingress.kubernetes.io/upstream-vhost
   ## @param ingressMedia.annotations.nginx.ingress.kubernetes.io/configuration-snippet
   annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/auth-url: https://meet.example.com/api/v1.0/recordings/media-auth/
     nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
     nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
@@ -135,6 +136,50 @@ ingressMedia:
 ## @param serviceMedia.port
 ## @param serviceMedia.annotations
 serviceMedia:
+  host: minio.meet.svc.cluster.local
+  port: 9000
+  annotations: {}
+
+
+## @param ingressMediaFiles.enabled whether to enable the Ingress or not
+## @param ingressMediaFiles.className IngressClass to use for the Ingress
+## @param ingressMediaFiles.host Host for the Ingress
+## @param ingressMediaFiles.path Path to use for the Ingress
+ingressMediaFiles:
+  enabled: false
+  className: null
+  host: meet.example.com
+  path: /media/files/(.*)
+  ## @param ingressMediaFiles.hosts Additional host to configure for the Ingress
+  hosts: [ ]
+  #  - chart-example.local
+  ## @param ingressMediaFiles.tls.enabled Weather to enable TLS for the Ingress
+  ## @param ingressMediaFiles.tls.secretName Secret name for TLS config
+  ## @skip ingressMediaFiles.tls.additional
+  ## @extra ingressMediaFiles.tls.additional[].secretName Secret name for additional TLS config
+  ## @extra ingressMediaFiles.tls.additional[].hosts[] Hosts for additional TLS config
+  tls:
+    secretName: null
+    enabled: true
+    additional: []
+
+  ## @param ingressMediaFiles.annotations.nginx.ingress.kubernetes.io/auth-url
+  ## @param ingressMediaFiles.annotations.nginx.ingress.kubernetes.io/auth-response-headers
+  ## @param ingressMediaFiles.annotations.nginx.ingress.kubernetes.io/upstream-vhost
+  ## @param ingressMediaFiles.annotations.nginx.ingress.kubernetes.io/configuration-snippet
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/auth-url: https://meet.example.com/api/v1.0/files/media-auth/
+    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
+    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Content-Security-Policy "default-src 'none'" always;
+      add_header Content-Disposition "attachment";
+
+## @param serviceMediaFiles.host
+## @param serviceMediaFiles.port
+## @param serviceMediaFiles.annotations
+serviceMediaFiles:
   host: minio.meet.svc.cluster.local
   port: 9000
   annotations: {}

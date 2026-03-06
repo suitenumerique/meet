@@ -1,0 +1,14 @@
+{{- $fullName := include "meet.fullname" . -}}
+{{- $component := "media-files" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-media-files
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "meet.common.labels" (list . $component) | nindent 4 }}
+  annotations:
+    {{- toYaml $.Values.serviceMediaFiles.annotations | nindent 4 }}
+spec:
+  type: ExternalName
+  externalName: {{ $.Values.serviceMediaFiles.host }}
