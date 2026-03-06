@@ -203,6 +203,11 @@ test-back-parallel: ## run all back-end tests in parallel
 	bin/pytest -n auto $${args:-${1}}
 .PHONY: test-back-parallel
 
+test-summary: ## run summary service tests
+	@args="$(filter-out $@,$(MAKECMDGOALS))" && \
+	bin/pytest-summary $${args:-${1}}
+.PHONY: test-summary
+
 makemigrations:  ## run django makemigrations for the Meet project.
 	@echo "$(BOLD)Running makemigrations$(RESET)"
 	@$(COMPOSE) up -d postgresql

@@ -140,7 +140,7 @@ def format_transcript(
     )
 
 
-def format_actions(llm_output: dict) -> str:
+def _format_actions(llm_output: dict) -> str:
     """Format the actions from the LLM output into a markdown list.
 
     fomat:
@@ -328,7 +328,7 @@ def summarize_transcription(
         response_format=FORMAT_NEXT_STEPS,
     )
 
-    next_steps = format_actions(json.loads(next_steps))
+    next_steps = _format_actions(json.loads(next_steps))
 
     logger.info("Next steps generated")
 
