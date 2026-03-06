@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♿(frontend) improve ui and qria labels for help article links #1108
+
 ## [1.10.0] - 2026-03-05
 
 ### Fixed

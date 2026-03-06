@@ -326,6 +326,7 @@
   },
   "moreTools": {
     "body": "Access more tools to enhance your meetings.",
+    "linkAriaLabel": "Access more tools to enhance your meetings - opens in new window",
     "moreLink": "Learn more",
     "tools": {
       "transcript": {
@@ -371,10 +372,15 @@
       "anotherModeStarted": "Screen recording is running. Switch panels and stop it."
     },
     "linkMore": "Learn more",
+    "linkMoreAriaLabel": "Learn more - opens in new window",
+    "linkAriaLabel": "Transcribe up to {{max_duration}} of meeting time. - opens in new window",
+    "linkAriaLabelWithoutMax": "Transcribe your meeting without limits. - opens in new window",
     "notAdminOrOwner": {
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a transcription (beta).",
       "linkMore": "Learn more",
+      "linkMoreAriaLabel": "Learn more - opens in new window",
+      "linkAriaLabel": "For security reasons, only the meeting creator or an admin can start a transcription (beta). - opens in new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "Login Required",
@@ -390,6 +396,8 @@
       "heading": "Premium feature",
       "body": "This feature is reserved for public agents. If your email address is not authorized, please contact support to get access.",
       "linkMore": "Learn more",
+      "linkMoreAriaLabel": "Learn more - opens in new window",
+      "linkAriaLabel": "This feature is reserved for public agents. If your email address is not authorized, please contact support to get access. - opens in new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "You are not logged in!",
@@ -407,6 +415,9 @@
     "body": "Record up to {{max_duration}} of meeting.",
     "bodyWithoutMaxDuration": "Record your meeting without limit.",
     "linkMore": "Learn more",
+    "linkMoreAriaLabel": "Learn more - opens in new window",
+    "linkAriaLabel": "Record up to {{max_duration}} of meeting. - opens in new window",
+    "linkAriaLabelWithoutMax": "Record your meeting without limit. - opens in new window",
     "details": {
       "receiver": "The recording will be sent to the host and co-hosts.",
       "destination": "This recording will be temporarily stored on our servers",
@@ -425,6 +436,8 @@
       "heading": "Restricted Access",
       "body": "For security reasons, only the meeting creator or an admin can start a recording (beta).",
       "linkMore": "Learn more",
+      "linkMoreAriaLabel": "Learn more - opens in new window",
+      "linkAriaLabel": "For security reasons, only the meeting creator or an admin can start a recording (beta). - opens in new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "Login Required",

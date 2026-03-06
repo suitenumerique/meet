@@ -326,6 +326,7 @@
   },
   "moreTools": {
     "body": "Greifen Sie auf weitere Tools zu, um Ihre Meetings zu verbessern.",
+    "linkAriaLabel": "Greifen Sie auf weitere Tools zu, um Ihre Meetings zu verbessern - öffnet in neuem Fenster",
     "moreLink": "Mehr erfahren",
     "tools": {
       "transcript": {
@@ -371,10 +372,15 @@
       "anotherModeStarted": "Eine Aufnahme läuft. <br/> Wechseln Sie das Menü und stoppen Sie sie."
     },
     "linkMore": "Mehr erfahren",
+    "linkMoreAriaLabel": "Mehr erfahren - öffnet in neuem Fenster",
+    "linkAriaLabel": "Transkribieren Sie bis zu {{max_duration}} Meetingdauer. - öffnet in neuem Fenster",
+    "linkAriaLabelWithoutMax": "Transkribieren Sie Ihr Meeting ohne Begrenzung. - öffnet in neuem Fenster",
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
       "linkMore": "Mehr erfahren",
+      "linkMoreAriaLabel": "Mehr erfahren - öffnet in neuem Fenster",
+      "linkAriaLabel": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten. - öffnet in neuem Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
@@ -390,6 +396,7 @@
       "heading": "Premium-Funktion",
       "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn Ihre E-Mail-Adresse nicht autorisiert ist, kontaktieren Sie bitte den Support, um Zugriff zu erhalten.",
       "linkMore": "Mehr erfahren",
+      "linkMoreAriaLabel": "Mehr erfahren - öffnet in neuem Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
@@ -407,6 +414,9 @@
     "body": "Zeichnen Sie bis zu {{max_duration}} des Meetings auf.",
     "bodyWithoutMaxDuration": "Zeichnen Sie Ihr Meeting unbegrenzt auf.",
     "linkMore": "Mehr erfahren",
+    "linkMoreAriaLabel": "Mehr erfahren - öffnet in neuem Fenster",
+    "linkAriaLabel": "Zeichnen Sie bis zu {{max_duration}} des Meetings auf. - öffnet in neuem Fenster",
+    "linkAriaLabelWithoutMax": "Zeichnen Sie Ihr Meeting unbegrenzt auf. - öffnet in neuem Fenster",
     "details": {
       "receiver": "Die Aufzeichnung wird an den Organisator und die Mitorganisatoren gesendet.",
       "destination": "Diese Aufzeichnung wird vorübergehend auf unseren Servern gespeichert",
@@ -425,6 +435,8 @@
       "heading": "Zugriff eingeschränkt",
       "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Videoaufnahme (Beta) starten.",
       "linkMore": "Mehr erfahren",
+      "linkMoreAriaLabel": "Mehr erfahren - öffnet in neuem Fenster",
+      "linkAriaLabel": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Videoaufnahme (Beta) starten. - öffnet in neuem Fenster",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
