@@ -322,7 +322,8 @@
     "closeButton": "Verberg {{content}}"
   },
   "chat": {
-    "disclaimer": "De berichten zijn alleen voor de deelnemers zichtbaar op het moment dat ze worden verzonden. Alle berichten worden verwijderd aan het einde van het gesprek."
+    "disclaimer": "De berichten zijn alleen voor de deelnemers zichtbaar op het moment dat ze worden verzonden. Alle berichten worden verwijderd aan het einde van het gesprek.",
+    "messagesLog": "Chatberichten"
   },
   "moreTools": {
     "body": "Je krijgt toegang tot meer tools om je vergaderingen te verbeteren.",

@@ -322,7 +322,8 @@
     "closeButton": "{{content}} ausblenden"
   },
   "chat": {
-    "disclaimer": "Die Nachrichten sind nur für Teilnehmer zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Anrufs gelöscht."
+    "disclaimer": "Die Nachrichten sind nur für Teilnehmer zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Anrufs gelöscht.",
+    "messagesLog": "Chat-Nachrichten"
   },
   "moreTools": {
     "body": "Greifen Sie auf weitere Tools zu, um Ihre Meetings zu verbessern.",
