@@ -273,15 +273,36 @@
       "title": "Virtuele achtergrond",
       "selectedLabel": "Achtergrond toegepast:",
       "apply": "Vervang je achtergrond:",
-      "descriptions": {
-        "0": "Geprofileerd houten meubel",
-        "1": "Vergaderruimte",
-        "2": "Loft met zwarte glaswand",
-        "3": "Eetkamer",
-        "4": "Houten planken",
-        "5": "Houten trap",
-        "6": "Grijze bibliotheek",
-        "7": "Koffiebar"
+      "personal": {
+        "title": "Mijn achtergronden",
+        "selectFileTooltip": "Selecteer een afbeeldingsbestand om te gebruiken als persoonlijke achtergrond",
+        "notLoggedInWarning": "U bent niet ingelogd, persoonlijke achtergronden worden niet opgeslagen van de ene vergadering naar de andere.",
+        "warningUploadDisabled": "Persoonlijke achtergronden worden momenteel niet opgeslagen van de ene vergadering naar de andere.",
+        "uploadLimitReached": "U kunt geen persoonlijke achtergronden meer uploaden.",
+        "errors": {
+          "close": "Sluiten",
+          "file_too_large": {
+            "title": "Bestand te groot",
+            "description": "Het bestand is te groot. Kies een bestand kleiner dan {{maxSize, number}} MB."
+          },
+          "invalid_file_type": {
+            "title": "Ongeldig bestandstype",
+            "description": "Het bestandstype wordt niet ondersteund. Kies een {{allowedExtension, list(type: 'disjunction')}} bestand."
+          }
+        }
+      },
+      "presets": {
+        "title": "Suggesties",
+        "descriptions": {
+          "0": "Geprofileerd houten meubel",
+          "1": "Vergaderruimte",
+          "2": "Loft met zwarte glaswand",
+          "3": "Eetkamer",
+          "4": "Houten planken",
+          "5": "Houten trap",
+          "6": "Grijze bibliotheek",
+          "7": "Koffiebar"
+        }
       }
     },
     "faceLandmarks": {

@@ -517,6 +517,25 @@ class CreateFileSerializer(ListFileSerializer):
                     code="item_create_file_extension_not_allowed",
                 )
 
+            count = models.File.objects.filter(
+                creator=self.context["request"].user,
+                deleted_at__isnull=True,
+                type=attrs["type"],
+            ).count()
+            if count >= config_for_file_type["max_count_by_user"]:
+                logger.info(
+                    "create_item: user reached max files per user for type %s",
+                    attrs["type"],
+                )
+                raise serializers.ValidationError(
+                    {
+                        "type": _(
+                            "You have reached the maximum number of files for this type."
+                        )
+                    },
+                    code="item_create_user_reached_max_files_per_user",
+                )
+
         # The title will be the filename if not provided
         if not attrs.get("title", None):
             attrs["title"] = filename_root
