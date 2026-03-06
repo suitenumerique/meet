@@ -48,7 +48,7 @@ const StyledSidePanel = ({
       borderRadius: 8,
       flex: 1,
       position: 'absolute',
-      overflow: 'hidden',
+      overflow: 'clip',
       display: 'flex',
       flexDirection: 'column',
       margin: '1.5rem 1.5rem 1.5rem 0',
@@ -128,7 +128,7 @@ const Panel = ({ isOpen, keepAlive = false, children }: PanelProps) => (
     style={{
       display: isOpen ? 'inherit' : 'none',
       flexDirection: 'column',
-      overflow: 'hidden',
+      minHeight: 0,
       flexGrow: 1,
     }}
   >

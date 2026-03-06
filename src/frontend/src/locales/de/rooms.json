@@ -482,6 +482,26 @@
         "label": "Ihren Bildschirm teilen",
         "description": "Wenn Sie diese Option deaktivieren, können Teilnehmer ihren Bildschirm nicht mehr teilen, und laufende Bildschirmfreigaben werden sofort beendet."
       }
+    },
+    "recording": {
+      "title": "Aufnahmeberechtigungen",
+      "description": "Legen Sie fest, wer Aufnahmen und Transkriptionen in diesem Meeting starten darf.",
+      "screenRecording": {
+        "label": "Bildschirmaufnahme"
+      },
+      "transcript": {
+        "label": "Transkription"
+      },
+      "levels": {
+        "adminOwner": {
+          "label": "Nur Admins und Eigentümer",
+          "description": "Nur Admins und Eigentümer dieses Meetings können diese Funktion starten."
+        },
+        "authenticated": {
+          "label": "Alle authentifizierten Benutzer",
+          "description": "Jeder angemeldete Benutzer kann diese Funktion starten."
+        }
+      }
     }
   },
   "rating": {

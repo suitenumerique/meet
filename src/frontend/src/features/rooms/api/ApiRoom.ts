@@ -1,3 +1,5 @@
+import { RecordingPermission } from '@/features/recording/types'
+
 export type ApiLiveKit = {
   url: string
   room: string
@@ -20,5 +22,9 @@ export type ApiRoom = {
   livekit?: ApiLiveKit
   configuration?: {
     [key: string]: string | number | boolean | string[]
+  }
+  recording_permissions?: {
+    screen_recording_permission?: RecordingPermission
+    transcript_permission?: RecordingPermission
   }
 }

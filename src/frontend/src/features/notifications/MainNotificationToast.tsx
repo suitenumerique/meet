@@ -10,6 +10,10 @@ import { decodeNotificationDataReceived } from './utils'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
 import { ToastProvider, toastQueue } from './components/ToastProvider'
 import { WaitingParticipantNotification } from './components/WaitingParticipantNotification'
+import { queryClient } from '@/api/queryClient'
+import { keys } from '@/api/queryKeys'
+import { fetchRoom } from '@/features/rooms/api/fetchRoom'
+import { useParams } from 'wouter'
 import {
   Emoji,
   Reaction,
@@ -22,6 +26,7 @@ import {
 export const MainNotificationToast = () => {
   const room = useRoomContext()
   const { triggerNotificationSound } = useNotificationSound()
+  const { roomId } = useParams()
 
   const [reactions, setReactions] = useState<Reaction[]>([])
   const instanceIdRef = useRef(0)
@@ -127,6 +132,12 @@ export const MainNotificationToast = () => {
           )
           break
         }
+        case NotificationType.RecordingPermissionsChanged:
+          queryClient.fetchQuery({
+            queryKey: [keys.room, roomId],
+            queryFn: () => fetchRoom({ roomId: roomId! }),
+          })
+          break
         default:
           return
       }
@@ -135,7 +146,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.DataReceived, handleDataReceived)
     }
-  }, [room])
+  }, [room, roomId])
 
   useEffect(() => {
     const showJoinNotification = (participant: Participant) => {

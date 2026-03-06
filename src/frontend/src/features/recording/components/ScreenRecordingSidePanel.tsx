@@ -26,7 +26,8 @@ import { Checkbox } from '@/primitives/Checkbox'
 import { useTranscriptionLanguage } from '@/features/settings'
 import { useMutateRecording } from '../hooks/useMutateRecording'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner.ts'
+import { useHasFeatureWithoutAdminRights } from '../hooks/useHasFeatureWithoutAdminRights'
+import { FeatureFlags } from '@/features/analytics/enums'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -37,7 +38,10 @@ export const ScreenRecordingSidePanel = () => {
 
   const [includeTranscript, setIncludeTranscript] = useState(false)
 
-  const isAdminOrOwner = useIsAdminOrOwner()
+  const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
+    RecordingMode.ScreenRecording,
+    FeatureFlags.ScreenRecording
+  )
 
   const { notifyParticipants } = useNotifyParticipants()
   const { selectedLanguageKey, isLanguageSetToAuto } =
@@ -104,7 +108,7 @@ export const ScreenRecordingSidePanel = () => {
     }
   }
 
-  if (!isAdminOrOwner) {
+  if (hasFeatureWithoutAdminRights) {
     return (
       <NoAccessView
         i18nKeyPrefix={keyPrefix}

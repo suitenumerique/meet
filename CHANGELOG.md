@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend,frontend) add per-room configurable recording permissions with admin panel controls
+
 ## [1.10.0] - 2026-03-05
 
 ### Fixed

@@ -482,6 +482,26 @@
         "label": "Hun scherm delen",
         "description": "Als u deze optie uitschakelt, kunnen deelnemers hun scherm niet meer delen en wordt elke lopende schermdeling onmiddellijk gestopt."
       }
+    },
+    "recording": {
+      "title": "Opnamerechten",
+      "description": "Bepaal wie opnames en transcripties in deze vergadering mag starten.",
+      "screenRecording": {
+        "label": "Schermopname"
+      },
+      "transcript": {
+        "label": "Transcriptie"
+      },
+      "levels": {
+        "adminOwner": {
+          "label": "Alleen admins en eigenaren",
+          "description": "Alleen admins en eigenaren van deze vergadering kunnen deze functie starten."
+        },
+        "authenticated": {
+          "label": "Alle geauthenticeerde gebruikers",
+          "description": "Elke ingelogde gebruiker kan deze functie starten."
+        }
+      }
     }
   },
   "rating": {
