@@ -552,8 +552,8 @@ msgstr "Om deze opname permanent te bewaren:"
 
 #: core/templates/mail/html/screen_recording.html:208
 #: core/templates/mail/text/screen_recording.txt:13
-msgid "Click the \"Open\" button below "
-msgstr "Klik op de \"Openen\"-knop hieronder "
+msgid "Click the \"<a href=\"%(link)s\">Open</a>\" link below "
+msgstr "Klik op de \"<a href=\"%(link)s\">Openen</a>\"-link hieronder "
 
 #: core/templates/mail/html/screen_recording.html:209
 #: core/templates/mail/text/screen_recording.txt:14
