@@ -1,4 +1,3 @@
-import { layoutStore } from '@/stores/layout'
 import { css } from '@/styled-system/css'
 import { Heading } from 'react-aria-components'
 import { text } from '@/primitives/Text'
@@ -6,7 +5,7 @@ import { Button, Div } from '@/primitives'
 import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from './controls/Participants/ParticipantsList'
-import { useSidePanel } from '../hooks/useSidePanel'
+import { type SidePanelStore, useSidePanel } from '../hooks/useSidePanel'
 import { ReactNode } from 'react'
 import { Chat } from '../prefabs/Chat'
 import { Effects } from './effects/Effects'
@@ -135,7 +134,7 @@ const Panel = ({ isOpen, keepAlive = false, children }: PanelProps) => (
     {keepAlive || isOpen ? children : null}
   </div>
 )
-export const SidePanel = () => {
+export const SidePanel = ({ store }: { store?: SidePanelStore }) => {
   const {
     activePanelId,
     isParticipantsOpen,
@@ -147,24 +146,23 @@ export const SidePanel = () => {
     isInfoOpen,
     isSubPanelOpen,
     activeSubPanelId,
-  } = useSidePanel()
+    closePanel,
+    goBack,
+  } = useSidePanel(store)
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
 
   return (
     <StyledSidePanel
       title={t(`heading.${activeSubPanelId || activePanelId}`)}
       ariaLabel={t('ariaLabel')}
-      onClose={() => {
-        layoutStore.activePanelId = null
-        layoutStore.activeSubPanelId = null
-      }}
+      onClose={closePanel}
       closeButtonTooltip={t('closeButton', {
         content: t(`content.${activeSubPanelId || activePanelId}`),
       })}
       isClosed={!isSidePanelOpen}
       isSubmenu={isSubPanelOpen}
       backButtonLabel={t('backToTools')}
-      onBack={() => (layoutStore.activeSubPanelId = null)}
+      onBack={goBack}
     >
       <Panel isOpen={isParticipantsOpen}>
         <ParticipantsList />
