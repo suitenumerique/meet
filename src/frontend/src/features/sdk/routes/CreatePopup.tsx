@@ -10,7 +10,10 @@ const callbackIdHandler = new CallbackIdHandler()
 const popupWindow = new PopupWindow()
 
 export const CreatePopup = () => {
-  const { isLoggedIn } = useUser({ fetchUserOptions: { attemptSilent: false } })
+  const { isLoggedIn, user } = useUser({
+    fetchUserOptions: { attemptSilent: false },
+  })
+  const canCreate = user?.can_create === true
   const { mutateAsync: createRoom } = useCreateRoom()
 
   const callbackId = useMemo(() => callbackIdHandler.getOrCreate(), [])
@@ -55,10 +58,10 @@ export const CreatePopup = () => {
         console.error('Failed to create meeting room:', error)
       }
     }
-    if (isLoggedIn && callbackId) {
+    if (isLoggedIn && canCreate && callbackId) {
       createMeetingRoom()
     }
-  }, [isLoggedIn, callbackId, createRoom])
+  }, [isLoggedIn, canCreate, callbackId, createRoom])
 
   return (
     <div

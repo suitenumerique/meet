@@ -10,6 +10,7 @@
   "joinMeetingTipContent": "U kunt deelnemen aan een vergadering door de volledige link in de adresbalk van de browser te plakken.",
   "joinMeetingTipHeading": "Wist u dat?",
   "loginToCreateMeeting": "Log in om een vergadering te maken",
+  "noAccess": "U heeft geen toegang om vergaderingen te maken. Neem contact op met uw beheerder.",
   "moreLinkLabel": "Meer informatie - nieuw tabblad",
   "moreLink": "Meer informatie",
   "moreAbout": "over {{appTitle}}",

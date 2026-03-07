@@ -187,7 +187,7 @@ class UserViewSet(
         """
         context = {"request": request}
         return drf_response.Response(
-            self.serializer_class(request.user, context=context).data
+            serializers.UserMeSerializer(request.user, context=context).data
         )
 
 

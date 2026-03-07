@@ -2,6 +2,8 @@
 
 from rest_framework import permissions
 
+from core.entitlements import EntitlementsUnavailableError, get_user_entitlements
+
 from ..models import RoleChoices
 
 ACTION_FOR_METHOD_TO_PERMISSION = {
@@ -45,11 +47,27 @@ class RoomPermissions(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        """Only allow authenticated users for unsafe methods."""
+        """Only allow authenticated users for unsafe methods.
+
+        Room creation additionally requires the can_create entitlement.
+        Fail-closed: denies creation when the entitlements service is unavailable.
+        """
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        return request.user.is_authenticated
+        if not request.user.is_authenticated:
+            return False
+
+        if view.action == "create":
+            try:
+                entitlements = get_user_entitlements(
+                    request.user.sub, request.user.email
+                )
+                return entitlements.get("can_create", False)
+            except EntitlementsUnavailableError:
+                return False
+
+        return True
 
     def has_object_permission(self, request, view, obj):
         """Object permissions are only given to administrators of the room."""

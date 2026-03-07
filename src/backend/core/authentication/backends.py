@@ -1,6 +1,7 @@
 """Authentication Backends for the Meet core app."""
 
 import contextlib
+import logging
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, SuspiciousOperation
@@ -10,12 +11,15 @@ from lasuite.oidc_login.backends import (
     OIDCAuthenticationBackend as LaSuiteOIDCAuthenticationBackend,
 )
 
+from core.entitlements import EntitlementsUnavailableError, get_user_entitlements
 from core.models import User
 from core.services.marketing import (
     ContactCreationError,
     ContactData,
     get_marketing_service,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
@@ -58,6 +62,21 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
         email = claims["email"]
         if is_new_user and email and settings.SIGNUP_NEW_USER_TO_MARKETING_EMAIL:
             self.signup_to_marketing_email(email)
+
+        # Warm the entitlements cache on login (force_refresh)
+        try:
+            get_user_entitlements(
+                user_sub=user.sub,
+                user_email=user.email,
+                user_info=claims,
+                force_refresh=True,
+            )
+        except EntitlementsUnavailableError:
+            email_domain = user.email.split("@")[-1] if "@" in user.email else "?"
+            logger.warning(
+                "Entitlements unavailable for user@%s during login",
+                email_domain,
+            )
 
     @staticmethod
     def signup_to_marketing_email(email):

@@ -148,7 +148,8 @@ const IntroText = styled('div', {
 
 export const Home = () => {
   const { t } = useTranslation('home')
-  const { isLoggedIn } = useUser()
+  const { isLoggedIn, user } = useUser()
+  const canCreate = user?.can_create === true
 
   const {
     userChoices: { username },
@@ -200,45 +201,56 @@ export const Home = () => {
               })}
             >
               {isLoggedIn ? (
-                <Menu>
-                  <Button variant="primary" data-attr="create-meeting">
-                    {t('createMeeting')}
-                  </Button>
-                  <RACMenu>
-                    <MenuItem
-                      className={
-                        menuRecipe({ icon: true, variant: 'light' }).item
-                      }
-                      onAction={async () => {
-                        const slug = generateRoomId()
-                        createRoom({ slug, username }).then((data) =>
-                          navigateTo('room', data.slug, {
-                            state: { create: true, initialRoomData: data },
-                          })
-                        )
-                      }}
-                      data-attr="create-option-instant"
-                    >
-                      <RiAddLine size={18} />
-                      {t('createMenu.instantOption')}
-                    </MenuItem>
-                    <MenuItem
-                      className={
-                        menuRecipe({ icon: true, variant: 'light' }).item
-                      }
-                      onAction={() => {
-                        const slug = generateRoomId()
-                        createRoom({ slug, username }).then((data) =>
-                          setLaterRoom(data)
-                        )
-                      }}
-                      data-attr="create-option-later"
-                    >
-                      <RiLink size={18} />
-                      {t('createMenu.laterOption')}
-                    </MenuItem>
-                  </RACMenu>
-                </Menu>
+                canCreate ? (
+                  <Menu>
+                    <Button variant="primary" data-attr="create-meeting">
+                      {t('createMeeting')}
+                    </Button>
+                    <RACMenu>
+                      <MenuItem
+                        className={
+                          menuRecipe({ icon: true, variant: 'light' }).item
+                        }
+                        onAction={async () => {
+                          const slug = generateRoomId()
+                          createRoom({ slug, username }).then((data) =>
+                            navigateTo('room', data.slug, {
+                              state: { create: true, initialRoomData: data },
+                            })
+                          )
+                        }}
+                        data-attr="create-option-instant"
+                      >
+                        <RiAddLine size={18} />
+                        {t('createMenu.instantOption')}
+                      </MenuItem>
+                      <MenuItem
+                        className={
+                          menuRecipe({ icon: true, variant: 'light' }).item
+                        }
+                        onAction={() => {
+                          const slug = generateRoomId()
+                          createRoom({ slug, username }).then((data) =>
+                            setLaterRoom(data)
+                          )
+                        }}
+                        data-attr="create-option-later"
+                      >
+                        <RiLink size={18} />
+                        {t('createMenu.laterOption')}
+                      </MenuItem>
+                    </RACMenu>
+                  </Menu>
+                ) : (
+                  <p
+                    className={css({
+                      color: 'greyscale.700',
+                      fontSize: '0.95rem',
+                    })}
+                  >
+                    {t('noAccess')}
+                  </p>
+                )
               ) : (
                 <LoginButton proConnectHint={false} />
               )}

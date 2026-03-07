@@ -10,6 +10,7 @@
   "joinMeetingTipContent": "Vous pouvez rejoindre une réunion en copiant directement son lien complet dans la barre d'adresse du navigateur.",
   "joinMeetingTipHeading": "Astuce",
   "loginToCreateMeeting": "Connectez-vous pour créer une réunion",
+  "noAccess": "Vous n'avez pas accès à la création de réunions. Veuillez contacter votre administrateur.",
   "moreLinkLabel": "En savoir plus - nouvelle fenêtre",
   "moreLink": "En savoir plus",
   "moreAbout": "sur {{appTitle}}",

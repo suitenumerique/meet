@@ -14,6 +14,7 @@ from rest_framework.exceptions import PermissionDenied
 from timezone_field.rest_framework import TimeZoneSerializerField
 
 from core import models, utils
+from core.entitlements import EntitlementsUnavailableError, get_user_entitlements
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,6 +26,25 @@ class UserSerializer(serializers.ModelSerializer):
         model = models.User
         fields = ["id", "email", "full_name", "short_name", "timezone", "language"]
         read_only_fields = ["id", "email", "full_name", "short_name"]
+
+
+class UserMeSerializer(UserSerializer):
+    """Serialize users for me endpoint."""
+
+    can_create = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.User
+        fields = [*UserSerializer.Meta.fields, "can_create"]
+        read_only_fields = [*UserSerializer.Meta.read_only_fields, "can_create"]
+
+    def get_can_create(self, user) -> bool:
+        """Check entitlements for the current user."""
+        try:
+            entitlements = get_user_entitlements(user.sub, user.email)
+            return entitlements.get("can_create", False)
+        except EntitlementsUnavailableError:
+            return False
 
 
 class ResourceAccessSerializerMixin:
