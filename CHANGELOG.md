@@ -10,13 +10,6 @@ and this project adheres to
 
 ## [1.10.0] - 2026-03-05
 
-### Fixed
-
-- 🩹(frontend) remove incorrect reference to ProConnect on the prejoin #1080
-- ✨(frontend) add Ctrl+Shift+/ to open shortcuts settings #1050
-- ♿(frontend) announce selected state to screen readers #1081
-- 💄(frontend) truncate long names with ellipsis in reaction overlay #1099
-
 ### Changed
 
 - 🔒️(backend) enhance API input validation to strengthen security #1053
@@ -30,6 +23,10 @@ and this project adheres to
 - 💄(frontend) truncate pinned participant name with ellipsis on overflow #1056
 - ♿(frontend) prevent focus ring clipping on invite dialog #1078
 - ♿(frontend) dynamic tab title when connected to meeting #1060
+- 🩹(frontend) remove incorrect reference to ProConnect on the prejoin #1080
+- ✨(frontend) add Ctrl+Shift+/ to open shortcuts settings #1050
+- ♿(frontend) announce selected state to screen readers #1081
+- 💄(frontend) truncate long names with ellipsis in reaction overlay #1099
 
 ### Added
 
