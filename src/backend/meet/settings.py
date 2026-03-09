@@ -978,6 +978,8 @@ class Test(Base):
     APPLICATION_JWT_SECRET_KEY = "devKey"  # noqa:S105
     APPLICATION_JWT_AUDIENCE = "Test inc."
 
+    FILE_UPLOAD_ENABLED = True
+
     CELERY_TASK_ALWAYS_EAGER = values.BooleanValue(True)
 
     def __init__(self):
