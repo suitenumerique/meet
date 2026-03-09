@@ -10,20 +10,14 @@ import { decodeNotificationDataReceived } from './utils'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
 import { ToastProvider, toastQueue } from './components/ToastProvider'
 import { WaitingParticipantNotification } from './components/WaitingParticipantNotification'
-import {
-  Emoji,
-  Reaction,
-} from '@/features/rooms/livekit/components/controls/ReactionsToggle'
-import {
-  ANIMATION_DURATION,
-  ReactionPortals,
-} from '@/features/rooms/livekit/components/ReactionPortal'
+import { Emoji } from '@/features/rooms/livekit/components/controls/ReactionsToggle'
+import { ANIMATION_DURATION } from '@/features/rooms/livekit/components/ReactionPortal'
+import { reactionsStore } from '@/stores/reaction.ts'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
   const { triggerNotificationSound } = useNotificationSound()
 
-  const [reactions, setReactions] = useState<Reaction[]>([])
   const instanceIdRef = useRef(0)
 
   useEffect(() => {
@@ -51,16 +45,22 @@ export const MainNotificationToast = () => {
   const handleEmoji = (emoji: string, participant: Participant) => {
     if (!emoji || !Object.values(Emoji).includes(emoji as Emoji)) return
     const id = instanceIdRef.current++
-    setReactions((prev) => [
-      ...prev,
-      {
-        id,
-        emoji,
-        participant,
-      },
-    ])
+
+    const newReaction = {
+      id: `distant-${id}`,
+      emoji: emoji,
+      isLocalParticipant: false,
+      participantName: participant.name || `${participant.identity}`,
+    }
+
+    reactionsStore.reactions.push(newReaction)
+
+    // Remove this reaction after animation
     setTimeout(() => {
-      setReactions((prev) => prev.filter((instance) => instance.id !== id))
+      const index = reactionsStore.reactions.findIndex(
+        (r) => r.id === newReaction.id
+      )
+      if (index !== -1) reactionsStore.reactions.splice(index, 1)
     }, ANIMATION_DURATION)
   }
 
@@ -238,7 +238,6 @@ export const MainNotificationToast = () => {
     <Div position="absolute" bottom={0} right={5} zIndex={1000}>
       <ToastProvider />
       <WaitingParticipantNotification />
-      <ReactionPortals reactions={reactions} />
     </Div>
   )
 }

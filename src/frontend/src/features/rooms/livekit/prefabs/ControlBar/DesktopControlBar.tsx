@@ -3,7 +3,10 @@ import { ControlBarAuxProps } from './ControlBar'
 import { css } from '@/styled-system/css'
 import { LeaveButton } from '../../components/controls/LeaveButton'
 import { Track } from 'livekit-client'
-import { ReactionsToggle } from '../../components/controls/ReactionsToggle'
+import {
+  ReactionsToggle,
+  ReactionToolbar,
+} from '../../components/controls/ReactionsToggle'
 import { HandToggle } from '../../components/controls/HandToggle'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { SubtitlesToggle } from '../../components/controls/SubtitlesToggle'
@@ -15,6 +18,8 @@ import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKey
 import { useFullScreen } from '../../hooks/useFullScreen'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
+import { useSnapshot } from 'valtio'
+import { layoutStore } from '@/stores/layout.ts'
 
 export function DesktopControlBar({
   onDeviceError,
@@ -23,6 +28,8 @@ export function DesktopControlBar({
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
 
   const { toggleFullScreen, isFullscreenAvailable } = useFullScreen({})
+
+  const layoutSnap = useSnapshot(layoutStore)
 
   useRegisterKeyboardShortcut({
     id: 'focus-toolbar',
@@ -44,61 +51,76 @@ export function DesktopControlBar({
 
   return (
     <div
-      ref={desktopControlBarEl}
       className={css({
         width: '100vw',
         display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
         position: 'absolute',
-        padding: '1.125rem',
         bottom: 0,
         left: 0,
         right: 0,
       })}
     >
+      {layoutSnap.showReaction && <ReactionToolbar />}
       <div
+        ref={desktopControlBarEl}
         className={css({
+          width: '100vw',
           display: 'flex',
-          justifyContent: 'flex-start',
-          flex: '1 1 33%',
-          alignItems: 'center',
-          gap: '0.5rem',
-          marginLeft: '0.5rem',
+          padding: '1.125rem',
         })}
-      />
-      <div
-        className={css({
-          flex: '1 1 33%',
-          alignItems: 'center',
-          justifyContent: 'center',
-          display: 'flex',
-          gap: '0.65rem',
-        })}
+        style={{
+          paddingTop: layoutSnap.showReaction ? '0.65rem' : undefined,
+        }}
       >
-        <AudioDevicesControl
-          onDeviceError={(error) =>
-            onDeviceError?.({ source: Track.Source.Microphone, error })
-          }
+        <div
+          className={css({
+            display: 'flex',
+            justifyContent: 'flex-start',
+            flex: '1 1 33%',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginLeft: '0.5rem',
+          })}
         />
-        <VideoDeviceControl
-          onDeviceError={(error) =>
-            onDeviceError?.({ source: Track.Source.Camera, error })
-          }
-        />
-        <ReactionsToggle />
-        {browserSupportsScreenSharing && (
-          <ScreenShareToggle
+        <div
+          id="desktop-control-bar"
+          className={css({
+            flex: '1 1 33%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            display: 'flex',
+            gap: '0.65rem',
+          })}
+        >
+          <AudioDevicesControl
             onDeviceError={(error) =>
-              onDeviceError?.({ source: Track.Source.ScreenShare, error })
+              onDeviceError?.({ source: Track.Source.Microphone, error })
             }
           />
-        )}
-        <SubtitlesToggle />
-        <HandToggle />
-        <OptionsButton />
-        <LeaveButton />
-        <StartMediaButton />
+          <VideoDeviceControl
+            onDeviceError={(error) =>
+              onDeviceError?.({ source: Track.Source.Camera, error })
+            }
+          />
+          <ReactionsToggle />
+          {browserSupportsScreenSharing && (
+            <ScreenShareToggle
+              onDeviceError={(error) =>
+                onDeviceError?.({ source: Track.Source.ScreenShare, error })
+              }
+            />
+          )}
+          <SubtitlesToggle />
+          <HandToggle />
+          <OptionsButton />
+          <LeaveButton />
+          <StartMediaButton />
+        </div>
+        <MoreOptions parentElement={desktopControlBarEl} />
       </div>
-      <MoreOptions parentElement={desktopControlBarEl} />
     </div>
   )
 }

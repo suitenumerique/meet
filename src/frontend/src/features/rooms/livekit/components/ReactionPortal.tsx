@@ -9,6 +9,7 @@ import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { accessibilityStore } from '@/stores/accessibility'
 import { useSnapshot } from 'valtio'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { reactionsStore } from '@/stores/reaction.ts'
 
 export const ANIMATION_DURATION = 3000
 export const ANIMATION_DISTANCE = 300
@@ -118,12 +119,13 @@ export function FloatingReaction({
 
 export function ReactionPortal({
   emoji,
-  participant,
+  participantName,
+  isLocalParticipant,
 }: {
   emoji: string
-  participant: Participant
+  participantName: string
+  isLocalParticipant: boolean
 }) {
-  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
   const speed = useMemo(() => Math.random() * 1.5 + 0.5, [])
   const scale = useMemo(() => Math.max(Math.random() + 0.5, 1), [])
   return createPortal(
@@ -141,17 +143,18 @@ export function ReactionPortal({
         emoji={emoji}
         speed={speed}
         scale={scale}
-        name={participant?.isLocal ? t('you') : participant.name}
-        isLocal={participant?.isLocal}
+        name={participantName}
+        isLocal={isLocalParticipant}
       />
     </div>,
     document.body
   )
 }
 
-export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
+export const ReactionPortals = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
   const { announceReactions } = useSnapshot(accessibilityStore)
+  const { reactions } = useSnapshot(reactionsStore)
   const [lastAnnouncedId, setLastAnnouncedId] = useState<number | null>(null)
   const announce = useScreenReaderAnnounce()
 
@@ -181,7 +184,8 @@ export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
         <ReactionPortal
           key={instance.id}
           emoji={instance.emoji}
-          participant={instance.participant}
+          participantName={instance.participantName}
+          isLocalParticipant={instance.isLocalParticipant}
         />
       ))}
     </>

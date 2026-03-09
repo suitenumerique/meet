@@ -16,9 +16,9 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
 export function ControlBar({ onDeviceError }: ControlBarProps) {
   const isMobile = useIsMobile()
 
-  if (isMobile) {
-    return <MobileControlBar onDeviceError={onDeviceError} />
-  }
+  // if (isMobile) {
+  //   return <MobileControlBar onDeviceError={onDeviceError} />
+  // }
   return <DesktopControlBar onDeviceError={onDeviceError} />
 }
 

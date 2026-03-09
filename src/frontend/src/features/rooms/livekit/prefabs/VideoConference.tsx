@@ -6,7 +6,7 @@ import {
   log,
 } from '@livekit/components-core'
 import { Participant, RoomEvent, Track } from 'livekit-client'
-import React, { useCallback, useRef, useState, useEffect } from 'react'
+import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react'
 import {
   ConnectionStateToast,
   FocusLayoutContainer,
@@ -44,6 +44,11 @@ import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { useSnapshot } from 'valtio'
+import { layoutStore } from '@/stores/layout.ts'
+
+export const WIP_MIN_HEIGHT = 80
+export const WIP_ADDITIONAL_HEIGHT_REACTION = 32
 
 const LayoutWrapper = styled(
   'div',
@@ -258,6 +263,15 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
 
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
+  const layoutSnap = useSnapshot(layoutStore)
+  const isReactionOpen = layoutSnap.showReaction
+
+  const height = useMemo(() => {
+    let h = WIP_MIN_HEIGHT
+    if (isReactionOpen) return h + WIP_ADDITIONAL_HEIGHT_REACTION
+    return h
+  }, [isReactionOpen])
+
   return (
     <div
       className="lk-video-conference"
@@ -281,8 +295,8 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             style={{
               position: 'absolute',
               inset: isSidePanelOpen
-                ? `var(--lk-grid-gap) calc(358px + 3rem) calc(80px + var(--lk-grid-gap)) 16px`
-                : `var(--lk-grid-gap) var(--lk-grid-gap) calc(80px + var(--lk-grid-gap))`,
+                ? `var(--lk-grid-gap) calc(358px + 3rem) calc(${height}px + var(--lk-grid-gap)) 16px`
+                : `var(--lk-grid-gap) var(--lk-grid-gap) calc(${height}px + var(--lk-grid-gap))`,
               transition: 'inset .5s cubic-bezier(0.4,0,0.2,1) 5ms',
               maxHeight: '100%',
             }}

@@ -10,6 +10,7 @@ type State = {
   showSubtitles: boolean
   activePanelId: PanelId | null
   activeSubPanelId: SubPanelId | null
+  showReaction: boolean
 }
 
 export const layoutStore = proxy<State>({
@@ -18,4 +19,5 @@ export const layoutStore = proxy<State>({
   showSubtitles: false,
   activePanelId: null,
   activeSubPanelId: null,
+  showReaction: false,
 })

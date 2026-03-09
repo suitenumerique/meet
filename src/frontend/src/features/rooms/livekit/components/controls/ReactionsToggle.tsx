@@ -12,14 +12,11 @@ import {
 } from '@/features/rooms/livekit/components/ReactionPortal'
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
-import {
-  Popover as RACPopover,
-  Dialog,
-  DialogTrigger,
-} from 'react-aria-components'
-import { FocusScope } from '@react-aria/focus'
-import { Participant } from 'livekit-client'
+import { FocusScope, useFocusManager } from '@react-aria/focus'
 import useRateLimiter from '@/hooks/useRateLimiter'
+import { layoutStore } from '@/stores/layout.ts'
+import { useSnapshot } from 'valtio'
+import { reactionsStore } from '@/stores/reaction.ts'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export enum Emoji {
@@ -36,21 +33,116 @@ export enum Emoji {
 export interface Reaction {
   id: number
   emoji: string
-  participant: Participant
+  isLocalParticipant: boolean
+  participantName: string
 }
 
-export const ReactionsToggle = () => {
+const getFirstControlBarFocusable = () =>
+  document
+    .getElementById('desktop-control-bar')
+    ?.querySelector<HTMLButtonElement>('button:not([disabled])') ?? null
+
+const ReactionButton = ({ emoji, debouncedSendReaction, index }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
-  const [reactions, setReactions] = useState<Reaction[]>([])
+  const focusManager = useFocusManager()
+  let onKeyDown = (e) => {
+    console.log(e)
+
+    switch (e.key) {
+      case 'ArrowRight':
+        focusManager?.focusNext({ wrap: true })
+        break
+      case 'ArrowLeft':
+        focusManager?.focusPrevious({ wrap: true })
+        break
+      case 'Escape':
+        layoutStore.showReaction = false
+        break
+      case 'Tab':
+        console.log(getFirstControlBarFocusable)
+        if (!e.shiftKey) getFirstControlBarFocusable()?.focus()
+        break
+    }
+  }
+
+  return (
+    <Button
+      onPress={() => debouncedSendReaction(emoji)}
+      onKeyDown={onKeyDown}
+      aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
+      variant="primaryTextDark"
+      size="sm"
+      square
+      round
+      tabIndex={index != 0 && -1}
+      data-attr={`send-reaction-${emoji}`}
+    >
+      <img
+        src={`/assets/reactions/${emoji}.png`}
+        alt=""
+        className={css({
+          width: '28px',
+          height: '28px',
+          pointerEvents: 'none',
+          userSelect: 'none',
+        })}
+      />
+    </Button>
+  )
+}
+
+const ForceFocusFirst = (props) => {
+  const focusManager = useFocusManager()
+
+  return (
+    <div
+      className={css({
+        display: 'flex',
+        gap: '0.2rem',
+      })}
+      onFocus={(e) => {
+        // Only trigger when focus enters from outside this div
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          const w = focusManager?.focusFirst()
+        }
+      }}
+    >
+      {props.children}
+    </div>
+  )
+}
+
+const Toolbar = (props) => {
+  return (
+    <div
+      role="toolbar"
+      className={css({
+        display: 'flex',
+        borderRadius: '20px',
+        padding: '0.15rem',
+
+        backgroundColor: 'primaryDark.100',
+        '&[data-entering]': {
+          animation: 'fade 200ms ease',
+        },
+        '&[data-exiting]': {
+          animation: 'fade 200ms ease-in reverse',
+        },
+        '@media (min-width: 610px)': {
+          marginRight: '59px',
+        },
+      })}
+    >
+      <FocusScope autoFocus>
+        <ForceFocusFirst>{props.children}</ForceFocusFirst>
+      </FocusScope>
+    </div>
+  )
+}
+
+export const ReactionToolbar = () => {
   const instanceIdRef = useRef(0)
   const room = useRoomContext()
-
-  const [isOpen, setIsOpen] = useState(false)
-
-  useRegisterKeyboardShortcut({
-    id: 'reaction',
-    handler: () => setIsOpen((prev) => !prev),
-  })
 
   const sendReaction = async (emoji: string) => {
     const encoder = new TextEncoder()
@@ -64,17 +156,20 @@ export const ReactionsToggle = () => {
     await room.localParticipant.publishData(data, { reliable: true })
 
     const newReaction = {
-      id: instanceIdRef.current++,
+      id: `local-${instanceIdRef.current++}`,
       emoji,
-      participant: room.localParticipant,
+      isLocalParticipant: room.localParticipant.isLocal,
+      participantName: room.localParticipant.name,
     }
-    setReactions((prev) => [...prev, newReaction])
+
+    reactionsStore.reactions.push(newReaction)
 
     // Remove this reaction after animation
     setTimeout(() => {
-      setReactions((prev) =>
-        prev.filter((instance) => instance.id !== newReaction.id)
+      const index = reactionsStore.reactions.findIndex(
+        (r) => r.id === newReaction.id
       )
+      if (index !== -1) reactionsStore.reactions.splice(index, 1)
     }, ANIMATION_DURATION)
   }
 
@@ -85,77 +180,48 @@ export const ReactionsToggle = () => {
   })
 
   return (
+    <div>
+      <Toolbar>
+        {Object.values(Emoji).map((emoji, index) => (
+          <ReactionButton
+            key={index}
+            index={index}
+            emoji={emoji}
+            debouncedSendReaction={debouncedSendReaction}
+          />
+        ))}
+      </Toolbar>
+    </div>
+  )
+}
+
+export const ReactionsToggle = () => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
+
+  const layoutSnap = useSnapshot(layoutStore)
+
+  useRegisterKeyboardShortcut({
+    id: 'reaction',
+    handler: () => (layoutStore.showReaction = !layoutSnap.showReaction),
+  })
+
+  return (
     <>
       <div className={css({ position: 'relative' })}>
-        <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
-          <ToggleButton
-            square
-            variant="primaryDark"
-            aria-label={t('button')}
-            tooltip={t('button')}
-            isSelected={isOpen}
-            onChange={setIsOpen}
-          >
-            <RiEmotionLine />
-          </ToggleButton>
-          <RACPopover
-            placement="top"
-            offset={8}
-            isNonModal
-            shouldCloseOnInteractOutside={() => false}
-            className={css({
-              borderRadius: '8px',
-              padding: '0.35rem',
-              backgroundColor: 'primaryDark.50',
-              '&[data-entering]': {
-                animation: 'fade 200ms ease',
-              },
-              '&[data-exiting]': {
-                animation: 'fade 200ms ease-in reverse',
-              },
-            })}
-          >
-            <Dialog className={css({ outline: 'none' })}>
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus -- FocusScope autoFocus is programmatic focus for overlays, not the HTML autofocus attribute */}
-              <FocusScope contain autoFocus restoreFocus>
-                <div
-                  role="toolbar"
-                  aria-orientation="horizontal"
-                  aria-label={t('button')}
-                  className={css({
-                    display: 'flex',
-                    gap: '0.5rem',
-                  })}
-                >
-                  {Object.values(Emoji).map((emoji, index) => (
-                    <Button
-                      key={index}
-                      onPress={() => debouncedSendReaction(emoji)}
-                      aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
-                      variant="primaryTextDark"
-                      size="sm"
-                      square
-                      data-attr={`send-reaction-${emoji}`}
-                    >
-                      <img
-                        src={`/assets/reactions/${emoji}.png`}
-                        alt=""
-                        className={css({
-                          width: '28px',
-                          height: '28px',
-                          pointerEvents: 'none',
-                          userSelect: 'none',
-                        })}
-                      />
-                    </Button>
-                  ))}
-                </div>
-              </FocusScope>
-            </Dialog>
-          </RACPopover>
-        </DialogTrigger>
+        <ToggleButton
+          square
+          variant="primaryDark"
+          aria-label={t('button')}
+          tooltip={t('button')}
+          isSelected={layoutSnap.showReaction}
+          onChange={() => {
+            layoutStore.showReaction = !layoutSnap.showReaction
+          }}
+        >
+          <RiEmotionLine />
+        </ToggleButton>
       </div>
-      <ReactionPortals reactions={reactions} />
+      <ReactionPortals />
     </>
   )
 }

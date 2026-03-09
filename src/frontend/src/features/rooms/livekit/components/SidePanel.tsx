@@ -14,6 +14,11 @@ import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
 import { HStack } from '@/styled-system/jsx'
+import { useSnapshot } from 'valtio'
+import {
+  WIP_ADDITIONAL_HEIGHT_REACTION,
+  WIP_MIN_HEIGHT,
+} from '@/features/rooms/livekit/prefabs/VideoConference'
 
 type StyledSidePanelProps = {
   title: string
@@ -35,6 +40,7 @@ const StyledSidePanel = ({
   isClosed,
   closeButtonTooltip,
   isSubmenu = false,
+  isReactionOpen,
   onBack,
   backButtonLabel,
 }: StyledSidePanelProps) => (
@@ -56,12 +62,14 @@ const StyledSidePanel = ({
       gap: 0,
       right: 0,
       top: 0,
-      bottom: '80px',
       width: '360px',
       transition: '.5s cubic-bezier(.4,0,.2,1) 5ms',
     })}
     style={{
       transform: isClosed ? 'translateX(calc(360px + 1.5rem))' : 'none',
+      bottom: isReactionOpen
+        ? `${WIP_MIN_HEIGHT + WIP_ADDITIONAL_HEIGHT_REACTION}px`
+        : `${WIP_MIN_HEIGHT}px`,
     }}
     aria-hidden={isClosed}
     aria-label={ariaLabel}
@@ -150,6 +158,9 @@ export const SidePanel = () => {
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
 
+  const layoutSnap = useSnapshot(layoutStore)
+  const isReactionOpen = layoutSnap.showReaction
+
   return (
     <StyledSidePanel
       title={t(`heading.${activeSubPanelId || activePanelId}`)}
@@ -165,6 +176,7 @@ export const SidePanel = () => {
       isSubmenu={isSubPanelOpen}
       backButtonLabel={t('backToTools')}
       onBack={() => (layoutStore.activeSubPanelId = null)}
+      isReactionOpen={isReactionOpen}
     >
       <Panel isOpen={isParticipantsOpen}>
         <ParticipantsList />
