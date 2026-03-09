@@ -22,6 +22,7 @@ and this project adheres to
 - ⬆️(frontend) bump flatted from 3.3.1 to 3.4.2 in /src/frontend #1188
 - ⬆️️️(frontend) bump undici from 6.23.0 to 6.24.1 in /src/frontend
 - ⬆️️️(frontend) bump hono from 4.12.2 to 4.12.7 in /src/frontend
+- ⬆️️️(frontend) bump dompurify from 3.3.1 to 3.3.2 in /src/frontend
 
 ### Fixed
 
