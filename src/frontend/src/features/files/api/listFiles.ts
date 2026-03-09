@@ -16,7 +16,7 @@ type ListFilesResponse = {
 }
 
 type ListFilesFilters = {
-  creator_is_me?: boolean
+  is_creator_me?: boolean
   type?: ApiFileType
   upload_state?: ApiFileUploadState
   is_deleted?: boolean
@@ -37,8 +37,8 @@ export const listMyFiles = async ({
   const query = new URLSearchParams()
   query.append('page', page.toString())
   query.append('page_size', pageSize.toString())
-  if (filters?.creator_is_me ?? true) {
-    query.append('creator_is_me', 'true')
+  if (filters?.is_creator_me ?? true) {
+    query.append('is_creator_me', 'true')
   }
   if (filters?.type) {
     query.append('type', filters.type)

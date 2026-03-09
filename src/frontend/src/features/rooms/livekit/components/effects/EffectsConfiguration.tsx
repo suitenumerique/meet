@@ -64,7 +64,7 @@ const listFilesQueryParams: ListFilesParams = {
   filters: {
     type: 'background_image',
     upload_state: 'ready',
-    creator_is_me: true,
+    is_creator_me: true,
     is_deleted: false,
   },
   pagination: {
