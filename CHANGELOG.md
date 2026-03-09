@@ -14,6 +14,10 @@ and this project adheres to
 - ♿️(frontend) improve MoreLink a11y and UX on home page #1112
 - ♿(frontend) improve chat toast a11y for screen readers #1109
 
+### Fixed
+
+- 🐛(frontend) fix dimension mismatch in BackgroundCustomProcessor getImageData #1116
+
 ## [1.10.0] - 2026-03-05
 
 ### Changed

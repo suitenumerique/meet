@@ -187,7 +187,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
       0,
       0,
       PROCESSING_WIDTH,
-      PROCESSING_WIDTH
+      PROCESSING_HEIGHT
     )
   }
 
