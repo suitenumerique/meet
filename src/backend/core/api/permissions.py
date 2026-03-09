@@ -119,8 +119,8 @@ class FilePermission(IsAuthenticated):
 
     def has_permission(self, request, view):
         """Allow access only to authenticated users."""
-        if view.action == "create" and not settings.FILE_UPLOAD_ENABLED:
-            return False
+        if not settings.FILE_UPLOAD_ENABLED:
+            raise Http404
 
         return super().has_permission(request, view)
 

@@ -976,6 +976,7 @@ class FileViewSet(
         instance.soft_delete()
 
     @decorators.action(detail=True, methods=["post"], url_path="upload-ended")
+    @FeatureFlag.require("file_upload")
     def upload_ended(self, request, *args, **kwargs):
         """
         Check the actual uploaded file and mark it as ready.
@@ -1158,6 +1159,7 @@ class FileViewSet(
         return url_params, request.user.id, file
 
     @decorators.action(detail=False, methods=["get"], url_path="media-auth")
+    @FeatureFlag.require("file_upload")
     def media_auth(self, request, *args, **kwargs):
         """
         This view is used by an Nginx subrequest to control access to an file's

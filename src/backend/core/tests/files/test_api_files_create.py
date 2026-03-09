@@ -190,7 +190,7 @@ def test_api_files_create_file_disabled(settings):
         },
         format="json",
     )
-    assert response.status_code == 403
+    assert response.status_code == 404
     assert not File.objects.exists()
 
 
