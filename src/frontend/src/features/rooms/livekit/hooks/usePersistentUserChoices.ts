@@ -1,7 +1,7 @@
 import { useSnapshot } from 'valtio'
-import { userChoicesStore } from '@/stores/userChoices'
+import { LocalUserChoices, userChoicesStore } from '@/stores/userChoices'
 import type { VideoResolution } from '@/stores/userChoices'
-import { ProcessorSerialized } from '@/features/rooms/livekit/components/blur'
+import { ProcessorConfig } from '@/features/rooms/livekit/components/blur'
 import type { VideoQuality } from 'livekit-client'
 
 export function usePersistentUserChoices() {
@@ -9,6 +9,7 @@ export function usePersistentUserChoices() {
 
   return {
     userChoices: userChoicesSnap,
+    isStoreFullyLoaded: userChoicesSnap.isStoreFullyLoaded,
     saveAudioInputEnabled: (isEnabled: boolean) => {
       userChoicesStore.audioEnabled = isEnabled
     },
@@ -36,10 +37,13 @@ export function usePersistentUserChoices() {
     saveNoiseReductionEnabled: (enabled: boolean) => {
       userChoicesStore.noiseReductionEnabled = enabled
     },
-    saveProcessorSerialized: (
-      processorSerialized: ProcessorSerialized | undefined
+    saveProcessorConfig: (processorConfig: ProcessorConfig | undefined) => {
+      userChoicesStore.processorConfig = processorConfig
+    },
+    saveLastSelectedLocalImageBackground: (
+      info: LocalUserChoices['lastSelectedLocalImageBackground']
     ) => {
-      userChoicesStore.processorSerialized = processorSerialized
+      userChoicesStore.lastSelectedLocalImageBackground = info
     },
   }
 }

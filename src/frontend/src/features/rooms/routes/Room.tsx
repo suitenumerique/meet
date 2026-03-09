@@ -10,6 +10,7 @@ import {
   isRoomValid,
   normalizeRoomId,
 } from '@/features/rooms/utils/isRoomValid'
+import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices.ts'
 
 const BaseRoom = ({ children }: { children: ReactNode }) => {
   return (
@@ -29,6 +30,8 @@ export const Room = () => {
   const initialRoomData = history.state?.initialRoomData
   const mode = isLoggedIn && history.state?.create ? 'create' : 'join'
   const skipJoinScreen = isLoggedIn && mode === 'create'
+
+  const { isStoreFullyLoaded } = usePersistentUserChoices()
 
   useKeyboardShortcuts()
 
@@ -53,6 +56,11 @@ export const Room = () => {
 
   if (!roomId) {
     return <ErrorScreen />
+  }
+
+  // We wait for the store to be bully loaded (previous background images in particular)
+  if (!isStoreFullyLoaded) {
+    return <div></div>
   }
 
   if (!hasSubmittedEntry && !skipJoinScreen) {

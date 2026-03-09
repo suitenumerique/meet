@@ -1,10 +1,10 @@
 import { LocalVideoTrack, Track } from 'livekit-client'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  BackgroundOptions,
   BackgroundProcessorFactory,
   BackgroundProcessorInterface,
+  ProcessorConfig,
   ProcessorType,
 } from '../blur'
 import { css } from '@/styled-system/css'
@@ -34,6 +34,8 @@ import { useDeleteFile } from '@/features/files/api/deleteFile.ts'
 import { useUser } from '@/features/auth'
 import { ApiFileItem } from '@/features/files/api/types.ts'
 import { useConfig } from '@/api/useConfig.ts'
+import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices.ts'
+import { v4 as uuidv4 } from 'uuid'
 
 enum BlurRadius {
   NONE = 0,
@@ -55,7 +57,6 @@ const Information = styled('div', {
 export type EffectsConfigurationProps = {
   isDisabled?: boolean
   videoTrack: LocalVideoTrack
-  onSubmit?: (processor?: BackgroundProcessorInterface) => void
   layout?: 'vertical' | 'horizontal'
 }
 
@@ -71,13 +72,26 @@ const listFilesQueryParams: ListFilesParams = {
     pageSize: 20,
   },
 }
-const LOCAL_IMAGE_KEY = 'local-image'
-const LOCAL_IMAGE_RAW_KEY = 'local-image-raw'
+
+function deriveIdFromProcessorConfig(config: ProcessorConfig) {
+  if (config.type === ProcessorType.BLUR) {
+    return `blur-${config.blurRadius}`
+  } else if (config.type === ProcessorType.VIRTUAL) {
+    // the imagePath is not stable for custom backgrounds
+    // so we try first with the fileId
+    if (config.fileId) {
+      return `virtual-${config.fileId}`
+    }
+    return `virtual-${config.imagePath}`
+  } else if (config.type === ProcessorType.FACE_LANDMARKS) {
+    return 'face-landmarks'
+  }
+  throw new Error(`Unknown config type in config: ${config}`)
+}
 
 export const EffectsConfiguration = ({
   isDisabled,
   videoTrack,
-  onSubmit,
   layout = 'horizontal',
 }: EffectsConfigurationProps) => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -93,6 +107,160 @@ export const EffectsConfiguration = ({
   > | null>(null)
   const effectAnnouncementId = useRef(0)
 
+  const {
+    saveProcessorConfig,
+    saveLastSelectedLocalImageBackground,
+    userChoices: { processorConfig, lastSelectedLocalImageBackground },
+  } = usePersistentUserChoices()
+
+  const selectedId = useMemo(
+    () =>
+      processorConfig ? deriveIdFromProcessorConfig(processorConfig) : 'none',
+    [processorConfig]
+  )
+  const localImageBackgroundConfig: ProcessorConfig | null = useMemo(
+    () =>
+      lastSelectedLocalImageBackground
+        ? {
+            type: ProcessorType.VIRTUAL,
+            imagePath: lastSelectedLocalImageBackground.url,
+            fileId: lastSelectedLocalImageBackground.id,
+          }
+        : null,
+    [lastSelectedLocalImageBackground]
+  )
+
+  const announceEffectStatusMessage = useCallback(
+    (message: string) => {
+      effectAnnouncementId.current += 1
+      const currentId = effectAnnouncementId.current
+
+      if (effectAnnouncementTimeout.current) {
+        clearTimeout(effectAnnouncementTimeout.current)
+      }
+
+      effectAnnouncementTimeout.current = setTimeout(() => {
+        if (currentId !== effectAnnouncementId.current) return
+        announce(message)
+      }, 80)
+    },
+    [announce]
+  )
+
+  const getVirtualBackgroundName = useCallback(
+    (imagePath?: string) => {
+      if (!imagePath) return ''
+      const match = imagePath.match(/\/backgrounds\/(\d+)\.jpg$/)
+      if (!match) return ''
+      const index = Number(match[1]) - 1
+      if (Number.isNaN(index)) return ''
+      return t(`virtual.descriptions.${index}`)
+    },
+    [t]
+  )
+
+  const updateEffectStatusMessage = useCallback(
+    (config: ProcessorConfig, wasSelectedBeforeToggle: boolean) => {
+      if (wasSelectedBeforeToggle) {
+        announceEffectStatusMessage(t('blur.status.none'))
+        return
+      }
+
+      if (config.type === ProcessorType.BLUR) {
+        const message =
+          config.blurRadius === BlurRadius.LIGHT
+            ? t('blur.status.light')
+            : t('blur.status.strong')
+        announceEffectStatusMessage(message)
+        return
+      }
+
+      if (config.type === ProcessorType.VIRTUAL) {
+        const backgroundName = getVirtualBackgroundName(config.imagePath)
+        if (backgroundName) {
+          announceEffectStatusMessage(
+            `${t('virtual.selectedLabel')} ${backgroundName}`
+          )
+          return
+        }
+      }
+    },
+    [announceEffectStatusMessage, getVirtualBackgroundName, t]
+  )
+
+  const toggleEffect = useCallback(
+    async (config: ProcessorConfig) => {
+      setProcessorPending(true)
+      const wasSelectedBeforeToggle =
+        selectedId === deriveIdFromProcessorConfig(config)
+
+      if (!videoTrack) {
+        /**
+         * Special case: if no video track is available, then we must pass directly the processor into the
+         * toggle call. Otherwise, the rest of the function below would not have a videoTrack to call
+         * setProcessor on.
+         *
+         * We arrive in this condition when we enter the room with the camera already off.
+         */
+        const newProcessorTmp = BackgroundProcessorFactory.getProcessor(config)!
+        await toggle(true, {
+          processor: newProcessorTmp,
+        })
+        setTimeout(() => setProcessorPending(false))
+        return
+      }
+
+      if (!enabled) {
+        await toggle(true)
+      }
+
+      const processor =
+        videoTrack?.getProcessor() as BackgroundProcessorInterface
+      try {
+        if (wasSelectedBeforeToggle) {
+          // Stop processor.
+          await videoTrack.stopProcessor()
+          saveProcessorConfig(undefined)
+        } else if (
+          !processor ||
+          (processor.options.type !== config.type &&
+            !BackgroundProcessorFactory.hasModernApiSupport())
+        ) {
+          // Change processor.
+          const newProcessor = BackgroundProcessorFactory.getProcessor(config)!
+          // IMPORTANT: Must explicitly stop previous processor before setting a new one
+          // in browsers without modern API support to prevent UI crashes.
+          // This workaround is needed until this issue is resolved:
+          // https://github.com/livekit/track-processors-js/issues/85
+          if (!BackgroundProcessorFactory.hasModernApiSupport()) {
+            await videoTrack.stopProcessor()
+          }
+          await videoTrack.setProcessor(newProcessor)
+          saveProcessorConfig(config)
+        } else {
+          await processor?.update(config)
+          // We want to trigger onSubmit when options changes so the parent component is aware of it.
+          saveProcessorConfig(config)
+        }
+
+        updateEffectStatusMessage(config, wasSelectedBeforeToggle)
+      } catch (error) {
+        console.error('Error applying effect:', error)
+      } finally {
+        // Without setTimeout the DOM is not refreshing when updating the options.
+        setTimeout(() => setProcessorPending(false))
+      }
+    },
+    [
+      enabled,
+      saveProcessorConfig,
+      selectedId,
+      toggle,
+      updateEffectStatusMessage,
+      videoTrack,
+    ]
+  )
+
   const { data: appConfig } = useConfig()
   const { isLoggedIn } = useUser()
   const canUploadBackground =
@@ -104,10 +272,6 @@ export const EffectsConfiguration = ({
   const [personalBackgroundError, setPersonalBackgroundError] = useState<
     'file_too_large' | 'invalid_file_type' | null
   >(null)
-  const [localSelectedBackground, setLocalSelectedBackground] =
-    useState<null | { label: string; previewUrl: string; imagePath: string }>(
-      null
-    )
   const createFileMutation = useCreateFile()
   const deleteFileMutation = useDeleteFile()
   const filesQ = useListMyFiles(listFilesQueryParams)
@@ -117,98 +281,93 @@ export const EffectsConfiguration = ({
       filesQ.data &&
       filesQ.data.count >= appConfig.background_image.max_count_by_user) ??
     false
-  const dataUrlByImageId = useRef<Map<string, string>>(new Map())
-  useEffect(() => {
-    return () => {
-      // We cleanup created URL objects on unmount
-      for (const dataUrl of dataUrlByImageId.current.values()) {
-        URL.revokeObjectURL(dataUrl)
+
+  const getHandleSelectChangeFile = useCallback(
+    (file: ApiFileItem) => {
+      return async () => {
+        const imageBlob = await getImageBlobFromUrlForBackground(file.url!)
+        // revoking is handled with userChoicesStore
+        const imagePath = URL.createObjectURL(imageBlob)
+        await toggleEffect({
+          type: ProcessorType.VIRTUAL,
+          imagePath,
+          fileId: file.id,
+        })
       }
-      dataUrlByImageId.current = new Map()
-    }
-  }, [])
-  const getHandleSelectChangeFile = (file: ApiFileItem) => {
-    return async () => {
-      // We reuse the previous URL objects if possible
-      if (dataUrlByImageId.current.has(file.id)) {
-        const dataUrl = dataUrlByImageId.current.get(file.id)!
-        await toggleEffect(ProcessorType.VIRTUAL, {
-          imagePath: dataUrl,
+    },
+    [toggleEffect]
+  )
+
+  const handleNewBackgroundFilePicked = useCallback(
+    async (file: File) => {
+      if (
+        !(
+          appConfig?.background_image?.allowed_mimetypes?.includes(file.type) ??
+          false
+        )
+      ) {
+        setPersonalBackgroundError('invalid_file_type')
+        setPersonalBackgroundHasError(true)
+        return
+      }
+      if (file.size > (appConfig?.background_image?.max_size ?? 0)) {
+        setPersonalBackgroundError('file_too_large')
+        setPersonalBackgroundHasError(true)
+        return
+      }
+
+      // When the user is not logged in, we fallback to just loading that image
+      if (!canUploadBackground) {
+        // For the preview to work, we somehow need to create a data URL from the raw file.
+        // revoking is handled with userChoicesStore
+        const rawImageUrl = URL.createObjectURL(file)
+
+        const transformedImageData = await getImageBlobForBackground(file)
+        // revoking is handled with userChoicesStore
+        const imagePath = URL.createObjectURL(transformedImageData)
+
+        const fileId = `local-image-${uuidv4()}`
+        await toggleEffect({
+          type: ProcessorType.VIRTUAL,
+          imagePath,
+          fileId,
+        })
+        saveLastSelectedLocalImageBackground({
+          label: file.name.split('.')[0],
+          rawUrl: rawImageUrl,
+          url: imagePath,
+          id: fileId,
         })
       } else {
-        const imageBlob = await getImageBlobFromUrlForBackground(file.url!)
-        const imagePath = URL.createObjectURL(imageBlob)
-        dataUrlByImageId.current.set(file.id, imagePath)
-
-        await toggleEffect(ProcessorType.VIRTUAL, {
-          imagePath,
-        })
-      }
-    }
-  }
-
-  const handleNewBackgroundFilePicked = async (file: File) => {
-    if (
-      !(
-        appConfig?.background_image?.allowed_mimetypes?.includes(file.type) ??
-        false
-      )
-    ) {
-      setPersonalBackgroundError('invalid_file_type')
-      setPersonalBackgroundHasError(true)
-      return
-    }
-    if (file.size > (appConfig?.background_image?.max_size ?? 0)) {
-      setPersonalBackgroundError('file_too_large')
-      setPersonalBackgroundHasError(true)
-      return
-    }
-
-    // When the user is not logged in, we fallback to just loading that image
-    if (!canUploadBackground) {
-      // For the preview to work, we somehow need to create a data URL from the raw file.
-      const rawImageUrl = URL.createObjectURL(file)
-
-      const transformedImageData = await getImageBlobForBackground(file)
-      const imagePath = URL.createObjectURL(transformedImageData)
-
-      if (dataUrlByImageId.current.get(LOCAL_IMAGE_KEY)) {
-        URL.revokeObjectURL(dataUrlByImageId.current.get(LOCAL_IMAGE_KEY)!)
-      }
-      if (dataUrlByImageId.current.get(LOCAL_IMAGE_RAW_KEY)) {
-        URL.revokeObjectURL(dataUrlByImageId.current.get(LOCAL_IMAGE_RAW_KEY)!)
-      }
-
-      dataUrlByImageId.current.set(LOCAL_IMAGE_KEY, imagePath)
-      dataUrlByImageId.current.set(LOCAL_IMAGE_RAW_KEY, rawImageUrl)
-
-      await toggleEffect(ProcessorType.VIRTUAL, {
-        imagePath,
-      })
-      setLocalSelectedBackground({
-        label: file.name.split('.')[0],
-        previewUrl: rawImageUrl,
-        imagePath: imagePath,
-      })
-    } else {
-      // Otherwise we create the file in the backend and automatically select it
-      // when it's uploaded.
-      createFileMutation.mutate(
-        {
-          file,
-          onProgress: (progress) => {
-            console.debug('upload-progress', progress)
+        // Otherwise we create the file in the backend and automatically select it
+        // when it's uploaded.
+        createFileMutation.mutate(
+          {
+            file,
+            onProgress: (progress) => {
+              console.debug('upload-progress', progress)
+            },
           },
-        },
-        {
-          onSuccess: (file) => {
-            // We automatically select that created file
-            getHandleSelectChangeFile(file)()
-          },
-        }
-      )
-    }
-  }
+          {
+            onSuccess: (file) => {
+              // We automatically select that created file
+              getHandleSelectChangeFile(file)()
+            },
+          }
+        )
+      }
+    },
+    [
+      appConfig?.background_image?.allowed_mimetypes,
+      appConfig?.background_image?.max_size,
+      canUploadBackground,
+      createFileMutation,
+      getHandleSelectChangeFile,
+      saveLastSelectedLocalImageBackground,
+      toggleEffect,
+    ]
+  )
+
   const filePickerErrorContext = useMemo(
     () => ({
       allowedExtension: appConfig?.background_image?.allowed_extensions ?? [],
@@ -216,6 +375,110 @@ export const EffectsConfiguration = ({
     }),
     [appConfig?.background_image]
   )
+
+  const processorOptions = useMemo<{
+    isDisabled: boolean
+    blurBased: {
+      radius: BlurRadius
+      Icon: React.FC
+      ref?: React.Ref<HTMLButtonElement>
+      tooltip: string
+      id: string
+      config: ProcessorConfig
+      isSelected: boolean
+    }[]
+    virtualBackgrounds: {
+      id: string
+      config: ProcessorConfig
+      isSelected: boolean
+      tooltip: string
+      ariaLabel: string
+      thumbnailPath: string
+      index: number
+    }[]
+    remoteCustomVirtualBackgrounds: {
+      id: string
+      config: ProcessorConfig
+      isSelected: boolean
+      tooltip: string
+      file: ApiFileItem
+    }[]
+  }>(() => {
+    return {
+      isDisabled: (processorPendingReveal || isDisabled) ?? false,
+      blurBased: [
+        {
+          key: 'light',
+          radius: BlurRadius.LIGHT,
+          icon: BlurOn,
+          ref: blurLightRef,
+        },
+        {
+          key: 'normal',
+          radius: BlurRadius.NORMAL,
+          icon: BlurOnStrong,
+          ref: undefined,
+        },
+      ].map((item) => {
+        const config: ProcessorConfig = {
+          type: ProcessorType.BLUR,
+          blurRadius: item.radius,
+        }
+        const id = deriveIdFromProcessorConfig(config)
+        return {
+          id,
+          tooltip: t(`blur.light.${selectedId === id ? 'clear' : 'apply'}`),
+          radius: item.radius,
+          isSelected: selectedId === id,
+          Icon: item.icon,
+          ref: item.ref,
+          config,
+        }
+      }),
+      virtualBackgrounds: [...Array(8).keys()].map((index) => {
+        const imagePath = `/assets/backgrounds/${index + 1}.jpg`
+        const thumbnailPath = `/assets/backgrounds/thumbnails/${index + 1}.jpg`
+        const config: ProcessorConfig = {
+          type: ProcessorType.VIRTUAL,
+          imagePath,
+        }
+        const id = deriveIdFromProcessorConfig(config)
+        const isSelected = selectedId === id
+        const prefix = isSelected ? 'selectedLabel' : 'apply'
+        const backgroundName = t(`virtual.presets.descriptions.${index}`)
+        const ariaLabel = `${t(`virtual.presets.${prefix}`)} ${backgroundName}`
+
+        return {
+          tooltip: backgroundName,
+          id,
+          config,
+          isSelected: selectedId === id,
+          thumbnailPath,
+          ariaLabel,
+          index,
+        }
+      }),
+      remoteCustomVirtualBackgrounds: (filesQ.data?.results ?? [])
+        .filter((file) => file.url)
+        .map((file) => {
+          const config: ProcessorConfig = {
+            type: ProcessorType.VIRTUAL,
+            imagePath: file.url!,
+            fileId: file.id,
+          }
+
+          const id = deriveIdFromProcessorConfig(config)
+
+          return {
+            tooltip: file.title,
+            id,
+            config,
+            isSelected: selectedId === id,
+            file,
+          }
+        }),
+    }
+  }, [processorPendingReveal, isDisabled, filesQ.data?.results, t, selectedId])
 
   useEffect(() => {
     const videoElement = videoRef.current
@@ -250,171 +513,6 @@ export const EffectsConfiguration = ({
     },
     []
   )
-
-  const announceEffectStatusMessage = (message: string) => {
-    effectAnnouncementId.current += 1
-    const currentId = effectAnnouncementId.current
-
-    if (effectAnnouncementTimeout.current) {
-      clearTimeout(effectAnnouncementTimeout.current)
-    }
-
-    effectAnnouncementTimeout.current = setTimeout(() => {
-      if (currentId !== effectAnnouncementId.current) return
-      announce(message)
-    }, 80)
-  }
-
-  const clearEffect = async () => {
-    await videoTrack.stopProcessor()
-    onSubmit?.(undefined)
-  }
-
-  const getVirtualBackgroundName = (imagePath?: string) => {
-    if (!imagePath) return ''
-    const match = imagePath.match(/\/backgrounds\/(\d+)\.jpg$/)
-    if (!match) return ''
-    const index = Number(match[1]) - 1
-    if (Number.isNaN(index)) return ''
-    return t(`virtual.descriptions.${index}`)
-  }
-
-  const updateEffectStatusMessage = (
-    type: ProcessorType,
-    options: BackgroundOptions,
-    wasSelectedBeforeToggle: boolean
-  ) => {
-    if (wasSelectedBeforeToggle) {
-      announceEffectStatusMessage(t('blur.status.none'))
-      return
-    }
-
-    if (type === ProcessorType.BLUR) {
-      const message =
-        options.blurRadius === BlurRadius.LIGHT
-          ? t('blur.status.light')
-          : t('blur.status.strong')
-      announceEffectStatusMessage(message)
-      return
-    }
-
-    if (type === ProcessorType.VIRTUAL) {
-      const backgroundName = getVirtualBackgroundName(options.imagePath)
-      if (backgroundName) {
-        announceEffectStatusMessage(
-          `${t('virtual.selectedLabel')} ${backgroundName}`
-        )
-        return
-      }
-    }
-  }
-
-  const toggleEffect = async (
-    type: ProcessorType,
-    options: BackgroundOptions
-  ) => {
-    setProcessorPending(true)
-    const wasSelectedBeforeToggle = isSelected(type, options)
-
-    if (!videoTrack) {
-      /**
-       * Special case: if no video track is available, then we must pass directly the processor into the
-       * toggle call. Otherwise, the rest of the function below would not have a videoTrack to call
-       * setProcessor on.
-       *
-       * We arrive in this condition when we enter the room with the camera already off.
-       */
-      const newProcessorTmp = BackgroundProcessorFactory.getProcessor(
-        type,
-        options
-      )!
-      await toggle(true, {
-        processor: newProcessorTmp,
-      })
-      setTimeout(() => setProcessorPending(false))
-      return
-    }
-
-    if (!enabled) {
-      await toggle(true)
-    }
-
-    const processor = getProcessor()
-    try {
-      if (wasSelectedBeforeToggle) {
-        // Stop processor.
-        await clearEffect()
-      } else if (
-        !processor ||
-        (processor.serialize().type !== type &&
-          !BackgroundProcessorFactory.hasModernApiSupport())
-      ) {
-        // Change processor.
-        const newProcessor = BackgroundProcessorFactory.getProcessor(
-          type,
-          options
-        )!
-        // IMPORTANT: Must explicitly stop previous processor before setting a new one
-        // in browsers without modern API support to prevent UI crashes.
-        // This workaround is needed until this issue is resolved:
-        // https://github.com/livekit/track-processors-js/issues/85
-        if (!BackgroundProcessorFactory.hasModernApiSupport()) {
-          await videoTrack.stopProcessor()
-        }
-        await videoTrack.setProcessor(newProcessor)
-        onSubmit?.(newProcessor)
-      } else {
-        await processor?.update(options)
-        // We want to trigger onSubmit when options changes so the parent component is aware of it.
-        onSubmit?.(processor)
-      }
-
-      updateEffectStatusMessage(type, options, wasSelectedBeforeToggle)
-    } catch (error) {
-      console.error('Error applying effect:', error)
-    } finally {
-      // Without setTimeout the DOM is not refreshing when updating the options.
-      setTimeout(() => setProcessorPending(false))
-    }
-  }
-
-  const getProcessor = () => {
-    return videoTrack?.getProcessor() as BackgroundProcessorInterface
-  }
-
-  const isSelected = (type: ProcessorType, options: BackgroundOptions) => {
-    const processor = getProcessor()
-    const processorSerialized = processor?.serialize()
-    return (
-      !!processor &&
-      processorSerialized.type === type &&
-      JSON.stringify(processorSerialized.options) === JSON.stringify(options)
-    )
-  }
-
-  const tooltipBlur = (type: ProcessorType, options: BackgroundOptions) => {
-    const strength =
-      options.blurRadius === BlurRadius.LIGHT ? 'light' : 'normal'
-    const action = isSelected(type, options) ? 'clear' : 'apply'
-
-    return t(`${type}.${strength}.${action}`)
-  }
-
-  const ariaLabelVirtualBackground = (
-    index: number,
-    imagePath: string
-  ): string => {
-    const isSelectedBackground = isSelected(ProcessorType.VIRTUAL, {
-      imagePath,
-    })
-    const prefix = isSelectedBackground ? 'selectedLabel' : 'apply'
-    const backgroundName = t(`virtual.presets.descriptions.${index}`)
-    return `${t(`virtual.presets.${prefix}`)} ${backgroundName}`
-  }
-
-  const tooltipVirtualBackground = (index: number): string => {
-    return t(`virtual.descriptions.${index}`)
-  }
 
   return (
     <div
@@ -531,49 +629,21 @@ export const EffectsConfiguration = ({
                     gap: '1.25rem',
                   })}
                 >
-                  <ToggleButton
-                    ref={blurLightRef}
-                    variant="bigSquare"
-                    aria-label={tooltipBlur(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.LIGHT,
-                    })}
-                    tooltip={tooltipBlur(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.LIGHT,
-                    })}
-                    isDisabled={processorPendingReveal || isDisabled}
-                    onChange={async () =>
-                      await toggleEffect(ProcessorType.BLUR, {
-                        blurRadius: BlurRadius.LIGHT,
-                      })
-                    }
-                    isSelected={isSelected(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.LIGHT,
-                    })}
-                    data-attr="toggle-blur-light"
-                  >
-                    <BlurOn />
-                  </ToggleButton>
-                  <ToggleButton
-                    variant="bigSquare"
-                    aria-label={tooltipBlur(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.NORMAL,
-                    })}
-                    tooltip={tooltipBlur(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.NORMAL,
-                    })}
-                    isDisabled={processorPendingReveal || isDisabled}
-                    onChange={async () =>
-                      await toggleEffect(ProcessorType.BLUR, {
-                        blurRadius: BlurRadius.NORMAL,
-                      })
-                    }
-                    isSelected={isSelected(ProcessorType.BLUR, {
-                      blurRadius: BlurRadius.NORMAL,
-                    })}
-                    data-attr="toggle-blur-normal"
-                  >
-                    <BlurOnStrong />
-                  </ToggleButton>
+                  {processorOptions.blurBased.map(({ Icon, ...option }) => (
+                    <ToggleButton
+                      key={option.id}
+                      ref={option.ref}
+                      variant="bigSquare"
+                      aria-label={option.tooltip}
+                      tooltip={option.tooltip}
+                      isDisabled={processorOptions.isDisabled}
+                      onChange={() => toggleEffect(option.config)}
+                      isSelected={option.isSelected}
+                      data-attr={`toggle-${option.id}`}
+                    >
+                      <Icon />
+                    </ToggleButton>
+                  ))}
                 </div>
               </div>
 
@@ -613,33 +683,28 @@ export const EffectsConfiguration = ({
                   })}
                 >
                   {canUploadBackground &&
-                    filesQ.data?.results
-                      .filter((file) => file.url)
-                      .map((file) => (
+                    processorOptions.remoteCustomVirtualBackgrounds.map(
+                      (option) => (
                         <div
-                          key={file.id}
+                          key={option.id}
                           className={
                             'hoverGroup ' + css({ position: 'relative' })
                           }
                         >
-                          <VisualOnlyTooltip key={file.id} tooltip={file.title}>
+                          <VisualOnlyTooltip tooltip={option.tooltip}>
                             <ToggleButton
                               variant="bigSquare"
-                              aria-label={file.title}
-                              isDisabled={processorPendingReveal || isDisabled}
-                              onChange={getHandleSelectChangeFile(file)}
-                              isSelected={isSelected(ProcessorType.VIRTUAL, {
-                                imagePath:
-                                  dataUrlByImageId.current.get(file.id!) ??
-                                  file.id!,
-                              })}
+                              aria-label={option.tooltip}
+                              isDisabled={processorOptions.isDisabled}
+                              onChange={getHandleSelectChangeFile(option.file)}
+                              isSelected={option.isSelected}
                               className={css({
                                 bgSize: 'cover',
                               })}
                               style={{
-                                backgroundImage: `url(${file.url!})`,
+                                backgroundImage: `url(${option.file.url!})`,
                               }}
-                              data-attr={`toggle-virtual-${file.id}`}
+                              data-attr={`toggle-virtual-${option.file.id}`}
                             />
                           </VisualOnlyTooltip>
                           <Button
@@ -654,39 +719,50 @@ export const EffectsConfiguration = ({
                             }
                             size={'xs'}
                             variant={'tertiary'}
-                            onClick={() =>
-                              deleteFileMutation.mutate({ fileId: file.id })
-                            }
+                            onClick={() => {
+                              if (option.isSelected) {
+                                // we remove the current effect
+                                toggleEffect(option.config)
+                              }
+                              deleteFileMutation.mutate({
+                                fileId: option.file.id,
+                              })
+                            }}
                             isDisabled={deleteFileMutation.isPending}
                           >
                             <RiDeleteBinLine size={16} />
                           </Button>
                         </div>
-                      ))}
-                  {!canUploadBackground && localSelectedBackground && (
-                    <VisualOnlyTooltip tooltip={localSelectedBackground.label}>
-                      <ToggleButton
-                        variant="bigSquare"
-                        aria-label={localSelectedBackground.label}
-                        isDisabled={processorPendingReveal || isDisabled}
-                        onChange={() => {
-                          toggleEffect(ProcessorType.VIRTUAL, {
-                            imagePath: localSelectedBackground.imagePath,
-                          })
-                        }}
-                        isSelected={isSelected(ProcessorType.VIRTUAL, {
-                          imagePath: localSelectedBackground.imagePath,
-                        })}
-                        className={css({
-                          bgSize: 'cover',
-                        })}
-                        style={{
-                          backgroundImage: `url(${localSelectedBackground.previewUrl})`,
-                        }}
-                        data-attr={`toggle-virtual-${LOCAL_IMAGE_KEY}`}
-                      />
-                    </VisualOnlyTooltip>
-                  )}
+                      )
+                    )}
+                  {!canUploadBackground &&
+                    localImageBackgroundConfig &&
+                    lastSelectedLocalImageBackground && (
+                      <VisualOnlyTooltip
+                        tooltip={lastSelectedLocalImageBackground.label}
+                      >
+                        <ToggleButton
+                          variant="bigSquare"
+                          aria-label={lastSelectedLocalImageBackground.label}
+                          isDisabled={processorOptions.isDisabled}
+                          onChange={() => {
+                            toggleEffect(localImageBackgroundConfig)
+                          }}
+                          isSelected={
+                            deriveIdFromProcessorConfig(
+                              localImageBackgroundConfig
+                            ) === selectedId
+                          }
+                          className={css({
+                            bgSize: 'cover',
+                          })}
+                          style={{
+                            backgroundImage: `url(${lastSelectedLocalImageBackground.rawUrl})`,
+                          }}
+                          data-attr={`toggle-virtual-local`}
+                        />
+                      </VisualOnlyTooltip>
+                    )}
                   <FileTrigger
                     acceptedFileTypes={
                       appConfig?.background_image?.allowed_mimetypes ?? [
@@ -711,8 +787,7 @@ export const EffectsConfiguration = ({
                           filesQ.data.count >=
                             (appConfig?.background_image?.max_count_by_user ??
                               0)) ||
-                        processorPendingReveal ||
-                        isDisabled ||
+                        processorOptions.isDisabled ||
                         createFileMutation.isPending
                       }
                       data-attr="input-file-select-personal-background"
@@ -759,35 +834,24 @@ export const EffectsConfiguration = ({
                     flexWrap: 'wrap',
                   })}
                 >
-                  {[...Array(8).keys()].map((i) => {
-                    const imagePath = `/assets/backgrounds/${i + 1}.jpg`
-                    const thumbnailPath = `/assets/backgrounds/thumbnails/${i + 1}.jpg`
-                    const tooltipText = tooltipVirtualBackground(i)
-                    return (
-                      <VisualOnlyTooltip key={i} tooltip={tooltipText}>
-                        <ToggleButton
-                          variant="bigSquare"
-                          aria-label={ariaLabelVirtualBackground(i, imagePath)}
-                          isDisabled={processorPendingReveal || isDisabled}
-                          onChange={async () =>
-                            await toggleEffect(ProcessorType.VIRTUAL, {
-                              imagePath,
-                            })
-                          }
-                          isSelected={isSelected(ProcessorType.VIRTUAL, {
-                            imagePath,
-                          })}
-                          className={css({
-                            bgSize: 'cover',
-                          })}
-                          style={{
-                            backgroundImage: `url(${thumbnailPath})`,
-                          }}
-                          data-attr={`toggle-virtual-preset-${i}`}
-                        />
-                      </VisualOnlyTooltip>
-                    )
-                  })}
+                  {processorOptions.virtualBackgrounds.map((option) => (
+                    <VisualOnlyTooltip key={option.id} tooltip={option.tooltip}>
+                      <ToggleButton
+                        variant="bigSquare"
+                        aria-label={option.ariaLabel}
+                        isDisabled={processorOptions.isDisabled}
+                        onChange={() => toggleEffect(option.config)}
+                        isSelected={option.isSelected}
+                        className={css({
+                          bgSize: 'cover',
+                        })}
+                        style={{
+                          backgroundImage: `url(${option.thumbnailPath})`,
+                        }}
+                        data-attr={`toggle-virtual-preset-${option.index}`}
+                      />
+                    </VisualOnlyTooltip>
+                  ))}
                 </div>
               </div>
             </div>
