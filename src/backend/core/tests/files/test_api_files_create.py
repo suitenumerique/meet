@@ -294,9 +294,9 @@ def test_api_files_create_file_too_many(
         },
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert response.json() == {
-        "type": ["You have reached the maximum number of files for this type."]
+        "detail": "You have reached the maximum number of files for this type."
     }
     assert File.objects.count() == 1
 
