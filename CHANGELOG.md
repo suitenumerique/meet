@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♿️(frontend) sync html lang attribute with i18n for screen readers #1111
+
 ## [1.10.0] - 2026-03-05
 
 ### Fixed
