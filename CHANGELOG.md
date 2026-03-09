@@ -37,6 +37,10 @@ and this project adheres to
 - 🐛(backend) refactor lobby throttling to use participant id #1129
 - 🩹(backend) ignore non-recording uploads in storage webhook handler #1142
 
+### Fixed
+
+- 🐛(frontend) fix dimension mismatch in BackgroundCustomProcessor getImageData #1116
+
 ## [1.10.0] - 2026-03-05
 
 ### Changed
