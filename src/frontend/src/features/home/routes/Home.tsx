@@ -258,23 +258,10 @@ export const Home = () => {
               </DialogTrigger>
             </div>
             <Separator />
-            <div
-              className={css({
-                display: { base: 'none', lg: 'inline' },
-              })}
-            >
-              <MoreLink />
-            </div>
+            <MoreLink />
           </LeftColumn>
           <RightColumn>
             <IntroSlider />
-            <div
-              className={css({
-                display: { base: 'inline', lg: 'none' },
-              })}
-            >
-              <MoreLink />
-            </div>
           </RightColumn>
         </Columns>
         <LaterMeetingDialog

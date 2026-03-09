@@ -10,7 +10,7 @@
   "joinMeetingTipContent": "U kunt deelnemen aan een vergadering door de volledige link in de adresbalk van de browser te plakken.",
   "joinMeetingTipHeading": "Wist u dat?",
   "loginToCreateMeeting": "Log in om een vergadering te maken",
-  "moreLinkLabel": "Meer informatie - nieuw tabblad",
+  "moreLinkLabel": "Meer informatie over {{appTitle}} - nieuw tabblad",
   "moreLink": "Meer informatie",
   "moreAbout": "over {{appTitle}}",
   "createMenu": {

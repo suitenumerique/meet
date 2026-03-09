@@ -10,7 +10,7 @@
   "joinMeetingTipContent": "You can join a meeting by pasting its full link in the browser's address bar.",
   "joinMeetingTipHeading": "Did you know?",
   "loginToCreateMeeting": "Login to create a meeting",
-  "moreLinkLabel": "Learn more - new tab",
+  "moreLinkLabel": "Learn more about {{appTitle}} - new tab",
   "moreLink": "Learn more",
   "moreAbout": "about {{appTitle}}",
   "createMenu": {
