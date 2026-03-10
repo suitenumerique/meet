@@ -126,6 +126,33 @@
           "medium": "Medium",
           "large": "Large"
         }
+      },
+      "fontColor": {
+        "label": "Font color",
+        "options": {
+          "white": "White",
+          "yellow": "Yellow",
+          "green": "Green",
+          "cyan": "Cyan",
+          "blue": "Blue",
+          "magenta": "Magenta",
+          "red": "Red",
+          "black": "Black"
+        }
+      },
+      "backgroundColor": {
+        "label": "Background color",
+        "options": {
+          "black": "Black",
+          "white": "White",
+          "red": "Red",
+          "green": "Green",
+          "blue": "Blue",
+          "yellow": "Yellow",
+          "cyan": "Cyan",
+          "magenta": "Magenta",
+          "transparent": "Transparent"
+        }
       }
     }
   },

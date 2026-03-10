@@ -126,6 +126,33 @@
           "medium": "Gemiddeld",
           "large": "Groot"
         }
+      },
+      "fontColor": {
+        "label": "Tekstkleur",
+        "options": {
+          "white": "Wit",
+          "yellow": "Geel",
+          "green": "Groen",
+          "cyan": "Cyaan",
+          "blue": "Blauw",
+          "magenta": "Magenta",
+          "red": "Rood",
+          "black": "Zwart"
+        }
+      },
+      "backgroundColor": {
+        "label": "Achtergrondkleur",
+        "options": {
+          "black": "Zwart",
+          "white": "Wit",
+          "red": "Rood",
+          "green": "Groen",
+          "blue": "Blauw",
+          "yellow": "Geel",
+          "cyan": "Cyaan",
+          "magenta": "Magenta",
+          "transparent": "Transparant"
+        }
       }
     }
   },
