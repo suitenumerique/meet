@@ -37,7 +37,7 @@ ingress:
   ## @param ingress.hosts Additional host to configure for the Ingress
   hosts: []
   #  - chart-example.local
-  ## @param ingress.tls.enabled Weather to enable TLS for the Ingress
+  ## @param ingress.tls.enabled Whether to enable TLS for the Ingress
   ## @param ingress.tls.secretName Secret name for TLS config
   ## @skip ingress.tls.additional
   ## @extra ingress.tls.additional[].secretName Secret name for additional TLS config
@@ -62,7 +62,7 @@ ingressWebhook:
   ## @param ingressWebhook.hosts Additional host to configure for the Ingress
   hosts: []
   #  - chart-example.local
-  ## @param ingressWebhook.tls.enabled Weather to enable TLS for the Ingress
+  ## @param ingressWebhook.tls.enabled Whether to enable TLS for the Ingress
   ## @param ingressWebhook.tls.secretName Secret name for TLS config
   ## @skip ingressWebhook.tls.additional
   ## @extra ingressWebhook.tls.additional[].secretName Secret name for additional TLS config
@@ -88,7 +88,7 @@ ingressAdmin:
   ## @param ingressAdmin.hosts Additional host to configure for the Ingress
   hosts: [ ]
   #  - chart-example.local
-  ## @param ingressAdmin.tls.enabled Weather to enable TLS for the Ingress
+  ## @param ingressAdmin.tls.enabled Whether to enable TLS for the Ingress
   ## @param ingressAdmin.tls.secretName Secret name for TLS config
   ## @skip ingressAdmin.tls.additional
   ## @extra ingressAdmin.tls.additional[].secretName Secret name for additional TLS config
@@ -110,7 +110,7 @@ ingressMedia:
   ## @param ingressMedia.hosts Additional host to configure for the Ingress
   hosts: [ ]
   #  - chart-example.local
-  ## @param ingressMedia.tls.enabled Weather to enable TLS for the Ingress
+  ## @param ingressMedia.tls.enabled Whether to enable TLS for the Ingress
   ## @param ingressMedia.tls.secretName Secret name for TLS config
   ## @skip ingressMedia.tls.additional
   ## @extra ingressMedia.tls.additional[].secretName Secret name for additional TLS config
@@ -347,7 +347,7 @@ frontend:
   ## @param frontend.replicas Amount of frontend replicas
   replicas: 3
 
-  ## @param frontend.shareProcessNamespace Enable share process namefrontend between containers
+  ## @param frontend.shareProcessNamespace Enable share process namespace between containers
   shareProcessNamespace: false
 
   ## @param frontend.sidecars Add sidecars containers to frontend deployment

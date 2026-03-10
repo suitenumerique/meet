@@ -87,12 +87,12 @@ If you are using an external service, you need to set `REDIS_URL` environment va
 
 Generate a secure key for `LIVEKIT_API_SECRET` in `env.d/common`.
 
-We provide a minimal recommanded config for production environment in `livekit-server.yaml`. Set the previously generated API secret key in the config file.
+We provide a minimal recommended config for production environment in `livekit-server.yaml`. Set the previously generated API secret key in the config file.
 
 To view other customization options, see [config-sample.yaml](https://github.com/livekit/livekit/blob/master/config-sample.yaml)
 
 > [!NOTE]
-> In this example, we configured multiplexing on a single UDP port. For better performances, you can configure a range of UDP ports. 
+> In this example, we configured multiplexing on a single UDP port. For better performance, you can configure a range of UDP ports. 
 
 ### Meet
 

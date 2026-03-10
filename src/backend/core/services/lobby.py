@@ -129,7 +129,7 @@ class LobbyService:
     ) -> Tuple[LobbyParticipant, Optional[Dict]]:
         """Request entry to a room for a participant.
 
-        This usual status transitions is:
+        The usual status transitions are:
         UNKNOWN -> WAITING -> (ACCEPTED | DENIED)
 
         Flow:

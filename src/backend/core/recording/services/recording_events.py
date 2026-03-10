@@ -16,7 +16,7 @@ class RecordingEventsError(Exception):
 
 
 class RecordingEventsService:
-    """Handles recording-related Livekit webhook events."""
+    """Handles recording-related LiveKit webhook events."""
 
     @staticmethod
     def handle_update(recording, egress_status):
