@@ -126,6 +126,33 @@
           "medium": "Moyen",
           "large": "Grand"
         }
+      },
+      "fontColor": {
+        "label": "Couleur du texte",
+        "options": {
+          "white": "Blanc",
+          "yellow": "Jaune",
+          "green": "Vert",
+          "cyan": "Cyan",
+          "blue": "Bleu",
+          "magenta": "Magenta",
+          "red": "Rouge",
+          "black": "Noir"
+        }
+      },
+      "backgroundColor": {
+        "label": "Couleur de fond",
+        "options": {
+          "black": "Noir",
+          "white": "Blanc",
+          "red": "Rouge",
+          "green": "Vert",
+          "blue": "Bleu",
+          "yellow": "Jaune",
+          "cyan": "Cyan",
+          "magenta": "Magenta",
+          "transparent": "Transparent"
+        }
       }
     }
   },
