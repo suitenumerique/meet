@@ -130,28 +130,29 @@
       "fontColor": {
         "label": "Schriftfarbe",
         "options": {
+          "default": "Standard",
           "white": "Weiß",
-          "yellow": "Gelb",
-          "green": "Grün",
-          "cyan": "Cyan",
+          "black": "Schwarz",
           "blue": "Blau",
-          "magenta": "Magenta",
+          "green": "Grün",
           "red": "Rot",
-          "black": "Schwarz"
+          "yellow": "Gelb",
+          "cyan": "Cyan",
+          "magenta": "Magenta"
         }
       },
       "backgroundColor": {
         "label": "Hintergrundfarbe",
         "options": {
-          "black": "Schwarz",
+          "default": "Standard",
           "white": "Weiß",
-          "red": "Rot",
-          "green": "Grün",
+          "black": "Schwarz",
           "blue": "Blau",
+          "green": "Grün",
+          "red": "Rot",
           "yellow": "Gelb",
           "cyan": "Cyan",
-          "magenta": "Magenta",
-          "transparent": "Transparent"
+          "magenta": "Magenta"
         }
       }
     }

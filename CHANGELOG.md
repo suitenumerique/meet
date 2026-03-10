@@ -22,8 +22,8 @@ and this project adheres to
 - ♿️(frontend) Caption text size setting for accessibility #1062
 - ♿️(frontend) sync html lang attribute with i18n for screen readers #1111
 - ♿️(frontend) improve MoreLink a11y and UX on home page #1112
-- ♿(frontend) improve chat toast a11y for screen readers #1109
-- ♿(frontend) improve ui and aria labels for help article links #1108
+- ♿️(frontend) improve chat toast a11y for screen readers #1109
+- ♿️(frontend) improve ui and aria labels for help article links #1108
 - 🌐(frontend) improve German translation #1125
 - 🔨(python-env) migrate meet main app to UV #1120
 - ♻️(backend) align Application model field with `is_active` convention #1133
@@ -32,6 +32,7 @@ and this project adheres to
 - 🔒️(backend) avoid information exposure through exception messages #1144
 - ⬆️(dependencies) update PyJWT to v2.12.0 [SECURITY] #1151
 - 📌(agents) unpin OpenSSL and related dependencies #1167
+- ♿️(frontend) add caption font and background color customization #1122
 
 ### Fixed
 
@@ -40,7 +41,6 @@ and this project adheres to
 - 🐛(backend) refactor lobby throttling to use participant id #1129
 - 🩹(backend) ignore non-recording uploads in storage webhook handler #1142
 - 🐛(frontend) fix dimension mismatch in BackgroundCustomProcessor #1116
-
 
 ## [1.10.0] - 2026-03-05
 

@@ -130,28 +130,29 @@
       "fontColor": {
         "label": "Tekstkleur",
         "options": {
+          "default": "Standaard",
           "white": "Wit",
-          "yellow": "Geel",
-          "green": "Groen",
-          "cyan": "Cyaan",
+          "black": "Zwart",
           "blue": "Blauw",
-          "magenta": "Magenta",
+          "green": "Groen",
           "red": "Rood",
-          "black": "Zwart"
+          "yellow": "Geel",
+          "cyan": "Cyaan",
+          "magenta": "Magenta"
         }
       },
       "backgroundColor": {
         "label": "Achtergrondkleur",
         "options": {
-          "black": "Zwart",
+          "default": "Standaard",
           "white": "Wit",
-          "red": "Rood",
-          "green": "Groen",
+          "black": "Zwart",
           "blue": "Blauw",
+          "green": "Groen",
+          "red": "Rood",
           "yellow": "Geel",
           "cyan": "Cyaan",
-          "magenta": "Magenta",
-          "transparent": "Transparant"
+          "magenta": "Magenta"
         }
       }
     }

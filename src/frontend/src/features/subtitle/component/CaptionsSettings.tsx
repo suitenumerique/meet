@@ -6,11 +6,9 @@ import { useSnapshot } from 'valtio'
 import {
   accessibilityStore,
   type CaptionTextSize,
-  type CaptionFontColor,
-  type CaptionBackgroundColor,
+  type CaptionColor,
   CAPTION_TEXT_SIZE_OPTIONS,
-  CAPTION_FONT_COLOR_OPTIONS,
-  CAPTION_BACKGROUND_COLOR_OPTIONS,
+  CAPTION_COLOR_OPTIONS,
 } from '@/stores/accessibility'
 
 export const CaptionsSettings = () => {
@@ -30,7 +28,7 @@ export const CaptionsSettings = () => {
 
   const captionFontColorItems = useMemo(
     () =>
-      CAPTION_FONT_COLOR_OPTIONS.map((color) => ({
+      CAPTION_COLOR_OPTIONS.map((color) => ({
         value: color,
         label: t(`fontColor.options.${color}`),
       })),
@@ -39,7 +37,7 @@ export const CaptionsSettings = () => {
 
   const captionBackgroundColorItems = useMemo(
     () =>
-      CAPTION_BACKGROUND_COLOR_OPTIONS.map((color) => ({
+      CAPTION_COLOR_OPTIONS.map((color) => ({
         value: color,
         label: t(`backgroundColor.options.${color}`),
       })),
@@ -79,7 +77,7 @@ export const CaptionsSettings = () => {
           items={captionFontColorItems}
           selectedKey={snap.captionFontColor}
           onSelectionChange={(key) => {
-            accessibilityStore.captionFontColor = key as CaptionFontColor
+            accessibilityStore.captionFontColor = key as CaptionColor
           }}
           wrapperProps={{ noMargin: true, fullWidth: true }}
         />
@@ -89,8 +87,7 @@ export const CaptionsSettings = () => {
           items={captionBackgroundColorItems}
           selectedKey={snap.captionBackgroundColor}
           onSelectionChange={(key) => {
-            accessibilityStore.captionBackgroundColor =
-              key as CaptionBackgroundColor
+            accessibilityStore.captionBackgroundColor = key as CaptionColor
           }}
           wrapperProps={{ noMargin: true, fullWidth: true }}
         />

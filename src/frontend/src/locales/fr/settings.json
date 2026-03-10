@@ -130,28 +130,29 @@
       "fontColor": {
         "label": "Couleur du texte",
         "options": {
+          "default": "Par défaut",
           "white": "Blanc",
-          "yellow": "Jaune",
-          "green": "Vert",
-          "cyan": "Cyan",
+          "black": "Noir",
           "blue": "Bleu",
-          "magenta": "Magenta",
+          "green": "Vert",
           "red": "Rouge",
-          "black": "Noir"
+          "yellow": "Jaune",
+          "cyan": "Cyan",
+          "magenta": "Magenta"
         }
       },
       "backgroundColor": {
         "label": "Couleur de fond",
         "options": {
-          "black": "Noir",
+          "default": "Par défaut",
           "white": "Blanc",
-          "red": "Rouge",
-          "green": "Vert",
+          "black": "Noir",
           "blue": "Bleu",
+          "green": "Vert",
+          "red": "Rouge",
           "yellow": "Jaune",
           "cyan": "Cyan",
-          "magenta": "Magenta",
-          "transparent": "Transparent"
+          "magenta": "Magenta"
         }
       }
     }
