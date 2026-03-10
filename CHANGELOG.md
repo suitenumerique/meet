@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(helm) support celery with our Django backend #1124
 - ✨(helm) support ingress for custom background image #1124
+- ✨(backend) add authenticated user rate throttling on request-entry #1129
 
 ### Changed
 

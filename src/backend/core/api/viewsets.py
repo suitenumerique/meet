@@ -393,7 +393,10 @@ class RoomViewSet(
         methods=["post"],
         url_path="request-entry",
         permission_classes=[],
-        throttle_classes=[throttling.RequestEntryAnonRateThrottle],
+        throttle_classes=[
+            throttling.RequestEntryAuthenticatedUserRateThrottle,
+            throttling.RequestEntryAnonRateThrottle,
+        ],
     )
     def request_entry(self, request, pk=None):  # pylint: disable=unused-argument
         """Request entry to a room"""
