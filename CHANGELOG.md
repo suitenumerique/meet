@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(helm) support celery with our Django backend #1124
+- ✨(helm) support ingress for custom background image #1124
+
 ### Changed
 
 - ♿️(frontend) Caption text size setting for accessibility #1062
