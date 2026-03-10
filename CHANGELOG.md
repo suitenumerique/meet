@@ -16,6 +16,7 @@ and this project adheres to
 - ♿(frontend) improve chat toast a11y for screen readers #1109
 - ♿(frontend) improve ui and qria labels for help article links #1108
 - 🔨(python-env) migrate meet main app to UV #1120
+- 🔨(docker) set file permissions to docker user #1121
 
 ## [1.10.0] - 2026-03-05
 

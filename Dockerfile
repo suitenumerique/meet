@@ -96,7 +96,8 @@ COPY ./docker/files/usr/local/bin/entrypoint /usr/local/bin/entrypoint
 RUN chmod g=u /etc/passwd
 
 # Copy the application from the builder
-COPY --from=back-builder /app /app
+ARG DOCKER_USER
+COPY --chown=${DOCKER_USER} --from=back-builder /app /app
 
 WORKDIR /app
 

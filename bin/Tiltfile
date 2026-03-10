@@ -14,11 +14,16 @@ if DEV_ENV == 'dev-keycloak':
 def clean_old_images(image_name):
     local('docker images -q %s | tail -n +2 | xargs -r docker rmi' % image_name)
 
+
+uid = str(local('id -u', quiet=True)).strip()
+gid = str(local('id -g', quiet=True)).strip()
+DOCKER_USER = uid + ":" + gid
+
 docker_build(
     'localhost:5001/meet-backend:latest',
     context='..',
     dockerfile='../Dockerfile',
-    build_args={'DOCKER_USER': '1001:127'},
+    build_args={'DOCKER_USER': DOCKER_USER},
     only=['./src/backend', './src/mail', './docker'],
     target = 'backend-production',
     live_update=[
@@ -34,7 +39,7 @@ clean_old_images('localhost:5001/meet-backend')
 docker_build(
     'localhost:5001/meet-frontend-dinum:latest',
     context='..',
-    build_args={'DOCKER_USER': '1001:127'},
+    build_args={'DOCKER_USER': DOCKER_USER},
     dockerfile='../docker/dinum-frontend/Dockerfile',
     only=['./src/frontend', './docker', './.dockerignore'],
     target = 'frontend-production',
@@ -59,7 +64,7 @@ clean_old_images('localhost:5001/meet-frontend-generic')
 docker_build(
     'localhost:5001/meet-summary:latest',
     context='../src/summary',
-    build_args={'DOCKER_USER': '1001:127'},
+    build_args={'DOCKER_USER': DOCKER_USER},
     dockerfile='../src/summary/Dockerfile',
     only=['.'],
     target = 'production',
@@ -72,7 +77,7 @@ clean_old_images('localhost:5001/meet-summary')
 docker_build(
     'localhost:5001/meet-agents:latest',
     context='../src/agents',
-    build_args={'DOCKER_USER': '1001:127'},
+    build_args={'DOCKER_USER': DOCKER_USER},
     dockerfile='../src/agents/Dockerfile',
     only=['.'],
     target = 'production',
