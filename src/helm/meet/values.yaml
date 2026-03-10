@@ -601,6 +601,108 @@ summary:
   pdb:
     enabled: true
 
+## @section celeryBackend
+
+celeryBackend:
+
+  ## @param celeryBackend.dpAnnotations Annotations to add to the celeryBackend Deployment
+  dpAnnotations: {}
+
+  ## @param celeryBackend.command Override the celeryBackend container command
+  command:
+    - "celery"
+    - "-A"
+    - "meet.celery_app"
+    - "worker"
+    - "--pool=solo"
+    - "--loglevel=info"
+    - "-Q"
+    - "meet-backend"
+
+  ## @param celeryBackend.args Override the celeryBackend container args
+  args: []
+
+  ## @param celeryBackend.replicas Amount of celeryBackend replicas
+  replicas: 1
+
+  ## @param celeryBackend.shareProcessNamespace Enable share process namespace between containers
+  shareProcessNamespace: false
+
+  ## @param celeryBackend.sidecars Add sidecars containers to celeryBackend deployment
+  sidecars: []
+
+  ## @param celeryBackend.migrateJobAnnotations Annotations for the migrate job
+  migrateJobAnnotations: {}
+
+  ## @param celeryBackend.securityContext Configure celeryBackend Pod security context
+  securityContext: null
+
+  ## @param celeryBackend.envVars Configure celeryBackend container environment variables
+  ## @extra celeryBackend.envVars.BY_VALUE Example environment variable by setting value directly
+  ## @extra celeryBackend.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra celeryBackend.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra celeryBackend.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
+  ## @extra celeryBackend.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @skip celeryBackend.envVars
+  envVars:
+    <<: *commonEnvVars
+
+  ## @param celeryBackend.podAnnotations Annotations to add to the celeryBackend Pod
+  podAnnotations: {}
+
+  ## @param celeryBackend.service.type celeryBackend Service type
+  ## @param celeryBackend.service.port celeryBackend Service listening port
+  ## @param celeryBackend.service.targetPort celeryBackend container listening port
+  ## @param celeryBackend.service.annotations Annotations to add to the celeryBackend Service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+    annotations: {}
+
+  ## @param celeryBackend.probes Configure celeryBackend probes
+  ## @param celeryBackend.probes.liveness.path [nullable] Configure path for celeryBackend HTTP liveness probe
+  ## @param celeryBackend.probes.liveness.targetPort [nullable] Configure port for celeryBackend HTTP liveness probe
+  ## @param celeryBackend.probes.liveness.initialDelaySeconds [nullable] Configure initial delay for celeryBackend liveness probe
+  ## @param celeryBackend.probes.liveness.initialDelaySeconds [nullable] Configure timeout for celeryBackend liveness probe
+  ## @param celeryBackend.probes.startup.path [nullable] Configure path for celeryBackend HTTP startup probe
+  ## @param celeryBackend.probes.startup.targetPort [nullable] Configure port for celeryBackend HTTP startup probe
+  ## @param celeryBackend.probes.startup.initialDelaySeconds [nullable] Configure initial delay for celeryBackend startup probe
+  ## @param celeryBackend.probes.startup.initialDelaySeconds [nullable] Configure timeout for celeryBackend startup probe
+  ## @param celeryBackend.probes.readiness.path [nullable] Configure path for celeryBackend HTTP readiness probe
+  ## @param celeryBackend.probes.readiness.targetPort [nullable] Configure port for celeryBackend HTTP readiness probe
+  ## @param celeryBackend.probes.readiness.initialDelaySeconds [nullable] Configure initial delay for celeryBackend readiness probe
+  ## @param celeryBackend.probes.readiness.initialDelaySeconds [nullable] Configure timeout for celeryBackend readiness probe
+  probes: {}
+
+  ## @param celeryBackend.resources Resource requirements for the celeryBackend container
+  resources: {}
+
+  ## @param celeryBackend.nodeSelector Node selector for the celeryBackend Pod
+  nodeSelector: {}
+
+  ## @param celeryBackend.tolerations Tolerations for the celeryBackend Pod
+  tolerations: []
+
+  ## @param celeryBackend.affinity Affinity for the celeryBackend Pod
+  affinity: {}
+
+  ## @param celeryBackend.persistence Additional volumes to create and mount on the celeryBackend. Used for debugging purposes
+  ## @extra celeryBackend.persistence.volume-name.size Size of the additional volume
+  ## @extra celeryBackend.persistence.volume-name.type Type of the additional volume, persistentVolumeClaim or emptyDir
+  ## @extra celeryBackend.persistence.volume-name.mountPath Path where the volume should be mounted to
+  persistence: {}
+
+  ## @param celeryBackend.extraVolumeMounts Additional volumes to mount on the celeryBackend.
+  extraVolumeMounts: []
+
+  ## @param celeryBackend.extraVolumes Additional volumes to mount on the celeryBackend.
+  extraVolumes: []
+
+  ## @param celeryBackend.pdb.enabled Enable pdb on celeryBackend
+  pdb:
+    enabled: false
+
 ## @section celeryTranscribe
 
 celeryTranscribe:
