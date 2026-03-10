@@ -3,7 +3,7 @@
 from django.conf import settings
 
 from lasuite.drf.throttling import MonitoredThrottleMixin
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import capture_message
 
 
@@ -14,6 +14,24 @@ def sentry_monitoring_throttle_failure(message):
 
 class MonitoredAnonRateThrottle(MonitoredThrottleMixin, AnonRateThrottle):
     """Throttle for the monitored scoped rate throttle."""
+
+
+class MonitoredUserRateThrottle(MonitoredThrottleMixin, UserRateThrottle):
+    """Throttle for the monitored scoped rate throttle."""
+
+
+class RequestEntryAuthenticatedUserRateThrottle(MonitoredUserRateThrottle):
+    """Throttle authenticated user requesting room entry"""
+
+    scope = "request_entry"
+
+    def get_cache_key(self, request, view):
+        """Use the authenticated user ID as the throttle cache key."""
+
+        if request.user and not request.user.is_authenticated:
+            return None  # Defer to RequestEntryAnonRateThrottle for anonymous users.
+
+        return super().get_cache_key(request, view)
 
 
 class RequestEntryAnonRateThrottle(MonitoredAnonRateThrottle):
