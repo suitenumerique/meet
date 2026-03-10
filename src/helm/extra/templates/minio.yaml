@@ -3,6 +3,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: minio
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
 spec:
   rules:
   - host: "minio.127.0.0.1.nip.io"
