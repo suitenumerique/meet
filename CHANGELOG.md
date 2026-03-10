@@ -15,6 +15,7 @@ and this project adheres to
 - ♿️(frontend) improve MoreLink a11y and UX on home page #1112
 - ♿(frontend) improve chat toast a11y for screen readers #1109
 - ♿(frontend) improve ui and qria labels for help article links #1108
+- 🔨(python-env) migrate meet main app to UV #1120
 
 ## [1.10.0] - 2026-03-05
 

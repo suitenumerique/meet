@@ -4,7 +4,7 @@ __pycache__
 **/__pycache__
 **/*.pyc
 venv
-.venv
+**/.venv
 
 # System-specific files
 .DS_Store

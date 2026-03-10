@@ -2,8 +2,8 @@
 # Meet package
 #
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
 
 [project]
 name = "meet"
@@ -21,8 +21,7 @@ classifiers = [
 ]
 description = "A simple video and phone conferencing tool, powered by LiveKit"
 keywords = ["Django", "Contacts", "Templates", "RBAC"]
-license = { file = "LICENSE" }
-readme = "README.md"
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "boto3==1.42.49",
@@ -70,7 +69,7 @@ dependencies = [
 "Homepage" = "https://github.com/suitenumerique/meet"
 "Repository" = "https://github.com/suitenumerique/meet"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "django-extensions==4.1",
     "drf-spectacular-sidecar==2026.1.1",
@@ -90,12 +89,13 @@ dev = [
     "types-requests==2.32.4.20260107",
 ]
 
-[tool.setuptools]
-packages = { find = { where = ["."], exclude = ["tests"] } }
-zip-safe = true
-
-[tool.distutils.bdist_wheel]
-universal = true
+[tool.uv.build-backend]
+module-root = ""
+source-exclude = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/tests.py",
+]
 
 [tool.ruff]
 exclude = [

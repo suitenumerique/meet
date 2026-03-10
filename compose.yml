@@ -80,6 +80,7 @@ services:
     volumes:
       - ./src/backend:/app
       - ./data/static:/data/static
+      - /app/.venv
     depends_on:
         - postgresql
         - mailcatcher
@@ -105,6 +106,7 @@ services:
     volumes:
       - ./src/backend:/app
       - ./data/static:/data/static
+      - /app/.venv
     depends_on:
       - app-dev
 
