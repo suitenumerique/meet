@@ -85,7 +85,7 @@ UUID_REGEX = (
 FILE_EXT_REGEX = r"[\d\w]+"
 MEDIA_STORAGE_URL_PATTERN = re.compile(
     f"{settings.MEDIA_URL:s}"
-    rf"(?P<key>{FILE_FOLDER:s}/(?P<pk>{UUID_REGEX:s})/\.{FILE_EXT_REGEX:s})$"
+    rf"(?P<key>{FILE_FOLDER:s}/(?P<pk>{UUID_REGEX:s})\.{FILE_EXT_REGEX:s})$"
 )
 
 

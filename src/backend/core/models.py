@@ -952,7 +952,7 @@ class File(BaseModel):
         _, extension = splitext(self.filename)
         # We store only the extension in the storage system to avoid
         # leaking Personal Information in logs, etc.
-        return f"{self.key_base}/{extension!s}"
+        return f"{self.key_base}{extension!s}"
 
     def get_abilities(self, user):
         """

@@ -39,7 +39,7 @@ def test_api_files_update_anonymous_forbidden():
 
 def test_api_files_update_description_and_title():
     """
-    Test the description and title of an file can be updated.
+    Test the description and title of a file can be updated.
     """
     user = factories.UserFactory()
 
