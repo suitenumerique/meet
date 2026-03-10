@@ -1,46 +1,46 @@
 {
   "account": {
-    "currentlyLoggedAs": "Sie sind derzeit angemeldet als <0>{{user}}</0>",
+    "currentlyLoggedAs": "Du bist derzeit angemeldet als <0>{{user}}</0>",
     "heading": "Konto",
-    "youAreNotLoggedIn": "Sie sind nicht angemeldet.",
-    "nameLabel": "Ihr Name",
+    "youAreNotLoggedIn": "Du bist nicht angemeldet.",
+    "nameLabel": "Dein Name",
     "authentication": "Authentifizierung",
-    "nameError": "Ihr Name darf nicht leer sein"
+    "nameError": "Dein Name darf nicht leer sein"
   },
   "preferences": {
     "title": "Einstellungen",
     "idleDisconnectModal": {
-      "label": "Anrufe ohne Teilnehmer verlassen",
-      "description": "Verlässt automatisch einen Anruf nach einigen Minuten, wenn kein anderer Teilnehmer beitritt"
+      "label": "Meetings ohne Teilnehmende verlassen",
+      "description": "Meetings nach einigen Minuten automatisch verlassen, wenn keine andere Person beitritt"
     }
   },
   "audio": {
     "microphone": {
       "heading": "Mikrofon",
-      "label": "Wählen Sie Ihre Audioeingabe",
+      "label": "Audioeingabe wählen",
       "disabled": "Mikrofon deaktiviert"
     },
     "noiseReduction": {
-      "label": "Rauschunterdrückung",
-      "heading": "Rauschunterdrückung",
+      "label": "Geräuschunterdrückung",
+      "heading": "Geräuschunterdrückung",
       "ariaLabel": {
-        "enable": "Rauschunterdrückung aktivieren",
-        "disable": "Rauschunterdrückung deaktivieren"
+        "enable": "Geräuschunterdrückung aktivieren",
+        "disable": "Geräuschunterdrückung deaktivieren"
       }
     },
     "speakers": {
       "heading": "Lautsprecher",
-      "label": "Wählen Sie Ihre Audioausgabe",
+      "label": "Audioausgabe wählen",
       "test": "Testen",
       "ongoingTest": "Soundtest läuft…",
-      "safariWarning": "Die Lautsprecherauswahl ist auf Safari aufgrund von Browser-Einschränkungen noch nicht verfügbar."
+      "safariWarning": "Die Audioausgabeauswahl ist auf Safari aufgrund von Browser-Einschränkungen noch nicht verfügbar."
     },
     "permissionsRequired": "Berechtigungen erforderlich"
   },
   "video": {
     "camera": {
       "heading": "Kamera",
-      "label": "Wählen Sie Ihre Videoeingabe aus",
+      "label": "Videoeingabe wählen",
       "disabled": "Kamera deaktiviert",
       "previewAriaLabel": {
         "enabled": "Videovorschau aktiviert",
@@ -50,18 +50,18 @@
     "resolution": {
       "heading": "Auflösung",
       "publish": {
-        "label": "Wählen Sie Ihre maximale Sendeauflösung (max.)",
+        "label": "Wähle die maximale Auflösung beim Senden",
         "items": {
           "high": "Hohe Auflösung",
-          "medium": "Standardauflösung",
+          "medium": "Mittlere Auflösung",
           "low": "Niedrige Auflösung"
         }
       },
       "subscribe": {
-        "label": "Wählen Sie Ihre Empfangsauflösung (max.)",
+        "label": "Wähle die maximale Auflösung beim Empfangen",
         "items": {
           "high": "Hohe Auflösung (automatisch)",
-          "medium": "Standardauflösung",
+          "medium": "Mittlere Auflösung",
           "low": "Niedrige Auflösung"
         }
       }
@@ -82,15 +82,15 @@
     }
   },
   "notifications": {
-    "heading": "Tonbenachrichtigungen",
-    "label": "Tonbenachrichtigungen für",
+    "heading": "Benachrichtigungen mit Ton",
+    "label": "Benachrichtigungen mit Ton für",
     "actions": {
       "disable": "Deaktivieren",
       "enable": "Aktivieren"
     },
     "items": {
       "participantJoined": {
-        "label": "Teilnehmer beigetreten"
+        "label": "Person beigetreten"
       },
       "handRaised": {
         "label": "Hand gehoben"
