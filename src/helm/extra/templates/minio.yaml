@@ -16,7 +16,7 @@ spec:
           service:
             name: minio
             port:
-              number: 9001
+              number: 9000
   tls:
   - hosts:
     - minio.127.0.0.1.nip.io
