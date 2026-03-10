@@ -126,6 +126,34 @@
           "medium": "Medium",
           "large": "Large"
         }
+      },
+      "fontColor": {
+        "label": "Font color",
+        "options": {
+          "default": "Default",
+          "white": "White",
+          "black": "Black",
+          "blue": "Blue",
+          "green": "Green",
+          "red": "Red",
+          "yellow": "Yellow",
+          "cyan": "Cyan",
+          "magenta": "Magenta"
+        }
+      },
+      "backgroundColor": {
+        "label": "Background color",
+        "options": {
+          "default": "Default",
+          "white": "White",
+          "black": "Black",
+          "blue": "Blue",
+          "green": "Green",
+          "red": "Red",
+          "yellow": "Yellow",
+          "cyan": "Cyan",
+          "magenta": "Magenta"
+        }
       }
     }
   },
