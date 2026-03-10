@@ -437,9 +437,11 @@ class Base(Configuration):
     # Celery
     # Defaults to False to avoid breaking change, async task will be run
     # synchronously
-    CELERY_ENABLED = values.BooleanValue(False)
-    CELERY_BROKER_URL = values.Value("redis://redis:6379/0")
-    CELERY_BROKER_TRANSPORT_OPTIONS = values.DictValue({})
+    CELERY_ENABLED = values.BooleanValue(False, environ_prefix=None)
+    CELERY_TASK_ALWAYS_EAGER = values.BooleanValue(False, environ_prefix=None)
+    CELERY_TASK_DEFAULT_QUEUE = values.Value("meet-backend", environ_prefix=None)
+    CELERY_BROKER_URL = values.Value("redis://redis:6379/0", environ_prefix=None)
+    CELERY_BROKER_TRANSPORT_OPTIONS = values.DictValue({}, environ_prefix=None)
 
     # Session
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
@@ -970,7 +972,7 @@ class Test(Base):
     APPLICATION_JWT_SECRET_KEY = "devKey"  # noqa:S105
     APPLICATION_JWT_AUDIENCE = "Test inc."
 
-    CELERY_TASK_ALWAYS_EAGER = values.BooleanValue(True)
+    CELERY_TASK_ALWAYS_EAGER = True
 
     def __init__(self):
         # pylint: disable=invalid-name
