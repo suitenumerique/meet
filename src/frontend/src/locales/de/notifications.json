@@ -1,5 +1,5 @@
 {
-  "defaultName": "Ein Mitwirkender",
+  "defaultName": "Eine Person",
   "joined": {
     "description": "{{name}} ist dem Raum beigetreten"
   },
@@ -7,47 +7,47 @@
     "description": "{{name}} hat die Hand gehoben.",
     "cta": "Warteliste öffnen"
   },
-  "muted": "{{name}} hat dein Mikrofon stummgeschaltet. Kein Teilnehmer kann dich hören.",
+  "muted": "{{name}} hat dein Mikrofon stummgeschaltet.",
   "openChat": "Chat öffnen",
   "chatMessageReceived": "{{name}} sagt: {{message}}",
   "lowerHand": {
-    "auto": "Es scheint, dass du angefangen hast zu sprechen, daher wird deine Hand gesenkt.",
+    "auto": "Du hast begonnen zu sprechen – deine Hand wird daher automatisch gesenkt.",
     "dismiss": "Hand oben lassen"
   },
   "reaction": {
     "description": "{{name}} hat mit {{emoji}} reagiert"
   },
   "permissionsRemoved": {
-    "camera": "Der Organisator hat das Video für alle Teilnehmer deaktiviert.",
-    "microphone": "Der Organisator hat das Mikrofon für alle Teilnehmer deaktiviert.",
-    "screen_share": "Der Organisator hat die Bildschirmfreigabe für alle Teilnehmer deaktiviert."
+    "camera": "Die Moderation hat das Video für alle Teilnehmenden deaktiviert.",
+    "microphone": "Die Moderation hat das Mikrofon für alle Teilnehmenden deaktiviert.",
+    "screen_share": "Die Moderation hat die Bildschirmfreigabe für alle Teilnehmenden deaktiviert."
   },
   "waitingParticipants": {
-    "one": "Eine Person möchte diesem Anruf beitreten.",
-    "several": "Mehrere Personen möchten diesem Anruf beitreten.",
+    "one": "Eine Person möchte diesem Meeting beitreten.",
+    "several": "Mehrere Personen möchten diesem Meeting beitreten.",
     "open": "Öffnen",
-    "accept": "Annehmen"
+    "accept": "Hereinlassen"
   },
   "transcript": {
-    "started": "{{name}} hat die Transkription des Treffens gestartet.",
-    "stopped": "{{name}} hat die Transkription des Treffens gestoppt.",
+    "started": "{{name}} hat die Meeting-Transkription gestartet.",
+    "stopped": "{{name}} hat die Meeting-Transkription gestoppt.",
     "limitReached": "Die Transkription hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert.",
-    "requested": "{{name}} will die Transkription starten."
+    "requested": "{{name}} möchte die Meeting-Transkription starten."
   },
   "screenRecording": {
-    "started": "{{name}} hat die Aufzeichnung des Treffens gestartet.",
-    "stopped": "{{name}} hat die Aufzeichnung des Treffens gestoppt.",
+    "started": "{{name}} hat die Meeting-Aufzeichnung gestartet.",
+    "stopped": "{{name}} hat die Meeting-Aufzeichnung gestoppt.",
     "limitReached": "Die Aufzeichnung hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert.",
-    "requested": "{{name}} will die Aufnahme starten."
+    "requested": "{{name}} möchte die Meeting-Aufzeichnung starten."
   },
   "recordingSave": {
     "transcript": {
-      "message": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail an <strong>{{email}}</strong>, sobald die Transkription fertig ist.",
-      "default": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail, sobald die Transkription fertig ist."
+      "message": "Deine Transkription wird gespeichert! Du erhältst eine E-Mail auf <strong>{{email}}</strong>, sobald die Transkription bereit ist.",
+      "default": "Deine Transkription wird gespeichert! Du erhältst das Transkript per E-Mail, sobald es bereit ist."
     },
     "screenRecording": {
-      "message": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail an <strong>{{email}}</strong>, sobald sie fertig ist.",
-      "default": "Wir finalisieren Ihre Aufnahme! Sie erhalten eine E-Mail, sobald sie fertig ist."
+      "message": "Deine Aufzeichnung wird gespeichert! Du erhältst eine E-Mail auf <strong>{{email}}</strong>, sobald sie bereit ist.",
+      "default": "Deine Aufzeichnung wird gespeichert! Du erhältst eine E-Mail, sobald sie bereit ist."
     }
   },
   "openMenu": "Menü öffnen"
