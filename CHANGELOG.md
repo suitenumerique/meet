@@ -16,6 +16,10 @@ and this project adheres to
 - ♿(frontend) improve chat toast a11y for screen readers #1109
 - ♿(frontend) improve ui and qria labels for help article links #1108
 
+### Fixed
+
+- 🐛(frontend) fix hand icon and queue position aligment and position #1119
+
 ## [1.10.0] - 2026-03-05
 
 ### Changed

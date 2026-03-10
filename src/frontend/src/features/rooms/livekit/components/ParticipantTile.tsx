@@ -183,7 +183,13 @@ export const ParticipantTile: (
                       }}
                     >
                       {isHandRaised && !isScreenShare && (
-                        <span>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.1rem',
+                          }}
+                        >
                           <span>{positionInQueue}</span>
                           <RiHand
                             color="black"
