@@ -944,7 +944,7 @@ class FileViewSet(
     filterset_class = ListFileFilter
 
     def get_queryset(self):
-        """Get queryset that defaults to the the current request user."""
+        """Get queryset that defaults to the current request user."""
         user = self.request.user
         queryset = super().get_queryset().select_related("creator")
 
