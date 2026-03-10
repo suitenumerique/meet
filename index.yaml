@@ -2,6 +2,14 @@ apiVersion: v1
 entries:
   meet:
   - apiVersion: v2
+    created: "2026-03-10T15:12:24.633530868Z"
+    digest: b4154ff27f2d93f2f541a77c85c055a4bb48352e7500ca32a46c320efcc87237
+    name: meet
+    type: application
+    urls:
+    - https://suitenumerique.github.io/meet/meet-0.0.17.tgz
+    version: 0.0.17
+  - apiVersion: v2
     created: "2026-03-04T20:31:32.525156649Z"
     digest: df824cf7fe4b6d64d14095cbf3a9449e90e964d052c4c30120646cfb287a22cf
     name: meet
@@ -145,4 +153,4 @@ entries:
     urls:
     - https://suitenumerique.github.io/meet/meet-0.0.1.tgz
     version: 0.0.1
-generated: "2026-03-04T20:31:32.523363045Z"
+generated: "2026-03-10T15:12:24.631489028Z"
