@@ -13,7 +13,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import gettext_lazy as _
 
 from django_pydantic_field.rest_framework import SchemaField
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from timezone_field.rest_framework import TimeZoneSerializerField
@@ -123,6 +123,16 @@ class ListRoomSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "slug"]
 
 
+class RoomConfiguration(BaseModel):
+    """Wip"""
+
+    can_publish_sources: list[Literal[
+        "microphone", "screen_share", "screen_share_audio", "camera"
+    ]] | None = None
+
+    model_config = {"extra": "forbid"}
+
+
 class RoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for the API."""
 
@@ -130,6 +140,20 @@ class RoomSerializer(serializers.ModelSerializer):
         model = models.Room
         fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
         read_only_fields = ["id", "slug", "pin_code"]
+
+    def validate_configuration(self, configuration):
+        """Wip."""
+
+        if configuration is None:
+            return configuration
+
+        try:
+            RoomConfiguration.model_validate(configuration)
+        except ValidationError as e:
+            raise SuspiciousOperation("Wip, invalid room configuration")
+
+        return configuration
+
 
     def to_representation(self, instance):
         """

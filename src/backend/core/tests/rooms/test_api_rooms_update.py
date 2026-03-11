@@ -95,7 +95,7 @@ def test_api_rooms_update_administrators():
             "name": "New name",
             "slug": "should-be-ignored",
             "access_level": RoomAccessLevel.PUBLIC,
-            "configuration": {"the_key": "the_value"},
+            "configuration": {"can_publish_sources": ["camera"]},
         },
         format="json",
     )
@@ -104,7 +104,7 @@ def test_api_rooms_update_administrators():
     assert room.name == "New name"
     assert room.slug == "new-name"
     assert room.access_level == RoomAccessLevel.PUBLIC
-    assert room.configuration == {"the_key": "the_value"}
+    assert room.configuration == {"can_publish_sources": ["camera"]}
 
 
 def test_api_rooms_update_administrators_of_another():
