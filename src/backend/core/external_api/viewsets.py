@@ -61,11 +61,11 @@ class ApplicationViewSet(viewsets.ViewSet):
         except models.Application.DoesNotExist as e:
             raise drf_exceptions.AuthenticationFailed("Invalid credentials") from e
 
-        if not application.is_active:
-            raise drf_exceptions.AuthenticationFailed("Application is inactive")
-
         if not check_password(client_secret, application.client_secret):
             raise drf_exceptions.AuthenticationFailed("Invalid credentials")
+
+        if not application.is_active:
+            raise drf_exceptions.AuthenticationFailed("Application is inactive")
 
         email = serializer.validated_data["scope"]
         try:

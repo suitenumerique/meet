@@ -25,6 +25,7 @@ and this project adheres to
 - 🌐(frontend) improve German translation #1125
 - 🔨(python-env) migrate meet main app to UV #1120
 - ♻️(backend) align Application model field with `is_active` convention #1133
+- 🔐(backend) avoids revealing the inactive status of an application #1135
 
 ### Fixed
 
