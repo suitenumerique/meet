@@ -904,7 +904,7 @@ def test_api_rooms_token_unknown_application(settings):
 
 def test_api_rooms_token_inactive_application(settings):
     """Token for inactive application should be rejected."""
-    application = ApplicationFactory(active=False)
+    application = ApplicationFactory(is_active=False)
 
     now = datetime.now(timezone.utc)
     payload = {

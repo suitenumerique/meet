@@ -23,7 +23,7 @@ def test_api_applications_generate_token_success(settings):
     """Valid credentials should return a JWT token."""
     UserFactory(email="User.Family@example.com")
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
     )
 
@@ -79,7 +79,7 @@ def test_api_applications_generate_token_invalid_client_id():
 def test_api_applications_generate_token_invalid_client_secret():
     """Invalid client_secret should return 401."""
     user = UserFactory(email="user@example.com")
-    application = ApplicationFactory(active=True)
+    application = ApplicationFactory(is_active=True)
 
     client = APIClient()
     response = client.post(
@@ -100,7 +100,7 @@ def test_api_applications_generate_token_invalid_client_secret():
 def test_api_applications_generate_token_inactive_application():
     """Inactive application should return 401."""
     user = UserFactory(email="user@example.com")
-    application = ApplicationFactory(active=False)
+    application = ApplicationFactory(is_active=False)
 
     plain_secret = "test-secret-123"
     application.client_secret = plain_secret
@@ -124,7 +124,7 @@ def test_api_applications_generate_token_inactive_application():
 
 def test_api_applications_generate_token_invalid_email_format():
     """Invalid email format should return 400."""
-    application = ApplicationFactory(active=True)
+    application = ApplicationFactory(is_active=True)
 
     plain_secret = "test-secret-123"
     application.client_secret = plain_secret
@@ -149,7 +149,7 @@ def test_api_applications_generate_token_invalid_email_format():
 def test_api_applications_generate_token_domain_not_authorized():
     """Application without domain authorization should return 403."""
     user = UserFactory(email="user@denied.com")
-    application = ApplicationFactory(active=True)
+    application = ApplicationFactory(is_active=True)
     ApplicationDomainFactory(application=application, domain="allowed.com")
 
     plain_secret = "test-secret-123"
@@ -176,7 +176,7 @@ def test_api_applications_generate_token_domain_authorized():
     """Application with domain authorization should succeed."""
     user = UserFactory(email="user@allowed.com")
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST],
     )
     ApplicationDomainFactory(application=application, domain="allowed.com")
@@ -203,7 +203,7 @@ def test_api_applications_generate_token_domain_authorized():
 
 def test_api_applications_generate_token_user_not_found():
     """Non-existent user should return 404."""
-    application = ApplicationFactory(active=True)
+    application = ApplicationFactory(is_active=True)
 
     plain_secret = "test-secret-123"
     application.client_secret = plain_secret
@@ -231,7 +231,7 @@ def test_api_applications_token_payload_structure(settings):
     user = UserFactory(email="user@example.com")
 
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
     )
 
@@ -284,7 +284,7 @@ def test_api_applications_token_new_user(settings):
     assert len(User.objects.all()) == 0
 
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
     )
 
@@ -342,7 +342,7 @@ def test_api_applications_token_existing_user(settings):
     assert len(User.objects.all()) == 1
 
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
     )
 

@@ -129,7 +129,7 @@ class ApplicationFactory(factory.django.DjangoModelFactory):
         model = models.Application
 
     name = factory.Faker("company")
-    active = True
+    is_active = True
     client_id = factory.LazyFunction(utils.generate_client_id)
     client_secret = factory.LazyFunction(utils.generate_client_secret)
     scopes = []

@@ -759,7 +759,7 @@ class Application(BaseModel):
         verbose_name=_("Application name"),
         help_text=_("Descriptive name for this application."),
     )
-    active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     client_id = models.CharField(
         max_length=100, unique=True, default=utils.generate_client_id
     )

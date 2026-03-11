@@ -41,7 +41,7 @@ def test_models_application_name_maxlength():
 def test_models_application_active_default():
     """An application should be active by default."""
     application = Application.objects.create(name="Test App")
-    assert application.active is True
+    assert application.is_active is True
 
 
 def test_models_application_scopes_default():

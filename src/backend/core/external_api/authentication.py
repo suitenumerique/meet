@@ -203,7 +203,7 @@ class ApplicationJWTAuthentication(BaseJWTAuthentication):
             logger.warning("Application not found: %s", client_id)
             raise exceptions.AuthenticationFailed("Application not found.") from e
 
-        if not application.active:
+        if not application.is_active:
             logger.warning(
                 "Inactive application attempted authentication: %s", client_id
             )

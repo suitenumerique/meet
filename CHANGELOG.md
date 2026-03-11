@@ -23,6 +23,7 @@ and this project adheres to
 - ♿(frontend) improve ui and aria labels for help article links #1108
 - 🌐(frontend) improve German translation #1125
 - 🔨(python-env) migrate meet main app to UV #1120
+- ♻️(backend) align Application model field with `is_active` convention
 
 ### Fixed
 
