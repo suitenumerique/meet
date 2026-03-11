@@ -224,6 +224,7 @@ class RoomViewSet(
     API endpoints to access and perform actions on rooms.
     """
 
+    pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
