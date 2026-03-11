@@ -197,6 +197,38 @@ def resend_notification(modeladmin, request, queryset):  # pylint: disable=unuse
         )
 
 
+@admin.action(description=_("Mark selected recordings as 'Failed to Stop'"))
+def mark_as_failed_to_stop(modeladmin, request, queryset):
+    """Force selected recordings status to failed_to_stop."""
+
+    eligible_statuses = [
+        models.RecordingStatusChoices.ACTIVE,
+        models.RecordingStatusChoices.INITIATED,
+        models.RecordingStatusChoices.STOPPED,
+    ]
+
+    eligible = queryset.filter(status__in=eligible_statuses)
+    skipped = queryset.exclude(status__in=eligible_statuses).count()
+
+    updated = eligible.update(status=models.RecordingStatusChoices.FAILED_TO_STOP)
+
+    if updated > 0:
+        modeladmin.message_user(
+            request,
+            _("%(count)s recording(s) successfully marked as 'Failed to Stop'.")
+            % {"count": updated},
+            level=messages.SUCCESS,
+        )
+
+    if skipped > 0:
+        modeladmin.message_user(
+            request,
+            _("Skipped %(count)s recording(s) with an ineligible status.")
+            % {"count": skipped},
+            level=messages.WARNING,
+        )
+
+
 @admin.register(models.Recording)
 class RecordingAdmin(admin.ModelAdmin):
     """Recording admin interface declaration."""
@@ -224,7 +256,7 @@ class RecordingAdmin(admin.ModelAdmin):
         "updated_at",
         "worker_id",
     )
-    actions = [resend_notification]
+    actions = [resend_notification, mark_as_failed_to_stop]
 
     def get_queryset(self, request):
         """Optimize queries by prefetching related access and user data to avoid N+1 queries."""
