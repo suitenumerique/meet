@@ -58,7 +58,7 @@ services:
       /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint='http://app-dev:8000/api/v1.0/recordings/storage-hook/' auth_token='Bearer password' &&
       /usr/bin/mc admin service restart meet --wait --json &&
       sleep 15 &&
-      /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put &&
+      /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put --prefix "recordings" &&
       exit 0;"
 
   app-dev:
