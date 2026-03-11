@@ -2,6 +2,7 @@
 
 # pylint: disable=abstract-method,no-name-in-module
 import logging
+import re
 from os.path import splitext
 from typing import Literal
 from urllib.parse import quote
@@ -130,6 +131,21 @@ class RoomSerializer(serializers.ModelSerializer):
         model = models.Room
         fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
         read_only_fields = ["id", "slug", "pin_code"]
+
+    def validate_name(self, value):
+        """Validate the name matches the optionally configured ROOM_NAME_REGEX"""
+
+        if not value:
+            raise serializers.ValidationError("Name cannot be empty.")
+
+        room_name_regex = settings.ROOM_NAME_REGEX
+        if room_name_regex is None:
+            return value
+
+        if not re.fullmatch(room_name_regex, value):
+            raise SuspiciousOperation("Name does not match the expected format.")
+
+        return value
 
     def to_representation(self, instance):
         """

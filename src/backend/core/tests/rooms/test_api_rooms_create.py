@@ -3,7 +3,10 @@ Test rooms API endpoints in the Meet core app: create.
 """
 
 # pylint: disable=redefined-outer-name,unused-argument
+from unittest import mock
+
 from django.core.cache import cache
+from django.core.exceptions import SuspiciousOperation
 
 import pytest
 from rest_framework.test import APIClient
@@ -109,3 +112,47 @@ def test_api_rooms_create_authenticated_existing_slug():
 
     assert response.status_code == 400
     assert response.json() == {"slug": ["Room with this Slug already exists."]}
+
+
+@mock.patch("core.api.serializers.SuspiciousOperation", side_effect=SuspiciousOperation)
+def test_api_rooms_create_invalid_regex(mock_suspicious, settings):
+    """A room can not be created when its name doesn't match the configured pattern."""
+
+    settings.ROOM_NAME_REGEX = r"[a-z]{3}-[a-z]{4}-[a-z]{3}"
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {
+            "name": "my room",
+        },
+    )
+
+    assert response.status_code == 400
+    assert Room.objects.exists() is False
+
+    mock_suspicious.assert_called_once_with("Name does not match the expected format.")
+
+
+def test_api_rooms_create_valid_regex(settings):
+    """A room can be created when its name matches the configured pattern."""
+
+    settings.ROOM_NAME_REGEX = r"[a-z]{3}-[a-z]{4}-[a-z]{3}"
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {
+            "name": "foo-barn-baz",
+        },
+    )
+
+    assert response.status_code == 201
+    assert Room.objects.count() == 1
+    assert Room.objects.filter(name="foo-barn-baz").exists()

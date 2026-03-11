@@ -752,6 +752,13 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Room validation
+    ROOM_NAME_REGEX = values.RegexValue(
+        None,
+        environ_name="ROOM_NAME_REGEX",
+        environ_prefix=None,
+    )
+
     # Calendar integrations
     ROOM_CREATION_CALLBACK_CACHE_TIMEOUT = values.PositiveIntegerValue(
         600,  # 10 minutes
