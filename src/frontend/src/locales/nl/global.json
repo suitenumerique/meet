@@ -46,7 +46,7 @@
   },
   "loginHint": {
     "title": "Log in met je account",
-    "body": "In plaats van te wachten, log in met je ProConnect-account.",
+    "body": "In plaats van te wachten, log in met je account.",
     "button": {
       "ariaLabel": "Sluit de suggestie",
       "label": "OK"
