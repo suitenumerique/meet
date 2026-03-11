@@ -72,7 +72,8 @@ export const RecordingDownload = () => {
 
   if (
     data.status !== RecordingStatus.Saved &&
-    data.status !== RecordingStatus.NotificationSucceed
+    data.status !== RecordingStatus.NotificationSucceed &&
+    data.status !== RecordingStatus.FailedToStop
   ) {
     return <ErrorScreen title={t('unsaved.title')} body={t('unsaved.body')} />
   }
