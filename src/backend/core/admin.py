@@ -308,7 +308,7 @@ class ApplicationAdmin(admin.ModelAdmin):
 
     form = ApplicationAdminForm
 
-    list_display = ("id", "name", "client_id", "get_scopes_display")
+    list_display = ("id", "name", "client_id", "get_scopes_display", "is_active")
     fields = [
         "name",
         "id",
@@ -317,6 +317,7 @@ class ApplicationAdmin(admin.ModelAdmin):
         "scopes",
         "client_id",
         "client_secret",
+        "is_active",
     ]
     readonly_fields = ["id", "created_at", "updated_at"]
     inlines = [ApplicationDomainInline]

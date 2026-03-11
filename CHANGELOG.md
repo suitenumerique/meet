@@ -13,6 +13,7 @@ and this project adheres to
 - ✨(helm) support celery with our Django backend #1124
 - ✨(helm) support ingress for custom background image #1124
 - ✨(backend) add authenticated user rate throttling on request-entry #1129
+- ✨(backend) expose `is_active` field for Application in Django admin #1133
 
 ### Changed
 
@@ -23,7 +24,7 @@ and this project adheres to
 - ♿(frontend) improve ui and aria labels for help article links #1108
 - 🌐(frontend) improve German translation #1125
 - 🔨(python-env) migrate meet main app to UV #1120
-- ♻️(backend) align Application model field with `is_active` convention
+- ♻️(backend) align Application model field with `is_active` convention #1133
 
 ### Fixed
 
