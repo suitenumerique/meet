@@ -47,7 +47,7 @@
   },
   "loginHint": {
     "title": "Log in with your account",
-    "body": "Instead of waiting, log in with your ProConnect account.",
+    "body": "Instead of waiting, log in with your account.",
     "button": {
       "ariaLabel": "Close the suggestion",
       "label": "OK"
