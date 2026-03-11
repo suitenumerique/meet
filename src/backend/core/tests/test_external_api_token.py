@@ -122,6 +122,28 @@ def test_api_applications_generate_token_inactive_application():
     assert "Application is inactive" in str(response.data)
 
 
+def test_api_applications_generate_token_inactive_application_wrong_secret():
+    """An inactive application with a wrong secret should return 401."""
+    user = UserFactory(email="user@example.com")
+    application = ApplicationFactory(is_active=False)
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        {
+            "client_id": application.client_id,
+            "client_secret": "wrong-secret",
+            "grant_type": "client_credentials",
+            "scope": user.email,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 401
+    assert "Invalid credentials" in str(response.data)
+    assert "inactive" not in str(response.data).lower()
+
+
 def test_api_applications_generate_token_invalid_email_format():
     """Invalid email format should return 400."""
     application = ApplicationFactory(is_active=True)
