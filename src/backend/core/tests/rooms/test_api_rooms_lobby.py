@@ -631,3 +631,109 @@ def test_list_waiting_participants_empty(settings):
 
     assert response.status_code == 200
     assert response.json() == {"participants": []}
+
+
+@mock.patch.object(utils, "notify_participants", return_value=None)
+@mock.patch.object(
+    utils, "generate_livekit_config", return_value={"token": "test-token"}
+)
+def test_request_entry_throttling_anonymous_without_cookie(
+    mock_notify_participants, mock_generate_livekit_config, settings
+):
+    """Anonymous users without a cookie should not be throttled."""
+
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "1/minute"
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+
+    assert response.status_code == 200
+    assert response.cookies.get("mocked-cookie") is not None
+
+    client.cookies.clear()  # Simulate a new cookieless request
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+
+    assert response.status_code == 200
+
+
+@mock.patch.object(utils, "notify_participants", return_value=None)
+@mock.patch.object(
+    utils, "generate_livekit_config", return_value={"token": "test-token"}
+)
+def test_request_entry_throttling_anonymous_with_cookie(
+    mock_notify_participants, mock_generate_livekit_config, settings
+):
+    """Anonymous users with a cookie should be throttled after exceeding the rate limit."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "2/minute"
+
+    participant_id = str(uuid.uuid4())
+    client.cookies.load({"mocked-cookie": participant_id})
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+    assert response.status_code == 200
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+    assert response.status_code == 200
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+
+    assert response.status_code == 429
+
+
+@mock.patch.object(utils, "notify_participants", return_value=None)
+@mock.patch.object(
+    utils, "generate_livekit_config", return_value={"token": "test-token"}
+)
+def test_request_entry_throttling_authenticated_user(
+    mock_notify_participants, mock_generate_livekit_config, settings
+):
+    """Authenticated users should be throttled."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "2/minute"
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+    assert response.status_code == 200
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+    assert response.status_code == 200
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+
+    assert response.status_code == 429
