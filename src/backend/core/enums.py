@@ -17,6 +17,12 @@ RECORDING_STORAGE_URL_PATTERN = re.compile(
     f"/media/{settings.RECORDING_OUTPUT_FOLDER}/(?P<recording_id>{UUID_REGEX:s}).(?P<extension>{FILE_EXT_REGEX:s})"
 )
 
+MEDIA_STORAGE_URL_PATTERN = re.compile(
+    f"{settings.MEDIA_URL:s}"
+    rf"(?P<key>{settings.FILE_UPLOAD_PATH:s}/(?P<pk>{UUID_REGEX:s})\.{FILE_EXT_REGEX:s})$"
+)
+
+
 # Django sets `LANGUAGES` by default with all supported languages. We can use it for
 # the choice of languages which should not be limited to the few languages active in
 # the app.

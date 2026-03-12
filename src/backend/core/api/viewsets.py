@@ -1,7 +1,6 @@
 """API endpoints"""
 # pylint: disable=too-many-lines
 
-import re
 import uuid
 from logging import getLogger
 from urllib.parse import unquote, urlparse
@@ -34,6 +33,7 @@ from rest_framework import (
 
 from core import enums, models, utils
 from core.api.filters import ListFileFilter
+from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import StorageEventAuthentication
 from core.recording.event.exceptions import (
@@ -77,16 +77,6 @@ from .feature_flag import FeatureFlag
 # pylint: disable=too-many-ancestors
 
 logger = getLogger(__name__)
-
-FILE_FOLDER = settings.FILE_UPLOAD_PATH
-UUID_REGEX = (
-    r"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
-)
-FILE_EXT_REGEX = r"[\d\w]+"
-MEDIA_STORAGE_URL_PATTERN = re.compile(
-    f"{settings.MEDIA_URL:s}"
-    rf"(?P<key>{FILE_FOLDER:s}/(?P<pk>{UUID_REGEX:s})\.{FILE_EXT_REGEX:s})$"
-)
 
 
 class NestedGenericViewSet(viewsets.GenericViewSet):
