@@ -112,7 +112,7 @@ spec:
             /usr/bin/mc mb meet/meet-media-storage && \
             exit 0
       restartPolicy: Never
-  backoffLimit: 1
+  backoffLimit: 3
 ---
 apiVersion: batch/v1
 kind: Job
@@ -135,4 +135,4 @@ spec:
             /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put --prefix "recordings" && \
             exit 0
       restartPolicy: Never
-  backoffLimit: 1
+  backoffLimit: 3
