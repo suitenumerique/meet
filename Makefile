@@ -354,13 +354,13 @@ install-external-secrets: ## install the kubernetes secrets from Vaultwarden
 .PHONY: build-k8s-cluster
 
 start-tilt: ## start the kubernetes cluster using kind
-	tilt up -f ./bin/Tiltfile
+	tilt up --namespace=meet -f ./bin/Tiltfile
 .PHONY: build-k8s-cluster
 
 start-tilt-keycloak: ## start the kubernetes cluster using kind, without Pro Connect for authentication, use keycloak
-	DEV_ENV=dev-keycloak tilt up -f ./bin/Tiltfile
+	DEV_ENV=dev-keycloak tilt up --namespace=meet -f ./bin/Tiltfile
 .PHONY: build-k8s-cluster
 
 start-tilt-dinum: ## start the kubernetes cluster using kind, without Pro Connect for authentication, but with DINUM styles
-	DEV_ENV=dev-dinum tilt up -f ./bin/Tiltfile
+	DEV_ENV=dev-dinum tilt up --namespace=meet -f ./bin/Tiltfile
 .PHONY: build-k8s-cluster
