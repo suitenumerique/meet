@@ -38,6 +38,7 @@ from core.recording.enums import FileExtension
 from core.recording.event.authentication import StorageEventAuthentication
 from core.recording.event.exceptions import (
     InvalidBucketError,
+    InvalidFilepathError,
     InvalidFileTypeError,
     ParsingEventDataError,
 )
@@ -760,6 +761,11 @@ class RecordingViewSet(
 
         except InvalidBucketError as e:
             raise drf_exceptions.PermissionDenied("Invalid bucket specified") from e
+
+        except InvalidFilepathError as e:
+            return drf_response.Response(
+                {"message": f"Ignore this filepath, {e}"},
+            )
 
         except InvalidFileTypeError as e:
             return drf_response.Response(

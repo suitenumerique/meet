@@ -14,6 +14,7 @@ from ...factories import RecordingFactory
 from ...models import Recording, RecordingStatusChoices
 from ...recording.event.exceptions import (
     InvalidBucketError,
+    InvalidFilepathError,
     InvalidFileTypeError,
     ParsingEventDataError,
 )
@@ -133,6 +134,29 @@ def test_save_recording_filetype_error(recording_settings, mock_get_parser):
 
     assert response.status_code == 200
     assert response.json() == {"message": "Ignore this file type, unsupported '.json'"}
+
+
+def test_save_recording_filepath_error(recording_settings, mock_get_parser):
+    """Test handling of unsupported filepath in recording event data."""
+
+    mock_parser = mock.Mock()
+    mock_parser.get_recording_id.side_effect = InvalidFilepathError(
+        "Invalid filepath structure: parent/folder/recording.jpeg"
+    )
+    mock_get_parser.return_value = mock_parser
+
+    client = APIClient()
+
+    response = client.post(
+        "/api/v1.0/recordings/storage-hook/",
+        {"recording_data": "valid-data"},
+        HTTP_AUTHORIZATION="Bearer testAuthToken",
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "message": "Ignore this filepath, Invalid filepath structure: parent/folder/recording.jpeg"
+    }
 
 
 def test_save_recording_unknown_recording(recording_settings, mock_get_parser, client):

@@ -34,6 +34,7 @@ and this project adheres to
 - 🐛(frontend) fix hand icon and queue position alignment and position #1119
 - 🩹(backend) add page_size to pagination for room endpoints #1131
 - 🐛(backend) refactor lobby throttling to use participant id #1129
+- 🩹(backend) ignore non-recording uploads in storage webhook handler #1142
 
 ## [1.10.0] - 2026-03-05
 
