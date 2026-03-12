@@ -133,7 +133,7 @@ def test_save_recording_filetype_error(recording_settings, mock_get_parser):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"message": "Ignore this file type, unsupported '.json'"}
+    assert response.json() == {"message": "Notification ignored."}
 
 
 def test_save_recording_filepath_error(recording_settings, mock_get_parser):
@@ -154,9 +154,7 @@ def test_save_recording_filepath_error(recording_settings, mock_get_parser):
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "message": "Ignore this filepath, Invalid filepath structure: parent/folder/recording.jpeg"
-    }
+    assert response.json() == {"message": "Notification ignored."}
 
 
 def test_save_recording_unknown_recording(recording_settings, mock_get_parser, client):

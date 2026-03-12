@@ -762,14 +762,14 @@ class RecordingViewSet(
         except InvalidBucketError as e:
             raise drf_exceptions.PermissionDenied("Invalid bucket specified") from e
 
-        except InvalidFilepathError as e:
+        except InvalidFilepathError:
             return drf_response.Response(
-                {"message": f"Ignore this filepath, {e}"},
+                {"message": "Notification ignored."},
             )
 
-        except InvalidFileTypeError as e:
+        except InvalidFileTypeError:
             return drf_response.Response(
-                {"message": f"Ignore this file type, {e}"},
+                {"message": "Notification ignored."},
             )
 
         try:
