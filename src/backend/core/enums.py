@@ -14,7 +14,7 @@ FILE_EXT_REGEX = r"[a-zA-Z0-9]{1,10}"
 
 # pylint: disable=line-too-long
 RECORDING_STORAGE_URL_PATTERN = re.compile(
-    f"{settings.MEDIA_URL:s}{settings.RECORDING_OUTPUT_FOLDER}/(?P<recording_id>{UUID_REGEX:s}).(?P<extension>{FILE_EXT_REGEX:s})"
+    f"{settings.MEDIA_URL:s}{settings.RECORDING_OUTPUT_FOLDER}/(?P<recording_id>{UUID_REGEX:s})\.(?P<extension>{FILE_EXT_REGEX:s})"
 )
 
 MEDIA_STORAGE_URL_PATTERN = re.compile(
