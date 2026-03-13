@@ -95,7 +95,7 @@ def test_save_recording_parsing_error(recording_settings, mock_get_parser, clien
     )
 
     assert response.status_code == 403
-    assert response.json() == {"detail": "Invalid request data: Error message"}
+    assert response.json() == {"detail": "Invalid request data."}
 
 
 def test_save_recording_bucket_error(recording_settings, mock_get_parser, client):
@@ -112,7 +112,7 @@ def test_save_recording_bucket_error(recording_settings, mock_get_parser, client
     )
 
     assert response.status_code == 403
-    assert response.json() == {"detail": "Invalid bucket specified"}
+    assert response.json() == {"detail": "Invalid bucket specified."}
 
 
 def test_save_recording_filetype_error(recording_settings, mock_get_parser):

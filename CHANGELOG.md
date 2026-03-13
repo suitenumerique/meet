@@ -28,6 +28,7 @@ and this project adheres to
 - ♻️(backend) align Application model field with `is_active` convention #1133
 - 🔐(backend) avoids revealing the inactive status of an application #1135
 - ⚡️(helm) reduce initialDelaySeconds and add periods seconds #1139
+- 🔒️(backend) avoid information exposure through exception messages #1144
 
 ### Fixed
 
