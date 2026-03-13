@@ -1,15 +1,12 @@
 import { DialogProps, Field, Switch, Text } from '@/primitives'
 
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
-import {
-  useIsSpeaking,
-  useMediaDeviceSelect,
-  useRoomContext,
-} from '@livekit/components-react'
+import { useMediaDeviceSelect } from '@livekit/components-react'
 import { isSafari } from '@/utils/livekit'
 import { useTranslation } from 'react-i18next'
 import { SoundTester } from '@/components/SoundTester'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
+import { useLocalAudioLevel } from '@/features/rooms/livekit/hooks/useLocalAudioLevel'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { useNoiseReductionAvailable } from '@/features/rooms/livekit/hooks/useNoiseReductionAvailable'
 import posthog from 'posthog-js'
@@ -22,7 +19,6 @@ type DeviceItems = Array<{ value: string; label: string }>
 
 export const AudioTab = ({ id }: AudioTabProps) => {
   const { t } = useTranslation('settings')
-  const { localParticipant } = useRoomContext()
 
   const {
     userChoices: { noiseReductionEnabled, audioDeviceId, audioOutputDeviceId },
@@ -31,7 +27,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
     saveAudioOutputDeviceId,
   } = usePersistentUserChoices()
 
-  const isSpeaking = useIsSpeaking(localParticipant)
+  const isLocalSpeaking = useLocalAudioLevel(audioDeviceId)
 
   const { devices: devicesOut, setActiveMediaDevice: setActiveMediaDeviceOut } =
     useMediaDeviceSelect({ kind: 'audiooutput' })
@@ -81,13 +77,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
             width: '100%',
           }}
         />
-        <>
-          {localParticipant.isMicrophoneEnabled ? (
-            <ActiveSpeaker isSpeaking={isSpeaking} />
-          ) : (
-            <span>{t('audio.microphone.disabled')}</span>
-          )}
-        </>
+        <ActiveSpeaker isSpeaking={isLocalSpeaking} />
       </RowWrapper>
       {/* Safari has a known limitation where its implementation of 'enumerateDevices' does not include audio output devices.
         To prevent errors or an empty selection list, we only render the speakers selection field on non-Safari browsers. */}
