@@ -488,9 +488,7 @@ class RoomViewSet(
             if status_code == drf_status.HTTP_500_INTERNAL_SERVER_ERROR:
                 raise e
 
-            return drf_response.Response(
-                {"status": "error", "message": str(e)}, status=status_code
-            )
+            return drf_response.Response({"status": "error"}, status=status_code)
 
     @decorators.action(
         detail=False,
@@ -757,10 +755,10 @@ class RecordingViewSet(
             recording_id = parser.get_recording_id(request.data)
 
         except ParsingEventDataError as e:
-            raise drf_exceptions.PermissionDenied(f"Invalid request data: {e}") from e
+            raise drf_exceptions.PermissionDenied("Invalid request data.") from e
 
         except InvalidBucketError as e:
-            raise drf_exceptions.PermissionDenied("Invalid bucket specified") from e
+            raise drf_exceptions.PermissionDenied("Invalid bucket specified.") from e
 
         except InvalidFilepathError:
             return drf_response.Response(
