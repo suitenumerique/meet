@@ -12,6 +12,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: read
+
 env:
   DOCKER_USER: 1001:127
   DOCKER_CONTAINER_REGISTRY_HOSTNAME: docker.io
@@ -20,6 +23,8 @@ env:
 jobs:
   build-and-push-backend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
@@ -63,6 +68,8 @@ jobs:
 
   build-and-push-frontend-generic:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
@@ -107,6 +114,8 @@ jobs:
 
   build-and-push-frontend-dinum:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
@@ -151,6 +160,8 @@ jobs:
 
   build-and-push-summary:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
@@ -197,6 +208,8 @@ jobs:
 
   build-and-push-agents:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
@@ -242,6 +255,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   notify-argocd:
+    permissions:
+      contents: read
     needs:
       - build-and-push-frontend-generic
       - build-and-push-frontend-dinum
