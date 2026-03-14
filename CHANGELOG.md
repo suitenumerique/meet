@@ -20,6 +20,7 @@ and this project adheres to
 - ♿️(summary) improve accessibility of transcription download link #1187
 - 💄(frontend) show OS-specific shortcut in participant tile hint #1193
 - ⬆️(frontend) bump flatted from 3.3.1 to 3.4.2 in /src/frontend #1188
+- ⬆️️️(frontend) bump undici from 6.23.0 to 6.24.1 in /src/frontend
 
 ### Fixed
 
