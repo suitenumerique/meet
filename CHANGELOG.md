@@ -29,6 +29,7 @@ and this project adheres to
 - 🔐(backend) avoids revealing the inactive status of an application #1135
 - ⚡️(helm) reduce initialDelaySeconds and add periods seconds #1139
 - 🔒️(backend) avoid information exposure through exception messages #1144
+- ⬆️(dependencies) update PyJWT to v2.12.0 [SECURITY] #1151
 
 ### Fixed
 
