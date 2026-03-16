@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Visio</title>
+    <link rel="stylesheet" href="taskpane.css" />
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="common.js" defer></script>
+    <script src="taskpane.js" defer></script>
+</head>
+<body>
+<div id="sideload-msg">Veuillez charger le complément.</div>
+
+<div id="app-body">
+
+    <!-- Loading -->
+    <div id="view-loading">
+        <p class="intro-text">Chargement...</p>
+    </div>
+
+    <!-- Unauthenticated -->
+    <div id="view-unauth" style="display:none;">
+        <p class="intro-text">
+            <span>Ajoutez facilement un lien de réunion Visio à vos événements Outlook.</span>
+            <a href="https://meet.numerique.gouv.fr" target="_blank" class="learn-more">En savoir plus</a>
+        </p>
+
+        <hr class="divider" />
+
+        <button class="proconnect-button" id="btn-connect">
+            <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
+        </button>
+
+        <p>
+            <a
+                    href="https://www.proconnect.gouv.fr/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Qu’est-ce que ProConnect ? - nouvelle fenêtre"
+            >
+                Qu’est-ce que ProConnect ?
+            </a>
+        </p>
+    </div>
+
+    <!-- Authenticated -->
+    <div id="view-auth" style="display:none;">
+        <div id="btn-container">
+            <button id="btn-generate">Ajouter une réunion Visio</button>
+            <button id="btn-disconnect">Se déconnecter</button>
+        </div>
+    </div>
+
+    <p id="status"></p>
+
+</div>
+</body>
+</html>
