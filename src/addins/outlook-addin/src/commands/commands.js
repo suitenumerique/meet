@@ -1,4 +1,5 @@
 /* global Office */
+const { loadSession, buildMeetingMessage, BASE_URL } = require("../common");
 
 Office.onReady(() => {});
 
