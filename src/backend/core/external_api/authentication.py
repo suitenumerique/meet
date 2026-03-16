@@ -221,10 +221,16 @@ class AddonsJWTAuthentication(BaseJWTAuthentication):
     Tokens must include user_id to identify the authenticated user.
     """
 
-    secret_key = settings.ADDONS_JWT_SECRET_KEY
-    algorithm = settings.ADDONS_JWT_ALG
-    issuer = settings.ADDONS_JWT_ISSUER
-    audience = settings.ADDONS_JWT_AUDIENCE
+    def __init__(self):
+        """Initialize authentication backend with application JWT settings from Django settings."""
+        super().__init__(
+            secret_key=settings.ADDONS_JWT_SECRET_KEY,
+            algorithm=settings.ADDONS_JWT_ALG,
+            issuer=settings.ADDONS_JWT_ISSUER,
+            audience=settings.ADDONS_JWT_AUDIENCE,
+            expiration_seconds=settings.ADDONS_JWT_EXPIRATION_SECONDS,
+            token_type=settings.ADDONS_JWT_TOKEN_TYPE,
+        )
 
 
 class ResourceServerBackend(LaSuiteBackend):
