@@ -460,7 +460,7 @@ class Base(Configuration):
 
     # OIDC - Authorization Code Flow
     OIDC_AUTHENTICATE_CLASS = "lasuite.oidc_login.views.OIDCAuthenticationRequestView"
-    OIDC_CALLBACK_CLASS = "lasuite.oidc_login.views.OIDCAuthenticationCallbackView"
+    OIDC_CALLBACK_CLASS = "core.authentication.views.OIDCAuthenticationCallbackView"
     OIDC_CREATE_USER = values.BooleanValue(
         default=True, environ_name="OIDC_CREATE_USER", environ_prefix=None
     )
