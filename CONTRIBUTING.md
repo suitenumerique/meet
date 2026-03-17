@@ -57,9 +57,7 @@ It is nice to add information about the purpose of the pull request to help revi
 ### Don't forget to:
 - check your commits
 - check the linting: `make lint && make frontend-lint`
-- check the tests: 
-    - backend: `make test`
-    - summary: `make test-summary`
+- check the tests: `make test`
 - add a changelog entry
 
 Once all the required tests have passed, you can request a review from the project maintainers.
