@@ -6,8 +6,6 @@ from typing import Optional, Tuple
 from summary.core.config import get_settings
 from summary.core.locales import LocaleStrings
 
-settings = get_settings()
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +21,7 @@ class TranscriptFormatter:
 
     def __init__(self, locale: LocaleStrings):
         """Initialize formatter with settings and locale."""
-        self.hallucination_patterns = settings.hallucination_patterns
+        self.hallucination_patterns = get_settings().hallucination_patterns
         self._locale = locale
 
     def _get_segments(self, transcription):

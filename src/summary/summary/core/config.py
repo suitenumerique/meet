@@ -1,5 +1,6 @@
 """Application configuration and settings."""
 
+import os
 from functools import lru_cache
 from typing import Annotated, List, Literal, Optional, Set
 
@@ -91,9 +92,37 @@ class Settings(BaseSettings):
     task_tracker_prefix: str = "task_metadata:"
 
 
+class TestSettings(Settings):
+    """Settings with safe defaults for testing."""
+
+    model_config = SettingsConfigDict(env_file=None)
+
+    app_api_token: SecretStr = SecretStr("test-api-token")
+    aws_storage_bucket_name: str = "test-bucket"
+    aws_s3_endpoint_url: str = "http://localhost:9000"
+    aws_s3_access_key_id: str = "test-access-key"
+    aws_s3_secret_access_key: SecretStr = SecretStr("test-secret-key")
+    aws_s3_secure_access: bool = False
+    whisperx_api_key: SecretStr = SecretStr("test-whisperx-key")
+    whisperx_base_url: str = "http://localhost:8000/v1"
+    llm_base_url: str = "http://localhost:8001/v1"
+    llm_api_key: SecretStr = SecretStr("test-llm-key")
+    llm_model: str = "test-model"
+    webhook_api_token: SecretStr = SecretStr("test-webhook-token")
+    webhook_url: str = "http://localhost:8002/webhook"
+    celery_broker_url: str = "memory://"
+    celery_result_backend: str = "cache+memory://"
+    posthog_enabled: bool = False
+    sentry_is_enabled: bool = False
+    langfuse_enabled: bool = False
+    task_tracker_redis_url: str = "redis://localhost:6379/0"
+
+
 @lru_cache
 def get_settings():
     """Load and cache application settings."""
+    if os.environ.get("SUMMARY_ENV") == "test":
+        return TestSettings()
     return Settings()
 
 

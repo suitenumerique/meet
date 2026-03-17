@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+# NB: this file is used locally only. In CI, it is overwritten by pytest install
 
 source "$(dirname "${BASH_SOURCE[0]}")/_config.sh"
 
 _dc_run \
     -e DJANGO_CONFIGURATION=Test \
     app-dev \
-    pytest "$@"
+    pytest "$@" 

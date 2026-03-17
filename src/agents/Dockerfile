@@ -1,13 +1,14 @@
 FROM python:3.13-slim AS base
 
 # Install system dependencies required by LiveKit
-RUN apt-get update && apt-get install -y \
-    libglib2.0-0 \
-    libgobject-2.0-0 \
-    "openssl=3.5.4-1~deb13u2" \
-    "libssl3t64=3.5.4-1~deb13u2" \
-    && rm -rf /var/lib/apt/lists/*
-
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        libglib2.0-0 \
+        libgobject-2.0-0 \
+ && apt-get upgrade -y openssl libssl3t64 \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+    
 FROM base AS builder
 
 WORKDIR /builder

@@ -12,8 +12,6 @@ from summary.core.celery_worker import (
 )
 from summary.core.config import get_settings
 
-settings = get_settings()
-
 
 class TranscribeSummarizeTaskCreation(BaseModel):
     """Transcription and summarization parameters."""
@@ -34,10 +32,11 @@ class TranscribeSummarizeTaskCreation(BaseModel):
     @classmethod
     def validate_language(cls, v):
         """Validate 'language' parameter."""
-        if v is not None and v not in settings.whisperx_allowed_languages:
+        allowed = get_settings().whisperx_allowed_languages
+        if v is not None and v not in allowed:
             raise ValueError(
                 f"Language '{v}' is not allowed. "
-                f"Allowed languages: {', '.join(settings.whisperx_allowed_languages)}"
+                f"Allowed languages: {', '.join(allowed)}"
             )
         return v
 
@@ -62,7 +61,7 @@ async def create_transcribe_summarize_task(request: TranscribeSummarizeTaskCreat
             request.download_link,
             request.context_language,
         ],
-        queue=settings.transcribe_queue,
+        queue=get_settings().transcribe_queue,
     )
 
     return {"id": task.id, "message": "Task created"}
