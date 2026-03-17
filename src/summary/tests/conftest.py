@@ -2,11 +2,23 @@
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
+from summary.core.config import Settings, get_settings
 from summary.main import app
+
+
+def get_settings_override():
+    """Return settings for tests."""
+    return Settings(
+        app_api_token=SecretStr("test-api-token"),
+    )
 
 
 @pytest.fixture()
 def client():
-    """Provide a FastAPI TestClient for integration tests."""
-    return TestClient(app)
+    """Provide a FastAPI TestClient for tests."""
+    client = TestClient(app)
+    app.dependency_overrides[get_settings] = get_settings_override
+
+    return client
