@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { permissionsStore } from '@/stores/permissions'
-import { isSafari } from '@/utils/livekit'
+import { hasUnreliablePermissionsEvents } from '@/utils/livekit'
 
 const POLLING_TIME = 500
 
@@ -20,66 +20,99 @@ export const useWatchPermissions = () => {
           return
         }
 
-        const [cameraPermission, microphonePermission] = await Promise.all([
-          navigator.permissions.query({ name: 'camera' }),
-          navigator.permissions.query({ name: 'microphone' }),
-        ])
+        let cameraPermission: PermissionStatus | null = null
+        let microphonePermission: PermissionStatus | null = null
+
+        try {
+          cameraPermission = await navigator.permissions.query({
+            name: 'camera' as PermissionName,
+          })
+        } catch {
+          permissionsStore.cameraPermission = 'prompt'
+        }
+
+        try {
+          microphonePermission = await navigator.permissions.query({
+            name: 'microphone' as PermissionName,
+          })
+        } catch {
+          permissionsStore.microphonePermission = 'prompt'
+        }
 
         if (isCancelled) return
 
         /**
-         * Safari Permission API Limitation Workaround
+         * Browser Permission API Limitation Workaround
          *
-         * Safari has a known issue where permission change events are not reliably fired
-         * when users interact with permission prompts. This is documented in Apple's forums:
-         * https://developer.apple.com/forums/thread/757353
+         * Several browsers have known issues where permission change events are not
+         * reliably fired when users interact with permission prompts:
+         * - Safari: https://developer.apple.com/forums/thread/757353
+         * - All iOS browsers (they use WebKit under Apple's policy)
+         * - Firefox on Android
          *
          * The problem:
-         * - When permissions are in 'prompt' state, Safari may not trigger 'change' events
+         * - When permissions are in 'prompt' state, these browsers may not trigger 'change' events
          * - Users can grant/deny permissions through system prompts, but our listeners won't detect it
          * - This leaves the UI in an inconsistent state showing outdated permission status
          *
          * The solution:
          * - Manually poll the Permissions API every 500ms when either permission is in 'prompt' state
          * - Continue polling until both permissions are no longer in 'prompt' state
-         * - This ensures we catch permission changes even when Safari fails to fire events
+         * - This ensures we catch permission changes even when browsers fail to fire events
          *
-         * This polling is Safari-specific and only activates when needed to minimize performance impact.
+         * This polling only activates on affected browsers and when needed to minimize performance impact.
          */
-        if (
-          isSafari() &&
-          (cameraPermission.state === 'prompt' ||
-            microphonePermission.state === 'prompt')
-        ) {
-          // Start polling every 1 second if either permission is in 'prompt' state
+        const needsPolling =
+          hasUnreliablePermissionsEvents() &&
+          ((cameraPermission?.state ?? 'prompt') === 'prompt' ||
+            (microphonePermission?.state ?? 'prompt') === 'prompt')
+
+        if (needsPolling) {
           if (!intervalId) {
             intervalId = setInterval(async () => {
               try {
-                const [updatedCamera, updatedMicrophone] = await Promise.all([
-                  navigator.permissions.query({ name: 'camera' }),
-                  navigator.permissions.query({ name: 'microphone' }),
-                ])
+                let updatedCameraState: PermissionState | null = null
+                let updatedMicrophoneState: PermissionState | null = null
+
+                try {
+                  const updatedCamera = await navigator.permissions.query({
+                    name: 'camera' as PermissionName,
+                  })
+                  updatedCameraState = updatedCamera.state
+                } catch {
+                  // Permission query not supported, keep current state
+                }
+
+                try {
+                  const updatedMicrophone = await navigator.permissions.query({
+                    name: 'microphone' as PermissionName,
+                  })
+                  updatedMicrophoneState = updatedMicrophone.state
+                } catch {
+                  // Permission query not supported, keep current state
+                }
 
                 if (isCancelled) return
 
-                const cameraChanged =
-                  permissionsStore.cameraPermission !== updatedCamera.state
-                const microphoneChanged =
-                  permissionsStore.microphonePermission !==
-                  updatedMicrophone.state
-
-                if (cameraChanged) {
-                  permissionsStore.cameraPermission = updatedCamera.state
-                }
-
-                if (microphoneChanged) {
-                  permissionsStore.microphonePermission =
-                    updatedMicrophone.state
+                if (
+                  updatedCameraState &&
+                  permissionsStore.cameraPermission !== updatedCameraState
+                ) {
+                  permissionsStore.cameraPermission = updatedCameraState
                 }
 
                 if (
-                  updatedCamera.state !== 'prompt' &&
-                  updatedMicrophone.state !== 'prompt'
+                  updatedMicrophoneState &&
+                  permissionsStore.microphonePermission !==
+                    updatedMicrophoneState
+                ) {
+                  permissionsStore.microphonePermission = updatedMicrophoneState
+                }
+
+                // Stop polling when both permissions are resolved
+                if (
+                  (updatedCameraState ?? 'prompt') !== 'prompt' &&
+                  (updatedMicrophoneState ?? 'prompt') !== 'prompt'
                 ) {
                   if (intervalId) {
                     clearInterval(intervalId)
@@ -95,8 +128,12 @@ export const useWatchPermissions = () => {
           }
         }
 
-        permissionsStore.cameraPermission = cameraPermission.state
-        permissionsStore.microphonePermission = microphonePermission.state
+        if (cameraPermission) {
+          permissionsStore.cameraPermission = cameraPermission.state
+        }
+        if (microphonePermission) {
+          permissionsStore.microphonePermission = microphonePermission.state
+        }
 
         const handleCameraChange = (e: Event) => {
           const target = e.target as PermissionStatus
@@ -105,7 +142,7 @@ export const useWatchPermissions = () => {
           if (
             intervalId &&
             target.state !== 'prompt' &&
-            microphonePermission.state !== 'prompt'
+            (microphonePermission?.state ?? 'prompt') !== 'prompt'
           ) {
             clearInterval(intervalId)
             intervalId = undefined
@@ -119,22 +156,33 @@ export const useWatchPermissions = () => {
           if (
             intervalId &&
             target.state !== 'prompt' &&
-            microphonePermission.state !== 'prompt'
+            (cameraPermission?.state ?? 'prompt') !== 'prompt'
           ) {
             clearInterval(intervalId)
             intervalId = undefined
           }
         }
 
-        cameraPermission.addEventListener('change', handleCameraChange)
-        microphonePermission.addEventListener('change', handleMicrophoneChange)
-
-        cleanup = () => {
-          cameraPermission.removeEventListener('change', handleCameraChange)
-          microphonePermission.removeEventListener(
+        if (cameraPermission) {
+          cameraPermission.addEventListener('change', handleCameraChange)
+        }
+        if (microphonePermission) {
+          microphonePermission.addEventListener(
             'change',
             handleMicrophoneChange
           )
+        }
+
+        cleanup = () => {
+          if (cameraPermission) {
+            cameraPermission.removeEventListener('change', handleCameraChange)
+          }
+          if (microphonePermission) {
+            microphonePermission.removeEventListener(
+              'change',
+              handleMicrophoneChange
+            )
+          }
           if (intervalId) {
             clearInterval(intervalId)
             intervalId = undefined

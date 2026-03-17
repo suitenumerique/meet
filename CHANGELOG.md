@@ -22,6 +22,7 @@ and this project adheres to
 
 - 🐛(frontend) disable personal custom background while deleting #1183
 - 🐛(frontend) auto-select new custom background when not logged in #1183
+- 🐛(frontend) fix mobile permission detection #1157
 
 ## [1.11.0] - 2026-03-19
 
