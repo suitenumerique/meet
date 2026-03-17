@@ -30,7 +30,7 @@ def _post_with_retries(url, data):
     session = _create_retry_session()
     session.headers.update(
         {
-            "Authorization": f"Bearer {get_settings().webhook_api_token.get_secret_value()}"
+            "Authorization": f"Bearer {get_settings().webhook_api_token.get_secret_value()}"  # noqa: E501
         }
     )
     try:
