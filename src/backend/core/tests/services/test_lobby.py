@@ -277,10 +277,12 @@ def test_request_entry_public_room(
 def test_request_entry_trusted_room(
     mock_generate_config, lobby_service, participant_id, username
 ):
-    """Test requesting entry to a trusted room when the user is authenticated."""
+    """Test requesting entry to a trusted room when the user is authenticated.
+    The username should be forced to the user's official name."""
     request = mock.Mock()
     request.user = mock.Mock()
     request.user.is_authenticated = True
+    request.user.full_name = "Official Name"
 
     room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
 
@@ -299,10 +301,11 @@ def test_request_entry_trusted_room(
 
     assert participant.status == LobbyParticipantStatus.ACCEPTED
     assert livekit_config == {"token": "test-token"}
+    # Username is forced to the official name in trusted rooms
     mock_generate_config.assert_called_once_with(
         room_id=str(room.id),
         user=request.user,
-        username=username,
+        username="Official Name",
         color=participant.color,
         configuration=room.configuration,
         is_admin_or_owner=False,

@@ -146,6 +146,13 @@ class LobbyService:
         room_id = str(room.id)
 
         if self.can_bypass_lobby(room=room, user=request.user):
+            # Force official identity for authenticated users in trusted rooms
+            if (
+                room.access_level == models.RoomAccessLevel.TRUSTED
+                and request.user.is_authenticated
+            ):
+                username = request.user.full_name or str(request.user)
+
             if participant is None:
                 participant = LobbyParticipant(
                     status=LobbyParticipantStatus.ACCEPTED,
@@ -176,6 +183,13 @@ class LobbyService:
             self.refresh_waiting_status(room.id, participant_id)
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
+            # Force official identity for authenticated users in trusted rooms
+            if (
+                room.access_level == models.RoomAccessLevel.TRUSTED
+                and request.user.is_authenticated
+            ):
+                username = request.user.full_name or str(request.user)
+
             # wrongly named, contains access token to join a room
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
