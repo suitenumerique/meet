@@ -36,10 +36,8 @@ and this project adheres to
 - 🩹(backend) add page_size to pagination for room endpoints #1131
 - 🐛(backend) refactor lobby throttling to use participant id #1129
 - 🩹(backend) ignore non-recording uploads in storage webhook handler #1142
+- 🐛(frontend) fix dimension mismatch in BackgroundCustomProcessor #1116
 
-### Fixed
-
-- 🐛(frontend) fix dimension mismatch in BackgroundCustomProcessor getImageData #1116
 
 ## [1.10.0] - 2026-03-05
 
