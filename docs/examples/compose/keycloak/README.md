@@ -61,11 +61,10 @@ services:
 `docker compose up -d`
 ```
 
-Your keycloak instance is now available on https://doc.yourdomain.tld
+Your keycloak instance is now available on https://id.yourdomain.tld
 
 > [!CAUTION]
 > Version of the images are set to latest, you should pin it to the desired version to avoid unwanted upgrades when pulling latest image. You can find available versions on [Keycloak registry](https://quay.io/repository/keycloak/keycloak?tab=tags).
-```
 
 ## Creating an OIDC Client for Meet Application
 
@@ -76,7 +75,7 @@ Your keycloak instance is now available on https://doc.yourdomain.tld
 3. Enter the name of the realm  - `meet`.
 4. Click "Create".
 
-#### Step 2: Create a New Client
+### Step 2: Create a New Client
 
 1. Navigate to the "Clients" tab.
 2. Click on the "Create client" button.
@@ -86,7 +85,7 @@ Your keycloak instance is now available on https://doc.yourdomain.tld
 1. Set the "Web Origins" to the URL of your meet application - e.g. `https://meet.example.com`.
 1. Click "Save".
 
-#### Step 3: Get Client Credentials
+### Step 3: Get Client Credentials
 
 1. Go to the "Credentials" tab.
 2. Copy the client ID (`meet` in this example) and the client secret.
