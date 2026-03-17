@@ -4,14 +4,22 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
-from summary.core.config import Settings, get_settings
+from summary.core.config import AuthorizedTenant, Settings, get_settings
 from summary.main import app
 
 
 def get_settings_override():
     """Return settings for tests."""
     return Settings(
-        app_api_token=SecretStr("test-api-token"),
+        v1_tenant_id="test-tenant",
+        authorized_tenants=(
+            AuthorizedTenant(
+                webhook_url="https://example.com/webhook",
+                id="test-tenant",
+                api_key=SecretStr("test-api-token"),
+                webhook_api_key=SecretStr("test-webhook-api-key"),
+            ),
+        ),
     )
 
 

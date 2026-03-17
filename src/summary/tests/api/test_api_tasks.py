@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 
 class TestTasks:
-    """Tests for the /tasks endpoint."""
+    """Tests for the /v1/tasks endpoint."""
 
     @patch(
         "summary.api.route.tasks.process_audio_transcribe_summarize_v2.apply_async",

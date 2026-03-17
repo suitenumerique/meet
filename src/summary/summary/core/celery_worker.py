@@ -17,6 +17,10 @@ from summary.core.config import get_settings
 from summary.core.file_service import FileService, FileServiceException
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.locales import get_locale
+from summary.core.models import (
+    SummarizeTaskV2Payload,
+    TranscribeTaskV2Payload,
+)
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
     FORMAT_PLAN,
@@ -27,8 +31,19 @@ from summary.core.prompt import (
     PROMPT_SYSTEM_TLDR,
     PROMPT_USER_PART,
 )
+from summary.core.shared_models import (
+    SummarizeWebhookFailurePayload,
+    SummarizeWebhookSuccessPayload,
+    TranscribeWebhookFailurePayload,
+    TranscribeWebhookSuccessPayload,
+    WhisperXResponse,
+    webhook_payload_adapter,
+)
 from summary.core.transcript_formatter import TranscriptFormatter
-from summary.core.webhook_service import submit_content
+from summary.core.webhook_service import (
+    call_webhook_v2,
+    submit_content,
+)
 
 settings = get_settings()
 analytics = get_analytics()
@@ -58,14 +73,26 @@ if settings.sentry_dsn and settings.sentry_is_enabled:
 file_service = FileService()
 
 
-def transcribe_audio(task_id, filename, language):
+def transcribe_audio(
+    *,
+    task_id: str,
+    filename: str | None = None,
+    language: str,
+    cloud_storage_url=None,
+    raises: bool = False,
+):
     """Transcribe an audio file using WhisperX.
 
-    Downloads the audio from MinIO, sends it to WhisperX for transcription,
-    and tracks metadata throughout the process.
+    Downloads the audio from MinIO or a cloud storage URL, sends it to
+    WhisperX for transcription, and tracks metadata throughout the process.
 
     Returns the transcription object, or None if the file could not be retrieved.
     """
+    if bool(filename) == bool(cloud_storage_url):
+        raise ValueError(
+            "Either filename or cloud_storage_url must be provided, but not both."
+        )
+
     logger.info("Initiating WhisperX client")
     whisperx_client = openai.OpenAI(
         api_key=settings.whisperx_api_key.get_secret_value(),
@@ -75,7 +102,10 @@ def transcribe_audio(task_id, filename, language):
 
     # Transcription
     try:
-        with file_service.prepare_audio_file(filename) as (audio_file, metadata):
+        with file_service.prepare_audio_file(
+            remote_object_key=filename,
+            cloud_storage_url=cloud_storage_url,
+        ) as (audio_file, metadata):
             metadata_manager.track(task_id, {"audio_length": metadata["duration"]})
 
             if language is None:
@@ -104,8 +134,21 @@ def transcribe_audio(task_id, filename, language):
             logger.info("Transcription received in %.2f seconds.", transcription_time)
             logger.debug("Transcription: \n %s", transcription)
 
-    except FileServiceException:
-        logger.exception("Unexpected error for filename: %s", filename)
+    except FileServiceException as e:
+        # For v2 pipeline we want failures not silent errors like this
+        if raises:
+            raise e
+        redacted_cloud_storage_url = (
+            cloud_storage_url.split("?", 1)[0] if cloud_storage_url else None
+        )
+        logger.exception(
+            (
+                "Unexpected error while preparing file | filename: %s "
+                "| cloud_storage_url: %s"
+            ),
+            filename,
+            redacted_cloud_storage_url,
+        )
         return None
 
     metadata_manager.track_transcription_metadata(task_id, transcription)
@@ -114,13 +157,13 @@ def transcribe_audio(task_id, filename, language):
 
 def format_transcript(
     transcription,
-    context_language,
-    language,
-    room,
-    recording_date,
-    recording_time,
-    download_link,
-):
+    context_language: str | None,
+    language: str,
+    room: str | None,
+    recording_date: str | None,
+    recording_time: str | None,
+    download_link: str | None,
+) -> tuple[str, str]:
     """Format a transcription into readable content with a title.
 
     Resolves the locale from context_language / language, then uses
@@ -208,7 +251,9 @@ def process_audio_transcribe_summarize_v2(
 
     task_id = self.request.id
 
-    transcription = transcribe_audio(task_id, filename, language)
+    transcription = transcribe_audio(
+        task_id=task_id, filename=filename, language=language
+    )
     if transcription is None:
         return
 
@@ -258,24 +303,10 @@ def task_failure_handler(task_id, exception=None, **kwargs):
     metadata_manager.capture(task_id, settings.posthog_event_failure)
 
 
-@celery.task(
-    bind=True,
-    autoretry_for=[LLMException, Exception],
-    max_retries=settings.celery_max_retries,
-    queue=settings.summarize_queue,
-)
-def summarize_transcription(
-    self, owner_id: str, transcript: str, email: str, sub: str, title: str
-):
-    """Generate a summary from the provided transcription text.
-
-    This Celery task performs the following operations:
-    1. Uses an LLM to generate a TL;DR summary of the transcription.
-    2. Breaks the transcription into parts and summarizes each part.
-    3. Cleans up the combined summary
-    4. Generates next steps.
-    5. Sends the final summary via webhook.
-    """
+def summarize_transcription_internals(
+    *, owner_id: str, transcript: str, session_id: str
+) -> str:
+    """Generate a summary from the provided transcription text."""
     logger.info(
         "Starting summarization task | Owner: %s",
         owner_id,
@@ -292,7 +323,7 @@ def summarize_transcription(
     # privacy controls in observability traces.
     llm_observability = LLMObservability(
         user_has_tracing_consent=user_has_tracing_consent,
-        session_id=self.request.id,
+        session_id=session_id,
         user_id=owner_id,
     )
     llm_service = LLMService(llm_observability=llm_observability)
@@ -338,9 +369,203 @@ def summarize_transcription(
     logger.info("Summary cleaned")
 
     summary = tldr + "\n\n" + cleaned_summary + "\n\n" + next_steps
+
+    llm_observability.flush()
+    logger.debug("LLM observability flushed")
+
+    return summary
+
+
+@celery.task(
+    bind=True,
+    autoretry_for=[LLMException, Exception],
+    max_retries=settings.celery_max_retries,
+    queue=settings.summarize_queue,
+)
+def summarize_transcription(
+    self, owner_id: str, transcript: str, email: str, sub: str, title: str
+):
+    """Generate a summary from the provided transcription text.
+
+    This Celery task performs the following operations:
+    1. Uses an LLM to generate a TL;DR summary of the transcription.
+    2. Breaks the transcription into parts and summarizes each part.
+    3. Cleans up the combined summary
+    4. Generates next steps.
+    5. Sends the final summary via webhook.
+    """
+    summary = summarize_transcription_internals(
+        owner_id=owner_id, transcript=transcript, session_id=self.request.id
+    )
     summary_title = settings.summary_title_template.format(title=title)
 
     submit_content(summary, summary_title, email, sub)
 
-    llm_observability.flush()
-    logger.debug("LLM observability flushed")
+
+##################################################################################
+# Tasks v2
+##################################################################################
+
+
+@celery.task(
+    max_retries=3,
+    queue=settings.call_webhook_queue_v2,
+    autoretry_for=[exceptions.HTTPError],
+)
+def call_webhook_v2_task(
+    payload: dict,
+    tenant_id: str,
+):
+    """Calls a webhook asynchrously (retry handled by celery)."""
+    call_webhook_v2(
+        payload=webhook_payload_adapter.validate_python(payload), tenant_id=tenant_id
+    )
+
+
+@celery.task(
+    bind=True,
+    autoretry_for=[exceptions.HTTPError],
+    max_retries=settings.celery_max_retries,
+    queue=settings.transcribe_queue_v2,
+)
+def process_audio_transcribe_v2_task(
+    self,
+    payload: dict,
+):
+    """Process an audio file by transcribing it.
+
+    This Celery task orchestrates:
+    1. Audio transcription via WhisperX
+    2. Store transcript result on S3
+    3. Webhook submission
+
+    Args:
+        self: Celery task instance (passed on with bind=True)
+        payload: Serialized dictionary of TranscribeSummarizeTaskCreationV2
+    """
+    payload = TranscribeTaskV2Payload.model_validate(payload)
+    logger.info(
+        "Transcribing for object received | Owner: %s",
+        payload.user_sub,
+    )
+
+    job_id = self.request.id
+
+    transcription_res = WhisperXResponse(
+        **transcribe_audio(  # type: ignore
+            task_id=job_id,
+            cloud_storage_url=payload.cloud_storage_url,
+            language=payload.language,
+            raises=True,
+        ).model_dump()
+    )
+
+    file_service.store_transcript(
+        transcript=transcription_res,
+        job_id=job_id,
+    )
+
+    call_webhook_v2_task.apply_async(
+        args=[
+            TranscribeWebhookSuccessPayload(
+                job_id=job_id,
+                transcription_data_url=file_service.get_transcript_signed_url(job_id),
+            ).model_dump(),
+            payload.tenant_id,
+        ]
+    )
+
+
+@signals.task_failure.connect(sender=process_audio_transcribe_v2_task)
+def handle_transcribe_v2_failed(
+    sender,
+    task_id=None,
+    exception=None,
+    args=None,
+    kwargs=None,
+    traceback=None,
+    einfo=None,
+    **kw,
+):
+    """Handle the failure of transcribe_v2_task.
+
+    This function is triggered when the transcribe_v2_task fails.
+    It sends a webhook failure payload to notify the client of the failure.
+    """
+    task = sender
+    # If retries are exhausted:
+    if task.request.retries >= task.max_retries:
+        call_webhook_v2_task.apply_async(
+            args=[
+                TranscribeWebhookFailurePayload(
+                    job_id=task.id,
+                    error_code="unknown_error",
+                ).model_dump(),
+                args[0]["tenant_id"],
+            ]
+        )
+
+
+@celery.task(
+    bind=True,
+    autoretry_for=[LLMException, Exception],
+    max_retries=settings.celery_max_retries,
+    queue=settings.summarize_queue_v2,
+)
+def summarize_v2_task(
+    self,
+    payload: dict,
+):
+    """Generate a summary from the provided content.
+
+    This Celery task performs the following operations:
+    1. Uses an LLM to generate a TL;DR summary of the content.
+    2. Breaks the content into parts and summarizes each part.
+    3. Cleans up the combined summary
+    4. Generates next steps.
+    5. Sends the final summary via webhook.
+    """
+    payload = SummarizeTaskV2Payload.model_validate(payload)
+    summary = summarize_transcription_internals(
+        owner_id=payload.user_sub,
+        transcript=payload.content,
+        session_id=self.request.id,
+    )
+    call_webhook_v2_task.apply_async(
+        args=[
+            SummarizeWebhookSuccessPayload(
+                job_id=self.request.id, summary=summary
+            ).model_dump(),
+            payload.tenant_id,
+        ]
+    )
+
+
+@signals.task_failure.connect(sender=summarize_v2_task)
+def handle_summarize_v2_failed(
+    sender,
+    task_id=None,
+    exception=None,
+    args=None,
+    kwargs=None,
+    traceback=None,
+    einfo=None,
+    **kw,
+):
+    """Handle the failure of summarize_v2_task.
+
+    This function is triggered when the summarize_v2_task fails.
+    It sends a webhook failure payload to notify the client of the failure.
+    """
+    task = sender
+    # If retries are exhausted:
+    if task.request.retries >= task.max_retries:
+        call_webhook_v2_task.apply_async(
+            args=[
+                SummarizeWebhookFailurePayload(
+                    job_id=task.id,
+                    error_code="unknown_error",
+                ).model_dump(),
+                args[0]["tenant_id"],
+            ]
+        )

@@ -1,0 +1,153 @@
+{{- $envVars := include "meet.common.env" (list . .Values.celerySummaryBackend) -}}
+{{- $fullName := include "meet.celerySummaryBackend.fullname" . -}}
+{{- $component := "celery-summary-backend" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  annotations:
+   {{- with .Values.celerySummaryBackend.dpAnnotations }}
+   {{- toYaml . | nindent 4 }}
+   {{- end }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "meet.common.labels" (list . $component) | nindent 4 }}
+spec:
+  replicas: {{ .Values.celerySummaryBackend.replicas }}
+  selector:
+    matchLabels:
+      {{- include "meet.common.selectorLabels" (list . $component) | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.celerySummaryBackend.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "meet.common.selectorLabels" (list . $component) | nindent 8 }}
+    spec:
+      {{- if $.Values.image.credentials }}
+      imagePullSecrets:
+        - name: {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" .) "imageCredentials" $.Values.image.credentials) }}
+      {{- end }}
+      shareProcessNamespace: {{ .Values.celerySummaryBackend.shareProcessNamespace }}
+      containers:
+        {{- with .Values.celerySummaryBackend.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        - name: {{ .Chart.Name }}
+          image: "{{ (.Values.celerySummaryBackend.image | default dict).repository | default .Values.image.repository }}:{{ (.Values.celerySummaryBackend.image | default dict).tag | default .Values.image.tag }}"
+          imagePullPolicy: {{ (.Values.celerySummaryBackend.image | default dict).pullPolicy | default .Values.image.pullPolicy }}
+          {{- with .Values.celerySummaryBackend.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.celerySummaryBackend.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- if $envVars }}
+            {{- $envVars | indent 12 }}
+            {{- end }}
+          {{- with .Values.celerySummaryBackend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.celerySummaryBackend.service.targetPort }}
+              protocol: TCP
+          {{- if .Values.celerySummaryBackend.probes.liveness }}
+          livenessProbe:
+            {{- include "meet.probes.abstract" (merge .Values.celerySummaryBackend.probes.liveness (dict "targetPort" .Values.celerySummaryBackend.service.targetPort )) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.celerySummaryBackend.probes.readiness }}
+          readinessProbe:
+            {{- include "meet.probes.abstract" (merge .Values.celerySummaryBackend.probes.readiness (dict "targetPort" .Values.celerySummaryBackend.service.targetPort )) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.celerySummaryBackend.probes.startup }}
+          startupProbe:
+            {{- include "meet.probes.abstract" (merge .Values.celerySummaryBackend.probes.startup (dict "targetPort" .Values.celerySummaryBackend.service.targetPort )) | nindent 12 }}
+          {{- end }}
+          {{- with .Values.celerySummaryBackend.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- range $index, $value := .Values.mountFiles }}
+            - name: "files-{{ $index }}"
+              mountPath: {{ $value.path }}
+              subPath: content
+            {{- end }}
+            {{- range $name, $volume := .Values.celerySummaryBackend.persistence }}
+            - name: "{{ $name }}"
+              mountPath: "{{ $volume.mountPath }}"
+            {{- end }}
+            {{- range .Values.celerySummaryBackend.extraVolumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              subPath: {{ .subPath | default "" }}
+              readOnly: {{ .readOnly }}
+            {{- end }}
+      {{- with .Values.celerySummaryBackend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celerySummaryBackend.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celerySummaryBackend.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- range $index, $value := .Values.mountFiles }}
+        - name: "files-{{ $index }}"
+          configMap:
+            name: "{{ include "meet.fullname" $ }}-files-{{ $index }}"
+        {{- end }}
+        {{- range $name, $volume := .Values.celerySummaryBackend.persistence }}
+        - name: "{{ $name }}"
+          {{- if eq $volume.type "emptyDir" }}
+          emptyDir: {}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: "{{ $fullName }}-{{ $name }}"
+          {{- end }}
+        {{- end }}
+        {{- range .Values.celerySummaryBackend.extraVolumes }}
+        - name: {{ .name }}
+          {{- if .existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .existingClaim }}
+          {{- else if .hostPath }}
+          hostPath:
+            {{ toYaml .hostPath | nindent 12 }}
+          {{- else if .csi }}
+          csi:
+            {{- toYaml .csi | nindent 12 }}
+          {{- else if .configMap }}
+          configMap:
+            {{- toYaml .configMap | nindent 12 }}
+          {{- else if .emptyDir }}
+          emptyDir:
+            {{- toYaml .emptyDir | nindent 12 }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
+---
+{{ if .Values.celerySummaryBackend.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "meet.common.selectorLabels" (list . $component) | nindent 6 }}
+{{ end }}

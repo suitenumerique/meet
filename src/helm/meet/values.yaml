@@ -738,7 +738,7 @@ celeryTranscribe:
     - "--pool=solo"
     - "--loglevel=info"
     - "-Q"
-    - "transcribe-queue"
+    - "transcribe-queue,transcribe-queue-v2"
 
   ## @param celeryTranscribe.args Override the celeryTranscribe container args
   args: []
@@ -847,7 +847,7 @@ celerySummarize:
     - "--pool=solo"
     - "--loglevel=info"
     - "-Q"
-    - "summarize-queue"
+    - "summarize-queue,summarize-queue-v2"
 
   ## @param celerySummarize.args Override the celerySummarize container args
   args: []
@@ -932,6 +932,116 @@ celerySummarize:
   ## @param celerySummarize.pdb.enabled Enable pdb on celerySummarize
   pdb:
     enabled: false
+
+## @section celerySummaryBackend
+
+celerySummaryBackend:
+  ## @param celerySummaryBackend.image.repository Repository to use to pull meet's celerySummaryBackend container image
+  ## @param celerySummaryBackend.image.tag meet's celerySummaryBackend container tag
+  ## @param celerySummaryBackend.image.pullPolicy celerySummaryBackend container image pull policy
+  image:
+    repository: lasuite/meet-summary
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  ## @param celerySummaryBackend.dpAnnotations Annotations to add to the celerySummaryBackend Deployment
+  dpAnnotations: {}
+
+  ## @param celerySummaryBackend.command Override the celerySummaryBackend container command
+  command:
+    - "celery"
+    - "-A"
+    - "summary.core.celery_worker"
+    - "worker"
+    - "--pool=solo"
+    - "--loglevel=info"
+    - "-Q"
+    - "call-webhook-queue-v2"
+
+  ## @param celerySummaryBackend.args Override the celerySummaryBackend container args
+  args: []
+
+  ## @param celerySummaryBackend.replicas Amount of celerySummaryBackend replicas
+  replicas: 1
+
+  ## @param celerySummaryBackend.shareProcessNamespace Enable share process namespace between containers
+  shareProcessNamespace: false
+
+  ## @param celerySummaryBackend.sidecars Add sidecars containers to celerySummaryBackend deployment
+  sidecars: []
+
+  ## @param celerySummaryBackend.migrateJobAnnotations Annotations for the migrate job
+  migrateJobAnnotations: {}
+
+  ## @param celerySummaryBackend.securityContext Configure celerySummaryBackend Pod security context
+  securityContext: null
+
+  ## @param celerySummaryBackend.envVars Configure celerySummaryBackend container environment variables
+  ## @extra celerySummaryBackend.envVars.BY_VALUE Example environment variable by setting value directly
+  ## @extra celerySummaryBackend.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra celerySummaryBackend.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra celerySummaryBackend.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
+  ## @extra celerySummaryBackend.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @skip celerySummaryBackend.envVars
+  envVars:
+    <<: *commonEnvVars
+
+  ## @param celerySummaryBackend.podAnnotations Annotations to add to the celerySummaryBackend Pod
+  podAnnotations: {}
+
+  ## @param celerySummaryBackend.service.type celerySummaryBackend Service type
+  ## @param celerySummaryBackend.service.port celerySummaryBackend Service listening port
+  ## @param celerySummaryBackend.service.targetPort celerySummaryBackend container listening port
+  ## @param celerySummaryBackend.service.annotations Annotations to add to the celerySummaryBackend Service
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+    annotations: {}
+
+  ## @param celerySummaryBackend.probes Configure celerySummaryBackend probes
+  ## @param celerySummaryBackend.probes.liveness.path [nullable] Configure path for celerySummaryBackend HTTP liveness probe
+  ## @param celerySummaryBackend.probes.liveness.targetPort [nullable] Configure port for celerySummaryBackend HTTP liveness probe
+  ## @param celerySummaryBackend.probes.liveness.initialDelaySeconds [nullable] Configure initial delay for celerySummaryBackend liveness probe
+  ## @param celerySummaryBackend.probes.liveness.initialDelaySeconds [nullable] Configure timeout for celerySummaryBackend liveness probe
+  ## @param celerySummaryBackend.probes.startup.path [nullable] Configure path for celerySummaryBackend HTTP startup probe
+  ## @param celerySummaryBackend.probes.startup.targetPort [nullable] Configure port for celerySummaryBackend HTTP startup probe
+  ## @param celerySummaryBackend.probes.startup.initialDelaySeconds [nullable] Configure initial delay for celerySummaryBackend startup probe
+  ## @param celerySummaryBackend.probes.startup.initialDelaySeconds [nullable] Configure timeout for celerySummaryBackend startup probe
+  ## @param celerySummaryBackend.probes.readiness.path [nullable] Configure path for celerySummaryBackend HTTP readiness probe
+  ## @param celerySummaryBackend.probes.readiness.targetPort [nullable] Configure port for celerySummaryBackend HTTP readiness probe
+  ## @param celerySummaryBackend.probes.readiness.initialDelaySeconds [nullable] Configure initial delay for celerySummaryBackend readiness probe
+  ## @param celerySummaryBackend.probes.readiness.initialDelaySeconds [nullable] Configure timeout for celerySummaryBackend readiness probe
+  probes: {}
+
+  ## @param celerySummaryBackend.resources Resource requirements for the celerySummaryBackend container
+  resources: {}
+
+  ## @param celerySummaryBackend.nodeSelector Node selector for the celerySummaryBackend Pod
+  nodeSelector: {}
+
+  ## @param celerySummaryBackend.tolerations Tolerations for the celerySummaryBackend Pod
+  tolerations: []
+
+  ## @param celerySummaryBackend.affinity Affinity for the celerySummaryBackend Pod
+  affinity: {}
+
+  ## @param celerySummaryBackend.persistence Additional volumes to create and mount on the celerySummaryBackend. Used for debugging purposes
+  ## @extra celerySummaryBackend.persistence.volume-name.size Size of the additional volume
+  ## @extra celerySummaryBackend.persistence.volume-name.type Type of the additional volume, persistentVolumeClaim or emptyDir
+  ## @extra celerySummaryBackend.persistence.volume-name.mountPath Path where the volume should be mounted to
+  persistence: {}
+
+  ## @param celerySummaryBackend.extraVolumeMounts Additional volumes to mount on the celerySummaryBackend.
+  extraVolumeMounts: []
+
+  ## @param celerySummaryBackend.extraVolumes Additional volumes to mount on the celerySummaryBackend.
+  extraVolumes: []
+
+  ## @param celerySummaryBackend.pdb.enabled Enable pdb on celerySummaryBackend
+  pdb:
+    enabled: false
+
 
 ## @section agents
 

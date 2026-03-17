@@ -8,12 +8,23 @@ from .config import SettingsDeps
 security = HTTPBearer()
 
 
-def verify_token(
+def verify_tenant_api_key(
     settings: SettingsDeps,
     credentials: HTTPAuthorizationCredentials = Security(security),  # noqa: B008
 ):
-    """Verify the bearer token from the Authorization header."""
-    token = credentials.credentials
-    if token != settings.app_api_token.get_secret_value():
-        raise HTTPException(status_code=401, detail="Invalid token")
-    return token
+    """Verify the bearer api_key from the Authorization header."""
+    api_key = credentials.credentials
+    if api_key not in settings.authorized_tenant_api_keys:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    return api_key
+
+
+def verify_tenant_api_key_v2(
+    settings: SettingsDeps,
+    credentials: HTTPAuthorizationCredentials = Security(security),  # noqa: B008
+):
+    """Verify the bearer api_key from the Authorization header."""
+    api_key = credentials.credentials
+    if api_key not in settings.authorized_tenant_api_keys:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    return settings.get_authorized_tenant(api_key=api_key)

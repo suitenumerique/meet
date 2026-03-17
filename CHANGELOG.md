@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(summary) add routes v2 for async STT and summary tasks  #1171
+
 ## [1.13.0] - 2026-03-31
 
 ### Changed

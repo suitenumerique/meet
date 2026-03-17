@@ -304,7 +304,8 @@ jobs:
         working-directory: src/summary
 
     env:
-      APP_API_TOKEN: "test-api-token"
+      V1_TENANT_ID: 'test-tenant'
+      AUTHORIZED_TENANTS: '[{"id": "test-tenant", "api_key": "test-api-token", "webhook_url": "https://example.com/webhook", "webhook_api_key": "test-webhook-api-key"}]'
       AWS_STORAGE_BUCKET_NAME: "http://meet-media-storage"
       AWS_S3_ENDPOINT_URL: "minio:9000"
       AWS_S3_ACCESS_KEY_ID: "meet"
@@ -316,8 +317,6 @@ jobs:
       LLM_BASE_URL: "https://configure-your-url.com"
       LLM_API_KEY: "test-llm-secret"
       LLM_MODEL: "test-llm-model"
-      WEBHOOK_API_TOKEN: "test-webhook-secret"
-      WEBHOOK_URL: "https://configure-your-url.com"
 
     steps:
       - name: Checkout repository

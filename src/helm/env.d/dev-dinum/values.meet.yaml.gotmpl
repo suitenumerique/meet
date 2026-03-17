@@ -24,7 +24,7 @@ _summaryEnvVars: &summaryEnvVars
     secretKeyRef:
       name: secret-dev
       key: LLM_API_KEY
-  LLM_MODEL: meta-llama/Llama-3.1-8B-Instruct
+  LLM_MODEL: Qwen/Qwen3-Coder-30B-A3B-Instruct
   WEBHOOK_API_TOKEN: password
   WEBHOOK_URL: https://www.mock-impress.com/webhook/
   CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1

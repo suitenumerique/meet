@@ -42,10 +42,10 @@ class TranscribeSummarizeTaskCreation(BaseModel):
         return v
 
 
-router = APIRouter(prefix="/tasks")
+router_tasks_v1 = APIRouter(prefix="/tasks")
 
 
-@router.post("/")
+@router_tasks_v1.post("/")
 async def create_transcribe_summarize_task(request: TranscribeSummarizeTaskCreation):
     """Create a transcription and summarization task."""
     task = process_audio_transcribe_summarize_v2.apply_async(
@@ -68,7 +68,7 @@ async def create_transcribe_summarize_task(request: TranscribeSummarizeTaskCreat
     return {"id": task.id, "message": "Task created"}
 
 
-@router.get("/{task_id}")
+@router_tasks_v1.get("/{task_id}")
 async def get_task_status(task_id: str):
     """Check task status by ID."""
     task = AsyncResult(task_id)
