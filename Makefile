@@ -191,6 +191,7 @@ lint-pylint: ## lint back-end python sources with pylint only on changed files f
 
 test: ## run project tests
 	@$(MAKE) test-back-parallel
+	@$(MAKE) test-summary
 .PHONY: test
 
 test-back: ## run back-end tests
