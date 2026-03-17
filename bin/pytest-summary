@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+source "$(dirname "${BASH_SOURCE[0]}")/_config.sh"
+
+_dc_run \
+    app-summary-dev \
+    python -m pytest "$@"
