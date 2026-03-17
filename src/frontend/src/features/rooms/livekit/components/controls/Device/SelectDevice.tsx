@@ -69,10 +69,10 @@ const SelectDevicePermissions = <T extends string | number>({
       iconComponent={iconComponent}
       placeholder={items.length === 0 ? t('loading') : t('select')}
       selectedKey={selectedKey}
-      onSelectionChange={(key) => {
+      onSelectionChange={async (key) => {
         if (key === selectedKey) return
+        await setActiveMediaDevice(key as string)
         onSubmit?.(key as string)
-        setActiveMediaDevice(key as string)
       }}
       {...props}
     />
