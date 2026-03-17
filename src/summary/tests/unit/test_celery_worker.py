@@ -16,9 +16,7 @@ from summary.core.celery_worker import (
 from summary.core.config import get_settings
 from summary.core.file_service import FileServiceException
 
-settings = get_settings()
-
-WEBHOOK_URL = settings.webhook_url
+WEBHOOK_URL = get_settings().webhook_url
 
 # ---------------------------------------------------------------------------
 # transcribe_audio
@@ -241,7 +239,7 @@ class TestSummarizeTranscription:
         # Verify auth header was sent
         assert (
             webhook_request.request.headers["Authorization"]
-            == f"Bearer {settings.webhook_api_token.get_secret_value()}"
+            == f"Bearer {get_settings().webhook_api_token.get_secret_value()}"
         )
 
         # LLM was called for: tldr, plan, part A, part B, next-steps, cleaning

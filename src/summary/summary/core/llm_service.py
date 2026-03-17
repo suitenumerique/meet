@@ -8,9 +8,6 @@ from langfuse import Langfuse
 
 from summary.core.config import get_settings
 
-settings = get_settings()
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -34,28 +31,28 @@ class LLMObservability:
         self.session_id = session_id
         self.user_id = user_id
 
-        if settings.langfuse_enabled:
+        if get_settings().langfuse_enabled:
 
             def masking_function(data, **kwargs):
                 if (
                     user_has_tracing_consent
-                    or settings.langfuse_environment != "production"
+                    or get_settings().langfuse_environment != "production"
                 ):
                     return data
 
                 return "[REDACTED]"
 
-            if not settings.langfuse_secret_key:
+            if not get_settings().langfuse_secret_key:
                 raise ValueError(
                     "langfuse_secret_key is not configured. "
                     "Please set the secret key or disable Langfuse."
                 )
 
             self._observability_client = Langfuse(
-                secret_key=settings.langfuse_secret_key.get_secret_value(),
-                public_key=settings.langfuse_public_key,
-                host=settings.langfuse_host,
-                environment=settings.langfuse_environment,
+                secret_key=get_settings().langfuse_secret_key.get_secret_value(),
+                public_key=get_settings().langfuse_public_key,
+                host=get_settings().langfuse_host,
+                environment=get_settings().langfuse_environment,
                 mask=masking_function,
             )
 
@@ -72,8 +69,8 @@ class LLMObservability:
         to Langfuse for observability when enabled.
         """
         base_args = {
-            "base_url": settings.llm_base_url,
-            "api_key": settings.llm_api_key.get_secret_value(),
+            "base_url": get_settings().llm_base_url,
+            "api_key": get_settings().llm_api_key.get_secret_value(),
         }
 
         if not self.is_enabled:
@@ -120,7 +117,7 @@ class LLMService:
         """
         try:
             params: dict[str, Any] = {
-                "model": settings.llm_model,
+                "model": get_settings().llm_model,
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},

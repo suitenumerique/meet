@@ -12,7 +12,6 @@ from posthog import Posthog
 from summary.core.config import get_settings
 
 logger = get_task_logger(__name__)
-settings = get_settings()
 
 
 class AnalyticsException(Exception):
@@ -26,6 +25,7 @@ class Analytics:
 
     def __init__(self):
         """Initialize a client if settings are configure."""
+        settings = get_settings()
         self._client = None
         if settings.posthog_api_key and settings.posthog_enabled:
             logger.info("Initialize analytics client")
@@ -71,6 +71,7 @@ class MetadataManager:
 
     def __init__(self):
         """Initialize the task tracker with analytics client."""
+        settings = get_settings()
         self._redis = redis.from_url(settings.task_tracker_redis_url)
         self._key_prefix = settings.task_tracker_prefix
         self._analytics = get_analytics()
@@ -117,7 +118,7 @@ class MetadataManager:
         start_time = time.time()
         initial_metadata = {
             "start_time": start_time,
-            "asr_model": settings.whisperx_asr_model,
+            "asr_model": get_settings().whisperx_asr_model,
             "retries": 0,
             "filename": filename,
             "email": email,

@@ -9,8 +9,6 @@ from urllib3.util import Retry
 
 from summary.core.config import get_settings
 
-settings = get_settings()
-
 logger = logging.getLogger(__name__)
 
 
@@ -18,9 +16,9 @@ def _create_retry_session():
     """Create an HTTP session configured with retry logic."""
     session = Session()
     retries = Retry(
-        total=settings.webhook_max_retries,
-        backoff_factor=settings.webhook_backoff_factor,
-        status_forcelist=settings.webhook_status_forcelist,
+        total=get_settings().webhook_max_retries,
+        backoff_factor=get_settings().webhook_backoff_factor,
+        status_forcelist=get_settings().webhook_status_forcelist,
         allowed_methods={"POST"},
     )
     session.mount("https://", HTTPAdapter(max_retries=retries))
@@ -31,7 +29,9 @@ def _post_with_retries(url, data):
     """Send POST request with automatic retries."""
     session = _create_retry_session()
     session.headers.update(
-        {"Authorization": f"Bearer {settings.webhook_api_token.get_secret_value()}"}
+        {
+            "Authorization": f"Bearer {get_settings().webhook_api_token.get_secret_value()}"
+        }
     )
     try:
         response = session.post(url, json=data)
@@ -53,10 +53,10 @@ def submit_content(content, title, email, sub):
         "sub": sub,
     }
 
-    logger.debug("Submitting to %s", settings.webhook_url)
+    logger.debug("Submitting to %s", get_settings().webhook_url)
     logger.debug("Request payload: %s", json.dumps(data, indent=2))
 
-    response = _post_with_retries(settings.webhook_url, data)
+    response = _post_with_retries(get_settings().webhook_url, data)
 
     try:
         response_data = response.json()

@@ -9,11 +9,11 @@ import responses
 
 from summary.core.config import get_settings
 
-settings = get_settings()
-
 API_PREFIX = "/api/v1"
-AUTH_HEADER = {"Authorization": f"Bearer {settings.app_api_token.get_secret_value()}"}
-WEBHOOK_URL = settings.webhook_url
+AUTH_HEADER = {
+    "Authorization": f"Bearer {get_settings().app_api_token.get_secret_value()}"
+}
+WEBHOOK_URL = get_settings().webhook_url
 
 
 class TestTranscribeSummarizeFlow:

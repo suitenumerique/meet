@@ -13,9 +13,6 @@ from minio.error import MinioException, S3Error
 
 from summary.core.config import get_settings
 
-settings = get_settings()
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -31,23 +28,24 @@ class FileService:
     def __init__(self):
         """Initialize FileService with MinIO client and configuration."""
         endpoint = (
-            settings.aws_s3_endpoint_url.removeprefix("https://")
+            get_settings()
+            .aws_s3_endpoint_url.removeprefix("https://")
             .removeprefix("http://")
             .rstrip("/")
         )
 
         self._minio_client = Minio(
             endpoint,
-            access_key=settings.aws_s3_access_key_id,
-            secret_key=settings.aws_s3_secret_access_key.get_secret_value(),
-            secure=settings.aws_s3_secure_access,
+            access_key=get_settings().aws_s3_access_key_id,
+            secret_key=get_settings().aws_s3_secret_access_key.get_secret_value(),
+            secure=get_settings().aws_s3_secure_access,
         )
 
-        self._bucket_name = settings.aws_storage_bucket_name
+        self._bucket_name = get_settings().aws_storage_bucket_name
         self._stream_chunk_size = 32 * 1024
 
-        self._allowed_extensions = settings.recording_allowed_extensions
-        self._max_duration = settings.recording_max_duration
+        self._allowed_extensions = get_settings().recording_allowed_extensions
+        self._max_duration = get_settings().recording_max_duration
 
     def _download_from_minio(self, remote_object_key) -> Path:
         """Download file from MinIO to local temporary file.
@@ -174,7 +172,7 @@ class FileService:
 
             extension = downloaded_path.suffix.lower()
 
-            if extension in settings.recording_video_extensions:
+            if extension in get_settings().recording_video_extensions:
                 logger.info("Video file detected, extracting audio...")
                 extracted_audio_path = self._extract_audio_from_video(downloaded_path)
                 processed_path = extracted_audio_path
