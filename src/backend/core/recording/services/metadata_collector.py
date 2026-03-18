@@ -10,6 +10,7 @@ from livekit.protocol.agent_dispatch import (
 )
 
 from core import utils
+from core.models import Recording
 
 logger = getLogger(__name__)
 
@@ -22,7 +23,7 @@ class MetadataCollectorService:
     """Wip."""
 
     @async_to_sync
-    async def start(self, recording):
+    async def start(self, recording: Recording):
         """Wip."""
 
         lkapi = utils.create_livekit_client()
@@ -60,7 +61,7 @@ class MetadataCollectorService:
         return dispatch_id
 
     @async_to_sync
-    async def stop(self, recording):
+    async def stop(self, recording: Recording):
         """Wip."""
 
         room_id = str(recording.room.id)
