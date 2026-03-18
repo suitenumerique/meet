@@ -10,6 +10,7 @@ import {
   CAPTION_TEXT_SIZE_OPTIONS,
   CAPTION_COLOR_OPTIONS,
 } from '@/stores/accessibility'
+import { useAreSubtitlesAvailable } from '../hooks/useAreSubtitlesAvailable'
 
 export const CaptionsSettings = () => {
   const { t } = useTranslation('settings', {
@@ -43,6 +44,9 @@ export const CaptionsSettings = () => {
       })),
     [t]
   )
+
+  const areSubtitlesAvailable = useAreSubtitlesAvailable()
+  if (!areSubtitlesAvailable) return null
 
   return (
     <li>
