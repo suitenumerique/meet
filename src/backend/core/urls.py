@@ -7,6 +7,7 @@ from lasuite.oidc_login.urls import urlpatterns as oidc_urls
 from rest_framework.routers import DefaultRouter
 
 from core.api import get_frontend_configuration, viewsets
+from core.authentication.api import session_exchange
 from core.external_api import viewsets as external_viewsets
 
 # - Main endpoints
@@ -40,6 +41,9 @@ urlpatterns = [
             [
                 *router.urls,
                 *oidc_urls,
+                path(
+                    "auth/session-exchange/", session_exchange, name="session_exchange"
+                ),
                 path("config/", get_frontend_configuration, name="config"),
             ]
         ),
