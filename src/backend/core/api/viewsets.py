@@ -44,9 +44,9 @@ from core.recording.event.exceptions import (
 )
 from core.recording.event.notification import notification_service
 from core.recording.event.parsers import get_parser
-from core.recording.services.metadata_extractor import (
-    MetadataExtractorException,
-    MetadataExtractorService,
+from core.recording.services.metadata_collector import (
+    MetadataCollectorException,
+    MetadataCollectorService,
 )
 from core.recording.worker.exceptions import (
     RecordingStartError,
@@ -341,12 +341,12 @@ class RoomViewSet(
             )
 
         if (
-            settings.ROOM_METADATA_EXTRACTOR_ENABLED
+            settings.METADATA_COLLECTOR_ENABLED
             and recording.mode == models.RecordingModeChoices.TRANSCRIPT
         ):
             try:
-                MetadataExtractorService().start(recording)
-            except MetadataExtractorException:
+                MetadataCollectorService().start(recording)
+            except MetadataCollectorException:
                 pass
 
         return drf_response.Response(

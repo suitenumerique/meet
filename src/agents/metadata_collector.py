@@ -32,9 +32,9 @@ from minio.error import S3Error
 
 load_dotenv()
 
-logger = logging.getLogger("metadata-extractor")
+logger = logging.getLogger("metadata-collector")
 
-AGENT_NAME = os.getenv("ROOM_METADATA_EXTRACTOR_AGENT_NAME", "metadata-extractor")
+AGENT_NAME = os.getenv("METADATA_COLLECTOR_AGENT_NAME", "metadata-collector")
 
 
 def prewarm(proc: JobProcess):

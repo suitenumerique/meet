@@ -14,11 +14,11 @@ from core import utils
 logger = getLogger(__name__)
 
 
-class MetadataExtractorException(Exception):
+class MetadataCollectorException(Exception):
     """Wip."""
 
 
-class MetadataExtractorService:
+class MetadataCollectorService:
     """Wip."""
 
     @async_to_sync
@@ -31,7 +31,7 @@ class MetadataExtractorService:
         try:
             response = await lkapi.agent_dispatch.create_dispatch(
                 CreateAgentDispatchRequest(
-                    agent_name=settings.ROOM_METADATA_EXTRACTOR_AGENT_NAME,
+                    agent_name=settings.METADATA_COLLECTOR_AGENT_NAME,
                     room=room_id,
                     metadata=str(recording.id),
                 )
@@ -40,7 +40,7 @@ class MetadataExtractorService:
             logger.exception(
                 "Failed to create metadata extractor agent for room %s", room_id
             )
-            raise MetadataExtractorException(
+            raise MetadataCollectorException(
                 "Failed to create metadata extractor agent"
             ) from e
         finally:
@@ -50,7 +50,7 @@ class MetadataExtractorService:
 
         if not dispatch_id:
             logger.error("LiveKit response missing dispatch ID for room %s", room_id)
-            raise MetadataExtractorException(
+            raise MetadataCollectorException(
                 f"LiveKit did not return a dispatch_id for room {room_id}"
             )
 
@@ -70,7 +70,7 @@ class MetadataExtractorService:
                 (
                     d.id
                     for d in dispatches
-                    if d.agent_name == settings.ROOM_METADATA_EXTRACTOR_AGENT_NAME
+                    if d.agent_name == settings.METADATA_COLLECTOR_AGENT_NAME
                 ),
                 None,
             )
@@ -90,7 +90,7 @@ class MetadataExtractorService:
                 "Failed to stop metadata extractor agent dispatch for room %s",
                 room_name,
             )
-            raise MetadataExtractorException(
+            raise MetadataCollectorException(
                 f"Failed to stop metadata metadata extractor agent for room {room_name}"
             ) from e
         finally:
