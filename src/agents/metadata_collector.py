@@ -30,6 +30,8 @@ from livekit.plugins import silero
 from minio import Minio
 from minio.error import S3Error
 
+from exceptions import MissingConfigError
+
 load_dotenv()
 
 logger = logging.getLogger("metadata-collector")
@@ -122,8 +124,10 @@ class MetadataCollector:
             secure=os.getenv("AWS_S3_SECURE_ACCESS", "False").lower() == "true",
         )
 
-        # todo - raise error if none
-        self.bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
+        if os.getenv("AWS_STORAGE_BUCKET_NAME") is not None:
+            self.bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
+        else:
+            raise MissingConfigError
 
         self.ctx = ctx
         self._sessions: dict[str, AgentSession] = {}
