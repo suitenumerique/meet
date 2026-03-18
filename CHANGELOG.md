@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-03-19
+
 ### Added
 
 - ✨(helm) support celery with our Django backend #1124
