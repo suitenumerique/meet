@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from livekit import api, rtc
 from livekit.agents import (
     Agent,
+    AgentServer,
     AgentSession,
     AutoSubscribe,
     JobContext,
@@ -21,7 +22,6 @@ from livekit.agents import (
     RoomInputOptions,
     RoomIO,
     RoomOutputOptions,
-    WorkerOptions,
     WorkerPermissions,
     cli,
     utils,
@@ -37,9 +37,25 @@ logger = logging.getLogger("metadata-extractor")
 AGENT_NAME = os.getenv("ROOM_METADATA_EXTRACTOR_AGENT_NAME", "metadata-extractor")
 
 
+def prewarm(proc: JobProcess):
+    """Preload voice activity detection model."""
+    proc.userdata["vad"] = silero.VAD.load()
+
+
+server = AgentServer(
+    permissions=WorkerPermissions(
+        can_publish=False,
+        can_publish_data=False,
+        can_subscribe=True,
+        hidden=True,
+    ),
+)
+server.setup_fnc = prewarm
+
+
 @dataclass
 class MetadataEvent:
-    """Wip."""
+    """A single timestamped event recorded during a meeting."""
 
     participant_id: str
     type: str
@@ -57,7 +73,7 @@ class VADAgent(Agent):
     """Agent that monitors voice activity for a specific participant."""
 
     def __init__(self, participant_identity: str, events: List):
-        """Wip."""
+        """Initialize with a participant identity and shared events list."""
         super().__init__(
             instructions="not-needed",
         )
@@ -88,12 +104,13 @@ class VADAgent(Agent):
                 self.events.append(event)
 
 
-class MetadataAgent:
-    """Monitor and manage real-time metadata extraction from meeting rooms.
+class MetadataCollector:
+    """Collect meeting events across all participants in a room.
 
-    Oversees VAD (Voice Activity Detection) and participant metadata streams
-    to track and analyze real-time events, coordinating data collection across
-    participants for insights like speaking activity and engagement.
+    Creates one AgentSession per participant to capture VAD events
+    (speech start/end), and listens for connection, disconnection,
+    and chat events. Persists all collected events as JSON to S3
+    on shutdown.
     """
 
     def __init__(self, ctx: JobContext, recording_id: str):
@@ -112,19 +129,16 @@ class MetadataAgent:
         self._sessions: dict[str, AgentSession] = {}
         self._tasks: set[asyncio.Task] = set()
 
-        self.output_filename = (
-            f"{os.getenv('AWS_S3_OUTPUT_FOLDER', 'metadata')}/{recording_id}-metadata.json"
-        )
+        self.output_filename = f"{os.getenv('AWS_S3_OUTPUT_FOLDER', 'metadata')}/{recording_id}-metadata.json"
 
         # Storage for events
         self.events = []
         self.participants = {}
 
-        logger.info("MetadataAgent initialized")
+        logger.info("MetadataCollector initialized")
 
     def start(self):
-        """Start listening for participant connection events."""
-        self.ctx.room.on("participant_connected", self.on_participant_connected)
+        """Start listening for room-level events."""
         self.ctx.room.on("participant_disconnected", self.on_participant_disconnected)
         self.ctx.room.on("participant_name_changed", self.on_participant_name_changed)
 
@@ -135,7 +149,7 @@ class MetadataAgent:
     async def on_chat_message_received(
         self, reader: rtc.TextStreamReader, participant_identity: str
     ):
-        """Wip."""
+        """Read a complete chat message and record it as an event."""
         full_text = await reader.read_all()
         logger.info(
             "Received chat message from %s: '%s'", participant_identity, full_text
@@ -151,7 +165,7 @@ class MetadataAgent:
         )
 
     def handle_chat_stream(self, reader, participant_identity):
-        """Wip."""
+        """Schedule async processing of an incoming chat stream."""
         task = asyncio.create_task(
             self.on_chat_message_received(reader, participant_identity)
         )
@@ -159,17 +173,17 @@ class MetadataAgent:
         task.add_done_callback(lambda _: self._tasks.remove(task))
 
     def save(self):
-        """Wip."""
+        """Serialize collected events and upload as JSON to S3."""
         logger.info("Persisting processed metadata output to disk…")
 
         participants = []
         for k, v in self.participants.items():
             participants.append({"participantId": k, "name": v})
 
-        sorted_event = sorted(self.events, key=lambda e: e.timestamp)
+        sorted_events = sorted(self.events, key=lambda e: e.timestamp)
 
         payload = {
-            "events": [event.serialize() for event in sorted_event],
+            "events": [event.serialize() for event in sorted_events],
             "participants": participants,
         }
 
@@ -203,15 +217,16 @@ class MetadataAgent:
             return_exceptions=True,
         )
 
-        self.ctx.room.off("participant_connected", self.on_participant_connected)
         self.ctx.room.off("participant_disconnected", self.on_participant_disconnected)
         self.ctx.room.off("participant_name_changed", self.on_participant_name_changed)
 
         logger.info("All VAD sessions closed")
         self.save()
 
-    def on_participant_connected(self, participant: rtc.RemoteParticipant):
-        """Handle new participant connection by starting VAD monitoring."""
+    async def on_participant_entrypoint(
+        self, ctx: JobContext, participant: rtc.RemoteParticipant
+    ):
+        """Handle new participant by starting a VAD monitoring session."""
         if participant.identity in self._sessions:
             logger.debug("Session already exists for %s", participant.identity)
             return
@@ -227,18 +242,11 @@ class MetadataAgent:
         self.participants[participant.identity] = participant.name
 
         logger.info("New participant connected: %s", participant.identity)
-        task = asyncio.create_task(self._start_session(participant))
-        self._tasks.add(task)
-
-        def on_task_done(task: asyncio.Task):
-            try:
-                self._sessions[participant.identity] = task.result()
-            except Exception:
-                logger.exception("Failed to start session for %s", participant.identity)
-            finally:
-                self._tasks.discard(task)
-
-        task.add_done_callback(on_task_done)
+        try:
+            session = await self._start_session(participant)
+            self._sessions[participant.identity] = session
+        except Exception:
+            logger.exception("Failed to start session for %s", participant.identity)
 
     def on_participant_disconnected(self, participant: rtc.RemoteParticipant):
         """Handle participant disconnection by closing VAD monitoring."""
@@ -270,7 +278,7 @@ class MetadataAgent:
         task.add_done_callback(on_close_done)
 
     def on_participant_name_changed(self, participant: rtc.RemoteParticipant):
-        """Wip."""
+        """Update stored participant name when it changes."""
         logger.info("Participant's name changed: %s", participant.identity)
         self.participants[participant.identity] = participant.name
 
@@ -319,27 +327,6 @@ class MetadataAgent:
             logger.exception("Error closing session")
 
 
-async def entrypoint(ctx: JobContext):
-    """Initialize and run the multi-user VAD monitor."""
-    logger.info("Starting metadata agent in room: %s", ctx.room.name)
-    recording_id = ctx.job.metadata
-    vad_monitor = MetadataAgent(ctx, recording_id)
-    vad_monitor.start()
-
-    # Connect to room and subscribe to audio only
-    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
-
-    existing_participants = list(ctx.room.remote_participants.values())
-    for participant in existing_participants:
-        vad_monitor.on_participant_connected(participant)
-
-    async def cleanup():
-        logger.info("Shutting down VAD monitor...")
-        await vad_monitor.aclose()
-
-    ctx.add_shutdown_callback(cleanup)
-
-
 async def handle_job_request(job_req: JobRequest) -> None:
     """Accept or reject the job request based on agent presence in the room."""
     room_name = job_req.room.name
@@ -369,23 +356,24 @@ async def handle_job_request(job_req: JobRequest) -> None:
             await job_req.reject()
 
 
-def prewarm(proc: JobProcess):
-    """Preload voice activity detection model."""
-    proc.userdata["vad"] = silero.VAD.load()
+@server.rtc_session(agent_name=AGENT_NAME, on_request=handle_job_request)
+async def entrypoint(ctx: JobContext):
+    """Initialize and run the metadata collector."""
+    logger.info("Starting metadata agent in room: %s", ctx.room.name)
+    recording_id = ctx.job.metadata
+    metadata_collector = MetadataCollector(ctx, recording_id)
+    metadata_collector.start()
+
+    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
+
+    ctx.add_participant_entrypoint(metadata_collector.on_participant_entrypoint)
+
+    async def cleanup():
+        logger.info("Shutting down metadata collector...")
+        await metadata_collector.aclose()
+
+    ctx.add_shutdown_callback(cleanup)
 
 
 if __name__ == "__main__":
-    cli.run_app(
-        WorkerOptions(
-            entrypoint_fnc=entrypoint,
-            prewarm_fnc=prewarm,
-            request_fnc=handle_job_request,
-            agent_name=AGENT_NAME,
-            permissions=WorkerPermissions(
-                can_publish=False,
-                can_publish_data=False,
-                can_subscribe=True,
-                hidden=True,
-            ),
-        )
-    )
+    cli.run_app(server)
