@@ -15,6 +15,7 @@ and this project adheres to
 - ✨(backend) add authenticated user rate throttling on request-entry #1129
 - ✨(backend) expose `is_active` field for Application in Django admin #1133
 - ✨(file-upload) disable by default & limit count by user #1141
+- ✨(frontend) custom background #1067
 
 ### Changed
 
@@ -65,7 +66,6 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add file upload feature #1030
-- ✨(frontend) custom background #1067
 
 ## [1.9.0] - 2026-03-02
 
