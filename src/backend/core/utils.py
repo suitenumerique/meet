@@ -212,7 +212,11 @@ def create_livekit_client(custom_configuration=None):
         custom_session = aiohttp.ClientSession(connector=connector)
 
     # Use default configuration if none provided
-    configuration = custom_configuration or settings.LIVEKIT_CONFIGURATION
+    configuration = {
+        **(custom_configuration or settings.LIVEKIT_CONFIGURATION),
+        "url": settings.LIVEKIT_INTERNAL_URL
+        or (custom_configuration or settings.LIVEKIT_CONFIGURATION)["url"],
+    }
 
     return LiveKitAPI(session=custom_session, **configuration)
 
