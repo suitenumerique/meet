@@ -54,44 +54,37 @@ class MetadataCollectorService:
                 f"LiveKit did not return a dispatch_id for room {room_id}"
             )
 
+        recording.options["metadata_collector_dispatch_id"] = dispatch_id
+        recording.save(update_fields=["options"])
+
         return dispatch_id
 
     @async_to_sync
     async def stop(self, recording):
         """Wip."""
 
-        room_name = str(recording.room.id)
+        room_id = str(recording.room.id)
+        dispatch_id = recording.options.get("metadata_collector_dispatch_id")
         lkapi = utils.create_livekit_client()
 
         try:
-            dispatches = await lkapi.agent_dispatch.list_dispatch(room_name=room_name)
-
-            dispatch_id = next(
-                (
-                    d.id
-                    for d in dispatches
-                    if d.agent_name == settings.METADATA_COLLECTOR_AGENT_NAME
-                ),
-                None,
-            )
-
             if not dispatch_id:
                 logger.warning(
-                    "No metadata collector agent found for room %s", room_name
+                    "No metadata collector dispatch ID stored for room %s", room_id
                 )
                 return None
 
             await lkapi.agent_dispatch.delete_dispatch(
-                dispatch_id=str(dispatch_id), room_name=room_name
+                dispatch_id=str(dispatch_id), room_name=room_id
             )
 
         except Exception as e:
             logger.exception(
                 "Failed to stop metadata collector agent dispatch for room %s",
-                room_name,
+                room_id,
             )
             raise MetadataCollectorException(
-                f"Failed to stop metadata collector agent for room {room_name}"
+                f"Failed to stop metadata collector agent for room {room_id}"
             ) from e
         finally:
             await lkapi.aclose()
