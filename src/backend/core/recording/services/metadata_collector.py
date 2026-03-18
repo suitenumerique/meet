@@ -38,10 +38,10 @@ class MetadataCollectorService:
             )
         except Exception as e:
             logger.exception(
-                "Failed to create metadata extractor agent for room %s", room_id
+                "Failed to create metadata collector agent for room %s", room_id
             )
             raise MetadataCollectorException(
-                "Failed to create metadata extractor agent"
+                "Failed to create metadata collector agent"
             ) from e
         finally:
             await lkapi.aclose()
@@ -77,7 +77,7 @@ class MetadataCollectorService:
 
             if not dispatch_id:
                 logger.warning(
-                    "No metadata extractor agent found for room %s", room_name
+                    "No metadata collector agent found for room %s", room_name
                 )
                 return None
 
@@ -87,11 +87,11 @@ class MetadataCollectorService:
 
         except Exception as e:
             logger.exception(
-                "Failed to stop metadata extractor agent dispatch for room %s",
+                "Failed to stop metadata collector agent dispatch for room %s",
                 room_name,
             )
             raise MetadataCollectorException(
-                f"Failed to stop metadata metadata extractor agent for room {room_name}"
+                f"Failed to stop metadata collector agent for room {room_name}"
             ) from e
         finally:
             await lkapi.aclose()
