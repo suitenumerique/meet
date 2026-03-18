@@ -30,6 +30,7 @@ and this project adheres to
 - ⚡️(helm) reduce initialDelaySeconds and add periods seconds #1139
 - 🔒️(backend) avoid information exposure through exception messages #1144
 - ⬆️(dependencies) update PyJWT to v2.12.0 [SECURITY] #1151
+- 📌(agents) unpin OpenSSL and related dependencies #1167
 
 ### Fixed
 
