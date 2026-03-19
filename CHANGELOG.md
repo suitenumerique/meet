@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ♿️(frontend) fix sidepanel accessibility aria-label #1182
+- ♿️(frontend) fix more tools heading hierarchy #1181
 
 ## [1.11.0] - 2026-03-19
 
