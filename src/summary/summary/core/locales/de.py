@@ -23,8 +23,7 @@ Einige Punkte, die wir Ihnen empfehlen zu überprüfen:
 
 """,
     download_header_template=(
-        "\n*Laden Sie Ihre Aufnahme herunter, "
-        "indem Sie [diesem Link folgen]({download_link})*\n"
+        "\n*[Laden Sie hier Ihre Aufnahme herunter (externer Link)]({download_link})*\n"
     ),
     hallucination_replacement_text="[Text konnte nicht transkribiert werden]",
     document_default_title="Transkription",

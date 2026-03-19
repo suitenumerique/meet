@@ -23,7 +23,7 @@ Een paar punten die wij u aanraden te controleren:
 
 """,
     download_header_template=(
-        "\n*Download uw opname door [deze link te volgen]({download_link})*\n"
+        "\n*[Download hier je opname (externe link)]({download_link})*\n"
     ),
     hallucination_replacement_text="[Tekst kon niet worden getranscribeerd]",
     document_default_title="Transcriptie",

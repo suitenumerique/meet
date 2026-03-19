@@ -23,7 +23,7 @@ Quelques points que nous vous conseillons de vérifier :
 
 """,
     download_header_template=(
-        "\n*Télécharger votre enregistrement en [suivant ce lien]({download_link})*\n"
+        "\n*[Télécharger votre enregistrement (lien externe)]({download_link})*\n"
     ),
     hallucination_replacement_text="[Texte impossible à transcrire]",
     document_default_title="Transcription",

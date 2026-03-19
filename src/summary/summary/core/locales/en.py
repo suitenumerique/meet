@@ -23,7 +23,7 @@ A few things we recommend you check:
 
 """,
     download_header_template=(
-        "\n*Download your recording by [following this link]({download_link})*\n"
+        "\n*[Download your recording (external link)]({download_link})*\n"
     ),
     hallucination_replacement_text="[Unable to transcribe text]",
     document_default_title="Transcription",

@@ -16,6 +16,7 @@ and this project adheres to
 - 💄(spinner) enforce spinner height #1183
 - 💄(custom-background) add upload indicator with preview #1183
 - ♿️(backend) improve logo accessibility in recording email notification #1092
+- ♿️(summary) improve accessibility of transcription download link #1187
 
 ### Fixed
 
