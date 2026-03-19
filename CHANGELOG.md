@@ -14,6 +14,10 @@ and this project adheres to
 - ♿️(frontend) fix more tools heading hierarchy #1181
 - ♿️(fronted) improve button descriptions for More tools actions #1184
 
+### Changed
+
+- 💄(spinner) enforce spinner height
+
 ### Fixed
 
 - 🐛(frontend) disable personal custom background while deleting

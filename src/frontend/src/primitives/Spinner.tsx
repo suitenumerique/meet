@@ -20,7 +20,11 @@ export const Spinner = ({
   const r = 14 - strokeWidth
   const c = 2 * r * Math.PI
   return (
-    <ProgressBar aria-label="Loading..." value={30}>
+    <ProgressBar
+      aria-label="Loading..."
+      value={30}
+      style={{ height: size, width: size }}
+    >
       {({ percentage }) => (
         <div
           className={css({
