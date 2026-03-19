@@ -14,6 +14,10 @@ and this project adheres to
 - ♿️(frontend) fix more tools heading hierarchy #1181
 - ♿️(fronted) improve button descriptions for More tools actions #1184
 
+### Fixed
+
+- 🐛(frontend) disable personal custom background while deleting
+
 ## [1.11.0] - 2026-03-19
 
 ### Added

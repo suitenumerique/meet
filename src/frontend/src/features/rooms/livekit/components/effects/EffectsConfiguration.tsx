@@ -739,7 +739,10 @@ export const EffectsConfiguration = ({
                           aria-label={
                             uploadNotPossibleSnap.imageBackgroundConfig.label
                           }
-                          isDisabled={processorOptions.isDisabled}
+                          isDisabled={
+                            processorOptions.isDisabled ||
+                            createFileMutation.isPending
+                          }
                           onChange={() => {
                             toggleEffect(
                               uploadNotPossibleSnap.imageBackgroundConfig!
