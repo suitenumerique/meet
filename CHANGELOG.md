@@ -15,6 +15,7 @@ and this project adheres to
 - ♿️(fronted) improve button descriptions for More tools actions #1184
 - 💄(spinner) enforce spinner height #1183
 - 💄(custom-background) add upload indicator with preview #1183
+- ♿️(backend) improve logo accessibility in recording email notification #1092
 
 ### Fixed
 
