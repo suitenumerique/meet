@@ -319,7 +319,7 @@
     }
   },
   "sidePanel": {
-    "ariaLabel": "Seitenleiste",
+    "ariaLabel": "Seitenleiste - {{title}}",
     "backToTools": "Zurück zu den Meeting-Tools",
     "heading": {
       "participants": "Teilnehmende",

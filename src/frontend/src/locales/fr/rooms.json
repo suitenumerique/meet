@@ -318,7 +318,7 @@
     }
   },
   "sidePanel": {
-    "ariaLabel": "Panneau latéral",
+    "ariaLabel": "Panneau latéral - {{title}}",
     "backToTools": "Retour aux outils de réunion",
     "heading": {
       "participants": "Participants",

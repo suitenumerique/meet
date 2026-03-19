@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♿️(frontend) fix sidepanel accessibility aria-label #1182
+
 ## [1.11.0] - 2026-03-19
 
 ### Added

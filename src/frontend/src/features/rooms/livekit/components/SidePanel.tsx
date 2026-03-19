@@ -149,11 +149,12 @@ export const SidePanel = () => {
     activeSubPanelId,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
+  const title = t(`heading.${activeSubPanelId || activePanelId}`)
 
   return (
     <StyledSidePanel
-      title={t(`heading.${activeSubPanelId || activePanelId}`)}
-      ariaLabel={t('ariaLabel')}
+      title={title}
+      ariaLabel={t('ariaLabel', { title })}
       onClose={() => {
         layoutStore.activePanelId = null
         layoutStore.activeSubPanelId = null

@@ -318,7 +318,7 @@
     }
   },
   "sidePanel": {
-    "ariaLabel": "Sidepanel",
+    "ariaLabel": "Sidepanel - {{title}}",
     "backToTools": "Back to meeting tools",
     "heading": {
       "participants": "Participants",
