@@ -353,11 +353,11 @@
     "tools": {
       "transcript": {
         "title": "Transcrire",
-        "body": "Enregistrer la conversation."
+        "body": "Transcrire la réunion."
       },
       "screenRecording": {
         "title": "Enregistrer",
-        "body": "Enregistrer la réunion."
+        "body": "Enregistrer la réunion en vidéo."
       }
     }
   },

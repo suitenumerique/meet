@@ -353,11 +353,11 @@
     "tools": {
       "transcript": {
         "title": "Transcriberen",
-        "body": "Het gesprek opnemen."
+        "body": "Zet vergaderingen om in tekst."
       },
       "screenRecording": {
         "title": "Opnemen",
-        "body": "De vergadering opnemen."
+        "body": "Sla vergaderingen op als video."
       }
     }
   },

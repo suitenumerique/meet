@@ -354,11 +354,11 @@
     "tools": {
       "transcript": {
         "title": "Transkribieren",
-        "body": "Das Gespräch aufzeichnen."
+        "body": "Wandelt Meetings in Text um."
       },
       "screenRecording": {
-        "title": "Aufzeichnen",
-        "body": "Das Meeting aufzeichnen."
+        "title": "Aufnehmen",
+        "body": "Speichert Meetings als Video."
       }
     }
   },
