@@ -32,6 +32,7 @@ import { ApiFileItem } from '@/features/files/api/types.ts'
 import { useConfig } from '@/api/useConfig.ts'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices.ts'
 import { proxy, useSnapshot } from 'valtio'
+import { Spinner } from '@/primitives/Spinner.tsx'
 
 enum BlurRadius {
   NONE = 0,
@@ -268,6 +269,15 @@ export const EffectsConfiguration = ({
     'file_too_large' | 'invalid_file_type' | null
   >(null)
   const createFileMutation = useCreateFile()
+  const fileBeingUploadedObjectUrlRef = useRef<string | null>(null)
+  useEffect(() => {
+    return () => {
+      if (fileBeingUploadedObjectUrlRef.current) {
+        URL.revokeObjectURL(fileBeingUploadedObjectUrlRef.current)
+        fileBeingUploadedObjectUrlRef.current = null
+      }
+    }
+  }, [])
   const deleteFileMutation = useDeleteFile()
   const filesQ = useListMyFiles(listFilesQueryParams)
   const hasReachedMaxNbBackgrounds =
@@ -335,6 +345,11 @@ export const EffectsConfiguration = ({
       } else {
         // Otherwise we create the file in the backend and automatically select it
         // when it's uploaded.
+        // We create a local version so that we can quickly display it in the frontend.
+        if (fileBeingUploadedObjectUrlRef.current) {
+          URL.revokeObjectURL(fileBeingUploadedObjectUrlRef.current)
+        }
+        fileBeingUploadedObjectUrlRef.current = URL.createObjectURL(file)
         createFileMutation.mutate(
           {
             file,
@@ -676,6 +691,38 @@ export const EffectsConfiguration = ({
                     flexWrap: 'wrap',
                   })}
                 >
+                  {createFileMutation.isPending &&
+                    fileBeingUploadedObjectUrlRef.current && (
+                      <VisualOnlyTooltip
+                        tooltip={t('virtual.personal.uploadInProgress')}
+                      >
+                        <div className={css({ position: 'relative' })}>
+                          <ToggleButton
+                            variant="bigSquare"
+                            aria-label={t('virtual.personal.uploadInProgress')}
+                            isDisabled={true}
+                            data-attr={`virtual-upload-in-progress`}
+                            className={css({
+                              bgSize: 'cover',
+                              filter: 'grayscale(1)',
+                            })}
+                            style={{
+                              backgroundImage: `url(${fileBeingUploadedObjectUrlRef.current})`,
+                            }}
+                          />
+                          <div
+                            className={css({
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                            })}
+                          >
+                            <Spinner size={24} />
+                          </div>
+                        </div>
+                      </VisualOnlyTooltip>
+                    )}
                   {canUploadBackground &&
                     processorOptions.remoteCustomVirtualBackgrounds.map(
                       (option) => (

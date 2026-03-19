@@ -13,15 +13,13 @@ and this project adheres to
 - ♿️(frontend) fix sidepanel accessibility aria-label #1182
 - ♿️(frontend) fix more tools heading hierarchy #1181
 - ♿️(fronted) improve button descriptions for More tools actions #1184
-
-### Changed
-
-- 💄(spinner) enforce spinner height
+- 💄(spinner) enforce spinner height #1183
+- 💄(custom-background) add upload indicator with preview #1183
 
 ### Fixed
 
-- 🐛(frontend) disable personal custom background while deleting
-- 🐛(frontend) auto-select new custom background when not logged in
+- 🐛(frontend) disable personal custom background while deleting #1183
+- 🐛(frontend) auto-select new custom background when not logged in #1183
 
 ## [1.11.0] - 2026-03-19
 

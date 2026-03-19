@@ -1,7 +1,8 @@
 import { fetchApi } from '@/api/fetchApi'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { ApiFileItem } from '@/features/files/api/types.ts'
 import { keys } from '@/api/queryKeys.ts'
+import { queryClient } from '@/api/queryClient.ts'
 
 /**
  * Upload a file, using XHR so we can report on progress through a handler.
@@ -71,20 +72,22 @@ export const createFile = async ({
   }
   const policy = res.policy
   await uploadFile(policy, file, onProgress)
-  return await fetchApi<ApiFileItem>(`/files/${res.id}/upload-ended/`, {
-    method: 'POST',
+  const createdFile = await fetchApi<ApiFileItem>(
+    `/files/${res.id}/upload-ended/`,
+    {
+      method: 'POST',
+    }
+  )
+
+  // We invalidate the files query to make sure the new file is immediately available.
+  await queryClient.invalidateQueries({
+    queryKey: [keys.files],
   })
+  return createdFile
 }
 
 export const useCreateFile = () => {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: createFile,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [keys.files],
-      })
-    },
   })
 }

@@ -279,6 +279,7 @@
         "notLoggedInWarning": "Vous n'êtes pas connecté, l'arrière-plan personnel ne sera pas sauvegardé d'une réunion à l'autre.",
         "warningUploadDisabled": "Les arrière-plans personnels ne sont actuellement pas sauvegardés d'une réunion à l'autre.",
         "uploadLimitReached": "Vous ne pouvez pas ajouter plus d'arrière-plans personnels.",
+        "uploadInProgress": "Image en cours d'envoi…",
         "errors": {
           "close": "Fermer",
           "file_too_large": {

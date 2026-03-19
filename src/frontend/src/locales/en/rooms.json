@@ -279,6 +279,7 @@
         "notLoggedInWarning": "You are not logged-in, personal backgrounds won't be saved from one meeting to the other.",
         "warningUploadDisabled": "Personal backgrounds are currently not saved from one meeting to the other.",
         "uploadLimitReached": "You cannot upload more personal backgrounds.",
+        "uploadInProgress": "Image is being uploaded…",
         "errors": {
           "close": "Close",
           "file_too_large": {

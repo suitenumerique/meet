@@ -279,6 +279,7 @@
         "notLoggedInWarning": "U bent niet ingelogd, persoonlijke achtergronden worden niet opgeslagen van de ene vergadering naar de andere.",
         "warningUploadDisabled": "Persoonlijke achtergronden worden momenteel niet opgeslagen van de ene vergadering naar de andere.",
         "uploadLimitReached": "U kunt geen persoonlijke achtergronden meer uploaden.",
+        "uploadInProgress": "Afbeelding wordt geüpload…",
         "errors": {
           "close": "Sluiten",
           "file_too_large": {

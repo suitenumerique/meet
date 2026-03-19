@@ -279,6 +279,7 @@
         "notLoggedInWarning": "Du bist nicht angemeldet, der persönliche Hintergrund wird nicht von einem Meeting zum anderen gespeichert.",
         "warningUploadDisabled": "Persönliche Hintergründe werden derzeit nicht von einem Meeting zum anderen gespeichert.",
         "uploadLimitReached": "Du kannst keine weiteren persönlichen Hintergründe hinzufügen.",
+        "uploadInProgress": "Datei wird hochgeladen…",
         "errors": {
           "close": "Schließen",
           "file_too_large": {
