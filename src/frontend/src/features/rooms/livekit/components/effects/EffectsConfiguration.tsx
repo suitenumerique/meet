@@ -319,7 +319,9 @@ export const EffectsConfiguration = ({
         }
         const imagePath = URL.createObjectURL(file)
 
-        const fileId = `local-image`
+        // We concatenate with the image path so that the constructed file-id
+        // is unique for local files.
+        const fileId = `local-image-${imagePath}`
         await toggleEffect({
           type: ProcessorType.VIRTUAL,
           imagePath,

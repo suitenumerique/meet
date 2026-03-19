@@ -17,6 +17,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(frontend) disable personal custom background while deleting
+- 🐛(frontend) auto-select new custom background when not logged in
 
 ## [1.11.0] - 2026-03-19
 
