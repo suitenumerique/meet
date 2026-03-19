@@ -13,6 +13,10 @@ and this project adheres to
 - ♿️(frontend) fix sidepanel accessibility aria-label #1182
 - ♿️(frontend) fix more tools heading hierarchy #1181
 
+### Fixed
+
+- 🐛(frontend) redirect /media requests to nginx #1186
+
 ## [1.11.0] - 2026-03-19
 
 ### Added
