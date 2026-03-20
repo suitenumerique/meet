@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Changed
 
+- ♻️(backend) configurable SESSION_ENGINE #1038 #1154
 - ♿️(frontend) fix sidepanel accessibility aria-label #1182
 - ♿️(frontend) fix more tools heading hierarchy #1181
 - ♿️(fronted) improve button descriptions for More tools actions #1184
