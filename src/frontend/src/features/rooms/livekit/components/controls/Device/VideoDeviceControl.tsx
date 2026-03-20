@@ -82,8 +82,8 @@ export const VideoDeviceControl = ({
      *
      * See https://github.com/numerique-gouv/meet/pull/309#issuecomment-2622404121
      */
-    const processor = BackgroundProcessorFactory.fromProcessorConfig(
-      userChoices.processorConfig
+    const processor = BackgroundProcessorFactory.deserializeProcessor(
+      userChoices.processorSerialized
     )
 
     const toggle = trackProps.toggle as (

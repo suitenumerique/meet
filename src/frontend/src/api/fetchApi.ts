@@ -15,19 +15,7 @@ export const fetchApi = async <T = Record<string, unknown>>(
       ...options?.headers,
     },
   })
-
-  let result: T
-  if (response.status === 204) {
-    result = undefined as T
-  } else {
-    const contentType = response.headers.get('content-type') ?? ''
-    if (!contentType.includes('application/json')) {
-      result = undefined as T
-    } else {
-      result = (await response.json()) as T
-    }
-  }
-
+  const result = await response.json()
   if (!response.ok) {
     throw new ApiError(response.status, result)
   }

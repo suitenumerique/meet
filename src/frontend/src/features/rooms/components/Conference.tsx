@@ -215,8 +215,8 @@ export const Conference = ({
           audio={userConfig.audioEnabled}
           video={
             userConfig.videoEnabled && {
-              processor: BackgroundProcessorFactory.fromProcessorConfig(
-                userConfig.processorConfig
+              processor: BackgroundProcessorFactory.deserializeProcessor(
+                userConfig.processorSerialized
               ),
             }
           }

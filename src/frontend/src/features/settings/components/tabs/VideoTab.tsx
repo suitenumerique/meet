@@ -31,7 +31,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   const {
     userChoices: {
       videoDeviceId,
-      processorConfig,
+      processorSerialized,
       videoPublishResolution,
       videoSubscribeQuality,
     },
@@ -78,7 +78,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         resolution: VideoPresets[key].resolution,
         deviceId: { exact: videoDeviceId },
         processor:
-          BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
+          BackgroundProcessorFactory.deserializeProcessor(processorSerialized),
       })
     }
   }

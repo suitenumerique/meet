@@ -9,7 +9,7 @@
             align="center"
             src="{{logo_img}}"
             width="320px"
-            alt="{%trans 'Logo email' %} {{brandname}}"
+            alt="{%trans 'Logo email' %}"
           />
         </mj-column>
       </mj-section>

@@ -270,40 +270,18 @@
       }
     },
     "virtual": {
-      "title": "Virtual backgrounds",
+      "title": "Virtual background",
       "selectedLabel": "Background applied:",
       "apply": "Replace your background:",
-      "personal": {
-        "title": "My backgrounds",
-        "selectFileTooltip": "Select an image file to use as a personal background",
-        "notLoggedInWarning": "You are not logged-in, personal backgrounds won't be saved from one meeting to the other.",
-        "warningUploadDisabled": "Personal backgrounds are currently not saved from one meeting to the other.",
-        "uploadLimitReached": "You cannot upload more personal backgrounds.",
-        "uploadInProgress": "Image is being uploaded…",
-        "errors": {
-          "close": "Close",
-          "file_too_large": {
-            "title": "File too large",
-            "description": "The file is too large. Please choose a file smaller than {{maxSize, number}} MB."
-          },
-          "invalid_file_type": {
-            "title": "Invalid file type",
-            "description": "The file type is not supported. Please choose a {{allowedExtension, list(type: 'disjunction')}} file."
-          }
-        }
-      },
-      "presets": {
-        "title": "Suggestions",
-        "descriptions": {
-          "0": "Fluted wooden furniture",
-          "1": "Meeting room",
-          "2": "Loft with black glass partition",
-          "3": "Dining room",
-          "4": "Wooden shelves",
-          "5": "Wooden staircase",
-          "6": "Gray library",
-          "7": "Coffee counter"
-        }
+      "descriptions": {
+        "0": "Fluted wooden furniture",
+        "1": "Meeting room",
+        "2": "Loft with black glass partition",
+        "3": "Dining room",
+        "4": "Wooden shelves",
+        "5": "Wooden staircase",
+        "6": "Gray library",
+        "7": "Coffee counter"
       }
     },
     "faceLandmarks": {
@@ -319,7 +297,7 @@
     }
   },
   "sidePanel": {
-    "ariaLabel": "Sidepanel - {{title}}",
+    "ariaLabel": "Sidepanel",
     "backToTools": "Back to meeting tools",
     "heading": {
       "participants": "Participants",
@@ -354,11 +332,11 @@
     "tools": {
       "transcript": {
         "title": "Transcribe",
-        "body": "Turn meetings into text."
+        "body": "Record the conversation."
       },
       "screenRecording": {
         "title": "Record",
-        "body": "Save meetings as video."
+        "body": "Record the meeting."
       }
     }
   },

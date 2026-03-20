@@ -126,34 +126,6 @@
           "medium": "Mittel",
           "large": "Groß"
         }
-      },
-      "fontColor": {
-        "label": "Schriftfarbe",
-        "options": {
-          "default": "Standard",
-          "white": "Weiß",
-          "black": "Schwarz",
-          "blue": "Blau",
-          "green": "Grün",
-          "red": "Rot",
-          "yellow": "Gelb",
-          "cyan": "Cyan",
-          "magenta": "Magenta"
-        }
-      },
-      "backgroundColor": {
-        "label": "Hintergrundfarbe",
-        "options": {
-          "default": "Standard",
-          "white": "Weiß",
-          "black": "Schwarz",
-          "blue": "Blau",
-          "green": "Grün",
-          "red": "Rot",
-          "yellow": "Gelb",
-          "cyan": "Cyan",
-          "magenta": "Magenta"
-        }
       }
     }
   },

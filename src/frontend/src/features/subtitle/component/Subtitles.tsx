@@ -12,8 +12,6 @@ import { useSnapshot } from 'valtio'
 import {
   accessibilityStore,
   CAPTION_TEXT_SIZE_OPTIONS,
-  CAPTION_FONT_COLOR_VALUES,
-  CAPTION_BACKGROUND_COLOR_VALUES,
   type CaptionTextSize,
 } from '@/stores/accessibility'
 
@@ -94,14 +92,10 @@ const useTranscriptionState = () => {
 }
 
 const Transcription = ({ row }: { row: TranscriptionRow }) => {
-  const { captionTextSize, captionFontColor, captionBackgroundColor } =
-    useSnapshot(accessibilityStore)
+  const { captionTextSize } = useSnapshot(accessibilityStore)
   const participantColor = getParticipantColor(row.participant)
   const participantName = getParticipantName(row.participant)
   const { fontSize, lineHeight } = CAPTION_FONT_SIZES[captionTextSize]
-  const fontColor = CAPTION_FONT_COLOR_VALUES[captionFontColor]
-  const backgroundColor =
-    CAPTION_BACKGROUND_COLOR_VALUES[captionBackgroundColor]
 
   const getDisplayText = (row: TranscriptionRow): string => {
     return row.segments
@@ -134,9 +128,9 @@ const Transcription = ({ row }: { row: TranscriptionRow }) => {
         />
         <div
           className={css({
+            color: 'white',
             width: '100%',
           })}
-          style={{ color: fontColor }}
         >
           <Text variant="h3" margin={false}>
             {participantName}
@@ -144,10 +138,8 @@ const Transcription = ({ row }: { row: TranscriptionRow }) => {
           <p
             className={css({
               fontWeight: '400',
-              borderRadius: '4px',
-              padding: '0.125rem 0.25rem',
             })}
-            style={{ fontSize, lineHeight, backgroundColor }}
+            style={{ fontSize, lineHeight }}
           >
             {displayText}
           </p>

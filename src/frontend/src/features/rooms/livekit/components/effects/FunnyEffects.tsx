@@ -27,7 +27,7 @@ export const FunnyEffects = ({
         showFrench: false,
       }
     }
-    return { ...processor.options }
+    return processor.serialize().options
   }
 
   const options = getOptions()
