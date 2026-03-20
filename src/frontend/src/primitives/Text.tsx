@@ -36,10 +36,6 @@ export const text = cva({
         textStyle: 'body',
         fontWeight: 'bold',
       },
-      bodyXsMedium: {
-        textStyle: 'body',
-        fontWeight: 'medium',
-      },
       body: {
         textStyle: 'body',
       },

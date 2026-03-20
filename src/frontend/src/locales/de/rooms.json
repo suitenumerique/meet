@@ -273,40 +273,17 @@
       "title": "Virtueller Hintergrund",
       "selectedLabel": "Hintergrund angewendet:",
       "apply": "Ersetze deinen Hintergrund:",
-      "personal": {
-        "title": "Meine Hintergründe",
-        "selectFileTooltip": "Wähle ein Bild aus, das als persönlicher Hintergrund verwendet werden soll",
-        "notLoggedInWarning": "Du bist nicht angemeldet, der persönliche Hintergrund wird nicht von einem Meeting zum anderen gespeichert.",
-        "warningUploadDisabled": "Persönliche Hintergründe werden derzeit nicht von einem Meeting zum anderen gespeichert.",
-        "uploadLimitReached": "Du kannst keine weiteren persönlichen Hintergründe hinzufügen.",
-        "uploadInProgress": "Datei wird hochgeladen…",
-        "errors": {
-          "close": "Schließen",
-          "file_too_large": {
-            "title": "Datei zu groß",
-            "description": "Die Datei ist zu groß. Bitte wähle eine Datei mit weniger als {{maxSize, number}} MB."
-          },
-          "invalid_file_type": {
-            "title": "Ungültiger Dateityp",
-            "description": "Der Dateityp wird nicht unterstützt. Bitte wähle eine {{allowedExtension}}-Datei."
-          }
-        }
-      },
-      "presets": {
-        "title": "Vorschläge",
-        "descriptions": {
-          "0": "Gerilltes Holzmöbel",
-          "1": "Besprechungsraum",
-          "2": "Loft mit schwarzer Glaswand",
-          "3": "Esszimmer",
-          "4": "Holzregale",
-          "5": "Holztreppe",
-          "6": "Graue Bibliothek",
-          "7": "Kaffeetheke"
-        }
+      "descriptions": {
+        "0": "Gerilltes Holzmöbel",
+        "1": "Besprechungsraum",
+        "2": "Loft mit schwarzer Glaswand",
+        "3": "Esszimmer",
+        "4": "Holzregale",
+        "5": "Holztreppe",
+        "6": "Graue Bibliothek",
+        "7": "Kaffeetheke"
       }
     },
-
     "faceLandmarks": {
       "title": "Visuelle Effekte",
       "glasses": {
@@ -320,7 +297,7 @@
     }
   },
   "sidePanel": {
-    "ariaLabel": "Seitenleiste - {{title}}",
+    "ariaLabel": "Seitenleiste",
     "backToTools": "Zurück zu den Meeting-Tools",
     "heading": {
       "participants": "Teilnehmende",
@@ -355,11 +332,11 @@
     "tools": {
       "transcript": {
         "title": "Transkribieren",
-        "body": "Wandelt Meetings in Text um."
+        "body": "Das Gespräch aufzeichnen."
       },
       "screenRecording": {
-        "title": "Aufnehmen",
-        "body": "Speichert Meetings als Video."
+        "title": "Aufzeichnen",
+        "body": "Das Meeting aufzeichnen."
       }
     }
   },

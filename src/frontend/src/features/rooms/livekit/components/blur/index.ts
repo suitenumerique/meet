@@ -2,22 +2,28 @@ import { ProcessorWrapper } from '@livekit/track-processors'
 import { Track, TrackProcessor } from 'livekit-client'
 import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
 import { UnifiedBackgroundTrackProcessor } from './UnifiedBackgroundTrackProcessor'
-import { FaceLandmarksOptions } from './FaceLandmarksProcessor'
+
+export type BackgroundOptions = {
+  blurRadius?: number
+  imagePath?: string
+}
+
+export interface ProcessorSerialized {
+  type: ProcessorType
+  options: BackgroundOptions
+}
+
+export interface BackgroundProcessorInterface extends TrackProcessor<Track.Kind> {
+  update(opts: BackgroundOptions): Promise<void>
+  options: BackgroundOptions
+  clone(): BackgroundProcessorInterface
+  serialize(): ProcessorSerialized
+}
 
 export enum ProcessorType {
   BLUR = 'blur',
   VIRTUAL = 'virtual',
   FACE_LANDMARKS = 'faceLandmarks',
-}
-
-export type ProcessorConfig =
-  | { type: ProcessorType.BLUR; blurRadius: number }
-  | { type: ProcessorType.VIRTUAL; imagePath: string; fileId?: string }
-  | ({ type: ProcessorType.FACE_LANDMARKS } & FaceLandmarksOptions)
-
-export interface BackgroundProcessorInterface extends TrackProcessor<Track.Kind> {
-  update(opts: ProcessorConfig): Promise<void>
-  options: ProcessorConfig
 }
 
 export class BackgroundProcessorFactory {
@@ -30,27 +36,28 @@ export class BackgroundProcessorFactory {
   }
 
   static getProcessor(
-    config: ProcessorConfig
+    type: ProcessorType,
+    opts: BackgroundOptions
   ): BackgroundProcessorInterface | undefined {
-    const isBlur = config.type === ProcessorType.BLUR
-    const isVirtual = config.type === ProcessorType.VIRTUAL
+    const isBlur = type === ProcessorType.BLUR
+    const isVirtual = type === ProcessorType.VIRTUAL
 
     if (!isBlur && !isVirtual) return undefined
 
     if (ProcessorWrapper.isSupported) {
-      return new UnifiedBackgroundTrackProcessor(config)
+      return new UnifiedBackgroundTrackProcessor(opts)
     }
 
     if (BackgroundCustomProcessor.isSupported) {
-      return new BackgroundCustomProcessor(config)
+      return new BackgroundCustomProcessor(opts)
     }
 
     return undefined
   }
 
-  static fromProcessorConfig(data?: ProcessorConfig) {
-    if (data) {
-      return BackgroundProcessorFactory.getProcessor(data)
+  static deserializeProcessor(data?: ProcessorSerialized) {
+    if (data?.type) {
+      return BackgroundProcessorFactory.getProcessor(data?.type, data?.options)
     }
     return undefined
   }

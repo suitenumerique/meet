@@ -65,7 +65,7 @@ const ToolButton = ({
       <div>
         <Text
           margin={false}
-          as="h2"
+          as="h3"
           className={css({
             display: 'flex',
             gap: 0.25,

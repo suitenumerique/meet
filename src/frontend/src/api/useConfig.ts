@@ -30,13 +30,6 @@ export interface ApiConfig {
     expiration_days?: number
     max_duration?: number
   }
-  background_image: {
-    upload_is_enabled: boolean
-    max_size: number
-    max_count_by_user: number
-    allowed_extensions: string[]
-    allowed_mimetypes: string[]
-  }
   subtitle: {
     enabled: boolean
   }

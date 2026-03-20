@@ -8,23 +8,6 @@ and this project adheres to
 
 ## [Unreleased]
 
-### Changed
-
-- ♿️(frontend) fix sidepanel accessibility aria-label #1182
-- ♿️(frontend) fix more tools heading hierarchy #1181
-- ♿️(fronted) improve button descriptions for More tools actions #1184
-- 💄(spinner) enforce spinner height #1183
-- 💄(custom-background) add upload indicator with preview #1183
-- ♿️(backend) improve logo accessibility in recording email notification #1092
-- ♿️(summary) improve accessibility of transcription download link #1187
-
-### Fixed
-
-- 🐛(frontend) disable personal custom background while deleting #1183
-- 🐛(frontend) auto-select new custom background when not logged in #1183
-
-## [1.11.0] - 2026-03-19
-
 ### Added
 
 - ✨(helm) support celery with our Django backend #1124
@@ -32,24 +15,20 @@ and this project adheres to
 - ✨(backend) add authenticated user rate throttling on request-entry #1129
 - ✨(backend) expose `is_active` field for Application in Django admin #1133
 - ✨(file-upload) disable by default & limit count by user #1141
-- ✨(frontend) custom background #1067
 
 ### Changed
 
 - ♿️(frontend) Caption text size setting for accessibility #1062
 - ♿️(frontend) sync html lang attribute with i18n for screen readers #1111
 - ♿️(frontend) improve MoreLink a11y and UX on home page #1112
-- ♿️(frontend) improve chat toast a11y for screen readers #1109
-- ♿️(frontend) improve ui and aria labels for help article links #1108
+- ♿(frontend) improve chat toast a11y for screen readers #1109
+- ♿(frontend) improve ui and aria labels for help article links #1108
 - 🌐(frontend) improve German translation #1125
 - 🔨(python-env) migrate meet main app to UV #1120
 - ♻️(backend) align Application model field with `is_active` convention #1133
 - 🔐(backend) avoids revealing the inactive status of an application #1135
 - ⚡️(helm) reduce initialDelaySeconds and add periods seconds #1139
 - 🔒️(backend) avoid information exposure through exception messages #1144
-- ⬆️(dependencies) update PyJWT to v2.12.0 [SECURITY] #1151
-- 📌(agents) unpin OpenSSL and related dependencies #1167
-- ♿️(frontend) add caption font and background color customization #1122
 
 ### Fixed
 
@@ -57,7 +36,6 @@ and this project adheres to
 - 🩹(backend) add page_size to pagination for room endpoints #1131
 - 🐛(backend) refactor lobby throttling to use participant id #1129
 - 🩹(backend) ignore non-recording uploads in storage webhook handler #1142
-- 🐛(frontend) fix dimension mismatch in BackgroundCustomProcessor #1116
 
 ## [1.10.0] - 2026-03-05
 

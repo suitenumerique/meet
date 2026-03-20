@@ -6,11 +6,8 @@ import { useSnapshot } from 'valtio'
 import {
   accessibilityStore,
   type CaptionTextSize,
-  type CaptionColor,
   CAPTION_TEXT_SIZE_OPTIONS,
-  CAPTION_COLOR_OPTIONS,
 } from '@/stores/accessibility'
-import { useAreSubtitlesAvailable } from '../hooks/useAreSubtitlesAvailable'
 
 export const CaptionsSettings = () => {
   const { t } = useTranslation('settings', {
@@ -27,27 +24,6 @@ export const CaptionsSettings = () => {
     [t]
   )
 
-  const captionFontColorItems = useMemo(
-    () =>
-      CAPTION_COLOR_OPTIONS.map((color) => ({
-        value: color,
-        label: t(`fontColor.options.${color}`),
-      })),
-    [t]
-  )
-
-  const captionBackgroundColorItems = useMemo(
-    () =>
-      CAPTION_COLOR_OPTIONS.map((color) => ({
-        value: color,
-        label: t(`backgroundColor.options.${color}`),
-      })),
-    [t]
-  )
-
-  const areSubtitlesAvailable = useAreSubtitlesAvailable()
-  if (!areSubtitlesAvailable) return null
-
   return (
     <li>
       <H
@@ -58,44 +34,16 @@ export const CaptionsSettings = () => {
       >
         {t('heading')}
       </H>
-      <div
-        className={css({
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-        })}
-      >
-        <Field
-          type="select"
-          label={t('textSize.label')}
-          items={captionTextSizeItems}
-          selectedKey={snap.captionTextSize}
-          onSelectionChange={(key) => {
-            accessibilityStore.captionTextSize = key as CaptionTextSize
-          }}
-          wrapperProps={{ noMargin: true, fullWidth: true }}
-        />
-        <Field
-          type="select"
-          label={t('fontColor.label')}
-          items={captionFontColorItems}
-          selectedKey={snap.captionFontColor}
-          onSelectionChange={(key) => {
-            accessibilityStore.captionFontColor = key as CaptionColor
-          }}
-          wrapperProps={{ noMargin: true, fullWidth: true }}
-        />
-        <Field
-          type="select"
-          label={t('backgroundColor.label')}
-          items={captionBackgroundColorItems}
-          selectedKey={snap.captionBackgroundColor}
-          onSelectionChange={(key) => {
-            accessibilityStore.captionBackgroundColor = key as CaptionColor
-          }}
-          wrapperProps={{ noMargin: true, fullWidth: true }}
-        />
-      </div>
+      <Field
+        type="select"
+        label={t('textSize.label')}
+        items={captionTextSizeItems}
+        selectedKey={snap.captionTextSize}
+        onSelectionChange={(key) => {
+          accessibilityStore.captionTextSize = key as CaptionTextSize
+        }}
+        wrapperProps={{ noMargin: true, fullWidth: true }}
+      />
     </li>
   )
 }

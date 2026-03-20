@@ -11,7 +11,11 @@ import {
   TIMEOUT_TICK,
   timerWorkerScript,
 } from './TimerWorker'
-import { BackgroundProcessorInterface, ProcessorConfig, ProcessorType } from '.'
+import {
+  BackgroundProcessorInterface,
+  BackgroundOptions,
+  ProcessorType,
+} from '.'
 
 const PROCESSING_WIDTH = 256
 const PROCESSING_HEIGHT = 144
@@ -29,7 +33,7 @@ const DEFAULT_BLUR = '10'
  * MediaStreamTrackProcessor.
  */
 export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
-  options: ProcessorConfig
+  options: BackgroundOptions
   name: string
   processedTrack?: MediaStreamTrack | undefined
 
@@ -60,10 +64,15 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
   type: ProcessorType
   virtualBackgroundImage?: HTMLImageElement
 
-  constructor(opts: ProcessorConfig) {
+  constructor(opts: BackgroundOptions) {
     this.name = 'blur'
     this.options = opts
-    this.type = opts.type
+
+    if (this.options.blurRadius) {
+      this.type = ProcessorType.BLUR
+    } else {
+      this.type = ProcessorType.VIRTUAL
+    }
   }
 
   static get isSupported() {
@@ -98,12 +107,6 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
   }
 
   _initVirtualBackgroundImage() {
-    if (this.options.type !== 'virtual') {
-      throw new Error(
-        'Virtual background is only supported for virtual background'
-      )
-    }
-
     const needsUpdate =
       this.options.imagePath &&
       this.virtualBackgroundImage &&
@@ -115,7 +118,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     }
   }
 
-  async update(opts: ProcessorConfig): Promise<void> {
+  async update(opts: BackgroundOptions): Promise<void> {
     this.options = opts
     this._initVirtualBackgroundImage()
   }
@@ -184,7 +187,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
       0,
       0,
       PROCESSING_WIDTH,
-      PROCESSING_HEIGHT
+      PROCESSING_WIDTH
     )
   }
 
@@ -209,9 +212,6 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
    * TODO: future improvement with WebGL.
    */
   async blur() {
-    if (this.options.type !== 'blur') {
-      throw new Error('Blurring is only supported for blur background')
-    }
     const mask = this.imageSegmenterResult!.categoryMask!.getAsUint8Array()
     for (let i = 0; i < mask.length; ++i) {
       this.segmentationMask!.data[i * 4 + 3] = 255 - mask[i]
@@ -293,7 +293,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     await this.sizeSource()
     await this.segment()
 
-    if (this.options.type === 'blur') {
+    if (this.options.blurRadius) {
       await this.blur()
     } else {
       await this.drawVirtualBackground()
@@ -353,5 +353,16 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
 
     this.timerWorker?.terminate()
     this.imageSegmenter?.close()
+  }
+
+  clone() {
+    return new BackgroundCustomProcessor(this.options)
+  }
+
+  serialize() {
+    return {
+      type: this.type,
+      options: this.options,
+    }
   }
 }

@@ -73,3 +73,9 @@ class CreationCallbackAnonRateThrottle(MonitoredAnonRateThrottle):
     """Throttle Anonymous user requesting room generation callback"""
 
     scope = "creation_callback"
+
+
+class SessionExchangeAnonRateThrottle(MonitoredAnonRateThrottle):
+    """Throttle anonymous requests to the session exchange endpoint."""
+
+    scope = "session_exchange"

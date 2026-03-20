@@ -332,4 +332,15 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
     this.timerWorker?.terminate()
     this.faceLandmarker?.close()
   }
+
+  clone() {
+    return new FaceLandmarksProcessor(this.options)
+  }
+
+  serialize() {
+    return {
+      type: this.type,
+      options: this.options,
+    }
+  }
 }
