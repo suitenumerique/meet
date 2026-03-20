@@ -19,6 +19,7 @@ and this project adheres to
 - ♿️(backend) improve logo accessibility in recording email notification #1092
 - ♿️(summary) improve accessibility of transcription download link #1187
 - 💄(frontend) show OS-specific shortcut in participant tile hint #1193
+- ⬆️(frontend) bump flatted from 3.3.1 to 3.4.2 in /src/frontend #1188
 
 ### Fixed
 
