@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ⬆️(dependencies) update python dependencies
+
 ### Fixed
 
 - 🔒️(backend) fix email disclosure in room invitation endpoint #1200
