@@ -17,6 +17,7 @@ and this project adheres to
 - 💄(custom-background) add upload indicator with preview #1183
 - ♿️(backend) improve logo accessibility in recording email notification #1092
 - ♿️(summary) improve accessibility of transcription download link #1187
+- 💄(frontend) show OS-specific shortcut in participant tile hint #1193
 
 ### Fixed
 

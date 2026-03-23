@@ -31,6 +31,8 @@ import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { ParticipantName } from './ParticipantName'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useTranslation } from 'react-i18next'
+import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
+import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
 import { KeyboardShortcutHint } from './KeyboardShortcutHint'
 
 export function TrackRefContextIfNeeded(
@@ -237,7 +239,13 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
-      <KeyboardShortcutHint>{t('toolbarHint')}</KeyboardShortcutHint>
+      <KeyboardShortcutHint>
+        {t('toolbarHint', {
+          shortcut: formatShortcutLabel(
+            getShortcutDescriptorById('open-shortcuts')?.shortcut
+          ),
+        })}
+      </KeyboardShortcutHint>
     </div>
   )
 })

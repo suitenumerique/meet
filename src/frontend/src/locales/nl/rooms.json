@@ -619,7 +619,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Opties voor {{name}}",
-    "toolbarHint": "Ctrl+Shift+/: direct toegang tot de sneltoetsen.",
+    "toolbarHint": "{{shortcut}}: direct toegang tot de sneltoetsen.",
     "pin": {
       "enable": "Pinnen",
       "disable": "Losmaken"

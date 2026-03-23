@@ -619,7 +619,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options for {{name}}",
-    "toolbarHint": "Ctrl+Shift+/: access shortcuts directly.",
+    "toolbarHint": "{{shortcut}}: access shortcuts directly.",
     "pin": {
       "enable": "Pin",
       "disable": "Unpin"

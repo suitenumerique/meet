@@ -619,7 +619,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options pour {{name}}",
-    "toolbarHint": "Ctrl+Shift+/ : accéder directement aux raccourcis.",
+    "toolbarHint": "{{shortcut}} : accéder directement aux raccourcis.",
     "pin": {
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"
