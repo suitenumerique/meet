@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-03-24
+
 ### Changed
 
 - ♻️(backend) configurable SESSION_ENGINE #1038 #1154
