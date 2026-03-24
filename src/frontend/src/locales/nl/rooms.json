@@ -510,6 +510,10 @@
       "screenshare": {
         "label": "Hun scherm delen",
         "description": "Als u deze optie uitschakelt, kunnen deelnemers hun scherm niet meer delen en wordt elke lopende schermdeling onmiddellijk gestopt."
+      },
+      "mute": {
+        "label": "Anderen dempen",
+        "description": "Wanneer uitgeschakeld, kunnen deelnemers andere deelnemers niet meer dempen."
       }
     }
   },
