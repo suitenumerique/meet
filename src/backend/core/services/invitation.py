@@ -4,7 +4,7 @@ import smtplib
 from logging import getLogger
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.translation import get_language, override
 from django.utils.translation import gettext_lazy as _
@@ -45,15 +45,18 @@ class InvitationService:
                 )
             )  # Force translation
 
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=msg_plain,
+                from_email=settings.EMAIL_FROM,
+                to=[],
+                bcc=emails,
+            )
+
+            email.attach_alternative(msg_html, "text/html")
+
             try:
-                send_mail(
-                    subject,
-                    msg_plain,
-                    settings.EMAIL_FROM,
-                    emails,
-                    html_message=msg_html,
-                    fail_silently=False,
-                )
+                email.send()
             except smtplib.SMTPException as e:
                 logger.error("invitation to %s was not sent: %s", emails, e)
                 raise InvitationError("Could not send invitation") from e

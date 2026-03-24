@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🔒️(backend) fix email disclosure in room invitation endpoint #1200
+
 ## [1.12.0] - 2026-03-24
 
 ### Changed

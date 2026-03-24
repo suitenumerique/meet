@@ -240,10 +240,9 @@ def test_api_rooms_invite_error(mock_invite_to_room):
     mock_invite_to_room.assert_called_once()
 
 
-@mock.patch("core.services.invitation.send_mail")
-def test_api_rooms_invite_success(mock_send_mail, settings):
+@mock.patch("core.services.invitation.EmailMultiAlternatives")
+def test_api_rooms_invite_success(mock_email_class, settings):
     """Test privileged users should successfully send invitation emails."""
-
     settings.EMAIL_BRAND_NAME = "ACME"
     settings.EMAIL_LOGO_IMG = "https://acme.com/logo"
     settings.EMAIL_APP_BASE_URL = "https://acme.com"
@@ -255,7 +254,6 @@ def test_api_rooms_invite_success(mock_send_mail, settings):
     user = UserFactory()
 
     room.accesses.create(user=user, role=random.choice(["administrator", "owner"]))
-
     client.force_login(user)
 
     data = {"emails": ["fabien@yopmail.com", "gerald@yopmail.com"]}
@@ -269,26 +267,38 @@ def test_api_rooms_invite_success(mock_send_mail, settings):
     assert response.status_code == 200
     assert response.json() == {"status": "success", "message": "invitations sent"}
 
-    mock_send_mail.assert_called_once()
+    mock_email_class.assert_called_once()
 
-    subject, body, sender, recipients = mock_send_mail.call_args[0]
+    # Check constructor arguments
+    call_kwargs = mock_email_class.call_args[1]  # EmailMultiAlternatives(**kwargs)
 
-    assert (
-        subject == f"Video call in progress: {user.email} is waiting for you to connect"
+    assert call_kwargs["subject"] == (
+        f"Video call in progress: {user.email} is waiting for you to connect"
+    )
+    assert call_kwargs["from_email"] == "notifications@acme.com"
+    assert call_kwargs["to"] == []
+    assert sorted(call_kwargs["bcc"]) == sorted(
+        ["fabien@yopmail.com", "gerald@yopmail.com"]
     )
 
-    # Verify email contains expected content
+    # Check plain text body
+    plain_body = call_kwargs["body"]
     required_content = [
-        "ACME",  # Brand name
-        "https://acme.com/logo",  # Logo URL
-        f"https://acme.com/{room.slug}",  # Room url
-        f"acme.com/{room.slug}",  # Room link
+        "ACME",
+        "https://acme.com/logo",
+        f"https://acme.com/{room.slug}",
+        f"acme.com/{room.slug}",
     ]
-
     for content in required_content:
-        assert content in body
+        assert content in plain_body
 
-    assert sender == "notifications@acme.com"
+    # Check HTML alternative was attached
+    mock_instance = mock_email_class.return_value
+    mock_instance.attach_alternative.assert_called_once()
+    html_body, mimetype = mock_instance.attach_alternative.call_args[0]
+    assert mimetype == "text/html"
+    for content in required_content:
+        assert content in html_body
 
-    # Verify all owners received the email (order-independent comparison)
-    assert sorted(recipients) == sorted(["fabien@yopmail.com", "gerald@yopmail.com"])
+    # Check send was called
+    mock_instance.send.assert_called_once()
