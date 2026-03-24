@@ -14,6 +14,7 @@ and this project adheres to
 
 ### Fixed
 
+- ⚡️(helm) Add pod and container securityContext #4805
 - 🔒️(backend) fix email disclosure in room invitation endpoint #1200
 - 🐛(backend) fix regression in update-participant endpoint #1204
 

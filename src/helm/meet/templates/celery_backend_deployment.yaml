@@ -31,6 +31,10 @@ spec:
         - name: {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" .) "imageCredentials" $.Values.image.credentials) }}
       {{- end }}
       shareProcessNamespace: {{ .Values.celeryBackend.shareProcessNamespace }}
+      {{- with .Values.celeryBackend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         {{- with .Values.celeryBackend.sidecars }}
           {{- toYaml . | nindent 8 }}

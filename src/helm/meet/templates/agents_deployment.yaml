@@ -31,6 +31,10 @@ spec:
         - name: {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" .) "imageCredentials" $.Values.image.credentials) }}
       {{- end }}
       shareProcessNamespace: {{ .Values.agents.shareProcessNamespace }}
+      {{- with .Values.agents.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         {{- with .Values.agents.sidecars }}
           {{- toYaml . | nindent 8 }}

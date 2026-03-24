@@ -28,6 +28,16 @@ livekit:
     urls:
         - https://meet.127.0.0.1.nip.io/api/v1.0/rooms/webhooks-livekit/
 
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
 
 loadBalancer:
   type: nginx

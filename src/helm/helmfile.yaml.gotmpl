@@ -37,6 +37,7 @@ releases:
   missingFileHandler: Warn
   chart: ./meet
   values:
+  - env.d/common.yaml.gotmpl
   - env.d/{{ .Environment.Name }}/values.meet.yaml.gotmpl
   - env.d/{{ .Environment.Name }}/values.secrets.yaml
   secrets:
@@ -48,6 +49,7 @@ releases:
   namespace: {{ .Namespace }}
   chart: livekit/livekit-server
   values:
+  - env.d/common.yaml.gotmpl
   - env.d/{{ .Environment.Name }}/values.livekit.yaml.gotmpl
   - env.d/{{ .Environment.Name }}/values.secrets.yaml
   secrets:
@@ -59,6 +61,7 @@ releases:
   namespace: {{ .Namespace }}
   chart: livekit/egress
   values:
+  - env.d/common.yaml.gotmpl
   - env.d/{{ .Environment.Name }}/values.egress.yaml.gotmpl
   - env.d/{{ .Environment.Name }}/values.secrets.yaml
   secrets:

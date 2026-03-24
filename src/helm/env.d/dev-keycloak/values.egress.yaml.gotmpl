@@ -26,6 +26,18 @@ egress:
     endpoint: http://minio:9000
     force_path_style: true
 
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
 loadBalancer:
   type: nginx
   annotations:

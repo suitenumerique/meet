@@ -1,5 +1,7 @@
 FROM node:20-alpine AS frontend-deps
 
+USER node
+
 WORKDIR /home/frontend/
 
 COPY ./src/frontend/package.json ./package.json
@@ -8,7 +10,7 @@ COPY ./src/frontend/package-lock.json ./package-lock.json
 RUN npm ci
 
 COPY .dockerignore ./.dockerignore
-COPY ./src/frontend/ .
+COPY --chown=node:node ./src/frontend/ .
 
 ### ---- Front-end builder image ----
 FROM frontend-deps AS meet
@@ -16,6 +18,8 @@ FROM frontend-deps AS meet
 WORKDIR /home/frontend
 
 FROM frontend-deps AS meet-dev
+
+USER node
 
 WORKDIR /home/frontend
 

@@ -112,7 +112,6 @@ backend:
     CELERY_ENABLED: True
     CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
 
-
   migrate:
     command:
       - "/bin/sh"
@@ -180,7 +179,7 @@ ingressWebhook:
 posthog:
   ingress:
     enabled: false
-  
+
   ingressAssets:
     enabled: false
 
