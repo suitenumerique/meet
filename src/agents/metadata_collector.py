@@ -124,8 +124,8 @@ class MetadataCollector:
             secure=os.getenv("AWS_S3_SECURE_ACCESS", "False").lower() == "true",
         )
 
-        if os.getenv("AWS_STORAGE_BUCKET_NAME") is not None:
-            self.bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
+        if (bucket_name := os.getenv("AWS_STORAGE_BUCKET_NAME")) is not None:
+            self.bucket_name = bucket_name
         else:
             raise MissingConfigError
 
