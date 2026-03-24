@@ -340,6 +340,7 @@ class RoomViewSet(
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
         if (
             settings.METADATA_COLLECTOR_ENABLED
             and recording.mode == models.RecordingModeChoices.TRANSCRIPT
@@ -347,7 +348,7 @@ class RoomViewSet(
             try:
                 MetadataCollectorService().start(recording)
             except MetadataCollectorException:
-                pass
+                logger.warning("Failed to start MetadataCollectorService")
 
         return drf_response.Response(
             {"message": f"Recording successfully started for room {room.slug}"},

@@ -178,6 +178,7 @@ class LiveKitEventsService:
         except utils.MetadataUpdateException as e:
             logger.exception("Failed to update room's metadata: %s", e)
 
+
         if (
             settings.METADATA_COLLECTOR_ENABLED
             and recording.mode == models.RecordingModeChoices.TRANSCRIPT
@@ -185,7 +186,7 @@ class LiveKitEventsService:
             try:
                 MetadataCollectorService().stop(recording)
             except MetadataCollectorException:
-                pass
+                logger.warning("Failed to stop the MetadataCollectorService")
 
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED

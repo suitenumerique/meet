@@ -4,7 +4,7 @@ from logging import getLogger
 
 from django.conf import settings
 
-from asgiref.sync import async_to_sync
+from asgiref.sync import async_to_sync, sync_to_async
 from livekit.protocol.agent_dispatch import (
     CreateAgentDispatchRequest,
 )
@@ -56,7 +56,7 @@ class MetadataCollectorService:
             )
 
         recording.options["metadata_collector_dispatch_id"] = dispatch_id
-        recording.save(update_fields=["options"])
+        await sync_to_async(recording.save)(update_fields=["options"])
 
         return dispatch_id
 
