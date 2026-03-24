@@ -227,3 +227,24 @@ data:
   .dockerconfigjson: {{ template "meet.secret.dockerconfigjson.data" .imageCredentials }}
 {{- end -}}
 {{- end }}
+
+{{/*
+Return the appropriate apiVersion for Ingress resources.
+*/}}
+{{- define "meet.ingress.apiVersion" -}}
+{{- $gitVersion := .Capabilities.KubeVersion.GitVersion -}}
+{{- if semverCompare ">=1.19-0" $gitVersion -}}
+networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" $gitVersion -}}
+networking.k8s.io/v1beta1
+{{- else -}}
+extensions/v1beta1
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return true if the Ingress apiVersion supports ingressClassName (>=1.18).
+*/}}
+{{- define "meet.ingress.supportsIngressClassName" -}}
+{{- semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- end -}}
