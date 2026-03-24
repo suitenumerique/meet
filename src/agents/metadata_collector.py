@@ -371,9 +371,9 @@ async def entrypoint(ctx: JobContext):
     metadata_collector = MetadataCollector(ctx, recording_id)
     metadata_collector.start()
 
-    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
-
     ctx.add_participant_entrypoint(metadata_collector.on_participant_entrypoint)
+
+    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
     async def cleanup():
         logger.info("Shutting down metadata collector...")
