@@ -1,4 +1,4 @@
-"""Wip."""
+"""Meeting metadata collection service."""
 
 from logging import getLogger
 
@@ -16,15 +16,15 @@ logger = getLogger(__name__)
 
 
 class MetadataCollectorException(Exception):
-    """Wip."""
+    """Generic exception in the metadata collector."""
 
 
 class MetadataCollectorService:
-    """Wip."""
+    """Service for dispatching and managing the metadata collector agent."""
 
     @async_to_sync
     async def start(self, recording: Recording):
-        """Wip."""
+        """Explicitly dispatch the metadata collector agent to a room."""
 
         lkapi = utils.create_livekit_client()
         room_id = str(recording.room.id)
@@ -62,7 +62,7 @@ class MetadataCollectorService:
 
     @async_to_sync
     async def stop(self, recording: Recording):
-        """Wip."""
+        """Stop and delete the agent dispatch associated to the room."""
 
         room_id = str(recording.room.id)
         dispatch_id = recording.options.get("metadata_collector_dispatch_id")
