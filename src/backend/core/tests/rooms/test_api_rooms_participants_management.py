@@ -8,6 +8,7 @@ import random
 from unittest import mock
 from uuid import uuid4
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import SuspiciousOperation
 from django.urls import reverse
 
@@ -16,6 +17,7 @@ from livekit.api import TwirpError
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from core import utils
 from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
 from core.services.lobby import LobbyService
 
@@ -31,8 +33,8 @@ def mock_livekit_client():
         yield mock_client
 
 
-def test_mute_participant_success(mock_livekit_client):
-    """Test successful participant muting."""
+def test_mute_participant_success_as_admin(mock_livekit_client):
+    """Admins and owners should be able to mute without a LiveKit token."""
     client = APIClient()
     room = RoomFactory()
     user = UserFactory()
@@ -41,10 +43,12 @@ def test_mute_participant_success(mock_livekit_client):
     )
     client.force_authenticate(user=user)
 
-    payload = {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"}
-
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
-    response = client.post(url, payload, format="json")
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == {"status": "success"}
@@ -53,23 +57,131 @@ def test_mute_participant_success(mock_livekit_client):
     mock_livekit_client.aclose.assert_called_once()
 
 
-def test_mute_participant_forbidden_without_access():
-    """Test mute participant returns 403 when user lacks room privileges."""
+def test_mute_participant_anonymous_no_token_forbidden(mock_livekit_client):
+    """Should forbid muting when user is anonymous and no LiveKit token."""
     client = APIClient()
     room = RoomFactory()
-    user = UserFactory()  # User without UserResourceAccess
-    client.force_authenticate(user=user)
-
-    payload = {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"}
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
-    response = client.post(url, payload, format="json")
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_with_livekit_token_for_this_room(mock_livekit_client):
+    """Should allow muting when the LiveKit token is scoped to this room."""
+    client = APIClient()
+    room = RoomFactory()
+
+    user = AnonymousUser()
+    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {"status": "success"}
+
+    mock_livekit_client.room.mute_published_track.assert_called_once()
+
+
+def test_mute_participant_with_livekit_token_for_another_room_forbidden(
+    mock_livekit_client,
+):
+    """Should forbid muting when the LiveKit token is scoped to a different room."""
+
+    client = APIClient()
+    target_room = RoomFactory()
+    other_room = RoomFactory()
+
+    user = AnonymousUser()
+    token = utils.generate_token(str(other_room.id), user, is_admin_or_owner=False)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": target_room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_authenticated_no_role_no_token_forbidden(mock_livekit_client):
+    """Should forbid muting when user has no room role and no LiveKit token."""
+    client = APIClient()
+    room = RoomFactory()  # everyone_can_mute defaults to True
+    user = UserFactory()  # no UserResourceAccess for this room
+    client.force_authenticate(user=user)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_everyone_can_mute_disabled_blocks_non_admin(
+    mock_livekit_client,
+):
+    """Should forbid muting when everyone_can_mute is False, even with a LiveKit token."""
+    client = APIClient()
+    room = RoomFactory(configuration={"everyone_can_mute": False})
+
+    user = AnonymousUser()
+    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_everyone_can_mute_disabled_allows_admin(mock_livekit_client):
+    """Should allow admins and owners to mute when everyone_can_mute is False."""
+    client = APIClient()
+    room = RoomFactory(configuration={"everyone_can_mute": False})
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_livekit_client.room.mute_published_track.assert_called_once()
 
 
 def test_mute_participant_invalid_payload():
-    """Test mute participant with invalid payload."""
+    """Should reject muting when the payload is invalid."""
     client = APIClient()
     room = RoomFactory()
     user = UserFactory()
@@ -78,16 +190,16 @@ def test_mute_participant_invalid_payload():
     )
     client.force_authenticate(user=user)
 
-    payload = {"participant_identity": "invalid-uuid", "track_sid": ""}
-
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
-    response = client.post(url, payload, format="json")
+    response = client.post(
+        url, {"participant_identity": "invalid-uuid", "track_sid": ""}, format="json"
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_mute_participant_unexpected_twirp_error(mock_livekit_client):
-    """Test mute participant when LiveKit API raises TwirpError."""
+    """Should return 500 when the LiveKit API raises a TwirpError."""
     client = APIClient()
 
     mock_livekit_client.room.mute_published_track.side_effect = TwirpError(
@@ -101,15 +213,158 @@ def test_mute_participant_unexpected_twirp_error(mock_livekit_client):
     )
     client.force_authenticate(user=user)
 
-    payload = {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"}
-
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
-    response = client.post(url, payload, format="json")
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert response.data == {"error": "Failed to mute participant"}
 
     mock_livekit_client.aclose.assert_called_once()
+
+
+def test_mute_participant_participant_not_found(mock_livekit_client):
+    """Should return 404 when the participant does not exist in the room."""
+    client = APIClient()
+
+    mock_livekit_client.room.mute_published_track.side_effect = TwirpError(
+        msg="participant does not exist", code="not_found", status=404
+    )
+
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data == {"error": "Participant not found"}
+
+    mock_livekit_client.aclose.assert_called_once()
+
+
+def test_mute_participant_management_exception(mock_livekit_client):
+    """Should return 500 when ParticipantsManagement raises an unexpected error."""
+    client = APIClient()
+
+    mock_livekit_client.room.mute_published_track.side_effect = TwirpError(
+        msg="boom", code="internal", status=503
+    )
+
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.data == {"error": "Failed to mute participant"}
+
+    mock_livekit_client.aclose.assert_called_once()
+
+
+def test_mute_participant_admin_with_token_for_this_room(mock_livekit_client):
+    """Should allow muting when user is admin and LiveKit token is scoped to this room."""
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    # Token identity matches the admin user so LiveKitTokenAuthentication
+    # resolves request.user back to the admin.
+    token = utils.generate_token(str(room.id), user, is_admin_or_owner=True)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {"status": "success"}
+
+    mock_livekit_client.room.mute_published_track.assert_called_once()
+
+
+def test_mute_participant_admin_with_token_for_another_room(mock_livekit_client):
+    """Should not allow muting when user is admin and the LiveKit token is for another room."""
+    client = APIClient()
+    target_room = RoomFactory()
+    other_room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=target_room,
+        user=user,
+        role=random.choice(["administrator", "owner"]),
+    )
+    # Token is scoped to a DIFFERENT room, and admin status must only be
+    # honored when established via session, never via a LiveKit
+    # token, which can be replayed off-host.
+    token = utils.generate_token(str(other_room.id), user, is_admin_or_owner=True)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": target_room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.data == {
+        "detail": "You do not have permission to perform this action."
+    }
+
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_admin_token_replayed_does_not_grant_admin(
+    mock_livekit_client,
+):
+    """Should forbid muting when a LiveKit token issued for an admin is passed without a session."""
+    client = APIClient()
+    room = RoomFactory(configuration={"everyone_can_mute": False})
+    admin_user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room,
+        user=admin_user,
+        role=random.choice(["administrator", "owner"]),
+    )
+    # The token is the only credential.
+    token = utils.generate_token(str(room.id), admin_user, is_admin_or_owner=True)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    mock_livekit_client.room.mute_published_track.assert_not_called()
 
 
 def test_update_participant_success(mock_livekit_client):
