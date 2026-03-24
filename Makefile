@@ -125,10 +125,15 @@ run-summary: ## start only the summary application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-summary-summarize
 .PHONY: run-summary
 
+run-agents: ## start the LiveKit agents (metadata collector)
+	@$(COMPOSE) up --force-recreate -d metadata-collector
+.PHONY: run-agents
+
 run:
 run: ## start the wsgi (production) and development server
 	@$(MAKE) run-backend
 	@$(MAKE) run-summary
+	@$(MAKE) run-agents
 	@$(COMPOSE) up --force-recreate -d frontend
 .PHONY: run
 

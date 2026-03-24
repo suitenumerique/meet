@@ -178,7 +178,10 @@ class MetadataCollector:
 
     def save(self):
         """Serialize collected events and upload as JSON to S3."""
-        logger.info("Persisting processed metadata output to disk…")
+        scheme = "https" if os.getenv("AWS_S3_SECURE_ACCESS", "False").lower() == "true" else "http"
+        endpoint = os.getenv("AWS_S3_ENDPOINT_URL", "")
+        url = f"{scheme}://{endpoint}/{self.bucket_name}/{self.output_filename}"
+        logger.info("Persisting metadata to %s", url)
 
         participants = []
         for k, v in self.participants.items():
