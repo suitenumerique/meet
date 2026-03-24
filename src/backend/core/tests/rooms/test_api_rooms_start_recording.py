@@ -487,6 +487,81 @@ def test_start_recording_options_original_mode_omitted(
     assert recording.options == {}
 
 
+def test_start_recording_calls_metadata_collector_start(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should call MetadataCollectorService.start when conditions are met."""
+    settings.RECORDING_ENABLE = True
+    settings.METADATA_COLLECTOR_ENABLED = True
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+
+    client = APIClient()
+    client.force_login(user)
+
+    with mock.patch(
+        "core.api.viewsets.MetadataCollectorService"
+    ) as mock_collector_class:
+        mock_collector = mock.Mock()
+        mock_collector_class.return_value = mock_collector
+
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/start-recording/",
+            {"mode": "screen_recording", "options": {"transcribe": True}},
+            format="json",
+        )
+
+    assert response.status_code == 201
+
+    recording = Recording.objects.get(room=room)
+    mock_collector.start.assert_called_once_with(recording)
+
+
+@pytest.mark.parametrize(
+    "metadata_enabled,transcribe",
+    [
+        (False, True),
+        (False, False),
+        (True, False),
+        (True, None),
+    ],
+)
+def test_start_recording_does_not_call_metadata_collector_start_when_conditions_not_met(
+    settings, mock_worker_service_factory, mock_worker_manager, metadata_enabled, transcribe
+):
+    """Should not call MetadataCollectorService.start when conditions are not met."""
+    settings.RECORDING_ENABLE = True
+    settings.METADATA_COLLECTOR_ENABLED = metadata_enabled
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+
+    client = APIClient()
+    client.force_login(user)
+
+    options = {}
+    if transcribe is not None:
+        options["transcribe"] = transcribe
+
+    with mock.patch(
+        "core.api.viewsets.MetadataCollectorService"
+    ) as mock_collector_class:
+        mock_collector = mock.Mock()
+        mock_collector_class.return_value = mock_collector
+
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/start-recording/",
+            {"mode": "screen_recording", "options": options} if options else {"mode": "screen_recording"},
+            format="json",
+        )
+
+    assert response.status_code == 201
+    mock_collector.start.assert_not_called()
+
+
 @pytest.mark.parametrize("value", ["invalid_mode", "foo", 123, "SCREEN_RECORDING"])
 def test_start_recording_options_original_mode_invalid(settings, value):
     """Should reject invalid recording mode values for original_mode."""

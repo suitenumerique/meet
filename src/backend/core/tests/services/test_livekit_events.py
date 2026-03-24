@@ -269,6 +269,68 @@ def test_handle_egress_ended_recording_not_limit_reached(
     assert recording.status == "stopped"
 
 
+@mock.patch("core.services.livekit_events.MetadataCollectorService")
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_calls_metadata_collector_stop_when_conditions_are_met(
+    mock_update_room_metadata, mock_collector_class, service, settings
+):
+    """Should call MetadataCollectorService.stop when it exists."""
+    settings.METADATA_COLLECTOR_ENABLED = True
+
+    recording = RecordingFactory(
+        worker_id="worker-1",
+        status="active",
+        options={"metadata_collector_dispatch_id": "dispatch-123"},
+    )
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = EgressStatus.EGRESS_COMPLETE
+
+    mock_collector = mock.Mock()
+    mock_collector_class.return_value = mock_collector
+
+    service._handle_egress_ended(mock_data)
+
+    mock_collector.stop.assert_called_once_with(recording)
+
+
+@pytest.mark.parametrize(
+    "metadata_enabled,options",
+    [
+        (True, {}),
+        (False, {}),
+    ],
+)
+@mock.patch("core.services.livekit_events.MetadataCollectorService")
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditions_not_met(
+    mock_update_room_metadata,
+    mock_collector_class,
+    metadata_enabled,
+    options,
+    service,
+    settings,
+):
+    """Should not call MetadataCollectorService.stop when it does not exist."""
+    settings.METADATA_COLLECTOR_ENABLED = metadata_enabled
+
+    recording = RecordingFactory(
+        worker_id="worker-1",
+        status="active",
+        options=options,
+    )
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = EgressStatus.EGRESS_COMPLETE
+
+    mock_collector = mock.Mock()
+    mock_collector_class.return_value = mock_collector
+
+    service._handle_egress_ended(mock_data)
+
+    mock_collector.stop.assert_not_called()
+
+
 @mock.patch.object(LobbyService, "clear_room_cache")
 @mock.patch.object(TelephonyService, "delete_dispatch_rule")
 def test_handle_room_finished_clears_cache_and_deletes_dispatch_rule(
