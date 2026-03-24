@@ -58,5 +58,5 @@ class InvitationService:
             try:
                 email.send()
             except smtplib.SMTPException as e:
-                logger.error("invitation to %s was not sent: %s", emails, e)
+                logger.error("invitations were not sent: %s", e)
                 raise InvitationError("Could not send invitation") from e
