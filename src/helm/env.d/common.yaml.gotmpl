@@ -1,0 +1,38 @@
+.podSecurityContext: &podSecurityContext
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+.securityContext: &securityContext
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+frontend:
+  podSecurityContext: *podSecurityContext
+  securityContext: *securityContext
+
+backend:
+  podSecurityContext: *podSecurityContext
+  securityContext: *securityContext
+
+summary:
+  podSecurityContext: *podSecurityContext
+  securityContext: *securityContext
+
+celeryTranscribe:
+  podSecurityContext: *podSecurityContext
+  securityContext: *securityContext
+
+celerySummarize:
+  podSecurityContext: *podSecurityContext
+  securityContext: *securityContext
+
+agents:
+  podSecurityContext: *podSecurityContext
+  securityContext: *securityContext

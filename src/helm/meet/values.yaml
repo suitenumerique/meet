@@ -216,8 +216,11 @@ backend:
     ttlSecondsAfterFinished: 30
     backoffLimit: 2
 
-  ## @param backend.securityContext Configure backend Pod security context
+  ## @param backend.securityContext Configure backend Container security context
   securityContext: null
+
+  ## @param backend.podSecurityContext Configure backend Pod security context
+  podSecurityContext: null
 
   ## @param backend.envVars Configure backend container environment variables
   ## @extra backend.envVars.BY_VALUE Example environment variable by setting value directly
@@ -359,8 +362,11 @@ frontend:
   ## @param frontend.sidecars Add sidecars containers to frontend deployment
   sidecars: []
 
-  ## @param frontend.securityContext Configure frontend Pod security context
+  ## @param frontend.securityContext Configure frontend Container security context
   securityContext: null
+
+  ## @param frontend.podSecurityContext Configure frontend Pod security context
+  podSecurityContext: null
 
   ## @param frontend.envVars Configure frontend container environment variables
   ## @extra frontend.envVars.BY_VALUE Example environment variable by setting value directly
@@ -533,8 +539,11 @@ summary:
   ## @param summary.migrateJobAnnotations Annotations for the migrate job
   migrateJobAnnotations: {}
 
-  ## @param summary.securityContext Configure summary Pod security context
+  ## @param summary.securityContext Configure summary Container security context
   securityContext: null
+
+  ## @param summary.podSecurityContext Configure summary Pod security context
+  podSecurityContext: null
 
   ## @param summary.envVars Configure summary container environment variables
   ## @extra summary.envVars.BY_VALUE Example environment variable by setting value directly
@@ -646,8 +655,11 @@ celeryBackend:
   ## @param celeryBackend.migrateJobAnnotations Annotations for the migrate job
   migrateJobAnnotations: {}
 
-  ## @param celeryBackend.securityContext Configure celeryBackend Pod security context
+  ## @param celeryBackend.securityContext Configure celeryBackend Container security context
   securityContext: null
+
+  ## @param celeryBackend.podSecurityContext Configure celeryBackend Pod security context
+  podSecurityContext: null
 
   ## @param celeryBackend.envVars Configure celeryBackend container environment variables
   ## @extra celeryBackend.envVars.BY_VALUE Example environment variable by setting value directly
@@ -755,8 +767,11 @@ celeryTranscribe:
   ## @param celeryTranscribe.migrateJobAnnotations Annotations for the migrate job
   migrateJobAnnotations: {}
 
-  ## @param celeryTranscribe.securityContext Configure celeryTranscribe Pod security context
+  ## @param celeryTranscribe.securityContext Configure celeryTranscribe Container security context
   securityContext: null
+
+  ## @param celeryTranscribe.podSecurityContext Configure celeryTranscribe Pod security context
+  podSecurityContext: null
 
   ## @param celeryTranscribe.envVars Configure celeryTranscribe container environment variables
   ## @extra celeryTranscribe.envVars.BY_VALUE Example environment variable by setting value directly
@@ -864,8 +879,11 @@ celerySummarize:
   ## @param celerySummarize.migrateJobAnnotations Annotations for the migrate job
   migrateJobAnnotations: {}
 
-  ## @param celerySummarize.securityContext Configure celerySummarize Pod security context
+  ## @param celerySummarize.securityContext Configure celerySummarize Container security context
   securityContext: null
+
+  ## @param celerySummarize.podSecurityContext Configure celerySummarize Pod security context
+  podSecurityContext: null
 
   ## @param celerySummarize.envVars Configure celerySummarize container environment variables
   ## @extra celerySummarize.envVars.BY_VALUE Example environment variable by setting value directly
@@ -1073,8 +1091,11 @@ agents:
   ## @param agents.sidecars Add sidecars containers to agents deployment
   sidecars: []
 
-  ## @param agents.securityContext Configure agents Pod security context
+  ## @param agents.securityContext Configure agents Container security context
   securityContext: null
+
+  ## @param agents.podSecurityContext Configure agents Pod security context
+  podSecurityContext: null
 
   ## @param agents.envVars Configure agents container environment variables
   ## @extra agents.envVars.BY_VALUE Example environment variable by setting value directly
