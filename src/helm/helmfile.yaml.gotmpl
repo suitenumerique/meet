@@ -37,6 +37,7 @@ releases:
   missingFileHandler: Warn
   chart: ./meet
   values:
+  - env.d/common.yaml.gotmpl
   - env.d/{{ .Environment.Name }}/values.meet.yaml.gotmpl
   - env.d/{{ .Environment.Name }}/values.secrets.yaml
   secrets:
