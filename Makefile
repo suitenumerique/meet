@@ -126,7 +126,7 @@ run-summary: ## start only the summary application and all needed services
 .PHONY: run-summary
 
 run-agents: ## start the LiveKit agents (metadata collector)
-	@$(COMPOSE) up --force-recreate -d metadata-collector
+	@$(COMPOSE) up --force-recreate -d metadata-collector-dev
 .PHONY: run-agents
 
 run:

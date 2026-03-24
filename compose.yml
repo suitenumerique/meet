@@ -246,7 +246,7 @@ services:
       depends_on:
         - redis
 
-  metadata-collector:
+  metadata-collector-dev:
     build:
       context: ./src/agents
     command: ["python", "metadata_collector.py", "dev"]
@@ -259,9 +259,15 @@ services:
       - AWS_S3_SECRET_ACCESS_KEY=password
       - AWS_STORAGE_BUCKET_NAME=meet-media-storage
       - AWS_S3_SECURE_ACCESS=False
+    volumes:
+      - ./src/agents:/app
     depends_on:
       - livekit
       - minio
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/agents
 
   redis-summary:
     image: redis
