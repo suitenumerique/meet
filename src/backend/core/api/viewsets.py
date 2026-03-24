@@ -340,11 +340,7 @@ class RoomViewSet(
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-
-        if (
-            settings.METADATA_COLLECTOR_ENABLED
-            and recording.mode == models.RecordingModeChoices.TRANSCRIPT
-        ):
+        if settings.METADATA_COLLECTOR_ENABLED and recording.options.transcribe:
             try:
                 MetadataCollectorService().start(recording)
             except MetadataCollectorException:
