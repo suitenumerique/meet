@@ -122,6 +122,10 @@ def test_api_rooms_update_administrators():
         },
         {"can_publish_sources": []},
         {"can_publish_sources": None},
+        {"can_publish_sources": None, "everyone_can_mute": True},
+        {"can_publish_sources": None, "everyone_can_mute": False},
+        {"can_publish_sources": None, "everyone_can_mute": "yes"},
+        {"can_publish_sources": None, "everyone_can_mute": "1"},
     ],
 )
 def test_api_rooms_update_configuration_valid(configuration):
@@ -191,6 +195,24 @@ def test_api_rooms_update_configuration_wrong_type():
     response = client.patch(
         f"/api/v1.0/rooms/{room.id!s}/",
         {"configuration": {"can_publish_sources": "camera"}},
+        format="json",
+    )
+    assert response.status_code == 400
+    room.refresh_from_db()
+    assert room.configuration == {}
+
+
+@pytest.mark.parametrize("invalid_value", ["test", [], {}])
+def test_api_rooms_update_configuration_everyone_can_mute_wrong_type(invalid_value):
+    """everyone_can_mute values with wrong types should be rejected."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": {"everyone_can_mute": invalid_value}},
         format="json",
     )
     assert response.status_code == 400
