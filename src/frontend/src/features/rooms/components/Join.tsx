@@ -217,7 +217,7 @@ export const Join = ({
       try {
         const track = await createLocalAudioTrack({
           deviceId: { exact: audioDeviceId },
-          noiseSuppression: false,
+          noiseSuppression: true,
           echoCancellation: true,
           autoGainControl: true,
           voiceIsolation: false,
