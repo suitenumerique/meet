@@ -277,6 +277,7 @@ def test_start_recording_options_transcribe_valid_true(
 ):
     """Should accept transcribe with any valid pydantic true values."""
     settings.RECORDING_ENABLE = True
+    settings.METADATA_COLLECTOR_ENABLED = False
     room = RoomFactory()
     user = UserFactory()
     room.accesses.create(user=user, role="owner")
