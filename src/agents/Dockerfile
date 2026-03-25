@@ -15,6 +15,17 @@ COPY pyproject.toml .
 RUN mkdir /install && \
   pip install --prefix=/install .
 
+FROM base AS development
+
+WORKDIR /app
+
+COPY pyproject.toml .
+RUN pip install --no-cache-dir ".[dev]"
+
+COPY . .
+
+CMD ["python", "metadata_collector.py", "dev"]
+
 FROM base AS production
 
 WORKDIR /app
