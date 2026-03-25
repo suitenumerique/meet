@@ -1,4 +1,14 @@
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-credentials
+  namespace: {{ .Release.Namespace | quote }}
+type: Opaque
+stringData:
+  rootUser: meet
+  rootPassword: password
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -69,9 +79,15 @@ spec:
             minio server --console-address :9001 /data
         env:
           - name: MINIO_ROOT_USER
-            value: meet
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: rootUser
           - name: MINIO_ROOT_PASSWORD
-            value: password
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: rootPassword
         image: "minio/minio"
         imagePullPolicy: IfNotPresent
         ports:
@@ -102,11 +118,22 @@ spec:
       containers:
       - name: mc
         image: minio/mc
+        env:
+          - name: MINIO_ROOT_USER
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: rootUser
+          - name: MINIO_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: rootPassword
         command:
           - /bin/sh
           - -c
           - |
-            /usr/bin/mc alias set meet http://minio:9000 meet password && \
+            /usr/bin/mc alias set meet http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" && \
             /usr/bin/mc mb meet/meet-media-storage && \
             exit 0
       restartPolicy: Never
@@ -122,12 +149,23 @@ spec:
       containers:
       - name: mc
         image: minio/mc
+        env:
+          - name: MINIO_ROOT_USER
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: rootUser
+          - name: MINIO_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: rootPassword
         command:
           - /bin/sh
           - -c
           - |
-            /usr/bin/mc alias set meet http://minio:9000 meet password && \
-            /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint="https://meet.127.0.0.1.nip.io/api/v1.0/recordings/storage-hook/" auth_token="Bearer password" && \
+            /usr/bin/mc alias set meet http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" && \
+            /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint="https://meet.127.0.0.1.nip.io/api/v1.0/recordings/storage-hook/" auth_token="Bearer $MINIO_ROOT_PASSWORD" && \
             /usr/bin/mc admin service restart meet --wait --json && \
             sleep 15 && \
             /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put && \
