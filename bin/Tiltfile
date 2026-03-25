@@ -2,7 +2,7 @@ load('ext://uibutton', 'cmd_button', 'bool_input', 'location')
 load('ext://namespace', 'namespace_create', 'namespace_inject')
 namespace_create('meet')
 
-DEV_ENV = os.getenv('DEV_ENV', 'dev')
+DEV_ENV = os.getenv('DEV_ENV', 'dev-keycloak')
 
 if DEV_ENV == 'dev-dinum':
     update_settings(suppress_unused_image_warnings=["localhost:5001/meet-frontend-generic:latest"])
@@ -95,7 +95,7 @@ docker_build(
 )
 clean_old_images('localhost:5001/meet-livekit')
 
-k8s_yaml(local('cd ../src/helm && helmfile -n meet -e ${DEV_ENV:-dev} template .'))
+k8s_yaml(local('cd ../src/helm && helmfile -n meet -e ${DEV_ENV:-dev-keycloak} template .'))
 
 k8s_resource('minio-bucket', resource_deps=['minio'])
 k8s_resource('meet-backend', resource_deps=['postgresql', 'minio', 'redis', 'livekit-livekit-server'])
