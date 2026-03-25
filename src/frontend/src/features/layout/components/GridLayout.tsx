@@ -7,9 +7,9 @@ import {
   useSwipe,
 } from '@livekit/components-react'
 import { mergeProps } from '@/utils/mergeProps'
-import { PaginationIndicator } from '../controls/PaginationIndicator'
-import { useGridLayout } from '../../hooks/useGridLayout'
-import { PaginationControl } from '../controls/PaginationControl'
+import { PaginationIndicator } from './PaginationIndicator'
+import { useGridLayout } from '../hooks/useGridLayout'
+import { PaginationControl } from './PaginationControl'
 
 /** @public */
 export interface GridLayoutProps

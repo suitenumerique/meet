@@ -20,8 +20,6 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { ControlBar } from './ControlBar/ControlBar'
-import { styled } from '@/styled-system/jsx'
-import { cva } from '@/styled-system/css'
 import { MainNotificationToast } from '@/features/notifications/MainNotificationToast'
 import { FocusLayout } from '../components/FocusLayout'
 import { ParticipantTile } from '../components/ParticipantTile'
@@ -39,34 +37,13 @@ import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubsc
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
 import { Subtitles } from '@/features/subtitle/component/Subtitles'
-import { CarouselLayout } from '../components/layout/CarouselLayout'
-import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
-
-const LayoutWrapper = styled(
-  'div',
-  cva({
-    base: {
-      position: 'relative',
-      display: 'flex',
-      width: '100%',
-      transition: 'height .5s cubic-bezier(0.4,0,0.2,1) 5ms',
-    },
-    variants: {
-      areSubtitlesOpen: {
-        true: {
-          height: 'calc(100% - 12rem)',
-        },
-        false: {
-          height: '100%',
-        },
-      },
-    },
-  })
-)
+import { CarouselLayout } from '@/features/layout/components/CarouselLayout'
+import { GridLayout } from '@/features/layout/components/GridLayout'
+import { LayoutWrapper } from '@/features/layout/components/LayoutWrapper'
 
 /**
  * @public
