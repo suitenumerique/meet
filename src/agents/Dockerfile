@@ -30,15 +30,15 @@ FROM base AS production
 
 WORKDIR /app
 
+COPY --from=builder /install /usr/local
+
 # Remove pip to reduce attack surface in production
 RUN pip uninstall -y pip
 
+# Un-privileged user running the application
 ARG DOCKER_USER
 USER ${DOCKER_USER}
 
-# Un-privileged user running the application
-COPY --from=builder /install /usr/local
-
-COPY . .
+COPY ./*.py /app/
 
 CMD ["python", "multi_user_transcriber.py", "start"]
