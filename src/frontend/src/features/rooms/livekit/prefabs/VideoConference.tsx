@@ -20,11 +20,9 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { ControlBar } from './ControlBar/ControlBar'
-import { MainNotificationToast } from '@/features/notifications/MainNotificationToast'
 import { FocusLayout } from '../components/FocusLayout'
 import { ParticipantTile } from '../components/ParticipantTile'
 import { SidePanel } from '../components/SidePanel'
-import { useSidePanel } from '../hooks/useSidePanel'
 import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
@@ -35,15 +33,15 @@ import { useSettingsDialog } from '@/features/settings'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
-import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
-import { Subtitles } from '@/features/subtitle/component/Subtitles'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
 import { CarouselLayout } from '@/features/layout/components/CarouselLayout'
 import { GridLayout } from '@/features/layout/components/GridLayout'
-import { LayoutWrapper } from '@/features/layout/components/LayoutWrapper'
+import {
+  RoomContentArea,
+} from '@/features/layout/components/RoomContentArea'
 
 /**
  * @public
@@ -231,9 +229,6 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   ])
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  const { isSidePanelOpen } = useSidePanel()
-  const { areSubtitlesOpen } = useSubtitles()
-
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
   return (
@@ -254,57 +249,36 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             onClose={() => setIsShareErrorVisible(false)}
           />
           <IsIdleDisconnectModal />
-          <div
-            // todo - extract these magic values into constant
-            style={{
-              position: 'absolute',
-              inset: isSidePanelOpen
-                ? `var(--lk-grid-gap) calc(358px + 3rem) calc(80px + var(--lk-grid-gap)) 16px`
-                : `var(--lk-grid-gap) var(--lk-grid-gap) calc(80px + var(--lk-grid-gap))`,
-              transition: 'inset .5s cubic-bezier(0.4,0,0.2,1) 5ms',
-              maxHeight: '100%',
-            }}
+          <RoomContentArea
           >
-            <LayoutWrapper areSubtitlesOpen={areSubtitlesOpen}>
-              <div
-                style={{
-                  display: 'flex',
-                  position: 'relative',
-                  width: '100%',
-                }}
-              >
-                {!focusTrack ? (
-                  <div
-                    className="lk-grid-layout-wrapper"
-                    style={{ height: 'auto' }}
-                  >
-                    <GridLayout tracks={tracks} style={{ padding: 0 }}>
+              {!focusTrack ? (
+                <div
+                  className="lk-grid-layout-wrapper"
+                  style={{ height: 'auto' }}
+                >
+                  <GridLayout tracks={tracks} style={{ padding: 0 }}>
+                    <ParticipantTile />
+                  </GridLayout>
+                </div>
+              ) : (
+                <div
+                  className="lk-focus-layout-wrapper"
+                  style={{ height: 'auto' }}
+                >
+                  <FocusLayoutContainer style={{ padding: 0 }}>
+                    <CarouselLayout
+                      tracks={carouselTracks}
+                      style={{
+                        minWidth: '200px',
+                      }}
+                    >
                       <ParticipantTile />
-                    </GridLayout>
-                  </div>
-                ) : (
-                  <div
-                    className="lk-focus-layout-wrapper"
-                    style={{ height: 'auto' }}
-                  >
-                    <FocusLayoutContainer style={{ padding: 0 }}>
-                      <CarouselLayout
-                        tracks={carouselTracks}
-                        style={{
-                          minWidth: '200px',
-                        }}
-                      >
-                        <ParticipantTile />
-                      </CarouselLayout>
-                      {focusTrack && <FocusLayout trackRef={focusTrack} />}
-                    </FocusLayoutContainer>
-                  </div>
-                )}
-              </div>
-            </LayoutWrapper>
-            <Subtitles />
-            <MainNotificationToast />
-          </div>
+                    </CarouselLayout>
+                    {focusTrack && <FocusLayout trackRef={focusTrack} />}
+                  </FocusLayoutContainer>
+                </div>
+              )}
+          </RoomContentArea>
           <ControlBar
             onDeviceError={(e) => {
               console.error(e)
