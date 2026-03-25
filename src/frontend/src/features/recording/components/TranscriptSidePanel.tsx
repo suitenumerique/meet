@@ -102,8 +102,8 @@ export const TranscriptSidePanel = () => {
           ...(!isLanguageSetToAuto && {
             language: selectedLanguageKey,
           }),
-          transcribe: true,
           ...(includeScreenRecording && {
+            transcribe: true,
             original_mode: RecordingMode.Transcript,
           }),
         }
