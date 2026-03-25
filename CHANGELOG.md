@@ -15,6 +15,7 @@ and this project adheres to
 ### Fixed
 
 - 🔒️(backend) fix email disclosure in room invitation endpoint #1200
+- 🐛(backend) fix regression in update-participant endpoint #1204
 
 ## [1.12.0] - 2026-03-24
 

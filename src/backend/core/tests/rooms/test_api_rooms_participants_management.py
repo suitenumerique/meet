@@ -130,10 +130,11 @@ def test_update_participant_success(mock_livekit_client):
             "can_publish": True,
             "can_publish_data": True,
             "can_publish_sources": [
-                1,
-                2,
-            ],  # [TrackSource.CAMERA, TrackSource.MICROPHONE]
+                "CAMERA",
+                "MICROPHONE",
+            ],
             "can_update_metadata": True,
+            "can_subscribe_metrics": True,
         },
         "name": "John Doe",
     }
@@ -155,8 +156,14 @@ def test_update_participant_success(mock_livekit_client):
         {"can_subscribe": True},
         {"can_publish": True},
         {"can_publish_data": True},
-        {"can_publish_sources": [1, 2]},
+        {
+            "can_publish_sources": [
+                "CAMERA",
+                "MICROPHONE",
+            ]
+        },
         {"can_update_metadata": True},
+        {"can_subscribe_metrics": False},
     ],
 )
 def test_update_participant_permission_fields_are_optional(
@@ -262,35 +269,6 @@ def test_update_participant_suspicious_permission_multiple(mock_suspicious):
     mock_suspicious.assert_called_once_with(
         "Setting the following participant permissions is not allowed: hidden, recorder, agent."
     )
-
-
-@pytest.mark.parametrize("value", (False, True))
-def test_update_participant_unimplemented_can_subscribe_metrics(value):
-    """Test update participant raises 400 when can_subscribe_metrics is set."""
-    client = APIClient()
-    room = RoomFactory()
-    user = UserFactory()
-    UserResourceAccessFactory(
-        resource=room, user=user, role=random.choice(["administrator", "owner"])
-    )
-    client.force_authenticate(user=user)
-
-    payload = {
-        "participant_identity": str(uuid4()),
-        "permission": {
-            "can_subscribe": True,
-            "can_publish": True,
-            "can_publish_data": True,
-            "can_update_metadata": False,
-            "can_subscribe_metrics": value,
-        },
-    }
-
-    url = reverse("rooms-update-participant", kwargs={"pk": room.id})
-    response = client.post(url, payload, format="json")
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "can_subscribe_metrics" in str(response.data)
 
 
 def test_update_participant_forbidden_without_access():
