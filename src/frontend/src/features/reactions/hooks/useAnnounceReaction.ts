@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { accessibilityStore } from '@/stores/accessibility'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
-import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
-import { Reaction } from '@/stores/reactions'
+
+import { getEmojiLabel } from '../utils'
+import { Reaction } from '../types'
 
 export const useAnnounceReaction = (latestReaction: Reaction | undefined) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })

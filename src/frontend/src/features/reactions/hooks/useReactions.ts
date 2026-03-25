@@ -1,11 +1,12 @@
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Emoji, reactionsStore } from '@/stores/reactions'
+import { reactionsStore } from '@/stores/reactions'
 import { NotificationType } from '@/features/notifications/NotificationType'
-import { ANIMATION_DURATION } from '@/features/rooms/livekit/components/ReactionPortal'
-import useRateLimiter from '@/hooks/useRateLimiter'
 import { useNotifyParticipants } from '@/features/notifications'
+import useRateLimiter from '@/hooks/useRateLimiter'
 import { Participant } from 'livekit-client'
+import { Emoji } from '../types'
+import { ANIMATION_DURATION } from '../constants'
 
 export const useReactions = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })

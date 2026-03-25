@@ -3,14 +3,16 @@ import { useState, useEffect, useMemo } from 'react'
 import { Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
-import { Reaction, reactionsStore } from '@/stores/reactions'
+import { reactionsStore } from '@/stores/reactions'
 import { useAnnounceReaction } from '../hooks/useAnnounceReaction'
-
-export const ANIMATION_DURATION = 3000
-export const ANIMATION_DISTANCE = 300
-export const FADE_OUT_THRESHOLD = 0.7
-export const REACTION_SPAWN_WIDTH_RATIO = 0.2
-export const INITIAL_POSITION = 200
+import { Reaction } from '../types'
+import {
+  ANIMATION_DISTANCE,
+  ANIMATION_DURATION,
+  FADE_OUT_THRESHOLD,
+  INITIAL_POSITION,
+  REACTION_SPAWN_WIDTH_RATIO,
+} from '../constants'
 
 interface FloatingReactionProps {
   emoji: string
@@ -112,7 +114,7 @@ export function FloatingReaction({
   )
 }
 
-export function ReactionPortal({ reaction }: { reaction: Reaction }) {
+const ReactionPortal = ({ reaction }: { reaction: Reaction }) => {
   const speed = useMemo(() => Math.random() * 1.5 + 0.5, [])
   const scale = useMemo(() => Math.max(Math.random() + 0.5, 1), [])
   return createPortal(

@@ -3,7 +3,6 @@ import { ControlBarAuxProps } from './ControlBar'
 import { css } from '@/styled-system/css'
 import { LeaveButton } from '../../components/controls/LeaveButton'
 import { Track } from 'livekit-client'
-import { ReactionsToggle } from '../../components/controls/ReactionsToggle'
 import { HandToggle } from '../../components/controls/HandToggle'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { SubtitlesToggle } from '../../components/controls/SubtitlesToggle'
@@ -15,6 +14,7 @@ import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKey
 import { useFullScreen } from '../../hooks/useFullScreen'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
+import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 
 export function DesktopControlBar({
   onDeviceError,
