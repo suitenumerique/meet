@@ -39,9 +39,7 @@ import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
 import { CarouselLayout } from '@/features/layout/components/CarouselLayout'
 import { GridLayout } from '@/features/layout/components/GridLayout'
-import {
-  RoomContentArea,
-} from '@/features/layout/components/RoomContentArea'
+import { RoomContentArea } from '@/features/layout/components/RoomContentArea'
 
 /**
  * @public
@@ -249,35 +247,34 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             onClose={() => setIsShareErrorVisible(false)}
           />
           <IsIdleDisconnectModal />
-          <RoomContentArea
-          >
-              {!focusTrack ? (
-                <div
-                  className="lk-grid-layout-wrapper"
-                  style={{ height: 'auto' }}
-                >
-                  <GridLayout tracks={tracks} style={{ padding: 0 }}>
+          <RoomContentArea>
+            {!focusTrack ? (
+              <div
+                className="lk-grid-layout-wrapper"
+                style={{ height: 'auto' }}
+              >
+                <GridLayout tracks={tracks} style={{ padding: 0 }}>
+                  <ParticipantTile />
+                </GridLayout>
+              </div>
+            ) : (
+              <div
+                className="lk-focus-layout-wrapper"
+                style={{ height: 'auto' }}
+              >
+                <FocusLayoutContainer style={{ padding: 0 }}>
+                  <CarouselLayout
+                    tracks={carouselTracks}
+                    style={{
+                      minWidth: '200px',
+                    }}
+                  >
                     <ParticipantTile />
-                  </GridLayout>
-                </div>
-              ) : (
-                <div
-                  className="lk-focus-layout-wrapper"
-                  style={{ height: 'auto' }}
-                >
-                  <FocusLayoutContainer style={{ padding: 0 }}>
-                    <CarouselLayout
-                      tracks={carouselTracks}
-                      style={{
-                        minWidth: '200px',
-                      }}
-                    >
-                      <ParticipantTile />
-                    </CarouselLayout>
-                    {focusTrack && <FocusLayout trackRef={focusTrack} />}
-                  </FocusLayoutContainer>
-                </div>
-              )}
+                  </CarouselLayout>
+                  {focusTrack && <FocusLayout trackRef={focusTrack} />}
+                </FocusLayoutContainer>
+              </div>
+            )}
           </RoomContentArea>
           <ControlBar
             onDeviceError={(e) => {

@@ -51,17 +51,20 @@ const StyledSidePanel = ({
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
-      margin: '1.5rem 1.5rem 1.5rem 0',
+      margin: 'var(--sizes-room-side-panel-margin)',
+      marginLeft: 0,
       padding: 0,
       gap: 0,
       right: 0,
       top: 0,
-      bottom: '80px',
-      width: '360px',
+      bottom: 'var(--sizes-room-control-bar)',
+      width: 'var(--sizes-room-side-panel)',
       transition: '.5s cubic-bezier(.4,0,.2,1) 5ms',
     })}
     style={{
-      transform: isClosed ? 'translateX(calc(360px + 1.5rem))' : 'none',
+      transform: isClosed
+        ? 'translateX(calc(var(--sizes-room-side-panel) + var(--sizes-room-side-panel-margin)))'
+        : 'none',
     }}
     aria-hidden={isClosed}
     aria-label={ariaLabel}

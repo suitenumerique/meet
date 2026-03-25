@@ -5,9 +5,8 @@ import { styled } from '@/styled-system/jsx'
 import { cva } from '@/styled-system/css'
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import {Subtitles} from "@/features/subtitle/component/Subtitles";
-import {MainNotificationToast} from "@/features/notifications/MainNotificationToast";
-
+import { Subtitles } from '@/features/subtitle/component/Subtitles'
+import { MainNotificationToast } from '@/features/notifications/MainNotificationToast'
 
 const RoomViewport = styled(
   'div',
@@ -20,10 +19,10 @@ const RoomViewport = styled(
     variants: {
       isSidePanelOpen: {
         true: {
-          inset: `var(--lk-grid-gap) calc(358px + 3rem) calc(80px + var(--lk-grid-gap)) 16px`,
+          inset: `var(--lk-grid-gap) calc(var(--sizes-room-side-panel) + var(--sizes-room-side-panel-margin) * 2) calc(var(--sizes-room-control-bar) + var(--lk-grid-gap)) 16px`,
         },
         false: {
-          inset: `var(--lk-grid-gap) var(--lk-grid-gap) calc(80px + var(--lk-grid-gap))`,
+          inset: `var(--lk-grid-gap) var(--lk-grid-gap) calc(var(--sizes-room-control-bar) + var(--lk-grid-gap))`,
         },
       },
     },
@@ -63,7 +62,7 @@ export function RoomContentArea({ children }: RoomContentAreaProps) {
   return (
     <RoomViewport isSidePanelOpen={isSidePanelOpen}>
       <TrackAreaContainer areSubtitlesOpen={areSubtitlesOpen}>
-          {children}
+        {children}
       </TrackAreaContainer>
       <Subtitles />
       <MainNotificationToast />
