@@ -28,7 +28,9 @@ export const useWatchPermissions = () => {
             name: 'camera' as PermissionName,
           })
         } catch {
-          permissionsStore.cameraPermission = 'prompt'
+          if (!isCancelled) {
+            permissionsStore.cameraPermission = 'prompt'
+          }
         }
 
         try {
@@ -36,7 +38,9 @@ export const useWatchPermissions = () => {
             name: 'microphone' as PermissionName,
           })
         } catch {
-          permissionsStore.microphonePermission = 'prompt'
+          if (!isCancelled) {
+            permissionsStore.microphonePermission = 'prompt'
+          }
         }
 
         if (isCancelled) return
@@ -110,10 +114,15 @@ export const useWatchPermissions = () => {
                 }
 
                 // Stop polling when both permissions are resolved
-                if (
-                  (updatedCameraState ?? 'prompt') !== 'prompt' &&
-                  (updatedMicrophoneState ?? 'prompt') !== 'prompt'
-                ) {
+                // or when both queries are unsupported (both null)
+                const cameraResolved =
+                  updatedCameraState === null ||
+                  updatedCameraState !== 'prompt'
+                const microphoneResolved =
+                  updatedMicrophoneState === null ||
+                  updatedMicrophoneState !== 'prompt'
+
+                if (cameraResolved && microphoneResolved) {
                   if (intervalId) {
                     clearInterval(intervalId)
                     intervalId = undefined
