@@ -530,7 +530,11 @@ def test_start_recording_calls_metadata_collector_start(
     ],
 )
 def test_start_recording_does_not_call_metadata_collector_start_when_conditions_not_met(
-    settings, mock_worker_service_factory, mock_worker_manager, metadata_enabled, transcribe
+    settings,
+    mock_worker_service_factory,
+    mock_worker_manager,
+    metadata_enabled,
+    transcribe,
 ):
     """Should not call MetadataCollectorService.start when conditions are not met."""
     settings.RECORDING_ENABLE = True
@@ -555,7 +559,9 @@ def test_start_recording_does_not_call_metadata_collector_start_when_conditions_
 
         response = client.post(
             f"/api/v1.0/rooms/{room.id}/start-recording/",
-            {"mode": "screen_recording", "options": options} if options else {"mode": "screen_recording"},
+            {"mode": "screen_recording", "options": options}
+            if options
+            else {"mode": "screen_recording"},
             format="json",
         )
 

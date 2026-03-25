@@ -133,7 +133,8 @@ class MetadataCollector:
         self._sessions: dict[str, AgentSession] = {}
         self._tasks: set[asyncio.Task] = set()
 
-        self.output_filename = f"{os.getenv('AWS_S3_OUTPUT_FOLDER', 'metadata')}/{recording_id}-metadata.json"
+        output_folder = os.getenv("AWS_S3_OUTPUT_FOLDER", "metadata")
+        self.output_filename = f"{output_folder}/{recording_id}-metadata.json"
 
         # Storage for events
         self.events = []

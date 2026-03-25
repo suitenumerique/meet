@@ -178,9 +178,8 @@ class LiveKitEventsService:
         except utils.MetadataUpdateException as e:
             logger.exception("Failed to update room's metadata: %s", e)
 
-        if (
-            settings.METADATA_COLLECTOR_ENABLED
-            and recording.options.get("metadata_collector_dispatch_id")
+        if settings.METADATA_COLLECTOR_ENABLED and recording.options.get(
+            "metadata_collector_dispatch_id"
         ):
             try:
                 MetadataCollectorService().stop(recording)
