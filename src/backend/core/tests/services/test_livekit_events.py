@@ -303,14 +303,9 @@ def test_handle_egress_ended_calls_metadata_collector_stop_when_conditions_are_m
 )
 @mock.patch("core.services.livekit_events.MetadataCollectorService")
 @mock.patch("core.utils.update_room_metadata")
-def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditions_not_met(  # noqa: PLR0913
-    mock_update_room_metadata,
-    mock_collector_class,
-    metadata_enabled,
-    options,
-    service,
-    settings,
-):
+def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditions_not_met(
+    _, mock_collector_class, metadata_enabled, options, service, settings
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Should not call MetadataCollectorService.stop when it does not exist."""
     settings.METADATA_COLLECTOR_ENABLED = metadata_enabled
 
