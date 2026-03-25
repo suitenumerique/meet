@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { css } from '@/styled-system/css'
 import { ToggleButton, Button } from '@/primitives'
 
-import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import {
   Popover as RACPopover,
@@ -12,8 +11,9 @@ import {
   DialogTrigger,
 } from 'react-aria-components'
 import { FocusScope } from '@react-aria/focus'
-import { useReactions } from '../../hooks/useReactions'
-import { Emoji } from '@/stores/reactions.ts'
+import { useReactions } from '../hooks/useReactions'
+import { Emoji } from '../types'
+import { getEmojiLabel } from '../utils'
 
 export const ReactionsToggle = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })

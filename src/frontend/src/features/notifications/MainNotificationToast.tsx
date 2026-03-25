@@ -13,8 +13,8 @@ import { WaitingParticipantNotification } from './components/WaitingParticipantN
 import { layoutStore } from '@/stores/layout'
 import { PanelId } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
-import { useReactions } from '@/features/rooms/livekit/hooks/useReactions'
-import { Emoji } from '@/stores/reactions'
+import { Emoji } from '@/features/reactions/types'
+import { useReactions } from '@/features/reactions/hooks/useReactions'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
