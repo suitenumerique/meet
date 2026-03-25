@@ -37,6 +37,12 @@
         "allowedVersions": "<6.0.0"
     },
     {
+        "groupName": "allowed brevo versions",
+        "matchManagers": ["pep621"],
+        "matchPackageNames": ["brevo-python"],
+        "allowedVersions": "<3.0.0"
+    },
+    {
       "enabled": false,
       "groupName": "ignored js dependencies",
       "matchManagers": ["npm"],
