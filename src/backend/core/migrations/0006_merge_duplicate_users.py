@@ -1,7 +1,7 @@
-
 from django.db import migrations
 from django.db.models import Count
 from core.models import RoleChoices
+
 
 def merge_duplicate_user_accounts(apps, schema_editor):
     """Merge user accounts that share the same email address.
@@ -18,34 +18,38 @@ def merge_duplicate_user_accounts(apps, schema_editor):
     on each iteration.
     """
 
-    User = apps.get_model('core', 'User')
-    ResourceAccess = apps.get_model('core', 'ResourceAccess')
+    User = apps.get_model("core", "User")
+    ResourceAccess = apps.get_model("core", "ResourceAccess")
 
     emails_with_duplicates = (
-        User.objects.values('email')
-        .annotate(count=Count('id'))
+        User.objects.values("email")
+        .annotate(count=Count("id"))
         .filter(count__gt=1)
-        .values_list('email', flat=True)
+        .values_list("email", flat=True)
     )
 
     for email in emails_with_duplicates:
         # Keep the oldest user
-        primary_user = User.objects.filter(email=email).order_by('created_at').first()
-        duplicate_user_accounts = User.objects.filter(email=email).exclude(id=primary_user.id)
+        primary_user = User.objects.filter(email=email).order_by("created_at").first()
+        duplicate_user_accounts = User.objects.filter(email=email).exclude(
+            id=primary_user.id
+        )
 
         # Get IDs of duplicate accounts to be merged
-        duplicate_account_ids = list(duplicate_user_accounts.values_list('id', flat=True))
-        resource_accesses_to_transfer = ResourceAccess.objects.filter(user_id__in=duplicate_account_ids)
+        duplicate_account_ids = list(
+            duplicate_user_accounts.values_list("id", flat=True)
+        )
+        resource_accesses_to_transfer = ResourceAccess.objects.filter(
+            user_id__in=duplicate_account_ids
+        )
 
         # Transfer resource access permissions to primary user
         # This process handles role hierarchy where:
         # OWNER > ADMIN > MEMBER
         for resource_access in resource_accesses_to_transfer:
-
             # Determine if primary user already has access to this resource
             existing_primary_access = ResourceAccess.objects.filter(
-                user_id=primary_user.id,
-                resource_id=resource_access.resource.id
+                user_id=primary_user.id, resource_id=resource_access.resource.id
             ).first()
 
             if existing_primary_access:
@@ -79,11 +83,12 @@ def merge_duplicate_user_accounts(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0005_recording_recordingaccess_and_more'),
+        ("core", "0005_recording_recordingaccess_and_more"),
     ]
 
     operations = [
-        migrations.RunPython(merge_duplicate_user_accounts, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(
+            merge_duplicate_user_accounts, reverse_code=migrations.RunPython.noop
+        ),
     ]

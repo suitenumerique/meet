@@ -13,9 +13,11 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 # pylint: disable=too-many-lines
 
 import json
+import warnings
 from os import path
 from socket import gethostbyname, gethostname
 
+from django.utils.deprecation import RemovedInDjango60Warning
 from django.utils.translation import gettext_lazy as _
 
 import sentry_sdk
@@ -26,6 +28,12 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+
+warnings.filterwarnings(
+    "ignore",
+    message=r"The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated\.?",
+    category=RemovedInDjango60Warning,
+)
 
 
 def get_release():

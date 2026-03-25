@@ -5,6 +5,7 @@ from logging import getLogger
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.core.exceptions import FieldError
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -139,11 +140,32 @@ class SerializerPerActionMixin:
 
 
 class Pagination(pagination.PageNumberPagination):
-    """Pagination to display no more than 100 objects per page sorted by creation date."""
+    """Default pagination.
 
-    ordering = "-created_on"
+    DRF's PageNumberPagination does *not* apply ordering by itself. If a view
+    returns an unordered queryset, Django's paginator emits an
+    UnorderedObjectListWarning and pagination results may be inconsistent.
+
+    We keep a conservative fallback: only force an ordering when the queryset
+    is explicitly unordered.
+    """
+
+    ordering = ("-created_at", "-id")
     max_page_size = 100
     page_size_query_param = "page_size"
+
+    def paginate_queryset(self, queryset, request, view=None):
+        """Order unordered querysets to avoid UnorderedObjectListWarning."""
+        if hasattr(queryset, "ordered") and not queryset.ordered:
+            ordering = getattr(view, "pagination_ordering", None) or self.ordering
+            try:
+                if isinstance(ordering, (list, tuple)):
+                    queryset = queryset.order_by(*ordering)
+                else:
+                    queryset = queryset.order_by(ordering)
+            except FieldError:
+                queryset = queryset.order_by("pk")
+        return super().paginate_queryset(queryset, request, view=view)
 
 
 class UserViewSet(
@@ -592,7 +614,15 @@ class RoomViewSet(
                 identity=str(serializer.validated_data["participant_identity"]),
                 track_sid=serializer.validated_data["track_sid"],
             )
-        except ParticipantsManagementException:
+        except ParticipantsManagementException as exc:
+            status_code = getattr(
+                exc, "status_code", drf_status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            if status_code == drf_status.HTTP_404_NOT_FOUND:
+                return drf_response.Response(
+                    {"message": "Participant not found."},
+                    status=drf_status.HTTP_404_NOT_FOUND,
+                )
             return drf_response.Response(
                 {"error": "Failed to mute participant"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -628,7 +658,15 @@ class RoomViewSet(
                 permission=serializer.validated_data.get("permission"),
                 name=serializer.validated_data.get("name"),
             )
-        except ParticipantsManagementException:
+        except ParticipantsManagementException as exc:
+            status_code = getattr(
+                exc, "status_code", drf_status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            if status_code == drf_status.HTTP_404_NOT_FOUND:
+                return drf_response.Response(
+                    {"error": "Participant not found"},
+                    status=drf_status.HTTP_404_NOT_FOUND,
+                )
             return drf_response.Response(
                 {"error": "Failed to update participant"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -660,7 +698,15 @@ class RoomViewSet(
                 room_name=str(room.pk),
                 identity=str(serializer.validated_data["participant_identity"]),
             )
-        except ParticipantsManagementException:
+        except ParticipantsManagementException as exc:
+            status_code = getattr(
+                exc, "status_code", drf_status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            if status_code == drf_status.HTTP_404_NOT_FOUND:
+                return drf_response.Response(
+                    {"error": "Participant not found"},
+                    status=drf_status.HTTP_404_NOT_FOUND,
+                )
             return drf_response.Response(
                 {"error": "Failed to remove participant"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,

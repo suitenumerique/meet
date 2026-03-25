@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0015_application_and_more'),
+        ("core", "0015_application_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='recording',
-            name='options',
-            field=models.JSONField(blank=True, default=dict, help_text='Recording options', verbose_name='Recording options'),
+            model_name="recording",
+            name="options",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="Recording options",
+                verbose_name="Recording options",
+            ),
         ),
     ]

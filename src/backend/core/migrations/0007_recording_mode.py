@@ -4,15 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0006_merge_duplicate_users'),
+        ("core", "0006_merge_duplicate_users"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='recording',
-            name='mode',
-            field=models.CharField(choices=[('screen_recording', 'SCREEN_RECORDING'), ('transcript', 'TRANSCRIPT')], default='screen_recording', help_text='Defines the mode of recording being called.', max_length=20, verbose_name='Recording mode'),
+            model_name="recording",
+            name="mode",
+            field=models.CharField(
+                choices=[
+                    ("screen_recording", "SCREEN_RECORDING"),
+                    ("transcript", "TRANSCRIPT"),
+                ],
+                default="screen_recording",
+                help_text="Defines the mode of recording being called.",
+                max_length=20,
+                verbose_name="Recording mode",
+            ),
         ),
     ]

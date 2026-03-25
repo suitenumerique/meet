@@ -4,19 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0010_alter_resourceaccess_options_alter_user_options'),
+        ("core", "0010_alter_resourceaccess_options_alter_user_options"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='resource',
-            name='is_public',
+            model_name="resource",
+            name="is_public",
         ),
         migrations.AddField(
-            model_name='room',
-            name='access_level',
-            field=models.CharField(choices=[('public', 'Public Access'), ('restricted', 'Restricted Access')], default='public', max_length=50),
+            model_name="room",
+            name="access_level",
+            field=models.CharField(
+                choices=[
+                    ("public", "Public Access"),
+                    ("restricted", "Restricted Access"),
+                ],
+                default="public",
+                max_length=50,
+            ),
         ),
     ]

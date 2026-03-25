@@ -2,8 +2,6 @@
 Test rooms API endpoints in the Meet core app: update.
 """
 
-import random
-
 import pytest
 from rest_framework.test import APIClient
 
@@ -84,7 +82,7 @@ def test_api_rooms_update_administrators():
     user = UserFactory()
     room = RoomFactory(
         access_level=RoomAccessLevel.RESTRICTED,
-        users=[(user, random.choice(["administrator", "owner"]))],
+        users=[(user, "owner")],
     )
     client = APIClient()
     client.force_login(user)
@@ -113,7 +111,7 @@ def test_api_rooms_update_administrators_of_another():
     another room.
     """
     user = UserFactory()
-    RoomFactory(users=[(user, random.choice(["administrator", "owner"]))])
+    RoomFactory(users=[(user, "owner")])
     other_room = RoomFactory(name="Old name")
     client = APIClient()
     client.force_login(user)

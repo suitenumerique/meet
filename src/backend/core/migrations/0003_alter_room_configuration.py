@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0002_create_pg_trgm_extension'),
+        ("core", "0002_create_pg_trgm_extension"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='room',
-            name='configuration',
-            field=models.JSONField(blank=True, default=dict, help_text='Values for Visio parameters to configure the room.', verbose_name='Visio room configuration'),
+            model_name="room",
+            name="configuration",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="Values for Visio parameters to configure the room.",
+                verbose_name="Visio room configuration",
+            ),
         )
     ]

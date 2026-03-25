@@ -142,3 +142,13 @@ python_files = [
     "test_*.py",
     "tests.py",
 ]
+
+DJANGO_SETTINGS_MODULE = "meet.settings"
+DJANGO_CONFIGURATION = "Test"
+
+filterwarnings = [
+    "ignore:The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated:django.utils.deprecation.RemovedInDjango60Warning",
+    "error::DeprecationWarning",
+    "error::django.utils.deprecation.RemovedInDjango60Warning",
+    "error::django.core.paginator.UnorderedObjectListWarning",
+]

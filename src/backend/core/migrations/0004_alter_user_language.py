@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0003_alter_room_configuration'),
+        ("core", "0003_alter_room_configuration"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='language',
-            field=models.CharField(choices="(('en-us', 'English'), ('fr-fr', 'French'))", default='en-us', help_text='The language in which the user wants to see the interface.', max_length=10, verbose_name='language'),
+            model_name="user",
+            name="language",
+            field=models.CharField(
+                choices="(('en-us', 'English'), ('fr-fr', 'French'))",
+                default="en-us",
+                help_text="The language in which the user wants to see the interface.",
+                max_length=10,
+                verbose_name="language",
+            ),
         ),
     ]

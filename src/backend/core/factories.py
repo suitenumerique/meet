@@ -38,14 +38,15 @@ class ResourceFactory(factory.django.DjangoModelFactory):
     @factory.post_generation
     def users(self, create, extracted, **kwargs):
         """Add users to resource from a given list of users."""
-        if create and extracted:
-            for item in extracted:
-                if isinstance(item, models.User):
-                    UserResourceAccessFactory(resource=self, user=item)
-                else:
-                    UserResourceAccessFactory(resource=self, user=item[0], role=item[1])
-
-        self.save()
+        if not create:
+            return
+        if not extracted:
+            return
+        for item in extracted:
+            if isinstance(item, models.User):
+                UserResourceAccessFactory(resource=self, user=item)
+            else:
+                UserResourceAccessFactory(resource=self, user=item[0], role=item[1])
 
 
 class UserResourceAccessFactory(factory.django.DjangoModelFactory):
@@ -64,6 +65,7 @@ class RoomFactory(ResourceFactory):
 
     class Meta:
         model = models.Room
+        skip_postgeneration_save = True
 
     name = factory.Faker("catch_phrase")
     slug = factory.LazyAttribute(lambda o: slugify(o.name))
@@ -85,16 +87,15 @@ class RecordingFactory(factory.django.DjangoModelFactory):
     @factory.post_generation
     def users(self, create, extracted, **kwargs):
         """Add users to recording from a given list of users with or without roles."""
-        if create and extracted:
-            for item in extracted:
-                if isinstance(item, models.User):
-                    UserRecordingAccessFactory(recording=self, user=item)
-                else:
-                    UserRecordingAccessFactory(
-                        recording=self, user=item[0], role=item[1]
-                    )
-
-            self.save()
+        if not create:
+            return
+        if not extracted:
+            return
+        for item in extracted:
+            if isinstance(item, models.User):
+                UserRecordingAccessFactory(recording=self, user=item)
+            else:
+                UserRecordingAccessFactory(recording=self, user=item[0], role=item[1])
 
 
 class UserRecordingAccessFactory(factory.django.DjangoModelFactory):

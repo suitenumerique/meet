@@ -8,15 +8,15 @@ def generate_pin_for_rooms(apps, schema_editor):
     """Generate unique 10-digit PIN codes for existing rooms.
     The PIN code is required for SIP telephony features.
     """
-    Room = apps.get_model('core', 'Room')
+    Room = apps.get_model("core", "Room")
     rooms_without_pin_code = Room.objects.filter(pin_code__isnull=True)
-    existing_pins = set(Room.objects.values_list('pin_code', flat=True))
+    existing_pins = set(Room.objects.values_list("pin_code", flat=True))
 
     length = 10
 
     def generate_pin_code():
         while True:
-            pin_code = str(secrets.randbelow(10 ** length)).zfill(length)
+            pin_code = str(secrets.randbelow(10**length)).zfill(length)
             if pin_code not in existing_pins:
                 return pin_code
 
@@ -25,21 +25,25 @@ def generate_pin_for_rooms(apps, schema_editor):
         room.save()
 
 
-
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0013_alter_user_language'),
+        ("core", "0013_alter_user_language"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='room',
-            name='pin_code',
-            field=models.CharField(blank=True, help_text='Unique n-digit code that identifies this room in telephony mode.', max_length=None, null=True, unique=True, verbose_name='Room PIN code'),
+            model_name="room",
+            name="pin_code",
+            field=models.CharField(
+                blank=True,
+                help_text="Unique n-digit code that identifies this room in telephony mode.",
+                max_length=None,
+                null=True,
+                unique=True,
+                verbose_name="Room PIN code",
+            ),
         ),
         migrations.RunPython(
-            generate_pin_for_rooms,
-            reverse_code=migrations.RunPython.noop
+            generate_pin_for_rooms, reverse_code=migrations.RunPython.noop
         ),
     ]

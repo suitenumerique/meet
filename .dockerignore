@@ -33,4 +33,9 @@ db.sqlite3
 .pytest_cache
 
 # Frontend
-node_modules
+**/node_modules
+**/dist
+**/.next
+**/.vite
+**/.turbo
+**/.cache

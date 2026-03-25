@@ -446,7 +446,7 @@ class Room(Resource):
 
         max_value = 10**length
 
-        for _ in range(settings.ROOM_TELEPHONY_PIN_MAX_RETRIES):
+        for _attempt in range(settings.ROOM_TELEPHONY_PIN_MAX_RETRIES):
             pin_code = str(secrets.randbelow(max_value)).zfill(length)
             if not Room.objects.filter(pin_code=pin_code).exists():
                 return pin_code

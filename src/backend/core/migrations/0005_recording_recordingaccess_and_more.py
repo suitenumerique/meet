@@ -7,61 +7,188 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0004_alter_user_language'),
+        ("core", "0004_alter_user_language"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Recording',
+            name="Recording",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, help_text='primary key for the record as UUID', primary_key=True, serialize=False, verbose_name='id')),
-                ('created_at', models.DateTimeField(auto_now_add=True, help_text='date and time at which a record was created', verbose_name='created on')),
-                ('updated_at', models.DateTimeField(auto_now=True, help_text='date and time at which a record was last updated', verbose_name='updated on')),
-                ('status', models.CharField(choices=[('initiated', 'Initiated'), ('active', 'Active'), ('stopped', 'Stopped'), ('saved', 'Saved'), ('aborted', 'Aborted'), ('failed_to_start', 'Failed to Start'), ('failed_to_stop', 'Failed to Stop')], default='initiated', max_length=20)),
-                ('worker_id', models.CharField(blank=True, help_text='Enter an identifier for the worker recording.This ID is retained even when the worker stops, allowing for easy tracking.', max_length=255, null=True, verbose_name='Worker ID')),
-                ('room', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recordings', to='core.room', verbose_name='Room')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        help_text="primary key for the record as UUID",
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="id",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="date and time at which a record was created",
+                        verbose_name="created on",
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True,
+                        help_text="date and time at which a record was last updated",
+                        verbose_name="updated on",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("initiated", "Initiated"),
+                            ("active", "Active"),
+                            ("stopped", "Stopped"),
+                            ("saved", "Saved"),
+                            ("aborted", "Aborted"),
+                            ("failed_to_start", "Failed to Start"),
+                            ("failed_to_stop", "Failed to Stop"),
+                        ],
+                        default="initiated",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "worker_id",
+                    models.CharField(
+                        blank=True,
+                        help_text="Enter an identifier for the worker recording.This ID is retained even when the worker stops, allowing for easy tracking.",
+                        max_length=255,
+                        null=True,
+                        verbose_name="Worker ID",
+                    ),
+                ),
+                (
+                    "room",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="recordings",
+                        to="core.room",
+                        verbose_name="Room",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Recording',
-                'verbose_name_plural': 'Recordings',
-                'db_table': 'meet_recording',
-                'ordering': ('-created_at',),
+                "verbose_name": "Recording",
+                "verbose_name_plural": "Recordings",
+                "db_table": "meet_recording",
+                "ordering": ("-created_at",),
             },
         ),
         migrations.CreateModel(
-            name='RecordingAccess',
+            name="RecordingAccess",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, help_text='primary key for the record as UUID', primary_key=True, serialize=False, verbose_name='id')),
-                ('created_at', models.DateTimeField(auto_now_add=True, help_text='date and time at which a record was created', verbose_name='created on')),
-                ('updated_at', models.DateTimeField(auto_now=True, help_text='date and time at which a record was last updated', verbose_name='updated on')),
-                ('team', models.CharField(blank=True, max_length=100)),
-                ('role', models.CharField(choices=[('member', 'Member'), ('administrator', 'Administrator'), ('owner', 'Owner')], default='member', max_length=20)),
-                ('recording', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='accesses', to='core.recording')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        help_text="primary key for the record as UUID",
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="id",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="date and time at which a record was created",
+                        verbose_name="created on",
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True,
+                        help_text="date and time at which a record was last updated",
+                        verbose_name="updated on",
+                    ),
+                ),
+                ("team", models.CharField(blank=True, max_length=100)),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("member", "Member"),
+                            ("administrator", "Administrator"),
+                            ("owner", "Owner"),
+                        ],
+                        default="member",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "recording",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="accesses",
+                        to="core.recording",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Recording/user relation',
-                'verbose_name_plural': 'Recording/user relations',
-                'db_table': 'meet_recording_access',
-                'ordering': ('-created_at',),
+                "verbose_name": "Recording/user relation",
+                "verbose_name_plural": "Recording/user relations",
+                "db_table": "meet_recording_access",
+                "ordering": ("-created_at",),
             },
         ),
         migrations.AddConstraint(
-            model_name='recording',
-            constraint=models.UniqueConstraint(condition=models.Q(('status__in', ['active', 'initiated'])), fields=('room',), name='unique_initiated_or_active_recording_per_room'),
+            model_name="recording",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("status__in", ["active", "initiated"])),
+                fields=("room",),
+                name="unique_initiated_or_active_recording_per_room",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='recordingaccess',
-            constraint=models.UniqueConstraint(condition=models.Q(('user__isnull', False)), fields=('user', 'recording'), name='unique_recording_user', violation_error_message='This user is already in this recording.'),
+            model_name="recordingaccess",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("user__isnull", False)),
+                fields=("user", "recording"),
+                name="unique_recording_user",
+                violation_error_message="This user is already in this recording.",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='recordingaccess',
-            constraint=models.UniqueConstraint(condition=models.Q(('team__gt', '')), fields=('team', 'recording'), name='unique_recording_team', violation_error_message='This team is already in this recording.'),
+            model_name="recordingaccess",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("team__gt", "")),
+                fields=("team", "recording"),
+                name="unique_recording_team",
+                violation_error_message="This team is already in this recording.",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='recordingaccess',
-            constraint=models.CheckConstraint(condition=models.Q(models.Q(('team', ''), ('user__isnull', False)), models.Q(('team__gt', ''), ('user__isnull', True)), _connector='OR'), name='check_recording_access_either_user_or_team', violation_error_message='Either user or team must be set, not both.'),
+            model_name="recordingaccess",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    models.Q(("team", ""), ("user__isnull", False)),
+                    models.Q(("team__gt", ""), ("user__isnull", True)),
+                    _connector="OR",
+                ),
+                name="check_recording_access_either_user_or_team",
+                violation_error_message="Either user or team must be set, not both.",
+            ),
         ),
     ]
