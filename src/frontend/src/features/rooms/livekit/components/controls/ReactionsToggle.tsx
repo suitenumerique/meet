@@ -1,15 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { RiEmotionLine } from '@remixicon/react'
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { css } from '@/styled-system/css'
-import { useRoomContext } from '@livekit/components-react'
 import { ToggleButton, Button } from '@/primitives'
-import { NotificationType } from '@/features/notifications/NotificationType'
-import { NotificationPayload } from '@/features/notifications/NotificationPayload'
-import {
-  ANIMATION_DURATION,
-  ReactionPortals,
-} from '@/features/rooms/livekit/components/ReactionPortal'
+
 import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import {
@@ -18,70 +12,18 @@ import {
   DialogTrigger,
 } from 'react-aria-components'
 import { FocusScope } from '@react-aria/focus'
-import { Participant } from 'livekit-client'
-import useRateLimiter from '@/hooks/useRateLimiter'
-
-// eslint-disable-next-line react-refresh/only-export-components
-export enum Emoji {
-  THUMBS_UP = 'thumbs-up',
-  THUMBS_DOWN = 'thumbs-down',
-  CLAP = 'clapping-hands',
-  HEART = 'red-heart',
-  LAUGHING = 'face-with-tears-of-joy',
-  SURPRISED = 'face-with-open-mouth',
-  CELEBRATION = 'party-popper',
-  PLEASE = 'folded-hands',
-}
-
-export interface Reaction {
-  id: number
-  emoji: string
-  participant: Participant
-}
+import { useReactions } from '../../hooks/useReactions'
+import { Emoji } from '@/stores/reactions.ts'
 
 export const ReactionsToggle = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
-  const [reactions, setReactions] = useState<Reaction[]>([])
-  const instanceIdRef = useRef(0)
-  const room = useRoomContext()
-
   const [isOpen, setIsOpen] = useState(false)
+
+  const { sendReaction } = useReactions()
 
   useRegisterKeyboardShortcut({
     id: 'reaction',
     handler: () => setIsOpen((prev) => !prev),
-  })
-
-  const sendReaction = async (emoji: string) => {
-    const encoder = new TextEncoder()
-    const payload: NotificationPayload = {
-      type: NotificationType.ReactionReceived,
-      data: {
-        emoji: emoji,
-      },
-    }
-    const data = encoder.encode(JSON.stringify(payload))
-    await room.localParticipant.publishData(data, { reliable: true })
-
-    const newReaction = {
-      id: instanceIdRef.current++,
-      emoji,
-      participant: room.localParticipant,
-    }
-    setReactions((prev) => [...prev, newReaction])
-
-    // Remove this reaction after animation
-    setTimeout(() => {
-      setReactions((prev) =>
-        prev.filter((instance) => instance.id !== newReaction.id)
-      )
-    }, ANIMATION_DURATION)
-  }
-
-  const debouncedSendReaction = useRateLimiter({
-    callback: sendReaction,
-    maxCalls: 10,
-    windowMs: 1000,
   })
 
   return (
@@ -130,7 +72,7 @@ export const ReactionsToggle = () => {
                   {Object.values(Emoji).map((emoji, index) => (
                     <Button
                       key={index}
-                      onPress={() => debouncedSendReaction(emoji)}
+                      onPress={() => sendReaction(emoji)}
                       aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
                       variant="primaryTextDark"
                       size="sm"
@@ -155,7 +97,6 @@ export const ReactionsToggle = () => {
           </RACPopover>
         </DialogTrigger>
       </div>
-      <ReactionPortals reactions={reactions} />
     </>
   )
 }
