@@ -1,26 +1,28 @@
 import { useEffect } from 'react'
 import { keyboardShortcutsStore } from '@/stores/keyboardShortcuts'
 import { formatShortcutKey } from '@/features/shortcuts/utils'
-import { Shortcut } from '@/features/shortcuts/types'
+import { ShortcutId, getShortcutDescriptorById } from './catalog'
 
 export type useRegisterKeyboardShortcutProps = {
-  shortcut?: Shortcut
+  id?: ShortcutId
   handler: () => Promise<void | boolean | undefined> | void
   isDisabled?: boolean
 }
 
 export const useRegisterKeyboardShortcut = ({
-  shortcut,
+  id,
   handler,
   isDisabled = false,
 }: useRegisterKeyboardShortcutProps) => {
   useEffect(() => {
-    if (!shortcut) return
-    const formattedKey = formatShortcutKey(shortcut)
+    if (!id) return
+    const descriptor = getShortcutDescriptorById(id)
+    if (!descriptor?.shortcut) return
+    const formattedKey = formatShortcutKey(descriptor.shortcut)
     if (isDisabled) {
       keyboardShortcutsStore.shortcuts.delete(formattedKey)
     } else {
       keyboardShortcutsStore.shortcuts.set(formattedKey, handler)
     }
-  }, [handler, shortcut, isDisabled])
+  }, [handler, id, isDisabled])
 }

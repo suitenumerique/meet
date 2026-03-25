@@ -115,6 +115,10 @@ class RoomAdmin(admin.ModelAdmin):
     list_filter = ["access_level", "created_at"]
     readonly_fields = ["id", "created_at", "updated_at"]
 
+    def get_queryset(self, request):
+        """Optimize queries by prefetching related access and user data to avoid N+1 queries."""
+        return super().get_queryset(request).prefetch_related("accesses__user")
+
     def get_owner(self, obj):
         """Return the owner of the room for display in the admin list."""
 
@@ -138,6 +142,7 @@ class RecordingAccessInline(admin.TabularInline):
 
     model = models.RecordingAccess
     extra = 0
+    autocomplete_fields = ["user"]
 
 
 @admin.action(description=_("Resend notification to external service"))
@@ -192,6 +197,38 @@ def resend_notification(modeladmin, request, queryset):  # pylint: disable=unuse
         )
 
 
+@admin.action(description=_("Mark selected recordings as 'Failed to Stop'"))
+def mark_as_failed_to_stop(modeladmin, request, queryset):
+    """Force selected recordings status to failed_to_stop."""
+
+    eligible_statuses = [
+        models.RecordingStatusChoices.ACTIVE,
+        models.RecordingStatusChoices.INITIATED,
+        models.RecordingStatusChoices.STOPPED,
+    ]
+
+    eligible = queryset.filter(status__in=eligible_statuses)
+    skipped = queryset.exclude(status__in=eligible_statuses).count()
+
+    updated = eligible.update(status=models.RecordingStatusChoices.FAILED_TO_STOP)
+
+    if updated > 0:
+        modeladmin.message_user(
+            request,
+            _("%(count)s recording(s) successfully marked as 'Failed to Stop'.")
+            % {"count": updated},
+            level=messages.SUCCESS,
+        )
+
+    if skipped > 0:
+        modeladmin.message_user(
+            request,
+            _("Skipped %(count)s recording(s) with an ineligible status.")
+            % {"count": skipped},
+            level=messages.WARNING,
+        )
+
+
 @admin.register(models.Recording)
 class RecordingAdmin(admin.ModelAdmin):
     """Recording admin interface declaration."""
@@ -207,9 +244,19 @@ class RecordingAdmin(admin.ModelAdmin):
         "created_at",
         "worker_id",
     )
-    list_filter = ["status", "room", "created_at"]
-    readonly_fields = ["id", "created_at", "updated_at"]
-    actions = [resend_notification]
+    list_filter = ["created_at"]
+    list_select_related = ("room",)
+    readonly_fields = (
+        "id",
+        "created_at",
+        "options",
+        "mode",
+        "room",
+        "status",
+        "updated_at",
+        "worker_id",
+    )
+    actions = [resend_notification, mark_as_failed_to_stop]
 
     def get_queryset(self, request):
         """Optimize queries by prefetching related access and user data to avoid N+1 queries."""
@@ -261,7 +308,7 @@ class ApplicationAdmin(admin.ModelAdmin):
 
     form = ApplicationAdminForm
 
-    list_display = ("id", "name", "client_id", "get_scopes_display")
+    list_display = ("id", "name", "client_id", "get_scopes_display", "is_active")
     fields = [
         "name",
         "id",
@@ -270,6 +317,7 @@ class ApplicationAdmin(admin.ModelAdmin):
         "scopes",
         "client_id",
         "client_secret",
+        "is_active",
     ]
     readonly_fields = ["id", "created_at", "updated_at"]
     inlines = [ApplicationDomainInline]

@@ -25,6 +25,7 @@
     "heading": "Vérifier votre code de réunion",
     "body": "Vérifiez que vous avez saisi le code de réunion correct dans l'URL. Exemple :"
   },
+  "selected": "sélectionné",
   "submit": "OK",
   "footer": {
     "links": {
@@ -45,13 +46,14 @@
     "license": "licence etalab 2.0"
   },
   "loginHint": {
-    "title": "Connectez-vous avec votre compte ProConnect",
-    "body": "Au lieu de patienter, connectez-vous avec votre compte ProConnect.",
+    "title": "Connectez-vous avec votre compte",
+    "body": "Au lieu de patienter, connectez-vous avec votre compte.",
     "button": {
       "ariaLabel": "Fermer la suggestion",
       "label": "OK"
     }
   },
+  "skipLink": "Aller au contenu principal",
   "clipboardContent": {
     "url": "Pour participer à la visioconférence, cliquez sur ce lien : {{roomUrl}}",
     "numberAndPin": "Pour participer par téléphone, composez le {{phoneNumber}} et saisissez ce code : {{pinCode}}"

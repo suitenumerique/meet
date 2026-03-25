@@ -1,17 +1,26 @@
 """API endpoints"""
+# pylint: disable=too-many-lines
 
 import uuid
 from logging import getLogger
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from django.conf import settings
-from django.core.exceptions import FieldError
+from django.core.files.storage import default_storage
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
-from rest_framework import decorators, mixins, pagination, throttling, viewsets
+from django_filters import rest_framework as django_filters
+from rest_framework import (
+    decorators,
+    filters,
+    mixins,
+    pagination,
+    viewsets,
+)
 from rest_framework import (
     exceptions as drf_exceptions,
 )
@@ -23,10 +32,13 @@ from rest_framework import (
 )
 
 from core import enums, models, utils
+from core.api.filters import ListFileFilter
+from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import StorageEventAuthentication
 from core.recording.event.exceptions import (
     InvalidBucketError,
+    InvalidFilepathError,
     InvalidFileTypeError,
     ParsingEventDataError,
 )
@@ -57,9 +69,10 @@ from core.services.participants_management import (
 )
 from core.services.room_creation import RoomCreation
 from core.services.subtitle import SubtitleException, SubtitleService
+from core.tasks.file import process_file_deletion
 
 from ..authentication.livekit import LiveKitTokenAuthentication
-from . import permissions, serializers
+from . import permissions, serializers, throttling
 from .feature_flag import FeatureFlag
 
 # pylint: disable=too-many-ancestors
@@ -78,20 +91,20 @@ class NestedGenericViewSet(viewsets.GenericViewSet):
     lookup_fields: list[str] = ["pk"]
     lookup_url_kwargs: list[str] = []
 
-    def __getattribute__(self, item):
+    def __getattribute__(self, file):
         """
         This method is overridden to allow to get the last lookup field or lookup url kwarg
         when accessing the `lookup_field` or `lookup_url_kwarg` attribute. This is useful
         to keep compatibility with all methods used by the parent class `GenericViewSet`.
         """
-        if item in ["lookup_field", "lookup_url_kwarg"]:
-            return getattr(self, item + "s", [None])[-1]
+        if file in ["lookup_field", "lookup_url_kwarg"]:
+            return getattr(self, file + "s", [None])[-1]
 
-        return super().__getattribute__(item)
+        return super().__getattribute__(file)
 
     def get_queryset(self):
         """
-        Get the list of items for this view.
+        Get the list of files for this view.
 
         `lookup_fields` attribute is enumerated here to perform the nested lookup.
         """
@@ -140,32 +153,11 @@ class SerializerPerActionMixin:
 
 
 class Pagination(pagination.PageNumberPagination):
-    """Default pagination.
+    """Pagination to display no more than 100 objects per page sorted by creation date."""
 
-    DRF's PageNumberPagination does *not* apply ordering by itself. If a view
-    returns an unordered queryset, Django's paginator emits an
-    UnorderedObjectListWarning and pagination results may be inconsistent.
-
-    We keep a conservative fallback: only force an ordering when the queryset
-    is explicitly unordered.
-    """
-
-    ordering = ("-created_at", "-id")
+    ordering = "-created_on"
     max_page_size = 100
     page_size_query_param = "page_size"
-
-    def paginate_queryset(self, queryset, request, view=None):
-        """Order unordered querysets to avoid UnorderedObjectListWarning."""
-        if hasattr(queryset, "ordered") and not queryset.ordered:
-            ordering = getattr(view, "pagination_ordering", None) or self.ordering
-            try:
-                if isinstance(ordering, (list, tuple)):
-                    queryset = queryset.order_by(*ordering)
-                else:
-                    queryset = queryset.order_by(ordering)
-            except FieldError:
-                queryset = queryset.order_by("pk")
-        return super().paginate_queryset(queryset, request, view=view)
 
 
 class UserViewSet(
@@ -213,18 +205,6 @@ class UserViewSet(
         )
 
 
-class RequestEntryAnonRateThrottle(throttling.AnonRateThrottle):
-    """Throttle Anonymous user requesting room entry"""
-
-    scope = "request_entry"
-
-
-class CreationCallbackAnonRateThrottle(throttling.AnonRateThrottle):
-    """Throttle Anonymous user requesting room generation callback"""
-
-    scope = "creation_callback"
-
-
 class RoomViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
@@ -235,6 +215,7 @@ class RoomViewSet(
     API endpoints to access and perform actions on rooms.
     """
 
+    pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
@@ -330,12 +311,14 @@ class RoomViewSet(
             )
 
         mode = serializer.validated_data["mode"]
-        options = serializer.validated_data["options"]
+        options = serializer.validated_data.get("options")
         room = self.get_object()
 
         # May raise exception if an active or initiated recording already exist for the room
         recording = models.Recording.objects.create(
-            room=room, mode=mode, options=options
+            room=room,
+            mode=mode,
+            options=options.model_dump(exclude_none=True) if options else {},
         )
 
         models.RecordingAccess.objects.create(
@@ -401,7 +384,10 @@ class RoomViewSet(
         methods=["post"],
         url_path="request-entry",
         permission_classes=[],
-        throttle_classes=[RequestEntryAnonRateThrottle],
+        throttle_classes=[
+            throttling.RequestEntryAuthenticatedUserRateThrottle,
+            throttling.RequestEntryAnonRateThrottle,
+        ],
     )
     def request_entry(self, request, pk=None):  # pylint: disable=unused-argument
         """Request entry to a room"""
@@ -502,16 +488,14 @@ class RoomViewSet(
             if status_code == drf_status.HTTP_500_INTERNAL_SERVER_ERROR:
                 raise e
 
-            return drf_response.Response(
-                {"status": "error", "message": str(e)}, status=status_code
-            )
+            return drf_response.Response({"status": "error"}, status=status_code)
 
     @decorators.action(
         detail=False,
         methods=["post"],
         url_path="creation-callback",
         permission_classes=[],
-        throttle_classes=[CreationCallbackAnonRateThrottle],
+        throttle_classes=[throttling.CreationCallbackAnonRateThrottle],
     )
     def creation_callback(self, request):
         """Retrieve cached room data via an unauthenticated request with a unique ID.
@@ -614,15 +598,7 @@ class RoomViewSet(
                 identity=str(serializer.validated_data["participant_identity"]),
                 track_sid=serializer.validated_data["track_sid"],
             )
-        except ParticipantsManagementException as exc:
-            status_code = getattr(
-                exc, "status_code", drf_status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-            if status_code == drf_status.HTTP_404_NOT_FOUND:
-                return drf_response.Response(
-                    {"message": "Participant not found."},
-                    status=drf_status.HTTP_404_NOT_FOUND,
-                )
+        except ParticipantsManagementException:
             return drf_response.Response(
                 {"error": "Failed to mute participant"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -649,24 +625,18 @@ class RoomViewSet(
         serializer = serializers.UpdateParticipantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        permission = serializer.validated_data.get("permission")
+
         try:
             ParticipantsManagement().update(
                 room_name=str(room.pk),
                 identity=str(serializer.validated_data["participant_identity"]),
                 metadata=serializer.validated_data.get("metadata"),
                 attributes=serializer.validated_data.get("attributes"),
-                permission=serializer.validated_data.get("permission"),
+                permission=permission.model_dump() if permission else None,
                 name=serializer.validated_data.get("name"),
             )
-        except ParticipantsManagementException as exc:
-            status_code = getattr(
-                exc, "status_code", drf_status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-            if status_code == drf_status.HTTP_404_NOT_FOUND:
-                return drf_response.Response(
-                    {"error": "Participant not found"},
-                    status=drf_status.HTTP_404_NOT_FOUND,
-                )
+        except ParticipantsManagementException:
             return drf_response.Response(
                 {"error": "Failed to update participant"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -698,15 +668,7 @@ class RoomViewSet(
                 room_name=str(room.pk),
                 identity=str(serializer.validated_data["participant_identity"]),
             )
-        except ParticipantsManagementException as exc:
-            status_code = getattr(
-                exc, "status_code", drf_status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-            if status_code == drf_status.HTTP_404_NOT_FOUND:
-                return drf_response.Response(
-                    {"error": "Participant not found"},
-                    status=drf_status.HTTP_404_NOT_FOUND,
-                )
+        except ParticipantsManagementException:
             return drf_response.Response(
                 {"error": "Failed to remove participant"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -793,14 +755,19 @@ class RecordingViewSet(
             recording_id = parser.get_recording_id(request.data)
 
         except ParsingEventDataError as e:
-            raise drf_exceptions.PermissionDenied(f"Invalid request data: {e}") from e
+            raise drf_exceptions.PermissionDenied("Invalid request data.") from e
 
         except InvalidBucketError as e:
-            raise drf_exceptions.PermissionDenied("Invalid bucket specified") from e
+            raise drf_exceptions.PermissionDenied("Invalid bucket specified.") from e
 
-        except InvalidFileTypeError as e:
+        except InvalidFilepathError:
             return drf_response.Response(
-                {"message": f"Ignore this file type, {e}"},
+                {"message": "Notification ignored."},
+            )
+
+        except InvalidFileTypeError:
+            return drf_response.Response(
+                {"message": "Notification ignored."},
             )
 
         try:
@@ -847,7 +814,7 @@ class RecordingViewSet(
         # Extract the original URL from the request header
         original_url = request.META.get("HTTP_X_ORIGINAL_URL")
         if not original_url:
-            logger.debug("Missing HTTP_X_ORIGINAL_URL header in subrequest")
+            logger.warning("Missing HTTP_X_ORIGINAL_URL header in subrequest")
             raise drf_exceptions.PermissionDenied()
 
         logger.debug("Original url: '%s'", original_url)
@@ -864,7 +831,7 @@ class RecordingViewSet(
         try:
             return match.groupdict()
         except (ValueError, AttributeError) as exc:
-            logger.debug("Failed to extract parameters from subrequest URL: %s", exc)
+            logger.warning("Failed to extract parameters from subrequest URL: %s", exc)
             raise drf_exceptions.PermissionDenied() from exc
 
     @decorators.action(detail=False, methods=["get"], url_path="media-auth")
@@ -888,7 +855,7 @@ class RecordingViewSet(
         recording_id = url_params["recording_id"]
 
         extension = url_params["extension"]
-        if extension not in [item.value for item in FileExtension]:
+        if extension not in [file.value for file in FileExtension]:
             raise drf_exceptions.ValidationError({"detail": "Unsupported extension."})
 
         try:
@@ -910,5 +877,326 @@ class RecordingViewSet(
             raise drf_exceptions.PermissionDenied()
 
         request = utils.generate_s3_authorization_headers(recording.key)
+
+        return drf_response.Response("authorized", headers=request.headers, status=200)
+
+
+# pylint: disable=too-many-public-methods
+class FileViewSet(
+    SerializerPerActionMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    FileViewSet API.
+
+    This viewset provides CRUD operations and additional actions for managing files.
+
+    ### API Endpoints:
+    1. **List**: Retrieve a paginated list of files.
+       Example: GET /files/?page=2
+    2. **Retrieve**: Get a specific file by its ID.
+       Example: GET /files/{id}/
+    3. **Create**: Create a new file.
+       Example: POST /files/
+    4. **Update**: Update a file by its ID.
+       Example: PUT /files/{id}/
+    5. **Delete**: Soft delete a file by its ID.
+       Example: DELETE /files/{id}/
+
+
+    ### Ordering: created_at, updated_at, title
+
+        Example:
+        - Ascending: GET /api/v1.0/files/?ordering=created_at
+
+    ### Filtering:
+        - `is_creator_me=true`: Returns files created by the current user.
+        - `is_creator_me=false`: Returns files created by other users.
+        - `is_deleted=false`: Returns files that are not (soft) deleted
+
+        Example:
+        - GET /api/v1.0/files/?is_creator_me=true
+        - GET /api/v1.0/files/?is_creator_me=false&is_deleted=false
+
+    ### Notes:
+    - Implements soft delete logic to retain file
+    """
+
+    ordering = ["-updated_at"]
+    ordering_fields = ["created_at", "updated_at", "title"]
+    pagination_class = Pagination
+    permission_classes = [
+        permissions.FilePermission,
+    ]
+    queryset = models.File.objects.filter(hard_deleted_at__isnull=True)
+    default_serializer_class = serializers.FileSerializer
+    serializer_classes = {
+        "list": serializers.ListFileSerializer,
+        "create": serializers.CreateFileSerializer,
+    }
+    filter_backends = (django_filters.DjangoFilterBackend, filters.OrderingFilter)
+    filterset_class = ListFileFilter
+
+    def get_queryset(self):
+        """Get queryset that defaults to the current request user."""
+        user = self.request.user
+        queryset = super().get_queryset().select_related("creator")
+
+        if not user.is_authenticated:
+            return queryset.none()
+
+        # For now, we force the filtering on the current user in all cases, might evolve later
+        queryset = queryset.filter(creator=user)
+        return queryset
+
+    def get_response_for_queryset(self, queryset, context=None):
+        """Return paginated response for the queryset if requested."""
+        context = context or self.get_serializer_context()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context=context)
+            result = self.get_paginated_response(serializer.data)
+            return result
+
+        serializer = self.get_serializer(queryset, many=True, context=context)
+        return drf_response.Response(serializer.data)
+
+    def perform_create(self, serializer):
+        """Set the current user as creator of the newly created file."""
+
+        if settings.FILE_UPLOAD_APPLY_RESTRICTIONS:
+            file_type = serializer.validated_data["type"]
+            config_for_file_type = settings.FILE_UPLOAD_RESTRICTIONS[file_type]
+
+            count = models.File.objects.filter(
+                creator=self.request.user,
+                deleted_at__isnull=True,
+                type=file_type,
+            ).count()
+
+            if count >= config_for_file_type["max_count_by_user"]:
+                logger.info(
+                    "create_item: user reached max files per user for type %s",
+                    file_type,
+                )
+                raise serializers.PermissionDenied(
+                    _("You have reached the maximum number of files for this type.")
+                )
+
+        serializer.save(creator=self.request.user)
+
+    def perform_destroy(self, instance):
+        """Override to implement a soft delete instead of dumping the record in database."""
+        instance.soft_delete()
+
+    @decorators.action(detail=True, methods=["post"], url_path="upload-ended")
+    @FeatureFlag.require("file_upload")
+    def upload_ended(self, request, *args, **kwargs):
+        """
+        Check the actual uploaded file and mark it as ready.
+        """
+
+        file = self.get_object()
+
+        if not file.is_pending_upload:
+            raise drf_exceptions.ValidationError(
+                {"file": "This action is only available for files in PENDING state."},
+                code="file_upload_state_not_pending",
+            )
+
+        s3_client = default_storage.connection.meta.client
+
+        head_response = s3_client.head_object(
+            Bucket=default_storage.bucket_name, Key=file.file_key
+        )
+        file_size = head_response["ContentLength"]
+
+        if settings.FILE_UPLOAD_APPLY_RESTRICTIONS:
+            config_for_file_type = settings.FILE_UPLOAD_RESTRICTIONS[file.type]
+            if file_size > config_for_file_type["max_size"]:
+                self._complete_file_deletion(file)
+                logger.info(
+                    "upload_ended: file size (%s) for file %s higher than the allowed max size",
+                    file_size,
+                    file.file_key,
+                )
+                raise drf_exceptions.ValidationError(
+                    detail="The file size is higher than the allowed max size.",
+                    code="file_size_exceeded",
+                )
+
+        # python-magic recommends using at least the first 2048 bytes
+        # to reduce incorrect identification.
+        # This is a tradeoff between pulling in the whole file and the most likely relevant bytes
+        # of the file for mime type identification.
+        if file_size > 2048:
+            range_response = s3_client.get_object(
+                Bucket=default_storage.bucket_name,
+                Key=file.file_key,
+                Range="bytes=0-2047",
+            )
+            file_head = range_response["Body"].read()
+        else:
+            file_head = s3_client.get_object(
+                Bucket=default_storage.bucket_name, Key=file.file_key
+            )["Body"].read()
+
+        # Use improved MIME type detection combining magic bytes and file extension
+        logger.info("upload_ended: detecting mimetype for file: %s", file.file_key)
+        mimetype = utils.detect_mimetype(file_head, filename=file.filename)
+
+        if settings.FILE_UPLOAD_APPLY_RESTRICTIONS:
+            config_for_file_type = settings.FILE_UPLOAD_RESTRICTIONS[file.type]
+            allowed_file_mimetypes = config_for_file_type["allowed_mimetypes"]
+            if mimetype not in allowed_file_mimetypes:
+                self._complete_file_deletion(file)
+                logger.warning(
+                    "upload_ended: mimetype not allowed %s for file %s",
+                    mimetype,
+                    file.file_key,
+                )
+                raise drf_exceptions.ValidationError(
+                    detail="The file type is not allowed.",
+                    code="file_type_not_allowed",
+                )
+
+        file.upload_state = models.FileUploadStateChoices.READY
+        file.mimetype = mimetype
+        file.size = file_size
+
+        file.save(update_fields=["upload_state", "mimetype", "size"])
+
+        if head_response["ContentType"] != mimetype:
+            logger.info(
+                "upload_ended: content type mismatch between object storage and file,"
+                " updating from %s to %s",
+                head_response["ContentType"],
+                mimetype,
+            )
+            s3_client.copy_object(
+                Bucket=default_storage.bucket_name,
+                Key=file.file_key,
+                CopySource={
+                    "Bucket": default_storage.bucket_name,
+                    "Key": file.file_key,
+                },
+                ContentType=mimetype,
+                Metadata=head_response["Metadata"],
+                MetadataDirective="REPLACE",
+            )
+
+        # Not yet implemented
+        # Change the file.upload_state when this will be done
+        # malware_detection.analyse_file(file.file_key, file_id=file.id)
+
+        serializer = self.get_serializer(file)
+
+        return drf_response.Response(serializer.data, status=drf_status.HTTP_200_OK)
+
+    def _complete_file_deletion(self, file):
+        """Delete a file completely."""
+        file.soft_delete()
+        file.hard_delete()
+        process_file_deletion.delay(file.id)
+
+    def _authorize_subrequest(self, request, pattern):
+        """
+        Authorize access based on the original URL of an Nginx subrequest
+        and user permissions. Returns a dictionary of URL parameters if authorized.
+
+        The original url is passed by nginx in the "HTTP_X_ORIGINAL_URL" header.
+        See corresponding ingress configuration in Helm chart and read about the
+        nginx.ingress.kubernetes.io/auth-url annotation to understand how the Nginx ingress
+        is configured to do this.
+
+        Based on the original url and the logged in user, we must decide if we authorize Nginx
+        to let this request go through (by returning a 200 code) or if we block it (by returning
+        a 403 error). Note that we return 403 errors without any further details for security
+        reasons.
+
+        Parameters:
+        - pattern: The regex pattern to extract identifiers from the URL.
+
+        Returns:
+        - A dictionary of URL parameters if the request is authorized.
+        Raises:
+        - PermissionDenied if authorization fails.
+        """
+        # Extract the original URL from the request header
+        original_url = request.META.get("HTTP_X_ORIGINAL_URL")
+        if not original_url:
+            logger.warning("Missing HTTP_X_ORIGINAL_URL header in subrequest")
+            raise drf_exceptions.PermissionDenied()
+
+        parsed_url = urlparse(original_url)
+        match = pattern.search(unquote(parsed_url.path))
+
+        if not match:
+            logger.warning(
+                "Subrequest URL '%s' did not match pattern '%s'",
+                parsed_url.path,
+                pattern,
+            )
+            raise drf_exceptions.PermissionDenied()
+
+        try:
+            url_params = match.groupdict()
+        except (ValueError, AttributeError) as exc:
+            logger.warning("Failed to extract parameters from subrequest URL: %s", exc)
+            raise drf_exceptions.PermissionDenied() from exc
+
+        pk = url_params.get("pk")
+        if not pk:
+            logger.warning("File ID (pk) not found in URL parameters: %s", url_params)
+            raise drf_exceptions.PermissionDenied()
+
+        # Fetch the file and check if the user has access
+        queryset = models.File.objects.all()
+        # No suspicious analysis implemented yet
+        # queryset = self._filter_suspicious_files(queryset, request.user)
+        try:
+            file = queryset.get(pk=pk)
+        except models.File.DoesNotExist as exc:
+            logger.warning("File with ID '%s' does not exist", pk)
+            raise drf_exceptions.PermissionDenied() from exc
+
+        user_abilities = file.get_abilities(request.user)
+        if not user_abilities.get(self.action, False):
+            logger.warning(
+                "User '%s' lacks permission for file '%s'", request.user.id, pk
+            )
+            raise drf_exceptions.PermissionDenied()
+
+        logger.debug(
+            "Subrequest authorization successful. Extracted parameters: %s", url_params
+        )
+        return url_params, request.user.id, file
+
+    @decorators.action(detail=False, methods=["get"], url_path="media-auth")
+    @FeatureFlag.require("file_upload")
+    def media_auth(self, request, *args, **kwargs):
+        """
+        This view is used by an Nginx subrequest to control access to an file's
+        attachment file.
+
+        When we let the request go through, we compute authorization headers that will be added to
+        the request going through thanks to the nginx.ingress.kubernetes.io/auth-response-headers
+        annotation. The request will then be proxied to the object storage backend who will
+        respond with the file after checking the signature included in headers.
+        """
+        url_params, _, file = self._authorize_subrequest(
+            request, MEDIA_STORAGE_URL_PATTERN
+        )
+
+        if file.is_pending_upload:
+            logger.warning("File '%s' is not ready", file.id)
+            raise drf_exceptions.PermissionDenied()
+
+        # Generate S3 authorization headers using the extracted URL parameters
+        request = utils.generate_s3_authorization_headers(f"{url_params.get('key'):s}")
 
         return drf_response.Response("authorized", headers=request.headers, status=200)

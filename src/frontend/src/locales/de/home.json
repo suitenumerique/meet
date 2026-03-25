@@ -1,58 +1,62 @@
 {
   "createMeeting": "Meeting erstellen",
   "heading": "Einfache und sichere Videokonferenzen",
-  "intro": "Kommunizieren und arbeiten Sie mühelos, ohne Ihre digitale Souveränität zu gefährden",
-  "joinInputError": "Verwenden Sie einen Meeting-Link oder -Code. Beispiele:",
+  "intro": "Kommuniziere und arbeite mühelos, ohne deine digitale Souveränität zu gefährden",
+  "joinInputError": "Verwende einen Meeting-Link oder -Code. Beispiele:",
   "joinInputExample": "URL oder 10-stelliger Code",
   "joinInputLabel": "Meeting-Link",
   "joinInputSubmit": "Meeting beitreten",
   "joinMeeting": "Meeting beitreten",
-  "joinMeetingTipContent": "Sie können einem Meeting beitreten, indem Sie den vollständigen Link in die Adressleiste Ihres Browsers einfügen.",
-  "joinMeetingTipHeading": "Wussten Sie schon?",
-  "loginToCreateMeeting": "Melden Sie sich an, um ein Meeting zu erstellen",
-  "moreLinkLabel": "Mehr erfahren – neues Tab",
+  "joinMeetingTipContent": "Du kannst einem Meeting beitreten, indem du den vollständigen Link in die Adressleiste deines Browsers einfügst.",
+  "joinMeetingTipHeading": "Wusstest du schon?",
+  "loginToCreateMeeting": "Melde dich an, um ein Meeting zu erstellen",
+  "moreLinkLabel": "Mehr über {{appTitle}} erfahren – neuer Tab",
   "moreLink": "Mehr erfahren",
   "moreAbout": "über {{appTitle}}",
   "createMenu": {
     "laterOption": "Meeting für später planen",
-    "instantOption": "Sofort-Meeting starten"
+    "instantOption": "Meeting sofort starten"
   },
   "laterMeetingDialog": {
-    "heading": "Ihre Zugangsdaten",
-    "description": "Teilen Sie diese Informationen mit den Gästen. Sie können dem Meeting beitreten, ohne sich anmelden zu müssen. Dieses Meeting ist dauerhaft und kann wiederverwendet werden.",
+    "heading": "Zugangsdaten",
+    "description": "Teile diese Informationen mit den Gästen. Sie können dem Meeting beitreten, ohne sich anmelden zu müssen. Dieses Meeting ist dauerhaft und kann wiederverwendet werden.",
     "permissions": "Personen mit diesem Link benötigen keine Genehmigung, um diesem Meeting beizutreten.",
     "copy": "Informationen kopieren",
     "copied": "Informationen kopiert",
     "copyUrl": "Meeting-Link kopieren",
     "phone": {
-      "call": "Rufen Sie an:",
+      "call": "Ruf an:",
       "pinCode": "Code:"
     }
   },
   "introSlider": {
     "previous": {
-      "label": "Zurück",
-      "tooltip": "Zurück"
+      "label": "Vorherige Folie",
+      "labelWithPosition": "Vorherige Folie ({{current}} von {{total}})",
+      "tooltip": "Vorherige Folie"
     },
     "next": {
-      "label": "Weiter",
-      "tooltip": "Weiter"
+      "label": "Nächste Folie",
+      "labelWithPosition": "Nächste Folie ({{current}} von {{total}})",
+      "tooltip": "Nächste Folie"
     },
     "beta": {
       "text": "An der Beta teilnehmen",
       "tooltip": "Formular ausfüllen"
     },
     "slide1": {
-      "title": "Wechseln Sie zur Einfachheit. Testen Sie uns jetzt!",
-      "body": "Entdecken Sie eine intuitive und zugängliche Lösung, entwickelt für alle Mitarbeitenden im öffentlichen Dienst, ihre Partner und viele weitere."
+      "title": "Mach Schluss mit kompliziert – probier uns jetzt aus!",
+      "body": "Entdecke eine intuitive und leicht zugängliche Lösung, entwickelt für alle Mitarbeitenden im öffentlichen Dienst, ihre Partner und viele weitere."
     },
     "slide2": {
-      "title": "Gruppenanrufe ohne Einschränkungen",
-      "body": "Unbegrenzte Meeting-Dauer mit flüssiger, hochwertiger Kommunikation – unabhängig von der Gruppengröße."
+      "title": "Gruppenmeetings ohne Einschränkungen",
+      "body": "Unbegrenzte Meeting-Dauer mit flüssiger Kommunikation in hoher Qualität – unabhängig von der Gruppengröße."
     },
     "slide3": {
-      "title": "Verwandeln Sie Ihre Meetings mit KI",
-      "body": "Erhalten Sie präzise und verwertbare Transkripte zur Steigerung Ihrer Produktivität. Funktion in der Beta – jetzt testen!"
-    }
+      "title": "Verwandele deine Meetings mit KI",
+      "body": "Erhalte präzise und verwertbare Transkripte zur Steigerung deiner Produktivität. Beta-Funktion – jetzt testen!"
+    },
+    "carouselLabel": "Einführungs-Diashow",
+    "slidePosition": "Folie {{current}} von {{total}}"
   }
 }

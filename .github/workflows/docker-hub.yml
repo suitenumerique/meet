@@ -12,6 +12,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: read
+
 env:
   DOCKER_USER: 1001:127
   DOCKER_CONTAINER_REGISTRY_HOSTNAME: docker.io
@@ -20,10 +23,18 @@ env:
 jobs:
   build-and-push-backend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -49,6 +60,7 @@ jobs:
         with:
           context: .
           target: backend-production
+          platforms: linux/amd64,linux/arm64
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -56,10 +68,18 @@ jobs:
 
   build-and-push-frontend-generic:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -86,6 +106,7 @@ jobs:
           context: .
           file: ./src/frontend/Dockerfile
           target: frontend-production
+          platforms: linux/amd64,linux/arm64
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -93,10 +114,18 @@ jobs:
 
   build-and-push-frontend-dinum:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -123,6 +152,7 @@ jobs:
           context: .
           file: ./docker/dinum-frontend/Dockerfile
           target: frontend-production
+          platforms: linux/amd64,linux/arm64
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -130,10 +160,18 @@ jobs:
 
   build-and-push-summary:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -162,6 +200,7 @@ jobs:
           context: ./src/summary
           file: ./src/summary/Dockerfile
           target: production
+          platforms: linux/amd64,linux/arm64
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -169,10 +208,18 @@ jobs:
 
   build-and-push-agents:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       -
         name: Docker meta
         id: meta
@@ -201,12 +248,15 @@ jobs:
           context: ./src/agents
           file: ./src/agents/Dockerfile
           target: production
+          platforms: linux/amd64,linux/arm64
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   notify-argocd:
+    permissions:
+      contents: read
     needs:
       - build-and-push-frontend-generic
       - build-and-push-frontend-dinum

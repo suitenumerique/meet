@@ -2,12 +2,73 @@ import { proxy, subscribe } from 'valtio'
 import { STORAGE_KEYS } from '@/utils/storageKeys'
 import { deserializeToProxyMap } from '@/utils/valtio'
 
+export type CaptionTextSize = 'small' | 'medium' | 'large'
+
+export const CAPTION_TEXT_SIZE_OPTIONS: CaptionTextSize[] = [
+  'small',
+  'medium',
+  'large',
+]
+
+export type CaptionColor =
+  | 'default'
+  | 'white'
+  | 'black'
+  | 'blue'
+  | 'green'
+  | 'red'
+  | 'yellow'
+  | 'cyan'
+  | 'magenta'
+
+export const CAPTION_COLOR_OPTIONS: CaptionColor[] = [
+  'default',
+  'white',
+  'black',
+  'blue',
+  'green',
+  'red',
+  'yellow',
+  'cyan',
+  'magenta',
+]
+
+export const CAPTION_FONT_COLOR_VALUES: Record<CaptionColor, string> = {
+  default: '#FFFFFF',
+  white: '#FFFFFF',
+  black: '#000000',
+  blue: '#0000FF',
+  green: '#00FF00',
+  red: '#FF0000',
+  yellow: '#FFFF00',
+  cyan: '#00FFFF',
+  magenta: '#FF00FF',
+}
+
+export const CAPTION_BACKGROUND_COLOR_VALUES: Record<CaptionColor, string> = {
+  default: 'rgba(0, 0, 0, 0.75)',
+  black: 'rgba(0, 0, 0, 0.75)',
+  white: 'rgba(255, 255, 255, 0.75)',
+  blue: 'rgba(0, 0, 255, 0.75)',
+  green: 'rgba(0, 255, 0, 0.75)',
+  red: 'rgba(255, 0, 0, 0.75)',
+  yellow: 'rgba(255, 255, 0, 0.75)',
+  cyan: 'rgba(0, 255, 255, 0.75)',
+  magenta: 'rgba(255, 0, 255, 0.75)',
+}
+
 type AccessibilityState = {
   announceReactions: boolean
+  captionTextSize: CaptionTextSize
+  captionFontColor: CaptionColor
+  captionBackgroundColor: CaptionColor
 }
 
 const DEFAULT_STATE: AccessibilityState = {
   announceReactions: false,
+  captionTextSize: 'medium',
+  captionFontColor: 'default',
+  captionBackgroundColor: 'default',
 }
 
 function getAccessibilityState(): AccessibilityState {
@@ -15,6 +76,21 @@ function getAccessibilityState(): AccessibilityState {
     const stored = localStorage.getItem(STORAGE_KEYS.ACCESSIBILITY)
     if (stored) {
       const parsed = JSON.parse(stored)
+      const captionTextSize = CAPTION_TEXT_SIZE_OPTIONS.includes(
+        parsed.captionTextSize
+      )
+        ? parsed.captionTextSize
+        : DEFAULT_STATE.captionTextSize
+      const captionFontColor = CAPTION_COLOR_OPTIONS.includes(
+        parsed.captionFontColor
+      )
+        ? parsed.captionFontColor
+        : DEFAULT_STATE.captionFontColor
+      const captionBackgroundColor = CAPTION_COLOR_OPTIONS.includes(
+        parsed.captionBackgroundColor
+      )
+        ? parsed.captionBackgroundColor
+        : DEFAULT_STATE.captionBackgroundColor
       return {
         ...DEFAULT_STATE,
         ...parsed,
@@ -22,6 +98,9 @@ function getAccessibilityState(): AccessibilityState {
           typeof parsed.announceReactions === 'boolean'
             ? parsed.announceReactions
             : DEFAULT_STATE.announceReactions,
+        captionTextSize,
+        captionFontColor,
+        captionBackgroundColor,
       }
     }
 

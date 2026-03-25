@@ -80,6 +80,7 @@ backend:
     AWS_S3_SECRET_ACCESS_KEY: password
     AWS_STORAGE_BUCKET_NAME: meet-media-storage
     AWS_S3_REGION_NAME: local
+    MEDIA_BASE_URL: https://meet.127.0.0.1.nip.io
     RECORDING_ENABLE: True
     RECORDING_STORAGE_EVENT_ENABLE: True
     RECORDING_STORAGE_EVENT_TOKEN: password
@@ -93,7 +94,7 @@ backend:
         key: BREVO_API_KEY
     BREVO_API_CONTACT_LIST_IDS: 8
     ROOM_TELEPHONY_ENABLED: True
-    SSL_CERT_FILE: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
+    SSL_CERT_FILE: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
 
 
   migrate:
@@ -122,7 +123,7 @@ backend:
   # Extra volume mounts to manage our local custom CA and avoid to set ssl_verify: false
   extraVolumeMounts:
     - name: certs
-      mountPath: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
+      mountPath: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
       subPath: cacert.pem
 
   # Extra volumes to manage our local custom CA and avoid to set ssl_verify: false
@@ -153,6 +154,10 @@ ingress:
   host: meet.127.0.0.1.nip.io
 
 ingressAdmin:
+  enabled: true
+  host: meet.127.0.0.1.nip.io
+
+ingressWebhook:
   enabled: true
   host: meet.127.0.0.1.nip.io
 

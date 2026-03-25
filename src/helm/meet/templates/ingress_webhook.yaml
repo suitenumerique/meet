@@ -1,0 +1,90 @@
+{{- if .Values.ingressWebhook.enabled -}}
+{{- $fullName := include "meet.fullname" . -}}
+{{- if and .Values.ingressWebhook.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.ingressWebhook.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.ingressWebhook.annotations "kubernetes.io/ingress.class" .Values.ingressWebhook.className}}
+  {{- end }}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-webhook
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "meet.labels" . | nindent 4 }}
+  {{- with .Values.ingressWebhook.annotations }}
+  annotations:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.ingressWebhook.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.ingressWebhook.className }}
+  {{- end }}
+  {{- if .Values.ingressWebhook.tls.enabled }}
+  tls:
+    {{- if .Values.ingressWebhook.host }}
+    - secretName: {{ .Values.ingressWebhook.tls.secretName | default (printf "%s-tls" $fullName) | quote }}
+      hosts:
+        - {{ .Values.ingressWebhook.host | quote }}
+    {{- end }}
+    {{- range .Values.ingressWebhook.tls.additional }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- if .Values.ingressWebhook.host }}
+    - host: {{ .Values.ingressWebhook.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingressWebhook.path }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Exact
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ include "meet.backend.fullname" . }}
+                port:
+                  number: {{ .Values.backend.service.port }}
+              {{- else }}
+              serviceName: {{ include "meet.backend.fullname" . }}
+              servicePort: {{ .Values.backend.service.port }}
+            {{- end }}
+          {{- with .Values.ingressWebhook.customBackends }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+    {{- end }}
+    {{- range .Values.ingressWebhook.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingressWebhook.path }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
+            pathType: Exact
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ include "meet.backend.fullname" $ }}
+                port:
+                  number: {{ $.Values.backend.service.port }}
+              {{- else }}
+              serviceName: {{ include "meet.backend.fullname" $ }}
+              servicePort: {{ $.Values.backend.service.port }}
+            {{- end }}
+          {{- with $.Values.ingressWebhook.customBackends }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+

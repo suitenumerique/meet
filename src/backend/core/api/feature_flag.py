@@ -13,6 +13,7 @@ class FeatureFlag:
         "recording": "RECORDING_ENABLE",
         "storage_event": "RECORDING_STORAGE_EVENT_ENABLE",
         "subtitle": "ROOM_SUBTITLE_ENABLED",
+        "file_upload": "FILE_UPLOAD_ENABLED",
     }
 
     @classmethod

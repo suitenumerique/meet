@@ -22,6 +22,8 @@
       "permissionsNeeded": "Selecteer camera - Toestemming vereist",
       "disable": "Camera uitschakelen",
       "enable": "Camera inschakelen",
+      "turnedOff": "Camera uitgeschakeld",
+      "turnedOn": "Camera ingeschakeld",
       "label": "Camera",
       "placeholder": "Schakel de camera in om de preview te zien"
     },
@@ -30,6 +32,8 @@
       "permissionsNeeded": "Selecteer microfoon - Toestemming vereist",
       "disable": "Microfoon dempen",
       "enable": "Microfoon dempen opheffen",
+      "turnedOff": "Microfoon uitgeschakeld",
+      "turnedOn": "Microfoon ingeschakeld",
       "label": "Microfoon"
     },
     "audiooutput": {
@@ -154,7 +158,9 @@
   "isIdleDisconnectModal": {
     "title": "Ben je er nog?",
     "body": "Je bent de enige deelnemer. Dit gesprek wordt over {{duration}} beëindigd. Wil je het gesprek voortzetten?",
-    "settings": "Om dit bericht niet meer te zien, ga naar Instellingen > Algemeen.",
+    "settingsPrefix": "Om dit bericht niet meer te zien, ga naar",
+    "settingsLink": "Instellingen > Algemeen",
+    "settingsSuffix": ".",
     "stayButton": "Gesprek voortzetten",
     "leaveButton": "Nu verlaten",
     "countdownAnnouncement": "Het gesprek eindigt over {{duration}}."
@@ -267,15 +273,37 @@
       "title": "Virtuele achtergrond",
       "selectedLabel": "Achtergrond toegepast:",
       "apply": "Vervang je achtergrond:",
-      "descriptions": {
-        "0": "Geprofileerd houten meubel",
-        "1": "Vergaderruimte",
-        "2": "Loft met zwarte glaswand",
-        "3": "Eetkamer",
-        "4": "Houten planken",
-        "5": "Houten trap",
-        "6": "Grijze bibliotheek",
-        "7": "Koffiebar"
+      "personal": {
+        "title": "Mijn achtergronden",
+        "selectFileTooltip": "Selecteer een afbeeldingsbestand om te gebruiken als persoonlijke achtergrond",
+        "notLoggedInWarning": "U bent niet ingelogd, persoonlijke achtergronden worden niet opgeslagen van de ene vergadering naar de andere.",
+        "warningUploadDisabled": "Persoonlijke achtergronden worden momenteel niet opgeslagen van de ene vergadering naar de andere.",
+        "uploadLimitReached": "U kunt geen persoonlijke achtergronden meer uploaden.",
+        "uploadInProgress": "Afbeelding wordt geüpload…",
+        "errors": {
+          "close": "Sluiten",
+          "file_too_large": {
+            "title": "Bestand te groot",
+            "description": "Het bestand is te groot. Kies een bestand kleiner dan {{maxSize, number}} MB."
+          },
+          "invalid_file_type": {
+            "title": "Ongeldig bestandstype",
+            "description": "Het bestandstype wordt niet ondersteund. Kies een {{allowedExtension, list(type: 'disjunction')}} bestand."
+          }
+        }
+      },
+      "presets": {
+        "title": "Suggesties",
+        "descriptions": {
+          "0": "Geprofileerd houten meubel",
+          "1": "Vergaderruimte",
+          "2": "Loft met zwarte glaswand",
+          "3": "Eetkamer",
+          "4": "Houten planken",
+          "5": "Houten trap",
+          "6": "Grijze bibliotheek",
+          "7": "Koffiebar"
+        }
       }
     },
     "faceLandmarks": {
@@ -291,7 +319,7 @@
     }
   },
   "sidePanel": {
-    "ariaLabel": "Zijbalk",
+    "ariaLabel": "Zijbalk - {{title}}",
     "backToTools": "Terug naar vergadertools",
     "heading": {
       "participants": "Deelnemers",
@@ -316,19 +344,21 @@
     "closeButton": "Verberg {{content}}"
   },
   "chat": {
-    "disclaimer": "De berichten zijn alleen voor de deelnemers zichtbaar op het moment dat ze worden verzonden. Alle berichten worden verwijderd aan het einde van het gesprek."
+    "disclaimer": "De berichten zijn alleen voor de deelnemers zichtbaar op het moment dat ze worden verzonden. Alle berichten worden verwijderd aan het einde van het gesprek.",
+    "messagesLog": "Chatberichten"
   },
   "moreTools": {
     "body": "Je krijgt toegang tot meer tools om je vergaderingen te verbeteren.",
-    "moreLink": "Lees meer",
+    "linkAriaLabel": "Documentatie over tools openen - opent in nieuw venster",
+    "moreLink": "Documentatie openen",
     "tools": {
       "transcript": {
         "title": "Transcriberen",
-        "body": "Het gesprek opnemen."
+        "body": "Zet vergaderingen om in tekst."
       },
       "screenRecording": {
         "title": "Opnemen",
-        "body": "De vergadering opnemen."
+        "body": "Sla vergaderingen op als video."
       }
     }
   },
@@ -364,11 +394,13 @@
       "starting": "Wordt gestart…",
       "anotherModeStarted": "Er loopt een opname. <br/> Ga naar het menu en stop deze."
     },
-    "linkMore": "Meer informatie",
+    "linkMore": "Documentatie openen",
+    "linkAriaLabel": "Documentatie over transcriptie openen - opent in nieuw venster",
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een transcriptie starten (beta).",
-      "linkMore": "Meer informatie",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over transcriptietoegang openen - opent in nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
@@ -383,7 +415,8 @@
     "premium": {
       "heading": "Premiumfunctie",
       "body": "Deze functie is voorbehouden aan openbare medewerkers. Als uw e-mailadres niet is toegestaan, neem dan contact op met de support om toegang te krijgen.",
-      "linkMore": "Meer informatie",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over premiumtoegang openen - opent in nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
@@ -400,7 +433,8 @@
     "heading": "Neem dit gesprek op voor later",
     "body": "Neem tot {{max_duration}} van de vergadering op.",
     "bodyWithoutMaxDuration": "Neem je vergadering onbeperkt op.",
-    "linkMore": "Meer informatie",
+    "linkMore": "Documentatie openen",
+    "linkAriaLabel": "Documentatie over opname openen - opent in nieuw venster",
     "details": {
       "receiver": "De opname wordt verzonden naar de organisator en co-organisatoren.",
       "destination": "Deze opname wordt tijdelijk op onze servers bewaard",
@@ -418,7 +452,8 @@
     "notAdminOrOwner": {
       "heading": "Toegang beperkt",
       "body": "Om veiligheidsredenen kan alleen de maker of een beheerder van de vergadering een opname starten (beta).",
-      "linkMore": "Meer informatie",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over opnametoegang openen - opent in nieuw venster",
       "dividerLabel": "OF",
       "login": {
         "heading": "Inloggen vereist",
@@ -584,7 +619,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Opties voor {{name}}",
-    "toolbarHint": "F2: naar de werkbalk onderaan.",
+    "toolbarHint": "{{shortcut}}: direct toegang tot de sneltoetsen.",
     "pin": {
       "enable": "Pinnen",
       "disable": "Losmaken"
@@ -592,6 +627,41 @@
     "effects": "Pas visuele effecten toe",
     "muteParticipant": "Demp {{name}}",
     "fullScreen": "Volledig scherm"
+  },
+  "shortcutsPanel": {
+    "title": "Sneltoetsen",
+    "categories": {
+      "navigation": "Navigatie",
+      "media": "Media",
+      "interaction": "Interactie"
+    },
+    "actions": {
+      "open-shortcuts": "Sneltoetsenhulp openen",
+      "focus-toolbar": "Focus op de onderste werkbalk",
+      "toggle-microphone": "Microfoon aan/uit",
+      "toggle-camera": "Camera aan/uit",
+      "push-to-talk": "Push-to-talk (ingedrukt houden om te activeren)",
+      "reaction": "Reactiepaneel",
+      "fullscreen": "Volledig scherm wisselen",
+      "recording": "Opnamepaneel wisselen",
+      "raise-hand": "Hand opsteken of laten zakken",
+      "toggle-chat": "Chat tonen/verbergen",
+      "toggle-participants": "Deelnemers tonen/verbergen",
+      "open-shortcuts-settings": "Sneltoets-instellingen openen"
+    },
+    "sr": {
+      "control": "Control",
+      "command": "Command",
+      "alt": "Alt",
+      "option": "Option",
+      "shift": "Shift",
+      "plus": "plus",
+      "hold": "Houd {{key}} ingedrukt",
+      "noShortcut": "Geen sneltoets"
+    },
+    "visual": {
+      "hold": "Houd {{key}} ingedrukt"
+    }
   },
   "fullScreenWarning": {
     "message": "Om niet oneindige uw scherm in zichzelf te delen, kunt u beter niet het hele scherm delen. Deel in plaats daarvan een tab of een ander venster.",

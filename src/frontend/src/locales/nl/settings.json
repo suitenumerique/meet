@@ -100,6 +100,11 @@
       }
     }
   },
+  "shortcuts": {
+    "listLabel": "Sneltoetsen",
+    "columnAction": "Actie",
+    "columnShortcut": "Sneltoets"
+  },
   "dialog": {
     "heading": "Instellingen"
   },
@@ -108,12 +113,58 @@
     "label": "Taal"
   },
   "settingsButtonLabel": "Instellingen",
+  "accessibility": {
+    "announceReactions": {
+      "label": "Reacties hardop aankondigen"
+    },
+    "captions": {
+      "heading": "Ondertitels",
+      "textSize": {
+        "label": "Ondertiteltekstgrootte",
+        "options": {
+          "small": "Klein",
+          "medium": "Gemiddeld",
+          "large": "Groot"
+        }
+      },
+      "fontColor": {
+        "label": "Tekstkleur",
+        "options": {
+          "default": "Standaard",
+          "white": "Wit",
+          "black": "Zwart",
+          "blue": "Blauw",
+          "green": "Groen",
+          "red": "Rood",
+          "yellow": "Geel",
+          "cyan": "Cyaan",
+          "magenta": "Magenta"
+        }
+      },
+      "backgroundColor": {
+        "label": "Achtergrondkleur",
+        "options": {
+          "default": "Standaard",
+          "white": "Wit",
+          "black": "Zwart",
+          "blue": "Blauw",
+          "green": "Groen",
+          "red": "Rood",
+          "yellow": "Geel",
+          "cyan": "Cyaan",
+          "magenta": "Magenta"
+        }
+      }
+    }
+  },
   "tabs": {
     "account": "Profiel",
     "audio": "Audio",
     "video": "Video",
     "general": "Algemeen",
     "notifications": "Meldingen",
-    "transcription": "Transcriptie"
+    "accessibility": "Toegankelijkheid",
+    "transcription": "Transcriptie",
+    "shortcuts": "Sneltoetsen"
   }
 }

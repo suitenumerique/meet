@@ -1,7 +1,7 @@
 """Application configuration and settings."""
 
 from functools import lru_cache
-from typing import Annotated, List, Optional, Set
+from typing import Annotated, List, Literal, Optional, Set
 
 from fastapi import Depends
 from pydantic import SecretStr
@@ -51,7 +51,6 @@ class Settings(BaseSettings):
 
     # Transcription processing
     hallucination_patterns: List[str] = ["Vap'n'Roll Thierry"]
-    hallucination_replacement_text: str = "[Texte impossible à transcrire]"
 
     # Webhook-related settings
     webhook_max_retries: int = 2
@@ -60,11 +59,10 @@ class Settings(BaseSettings):
     webhook_api_token: SecretStr
     webhook_url: str
 
+    # Locale
+    default_context_language: Literal["de", "en", "fr", "nl"] = "fr"
+
     # Output related settings
-    document_default_title: Optional[str] = "Transcription"
-    document_title_template: Optional[str] = (
-        'Réunion "{room}" du {room_recording_date} à {room_recording_time}'
-    )
     summary_title_template: Optional[str] = "Résumé de {title}"
 
     # Summary related settings

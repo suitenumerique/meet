@@ -5,6 +5,7 @@ import { layoutStore } from '@/stores/layout'
 import { useSnapshot } from 'valtio'
 import { Footer } from '@/layout/Footer'
 import { ScreenReaderAnnouncer } from '@/primitives'
+import { SkipLink, MAIN_CONTENT_ID } from './SkipLink'
 
 export type Layout = 'fullpage' | 'centered'
 
@@ -21,6 +22,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
 
   return (
     <>
+      {showHeader && <SkipLink />}
       <div
         className={css({
           display: 'flex',
@@ -35,6 +37,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
       >
         {showHeader && <Header />}
         <main
+          id={MAIN_CONTENT_ID}
           className={css({
             flexGrow: 1,
             overflow: 'auto',

@@ -138,7 +138,9 @@ export const Field = <T extends object>({
   const LabelAndDescription = (
     <>
       <StyledLabel {...props.labelProps}>{label}</StyledLabel>
-      <FieldDescription slot="description">{description}</FieldDescription>
+      {description ? (
+        <FieldDescription slot="description">{description}</FieldDescription>
+      ) : null}
     </>
   )
   const RACFieldErrors = (

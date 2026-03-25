@@ -190,6 +190,7 @@ paths:
         '403':
           $ref: '#/components/responses/ForbiddenError'
 
+  /rooms/:
     post:
       tags:
         - Rooms

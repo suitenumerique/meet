@@ -9,6 +9,8 @@ from typing import Any, Dict, Optional, Protocol
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from core.enums import FILE_EXT_REGEX, UUID_REGEX
+
 from .exceptions import (
     InvalidBucketError,
     InvalidFilepathError,
@@ -86,7 +88,7 @@ class MinioParser:
 
         # pylint: disable=line-too-long
         self._filepath_regex = re.compile(
-            r"(?P<url_encoded_folder_path>(?:[^%]+%2F)+)?(?P<recording_id>[0-9a-fA-F\-]{36})\.(?P<extension>[a-zA-Z0-9]+)"
+            rf"(?P<url_encoded_folder_path>(?:[^%]+%2F)+)?{settings.RECORDING_OUTPUT_FOLDER}%2F(?P<recording_id>{UUID_REGEX})\.(?P<extension>{FILE_EXT_REGEX})"
         )
 
     @staticmethod

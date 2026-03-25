@@ -2,8 +2,11 @@
 Core application factories
 """
 
+from io import BytesIO
+
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
+from django.core.files.storage import default_storage
 from django.utils.text import slugify
 
 import factory.fuzzy
@@ -127,7 +130,7 @@ class ApplicationFactory(factory.django.DjangoModelFactory):
         model = models.Application
 
     name = factory.Faker("company")
-    active = True
+    is_active = True
     client_id = factory.LazyFunction(utils.generate_client_id)
     client_secret = factory.LazyFunction(utils.generate_client_secret)
     scopes = []
@@ -154,3 +157,42 @@ class ApplicationDomainFactory(factory.django.DjangoModelFactory):
 
     domain = factory.Faker("domain_name")
     application = factory.SubFactory(ApplicationFactory)
+
+
+class FileFactory(factory.django.DjangoModelFactory):
+    """A factory to create files"""
+
+    class Meta:
+        model = models.File
+        skip_postgeneration_save = True
+
+    title = factory.Sequence(lambda n: f"file{n}")
+    creator = factory.SubFactory(UserFactory)
+    deleted_at = None
+    type = factory.fuzzy.FuzzyChoice([t[0] for t in models.FileTypeChoices.choices])
+    filename = factory.lazy_attribute(lambda o: fake.file_name())
+    upload_state = None
+    size = None
+
+    @factory.post_generation
+    def update_upload_state(self, create, extracted, **kwargs):
+        """Change the upload state of a file."""
+        if create and extracted:
+            self.upload_state = extracted
+            self.save()
+
+    @factory.post_generation
+    def upload_bytes(self, create, extracted, **kwargs):
+        """Save content of the file into the storage"""
+        if create and extracted is not None:
+            content = (
+                extracted
+                if isinstance(extracted, bytes)
+                else str(extracted).encode("utf-8")
+            )
+
+            self.filename = kwargs.get("filename", self.filename or "content.txt")
+            self.size = len(content)
+            self.save()
+
+            default_storage.save(self.file_key, BytesIO(content))

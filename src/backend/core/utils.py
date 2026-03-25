@@ -7,6 +7,8 @@ Utils functions used in the core app
 
 import hashlib
 import json
+import logging
+import mimetypes
 import random
 import secrets
 import string
@@ -17,7 +19,9 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 
 import aiohttp
+import boto3
 import botocore
+import magic
 from asgiref.sync import async_to_sync
 from livekit.api import (  # pylint: disable=E0611
     AccessToken,
@@ -28,6 +32,8 @@ from livekit.api import (  # pylint: disable=E0611
     UpdateRoomMetadataRequest,
     VideoGrants,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def generate_color(identity: str) -> str:
@@ -344,3 +350,108 @@ def generate_room_slug():
         for size in sizes
     ]
     return "-".join(parts)
+
+
+def detect_mimetype(file_buffer: bytes, filename: str | None = None) -> str:
+    """
+    Detect MIME type using multiple methods for better accuracy.
+
+    This function combines:
+    1. Magic bytes detection (python-magic) - most reliable for actual file content
+    2. File extension detection (mimetypes) - useful as fallback or for validation
+
+    Args:
+        file_buffer: The file content buffer (first bytes of the file)
+        filename: Optional filename to extract extension from
+
+    Returns:
+        str: The detected MIME type
+
+    Notes:
+        Originally from https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L166 # pylint:disable=line-too-long
+    """
+    # Initialize magic detector
+    mime_detector = magic.Magic(mime=True)
+
+    # Method 1: Detect from file content (magic bytes) - most reliable
+    mimetype_from_content = mime_detector.from_buffer(file_buffer)
+
+    # If we have a filename, try extension-based detection as well
+    mimetype_from_extension = None
+    if filename:
+        # Use mimetypes module to guess from extension
+        # Use guess_file_type (Python 3.13+) instead of deprecated guess_type
+        mimetype_from_extension, _ = mimetypes.guess_file_type(filename, strict=False)
+
+    logger.debug("detect_mimetype: mimetype_from_content: %s", mimetype_from_content)
+    logger.debug(
+        "detect_mimetype: mimetype_from_extension: %s", mimetype_from_extension
+    )
+
+    # Strategy: Prefer content-based detection, but use extension if:
+    # 1. Content detection returns generic types (application/octet-stream, text/plain)
+    # 2. Content detection fails or returns None
+    # 3. Extension detection provides a more specific type
+
+    # Generic/unreliable MIME types that we should try to improve
+    generic_types = {
+        "application/octet-stream",
+        "application/x-ole-storage",  # used by .xls, .doc and .ppt
+        "application/zip",
+        "text/plain",
+    }
+
+    # If content detection gives us a generic type and we have extension info
+    if mimetype_from_content in generic_types and mimetype_from_extension:
+        # Use extension-based detection if it's more specific
+        if mimetype_from_extension not in generic_types:
+            return mimetype_from_extension
+
+    # If content detection failed, returned None or is a generic type, use extension if available
+    if not mimetype_from_content or mimetype_from_content in generic_types:
+        if mimetype_from_extension:
+            return mimetype_from_extension
+
+    # Default to content-based detection (most reliable)
+    return mimetype_from_content or "application/octet-stream"
+
+
+def generate_upload_policy(file):
+    """
+    Generate a S3 upload policy for a given file.
+
+    Notes:
+        Originally taken from https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L102  # pylint: disable=line-too-long
+    """
+
+    key = file.file_key
+
+    # This settings should be used if the backend application and the frontend application
+    # can't connect to the object storage with the same domain. This is the case in the
+    # docker compose stack used in development. The frontend application will use localhost
+    # to connect to the object storage while the backend application will use the object storage
+    # service name declared in the docker compose stack.
+    # This is needed because the domain name is used to compute the signature. So it can't be
+    # changed dynamically by the frontend application.
+    if settings.AWS_S3_DOMAIN_REPLACE:
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
+            endpoint_url=settings.AWS_S3_DOMAIN_REPLACE,
+            config=botocore.client.Config(
+                region_name=settings.AWS_S3_REGION_NAME,
+                signature_version=settings.AWS_S3_SIGNATURE_VERSION,
+            ),
+        )
+    else:
+        s3_client = default_storage.connection.meta.client
+
+    # Generate the policy
+    policy = s3_client.generate_presigned_url(
+        ClientMethod="put_object",
+        Params={"Bucket": default_storage.bucket_name, "Key": key, "ACL": "private"},
+        ExpiresIn=settings.AWS_S3_UPLOAD_POLICY_EXPIRATION,
+    )
+
+    return policy

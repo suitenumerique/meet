@@ -22,7 +22,7 @@ import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 export function useGridLayout(
   /** HTML element that contains the grid. */
   gridElement: React.RefObject<HTMLDivElement>,
-  /** Count of tracks that should get layed out */
+  /** Count of tracks that should get laid out */
   trackCount: number,
   options: {
     gridLayouts?: GridLayoutDefinition[]

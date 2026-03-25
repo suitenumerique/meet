@@ -1,17 +1,17 @@
 {
   "feedback": {
     "heading": {
-      "normal": "Sie haben das Meeting verlassen",
-      "duplicateIdentity": "Sie haben dem Meeting von einem anderen Gerät aus beigetreten",
-      "participantRemoved": "Sie wurden von einem Administrator aus dem Anruf entfernt"
+      "normal": "Du hast das Meeting verlassen",
+      "duplicateIdentity": "Du bist dem Meeting von einem anderen Gerät aus beigetreten",
+      "participantRemoved": "Du wurdest von der*dem Organisator:in aus dem Meeting entfernt"
     },
     "home": "Zur Startseite zurückkehren",
     "back": "Dem Meeting erneut beitreten"
   },
   "selectDevice": {
     "loading": "Laden…",
-    "select": "Wählen Sie einen Wert",
-    "permissionsNeeded": "Genehmigung erforderlich",
+    "select": "Wähle einen Wert",
+    "permissionsNeeded": "Berechtigung erforderlich",
     "settings": {
       "audio": "Audioeinstellungen",
       "video": "Videoeinstellungen"
@@ -19,44 +19,48 @@
     "effects": "Effekte anwenden",
     "videoinput": {
       "choose": "Kamera auswählen",
-      "permissionsNeeded": "Kamera auswählen - genehmigung erforderlich",
+      "permissionsNeeded": "Kamera auswählen – Berechtigung erforderlich",
       "disable": "Kamera deaktivieren",
       "enable": "Kamera aktivieren",
+      "turnedOff": "Kamera deaktiviert",
+      "turnedOn": "Kamera aktiviert",
       "label": "Kamera",
       "placeholder": "Kamera aktivieren, um die Vorschau zu sehen"
     },
     "audioinput": {
       "choose": "Mikrofon auswählen",
-      "permissionsNeeded": "Mikrofon auswählen - genehmigung erforderlich",
+      "permissionsNeeded": "Mikrofon auswählen – Berechtigung erforderlich",
       "disable": "Mikrofon deaktivieren",
       "enable": "Mikrofon aktivieren",
+      "turnedOff": "Mikrofon deaktiviert",
+      "turnedOn": "Mikrofon aktiviert",
       "label": "Mikrofon"
     },
     "audiooutput": {
-      "choose": "Lautsprecher auswählen",
-      "permissionsNeeded": "Lautsprecher auswählen - genehmigung erforderlich"
+      "choose": "Audioausgabe auswählen",
+      "permissionsNeeded": "Audioausgabe auswählen – Berechtigung erforderlich"
     }
   },
   "join": {
     "effects": {
       "description": "Effekte anwenden",
       "title": "Effekte",
-      "subTitle": "Konfigurieren Sie die Effekte Ihrer Kamera."
+      "subTitle": "Konfiguriere die Effekte deiner Kamera."
     },
     "heading": "Dem Meeting beitreten?",
     "joinLabel": "Beitreten",
     "joinMeeting": "Meeting beitreten",
     "toggleOff": "Klicken, um auszuschalten",
     "toggleOn": "Klicken, um einzuschalten",
-    "usernameHint": "Wird anderen Teilnehmern angezeigt",
-    "usernameLabel": "Ihr Name",
+    "usernameHint": "Wird anderen Teilnehmenden angezeigt",
+    "usernameLabel": "Dein Name",
     "errors": {
-      "usernameEmpty": "Ihr Name darf nicht leer sein"
+      "usernameEmpty": "Dein Name darf nicht leer sein"
     },
     "cameraDisabled": "Kamera ist deaktiviert.",
     "cameraStarting": "Kamera wird gestartet…",
-    "cameraNotGranted": "Möchten Sie, dass andere Sie während der Besprechung sehen können?",
-    "cameraAndMicNotGranted": "Möchten Sie, dass andere Sie während der Besprechung sehen und hören können?",
+    "cameraNotGranted": "Möchtest du, dass andere dich während des Meetings sehen können?",
+    "cameraAndMicNotGranted": "Möchtest du, dass andere dich während des Meetings sehen und hören können?",
     "permissionsButton": {
       "cameraAndMicNotGranted": "Zugriff auf Kamera und Mikrofon erlauben",
       "cameraNotGranted": "Zugriff auf Kamera erlauben"
@@ -67,28 +71,28 @@
     },
     "waiting": {
       "title": "Beitrittsanfrage wird gesendet...",
-      "body": "Sie können diesem Anruf beitreten, sobald jemand Sie autorisiert"
+      "body": "Du kannst diesem Meeting beitreten, sobald deine Anfrage angenommen wird"
     },
     "denied": {
-      "title": "Sie können diesem Anruf nicht beitreten",
-      "body": "Ihre Beitrittsanfrage wurde abgelehnt."
+      "title": "Du kannst diesem Meeting nicht beitreten",
+      "body": "Deine Beitrittsanfrage wurde abgelehnt."
     },
     "timeoutInvite": {
-      "title": "Sie können diesem Anruf nicht beitreten",
-      "body": "Niemand hat auf Ihre Anfrage reagiert"
+      "title": "Du kannst diesem Meeting nicht beitreten",
+      "body": "Niemand hat auf deine Anfrage reagiert"
     }
   },
-  "leaveRoomPrompt": "Dadurch verlassen Sie das Meeting.",
+  "leaveRoomPrompt": "Hiermit verlässt du das Meeting.",
   "shareDialog": {
-    "copy": "Informationen kopieren",
+    "copy": "Infos kopieren",
     "copyUrl": "Link kopieren",
-    "copied": "Informationen kopiert",
-    "heading": "Ihr Meeting ist bereit",
-    "description": "Teilen Sie diesen Link mit Personen, die Sie zum Meeting einladen möchten.",
+    "copied": "Infos kopiert",
+    "heading": "Dein Meeting ist bereit",
+    "description": "Teile diesen Link mit Personen, die du zum Meeting einladen möchten.",
     "permissions": "Personen mit diesem Link benötigen keine Erlaubnis, um diesem Meeting beizutreten.",
     "closeDialog": "Dialogfenster schließen",
     "phone": {
-      "call": "Rufen Sie an:",
+      "call": "Ruf an:",
       "pinCode": "Code:"
     }
   },
@@ -104,60 +108,62 @@
         "videoinput": "Kamera konnte nicht aktiviert werden"
       },
       "body": {
-        "audioinput": "Ihr Mikrofon wird bereits in einem anderen Tab oder von einer anderen Anwendung verwendet, was die Aktivierung in diesem Videoanruf verhindert. Wenn Sie möchten, schließen Sie den anderen Tab oder die Anwendung, um es hier zu verwenden.",
-        "videoinput": "Ihre Kamera wird bereits in einem anderen Tab oder von einer anderen Anwendung verwendet, was die Aktivierung in diesem Videoanruf verhindert. Wenn Sie möchten, schließen Sie den anderen Tab oder die Anwendung, um sie hier zu verwenden."
+        "audioinput": "Dein Mikrofon wird bereits in einem anderen Tab oder von einer anderen App verwendet. Dies verhindert die Aktivierung in diesem Meeting. Wenn du dein Mikrofon hier verwenden möchtest, schließe den anderen Tab oder die App.",
+        "videoinput": "Deine Kamera wird bereits in einem anderen Tab oder von einer anderen App verwendet. Dies verhindert die Aktivierung in diesem Meeting. Wenn du deine Kamera hier verwenden möchtest, schließe den anderen Tab oder die App."
       }
     },
     "close": "OK"
   },
   "permissionErrorDialog": {
     "heading": {
-      "camera": "{{appTitle}} darf Ihre Kamera nicht verwenden",
-      "microphone": "{{appTitle}} darf Ihr Mikrofon nicht verwenden",
-      "cameraAndMicrophone": "{{appTitle}} darf weder Ihr Mikrofon noch Ihre Kamera verwenden",
+      "camera": "{{appTitle}} hat keine Berechtigung, um deine Kamera zu verwenden",
+      "microphone": "{{appTitle}} hat keine Berechtigung, um dein Mikrofon zu verwenden",
+      "cameraAndMicrophone": "{{appTitle}} hat keine Berechtigung, um dein Mikrofon und deine Kamera zu verwenden",
       "default": "{{appTitle}} hat keine Berechtigung für bestimmte Zugriffe"
     },
     "body": {
       "openMenu": {
-        "others": "Klicken Sie auf das Einstellungen-Symbol ICON_PLACEHOLDER in der Adressleiste Ihres Browsers",
-        "safari": "Klicken Sie auf das Menü 'Safari' und öffnen Sie 'Einstellungen für {{appDomain}}'."
+        "others": "Klicke das Einstellungs-Symbol ICON_PLACEHOLDER in der Adressleiste deines Browsers",
+        "safari": "Klicke auf das Menü 'Safari' und öffne 'Einstellungen für {{appDomain}}'."
       },
       "details": {
         "camera": "Zugriff auf die Kamera erlauben",
         "microphone": "Zugriff auf das Mikrofon erlauben",
         "cameraAndMicrophone": "Zugriff auf Kamera und Mikrofon erlauben",
-        "default": "Aktivieren Sie die erforderlichen Berechtigungen."
+        "default": "Erlaube die erforderlichen Berechtigungen."
       }
     }
   },
   "permissionsButton": {
     "tooltip": "Mehr Infos",
-    "ariaLabel": "Berechtigungsproblem. Mehr Infos anzeigen"
+    "ariaLabel": "Problem mit Berechtigungen. Mehr Infos anzeigen"
   },
   "error": {
     "createRoom": {
       "heading": "Authentifizierung erforderlich",
-      "body": "Dieser Raum wurde noch nicht erstellt. Bitte authentifizieren Sie sich, um ihn zu erstellen, oder warten Sie, bis ein authentifizierter Benutzer dies tut."
+      "body": "Dieser Raum wurde noch nicht erstellt. Bitte authentifiziere dich, um ihn zu erstellen, oder warte, bis eine authentifizierte Person dies tut."
     },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",
       "ariaLabel": "Bildschirmfreigabe nicht möglich",
-      "message": "Ihr Browser darf möglicherweise den Bildschirm Ihres Computers nicht aufzeichnen.",
-      "macInstructions": "Gehen Sie zu Ihren",
+      "message": "Deinem Browser fehlt möglicherweise die Berechtigung, den Bildschirm deines Geräts abzugreifen.",
+      "macInstructions": "Gehe zu den",
       "macSystemPreferences": "Systemeinstellungen",
-      "helpLinkText": "Weitere Informationen finden Sie unter",
-      "helpLinkLabel": "Präsentationsproblem",
+      "helpLinkText": "Weitere Informationen findest du unter",
+      "helpLinkLabel": "Bildschirmfreigabeproblem",
       "closeButton": "Schließen",
-      "newTab": "Neues Fenster"
+      "newTab": "Neuer Tab"
     }
   },
   "isIdleDisconnectModal": {
     "title": "Bist du noch da?",
-    "body": "Du bist der einzige Teilnehmer. Dieses Gespräch endet in {{duration}}. Möchtest du das Gespräch fortsetzen?",
-    "settings": "Um diese Nachricht nicht mehr zu sehen, gehe zu Einstellungen > Allgemein.",
-    "stayButton": "Gespräch fortsetzen",
+    "body": "Du bist die*der einzige Teilnehmende. Diese Meeting endet in {{duration}}. Möchtest du das Meeting fortsetzen?",
+    "settingsPrefix": "Um diese Nachricht nicht mehr zu sehen, gehe zu",
+    "settingsLink": "Einstellungen > Allgemein",
+    "settingsSuffix": ".",
+    "stayButton": "Meeting fortsetzen",
     "leaveButton": "Jetzt verlassen",
-    "countdownAnnouncement": "Das Gespräch endet in {{duration}}."
+    "countdownAnnouncement": "Das Meeting endet in {{duration}}."
   },
   "controls": {
     "microphone": "Mikrofon",
@@ -195,8 +201,8 @@
     "participants": {
       "open": "Alle ausblenden",
       "closed": "Alle anzeigen",
-      "count_one": "{{count}} Teilnehmer",
-      "count_other": "{{count}} Teilnehmer"
+      "count_one": "{{count}} Teilnehmende",
+      "count_other": "{{count}} Teilnehmende"
     },
     "tools": {
       "open": "Weitere Tools ausblenden",
@@ -211,16 +217,16 @@
       "button": "Reaktion senden",
       "send": "Reaktion {{emoji}} senden",
       "announce": "{{name}} : {{emoji}}",
-      "you": "Sie",
+      "you": "du",
       "emojis": {
         "thumbs-up": "Daumen hoch",
         "thumbs-down": "Daumen runter",
         "clapping-hands": "Klatschende Hände",
-        "red-heart": "rotes Herz",
+        "red-heart": "Rotes Herz",
         "face-with-tears-of-joy": "Gesicht mit Freudentränen",
-        "face-with-open-mouth": "überraschter Gesichtsausdruck",
-        "party-popper": "Party-Popper",
-        "folded-hands": "gefaltete Hände"
+        "face-with-open-mouth": "Überraschter Gesichtsausdruck",
+        "party-popper": "Konfettikanone",
+        "folded-hands": "Gefaltete Hände"
       }
     }
   },
@@ -231,7 +237,7 @@
       "settings": "Einstellungen",
       "screenRecording": "Aufzeichnung",
       "transcript": "Transkription",
-      "username": "Ihren Namen aktualisieren",
+      "username": "Deinen Namen aktualisieren",
       "effects": "Effekte anwenden",
       "switchCamera": "Kamera wechseln",
       "fullscreen": {
@@ -242,9 +248,9 @@
     }
   },
   "effects": {
-    "activateCamera": "Ihre Kamera ist deaktiviert. Wählen Sie eine Option, um sie zu aktivieren.",
-    "cameraDisabled": "Ihre Kamera ist deaktiviert.",
-    "notAvailable": "Videoeffekte werden bald in Ihrem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit können Sie Google Chrome für die beste Leistung oder Firefox verwenden :(",
+    "activateCamera": "Deine Kamera ist deaktiviert. Wähle eine Option, um sie zu aktivieren.",
+    "cameraDisabled": "Deine Kamera ist deaktiviert.",
+    "notAvailable": "Videoeffekte werden bald in deinem Browser verfügbar sein. Wir arbeiten daran! In der Zwischenzeit kannst du Google Chrome für die beste Leistung oder Firefox verwenden :(",
     "heading": "Unschärfe",
     "clear": "Effekt deaktivieren",
     "blur": {
@@ -267,17 +273,40 @@
       "title": "Virtueller Hintergrund",
       "selectedLabel": "Hintergrund angewendet:",
       "apply": "Ersetze deinen Hintergrund:",
-      "descriptions": {
-        "0": "Gerilltes Holzmöbel",
-        "1": "Besprechungsraum",
-        "2": "Loft mit schwarzer Glaswand",
-        "3": "Esszimmer",
-        "4": "Holzregale",
-        "5": "Holztreppe",
-        "6": "Graue Bibliothek",
-        "7": "Kaffeetheke"
+      "personal": {
+        "title": "Meine Hintergründe",
+        "selectFileTooltip": "Wähle ein Bild aus, das als persönlicher Hintergrund verwendet werden soll",
+        "notLoggedInWarning": "Du bist nicht angemeldet, der persönliche Hintergrund wird nicht von einem Meeting zum anderen gespeichert.",
+        "warningUploadDisabled": "Persönliche Hintergründe werden derzeit nicht von einem Meeting zum anderen gespeichert.",
+        "uploadLimitReached": "Du kannst keine weiteren persönlichen Hintergründe hinzufügen.",
+        "uploadInProgress": "Datei wird hochgeladen…",
+        "errors": {
+          "close": "Schließen",
+          "file_too_large": {
+            "title": "Datei zu groß",
+            "description": "Die Datei ist zu groß. Bitte wähle eine Datei mit weniger als {{maxSize, number}} MB."
+          },
+          "invalid_file_type": {
+            "title": "Ungültiger Dateityp",
+            "description": "Der Dateityp wird nicht unterstützt. Bitte wähle eine {{allowedExtension}}-Datei."
+          }
+        }
+      },
+      "presets": {
+        "title": "Vorschläge",
+        "descriptions": {
+          "0": "Gerilltes Holzmöbel",
+          "1": "Besprechungsraum",
+          "2": "Loft mit schwarzer Glaswand",
+          "3": "Esszimmer",
+          "4": "Holzregale",
+          "5": "Holztreppe",
+          "6": "Graue Bibliothek",
+          "7": "Kaffeetheke"
+        }
       }
     },
+
     "faceLandmarks": {
       "title": "Visuelle Effekte",
       "glasses": {
@@ -291,11 +320,11 @@
     }
   },
   "sidePanel": {
-    "ariaLabel": "Seitenleiste",
+    "ariaLabel": "Seitenleiste - {{title}}",
     "backToTools": "Zurück zu den Meeting-Tools",
     "heading": {
-      "participants": "Teilnehmer",
-      "effects": "Effekte",
+      "participants": "Teilnehmende",
+      "effects": "Hintergrund & Effekte",
       "chat": "Nachrichten im Chat",
       "transcript": "Transkribieren",
       "screenRecording": "Aufzeichnen",
@@ -304,8 +333,8 @@
       "info": "Meeting-Informationen"
     },
     "content": {
-      "participants": "Teilnehmer",
-      "effects": "Effekte",
+      "participants": "Teilnehmende",
+      "effects": "Hintergrund & Effekte",
       "chat": "Nachrichten",
       "transcript": "transkribieren",
       "screenRecording": "aufzeichnen",
@@ -316,19 +345,21 @@
     "closeButton": "{{content}} ausblenden"
   },
   "chat": {
-    "disclaimer": "Die Nachrichten sind nur für Teilnehmer zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Anrufs gelöscht."
+    "disclaimer": "Die Nachrichten sind nur für Teilnehmende zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Meetings gelöscht.",
+    "messagesLog": "Chat-Nachrichten"
   },
   "moreTools": {
-    "body": "Greifen Sie auf weitere Tools zu, um Ihre Meetings zu verbessern.",
-    "moreLink": "Mehr erfahren",
+    "body": "Nutze weitere Tools, um deine Meetings zu verbessern.",
+    "linkAriaLabel": "Dokumentation zu den Tools öffnen – öffnet in neuem Tab",
+    "moreLink": "Dokumentation öffnen",
     "tools": {
       "transcript": {
         "title": "Transkribieren",
-        "body": "Das Gespräch aufzeichnen."
+        "body": "Wandelt Meetings in Text um."
       },
       "screenRecording": {
-        "title": "Aufzeichnen",
-        "body": "Das Meeting aufzeichnen."
+        "title": "Aufnehmen",
+        "body": "Speichert Meetings als Video."
       }
     }
   },
@@ -336,73 +367,77 @@
     "roomInformation": {
       "title": "Verbindungsinformationen",
       "button": {
-        "ariaLabel": "Kopieren Sie die Informationen aus Ihrer Besprechung",
+        "ariaLabel": "Kopiere die Informationen aus dem Meeting",
         "copy": "Informationen kopieren",
         "copied": "Informationen kopiert"
       },
       "phone": {
-        "call": "Rufen Sie an:",
+        "call": "Ruf an:",
         "pinCode": "Code:"
       }
     }
   },
   "transcript": {
-    "heading": "Transkribieren Sie Ihr Meeting mit dem KI-Assistenten",
-    "body": "Transkribieren Sie bis zu {{max_duration}} Meetingdauer.",
-    "bodyWithoutMaxDuration": "Transkribieren Sie Ihr Meeting ohne Begrenzung.",
+    "heading": "Transkribiere dein Meeting mithilfe von KI",
+    "body": "Transkribiere bis zu {{max_duration}} Meetingdauer.",
+    "bodyWithoutMaxDuration": "Transkribieren dein Meeting ohne Zeitbegrenzung.",
     "details": {
-      "receiver": "Das Transkript wird an den Organisator und die Mitorganisatoren gesendet.",
+      "receiver": "Das Transkript wird an die*den Organisator:in und die Mitorganisierenden gesendet.",
       "destination": "Ein neues Dokument wird erstellt auf",
       "destinationUnknown": "Ein neues Dokument wird erstellt",
       "language": "Meeting-Sprache:",
       "recording": "Auch eine Aufzeichnung starten"
     },
     "button": {
-      "start": "Meeting transkribieren starten",
-      "stop": "Meeting transkribieren beenden",
+      "start": "Meeting-Transkription starten",
+      "stop": "Meeting-Transkription beenden",
       "saving": "Speichern…",
       "starting": "Wird gestartet…",
-      "anotherModeStarted": "Eine Aufnahme läuft. <br/> Wechseln Sie das Menü und stoppen Sie sie."
+      "anotherModeStarted": "Eine Aufnahme läuft. <br/> Wechsele das Menü und stoppe sie."
     },
-    "linkMore": "Mehr erfahren",
+    "linkMore": "Dokumentation öffnen",
+    "linkAriaLabel": "Dokumentation zur Transkription öffnen – öffnet in neuem Tab",
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
-      "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Transkription (Beta) starten.",
-      "linkMore": "Mehr erfahren",
+      "body": "Aus Sicherheitsgründen kann nur die*der Ersteller:in bzw. Admin des Meetings eine Transkription (Beta) starten.",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Transkriptionszugang öffnen – öffnet in neuem Tab",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
-        "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+        "body": "Nur die*der Ersteller:in bzw. Admin kann die Transkription starten. Melde dich an, um deine Berechtigungen zu überprüfen."
       },
       "request": {
-        "heading": "Anfrage an Moderator",
-        "body": "Der Moderator wird benachrichtigt und kann die Transkription starten.",
-        "buttonLabel": "Anfordern"
+        "heading": "Transkription anfragen",
+        "body": "Die Moderation wird benachrichtigt und kann die Transkription starten.",
+        "buttonLabel": "Anfragen"
       }
     },
     "premium": {
       "heading": "Premium-Funktion",
-      "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn Ihre E-Mail-Adresse nicht autorisiert ist, kontaktieren Sie bitte den Support, um Zugriff zu erhalten.",
-      "linkMore": "Mehr erfahren",
+      "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn deine E-Mail-Adresse nicht autorisiert ist, kontaktiere bitte den Support, um Zugriff zu erhalten.",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Premium-Zugang öffnen – öffnet in neuem Tab",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
-        "body": "Nur der Ersteller des Meetings oder ein Administrator kann die Transkription starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+        "body": "Nur die*der Ersteller:in bzw. Admin kann die Transkription starten. Melde dich an, um deine Berechtigungen zu überprüfen."
       },
       "request": {
-        "heading": "Anfrage an Moderator",
-        "body": "Der Moderator wird benachrichtigt und kann die Transkription starten.",
+        "heading": "Transkription anfragen",
+        "body": "Die Moderation wird benachrichtigt und kann die Transkription starten.",
         "buttonLabel": "Anfordern"
       }
     }
   },
   "screenRecording": {
-    "heading": "Diesen Anruf für später aufzeichnen",
-    "body": "Zeichnen Sie bis zu {{max_duration}} des Meetings auf.",
-    "bodyWithoutMaxDuration": "Zeichnen Sie Ihr Meeting unbegrenzt auf.",
-    "linkMore": "Mehr erfahren",
+    "heading": "Dieses Meeting für später aufzeichnen",
+    "body": "Zeichne bis zu {{max_duration}} des Meetings auf.",
+    "bodyWithoutMaxDuration": "Zeichne dein Meeting ohne Zeitbegrenzung auf.",
+    "linkMore": "Dokumentation öffnen",
+    "linkAriaLabel": "Dokumentation zur Aufzeichnung öffnen – öffnet in neuem Tab",
     "details": {
-      "receiver": "Die Aufzeichnung wird an den Organisator und die Mitorganisatoren gesendet.",
+      "receiver": "Die Aufzeichnung wird an die*den Organisator:in und die Mitorganisierenden gesendet.",
       "destination": "Diese Aufzeichnung wird vorübergehend auf unseren Servern gespeichert",
       "loading": "Aufzeichnung wird gestartet",
       "linkMore": "Mehr erfahren",
@@ -413,20 +448,21 @@
       "stop": "Meeting-Aufzeichnung beenden",
       "saving": "Wird gespeichert…",
       "starting": "Wird gestartet…",
-      "anotherModeStarted": "Eine Transkription läuft. <br/> Wechseln Sie das Menü und stoppen Sie sie."
+      "anotherModeStarted": "Eine Transkription läuft. <br/> Wechsele das Menü und stoppen sie."
     },
     "notAdminOrOwner": {
       "heading": "Zugriff eingeschränkt",
-      "body": "Aus Sicherheitsgründen kann nur der Ersteller oder ein Administrator des Meetings eine Videoaufnahme (Beta) starten.",
-      "linkMore": "Mehr erfahren",
+      "body": "Aus Sicherheitsgründen kann nur die*der Ersteller:in bzw. Admin des Meetings eine Videoaufnahme (Beta) starten.",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Aufzeichnungszugang öffnen – öffnet in neuem Tab",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
-        "body": "Nur der Ersteller der Besprechung oder ein Administrator kann die Aufzeichnung starten. Melden Sie sich an, um Ihre Berechtigungen zu überprüfen."
+        "body": "Nur die*der Ersteller:in bzw. Admin kann die Aufzeichnung starten. Melde dich an, um deine Berechtigungen zu überprüfen."
       },
       "request": {
-        "heading": "Aufnahme anfordern",
-        "body": "Der Moderator wird benachrichtigt und kann die Aufnahme für Sie starten.",
+        "heading": "Aufnahme anfragen",
+        "body": "Die Moderation wird benachrichtigt und kann die Aufnahme starten.",
         "buttonLabel": "Anfrage senden"
       }
     },
@@ -441,10 +477,10 @@
     "button": "OK"
   },
   "admin": {
-    "description": "Diese Einstellungen für Organisatoren ermöglichen dir die Kontrolle über dein Meeting. Nur Organisatoren haben Zugriff auf diese Optionen.",
+    "description": "Diese Einstellungen für Organisierende ermöglichen dir die Kontrolle über dein Meeting. Nur Organisierende haben Zugriff auf diese Optionen.",
     "access": {
       "title": "Raumzugang",
-      "description": "Diese Einstellungen gelten auch für zukünftige Ausgaben dieses Meetings.",
+      "description": "Diese Einstellungen gelten auch für zukünftige Meetings in diesem Raum.",
       "type": "Zugangsarten für Meetings",
       "levels": {
         "public": {
@@ -462,28 +498,28 @@
       }
     },
     "moderation": {
-      "title": "Moderation des Meetings",
-      "description": "Diese Einstellungen beschränken die Aktionen, die Mitwirkende während des Meetings durchführen können.",
+      "title": "Meeting-Moderation",
+      "description": "Diese Einstellungen beschränken die Aktionen, die Teilnehmende während des Meetings durchführen können.",
       "microphone": {
         "label": "Mikrofon einschalten",
         "description": ""
       },
       "camera": {
-        "label": "Video aktivieren",
+        "label": "Video einschalten",
         "description": ""
       },
       "screenshare": {
-        "label": "Ihren Bildschirm teilen",
-        "description": "Wenn Sie diese Option deaktivieren, können Teilnehmer ihren Bildschirm nicht mehr teilen, und laufende Bildschirmfreigaben werden sofort beendet."
+        "label": "Bildschirm teilen",
+        "description": "Wenn du diese Option deaktivierst, können Teilnehmende ihren Bildschirm nicht mehr teilen. Laufende Bildschirmfreigaben werden sofort beendet."
       }
     }
   },
   "rating": {
     "submit": "Absenden",
-    "question": "Wie bewertest du die Qualität deines Gesprächs?",
+    "question": "Wie bewertest du die Qualität dieses Meetings?",
     "levels": {
       "min": "sehr schlecht",
-      "max": "ausgezeichnet"
+      "max": "hervorragend"
     }
   },
   "openFeedback": {
@@ -493,7 +529,7 @@
     "skip": "Überspringen"
   },
   "confirmationMessage": {
-    "heading": "Vielen Dank für deine Rückmeldung",
+    "heading": "Vielen Dank für dein Feedback",
     "body": "Unser Produktteam nimmt sich Zeit, dein Feedback sorgfältig zu prüfen. Wir melden uns so bald wie möglich bei dir."
   },
   "authenticationMessage": {
@@ -505,9 +541,9 @@
   "participants": {
     "subheading": "Im Raum",
     "you": "Du",
-    "unknown": "Unbekannter Teilnehmer",
+    "unknown": "Unbekannte Person",
     "host": "Host",
-    "contributors": "Mitwirkende",
+    "contributors": "Teilnehmende",
     "collapsable": {
       "open": "{{name}}-Liste öffnen",
       "close": "{{name}}-Liste schließen"
@@ -516,7 +552,7 @@
     "muteParticipant": "{{name}}’s Mikrofon ausschalten",
     "muteParticipantAlert": {
       "heading": "{{name}} stummschalten",
-      "description": "{{name}} für alle Teilnehmer stummschalten? {{name}} kann sich nur selbst wieder einschalten.",
+      "description": "{{name}} für alle Teilnehmenden stummschalten? {{name}} kann sich nur selbst wieder einschalten.",
       "confirm": "Stummschalten",
       "cancel": "Abbrechen"
     },
@@ -541,8 +577,8 @@
   },
   "participantMenu": {
     "remove": {
-      "label": "Vom Anruf ausschließen",
-      "ariaLabel": "{{name}} vom Anruf ausschließen"
+      "label": "Vom Meeting ausschließen",
+      "ariaLabel": "{{name}} vom Meeting ausschließen"
     },
     "unpin": {
       "label": "Lösen",
@@ -576,26 +612,61 @@
       "started": "Aufzeichnung läuft"
     },
     "limitReachedAlert": {
-      "title": "Aufnahmelimit überschritten",
-      "description": "Die Aufnahme hat die zulässige Höchstdauer{{duration_message}} überschritten. Sie wird jetzt automatisch gespeichert.",
+      "title": "Aufzeichnungslimit überschritten",
+      "description": "Die Aufzeichnung hat die zulässige Höchstdauer{{duration_message}} überschritten. Sie wird jetzt automatisch gespeichert.",
       "durationMessage": " von {{duration}}",
       "button": "OK"
     }
   },
   "participantTileFocus": {
     "containerLabel": "Optionen für {{name}}",
-    "toolbarHint": "F2: zur Symbolleiste unten.",
+    "toolbarHint": "{{shortcut}}: Direkt auf die Tastenkürzel zugreifen.",
     "pin": {
       "enable": "Anheften",
       "disable": "Lösen"
     },
-    "effects": "Visuelle Effekte anwenden",
+    "effects": "Hintergründe und Effekte anwenden",
     "muteParticipant": "{{name}} stummschalten",
     "fullScreen": "Vollbild"
   },
+  "shortcutsPanel": {
+    "title": "Tastenkürzel",
+    "categories": {
+      "navigation": "Navigation",
+      "media": "Medien",
+      "interaction": "Interaktion"
+    },
+    "actions": {
+      "open-shortcuts": "Tastenkürzel-Hilfe öffnen",
+      "focus-toolbar": "Fokus auf die untere Symbolleiste",
+      "toggle-microphone": "Mikrofon umschalten",
+      "toggle-camera": "Kamera umschalten",
+      "push-to-talk": "Push-to-talk",
+      "reaction": "Reaktionspanel",
+      "fullscreen": "Vollbild umschalten",
+      "recording": "Aufnahmepanel umschalten",
+      "raise-hand": "Hand heben oder senken",
+      "toggle-chat": "Chat anzeigen/ausblenden",
+      "toggle-participants": "Teilnehmende anzeigen/ausblenden",
+      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen"
+    },
+    "sr": {
+      "control": "Steuerung",
+      "command": "Befehl",
+      "alt": "Alt",
+      "option": "Option",
+      "shift": "Umschalt",
+      "plus": "plus",
+      "hold": "Halte {{key}} gedrückt",
+      "noShortcut": "Kein Tastenkürzel"
+    },
+    "visual": {
+      "hold": "Halte {{key}} gedrückt"
+    }
+  },
   "fullScreenWarning": {
-    "message": "Um eine Endlosschleife zu vermeiden, teile nicht deinen gesamten Bildschirm. Teile stattdessen einen Tab oder ein anderes Fenster.",
-    "stop": "Präsentation beenden",
+    "message": "Damit dein Bildschirm nicht unendlich gespiegelt wird, teile nicht deinen gesamten Bildschirm. Teile stattdessen einen Tab oder ein anderes Fenster.",
+    "stop": "Teilen beenden",
     "ignore": "Ignorieren"
   },
   "participantTile": {

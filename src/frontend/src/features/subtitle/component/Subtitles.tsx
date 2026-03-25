@@ -8,6 +8,27 @@ import { useRoomContext } from '@livekit/components-react'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { Participant, RoomEvent } from 'livekit-client'
+import { useSnapshot } from 'valtio'
+import {
+  accessibilityStore,
+  CAPTION_TEXT_SIZE_OPTIONS,
+  CAPTION_FONT_COLOR_VALUES,
+  CAPTION_BACKGROUND_COLOR_VALUES,
+  type CaptionTextSize,
+} from '@/stores/accessibility'
+
+const FONT_SIZE_CONFIG: Record<
+  CaptionTextSize,
+  { fontSize: string; lineHeight: string }
+> = {
+  small: { fontSize: '0.875rem', lineHeight: '1.2rem' },
+  medium: { fontSize: '1.5rem', lineHeight: '1.7rem' },
+  large: { fontSize: '2.25rem', lineHeight: '2.5rem' },
+}
+
+const CAPTION_FONT_SIZES = Object.fromEntries(
+  CAPTION_TEXT_SIZE_OPTIONS.map((size) => [size, FONT_SIZE_CONFIG[size]])
+) as Record<CaptionTextSize, { fontSize: string; lineHeight: string }>
 
 export interface TranscriptionSegment {
   id: string
@@ -20,8 +41,7 @@ export interface TranscriptionSegment {
   lastReceivedTime: number
 }
 
-export interface TranscriptionSegmentWithParticipant
-  extends TranscriptionSegment {
+export interface TranscriptionSegmentWithParticipant extends TranscriptionSegment {
   participant: Participant
 }
 
@@ -74,8 +94,14 @@ const useTranscriptionState = () => {
 }
 
 const Transcription = ({ row }: { row: TranscriptionRow }) => {
+  const { captionTextSize, captionFontColor, captionBackgroundColor } =
+    useSnapshot(accessibilityStore)
   const participantColor = getParticipantColor(row.participant)
   const participantName = getParticipantName(row.participant)
+  const { fontSize, lineHeight } = CAPTION_FONT_SIZES[captionTextSize]
+  const fontColor = CAPTION_FONT_COLOR_VALUES[captionFontColor]
+  const backgroundColor =
+    CAPTION_BACKGROUND_COLOR_VALUES[captionBackgroundColor]
 
   const getDisplayText = (row: TranscriptionRow): string => {
     return row.segments
@@ -108,19 +134,20 @@ const Transcription = ({ row }: { row: TranscriptionRow }) => {
         />
         <div
           className={css({
-            color: 'white',
             width: '100%',
           })}
+          style={{ color: fontColor }}
         >
           <Text variant="h3" margin={false}>
             {participantName}
           </Text>
           <p
             className={css({
-              fontSize: '1.5rem',
-              lineHeight: '1.7rem',
               fontWeight: '400',
+              borderRadius: '4px',
+              padding: '0.125rem 0.25rem',
             })}
+            style={{ fontSize, lineHeight, backgroundColor }}
           >
             {displayText}
           </p>
@@ -199,7 +226,6 @@ export const Subtitles = () => {
         )
       }
     }
-
     return rows
   }, [transcriptionSegments])
 

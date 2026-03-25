@@ -199,3 +199,308 @@ def test_start_recording_success(
     access = recording.accesses.first()
     assert access.user == user
     assert access.role == "owner"
+
+
+@pytest.mark.parametrize("value", ["fr", "en", "nl", "de"])
+def test_start_recording_options_language_valid(
+    settings, mock_worker_service_factory, mock_worker_manager, value
+):
+    """Should accept a valid ISO 639-1 language code."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"language": value}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {"language": value}
+
+
+@pytest.mark.parametrize("value", ["invalid-value", "francais", "123"])
+def test_start_recording_options_language_not_validated(
+    settings, mock_worker_service_factory, mock_worker_manager, value
+):
+    """Invalid language codes are currently accepted — no format validation yet.
+
+    TODO: tighten this once language validation is introduced.
+    """
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"language": value}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+
+
+def test_start_recording_options_language_null(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should accept null language (triggers auto-detection)."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"language": None}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {}
+
+
+@pytest.mark.parametrize("value", [True, 1, "y", "on", "true", "yes", "t"])
+def test_start_recording_options_transcribe_valid_true(
+    settings, mock_worker_service_factory, mock_worker_manager, value
+):
+    """Should accept transcribe with any valid pydantic true values."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"transcribe": value}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {"transcribe": True}
+
+
+@pytest.mark.parametrize("value", [False, 0, "n", "off", "false", "no", "f"])
+def test_start_recording_options_transcribe_valid_false(
+    settings, mock_worker_service_factory, mock_worker_manager, value
+):
+    """Should accept transcribe with any valid pydantic false values."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"transcribe": value}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {"transcribe": False}
+
+
+def test_start_recording_options_transcribe_null(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should accept transcribe=null (falls back to application default)."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"transcribe": None}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {}
+
+
+def test_start_recording_options_null(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should accept options=null."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": None},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {}
+
+
+def test_start_recording_options_omitted(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should accept a request with no options field at all."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {}
+
+
+def test_start_recording_options_unknown_field_rejected(settings):
+    """Should reject unknown fields in options (extra='forbid')."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"unknown_field": "value"}},
+        format="json",
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize("value", ["foo", 12])
+def test_start_recording_options_invalid_transcribe_type(settings, value):
+    """Should reject non-boolean transcribe values."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"transcribe": value}},
+        format="json",
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize("value", ["screen_recording", "transcript"])
+def test_start_recording_options_original_mode_valid(
+    settings, mock_worker_service_factory, mock_worker_manager, value
+):
+    """Should accept valid recording mode choices for original_mode."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"original_mode": value}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {"original_mode": value}
+
+
+def test_start_recording_options_original_mode_null(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should accept original_mode=null."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"original_mode": None}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {}
+
+
+def test_start_recording_options_original_mode_omitted(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should accept a request with original_mode omitted."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {}
+
+
+@pytest.mark.parametrize("value", ["invalid_mode", "foo", 123, "SCREEN_RECORDING"])
+def test_start_recording_options_original_mode_invalid(settings, value):
+    """Should reject invalid recording mode values for original_mode."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"original_mode": value}},
+        format="json",
+    )
+
+    assert response.status_code == 400

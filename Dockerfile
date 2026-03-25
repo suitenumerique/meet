@@ -13,14 +13,28 @@ RUN apk update && \
 # ---- Back-end builder image ----
 FROM base AS back-builder
 
-WORKDIR /builder
 
-# Copy required python dependencies
-COPY ./src/backend /builder
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
 
-RUN mkdir /install && \
-  pip install --prefix=/install .
+# Disable Python downloads, because we want to use the system interpreter
+# across both images. If using a managed Python version, it needs to be
+# copied from the build image into the final image;
+ENV UV_PYTHON_DOWNLOADS=0
 
+# install uv
+COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
+
+WORKDIR /app
+
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+  --mount=type=bind,source=src/backend/uv.lock,target=uv.lock \
+  --mount=type=bind,source=src/backend/pyproject.toml,target=pyproject.toml \
+  uv sync --locked --no-install-project --no-dev
+COPY src/backend /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --locked --no-dev
 
 # ---- mails ----
 FROM node:20 AS mail-builder
@@ -30,7 +44,7 @@ COPY ./src/mail /mail/app
 WORKDIR /mail/app
 
 RUN yarn install --frozen-lockfile && \
-    yarn build
+  yarn build
 
 
 # ---- static link collector ----
@@ -39,19 +53,20 @@ ARG MEET_STATIC_ROOT=/data/static
 
 RUN apk add \
   pango \
+  libmagic \
   rdfind
-
-# Copy installed python dependencies
-COPY --from=back-builder /install /usr/local
-
-# Copy Meet application (see .dockerignore)
-COPY ./src/backend /app/
 
 WORKDIR /app
 
+# Copy the application from the builder
+COPY --from=back-builder /app /app
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+
 # collectstatic
 RUN DJANGO_CONFIGURATION=Build DJANGO_JWT_PRIVATE_SIGNING_KEY=Dummy \
-    python manage.py collectstatic --noinput
+  python manage.py collectstatic --noinput
 
 # Replace duplicated file by a symlink to decrease the overall size of the
 # final image
@@ -68,6 +83,7 @@ RUN apk --no-cache add \
   gettext \
   libffi-dev \
   pango \
+  libmagic \
   shared-mime-info
 
 
@@ -79,13 +95,16 @@ COPY ./docker/files/usr/local/bin/entrypoint /usr/local/bin/entrypoint
 # docker user (see entrypoint).
 RUN chmod g=u /etc/passwd
 
-# Copy installed python dependencies
-COPY --from=back-builder /install /usr/local
-
-# Copy Meet application (see .dockerignore)
-COPY ./src/backend /app/
+# Copy the application from the builder
+COPY --from=back-builder /app /app
 
 WORKDIR /app
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Generate compiled translation messages
+RUN DJANGO_CONFIGURATION=Build \
+  python manage.py compilemessages --ignore=".venv/**/*"
 
 # We wrap commands run in this container by the following entrypoint that
 # creates a user on-the-fly with the container user ID (see USER) and root group
@@ -101,10 +120,9 @@ USER root:root
 # Install psql
 RUN apk add postgresql-client
 
-# Uninstall Meet and re-install it in editable mode along with development
-# dependencies
-RUN pip uninstall -y meet
-RUN pip install -e .[dev]
+# Install development dependencies
+RUN --mount=from=ghcr.io/astral-sh/uv:0.10.9,source=/uv,target=/bin/uv \
+  uv sync --all-extras --locked
 
 # Restore the un-privileged user running the application
 ARG DOCKER_USER
@@ -113,7 +131,7 @@ USER ${DOCKER_USER}
 # Target database host (e.g. database engine following docker compose services
 # name) & port
 ENV DB_HOST=postgresql \
-    DB_PORT=5432
+  DB_PORT=5432
 
 # Run django development server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
@@ -126,6 +144,9 @@ ARG MEET_STATIC_ROOT=/data/static
 # Gunicorn
 RUN mkdir -p /usr/local/etc/gunicorn
 COPY docker/files/usr/local/etc/gunicorn/meet.py /usr/local/etc/gunicorn/meet.py
+
+# Remove pip to reduce attack surface in production
+RUN pip uninstall -y pip
 
 # Un-privileged user running the application
 ARG DOCKER_USER

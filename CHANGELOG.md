@@ -8,15 +8,168 @@ and this project adheres to
 
 ## [Unreleased]
 
-## [1.5.0] - 2026-01-28
-### Added
-- ♿️(frontend) Stabilize language switching e2e and html lang #8
-- 🔒️(tests) Add API tests for auth behavior #7
-- 🔒️(tests) Add migration/schema safety regression test #5
+## [1.12.0] - 2026-03-24
 
 ### Changed
 
-- 🧹(backend) Removed random role and made condition deterministic #9
+- ♻️(backend) configurable SESSION_ENGINE #1038 #1154
+- ♿️(frontend) fix sidepanel accessibility aria-label #1182
+- ♿️(frontend) fix more tools heading hierarchy #1181
+- ♿️(fronted) improve button descriptions for More tools actions #1184
+- 💄(spinner) enforce spinner height #1183
+- 💄(custom-background) add upload indicator with preview #1183
+- ♿️(backend) improve logo accessibility in recording email notification #1092
+- ♿️(summary) improve accessibility of transcription download link #1187
+- 💄(frontend) show OS-specific shortcut in participant tile hint #1193
+- ⬆️(frontend) bump flatted from 3.3.1 to 3.4.2 in /src/frontend #1188
+- ⬆️️️(frontend) bump undici from 6.23.0 to 6.24.1 in /src/frontend
+- ⬆️️️(frontend) bump hono from 4.12.2 to 4.12.7 in /src/frontend
+- ⬆️️️(frontend) bump dompurify from 3.3.1 to 3.3.2 in /src/frontend
+
+### Fixed
+
+- 🐛(frontend) disable personal custom background while deleting #1183
+- 🐛(frontend) auto-select new custom background when not logged in #1183
+- 🐛(frontend) fix device selection not applying during conference #1156
+
+## [1.11.0] - 2026-03-19
+
+### Added
+
+- ✨(helm) support celery with our Django backend #1124
+- ✨(helm) support ingress for custom background image #1124
+- ✨(backend) add authenticated user rate throttling on request-entry #1129
+- ✨(backend) expose `is_active` field for Application in Django admin #1133
+- ✨(file-upload) disable by default & limit count by user #1141
+- ✨(frontend) custom background #1067
+
+### Changed
+
+- ♿️(frontend) Caption text size setting for accessibility #1062
+- ♿️(frontend) sync html lang attribute with i18n for screen readers #1111
+- ♿️(frontend) improve MoreLink a11y and UX on home page #1112
+- ♿️(frontend) improve chat toast a11y for screen readers #1109
+- ♿️(frontend) improve ui and aria labels for help article links #1108
+- 🌐(frontend) improve German translation #1125
+- 🔨(python-env) migrate meet main app to UV #1120
+- ♻️(backend) align Application model field with `is_active` convention #1133
+- 🔐(backend) avoids revealing the inactive status of an application #1135
+- ⚡️(helm) reduce initialDelaySeconds and add periods seconds #1139
+- 🔒️(backend) avoid information exposure through exception messages #1144
+- ⬆️(dependencies) update PyJWT to v2.12.0 [SECURITY] #1151
+- 📌(agents) unpin OpenSSL and related dependencies #1167
+- ♿️(frontend) add caption font and background color customization #1122
+
+### Fixed
+
+- 🐛(frontend) fix hand icon and queue position alignment and position #1119
+- 🩹(backend) add page_size to pagination for room endpoints #1131
+- 🐛(backend) refactor lobby throttling to use participant id #1129
+- 🩹(backend) ignore non-recording uploads in storage webhook handler #1142
+- 🐛(frontend) fix dimension mismatch in BackgroundCustomProcessor #1116
+
+## [1.10.0] - 2026-03-05
+
+### Changed
+
+- 🔒️(backend) enhance API input validation to strengthen security #1053
+- 🦺(backend) strengthen API validation for recording options #1063
+- ⚡️(frontend) optimize few performance caveats #1073
+- 🔒️(helm) introduce a dedicated Kubernetes Ingress for webhook-livekit #1066
+- ⬆️(deps) bump rollup from 4.44.2 to 4.59.0 in /src/frontend #1088
+
+### Fixed
+
+- 🐛(migrations) use settings in migrations #1058
+- 💄(frontend) truncate pinned participant name with ellipsis on overflow #1056
+- ♿(frontend) prevent focus ring clipping on invite dialog #1078
+- ♿(frontend) dynamic tab title when connected to meeting #1060
+- 🩹(frontend) remove incorrect reference to ProConnect on the prejoin #1080
+- ✨(frontend) add Ctrl+Shift+/ to open shortcuts settings #1050
+- ♿(frontend) announce selected state to screen readers #1081
+- 💄(frontend) truncate long names with ellipsis in reaction overlay #1099
+
+### Added
+
+- ✨(backend) add file upload feature #1030
+
+## [1.9.0] - 2026-03-02
+
+### Added
+
+- 👷(docker) add arm64 platform support for image builds
+- ✨(summary) add localization support for transcription context text
+
+### Changed
+
+- ♻️(frontend) replace custom reactions toolbar with react aria popover #985
+- 🔒️(frontend) uninstall curl from the frontend production image #987
+- 💄(frontend) add focus ring to reaction emoji buttons
+- ✨(frontend) introduce a shortcut settings tab #975
+- 🚚(frontend) rename "wellknown" directory to "well-known" #1009
+- 🌐(frontend) localize SR modifier labels #1010
+- ⬆️(backend) update python dependencies #1011
+- ♿️(frontend) fix focus ring on tab container components #1012
+- ♿️(frontend) upgrade join meeting modal accessibility #1027
+- ⬆️(python) bump minimal required python version to 3.13 #1033
+- ♿️(frontend) improve accessibility of the IntroSlider carousel #1026
+- ♿️(frontend) add skip link component for keyboard navigation #1019
+- ♿️(frontend) announce mic/camera state to SR on shortcut toggle #1052
+
+### Fixed
+
+- 🩹(frontend) fix German language preference update #1021
+
+## [1.8.0] - 2026-02-20
+
+### Changed
+
+- 🔒️(agents) uninstall pip from the agents image
+- 🔒️(summary) switch to Alpine base image
+- 🔒️(backend) uninstall pip in the production image
+
+### Fixed
+
+- 🔒️(agents) upgrade OpenSSL to address CVE-2025-15467
+- 📌(agents) pin protobuf to 6.33.5 to fix CVE-2026-0994
+
+## [1.7.0] - 2026-02-19
+
+### Added
+
+- ✨(frontend) expose Windows app web link #976
+- ✨(frontend) support additional shortcuts to broaden accessibility
+
+### Changed
+
+- ✨(frontend) add clickable settings general link in idle modal #974
+- ♻️(backend) refactor external API token-related items #1006
+
+## [1.6.0] - 2026-02-10
+
+### Added
+
+- ✨(backend) monitor throttling rate failure through sentry #964
+- 🚀(paas) add PaaS deployment scripts, tested on Scalingo #957
+
+### Changed
+
+- ♿️(frontend) improve spinner reduced‑motion fallback #931
+- ♿️(frontend) fix form labels and autocomplete wiring #932
+- 🥅(summary) catch file-related exceptions when handling recording #944
+- 📝(frontend) update legal terms #956
+- ⚡️(backend) enhance django admin's loading performance #954
+- 🌐(frontend) add missing DE translation for accessibility settings
+
+### Fixed
+
+- 🔐(backend) enforce object-level permission checks on room endpoint #959
+- 🔒️(backend) add application validation when consuming external JWT #963
+
+## [1.5.0] - 2026-01-28
+
+### Changed
+
 - ♿️(frontend) adjust visual-only tooltip a11y labels #910
 - ♿️(frontend) sr pin/unpin announcements with dedicated messages #898
 - ♿(frontend) adjust sr announcements for idle disconnect timer #908
@@ -24,16 +177,12 @@ and this project adheres to
 
 ### Fixed
 
-- 🔒️(tests) resolved the initial flaky tests #1
-- 🔒️(tests) clean up deprecations #4
-- (backend) Return 404 when attempting to remove a non-existent participant #9
 - 🔒️(frontend) fix an XSS vulnerability on the recording page #911
 
 ## [1.4.0] - 2026-01-25
 
 ### Added
 
-- (backend) Added end-to-end integration tests for waiting room flows  #9
 - ✨(frontend) add configurable redirect for unauthenticated users #904
 
 ### Changed

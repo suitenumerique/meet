@@ -122,11 +122,11 @@ If you haven't run the script **bin/start-kind.sh**, you'll need to manually cre
 $ kubectl create namespace meet
 ```
 
-If you have already run the script, you can skip this step and proceed to the next instruction. NOTE: Before you proceed, and is using the kind method, make sure you download this repo examples/ directory and its contents to the location where you will be executing the helm command. Helm will look for "examples/<name>values.yaml" from based on the path it is being executed.
+If you have already run the script, you can skip this step and proceed to the next instruction. NOTE: Before you proceed, and is using the kind method, make sure you download this repo examples/helm directory and its contents to the location where you will be executing the helm command. Helm will look for "examples/helm/<name>values.yaml" from based on the path it is being executed.
 
 ```
 $ kubectl config set-context --current --namespace=meet
-$ helm install keycloak oci://registry-1.docker.io/bitnamicharts/keycloak -f examples/keycloak.values.yaml
+$ helm install keycloak oci://registry-1.docker.io/bitnamicharts/keycloak -f examples/helm/keycloak.values.yaml
 $ #wait until
 $ kubectl get po
 NAME                    READY   STATUS    RESTARTS   AGE
@@ -150,7 +150,7 @@ OIDC_RP_SIGN_ALGO: RS256
 OIDC_RP_SCOPES: "openid email"
 ```
 
-You can find these values in **examples/keycloak.values.yaml**
+You can find these values in **examples/helm/keycloak.values.yaml**
 
 ### Find livekit server connexion values
 
@@ -159,7 +159,7 @@ LaSuite Meet use livekit for streaming part so if you have a livekit provider, o
 Livekit need a redis (and meet too) so we will start by deploying a redis :
 
 ```
-$ helm install redis oci://registry-1.docker.io/bitnamicharts/redis -f examples/redis.values.yaml
+$ helm install redis oci://registry-1.docker.io/bitnamicharts/redis -f examples/helm/redis.values.yaml
 $ kubectl get po
 NAME                    READY   STATUS    RESTARTS   AGE
 keycloak-0              1/1     Running   0          26m
@@ -172,7 +172,7 @@ When the redis is ready we can deploy livekit-server.
 ```
 $ helm repo add livekit https://helm.livekit.io
 $ helm repo update
-$ helm install livekit livekit/livekit-server -f examples/livekit.values.yaml
+$ helm install livekit livekit/livekit-server -f examples/helm/livekit.values.yaml
 $ kubectl get po
 NAME                                      READY   STATUS    RESTARTS   AGE
 keycloak-0                                1/1     Running   0          30m
@@ -199,7 +199,7 @@ CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
 LaSuite Meet uses a postgresql db as backend so if you have a provider, obtain the necessary information to use it. If you do not have, you can install a postgresql testing environment as follows:
 
 ```
-$ helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql -f examples/postgresql.values.yaml
+$ helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql -f examples/helm/postgresql.values.yaml
 $ kubectl get po
 NAME                                      READY   STATUS    RESTARTS   AGE
 keycloak-0                                1/1     Running   0          45m
@@ -226,7 +226,7 @@ Now you are ready to deploy LaSuite Meet without AI. AI required more dependenci
 ```
 $ helm repo add meet https://suitenumerique.github.io/meet/
 $ helm repo update
-$ helm install meet meet/meet -f examples/meet.values.yaml
+$ helm install meet meet/meet -f examples/helm/meet.values.yaml
 ```
 
 ## Test your deployment

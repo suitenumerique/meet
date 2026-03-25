@@ -65,7 +65,7 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
           alignItems="left"
           justify="start"
           gap={0}
-          style={{ maxWidth: '100%', overflow: 'hidden' }}
+          style={{ maxWidth: '100%', overflow: 'visible' }}
         >
           <Heading slot="title" level={2} className={text({ variant: 'h2' })}>
             {t('heading')}
@@ -93,7 +93,7 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
                 flexDirection: 'column',
                 marginTop: '0.5rem',
                 gap: '1rem',
-                overflow: 'hidden',
+                overflow: 'visible',
               })}
             >
               <div

@@ -23,9 +23,10 @@
 # ==============================================================================
 # VARIABLES
 
-BOLD := \033[1m
-RESET := \033[0m
-GREEN := \033[1;32m
+ESC := $(shell printf '\033')
+BOLD := $(ESC)[1m
+RESET := $(ESC)[0m
+GREEN := $(ESC)[1;32m
 
 
 # -- Database
@@ -85,7 +86,8 @@ bootstrap: \
 	demo \
 	back-i18n-compile \
 	mails-install \
-	mails-build
+	mails-build \
+	run
 .PHONY: bootstrap
 
 # -- Docker/compose
@@ -112,7 +114,8 @@ logs: ## display app-dev logs (follow mode)
 .PHONY: logs
 
 run-backend: ## start only the backend application and all needed services
-	@$(COMPOSE) up --force-recreate -d celery-dev
+	@$(COMPOSE) up --force-recreate -d celery-dev --remove-orphans
+	@$(COMPOSE) up --force-recreate -d nginx
 	@echo "Wait for postgresql to be up..."
 	@$(WAIT_DB)
 .PHONY: run-backend
@@ -188,6 +191,7 @@ lint-pylint: ## lint back-end python sources with pylint only on changed files f
 
 test: ## run project tests
 	@$(MAKE) test-back-parallel
+	@$(MAKE) test-summary
 .PHONY: test
 
 test-back: ## run back-end tests
@@ -199,6 +203,11 @@ test-back-parallel: ## run all back-end tests in parallel
 	@args="$(filter-out $@,$(MAKECMDGOALS))" && \
 	bin/pytest -n auto $${args:-${1}}
 .PHONY: test-back-parallel
+
+test-summary: ## run summary tests
+	@args="$(filter-out $@,$(MAKECMDGOALS))" && \
+	bin/pytest-summary $${args:-${1}}
+.PHONY: test-summary
 
 makemigrations:  ## run django makemigrations for the Meet project.
 	@echo "$(BOLD)Running makemigrations$(RESET)"
@@ -220,7 +229,7 @@ superuser: ## Create an admin superuser with password "admin"
 .PHONY: superuser
 
 back-i18n-compile: ## compile the gettext files
-	@$(MANAGE) compilemessages --ignore="venv/**/*"
+	@$(MANAGE) compilemessages --ignore=".venv/**/*"
 .PHONY: back-i18n-compile
 
 back-i18n-generate: ## create the .pot files used for i18n
@@ -351,13 +360,13 @@ install-external-secrets: ## install the kubernetes secrets from Vaultwarden
 .PHONY: build-k8s-cluster
 
 start-tilt: ## start the kubernetes cluster using kind
-	tilt up -f ./bin/Tiltfile
+	tilt up --namespace=meet -f ./bin/Tiltfile
 .PHONY: build-k8s-cluster
 
 start-tilt-keycloak: ## start the kubernetes cluster using kind, without Pro Connect for authentication, use keycloak
-	DEV_ENV=dev-keycloak tilt up -f ./bin/Tiltfile
+	DEV_ENV=dev-keycloak tilt up --namespace=meet -f ./bin/Tiltfile
 .PHONY: build-k8s-cluster
 
 start-tilt-dinum: ## start the kubernetes cluster using kind, without Pro Connect for authentication, but with DINUM styles
-	DEV_ENV=dev-dinum tilt up -f ./bin/Tiltfile
+	DEV_ENV=dev-dinum tilt up --namespace=meet -f ./bin/Tiltfile
 .PHONY: build-k8s-cluster

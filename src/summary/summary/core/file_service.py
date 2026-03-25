@@ -1,5 +1,6 @@
 """File service to encapsulate files' manipulations."""
 
+import logging
 import os
 import subprocess
 import tempfile
@@ -8,19 +9,27 @@ from pathlib import Path
 
 import mutagen
 from minio import Minio
+from minio.error import MinioException, S3Error
 
 from summary.core.config import get_settings
 
 settings = get_settings()
 
 
+logger = logging.getLogger(__name__)
+
+
+class FileServiceException(Exception):
+    """Base exception for file service operations."""
+
+    pass
+
+
 class FileService:
     """Service for downloading and preparing files from MinIO storage."""
 
-    def __init__(self, logger):
+    def __init__(self):
         """Initialize FileService with MinIO client and configuration."""
-        self._logger = logger
-
         endpoint = (
             settings.aws_s3_endpoint_url.removeprefix("https://")
             .removeprefix("http://")
@@ -46,16 +55,16 @@ class FileService:
         The file is downloaded to a temporary location for local manipulation
         such as validation, conversion, or processing before being used.
         """
-        self._logger.info("Download recording | object_key: %s", remote_object_key)
+        logger.info("Download recording | object_key: %s", remote_object_key)
 
         if not remote_object_key:
-            self._logger.warning("Invalid object_key '%s'", remote_object_key)
+            logger.warning("Invalid object_key '%s'", remote_object_key)
             raise ValueError("Invalid object_key")
 
         extension = Path(remote_object_key).suffix.lower()
 
         if extension not in self._allowed_extensions:
-            self._logger.warning("Invalid file extension '%s'", extension)
+            logger.warning("Invalid file extension '%s'", extension)
             raise ValueError(f"Invalid file extension '{extension}'")
 
         response = None
@@ -74,10 +83,15 @@ class FileService:
                 tmp.flush()
                 local_path = Path(tmp.name)
 
-                self._logger.info("Recording successfully downloaded")
-                self._logger.debug("Recording local file path: %s", local_path)
+                logger.info("Recording successfully downloaded")
+                logger.debug("Recording local file path: %s", local_path)
 
                 return local_path
+
+        except (MinioException, S3Error) as e:
+            raise FileServiceException(
+                "Unexpected error while downloading object."
+            ) from e
 
         finally:
             if response:
@@ -88,7 +102,7 @@ class FileService:
         file_metadata = mutagen.File(local_path).info
         duration = file_metadata.length
 
-        self._logger.info(
+        logger.info(
             "Recording file duration: %.2f seconds",
             duration,
         )
@@ -97,14 +111,14 @@ class FileService:
             error_msg = "Recording too long. Limit is %.2fs seconds" % (
                 self._max_duration,
             )
-            self._logger.error(error_msg)
+            logger.error(error_msg)
             raise ValueError(error_msg)
 
         return duration
 
     def _extract_audio_from_video(self, video_path: Path) -> Path:
         """Extract audio from video file (e.g., MP4) and save as audio file."""
-        self._logger.info("Extracting audio from video file: %s", video_path)
+        logger.info("Extracting audio from video file: %s", video_path)
 
         with tempfile.NamedTemporaryFile(
             suffix=".m4a", delete=False, prefix="audio_extract_"
@@ -128,16 +142,16 @@ class FileService:
                 command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
             )
 
-            self._logger.info("Audio successfully extracted to: %s", output_path)
+            logger.info("Audio successfully extracted to: %s", output_path)
             return output_path
 
         except FileNotFoundError as e:
-            self._logger.error("ffmpeg not found. Please install ffmpeg.")
+            logger.error("ffmpeg not found. Please install ffmpeg.")
             if output_path.exists():
                 os.remove(output_path)
             raise RuntimeError("ffmpeg is not installed or not in PATH") from e
         except subprocess.CalledProcessError as e:
-            self._logger.error("Audio extraction failed: %s", e.stderr.decode())
+            logger.error("Audio extraction failed: %s", e.stderr.decode())
             if output_path.exists():
                 os.remove(output_path)
             raise RuntimeError("Failed to extract audio.") from e
@@ -161,7 +175,7 @@ class FileService:
             extension = downloaded_path.suffix.lower()
 
             if extension in settings.recording_video_extensions:
-                self._logger.info("Video file detected, extracting audio...")
+                logger.info("Video file detected, extracting audio...")
                 extracted_audio_path = self._extract_audio_from_video(downloaded_path)
                 processed_path = extracted_audio_path
             else:
@@ -182,8 +196,6 @@ class FileService:
 
                 try:
                     os.remove(path)
-                    self._logger.debug("Temporary file removed: %s", path)
+                    logger.debug("Temporary file removed: %s", path)
                 except OSError as e:
-                    self._logger.warning(
-                        "Failed to remove temporary file %s: %s", path, e
-                    )
+                    logger.warning("Failed to remove temporary file %s: %s", path, e)

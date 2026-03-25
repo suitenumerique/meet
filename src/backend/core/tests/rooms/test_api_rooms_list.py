@@ -120,3 +120,39 @@ def test_api_rooms_list_authenticated_distinct():
     content = response.json()
     assert len(content["results"]) == 1
     assert content["results"][0]["id"] == str(room.id)
+
+
+def test_api_rooms_list_pagination_page_size():
+    """Users should be able to customize the number of results per page via page_size param."""
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    RoomFactory.create_batch(11, users=[user])
+
+    response = client.get("/api/v1.0/rooms/?page_size=2")
+
+    assert response.status_code == 200
+    content = response.json()
+    assert content["count"] == 11
+    assert len(content["results"]) == 2
+    assert content["next"] == "http://testserver/api/v1.0/rooms/?page=2&page_size=2"
+    assert content["previous"] is None
+
+    response = client.get("/api/v1.0/rooms/?page=6&page_size=2")
+
+    assert response.status_code == 200
+    content = response.json()
+    assert content["count"] == 11
+    assert len(content["results"]) == 1
+    assert content["next"] is None
+    assert content["previous"] == "http://testserver/api/v1.0/rooms/?page=5&page_size=2"
+
+    response = client.get("/api/v1.0/rooms/?page_size=3")
+
+    assert response.status_code == 200
+    content = response.json()
+    assert content["count"] == 11
+    assert len(content["results"]) == 3
+    assert content["next"] == "http://testserver/api/v1.0/rooms/?page=2&page_size=3"
+    assert content["previous"] is None

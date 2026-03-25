@@ -1,5 +1,8 @@
 """Permission handlers for the Meet core app."""
 
+from django.conf import settings
+from django.http import Http404
+
 from rest_framework import permissions
 
 from ..models import RoleChoices
@@ -106,3 +109,30 @@ class HasLiveKitRoomAccess(permissions.BasePermission):
         if not request.auth or not hasattr(request.auth, "video"):
             return False
         return request.auth.video.room == str(obj.id)
+
+
+class FilePermission(IsAuthenticated):
+    """
+    Permissions applying to the file API endpoint.
+    Handling soft deletions specificities
+    """
+
+    def has_permission(self, request, view):
+        """Allow access only to authenticated users."""
+        if not settings.FILE_UPLOAD_ENABLED:
+            raise Http404
+
+        return super().has_permission(request, view)
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Return a 404 on deleted files or if the user is not the owner
+        """
+
+        if obj.deleted_at is not None or obj.hard_deleted_at is not None:
+            raise Http404
+
+        if obj.creator != request.user:
+            raise Http404
+
+        return obj.get_abilities(request.user).get(view.action, False)

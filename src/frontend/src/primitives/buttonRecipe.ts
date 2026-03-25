@@ -199,6 +199,11 @@ export const buttonRecipe = cva({
           backgroundColor: 'primaryDark.700',
           color: 'primaryDark.100',
         },
+        '&[data-focus-visible]': {
+          outline: '2px solid',
+          outlineColor: 'focusRing',
+          outlineOffset: '2px',
+        },
       },
       quaternaryText: {
         backgroundColor: 'transparent',

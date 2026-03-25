@@ -129,7 +129,7 @@ class LobbyService:
     ) -> Tuple[LobbyParticipant, Optional[Dict]]:
         """Request entry to a room for a participant.
 
-        This usual status transitions is:
+        The usual status transitions are:
         UNKNOWN -> WAITING -> (ACCEPTED | DENIED)
 
         Flow:
@@ -141,7 +141,7 @@ class LobbyService:
         """
 
         participant_id = self._get_or_create_participant_id(request)
-        participant = self.get_participant(room.id, participant_id)
+        participant = self._get_participant(room.id, participant_id)
 
         room_id = str(room.id)
 
@@ -255,10 +255,6 @@ class LobbyService:
             logger.error("Corrupted participant data found and removed: %s", cache_key)
             cache.delete(cache_key)
             return None
-
-    def get_participant(self, room_id: UUID, participant_id: str):
-        """Remove a participant entry from the lobby cache for the given room."""
-        return self._get_participant(room_id, participant_id)
 
     def list_waiting_participants(self, room_id: UUID) -> List[dict]:
         """List all waiting participants for a room."""

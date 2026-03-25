@@ -10,7 +10,7 @@
   "joinMeetingTipContent": "U kunt deelnemen aan een vergadering door de volledige link in de adresbalk van de browser te plakken.",
   "joinMeetingTipHeading": "Wist u dat?",
   "loginToCreateMeeting": "Log in om een vergadering te maken",
-  "moreLinkLabel": "Meer informatie - nieuw tabblad",
+  "moreLinkLabel": "Meer informatie over {{appTitle}} - nieuw tabblad",
   "moreLink": "Meer informatie",
   "moreAbout": "over {{appTitle}}",
   "createMenu": {
@@ -31,12 +31,14 @@
   },
   "introSlider": {
     "previous": {
-      "label": "vorige",
-      "tooltip": "vorige"
+      "label": "Vorige dia",
+      "labelWithPosition": "Vorige dia ({{current}} van {{total}})",
+      "tooltip": "Vorige dia"
     },
     "next": {
-      "label": "volgende",
-      "tooltip": "volgende"
+      "label": "Volgende dia",
+      "labelWithPosition": "Volgende dia ({{current}} van {{total}})",
+      "tooltip": "Volgende dia"
     },
     "beta": {
       "text": "Word lid van de bèta",
@@ -53,6 +55,8 @@
     "slide3": {
       "title": "Transformeer uw vergaderingen met AI",
       "body": "Krijg nauwkeurige en bruikbare transcripties om uw productiviteit te stimuleren. Deze mogelijkheid is in bèta, probeer het nu!"
-    }
+    },
+    "carouselLabel": "Introductie-diavoorstelling",
+    "slidePosition": "Dia {{current}} van {{total}}"
   }
 }

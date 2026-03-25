@@ -1,117 +1,129 @@
 {
-  "title": "Terms of Use for Visio",
+  "title": "Gebruiksvoorwaarden voor Visio",
   "articles": {
     "article1": {
-      "title": "1. Scope",
-      "content": "This document defines the terms of use for Visio, the videoconferencing service of the administration."
+      "title": "1. Toepassingsgebied",
+      "content": "Dit document bepaalt de gebruiksvoorwaarden van Visio (hierna “Visio” of “de applicatie”), een videoconferentieapplicatie die speciaal is ontworpen voor overheidsadministraties en instanties die onder hun toezicht staan."
     },
     "article2": {
-      "title": "2. Purpose of the Platform",
-      "content": "The service promotes team cooperation and remote work, and facilitates the organization of meetings, conferences, or training sessions.",
-      "purposes": "Visio is developed and operated by DINUM. Any use of the service must comply with these terms of use."
+      "title": "2. Doel van de applicatie",
+      "content": "Visio bevordert de samenwerking tussen teams van overheidsadministraties en onder hun toezicht staande instanties, ondersteunt werken op afstand en vergemakkelijkt de organisatie van vergaderingen, conferenties of opleidingen.",
+      "paragraphs": [
+        "Visio wordt ontwikkeld en beheerd door de Interministeriële Directie voor Digitale Zaken (DINUM).",
+        "De applicatie wordt door DINUM ter beschikking gesteld aan overheidsadministraties en instanties onder hun toezicht, ten behoeve van hun medewerkers, partners en uitgenodigde dienstverleners.",
+        "Elk gebruik van Visio moet in overeenstemming zijn met deze gebruiksvoorwaarden en, indien van toepassing, met het gebruiksbeleid van de bevoegde administratie."
+      ]
     },
     "article3": {
-      "title": "3. Access to the Service",
-      "definition": "Visio is made available to public agents connected through ProConnect for the purpose of administering a videoconference room. The connected public agent can then transmit a link allowing access to the room to any person, under their responsibility."
+      "title": "3. Definities",
+      "paragraphs": [
+        "Visio is het product waarvan het gebruik in deze voorwaarden wordt beschreven en dat wordt gepresenteerd op de volgende pagina: https://visio.numerique.gouv.fr.",
+        "Gebruikers van Visio zijn alle personen die Visio gebruiken voor videocommunicatiedoeleinden, ongeacht of zij medewerkers, partners of dienstverleners zijn van de betrokken administraties. De bevoegde administratie is de overheidsadministratie of de onder haar toezicht staande instantie die Visio ter beschikking stelt aan haar medewerkers, partners of dienstverleners.",
+        "Ruimteorganisatoren zijn gebruikers die verantwoordelijk zijn voor een videoconferentieruimte na inloggen via ProConnect."
+      ]
     },
     "article4": {
-      "title": "4. Usage",
-      "content": "The use of the service is free of charge. To administer a videoconference room, it is necessary to connect through ProConnect."
+      "title": "4. Toegang tot de applicatie",
+      "definition": "Visio wordt aan gebruikers ter beschikking gesteld door hun bevoegde administratie. Organisatoren kunnen vervolgens, onder hun verantwoordelijkheid, een toegangslink tot de ruimte delen met elke persoon."
     },
     "article5": {
-      "title": "5. Features",
+      "title": "5. Functionaliteiten",
       "sections": {
         "section1": {
-          "title": "5.1. Features Available to Public Agents",
-          "content": "Visio offers public agents the ability to create a videoconference room from a standard workstation, linked to their ProConnect account.",
-          "paragraph1": "Any State agent whose activities are compatible with the use of Visio or who is not subject to specific confidentiality obligations or professional secrecy, can create a videoconference. They can then share the meeting link with other participants, whether they are part of the administration or not.",
-          "paragraph2": "To this end, each room organizer can:",
+          "title": "5.1. Functionaliteiten voor organisatoren",
+          "content": "Visio biedt medewerkers van overheidsadministraties en onder hun toezicht staande instanties de mogelijkheid om vanaf een standaardwerkstation een videoconferentieruimte aan te maken, gekoppeld aan hun ProConnect-account.",
+          "paragraph1": "Elke medewerker van de Staat of van een onder zijn toezicht staande instantie, van wie de activiteiten verenigbaar zijn met het gebruik van Visio of die niet onder specifieke vertrouwelijkheids- of beroepsgeheimverplichtingen valt, kan een videoconferentie aanmaken en organiseren. De vergaderlink kan vervolgens worden gedeeld met andere personen, gebruikers, binnen of buiten de administratie.",
+          "paragraph2": "Daartoe kan elke ruimteorganisator:",
           "capabilities": [
-            "Protect access to the room with a waiting room;",
-            "Authorize the entry of each participant into the room;",
-            "Mute the microphones and cameras of participants;",
-            "Remove a participant from the room."
+            "de toegang tot de ruimte beveiligen met een wachtruimte;",
+            "de toegang van elke gebruiker tot de ruimte toestaan;",
+            "microfoons en camera’s van gebruikers dempen;",
+            "een gebruiker uit de ruimte verwijderen;",
+            "de transcriptietool van de vergadering gebruiken na toestemming van de gebruikers, onder eigen verantwoordelijkheid."
           ],
-          "paragraph3": "Only agents whose field of activity is authorized to use Visio or who <u>are not subject to specific confidentiality obligations or professional secrecy</u>, may use or have control of this service and its features."
+          "paragraph3": "Alleen medewerkers van wie het ProConnect-account behoort tot een domein dat gemachtigd is om ruimtes op Visio te organiseren, of die niet onder specifieke vertrouwelijkheids- of beroepsgeheimverplichtingen vallen, mogen de applicatie en haar functionaliteiten gebruiken of beheren.",
+          "paragraph4": "De automatische transcriptietool kan door organisatoren worden gebruikt via het instellingenmenu van de ruimte. Het is de verantwoordelijkheid van de organisatoren om de toestemming te verkrijgen van de gebruikers die deelnemen aan de getranscribeerde vergadering. De transcriptietaal kan in hetzelfde menu worden gewijzigd. Aan het einde van de vergadering ontvangt de organisator een link om de transcriptie te raadplegen die wordt bewaard in de door DINUM beheerde tool “Docs”."
         },
         "section2": {
-          "title": "5.2. Features Available to Users",
-          "content": "Visio allows any user, whether a public agent or not, to participate in any Visio room to which they are invited by a State agent and to benefit from all its features.",
-          "paragraph": "To this end, each participant can:",
+          "title": "5.2. Functionaliteiten voor gebruikers",
+          "content": "Visio stelt elke gebruiker, al dan niet een ambtenaar, in staat deel te nemen aan elke Visio-ruimte waarvoor hij of zij door een organisator is uitgenodigd en gebruik te maken van de functionaliteiten.",
+          "paragraph": "Daartoe kan elke gebruiker:",
           "capabilities": [
-            "Set their displayed identity when entering the room;",
-            "Communicate remotely via audio and/or video;",
-            "Share their screen;",
-            "Exchange messages during the session publicly with everyone;",
-            "View information about the conference;",
-            "Enable or disable their camera and/or microphone at any time;",
-            "Protect the privacy of their workstation by selecting and activating a background before entering the room or even during the videoconference."
+            "een weergavenaam opgeven bij het betreden van de ruimte;",
+            "op afstand communiceren via audio en/of video;",
+            "zijn of haar scherm delen;",
+            "tijdens de sessie openbare berichten uitwisselen met alle gebruikers van de ruimte;",
+            "toegang krijgen tot technische informatie over de ruimte en toegankelijkheidsfuncties;",
+            "de camera en/of microfoon op elk moment in- of uitschakelen;",
+            "de privacy van de eigen omgeving beschermen bij gebruik van de camera door vóór of tijdens de videoconferentie een achtergrond te selecteren en te activeren."
           ]
         }
       }
     },
     "article6": {
-      "title": "6. User Commitments and Responsibilities",
+      "title": "6. Verplichtingen en verantwoordelijkheden van gebruikers",
       "sections": {
         "section1": {
-          "title": "6.1 Compliant Uses",
+          "title": "6.1 Toegestaan gebruik",
           "paragraphs": [
-            "The service is made available to public agents through ProConnect.",
-            "The user is responsible for the data or content they enter in the videoconference room's messaging service. They must ensure they only enter appropriate messages."
+            "Visio wordt ter beschikking gesteld om professionele uitwisselingen tussen medewerkers van overheidsadministraties en onder hun toezicht staande instanties en externe medewerkers te vergemakkelijken.",
+            "Gebruikers zijn verantwoordelijk voor de beelden en geluiden die zij in de videoconferentieruimte toegankelijk maken. Deze verantwoordelijkheid geldt zowel voor wat hun camera of microfoon kan uitzenden als voor wat hun apparaat toegankelijk kan maken voor derden. Daarom moeten gebruikers de applicatie in een professionele omgeving gebruiken en geen informatie die onder de beroepsgeheimverplichting valt met derden delen (bijvoorbeeld door gebruik van privacyfilters, hoofdtelefoons, enz.).",
+            "Gebruikers zijn verantwoordelijk voor de gegevens of inhoud die zij invoeren in de berichtenservice van de ruimte. Zij moeten ervoor zorgen dat alleen gepaste berichten worden ingevoerd."
           ]
         },
         "section2": {
-          "title": "6.2 Prohibited Uses",
+          "title": "6.2 Verboden gebruik",
           "paragraphs": [
-            "The user agrees not to enter content or information in the Visio room's messaging service that is contrary to current legal and regulatory provisions."
+            "Gebruikers verbinden zich ertoe geen inhoud of informatie in de berichtenservice van Visio in te voeren, noch via beeld of geluid toegankelijk te maken, die in strijd is met de geldende wettelijke en reglementaire bepalingen."
           ]
         }
       }
     },
     "article7": {
-      "title": "7. DINUM Commitments and Responsibilities",
-      "content": "De DINUM is verantwoordelijk voor de algemene administratie van de dienst. Zij verstrekt de medewerkers alle nodige informatie om het gebruik te vergemakkelijken. Zij biedt technische en functionele ondersteuning om de goede werking van de dienst te verzekeren. Zij informeert de gebruikers met elk redelijk middel over moeilijkheden die deze goede werking kunnen beïnvloeden.",
+      "title": "7. Verplichtingen en verantwoordelijkheden van DINUM",
       "sections": {
         "section1": {
-          "title": "7.1. Beschikbaarheidsniveau",
+          "title": "7.1. Beveiliging van de applicatie",
           "paragraphs": [
-            "De dienstverlening is 24u/24 en 7d/7 beschikbaar, behalve tijdens onderhoudsonderbrekingen.",
-            "DINUM streeft naar een jaarlijkse beschikbaarheid van 99,5% van de dienst, buiten geplande onbeschikbaarheden. Bij een incident of onderhoud mikt zij op een hersteltermijn van 72 uur buiten kantooruren.",
-            "In het kader van onderhoud van de uitvoeringsomgeving van de dienst behoudt DINUM zich het recht voor de werking tijdelijk op te schorten. Zij informeert de gebruikers minstens 48 uur vooraf. In noodgevallen kan deze opschorting zonder voorafgaande kennisgeving plaatsvinden.",
-            "Deze uitzonderlijke stilstanden kunnen bijvoorbeeld nodig zijn voor backoffice-gegevensbeheer, inproductiestellingen of architectuurwijzigingen.",
-            "Onbeschikbaarheid van de dienst geeft geen recht op enige vorm van compensatie."
+            "DINUM verbindt zich ertoe Visio te beveiligen, met name door alle noodzakelijke maatregelen te nemen om de veiligheid en vertrouwelijkheid van de uitwisselingen te waarborgen.",
+            "De applicatie is gecertificeerd volgens de voorwaarden van het gewijzigde decreet nr. 2010-112."
           ]
         },
         "section2": {
-          "title": "7.2. Beveiliging van de dienst",
+          "title": "7.2. Toegang tot de applicatie",
           "paragraphs": [
-            "DINUM neemt alle nodige voorzorgsmaatregelen om de veiligheid van het platform en de in het kader van de dienst gebruikte hulpmiddelen te bewaren, met name wat betreft de toegang tot de dienst, het beheer van gebruikersaccounts en de verwerking van verzamelde gegevens."
+            "DINUM verbindt zich ertoe de noodzakelijke en redelijke middelen te verschaffen om een continue toegang tot de applicatie te waarborgen.",
+            "De applicatie is 24 uur per dag, 7 dagen per week beschikbaar, behalve tijdens onderhoudsperiodes.",
+            "DINUM streeft naar een jaarlijkse beschikbaarheid van de applicatie van 99,5%, met uitsluiting van geplande onderbrekingen. In geval van een incident of onderhoud wordt gestreefd naar een hersteltijd van 72 uur buiten kantooruren.",
+            "In het kader van onderhoud aan de uitvoeringsomgeving van de applicatie behoudt DINUM zich het recht voor de werking van de applicatie tijdelijk op te schorten. Indien mogelijk worden gebruikers ten minste 48 uur van tevoren geïnformeerd. In noodgevallen kan deze opschorting zonder voorafgaande kennisgeving plaatsvinden.",
+            "Deze uitzonderlijke onderbrekingen kunnen bijvoorbeeld noodzakelijk zijn voor gegevensbeheer, productiereleases of architectuurwijzigingen.",
+            "Onbeschikbaarheid van de applicatie geeft geen recht op enige vorm van compensatie."
           ]
         },
         "section3": {
-          "title": "7.3. Supportbeheer",
+          "title": "7.3. Ondersteuning",
           "paragraphs": [
-            "DINUM verzorgt eerstelijns support voor de gebruikers, uitsluitend over de technische onderdelen van de dienst.",
-            "Deze support is bereikbaar via ons online contactformulier.",
-            "De streefantwoordtermijn op verzoeken is twee werkdagen vanaf de verzending; deze termijn kan variëren naargelang de complexiteit en het aantal te behandelen aanvragen."
+            "DINUM biedt eerstelijnsondersteuning aan gebruikers, uitsluitend met betrekking tot de technische aspecten van de applicatie.",
+            "Deze ondersteuning is bereikbaar via het online contactformulier.",
+            "De beoogde reactietijd bedraagt twee werkdagen vanaf verzending van het verzoek; deze termijn kan variëren afhankelijk van de complexiteit en het aantal te behandelen verzoeken."
           ]
         },
         "section4": {
-          "title": "7.4. Controle van het gebruik van de dienst",
+          "title": "7.4. Controle op het gebruik van de applicatie",
           "paragraphs": [
-            "DINUM behoudt zich het recht voor om een agentaccount te schorsen of te verwijderen dat deze gebruiksvoorwaarden heeft geschonden, onverminderd eventuele strafrechtelijke en civielrechtelijke stappen tegen de betrokken agent.",
-            "De schorsing of intrekking van één of meer accounts geeft geen recht op enige vorm van compensatie."
+            "DINUM behoudt zich het recht voor een gebruikersaccount te schorsen of te verwijderen dat deze gebruiksvoorwaarden niet naleeft, onverminderd eventuele strafrechtelijke of civielrechtelijke procedures tegen de betrokken persoon. Informatie kan worden doorgegeven aan de bevoegde administratie, die verantwoordelijk is voor het ter beschikking stellen van de applicatie.",
+            "De schorsing of intrekking van één of meerdere accounts geeft geen recht op enige vorm van compensatie."
           ]
         },
         "section5": {
           "title": "7.5. Open Source en licenties",
-          "content": "De broncode van de dienst is vrij beschikbaar op: https://github.com/suitenumerique/meet. De inhoud die door DINUM wordt aangeboden valt onder een Open License, met uitzondering van logo's en iconografische en fotografische voorstellingen die onder hun eigen licenties kunnen vallen."
+          "content": "De broncode van de dienst is open en hier beschikbaar: https://github.com/suitenumerique/meet. Inhoud die door DINUM wordt aangeboden valt onder de Open License 2.0, met uitzondering van logo’s en iconografische of fotografische weergaven, die onder hun eigen licenties kunnen vallen."
         }
       }
     },
     "article8": {
-      "title": "8. Evolution of Terms of Use",
-      "content": "The terms of these terms of use may be modified or supplemented at any time, without notice, depending on changes made to the service, changes in legislation, or for any other reason deemed necessary.\nThese modifications and updates are binding on the user who must, consequently, regularly refer to this section to verify the terms in force."
+      "title": "8. Wijzigingen van de gebruiksvoorwaarden",
+      "content": "De voorwaarden van deze gebruiksvoorwaarden kunnen te allen tijde zonder voorafgaande kennisgeving worden gewijzigd of aangevuld, afhankelijk van wijzigingen aan de dienst, ontwikkelingen in de wetgeving of om andere noodzakelijk geachte redenen.\nDeze wijzigingen en updates zijn bindend voor de gebruiker, die daarom regelmatig deze rubriek moet raadplegen om de geldende voorwaarden te controleren."
     }
   }
 }

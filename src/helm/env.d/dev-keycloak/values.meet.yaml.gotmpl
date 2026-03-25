@@ -64,6 +64,8 @@ backend:
     AWS_S3_SECRET_ACCESS_KEY: password
     AWS_STORAGE_BUCKET_NAME: meet-media-storage
     AWS_S3_REGION_NAME: local
+    AWS_S3_SIGNATURE_VERSION: s3v4
+    MEDIA_BASE_URL: https://meet.127.0.0.1.nip.io
     RECORDING_ENABLE: True
     RECORDING_STORAGE_EVENT_ENABLE: True
     RECORDING_STORAGE_EVENT_TOKEN: password
@@ -73,8 +75,16 @@ backend:
     ROOM_TELEPHONY_ENABLED: True
     ROOM_TELEPHONY_DEFAULT_COUNTRY: 'FR'
     ROOM_TELEPHONY_PHONE_NUMBER: '+33901020304'
-    SSL_CERT_FILE: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
+    SSL_CERT_FILE: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
     ROOM_SUBTITLE_ENABLED: True
+    EXTERNAL_API_ENABLED: True
+    APPLICATION_JWT_AUDIENCE: https://meet.127.0.0.1.nip.io/external-api/v1.0/
+    APPLICATION_JWT_SECRET_KEY: devKeyApplication
+    APPLICATION_BASE_URL: https://meet.127.0.0.1.nip.io
+    FILE_UPLOAD_ENABLED: True
+    AWS_S3_DOMAIN_REPLACE: https://minio.127.0.0.1.nip.io
+    CELERY_ENABLED: True
+    CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
 
 
   migrate:
@@ -103,7 +113,7 @@ backend:
   # Extra volume mounts to manage our local custom CA and avoid to set ssl_verify: false
   extraVolumeMounts:
     - name: certs
-      mountPath: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
+      mountPath: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
       subPath: cacert.pem
 
   # Extra volumes to manage our local custom CA and avoid to set ssl_verify: false
@@ -134,6 +144,10 @@ ingress:
   host: meet.127.0.0.1.nip.io
 
 ingressAdmin:
+  enabled: true
+  host: meet.127.0.0.1.nip.io
+
+ingressWebhook:
   enabled: true
   host: meet.127.0.0.1.nip.io
 
@@ -300,5 +314,20 @@ ingressMedia:
     nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/$1
 
 serviceMedia:
+  host: minio.meet.svc.cluster.local
+  port: 9000
+
+
+ingressMediaFiles:
+  enabled: true
+  host: meet.127.0.0.1.nip.io
+
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: https://meet.127.0.0.1.nip.io/api/v1.0/files/media-auth/
+    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
+    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
+    nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/files/$1
+
+serviceMediaFiles:
   host: minio.meet.svc.cluster.local
   port: 9000

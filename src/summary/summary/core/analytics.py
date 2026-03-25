@@ -112,19 +112,16 @@ class MetadataManager:
         if self._is_disabled or self.has_task_id(task_id):
             return
 
-        initial_metadata = {
-            "start_time": time.time(),
-            "asr_model": settings.whisperx_asr_model,
-            "retries": 0,
-        }
-
         _, filename, email, _, received_at, *_ = task_args
 
+        start_time = time.time()
         initial_metadata = {
-            **initial_metadata,
+            "start_time": start_time,
+            "asr_model": settings.whisperx_asr_model,
+            "retries": 0,
             "filename": filename,
             "email": email,
-            "queuing_time": round(initial_metadata["start_time"] - received_at, 2),
+            "queuing_time": round(start_time - received_at, 2),
         }
 
         self._save_metadata(task_id, initial_metadata)

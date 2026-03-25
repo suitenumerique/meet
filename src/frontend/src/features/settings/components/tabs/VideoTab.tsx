@@ -4,7 +4,7 @@ import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import { useMediaDeviceSelect, useRoomContext } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { css } from '@/styled-system/css'
 import {
   createLocalVideoTrack,
@@ -22,6 +22,8 @@ export type VideoTabProps = Pick<DialogProps, 'onOpenChange'> &
 
 type DeviceItems = Array<{ value: string; label: string }>
 
+const EMPTY_PROPS = {}
+
 export const VideoTab = ({ id }: VideoTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'video' })
   const { localParticipant, remoteParticipants } = useRoomContext()
@@ -29,7 +31,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   const {
     userChoices: {
       videoDeviceId,
-      processorSerialized,
+      processorConfig,
       videoPublishResolution,
       videoSubscribeQuality,
     },
@@ -59,7 +61,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   const isCamEnabled = devicesIn?.length > 0
 
   const disabledProps = isCamEnabled
-    ? {}
+    ? EMPTY_PROPS
     : {
         placeholder: t('permissionsRequired'),
         isDisabled: true,
@@ -76,7 +78,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         resolution: VideoPresets[key].resolution,
         deviceId: { exact: videoDeviceId },
         processor:
-          BackgroundProcessorFactory.deserializeProcessor(processorSerialized),
+          BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
       })
     }
   }
@@ -116,6 +118,40 @@ export const VideoTab = ({ id }: VideoTabProps) => {
       }
     }
   }, [videoDeviceId, videoElement])
+
+  const resolutionItems = useMemo(() => {
+    return [
+      {
+        value: 'h720',
+        label: `${t('resolution.publish.items.high')} (720p)`,
+      },
+      {
+        value: 'h360',
+        label: `${t('resolution.publish.items.medium')} (360p)`,
+      },
+      {
+        value: 'h180',
+        label: `${t('resolution.publish.items.low')} (180p)`,
+      },
+    ]
+  }, [t])
+
+  const videoQualityItems = useMemo(() => {
+    return [
+      {
+        value: VideoQuality.HIGH.toString(),
+        label: t('resolution.subscribe.items.high'),
+      },
+      {
+        value: VideoQuality.MEDIUM.toString(),
+        label: t('resolution.subscribe.items.medium'),
+      },
+      {
+        value: VideoQuality.LOW.toString(),
+        label: t('resolution.subscribe.items.low'),
+      },
+    ]
+  }, [t])
 
   return (
     <TabPanel padding={'md'} flex id={id}>
@@ -178,20 +214,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         <Field
           type="select"
           label={t('resolution.publish.label')}
-          items={[
-            {
-              value: 'h720',
-              label: `${t('resolution.publish.items.high')} (720p)`,
-            },
-            {
-              value: 'h360',
-              label: `${t('resolution.publish.items.medium')} (360p)`,
-            },
-            {
-              value: 'h180',
-              label: `${t('resolution.publish.items.low')} (180p)`,
-            },
-          ]}
+          items={resolutionItems}
           selectedKey={videoPublishResolution}
           onSelectionChange={async (key) => {
             await handleVideoResolutionChange(key as VideoResolution)
@@ -206,20 +229,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         <Field
           type="select"
           label={t('resolution.subscribe.label')}
-          items={[
-            {
-              value: VideoQuality.HIGH.toString(),
-              label: t('resolution.subscribe.items.high'),
-            },
-            {
-              value: VideoQuality.MEDIUM.toString(),
-              label: t('resolution.subscribe.items.medium'),
-            },
-            {
-              value: VideoQuality.LOW.toString(),
-              label: t('resolution.subscribe.items.low'),
-            },
-          ]}
+          items={videoQualityItems}
           selectedKey={videoSubscribeQuality?.toString()}
           onSelectionChange={(key) => {
             if (key == undefined) return

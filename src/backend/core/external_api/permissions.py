@@ -33,12 +33,11 @@ class BaseScopePermission(permissions.BasePermission):
         Raises:
             PermissionDenied: If required scope is missing from token
         """
-        # Get the current action (e.g., 'list', 'create')
+        # Get the current action (e.g., 'list', 'create'), if None let DRF handle it
         action = getattr(view, "action", None)
         if not action:
-            raise exceptions.PermissionDenied(
-                "Insufficient permissions. Unknown action."
-            )
+            # DRF routers return a 405 for unsupported methods
+            return True
 
         required_scope = self.scope_map.get(action)
         if not required_scope:
@@ -57,9 +56,12 @@ class BaseScopePermission(permissions.BasePermission):
         if isinstance(token_scopes, str):
             token_scopes = token_scopes.split()
 
+        # Ensure scopes is a deduplicated list (preserving order) and lowercase all scopes
+        token_scopes = list(dict.fromkeys(scope.lower() for scope in token_scopes))
+
         if settings.OIDC_RS_SCOPES_PREFIX:
             token_scopes = [
-                scope.replace(f"{settings.OIDC_RS_SCOPES_PREFIX}:", "")
+                scope.removeprefix(f"{settings.OIDC_RS_SCOPES_PREFIX}:")
                 for scope in token_scopes
             ]
 
@@ -82,3 +84,23 @@ class HasRequiredRoomScope(BaseScopePermission):
         "partial_update": models.ApplicationScope.ROOMS_UPDATE,
         "destroy": models.ApplicationScope.ROOMS_DELETE,
     }
+
+
+class RoomPermissions(permissions.BasePermission):
+    """Permissions applying to the room API endpoint."""
+
+    def has_permission(self, request, view):
+        """Allow access only to authenticated users."""
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        """Enforce role-based access: read=any role, delete=owner, write=admin or owner."""
+        user = request.user
+
+        if request.method in permissions.SAFE_METHODS:
+            return obj.has_any_role(user)
+
+        if request.method == "DELETE":
+            return obj.is_owner(user)
+
+        return obj.is_administrator_or_owner(user)

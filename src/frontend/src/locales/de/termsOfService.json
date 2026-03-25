@@ -3,115 +3,127 @@
   "articles": {
     "article1": {
       "title": "1. Geltungsbereich",
-      "content": "Dieses Dokument definiert die Nutzungsbedingungen für Visio, den Videokonferenzdienst der Verwaltung."
+      "content": "Dieses Dokument legt die Nutzungsbedingungen für Visio (nachfolgend „Visio“ oder „die Anwendung“) fest, eine Videokonferenzanwendung, die speziell für staatliche Verwaltungen und ihnen unterstellte Einrichtungen entwickelt wurde."
     },
     "article2": {
-      "title": "2. Zweck der Plattform",
-      "content": "Der Dienst fördert die Zusammenarbeit im Team und das Arbeiten aus der Ferne und erleichtert die Organisation von Besprechungen, Konferenzen oder Schulungen.",
-      "purposes": "Visio wird von DINUM entwickelt und betrieben. Jede Nutzung des Dienstes muss mit diesen Nutzungsbedingungen übereinstimmen."
+      "title": "2. Zweck der Anwendung",
+      "content": "Visio fördert die Zusammenarbeit der Teams staatlicher Verwaltungen und ihnen unterstellter Einrichtungen, unterstützt die Arbeit auf Distanz und erleichtert die Organisation von Besprechungen, Konferenzen oder Schulungen.",
+      "paragraphs": [
+        "Visio wird von der Interministeriellen Direktion für Digitales (DINUM) entwickelt und betrieben.",
+        "Die Anwendung wird von der DINUM staatlichen Verwaltungen und ihnen unterstellten Einrichtungen für deren Mitarbeitende, Partner und eingeladene Dienstleister zur Verfügung gestellt.",
+        "Jede Nutzung von Visio muss diesen Nutzungsbedingungen sowie gegebenenfalls den Nutzungsvorgaben der zuständigen Verwaltung entsprechen."
+      ]
     },
     "article3": {
-      "title": "3. Zugang zum Dienst",
-      "definition": "Visio wird öffentlichen Bediensteten zur Verfügung gestellt, die über ProConnect verbunden sind, um einen Videokonferenzraum zu verwalten. Der verbundene öffentliche Bedienstete kann dann einen Link übermitteln, der den Zugang zum Raum unter seiner Verantwortung ermöglicht."
+      "title": "3. Begriffsbestimmungen",
+      "paragraphs": [
+        "Visio ist das Produkt, dessen Nutzung in diesen Bedingungen beschrieben wird und das auf der folgenden Seite vorgestellt ist: https://visio.numerique.gouv.fr.",
+        "Nutzerinnen und Nutzer von Visio sind alle Personen, die Visio zu Zwecken der Videokommunikation verwenden, unabhängig davon, ob sie Mitarbeitende, Partner oder Dienstleister der zuständigen Verwaltungen sind. Die zuständige Verwaltung ist die staatliche Verwaltung oder ihr unterstellte Einrichtung, die Visio ihren Mitarbeitenden, Partnern oder Dienstleistern zur Verfügung stellt.",
+        "Raumorganisatorinnen und -organisatoren sind Nutzerinnen und Nutzer, die nach Anmeldung über ProConnect für einen Videokonferenzraum verantwortlich sind."
+      ]
     },
     "article4": {
-      "title": "4. Nutzung",
-      "content": "Die Nutzung des Dienstes ist kostenlos. Um einen Videokonferenzraum zu verwalten, ist eine Verbindung über ProConnect erforderlich."
+      "title": "4. Zugang zur Anwendung",
+      "definition": "Visio wird den Nutzerinnen und Nutzern von ihrer zuständigen Verwaltung zur Verfügung gestellt. Organisatorinnen und Organisatoren können anschließend unter eigener Verantwortung einen Zugangslink zum Raum an beliebige Personen weitergeben."
     },
     "article5": {
       "title": "5. Funktionen",
       "sections": {
         "section1": {
-          "title": "5.1. Funktionen für öffentliche Bedienstete",
-          "content": "Visio bietet öffentlichen Bediensteten die Möglichkeit, von einem Standardarbeitsplatz aus einen Videokonferenzraum zu erstellen, der mit ihrem ProConnect-Konto verknüpft ist.",
-          "paragraph1": "Jeder Staatsbedienstete, dessen Tätigkeiten mit der Nutzung von Visio vereinbar sind oder der keinen spezifischen Vertraulichkeitsverpflichtungen oder dem Berufsgeheimnis unterliegt, kann eine Videokonferenz erstellen. Er kann dann den Besprechungslink mit anderen Teilnehmern teilen, unabhängig davon, ob sie Teil der Verwaltung sind oder nicht.",
-          "paragraph2": "Zu diesem Zweck kann jeder Raumorganisator:",
+          "title": "5.1. Funktionen für Organisatorinnen und Organisatoren",
+          "content": "Visio ermöglicht Mitarbeitenden staatlicher Verwaltungen und ihnen unterstellter Einrichtungen, von einem Standardarbeitsplatz aus einen Videokonferenzraum zu erstellen, der mit ihrem ProConnect-Konto verknüpft ist.",
+          "paragraph1": "Jede Mitarbeiterin und jeder Mitarbeiter des Staates oder einer ihm unterstellten Einrichtung, deren Tätigkeiten mit der Nutzung von Visio vereinbar sind oder die keinen besonderen Vertraulichkeits- oder Berufsgeheimnispflichten unterliegen, kann eine Videokonferenz erstellen und organisieren. Der Einladungslink kann anschließend mit anderen Personen, Nutzerinnen und Nutzern, innerhalb oder außerhalb der Verwaltung geteilt werden.",
+          "paragraph2": "Zu diesem Zweck kann jede Raumorganisatorin bzw. jeder Raumorganisator:",
           "capabilities": [
-            "Den Zugang zum Raum mit einem Warteraum schützen;",
-            "Den Eintritt jedes Teilnehmers in den Raum autorisieren;",
-            "Die Mikrofone und Kameras der Teilnehmer stummschalten;",
-            "Einen Teilnehmer aus dem Raum entfernen."
+            "den Zugang zum Raum durch einen Warteraum schützen;",
+            "den Zutritt jeder Nutzerin und jedes Nutzers zum Raum zulassen;",
+            "Mikrofone und Kameras der Nutzerinnen und Nutzer stummschalten;",
+            "eine Nutzerin oder einen Nutzer aus dem Raum entfernen;",
+            "das Transkriptionstool der Sitzung nach Einholung der Zustimmung der Nutzerinnen und Nutzer unter eigener Verantwortung verwenden."
           ],
-          "paragraph3": "Nur Bedienstete, deren Tätigkeitsbereich zur Nutzung von Visio berechtigt ist oder die <u>keinen spezifischen Vertraulichkeitsverpflichtungen oder dem Berufsgeheimnis unterliegen</u>, dürfen diesen Dienst und seine Funktionen nutzen oder kontrollieren."
+          "paragraph3": "Nur Mitarbeitende, deren ProConnect-Konto zu einer zur Raumorganisation in Visio berechtigten Domäne gehört oder die keiner besonderen Vertraulichkeits- oder Berufsgeheimnispflicht unterliegen, dürfen die Anwendung und ihre Funktionen nutzen oder kontrollieren.",
+          "paragraph4": "Das automatische Transkriptionstool kann von Organisatorinnen und Organisatoren über das Einstellungsmenü des Raums genutzt werden. Es liegt in ihrer Verantwortung, die Zustimmung der an der transkribierten Sitzung teilnehmenden Nutzerinnen und Nutzer sicherzustellen. Die Transkriptionssprache kann im selben Menü geändert werden. Am Ende der Sitzung erhält die Organisatorin bzw. der Organisator einen Link zum Zugriff auf die im von der DINUM betriebenen Tool „Docs“ gespeicherte Transkription."
         },
         "section2": {
-          "title": "5.2. Funktionen für Nutzer",
-          "content": "Visio ermöglicht es jedem Nutzer, ob öffentlicher Bediensteter oder nicht, an jedem Visio-Raum teilzunehmen, zu dem er von einem Staatsbediensteten eingeladen wurde, und alle Funktionen zu nutzen.",
-          "paragraph": "Zu diesem Zweck kann jeder Teilnehmer:",
+          "title": "5.2. Funktionen für Nutzerinnen und Nutzer",
+          "content": "Visio ermöglicht es jeder Nutzerin und jedem Nutzer, unabhängig davon, ob sie oder er dem öffentlichen Dienst angehört oder nicht, an jedem Visio-Raum teilzunehmen, zu dem sie oder er von einer Organisatorin oder einem Organisator eingeladen wurde, und die Funktionen zu nutzen.",
+          "paragraph": "Zu diesem Zweck kann jede Nutzerin und jeder Nutzer:",
           "capabilities": [
-            "Seine angezeigte Identität beim Betreten des Raums festlegen;",
-            "Über Audio und/oder Video aus der Ferne kommunizieren;",
-            "Seinen Bildschirm teilen;",
-            "Während der Sitzung öffentlich mit allen Nachrichten austauschen;",
-            "Informationen über die Konferenz einsehen;",
-            "Seine Kamera und/oder sein Mikrofon jederzeit ein- oder ausschalten;",
-            "Die Privatsphäre seines Arbeitsplatzes schützen, indem er vor dem Betreten des Raums oder sogar während der Videokonferenz einen Hintergrund auswählt und aktiviert."
+            "beim Betreten des Raums einen Anzeigenamen angeben;",
+            "per Audio und/oder Video aus der Ferne kommunizieren;",
+            "den eigenen Bildschirm teilen;",
+            "während der Sitzung öffentliche Nachrichten mit allen Nutzerinnen und Nutzern des Raums austauschen;",
+            "auf technische Informationen zum Raum und Barrierefreiheitsfunktionen zugreifen;",
+            "Kamera und/oder Mikrofon jederzeit ein- oder ausschalten;",
+            "die Privatsphäre der eigenen Umgebung bei aktivierter Kamera schützen, indem vor oder während der Videokonferenz ein Hintergrund ausgewählt und aktiviert wird."
           ]
         }
       }
     },
     "article6": {
-      "title": "6. Verpflichtungen und Verantwortlichkeiten der Nutzer",
+      "title": "6. Verpflichtungen und Verantwortlichkeiten der Nutzerinnen und Nutzer",
       "sections": {
         "section1": {
-          "title": "6.1. Konforme Nutzung",
+          "title": "6.1 Zulässige Nutzung",
           "paragraphs": [
-            "Der Dienst wird öffentlichen Bediensteten über ProConnect zur Verfügung gestellt.",
-            "Der Nutzer ist für die Daten oder Inhalte verantwortlich, die er im Nachrichtendienst des Videokonferenzraums eingibt. Er muss sicherstellen, dass er nur angemessene Nachrichten eingibt."
+            "Visio wird bereitgestellt, um den beruflichen Austausch zwischen Mitarbeitenden staatlicher Verwaltungen und ihnen unterstellter Einrichtungen sowie externen Mitarbeitenden zu erleichtern.",
+            "Nutzerinnen und Nutzer sind verantwortlich für die Bilder und Töne, die sie im Videokonferenzraum zugänglich machen. Diese Verantwortung gilt sowohl für das, was Kamera oder Mikrofon übertragen, als auch für das, was ihr Endgerät Dritten zugänglich machen kann. Daher ist die Anwendung in einem professionellen Umfeld zu nutzen, und es dürfen keine Informationen, die der beruflichen Verschwiegenheitspflicht unterliegen, an Dritte weitergegeben werden (z. B. durch Nutzung von Sichtschutzfiltern, Kopfhörern usw.).",
+            "Nutzerinnen und Nutzer sind für die Daten oder Inhalte verantwortlich, die sie in den Nachrichtenbereich des Raums eingeben. Es dürfen nur angemessene Nachrichten eingegeben werden."
           ]
         },
         "section2": {
-          "title": "6.2. Verbotene Nutzung",
+          "title": "6.2 Unzulässige Nutzung",
           "paragraphs": [
-            "Der Nutzer verpflichtet sich, keine Inhalte oder Informationen in den Nachrichtendienst des Visio-Raums einzugeben, die gegen geltende gesetzliche und regulatorische Bestimmungen verstoßen."
+            "Nutzerinnen und Nutzer verpflichten sich, im Nachrichtenbereich von Visio oder über Bild oder Ton keine Inhalte oder Informationen zugänglich zu machen, die gegen geltende gesetzliche oder regulatorische Bestimmungen verstoßen."
           ]
         }
       }
     },
     "article7": {
-      "title": "7. Verpflichtungen und Verantwortlichkeiten von DINUM",
-      "content": "DINUM ist für die allgemeine Verwaltung des Dienstes verantwortlich. Sie stellt den Bediensteten alle erforderlichen Informationen zur Verfügung, um die Nutzung zu erleichtern. Sie bietet technische und funktionale Unterstützung, um den ordnungsgemäßen Betrieb des Dienstes sicherzustellen. Sie informiert die Nutzer auf jede zumutbare Weise über jede Schwierigkeit, die diesen ordnungsgemäßen Betrieb beeinträchtigen könnte.",
+      "title": "7. Verpflichtungen und Verantwortlichkeiten der DINUM",
       "sections": {
         "section1": {
-          "title": "7.1. Verfügbarkeitsniveau",
+          "title": "7.1. Sicherheit der Anwendung",
           "paragraphs": [
-            "Der Dienst ist 24/7 verfügbar, vorbehaltlich Wartungszeiten.",
-            "DINUM verfolgt ein jährliches Verfügbarkeitsziel von 99,5 % (ohne geplante Ausfälle). Bei einem Vorfall oder einer Wartung strebt sie eine Wiederherstellungszeit von 72 Stunden außerhalb der Geschäftszeiten an.",
-            "Im Rahmen der Wartung der Ausführungsumgebung des Dienstes behält sich DINUM das Recht vor, den Betrieb des Dienstes vorübergehend auszusetzen. Sie informiert die Nutzer mindestens 48 Stunden im Voraus. In dringenden Fällen kann diese Aussetzung ohne Vorankündigung erfolgen.",
-            "Diese außergewöhnlichen Stillstände können beispielsweise für Maßnahmen zur Datenverwaltung im Back Office, Produktionsbereitstellungen oder Architekturänderungen erforderlich sein.",
-            "Eine Nichtverfügbarkeit des Dienstes begründet keinerlei Anspruch auf Entschädigung."
+            "DINUM verpflichtet sich zur Absicherung von Visio, insbesondere durch alle notwendigen Maßnahmen zur Gewährleistung der Sicherheit und Vertraulichkeit der Kommunikation.",
+            "Die Anwendung ist gemäß den Bedingungen des geänderten Dekrets Nr. 2010-112 zugelassen."
           ]
         },
         "section2": {
-          "title": "7.2. Sicherheit des Dienstes",
+          "title": "7.2. Zugang zur Anwendung",
           "paragraphs": [
-            "DINUM ergreift alle erforderlichen Vorsichtsmaßnahmen, um die Sicherheit der Plattform und der im Rahmen des Dienstes eingesetzten Werkzeuge zu gewährleisten, insbesondere in Bezug auf den Zugang zum Dienst, die Verwaltung der Nutzerkonten und die Verarbeitung der erhobenen Daten."
+            "DINUM verpflichtet sich, die notwendigen und angemessenen Mittel bereitzustellen, um einen kontinuierlichen Zugang zur Anwendung sicherzustellen.",
+            "Die Anwendung ist 24 Stunden am Tag, 7 Tage die Woche verfügbar, außer während Wartungszeiten.",
+            "DINUM strebt eine jährliche Verfügbarkeit der Anwendung von 99,5 % an, ausgenommen geplante Ausfälle. Im Falle eines Vorfalls oder einer Wartung wird eine Wiederherstellungszeit von 72 Stunden außerhalb der Geschäftszeiten angestrebt.",
+            "Im Rahmen von Wartungsarbeiten an der Laufzeitumgebung der Anwendung behält sich DINUM das Recht vor, den Betrieb vorübergehend auszusetzen. Soweit möglich, werden die Nutzerinnen und Nutzer mindestens 48 Stunden im Voraus informiert. In Notfällen kann die Aussetzung ohne Vorankündigung erfolgen.",
+            "Solche außergewöhnlichen Ausfälle können beispielsweise für Datenverwaltungsmaßnahmen, Produktivsetzungen oder Architekturänderungen erforderlich sein.",
+            "Eine Nichtverfügbarkeit der Anwendung begründet keinen Anspruch auf irgendeine Form von Entschädigung."
           ]
         },
         "section3": {
-          "title": "7.3. Support-Management",
+          "title": "7.3. Support",
           "paragraphs": [
-            "DINUM leistet First-Level-Support für die Nutzer, ausschließlich zu den technischen Teilen des Dienstes.",
-            "Dieser Support ist über unser Online-Kontaktformular erreichbar.",
-            "Die angestrebte Antwortzeit auf Anfragen beträgt zwei Werktage ab Absenden; dieser Zeitraum kann je nach Komplexität und Anzahl der zu bearbeitenden Anfragen variieren."
+            "DINUM bietet den Nutzerinnen und Nutzern Support der ersten Ebene, ausschließlich zu technischen Aspekten der Anwendung.",
+            "Dieser Support ist über das Online-Kontaktformular erreichbar.",
+            "Die angestrebte Antwortzeit beträgt zwei Arbeitstage ab Versand der Anfrage; dieser Zeitraum kann je nach Komplexität und Anzahl der Anfragen variieren."
           ]
         },
         "section4": {
-          "title": "7.4. Kontrolle der Dienstenutzung",
+          "title": "7.4. Kontrolle der Nutzung der Anwendung",
           "paragraphs": [
-            "DINUM behält sich das Recht vor, ein Agentenkonto zu sperren oder zu löschen, das gegen diese Nutzungsbedingungen verstoßen hat, unbeschadet etwaiger straf- und zivilrechtlicher Maßnahmen gegen den betreffenden Agenten.",
-            "Die Sperrung oder Aufhebung eines oder mehrerer Konten begründet keinen Anspruch auf irgendeine Entschädigung."
+            "DINUM behält sich das Recht vor, ein Nutzerkonto zu sperren oder zu löschen, wenn gegen diese Nutzungsbedingungen verstoßen wurde, unbeschadet möglicher straf- oder zivilrechtlicher Schritte gegen die betreffende Person. Informationen können an die zuständige Verwaltung übermittelt werden, die für die Bereitstellung der Anwendung verantwortlich ist.",
+            "Die Sperrung oder Löschung eines oder mehrerer Konten begründet keinen Anspruch auf Entschädigung irgendeiner Art."
           ]
         },
         "section5": {
           "title": "7.5. Open Source und Lizenzen",
-          "content": "Der Quellcode des Dienstes ist frei und hier verfügbar: https://github.com/suitenumerique/meet. Die von DINUM angebotenen Inhalte stehen unter einer Open License, mit Ausnahme von Logos sowie ikonografischen und fotografischen Darstellungen, die möglicherweise eigenen Lizenzen unterliegen."
+          "content": "Der Quellcode des Dienstes ist offen und hier verfügbar: https://github.com/suitenumerique/meet. Von DINUM bereitgestellte Inhalte stehen unter der Open License 2.0, mit Ausnahme von Logos sowie ikonografischen und fotografischen Darstellungen, die eigenen Lizenzen unterliegen können."
         }
       }
     },
     "article8": {
-      "title": "8. Änderung der Nutzungsbedingungen",
-      "content": "Die Bedingungen dieser Nutzungsbedingungen können jederzeit ohne Vorankündigung geändert oder ergänzt werden, abhängig von Änderungen am Dienst, Gesetzesänderungen oder aus anderen als notwendig erachteten Gründen.\nDiese Änderungen und Aktualisierungen sind für den Nutzer verbindlich, der daher regelmäßig diesen Abschnitt konsultieren muss, um die geltenden Bedingungen zu überprüfen."
+      "title": "8. Änderungen der Nutzungsbedingungen",
+      "content": "Die vorliegenden Nutzungsbedingungen können jederzeit und ohne Vorankündigung geändert oder ergänzt werden, insbesondere aufgrund von Änderungen am Dienst, gesetzlicher Entwicklungen oder aus anderen als notwendig erachteten Gründen.\nDiese Änderungen und Aktualisierungen sind für die Nutzerinnen und Nutzer verbindlich; sie sollten daher regelmäßig diesen Abschnitt konsultieren, um die geltenden Bedingungen zu überprüfen."
     }
   }
 }

@@ -151,12 +151,16 @@ export const ScreenRecordingSidePanel = () => {
         </H>
         <Text variant="body" fullWidth>
           {recordingMaxDuration
-            ? t('body', {
-                max_duration: recordingMaxDuration,
-              })
+            ? t('body', { max_duration: recordingMaxDuration })
             : t('bodyWithoutMaxDuration')}{' '}
           {data?.support?.help_article_recording && (
-            <A href={data.support.help_article_recording} target="_blank">
+            <A
+              href={data.support.help_article_recording}
+              target="_blank"
+              rel="noopener noreferrer"
+              externalIcon
+              aria-label={t('linkAriaLabel')}
+            >
               {t('linkMore')}
             </A>
           )}

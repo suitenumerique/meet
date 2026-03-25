@@ -22,6 +22,8 @@
       "permissionsNeeded": "Choisir la webcam - autorisations nécessaires",
       "disable": "Désactiver la webcam",
       "enable": "Activer la webcam",
+      "turnedOff": "Webcam désactivée",
+      "turnedOn": "Webcam activée",
       "label": "Webcam",
       "placeholder": "Activez la webcam pour prévisualiser l'affichage"
     },
@@ -30,6 +32,8 @@
       "permissionsNeeded": "Choisir le micro - autorisations nécessaires",
       "disable": "Désactiver le micro",
       "enable": "Activer le micro",
+      "turnedOff": "Micro désactivé",
+      "turnedOn": "Micro activé",
       "label": "Microphone"
     },
     "audiooutput": {
@@ -154,7 +158,9 @@
   "isIdleDisconnectModal": {
     "title": "Êtes-vous toujours là ?",
     "body": "Vous êtes le seul participant. Cet appel va donc se terminer dans {{duration}}. Voulez-vous poursuivre l'appel ?",
-    "settings": "Pour ne plus voir ce message, accèder à Paramètres > Général.",
+    "settingsPrefix": "Pour ne plus voir ce message, allez dans",
+    "settingsLink": "Paramètres > Général",
+    "settingsSuffix": ".",
     "stayButton": "Poursuivre l'appel",
     "leaveButton": "Quitter maintenant",
     "countdownAnnouncement": "L'appel se termine dans {{duration}}."
@@ -264,18 +270,40 @@
       }
     },
     "virtual": {
-      "title": "Arrière-plan virtuel",
+      "title": "Arrière-plans virtuels",
       "selectedLabel": "Arrière-plan appliqué :",
       "apply": "Remplacer votre arrière plan :",
-      "descriptions": {
-        "0": "Meuble cannelé en bois",
-        "1": "Salle de réunion",
-        "2": "Loft avec verrière noire",
-        "3": "Salle à manger",
-        "4": "Étagères en bois",
-        "5": "Escalier en bois",
-        "6": "Bibliothèque grise",
-        "7": "Comptoir de café"
+      "personal": {
+        "title": "Mes arrière-plans",
+        "selectFileTooltip": "Sélectionnez une image à utiliser comme arrière-plan",
+        "notLoggedInWarning": "Vous n'êtes pas connecté, l'arrière-plan personnel ne sera pas sauvegardé d'une réunion à l'autre.",
+        "warningUploadDisabled": "Les arrière-plans personnels ne sont actuellement pas sauvegardés d'une réunion à l'autre.",
+        "uploadLimitReached": "Vous ne pouvez pas ajouter plus d'arrière-plans personnels.",
+        "uploadInProgress": "Image en cours d'envoi…",
+        "errors": {
+          "close": "Fermer",
+          "file_too_large": {
+            "title": "Fichier trop volumineux",
+            "description": "Le fichier est trop volumineux. Veuillez choisir un fichier de moins de {{maxSize, number}} Mo."
+          },
+          "invalid_file_type": {
+            "title": "Type de fichier non valide",
+            "description": "Le type de fichier n'est pas pris en charge. Veuillez choisir un fichier {{allowedExtension}}."
+          }
+        }
+      },
+      "presets": {
+        "title": "Suggestions",
+        "descriptions": {
+          "0": "Meuble cannelé en bois",
+          "1": "Salle de réunion",
+          "2": "Loft avec verrière noire",
+          "3": "Salle à manger",
+          "4": "Étagères en bois",
+          "5": "Escalier en bois",
+          "6": "Bibliothèque grise",
+          "7": "Comptoir de café"
+        }
       }
     },
     "faceLandmarks": {
@@ -291,7 +319,7 @@
     }
   },
   "sidePanel": {
-    "ariaLabel": "Panneau latéral",
+    "ariaLabel": "Panneau latéral - {{title}}",
     "backToTools": "Retour aux outils de réunion",
     "heading": {
       "participants": "Participants",
@@ -316,19 +344,21 @@
     "closeButton": "Masquer {{content}}"
   },
   "chat": {
-    "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel."
+    "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel.",
+    "messagesLog": "Messages du chat"
   },
   "moreTools": {
-    "body": "Accèder à d'avantage d'outils pour améliorer vos réunions.",
-    "moreLink": "En savoir plus",
+    "body": "Accéder à davantage d'outils pour améliorer vos réunions.",
+    "linkAriaLabel": "Ouvrir la documentation sur les outils - ouvre dans une nouvelle fenêtre",
+    "moreLink": "Ouvrir la documentation",
     "tools": {
       "transcript": {
         "title": "Transcrire",
-        "body": "Enregistrer la conversation."
+        "body": "Transcrire la réunion."
       },
       "screenRecording": {
         "title": "Enregistrer",
-        "body": "Enregistrer la réunion."
+        "body": "Enregistrer la réunion en vidéo."
       }
     }
   },
@@ -364,11 +394,13 @@
       "starting": "Démarrage…",
       "anotherModeStarted": "Un enregistrement est en cours. <br/> Changez de menu et arrêtez le."
     },
-    "linkMore": "En savoir plus",
+    "linkMore": "Ouvrir la documentation",
+    "linkAriaLabel": "Ouvrir la documentation sur la transcription - ouvre dans une nouvelle fenêtre",
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer une transcription (beta).",
-      "linkMore": "En savoir plus",
+      "linkMore": "Ouvrir la documentation",
+      "linkAriaLabel": "Ouvrir la documentation sur l'accès à la transcription - ouvre dans une nouvelle fenêtre",
       "dividerLabel": "OU",
       "login": {
         "heading": "Connexion requise",
@@ -383,7 +415,7 @@
     "premium": {
       "heading": "Fonctionnalité premium",
       "body": "Cette fonctionnalité est réservée aux agents publics. Si votre adresse email n’est pas autorisée, contactez le support pour obtenir l'accès.",
-      "linkMore": "En savoir plus",
+      "linkMore": "Ouvrir la documentation",
       "dividerLabel": "OU",
       "login": {
         "heading": "Vous n'êtes pas connecté !",
@@ -393,14 +425,16 @@
         "heading": "Demander à l'organisateur",
         "body": "L'hôte recevra une notification et pourra démarrer la transcription pour vous.",
         "buttonLabel": "Demander"
-      }
+      },
+      "linkAriaLabel": "Ouvrir la documentation sur l'accès premium - ouvre dans une nouvelle fenêtre"
     }
   },
   "screenRecording": {
     "heading": "Enregistrez cet appel pour plus tard",
     "body": "Enregistrez jusqu'à {{max_duration}} de réunion.",
     "bodyWithoutMaxDuration": "Enregistrez votre réunion sans limite.",
-    "linkMore": "En savoir plus",
+    "linkMore": "Ouvrir la documentation",
+    "linkAriaLabel": "Ouvrir la documentation sur l'enregistrement - ouvre dans une nouvelle fenêtre",
     "details": {
       "receiver": "L'enregistrement sera envoyé à l'organisateur et aux coorganisateurs.",
       "destination": "Cet enregistrement sera conservé temporairement sur nos serveurs",
@@ -418,7 +452,8 @@
     "notAdminOrOwner": {
       "heading": "Accès restreint",
       "body": "Pour des raisons de sécurité, seul le créateur ou un administrateur de la réunion peut lancer un enregistrement (beta).",
-      "linkMore": "En savoir plus",
+      "linkMore": "Ouvrir la documentation",
+      "linkAriaLabel": "Ouvrir la documentation sur l'accès à l'enregistrement - ouvre dans une nouvelle fenêtre",
       "dividerLabel": "OU",
       "login": {
         "heading": "Connexion requise",
@@ -584,7 +619,7 @@
   },
   "participantTileFocus": {
     "containerLabel": "Options pour {{name}}",
-    "toolbarHint": "F2 : raccourci barre d'outils en bas.",
+    "toolbarHint": "{{shortcut}} : accéder directement aux raccourcis.",
     "pin": {
       "enable": "Épingler",
       "disable": "Annuler l'épinglage"
@@ -592,6 +627,41 @@
     "effects": "Arrière-plans et effets",
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
+  },
+  "shortcutsPanel": {
+    "title": "Raccourcis clavier",
+    "categories": {
+      "navigation": "Navigation",
+      "media": "Média",
+      "interaction": "Interaction"
+    },
+    "actions": {
+      "open-shortcuts": "Ouvrir l’aide des raccourcis",
+      "focus-toolbar": "Mettre le focus sur la barre d’outils du bas",
+      "toggle-microphone": "Activer ou désactiver le micro",
+      "toggle-camera": "Activer ou désactiver la caméra",
+      "push-to-talk": "Appuyer pour parler (maintenir pour réactiver)",
+      "reaction": "Panneau des réactions",
+      "fullscreen": "Basculer en plein écran",
+      "recording": "Basculer le panneau d’enregistrement",
+      "raise-hand": "Lever ou baisser la main",
+      "toggle-chat": "Afficher/Masquer le chat",
+      "toggle-participants": "Afficher/Masquer les participants",
+      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis"
+    },
+    "sr": {
+      "control": "Contrôle",
+      "command": "Commande",
+      "alt": "Alt",
+      "option": "Option",
+      "shift": "Majuscule",
+      "plus": "plus",
+      "hold": "Maintenir {{key}}",
+      "noShortcut": "Aucun raccourci"
+    },
+    "visual": {
+      "hold": "Maintenir {{key}}"
+    }
   },
   "fullScreenWarning": {
     "message": "Pour éviter l'affichage en boucle infinie, ne partagez pas l'intégralité de votre écran. Partagez plutôt un onglet ou une autre fenêtre.",

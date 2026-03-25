@@ -1,5 +1,6 @@
 import { ToggleButton } from '@/primitives'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { useMemo, useState } from 'react'
 import { appendShortcutLabel } from '@/features/shortcuts/utils'
 import { useTranslation } from 'react-i18next'
@@ -18,6 +19,7 @@ import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
 import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
 import { ToggleSource, CaptureOptionsBySource } from '@livekit/components-core'
+import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 
 type ToggleDeviceStyleProps = {
   variant?: NonNullable<ButtonRecipeProps>['variant']
@@ -86,14 +88,30 @@ export const ToggleDevice = <T extends ToggleSource>({
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
   const deviceShortcut = useDeviceShortcut(kind)
+  const announce = useScreenReaderAnnounce()
 
   useRegisterKeyboardShortcut({
-    shortcut: deviceShortcut,
-    handler: async () => await toggle(),
+    id: deviceShortcut?.id,
+    handler: async () => {
+      const nextState = !enabled
+      try {
+        const didChange = await toggle(nextState)
+        if (didChange === false) return
+
+        const message = t(nextState ? 'turnedOn' : 'turnedOff', {
+          keyPrefix: `selectDevice.${kind}`,
+        })
+        announce(message, 'assertive')
+      } catch {
+        // no announce
+      }
+    },
     isDisabled: cannotUseDevice,
   })
+
+  const pushToTalkShortcut = getShortcutDescriptorById('push-to-talk')
   useLongPress({
-    keyCode: kind === 'audioinput' ? 'KeyV' : undefined,
+    keyCode: kind === 'audioinput' ? pushToTalkShortcut?.code : undefined,
     onKeyDown,
     onKeyUp,
     isDisabled: cannotUseDevice,
@@ -103,7 +121,9 @@ export const ToggleDevice = <T extends ToggleSource>({
     const label = t(enabled ? 'disable' : 'enable', {
       keyPrefix: `selectDevice.${kind}`,
     })
-    return deviceShortcut ? appendShortcutLabel(label, deviceShortcut) : label
+    return deviceShortcut?.shortcut
+      ? appendShortcutLabel(label, deviceShortcut.shortcut)
+      : label
   }, [enabled, kind, deviceShortcut, t])
 
   const Icon =

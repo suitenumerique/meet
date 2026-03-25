@@ -17,27 +17,20 @@ logger = logging.getLogger(__name__)
 
 
 def get_recording_download_base_url() -> str:
-    """Get the recording download base URL with backward compatibility.
-
-    NOTE:
-    - Older deployments configured `SCREEN_RECORDING_BASE_URL`.
-    - Newer deployments should use `RECORDING_DOWNLOAD_BASE_URL`.
-
-    To remain backward compatible (and to match the project's tests), if the
-    deprecated setting is set, we *prefer it* even if the new setting is also
-    configured.
-    """
-    new_setting = getattr(settings, "RECORDING_DOWNLOAD_BASE_URL", "")
-    old_setting = getattr(settings, "SCREEN_RECORDING_BASE_URL", "")
+    """Get the recording download base URL with backward compatibility."""
+    new_setting = settings.RECORDING_DOWNLOAD_BASE_URL
+    old_setting = settings.SCREEN_RECORDING_BASE_URL
 
     if old_setting:
         logger.warning(
             "SCREEN_RECORDING_BASE_URL is deprecated and will be removed in a future version. "
             "Please use RECORDING_DOWNLOAD_BASE_URL instead."
         )
-        return old_setting
 
-    return new_setting
+    if new_setting:
+        return new_setting
+
+    return old_setting
 
 
 class NotificationService:
@@ -174,6 +167,7 @@ class NotificationService:
                 owner_access.user.timezone
             ).strftime("%H:%M"),
             "download_link": f"{get_recording_download_base_url()}/{recording.id}",
+            "context_language": owner_access.user.language,
         }
 
         headers = {

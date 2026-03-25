@@ -4,15 +4,15 @@ import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  createLocalVideoTrack,
   createLocalAudioTrack,
+  createLocalVideoTrack,
   LocalAudioTrack,
   LocalVideoTrack,
   Track,
 } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { Field } from '@/primitives/Field'
-import { Button, Dialog, Text, Form } from '@/primitives'
+import { Button, Dialog, Form, Text } from '@/primitives'
 import { VStack } from '@/styled-system/jsx'
 import { Heading } from 'react-aria-components'
 import { RiImageCircleAiFill } from '@remixicon/react'
@@ -44,8 +44,7 @@ const onError = (e: Error) => console.error('ERROR', e)
 
 const Effects = ({
   videoTrack,
-  onSubmit,
-}: Pick<EffectsConfigurationProps, 'videoTrack' | 'onSubmit'>) => {
+}: Pick<EffectsConfigurationProps, 'videoTrack'>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join.effects' })
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const openDialog = () => setIsDialogOpen(true)
@@ -81,7 +80,7 @@ const Effects = ({
         >
           {t('subTitle')}
         </Text>
-        <EffectsConfiguration videoTrack={videoTrack} onSubmit={onSubmit} />
+        <EffectsConfiguration videoTrack={videoTrack} />
       </Dialog>
       <Button
         variant="whiteCircle"
@@ -111,7 +110,7 @@ export const Join = ({
       audioDeviceId,
       audioOutputDeviceId,
       videoDeviceId,
-      processorSerialized,
+      processorConfig,
       username,
     },
     saveAudioInputEnabled,
@@ -120,7 +119,6 @@ export const Join = ({
     saveAudioInputDeviceId,
     saveVideoInputDeviceId,
     saveUsername,
-    saveProcessorSerialized,
   } = usePersistentUserChoices()
 
   const initialUserChoices = useRef<LocalUserChoices | null>(null)
@@ -132,7 +130,7 @@ export const Join = ({
       audioDeviceId,
       audioOutputDeviceId,
       videoDeviceId,
-      processorSerialized,
+      processorConfig,
       username,
     }
   }
@@ -146,8 +144,8 @@ export const Join = ({
       video: !!initialUserChoices.current &&
         initialUserChoices.current?.videoEnabled && {
           deviceId: initialUserChoices.current.videoDeviceId,
-          processor: BackgroundProcessorFactory.deserializeProcessor(
-            initialUserChoices.current.processorSerialized
+          processor: BackgroundProcessorFactory.fromProcessorConfig(
+            initialUserChoices.current.processorConfig
           ),
         },
     },
@@ -186,9 +184,7 @@ export const Join = ({
         const track = await createLocalVideoTrack({
           deviceId: { exact: videoDeviceId },
           processor:
-            BackgroundProcessorFactory.deserializeProcessor(
-              processorSerialized
-            ),
+            BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
         })
         setDynamicVideoTrack(track)
       } catch (error) {
@@ -207,7 +203,7 @@ export const Join = ({
   }, [
     videoEnabled,
     videoDeviceId,
-    processorSerialized,
+    processorConfig,
     previewVideoTrack,
     dynamicVideoTrack,
   ])
@@ -446,16 +442,14 @@ export const Join = ({
                 type="text"
                 onChange={saveUsername}
                 label={t('usernameLabel')}
-                aria-label={t('usernameLabel')}
+                id="input-name"
                 defaultValue={username}
                 validate={(value) => !value && t('errors.usernameEmpty')}
                 wrapperProps={{
                   noMargin: true,
                   fullWidth: true,
                 }}
-                labelProps={{
-                  center: true,
-                }}
+                autoComplete="name"
                 maxLength={50}
               />
             </VStack>
@@ -692,12 +686,7 @@ export const Join = ({
                     zIndex: '1',
                   })}
                 >
-                  <Effects
-                    videoTrack={videoTrack}
-                    onSubmit={(processor) =>
-                      saveProcessorSerialized(processor?.serialize())
-                    }
-                  />
+                  <Effects videoTrack={videoTrack} />
                 </div>
               </div>
             </div>
@@ -755,7 +744,7 @@ export const Join = ({
                     try {
                       saveVideoInputDeviceId(id)
                       if (videoTrack) {
-                        await await videoTrack.setDeviceId({ exact: id })
+                        await videoTrack.setDeviceId({ exact: id })
                       }
                     } catch (err) {
                       console.error('Failed to switch camera device', err)

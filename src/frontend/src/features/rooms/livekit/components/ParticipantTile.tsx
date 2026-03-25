@@ -31,6 +31,8 @@ import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { ParticipantName } from './ParticipantName'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useTranslation } from 'react-i18next'
+import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
+import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
 import { KeyboardShortcutHint } from './KeyboardShortcutHint'
 
 export function TrackRefContextIfNeeded(
@@ -183,7 +185,13 @@ export const ParticipantTile: (
                       }}
                     >
                       {isHandRaised && !isScreenShare && (
-                        <>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.1rem',
+                          }}
+                        >
                           <span>{positionInQueue}</span>
                           <RiHand
                             color="black"
@@ -197,7 +205,7 @@ export const ParticipantTile: (
                               animationIterationCount: '2',
                             }}
                           />
-                        </>
+                        </span>
                       )}
                       {isScreenShare && (
                         <ScreenShareIcon
@@ -210,10 +218,12 @@ export const ParticipantTile: (
                       {isEncrypted && !isScreenShare && (
                         <LockLockedIcon style={{ marginRight: '0.25rem' }} />
                       )}
-                      <ParticipantName
-                        isScreenShare={isScreenShare}
-                        participant={trackReference.participant}
-                      />
+                      <div className="lk-participant-name-wrapper">
+                        <ParticipantName
+                          isScreenShare={isScreenShare}
+                          participant={trackReference.participant}
+                        />
+                      </div>
                     </div>
                   </HStack>
                   <ConnectionQualityIndicator className="lk-participant-metadata-item" />
@@ -229,9 +239,13 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
-      {hasKeyboardFocus && (
-        <KeyboardShortcutHint>{t('toolbarHint')}</KeyboardShortcutHint>
-      )}
+      <KeyboardShortcutHint>
+        {t('toolbarHint', {
+          shortcut: formatShortcutLabel(
+            getShortcutDescriptorById('open-shortcuts')?.shortcut
+          ),
+        })}
+      </KeyboardShortcutHint>
     </div>
   )
 })

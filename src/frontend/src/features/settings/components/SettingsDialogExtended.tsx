@@ -12,6 +12,7 @@ import {
   RiSpeakerLine,
   RiVideoOnLine,
   RiEyeLine,
+  RiKeyboardBoxLine,
 } from '@remixicon/react'
 import { AccountTab } from './tabs/AccountTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
@@ -19,11 +20,12 @@ import { GeneralTab } from './tabs/GeneralTab'
 import { AudioTab } from './tabs/AudioTab'
 import { VideoTab } from './tabs/VideoTab'
 import { TranscriptionTab } from './tabs/TranscriptionTab'
+import { ShortcutTab } from './tabs/ShortcutTab'
 import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
-import AccessibilityTab from './tabs/AccessibilityTab'
+import { AccessibilityTab } from './tabs/AccessibilityTab'
 
 const tabsStyle = css({
   maxHeight: '40.625rem', // fixme size copied from meet settings modal
@@ -39,6 +41,7 @@ const tabListContainerStyle = css({
   flexDirection: 'column',
   borderRight: '1px solid lightGray', // fixme poor color management
   paddingY: '1rem',
+  paddingLeft: '0.2rem',
   paddingRight: '1.5rem',
 })
 
@@ -107,6 +110,10 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               {isWideScreen &&
                 t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             </Tab>
+            <Tab icon highlight id={SettingsDialogExtendedKey.SHORTCUTS}>
+              <RiKeyboardBoxLine />
+              {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
+            </Tab>
             {isAdminOrOwner && (
               <Tab icon highlight id={SettingsDialogExtendedKey.TRANSCRIPTION}>
                 <Icon type="symbols" name="speech_to_text" />
@@ -130,6 +137,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
           <VideoTab id={SettingsDialogExtendedKey.VIDEO} />
           <GeneralTab id={SettingsDialogExtendedKey.GENERAL} />
           <NotificationsTab id={SettingsDialogExtendedKey.NOTIFICATIONS} />
+          <ShortcutTab id={SettingsDialogExtendedKey.SHORTCUTS} />
           {/* Transcription tab won't be accessible if the tab is not active in the tab list */}
           <TranscriptionTab id={SettingsDialogExtendedKey.TRANSCRIPTION} />
           <AccessibilityTab id={SettingsDialogExtendedKey.ACCESSIBILITY} />

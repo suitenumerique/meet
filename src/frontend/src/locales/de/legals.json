@@ -1,8 +1,8 @@
 {
   "title": "Rechtliche Hinweise",
   "creator": {
-    "title": "Herausgeber",
-    "body": "Der Visio-Dienst wird herausgegeben von der Interministeriellen Digitaldirektion des Staates (DINUM) mit Sitz:",
+    "title": "Herausgebende",
+    "body": "Der Visio-Dienst wird herausgegeben von der Interministeriellen Digitaldirektion Frankreichs (DINUM) mit Sitz:",
     "contact": {
       "title": "Kontaktdaten",
       "address": "20 avenue de Ségur",
@@ -31,7 +31,7 @@
     "title": "Wiederverwendung von Inhalten und Links",
     "body1": "Sofern nicht ausdrücklich anders angegeben und geistige Eigentumsrechte Dritter betroffen sind, werden die Inhalte dieser Website unter der ",
     "license": "offenen Lizenz Etalab 2.0",
-    "body2": "bereitgestellt. Insbesondere dürfen Sie diese Inhalte frei vervielfältigen, kopieren, ändern, extrahieren, umwandeln, verbreiten, weiterleiten, veröffentlichen, übertragen und nutzen – unter der Bedingung, dass die Quelle und das Datum der letzten Aktualisierung genannt werden und Dritte nicht durch die Informationen in die Irre geführt werden.",
-    "body3": "Jede öffentliche oder private Website ist berechtigt, ohne vorherige Genehmigung, einen Link (einschließlich eines Deep Links) zu den auf dieser Website veröffentlichten Informationen zu setzen."
+    "body2": "bereitgestellt. Insbesondere dürfen diese Inhalte frei vervielfältigt, kopiert, geändert, extrahiert, umgewandelt, verbreitet, weitergeleitet, veröffentlicht, übertragen und genutzt werden – unter der Bedingung, dass die Quelle und das Datum der letzten Aktualisierung genannt werden und Dritte nicht durch die Informationen in die Irre geführt werden.",
+    "body3": "Jede öffentliche oder private Website ist berechtigt, ohne vorherige Genehmigung, Links (einschließlich Deep Links) zu den auf dieser Website veröffentlichten Informationen zu setzen."
   }
 }

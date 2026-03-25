@@ -14,7 +14,25 @@ export const useSettingsDialog = () => {
     settingsStore.areSettingsOpen = true
   }
 
+  const closeSettingsDialog = () => {
+    settingsStore.areSettingsOpen = false
+  }
+
+  const toggleSettingsDialog = (
+    defaultSelectedTab?: SettingsDialogExtendedKey
+  ) => {
+    if (areSettingsOpen) {
+      closeSettingsDialog()
+    } else {
+      if (defaultSelectedTab)
+        settingsStore.defaultSelectedTab = defaultSelectedTab
+      settingsStore.areSettingsOpen = true
+    }
+  }
+
   return {
     openSettingsDialog,
+    closeSettingsDialog,
+    toggleSettingsDialog,
   }
 }

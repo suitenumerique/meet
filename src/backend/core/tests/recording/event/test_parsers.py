@@ -32,7 +32,7 @@ def valid_minio_event():
                 "s3": {
                     "bucket": {"name": "test-bucket"},
                     "object": {
-                        "key": "recording%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
+                        "key": "recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
                         "contentType": "audio/ogg",
                     },
                 }
@@ -51,7 +51,7 @@ def test_parse_valid_event(minio_parser, valid_minio_event):
     """Test parsing a valid Minio event."""
     event = minio_parser.parse(valid_minio_event)
     assert isinstance(event, StorageEvent)
-    assert event.filepath == "recording%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg"
+    assert event.filepath == "recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg"
     assert event.filetype == "audio/ogg"
     assert event.bucket_name == "test-bucket"
     assert event.metadata is None
@@ -130,11 +130,13 @@ def test_validate_invalid_filetype(minio_parser):
     "invalid_filepath",
     [
         "invalid_filepath",  # totally invalid string
-        "recording/46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
-        "recording/46d1a121-2426-484d-8fb3-09b5d886f7a8",  # missing extension
+        "recordings/46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
+        "recordings/46d1a121-2426-484d-8fb3-09b5d886f7a8",  # missing extension
         "46d1a121-2426-484d-8fb3-09b5d886f7a8",  # missing url_encoded_folder_path and extension
         "",  # empty string
-        "recording%2F46d1a1212426484d8fb309b5d886f7a8.ogg",
+        "46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",  # no folder at all
+        "uploads%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",  # wrong folder name
+        "folder%2Fuploads%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",  # nested but no recordings/
     ],
 )
 def test_validate_invalid_filepath(invalid_filepath, minio_parser):
@@ -152,7 +154,7 @@ def test_validate_invalid_filepath(invalid_filepath, minio_parser):
 def test_validate_valid_event(minio_parser):
     """Test validation with valid event data."""
     event = StorageEvent(
-        filepath="recording%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
+        filepath="recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
         filetype="audio/ogg",
         bucket_name="test-bucket",
         metadata=None,
@@ -170,7 +172,7 @@ def test_get_recording_id_success(minio_parser, valid_minio_event):
 def test_validate_filepath_with_folder(minio_parser):
     """Test validation of filepath with folder structure."""
     event = StorageEvent(
-        filepath="parent_folder%2Ffolder%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
+        filepath="parent_folder%2Frecordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
         filetype="audio/ogg",
         bucket_name="test-bucket",
         metadata=None,
@@ -219,7 +221,7 @@ def test_validate_custom_filetypes():
     parser = MinioParser(bucket_name="test-bucket", allowed_filetypes={"audio/mp3"})
 
     event = StorageEvent(
-        filepath="parent_folder%2Ffolder%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
+        filepath="parent_folder%2Frecordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
         filetype="audio/mp3",
         bucket_name="test-bucket",
         metadata=None,

@@ -21,10 +21,9 @@ pytestmark = pytest.mark.django_db
 
 def test_api_applications_generate_token_success(settings):
     """Valid credentials should return a JWT token."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     UserFactory(email="User.Family@example.com")
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
     )
 
@@ -80,7 +79,7 @@ def test_api_applications_generate_token_invalid_client_id():
 def test_api_applications_generate_token_invalid_client_secret():
     """Invalid client_secret should return 401."""
     user = UserFactory(email="user@example.com")
-    application = ApplicationFactory(active=True)
+    application = ApplicationFactory(is_active=True)
 
     client = APIClient()
     response = client.post(
@@ -101,7 +100,7 @@ def test_api_applications_generate_token_invalid_client_secret():
 def test_api_applications_generate_token_inactive_application():
     """Inactive application should return 401."""
     user = UserFactory(email="user@example.com")
-    application = ApplicationFactory(active=False)
+    application = ApplicationFactory(is_active=False)
 
     plain_secret = "test-secret-123"
     application.client_secret = plain_secret
@@ -123,9 +122,31 @@ def test_api_applications_generate_token_inactive_application():
     assert "Application is inactive" in str(response.data)
 
 
+def test_api_applications_generate_token_inactive_application_wrong_secret():
+    """An inactive application with a wrong secret should return 401."""
+    user = UserFactory(email="user@example.com")
+    application = ApplicationFactory(is_active=False)
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        {
+            "client_id": application.client_id,
+            "client_secret": "wrong-secret",
+            "grant_type": "client_credentials",
+            "scope": user.email,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 401
+    assert "Invalid credentials" in str(response.data)
+    assert "inactive" not in str(response.data).lower()
+
+
 def test_api_applications_generate_token_invalid_email_format():
     """Invalid email format should return 400."""
-    application = ApplicationFactory(active=True)
+    application = ApplicationFactory(is_active=True)
 
     plain_secret = "test-secret-123"
     application.client_secret = plain_secret
@@ -150,7 +171,7 @@ def test_api_applications_generate_token_invalid_email_format():
 def test_api_applications_generate_token_domain_not_authorized():
     """Application without domain authorization should return 403."""
     user = UserFactory(email="user@denied.com")
-    application = ApplicationFactory(active=True)
+    application = ApplicationFactory(is_active=True)
     ApplicationDomainFactory(application=application, domain="allowed.com")
 
     plain_secret = "test-secret-123"
@@ -173,12 +194,11 @@ def test_api_applications_generate_token_domain_not_authorized():
     assert "not authorized for this email domain" in str(response.data)
 
 
-def test_api_applications_generate_token_domain_authorized(settings):
+def test_api_applications_generate_token_domain_authorized():
     """Application with domain authorization should succeed."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory(email="user@allowed.com")
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST],
     )
     ApplicationDomainFactory(application=application, domain="allowed.com")
@@ -205,7 +225,7 @@ def test_api_applications_generate_token_domain_authorized(settings):
 
 def test_api_applications_generate_token_user_not_found():
     """Non-existent user should return 404."""
-    application = ApplicationFactory(active=True)
+    application = ApplicationFactory(is_active=True)
 
     plain_secret = "test-secret-123"
     application.client_secret = plain_secret
@@ -230,11 +250,10 @@ def test_api_applications_generate_token_user_not_found():
 @freeze_time("2023-01-15 12:00:00")
 def test_api_applications_token_payload_structure(settings):
     """Generated token should have correct payload structure."""
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory(email="user@example.com")
 
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
     )
 
@@ -280,7 +299,6 @@ def test_api_applications_token_payload_structure(settings):
 def test_api_applications_token_new_user(settings):
     """Should create a new pending user when creation is allowed and user doesn't exist."""
 
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     settings.APPLICATION_ALLOW_USER_CREATION = True
     settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
     settings.OIDC_USER_SUB_FIELD_IMMUTABLE = False
@@ -288,7 +306,7 @@ def test_api_applications_token_new_user(settings):
     assert len(User.objects.all()) == 0
 
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
     )
 
@@ -337,7 +355,6 @@ def test_api_applications_token_new_user(settings):
 def test_api_applications_token_existing_user(settings):
     """Application should not create a new user when user exist."""
 
-    settings.APPLICATION_JWT_SECRET_KEY = "devKey"
     user = UserFactory(email="user@example.com")
 
     settings.APPLICATION_ALLOW_USER_CREATION = True
@@ -347,7 +364,7 @@ def test_api_applications_token_existing_user(settings):
     assert len(User.objects.all()) == 1
 
     application = ApplicationFactory(
-        active=True,
+        is_active=True,
         scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
     )
 

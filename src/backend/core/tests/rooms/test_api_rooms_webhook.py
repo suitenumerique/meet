@@ -77,7 +77,6 @@ def test_missing_auth_header(client, serialized_event_data, mock_livekit_config)
     assert response.status_code == 401
     assert response.json() == {
         "status": "error",
-        "message": "Authorization header missing",
     }
 
 
@@ -91,7 +90,7 @@ def test_invalid_payload(client, auth_token, mock_livekit_config):
     )
 
     assert response.status_code == 400
-    assert response.json() == {"status": "error", "message": "Invalid webhook payload"}
+    assert response.json() == {"status": "error"}
 
 
 def test_unknown_event_type(client, mock_livekit_config):
@@ -116,7 +115,6 @@ def test_unknown_event_type(client, mock_livekit_config):
     assert response.status_code == 422
     assert response.json() == {
         "status": "error",
-        "message": "Unknown webhook type: unknown_event_type",
     }
 
 

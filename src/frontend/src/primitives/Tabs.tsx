@@ -24,6 +24,9 @@ const StyledTabs = styled(RACTabs, {
       flexDirection: 'row',
       '--vertical': '3px',
     },
+    '&[data-focus-visible]': {
+      outline: 'none!',
+    },
   },
 })
 
@@ -102,6 +105,9 @@ const StyledTabList = styled(RACTabList, {
     '&[data-orientation=vertical]': {
       flexDirection: 'column',
     },
+    '&[data-focus-visible]': {
+      outline: 'none!',
+    },
   },
   variants: {
     border: {
@@ -147,9 +153,8 @@ const StyledTabPanel = styled(RACTabPanel, {
   base: {
     marginTop: '4px',
     borderRadius: '4px',
-    outline: 'none',
     '&[data-focus-visible]': {
-      outline: '2px solid red',
+      outline: 'none!',
     },
   },
   variants: {

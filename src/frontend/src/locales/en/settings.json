@@ -100,6 +100,11 @@
       }
     }
   },
+  "shortcuts": {
+    "listLabel": "Keyboard shortcuts",
+    "columnAction": "Action",
+    "columnShortcut": "Shortcut"
+  },
   "dialog": {
     "heading": "Settings"
   },
@@ -111,6 +116,45 @@
   "accessibility": {
     "announceReactions": {
       "label": "Announce reactions aloud"
+    },
+    "captions": {
+      "heading": "Captions",
+      "textSize": {
+        "label": "Caption text size",
+        "options": {
+          "small": "Small",
+          "medium": "Medium",
+          "large": "Large"
+        }
+      },
+      "fontColor": {
+        "label": "Font color",
+        "options": {
+          "default": "Default",
+          "white": "White",
+          "black": "Black",
+          "blue": "Blue",
+          "green": "Green",
+          "red": "Red",
+          "yellow": "Yellow",
+          "cyan": "Cyan",
+          "magenta": "Magenta"
+        }
+      },
+      "backgroundColor": {
+        "label": "Background color",
+        "options": {
+          "default": "Default",
+          "white": "White",
+          "black": "Black",
+          "blue": "Blue",
+          "green": "Green",
+          "red": "Red",
+          "yellow": "Yellow",
+          "cyan": "Cyan",
+          "magenta": "Magenta"
+        }
+      }
     }
   },
   "tabs": {
@@ -120,6 +164,7 @@
     "general": "General",
     "notifications": "Notifications",
     "accessibility": "Accessibility",
-    "transcription": "Transcription"
+    "transcription": "Transcription",
+    "shortcuts": "Shortcuts"
   }
 }

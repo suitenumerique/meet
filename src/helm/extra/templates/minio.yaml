@@ -13,6 +13,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: minio
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
 spec:
   rules:
   - host: "minio.127.0.0.1.nip.io"
@@ -24,7 +26,7 @@ spec:
           service:
             name: minio
             port:
-              number: 9001
+              number: 9000
   tls:
   - hosts:
     - minio.127.0.0.1.nip.io
@@ -137,7 +139,7 @@ spec:
             /usr/bin/mc mb meet/meet-media-storage && \
             exit 0
       restartPolicy: Never
-  backoffLimit: 1
+  backoffLimit: 3
 ---
 apiVersion: batch/v1
 kind: Job
@@ -168,7 +170,7 @@ spec:
             /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint="https://meet.127.0.0.1.nip.io/api/v1.0/recordings/storage-hook/" auth_token="Bearer $MINIO_ROOT_PASSWORD" && \
             /usr/bin/mc admin service restart meet --wait --json && \
             sleep 15 && \
-            /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put && \
+            /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put --prefix "recordings" && \
             exit 0
       restartPolicy: Never
   backoffLimit: 1

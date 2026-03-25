@@ -4,6 +4,7 @@ import { Button } from '@/primitives'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 const Heading = styled('h2', {
   base: {
@@ -144,6 +145,21 @@ type Slide = {
   isAvailableInBeta?: boolean
 }
 
+const carouselNavButton = css({
+  _focusVisible: {
+    outline: '2px solid var(--colors-focus-ring) !important',
+    outlineOffset: '1px',
+  },
+  _disabled: {
+    color: 'greyscale.400',
+    cursor: 'default',
+    pointerEvents: 'none',
+    _pressed: {
+      backgroundColor: 'transparent',
+    },
+  },
+})
+
 // todo - optimize how images are imported
 const SLIDES: Slide[] = [
   {
@@ -163,11 +179,45 @@ const SLIDES: Slide[] = [
 export const IntroSlider = () => {
   const [slideIndex, setSlideIndex] = useState(0)
   const { t } = useTranslation('home', { keyPrefix: 'introSlider' })
+  const announce = useScreenReaderAnnounce()
 
   const NUMBER_SLIDES = SLIDES.length
 
+  const goPrev = () => {
+    if (slideIndex === 0) return
+    const newIndex = slideIndex - 1
+    setSlideIndex(newIndex)
+    announce(
+      t('slidePosition', { current: newIndex + 1, total: NUMBER_SLIDES }),
+      'polite',
+      'global'
+    )
+  }
+
+  const goNext = () => {
+    if (slideIndex === NUMBER_SLIDES - 1) return
+    const newIndex = slideIndex + 1
+    setSlideIndex(newIndex)
+    announce(
+      t('slidePosition', { current: newIndex + 1, total: NUMBER_SLIDES }),
+      'polite',
+      'global'
+    )
+  }
+
+  const ariaLabelParams = {
+    current: slideIndex + 1,
+    total: NUMBER_SLIDES,
+  }
+  const previousAriaLabel = t('previous.labelWithPosition', ariaLabelParams)
+  const nextAriaLabel = t('next.labelWithPosition', ariaLabelParams)
+
   return (
-    <Container>
+    <Container
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={t('carouselLabel')}
+    >
       <div
         className={css({
           display: 'flex',
@@ -180,10 +230,10 @@ export const IntroSlider = () => {
             <Button
               variant="secondaryText"
               square
-              aria-label={t('previous.label')}
-              tooltip={t('previous.tooltip')}
-              onPress={() => setSlideIndex(slideIndex - 1)}
-              isDisabled={slideIndex == 0}
+              className={carouselNavButton}
+              aria-label={previousAriaLabel}
+              aria-disabled={slideIndex === 0}
+              onPress={goPrev}
             >
               <RiArrowLeftSLine />
             </Button>
@@ -191,7 +241,11 @@ export const IntroSlider = () => {
         </ButtonContainer>
         <SlideContainer>
           {SLIDES.map((slide, index) => (
-            <Slide visible={index == slideIndex} key={index}>
+            <Slide
+              aria-hidden={index !== slideIndex}
+              visible={index === slideIndex}
+              key={index}
+            >
               <Image src={slide.src} alt="" role="presentation" />
               <TextAnimation visible={index == slideIndex}>
                 <Heading>{t(`${slide.key}.title`)}</Heading>
@@ -205,10 +259,10 @@ export const IntroSlider = () => {
             <Button
               variant="secondaryText"
               square
-              aria-label={t('next.label')}
-              tooltip={t('next.tooltip')}
-              onPress={() => setSlideIndex(slideIndex + 1)}
-              isDisabled={slideIndex == NUMBER_SLIDES - 1}
+              className={carouselNavButton}
+              aria-label={nextAriaLabel}
+              aria-disabled={slideIndex === NUMBER_SLIDES - 1}
+              onPress={goNext}
             >
               <RiArrowRightSLine />
             </Button>

@@ -13,13 +13,12 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 # pylint: disable=too-many-lines
 
 import json
-import warnings
 from os import path
 from socket import gethostbyname, gethostname
 
-from django.utils.deprecation import RemovedInDjango60Warning
 from django.utils.translation import gettext_lazy as _
 
+import dj_database_url
 import sentry_sdk
 from configurations import Configuration, values
 from lasuite.configuration.values import SecretFileValue
@@ -29,11 +28,9 @@ from sentry_sdk.integrations.logging import ignore_logger
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
 
-warnings.filterwarnings(
-    "ignore",
-    message=r"The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated\.?",
-    category=RemovedInDjango60Warning,
-)
+KB = 1024
+MB = 1024 * KB
+GB = 1024 * MB
 
 
 def get_release():
@@ -100,7 +97,11 @@ class Base(Configuration):
 
     # Database
     DATABASES = {
-        "default": {
+        "default": dj_database_url.config()
+        if values.DatabaseURLValue(
+            None, environ_name="DATABASE_URL", environ_prefix=None
+        )
+        else {
             "ENGINE": values.Value(
                 "django.db.backends.postgresql_psycopg2",
                 environ_name="DB_ENGINE",
@@ -124,6 +125,9 @@ class Base(Configuration):
     STATIC_ROOT = path.join(DATA_DIR, "static")
     MEDIA_URL = "/media/"
     MEDIA_ROOT = path.join(DATA_DIR, "media")
+    MEDIA_BASE_URL = values.Value(
+        "", environ_name="MEDIA_BASE_URL", environ_prefix=None
+    )
 
     SITE_ID = 1
 
@@ -155,6 +159,48 @@ class Base(Configuration):
     AWS_STORAGE_BUCKET_NAME = values.Value(
         "meet-media-storage",
         environ_name="AWS_STORAGE_BUCKET_NAME",
+        environ_prefix=None,
+    )
+    AWS_S3_SIGNATURE_VERSION = values.Value(
+        "s3v4",
+        environ_name="AWS_S3_SIGNATURE_VERSION",
+        environ_prefix=None,
+    )
+    AWS_S3_UPLOAD_POLICY_EXPIRATION = values.Value(
+        60,  # 1 minute
+        environ_name="AWS_S3_UPLOAD_POLICY_EXPIRATION",
+        environ_prefix=None,
+    )
+    AWS_S3_DOMAIN_REPLACE = values.Value(
+        environ_name="AWS_S3_DOMAIN_REPLACE",
+        environ_prefix=None,
+    )
+
+    FILE_UPLOAD_ENABLED = values.BooleanValue(
+        # False to avoid a breaking change for now
+        default=False,
+        environ_name="FILE_UPLOAD_ENABLED",
+        environ_prefix=None,
+    )
+
+    FILE_UPLOAD_PATH = values.Value(
+        "files", environ_name="FILE_UPLOAD_PATH", environ_prefix=None
+    )
+
+    FILE_UPLOAD_APPLY_RESTRICTIONS = values.BooleanValue(
+        default=True, environ_name="FILE_UPLOAD_APPLY_RESTRICTIONS", environ_prefix=None
+    )
+
+    FILE_UPLOAD_RESTRICTIONS = values.DictValue(
+        {
+            "background_image": {
+                "max_size": 2 * MB,
+                "max_count_by_user": 10,
+                "allowed_extensions": [".jpeg", ".jpg", ".png"],
+                "allowed_mimetypes": ["image/jpeg", "image/png"],
+            },
+        },
+        environ_name="FILE_UPLOAD_RESTRICTIONS",
         environ_prefix=None,
     )
 
@@ -300,6 +346,9 @@ class Base(Configuration):
             ),
         },
     }
+    MONITORED_THROTTLE_FAILURE_CALLBACK = (
+        "core.api.throttling.sentry_monitoring_throttle_failure"
+    )
 
     SPECTACULAR_SETTINGS = {
         "TITLE": "Meet API",
@@ -394,11 +443,20 @@ class Base(Configuration):
     THUMBNAIL_ALIASES = {}
 
     # Celery
-    CELERY_BROKER_URL = values.Value("redis://redis:6379/0")
-    CELERY_BROKER_TRANSPORT_OPTIONS = values.DictValue({})
+    # Defaults to False to avoid breaking change, async task will be run
+    # synchronously
+    CELERY_ENABLED = values.BooleanValue(False, environ_prefix=None)
+    CELERY_TASK_ALWAYS_EAGER = values.BooleanValue(False, environ_prefix=None)
+    CELERY_TASK_DEFAULT_QUEUE = values.Value("meet-backend", environ_prefix=None)
+    CELERY_BROKER_URL = values.Value("redis://redis:6379/0", environ_prefix=None)
+    CELERY_BROKER_TRANSPORT_OPTIONS = values.DictValue({}, environ_prefix=None)
 
     # Session
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_ENGINE = values.Value(
+        default="django.contrib.sessions.backends.cache",
+        environ_name="SESSION_ENGINE",
+        environ_prefix=None,
+    )
     SESSION_CACHE_ALIAS = "default"
     SESSION_COOKIE_AGE = values.PositiveIntegerValue(
         default=60 * 60 * 12, environ_name="SESSION_COOKIE_AGE", environ_prefix=None
@@ -596,6 +654,12 @@ class Base(Configuration):
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
+    # if provided, treat as suspicious (possible privilege escalation attempt).
+    PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(
+        ["hidden", "recorder", "agent"],
+        environ_name="PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS",
+        environ_prefix=None,
+    )
 
     # Recording settings
     RECORDING_ENABLE = values.BooleanValue(
@@ -667,7 +731,7 @@ class Base(Configuration):
         [],
         environ_name="BREVO_API_CONTACT_LIST_IDS",
         environ_prefix=None,
-        converter=lambda x: int(x),  # pylint: disable=unnecessary-lambda
+        converter=int,
     )
     BREVO_API_CONTACT_ATTRIBUTES = values.DictValue({"VISIO_USER": True})
     BREVO_API_TIMEOUT = values.PositiveIntegerValue(
@@ -917,7 +981,11 @@ class Test(Base):
     USE_SWAGGER = True
     EXTERNAL_API_ENABLED = True
 
-    CELERY_TASK_ALWAYS_EAGER = values.BooleanValue(True)
+    APPLICATION_JWT_SECRET_KEY = "devKey"  # noqa:S105
+    APPLICATION_JWT_AUDIENCE = "Test inc."
+
+    CELERY_TASK_ALWAYS_EAGER = True
+    FILE_UPLOAD_ENABLED = True
 
     def __init__(self):
         # pylint: disable=invalid-name

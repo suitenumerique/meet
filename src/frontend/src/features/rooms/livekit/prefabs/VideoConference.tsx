@@ -30,7 +30,11 @@ import { useSidePanel } from '../hooks/useSidePanel'
 import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
+import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { useSettingsDialog } from '@/features/settings'
+import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
@@ -66,8 +70,7 @@ const LayoutWrapper = styled(
 /**
  * @public
  */
-export interface VideoConferenceProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElement> {
   /** @alpha */
   SettingsComponent?: React.ComponentType
 }
@@ -98,6 +101,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   const { t: tRooms } = useTranslation('rooms')
   const room = useRoomContext()
   const announce = useScreenReaderAnnounce()
+  const { toggleSettingsDialog } = useSettingsDialog()
 
   const getAnnouncementName = useCallback(
     (participant?: Participant | null) => {
@@ -110,7 +114,15 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   )
 
   useConnectionObserver()
+  useRoomPageTitle()
   useVideoResolutionSubscription()
+
+  useRegisterKeyboardShortcut({
+    id: 'open-shortcuts',
+    handler: useCallback(() => {
+      toggleSettingsDialog(SettingsDialogExtendedKey.SHORTCUTS)
+    }, [toggleSettingsDialog]),
+  })
 
   const tracks = useTracks(
     [

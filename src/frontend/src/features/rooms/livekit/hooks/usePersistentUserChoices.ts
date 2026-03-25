@@ -1,7 +1,7 @@
 import { useSnapshot } from 'valtio'
 import { userChoicesStore } from '@/stores/userChoices'
 import type { VideoResolution } from '@/stores/userChoices'
-import { ProcessorSerialized } from '@/features/rooms/livekit/components/blur'
+import { ProcessorConfig } from '@/features/rooms/livekit/components/blur'
 import type { VideoQuality } from 'livekit-client'
 
 export function usePersistentUserChoices() {
@@ -36,10 +36,8 @@ export function usePersistentUserChoices() {
     saveNoiseReductionEnabled: (enabled: boolean) => {
       userChoicesStore.noiseReductionEnabled = enabled
     },
-    saveProcessorSerialized: (
-      processorSerialized: ProcessorSerialized | undefined
-    ) => {
-      userChoicesStore.processorSerialized = processorSerialized
+    saveProcessorConfig: (processorConfig: ProcessorConfig | undefined) => {
+      userChoicesStore.processorConfig = processorConfig
     },
   }
 }

@@ -9,6 +9,7 @@ import {
   closeLowerHandToasts,
   showLowerHandToast,
 } from '@/features/notifications/utils'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 
 const SPEAKING_DETECTION_DELAY = 3000
 
@@ -32,6 +33,16 @@ export const HandToggle = () => {
     if (isHandRaised) return
     closeLowerHandToasts()
   }, [isHandRaised])
+
+  const handleToggle = () => {
+    toggleRaisedHand()
+    resetToastState()
+  }
+
+  useRegisterKeyboardShortcut({
+    id: 'raise-hand',
+    handler: handleToggle,
+  })
 
   useEffect(() => {
     const shouldShowToast = isSpeaking && isHandRaised && !hasShownToast
@@ -68,10 +79,7 @@ export const HandToggle = () => {
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isHandRaised}
-        onPress={() => {
-          toggleRaisedHand()
-          resetToastState()
-        }}
+        onPress={handleToggle}
         data-attr={`controls-hand-${tooltipLabel}`}
       >
         <RiHand />

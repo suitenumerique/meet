@@ -1,51 +1,61 @@
 {
-  "title": "Modalités d'utilisation de Visio",
+  "title": "Modalités d’utilisation de Visio",
   "articles": {
     "article1": {
-      "title": "1. Champ d'application",
-      "content": "Le présent document définit les modalités d'utilisation de Visio, le service de visioconférence de l'administration."
+      "title": "1. Champ d’application",
+      "content": "Le présent document définit les modalités d’utilisation de Visio (ci-après « Visio » ou « l’application »), une application de visioconférence spécialement conçue pour les administrations de l’Etat et les organismes sous sa tutelle."
     },
     "article2": {
-      "title": "2. Objet de la plateforme",
-      "content": "Le service permet de favoriser la coopération des équipes et le travail à distance et de faciliter l'organisation de réunions, conférences ou formations.",
-      "purposes": "Visio est développé et opéré par la DINUM. Toute utilisation du service doit respecter les présentes modalités d'utilisation."
+      "title": "2. Objet de l’application",
+      "content": "Visio permet de favoriser la coopération des équipes des administrations de l’Etat et des organismes sous sa tutelle et le travail à distance et de faciliter l’organisation de réunions, conférences ou formations.",
+      "paragraphs": [
+        "Visio est développée et opérée par la direction interministérielle du numérique (DINUM).",
+        "L’application est mise à disposition par la DINUM aux administrations de l’Etat et aux organismes sous sa tutelle, à destination de leurs agents, partenaires et prestataires invités.",
+        "Toute utilisation de Visio doit respecter les présentes modalités d’utilisation et, le cas échéant, la doctrine d’emploi de l’administration de rattachement."
+      ]
     },
     "article3": {
-      "title": "3. Accès au service",
-      "definition": "Visio est mis à disposition des agents publics connectés par ProConnect aux fins d'administrer un salon de visioconférence. L'agent public connecté peut ensuite transmettre un lien permettant d'accéder au salon à toute personne, sous sa responsabilité."
+      "title": "3. Définitions",
+      "paragraphs": [
+        "Visio est le produit dont l’utilisation est décrite dans les présentes modalités et présenté sur la page suivante : https://visio.numerique.gouv.fr.",
+        "Les utilisateurs et utilisatrices de Visio sont toute personne utilisant Visio à des fins de communication en visioconférence, qu’elles soient des agents, des partenaires ou des prestataires des administrations de rattachement. L’administration de rattachement est l’administration de l’Etat et des organismes sous sa tutelle qui met à disposition Visio à ses agents, partenaires ou prestataires.",
+        "Les organisateurs et organisatrices de salon sont des utilisateurs et utilisatrices qui sont responsables d’un salon de visioconférence après s’être connecté par ProConnect."
+      ]
     },
     "article4": {
-      "title": "4. Utilisation",
-      "content": "L'utilisation du service est libre et gratuite, pour administrer un salon de visioconférence, il est nécessaire de se connecter par ProConnect."
+      "title": "4. Accès à l’application",
+      "definition": "Visio est mis à disposition des utilisateurs et utilisatrices par leur administration de rattachement. Les organisateurs et organisatrices peuvent ensuite transmettre un lien permettant d’accéder au salon à toute personne, sous leur responsabilité."
     },
     "article5": {
       "title": "5. Fonctionnalités",
       "sections": {
         "section1": {
-          "title": "5.1. Fonctionnalités ouvertes aux agents publics",
-          "content": "Visio offre aux agents publics la possibilité de créer un salon de visioconférence depuis un poste de travail standard, lié à son compte ProConnect.",
-          "paragraph1": "Tout agent de l'État, dont les activités sont compatibles avec l'utilisation de Visio ou qui n'est pas soumis à des obligations particulières de confidentialité ou de secret professionnel, peut créer une visioconférence. Il peut ensuite partager le lien de la réunion avec d'autres participants, qu'ils fassent partie de l'administration ou non.",
-          "paragraph2": "A cet effet, chaque organisateur de salon peut :",
+          "title": "5.1. Fonctionnalités ouvertes aux organisateurs et organisatrices",
+          "content": "Visio offre aux agents des administrations de l’Etat et des organismes sous sa tutelle la possibilité de créer un salon de visioconférence depuis un poste de travail standard, lié à leur compte ProConnect.",
+          "paragraph1": "Tout agent de l’État ou d’un organisme sous sa tutelle, dont les activités sont compatibles avec l’utilisation de Visio ou qui n’est pas soumis à des obligations particulières de confidentialité ou de secret professionnel, peut créer et organiser une visioconférence. Il ou elle peut ensuite partager le lien de la réunion avec d’autres personnes, utilisateurs et utilisatrices, qu’elles fassent partie de l’administration ou non.",
+          "paragraph2": "A cet effet, chaque organisateur ou organisatrice de salon peut :",
           "capabilities": [
-            "Protéger l'accès au salon par une salle d'attente ;",
-            "Autoriser l'entrée de chaque participant dans le salon ;",
-            "Couper les micros et caméras des participants ;",
-            "Exclure un participant du salon."
+            "Protéger l’accès au salon par une salle d’attente ;",
+            "Autoriser l’entrée de chaque utilisateur et utilisatrice dans le salon ;",
+            "Couper les micros et caméras des utilisateurs et utilisatrices ;",
+            "Exclure un utilisateur ou utilisatrice du salon ;",
+            "Utiliser l’outil de transcription de la réunion après avoir obtenu l’aval des utilisateurs et des utilisatrices, sous sa responsabilité."
           ],
-          "paragraph3": "Seuls les agents, dont le domaine d'activité est autorisé à utiliser Visio ou qui <u>ne sont pas soumis à une obligation de confidentialité particulière ou de secret professionnel</u>, peuvent utiliser ou avoir la maîtrise de ce service et de ses fonctionnalités."
+          "paragraph3": "Seuls les agents, dont le compte ProConnect relève d’un domaine autorisé à organiser des salons sur Visio ou qui <u>ne sont pas soumis à une obligation de confidentialité particulière ou de secret professionnel</u>, peuvent utiliser ou avoir la maîtrise de l’application et de ses fonctionnalités.",
+          "paragraph4": "L’outil de transcription automatique peut être utilisé par les organisateurs et organisatrices depuis le menu des paramètres du salon. Il appartient aux organisateurs et organisatrices de s’assurer de l’aval des utilisateurs et utilisatrices participants à la réunion transcrite. La langue de transcription peut être modifiée depuis le même menu. À la fin de la réunion, un lien est transmis à l’organisateur ou l’organisatrice pour accéder à la transcription conservée sur l’outil intitulé Docs opéré par la DINUM."
         },
         "section2": {
           "title": "5.2. Fonctionnalités ouvertes aux utilisateurs et utilisatrices",
-          "content": "Visio permet à tout utilisateur et tout utilisatrice, agent public ou non de participer à tout salon de Visio auquel il est convié par un agent de l'Etat et de profiter de toutes ses fonctionnalités.",
-          "paragraph": "A cet effet, chaque participant et participante peut :",
+          "content": "Visio permet à tout utilisateur et tout utilisatrice, agent public ou non de participer à tout salon de Visio auquel il est convié par un organisateur ou une organisatrice et de profiter des fonctionnalités.",
+          "paragraph": "A cet effet, chaque utilisateur et utilisatrice peut :",
           "capabilities": [
-            "décliner son identité affichée en entrant dans le salon ;",
+            "fournir une identité affichée en entrant dans le salon ;",
             "échanger à distance en audio et/ou en vidéo ;",
             "partager son écran ;",
-            "échanger des messages durant le salon de manière publique avec tous ;",
-            "voir des informations sur la conférence ;",
+            "échanger des messages durant le salon de manière publique avec tous les utilisateurs et utilisatrices de celui-ci ;",
+            "accéder à des informations techniques sur le salon et des fonctionnalités d’accessibilité ;",
             "activer ou désactiver sa caméra et/ou son micro à tout instant ;",
-            "protéger l'intimité de son poste en sélectionnant puis en activant un fond d'écran avant d'entrer dans le salon ou même durant la visioconférence."
+            "protéger l’intimité de son environnement dans le cas d’une activation de la caméra en sélectionnant puis en activant un fond d’écran avant d’entrer dans le salon ou même durant la visioconférence."
           ]
         }
       }
@@ -56,62 +66,64 @@
         "section1": {
           "title": "6.1 Usages conformes",
           "paragraphs": [
-            "Le service est mis à disposition pour les agents publics par ProConnect.",
-            "L'utilisateur ou l'utilisatrice est responsable des données ou contenus qu'il ou elle saisit dans le service de messagerie du salon de visioconférence. Il ou elle veille à ne saisir que des messages appropriés."
+            "Visio est mis à disposition pour faciliter les échanges professionnels entre les agents des administrations de l’Etat et ses organismes sous tutelle et les collaborateurs extérieurs à l’administration.",
+            "L’utilisateur ou l’utilisatrice est responsable des images et sons qu’il ou elle rend accessible dans le salon de visioconférence. Cette responsabilité vaut autant pour ce que la caméra ou le micro peut diffuser que pour ce que son terminal peut rendre accessible à des tiers. A cette fin, l’utilisateur ou l’utilisatrice veille à utiliser l’application dans un environnement professionnel et à ne diffuser aucune information qui serait couverte par l’obligation de discrétion professionnelle à des tiers (par exemple : utilisation de filtre de confidentialité, d’écouteurs, etc.).",
+            "L’utilisateur ou l’utilisatrice est responsable des données ou contenus qu’il ou elle saisit dans le service de messagerie du salon de visioconférence. Il ou elle veille à ne saisir que des messages appropriés."
           ]
         },
         "section2": {
           "title": "6.2 Usages interdits",
           "paragraphs": [
-            "L'utilisateur ou l'utilisatrice s'engage à ne pas saisir dans le service de messagerie du salon de Visio des contenus ou informations contraires aux dispositions légales et réglementaires en vigueur."
+            "L’utilisateur ou l’utilisatrice s’engage à ne pas saisir dans le service de messagerie du salon de Visio ni rendre accessible par image ou son des contenus ou informations contraires aux dispositions légales et réglementaires en vigueur."
           ]
         }
       }
     },
     "article7": {
       "title": "7. Engagements et responsabilités de la DINUM",
-      "content": "La DINUM est responsable de l’administration générale du service. Elle transmet aux agents toutes les informations nécessaires pour faciliter son utilisation. Elle propose une assistance technique et fonctionnelle en vue d’assurer le bon fonctionnement du service. Elle informe par tout moyen raisonnable les utilisateurs de toute difficulté de nature à affecter ce bon fonctionnement.",
       "sections": {
         "section1": {
-          "title": "7.1. Niveau de disponibilité",
+          "title": "7.1. Sécurité de l’application",
           "paragraphs": [
-            "La plage d’ouverture du Service est 24h/24 7j/7, hors période d’indisponibilité pour maintenance.",
-            "La DINUM poursuit un objectif de disponibilité annuelle du service de 99,5%, hors indisponibilités planifiées. En cas d’incident ou de maintenance, elle vise un délai de rétablissement de 72h en heures non ouvrables.",
-            "Dans le cadre d’une maintenance de l’environnement d’exécution du service, La DINUM se réserve le droit de suspendre temporairement le fonctionnement du service. Elle tient informée les utilisateurs au minimum 48h à l’avance. En cas d’urgence, cette suspension peut intervenir sans préavis.",
-            "Ces arrêts exceptionnels peuvent être rendus nécessaires par exemple pour des opérations de gestion des données en back office, des opérations de mise en production ou des changements d’architecture.",
-            "L’indisponibilité du service n’ouvre droit à aucune compensation de quelque nature que ce soit."
+            "La DINUM s’engage à la sécurisation de Visio, notamment en prenant toutes les mesures nécessaires permettant de garantir la sécurité et la confidentialité des échanges.",
+            "L’application est homologuée dans les conditions prévues par le décret n° 2010-112 modifiée."
           ]
         },
         "section2": {
-          "title": "7.2. Sécurité du service",
+          "title": "7.2. Accès à l’application",
           "paragraphs": [
-            "La DINUM prend toutes les précautions utiles pour préserver la sécurité de la plateforme et des outils mis en œuvre dans le cadre du service, notamment s’agissant de l’accès au service, de la gestion des comptes utilisateurs et du traitement des données collectées."
+            "La DINUM s’engage à fournir les moyens nécesaires et raisonnables pour assurer un accès continu à l’application.",
+            "La plage d’ouverture de l’application est 24h/24 7j/7, hors période d’indisponibilité pour maintenance.",
+            "La DINUM poursuit un objectif de disponibilité annuelle de l’application de 99,5%, hors indisponibilités planifiées. En cas d’incident ou de maintenance, elle vise un délai de rétablissement de 72h en heures non ouvrables.",
+            "Dans le cadre d’une maintenance de l’environnement d’exécution de l’application, la DINUM se réserve le droit de suspendre temporairement le fonctionnement de l’application. Dans la mesure du possible, elle tient informée les utilisateurs au minimum 48h à l’avance. En cas d’urgence, cette suspension peut intervenir sans préavis.",
+            "Ces arrêts exceptionnels peuvent être rendus nécessaires par exemple pour des opérations de gestion des données, de mise en production ou des changements d’architecture.",
+            "L’indisponibilité de l’application n’ouvre droit à aucune compensation de quelque nature que ce soit."
           ]
         },
         "section3": {
           "title": "7.3. Gestion du support",
           "paragraphs": [
-            "La DINUM assure le support de premier niveau auprès des utilisateurs, exclusivement sur les parties techniques du service.",
-            "Ce support est joignable sur notre formulaire de contact en ligne.",
+            "La DINUM assure le support de premier niveau auprès des utilisateurs et utilisatrices, exclusivement sur les parties techniques de l’application.",
+            "Ce support est joignable par le formulaire de contact en ligne.",
             "L’objectif de réponse aux sollicitations est de deux jours ouvrés à compter de l’envoi du courriel, ce délai peut varier selon la complexité et le nombre de demandes à traiter."
           ]
         },
         "section4": {
-          "title": "7.4. Contrôle de l’utilisation du service",
+          "title": "7.4. Contrôle de l’utilisation de l’application",
           "paragraphs": [
-            "La DINUM se réserve le droit de suspendre ou supprimer un compte agent qui aurait méconnu les présentes modalités d’utilisation, sans préjudice des éventuelles actions en responsabilité pénale et civile qui pourraient être engagées à l’encontre de l’agent concerné.",
+            "La DINUM se réserve le droit de suspendre ou supprimer un compte d’utilisateur ou d’utilisatrice qui aurait méconnu les présentes modalités d’utilisation, sans préjudice des éventuelles actions en responsabilité pénale et civile qui pourraient être engagées à l’encontre la personne concernée. Les éléments pourraient être transmis à l’administration de rattachement de l’utilisatrice ou de l’utilisateur, celle-ci étant responsable de la mise à disposition de l’application.",
             "La suspension ou la révocation d’un ou plusieurs comptes ne donne lieu à aucune compensation d’aucune sorte."
           ]
         },
         "section5": {
           "title": "7.5. Open Source et Licences",
-          "content": "Le code source du service est libre et disponible ici : https://github.com/suitenumerique/meet. Les contenus proposés par la DINUM sont sous Licence Ouverte, à l’exception des logos et des représentations iconographiques et photographiques pouvant être régis par leurs licences propres."
+          "content": "Le code source du service est libre et disponible ici : https://github.com/suitenumerique/meet. Les contenus proposés par la DINUM sont sous Licence Ouverte 2.0, à l’exception des logos et des représentations iconographiques et photographiques pouvant être régis par leurs licences propres."
         }
       }
     },
     "article8": {
-      "title": "8. Évolution des modalités d'utilisation",
-      "content": "Les termes des présentes modalités d'utilisation peuvent être modifiés ou complétés à tout moment, sans préavis, en fonction des modifications apportées au service, de l'évolution de la législation ou pour tout autre motif jugé nécessaire.\nCes modifications et mises à jour s'imposent à l'utilisateur ou l'utilisatrice qui doit, en conséquence, se référer régulièrement à cette rubrique pour vérifier les modalités en vigueur."
+      "title": "8. Évolution des modalités d’utilisation",
+      "content": "Les termes des présentes modalités d’utilisation peuvent être modifiés ou complétés à tout moment, sans préavis, en fonction des modifications apportées au service, de l’évolution de la législation ou pour tout autre motif jugé nécessaire.\nCes modifications et mises à jour s’imposent à l’utilisateur ou l’utilisatrice qui doit, en conséquence, se référer régulièrement à cette rubrique pour vérifier les modalités en vigueur."
     }
   }
 }

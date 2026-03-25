@@ -25,6 +25,7 @@
     "heading": "Verify your meeting code",
     "body": "Check that you have entered the correct meeting code in the URL. Example:"
   },
+  "selected": "selected",
   "submit": "OK",
   "footer": {
     "links": {
@@ -45,13 +46,14 @@
     "license": "etalab 2.0 license"
   },
   "loginHint": {
-    "title": "Log in with your ProConnect account",
-    "body": "Instead of waiting, log in with your ProConnect account.",
+    "title": "Log in with your account",
+    "body": "Instead of waiting, log in with your account.",
     "button": {
       "ariaLabel": "Close the suggestion",
       "label": "OK"
     }
   },
+  "skipLink": "Skip to main content",
   "clipboardContent": {
     "url": "To join the video conference, click on this link: {{roomUrl}}",
     "numberAndPin": "To join by phone, dial {{phoneNumber}} and enter this code: {{pinCode}}"

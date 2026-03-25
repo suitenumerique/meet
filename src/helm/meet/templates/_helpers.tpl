@@ -176,6 +176,15 @@ Requires top level scope
 {{- end }}
 
 {{/*
+Full name for the Celery Backend
+
+Requires top level scope
+*/}}
+{{- define "meet.celeryBackend.fullname" -}}
+{{ include "meet.fullname" . }}-celery-backend
+{{- end }}
+
+{{/*
 Full name for the Celery Transcribe
 
 Requires top level scope

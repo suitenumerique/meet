@@ -4,7 +4,7 @@ import { cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { styled, VStack } from '@/styled-system/jsx'
 import { usePostHog } from 'posthog-js/react'
-import { PostHog } from 'posthog-js'
+import type { PostHog } from 'posthog-js'
 import { Button as RACButton } from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 
