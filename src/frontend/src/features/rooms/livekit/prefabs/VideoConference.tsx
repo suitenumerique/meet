@@ -44,6 +44,7 @@ import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { ReactionPortals } from '@/features/rooms/livekit/components/ReactionPortal'
 
 const LayoutWrapper = styled(
   'div',
@@ -346,6 +347,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       <ConnectionStateToast />
       <RecordingProvider />
       <SettingsDialogProvider />
+      <ReactionPortals />
     </div>
   )
 }

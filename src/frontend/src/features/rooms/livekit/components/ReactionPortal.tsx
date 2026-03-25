@@ -2,13 +2,9 @@ import { createPortal } from 'react-dom'
 import { useState, useEffect, useMemo } from 'react'
 import { Text } from '@/primitives'
 import { css } from '@/styled-system/css'
-import { Participant } from 'livekit-client'
-import { useTranslation } from 'react-i18next'
-import { Reaction } from '@/features/rooms/livekit/components/controls/ReactionsToggle'
-import { getEmojiLabel } from '@/features/rooms/livekit/utils/reactionUtils'
-import { accessibilityStore } from '@/stores/accessibility'
 import { useSnapshot } from 'valtio'
-import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { Reaction, reactionsStore } from '@/stores/reactions'
+import { useAnnounceReaction } from '../hooks/useAnnounceReaction'
 
 export const ANIMATION_DURATION = 3000
 export const ANIMATION_DISTANCE = 300
@@ -79,7 +75,7 @@ export function FloatingReaction({
     >
       <img
         src={`/assets/reactions/${emoji}.png`}
-        alt={''}
+        alt=""
         className={css({
           height: '50px',
         })}
@@ -116,14 +112,7 @@ export function FloatingReaction({
   )
 }
 
-export function ReactionPortal({
-  emoji,
-  participant,
-}: {
-  emoji: string
-  participant: Participant
-}) {
-  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
+export function ReactionPortal({ reaction }: { reaction: Reaction }) {
   const speed = useMemo(() => Math.random() * 1.5 + 0.5, [])
   const scale = useMemo(() => Math.max(Math.random() + 0.5, 1), [])
   return createPortal(
@@ -138,51 +127,27 @@ export function ReactionPortal({
       })}
     >
       <FloatingReaction
-        emoji={emoji}
+        emoji={reaction.emoji}
         speed={speed}
         scale={scale}
-        name={participant?.isLocal ? t('you') : participant.name}
-        isLocal={participant?.isLocal}
+        name={reaction.participantName}
+        isLocal={reaction.isLocal}
       />
     </div>,
     document.body
   )
 }
 
-export const ReactionPortals = ({ reactions }: { reactions: Reaction[] }) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
-  const { announceReactions } = useSnapshot(accessibilityStore)
-  const [lastAnnouncedId, setLastAnnouncedId] = useState<number | null>(null)
-  const announce = useScreenReaderAnnounce()
+export const ReactionPortals = () => {
+  const { reactions } = useSnapshot(reactionsStore)
+  const latestReaction = reactions.at(-1)
 
-  const latestReaction =
-    reactions.length > 0 ? reactions[reactions.length - 1] : undefined
-
-  useEffect(() => {
-    if (!announceReactions) {
-      return
-    }
-    if (!latestReaction) return
-    const isNewReaction = latestReaction.id !== lastAnnouncedId
-    if (!isNewReaction) return
-
-    const emojiLabel = getEmojiLabel(latestReaction.emoji, t)
-    const participantName = latestReaction.participant?.isLocal
-      ? t('you')
-      : latestReaction.participant?.name?.trim() ||
-        t('someone', { defaultValue: 'Someone' })
-    announce(t('announce', { name: participantName, emoji: emojiLabel }))
-    setLastAnnouncedId(latestReaction.id)
-  }, [announce, latestReaction, lastAnnouncedId, announceReactions, t])
+  useAnnounceReaction(latestReaction)
 
   return (
     <>
       {reactions.map((instance) => (
-        <ReactionPortal
-          key={instance.id}
-          emoji={instance.emoji}
-          participant={instance.participant}
-        />
+        <ReactionPortal key={instance.id} reaction={instance} />
       ))}
     </>
   )
