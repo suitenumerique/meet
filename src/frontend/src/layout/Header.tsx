@@ -97,6 +97,10 @@ export const Header = () => {
     ? `${loggedInTooltip} ${userLabel}`
     : loggedInTooltip
 
+
+  // Twake integration: hide top bar
+  return <div className={css({ height: '76px', lg: { height: '88px' } })}/>
+
   return (
     <>
       <FeedbackBanner />
