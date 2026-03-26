@@ -1,0 +1,54 @@
+/* Custom style for Twake integration */
+
+@import '/assets/styles/cozy-ui.utils.min.css';
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400 700;
+  src: url("/assets/fonts/InterVariable.woff2");
+  font-display: swap;
+}
+
+:root {
+  --fonts-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Copy link button background */
+   --colors-primary-100: var(--primaryColorLightest);
+   /* Copy link button background hover */
+   --colors-primary-300: var(--primaryColorLight);
+
+   /* Main buttons background */
+   --colors-primary-800: var(--primaryColor);
+   /* Main buttons background hover */
+   --colors-primary-action: var(--primaryColorDark);
+
+   /* Primary color */
+   --colors-primary: var(--primaryColorDark);
+}
+
+/* Main buttons border radius */
+button[data-rac]:not(.lk-room-container button[data-rac]):not([data-rac] > button):not([aria-label]:not([aria-label] *)) {
+  border-radius: 100px !important;
+}
+
+a[data-attr="login"] {
+  border-radius: 100px !important;
+}
+
+/* Add camera icon to "Create meeting" button */
+button[data-attr="create-meeting"]::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 64x;
+  vertical-align: middle;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14.1667 8.75V5.83333C14.1667 5.375 13.7917 5 13.3333 5H3.33333C2.875 5 2.5 5.375 2.5 5.83333V14.1667C2.5 14.625 2.875 15 3.33333 15H13.3333C13.7917 15 14.1667 14.625 14.1667 14.1667V11.25L17.5 14.5833V5.41667L14.1667 8.75ZM12.5 13.3333H4.16667V6.66667H12.5V13.3333ZM7.5 12.5H9.16667V10.8333H10.8333V9.16667H9.16667V7.5H7.5V9.16667H5.83333V10.8333H7.5V12.5Z' fill='white'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14.1667 8.75V5.83333C14.1667 5.375 13.7917 5 13.3333 5H3.33333C2.875 5 2.5 5.375 2.5 5.83333V14.1667C2.5 14.625 2.875 15 3.33333 15H13.3333C13.7917 15 14.1667 14.625 14.1667 14.1667V11.25L17.5 14.5833V5.41667L14.1667 8.75ZM12.5 13.3333H4.16667V6.66667H12.5V13.3333ZM7.5 12.5H9.16667V10.8333H10.8333V9.16667H9.16667V7.5H7.5V9.16667H5.83333V10.8333H7.5V12.5Z' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
