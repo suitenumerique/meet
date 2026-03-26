@@ -303,6 +303,9 @@ class MuteParticipantSerializer(BaseParticipantsManagementSerializer):
     )
 
 
+TrackSource = Literal["SCREEN_SHARE", "SCREEN_SHARE_AUDIO", "CAMERA", "MICROPHONE"]
+
+
 class ParticipantPermission(BaseModel):
     """Mirror the LiveKit ParticipantPermission protobuf.
 
@@ -313,9 +316,7 @@ class ParticipantPermission(BaseModel):
     can_subscribe: bool | None = None
     can_publish: bool | None = None
     can_publish_data: bool | None = None
-    can_publish_sources: list[int] = Field(
-        default_factory=list
-    )  # TrackSource enum values
+    can_publish_sources: list[TrackSource] = Field(default_factory=list)
     hidden: bool | None = None
     recorder: bool | None = None
     can_update_metadata: bool | None = None
@@ -365,14 +366,6 @@ class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
             raise SuspiciousOperation(
                 f"Setting the following participant permissions is not allowed: "
                 f"{', '.join(suspicious_fields)}."
-            )
-        if permission.can_subscribe_metrics is not None:
-            raise serializers.ValidationError(
-                {
-                    "permission": {
-                        "can_subscribe_metrics": "This permission is not implemented."
-                    }
-                }
             )
 
         return permission

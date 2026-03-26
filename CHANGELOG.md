@@ -10,6 +10,17 @@ and this project adheres to
 
 ### Changed
 
+- ⬆️(dependencies) update python dependencies
+
+### Fixed
+
+- 🔒️(backend) fix email disclosure in room invitation endpoint #1200
+- 🐛(backend) fix regression in update-participant endpoint #1204
+
+## [1.12.0] - 2026-03-24
+
+### Changed
+
 - ♻️(backend) configurable SESSION_ENGINE #1038 #1154
 - ♿️(frontend) fix sidepanel accessibility aria-label #1182
 - ♿️(frontend) fix more tools heading hierarchy #1181
