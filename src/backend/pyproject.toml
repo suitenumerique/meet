@@ -55,7 +55,7 @@ dependencies = [
     "PyJWT==2.12.1",
     "python-frontmatter==1.1.0",
     "python-magic==0.4.27",
-    "requests==2.32.5",
+    "requests==2.33.0",
     "sentry-sdk==2.54.0",
     "whitenoise==6.12.0",
     "mozilla-django-oidc==5.0.2",
