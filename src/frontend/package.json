@@ -24,6 +24,7 @@
     "@remixicon/react": "4.6.0",
     "@tanstack/react-query": "5.90.21",
     "@timephy/rnnoise-wasm": "1.0.0",
+    "cozy-external-bridge": "^1.2.3",
     "crisp-sdk-web": "1.0.27",
     "derive-valtio": "0.2.0",
     "hoofd": "1.7.3",
