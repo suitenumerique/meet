@@ -166,6 +166,7 @@
     "countdownAnnouncement": "Het gesprek eindigt over {{duration}}."
   },
   "controls": {
+    "region": "Gespreksbesturing",
     "microphone": "Microfoon",
     "camera": "Camera",
     "chat": {

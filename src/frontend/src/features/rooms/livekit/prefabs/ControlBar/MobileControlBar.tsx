@@ -25,6 +25,7 @@ import { useConfig } from '@/api/useConfig'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
+import { ControlBarRegion } from '@/features/layout/components/ControlBarRegion'
 
 export function MobileControlBar({
   onDeviceError,
@@ -47,13 +48,7 @@ export function MobileControlBar({
           justifyContent: 'center',
         })}
       >
-        <div
-          className={css({
-            display: 'flex',
-            justifyContent: 'space-between',
-            width: '330px',
-          })}
-        >
+        <ControlBarRegion mobile>
           <LeaveButton />
           <AudioDevicesControl
             onDeviceError={(error) =>
@@ -78,7 +73,7 @@ export function MobileControlBar({
           >
             <RiMore2Line />
           </Button>
-        </div>
+        </ControlBarRegion>
       </div>
       <ResponsiveMenu
         isOpened={isMenuOpened}
