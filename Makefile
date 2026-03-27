@@ -73,7 +73,8 @@ create-env-files: \
 	env.d/development/crowdin \
 	env.d/development/postgresql \
 	env.d/development/kc_postgresql \
-	env.d/development/summary
+	env.d/development/summary \
+	env.d/development/kube-secret
 .PHONY: create-env-files
 
 bootstrap: ## Prepare Docker images for the project
@@ -264,6 +265,9 @@ env.d/development/kc_postgresql:
 
 env.d/development/summary:
 	cp -n env.d/development/summary.dist env.d/development/summary
+
+env.d/development/kube-secret:
+	cp -n env.d/development/kube-secret.dist env.d/development/kube-secret
 
 # -- Internationalization
 

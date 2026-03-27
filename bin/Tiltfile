@@ -95,6 +95,12 @@ docker_build(
 )
 clean_old_images('localhost:5001/meet-livekit')
 
+load('ext://secret', 'secret_yaml_generic')
+k8s_yaml(secret_yaml_generic(
+    name="secret-dev",
+    from_env_file="../env.d/development/kube-secret"
+))
+
 k8s_yaml(local('cd ../src/helm && helmfile -n meet -e ${DEV_ENV:-dev-keycloak} template .'))
 
 k8s_resource('minio-bucket', resource_deps=['minio'])
