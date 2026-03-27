@@ -166,6 +166,7 @@
     "countdownAnnouncement": "Das Meeting endet in {{duration}}."
   },
   "controls": {
+    "region": "Anrufsteuerung",
     "microphone": "Mikrofon",
     "camera": "Kamera",
     "chat": {

@@ -166,6 +166,7 @@
     "countdownAnnouncement": "L'appel se termine dans {{duration}}."
   },
   "controls": {
+    "region": "Commandes pour les appels",
     "microphone": "Microphone",
     "camera": "Camera",
     "chat": {

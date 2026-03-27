@@ -15,6 +15,7 @@ import { useFullScreen } from '../../hooks/useFullScreen'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
+import { ControlBarRegion } from '@/features/layout/components/ControlBarRegion'
 
 export function DesktopControlBar({
   onDeviceError,
@@ -61,15 +62,7 @@ export function DesktopControlBar({
           marginLeft: '0.5rem',
         })}
       />
-      <div
-        className={css({
-          flex: '1 1 33%',
-          alignItems: 'center',
-          justifyContent: 'center',
-          display: 'flex',
-          gap: '0.65rem',
-        })}
-      >
+      <ControlBarRegion>
         <AudioDevicesControl
           onDeviceError={(error) =>
             onDeviceError?.({ source: Track.Source.Microphone, error })
@@ -93,7 +86,7 @@ export function DesktopControlBar({
         <OptionsButton />
         <LeaveButton />
         <StartMediaButton />
-      </div>
+      </ControlBarRegion>
       <MoreOptions parentElement={desktopControlBarEl} />
     </div>
   )
