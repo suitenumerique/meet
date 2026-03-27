@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
-import { getEmojiLabel } from '../../utils'
 import { Emoji } from '../../types'
 import { useReactions } from '../../hooks/useReactions'
 import { Button } from '@/primitives'
@@ -11,7 +10,7 @@ export const ReactionButton = ({ emoji }: { emoji: Emoji }) => {
   return (
     <Button
       onPress={() => sendReaction(emoji)}
-      aria-label={t('send', { emoji: getEmojiLabel(emoji, t) })}
+      aria-label={t(`emojis.${emoji}`)}
       variant="primaryTextDark"
       size="sm"
       round

@@ -215,7 +215,7 @@
     "moreOptions": "Meer opties",
     "reactions": {
       "button": "Stuur reactie",
-      "send": "Stuur reactie {{emoji}}",
+      "toolbar": "Stuur reactie",
       "announce": "{{name}} : {{emoji}}",
       "you": "U",
       "emojis": {

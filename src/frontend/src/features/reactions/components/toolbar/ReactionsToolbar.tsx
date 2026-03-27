@@ -8,6 +8,7 @@ import { getFirstControlBarFocusable } from '@/utils/dom'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { useEffect, useRef, useState } from 'react'
 import { useDelayUnmount } from '@/hooks/useDelayUnmount'
+import { useTranslation } from 'react-i18next'
 
 const Container = styled('div', {
   base: {
@@ -85,6 +86,7 @@ const Strip = ({ children }: { children: React.ReactNode }) => {
 }
 
 const KeyboardNavigation = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
   const focusManager = useFocusManager()
 
   const onFocus = (e: React.FocusEvent<HTMLDivElement>) => {
@@ -117,7 +119,12 @@ const KeyboardNavigation = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div role="toolbar" onKeyDown={onKeyDown} onFocus={onFocus}>
+    <div
+      role="toolbar"
+      aria-label={t('toolbar')}
+      onKeyDown={onKeyDown}
+      onFocus={onFocus}
+    >
       {children}
     </div>
   )

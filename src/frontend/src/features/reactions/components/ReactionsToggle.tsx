@@ -22,6 +22,7 @@ export const ReactionsToggle = () => {
       square
       variant="primaryDark"
       aria-label={t('button')}
+      aria-expanded={isOpen}
       tooltip={t('button')}
       isSelected={isOpen}
       onChange={toggle}
