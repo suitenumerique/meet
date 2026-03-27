@@ -27,6 +27,7 @@ export const InfoToggle = ({
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isInfoOpen}
+        aria-expanded={isInfoOpen}
         onPress={(e) => {
           toggleInfo()
           onPress?.(e)

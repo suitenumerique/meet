@@ -73,7 +73,7 @@ export const MoreOptions = ({
 }) => {
   const { width: parentWidth } = useSize(parentElement)
   return (
-    <div
+    <nav
       className={css({
         display: 'flex',
         justifyContent: 'flex-end',
@@ -88,6 +88,6 @@ export const MoreOptions = ({
       ) : (
         <LateralMenu />
       )}
-    </div>
+    </nav>
   )
 }

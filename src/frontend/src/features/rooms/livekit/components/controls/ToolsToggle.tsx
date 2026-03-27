@@ -34,6 +34,7 @@ export const ToolsToggle = ({
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isToolsOpen}
+        aria-expanded={isToolsOpen}
         onPress={(e) => {
           toggleTools()
           onPress?.(e)
