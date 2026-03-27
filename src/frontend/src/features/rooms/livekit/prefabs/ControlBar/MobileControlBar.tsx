@@ -43,12 +43,8 @@ export function MobileControlBar({
         className={css({
           width: '100vw',
           display: 'flex',
-          position: 'absolute',
           padding: '1.125rem',
           justifyContent: 'center',
-          bottom: 0,
-          left: 0,
-          right: 0,
         })}
       >
         <div

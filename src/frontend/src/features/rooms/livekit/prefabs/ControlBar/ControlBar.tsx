@@ -4,6 +4,8 @@ import * as React from 'react'
 import { MobileControlBar } from './MobileControlBar'
 import { DesktopControlBar } from './DesktopControlBar'
 import { useIsMobile } from '@/utils/useIsMobile'
+import { ReactionsToolbar } from '@/features/reactions/components/toolbar/ReactionsToolbar'
+import { css } from '@/styled-system/css'
 
 export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
   onDeviceError?: (error: { source: Track.Source; error: Error }) => void
@@ -16,10 +18,32 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
 export function ControlBar({ onDeviceError }: ControlBarProps) {
   const isMobile = useIsMobile()
 
-  if (isMobile) {
-    return <MobileControlBar onDeviceError={onDeviceError} />
-  }
-  return <DesktopControlBar onDeviceError={onDeviceError} />
+  return (
+    <div
+      className={css({
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+      })}
+    >
+      <ReactionsToolbar />
+      <div
+        id="control-bar"
+        className={css({
+          zIndex: 100,
+        })}
+      >
+        {isMobile ? (
+          <MobileControlBar onDeviceError={onDeviceError} />
+        ) : (
+          <DesktopControlBar onDeviceError={onDeviceError} />
+        )}
+      </div>
+    </div>
+  )
 }
-
 export type ControlBarAuxProps = Pick<ControlBarProps, 'onDeviceError'>

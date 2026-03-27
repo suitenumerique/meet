@@ -48,11 +48,7 @@ export function DesktopControlBar({
       className={css({
         width: '100vw',
         display: 'flex',
-        position: 'absolute',
         padding: '1.125rem',
-        bottom: 0,
-        left: 0,
-        right: 0,
       })}
     >
       <div
