@@ -44,6 +44,13 @@ export const buttonRecipe = cva({
         paddingY: 'var(--square-padding)',
       },
     },
+    round: {
+      true: {
+        borderRadius: '50%',
+        paddingX: 'var(--square-padding)',
+        paddingY: 'var(--square-padding)',
+      },
+    },
     variant: {
       primary: {
         backgroundColor: 'primary.800',
