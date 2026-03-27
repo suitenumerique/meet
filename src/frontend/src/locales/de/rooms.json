@@ -215,7 +215,7 @@
     "moreOptions": "Weitere Optionen",
     "reactions": {
       "button": "Reaktion senden",
-      "send": "Reaktion {{emoji}} senden",
+      "toolbar": "Reaktion senden",
       "announce": "{{name}} : {{emoji}}",
       "you": "du",
       "emojis": {

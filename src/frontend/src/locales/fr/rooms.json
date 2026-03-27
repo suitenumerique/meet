@@ -215,7 +215,7 @@
     "moreOptions": "Plus d'options",
     "reactions": {
       "button": "Envoyer une réaction",
-      "send": "Envoyer la réaction {{emoji}}",
+      "toolbar": "Envoyer une réaction",
       "announce": "{{name}} : {{emoji}}",
       "you": "vous",
       "emojis": {
