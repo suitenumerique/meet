@@ -11,6 +11,9 @@ and this project adheres to
 ### Changed
 
 - ⬆️(dependencies) update python dependencies
+- ♿️(frontend) add explicit region for call controls #1216
+- ♿️(frontend) improve accessibility of the reaction toolbar #1216
+- ♿️(frontend) enhance sidepanel navigation accessibility #1216
 
 ### Fixed
 

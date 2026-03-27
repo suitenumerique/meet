@@ -48,6 +48,7 @@ export const ParticipantsToggle = ({
             count: announcedCount,
           })}.`}
           isSelected={isParticipantsOpen}
+          aria-expanded={isParticipantsOpen}
           onPress={(e) => {
             toggleParticipants()
             onPress?.(e)
@@ -76,6 +77,7 @@ export const ParticipantsToggle = ({
           zIndex: 1,
           userSelect: 'none',
         })}
+        aria-hidden={true}
       >
         {numParticipants < 100 ? (
           numParticipants || 1

@@ -37,6 +37,7 @@ export const ChatToggle = ({
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isChatOpen}
+        aria-expanded={isChatOpen}
         onPress={(e) => {
           toggleChat()
           onPress?.(e)

@@ -32,6 +32,7 @@ export const AdminToggle = ({
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isAdminOpen}
+        aria-expanded={isAdminOpen}
         onPress={(e) => {
           toggleAdmin()
           onPress?.(e)
