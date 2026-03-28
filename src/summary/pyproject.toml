@@ -13,7 +13,7 @@ dependencies = [
     "mutagen==1.47.0",
     "openai==2.28.0",
     "posthog==7.9.12",
-    "requests==2.32.5",
+    "requests==2.33.0",
     "sentry-sdk[fastapi, celery]==2.54.0",
     "langfuse==4.0.0"
 ]
