@@ -713,7 +713,7 @@ def test_api_rooms_token_invalid_signature(mock_rs_authenticate, settings):
     }
     token = jwt.encode(
         payload,
-        "invalid-private-key",
+        "invalid-private-key-padded-to-32b!",
         algorithm=settings.APPLICATION_JWT_ALG,
     )
 

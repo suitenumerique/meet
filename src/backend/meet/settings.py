@@ -981,7 +981,13 @@ class Test(Base):
     USE_SWAGGER = True
     EXTERNAL_API_ENABLED = True
 
-    APPLICATION_JWT_SECRET_KEY = "devKey"  # noqa:S105
+    LIVEKIT_CONFIGURATION = {
+        "api_key": "devkey-padded-for-minimum-len!-livekit",
+        "api_secret": "secret-key-padded-for-minimum-len!-livekit",
+        "url": "http://127.0.0.1.nip.io:7880",
+    }
+
+    APPLICATION_JWT_SECRET_KEY = "secret-key-padded-for-minimum-len!-application"  # noqa:S105
     APPLICATION_JWT_AUDIENCE = "Test inc."
 
     CELERY_TASK_ALWAYS_EAGER = True

@@ -205,7 +205,7 @@ def test_start_subtitle_wrong_signature(settings, mock_livekit_token):
     """Test that tokens signed with incorrect signature are rejected."""
 
     settings.ROOM_SUBTITLE_ENABLED = True
-    settings.LIVEKIT_CONFIGURATION["api_secret"] = "wrong-secret"
+    settings.LIVEKIT_CONFIGURATION["api_secret"] = "wrong-secret-padded-to-32-bytes!!"
 
     room = RoomFactory()
     client = APIClient()

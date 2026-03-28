@@ -47,7 +47,7 @@ def mock_livekit_config(settings):
     """Mock LiveKit configuration."""
     settings.LIVEKIT_CONFIGURATION = {
         "api_key": "test_api_key",
-        "api_secret": "test_api_secret",
+        "api_secret": "test_api_secret_padded_to_32bytes!",
         "url": "https://test-livekit.example.com/",
     }
     return settings.LIVEKIT_CONFIGURATION
