@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) force official name in trusted rooms #1155
+
 ### Changed
 
 - ⬆️(dependencies) update python dependencies

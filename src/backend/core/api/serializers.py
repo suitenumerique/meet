@@ -172,6 +172,14 @@ class RoomSerializer(serializers.ModelSerializer):
         if should_access_room:
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
+
+            # Force official identity for authenticated users in trusted rooms
+            if (
+                instance.access_level == models.RoomAccessLevel.TRUSTED
+                and request.user.is_authenticated
+            ):
+                username = request.user.full_name or str(request.user)
+
             output["livekit"] = utils.generate_livekit_config(
                 room_id=room_id,
                 user=request.user,

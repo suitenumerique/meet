@@ -283,6 +283,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
     Authenticated users should be allowed to retrieve a room and get a token for a room to
     which they are not related, provided the room has a trusted access_level.
     They should not see related users.
+    The username should be forced to the user's official name.
     """
     room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
 
@@ -310,10 +311,84 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
         "slug": room.slug,
     }
 
+    # Username is forced to user's full_name in trusted rooms
     mock_token.assert_called_once_with(
         room=expected_name,
         user=user,
-        username=None,
+        username=user.full_name,
+        color=None,
+        sources=None,
+        is_admin_or_owner=False,
+        participant_id=None,
+    )
+
+
+@mock.patch("core.utils.generate_token", return_value="foo")
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+def test_api_rooms_retrieve_authenticated_trusted_forces_official_name(mock_token):
+    """
+    When a room has trusted access level and the user is authenticated,
+    the username should be forced to the user's official ProConnect name
+    (full_name), ignoring any custom username passed as query parameter.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
+
+    user = UserFactory(full_name="Jean Dupont")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(
+        f"/api/v1.0/rooms/{room.id!s}/?username=FakeIdentity",
+    )
+    assert response.status_code == 200
+
+    expected_name = f"{room.id!s}"
+    mock_token.assert_called_once_with(
+        room=expected_name,
+        user=user,
+        username="Jean Dupont",
+        color=None,
+        sources=None,
+        is_admin_or_owner=False,
+        participant_id=None,
+    )
+
+
+@mock.patch("core.utils.generate_token", return_value="foo")
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+def test_api_rooms_retrieve_authenticated_trusted_fallback_to_email(mock_token):
+    """
+    When a room has trusted access level and the user is authenticated but has no
+    full_name, the username should fall back to str(user) (email).
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
+
+    user = UserFactory(full_name="")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(
+        f"/api/v1.0/rooms/{room.id!s}/?username=FakeIdentity",
+    )
+    assert response.status_code == 200
+
+    expected_name = f"{room.id!s}"
+    mock_token.assert_called_once_with(
+        room=expected_name,
+        user=user,
+        username=str(user),
         color=None,
         sources=None,
         is_admin_or_owner=False,
