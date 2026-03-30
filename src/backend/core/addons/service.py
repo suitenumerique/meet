@@ -15,6 +15,9 @@ from core.services.jwt_token import JwtTokenService
 logger = getLogger(__name__)
 
 
+class SessionOwnershipError(Exception):
+    """Raised when the claimed session_id does not match the result_token binding."""
+
 class SessionState(str, Enum):
     """Add-on authentication session states."""
 
@@ -37,14 +40,20 @@ class TokenExchangeService:
             token_type=settings.ADDONS_JWT_TOKEN_TYPE,
         )
 
-    def _get_cache_key(self, session_id: str) -> str:
+    def _session_cache_key(self, session_id: str) -> str:
         """Generate cache key for a session ID."""
         return f"{settings.ADDONS_SESSION_KEY_PREFIX}_{session_id}"
 
-    def init_session(self) -> str:
+    def _token_cache_key(self, result_token: str) -> str:
+        """Wip."""
+        return f"{settings.ADDONS_SESSION_TOKEN_PREFIX}_{result_token}"
+
+    def init_session(self) -> tuple[str, str]:
         """Create a new pending authentication session and return its ID."""
 
         session_id = secrets.token_urlsafe(settings.ADDONS_SESSION_ID_LENGTH)
+        result_token = secrets.token_urlsafe(32)  # separate, never in any UR
+
         expires_at = datetime.now(timezone.utc) + timedelta(
             seconds=settings.ADDONS_SESSION_TIMEOUT
         )
@@ -54,41 +63,80 @@ class TokenExchangeService:
             "expires_at": expires_at.isoformat(),
         }
 
-        cache_key = self._get_cache_key(session_id)
+        # Store the session itself
         cache.set(
-            cache_key,
+            self._session_cache_key(session_id),
             session_data,
             timeout=settings.ADDONS_SESSION_TIMEOUT,
         )
 
-        return session_id
+        # Store the token → session_id binding (same TTL)
+        cache.set(
+            self._token_cache_key(result_token),
+            session_id,
+            timeout=settings.ADDONS_SESSION_TIMEOUT,
+        )
 
+        print('$$ init session_id')
+        print(session_id)
+
+        return session_id, result_token
+
+    # todo - wip
     def get_session(self, session_id: str) -> dict:
         """Retrieve session data and clear it if authenticated."""
 
-        cache_key = self._get_cache_key(session_id)
+        return self._get_and_maybe_clear(session_id)
+
+    def get_session_by_token(self, result_token: str, claimed_session_id: str) -> dict:
+        """Resolve result_token → session_id → session data.
+
+        Verifies that the claimed_session_id matches the token binding,
+        proving the caller initiated this session (ownership check).
+        Clears the session once authenticated (one-time read).
+        """
+        session_id = cache.get(self._token_cache_key(result_token))
+        if not session_id:
+            return {}
+
+        print("$$$ session_id")
+        print(session_id)
+
+        print("$$$ claimed_session_id")
+        print(claimed_session_id)
+
+        if not secrets.compare_digest(session_id, claimed_session_id):
+            raise SessionOwnershipError("Session ID does not match token binding.")
+
+        return self._get_and_maybe_clear(session_id)
+
+    def _get_and_maybe_clear(self, session_id: str) -> dict:
+        """Wip."""
+
+        cache_key = self._session_cache_key(session_id)
         data = cache.get(cache_key)
 
         if not data:
             return {}
 
         if data.get("state") == SessionState.AUTHENTICATED:
+            # One-time read: clear both the session and the token binding
             self.clear_session(session_id)
 
         # Return copy without internal fields
         internal_fields = {"expires_at"}
         return {k: v for k, v in data.items() if k not in internal_fields}
 
-    def clear_session(self, session_id: str) -> None:
-        """Remove session data from cache."""
-
-        cache_key = self._get_cache_key(session_id)
-        cache.delete(cache_key)
+    def clear_session(self, session_id: str, result_token: str | None = None) -> None:
+        """Wip."""
+        cache.delete(self._session_cache_key(session_id))
+        if result_token:
+            cache.delete(self._token_cache_key(result_token))
 
     def set_access_token(self, user: User, session_id: str):
         """Generate and store access token for an authenticated user session."""
 
-        cache_key = self._get_cache_key(session_id)
+        cache_key = self._session_cache_key(session_id)
         existing_data = cache.get(cache_key)
 
         if not existing_data:
@@ -122,3 +170,7 @@ class TokenExchangeService:
         }
 
         cache.set(cache_key, new_data, timeout=remaining_seconds)
+
+    def token_to_session(self, result_token):
+        """wip."""
+        return None

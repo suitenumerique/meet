@@ -14,6 +14,72 @@ function setStatus(msg) {
   document.getElementById("status").textContent = msg;
 }
 
+// ─── Polling ──────────────────────────────────────────────────────────────
+
+function startPolling(session_id, { onSuccess, onTimeout, onError }) {
+  let pollCount = 0;
+  const pollInterval = setInterval(() => {
+    // ─── Timeout after 3 minutes ──────────────────────────────
+    if (pollCount++ > 180) {
+      clearInterval(pollInterval);
+      onTimeout?.();
+      return;
+    }
+    fetch(`${BASE_URL}/api/v1.0/addons/sessions/wip/`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id }),
+    })
+      .then((res) => res.json())
+      .then((sessionData) => {
+        console.log("Polling:", sessionData);
+        if (sessionData.state === "authenticated" && sessionData.access_token) {
+          clearInterval(pollInterval);
+          onSuccess?.(sessionData);
+        }
+      })
+      .catch((err) => {
+        clearInterval(pollInterval);
+        onError?.(err);
+      });
+  }, 1000);
+
+  return pollInterval;
+}
+
+// ─── Transit Dialog ───────────────────────────────────────────────────────
+
+function openTransitDialog(session_id, { onCancel, onError }) {
+  const meetUrl = `${BASE_URL}/addons/transit/?session_id=${session_id}`;
+
+  Office.context.ui.displayDialogAsync(
+    meetUrl,
+    { height: 60, width: 50, displayInIframe: false },
+    (asyncResult) => {
+      if (asyncResult.status === Office.AsyncResultStatus.Failed) {
+        onError?.(asyncResult.error);
+        return;
+      }
+
+      const dialog = asyncResult.value;
+
+      dialog.addEventHandler(Office.EventType.DialogMessageReceived, () => {
+        onCancel?.();
+        dialog.close();
+      });
+
+      dialog.addEventHandler(Office.EventType.DialogEventReceived, (arg) => {
+        if (arg.error === 12006) {
+          setStatus("Dialog fermé. En attente d'authentification...");
+        }
+      });
+
+      return dialog;
+    }
+  );
+}
+
 // ─── Auth Flow ────────────────────────────────────────────────────────────
 
 function connect() {
@@ -28,68 +94,28 @@ function connect() {
       const session_id = data.session_id;
       setStatus("En attente d'authentification...");
 
-      let dialog       = null;
-      let pollInterval = null;
-      let pollCount    = 0;
-
-      pollInterval = setInterval(() => {
-
-        // ─── Timeout after 3 minutes ──────────────────────────────
-        if (pollCount++ > 180) {
-          clearInterval(pollInterval);
-          if (dialog) dialog.close();
+      const pollInterval = startPolling(session_id, {
+        onSuccess: (sessionData) => {
+          saveSession(sessionData);
+          setStatus("Connecté !");
+          showView("auth");
+        },
+        onTimeout: () => {
           setStatus("Délai d'authentification dépassé. Veuillez réessayer.");
           showView("unauth");
-          return;
-        }
+        },
+        onError: (err) => {
+          setStatus(`Erreur de polling: ${err.message}`);
+        },
+      });
 
-        fetch(`${BASE_URL}/api/v1.0/addons/sessions/${session_id}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        })
-          .then((res) => res.json())
-          .then((sessionData) => {
-            console.log("Polling:", sessionData);
-            if (sessionData.state === "authenticated" && sessionData.access_token) {
-              clearInterval(pollInterval);
-              // if (dialog) dialog.close();
-              saveSession(sessionData);
-              setStatus("Connecté !");
-              showView("auth");
-            }
-          })
-          .catch((err) => {
-            clearInterval(pollInterval);
-            setStatus(`Erreur de polling: ${err.message}`);
-          });
-      }, 1000);
-
-      // ─── Open transit dialog ──────────────────────────────────────
-      const meetUrl = `${BASE_URL}/addons/transit/?session_id=${session_id}`;
-      Office.context.ui.displayDialogAsync(
-        meetUrl,
-        { height: 60, width: 50, displayInIframe: false },
-        (asyncResult) => {
-          if (asyncResult.status === Office.AsyncResultStatus.Failed) {
-            clearInterval(pollInterval);
-            setStatus(`Erreur dialog: ${asyncResult.error.message}`);
-            return;
-          }
-
-          dialog = asyncResult.value;
-
-          dialog.addEventHandler(Office.EventType.DialogMessageReceived, () => {
-            clearInterval(pollInterval);
-            dialog.close();
-          });
-
-          dialog.addEventHandler(Office.EventType.DialogEventReceived, (arg) => {
-            if (arg.error === 12006) {
-              setStatus("Dialog fermé. En attente d'authentification...");
-            }
-          });
-        }
-      );
+      openTransitDialog(session_id, {
+        onCancel: () => clearInterval(pollInterval),
+        onError:  (err) => {
+          clearInterval(pollInterval);
+          setStatus(`Erreur dialog: ${err.message}`);
+        },
+      });
     })
     .catch((err) => {
       setStatus(`Erreur de connexion: ${err.message}`);

@@ -1,6 +1,6 @@
 /* global Office */
 
-const BASE_URL = "https://meet.127.0.0.1.nip.io";
+const BASE_URL = "https://meet.127.0.0.1.nip.io"; // todo - use env variable
 
 // ─── Session Storage ──────────────────────────────────────────────────────
 

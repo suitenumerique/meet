@@ -53,7 +53,7 @@ urlpatterns = [
             [
                 *router.urls,
                 *oidc_urls,
-                *addons_urls,
+                *addons_urls,  # should be in external api
                 path("config/", get_frontend_configuration, name="config"),
             ]
         ),

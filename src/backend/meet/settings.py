@@ -808,10 +808,16 @@ class Base(Configuration):
         environ_name="ADDONS_SESSION_ID_LENGTH",
         environ_prefix=None,
     )
-    # Used in cache key generation
+    # Cache key for the session itself (session_id → session data)
     ADDONS_SESSION_KEY_PREFIX = values.Value(
         "addons_session_id",
         environ_name="ADDONS_SESSION_KEY_PREFIX",
+        environ_prefix=None,
+    )
+    # Cache key for the token → session binding (result_token → session_id)
+    ADDONS_SESSION_TOKEN_PREFIX = values.Value(
+        "addons_token_id",
+        environ_name="ADDONS_SESSION_TOKEN_PREFIX",
         environ_prefix=None,
     )
     # Used as the Django session key in transit page
@@ -823,6 +829,27 @@ class Base(Configuration):
     ADDONS_SESSION_TIMEOUT = values.PositiveIntegerValue(
         600, environ_name="ADDONS_SESSION_TIMEOUT", environ_prefix=None
     )
+    ADDONS_RESULT_TOKEN_COOKIE_NAME = values.Value(
+        "wip",
+        environ_name="ADDONS_RESULT_TOKEN_COOKIE_NAME",
+        environ_prefix=None,
+    )
+    ADDONS_RESULT_TOKEN_COOKIE_SECURE = values.BooleanValue(
+        True,
+        environ_name="ADDONS_RESULT_TOKEN_COOKIE_SECURE",
+        environ_prefix=None,
+    )
+    ADDONS_RESULT_TOKEN_COOKIE_HTTP_ONLY = values.BooleanValue(
+        True,
+        environ_name="ADDONS_RESULT_TOKEN_COOKIE_HTTP_ONLY",
+        environ_prefix=None,
+    )
+    ADDONS_RESULT_TOKEN_COOKIE_SAMESITE = values.Value(
+        "strict",
+        environ_name="ADDONS_RESULT_TOKEN_COOKIE_SAMESITE",
+        environ_prefix=None,
+    )
+
     ADDONS_JWT_SECRET_KEY = SecretFileValue(
         None, environ_name="ADDONS_JWT_SECRET_KEY", environ_prefix=None
     )
