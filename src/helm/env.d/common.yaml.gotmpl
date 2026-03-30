@@ -16,23 +16,47 @@
 frontend:
   podSecurityContext: *podSecurityContext
   securityContext: *securityContext
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "128Mi"
 
 backend:
   podSecurityContext: *podSecurityContext
   securityContext: *securityContext
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "600Mi"
 
 summary:
   podSecurityContext: *podSecurityContext
   securityContext: *securityContext
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "128Mi"
 
 celeryTranscribe:
   podSecurityContext: *podSecurityContext
   securityContext: *securityContext
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "500Mi"
 
 celerySummarize:
   podSecurityContext: *podSecurityContext
   securityContext: *securityContext
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
 
 agents:
   podSecurityContext: *podSecurityContext
   securityContext: *securityContext
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"

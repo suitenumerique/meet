@@ -55,4 +55,7 @@ autoscaling:
   maxReplicas: 5
 
 nodeSelector: {}
-resources: {}
+resources:
+  requests:
+    cpu: 5000m
+    memory: 1024Mi
