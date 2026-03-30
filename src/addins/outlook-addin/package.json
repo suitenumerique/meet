@@ -40,6 +40,7 @@
     "eslint-plugin-office-addins": "^4.0.3",
     "file-loader": "^6.2.0",
     "html-loader": "^5.0.0",
+    "html-webpack-inject-attributes-plugin": "^1.0.6",
     "html-webpack-plugin": "^5.6.0",
     "office-addin-cli": "^2.0.3",
     "office-addin-debugging": "^6.0.3",

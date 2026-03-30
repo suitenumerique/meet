@@ -38,6 +38,20 @@ COPY ./docker/dinum-frontend/assets/ \
 COPY ./docker/dinum-frontend/fonts/ \
     ./dist/assets/fonts/
 
+# ---- Outlook add-in builder image ----
+FROM node:20-alpine AS outlook-addin-builder
+
+WORKDIR /home/outlook-addin
+
+COPY ./src/addins/outlook-addin/package.json ./package.json
+COPY ./src/addins/outlook-addin/package-lock.json ./package-lock.json
+
+RUN npm ci
+
+COPY ./src/addins/outlook-addin/ .
+
+RUN npx webpack --mode production
+
 # ---- Front-end image ----
 FROM nginxinc/nginx-unprivileged:alpine3.21 AS frontend-production
 
@@ -58,6 +72,10 @@ USER ${DOCKER_USER}
 COPY --from=meet-builder \
     /home/frontend/dist \
     /usr/share/nginx/html
+
+COPY --from=outlook-addin-builder \
+    /home/outlook-addin/dist \
+    /usr/share/nginx/html/outlook-addin
 
 COPY ./src/frontend/default.conf /etc/nginx/conf.d
 COPY ./docker/files/usr/local/bin/entrypoint /usr/local/bin/entrypoint
