@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { DialogTrigger, MenuItem, Menu as RACMenu } from 'react-aria-components'
+import { DialogTrigger, MenuItem, Menu as RACMenu, Separator as RACSeparator } from 'react-aria-components'
 import { Button, Menu } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
 import { navigateTo } from '@/navigation/navigateTo'
@@ -7,7 +7,7 @@ import { Screen } from '@/layout/Screen'
 import { generateRoomId, useCreateRoom } from '@/features/rooms'
 import { useUser, UserAware } from '@/features/auth'
 import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
-import { RiAddLine, RiLink } from '@remixicon/react'
+import { RiAddLine, RiLink, RiLockLine } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
 import { IntroSlider } from '@/features/home/components/IntroSlider'
 import { MoreLink } from '@/features/home/components/MoreLink'
@@ -236,6 +236,51 @@ export const Home = () => {
                     >
                       <RiLink size={18} />
                       {t('createMenu.laterOption')}
+                    </MenuItem>
+                    <RACSeparator
+                      className={css({
+                        borderTop: '1px solid',
+                        borderColor: 'greyscale.200',
+                        margin: '0.25rem 0',
+                      })}
+                    />
+                    <MenuItem
+                      className={
+                        menuRecipe({ icon: true, variant: 'light' }).item
+                      }
+                      onAction={async () => {
+                        const slug = generateRoomId()
+                        createRoom({
+                          slug,
+                          username,
+                          encryptionEnabled: true,
+                        }).then((data) =>
+                          navigateTo('room', data.slug, {
+                            state: { create: true, initialRoomData: data },
+                          })
+                        )
+                      }}
+                      data-attr="create-option-encrypted-instant"
+                    >
+                      <RiLockLine size={18} />
+                      {t('createMenu.encryptedInstantOption')}
+                    </MenuItem>
+                    <MenuItem
+                      className={
+                        menuRecipe({ icon: true, variant: 'light' }).item
+                      }
+                      onAction={() => {
+                        const slug = generateRoomId()
+                        createRoom({
+                          slug,
+                          username,
+                          encryptionEnabled: true,
+                        }).then((data) => setLaterRoom(data))
+                      }}
+                      data-attr="create-option-encrypted-later"
+                    >
+                      <RiLockLine size={18} />
+                      {t('createMenu.encryptedLaterOption')}
                     </MenuItem>
                   </RACMenu>
                 </Menu>

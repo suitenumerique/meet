@@ -388,6 +388,11 @@ class Room(Resource):
         choices=RoomAccessLevel.choices,
         default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
     )
+    encryption_enabled = models.BooleanField(
+        default=False,
+        verbose_name=_("Encryption enabled"),
+        help_text=_("Whether end-to-end encryption is enabled for this room."),
+    )
     configuration = models.JSONField(
         blank=True,
         default=dict,

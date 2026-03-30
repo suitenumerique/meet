@@ -52,6 +52,11 @@ export interface ApiConfig {
     enable_firefox_proxy_workaround: boolean
     default_sources: string[]
   }
+  encryption?: {
+    enabled: boolean
+    vault_url: string
+    interface_url: string
+  }
   transcription_destination?: string
 }
 

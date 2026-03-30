@@ -2,7 +2,6 @@
   <img alt="meet logo" src="./docs/assets/banner-meet-fr.png" maxWidth="100%">
 </p>
 
-
 <p align="center">
   <a href="https://github.com/suitenumerique/meet/stargazers/">
     <img src="https://img.shields.io/github/stars/suitenumerique/meet" alt="">
@@ -12,11 +11,11 @@
   <img alt="GitHub closed issues" src="https://img.shields.io/github/issues-closed/suitenumerique/meet"/>
   <a href="https://github.com/suitenumerique/meet/blob/main/LICENSE">
     <img alt="GitHub closed issues" src="https://img.shields.io/github/license/suitenumerique/meet"/>
-  </a>    
+  </a>
 </p>
 
 <p align="center">
-  <a href="https://livekit.io/">LiveKit</a> - <a href="https://matrix.to/#/#meet-official:matrix.org">Chat with us</a> - <a href="https://github.com/orgs/suitenumerique/projects/3/views/2">Roadmap</a> - <a href="https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md">Changelog</a> - <a href="https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md">Bug reports</a> 
+  <a href="https://livekit.io/">LiveKit</a> - <a href="https://matrix.to/#/#meet-official:matrix.org">Chat with us</a> - <a href="https://github.com/orgs/suitenumerique/projects/3/views/2">Roadmap</a> - <a href="https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md">Changelog</a> - <a href="https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md">Bug reports</a>
 </p>
 
 <p align="center">
@@ -28,25 +27,62 @@
 ## La Suite Meet: Simple Video Conferencing
 
 Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level performance with high-quality video and audio. No installation required—simply join calls directly from your browser. Check out LiveKit's impressive optimizations in their [blog post](https://blog.livekit.io/livekit-one-dot-zero/).
+
 ### Features
+
 - Optimized for stability in large meetings (+100 p.)
 - Support for multiple screen sharing streams
 - Non-persistent, secure chat
-- End-to-end encryption (coming soon)
+- End-to-end encryption with hybrid key distribution
 - Meeting recording
 - Meeting transcription & Summary (currently in beta)
 - Telephony integration
 - Secure participation with robust authentication and access control
 - Customizable frontend style
 - LiveKit Advances features including :
-  - speaker detection 
-  - simulcast 
-  - end-to-end optimizations 
+  - speaker detection
+  - simulcast
+  - end-to-end optimizations
   - selective subscription
   - SVC codecs (VP9, AV1)
 
+### End-to-end encryption
 
-La Suite Meet is fully self-hostable and released under the MIT License, ensuring complete control and flexibility. It's simple to [get started](https://visio.numerique.gouv.fr/) or [request a demo](mailto:visio@numerique.gouv.fr). 
+La Suite Meet supports end-to-end encryption (E2EE) for meetings, ensuring that the media server (LiveKit SFU) cannot access audio/video content.
+
+**Architecture:**
+
+- Uses LiveKit's built-in Insertable Streams API for frame-level encryption
+- Symmetric key (XChaCha20-Poly1305) encrypts all media frames
+- Key exchange uses ephemeral X25519 Diffie-Hellman over LiveKit data channel (libsodium)
+- The room admin is the key authority — generates and distributes the symmetric key
+
+**Trust levels:**
+| Badge | Level | Description |
+|-------|-------|-------------|
+| 🟢 Green shield | Verified | User completed encryption onboarding (public key registered in the encryption library). Identity cryptographically verified. |
+| 🔵 Blue shield | Authenticated | User signed in via ProConnect/OIDC. Identity server-verified. Ephemeral key exchange. |
+| 🟡 Orange warning | Anonymous | User not signed in. Self-declared name. Admin should verify identity before accepting. |
+
+**Security guarantees:**
+
+- Encrypted rooms enforce restricted access (lobby approval required)
+- Trust information (`is_authenticated`, `email`) comes from server-signed JWT tokens — cannot be spoofed
+- Only admin participants can respond to key exchange requests
+- Recording and transcription are not available in encrypted rooms (server cannot decrypt media)
+
+**Configuration:**
+
+```env
+ENCRYPTION_ENABLED=true
+ENCRYPTION_VAULT_URL=https://data.encryption.example.fr
+ENCRYPTION_INTERFACE_URL=https://encryption.example.fr
+```
+
+**Integration with the encryption library:**
+When the [encryption library](https://github.com/suitenumerique/encryption) is deployed, users who complete encryption onboarding get the "verified" green shield badge. The admin can verify participants' public key fingerprints via the participants list.
+
+La Suite Meet is fully self-hostable and released under the MIT License, ensuring complete control and flexibility. It's simple to [get started](https://visio.numerique.gouv.fr/) or [request a demo](mailto:visio@numerique.gouv.fr).
 
 We’re continuously adding new features to enhance your experience, with the latest updates coming soon!
 
@@ -62,7 +98,6 @@ On the 25th of January 2026, David Amiel, France’s Minister for Civil Service 
 - [Contributing](#contributing)
 - [Philosophy](#philosophy)
 - [Open source](#open-source)
-
 
 ## Get started
 
@@ -82,15 +117,15 @@ We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/
 > Some advanced features (ex: recording, transcription) lack detailed documentation. We're working hard to provide comprehensive guides soon.
 
 #### Known instances
+
 We hope to see many more, here is an incomplete list of public La Suite Meet instances. Feel free to make a PR to add ones that are not listed below🙏
 
-| Url                                                           | Org | Access |
-|---------------------------------------------------------------| --- | ------- |
-| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/)   | DINUM    | French public agents working for the central administration and the extended public sphere. ProConnect is required to login in or sign up|
-| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT    | French public agents working for the territorial administration and the extended public sphere. ProConnect is required to login in or sign up|
-| [visio.lasuite.coop](https://visio.lasuite.coop/)             | lasuite.coop    | Free and open demo to all. Content and accounts are reset after one month |
-| [mosacloud.cloud](https://mosa.cloud/)                        | mosa.cloud    | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps. |
-
+| Url                                                           | Org          | Access                                                                                                                                        |
+| ------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/)   | DINUM        | French public agents working for the central administration and the extended public sphere. ProConnect is required to login in or sign up     |
+| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT         | French public agents working for the territorial administration and the extended public sphere. ProConnect is required to login in or sign up |
+| [visio.lasuite.coop](https://visio.lasuite.coop/)             | lasuite.coop | Free and open demo to all. Content and accounts are reset after one month                                                                     |
+| [mosacloud.cloud](https://mosa.cloud/)                        | mosa.cloud   | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps.                                                         |
 
 ## Contributing
 
@@ -100,7 +135,6 @@ We <3 contributions of any kind, big and small:
 - Open a PR (see our instructions on [developing La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md))
 - Submit a [feature request](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=enhancement&template=Feature_request.md) or [bug report](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md)
 
-
 ## Philosophy
 
 We’re relentlessly focused on building the best open-source video conferencing product—La Suite Meet. Growth comes from creating something people truly need, not just from chasing metrics.
@@ -108,7 +142,6 @@ We’re relentlessly focused on building the best open-source video conferencing
 Our users come first. We’re committed to making La Suite Meet as accessible and easy to use as proprietary solutions, ensuring it meets the highest standards.
 
 Most of the heavy engineering is handled by the incredible LiveKit team, allowing us to focus on delivering a top-tier product. We follow extreme programming practices, favoring pair programming and quick, iterative releases. Challenge our tech and architecture—simplicity is always our top priority.
-
 
 ## Open-source
 
@@ -121,14 +154,13 @@ To learn more, don't hesitate to [reach out](mailto:visio@numerique.gouv.fr).
 
 Come help us make La Suite Meet even better. We're growing fast and [would love some help](mailto:visio@numerique.gouv.fr).
 
-
 ## Contributors 🧞
 
 <a href="https://github.com/suitenumerique/meet/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=suitenumerique/meet" />
 </a>
 
-## Credits 
+## Credits
 
 We're using the awesome [LiveKit](https://livekit.io/) implementation. We're also thankful to the teams behind [Django Rest Framework](https://www.django-rest-framework.org/), [Vite.js](https://vite.dev/), and [React Aria](https://github.com/adobe/react-spectrum) — Thanks for your amazing work!
 This project is tested with BrowserStack.
@@ -137,4 +169,3 @@ This project is tested with BrowserStack.
 
 Code in this repository is published under the MIT license by DINUM (Direction interministériel du numérique).
 Documentation (in the docs/) directory is released under the [Etalab-2.0 license](https://spdx.org/licenses/etalab-2.0.html).
-

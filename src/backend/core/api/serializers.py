@@ -128,8 +128,26 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
+        fields = ["id", "name", "slug", "configuration", "access_level", "pin_code", "encryption_enabled"]
         read_only_fields = ["id", "slug", "pin_code"]
+
+    def validate_access_level(self, value):
+        """Encrypted rooms must stay restricted — prevent downgrading access level."""
+        instance = self.instance
+        if instance and instance.encryption_enabled and value != models.RoomAccessLevel.RESTRICTED:
+            raise serializers.ValidationError(
+                "Encrypted rooms require restricted access level to enforce lobby approval."
+            )
+        return value
+
+    def validate_encryption_enabled(self, value):
+        """Once encryption is enabled on a room, it cannot be disabled."""
+        instance = self.instance
+        if instance and instance.encryption_enabled and not value:
+            raise serializers.ValidationError(
+                "Encryption cannot be disabled once enabled on a room."
+            )
+        return value
 
     def to_representation(self, instance):
         """
@@ -172,6 +190,12 @@ class RoomSerializer(serializers.ModelSerializer):
         if should_access_room:
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
+
+            # In encrypted rooms, authenticated users must use their real name from
+            # the OIDC profile (ProConnect) — they cannot choose an arbitrary name.
+            if instance.encryption_enabled and request.user.is_authenticated:
+                username = request.user.full_name or request.user.email
+
             output["livekit"] = utils.generate_livekit_config(
                 room_id=room_id,
                 user=request.user,

@@ -112,6 +112,22 @@ def generate_token(
     if color is None:
         color = generate_color(identity)
 
+    # Build participant attributes — these are server-signed in the JWT
+    # and visible to all participants in the room.
+    attributes = {
+        "color": color,
+        "room_admin": "true" if is_admin_or_owner else "false",
+        "is_authenticated": "true" if not user.is_anonymous else "false",
+    }
+
+    # Add identity info for authenticated users (visible to other participants
+    # for identity verification in encrypted rooms)
+    if not user.is_anonymous:
+        if user.email:
+            attributes["email"] = user.email
+        if user.sub:
+            attributes["suite_user_id"] = str(user.sub)
+
     token = (
         AccessToken(
             api_key=settings.LIVEKIT_CONFIGURATION["api_key"],
@@ -120,9 +136,7 @@ def generate_token(
         .with_grants(video_grants)
         .with_identity(identity)
         .with_name(username or default_username)
-        .with_attributes(
-            {"color": color, "room_admin": "true" if is_admin_or_owner else "false"}
-        )
+        .with_attributes(attributes)
     )
 
     return token.to_jwt()

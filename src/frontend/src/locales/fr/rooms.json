@@ -54,6 +54,7 @@
     "toggleOn": "Cliquez pour activer",
     "usernameHint": "Affiché aux autres participants",
     "usernameLabel": "Votre nom",
+    "encryptedNameLocked": "Réunion chiffrée — nom issu de votre compte.",
     "errors": {
       "usernameEmpty": "Votre nom ne peut pas être vide"
     },
@@ -480,6 +481,7 @@
     "access": {
       "title": "Accès à la réunion",
       "description": "Ces paramètres s'appliqueront également aux futures occurrences de cette réunion.",
+      "encryptionWarning": "Cette réunion est chiffrée. L'accès doit rester restreint afin que chaque participant soit approuvé avant de recevoir la clé de chiffrement.",
       "type": "Type d'accès à la réunion",
       "levels": {
         "public": {
@@ -570,6 +572,10 @@
         "button": "Refuser",
         "label": "Refuser {{name}} dans la réunion",
         "all": "Tout rejeter"
+      },
+      "trust": {
+        "authenticated": "Identité authentifiée (ProConnect). La clé de chiffrement sera échangée de manière sécurisée.",
+        "anonymous": "Utilisateur anonyme — identité non vérifiée. Vérifiez son identité avant d'accepter."
       }
     },
     "moreOptions": "Plus d'options"
@@ -670,5 +676,59 @@
   },
   "participantTile": {
     "screenShare": "Écran de {{name}}"
+  },
+  "encryption": {
+    "banner": "Chiffré",
+    "bannerStrong": "Chiffrement vérifié",
+    "bannerModal": {
+      "title": "Réunion chiffrée de bout en bout",
+      "description": "Cette réunion utilise le chiffrement de bout en bout. L'audio et la vidéo sont chiffrés sur votre appareil avant d'être envoyés. Le serveur ne voit que des données chiffrées qu'il ne peut pas lire.",
+      "guarantees": "Ce que cela protège :",
+      "guarantee1": "Le serveur ne peut pas accéder au contenu audio, vidéo ou de partage d'écran",
+      "guarantee2": "Seuls les participants approuvés disposant de la clé de chiffrement peuvent voir le contenu",
+      "guarantee3": "Le niveau de confiance de chaque participant est visible (vérifié, authentifié ou anonyme)",
+      "limitations": "Limitations :",
+      "limitation1": "L'enregistrement et la transcription ne sont pas disponibles (le serveur ne peut pas déchiffrer le contenu)",
+      "limitation2": "La sécurité maximale nécessite que tous les participants effectuent l'onboarding chiffrement et vérifient les empreintes",
+      "note": "Pour le plus haut niveau de confiance, demandez aux participants de configurer le chiffrement dans les paramètres de leur compte. Cela enregistre leur clé publique et permet la vérification des empreintes."
+    },
+    "settingUp": {
+      "title": "Sécurisation de votre connexion",
+      "description": "Échange des clés de chiffrement avec l'administrateur de la réunion..."
+    },
+    "error": {
+      "title": "Erreur de chiffrement",
+      "hint": "Les données chiffrées n'ont pas pu être décodées. Essayez de quitter et de rejoindre la réunion, ou demandez à l'hôte de relancer l'appel."
+    },
+    "fingerprint": {
+      "title": "Identité chiffrée",
+      "loading": "Vérification des clés de chiffrement...",
+      "noKey": "Ce participant n'a pas configuré de clés de chiffrement. Son identité est vérifiée par le serveur d'authentification uniquement, pas par une clé publique.",
+      "error": "Impossible de vérifier les clés de chiffrement.",
+      "fingerprintLabel": "Empreinte de la clé publique",
+      "trusted": "Empreinte vérifiée et approuvée",
+      "refused": "Empreinte refusée",
+      "unknownDescription": "Cette empreinte n'a pas encore été vérifiée. Comparez-la avec le participant pour confirmer son identité.",
+      "accept": "Approuver",
+      "refuse": "Refuser"
+    },
+    "trustModal": {
+      "title": "Niveau de confiance du chiffrement",
+      "intro": "Ceci indique comment « {{name}} » a été identifié avant de rejoindre la réunion chiffrée.",
+      "authenticated": {
+        "title": "Identité authentifiée",
+        "description": "Cette personne s'est connectée via ProConnect. Son identité est vérifiée par le serveur d'authentification. La clé de chiffrement sera échangée de manière sécurisée."
+      },
+      "anonymous": {
+        "title": "Utilisateur anonyme",
+        "description": "Cette personne n'est pas connectée. Son nom affiché est déclaratif et pourrait être usurpé. Vérifiez son identité de vive voix avant de l'accepter. La clé de chiffrement sera échangée via un échange éphémère."
+      },
+      "levels": {
+        "title": "Niveaux de confiance en réunion chiffrée",
+        "verified": "Vérifié — onboarding chiffrement effectué, identité confirmée par clé publique.",
+        "authenticated": "Authentifié — connecté via ProConnect, identité vérifiée par le serveur.",
+        "anonymous": "Anonyme — non connecté, nom auto-déclaré. Vérifiez avant d'accepter."
+      }
+    }
   }
 }

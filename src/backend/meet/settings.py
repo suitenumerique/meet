@@ -808,6 +808,17 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # End-to-end encryption settings
+    ENCRYPTION_ENABLED = values.BooleanValue(
+        False, environ_name="ENCRYPTION_ENABLED", environ_prefix=None
+    )
+    ENCRYPTION_VAULT_URL = values.Value(
+        None, environ_name="ENCRYPTION_VAULT_URL", environ_prefix=None
+    )
+    ENCRYPTION_INTERFACE_URL = values.Value(
+        None, environ_name="ENCRYPTION_INTERFACE_URL", environ_prefix=None
+    )
+
     # External Applications
     APPLICATION_CLIENT_ID_LENGTH = values.PositiveIntegerValue(
         40,

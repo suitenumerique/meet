@@ -17,6 +17,7 @@ export type ApiRoom = {
   pin_code: string
   is_administrable: boolean
   access_level: ApiAccessLevel
+  encryption_enabled: boolean
   livekit?: ApiLiveKit
   configuration?: {
     [key: string]: string | number | boolean | string[]

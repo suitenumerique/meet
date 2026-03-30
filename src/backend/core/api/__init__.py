@@ -73,5 +73,11 @@ def get_frontend_configuration(request):
             "default_sources": settings.LIVEKIT_DEFAULT_SOURCES,
         },
     }
+    if settings.ENCRYPTION_ENABLED and settings.ENCRYPTION_VAULT_URL:
+        frontend_configuration["encryption"] = {
+            "enabled": True,
+            "vault_url": settings.ENCRYPTION_VAULT_URL,
+            "interface_url": settings.ENCRYPTION_INTERFACE_URL,
+        }
     frontend_configuration.update(settings.FRONTEND_CONFIGURATION)
     return Response(frontend_configuration)

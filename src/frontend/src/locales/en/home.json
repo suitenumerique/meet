@@ -15,7 +15,9 @@
   "moreAbout": "about {{appTitle}}",
   "createMenu": {
     "laterOption": "Create a meeting for a later date",
-    "instantOption": "Start an instant meeting"
+    "instantOption": "Start an instant meeting",
+    "encryptedInstantOption": "Start an encrypted meeting",
+    "encryptedLaterOption": "Create an encrypted meeting for later"
   },
   "laterMeetingDialog": {
     "heading": "Your connection details",

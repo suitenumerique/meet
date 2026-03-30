@@ -46,15 +46,21 @@ class LobbyParticipant:
     username: str
     color: str
     id: str
+    is_authenticated: bool = False
+    email: Optional[str] = None
 
     def to_dict(self) -> Dict[str, str]:
         """Serialize the participant object to a dict representation."""
-        return {
+        result = {
             "status": self.status.value,
             "username": self.username,
             "id": self.id,
             "color": self.color,
+            "is_authenticated": self.is_authenticated,
         }
+        if self.email:
+            result["email"] = self.email
+        return result
 
     @classmethod
     def from_dict(cls, data: dict) -> "LobbyParticipant":
@@ -68,6 +74,8 @@ class LobbyParticipant:
                 username=data["username"],
                 id=data["id"],
                 color=data["color"],
+                is_authenticated=data.get("is_authenticated", False),
+                email=data.get("email"),
             )
         except (KeyError, ValueError) as e:
             logger.exception("Error creating Participant from dict:")
@@ -170,7 +178,11 @@ class LobbyService:
         livekit_config = None
 
         if participant is None:
-            participant = self.enter(room.id, participant_id, username)
+            participant = self.enter(
+                room.id, participant_id, username,
+                is_authenticated=request.user.is_authenticated,
+                email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
+            )
 
         elif participant.status == LobbyParticipantStatus.WAITING:
             self.refresh_waiting_status(room.id, participant_id)
@@ -201,7 +213,9 @@ class LobbyService:
         )
 
     def enter(
-        self, room_id: UUID, participant_id: str, username: str
+        self, room_id: UUID, participant_id: str, username: str,
+        is_authenticated: bool = False,
+        email: Optional[str] = None,
     ) -> LobbyParticipant:
         """Add participant to waiting lobby.
 
@@ -216,6 +230,8 @@ class LobbyService:
             username=username,
             id=participant_id,
             color=color,
+            is_authenticated=is_authenticated,
+            email=email,
         )
 
         try:

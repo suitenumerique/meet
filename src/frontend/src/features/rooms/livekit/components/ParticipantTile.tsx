@@ -1,7 +1,6 @@
 import {
   AudioTrack,
   ConnectionQualityIndicator,
-  LockLockedIcon,
   ParticipantTileProps,
   ScreenShareIcon,
   useEnsureTrackRef,
@@ -23,6 +22,8 @@ import {
 import { Track } from 'livekit-client'
 import { RiHand } from '@remixicon/react'
 import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
+import { EncryptionBadge, getTrustLevelFromAttributes } from '@/features/encryption'
+import { useRoomData } from '../hooks/useRoomData'
 import { HStack } from '@/styled-system/jsx'
 import { MutedMicIndicator } from './MutedMicIndicator'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
@@ -79,6 +80,8 @@ export const ParticipantTile: (
     trackRef: trackReference,
   })
   const isEncrypted = useIsEncrypted(trackReference.participant)
+  const roomData = useRoomData()
+  const isEncryptedRoom = roomData?.encryption_enabled ?? false
   const layoutContext = useMaybeLayoutContext()
 
   const autoManageSubscription = useFeatureContext()?.autoSubscription
@@ -215,8 +218,13 @@ export const ParticipantTile: (
                           }}
                         />
                       )}
-                      {isEncrypted && !isScreenShare && (
-                        <LockLockedIcon style={{ marginRight: '0.25rem' }} />
+                      {(isEncrypted || isEncryptedRoom) && !isScreenShare && (
+                        <EncryptionBadge
+                          isEncrypted={true}
+                          trustLevel={getTrustLevelFromAttributes(
+                            trackReference.participant.attributes as Record<string, string> | undefined
+                          )}
+                        />
                       )}
                       <div className="lk-participant-name-wrapper">
                         <ParticipantName

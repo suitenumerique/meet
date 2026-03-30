@@ -15,7 +15,9 @@
   "moreAbout": "sur {{appTitle}}",
   "createMenu": {
     "laterOption": "Créer une réunion pour une date ultérieure",
-    "instantOption": "Démarrer une réunion instantanée"
+    "instantOption": "Démarrer une réunion instantanée",
+    "encryptedInstantOption": "Démarrer une réunion chiffrée",
+    "encryptedLaterOption": "Créer une réunion chiffrée pour plus tard"
   },
   "laterMeetingDialog": {
     "heading": "Vos informations de connexion",

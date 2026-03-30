@@ -54,6 +54,7 @@
     "toggleOn": "Click to turn on",
     "usernameHint": "Shown to other participants",
     "usernameLabel": "Your name",
+    "encryptedNameLocked": "Encrypted meeting — name from your account.",
     "errors": {
       "usernameEmpty": "Your name cannot be empty"
     },
@@ -480,6 +481,7 @@
     "access": {
       "title": "Room access",
       "description": "These settings will also apply to future occurrences of this meeting.",
+      "encryptionWarning": "This meeting is encrypted. Access must remain restricted so that each participant is approved before receiving the encryption key.",
       "type": "Meeting access types",
       "levels": {
         "public": {
@@ -570,6 +572,10 @@
         "button": "Deny",
         "label": "Deny {{name}} from the meeting",
         "all": "Deny all"
+      },
+      "trust": {
+        "authenticated": "Authenticated identity (ProConnect). Encryption key will be exchanged securely.",
+        "anonymous": "Anonymous user — identity not verified. Verify their identity before accepting."
       }
     },
     "moreOptions": "More options"
@@ -670,5 +676,59 @@
   },
   "participantTile": {
     "screenShare": "{{name}}'s screen"
+  },
+  "encryption": {
+    "banner": "Encrypted",
+    "bannerStrong": "Verified encryption",
+    "bannerModal": {
+      "title": "End-to-end encrypted meeting",
+      "description": "This meeting uses end-to-end encryption. Audio and video are encrypted on your device before being sent. The server only sees encrypted data it cannot read.",
+      "guarantees": "What this protects:",
+      "guarantee1": "The server cannot access audio, video, or screen sharing content",
+      "guarantee2": "Only approved participants with the encryption key can view the content",
+      "guarantee3": "Each participant's trust level is visible (verified, authenticated, or anonymous)",
+      "limitations": "Limitations:",
+      "limitation1": "Recording and transcription are not available (the server cannot decrypt content)",
+      "limitation2": "Maximum security requires all participants to complete encryption onboarding and verify fingerprints",
+      "note": "For the highest level of trust, ask participants to set up encryption in their account settings. This registers their public key and enables fingerprint verification."
+    },
+    "settingUp": {
+      "title": "Securing your connection",
+      "description": "Exchanging encryption keys with the room administrator..."
+    },
+    "error": {
+      "title": "Encryption error",
+      "hint": "The encrypted data could not be decoded. Try leaving and rejoining the meeting, or ask the host to restart the call."
+    },
+    "fingerprint": {
+      "title": "Encryption identity",
+      "loading": "Checking encryption keys...",
+      "noKey": "This participant has not set up encryption keys. Their identity is verified by the authentication server only, not by a public key.",
+      "error": "Unable to check encryption keys.",
+      "fingerprintLabel": "Public key fingerprint",
+      "trusted": "Fingerprint verified and trusted",
+      "refused": "Fingerprint refused",
+      "unknownDescription": "This fingerprint has not been verified yet. Compare it with the participant to ensure their identity.",
+      "accept": "Trust",
+      "refuse": "Refuse"
+    },
+    "trustModal": {
+      "title": "Encryption trust level",
+      "intro": "This indicates how \"{{name}}\" was identified before joining the encrypted meeting.",
+      "authenticated": {
+        "title": "Authenticated identity",
+        "description": "This person signed in via ProConnect. Their identity is verified by the authentication server. The encryption key will be exchanged securely via ephemeral key exchange."
+      },
+      "anonymous": {
+        "title": "Anonymous user",
+        "description": "This person is not signed in. Their displayed name is self-declared and could be impersonated. Verify their identity verbally before accepting them. The encryption key will be exchanged via ephemeral key exchange."
+      },
+      "levels": {
+        "title": "Trust levels in encrypted meetings",
+        "verified": "Verified — completed encryption onboarding, identity confirmed by public key.",
+        "authenticated": "Authenticated — signed in via ProConnect, identity verified by server.",
+        "anonymous": "Anonymous — not signed in, name is self-declared. Verify before accepting."
+      }
+    }
   }
 }

@@ -34,6 +34,8 @@ import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { useUser } from '@/features/auth'
+import { RiInformationLine, RiLockLine } from '@remixicon/react'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
@@ -102,6 +104,20 @@ export const Join = ({
   roomId: string
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { isLoggedIn, user } = useUser()
+
+  // Early fetch to check if the room is encrypted (needed before form submission)
+  const { data: roomInfo } = useQuery({
+    queryKey: [keys.room, roomId, 'info'],
+    queryFn: () => fetchRoom({ roomId }),
+    staleTime: 6 * 60 * 60 * 1000,
+    retry: false,
+  })
+  const isEncryptedRoom = roomInfo?.encryption_enabled ?? false
+
+  // In encrypted rooms, authenticated users must use their OIDC name
+  const isNameLocked = isEncryptedRoom && !!isLoggedIn
+  const lockedName = user?.full_name || user?.email || ''
 
   const {
     userChoices: {
@@ -438,20 +454,81 @@ export const Join = ({
               <H lvl={1} margin="sm" centered>
                 {t('heading')}
               </H>
-              <Field
-                type="text"
-                onChange={saveUsername}
-                label={t('usernameLabel')}
-                id="input-name"
-                defaultValue={username}
-                validate={(value) => !value && t('errors.usernameEmpty')}
-                wrapperProps={{
-                  noMargin: true,
-                  fullWidth: true,
-                }}
-                autoComplete="name"
-                maxLength={50}
-              />
+              {isNameLocked ? (
+                <div
+                  className={css({
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.25rem',
+                    width: '100%',
+                  })}
+                >
+                  <Text
+                    variant="sm"
+                    className={css({
+                      color: 'greyscale.500',
+                      fontSize: '0.8rem',
+                    })}
+                  >
+                    {t('usernameLabel')}
+                  </Text>
+                  <div
+                    className={css({
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: 'greyscale.100',
+                      borderRadius: '0.375rem',
+                      border: '1px solid',
+                      borderColor: 'greyscale.200',
+                    })}
+                  >
+                    <RiLockLine size={14} color="#6b7280" />
+                    <Text
+                      variant="sm"
+                      className={css({
+                        fontWeight: 500,
+                      })}
+                    >
+                      {lockedName}
+                    </Text>
+                  </div>
+                  <div
+                    className={css({
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                    })}
+                  >
+                    <RiInformationLine size={12} color="#9ca3af" />
+                    <Text
+                      variant="note"
+                      className={css({
+                        fontSize: '0.7rem',
+                        color: 'greyscale.400',
+                      })}
+                    >
+                      {t('encryptedNameLocked')}
+                    </Text>
+                  </div>
+                </div>
+              ) : (
+                <Field
+                  type="text"
+                  onChange={saveUsername}
+                  label={t('usernameLabel')}
+                  id="input-name"
+                  defaultValue={username}
+                  validate={(value) => !value && t('errors.usernameEmpty')}
+                  wrapperProps={{
+                    noMargin: true,
+                    fullWidth: true,
+                  }}
+                  autoComplete="name"
+                  maxLength={50}
+                />
+              )}
             </VStack>
           </Form>
         )

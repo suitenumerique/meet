@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -12,6 +12,7 @@ import {
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
+import { useEncryption, EncryptionSetupOverlay } from '@/features/encryption'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -86,12 +87,26 @@ export const Conference = ({
     retry: false,
   })
 
+  const encryptionEnabled = data?.encryption_enabled ?? false
+
+  // Encryption: encryptionOptions (keyProvider + worker) are created synchronously via refs
+  // inside the hook. The room is passed via state so the hook re-runs when it's created.
+  const [roomInstance, setRoomInstance] = useState<Room | undefined>(undefined)
+  const { encryptionOptions, isSettingUp: isEncryptionSettingUp, error: encryptionError } = useEncryption(roomInstance, encryptionEnabled)
+
+  // Stabilize encryptionOptions reference — only recalculate roomOptions when
+  // encryptionEnabled changes, not when encryptionOptions object reference changes.
+  const encryptionOptionsRef = useRef(encryptionOptions)
+  encryptionOptionsRef.current = encryptionOptions
+
   const roomOptions = useMemo((): RoomOptions => {
     return {
       adaptiveStream: true,
       dynacast: true,
       publishDefaults: {
-        videoCodec: 'vp9',
+        // Encryption requires VP8 codec — VP9 and RED are not compatible with insertable streams
+        videoCodec: encryptionEnabled ? 'vp8' : 'vp9',
+        red: !encryptionEnabled,
       },
       videoCaptureDefaults: {
         deviceId: userConfig.videoDeviceId ?? undefined,
@@ -105,9 +120,11 @@ export const Conference = ({
       audioOutput: {
         deviceId: userConfig.audioOutputDeviceId ?? undefined,
       },
+      e2ee: encryptionOptionsRef.current,
     }
     // do not rely on the userConfig object directly as its reference may change on every render
   }, [
+    encryptionEnabled,
     userConfig.videoDeviceId,
     userConfig.videoPublishResolution,
     userConfig.audioDeviceId,
@@ -115,6 +132,11 @@ export const Conference = ({
   ])
 
   const room = useMemo(() => new Room(roomOptions), [roomOptions])
+
+  // Pass the room to the encryption hook via state (triggers re-render so the hook sees it)
+  useEffect(() => {
+    setRoomInstance(room)
+  }, [room])
 
   useEffect(() => {
     /**
@@ -250,6 +272,12 @@ export const Conference = ({
             }
           }}
         >
+          {encryptionEnabled && (
+            <EncryptionSetupOverlay
+              isSettingUp={isEncryptionSettingUp}
+              error={encryptionError}
+            />
+          )}
           <VideoConference />
           {showInviteDialog && !isMobile && (
             <InviteDialog

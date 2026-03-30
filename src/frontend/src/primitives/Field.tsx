@@ -58,7 +58,7 @@ const StyledLabel = styled(Label, {
 
 type OmittedRACProps = 'type' | 'label' | 'items' | 'description' | 'validate'
 type Items<T = ReactNode> = {
-  items: Array<{ value: string; description?: string; label: T }>
+  items: Array<{ value: string; description?: string; label: T; isDisabled?: boolean }>
 }
 type PartialTextFieldProps = Omit<TextFieldProps, OmittedRACProps>
 type PartialCheckboxProps = Omit<CheckboxProps, OmittedRACProps>
@@ -216,6 +216,7 @@ export const Field = <T extends object>({
               <Radio
                 value={item.value}
                 alignment={item.description ? 'top' : undefined}
+                isDisabled={item.isDisabled}
               >
                 <div
                   className={css({

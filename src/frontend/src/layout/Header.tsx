@@ -11,8 +11,10 @@ import { Menu } from '@/primitives/Menu'
 import { MenuList } from '@/primitives/MenuList'
 import { LoginButton } from '@/components/LoginButton'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
-
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { useVaultClient } from '@/features/encryption'
+import { useConfig } from '@/api/useConfig'
+import { useRef } from 'react'
 
 const Logo = () => (
   <img
@@ -91,6 +93,10 @@ export const Header = () => {
   const isTermsOfService = useMatchesRoute('termsOfService')
   const isRoom = useMatchesRoute('room')
   const { user, isLoggedIn, logout } = useUser()
+  const { data: config } = useConfig()
+  const { client: vaultClient, hasKeys } = useVaultClient()
+  const encryptionContainerRef = useRef<HTMLDivElement | null>(null)
+  const isEncryptionAvailable = !!config?.encryption?.enabled && !!vaultClient
   const userLabel = user?.full_name || user?.email
   const loggedInTooltip = t('loggedInUserTooltip')
   const loggedInAriaLabel = userLabel
@@ -180,10 +186,47 @@ export const Header = () => {
                   </Button>
                   <MenuList
                     variant={'light'}
-                    items={[{ value: 'logout', label: t('logout') }]}
+                    items={[
+                      ...(isEncryptionAvailable
+                        ? [
+                            {
+                              value: 'encryption',
+                              label: hasKeys
+                                ? t('encryptionSettings')
+                                : t('encryptionSetup'),
+                            },
+                          ]
+                        : []),
+                      { value: 'logout', label: t('logout') },
+                    ]}
                     onAction={(value) => {
                       if (value === 'logout') {
                         logout()
+                      }
+                      if (value === 'encryption' && vaultClient) {
+                        // Create a container for the VaultClient interface
+                        const container = document.createElement('div')
+                        container.style.position = 'fixed'
+                        container.style.inset = '0'
+                        container.style.zIndex = '9999'
+                        document.body.appendChild(container)
+                        encryptionContainerRef.current = container
+
+                        if (hasKeys) {
+                          vaultClient.openSettings(container)
+                        } else {
+                          vaultClient.openOnboarding(container)
+                        }
+
+                        // Listen for close
+                        vaultClient.on('interface:closed', () => {
+                          if (encryptionContainerRef.current) {
+                            document.body.removeChild(
+                              encryptionContainerRef.current
+                            )
+                            encryptionContainerRef.current = null
+                          }
+                        })
                       }
                     }}
                   />

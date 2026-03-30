@@ -3,7 +3,7 @@ import { HStack, VStack } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
 import { Button, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
-import { RiInfinityLine } from '@remixicon/react'
+import { RiInfinityLine, RiShieldCheckLine, RiAlertLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useRef, useState } from 'react'
 import { usePrevious } from '@/hooks/usePrevious'
@@ -100,13 +100,18 @@ export const WaitingParticipantNotification = () => {
             >
               {t('one')}
             </Text>
-            <HStack gap="1rem">
+            <HStack gap="0.5rem">
               <Avatar
                 name={waitingParticipants[0].username}
                 bgColor={waitingParticipants[0].color}
                 context="list"
                 notification
               />
+              {waitingParticipants[0].is_authenticated ? (
+                <RiShieldCheckLine size={16} color="#3b82f6" />
+              ) : (
+                <RiAlertLine size={16} color="#f59e0b" />
+              )}
               <Text
                 variant="sm"
                 margin={false}

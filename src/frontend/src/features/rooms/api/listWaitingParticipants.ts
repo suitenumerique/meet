@@ -8,6 +8,8 @@ export type WaitingParticipant = {
   status: string
   username: string
   color: string
+  is_authenticated: boolean
+  email?: string
 }
 
 export type WaitingParticipantsResponse = {

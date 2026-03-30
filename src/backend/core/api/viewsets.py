@@ -281,6 +281,11 @@ class RoomViewSet(
 
     def perform_create(self, serializer):
         """Set the current user as owner of the newly created room."""
+        # Encrypted rooms must use restricted access to enforce lobby approval
+        # before the encryption key is shared with participants.
+        if serializer.validated_data.get("encryption_enabled"):
+            serializer.validated_data["access_level"] = models.RoomAccessLevel.RESTRICTED
+
         room = serializer.save()
         models.ResourceAccess.objects.create(
             resource=room,
@@ -396,12 +401,21 @@ class RoomViewSet(
         serializer.is_valid(raise_exception=True)
 
         room = self.get_object()
+        validated_data = serializer.validated_data
+
+        # In encrypted rooms, authenticated users must use their real name
+        # from the OIDC profile — they cannot choose an arbitrary name.
+        if room.encryption_enabled and request.user.is_authenticated:
+            validated_data["username"] = (
+                request.user.full_name or request.user.email
+            )
+
         lobby_service = LobbyService()
 
         participant, livekit = lobby_service.request_entry(
             room=room,
             request=request,
-            **serializer.validated_data,
+            **validated_data,
         )
         response = drf_response.Response({**participant.to_dict(), "livekit": livekit})
         lobby_service.prepare_response(response, participant.id)
@@ -464,6 +478,13 @@ class RoomViewSet(
         lobby_service = LobbyService()
 
         participants = lobby_service.list_waiting_participants(room.id)
+
+        # Only expose email in encrypted rooms (needed for admin identity verification).
+        # Strip it otherwise to avoid leaking personal data.
+        if not room.encryption_enabled:
+            for p in participants:
+                p.pop("email", None)
+
         return drf_response.Response({"participants": participants})
 
     @decorators.action(

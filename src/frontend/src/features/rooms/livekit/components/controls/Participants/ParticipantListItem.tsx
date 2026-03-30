@@ -21,6 +21,9 @@ import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { ParticipantMenuButton } from '../../ParticipantMenu/ParticipantMenuButton'
 import { PinBadge } from './PinBadge'
+import { EncryptionBadge, getTrustLevelFromAttributes, FingerprintDialog } from '@/features/encryption'
+import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 
 type MicIndicatorProps = {
   participant: Participant
@@ -97,7 +100,12 @@ export const ParticipantListItem = ({
   participant,
 }: ParticipantListItemProps) => {
   const { t } = useTranslation('rooms')
+  const roomData = useRoomData()
+  const isEncryptedRoom = roomData?.encryption_enabled ?? false
+  const isAdmin = useIsAdminOrOwner()
+  const [isFingerprintOpen, setIsFingerprintOpen] = useState(false)
   const name = participant.name || participant.identity
+  const attrs = participant.attributes as Record<string, string> | undefined
   return (
     <HStack
       role="listitem"
@@ -124,8 +132,22 @@ export const ParticipantListItem = ({
               userSelect: 'none',
               cursor: 'default',
               display: 'flex',
+              alignItems: 'center',
             })}
           >
+            {isEncryptedRoom && (
+              <span
+                onClick={isAdmin ? () => setIsFingerprintOpen(true) : undefined}
+                className={css({
+                  cursor: isAdmin ? 'pointer' : 'default',
+                })}
+              >
+                <EncryptionBadge
+                  isEncrypted={true}
+                  trustLevel={getTrustLevelFromAttributes(attrs)}
+                />
+              </span>
+            )}
             <span
               className={css({
                 whiteSpace: 'nowrap',
@@ -151,12 +173,38 @@ export const ParticipantListItem = ({
           {getParticipantIsRoomAdmin(participant) && (
             <Text variant="xsNote">{t('participants.host')}</Text>
           )}
+          {isEncryptedRoom &&
+            participant.attributes?.is_authenticated === 'true' &&
+            participant.attributes?.email && (
+              <Text
+                variant="xsNote"
+                className={css({
+                  color: 'greyscale.500',
+                  maxWidth: '120px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                })}
+              >
+                {participant.attributes.email}
+              </Text>
+            )}
         </VStack>
       </HStack>
       <HStack>
         <MicIndicator participant={participant} />
         <ParticipantMenuButton participant={participant} />
       </HStack>
+      {isEncryptedRoom && isAdmin && (
+        <FingerprintDialog
+          isOpen={isFingerprintOpen}
+          onOpenChange={setIsFingerprintOpen}
+          participantName={name}
+          participantEmail={attrs?.email}
+          suiteUserId={attrs?.suite_user_id}
+          isAuthenticated={attrs?.is_authenticated === 'true'}
+        />
+      )}
     </HStack>
   )
 }
