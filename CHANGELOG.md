@@ -18,6 +18,7 @@ and this project adheres to
 
 - ⬆️(backend) bump lodash from 4.17.23 to 4.18.1 in /src/mail
 - ⬆️(frontend) bump hono from 4.12.8 to 4.12.12 in /src/frontend
+- ⬆️(backend) bump pygments from 2.19.2 to 2.20.0 in /src/backend
 
 ### Fixed
 
