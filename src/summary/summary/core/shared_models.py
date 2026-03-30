@@ -65,6 +65,13 @@ class TranscribeWebhookSuccessPayload(BaseWebhook):
     )
 
 
+class TranscribeWebhookPendingPayload(BaseWebhook):
+    """Payload for a pending transcription webhook-like response."""
+
+    type: Literal["transcript"] = Field(default="transcript")
+    status: Literal["pending"] = Field(default="pending")
+
+
 class TranscribeWebhookFailurePayload(BaseWebhook):
     """Payload for a failed transcription webhook."""
 
@@ -76,7 +83,11 @@ class TranscribeWebhookFailurePayload(BaseWebhook):
 
 
 TranscribeWebhookPayloads = Annotated[
-    Union[TranscribeWebhookSuccessPayload, TranscribeWebhookFailurePayload],
+    Union[
+        TranscribeWebhookSuccessPayload,
+        TranscribeWebhookPendingPayload,
+        TranscribeWebhookFailurePayload,
+    ],
     Field(discriminator="status"),
 ]
 
@@ -86,7 +97,16 @@ class SummarizeWebhookSuccessPayload(BaseWebhook):
 
     type: Literal["summary"] = Field(default="summary")
     status: Literal["success"] = Field(default="success")
-    summary: str = Field(title="Summary", description="The summary of the text.")
+    summary_data_url: str = Field(
+        title="Summary", description="URL to the raw summary data."
+    )
+
+
+class SummarizeWebhookPendingPayload(BaseWebhook):
+    """Payload for a pending summarization webhook-like response."""
+
+    type: Literal["summary"] = Field(default="summary")
+    status: Literal["pending"] = Field(default="pending")
 
 
 class SummarizeWebhookFailurePayload(BaseWebhook):
@@ -100,7 +120,11 @@ class SummarizeWebhookFailurePayload(BaseWebhook):
 
 
 SummarizeWebhookPayloads = Annotated[
-    Union[SummarizeWebhookSuccessPayload, SummarizeWebhookFailurePayload],
+    Union[
+        SummarizeWebhookSuccessPayload,
+        SummarizeWebhookPendingPayload,
+        SummarizeWebhookFailurePayload,
+    ],
     Field(discriminator="status"),
 ]
 
@@ -114,8 +138,10 @@ webhook_payload_adapter = TypeAdapter(WebhookPayloads)
 
 __all__ = [
     "TranscribeWebhookSuccessPayload",
+    "TranscribeWebhookPendingPayload",
     "TranscribeWebhookFailurePayload",
     "SummarizeWebhookSuccessPayload",
+    "SummarizeWebhookPendingPayload",
     "SummarizeWebhookFailurePayload",
     "TranscribeWebhookPayloads",
     "SummarizeWebhookPayloads",

@@ -293,5 +293,27 @@ class FileService:
         transcript_path = f"{settings.aws_transcript_path}/{job_id}.json"
         logger.debug("Transcript path: %s", transcript_path)
         return self._minio_client.presigned_get_object(
-            self._bucket_name, transcript_path, expires=timedelta(hours=1)
+            self._bucket_name, transcript_path, expires=timedelta(hours=24)
+        )
+
+    def store_summary(self, *, summary: str, job_id: str) -> None:
+        """Store summary in MinIO."""
+        logger.info("Storing summary for job id %s", job_id)
+        summary_path = f"{settings.aws_summary_path}/{job_id}.txt"
+        logger.debug("Summary path: %s", summary_path)
+        data = summary.encode()
+        self._minio_client.put_object(
+            self._bucket_name,
+            summary_path,
+            io.BytesIO(data),
+            length=len(data),
+        )
+        logger.info("Summary stored successfully for job id %s", job_id)
+
+    def get_summary_signed_url(self, job_id: str) -> str:
+        """Get signed URL for summary file."""
+        summary_path = f"{settings.aws_summary_path}/{job_id}.txt"
+        logger.debug("Summary path: %s", summary_path)
+        return self._minio_client.presigned_get_object(
+            self._bucket_name, summary_path, expires=timedelta(hours=24)
         )

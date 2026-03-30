@@ -1,6 +1,6 @@
 """Integration tests for the V2 task API endpoints."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 
 class TestTasksV2:
@@ -26,7 +26,8 @@ class TestTasksV2:
         assert response.status_code == 200
         assert response.json() == {
             "job_id": "transcribe-task-id-abc",
-            "message": "Transcribe job created",
+            "type": "transcript",
+            "status": "pending",
         }
 
         args = mock_apply_async.call_args.kwargs["args"]
@@ -58,7 +59,8 @@ class TestTasksV2:
         assert response.status_code == 200
         assert response.json() == {
             "job_id": "summarize-task-id-abc",
-            "message": "Summarize job created",
+            "type": "summary",
+            "status": "pending",
         }
 
         args = mock_apply_async.call_args.kwargs["args"]
@@ -70,11 +72,13 @@ class TestTasksV2:
             }
         ]
 
+    @patch("summary.api.route.tasks_v2.celery")
     @patch("summary.api.route.tasks_v2.AsyncResult")
     def test_get_transcribe_task_status_returns_status_for_same_tenant(
-        self, mock_async_result, client
+        self, mock_async_result, mock_celery, client
     ):
         """GET /async-jobs/transcribe/{id} returns status when tenant matches."""
+        mock_celery.backend.client.exists.return_value = True
         mock_async_result.return_value = MagicMock(
             status="PENDING",
             args=[{"tenant_id": "test-tenant"}],
@@ -86,18 +90,28 @@ class TestTasksV2:
         )
 
         assert response.status_code == 200
-        assert response.json() == {"job_id": "task-id-abc", "status": "PENDING"}
+        assert response.json() == {
+            "job_id": "task-id-abc",
+            "type": "transcript",
+            "status": "pending",
+        }
 
-        mock_async_result.assert_called_once_with("task-id-abc")
+        mock_async_result.assert_called_once_with("task-id-abc", app=ANY)
 
+    @patch("summary.api.route.tasks_v2.celery")
     @patch("summary.api.route.tasks_v2.AsyncResult")
     def test_get_summarize_task_status_returns_status_for_same_tenant(
-        self, mock_async_result, client
+        self, mock_async_result, mock_celery, client
     ):
         """GET /async-jobs/summarize/{id} returns status when tenant matches."""
+        mock_celery.backend.client.exists.return_value = True
         mock_async_result.return_value = MagicMock(
             status="SUCCESS",
             args=[{"tenant_id": "test-tenant"}],
+            result={
+                "job_id": "task-id-abc",
+                "summary_data_url": "https://example.com/summary.json",
+            },
         )
 
         response = client.get(
@@ -106,16 +120,22 @@ class TestTasksV2:
         )
 
         assert response.status_code == 200
-        assert response.json() == {"job_id": "task-id-abc", "status": "SUCCESS"}
+        assert response.json() == {
+            "job_id": "task-id-abc",
+            "type": "summary",
+            "status": "success",
+            "summary_data_url": "https://example.com/summary.json",
+        }
 
-        mock_async_result.assert_called_once_with("task-id-abc")
+        mock_async_result.assert_called_once_with("task-id-abc", app=ANY)
 
+    @patch("summary.api.route.tasks_v2.celery")
     @patch("summary.api.route.tasks_v2.AsyncResult")
-    def test_get_task_status_returns_404_when_args_are_missing(
-        self, mock_async_result, client
+    def test_get_task_status_returns_404_when_job_does_not_exist(
+        self, mock_async_result, mock_celery, client
     ):
-        """GET /async-jobs/.../{id} returns 404 when task args are invalid."""
-        mock_async_result.return_value = MagicMock(status="SUCCESS", args=None)
+        """GET /async-jobs/.../{id} returns 404 when task key is not in Redis."""
+        mock_celery.backend.client.exists.return_value = False
 
         response = client.get(
             "/api/v2/async-jobs/transcribe/task-id-abc",
@@ -124,3 +144,24 @@ class TestTasksV2:
 
         assert response.status_code == 404
         assert response.json() == {"detail": "Not found"}
+        mock_async_result.assert_not_called()
+
+    @patch("summary.api.route.tasks_v2.celery")
+    @patch("summary.api.route.tasks_v2.AsyncResult")
+    def test_get_task_status_returns_403_for_other_tenant(
+        self, mock_async_result, mock_celery, client
+    ):
+        """GET /async-jobs/.../{id} returns 403 when task belongs to another tenant."""
+        mock_celery.backend.client.exists.return_value = True
+        mock_async_result.return_value = MagicMock(
+            status="PENDING",
+            args=[{"tenant_id": "another-tenant"}],
+        )
+
+        response = client.get(
+            "/api/v2/async-jobs/summarize/task-id-abc",
+            headers={"Authorization": "Bearer test-api-token"},
+        )
+
+        assert response.status_code == 403
+        assert response.json() == {"detail": "Forbidden"}

@@ -58,6 +58,9 @@ celery = Celery(
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
     broker_connection_retry_on_startup=True,
+    # To store the tasks args too in results and make the
+    # V2 API work
+    result_extended=True,
 )
 
 celery.config_from_object("summary.core.celery_config")
@@ -465,15 +468,14 @@ def process_audio_transcribe_v2_task(
         job_id=job_id,
     )
 
-    call_webhook_v2_task.apply_async(
-        args=[
-            TranscribeWebhookSuccessPayload(
-                job_id=job_id,
-                transcription_data_url=file_service.get_transcript_signed_url(job_id),
-            ).model_dump(),
-            payload.tenant_id,
-        ]
+    success_payload = TranscribeWebhookSuccessPayload(
+        job_id=job_id,
+        transcription_data_url=file_service.get_transcript_signed_url(job_id),
     )
+    call_webhook_v2_task.apply_async(
+        args=[success_payload.model_dump(), payload.tenant_id]
+    )
+    return success_payload.model_dump()
 
 
 @signals.task_failure.connect(sender=process_audio_transcribe_v2_task)
@@ -531,14 +533,17 @@ def summarize_v2_task(
         transcript=payload.content,
         session_id=self.request.id,
     )
-    call_webhook_v2_task.apply_async(
-        args=[
-            SummarizeWebhookSuccessPayload(
-                job_id=self.request.id, summary=summary
-            ).model_dump(),
-            payload.tenant_id,
-        ]
+    job_id = self.request.id
+    file_service.store_summary(summary=summary, job_id=job_id)
+
+    success_payload = SummarizeWebhookSuccessPayload(
+        job_id=job_id,
+        summary_data_url=file_service.get_summary_signed_url(job_id),
     )
+    call_webhook_v2_task.apply_async(
+        args=[success_payload.model_dump(), payload.tenant_id]
+    )
+    return success_payload.model_dump()
 
 
 @signals.task_failure.connect(sender=summarize_v2_task)

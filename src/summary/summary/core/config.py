@@ -78,6 +78,7 @@ class Settings(BaseSettings):
     aws_s3_secret_access_key: SecretStr
     aws_s3_secure_access: bool = True
     aws_transcript_path: str = "transcripts"
+    aws_summary_path: str = "summaries"
 
     # AI-related settings
     whisperx_api_key: SecretStr
