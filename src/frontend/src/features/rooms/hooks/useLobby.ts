@@ -11,6 +11,8 @@ import {
   encodePublicKey,
   decryptKeyFromAdmin,
   setSymmetricKey,
+  saveEphemeralKeyPair,
+  loadEphemeralKeyPair,
 } from '@/features/encryption/lobbyKeyExchange'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
@@ -88,9 +90,15 @@ export const useLobby = ({
 
   const startWaiting = useCallback(async () => {
     if (encryptionEnabled) {
-      const keyPair = await generateEphemeralKeyPair()
+      // Restore keypair from sessionStorage (survives page refresh)
+      // or generate a new one (backend will reset to WAITING if key changed)
+      const stored = loadEphemeralKeyPair()
+      const keyPair = stored ?? await generateEphemeralKeyPair()
       ephemeralKeyRef.current = keyPair
       ephemeralPublicKeyB64Ref.current = encodePublicKey(keyPair.publicKey)
+      if (!stored) {
+        saveEphemeralKeyPair(keyPair)
+      }
     }
     setStatus(ApiLobbyStatus.WAITING)
     startWaitingTimeout()

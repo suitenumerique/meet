@@ -22,8 +22,12 @@ import {
 import { Track } from 'livekit-client'
 import { RiHand } from '@remixicon/react'
 import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
-import { EncryptionBadge, getTrustLevelFromAttributes } from '@/features/encryption'
+import {
+  EncryptionBadge,
+  getTrustLevelFromAttributes,
+} from '@/features/encryption'
 import { useRoomData } from '../hooks/useRoomData'
+import { RiLockFill } from '@remixicon/react'
 import { HStack } from '@/styled-system/jsx'
 import { MutedMicIndicator } from './MutedMicIndicator'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
@@ -82,6 +86,15 @@ export const ParticipantTile: (
   const isEncrypted = useIsEncrypted(trackReference.participant)
   const roomData = useRoomData()
   const isEncryptedRoom = roomData?.encryption_enabled ?? false
+  // Show overlay when we cannot decrypt a remote participant's frames
+  const isDecryptionFailed =
+    isEncryptedRoom && !isEncrypted && !trackReference.participant.isLocal
+  // TODO: remove this force flag after CSS adjustments
+  const forceDecryptionOverlay = true
+  const showDecryptionError =
+    !trackReference.participant.isLocal &&
+    isEncryptedRoom &&
+    (forceDecryptionOverlay || isDecryptionFailed)
   const layoutContext = useMaybeLayoutContext()
 
   const autoManageSubscription = useFeatureContext()?.autoSubscription
@@ -164,6 +177,63 @@ export const ParticipantTile: (
                   participant={trackReference.participant}
                 />
               </div>
+              {showDecryptionError && !isScreenShare && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 5,
+                  }}
+                >
+                  <ParticipantPlaceholder
+                    participant={trackReference.participant}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '2.5rem',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                      borderRadius: '0.5rem',
+                      padding: '0.6rem 1rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      maxWidth: '85%',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        color: '#f87171',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      <RiLockFill size={14} />
+                      <span>Decryption failed</span>
+                    </div>
+                    <div
+                      style={{
+                        color: '#d1d5db',
+                        fontSize: '0.75rem',
+                        textAlign: 'center',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Unable to decrypt this participant&apos;s stream. One of
+                      you may need to leave and rejoin.
+                    </div>
+                  </div>
+                </div>
+              )}
               {!disableMetadata && (
                 <div className="lk-participant-metadata">
                   <HStack gap={0.25}>
@@ -222,7 +292,9 @@ export const ParticipantTile: (
                         <EncryptionBadge
                           isEncrypted={true}
                           trustLevel={getTrustLevelFromAttributes(
-                            trackReference.participant.attributes as Record<string, string> | undefined
+                            trackReference.participant.attributes as
+                              | Record<string, string>
+                              | undefined
                           )}
                         />
                       )}

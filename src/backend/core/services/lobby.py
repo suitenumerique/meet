@@ -202,7 +202,22 @@ class LobbyService:
             self.refresh_waiting_status(room.id, participant_id)
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
-            # wrongly named, contains access token to join a room
+            # If the joiner comes back with a different ephemeral key (e.g. browser
+            # closed and reopened), they can no longer decrypt the encrypted symmetric
+            # key. Reset them to WAITING so the admin re-accepts with the new key.
+            if (
+                ephemeral_public_key
+                and participant.ephemeral_public_key
+                and ephemeral_public_key != participant.ephemeral_public_key
+            ):
+                participant = self.enter(
+                    room.id, participant_id, username,
+                    is_authenticated=request.user.is_authenticated,
+                    email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
+                    ephemeral_public_key=ephemeral_public_key,
+                )
+                return participant, None
+
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
                 user=request.user,

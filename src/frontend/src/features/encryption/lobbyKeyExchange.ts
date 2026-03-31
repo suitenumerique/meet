@@ -66,6 +66,41 @@ export function getSymmetricKey(): Uint8Array | null {
   return _symmetricKey
 }
 
+const EPHEMERAL_KEY_STORAGE_KEY = 'meet-ephemeral-keypair'
+
+/**
+ * Persist the ephemeral keypair in sessionStorage so it survives page refreshes.
+ * sessionStorage is cleared when the tab/browser closes — in that case the backend
+ * resets the participant to WAITING so the admin re-accepts with a fresh key.
+ */
+export function saveEphemeralKeyPair(keyPair: { publicKey: Uint8Array; secretKey: Uint8Array }): void {
+  try {
+    sessionStorage.setItem(EPHEMERAL_KEY_STORAGE_KEY, JSON.stringify({
+      publicKey: toBase64(keyPair.publicKey),
+      secretKey: toBase64(keyPair.secretKey),
+    }))
+  } catch {
+    // sessionStorage may be unavailable
+  }
+}
+
+/**
+ * Restore the ephemeral keypair from sessionStorage.
+ */
+export function loadEphemeralKeyPair(): { publicKey: Uint8Array; secretKey: Uint8Array } | null {
+  try {
+    const stored = sessionStorage.getItem(EPHEMERAL_KEY_STORAGE_KEY)
+    if (!stored) return null
+    const parsed = JSON.parse(stored)
+    return {
+      publicKey: fromBase64(parsed.publicKey),
+      secretKey: fromBase64(parsed.secretKey),
+    }
+  } catch {
+    return null
+  }
+}
+
 /**
  * Clear the stored symmetric key (e.g. on disconnect).
  */
