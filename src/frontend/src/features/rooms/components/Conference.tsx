@@ -285,22 +285,20 @@ export const Conference = ({
     }
   }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin])
 
-  // Track participants with decryption errors (key exchange in progress)
+  // Track participants pending key exchange.
+  // When a new participant joins an encrypted room, mark them as pending.
+  // Clear when their encryption status becomes true.
   useEffect(() => {
     if (!encryptionEnabled) return
 
-    const handleEncryptionError = (_err: Error, participant?: { identity: string }) => {
-      console.debug('[Encryption] encryptionError for participant:', participant?.identity)
-      if (participant?.identity) {
-        setPendingParticipants((prev) => {
-          const next = new Set(prev)
-          next.add(participant.identity)
-          return next
-        })
-      }
+    const handleParticipantConnected = (participant: { identity: string }) => {
+      setPendingParticipants((prev) => {
+        const next = new Set(prev)
+        next.add(participant.identity)
+        return next
+      })
     }
 
-    // Clear a specific participant from pending when their encryption status changes
     const handleEncryptionStatusChanged = (_encrypted: boolean, participant?: { identity: string }) => {
       if (participant?.identity) {
         setPendingParticipants((prev) => {
@@ -311,11 +309,18 @@ export const Conference = ({
       }
     }
 
-    room.on('encryptionError', handleEncryptionError)
+    const handleTrackSubscribed = () => {
+      // If any track is successfully subscribed, clear all pending
+      setPendingParticipants(new Set())
+    }
+
+    room.on('participantConnected', handleParticipantConnected)
     room.on('participantEncryptionStatusChanged', handleEncryptionStatusChanged)
+    room.on('trackSubscribed', handleTrackSubscribed)
     return () => {
-      room.off('encryptionError', handleEncryptionError)
+      room.off('participantConnected', handleParticipantConnected)
       room.off('participantEncryptionStatusChanged', handleEncryptionStatusChanged)
+      room.off('trackSubscribed', handleTrackSubscribed)
     }
   }, [room, encryptionEnabled])
 

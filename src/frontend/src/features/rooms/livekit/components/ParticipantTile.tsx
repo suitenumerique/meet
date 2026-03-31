@@ -22,7 +22,7 @@ import {
 import { Track } from 'livekit-client'
 import { RiHand } from '@remixicon/react'
 import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
-import { EncryptionBadge, getTrustLevelFromAttributes, useEncryptionContext } from '@/features/encryption'
+import { EncryptionBadge, getTrustLevelFromAttributes } from '@/features/encryption'
 import { useRoomData } from '../hooks/useRoomData'
 import { RiLockFill } from '@remixicon/react'
 import { HStack } from '@/styled-system/jsx'
@@ -83,8 +83,9 @@ export const ParticipantTile: (
   const isEncrypted = useIsEncrypted(trackReference.participant)
   const roomData = useRoomData()
   const isEncryptedRoom = roomData?.encryption_enabled ?? false
-  const { pendingParticipants } = useEncryptionContext()
-  const isKeyExchangePending = pendingParticipants.has(trackReference.participant.identity)
+  // In an encrypted room, if a remote participant's encryption status is false,
+  // it means we can't decrypt their frames yet (key exchange in progress).
+  const isKeyExchangePending = isEncryptedRoom && !isEncrypted && !trackReference.participant.isLocal
   const layoutContext = useMaybeLayoutContext()
 
   const autoManageSubscription = useFeatureContext()?.autoSubscription
@@ -147,27 +148,32 @@ export const ParticipantTile: (
             <div
               style={{
                 position: 'absolute',
-                inset: 0,
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 zIndex: 5,
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 gap: '0.5rem',
               }}
             >
-              <ParticipantPlaceholder participant={trackReference.participant} />
+              <div style={{ width: '30%', maxWidth: '80px' }}>
+                <ParticipantPlaceholder participant={trackReference.participant} />
+              </div>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.3rem',
                   color: '#9ca3af',
-                  fontSize: '0.75rem',
+                  fontSize: '0.7rem',
                 }}
               >
-                <RiLockFill size={12} />
+                <RiLockFill size={11} />
                 <span>Key exchange in progress</span>
               </div>
             </div>
