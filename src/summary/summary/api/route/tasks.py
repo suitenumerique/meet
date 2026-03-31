@@ -19,16 +19,19 @@ class TranscribeSummarizeTaskCreation(BaseModel):
     """Transcription and summarization parameters."""
 
     owner_id: str
-    filename: str
+    recording_filename: str
+    metadata_filename: str
     email: str
     sub: str
     version: Optional[int] = 2
     room: Optional[str]
-    recording_date: Optional[str]
-    recording_time: Optional[str]
+    worker_id: Optional[str]
+    owner_timezone: Optional[str]
     language: Optional[str]
     download_link: Optional[str]
     context_language: Optional[str] = None
+    recording_start_at: Optional[str] = None
+    recording_end_at: Optional[str] = None
 
     @field_validator("language")
     @classmethod
@@ -51,16 +54,19 @@ async def create_transcribe_summarize_task(request: TranscribeSummarizeTaskCreat
     task = process_audio_transcribe_summarize_v2.apply_async(
         args=[
             request.owner_id,
-            request.filename,
+            request.recording_filename,
+            request.metadata_filename,
             request.email,
             request.sub,
             time.time(),
             request.room,
-            request.recording_date,
-            request.recording_time,
+            request.worker_id,
+            request.owner_timezone,
             request.language,
             request.download_link,
             request.context_language,
+            request.recording_start_at,
+            request.recording_end_at,
         ],
         queue=settings.transcribe_queue,
     )

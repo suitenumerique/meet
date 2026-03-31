@@ -1,7 +1,9 @@
 """Service to notify external services when a new recording is ready."""
 
 import logging
+import os
 import smtplib
+from datetime import datetime, timezone
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -10,8 +12,10 @@ from django.utils.translation import get_language, override
 from django.utils.translation import gettext_lazy as _
 
 import requests
+from asgiref.sync import async_to_sync
+from livekit import api as livekit_api
 
-from core import models
+from core import models, utils
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +135,49 @@ class NotificationService:
         return not has_failures
 
     @staticmethod
+    def _get_recording_timestamps(worker_id):
+        """Fetch FileInfo.started_at and ended_at from LiveKit's egress API.
+
+        FileInfo.started_at is more accurate than EgressInfo.started_at because it
+        reflects when file recording actually began, not when the egress
+        process was initialized.
+
+        Returns:
+            Tuple of (started_at, ended_at) datetimes, either may be None.
+        """
+        if not worker_id:
+            return None, None
+
+        @async_to_sync
+        async def _fetch():
+            lkapi = utils.create_livekit_client()
+            try:
+                egress_list = await lkapi.egress.list_egress(
+                    livekit_api.ListEgressRequest(egress_id=worker_id)
+                )
+                if egress_list.items:
+                    file_results = egress_list.items[0].file_results
+                    if file_results:
+                        started_at = None
+                        ended_at = None
+                        if file_results[0].started_at:
+                            started_at = datetime.fromtimestamp(
+                                file_results[0].started_at / 1e9, tz=timezone.utc
+                            )
+                        if file_results[0].ended_at:
+                            ended_at = datetime.fromtimestamp(
+                                file_results[0].ended_at / 1e9, tz=timezone.utc
+                            )
+                        return started_at, ended_at
+            except Exception:
+                logger.exception("Could not fetch egress info for worker %s", worker_id)
+            finally:
+                await lkapi.aclose()
+            return None, None
+
+        return _fetch()
+
+    @staticmethod
     def _notify_summary_service(recording):
         """Notify summary service about a new recording."""
 
@@ -150,24 +197,32 @@ class NotificationService:
             .first()
         )
 
+        # TODO: change how we get metadata_filename
+        output_folder = os.getenv("AWS_S3_OUTPUT_FOLDER", "metadata")
+        metadata_filename = f"{output_folder}/{recording.id}-metadata.json"
+
         if not owner_access:
             logger.error("No owner found for recording %s", recording.id)
             return False
+
+        started_at, ended_at = NotificationService._get_recording_timestamps(
+            recording.worker_id
+        )
+
         payload = {
             "owner_id": str(owner_access.user.id),
-            "filename": recording.key,
+            "recording_filename": recording.key,
+            "metadata_filename": metadata_filename,
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
             "room": recording.room.name,
             "language": recording.options.get("language"),
-            "recording_date": recording.created_at.astimezone(
-                owner_access.user.timezone
-            ).strftime("%Y-%m-%d"),
-            "recording_time": recording.created_at.astimezone(
-                owner_access.user.timezone
-            ).strftime("%H:%M"),
+            "worker_id": recording.worker_id,
+            "owner_timezone": str(owner_access.user.timezone),
             "download_link": f"{get_recording_download_base_url()}/{recording.id}",
             "context_language": owner_access.user.language,
+            "recording_start_at": (started_at.isoformat() if started_at else None),
+            "recording_end_at": (ended_at.isoformat() if ended_at else None),
         }
 
         headers = {
