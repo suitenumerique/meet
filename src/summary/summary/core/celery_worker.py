@@ -187,8 +187,8 @@ def process_audio_transcribe_summarize_v2(
     language: Optional[str],
     download_link: Optional[str],
     context_language: Optional[str] = None,
-    recording_started_at: Optional[str] = None,
-    recording_ended_at: Optional[str] = None,
+    recording_start_at: Optional[str] = None,
+    recording_end_at: Optional[str] = None,
 ):
     """Process an audio file by transcribing it and generating a summary.
 
@@ -212,9 +212,9 @@ def process_audio_transcribe_summarize_v2(
         language: ISO 639-1 language code for transcription.
         download_link: URL to download the original recording.
         context_language: ISO 639-1 language code of the meeting summary context text.
-        recording_started_at: ISO 8601 timestamp of when file recording actually started
+        recording_start_at: ISO 8601 timestamp of when file recording actually started
             (from LiveKit FileInfo.started_at via the egress_ended webhook).
-        recording_ended_at: ISO 8601 timestamp of when file recording ended
+        recording_end_at: ISO 8601 timestamp of when file recording ended
             (from LiveKit FileInfo.ended_at via the egress_ended webhook).
     """
     logger.info(
@@ -230,22 +230,18 @@ def process_audio_transcribe_summarize_v2(
     if transcription is None:
         return
 
-    # Use recording_started_at / recording_ended_at from the backend
+    # Use recording_start_at / recording_end_at from the backend
     # (sourced from LiveKit FileInfo via the egress_ended webhook).
     recording_start_dt = None
     recording_end_dt = None
     if recording_start_dt:
-        recording_start_dt = datetime.fromisoformat(recording_started_at)
-    if recording_ended_at:
-        recording_end_dt = datetime.fromisoformat(recording_ended_at)
+        recording_start_dt = datetime.fromisoformat(recording_start_at)
+    if recording_end_at:
+        recording_end_dt = datetime.fromisoformat(recording_end_at)
 
     # Assign user names from metadata and transcription
-    try:
-        metadata = file_service.read_json(metadata_filename)
-    except Exception:
-        logger.exception("Failed to read metadata file: %s", metadata_filename)
-        metadata = None
-    if metadata and recording_start_dt is not None and recording_end_dt is not None:
+    metadata = file_service.read_json(metadata_filename)
+    if recording_start_dt is not None and recording_end_dt is not None:
         assignment_result = assign_speakers(
             metadata,
             transcription,
@@ -261,7 +257,7 @@ def process_audio_transcribe_summarize_v2(
         context_language,
         language,
         room,
-        recording_started_at,
+        recording_start_at,
         owner_timezone,
         download_link,
     )

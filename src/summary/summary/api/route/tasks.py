@@ -30,8 +30,8 @@ class TranscribeSummarizeTaskCreation(BaseModel):
     language: Optional[str]
     download_link: Optional[str]
     context_language: Optional[str] = None
-    recording_started_at: Optional[str] = None
-    recording_ended_at: Optional[str] = None
+    recording_start_at: Optional[str] = None
+    recording_end_at: Optional[str] = None
 
     @field_validator("language")
     @classmethod
@@ -65,8 +65,8 @@ async def create_transcribe_summarize_task(request: TranscribeSummarizeTaskCreat
             request.language,
             request.download_link,
             request.context_language,
-            request.recording_started_at,
-            request.recording_ended_at,
+            request.recording_start_at,
+            request.recording_end_at,
         ],
         queue=settings.transcribe_queue,
     )

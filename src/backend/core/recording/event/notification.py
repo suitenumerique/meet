@@ -5,13 +5,14 @@ import os
 import smtplib
 from datetime import datetime, timezone
 
-import requests
-from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.translation import get_language, override
 from django.utils.translation import gettext_lazy as _
+
+import requests
+from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from core import models, utils
@@ -137,7 +138,7 @@ class NotificationService:
     def _get_recording_timestamps(worker_id):
         """Fetch FileInfo.started_at and ended_at from LiveKit's egress API.
 
-        started_at is more accurate than EgressInfo.started_at because it
+        FileInfo.started_at is more accurate than EgressInfo.started_at because it
         reflects when file recording actually began, not when the egress
         process was initialized.
 
@@ -157,21 +158,19 @@ class NotificationService:
                 if egress_list.items:
                     file_results = egress_list.items[0].file_results
                     if file_results:
-                        started = None
-                        ended = None
+                        started_at = None
+                        ended_at = None
                         if file_results[0].started_at:
-                            started = datetime.fromtimestamp(
+                            started_at = datetime.fromtimestamp(
                                 file_results[0].started_at / 1e9, tz=timezone.utc
                             )
                         if file_results[0].ended_at:
-                            ended = datetime.fromtimestamp(
+                            ended_at = datetime.fromtimestamp(
                                 file_results[0].ended_at / 1e9, tz=timezone.utc
                             )
-                        return started, ended
+                        return started_at, ended_at
             except Exception:
-                logger.exception(
-                    "Could not fetch egress info for worker %s", worker_id
-                )
+                logger.exception("Could not fetch egress info for worker %s", worker_id)
             finally:
                 await lkapi.aclose()
             return None, None
@@ -222,12 +221,8 @@ class NotificationService:
             "owner_timezone": str(owner_access.user.timezone),
             "download_link": f"{get_recording_download_base_url()}/{recording.id}",
             "context_language": owner_access.user.language,
-            "recording_started_at": (
-                started_at.isoformat() if started_at else None
-            ),
-            "recording_ended_at": (
-                ended_at.isoformat() if ended_at else None
-            ),
+            "recording_start_at": (started_at.isoformat() if started_at else None),
+            "recording_end_at": (ended_at.isoformat() if ended_at else None),
         }
 
         headers = {
