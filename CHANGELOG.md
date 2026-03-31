@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-03-31
+
 ### Changed
 
 - ⬆️(dependencies) update python dependencies
