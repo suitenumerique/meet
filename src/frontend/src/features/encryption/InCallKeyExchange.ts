@@ -95,7 +95,11 @@ async function encryptWithSharedKey(
 ): Promise<Uint8Array> {
   const sodium = await ensureSodium()
   const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES)
-  const ciphertext = sodium.crypto_secretbox_easy(symmetricKey, nonce, sharedKey)
+  const ciphertext = sodium.crypto_secretbox_easy(
+    symmetricKey,
+    nonce,
+    sharedKey
+  )
   // Prepend nonce to ciphertext (same format as encryption library)
   const result = new Uint8Array(nonce.length + ciphertext.length)
   result.set(nonce, 0)
@@ -258,7 +262,9 @@ export class InCallKeyExchange {
     if (!this.symmetricKey) return
 
     // Only admins distribute the symmetric key
-    if (!isParticipantAdmin({ attributes: this.room.localParticipant.attributes })) {
+    if (
+      !isParticipantAdmin({ attributes: this.room.localParticipant.attributes })
+    ) {
       return
     }
 
@@ -284,7 +290,10 @@ export class InCallKeyExchange {
       )
 
       // Encrypt the symmetric key with XChaCha20-Poly1305
-      const encryptedKey = await encryptWithSharedKey(sharedKey, this.symmetricKey)
+      const encryptedKey = await encryptWithSharedKey(
+        sharedKey,
+        this.symmetricKey
+      )
 
       // Send response with our public key + encrypted symmetric key
       const responsePayload = JSON.stringify({
@@ -329,7 +338,9 @@ export class InCallKeyExchange {
     }
 
     if (!this.ephemeralKeyPair) {
-      console.warn('[Encryption] Received key response but no ephemeral key pair')
+      console.warn(
+        '[Encryption] Received key response but no ephemeral key pair'
+      )
       return
     }
 

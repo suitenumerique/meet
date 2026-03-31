@@ -23,6 +23,8 @@ export interface EncryptionState {
   error: string | null
   /** E2EE options to pass to RoomOptions.e2ee at Room construction time */
   encryptionOptions: E2EEOptions | undefined
+  /** Set of participant identities that currently have decryption errors (key exchange in progress) */
+  pendingParticipants: Set<string>
 }
 
 /**
@@ -69,6 +71,7 @@ export function useEncryption(
 ): EncryptionState {
   const [isSettingUp, setIsSettingUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pendingParticipants, setPendingParticipants] = useState<Set<string>>(new Set())
 
   // Create keyProvider and worker as refs so they're available synchronously
   // for RoomOptions.e2ee. They persist across renders.
@@ -131,18 +134,39 @@ export function useEncryption(
     }
   }, [room, encryptionEnabled])
 
-  // Listen for LiveKit encryption errors (decryption failures, key mismatches)
+  // Listen for LiveKit encryption errors.
+  // InvalidKey and MissingKey are expected during key exchange (joiner has temp key,
+  // admin can't decrypt yet). Only surface persistent errors after key exchange.
   useEffect(() => {
     if (!room || !encryptionEnabled) return
 
-    const handleEncryptionError = (err: Error) => {
+    const handleEncryptionError = (err: Error, participantIdentity?: string) => {
+      const msg = err.message || ''
+      if (msg.includes('InvalidKey') || msg.includes('MissingKey') || msg.includes('missing key')) {
+        // Track this participant as having a pending key exchange
+        if (participantIdentity) {
+          setPendingParticipants((prev) => {
+            const next = new Set(prev)
+            next.add(participantIdentity)
+            return next
+          })
+        }
+        return
+      }
       console.error('[Encryption] Decryption error:', err)
-      setError(err.message || 'Decryption failed')
+      setError(msg || 'Decryption failed')
+    }
+
+    // When a participant's encryption status changes to encrypted, remove them from pending
+    const handleParticipantEncrypted = () => {
+      setPendingParticipants(new Set())
     }
 
     room.on('encryptionError', handleEncryptionError)
+    room.on('participantEncryptionStatusChanged', handleParticipantEncrypted)
     return () => {
       room.off('encryptionError', handleEncryptionError)
+      room.off('participantEncryptionStatusChanged', handleParticipantEncrypted)
     }
   }, [room, encryptionEnabled])
 
@@ -174,5 +198,6 @@ export function useEncryption(
     isSettingUp,
     error,
     encryptionOptions,
+    pendingParticipants,
   }
 }

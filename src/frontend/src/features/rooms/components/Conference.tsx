@@ -13,7 +13,7 @@ import {
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
-import { EncryptionSetupOverlay } from '@/features/encryption'
+import { EncryptionSetupOverlay, EncryptionProvider } from '@/features/encryption'
 import { InCallKeyExchange } from '@/features/encryption/InCallKeyExchange'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
@@ -97,6 +97,7 @@ export const Conference = ({
   const workerRef = useRef<Worker | null>(null)
   const [encryptionSetupComplete, setEncryptionSetupComplete] = useState(!encryptionEnabled)
   const [encryptionError, setEncryptionError] = useState<string | null>(null)
+  const [pendingParticipants, setPendingParticipants] = useState<Set<string>>(new Set())
 
   const getKeyProvider = () => {
     if (!keyProviderRef.current && encryptionEnabled) {
@@ -173,6 +174,7 @@ export const Conference = ({
   const keyExchangeRef = useRef<InCallKeyExchange | null>(null)
   const keyExchangeDoneRef = useRef(false)
   const adminPassphraseRef = useRef<string | null>(null)
+  const adminDistributingRef = useRef(false)
   const [encryptionKeyReady, setEncryptionKeyReady] = useState(!encryptionEnabled)
 
   useEffect(() => {
@@ -204,11 +206,14 @@ export const Conference = ({
               console.info('[Encryption] Admin: E2EE enabled after connection')
               setEncryptionKeyReady(true)
 
-              const kx = new InCallKeyExchange(room)
-              keyExchangeRef.current = kx
-              kx.setSymmetricKey(new TextEncoder().encode(passphrase))
-              kx.startListening()
-              console.info('[Encryption] Admin: distributing key')
+              if (!adminDistributingRef.current) {
+                adminDistributingRef.current = true
+                const kx = new InCallKeyExchange(room)
+                keyExchangeRef.current = kx
+                kx.setSymmetricKey(new TextEncoder().encode(passphrase))
+                kx.startListening()
+                console.info('[Encryption] Admin: distributing key')
+              }
             } catch (err) {
               console.error('[Encryption] Admin: E2EE enable failed:', err)
               setEncryptionError((err as Error).message)
@@ -272,12 +277,47 @@ export const Conference = ({
     }
 
     return () => {
-      if (keyExchangeRef.current) {
+      // Don't stop the admin's key distribution listener — it needs to persist
+      if (keyExchangeRef.current && !isAdmin) {
         keyExchangeRef.current.stopListening()
         keyExchangeRef.current = null
       }
     }
   }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin])
+
+  // Track participants with decryption errors (key exchange in progress)
+  useEffect(() => {
+    if (!encryptionEnabled) return
+
+    const handleEncryptionError = (_err: Error, participant?: { identity: string }) => {
+      console.debug('[Encryption] encryptionError for participant:', participant?.identity)
+      if (participant?.identity) {
+        setPendingParticipants((prev) => {
+          const next = new Set(prev)
+          next.add(participant.identity)
+          return next
+        })
+      }
+    }
+
+    // Clear a specific participant from pending when their encryption status changes
+    const handleEncryptionStatusChanged = (_encrypted: boolean, participant?: { identity: string }) => {
+      if (participant?.identity) {
+        setPendingParticipants((prev) => {
+          const next = new Set(prev)
+          next.delete(participant.identity)
+          return next
+        })
+      }
+    }
+
+    room.on('encryptionError', handleEncryptionError)
+    room.on('participantEncryptionStatusChanged', handleEncryptionStatusChanged)
+    return () => {
+      room.off('encryptionError', handleEncryptionError)
+      room.off('participantEncryptionStatusChanged', handleEncryptionStatusChanged)
+    }
+  }, [room, encryptionEnabled])
 
   useEffect(() => {
     /**
@@ -399,13 +439,15 @@ export const Conference = ({
             }
           }}
         >
-          {encryptionEnabled && !isAdmin && (
-            <EncryptionSetupOverlay
-              isSettingUp={!encryptionKeyReady}
-              error={encryptionError}
-            />
-          )}
-          <VideoConference />
+          <EncryptionProvider value={{ pendingParticipants }}>
+            {encryptionEnabled && !isAdmin && (
+              <EncryptionSetupOverlay
+                isSettingUp={!encryptionKeyReady}
+                error={encryptionError}
+              />
+            )}
+            <VideoConference />
+          </EncryptionProvider>
           {showInviteDialog && !isMobile && (
             <InviteDialog
               isOpen={showInviteDialog}
