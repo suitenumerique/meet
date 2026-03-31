@@ -135,7 +135,7 @@ export const Conference = ({
       audioOutput: {
         deviceId: userConfig.audioOutputDeviceId ?? undefined,
       },
-      e2ee: encryptionEnabled && keyProvider && worker
+      encryption: encryptionEnabled && keyProvider && worker
         ? { keyProvider, worker }
         : undefined,
     }
