@@ -24,7 +24,6 @@ import { RiHand } from '@remixicon/react'
 import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
 import { EncryptionBadge, getTrustLevelFromAttributes } from '@/features/encryption'
 import { useRoomData } from '../hooks/useRoomData'
-import { RiLockFill } from '@remixicon/react'
 import { HStack } from '@/styled-system/jsx'
 import { MutedMicIndicator } from './MutedMicIndicator'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
@@ -83,9 +82,6 @@ export const ParticipantTile: (
   const isEncrypted = useIsEncrypted(trackReference.participant)
   const roomData = useRoomData()
   const isEncryptedRoom = roomData?.encryption_enabled ?? false
-  // In an encrypted room, if a remote participant's encryption status is false,
-  // it means we can't decrypt their frames yet (key exchange in progress).
-  const isKeyExchangePending = isEncryptedRoom && !isEncrypted && !trackReference.participant.isLocal
   const layoutContext = useMaybeLayoutContext()
 
   const autoManageSubscription = useFeatureContext()?.autoSubscription
@@ -144,40 +140,6 @@ export const ParticipantTile: (
       <TrackRefContextIfNeeded trackRef={trackReference}>
         <ParticipantContextIfNeeded participant={trackReference.participant}>
           <FullScreenShareWarning trackReference={trackReference} />
-          {isKeyExchangePending && !isScreenShare && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 5,
-                backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-              }}
-            >
-              <div style={{ width: '30%', maxWidth: '80px' }}>
-                <ParticipantPlaceholder participant={trackReference.participant} />
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem',
-                  color: '#9ca3af',
-                  fontSize: '0.7rem',
-                }}
-              >
-                <RiLockFill size={11} />
-                <span>Key exchange in progress</span>
-              </div>
-            </div>
-          )}
           {children ?? (
             <>
               {isTrackReference(trackReference) &&

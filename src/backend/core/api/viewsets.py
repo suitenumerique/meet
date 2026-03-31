@@ -451,6 +451,8 @@ class RoomViewSet(
                 room_id=room.id,
                 participant_id=str(serializer.validated_data.get("participant_id")),
                 allow_entry=serializer.validated_data.get("allow_entry"),
+                encrypted_key=serializer.validated_data.get("encrypted_key", ''),
+                admin_ephemeral_public_key=serializer.validated_data.get("admin_ephemeral_public_key", ''),
             )
             return drf_response.Response({"message": "Participant was updated."})
 
@@ -479,11 +481,12 @@ class RoomViewSet(
 
         participants = lobby_service.list_waiting_participants(room.id)
 
-        # Only expose email in encrypted rooms (needed for admin identity verification).
-        # Strip it otherwise to avoid leaking personal data.
+        # Only expose email and ephemeral keys in encrypted rooms.
+        # Strip them otherwise to avoid leaking personal data.
         if not room.encryption_enabled:
             for p in participants:
                 p.pop("email", None)
+                p.pop("ephemeral_public_key", None)
 
         return drf_response.Response({"participants": participants})
 

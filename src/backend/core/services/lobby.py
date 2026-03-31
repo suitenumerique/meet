@@ -48,6 +48,9 @@ class LobbyParticipant:
     id: str
     is_authenticated: bool = False
     email: Optional[str] = None
+    ephemeral_public_key: str = ''
+    encrypted_key: str = ''
+    admin_ephemeral_public_key: str = ''
 
     def to_dict(self) -> Dict[str, str]:
         """Serialize the participant object to a dict representation."""
@@ -60,6 +63,12 @@ class LobbyParticipant:
         }
         if self.email:
             result["email"] = self.email
+        if self.ephemeral_public_key:
+            result["ephemeral_public_key"] = self.ephemeral_public_key
+        if self.encrypted_key:
+            result["encrypted_key"] = self.encrypted_key
+        if self.admin_ephemeral_public_key:
+            result["admin_ephemeral_public_key"] = self.admin_ephemeral_public_key
         return result
 
     @classmethod
@@ -76,6 +85,9 @@ class LobbyParticipant:
                 color=data["color"],
                 is_authenticated=data.get("is_authenticated", False),
                 email=data.get("email"),
+                ephemeral_public_key=data.get("ephemeral_public_key", ''),
+                encrypted_key=data.get("encrypted_key", ''),
+                admin_ephemeral_public_key=data.get("admin_ephemeral_public_key", ''),
             )
         except (KeyError, ValueError) as e:
             logger.exception("Error creating Participant from dict:")
@@ -134,6 +146,7 @@ class LobbyService:
         room,
         request,
         username: str,
+        ephemeral_public_key: str = '',
     ) -> Tuple[LobbyParticipant, Optional[Dict]]:
         """Request entry to a room for a participant.
 
@@ -182,6 +195,7 @@ class LobbyService:
                 room.id, participant_id, username,
                 is_authenticated=request.user.is_authenticated,
                 email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
+                ephemeral_public_key=ephemeral_public_key,
             )
 
         elif participant.status == LobbyParticipantStatus.WAITING:
@@ -216,6 +230,7 @@ class LobbyService:
         self, room_id: UUID, participant_id: str, username: str,
         is_authenticated: bool = False,
         email: Optional[str] = None,
+        ephemeral_public_key: str = '',
     ) -> LobbyParticipant:
         """Add participant to waiting lobby.
 
@@ -232,6 +247,7 @@ class LobbyService:
             color=color,
             is_authenticated=is_authenticated,
             email=email,
+            ephemeral_public_key=ephemeral_public_key,
         )
 
         try:
@@ -300,6 +316,8 @@ class LobbyService:
         room_id: UUID,
         participant_id: str,
         allow_entry: bool,
+        encrypted_key: str = '',
+        admin_ephemeral_public_key: str = '',
     ) -> None:
         """Handle decision on participant entry.
 
@@ -318,7 +336,12 @@ class LobbyService:
                 "timeout": settings.LOBBY_DENIED_TIMEOUT,
             }
 
-        self._update_participant_status(room_id, participant_id, **decision)
+        self._update_participant_status(
+            room_id, participant_id,
+            encrypted_key=encrypted_key,
+            admin_ephemeral_public_key=admin_ephemeral_public_key,
+            **decision,
+        )
 
     def _update_participant_status(
         self,
@@ -326,6 +349,8 @@ class LobbyService:
         participant_id: str,
         status: LobbyParticipantStatus,
         timeout: int,
+        encrypted_key: str = '',
+        admin_ephemeral_public_key: str = '',
     ) -> None:
         """Update participant status with appropriate timeout."""
 
@@ -346,6 +371,10 @@ class LobbyService:
             raise
 
         participant.status = status
+        if encrypted_key:
+            participant.encrypted_key = encrypted_key
+        if admin_ephemeral_public_key:
+            participant.admin_ephemeral_public_key = admin_ephemeral_public_key
         cache.set(cache_key, participant.to_dict(), timeout=timeout)
 
     def clear_room_cache(self, room_id: UUID) -> None:

@@ -13,8 +13,7 @@ import {
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
-import { EncryptionSetupOverlay, EncryptionProvider } from '@/features/encryption'
-import { InCallKeyExchange } from '@/features/encryption/InCallKeyExchange'
+import { setSymmetricKey, getSymmetricKey } from '@/features/encryption/lobbyKeyExchange'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -91,13 +90,11 @@ export const Conference = ({
 
   const encryptionEnabled = data?.encryption_enabled ?? false
 
-  // Encryption setup — PoC approach: refs for keyProvider and worker,
+  // Encryption setup — refs for keyProvider and worker,
   // passed directly to RoomOptions.e2ee at Room construction time.
   const keyProviderRef = useRef<ExternalE2EEKeyProvider | null>(null)
   const workerRef = useRef<Worker | null>(null)
   const [encryptionSetupComplete, setEncryptionSetupComplete] = useState(!encryptionEnabled)
-  const [encryptionError, setEncryptionError] = useState<string | null>(null)
-  const [pendingParticipants, setPendingParticipants] = useState<Set<string>>(new Set())
 
   const getKeyProvider = () => {
     if (!keyProviderRef.current && encryptionEnabled) {
@@ -167,15 +164,11 @@ export const Conference = ({
     return livekit_url
   }, [apiConfig?.livekit])
 
-  // Encryption key exchange — no disconnect/reconnect:
-  // Admin: generate passphrase → setKey → setE2EEEnabled → connect → distribute key
-  // Joiner: connect (audio/video blocked) → receive key → setKey → setE2EEEnabled → unblock audio/video
+  // Encryption key setup:
+  // Admin: generate passphrase -> setKey -> connect -> E2EE enabled
+  // Joiner: use pre-exchanged key from lobby -> setKey -> connect -> E2EE enabled
   const isAdmin = mode === 'create' || data?.is_administrable === true
-  const keyExchangeRef = useRef<InCallKeyExchange | null>(null)
-  const keyExchangeDoneRef = useRef(false)
   const adminPassphraseRef = useRef<string | null>(null)
-  const adminDistributingRef = useRef(false)
-  const [encryptionKeyReady, setEncryptionKeyReady] = useState(!encryptionEnabled)
 
   useEffect(() => {
     if (!encryptionEnabled || encryptionSetupComplete) return
@@ -190,33 +183,18 @@ export const Conference = ({
           .join('')
       }
       const passphrase = adminPassphraseRef.current
-      console.info('[Encryption] Admin passphrase:', passphrase)
+      setSymmetricKey(new TextEncoder().encode(passphrase))
 
-      // Set key before connecting — it's ready for when E2EE activates
       keyProvider
         .setKey(passphrase)
         .then(() => {
-          console.info('[Encryption] Admin: key set, allowing connection')
-          setEncryptionSetupComplete(true) // allow connection
+          setEncryptionSetupComplete(true)
 
-          // Enable E2EE and start key distribution after connecting
           const onConnected = async () => {
             try {
               await room.setE2EEEnabled(true)
-              console.info('[Encryption] Admin: E2EE enabled after connection')
-              setEncryptionKeyReady(true)
-
-              if (!adminDistributingRef.current) {
-                adminDistributingRef.current = true
-                const kx = new InCallKeyExchange(room)
-                keyExchangeRef.current = kx
-                kx.setSymmetricKey(new TextEncoder().encode(passphrase))
-                kx.startListening()
-                console.info('[Encryption] Admin: distributing key')
-              }
             } catch (err) {
               console.error('[Encryption] Admin: E2EE enable failed:', err)
-              setEncryptionError((err as Error).message)
             }
           }
 
@@ -225,104 +203,39 @@ export const Conference = ({
         })
         .catch((err) => {
           console.error('[Encryption] Admin failed:', err)
-          setEncryptionError(err.message)
         })
     } else {
-      // Joiner: set a temporary random passphrase BEFORE connecting.
-      // This ensures all frames are encrypted from the start (admin sees black, not clear).
-      // After key exchange, replace with the real passphrase from admin.
-      const tempPassphrase = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-        .map((b) => b.toString(36).padStart(2, '0'))
-        .join('')
+      // Joiner: use the pre-exchanged key from lobby (stored in module-level lobbyKeyExchange)
+      const preExchangedKey = getSymmetricKey()
 
-      keyProvider
-        .setKey(tempPassphrase)
-        .then(() => {
-          console.info('[Encryption] Joiner: temporary key set, allowing connection')
-          setEncryptionSetupComplete(true)
+      if (preExchangedKey) {
+        const passphrase = new TextDecoder().decode(preExchangedKey)
 
-          const exchange = async () => {
-            if (keyExchangeDoneRef.current) return
-            keyExchangeDoneRef.current = true
+        keyProvider
+          .setKey(passphrase)
+          .then(() => {
+            setEncryptionSetupComplete(true)
 
-            try {
-              await room.setE2EEEnabled(true)
-              console.info('[Encryption] Joiner: E2EE enabled with temporary key')
-
-              const kx = new InCallKeyExchange(room)
-              keyExchangeRef.current = kx
-              kx.startListening()
-
-              console.info('[Encryption] Joiner: requesting real key from admin...')
-              const keyBytes = await kx.requestKey()
-              const passphrase = new TextDecoder().decode(keyBytes)
-              console.info('[Encryption] Joiner: received real passphrase')
-
-              await keyProvider.setKey(passphrase)
-              setEncryptionKeyReady(true)
-              console.info('[Encryption] Joiner: real key set, decryption active')
-            } catch (err) {
-              console.error('[Encryption] Joiner failed:', err)
-              setEncryptionError((err as Error).message)
+            const onConnected = async () => {
+              try {
+                await room.setE2EEEnabled(true)
+              } catch (err) {
+                console.error('[Encryption] Joiner: E2EE enable failed:', err)
+              }
             }
-          }
 
-          if (room.state === 'connected') exchange()
-          else room.once('connected', exchange)
-        })
-        .catch((err) => {
-          console.error('[Encryption] Joiner temp key failed:', err)
-          setEncryptionError(err.message)
-        })
-    }
-
-    return () => {
-      // Don't stop the admin's key distribution listener — it needs to persist
-      if (keyExchangeRef.current && !isAdmin) {
-        keyExchangeRef.current.stopListening()
-        keyExchangeRef.current = null
+            if (room.state === 'connected') onConnected()
+            else room.once('connected', onConnected)
+          })
+          .catch((err) => {
+            console.error('[Encryption] Joiner key setup failed:', err)
+          })
+      } else {
+        console.error('[Encryption] Joiner: no pre-exchanged key available')
       }
     }
+
   }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin])
-
-  // Track participants pending key exchange.
-  // When a new participant joins an encrypted room, mark them as pending.
-  // Clear when their encryption status becomes true.
-  useEffect(() => {
-    if (!encryptionEnabled) return
-
-    const handleParticipantConnected = (participant: { identity: string }) => {
-      setPendingParticipants((prev) => {
-        const next = new Set(prev)
-        next.add(participant.identity)
-        return next
-      })
-    }
-
-    const handleEncryptionStatusChanged = (_encrypted: boolean, participant?: { identity: string }) => {
-      if (participant?.identity) {
-        setPendingParticipants((prev) => {
-          const next = new Set(prev)
-          next.delete(participant.identity)
-          return next
-        })
-      }
-    }
-
-    const handleTrackSubscribed = () => {
-      // If any track is successfully subscribed, clear all pending
-      setPendingParticipants(new Set())
-    }
-
-    room.on('participantConnected', handleParticipantConnected)
-    room.on('participantEncryptionStatusChanged', handleEncryptionStatusChanged)
-    room.on('trackSubscribed', handleTrackSubscribed)
-    return () => {
-      room.off('participantConnected', handleParticipantConnected)
-      room.off('participantEncryptionStatusChanged', handleEncryptionStatusChanged)
-      room.off('trackSubscribed', handleTrackSubscribed)
-    }
-  }, [room, encryptionEnabled])
 
   useEffect(() => {
     /**
@@ -444,15 +357,7 @@ export const Conference = ({
             }
           }}
         >
-          <EncryptionProvider value={{ pendingParticipants }}>
-            {encryptionEnabled && !isAdmin && (
-              <EncryptionSetupOverlay
-                isSettingUp={!encryptionKeyReady}
-                error={encryptionError}
-              />
-            )}
-            <VideoConference />
-          </EncryptionProvider>
+          <VideoConference />
           {showInviteDialog && !isMobile && (
             <InviteDialog
               isOpen={showInviteDialog}

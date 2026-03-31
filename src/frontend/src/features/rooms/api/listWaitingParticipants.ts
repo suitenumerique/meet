@@ -10,6 +10,7 @@ export type WaitingParticipant = {
   color: string
   is_authenticated: boolean
   email?: string
+  ephemeral_public_key?: string
 }
 
 export type WaitingParticipantsResponse = {

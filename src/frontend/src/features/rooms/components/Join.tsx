@@ -341,6 +341,7 @@ export const Join = ({
     roomId,
     username,
     onAccepted: handleAccepted,
+    encryptionEnabled: isEncryptedRoom,
   })
 
   const { openLoginHint } = useLoginHint()

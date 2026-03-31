@@ -236,6 +236,11 @@ export class InCallKeyExchange {
 
       switch (message.type) {
         case KeyExchangeMessageType.KEY_REQUEST:
+          // TEMPORARY: 10s delay to test joiner UX during key exchange
+          console.info(
+            '[Encryption] Delaying key response by 10 seconds for testing...'
+          )
+          await new Promise((resolve) => setTimeout(resolve, 10000))
           await this.handleKeyRequest(message, participant)
           break
         case KeyExchangeMessageType.KEY_RESPONSE:

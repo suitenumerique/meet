@@ -6,6 +6,12 @@ import {
   ApiLobbyStatus,
   ApiRequestEntry,
 } from '../api/requestEntry'
+import {
+  generateEphemeralKeyPair,
+  encodePublicKey,
+  decryptKeyFromAdmin,
+  setSymmetricKey,
+} from '@/features/encryption/lobbyKeyExchange'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
 export const POLL_INTERVAL_MS = 1000
@@ -14,13 +20,17 @@ export const useLobby = ({
   roomId,
   username,
   onAccepted,
+  encryptionEnabled = false,
 }: {
   roomId: string
   username: string
   onAccepted: (e: ApiRequestEntry) => void
+  encryptionEnabled?: boolean
 }) => {
   const [status, setStatus] = useState(ApiLobbyStatus.IDLE)
   const waitingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const ephemeralKeyRef = useRef<{ publicKey: Uint8Array; secretKey: Uint8Array } | null>(null)
+  const ephemeralPublicKeyB64Ref = useRef<string>('')
 
   const clearWaitingTimeout = useCallback(() => {
     if (waitingTimeoutRef.current) {
@@ -43,10 +53,26 @@ export const useLobby = ({
       const response = await requestEntry({
         roomId,
         username,
+        ephemeralPublicKey: ephemeralPublicKeyB64Ref.current,
       })
       if (response.status === ApiLobbyStatus.ACCEPTED) {
         clearWaitingTimeout()
         setStatus(ApiLobbyStatus.ACCEPTED)
+
+        if (
+          encryptionEnabled &&
+          response.encrypted_key &&
+          response.admin_ephemeral_public_key &&
+          ephemeralKeyRef.current
+        ) {
+          const decryptedKey = await decryptKeyFromAdmin(
+            ephemeralKeyRef.current.secretKey,
+            response.admin_ephemeral_public_key,
+            response.encrypted_key
+          )
+          setSymmetricKey(decryptedKey)
+        }
+
         onAccepted(response)
       } else if (response.status === ApiLobbyStatus.DENIED) {
         clearWaitingTimeout()
@@ -60,10 +86,15 @@ export const useLobby = ({
     enabled: status === ApiLobbyStatus.WAITING,
   })
 
-  const startWaiting = useCallback(() => {
+  const startWaiting = useCallback(async () => {
+    if (encryptionEnabled) {
+      const keyPair = await generateEphemeralKeyPair()
+      ephemeralKeyRef.current = keyPair
+      ephemeralPublicKeyB64Ref.current = encodePublicKey(keyPair.publicKey)
+    }
     setStatus(ApiLobbyStatus.WAITING)
     startWaitingTimeout()
-  }, [startWaitingTimeout])
+  }, [encryptionEnabled, startWaitingTimeout])
 
   useEffect(() => {
     return () => clearWaitingTimeout()

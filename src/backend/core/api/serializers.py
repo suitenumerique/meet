@@ -290,6 +290,7 @@ class RequestEntrySerializer(BaseValidationOnlySerializer):
     """Validate request entry data."""
 
     username = serializers.CharField(required=True)
+    ephemeral_public_key = serializers.CharField(required=False, allow_blank=True, default='')
 
 
 class ParticipantEntrySerializer(BaseValidationOnlySerializer):
@@ -297,6 +298,8 @@ class ParticipantEntrySerializer(BaseValidationOnlySerializer):
 
     participant_id = serializers.UUIDField(required=True)
     allow_entry = serializers.BooleanField(required=True)
+    encrypted_key = serializers.CharField(required=False, allow_blank=True, default='')
+    admin_ephemeral_public_key = serializers.CharField(required=False, allow_blank=True, default='')
 
 
 class CreationCallbackSerializer(BaseValidationOnlySerializer):

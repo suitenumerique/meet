@@ -6,6 +6,8 @@ export interface EnterRoomParams {
   roomId: string
   allowEntry: boolean
   participantId: string
+  encryptedKey?: string
+  adminEphemeralPublicKey?: string
 }
 
 export interface EnterRoomResponse {
@@ -16,12 +18,16 @@ export const enterRoom = async ({
   roomId,
   allowEntry,
   participantId,
+  encryptedKey = '',
+  adminEphemeralPublicKey = '',
 }: EnterRoomParams): Promise<EnterRoomResponse> => {
   return await fetchApi<EnterRoomResponse>(`/rooms/${roomId}/enter/`, {
     method: 'POST',
     body: JSON.stringify({
       participant_id: participantId,
       allow_entry: allowEntry,
+      encrypted_key: encryptedKey,
+      admin_ephemeral_public_key: adminEphemeralPublicKey,
     }),
   })
 }
