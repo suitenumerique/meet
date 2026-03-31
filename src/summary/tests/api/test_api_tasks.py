@@ -19,12 +19,13 @@ class TestTasks:
             headers={"Authorization": "Bearer test-api-token"},
             json={
                 "owner_id": "owner-123",
-                "filename": "recording.mp4",
+                "recording_filename": "recording.mp4",
+                "metadata_filename": "metadata.json",  # TODO: change
                 "email": "user@example.com",
                 "sub": "sub-123",
                 "room": "room-abc",
-                "recording_date": "2026-01-01",
-                "recording_time": "10:00:00",
+                "worker_id": "EG_test123",
+                "owner_timezone": "UTC",
                 "language": None,
                 "download_link": "http://example.com/file.mp4",
             },
@@ -36,13 +37,14 @@ class TestTasks:
         args = mock_apply_async.call_args.kwargs["args"]
         assert args == [
             "owner-123",  # owner_id
-            "recording.mp4",  # filename
+            "recording.mp4",  # recording_filename
+            "metadata.json",  # metadata_filename
             "user@example.com",  # email
             "sub-123",  # sub
             1735725600.0,  # frozen time
             "room-abc",  # room
-            "2026-01-01",  # recording_date
-            "10:00:00",  # recording_time
+            "EG_test123",  # worker_id
+            "UTC",  # owner_timezone
             None,  # language
             "http://example.com/file.mp4",  # download_link
             None,  # context_language
