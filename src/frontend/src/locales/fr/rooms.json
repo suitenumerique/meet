@@ -698,7 +698,10 @@
     },
     "error": {
       "title": "Erreur de chiffrement",
-      "hint": "Les données chiffrées n'ont pas pu être décodées. Essayez de quitter et de rejoindre la réunion, ou demandez à l'hôte de relancer l'appel."
+      "hint": "Les données chiffrées n'ont pas pu être décodées. Essayez de quitter et de rejoindre la réunion, ou demandez à l'hôte de relancer l'appel.",
+      "timeout": "Échange de clés expiré",
+      "timeoutHint": "La clé de chiffrement n'a pas pu être reçue de l'hôte. Il n'est peut-être pas encore dans la réunion.",
+      "refresh": "Réessayer"
     },
     "fingerprint": {
       "title": "Identité chiffrée",

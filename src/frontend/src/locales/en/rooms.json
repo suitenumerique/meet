@@ -698,7 +698,10 @@
     },
     "error": {
       "title": "Encryption error",
-      "hint": "The encrypted data could not be decoded. Try leaving and rejoining the meeting, or ask the host to restart the call."
+      "hint": "The encrypted data could not be decoded. Try leaving and rejoining the meeting, or ask the host to restart the call.",
+      "timeout": "Key exchange timed out",
+      "timeoutHint": "The encryption key could not be received from the host. They may not be in the meeting yet.",
+      "refresh": "Retry"
     },
     "fingerprint": {
       "title": "Encryption identity",

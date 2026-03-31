@@ -26,13 +26,18 @@ export interface EncryptionState {
 }
 
 /**
- * Generate a random passphrase for LiveKit E2EE.
- * LiveKit's ExternalE2EEKeyProvider.setKey() works best with string passphrases
- * (as proven in the PoC PR #296). The worker derives the actual AES key internally.
+ * Generate a random passphrase string for LiveKit E2EE.
+ *
+ * LiveKit's ExternalE2EEKeyProvider.setKey() accepts string | ArrayBuffer.
+ * When a string is passed, LiveKit internally derives an AES key using PBKDF2.
+ * Using a string passphrase is the proven approach (PoC PR #296).
+ *
+ * The passphrase is exchanged between participants via the InCallKeyExchange
+ * (ephemeral X25519 DH over LiveKit data channel, encrypted with XChaCha20-Poly1305).
+ * Both sides encode/decode via TextEncoder/TextDecoder to maintain consistency.
  */
 function generatePassphrase(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32))
-  // Convert to base64url string — LiveKit derives the actual encryption key from this
   return btoa(String.fromCharCode(...bytes))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
@@ -98,7 +103,10 @@ export function useEncryption(
       ? { keyProvider: keyProviderRef.current, worker: workerRef.current }
       : undefined
 
-  // Key exchange: once room is connected, the admin generates or distributes the key
+  // TEMPORARY: hardcoded passphrase to validate video encryption works.
+  // Same approach as the PoC (PR #296). Will be replaced by key exchange later.
+  const HARDCODED_PASSPHRASE = 'meet-encryption-test-passphrase'
+
   const setupKeyExchange = useCallback(async () => {
     if (!room || !keyProviderRef.current || !encryptionEnabled || setupDoneRef.current) {
       return
@@ -111,52 +119,9 @@ export function useEncryption(
     setError(null)
 
     try {
-      const keyExchange = new InCallKeyExchange(room)
-      keyExchangeRef.current = keyExchange
-      keyExchange.startListening()
-
-      const isAdmin = isLocalParticipantAdmin(room)
-
-      let passphrase: string
-
-      if (isAdmin) {
-        const existingAdmins = Array.from(
-          room.remoteParticipants.values()
-        ).filter((p) => p.attributes?.room_admin === 'true')
-
-        if (existingAdmins.length > 0) {
-          console.info(
-            '[Encryption] Another admin is present, requesting passphrase...'
-          )
-          const keyBytes = await keyExchange.requestKey()
-          keyExchange.setSymmetricKey(keyBytes)
-          passphrase = new TextDecoder().decode(keyBytes)
-          console.info('[Encryption] Received passphrase from existing admin')
-        } else {
-          passphrase = generatePassphrase()
-          const keyBytes = new TextEncoder().encode(passphrase)
-          keyExchange.setSymmetricKey(keyBytes)
-          console.info(
-            '[Encryption] Generated passphrase as room admin (key authority)'
-          )
-        }
-      } else {
-        console.info(
-          '[Encryption] Requesting passphrase from room admin...'
-        )
-        const keyBytes = await keyExchange.requestKey()
-        keyExchange.setSymmetricKey(keyBytes)
-        passphrase = new TextDecoder().decode(keyBytes)
-        console.info('[Encryption] Received passphrase from admin')
-      }
-
-      // Feed the passphrase to LiveKit's encryption worker.
-      // Using a string passphrase (as in the PoC PR #296) — LiveKit derives
-      // the actual AES encryption key internally from this passphrase.
-      console.info('[Encryption] Setting passphrase, length:', passphrase.length)
-      await keyProviderRef.current!.setKey(passphrase)
+      console.info('[Encryption] Setting hardcoded passphrase (PoC mode)')
+      await keyProviderRef.current!.setKey(HARDCODED_PASSPHRASE)
       await room.setE2EEEnabled(true)
-
       console.info('[Encryption] End-to-end encryption enabled')
     } catch (err) {
       console.error('[Encryption] Failed to set up encryption:', err)

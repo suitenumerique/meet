@@ -7,12 +7,14 @@ import {
 } from '@livekit/components-react'
 import {
   DisconnectReason,
+  ExternalE2EEKeyProvider,
   MediaDeviceFailure,
   Room,
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
-import { useEncryption, EncryptionSetupOverlay } from '@/features/encryption'
+import { EncryptionSetupOverlay } from '@/features/encryption'
+import { InCallKeyExchange } from '@/features/encryption/InCallKeyExchange'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -89,23 +91,38 @@ export const Conference = ({
 
   const encryptionEnabled = data?.encryption_enabled ?? false
 
-  // Encryption: encryptionOptions (keyProvider + worker) are created synchronously via refs
-  // inside the hook. The room is passed via state so the hook re-runs when it's created.
-  const [roomInstance, setRoomInstance] = useState<Room | undefined>(undefined)
-  const { encryptionOptions, isSettingUp: isEncryptionSettingUp, error: encryptionError } = useEncryption(roomInstance, encryptionEnabled)
+  // Encryption setup — PoC approach: refs for keyProvider and worker,
+  // passed directly to RoomOptions.e2ee at Room construction time.
+  const keyProviderRef = useRef<ExternalE2EEKeyProvider | null>(null)
+  const workerRef = useRef<Worker | null>(null)
+  const [encryptionSetupComplete, setEncryptionSetupComplete] = useState(!encryptionEnabled)
+  const [encryptionError, setEncryptionError] = useState<string | null>(null)
 
-  // Stabilize encryptionOptions reference — only recalculate roomOptions when
-  // encryptionEnabled changes, not when encryptionOptions object reference changes.
-  const encryptionOptionsRef = useRef(encryptionOptions)
-  encryptionOptionsRef.current = encryptionOptions
+  const getKeyProvider = () => {
+    if (!keyProviderRef.current && encryptionEnabled) {
+      keyProviderRef.current = new ExternalE2EEKeyProvider()
+    }
+    return keyProviderRef.current
+  }
+
+  const getWorker = () => {
+    if (!workerRef.current && encryptionEnabled && typeof window !== 'undefined') {
+      workerRef.current = new Worker(
+        new URL('livekit-client/e2ee-worker', import.meta.url)
+      )
+    }
+    return workerRef.current
+  }
 
   const roomOptions = useMemo((): RoomOptions => {
+    const worker = getWorker()
+    const keyProvider = getKeyProvider()
+
     return {
       adaptiveStream: true,
       dynacast: true,
       publishDefaults: {
-        // Encryption requires VP8 codec — VP9 and RED are not compatible with insertable streams
-        videoCodec: encryptionEnabled ? 'vp8' : 'vp9',
+        videoCodec: encryptionEnabled ? undefined : 'vp9',
         red: !encryptionEnabled,
       },
       videoCaptureDefaults: {
@@ -120,7 +137,9 @@ export const Conference = ({
       audioOutput: {
         deviceId: userConfig.audioOutputDeviceId ?? undefined,
       },
-      e2ee: encryptionOptionsRef.current,
+      e2ee: encryptionEnabled && keyProvider && worker
+        ? { keyProvider, worker }
+        : undefined,
     }
     // do not rely on the userConfig object directly as its reference may change on every render
   }, [
@@ -133,10 +152,132 @@ export const Conference = ({
 
   const room = useMemo(() => new Room(roomOptions), [roomOptions])
 
-  // Pass the room to the encryption hook via state (triggers re-render so the hook sees it)
+  /*
+   * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
+   * (Firefox <124, Chrome <125, Edge <125) where HTTPS URLs in WebSocket() constructor
+   *  may fail - the force_wss_protocol flag allows explicit WSS protocol conversion
+   */
+  const serverUrl = useMemo(() => {
+    const livekit_url = apiConfig?.livekit.url
+    if (!livekit_url) return
+    if (apiConfig?.livekit.force_wss_protocol) {
+      return livekit_url.replace('https://', 'wss://')
+    }
+    return livekit_url
+  }, [apiConfig?.livekit])
+
+  // Encryption key exchange — no disconnect/reconnect:
+  // Admin: generate passphrase → setKey → setE2EEEnabled → connect → distribute key
+  // Joiner: connect (audio/video blocked) → receive key → setKey → setE2EEEnabled → unblock audio/video
+  const isAdmin = mode === 'create' || data?.is_administrable === true
+  const keyExchangeRef = useRef<InCallKeyExchange | null>(null)
+  const keyExchangeDoneRef = useRef(false)
+  const adminPassphraseRef = useRef<string | null>(null)
+  const [encryptionKeyReady, setEncryptionKeyReady] = useState(!encryptionEnabled)
+
   useEffect(() => {
-    setRoomInstance(room)
-  }, [room])
+    if (!encryptionEnabled || encryptionSetupComplete) return
+    const keyProvider = getKeyProvider()
+    if (!keyProvider) return
+
+    if (isAdmin) {
+      // Generate passphrase once (React Strict Mode runs effects twice)
+      if (!adminPassphraseRef.current) {
+        adminPassphraseRef.current = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+          .map((b) => b.toString(36).padStart(2, '0'))
+          .join('')
+      }
+      const passphrase = adminPassphraseRef.current
+      console.info('[Encryption] Admin passphrase:', passphrase)
+
+      // Set key before connecting — it's ready for when E2EE activates
+      keyProvider
+        .setKey(passphrase)
+        .then(() => {
+          console.info('[Encryption] Admin: key set, allowing connection')
+          setEncryptionSetupComplete(true) // allow connection
+
+          // Enable E2EE and start key distribution after connecting
+          const onConnected = async () => {
+            try {
+              await room.setE2EEEnabled(true)
+              console.info('[Encryption] Admin: E2EE enabled after connection')
+              setEncryptionKeyReady(true)
+
+              const kx = new InCallKeyExchange(room)
+              keyExchangeRef.current = kx
+              kx.setSymmetricKey(new TextEncoder().encode(passphrase))
+              kx.startListening()
+              console.info('[Encryption] Admin: distributing key')
+            } catch (err) {
+              console.error('[Encryption] Admin: E2EE enable failed:', err)
+              setEncryptionError((err as Error).message)
+            }
+          }
+
+          if (room.state === 'connected') onConnected()
+          else room.once('connected', onConnected)
+        })
+        .catch((err) => {
+          console.error('[Encryption] Admin failed:', err)
+          setEncryptionError(err.message)
+        })
+    } else {
+      // Joiner: set a temporary random passphrase BEFORE connecting.
+      // This ensures all frames are encrypted from the start (admin sees black, not clear).
+      // After key exchange, replace with the real passphrase from admin.
+      const tempPassphrase = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+        .map((b) => b.toString(36).padStart(2, '0'))
+        .join('')
+
+      keyProvider
+        .setKey(tempPassphrase)
+        .then(() => {
+          console.info('[Encryption] Joiner: temporary key set, allowing connection')
+          setEncryptionSetupComplete(true)
+
+          const exchange = async () => {
+            if (keyExchangeDoneRef.current) return
+            keyExchangeDoneRef.current = true
+
+            try {
+              await room.setE2EEEnabled(true)
+              console.info('[Encryption] Joiner: E2EE enabled with temporary key')
+
+              const kx = new InCallKeyExchange(room)
+              keyExchangeRef.current = kx
+              kx.startListening()
+
+              console.info('[Encryption] Joiner: requesting real key from admin...')
+              const keyBytes = await kx.requestKey()
+              const passphrase = new TextDecoder().decode(keyBytes)
+              console.info('[Encryption] Joiner: received real passphrase')
+
+              await keyProvider.setKey(passphrase)
+              setEncryptionKeyReady(true)
+              console.info('[Encryption] Joiner: real key set, decryption active')
+            } catch (err) {
+              console.error('[Encryption] Joiner failed:', err)
+              setEncryptionError((err as Error).message)
+            }
+          }
+
+          if (room.state === 'connected') exchange()
+          else room.once('connected', exchange)
+        })
+        .catch((err) => {
+          console.error('[Encryption] Joiner temp key failed:', err)
+          setEncryptionError(err.message)
+        })
+    }
+
+    return () => {
+      if (keyExchangeRef.current) {
+        keyExchangeRef.current.stopListening()
+        keyExchangeRef.current = null
+      }
+    }
+  }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin])
 
   useEffect(() => {
     /**
@@ -194,20 +335,6 @@ export const Conference = ({
 
   const isMobile = useIsMobile()
 
-  /*
-   * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
-   * (Firefox <124, Chrome <125, Edge <125) where HTTPS URLs in WebSocket() constructor
-   *  may fail - the force_wss_protocol flag allows explicit WSS protocol conversion
-   */
-  const serverUrl = useMemo(() => {
-    const livekit_url = apiConfig?.livekit.url
-    if (!livekit_url) return
-    if (apiConfig?.livekit.force_wss_protocol) {
-      return livekit_url.replace('https://', 'wss://')
-    }
-    return livekit_url
-  }, [apiConfig?.livekit])
-
   const { t } = useTranslation('rooms')
   if (isCreateError) {
     // this error screen should be replaced by a proper waiting room for anonymous user.
@@ -233,7 +360,7 @@ export const Conference = ({
           room={room}
           serverUrl={serverUrl}
           token={data?.livekit?.token}
-          connect={isConnectionWarmedUp}
+          connect={isConnectionWarmedUp && encryptionSetupComplete}
           audio={userConfig.audioEnabled}
           video={
             userConfig.videoEnabled && {
@@ -272,9 +399,9 @@ export const Conference = ({
             }
           }}
         >
-          {encryptionEnabled && (
+          {encryptionEnabled && !isAdmin && (
             <EncryptionSetupOverlay
-              isSettingUp={isEncryptionSettingUp}
+              isSettingUp={!encryptionKeyReady}
               error={encryptionError}
             />
           )}
