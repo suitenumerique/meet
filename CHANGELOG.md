@@ -12,6 +12,10 @@ and this project adheres to
 
 - ✨(summary) add routes v2 for async STT and summary tasks  #1171
 
+### Fixed
+
+- ⬆️(dependencies) update aiohttp to v3.13.4 [SECURITY]
+
 ## [1.13.0] - 2026-03-31
 
 ### Changed
