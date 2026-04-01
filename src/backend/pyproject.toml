@@ -2,7 +2,7 @@
 # Meet package
 #
 [build-system]
-requires = ["uv_build>=0.10.9,<0.11.0"]
+requires = ["uv_build>=0.11.1,<0.12.0"]
 build-backend = "uv_build"
 
 [project]
@@ -24,7 +24,7 @@ keywords = ["Django", "Contacts", "Templates", "RBAC"]
 license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
-    "boto3==1.42.68",
+    "boto3==1.42.76",
     "Brotli==1.2.0",
     "brevo-python==1.2.0",
     "celery[redis]==5.6.2",
@@ -41,12 +41,12 @@ dependencies = [
     "django-timezone-field>=5.1",
     "django-pydantic-field==0.5.4",
     "django==5.2.12",
-    "djangorestframework==3.16.1",
+    "djangorestframework==3.17.1",
     "drf_spectacular==0.29.0",
     "dockerflow==2026.3.4",
     "easy_thumbnails==2.10.1",
     "factory_boy==3.3.3",
-    "gunicorn==25.1.0",
+    "gunicorn==25.2.0",
     "jsonschema==4.26.0",
     "markdown==3.10.2",
     "nested-multipart-parser==1.6.0",
@@ -56,7 +56,7 @@ dependencies = [
     "python-frontmatter==1.1.0",
     "python-magic==0.4.27",
     "requests==2.33.0",
-    "sentry-sdk==2.54.0",
+    "sentry-sdk==2.56.0",
     "whitenoise==6.12.0",
     "mozilla-django-oidc==5.0.2",
     "livekit-api==1.1.0",
@@ -76,17 +76,17 @@ dev = [
     "freezegun==1.5.5",
     "ipdb==0.13.13",
     "ipython==9.11.0",
-    "pyfakefs==6.1.5",
+    "pyfakefs==6.1.6",
     "pylint-django==2.7.0",
     "pylint<4.0.0",
-    "pytest-cov==7.0.0",
+    "pytest-cov==7.1.0",
     "pytest-django==4.12.0",
     "pytest==9.0.2",
     "pytest-icdiff==0.9",
     "pytest-xdist==3.8.0",
     "responses==0.26.0",
-    "ruff==0.15.6",
-    "types-requests==2.32.4.20260107",
+    "ruff==0.15.7",
+    "types-requests==2.32.4.20260324",
 ]
 
 [tool.uv.build-backend]
