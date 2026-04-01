@@ -102,7 +102,7 @@ def call_webhook_v2(
 ) -> None:
     """Call webhook with a payload to a specific tenant.
 
-    Request is performed wihtout retry, retry should be handled at the task level.
+    Request is performed without retry, retry should be handled at the task level.
     """
     tenant = settings.get_authorized_tenant(tenant_id=tenant_id)
 

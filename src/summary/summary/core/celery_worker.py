@@ -58,7 +58,7 @@ celery = Celery(
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
     broker_connection_retry_on_startup=True,
-    # To store the tasks args too in results and make the
+    # To store the tasks args too in results and make the
     # V2 API work
     result_extended=True,
 )
@@ -309,7 +309,13 @@ def task_failure_handler(task_id, exception=None, **kwargs):
 def summarize_transcription_internals(
     *, owner_id: str, transcript: str, session_id: str
 ) -> str:
-    """Generate a summary from the provided transcription text."""
+    """Generate a summary from the provided transcription text.
+
+    1. Uses an LLM to generate a TL;DR summary of the transcription.
+    2. Breaks the transcription into parts and summarizes each part.
+    3. Cleans up the combined summary
+    4. Generates next steps.
+    """
     logger.info(
         "Starting summarization task | Owner: %s",
         owner_id,
@@ -391,11 +397,8 @@ def summarize_transcription(
     """Generate a summary from the provided transcription text.
 
     This Celery task performs the following operations:
-    1. Uses an LLM to generate a TL;DR summary of the transcription.
-    2. Breaks the transcription into parts and summarizes each part.
-    3. Cleans up the combined summary
-    4. Generates next steps.
-    5. Sends the final summary via webhook.
+    1. Run summary internals
+    2. Sends the final summary via webhook.
     """
     summary = summarize_transcription_internals(
         owner_id=owner_id, transcript=transcript, session_id=self.request.id
@@ -521,11 +524,8 @@ def summarize_v2_task(
     """Generate a summary from the provided content.
 
     This Celery task performs the following operations:
-    1. Uses an LLM to generate a TL;DR summary of the content.
-    2. Breaks the content into parts and summarizes each part.
-    3. Cleans up the combined summary
-    4. Generates next steps.
-    5. Sends the final summary via webhook.
+    1. Run summary internals
+    2. Sends the final summary via webhook.
     """
     payload = SummarizeTaskV2Payload.model_validate(payload)
     summary = summarize_transcription_internals(
