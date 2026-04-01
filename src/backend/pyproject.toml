@@ -60,7 +60,7 @@ dependencies = [
     "whitenoise==6.12.0",
     "mozilla-django-oidc==5.0.2",
     "livekit-api==1.1.0",
-    "aiohttp==3.13.3",
+    "aiohttp==3.13.4",
 ]
 
 [project.urls]
