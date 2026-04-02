@@ -98,6 +98,14 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
+class EncryptionMode(models.TextChoices):
+    """Encryption mode choices for rooms."""
+
+    NONE = "none", _("No encryption")
+    BASIC = "basic", _("Basic encryption")
+    ADVANCED = "advanced", _("Advanced encryption")
+
+
 class BaseModel(models.Model):
     """
     Serves as an abstract base model for other models, ensuring that records are validated
@@ -388,10 +396,12 @@ class Room(Resource):
         choices=RoomAccessLevel.choices,
         default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
     )
-    encryption_enabled = models.BooleanField(
-        default=False,
-        verbose_name=_("Encryption enabled"),
-        help_text=_("Whether end-to-end encryption is enabled for this room."),
+    encryption_mode = models.CharField(
+        max_length=20,
+        choices=EncryptionMode.choices,
+        default=EncryptionMode.NONE,
+        verbose_name=_("Encryption mode"),
+        help_text=_("End-to-end encryption mode for this room."),
     )
     configuration = models.JSONField(
         blank=True,
@@ -446,6 +456,11 @@ class Room(Resource):
     def is_public(self):
         """Check if a room is public"""
         return self.access_level == RoomAccessLevel.PUBLIC
+
+    @property
+    def encryption_enabled(self):
+        """Check if any encryption mode is active."""
+        return self.encryption_mode != EncryptionMode.NONE
 
     @staticmethod
     def generate_unique_pin_code(length):

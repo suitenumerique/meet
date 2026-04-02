@@ -108,6 +108,17 @@ export function clearSymmetricKey(): void {
   _symmetricKey = null
 }
 
+// Module-level encrypted vault key — for advanced mode, stores the vault-wrapped key
+let _encryptedVaultKey: ArrayBuffer | null = null
+
+export function setEncryptedVaultKey(key: ArrayBuffer): void {
+  _encryptedVaultKey = key
+}
+
+export function getEncryptedVaultKey(): ArrayBuffer | null {
+  return _encryptedVaultKey
+}
+
 /**
  * Derive a shared secret from X25519 ECDH, then derive an encryption key via BLAKE2b.
  */

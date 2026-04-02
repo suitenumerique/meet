@@ -11,6 +11,7 @@ import {
   encodePublicKey,
   decryptKeyFromAdmin,
   setSymmetricKey,
+  setEncryptedVaultKey,
   saveEphemeralKeyPair,
   loadEphemeralKeyPair,
 } from '@/features/encryption/lobbyKeyExchange'
@@ -61,6 +62,7 @@ export const useLobby = ({
         clearWaitingTimeout()
         setStatus(ApiLobbyStatus.ACCEPTED)
 
+        // Basic mode: DH key exchange
         if (
           encryptionEnabled &&
           response.encrypted_key &&
@@ -73,6 +75,16 @@ export const useLobby = ({
             response.encrypted_key
           )
           setSymmetricKey(decryptedKey)
+        }
+
+        // Advanced mode: vault-wrapped key
+        if (encryptionEnabled && response.encrypted_vault_key) {
+          const binaryStr = atob(response.encrypted_vault_key)
+          const bytes = new Uint8Array(binaryStr.length)
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i)
+          }
+          setEncryptedVaultKey(bytes.buffer)
         }
 
         onAccepted(response)

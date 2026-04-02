@@ -32,7 +32,7 @@ import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/queryClient'
 import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
-import { ApiAccessLevel } from '../api/ApiRoom'
+import { ApiAccessLevel, ApiEncryptionMode, isEncryptedRoom as checkEncryptedRoom } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { useUser } from '@/features/auth'
 import { RiInformationLine, RiLockLine } from '@remixicon/react'
@@ -113,7 +113,13 @@ export const Join = ({
     staleTime: 6 * 60 * 60 * 1000,
     retry: false,
   })
-  const isEncryptedRoom = roomInfo?.encryption_enabled ?? false
+  const isEncryptedRoom = checkEncryptedRoom(roomInfo)
+  const isBasicEncrypted = roomInfo?.encryption_mode === ApiEncryptionMode.BASIC
+
+  // Basic mode: validate the passphrase in the URL hash
+  const BASIC_KEY_LENGTH = 48
+  const hashKey = window.location.hash.slice(1)
+  const hasValidBasicKey = isBasicEncrypted ? (hashKey.length === BASIC_KEY_LENGTH && /^[a-z0-9]+$/.test(hashKey)) : true
 
   // In encrypted rooms, authenticated users must use their OIDC name
   const isNameLocked = isEncryptedRoom && !!isLoggedIn
@@ -443,6 +449,19 @@ export const Join = ({
         )
 
       default:
+        if (isBasicEncrypted && !hasValidBasicKey) {
+          return (
+            <VStack alignItems="center" textAlign="center" gap="0.75rem">
+              <RiLockLine size={32} color="#dc2626" />
+              <H lvl={1} margin={false} centered>
+                {t('invalidKey.title')}
+              </H>
+              <Text as="p" variant="note">
+                {t('invalidKey.body')}
+              </Text>
+            </VStack>
+          )
+        }
         return (
           <Form
             onSubmit={handleSubmit}

@@ -23,6 +23,7 @@ import { ParticipantMenuButton } from '../../ParticipantMenu/ParticipantMenuButt
 import { PinBadge } from './PinBadge'
 import { EncryptionBadge, getTrustLevelFromAttributes, FingerprintDialog } from '@/features/encryption'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { isEncryptedRoom as isEncryptedRoomFn } from '@/features/rooms/api/ApiRoom'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 
 type MicIndicatorProps = {
@@ -101,7 +102,7 @@ export const ParticipantListItem = ({
 }: ParticipantListItemProps) => {
   const { t } = useTranslation('rooms')
   const roomData = useRoomData()
-  const isEncryptedRoom = roomData?.encryption_enabled ?? false
+  const isEncryptedRoom = isEncryptedRoomFn(roomData)
   const isAdmin = useIsAdminOrOwner()
   const [isFingerprintOpen, setIsFingerprintOpen] = useState(false)
   const name = participant.name || participant.identity

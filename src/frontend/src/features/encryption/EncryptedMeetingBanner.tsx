@@ -11,6 +11,7 @@ import { VStack } from '@/styled-system/jsx'
 import { RiLockFill, RiShieldCheckFill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
 import { useVaultClient } from './VaultClientProvider'
 import { useEffect, useState } from 'react'
 import { Dialog, Text } from '@/primitives'
@@ -33,7 +34,7 @@ export function EncryptedMeetingBanner() {
     return () => clearTimeout(timer)
   }, [])
 
-  if (!roomData?.encryption_enabled) return null
+  if (!isEncryptedRoom(roomData)) return null
 
   const bgColor = isStrongEncryption ? '#166534' : '#1e3a5f'
   const hoverBgColor = isStrongEncryption ? '#15803d' : '#2563eb'

@@ -20,6 +20,7 @@ export interface ApiRequestEntry {
   livekit?: ApiLiveKit
   encrypted_key?: string
   admin_ephemeral_public_key?: string
+  encrypted_vault_key?: string
 }
 
 export const requestEntry = async ({

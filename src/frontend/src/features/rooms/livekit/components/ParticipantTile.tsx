@@ -19,14 +19,17 @@ import {
   isTrackReferencePinned,
   TrackReferenceOrPlaceholder,
 } from '@livekit/components-core'
-import { Track } from 'livekit-client'
+import { Track, RoomEvent } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { RiHand } from '@remixicon/react'
+import { useRoomContext } from '@livekit/components-react'
 import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
 import {
   EncryptionBadge,
   getTrustLevelFromAttributes,
 } from '@/features/encryption'
 import { useRoomData } from '../hooks/useRoomData'
+import { isEncryptedRoom as checkEncryptedRoom } from '@/features/rooms/api/ApiRoom'
 import { RiLockFill } from '@remixicon/react'
 import { HStack } from '@/styled-system/jsx'
 import { MutedMicIndicator } from './MutedMicIndicator'
@@ -85,16 +88,44 @@ export const ParticipantTile: (
   })
   const isEncrypted = useIsEncrypted(trackReference.participant)
   const roomData = useRoomData()
-  const isEncryptedRoom = roomData?.encryption_enabled ?? false
-  // Show overlay when we cannot decrypt a remote participant's frames
-  const isDecryptionFailed =
-    isEncryptedRoom && !isEncrypted && !trackReference.participant.isLocal
-  // TODO: remove this force flag after CSS adjustments
-  const forceDecryptionOverlay = true
+  const isEncryptedRoom = checkEncryptedRoom(roomData)
+
+  // Track decryption failures via EncryptionError events from LiveKit.
+  // useIsEncrypted returns true when E2EE is enabled, NOT when frames decrypt successfully.
+  // So we listen for actual decryption errors to know when to show the overlay.
+  const room = useRoomContext()
+  const [decryptionFailed, setDecryptionFailed] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!isEncryptedRoom || trackReference.participant.isLocal) return
+
+    const participantIdentity = trackReference.participant.identity
+
+    const handleEncryptionError = (_error: Error, participant?: Participant) => {
+      if (participant?.identity === participantIdentity) {
+        setDecryptionFailed(true)
+      }
+    }
+
+    const handleEncryptionStatusChanged = (encrypted: boolean, participant?: Participant) => {
+      // Clear the error when encryption status confirms frames are decrypting
+      if (participant?.identity === participantIdentity && encrypted) {
+        setDecryptionFailed(false)
+      }
+    }
+
+    room.on(RoomEvent.EncryptionError, handleEncryptionError)
+    room.on(RoomEvent.ParticipantEncryptionStatusChanged, handleEncryptionStatusChanged)
+    return () => {
+      room.off(RoomEvent.EncryptionError, handleEncryptionError)
+      room.off(RoomEvent.ParticipantEncryptionStatusChanged, handleEncryptionStatusChanged)
+    }
+  }, [room, isEncryptedRoom, trackReference.participant])
+
   const showDecryptionError =
     !trackReference.participant.isLocal &&
     isEncryptedRoom &&
-    (forceDecryptionOverlay || isDecryptionFailed)
+    decryptionFailed
   const layoutContext = useMaybeLayoutContext()
 
   const autoManageSubscription = useFeatureContext()?.autoSubscription
@@ -228,8 +259,9 @@ export const ParticipantTile: (
                         lineHeight: 1.4,
                       }}
                     >
-                      Unable to decrypt this participant&apos;s stream. One of
-                      you may need to leave and rejoin.
+                      Check that you and this person are using the correct
+                      meeting link. If they are the only one you can&apos;t see,
+                      the issue is likely on their side.
                     </div>
                   </div>
                 </div>

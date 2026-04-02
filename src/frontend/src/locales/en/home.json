@@ -19,6 +19,19 @@
     "encryptedInstantOption": "Start an encrypted meeting",
     "encryptedLaterOption": "Create an encrypted meeting for later"
   },
+  "encryptionModeDialog": {
+    "title": "Choose encryption mode",
+    "description": "Select the level of encryption for your meeting.",
+    "basic": {
+      "title": "Basic encryption",
+      "description": "Protects your meeting with a shared passphrase. Accessible to everyone — no setup required."
+    },
+    "advanced": {
+      "title": "Advanced encryption",
+      "description": "Maximum security — the encryption key never leaves your browser. Requires encryption onboarding for all participants.",
+      "onboardingRequired": "You must complete the encryption setup in your account settings before using advanced encryption."
+    }
+  },
   "laterMeetingDialog": {
     "heading": "Your connection details",
     "description": "Share this information with the guests. They will be able to join the meeting without needing to sign in. This meeting is permanent and can be reused.",

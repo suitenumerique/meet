@@ -283,7 +283,7 @@ class RoomViewSet(
         """Set the current user as owner of the newly created room."""
         # Encrypted rooms must use restricted access to enforce lobby approval
         # before the encryption key is shared with participants.
-        if serializer.validated_data.get("encryption_enabled"):
+        if serializer.validated_data.get("encryption_mode", models.EncryptionMode.NONE) != models.EncryptionMode.NONE:
             serializer.validated_data["access_level"] = models.RoomAccessLevel.RESTRICTED
 
         room = serializer.save()
@@ -453,6 +453,7 @@ class RoomViewSet(
                 allow_entry=serializer.validated_data.get("allow_entry"),
                 encrypted_key=serializer.validated_data.get("encrypted_key", ''),
                 admin_ephemeral_public_key=serializer.validated_data.get("admin_ephemeral_public_key", ''),
+                encrypted_vault_key=serializer.validated_data.get("encrypted_vault_key", ''),
             )
             return drf_response.Response({"message": "Participant was updated."})
 

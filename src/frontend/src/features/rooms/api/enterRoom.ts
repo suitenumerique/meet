@@ -8,6 +8,7 @@ export interface EnterRoomParams {
   participantId: string
   encryptedKey?: string
   adminEphemeralPublicKey?: string
+  encryptedVaultKey?: string
 }
 
 export interface EnterRoomResponse {
@@ -20,6 +21,7 @@ export const enterRoom = async ({
   participantId,
   encryptedKey = '',
   adminEphemeralPublicKey = '',
+  encryptedVaultKey = '',
 }: EnterRoomParams): Promise<EnterRoomResponse> => {
   return await fetchApi<EnterRoomResponse>(`/rooms/${roomId}/enter/`, {
     method: 'POST',
@@ -28,6 +30,7 @@ export const enterRoom = async ({
       allow_entry: allowEntry,
       encrypted_key: encryptedKey,
       admin_ephemeral_public_key: adminEphemeralPublicKey,
+      encrypted_vault_key: encryptedVaultKey,
     }),
   })
 }

@@ -4,7 +4,7 @@ import { Separator as RACSeparator } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { ApiAccessLevel, isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
@@ -168,7 +168,7 @@ export const Admin = () => {
         >
           {t('access.description')}
         </Text>
-        {readOnlyData?.encryption_enabled && (
+        {isEncryptedRoom(readOnlyData) && (
           <HStack
             gap="0.5rem"
             className={css({
@@ -213,13 +213,13 @@ export const Admin = () => {
               value: ApiAccessLevel.PUBLIC,
               label: t('access.levels.public.label'),
               description: t('access.levels.public.description'),
-              isDisabled: readOnlyData?.encryption_enabled,
+              isDisabled: isEncryptedRoom(readOnlyData),
             },
             {
               value: ApiAccessLevel.TRUSTED,
               label: t('access.levels.trusted.label'),
               description: t('access.levels.trusted.description'),
-              isDisabled: readOnlyData?.encryption_enabled,
+              isDisabled: isEncryptedRoom(readOnlyData),
             },
             {
               value: ApiAccessLevel.RESTRICTED,

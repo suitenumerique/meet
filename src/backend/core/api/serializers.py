@@ -128,7 +128,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "configuration", "access_level", "pin_code", "encryption_enabled"]
+        fields = ["id", "name", "slug", "configuration", "access_level", "pin_code", "encryption_mode"]
         read_only_fields = ["id", "slug", "pin_code"]
 
     def validate_access_level(self, value):
@@ -140,10 +140,10 @@ class RoomSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_encryption_enabled(self, value):
-        """Once encryption is enabled on a room, it cannot be disabled."""
+    def validate_encryption_mode(self, value):
+        """Once encryption is enabled on a room, it cannot be disabled or downgraded."""
         instance = self.instance
-        if instance and instance.encryption_enabled and not value:
+        if instance and instance.encryption_enabled and value == models.EncryptionMode.NONE:
             raise serializers.ValidationError(
                 "Encryption cannot be disabled once enabled on a room."
             )
@@ -300,6 +300,7 @@ class ParticipantEntrySerializer(BaseValidationOnlySerializer):
     allow_entry = serializers.BooleanField(required=True)
     encrypted_key = serializers.CharField(required=False, allow_blank=True, default='')
     admin_ephemeral_public_key = serializers.CharField(required=False, allow_blank=True, default='')
+    encrypted_vault_key = serializers.CharField(required=False, allow_blank=True, default='')
 
 
 class CreationCallbackSerializer(BaseValidationOnlySerializer):

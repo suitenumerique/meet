@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
 import { RiCloseLine, RiShieldCheckLine, RiAlertLine } from '@remixicon/react'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
 import { EncryptionTrustModal } from '@/features/encryption'
 import { useState } from 'react'
 
@@ -73,7 +74,7 @@ export const WaitingParticipantListItem = ({
 }) => {
   const { t } = useTranslation('rooms')
   const roomData = useRoomData()
-  const isEncryptedRoom = roomData?.encryption_enabled ?? false
+  const encryptedRoom = isEncryptedRoom(roomData)
 
   return (
     <HStack
@@ -94,7 +95,7 @@ export const WaitingParticipantListItem = ({
         })}
       >
         <Avatar name={participant.username} bgColor={participant.color} />
-        {isEncryptedRoom && (
+        {encryptedRoom && (
           <EncryptionTrustIndicator
             isAuthenticated={participant.is_authenticated}
             participantName={participant.username}
@@ -128,7 +129,7 @@ export const WaitingParticipantListItem = ({
               {participant.username}
             </span>
           </Text>
-          {isEncryptedRoom && participant.email && (
+          {encryptedRoom && participant.email && (
             <Text
               variant={'sm'}
               className={css({

@@ -13,7 +13,10 @@ import {
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
-import { setSymmetricKey, getSymmetricKey } from '@/features/encryption/lobbyKeyExchange'
+import { setSymmetricKey, getSymmetricKey, getEncryptedVaultKey } from '@/features/encryption/lobbyKeyExchange'
+import { isEncryptedRoom, ApiEncryptionMode } from '../api/ApiRoom'
+import { VaultE2EEManager } from '@/features/encryption/VaultE2EEManager'
+import { useVaultClient } from '@/features/encryption'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -88,23 +91,30 @@ export const Conference = ({
     retry: false,
   })
 
-  const encryptionEnabled = data?.encryption_enabled ?? false
+  const encryptionEnabled = isEncryptedRoom(data)
+  const { client: vaultClient, hasKeys: vaultHasKeys } = useVaultClient()
 
-  // Encryption setup — refs for keyProvider and worker,
-  // passed directly to RoomOptions.e2ee at Room construction time.
+  // Determine which E2EE backend to use:
+  // - Advanced mode: VaultClient (iframe-based, key never leaves iframe)
+  // - Basic mode: LiveKit's built-in Worker+KeyProvider with passphrase from URL hash
+  const isAdvancedMode = data?.encryption_mode === ApiEncryptionMode.ADVANCED
+  const useVaultE2EE = isAdvancedMode && !!vaultClient && !!vaultHasKeys
+
+  // Refs for both approaches (only one is used per session)
   const keyProviderRef = useRef<ExternalE2EEKeyProvider | null>(null)
   const workerRef = useRef<Worker | null>(null)
+  const vaultManagerRef = useRef<VaultE2EEManager | null>(null)
   const [encryptionSetupComplete, setEncryptionSetupComplete] = useState(!encryptionEnabled)
 
   const getKeyProvider = () => {
-    if (!keyProviderRef.current && encryptionEnabled) {
+    if (!keyProviderRef.current && encryptionEnabled && !useVaultE2EE) {
       keyProviderRef.current = new ExternalE2EEKeyProvider()
     }
     return keyProviderRef.current
   }
 
   const getWorker = () => {
-    if (!workerRef.current && encryptionEnabled && typeof window !== 'undefined') {
+    if (!workerRef.current && encryptionEnabled && !useVaultE2EE && typeof window !== 'undefined') {
       workerRef.current = new Worker(
         new URL('livekit-client/e2ee-worker', import.meta.url)
       )
@@ -112,11 +122,15 @@ export const Conference = ({
     return workerRef.current
   }
 
-  const roomOptions = useMemo((): RoomOptions => {
-    const worker = getWorker()
-    const keyProvider = getKeyProvider()
+  const getVaultManager = () => {
+    if (!vaultManagerRef.current && useVaultE2EE && vaultClient) {
+      vaultManagerRef.current = new VaultE2EEManager(vaultClient)
+    }
+    return vaultManagerRef.current
+  }
 
-    return {
+  const roomOptions = useMemo((): RoomOptions => {
+    const baseOptions: RoomOptions = {
       adaptiveStream: true,
       dynacast: true,
       publishDefaults: {
@@ -135,13 +149,26 @@ export const Conference = ({
       audioOutput: {
         deviceId: userConfig.audioOutputDeviceId ?? undefined,
       },
-      encryption: encryptionEnabled && keyProvider && worker
-        ? { keyProvider, worker }
-        : undefined,
     }
+
+    if (useVaultE2EE) {
+      const vaultManager = getVaultManager()
+      if (vaultManager) {
+        baseOptions.encryption = { e2eeManager: vaultManager }
+      }
+    } else if (encryptionEnabled) {
+      const worker = getWorker()
+      const keyProvider = getKeyProvider()
+      if (keyProvider && worker) {
+        baseOptions.encryption = { keyProvider, worker }
+      }
+    }
+
+    return baseOptions
     // do not rely on the userConfig object directly as its reference may change on every render
   }, [
     encryptionEnabled,
+    useVaultE2EE,
     userConfig.videoDeviceId,
     userConfig.videoPublishResolution,
     userConfig.audioDeviceId,
@@ -165,25 +192,110 @@ export const Conference = ({
   }, [apiConfig?.livekit])
 
   // Encryption key setup:
-  // Admin: generate passphrase -> setKey -> connect -> E2EE enabled
-  // Joiner: use pre-exchanged key from lobby -> setKey -> connect -> E2EE enabled
+  // VaultE2EE: admin generates key via vaultClient.encryptWithoutKey(), joiner receives wrapped key
+  // Fallback: admin generates passphrase, joiner receives via lobby DH exchange
   const isAdmin = mode === 'create' || data?.is_administrable === true
   const adminPassphraseRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!encryptionEnabled || encryptionSetupComplete) return
-    const keyProvider = getKeyProvider()
-    if (!keyProvider) return
 
-    if (isAdmin) {
-      // Generate passphrase once (React Strict Mode runs effects twice)
-      if (!adminPassphraseRef.current) {
-        adminPassphraseRef.current = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-          .map((b) => b.toString(36).padStart(2, '0'))
-          .join('')
+    if (useVaultE2EE) {
+      // VaultClient E2EE path — key never leaves the iframe
+      const vaultManager = getVaultManager()
+      if (!vaultManager || !vaultClient) return
+
+      const setupVaultKey = async () => {
+        try {
+          if (isAdmin) {
+            // Admin: generate a symmetric key via VaultClient
+            const dummyData = new Uint8Array(32).buffer
+            const { publicKey } = await vaultClient.getPublicKey()
+            const { encryptedKeys } = await vaultClient.encryptWithoutKey(
+              dummyData,
+              { self: publicKey }
+            )
+            const encryptedSymmetricKey = encryptedKeys['self']
+            vaultManager.setEncryptedSymmetricKey(encryptedSymmetricKey)
+            console.info('[VaultE2EE] Admin: symmetric key generated')
+          } else {
+            // Joiner: use the vault-wrapped key received from admin via lobby
+            const vaultKey = getEncryptedVaultKey()
+            if (vaultKey) {
+              vaultManager.setEncryptedSymmetricKey(vaultKey)
+              console.info('[VaultE2EE] Joiner: vault key received from lobby')
+            } else {
+              console.error('[VaultE2EE] Joiner: no vault key available')
+              return
+            }
+          }
+
+          setEncryptionSetupComplete(true)
+
+          const onConnected = async () => {
+            try {
+              await room.setE2EEEnabled(true)
+              console.info('[VaultE2EE] E2EE enabled')
+            } catch (err) {
+              console.error('[VaultE2EE] E2EE enable failed:', err)
+            }
+          }
+
+          if (room.state === 'connected') onConnected()
+          else room.once('connected', onConnected)
+        } catch (err) {
+          console.error('[VaultE2EE] Setup failed:', err)
+        }
       }
-      const passphrase = adminPassphraseRef.current
-      setSymmetricKey(new TextEncoder().encode(passphrase))
+
+      setupVaultKey()
+    } else {
+      // Basic mode: LiveKit Worker+KeyProvider with passphrase in URL hash
+      const keyProvider = getKeyProvider()
+      if (!keyProvider) return
+
+      let passphrase: string | null = null
+
+      if (isAdmin) {
+        // Admin: generate passphrase and put it in the URL hash
+        if (!adminPassphraseRef.current) {
+          // Check if there's already a hash (e.g. admin refreshed the page)
+          const existingHash = window.location.hash.slice(1)
+          if (existingHash) {
+            adminPassphraseRef.current = existingHash
+          } else {
+            adminPassphraseRef.current = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+              .map((b) => b.toString(36).padStart(2, '0'))
+              .join('')
+            // Set the hash in the URL (without triggering navigation)
+            window.history.replaceState(
+              window.history.state,
+              '',
+              `${window.location.pathname}${window.location.search}#${adminPassphraseRef.current}`
+            )
+          }
+        }
+        passphrase = adminPassphraseRef.current
+        setSymmetricKey(new TextEncoder().encode(passphrase))
+      } else {
+        // Joiner: read passphrase from URL hash (shared link) or from lobby exchange
+        const hashKey = window.location.hash.slice(1)
+        if (hashKey) {
+          passphrase = hashKey
+          setSymmetricKey(new TextEncoder().encode(passphrase))
+        } else {
+          // Fallback: key received via lobby DH exchange
+          const preExchangedKey = getSymmetricKey()
+          if (preExchangedKey) {
+            passphrase = new TextDecoder().decode(preExchangedKey)
+          }
+        }
+      }
+
+      if (!passphrase) {
+        console.error('[Encryption] No passphrase available (not in URL hash and no lobby exchange)')
+        return
+      }
 
       keyProvider
         .setKey(passphrase)
@@ -194,7 +306,7 @@ export const Conference = ({
             try {
               await room.setE2EEEnabled(true)
             } catch (err) {
-              console.error('[Encryption] Admin: E2EE enable failed:', err)
+              console.error('[Encryption] E2EE enable failed:', err)
             }
           }
 
@@ -202,40 +314,11 @@ export const Conference = ({
           else room.once('connected', onConnected)
         })
         .catch((err) => {
-          console.error('[Encryption] Admin failed:', err)
+          console.error('[Encryption] Key setup failed:', err)
         })
-    } else {
-      // Joiner: use the pre-exchanged key from lobby (stored in module-level lobbyKeyExchange)
-      const preExchangedKey = getSymmetricKey()
-
-      if (preExchangedKey) {
-        const passphrase = new TextDecoder().decode(preExchangedKey)
-
-        keyProvider
-          .setKey(passphrase)
-          .then(() => {
-            setEncryptionSetupComplete(true)
-
-            const onConnected = async () => {
-              try {
-                await room.setE2EEEnabled(true)
-              } catch (err) {
-                console.error('[Encryption] Joiner: E2EE enable failed:', err)
-              }
-            }
-
-            if (room.state === 'connected') onConnected()
-            else room.once('connected', onConnected)
-          })
-          .catch((err) => {
-            console.error('[Encryption] Joiner key setup failed:', err)
-          })
-      } else {
-        console.error('[Encryption] Joiner: no pre-exchanged key available')
-      }
     }
 
-  }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin])
+  }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin, useVaultE2EE])
 
   useEffect(() => {
     /**

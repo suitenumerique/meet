@@ -81,6 +81,10 @@
     "timeoutInvite": {
       "title": "You cannot join this call",
       "body": "No one responded to your request"
+    },
+    "invalidKey": {
+      "title": "Invalid meeting link",
+      "body": "This encrypted meeting requires a valid encryption key in the URL. Please ask the meeting organizer for the correct link."
     }
   },
   "leaveRoomPrompt": "This will make you leave the meeting.",

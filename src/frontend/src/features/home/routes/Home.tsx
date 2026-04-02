@@ -9,6 +9,8 @@ import { useUser, UserAware } from '@/features/auth'
 import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
 import { RiAddLine, RiLink, RiLockLine } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
+import { EncryptionModeDialog } from '@/features/home/components/EncryptionModeDialog'
+import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 import { IntroSlider } from '@/features/home/components/IntroSlider'
 import { MoreLink } from '@/features/home/components/MoreLink'
 import { ReactNode, useEffect, useState } from 'react'
@@ -156,6 +158,7 @@ export const Home = () => {
 
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
+  const [encryptionDialogMode, setEncryptionDialogMode] = useState<null | 'instant' | 'later'>(null)
   const [redirectFailed, setRedirectFailed] = useState(false)
 
   const { data } = useConfig()
@@ -248,18 +251,7 @@ export const Home = () => {
                       className={
                         menuRecipe({ icon: true, variant: 'light' }).item
                       }
-                      onAction={async () => {
-                        const slug = generateRoomId()
-                        createRoom({
-                          slug,
-                          username,
-                          encryptionEnabled: true,
-                        }).then((data) =>
-                          navigateTo('room', data.slug, {
-                            state: { create: true, initialRoomData: data },
-                          })
-                        )
-                      }}
+                      onAction={() => setEncryptionDialogMode('instant')}
                       data-attr="create-option-encrypted-instant"
                     >
                       <RiLockLine size={18} />
@@ -269,14 +261,7 @@ export const Home = () => {
                       className={
                         menuRecipe({ icon: true, variant: 'light' }).item
                       }
-                      onAction={() => {
-                        const slug = generateRoomId()
-                        createRoom({
-                          slug,
-                          username,
-                          encryptionEnabled: true,
-                        }).then((data) => setLaterRoom(data))
-                      }}
+                      onAction={() => setEncryptionDialogMode('later')}
                       data-attr="create-option-encrypted-later"
                     >
                       <RiLockLine size={18} />
@@ -313,6 +298,28 @@ export const Home = () => {
           room={laterRoom}
           onOpenChange={() => setLaterRoom(null)}
         />
+        {encryptionDialogMode && (
+          <EncryptionModeDialog
+            onSelect={(mode) => {
+              setEncryptionDialogMode(null)
+              const slug = generateRoomId()
+              createRoom({
+                slug,
+                username,
+                encryptionMode: mode,
+              }).then((data) => {
+                if (encryptionDialogMode === 'instant') {
+                  navigateTo('room', data.slug, {
+                    state: { create: true, initialRoomData: data },
+                  })
+                } else {
+                  setLaterRoom(data)
+                }
+              })
+            }}
+            onOpenChange={() => setEncryptionDialogMode(null)}
+          />
+        )}
       </Screen>
     </UserAware>
   )
