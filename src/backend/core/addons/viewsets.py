@@ -30,9 +30,9 @@ class AuthSessionViewSet(viewsets.ViewSet):
         Returns session_id in the body (client forwards it to the 3rd-party view).
         Sets result_token as an HttpOnly cookie (the only poll credential).
         """
-        session_id, result_token = TokenExchangeService().init_session()
+        session_id, result_token, transit_token = TokenExchangeService().init_session()
         response = drf_response.Response(
-            {"session_id": session_id}, status=drf_status.HTTP_201_CREATED
+            {"session_id": session_id, "transit_token": transit_token}, status=drf_status.HTTP_201_CREATED
         )
         response.set_cookie(
             key=settings.ADDONS_RESULT_TOKEN_COOKIE_NAME,

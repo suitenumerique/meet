@@ -35,7 +35,7 @@ class TokenExchangeService:
             secret_key=settings.ADDONS_JWT_SECRET_KEY,
             algorithm=settings.ADDONS_JWT_ALG,
             issuer=settings.ADDONS_JWT_ISSUER,
-            audience=settings.ADDONS_JWT_AUDIENCE,
+            audience=settings.ADDONS_JWT_AUDIENCE, # todo - precise
             expiration_seconds=settings.ADDONS_JWT_EXPIRATION_SECONDS,
             token_type=settings.ADDONS_JWT_TOKEN_TYPE,
         )
@@ -48,7 +48,7 @@ class TokenExchangeService:
         """Wip."""
         return f"{settings.ADDONS_SESSION_TOKEN_PREFIX}_{result_token}"
 
-    def init_session(self) -> tuple[str, str]:
+    def init_session(self) -> tuple[str, str, str]:
         """Create a new pending authentication session and return its ID."""
 
         session_id = secrets.token_urlsafe(settings.ADDONS_SESSION_ID_LENGTH)
@@ -77,10 +77,18 @@ class TokenExchangeService:
             timeout=settings.ADDONS_SESSION_TIMEOUT,
         )
 
-        print('$$ init session_id')
-        print(session_id)
+        # Transit token → session_id, very short TTL, one-time use
+        transit_token = secrets.token_urlsafe(32)
+        cache.set(
+            f"addon_transit_{transit_token}",
+            session_id,
+            timeout=120
+        )
 
-        return session_id, result_token
+        print('$$ init transit_token')
+        print(transit_token)
+
+        return session_id, result_token, transit_token
 
     # todo - wip
     def get_session(self, session_id: str) -> dict:
@@ -174,3 +182,11 @@ class TokenExchangeService:
     def token_to_session(self, result_token):
         """wip."""
         return None
+
+    def consume_transit_token(self, transit_token: str) -> str | None:
+        """Resolve and immediately delete the transit token (one-time use)."""
+        key = f"addon_transit_{transit_token}"
+        session_id = cache.get(key)
+        if session_id:
+            cache.delete(key)  # consumed — cannot be replayed
+        return session_id

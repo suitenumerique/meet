@@ -50,8 +50,8 @@ function startPolling(session_id, { onSuccess, onTimeout, onError }) {
 
 // ─── Transit Dialog ───────────────────────────────────────────────────────
 
-function openTransitDialog(session_id, { onCancel, onError }) {
-  const meetUrl = `${BASE_URL}/addons/transit/?session_id=${session_id}`;
+function openTransitDialog(transit_token, { onCancel, onError }) {
+  const meetUrl = `${BASE_URL}/addons/transit/?transit_token=${transit_token}`;
 
   Office.context.ui.displayDialogAsync(
     meetUrl,
@@ -92,6 +92,7 @@ function connect() {
     .then((res) => res.json())
     .then((data) => {
       const session_id = data.session_id;
+      const transit_token = data.transit_token;
       setStatus("En attente d'authentification...");
 
       const pollInterval = startPolling(session_id, {
@@ -109,7 +110,7 @@ function connect() {
         },
       });
 
-      openTransitDialog(session_id, {
+      openTransitDialog(transit_token, {
         onCancel: () => clearInterval(pollInterval),
         onError:  (err) => {
           clearInterval(pollInterval);

@@ -18,13 +18,18 @@ def render_error(request, message, status=400):
 def transit_page(request):
     """Initialize authentication flow for add-on session."""
 
-    session_id = request.GET.get("session_id")
+    transit_token = request.GET.get("transit_token")
+
+    if not transit_token:
+        return render_error(request, _("Transit token is required."), status=400)
+
+    session_id = TokenExchangeService().consume_transit_token(transit_token)
 
     if not session_id:
-        return render_error(request, _("Session ID is required."), status=400)
+        return render_error(request, _("Invalid or expired transit token."), status=404)
 
+    # Validate the session is still pending
     data = TokenExchangeService().get_session(session_id)
-
     if not data:
         return render_error(request, _("Session not found or expired."), status=404)
 
