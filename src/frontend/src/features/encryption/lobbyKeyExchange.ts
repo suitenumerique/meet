@@ -120,6 +120,19 @@ export function getEncryptedVaultKey(): ArrayBuffer | null {
 }
 
 /**
+ * Generate a random passphrase for basic mode encryption.
+ * 24 random bytes encoded in base36 = 48 alphanumeric characters.
+ */
+export function generatePassphrase(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(24)))
+    .map((b) => b.toString(36).padStart(2, '0'))
+    .join('')
+}
+
+/** Expected length of a basic mode passphrase */
+export const BASIC_KEY_LENGTH = 48
+
+/**
  * Derive a shared secret from X25519 ECDH, then derive an encryption key via BLAKE2b.
  */
 async function deriveSharedKey(

@@ -33,6 +33,7 @@ export type ApiRoom = {
   is_administrable: boolean
   access_level: ApiAccessLevel
   encryption_mode: ApiEncryptionMode
+  encrypted_symmetric_key?: string
   livekit?: ApiLiveKit
   configuration?: {
     [key: string]: string | number | boolean | string[]

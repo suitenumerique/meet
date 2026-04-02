@@ -13,7 +13,7 @@ import {
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
-import { setSymmetricKey, getSymmetricKey, getEncryptedVaultKey } from '@/features/encryption/lobbyKeyExchange'
+import { setSymmetricKey, getSymmetricKey, getEncryptedVaultKey, generatePassphrase } from '@/features/encryption/lobbyKeyExchange'
 import { isEncryptedRoom, ApiEncryptionMode } from '../api/ApiRoom'
 import { VaultE2EEManager } from '@/features/encryption/VaultE2EEManager'
 import { useVaultClient } from '@/features/encryption'
@@ -208,16 +208,19 @@ export const Conference = ({
       const setupVaultKey = async () => {
         try {
           if (isAdmin) {
-            // Admin: generate a symmetric key via VaultClient
-            const dummyData = new Uint8Array(32).buffer
-            const { publicKey } = await vaultClient.getPublicKey()
-            const { encryptedKeys } = await vaultClient.encryptWithoutKey(
-              dummyData,
-              { self: publicKey }
-            )
-            const encryptedSymmetricKey = encryptedKeys['self']
-            vaultManager.setEncryptedSymmetricKey(encryptedSymmetricKey)
-            console.info('[VaultE2EE] Admin: symmetric key generated')
+            // Admin: check if we already have a key (refresh/rejoin case)
+            const existingKey = data?.encrypted_symmetric_key
+            if (existingKey) {
+              // Decode base64 to ArrayBuffer
+              const binaryStr = atob(existingKey)
+              const bytes = new Uint8Array(binaryStr.length)
+              for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
+              vaultManager.setEncryptedSymmetricKey(bytes.buffer)
+              console.info('[VaultE2EE] Admin: restored key from backend')
+            } else {
+              console.error('[VaultE2EE] Admin: no encrypted symmetric key found — was the room created with advanced mode?')
+              return
+            }
           } else {
             // Joiner: use the vault-wrapped key received from admin via lobby
             const vaultKey = getEncryptedVaultKey()
@@ -264,9 +267,7 @@ export const Conference = ({
           if (existingHash) {
             adminPassphraseRef.current = existingHash
           } else {
-            adminPassphraseRef.current = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-              .map((b) => b.toString(36).padStart(2, '0'))
-              .join('')
+            adminPassphraseRef.current = generatePassphrase()
             // Set the hash in the URL (without triggering navigation)
             window.history.replaceState(
               window.history.state,

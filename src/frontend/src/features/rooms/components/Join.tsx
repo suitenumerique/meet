@@ -33,6 +33,118 @@ import { queryClient } from '@/api/queryClient'
 import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel, ApiEncryptionMode, isEncryptedRoom as checkEncryptedRoom } from '../api/ApiRoom'
+import { useVaultClient } from '@/features/encryption'
+import { LoginButton } from '@/components/LoginButton'
+
+const AdvancedOnboardingScreen = ({
+  modalOpen,
+  onModalOpenChange,
+}: {
+  modalOpen: boolean
+  onModalOpenChange: (open: boolean) => void
+}) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { client: vaultClient } = useVaultClient()
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!modalOpen || !vaultClient) return
+
+    const el = containerRef.current
+    if (!el) return
+
+    el.innerHTML = ''
+    vaultClient.openOnboarding(el)
+
+    const handleClosed = () => {
+      onModalOpenChange(false)
+      vaultClient.off('interface:closed', handleClosed)
+    }
+    vaultClient.on('interface:closed', handleClosed)
+
+    return () => {
+      vaultClient.off('interface:closed', handleClosed)
+    }
+  }, [modalOpen, vaultClient, onModalOpenChange])
+
+  return (
+    <>
+      <VStack alignItems="center" textAlign="center" gap="0.75rem">
+        <RiLockLine size={32} color="#d97706" />
+        <H lvl={1} margin={false} centered>
+          {t('advancedOnboarding.title')}
+        </H>
+        <Text as="p" variant="note">
+          {t('advancedOnboarding.body')}
+        </Text>
+        <Button
+          variant="primary"
+          onPress={() => onModalOpenChange(true)}
+        >
+          {t('advancedOnboarding.button')}
+        </Button>
+      </VStack>
+      {modalOpen && (
+        <div
+          className={css({
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          })}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              onModalOpenChange(false)
+              vaultClient?.closeInterface()
+            }
+          }}
+        >
+          <div
+            className={css({
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              width: '90%',
+              maxWidth: '550px',
+              maxHeight: '85vh',
+              overflow: 'auto',
+              position: 'relative',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            })}
+          >
+            <button
+              onClick={() => {
+                onModalOpenChange(false)
+                vaultClient?.closeInterface()
+              }}
+              className={css({
+                position: 'absolute',
+                top: '0.75rem',
+                right: '0.75rem',
+                zIndex: 1,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                color: 'greyscale.500',
+                _hover: { color: 'greyscale.900' },
+              })}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            <div
+              ref={containerRef}
+              className={css({ minHeight: '300px' })}
+            />
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { useUser } from '@/features/auth'
 import { RiInformationLine, RiLockLine } from '@remixicon/react'
@@ -115,11 +227,16 @@ export const Join = ({
   })
   const isEncryptedRoom = checkEncryptedRoom(roomInfo)
   const isBasicEncrypted = roomInfo?.encryption_mode === ApiEncryptionMode.BASIC
+  const isAdvancedEncrypted = roomInfo?.encryption_mode === ApiEncryptionMode.ADVANCED
 
   // Basic mode: validate the passphrase in the URL hash
-  const BASIC_KEY_LENGTH = 48
   const hashKey = window.location.hash.slice(1)
-  const hasValidBasicKey = isBasicEncrypted ? (hashKey.length === BASIC_KEY_LENGTH && /^[a-z0-9]+$/.test(hashKey)) : true
+  const hasValidBasicKey = isBasicEncrypted ? (hashKey.length === 48 && /^[a-z0-9]+$/.test(hashKey)) : true
+
+  // Advanced mode: require auth + vault onboarding
+  const { hasKeys: vaultHasKeys, isReady: vaultReady } = useVaultClient()
+  const advancedRequiresLogin = isAdvancedEncrypted && !isLoggedIn
+  const advancedRequiresOnboarding = isAdvancedEncrypted && isLoggedIn && vaultReady && !vaultHasKeys
 
   // In encrypted rooms, authenticated users must use their OIDC name
   const isNameLocked = isEncryptedRoom && !!isLoggedIn
@@ -350,6 +467,7 @@ export const Join = ({
     encryptionEnabled: isEncryptedRoom,
   })
 
+  const [advancedOnboardingOpen, setAdvancedOnboardingOpen] = useState(false)
   const { openLoginHint } = useLoginHint()
 
   const handleSubmit = async () => {
@@ -449,6 +567,28 @@ export const Join = ({
         )
 
       default:
+        if (advancedRequiresLogin) {
+          return (
+            <VStack alignItems="center" textAlign="center" gap="0.75rem">
+              <RiLockLine size={32} color="#2563eb" />
+              <H lvl={1} margin={false} centered>
+                {t('advancedAuth.title')}
+              </H>
+              <Text as="p" variant="note">
+                {t('advancedAuth.body')}
+              </Text>
+              <LoginButton proConnectHint={false} />
+            </VStack>
+          )
+        }
+        if (advancedRequiresOnboarding || advancedOnboardingOpen) {
+          return (
+            <AdvancedOnboardingScreen
+              modalOpen={advancedOnboardingOpen}
+              onModalOpenChange={setAdvancedOnboardingOpen}
+            />
+          )
+        }
         if (isBasicEncrypted && !hasValidBasicKey) {
           return (
             <VStack alignItems="center" textAlign="center" gap="0.75rem">

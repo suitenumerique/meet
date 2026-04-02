@@ -19,6 +19,19 @@
     "encryptedInstantOption": "Démarrer une réunion chiffrée",
     "encryptedLaterOption": "Créer une réunion chiffrée pour plus tard"
   },
+  "encryptionModeDialog": {
+    "title": "Choisir le mode de chiffrement",
+    "description": "Sélectionnez le niveau de chiffrement pour votre réunion.",
+    "basic": {
+      "title": "Chiffrement basique",
+      "description": "Protège votre réunion avec une phrase secrète partagée. Accessible à tous — aucune configuration requise."
+    },
+    "advanced": {
+      "title": "Chiffrement avancé",
+      "description": "Sécurité maximale — la clé de chiffrement ne quitte jamais votre navigateur. Nécessite la configuration du chiffrement pour tous les participants.",
+      "onboardingRequired": "Vous devez compléter la configuration du chiffrement dans les paramètres de votre compte avant d'utiliser le chiffrement avancé."
+    }
+  },
   "laterMeetingDialog": {
     "heading": "Vos informations de connexion",
     "description": "Partagez ces informations avec les invités. Ils pourront rejoindre la réunion sans avoir besoin de se connecter. Cette réunion est permanente et peut être réutilisée.",

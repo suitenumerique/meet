@@ -8,6 +8,7 @@ export interface CreateRoomParams {
   callbackId?: string
   username?: string
   encryptionMode?: ApiEncryptionMode
+  encryptedSymmetricKey?: string
 }
 
 const createRoom = ({
@@ -15,13 +16,16 @@ const createRoom = ({
   callbackId,
   username = '',
   encryptionMode = ApiEncryptionMode.NONE,
+  encryptedSymmetricKey = '',
 }: CreateRoomParams): Promise<ApiRoom> => {
-  return fetchApi(`rooms/?username=${encodeURIComponent(username)}`, {
+  const queryParams = username ? `?username=${encodeURIComponent(username)}` : ''
+  return fetchApi(`rooms/${queryParams}`, {
     method: 'POST',
     body: JSON.stringify({
       name: slug,
       callback_id: callbackId,
       encryption_mode: encryptionMode,
+      encrypted_symmetric_key: encryptedSymmetricKey,
     }),
   })
 }

@@ -561,7 +561,7 @@ class Base(Configuration):
         "returnTo", environ_name="OIDC_REDIRECT_FIELD_NAME", environ_prefix=None
     )
     OIDC_USERINFO_FULLNAME_FIELDS = values.ListValue(
-        default=["given_name", "usual_name"],
+        default=["given_name", "usual_name", "family_name"],
         environ_name="OIDC_USERINFO_FULLNAME_FIELDS",
         environ_prefix=None,
     )

@@ -81,6 +81,19 @@
     "timeoutInvite": {
       "title": "Vous ne pouvez pas participer à cet appel",
       "body": "Personne n'a répondu à votre demande de participation à l'appel"
+    },
+    "invalidKey": {
+      "title": "Lien de réunion invalide",
+      "body": "Cette réunion chiffrée nécessite une clé de chiffrement valide dans l'URL. Veuillez demander le lien correct à l'organisateur de la réunion."
+    },
+    "advancedAuth": {
+      "title": "Authentification requise",
+      "body": "Cette réunion utilise le chiffrement avancé. Vous devez être connecté pour la rejoindre."
+    },
+    "advancedOnboarding": {
+      "title": "Configuration du chiffrement requise",
+      "body": "Cette réunion utilise le chiffrement avancé. Vous devez configurer votre chiffrement avant de pouvoir rejoindre.",
+      "button": "Configurer le chiffrement"
     }
   },
   "leaveRoomPrompt": "Revenir à l'accueil vous fera quitter la réunion.",
@@ -574,7 +587,9 @@
         "all": "Tout rejeter"
       },
       "trust": {
-        "authenticated": "Identité authentifiée (ProConnect). La clé de chiffrement sera échangée de manière sécurisée.",
+        "verified": "Identité vérifiée — l'empreinte est de confiance.",
+        "refused": "ATTENTION — Cette empreinte a été refusée. Cette personne n'est peut-être pas celle qu'elle prétend être.",
+        "authenticated": "Identité authentifiée (ProConnect). Cliquez pour vérifier l'empreinte.",
         "anonymous": "Utilisateur anonyme — identité non vérifiée. Vérifiez son identité avant d'accepter."
       }
     },

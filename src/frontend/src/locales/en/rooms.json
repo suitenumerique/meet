@@ -85,6 +85,15 @@
     "invalidKey": {
       "title": "Invalid meeting link",
       "body": "This encrypted meeting requires a valid encryption key in the URL. Please ask the meeting organizer for the correct link."
+    },
+    "advancedAuth": {
+      "title": "Authentication required",
+      "body": "This meeting uses advanced encryption. You must be logged in to join."
+    },
+    "advancedOnboarding": {
+      "title": "Encryption setup required",
+      "body": "This meeting uses advanced encryption. You must complete your encryption setup before you can join.",
+      "button": "Set up encryption"
     }
   },
   "leaveRoomPrompt": "This will make you leave the meeting.",
@@ -578,7 +587,9 @@
         "all": "Deny all"
       },
       "trust": {
-        "authenticated": "Authenticated identity (ProConnect). Encryption key will be exchanged securely.",
+        "verified": "Identity verified — fingerprint is trusted.",
+        "refused": "WARNING — This fingerprint has been refused. This person may not be who they claim to be.",
+        "authenticated": "Authenticated identity (ProConnect). Click to check fingerprint.",
         "anonymous": "Anonymous user — identity not verified. Verify their identity before accepting."
       }
     },

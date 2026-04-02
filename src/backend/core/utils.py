@@ -66,6 +66,7 @@ def generate_token(
     sources: Optional[List[str]] = None,
     is_admin_or_owner: bool = False,
     participant_id: Optional[str] = None,
+    encryption_mode: str = 'none',
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -92,11 +93,15 @@ def generate_token(
     if sources is None:
         sources = settings.LIVEKIT_DEFAULT_SOURCES
 
+    # In encrypted rooms, authenticated users cannot change their name/metadata
+    # to prevent identity spoofing in the LiveKit room.
+    can_update_metadata = encryption_mode == 'none' or user.is_anonymous
+
     video_grants = VideoGrants(
         room=room,
         room_join=True,
         room_admin=is_admin_or_owner,
-        can_update_own_metadata=True,
+        can_update_own_metadata=can_update_metadata,
         can_publish=bool(sources),
         can_publish_sources=sources,
         can_subscribe=True,
@@ -150,6 +155,7 @@ def generate_livekit_config(
     color: Optional[str] = None,
     configuration: Optional[dict] = None,
     participant_id: Optional[str] = None,
+    encryption_mode: str = 'none',
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -182,6 +188,7 @@ def generate_livekit_config(
             sources=sources,
             is_admin_or_owner=is_admin_or_owner,
             participant_id=participant_id,
+            encryption_mode=encryption_mode,
         ),
     }
 

@@ -69,21 +69,29 @@ export const useWaitingParticipants = () => {
     let encryptedVaultKey = ''
 
     if (isAdvancedMode && vaultClient && participant.suite_user_id) {
-      // Advanced mode: wrap the symmetric key for the joiner's vault public key
+      // Advanced mode: re-wrap the existing symmetric key for the joiner
       try {
+        // Get the admin's own encrypted symmetric key from the room data
+        const adminKeyBase64 = roomData?.encrypted_symmetric_key
+        if (!adminKeyBase64) {
+          console.error('[VaultE2EE] Admin has no encrypted symmetric key')
+          return { encryptedKey, adminEphemeralPublicKey, encryptedVaultKey }
+        }
+        const adminKeyBinary = atob(adminKeyBase64)
+        const adminKeyBytes = new Uint8Array(adminKeyBinary.length)
+        for (let i = 0; i < adminKeyBinary.length; i++) adminKeyBytes[i] = adminKeyBinary.charCodeAt(i)
+
+        // Fetch joiner's vault public key
         const { publicKeys } = await vaultClient.fetchPublicKeys([participant.suite_user_id])
         const joinerPubKey = publicKeys[participant.suite_user_id]
         if (joinerPubKey) {
-          // Get admin's encrypted symmetric key from the VaultE2EEManager
-          // and re-wrap it for the joiner
-          const adminPubKey = (await vaultClient.getPublicKey()).publicKey
-          const { encryptedKeys } = await vaultClient.encryptWithoutKey(
-            new Uint8Array(32).buffer,
-            { [participant.suite_user_id]: joinerPubKey, self: adminPubKey }
+          // Re-wrap the symmetric key for the joiner using shareKeys
+          const { encryptedKeys } = await vaultClient.shareKeys(
+            adminKeyBytes.buffer,
+            { [participant.suite_user_id]: joinerPubKey }
           )
           const joinerKey = encryptedKeys[participant.suite_user_id]
           if (joinerKey) {
-            // Encode as base64 for transport via REST API
             const bytes = new Uint8Array(joinerKey)
             encryptedVaultKey = btoa(String.fromCharCode(...bytes))
           }

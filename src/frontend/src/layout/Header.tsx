@@ -14,7 +14,7 @@ import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { useVaultClient } from '@/features/encryption'
 import { useConfig } from '@/api/useConfig'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 const Logo = () => (
   <img
@@ -96,6 +96,7 @@ export const Header = () => {
   const { data: config } = useConfig()
   const { client: vaultClient, hasKeys } = useVaultClient()
   const encryptionContainerRef = useRef<HTMLDivElement | null>(null)
+  const [showEncryptionModal, setShowEncryptionModal] = useState(false)
   const isEncryptionAvailable = !!config?.encryption?.enabled && !!vaultClient
   const userLabel = user?.full_name || user?.email
   const loggedInTooltip = t('loggedInUserTooltip')
@@ -203,30 +204,8 @@ export const Header = () => {
                       if (value === 'logout') {
                         logout()
                       }
-                      if (value === 'encryption' && vaultClient) {
-                        // Create a container for the VaultClient interface
-                        const container = document.createElement('div')
-                        container.style.position = 'fixed'
-                        container.style.inset = '0'
-                        container.style.zIndex = '9999'
-                        document.body.appendChild(container)
-                        encryptionContainerRef.current = container
-
-                        if (hasKeys) {
-                          vaultClient.openSettings(container)
-                        } else {
-                          vaultClient.openOnboarding(container)
-                        }
-
-                        // Listen for close
-                        vaultClient.on('interface:closed', () => {
-                          if (encryptionContainerRef.current) {
-                            document.body.removeChild(
-                              encryptionContainerRef.current
-                            )
-                            encryptionContainerRef.current = null
-                          }
-                        })
+                      if (value === 'encryption') {
+                        setShowEncryptionModal(true)
                       }
                     }}
                   />
@@ -237,6 +216,81 @@ export const Header = () => {
           </nav>
         </HStack>
       </div>
+      {showEncryptionModal && vaultClient && (
+        <div
+          className={css({
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          })}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowEncryptionModal(false)
+              vaultClient.closeInterface()
+            }
+          }}
+        >
+          <div
+            className={css({
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              width: '90%',
+              maxWidth: '550px',
+              maxHeight: '85vh',
+              overflow: 'auto',
+              position: 'relative',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            })}
+          >
+            <button
+              onClick={() => {
+                setShowEncryptionModal(false)
+                vaultClient.closeInterface()
+              }}
+              className={css({
+                position: 'absolute',
+                top: '0.75rem',
+                right: '0.75rem',
+                zIndex: 1,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                color: 'greyscale.500',
+                _hover: { color: 'greyscale.900' },
+              })}
+              aria-label={t('close')}
+            >
+              ✕
+            </button>
+            <div
+              ref={(el) => {
+                if (!el) return
+                // Clear previous content and re-inject
+                el.innerHTML = ''
+                encryptionContainerRef.current = el
+                if (hasKeys) {
+                  vaultClient.openSettings(el)
+                } else {
+                  vaultClient.openOnboarding(el)
+                }
+
+                const handleClosed = () => {
+                  setShowEncryptionModal(false)
+                  encryptionContainerRef.current = null
+                  vaultClient.off('interface:closed', handleClosed)
+                }
+                vaultClient.on('interface:closed', handleClosed)
+              }}
+              className={css({ minHeight: '300px' })}
+            />
+          </div>
+        </div>
+      )}
     </>
   )
 }

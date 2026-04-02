@@ -332,6 +332,15 @@ class ResourceAccess(BaseModel):
     role = models.CharField(
         max_length=20, choices=RoleChoices.choices, default=RoleChoices.MEMBER
     )
+    encrypted_symmetric_key = models.TextField(
+        blank=True,
+        default='',
+        verbose_name=_("Encrypted symmetric key"),
+        help_text=_(
+            "Vault-wrapped symmetric encryption key for advanced E2EE mode. "
+            "Each user's copy is encrypted for their own vault public key."
+        ),
+    )
 
     class Meta:
         db_table = "meet_resource_access"

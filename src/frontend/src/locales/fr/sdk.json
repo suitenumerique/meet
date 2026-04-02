@@ -6,5 +6,13 @@
     "resetLabel": "Réinitialiser",
     "participantLimit": "Jusqu'à 150 participants.",
     "popupBlocked": "La fenêtre pop-up a été bloquée. Veuillez autoriser les pop-ups pour ce site."
+  },
+  "createPopup": {
+    "title": "Créer une réunion",
+    "standard": "Réunion standard",
+    "encrypted": "Réunion chiffrée",
+    "advancedEncrypted": "Réunion chiffrée avancée",
+    "advancedDescription": "Sécurité maximale — les clés de chiffrement ne quittent jamais votre appareil. Tous les participants doivent configurer le chiffrement avant de rejoindre. Nécessite une sauvegarde des clés.",
+    "advancedUnavailable": "Service de chiffrement non disponible"
   }
 }

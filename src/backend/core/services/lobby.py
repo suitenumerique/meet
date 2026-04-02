@@ -127,7 +127,7 @@ class LobbyService:
                 key=settings.LOBBY_COOKIE_NAME,
                 value=participant_id,
                 httponly=True,
-                secure=True,
+                secure=not settings.DEBUG,
                 samesite="Lax",
             )
 
@@ -193,6 +193,7 @@ class LobbyService:
                 configuration=room.configuration,
                 is_admin_or_owner=False,
                 participant_id=participant_id,
+                encryption_mode=room.encryption_mode,
             )
             return participant, livekit_config
 
@@ -235,6 +236,7 @@ class LobbyService:
                 configuration=room.configuration,
                 is_admin_or_owner=False,
                 participant_id=participant_id,
+                encryption_mode=room.encryption_mode,
             )
 
         return participant, livekit_config

@@ -30,8 +30,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.User
-        fields = ["id", "email", "full_name", "short_name", "timezone", "language"]
-        read_only_fields = ["id", "email", "full_name", "short_name"]
+        fields = ["id", "sub", "email", "full_name", "short_name", "timezone", "language"]
+        read_only_fields = ["id", "sub", "email", "full_name", "short_name"]
 
 
 class UserLightSerializer(serializers.ModelSerializer):
@@ -74,6 +74,23 @@ class ResourceAccessSerializerMixin:
             raise PermissionDenied(
                 "Only owners of a room can assign other users as owners."
             )
+
+        # In advanced encrypted rooms, new accesses require an encrypted_symmetric_key
+        # so the new member can decrypt the room's streams. Without it, they'd have
+        # access but no key — which is useless and confusing.
+        # Future: a sharing UI (like Docs) could provide the key via vault shareKeys.
+        if not self.instance and "resource" in data:
+            resource = data["resource"]
+            if (
+                hasattr(resource, 'encryption_mode')
+                and resource.encryption_mode == models.EncryptionMode.ADVANCED
+                and not data.get("encrypted_symmetric_key")
+            ):
+                raise serializers.ValidationError(
+                    "Adding members to advanced encrypted rooms requires "
+                    "an encrypted_symmetric_key for the new user."
+                )
+
         return data
 
     def validate_resource(self, resource):
@@ -98,7 +115,7 @@ class ResourceAccessSerializer(
 
     class Meta:
         model = models.ResourceAccess
-        fields = ["id", "user", "resource", "role"]
+        fields = ["id", "user", "resource", "role", "encrypted_symmetric_key"]
         read_only_fields = ["id"]
 
     def update(self, instance, validated_data):
@@ -202,11 +219,21 @@ class RoomSerializer(serializers.ModelSerializer):
                 username=username,
                 configuration=configuration,
                 is_admin_or_owner=is_admin_or_owner,
+                encryption_mode=instance.encryption_mode,
             )
         else:
             del output["pin_code"]
 
         output["is_administrable"] = is_admin_or_owner
+
+        # Include the current user's encrypted symmetric key for advanced E2EE
+        if request.user.is_authenticated and instance.encryption_mode == models.EncryptionMode.ADVANCED:
+            try:
+                access = instance.accesses.get(user=request.user)
+                if access.encrypted_symmetric_key:
+                    output["encrypted_symmetric_key"] = access.encrypted_symmetric_key
+            except models.ResourceAccess.DoesNotExist:
+                pass
 
         return output
 
@@ -289,7 +316,7 @@ class StartRecordingSerializer(BaseValidationOnlySerializer):
 class RequestEntrySerializer(BaseValidationOnlySerializer):
     """Validate request entry data."""
 
-    username = serializers.CharField(required=True)
+    username = serializers.CharField(required=True, allow_blank=True)
     ephemeral_public_key = serializers.CharField(required=False, allow_blank=True, default='')
 
 

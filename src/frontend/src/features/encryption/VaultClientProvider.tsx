@@ -18,6 +18,7 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useUser } from '@/features/auth'
 import { useConfig } from '@/api/useConfig'
 
 export interface VaultClientContextValue {
@@ -75,6 +76,7 @@ export function VaultClientProvider({
 }) {
   const { data: config } = useConfig()
   const { i18n } = useTranslation()
+  const { user } = useUser()
   const clientRef = useRef<VaultClient | null>(null)
   const [clientInitialized, setClientInitialized] = useState(false)
   const [isReady, setIsReady] = useState(false)
@@ -171,11 +173,24 @@ export function VaultClientProvider({
       return
     }
 
-    // For now, mark as ready without auth context.
-    // Auth context will be set when we have a suite_user_id.
-    setIsReady(true)
+    const suiteUserId = (user as Record<string, unknown>)?.sub as string | undefined
+    if (suiteUserId) {
+      client.setAuthContext({ suiteUserId })
+      setIsReady(true)
+      // Check key state now that auth context is set
+      client.hasKeys()
+        .then(({ hasKeys: exists }) => {
+          setHasKeys(exists)
+          if (exists) {
+            client.getPublicKey()
+              .then(({ publicKey: pk }) => setPublicKey(pk))
+              .catch(() => {})
+          }
+        })
+        .catch(() => {})
+    }
     setIsLoading(false)
-  }, [clientInitialized])
+  }, [clientInitialized, (user as Record<string, unknown>)?.sub])
 
   const refreshKeyState = useCallback(async () => {
     const client = clientRef.current
@@ -198,7 +213,7 @@ export function VaultClientProvider({
   return (
     <VaultClientContext.Provider
       value={{
-        client: isReady ? clientRef.current : null,
+        client: clientInitialized ? clientRef.current : null,
         isReady,
         isLoading,
         error,

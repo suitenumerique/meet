@@ -287,10 +287,12 @@ class RoomViewSet(
             serializer.validated_data["access_level"] = models.RoomAccessLevel.RESTRICTED
 
         room = serializer.save()
+        encrypted_symmetric_key = self.request.data.get("encrypted_symmetric_key", "")
         models.ResourceAccess.objects.create(
             resource=room,
             user=self.request.user,
             role=models.RoleChoices.OWNER,
+            encrypted_symmetric_key=encrypted_symmetric_key,
         )
 
         if callback_id := self.request.data.get("callback_id"):
@@ -318,6 +320,12 @@ class RoomViewSet(
         mode = serializer.validated_data["mode"]
         options = serializer.validated_data.get("options")
         room = self.get_object()
+
+        if room.encryption_enabled:
+            return drf_response.Response(
+                {"detail": "Recording is not available in encrypted rooms."},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
 
         # May raise exception if an active or initiated recording already exist for the room
         recording = models.Recording.objects.create(
@@ -402,6 +410,13 @@ class RoomViewSet(
 
         room = self.get_object()
         validated_data = serializer.validated_data
+
+        # Advanced encrypted rooms require authentication
+        if room.encryption_mode == models.EncryptionMode.ADVANCED and not request.user.is_authenticated:
+            return drf_response.Response(
+                {"detail": "This meeting requires authentication to join."},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
 
         # In encrypted rooms, authenticated users must use their real name
         # from the OIDC profile — they cannot choose an arbitrary name.

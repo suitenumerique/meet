@@ -11,6 +11,8 @@ import { RiAddLine, RiLink, RiLockLine } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
 import { EncryptionModeDialog } from '@/features/home/components/EncryptionModeDialog'
 import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
+import { generatePassphrase } from '@/features/encryption/lobbyKeyExchange'
+import { useVaultClient } from '@/features/encryption'
 import { IntroSlider } from '@/features/home/components/IntroSlider'
 import { MoreLink } from '@/features/home/components/MoreLink'
 import { ReactNode, useEffect, useState } from 'react'
@@ -157,7 +159,8 @@ export const Home = () => {
   } = usePersistentUserChoices()
 
   const { mutateAsync: createRoom } = useCreateRoom()
-  const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
+  const { client: vaultClient } = useVaultClient()
+  const [laterRoom, setLaterRoom] = useState<null | { room: ApiRoom; hash?: string }>(null)
   const [encryptionDialogMode, setEncryptionDialogMode] = useState<null | 'instant' | 'later'>(null)
   const [redirectFailed, setRedirectFailed] = useState(false)
 
@@ -232,7 +235,7 @@ export const Home = () => {
                       onAction={() => {
                         const slug = generateRoomId()
                         createRoom({ slug, username }).then((data) =>
-                          setLaterRoom(data)
+                          setLaterRoom({ room: data })
                         )
                       }}
                       data-attr="create-option-later"
@@ -295,25 +298,52 @@ export const Home = () => {
           </RightColumn>
         </Columns>
         <LaterMeetingDialog
-          room={laterRoom}
+          room={laterRoom?.room ?? null}
+          hash={laterRoom?.hash}
           onOpenChange={() => setLaterRoom(null)}
         />
         {encryptionDialogMode && (
           <EncryptionModeDialog
-            onSelect={(mode) => {
+            onSelect={async (mode) => {
+              const dialogMode = encryptionDialogMode
               setEncryptionDialogMode(null)
               const slug = generateRoomId()
+              const hash = mode === ApiEncryptionMode.BASIC ? generatePassphrase() : undefined
+
+              let encryptedSymmetricKey = ''
+              if (mode === ApiEncryptionMode.ADVANCED && vaultClient) {
+                // encryptWithoutKey requires data to encrypt, but we only care about
+                // the generated symmetric key (encryptedKeys), not the encrypted content.
+                // The same symmetric key will be used for all streams (video/audio/chat).
+                const dummyData = new Uint8Array(32).buffer
+                const { publicKey } = await vaultClient.getPublicKey()
+                const { encryptedKeys } = await vaultClient.encryptWithoutKey(
+                  dummyData,
+                  { self: publicKey }
+                )
+                const keyBytes = new Uint8Array(encryptedKeys['self'])
+                encryptedSymmetricKey = btoa(String.fromCharCode(...keyBytes))
+              }
+
               createRoom({
                 slug,
                 username,
                 encryptionMode: mode,
+                encryptedSymmetricKey,
               }).then((data) => {
-                if (encryptionDialogMode === 'instant') {
+                if (dialogMode === 'instant') {
                   navigateTo('room', data.slug, {
                     state: { create: true, initialRoomData: data },
                   })
+                  if (hash) {
+                    window.history.replaceState(
+                      window.history.state,
+                      '',
+                      `${window.location.pathname}#${hash}`
+                    )
+                  }
                 } else {
-                  setLaterRoom(data)
+                  setLaterRoom({ room: data, hash })
                 }
               })
             }}
