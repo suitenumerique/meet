@@ -52,7 +52,6 @@ metadata_manager = MetadataManager()
 
 logger = get_task_logger(__name__)
 
-
 celery = Celery(
     __name__,
     broker=settings.celery_broker_url,
@@ -497,13 +496,22 @@ def handle_transcribe_v2_failed(
     This function is triggered when the transcribe_v2_task fails.
     It sends a webhook failure payload to notify the client of the failure.
     """
-    task = sender
-    # If retries are exhausted:
-    if task.request.retries >= task.max_retries:
+    n_retries_left = sender.max_retries - sender.request.retries - 1
+    if n_retries_left > 0:
+        logger.info(
+            "Transcribe task %s failed, %s retries left.",
+            task_id,
+            n_retries_left,
+        )
+    else:
+        logger.warn(
+            "Transcribe task %s failed, no more retries left, sending failure webhook.",
+            task_id,
+        )
         call_webhook_v2_task.apply_async(
             args=[
                 TranscribeWebhookFailurePayload(
-                    job_id=task.id,
+                    job_id=task_id,
                     error_code="unknown_error",
                 ).model_dump(),
                 args[0]["tenant_id"],
@@ -562,13 +570,22 @@ def handle_summarize_v2_failed(
     This function is triggered when the summarize_v2_task fails.
     It sends a webhook failure payload to notify the client of the failure.
     """
-    task = sender
-    # If retries are exhausted:
-    if task.request.retries >= task.max_retries:
+    n_retries_left = sender.max_retries - sender.request.retries - 1
+    if n_retries_left > 0:
+        logger.info(
+            "Summary task %s failed, %s retries left.",
+            task_id,
+            n_retries_left,
+        )
+    else:
+        logger.warn(
+            "Summary task %s failed, no more retries left, sending failure webhook.",
+            task_id,
+        )
         call_webhook_v2_task.apply_async(
             args=[
                 SummarizeWebhookFailurePayload(
-                    job_id=task.id,
+                    job_id=task_id,
                     error_code="unknown_error",
                 ).model_dump(),
                 args[0]["tenant_id"],
