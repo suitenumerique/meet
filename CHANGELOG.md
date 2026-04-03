@@ -16,6 +16,7 @@ and this project adheres to
 
 - ♻(frontend) standardize role terminology across localizations
 - 🐛(backend) make start-recording atomic and fault-tolerant
+- 🔒️(frontend) room ids are generated with non-cryptographic rand
 
 ## [1.15.0] - 2026-04-30
 
