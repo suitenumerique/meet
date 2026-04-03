@@ -8,6 +8,7 @@ import { HStack } from '@/styled-system/jsx'
 import { useState } from 'react'
 import { LoginButton } from '@/components/LoginButton'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
+import { useRenameParticipant } from '@/features/rooms/api/renameParticipant'
 
 export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -17,16 +18,25 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   const { saveUsername } = usePersistentUserChoices()
   const room = useRoomContext()
   const { user, isLoggedIn, logout } = useUser()
+
+  const { renameParticipant } = useRenameParticipant()
+
   const [name, setName] = useState(room?.localParticipant.name ?? '')
   const userDisplay =
     user?.full_name && user?.email
       ? `${user.full_name} (${user.email})`
       : user?.email
 
-  const handleOnSubmit = () => {
-    if (room) room.localParticipant.setName(name)
-    saveUsername(name)
-    if (onOpenChange) onOpenChange(false)
+  const handleOnSubmit = async () => {
+    try {
+      if (room) await renameParticipant(name)
+      saveUsername(name)
+      onOpenChange?.(false) // only close on success
+    } catch (error) {
+      console.error(
+        `Failed to rename participant: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    }
   }
   const handleOnCancel = () => {
     if (onOpenChange) onOpenChange(false)

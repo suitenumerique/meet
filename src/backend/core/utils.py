@@ -96,7 +96,7 @@ def generate_token(
         room=room,
         room_join=True,
         room_admin=is_admin_or_owner,
-        can_update_own_metadata=True,
+        can_update_own_metadata=False,
         can_publish=bool(sources),
         can_publish_sources=sources,
         can_subscribe=True,

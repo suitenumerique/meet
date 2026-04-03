@@ -10,6 +10,7 @@ from django.core.files.storage import default_storage
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -676,6 +677,82 @@ class RoomViewSet(
 
         return drf_response.Response(
             {"status": "success"}, status=drf_status.HTTP_200_OK
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="toggle-hand",
+        url_name="toggle-hand",
+        permission_classes=[permissions.HasLiveKitRoomAccess],
+        authentication_classes=[LiveKitTokenAuthentication],
+    )
+    def toggle_hand(self, request, pk=None):  # pylint: disable=unused-argument
+        """Raise or lower the current participant's hand in the room."""
+        room = self.get_object()
+
+        serializer = serializers.RaiseHandSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        identity = request.auth.identity
+
+        # LiveKit uses the handRaisedAt participant attribute to signal hand state.
+        # An empty string means the hand is lowered; a non-empty ISO 8601 timestamp
+        # means the hand is raised. The timestamp is used by clients to determine
+        # the order in which participants raised their hands.
+        hand_raised_at = (
+            timezone.now().isoformat() if serializer.validated_data["raised"] else ""
+        )
+
+        try:
+            ParticipantsManagement().update(
+                room_name=str(room.pk),
+                identity=identity,
+                attributes={"handRaisedAt": hand_raised_at},
+            )
+        except ParticipantsManagementException:
+            return drf_response.Response(
+                {"error": "Failed to update participant hand state"},
+                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return drf_response.Response(
+            {"status": "success"},
+            status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="rename",
+        url_name="rename",
+        permission_classes=[permissions.HasLiveKitRoomAccess],
+        authentication_classes=[LiveKitTokenAuthentication],
+    )
+    def rename(self, request, pk=None):  # pylint: disable=unused-argument
+        """Rename the current participant in the room."""
+        room = self.get_object()
+
+        serializer = serializers.RenameParticipantSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        identity = request.auth.identity
+
+        try:
+            ParticipantsManagement().update(
+                room_name=str(room.pk),
+                identity=identity,
+                name=serializer.validated_data["name"],
+            )
+        except ParticipantsManagementException:
+            return drf_response.Response(
+                {"error": "Failed to rename participant"},
+                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return drf_response.Response(
+            {"status": "success"},
+            status=drf_status.HTTP_200_OK,
         )
 
 

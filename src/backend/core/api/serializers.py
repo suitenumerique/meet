@@ -526,3 +526,15 @@ class CreateFileSerializer(ListFileSerializer):
 
     def update(self, instance, validated_data):
         raise NotImplementedError("Update method can not be used.")
+
+
+class RaiseHandSerializer(BaseValidationOnlySerializer):
+    """Serializer for raising or lowering a participant's hand in a room."""
+
+    raised = serializers.BooleanField()
+
+
+class RenameParticipantSerializer(BaseValidationOnlySerializer):
+    """Serializer for renaming a participant in a room."""
+
+    name = serializers.CharField(min_length=1, max_length=255, allow_blank=False)

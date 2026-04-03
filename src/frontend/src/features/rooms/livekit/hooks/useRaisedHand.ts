@@ -1,10 +1,11 @@
-import { LocalParticipant, Participant } from 'livekit-client'
+import { Participant } from 'livekit-client'
 import {
   useParticipantAttribute,
   useParticipants,
 } from '@livekit/components-react'
 import { isLocal } from '@/utils/livekit'
 import { useMemo } from 'react'
+import { useRaiseHand } from '@/features/rooms/api/updateRaiseHand'
 
 type useRaisedHandProps = {
   participant: Participant
@@ -40,18 +41,19 @@ export function useRaisedHand({ participant }: useRaisedHandProps) {
   const handRaisedAtAttribute = useParticipantAttribute('handRaisedAt', {
     participant,
   })
+  const { raiseHand } = useRaiseHand()
 
   const isHandRaised = !!handRaisedAtAttribute
 
   const toggleRaisedHand = async () => {
     if (!isLocal(participant)) return
-    const localParticipant = participant as LocalParticipant
-
-    const attributes: Record<string, string> = {
-      handRaisedAt: !isHandRaised ? new Date().toISOString() : '',
+    try {
+      await raiseHand(!isHandRaised)
+    } catch (e) {
+      console.error(
+        `Failed to toggle hand: ${e instanceof Error ? e.message : 'Unknown error'}`
+      )
     }
-
-    await localParticipant.setAttributes(attributes)
   }
 
   return { isHandRaised, toggleRaisedHand }
