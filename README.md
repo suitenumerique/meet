@@ -39,10 +39,10 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 - Secure participation with robust authentication and access control
 - Customizable frontend style
 - LiveKit Advances features including :
-  - speaker detection 
-  - simulcast 
-  - end-to-end optimizations 
-  - selective subscription
+  - Speaker detection 
+  - Simulcast 
+  - End-to-End optimizations 
+  - Selective subscription
   - SVC codecs (VP9, AV1)
 
 
