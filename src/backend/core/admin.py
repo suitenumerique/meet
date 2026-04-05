@@ -330,9 +330,10 @@ class ApplicationAdmin(admin.ModelAdmin):
 
     def get_fields(self, request, obj=None):
         """Hide client_secret after creation."""
-        fields = super().get_fields(request, obj)
+        fields = list(super().get_fields(request, obj))
         if obj:
-            return [f for f in fields if f != "client_secret"]
+            if "client_secret" in fields:
+                fields.remove("client_secret")
         return fields
 
     def get_scopes_display(self, obj):
