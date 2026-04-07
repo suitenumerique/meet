@@ -126,6 +126,19 @@ export class VaultE2EEManager extends EventEmitter {
       case 'error':
         this.emit(EncryptionEvent.EncryptionError, data.error, data.participantIdentity)
         break
+
+      case 'pipeDead':
+        // Pipe ended (stream closed during disconnect). Clear E2EE_FLAG on all
+        // receivers so the next TrackSubscribed creates a fresh pipe.
+        this.room?.remoteParticipants.forEach((p) => {
+          p.trackPublications.forEach((pub) => {
+            if (pub.track?.receiver && E2EE_FLAG in pub.track.receiver) {
+              // @ts-expect-error
+              delete pub.track.receiver[E2EE_FLAG]
+            }
+          })
+        })
+        break
     }
   }
 
@@ -221,20 +234,19 @@ export class VaultE2EEManager extends EventEmitter {
       return
     }
 
-    // @ts-expect-error
-    let writable: WritableStream = receiver.writableStream
-    // @ts-expect-error
-    let readable: ReadableStream = receiver.readableStream
+    let writable: WritableStream
+    let readable: ReadableStream
 
-    if (!writable || !readable) {
+    try {
       // @ts-expect-error
       const receiverStreams = receiver.createEncodedStreams()
-      // @ts-expect-error
-      receiver.writableStream = receiverStreams.writable
       writable = receiverStreams.writable
-      // @ts-expect-error
-      receiver.readableStream = receiverStreams.readable
       readable = receiverStreams.readable
+    } catch {
+      // createEncodedStreams() already called (receiver reuse after pipe death).
+      // Cannot re-create streams — this receiver is stuck.
+      console.warn(`[VaultE2EE] Cannot create encoded streams for ${participantIdentity} (receiver reuse). Pipe unrecoverable.`)
+      return
     }
 
     this.worker.postMessage(
