@@ -808,6 +808,16 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Metadata collector settings
+    METADATA_COLLECTOR_ENABLED = values.BooleanValue(
+        False, environ_name="METADATA_COLLECTOR_ENABLED", environ_prefix=None
+    )
+    METADATA_COLLECTOR_AGENT_NAME = values.Value(
+        "metadata-collector",
+        environ_name="METADATA_COLLECTOR_AGENT_NAME",
+        environ_prefix=None,
+    )
+
     # External Applications
     APPLICATION_CLIENT_ID_LENGTH = values.PositiveIntegerValue(
         40,
