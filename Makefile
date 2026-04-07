@@ -133,8 +133,17 @@ run-summary: ## start only the summary application and all needed services
 .PHONY: run-summary
 
 run-agents: ## start the multi-user-transcriber agent
-	@$(COMPOSE) up --force-recreate -d multi-user-transcriber
+	@$(MAKE) run-agent-multi-user-transcriber
+	@$(MAKE) run-agent-metadata-collector
 .PHONY: run-agents
+
+run-agent-multi-user-transcriber: ## start the LiveKit agents (multi users transcriber)
+	@$(COMPOSE) up --force-recreate -d multi-user-transcriber
+.PHONY: run-agent-multi-user-transcriber
+
+run-agent-metadata-collector: ## start the LiveKit agents (metadata collector)
+	@$(COMPOSE) up --force-recreate -d metadata-collector-dev
+.PHONY: run-agent-metadata-collector
 
 run:
 run: ## start the wsgi (production) and development server
