@@ -693,19 +693,27 @@
     "screenShare": "Écran de {{name}}"
   },
   "encryption": {
-    "banner": "Chiffré",
-    "bannerStrong": "Chiffrement vérifié",
+    "banner": "Chiffrement basique",
+    "bannerStrong": "Chiffrement avancé",
+    "badge": {
+      "verified": "Chiffrement avancé",
+      "authenticated": "Chiffré (authentifié)",
+      "anonymous": "Chiffré (anonyme)",
+      "default": "Chiffré"
+    },
     "bannerModal": {
       "title": "Réunion chiffrée de bout en bout",
-      "description": "Cette réunion utilise le chiffrement de bout en bout. L'audio et la vidéo sont chiffrés sur votre appareil avant d'être envoyés. Le serveur ne voit que des données chiffrées qu'il ne peut pas lire.",
+      "descriptionBasic": "Cette réunion utilise le chiffrement de bout en bout basique. L'audio et la vidéo sont chiffrés à l'aide d'une phrase secrète intégrée au lien de la réunion. Toute personne disposant du lien peut rejoindre et déchiffrer le contenu.",
+      "descriptionAdvanced": "Cette réunion utilise le chiffrement de bout en bout avancé. La clé de chiffrement est gérée par le service de chiffrement de La Suite et ne quitte jamais votre appareil. Tous les participants doivent effectuer l'onboarding chiffrement pour rejoindre.",
       "guarantees": "Ce que cela protège :",
       "guarantee1": "Le serveur ne peut pas accéder au contenu audio, vidéo ou de partage d'écran",
       "guarantee2": "Seuls les participants approuvés disposant de la clé de chiffrement peuvent voir le contenu",
       "guarantee3": "Le niveau de confiance de chaque participant est visible (vérifié, authentifié ou anonyme)",
       "limitations": "Limitations :",
       "limitation1": "L'enregistrement et la transcription ne sont pas disponibles (le serveur ne peut pas déchiffrer le contenu)",
-      "limitation2": "La sécurité maximale nécessite que tous les participants effectuent l'onboarding chiffrement et vérifient les empreintes",
-      "note": "Pour le plus haut niveau de confiance, demandez aux participants de configurer le chiffrement dans les paramètres de leur compte. Cela enregistre leur clé publique et permet la vérification des empreintes."
+      "limitation2Basic": "La sécurité dépend de la confidentialité du lien de la réunion",
+      "limitation2Advanced": "Tous les participants doivent effectuer l'onboarding chiffrement dans les paramètres de leur compte avant de rejoindre",
+      "note": "Pour le plus haut niveau de confiance, utilisez le chiffrement avancé et demandez aux participants de vérifier mutuellement leurs empreintes."
     },
     "settingUp": {
       "title": "Sécurisation de votre connexion",

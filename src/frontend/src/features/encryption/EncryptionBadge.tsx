@@ -11,6 +11,7 @@ import { RiShieldCheckFill, RiAlertFill, RiLockFill } from '@remixicon/react'
 import type { TrustLevel } from './types'
 import { css } from '@/styled-system/css'
 import { TooltipWrapper } from '@/primitives/TooltipWrapper'
+import { useTranslation } from 'react-i18next'
 
 interface EncryptionBadgeProps {
   trustLevel: TrustLevel | null
@@ -21,6 +22,8 @@ export function EncryptionBadge({
   trustLevel,
   isEncrypted,
 }: EncryptionBadgeProps) {
+  const { t } = useTranslation('rooms', { keyPrefix: 'encryption.badge' })
+
   if (!isEncrypted) return null
 
   let icon: React.ReactNode
@@ -29,19 +32,19 @@ export function EncryptionBadge({
   switch (trustLevel) {
     case 'verified':
       icon = <RiShieldCheckFill size={14} color="#22c55e" />
-      tooltip = 'Verified encryption'
+      tooltip = t('verified')
       break
     case 'authenticated':
       icon = <RiShieldCheckFill size={14} color="#3b82f6" />
-      tooltip = 'Encrypted (authenticated)'
+      tooltip = t('authenticated')
       break
     case 'anonymous':
       icon = <RiAlertFill size={14} color="#f59e0b" />
-      tooltip = 'Encrypted (anonymous)'
+      tooltip = t('anonymous')
       break
     default:
       icon = <RiLockFill size={14} />
-      tooltip = 'Encrypted'
+      tooltip = t('default')
       break
   }
 

@@ -11,7 +11,6 @@ import {
 } from '../api/listWaitingParticipants'
 import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
-import { encryptKeyForParticipant, getSymmetricKey } from '@/features/encryption/lobbyKeyExchange'
 import { useVaultClient } from '@/features/encryption'
 import { toastQueue } from '@/features/notifications/components/ToastProvider'
 
@@ -110,13 +109,6 @@ export const useWaitingParticipants = () => {
       const bytes = new Uint8Array(joinerKey)
       encryptedVaultKey = btoa(String.fromCharCode(...bytes))
       console.info('[VaultE2EE] Admin: key wrapped successfully, length:', encryptedVaultKey.length)
-    } else if (encrypted && getSymmetricKey() && participant.ephemeral_public_key) {
-      // Basic mode: DH key exchange
-      const result = await encryptKeyForParticipant(
-        participant.ephemeral_public_key
-      )
-      encryptedKey = result.encryptedKey
-      adminEphemeralPublicKey = result.adminPublicKey
     }
 
     return { encryptedKey, adminEphemeralPublicKey, encryptedVaultKey }

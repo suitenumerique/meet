@@ -21,7 +21,7 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   const roomData = useRoomData()
   const { user, isLoggedIn, logout } = useUser()
   const isEncryptedRoom = checkEncryptedRoom(roomData)
-  const isNameLocked = isEncryptedRoom && !!isLoggedIn
+  const isNameLocked = isEncryptedRoom
   const [name, setName] = useState(room?.localParticipant.name ?? '')
   const userDisplay =
     user?.full_name && user?.email

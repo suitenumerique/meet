@@ -243,33 +243,37 @@ export const Home = () => {
                       <RiLink size={18} />
                       {t('createMenu.laterOption')}
                     </MenuItem>
-                    <RACSeparator
-                      className={css({
-                        borderTop: '1px solid',
-                        borderColor: 'greyscale.200',
-                        margin: '0.25rem 0',
-                      })}
-                    />
-                    <MenuItem
-                      className={
-                        menuRecipe({ icon: true, variant: 'light' }).item
-                      }
-                      onAction={() => setEncryptionDialogMode('instant')}
-                      data-attr="create-option-encrypted-instant"
-                    >
-                      <RiLockLine size={18} />
-                      {t('createMenu.encryptedInstantOption')}
-                    </MenuItem>
-                    <MenuItem
-                      className={
-                        menuRecipe({ icon: true, variant: 'light' }).item
-                      }
-                      onAction={() => setEncryptionDialogMode('later')}
-                      data-attr="create-option-encrypted-later"
-                    >
-                      <RiLockLine size={18} />
-                      {t('createMenu.encryptedLaterOption')}
-                    </MenuItem>
+                    {data?.encryption?.enabled && (
+                      <>
+                        <RACSeparator
+                          className={css({
+                            borderTop: '1px solid',
+                            borderColor: 'greyscale.200',
+                            margin: '0.25rem 0',
+                          })}
+                        />
+                        <MenuItem
+                          className={
+                            menuRecipe({ icon: true, variant: 'light' }).item
+                          }
+                          onAction={() => setEncryptionDialogMode('instant')}
+                          data-attr="create-option-encrypted-instant"
+                        >
+                          <RiLockLine size={18} />
+                          {t('createMenu.encryptedInstantOption')}
+                        </MenuItem>
+                        <MenuItem
+                          className={
+                            menuRecipe({ icon: true, variant: 'light' }).item
+                          }
+                          onAction={() => setEncryptionDialogMode('later')}
+                          data-attr="create-option-encrypted-later"
+                        >
+                          <RiLockLine size={18} />
+                          {t('createMenu.encryptedLaterOption')}
+                        </MenuItem>
+                      </>
+                    )}
                   </RACMenu>
                 </Menu>
               ) : (

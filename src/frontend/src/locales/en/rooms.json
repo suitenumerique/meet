@@ -693,19 +693,27 @@
     "screenShare": "{{name}}'s screen"
   },
   "encryption": {
-    "banner": "Encrypted",
-    "bannerStrong": "Verified encryption",
+    "banner": "Basic encryption",
+    "bannerStrong": "Advanced encryption",
+    "badge": {
+      "verified": "Advanced encryption",
+      "authenticated": "Encrypted (authenticated)",
+      "anonymous": "Encrypted (anonymous)",
+      "default": "Encrypted"
+    },
     "bannerModal": {
       "title": "End-to-end encrypted meeting",
-      "description": "This meeting uses end-to-end encryption. Audio and video are encrypted on your device before being sent. The server only sees encrypted data it cannot read.",
+      "descriptionBasic": "This meeting uses basic end-to-end encryption. Audio and video are encrypted using a shared passphrase embedded in the meeting link. Anyone with the link can join and decrypt the content.",
+      "descriptionAdvanced": "This meeting uses advanced end-to-end encryption. The encryption key is managed by La Suite's encryption service and never leaves your device. All participants must complete encryption onboarding to join.",
       "guarantees": "What this protects:",
       "guarantee1": "The server cannot access audio, video, or screen sharing content",
       "guarantee2": "Only approved participants with the encryption key can view the content",
       "guarantee3": "Each participant's trust level is visible (verified, authenticated, or anonymous)",
       "limitations": "Limitations:",
       "limitation1": "Recording and transcription are not available (the server cannot decrypt content)",
-      "limitation2": "Maximum security requires all participants to complete encryption onboarding and verify fingerprints",
-      "note": "For the highest level of trust, ask participants to set up encryption in their account settings. This registers their public key and enables fingerprint verification."
+      "limitation2Basic": "Security depends on keeping the meeting link private",
+      "limitation2Advanced": "All participants must complete encryption onboarding in their account settings before joining",
+      "note": "For the highest level of trust, use advanced encryption and ask participants to verify each other's fingerprints."
     },
     "settingUp": {
       "title": "Securing your connection",

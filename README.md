@@ -48,27 +48,41 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 
 ### End-to-end encryption
 
-La Suite Meet supports end-to-end encryption (E2EE) for meetings, ensuring that the media server (LiveKit SFU) cannot access audio/video content.
+La Suite Meet supports end-to-end encryption (E2EE) for meetings, ensuring that the media server (LiveKit SFU) cannot access audio/video content. Two encryption modes are available:
 
-**Architecture:**
+#### Basic encryption
 
-- Uses LiveKit's built-in Insertable Streams API for frame-level encryption
-- Symmetric key (XChaCha20-Poly1305) encrypts all media frames
-- Key exchange uses ephemeral X25519 Diffie-Hellman over LiveKit data channel (libsodium)
-- The room admin is the key authority — generates and distributes the symmetric key
+- Passphrase-based — the encryption key is embedded in the meeting URL hash (`#passphrase`)
+- Uses LiveKit's built-in Worker + `crypto.subtle` (AES-GCM) for frame encryption
+- Sharing the meeting link shares the encryption key
+- No account or onboarding required
+- Security depends on keeping the link private
 
-**Trust levels:**
+#### Advanced encryption
+
+- Key managed by [La Suite Encryption](https://github.com/suitenumerique/encryption) — the symmetric key never leaves the vault iframe
+- Uses XChaCha20-Poly1305 (libsodium) via the VaultClient iframe for frame encryption
+- Key distribution uses `vaultClient.shareKeys()` (hybrid PKI with X25519 + post-quantum slot)
+- All participants must complete encryption onboarding (key generation + backup) before joining
+- Requires a Chromium-based browser (Chrome, Edge, Brave) — uses the Insertable Streams API
+
+**Frame encryption (both modes):**
+
+- Codec header bytes (VP8 payload descriptor) are preserved unencrypted — required for proper RTP packetization
+- Only the media payload is encrypted, with a per-frame random nonce
+- The server (LiveKit SFU) only forwards encrypted data it cannot read
+
+**Trust levels (advanced mode):**
 | Badge | Level | Description |
 |-------|-------|-------------|
-| 🟢 Green shield | Verified | User completed encryption onboarding (public key registered in the encryption library). Identity cryptographically verified. |
-| 🔵 Blue shield | Authenticated | User signed in via ProConnect/OIDC. Identity server-verified. Ephemeral key exchange. |
+| 🟢 Green shield | Verified | User completed encryption onboarding (public key registered). Identity cryptographically verified. |
+| 🔵 Blue shield | Authenticated | User signed in via ProConnect/OIDC. Identity server-verified. |
 | 🟡 Orange warning | Anonymous | User not signed in. Self-declared name. Admin should verify identity before accepting. |
 
 **Security guarantees:**
 
 - Encrypted rooms enforce restricted access (lobby approval required)
 - Trust information (`is_authenticated`, `email`) comes from server-signed JWT tokens — cannot be spoofed
-- Only admin participants can respond to key exchange requests
 - Recording and transcription are not available in encrypted rooms (server cannot decrypt media)
 
 **Configuration:**
@@ -79,8 +93,7 @@ ENCRYPTION_VAULT_URL=https://data.encryption.example.fr
 ENCRYPTION_INTERFACE_URL=https://encryption.example.fr
 ```
 
-**Integration with the encryption library:**
-When the [encryption library](https://github.com/suitenumerique/encryption) is deployed, users who complete encryption onboarding get the "verified" green shield badge. The admin can verify participants' public key fingerprints via the participants list.
+When the encryption service is deployed and configured, rooms can use advanced encryption. Without it, only basic (passphrase) encryption is available.
 
 La Suite Meet is fully self-hostable and released under the MIT License, ensuring complete control and flexibility. It's simple to [get started](https://visio.numerique.gouv.fr/) or [request a demo](mailto:visio@numerique.gouv.fr).
 

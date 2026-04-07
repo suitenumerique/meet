@@ -11,8 +11,7 @@ import { VStack } from '@/styled-system/jsx'
 import { RiLockFill, RiShieldCheckFill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
-import { isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
-import { useVaultClient } from './VaultClientProvider'
+import { isEncryptedRoom, ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 import { useEffect, useState } from 'react'
 import { Dialog, Text } from '@/primitives'
 
@@ -21,13 +20,10 @@ const COLLAPSE_DELAY = 4000
 export function EncryptedMeetingBanner() {
   const roomData = useRoomData()
   const { t } = useTranslation('rooms', { keyPrefix: 'encryption' })
-  const { hasKeys } = useVaultClient()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Strong = admin has encryption onboarding (can sign key exchange)
-  // Standard = admin is only ProConnect (ephemeral key exchange, trusts server)
-  const isStrongEncryption = hasKeys === true
+  const isStrongEncryption = roomData?.encryption_mode === ApiEncryptionMode.ADVANCED
 
   useEffect(() => {
     const timer = setTimeout(() => setIsCollapsed(true), COLLAPSE_DELAY)
@@ -106,7 +102,11 @@ export function EncryptedMeetingBanner() {
           alignItems="start"
           className={css({ maxWidth: '24rem' })}
         >
-          <Text variant="sm">{t('bannerModal.description')}</Text>
+          <Text variant="sm">
+            {isStrongEncryption
+              ? t('bannerModal.descriptionAdvanced')
+              : t('bannerModal.descriptionBasic')}
+          </Text>
 
           <VStack gap="0.5rem" alignItems="start" className={css({ width: '100%' })}>
             <Text variant="sm" className={css({ fontWeight: 600 })}>
@@ -155,7 +155,10 @@ export function EncryptedMeetingBanner() {
               })}
             >
               <li>{t('bannerModal.limitation1')}</li>
-              <li>{t('bannerModal.limitation2')}</li>
+              <li>{isStrongEncryption
+                ? t('bannerModal.limitation2Advanced')
+                : t('bannerModal.limitation2Basic')}
+              </li>
             </ul>
           </VStack>
 

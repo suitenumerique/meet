@@ -28,6 +28,14 @@ enum EncryptionEvent {
   EncryptionError = 'encryptionError',
 }
 
+function isInsertableStreamSupported(): boolean {
+  return (
+    typeof window.RTCRtpSender !== 'undefined' &&
+    // @ts-expect-error — createEncodedStreams not in TS types
+    typeof window.RTCRtpSender.prototype.createEncodedStreams !== 'undefined'
+  )
+}
+
 const UNENCRYPTED_BYTES = { key: 10, delta: 3, audio: 1 }
 
 function getUnencryptedBytes(
@@ -59,7 +67,7 @@ export class VaultE2EEManager extends EventEmitter {
   }
 
   get isDataChannelEncryptionEnabled() {
-    return this.isEnabled && this._isDataChannelEncryptionEnabled
+    return this._isDataChannelEncryptionEnabled && !!this.encryptedKeyBytes
   }
 
   set isDataChannelEncryptionEnabled(enabled: boolean) {
@@ -78,6 +86,12 @@ export class VaultE2EEManager extends EventEmitter {
   // ── Lifecycle (mirrors built-in E2EEManager) ────────────────────────
 
   setup(room: Room): void {
+    if (!isInsertableStreamSupported()) {
+      throw new Error(
+        'End-to-end encryption is not supported in this browser. ' +
+        'Please use a Chromium-based browser (Chrome, Edge, Brave).'
+      )
+    }
     if (room !== this.room) {
       this.room = room
       this.setupEventListeners(room)

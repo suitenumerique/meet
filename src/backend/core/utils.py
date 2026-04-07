@@ -93,9 +93,9 @@ def generate_token(
     if sources is None:
         sources = settings.LIVEKIT_DEFAULT_SOURCES
 
-    # In encrypted rooms, authenticated users cannot change their name/metadata
-    # to prevent identity spoofing in the LiveKit room.
-    can_update_metadata = encryption_mode == 'none' or user.is_anonymous
+    # In encrypted rooms, no one can change their name/metadata to prevent
+    # identity spoofing — the admin accepted them based on their declared identity.
+    can_update_metadata = encryption_mode == 'none'
 
     video_grants = VideoGrants(
         room=room,

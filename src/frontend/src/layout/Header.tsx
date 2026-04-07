@@ -136,7 +136,7 @@ export const Header = () => {
     }
   }, [showEncryptionModal])
   const isEncryptionAvailable = !!config?.encryption?.enabled && !!vaultClient
-  const userLabel = user?.full_name || user?.email
+  const userLabel = user?.full_name || user?.short_name || user?.email
   const loggedInTooltip = t('loggedInUserTooltip')
   const loggedInAriaLabel = userLabel
     ? `${loggedInTooltip} ${userLabel}`
@@ -219,7 +219,7 @@ export const Header = () => {
                           display: { base: 'none', xsm: 'block' },
                         })}
                       >
-                        {user?.full_name || user?.email}
+                        {user?.full_name || user?.short_name || user?.email}
                       </span>
                     </VisualOnlyTooltip>
                   </Button>

@@ -1,7 +1,5 @@
 export { VaultClientProvider, useVaultClient } from './VaultClientProvider'
 export type { VaultClientContextValue } from './VaultClientProvider'
-export { useEncryption } from './useEncryption'
-export type { EncryptionState } from './useEncryption'
 export {
   determineTrustLevel,
   getTrustLevelFromAttributes,

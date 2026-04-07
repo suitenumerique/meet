@@ -281,9 +281,23 @@ class RoomViewSet(
 
     def perform_create(self, serializer):
         """Set the current user as owner of the newly created room."""
+        encryption_mode = serializer.validated_data.get("encryption_mode", models.EncryptionMode.NONE)
+
+        # Block encrypted room creation if encryption is not enabled on this instance
+        if encryption_mode != models.EncryptionMode.NONE and not settings.ENCRYPTION_ENABLED:
+            raise drf_exceptions.ValidationError(
+                {"encryption_mode": "Encryption is not enabled on this server."}
+            )
+
+        # Advanced encryption requires the vault service to be configured
+        if encryption_mode == models.EncryptionMode.ADVANCED and not getattr(settings, 'ENCRYPTION_VAULT_URL', ''):
+            raise drf_exceptions.ValidationError(
+                {"encryption_mode": "Advanced encryption requires the encryption service to be configured."}
+            )
+
         # Encrypted rooms must use restricted access to enforce lobby approval
         # before the encryption key is shared with participants.
-        if serializer.validated_data.get("encryption_mode", models.EncryptionMode.NONE) != models.EncryptionMode.NONE:
+        if encryption_mode != models.EncryptionMode.NONE:
             serializer.validated_data["access_level"] = models.RoomAccessLevel.RESTRICTED
 
         room = serializer.save()
