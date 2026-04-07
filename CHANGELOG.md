@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add metadata collection of VAD, connection and chat events
+
 ## [1.14.0] - 2026-04-16
 
 ### Added
