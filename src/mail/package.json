@@ -14,7 +14,7 @@
     "build": "npm run build-mjml-to-html && npm run build-html-to-plain-text"
   },
   "volta": {
-    "node": "24.13.1"
+    "node": "24.14.1"
   },
   "repository": "https://github.com/suitenumerique/meet",
   "author": "DINUM",
