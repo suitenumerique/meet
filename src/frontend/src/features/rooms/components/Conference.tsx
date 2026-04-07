@@ -199,11 +199,9 @@ export const Conference = ({
     if (!encryptionEnabled || encryptionSetupComplete) return
 
     if (useVaultE2EE) {
-      // Advanced mode: VaultE2EEManager handles its own Worker+KeyProvider internally
+      // Advanced mode: VaultE2EEManager delegates crypto to VaultClient iframe
       const vaultManager = getVaultManager()
       if (!vaultManager || !vaultClient) return
-
-      // setEncryptedSymmetricKey is a no-op for now (Step 1: hardcoded passphrase)
       if (isAdmin) {
         const existingKey = data?.encrypted_symmetric_key
         if (existingKey) {
