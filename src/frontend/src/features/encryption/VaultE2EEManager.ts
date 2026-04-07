@@ -36,9 +36,9 @@ function isInsertableStreamSupported(): boolean {
   )
 }
 
-const UNENCRYPTED_BYTES = { key: 10, delta: 3, audio: 1 }
+export const UNENCRYPTED_BYTES = { key: 10, delta: 3, audio: 1 }
 
-function getUnencryptedBytes(
+export function getUnencryptedBytes(
   frame: RTCEncodedVideoFrame | RTCEncodedAudioFrame
 ): number {
   if (!('type' in frame)) return UNENCRYPTED_BYTES.audio
