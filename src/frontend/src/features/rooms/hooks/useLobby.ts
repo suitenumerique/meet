@@ -79,12 +79,15 @@ export const useLobby = ({
 
         // Advanced mode: vault-wrapped key
         if (encryptionEnabled && response.encrypted_vault_key) {
+          console.info('[VaultE2EE] Joiner: received encrypted_vault_key from lobby, length:', response.encrypted_vault_key.length)
           const binaryStr = atob(response.encrypted_vault_key)
           const bytes = new Uint8Array(binaryStr.length)
           for (let i = 0; i < binaryStr.length; i++) {
             bytes[i] = binaryStr.charCodeAt(i)
           }
           setEncryptedVaultKey(bytes.buffer)
+        } else if (encryptionEnabled) {
+          console.warn('[VaultE2EE] Joiner: ACCEPTED but no encrypted_vault_key in response', response)
         }
 
         onAccepted(response)

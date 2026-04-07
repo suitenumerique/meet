@@ -14,7 +14,7 @@ import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { useVaultClient } from '@/features/encryption'
 import { useConfig } from '@/api/useConfig'
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const Logo = () => (
   <img
@@ -97,6 +97,44 @@ export const Header = () => {
   const { client: vaultClient, hasKeys } = useVaultClient()
   const encryptionContainerRef = useRef<HTMLDivElement | null>(null)
   const [showEncryptionModal, setShowEncryptionModal] = useState(false)
+  // Track whether the vault interface has been injected for the current modal session.
+  // This prevents re-injection when vault events (onboarding:complete, keys-destroyed)
+  // trigger re-renders via hasKeys state changes — which would destroy the iframe mid-flow.
+  const vaultInjectedRef = useRef(false)
+
+  const encryptionRefCallback = useCallback((el: HTMLDivElement | null) => {
+    encryptionContainerRef.current = el
+  }, [])
+
+  useEffect(() => {
+    const el = encryptionContainerRef.current
+    if (!showEncryptionModal || !el || !vaultClient || vaultInjectedRef.current) return
+
+    vaultInjectedRef.current = true
+    el.innerHTML = ''
+    if (hasKeys) {
+      vaultClient.openSettings(el)
+    } else {
+      vaultClient.openOnboarding(el)
+    }
+
+    const handleClosed = () => {
+      setShowEncryptionModal(false)
+      vaultClient.off('interface:closed', handleClosed)
+    }
+    vaultClient.on('interface:closed', handleClosed)
+
+    return () => {
+      vaultClient.off('interface:closed', handleClosed)
+    }
+  }, [showEncryptionModal, vaultClient])
+
+  // Reset injection flag when modal closes
+  useEffect(() => {
+    if (!showEncryptionModal) {
+      vaultInjectedRef.current = false
+    }
+  }, [showEncryptionModal])
   const isEncryptionAvailable = !!config?.encryption?.enabled && !!vaultClient
   const userLabel = user?.full_name || user?.email
   const loggedInTooltip = t('loggedInUserTooltip')
@@ -268,24 +306,7 @@ export const Header = () => {
               ✕
             </button>
             <div
-              ref={(el) => {
-                if (!el) return
-                // Clear previous content and re-inject
-                el.innerHTML = ''
-                encryptionContainerRef.current = el
-                if (hasKeys) {
-                  vaultClient.openSettings(el)
-                } else {
-                  vaultClient.openOnboarding(el)
-                }
-
-                const handleClosed = () => {
-                  setShowEncryptionModal(false)
-                  encryptionContainerRef.current = null
-                  vaultClient.off('interface:closed', handleClosed)
-                }
-                vaultClient.on('interface:closed', handleClosed)
-              }}
+              ref={encryptionRefCallback}
               className={css({ minHeight: '300px' })}
             />
           </div>

@@ -94,11 +94,9 @@ export const Conference = ({
   const encryptionEnabled = isEncryptedRoom(data)
   const { client: vaultClient, hasKeys: vaultHasKeys } = useVaultClient()
 
-  // Determine which E2EE backend to use:
-  // - Advanced mode: VaultClient (iframe-based, key never leaves iframe)
-  // - Basic mode: LiveKit's built-in Worker+KeyProvider with passphrase from URL hash
-  const isAdvancedMode = data?.encryption_mode === ApiEncryptionMode.ADVANCED
-  const useVaultE2EE = isAdvancedMode && !!vaultClient && !!vaultHasKeys
+  // Determine which E2EE backend to use based solely on the room's encryption_mode.
+  // Advanced mode always uses VaultClient, basic mode always uses LiveKit Worker+KeyProvider.
+  const useVaultE2EE = data?.encryption_mode === ApiEncryptionMode.ADVANCED
 
   // Refs for both approaches (only one is used per session)
   const keyProviderRef = useRef<ExternalE2EEKeyProvider | null>(null)
@@ -201,123 +199,95 @@ export const Conference = ({
     if (!encryptionEnabled || encryptionSetupComplete) return
 
     if (useVaultE2EE) {
-      // VaultClient E2EE path — key never leaves the iframe
+      // Advanced mode: VaultE2EEManager handles its own Worker+KeyProvider internally
       const vaultManager = getVaultManager()
       if (!vaultManager || !vaultClient) return
 
-      const setupVaultKey = async () => {
-        try {
-          if (isAdmin) {
-            // Admin: check if we already have a key (refresh/rejoin case)
-            const existingKey = data?.encrypted_symmetric_key
-            if (existingKey) {
-              // Decode base64 to ArrayBuffer
-              const binaryStr = atob(existingKey)
-              const bytes = new Uint8Array(binaryStr.length)
-              for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
-              vaultManager.setEncryptedSymmetricKey(bytes.buffer)
-              console.info('[VaultE2EE] Admin: restored key from backend')
-            } else {
-              console.error('[VaultE2EE] Admin: no encrypted symmetric key found — was the room created with advanced mode?')
-              return
-            }
-          } else {
-            // Joiner: use the vault-wrapped key received from admin via lobby
-            const vaultKey = getEncryptedVaultKey()
-            if (vaultKey) {
-              vaultManager.setEncryptedSymmetricKey(vaultKey)
-              console.info('[VaultE2EE] Joiner: vault key received from lobby')
-            } else {
-              console.error('[VaultE2EE] Joiner: no vault key available')
-              return
-            }
-          }
-
-          setEncryptionSetupComplete(true)
-
-          const onConnected = async () => {
-            try {
-              await room.setE2EEEnabled(true)
-              console.info('[VaultE2EE] E2EE enabled')
-            } catch (err) {
-              console.error('[VaultE2EE] E2EE enable failed:', err)
-            }
-          }
-
-          if (room.state === 'connected') onConnected()
-          else room.once('connected', onConnected)
-        } catch (err) {
-          console.error('[VaultE2EE] Setup failed:', err)
+      // setEncryptedSymmetricKey is a no-op for now (Step 1: hardcoded passphrase)
+      if (isAdmin) {
+        const existingKey = data?.encrypted_symmetric_key
+        if (existingKey) {
+          const binaryStr = atob(existingKey)
+          const bytes = new Uint8Array(binaryStr.length)
+          for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
+          vaultManager.setEncryptedSymmetricKey(bytes.buffer)
+        }
+      } else {
+        const vaultKey = getEncryptedVaultKey()
+        if (vaultKey) {
+          vaultManager.setEncryptedSymmetricKey(vaultKey)
         }
       }
 
-      setupVaultKey()
-    } else {
-      // Basic mode: LiveKit Worker+KeyProvider with passphrase in URL hash
-      const keyProvider = getKeyProvider()
-      if (!keyProvider) return
+      // Enable E2EE BEFORE connecting — no tracks exist yet so
+      // republishAllTracks() is a no-op. Calling after connection
+      // triggers republish which times out.
+      room.setE2EEEnabled(true).catch((err) => {
+        console.error('[VaultE2EE] E2EE enable failed:', err)
+      })
 
-      let passphrase: string | null = null
+      setEncryptionSetupComplete(true)
+      return
+    }
 
-      if (isAdmin) {
-        // Admin: generate passphrase and put it in the URL hash
-        if (!adminPassphraseRef.current) {
-          // Check if there's already a hash (e.g. admin refreshed the page)
-          const existingHash = window.location.hash.slice(1)
-          if (existingHash) {
-            adminPassphraseRef.current = existingHash
-          } else {
-            adminPassphraseRef.current = generatePassphrase()
-            // Set the hash in the URL (without triggering navigation)
-            window.history.replaceState(
-              window.history.state,
-              '',
-              `${window.location.pathname}${window.location.search}#${adminPassphraseRef.current}`
-            )
-          }
+    // Basic mode: LiveKit Worker+KeyProvider with passphrase
+    const keyProvider = getKeyProvider()
+    if (!keyProvider) return
+
+    let passphrase: string | null = null
+
+    if (isAdmin) {
+      if (!adminPassphraseRef.current) {
+        const existingHash = window.location.hash.slice(1)
+        if (existingHash) {
+          adminPassphraseRef.current = existingHash
+        } else {
+          adminPassphraseRef.current = generatePassphrase()
+          window.history.replaceState(
+            window.history.state,
+            '',
+            `${window.location.pathname}${window.location.search}#${adminPassphraseRef.current}`
+          )
         }
-        passphrase = adminPassphraseRef.current
+      }
+      passphrase = adminPassphraseRef.current
+      setSymmetricKey(new TextEncoder().encode(passphrase))
+    } else {
+      const hashKey = window.location.hash.slice(1)
+      if (hashKey) {
+        passphrase = hashKey
         setSymmetricKey(new TextEncoder().encode(passphrase))
       } else {
-        // Joiner: read passphrase from URL hash (shared link) or from lobby exchange
-        const hashKey = window.location.hash.slice(1)
-        if (hashKey) {
-          passphrase = hashKey
-          setSymmetricKey(new TextEncoder().encode(passphrase))
-        } else {
-          // Fallback: key received via lobby DH exchange
-          const preExchangedKey = getSymmetricKey()
-          if (preExchangedKey) {
-            passphrase = new TextDecoder().decode(preExchangedKey)
-          }
+        const preExchangedKey = getSymmetricKey()
+        if (preExchangedKey) {
+          passphrase = new TextDecoder().decode(preExchangedKey)
         }
       }
-
-      if (!passphrase) {
-        console.error('[Encryption] No passphrase available (not in URL hash and no lobby exchange)')
-        return
-      }
-
-      keyProvider
-        .setKey(passphrase)
-        .then(() => {
-          setEncryptionSetupComplete(true)
-
-          const onConnected = async () => {
-            try {
-              await room.setE2EEEnabled(true)
-            } catch (err) {
-              console.error('[Encryption] E2EE enable failed:', err)
-            }
-          }
-
-          if (room.state === 'connected') onConnected()
-          else room.once('connected', onConnected)
-        })
-        .catch((err) => {
-          console.error('[Encryption] Key setup failed:', err)
-        })
     }
+
+    if (!passphrase) {
+      console.error('[Encryption] No passphrase available')
+      return
+    }
+
+    keyProvider
+      .setKey(passphrase)
+      .then(async () => {
+        const onConnected = async () => {
+          try {
+            await room.setE2EEEnabled(true)
+          } catch (err) {
+            console.error('[Encryption] E2EE enable failed:', err)
+          }
+        }
+        if (room.state === 'connected') onConnected()
+        else room.once('connected', onConnected)
+
+        setEncryptionSetupComplete(true)
+      })
+      .catch((err) => {
+        console.error('[Encryption] Key setup failed:', err)
+      })
 
   }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin, useVaultE2EE])
 

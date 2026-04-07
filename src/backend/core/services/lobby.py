@@ -204,7 +204,7 @@ class LobbyService:
                 room.id, participant_id, username,
                 is_authenticated=request.user.is_authenticated,
                 email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
-                suite_user_id=str(request.user.id) if request.user.is_authenticated else None,
+                suite_user_id=str(request.user.sub) if request.user.is_authenticated else None,
                 ephemeral_public_key=ephemeral_public_key,
             )
 
@@ -224,6 +224,7 @@ class LobbyService:
                     room.id, participant_id, username,
                     is_authenticated=request.user.is_authenticated,
                     email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
+                    suite_user_id=str(request.user.sub) if request.user.is_authenticated else None,
                     ephemeral_public_key=ephemeral_public_key,
                 )
                 return participant, None

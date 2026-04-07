@@ -13,6 +13,7 @@ import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { encryptKeyForParticipant, getSymmetricKey } from '@/features/encryption/lobbyKeyExchange'
 import { useVaultClient } from '@/features/encryption'
+import { toastQueue } from '@/features/notifications/components/ToastProvider'
 
 export const POLL_INTERVAL_MS = 1000
 
@@ -68,37 +69,47 @@ export const useWaitingParticipants = () => {
     let adminEphemeralPublicKey = ''
     let encryptedVaultKey = ''
 
-    if (isAdvancedMode && vaultClient && participant.suite_user_id) {
-      // Advanced mode: re-wrap the existing symmetric key for the joiner
-      try {
-        // Get the admin's own encrypted symmetric key from the room data
-        const adminKeyBase64 = roomData?.encrypted_symmetric_key
-        if (!adminKeyBase64) {
-          console.error('[VaultE2EE] Admin has no encrypted symmetric key')
-          return { encryptedKey, adminEphemeralPublicKey, encryptedVaultKey }
-        }
-        const adminKeyBinary = atob(adminKeyBase64)
-        const adminKeyBytes = new Uint8Array(adminKeyBinary.length)
-        for (let i = 0; i < adminKeyBinary.length; i++) adminKeyBytes[i] = adminKeyBinary.charCodeAt(i)
-
-        // Fetch joiner's vault public key
-        const { publicKeys } = await vaultClient.fetchPublicKeys([participant.suite_user_id])
-        const joinerPubKey = publicKeys[participant.suite_user_id]
-        if (joinerPubKey) {
-          // Re-wrap the symmetric key for the joiner using shareKeys
-          const { encryptedKeys } = await vaultClient.shareKeys(
-            adminKeyBytes.buffer,
-            { [participant.suite_user_id]: joinerPubKey }
-          )
-          const joinerKey = encryptedKeys[participant.suite_user_id]
-          if (joinerKey) {
-            const bytes = new Uint8Array(joinerKey)
-            encryptedVaultKey = btoa(String.fromCharCode(...bytes))
-          }
-        }
-      } catch (err) {
-        console.error('[VaultE2EE] Failed to wrap key for participant:', err)
+    if (isAdvancedMode) {
+      // Advanced mode: re-wrap the existing symmetric key for the joiner.
+      // All steps are mandatory — if any fails, the participant must NOT be accepted
+      // (they would join without a key and see nothing).
+      if (!vaultClient) {
+        throw new Error('Encryption service is not available')
       }
+      if (!participant.suite_user_id) {
+        throw new Error('Participant has no vault identity — they may not be authenticated')
+      }
+
+      const adminKeyBase64 = roomData?.encrypted_symmetric_key
+      if (!adminKeyBase64) {
+        throw new Error('Admin has no encrypted symmetric key for this room')
+      }
+
+      console.info('[VaultE2EE] Admin: wrapping key for joiner', participant.suite_user_id)
+      const adminKeyBinary = atob(adminKeyBase64)
+      const adminKeyBytes = new Uint8Array(adminKeyBinary.length)
+      for (let i = 0; i < adminKeyBinary.length; i++) adminKeyBytes[i] = adminKeyBinary.charCodeAt(i)
+
+      // Fetch joiner's vault public key
+      const { publicKeys } = await vaultClient.fetchPublicKeys([participant.suite_user_id])
+      const joinerPubKey = publicKeys[participant.suite_user_id]
+      if (!joinerPubKey) {
+        throw new Error(`Could not find encryption public key for participant "${participant.username}"`)
+      }
+
+      // Re-wrap the symmetric key for the joiner using shareKeys
+      const { encryptedKeys } = await vaultClient.shareKeys(
+        adminKeyBytes.buffer,
+        { [participant.suite_user_id]: joinerPubKey }
+      )
+      const joinerKey = encryptedKeys[participant.suite_user_id]
+      if (!joinerKey) {
+        throw new Error('Key wrapping returned no result — shareKeys failed')
+      }
+
+      const bytes = new Uint8Array(joinerKey)
+      encryptedVaultKey = btoa(String.fromCharCode(...bytes))
+      console.info('[VaultE2EE] Admin: key wrapped successfully, length:', encryptedVaultKey.length)
     } else if (encrypted && getSymmetricKey() && participant.ephemeral_public_key) {
       // Basic mode: DH key exchange
       const result = await encryptKeyForParticipant(
@@ -120,10 +131,22 @@ export const useWaitingParticipants = () => {
     let encryptedVaultKey = ''
 
     if (allowEntry) {
-      const keys = await encryptKeyForAccept(participant)
-      encryptedKey = keys.encryptedKey
-      adminEphemeralPublicKey = keys.adminEphemeralPublicKey
-      encryptedVaultKey = keys.encryptedVaultKey
+      try {
+        const keys = await encryptKeyForAccept(participant)
+        encryptedKey = keys.encryptedKey
+        adminEphemeralPublicKey = keys.adminEphemeralPublicKey
+        encryptedVaultKey = keys.encryptedVaultKey
+      } catch (err) {
+        console.error('[VaultE2EE] Cannot accept participant:', err)
+        toastQueue.add(
+          {
+            type: 'encryptionError' as NotificationType,
+            message: `Cannot accept ${participant.username}: ${(err as Error).message}`,
+          },
+          { timeout: 8000 }
+        )
+        return
+      }
     }
 
     await enterRoom({
@@ -150,10 +173,22 @@ export const useWaitingParticipants = () => {
           let encryptedVaultKey = ''
 
           if (allowEntry) {
-            const keys = await encryptKeyForAccept(participant)
-            encryptedKey = keys.encryptedKey
-            adminEphemeralPublicKey = keys.adminEphemeralPublicKey
-            encryptedVaultKey = keys.encryptedVaultKey
+            try {
+              const keys = await encryptKeyForAccept(participant)
+              encryptedKey = keys.encryptedKey
+              adminEphemeralPublicKey = keys.adminEphemeralPublicKey
+              encryptedVaultKey = keys.encryptedVaultKey
+            } catch (err) {
+              console.error('[VaultE2EE] Cannot accept participant:', err)
+              toastQueue.add(
+                {
+                  type: 'encryptionError' as NotificationType,
+                  message: `Cannot accept ${participant.username}: ${(err as Error).message}`,
+                },
+                { timeout: 8000 }
+              )
+              return
+            }
           }
 
           return enterRoom({

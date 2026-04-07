@@ -1,36 +1,20 @@
 /**
- * Custom E2EE Manager that delegates crypto operations to the VaultClient iframe.
+ * STEP 2b: E2EE Manager using a custom Worker with libsodium crypto.
+ * Same architecture as the built-in (streams transferred to Worker), but
+ * using XChaCha20-Poly1305 via libsodium instead of AES-GCM via crypto.subtle.
  *
- * Instead of using LiveKit's built-in Worker + FrameCryptor, this manager:
- * - Sets up insertable streams (createEncodedStreams) on senders/receivers
- * - Pipes frames through a TransformStream on the main thread
- * - Delegates encrypt/decrypt to VaultClient.encryptWithKey / decryptWithKey
- * - The symmetric key never leaves the VaultClient iframe
- *
- * Uses transferable ArrayBuffers for zero-copy performance.
+ * This solves the receiver-reuse problem: transferred streams survive track
+ * changes, so the pipe in the Worker keeps working when a participant refreshes.
  */
 import { EventEmitter } from 'events'
+import { Encryption_Type } from '@livekit/protocol'
 import type { Room, RemoteTrack, Track } from 'livekit-client'
 import {
   RoomEvent,
   ParticipantEvent,
   ConnectionState,
-  Encryption_Type,
 } from 'livekit-client'
 import type { RTCEngine } from 'livekit-client/src/room/RTCEngine'
-
-// Re-declare the interface types we need (not exported from livekit-client)
-interface EncryptDataResponse {
-  uuid: string
-  payload: Uint8Array
-  iv: Uint8Array
-  keyIndex: number
-}
-
-interface DecryptDataResponse {
-  uuid: string
-  payload: Uint8Array
-}
 
 const E2EE_FLAG = Symbol('e2ee')
 
@@ -39,29 +23,40 @@ enum EncryptionEvent {
   EncryptionError = 'encryptionError',
 }
 
-function isLocalTrack(track: Track): boolean {
-  return (track as { sender?: RTCRtpSender }).sender !== undefined
-}
+// Hardcoded 32-byte key — same on all participants (Step 2)
+const HARDCODED_KEY = new Uint8Array([
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+  17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+])
 
 export class VaultE2EEManager extends EventEmitter {
-  private vaultClient: VaultClient
   private room?: Room
   private encryptionEnabled = false
   private _isDataChannelEncryptionEnabled = false
+  private worker: Worker
 
-  /** The symmetric key encrypted for the current user's vault public key */
-  private encryptedSymmetricKey: ArrayBuffer | null = null
-
-  constructor(vaultClient: VaultClient) {
+  constructor(_vaultClient: VaultClient) {
     super()
-    this.vaultClient = vaultClient
+    this.worker = new Worker(
+      new URL('./vault-e2ee.worker.ts', import.meta.url),
+      { type: 'module' },
+    )
+    this.worker.onmessage = this.onWorkerMessage
+    this.worker.onerror = (ev) => {
+      console.error('[VaultE2EE] worker error:', ev)
+    }
+    // Send init AND key immediately — key doesn't need sodium, so the Worker
+    // can store it before WASM loads. This avoids the race where encode/decode
+    // messages arrive before the key is set.
+    this.worker.postMessage({ kind: 'init', data: {} })
+    this.worker.postMessage({ kind: 'setKey', data: { key: HARDCODED_KEY, participantIdentity: '__init__' } })
   }
 
-  get isEnabled(): boolean {
+  get isEnabled() {
     return this.encryptionEnabled
   }
 
-  get isDataChannelEncryptionEnabled(): boolean {
+  get isDataChannelEncryptionEnabled() {
     return this.isEnabled && this._isDataChannelEncryptionEnabled
   }
 
@@ -69,12 +64,8 @@ export class VaultE2EEManager extends EventEmitter {
     this._isDataChannelEncryptionEnabled = enabled
   }
 
-  /**
-   * Set the encrypted symmetric key (wrapped for this user's vault public key).
-   * Must be called before encryption can work.
-   */
-  setEncryptedSymmetricKey(key: ArrayBuffer): void {
-    this.encryptedSymmetricKey = key
+  setEncryptedSymmetricKey(_key: ArrayBuffer): void {
+    // No-op for Step 2 — using hardcoded key
   }
 
   setup(room: Room): void {
@@ -84,77 +75,67 @@ export class VaultE2EEManager extends EventEmitter {
     }
   }
 
-  setupEngine(_engine: RTCEngine): void {
-    // No RTP map tracking needed — VaultClient handles crypto opaquely
-  }
+  setupEngine(_engine: RTCEngine): void {}
 
   setParticipantCryptorEnabled(enabled: boolean, participantIdentity: string): void {
-    if (
-      participantIdentity === this.room?.localParticipant.identity &&
-      this.encryptionEnabled !== enabled
-    ) {
-      this.encryptionEnabled = enabled
-      this.emit(
-        EncryptionEvent.ParticipantEncryptionStatusChanged,
-        enabled,
-        this.room!.localParticipant
-      )
-    } else if (participantIdentity !== this.room?.localParticipant.identity) {
-      const participant = this.room?.getParticipantByIdentity(participantIdentity)
-      if (participant) {
-        this.emit(EncryptionEvent.ParticipantEncryptionStatusChanged, enabled, participant)
-      }
+    // Send key to worker when enabling
+    if (enabled) {
+      this.worker.postMessage({
+        kind: 'setKey',
+        data: { key: HARDCODED_KEY, participantIdentity },
+      })
+    }
+    this.worker.postMessage({
+      kind: 'enable',
+      data: { enabled, participantIdentity },
+    })
+  }
+
+  setSifTrailer(_trailer: Uint8Array): void {}
+
+  async encryptData(_data: Uint8Array) {
+    return { uuid: crypto.randomUUID(), payload: _data, iv: new Uint8Array(0), keyIndex: 0 }
+  }
+
+  async handleEncryptedData(payload: Uint8Array) {
+    return { uuid: crypto.randomUUID(), payload }
+  }
+
+  // ── Worker messages ─────────────────────────────────────────────────
+
+  private onWorkerMessage = (ev: MessageEvent) => {
+    const { kind, data } = ev.data
+    switch (kind) {
+      case 'initAck':
+        console.info('[VaultE2EE] STEP 2b: Worker ready (libsodium)')
+        break
+
+      case 'enable':
+        if (
+          this.encryptionEnabled !== data.enabled &&
+          data.participantIdentity === this.room?.localParticipant.identity
+        ) {
+          this.encryptionEnabled = data.enabled
+          this.emit(EncryptionEvent.ParticipantEncryptionStatusChanged, data.enabled, this.room!.localParticipant)
+        } else if (data.participantIdentity && data.participantIdentity !== '__init__') {
+          const p = this.room?.getParticipantByIdentity(data.participantIdentity)
+          if (p) this.emit(EncryptionEvent.ParticipantEncryptionStatusChanged, data.enabled, p)
+        }
+        break
+
+      case 'error':
+        this.emit(EncryptionEvent.EncryptionError, data.error, data.participantIdentity)
+        break
     }
   }
 
-  setSifTrailer(_trailer: Uint8Array): void {
-    // SIF (Server Injected Frames) not supported in vault mode
-  }
-
-  async encryptData(data: Uint8Array): Promise<EncryptDataResponse> {
-    if (!this.encryptedSymmetricKey) {
-      throw new Error('No encrypted symmetric key set')
-    }
-
-    const { encryptedData } = await this.vaultClient.encryptWithKey(
-      data.buffer as ArrayBuffer,
-      this.encryptedSymmetricKey
-    )
-
-    return {
-      uuid: crypto.randomUUID(),
-      payload: new Uint8Array(encryptedData),
-      iv: new Uint8Array(0), // IV is embedded by VaultClient
-      keyIndex: 0,
-    }
-  }
-
-  async handleEncryptedData(
-    payload: Uint8Array,
-    _iv: Uint8Array,
-    _participantIdentity: string,
-    _keyIndex: number
-  ): Promise<DecryptDataResponse> {
-    if (!this.encryptedSymmetricKey) {
-      throw new Error('No encrypted symmetric key set')
-    }
-
-    const { data } = await this.vaultClient.decryptWithKey(
-      payload.buffer as ArrayBuffer,
-      this.encryptedSymmetricKey
-    )
-
-    return {
-      uuid: crypto.randomUUID(),
-      payload: new Uint8Array(data),
-    }
-  }
+  // ── Event listeners (same as built-in) ──────────────────────────────
 
   private setupEventListeners(room: Room): void {
     room.on(RoomEvent.TrackPublished, (pub, participant) => {
       this.setParticipantCryptorEnabled(
         pub.trackInfo!.encryption !== Encryption_Type.NONE,
-        participant.identity
+        participant.identity,
       )
     })
 
@@ -164,21 +145,28 @@ export class VaultE2EEManager extends EventEmitter {
           participant.trackPublications.forEach((pub) => {
             this.setParticipantCryptorEnabled(
               pub.trackInfo!.encryption !== Encryption_Type.NONE,
-              participant.identity
+              participant.identity,
             )
           })
         })
       }
     })
 
+    room.on(RoomEvent.TrackUnsubscribed, (track, _, participant) => {
+      this.worker.postMessage({
+        kind: 'removeTransform',
+        data: { participantIdentity: participant.identity, trackId: track.mediaStreamID },
+      })
+    })
+
     room.on(RoomEvent.TrackSubscribed, (track, pub, participant) => {
-      this.setupReceiver(track, participant.identity)
+      this.setupReceiver(track, participant.identity, pub.trackInfo)
     })
 
     room.on(RoomEvent.SignalConnected, () => {
       this.setParticipantCryptorEnabled(
         room.localParticipant.isE2EEEnabled,
-        room.localParticipant.identity
+        room.localParticipant.identity,
       )
     })
 
@@ -186,57 +174,54 @@ export class VaultE2EEManager extends EventEmitter {
       ParticipantEvent.LocalSenderCreated,
       (sender: RTCRtpSender, track: Track) => {
         this.setupSender(sender, track.mediaStreamID)
-      }
+      },
     )
   }
+
+  // ── Sender/Receiver — streams transferred to Worker ─────────────────
 
   private setupSender(sender: RTCRtpSender, trackId: string): void {
     if (E2EE_FLAG in sender) return
     if (!this.room?.localParticipant.identity) return
 
-    // @ts-expect-error - createEncodedStreams is not in the TS types
+    // @ts-expect-error
     const senderStreams = sender.createEncodedStreams()
-    const readable: ReadableStream = senderStreams.readable
-    const writable: WritableStream = senderStreams.writable
 
-    const transformStream = new TransformStream({
-      transform: async (frame, controller) => {
-        try {
-          if (!this.encryptedSymmetricKey || !this.encryptionEnabled) {
-            controller.enqueue(frame)
-            return
-          }
-
-          const frameData = new Uint8Array(frame.data)
-          const { encryptedData } = await this.vaultClient.encryptWithKey(
-            frameData.buffer as ArrayBuffer,
-            this.encryptedSymmetricKey
-          )
-
-          frame.data = encryptedData
-          controller.enqueue(frame)
-        } catch (err) {
-          // On error, pass frame through unencrypted to avoid blocking the pipeline
-          controller.enqueue(frame)
-          console.error('[VaultE2EE] encrypt frame error:', err)
-        }
+    this.worker.postMessage(
+      {
+        kind: 'encode',
+        data: {
+          readableStream: senderStreams.readable,
+          writableStream: senderStreams.writable,
+          trackId,
+          participantIdentity: this.room.localParticipant.identity,
+        },
       },
-    })
+      [senderStreams.readable, senderStreams.writable],
+    )
 
-    readable.pipeThrough(transformStream).pipeTo(writable)
-
-    // @ts-expect-error - custom flag
+    // @ts-expect-error
     sender[E2EE_FLAG] = true
   }
 
-  private setupReceiver(track: RemoteTrack, participantIdentity: string): void {
+  private setupReceiver(track: RemoteTrack, participantIdentity: string, trackInfo?: { mimeType?: string }): void {
     if (!track.receiver) return
-
     const receiver = track.receiver
 
-    if (E2EE_FLAG in receiver) return
+    if (E2EE_FLAG in receiver) {
+      // Receiver reuse — Worker's existing pipe handles new track frames
+      this.worker.postMessage({
+        kind: 'updateCodec',
+        data: {
+          trackId: track.mediaStreamID,
+          participantIdentity,
+          codec: trackInfo?.mimeType?.split('/')[1],
+        },
+      })
+      return
+    }
 
-    // @ts-expect-error - createEncodedStreams is not in the TS types
+    // @ts-expect-error
     let writable: WritableStream = receiver.writableStream
     // @ts-expect-error
     let readable: ReadableStream = receiver.readableStream
@@ -252,34 +237,20 @@ export class VaultE2EEManager extends EventEmitter {
       readable = receiverStreams.readable
     }
 
-    const transformStream = new TransformStream({
-      transform: async (frame, controller) => {
-        try {
-          if (!this.encryptedSymmetricKey || !this.encryptionEnabled) {
-            controller.enqueue(frame)
-            return
-          }
-
-          const frameData = new Uint8Array(frame.data)
-          const { data } = await this.vaultClient.decryptWithKey(
-            frameData.buffer as ArrayBuffer,
-            this.encryptedSymmetricKey
-          )
-
-          frame.data = data
-          controller.enqueue(frame)
-        } catch (err) {
-          // Decryption failed — emit error and drop frame
-          this.emit(
-            EncryptionEvent.EncryptionError,
-            new Error(`Decryption failed for ${participantIdentity}`),
-            participantIdentity
-          )
-        }
+    this.worker.postMessage(
+      {
+        kind: 'decode',
+        data: {
+          readableStream: readable,
+          writableStream: writable,
+          trackId: track.mediaStreamID,
+          participantIdentity,
+          codec: trackInfo?.mimeType?.split('/')[1],
+          isReuse: false,
+        },
       },
-    })
-
-    readable.pipeThrough(transformStream).pipeTo(writable)
+      [readable, writable],
+    )
 
     // @ts-expect-error
     receiver[E2EE_FLAG] = true
