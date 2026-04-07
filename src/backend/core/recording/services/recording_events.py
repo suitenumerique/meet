@@ -7,6 +7,7 @@ from logging import getLogger
 from livekit import api
 
 from core import models, utils
+from core.models import Recording
 
 logger = getLogger(__name__)
 
@@ -19,7 +20,7 @@ class RecordingEventsService:
     """Handles recording-related LiveKit webhook events."""
 
     @staticmethod
-    def handle_update(recording, egress_status):
+    def handle_update(recording: Recording, egress_status):
         """Handle egress status updates and sync recording state to room metadata."""
 
         room_name = str(recording.room.id)
@@ -40,7 +41,7 @@ class RecordingEventsService:
                 logger.exception("Failed to update room's metadata: %s", e)
 
     @staticmethod
-    def handle_limit_reached(recording):
+    def handle_limit_reached(recording: Recording):
         """Stop recording and notify participants when limit is reached."""
 
         recording.status = models.RecordingStatusChoices.STOPPED
