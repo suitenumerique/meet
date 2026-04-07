@@ -101,6 +101,12 @@ update_npm_version "mail"
 # Update backend pyproject.toml
 update_python_version "backend"
 
+# Run uv lock in backend
+print_info "Running uv lock in backend..."
+cd "src/backend"
+uv lock
+cd -
+
 # Update summary pyproject.toml
 update_python_version "summary"
 
@@ -149,6 +155,7 @@ echo "      - src/frontend/package.json"
 echo "      - src/sdk/package.json"
 echo "      - src/mail/package.json"
 echo "      - src/backend/pyproject.toml"
+echo "      - src/backend/uv.lock"
 echo "      - src/summary/pyproject.toml"
 echo "      - src/agents/pyproject.toml"
 echo "      - CHANGELOG.md"
