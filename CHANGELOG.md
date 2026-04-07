@@ -14,6 +14,10 @@ and this project adheres to
 - ✨(summary) add routes v2 for async STT and summary tasks  #1171
 - ✅(backend) add unit tests for JwtTokenService #1232
 
+### Changed
+
+- ⬆️(backend) bump lodash from 4.17.23 to 4.18.1 in /src/mail
+
 ### Fixed
 
 - ⬆️(dependencies) update aiohttp to v3.13.4 [SECURITY]
