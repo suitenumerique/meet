@@ -213,12 +213,21 @@ Requires top level scope
 
 
 {{/*
-Full name for the agents
+Full name for the agent metadata
 
 Requires top level scope
 */}}
-{{- define "meet.agents.fullname" -}}
-{{ include "meet.fullname" . }}-agents
+{{- define "meet.agentMetadata.fullname" -}}
+{{ include "meet.fullname" . }}-agent-metadata
+{{- end }}
+
+{{/*
+Full name for the agent subtitles
+
+Requires top level scope
+*/}}
+{{- define "meet.agentSubtitles.fullname" -}}
+{{ include "meet.fullname" . }}-agent-subtitles
 {{- end }}
 
 {{/*

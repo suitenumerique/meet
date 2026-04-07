@@ -1,26 +1,26 @@
-{{- $envVars := include "meet.common.env" (list . .Values.agents) -}}
-{{- $fullName := include "meet.agents.fullname" . -}}
-{{- $component := "agents" -}}
+{{- $envVars := include "meet.common.env" (list . .Values.agentMetadata) -}}
+{{- $fullName := include "meet.agentMetadata.fullname" . -}}
+{{- $component := "agent-metadata" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullName }}
   annotations:
-     {{- with .Values.agents.dpAnnotations }}
+     {{- with .Values.agentMetadata.dpAnnotations }}
      {{- toYaml . | nindent 4 }}
      {{- end }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "meet.common.labels" (list . $component) | nindent 4 }}
 spec:
-  replicas: {{ .Values.agents.replicas }}
+  replicas: {{ .Values.agentMetadata.replicas }}
   selector:
     matchLabels:
       {{- include "meet.common.selectorLabels" (list . $component) | nindent 6 }}
   template:
     metadata:
       annotations:
-        {{- with .Values.agents.podAnnotations }}
+        {{- with .Values.agentMetadata.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
@@ -30,23 +30,23 @@ spec:
       imagePullSecrets:
         - name: {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" .) "imageCredentials" $.Values.image.credentials) }}
       {{- end }}
-      shareProcessNamespace: {{ .Values.agents.shareProcessNamespace }}
-      {{- with .Values.agents.podSecurityContext }}
+      shareProcessNamespace: {{ .Values.agentMetadata.shareProcessNamespace }}
+      {{- with .Values.agentMetadata.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        {{- with .Values.agents.sidecars }}
+        {{- with .Values.agentMetadata.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
         - name: {{ .Chart.Name }}
-          image: "{{ (.Values.agents.image | default dict).repository | default .Values.agents.image.repository }}:{{ (.Values.agents.image | default dict).tag | default .Values.agents.image.tag }}"
-          imagePullPolicy: {{ (.Values.agents.image | default dict).pullPolicy | default .Values.agents.image.pullPolicy }}
-          {{- with .Values.agents.command }}
+          image: "{{ (.Values.agentMetadata.image | default dict).repository | default .Values.agentMetadata.image.repository }}:{{ (.Values.agentMetadata.image | default dict).tag | default .Values.agentMetadata.image.tag }}"
+          imagePullPolicy: {{ (.Values.agentMetadata.image | default dict).pullPolicy | default .Values.agentMetadata.image.pullPolicy }}
+          {{- with .Values.agentMetadata.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agents.args }}
+          {{- with .Values.agentMetadata.args }}
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -54,11 +54,11 @@ spec:
             {{- if $envVars }}
             {{- $envVars | indent 12 }}
             {{- end }}
-          {{- with .Values.agents.securityContext }}
+          {{- with .Values.agentMetadata.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agents.resources }}
+          {{- with .Values.agentMetadata.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -68,35 +68,35 @@ spec:
               mountPath: {{ $value.path }}
               subPath: content
             {{- end }}
-            {{- range $name, $volume := .Values.agents.persistence }}
+            {{- range $name, $volume := .Values.agentMetadata.persistence }}
             - name: "{{ $name }}"
               mountPath: "{{ $volume.mountPath }}"
             {{- end }}
-            {{- range .Values.agents.extraVolumeMounts }}
+            {{- range .Values.agentMetadata.extraVolumeMounts }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
               subPath: {{ .subPath | default "" }}
               readOnly: {{ .readOnly }}
             {{- end }}
-      {{- with .Values.agents.nodeSelector }}
+      {{- with .Values.agentMetadata.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agents.affinity }}
+      {{- with .Values.agentMetadata.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agents.tolerations }}
+      {{- with .Values.agentMetadata.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-        {{- range $index, $value := .Values.agents.mountFiles }}
+        {{- range $index, $value := .Values.agentMetadata.mountFiles }}
         - name: "files-{{ $index }}"
           configMap:
             name: "{{ include "meet.fullname" $ }}-files-{{ $index }}"
         {{- end }}
-        {{- range $name, $volume := .Values.agents.persistence }}
+        {{- range $name, $volume := .Values.agentMetadata.persistence }}
         - name: "{{ $name }}"
           {{- if eq $volume.type "emptyDir" }}
           emptyDir: {}
@@ -105,7 +105,7 @@ spec:
             claimName: "{{ $fullName }}-{{ $name }}"
           {{- end }}
         {{- end }}
-        {{- range .Values.agents.extraVolumes }}
+        {{- range .Values.agentMetadata.extraVolumes }}
         - name: {{ .name }}
           {{- if .existingClaim }}
           persistentVolumeClaim:
@@ -127,7 +127,7 @@ spec:
           {{- end }}
         {{- end }}
 ---
-{{ if .Values.agents.pdb.enabled }}
+{{ if .Values.agentMetadata.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
