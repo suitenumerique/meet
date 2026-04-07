@@ -1,42 +1,35 @@
 /**
- * E2EE Worker — Step 2d: uses crypto.subtle AES-GCM with the SAME frame format
- * as LiveKit's built-in FrameCryptor, including preserved unencrypted header bytes.
+ * E2EE Worker — Step 3: libsodium XChaCha20-Poly1305 with preserved codec headers.
+ * Same frame format as LiveKit (unencrypted header bytes), but using libsodium
+ * instead of crypto.subtle. Hardcoded symmetric key, no VaultClient yet.
  *
- * Frame format (same as LiveKit):
- *   [unencrypted header][ciphertext + GCM tag][IV (12B)][IV_LENGTH (1B)][key index (1B)]
- *
- * Unencrypted header sizes (VP8):
- *   - keyframe: 10 bytes
- *   - delta: 3 bytes
- *   - audio: 1 byte (Opus TOC)
+ * Frame format:
+ *   [unencrypted header][ciphertext + Poly1305 MAC (16B)][nonce (24B)][NONCE_LENGTH (1B)][key index (1B)]
  */
+import _sodium from 'libsodium-wrappers-sumo'
 
-let encryptionKey: CryptoKey | null = null
-const IV_LENGTH = 12
+let sodium: typeof _sodium
+let symmetricKey: Uint8Array | null = null
+
 const KEY_INDEX = 0
 
-// Same constants as LiveKit's FrameCryptor
+// Same as LiveKit's FrameCryptor constants
 const UNENCRYPTED_BYTES = {
   key: 10,    // VP8 keyframe
   delta: 3,   // VP8 delta frame
   audio: 1,   // Opus TOC byte
 }
 
-function getUnencryptedBytes(frame: RTCEncodedVideoFrame | RTCEncodedAudioFrame): number {
-  // Audio frames don't have .type
-  if (!('type' in frame)) {
-    return UNENCRYPTED_BYTES.audio
-  }
-  return frame.type === 'key' ? UNENCRYPTED_BYTES.key : UNENCRYPTED_BYTES.delta
+async function init() {
+  await _sodium.ready
+  sodium = _sodium
 }
 
-function makeIV(ssrc: number, timestamp: number): Uint8Array {
-  const iv = new ArrayBuffer(IV_LENGTH)
-  const view = new DataView(iv)
-  view.setUint32(0, ssrc, true)
-  view.setUint32(4, timestamp, true)
-  view.setUint32(8, ssrc ^ timestamp, true)
-  return new Uint8Array(iv)
+const sodiumReady = init()
+
+function getUnencryptedBytes(frame: RTCEncodedVideoFrame | RTCEncodedAudioFrame): number {
+  if (!('type' in frame)) return UNENCRYPTED_BYTES.audio
+  return frame.type === 'key' ? UNENCRYPTED_BYTES.key : UNENCRYPTED_BYTES.delta
 }
 
 onmessage = async (ev: MessageEvent) => {
@@ -44,22 +37,22 @@ onmessage = async (ev: MessageEvent) => {
 
   switch (kind) {
     case 'init':
+      await sodiumReady
       postMessage({ kind: 'initAck', data: { enabled: true } })
       break
 
-    case 'setKey': {
-      encryptionKey = await crypto.subtle.importKey(
-        'raw', data.key, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'],
-      )
+    case 'setKey':
+      // Store raw symmetric key for libsodium (32 bytes)
+      symmetricKey = new Uint8Array(data.key)
       postMessage({
         kind: 'enable',
         data: { enabled: true, participantIdentity: data.participantIdentity },
       })
       break
-    }
 
     case 'encode':
     case 'decode': {
+      await sodiumReady
       const { readableStream, writableStream, trackId, participantIdentity } = data
       const operation = kind
       let frameCount = 0
@@ -67,81 +60,64 @@ onmessage = async (ev: MessageEvent) => {
       const transformStream = new TransformStream({
         transform: async (frame: RTCEncodedVideoFrame | RTCEncodedAudioFrame, controller: TransformStreamDefaultController) => {
           try {
-            if (!encryptionKey) return // drop — key not ready
+            if (!symmetricKey) return // drop — key not ready
             if (!frame.data || frame.data.byteLength === 0) {
               return controller.enqueue(frame)
             }
 
+            const unencryptedBytes = getUnencryptedBytes(frame)
+
             if (operation === 'encode') {
-              // ── Encrypt (same as LiveKit FrameCryptor.encodeFunction) ──
-              const iv = makeIV(
-                (frame as any).getMetadata?.().synchronizationSource ?? 0,
-                (frame as any).timestamp ?? 0,
-              )
-
-              const unencryptedBytes = getUnencryptedBytes(frame)
+              // ── Encrypt ──
               const frameHeader = new Uint8Array(frame.data, 0, unencryptedBytes)
+              const payload = new Uint8Array(frame.data, unencryptedBytes)
 
-              const ciphertext = await crypto.subtle.encrypt(
-                {
-                  name: 'AES-GCM',
-                  iv,
-                  additionalData: new Uint8Array(frame.data, 0, frameHeader.byteLength),
-                },
-                encryptionKey,
-                new Uint8Array(frame.data, unencryptedBytes),
-              )
+              const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES) // 24 bytes
+              const ciphertext = sodium.crypto_secretbox_easy(payload, nonce, symmetricKey)
 
-              // [header][ciphertext+tag][IV][IV_LENGTH][keyIndex]
-              const frameTrailer = new Uint8Array(2)
-              frameTrailer[0] = IV_LENGTH
-              frameTrailer[1] = KEY_INDEX
+              // Trailer: [NONCE_LENGTH][KEY_INDEX]
+              const trailer = new Uint8Array(2)
+              trailer[0] = sodium.crypto_secretbox_NONCEBYTES // 24
+              trailer[1] = KEY_INDEX
 
+              // [header][ciphertext + MAC][nonce][trailer]
               const newData = new Uint8Array(
-                frameHeader.byteLength + ciphertext.byteLength + iv.byteLength + frameTrailer.byteLength,
+                frameHeader.byteLength + ciphertext.byteLength + nonce.byteLength + trailer.byteLength,
               )
-              newData.set(frameHeader)
-              newData.set(new Uint8Array(ciphertext), frameHeader.byteLength)
-              newData.set(iv, frameHeader.byteLength + ciphertext.byteLength)
-              newData.set(frameTrailer, frameHeader.byteLength + ciphertext.byteLength + iv.byteLength)
+              let offset = 0
+              newData.set(frameHeader, offset); offset += frameHeader.byteLength
+              newData.set(ciphertext, offset); offset += ciphertext.byteLength
+              newData.set(nonce, offset); offset += nonce.byteLength
+              newData.set(trailer, offset)
 
               frame.data = newData.buffer
               controller.enqueue(frame)
             } else {
-              // ── Decrypt (same as LiveKit FrameCryptor.decodeFunction) ──
-              const frameData = new Uint8Array(frame.data)
-              const unencryptedBytes = getUnencryptedBytes(frame)
+              // ── Decrypt ──
               const frameHeader = new Uint8Array(frame.data, 0, unencryptedBytes)
 
-              // Read trailer
-              const frameTrailer = new Uint8Array(frame.data, frame.data.byteLength - 2, 2)
-              const ivLength = frameTrailer[0]
+              // Read trailer (last 2 bytes)
+              const trailer = new Uint8Array(frame.data, frame.data.byteLength - 2, 2)
+              const nonceLength = trailer[0]
 
-              // Extract IV
-              const iv = new Uint8Array(
+              // Extract nonce
+              const nonce = new Uint8Array(
                 frame.data,
-                frame.data.byteLength - ivLength - frameTrailer.byteLength,
-                ivLength,
+                frame.data.byteLength - nonceLength - trailer.byteLength,
+                nonceLength,
               )
 
-              // Extract ciphertext (between header and IV)
+              // Extract ciphertext (between header and nonce)
               const ciphertextStart = frameHeader.byteLength
-              const ciphertextLength = frame.data.byteLength - frameHeader.byteLength - ivLength - frameTrailer.byteLength
+              const ciphertextLength = frame.data.byteLength - frameHeader.byteLength - nonceLength - trailer.byteLength
+              const ciphertext = new Uint8Array(frame.data, ciphertextStart, ciphertextLength)
 
-              const plaintext = await crypto.subtle.decrypt(
-                {
-                  name: 'AES-GCM',
-                  iv,
-                  additionalData: new Uint8Array(frame.data, 0, frameHeader.byteLength),
-                },
-                encryptionKey,
-                new Uint8Array(frame.data, ciphertextStart, ciphertextLength),
-              )
+              const plaintext = sodium.crypto_secretbox_open_easy(ciphertext, nonce, symmetricKey)
 
               // Reconstruct: [header][plaintext]
               const newData = new Uint8Array(frameHeader.byteLength + plaintext.byteLength)
               newData.set(frameHeader)
-              newData.set(new Uint8Array(plaintext), frameHeader.byteLength)
+              newData.set(plaintext, frameHeader.byteLength)
               frame.data = newData.buffer
 
               controller.enqueue(frame)
