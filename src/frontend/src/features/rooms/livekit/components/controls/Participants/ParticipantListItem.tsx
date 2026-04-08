@@ -21,7 +21,8 @@ import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { ParticipantMenuButton } from '../../ParticipantMenu/ParticipantMenuButton'
 import { PinBadge } from './PinBadge'
-import { EncryptionBadge, getTrustLevelFromAttributes, FingerprintDialog } from '@/features/encryption'
+import { EncryptionBadge, EncryptionIdentityDialog } from '@/features/encryption'
+import { useParticipantTrustLevel } from '@/features/encryption/useParticipantTrustLevel'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { isEncryptedRoom as isEncryptedRoomFn } from '@/features/rooms/api/ApiRoom'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
@@ -108,11 +109,11 @@ export const ParticipantListItem = ({
   const isAdmin = useIsAdminOrOwner()
   const { isLoggedIn } = useUser()
   const { t: tEncBadge } = useTranslation('rooms', { keyPrefix: 'encryption.badge' })
-  const [isFingerprintOpen, setIsFingerprintOpen] = useState(false)
+  const [isIdentityOpen, setIsFingerprintOpen] = useState(false)
   const name = participant.name || participant.identity
   const attrs = participant.attributes as Record<string, string> | undefined
-  const trustLevel = getTrustLevelFromAttributes(attrs, roomData?.encryption_mode)
-  const badgeTooltip = trustLevel ? tEncBadge(trustLevel) : undefined
+  const { trustLevel, fingerprintStatus, fingerprint } = useParticipantTrustLevel(attrs, roomData?.encryption_mode, isLocal(participant))
+  const badgeTooltip = tEncBadge(trustLevel)
   return (
     <HStack
       role="listitem"
@@ -139,7 +140,7 @@ export const ParticipantListItem = ({
               size="sm"
               tooltip={badgeTooltip}
               aria-label={badgeTooltip}
-              onPress={isAdmin ? () => setIsFingerprintOpen(true) : undefined}
+              onPress={() => setIsFingerprintOpen(true)}
               className={css({
                 padding: '0.1rem 0.25rem !important',
                 minWidth: 'auto !important',
@@ -148,9 +149,9 @@ export const ParticipantListItem = ({
                 borderRadius: '0.25rem !important',
                 backgroundColor: 'transparent !important',
                 color: 'greyscale.900 !important',
-                cursor: isAdmin ? 'pointer' : 'default',
+                cursor: isEncryptedRoom ? 'pointer' : 'default',
                 '&[data-hovered]': {
-                  backgroundColor: isAdmin ? 'greyscale.100 !important' : 'transparent !important',
+                  backgroundColor: 'greyscale.100 !important',
                 },
               })}
             >
@@ -244,15 +245,18 @@ export const ParticipantListItem = ({
         <MicIndicator participant={participant} />
         <ParticipantMenuButton participant={participant} />
       </HStack>
-      {isEncryptedRoom && isAdmin && (
-        <FingerprintDialog
-          isOpen={isFingerprintOpen}
+      {isEncryptedRoom && (
+        <EncryptionIdentityDialog
+          isOpen={isIdentityOpen}
           onOpenChange={setIsFingerprintOpen}
           participantName={name}
           participantEmail={attrs?.email}
           suiteUserId={attrs?.suite_user_id}
           isAuthenticated={attrs?.is_authenticated === 'true'}
           encryptionMode={roomData?.encryption_mode}
+          isSelf={isLocal(participant)}
+          preloadedFingerprint={fingerprint}
+          preloadedFingerprintStatus={fingerprintStatus}
         />
       )}
     </HStack>

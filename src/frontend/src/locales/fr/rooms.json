@@ -698,9 +698,11 @@
     "banner": "Chiffrement basique",
     "bannerStrong": "Chiffrement avancé",
     "badge": {
-      "verified": "Chiffrement avancé",
-      "authenticated": "Chiffré (authentifié)",
-      "anonymous": "Chiffré (anonyme)",
+      "verified": "Vérifié — empreinte approuvée",
+      "unknown": "Non vérifié — cliquez pour vérifier l'empreinte",
+      "refused": "Refusé — empreinte précédemment rejetée",
+      "authenticated": "Authentifié via ProConnect",
+      "anonymous": "Identité non vérifiée",
       "default": "Chiffré"
     },
     "bannerModal": {
@@ -733,6 +735,8 @@
     "fingerprint": {
       "title": "Identité chiffrée",
       "description": "Ceci montre l'identité de chiffrement de ce participant. Cela vous permet de vérifier qu'il est bien celui qu'il prétend être.",
+      "descriptionSelf": "Ceci est votre identité de chiffrement telle que vue par les autres participants. Ils peuvent l'utiliser pour vérifier que vous êtes bien qui vous prétendez être.",
+      "descriptionSelfAnonymous": "Vous avez rejoint sans vous connecter. Les autres participants voient votre nom comme auto-déclaré et non vérifié. Connectez-vous via ProConnect pour une identité vérifiée.",
       "loading": "Vérification des clés de chiffrement...",
       "noKey": "Ce participant n'a pas effectué l'onboarding chiffrement. Son identité est vérifiée par le serveur d'authentification (ProConnect) uniquement — pas par une clé publique cryptographique. Il peut configurer le chiffrement dans les paramètres de son compte.",
       "noKeyBasicAuthenticated": "Ce participant est connecté via ProConnect. Son nom et son email proviennent du serveur d'authentification et ne peuvent pas être falsifiés.",
@@ -747,6 +751,7 @@
       "unknownDescription": "Cette empreinte n'a pas encore été vérifiée. Comparez-la avec le participant (par téléphone, en personne ou par un autre canal sécurisé) pour confirmer son identité.",
       "accept": "Approuver",
       "refuse": "Refuser",
+      "changeDecision": "Modifier ma décision",
       "anonymous": "Identité non vérifiée"
     },
     "trustModal": {

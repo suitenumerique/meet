@@ -10,7 +10,7 @@ export type { ParticipantEncryptionInfo } from './HybridKeyDistributor'
 export { EncryptionBadge } from './EncryptionBadge'
 export { EncryptedMeetingBanner } from './EncryptedMeetingBanner'
 export { EncryptionTrustModal } from './EncryptionTrustModal'
-export { FingerprintDialog } from './FingerprintDialog'
+export { EncryptionIdentityDialog } from './EncryptionIdentityDialog'
 export { useParticipantTrustLevel } from './useParticipantTrustLevel'
 
 export { PARTICIPANT_TRUST_ATTR } from './types'

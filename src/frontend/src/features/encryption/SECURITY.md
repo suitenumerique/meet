@@ -72,16 +72,46 @@ Non-verified key relays should show a clear warning.
 | Authenticated | 🔵 Blue shield | OIDC/ProConnect login | Ephemeral DH (unsigned) | No — relies on server integrity |
 | Anonymous | 🟡 Orange warning | None (self-declared name) | Ephemeral DH (unsigned) | No — relies on server integrity |
 
+#### Basic mode: unencrypted frame window on connection
+
+**Behavior**: LiveKit's built-in Worker passes frames through unencrypted when `!isEnabled()`.
+
+**Mitigation**: `setE2EEEnabled(true)` is called BEFORE the room connects (in Conference.tsx),
+ensuring the 'enable' message reaches the Worker before any frames flow. This eliminates the
+unencrypted window in normal operation. However, edge cases (Worker message queue delays,
+race conditions during reconnection) could theoretically still allow a few unencrypted frames.
+
+**Advanced mode**: VaultE2EEManager drops frames when the key isn't ready — no pass-through.
+
+#### Basic mode: "Decryption failed" overlay may not appear with wrong passphrase
+
+**Behavior**: When a participant joins with a wrong passphrase, the receiver may not show the
+"Decryption failed" overlay. The LiveKit Worker's error throttling (`MAX_ERRORS_PER_MINUTE = 5`)
+stops emitting `EncryptionError` events after 5 failures. Additionally, when a participant
+reconnects, the new `ParticipantTile` mounts fresh and may not receive errors referencing
+the new participant identity.
+
+**Impact**: The user sees a black tile but no error message explaining why.
+
+**Advanced mode**: VaultE2EEManager emits `EncryptionError` for each failure and signals
+`ParticipantEncryptionStatusChanged(true)` on first successful decrypt, ensuring the overlay
+appears and clears correctly.
+
 ## Implementation status
 
-- [x] LiveKit E2EE with insertable streams
-- [x] Ephemeral X25519 DH key exchange (libsodium)
+- [x] Basic E2EE with LiveKit Worker + passphrase in URL hash
+- [x] Advanced E2EE with VaultClient iframe (XChaCha20-Poly1305)
+- [x] Preserved codec header bytes for RTP compatibility
 - [x] Admin as key authority
 - [x] Server-signed trust attributes in JWT
-- [x] Trust badges (verified/authenticated/anonymous)
-- [x] Fingerprint verification dialog
+- [x] Trust badges (verified/unknown/refused/authenticated/anonymous)
+- [x] Encryption identity dialog with fingerprint verification
 - [x] Encryption settings in account menu (VaultClient onboarding)
+- [x] Fingerprint accept/refuse with `fingerprint-changed` event
+- [x] Disable recording/transcription in encrypted rooms (backend + frontend)
+- [x] Lobby bypass disabled for encrypted rooms
+- [x] Backend blocks encrypted room creation when `ENCRYPTION_ENABLED=false`
 - [ ] Signed KEY_RESPONSE (Level 1)
 - [ ] SAS verification (Level 2)
 - [ ] Restrict key propagation to verified participants only
-- [ ] Disable recording/transcription UI for encrypted rooms
+- [x] Mitigate unencrypted frame window (setE2EEEnabled before connection)

@@ -26,9 +26,9 @@ import { useRoomContext } from '@livekit/components-react'
 import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
 import {
   EncryptionBadge,
-  getTrustLevelFromAttributes,
-  FingerprintDialog,
+  EncryptionIdentityDialog,
 } from '@/features/encryption'
+import { useParticipantTrustLevel } from '@/features/encryption/useParticipantTrustLevel'
 import { useRoomData } from '../hooks/useRoomData'
 import { isEncryptedRoom as checkEncryptedRoom } from '@/features/rooms/api/ApiRoom'
 import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
@@ -94,11 +94,11 @@ export const ParticipantTile: (
   const roomData = useRoomData()
   const isEncryptedRoom = checkEncryptedRoom(roomData)
   const isAdmin = useIsAdminOrOwner()
-  const [isFingerprintOpen, setIsFingerprintOpen] = React.useState(false)
+  const [isIdentityOpen, setIsFingerprintOpen] = React.useState(false)
   const participantAttrs = trackReference.participant.attributes as Record<string, string> | undefined
-  const trustLevel = getTrustLevelFromAttributes(participantAttrs, roomData?.encryption_mode)
+  const { trustLevel, fingerprintStatus, fingerprint: participantFingerprint } = useParticipantTrustLevel(participantAttrs, roomData?.encryption_mode, trackReference.participant.isLocal)
   const { t: tBadge } = useTranslation('rooms', { keyPrefix: 'encryption.badge' })
-  const badgeTooltip = trustLevel ? tBadge(trustLevel) : undefined
+  const badgeTooltip = tBadge(trustLevel)
 
   // Track decryption failures via EncryptionError events from LiveKit.
   // useIsEncrypted returns true when E2EE is enabled, NOT when frames decrypt successfully.
@@ -331,7 +331,7 @@ export const ParticipantTile: (
                           }}
                         />
                       )}
-                      {isEncryptedRoom && isAdmin && !isScreenShare ? (
+                      {isEncryptedRoom && !isScreenShare ? (
                         <Button
                           variant="greyscale"
                           size="sm"
@@ -373,7 +373,7 @@ export const ParticipantTile: (
                           {(isEncrypted || isEncryptedRoom) && !isScreenShare && (
                             <EncryptionBadge
                               isEncrypted={true}
-                              trustLevel={getTrustLevelFromAttributes(participantAttrs, roomData?.encryption_mode)}
+                              trustLevel={trustLevel}
                             />
                           )}
                           <div className="lk-participant-name-wrapper">
@@ -406,15 +406,18 @@ export const ParticipantTile: (
           ),
         })}
       </KeyboardShortcutHint>
-      {isEncryptedRoom && isAdmin && (
-        <FingerprintDialog
-          isOpen={isFingerprintOpen}
+      {isEncryptedRoom && (
+        <EncryptionIdentityDialog
+          isOpen={isIdentityOpen}
           onOpenChange={setIsFingerprintOpen}
           participantName={trackReference.participant.name || trackReference.participant.identity}
           participantEmail={participantAttrs?.email}
           suiteUserId={participantAttrs?.suite_user_id}
           isAuthenticated={participantAttrs?.is_authenticated === 'true'}
           encryptionMode={roomData?.encryption_mode}
+          isSelf={trackReference.participant.isLocal}
+          preloadedFingerprint={participantFingerprint}
+          preloadedFingerprintStatus={fingerprintStatus}
         />
       )}
     </div>

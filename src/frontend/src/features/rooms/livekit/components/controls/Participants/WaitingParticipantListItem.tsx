@@ -7,19 +7,9 @@ import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants
 import { RiCloseLine } from '@remixicon/react'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
-import { EncryptionBadge, getTrustLevelFromAttributes, FingerprintDialog } from '@/features/encryption'
-import type { TrustLevel } from '@/features/encryption/types'
+import { EncryptionBadge, EncryptionIdentityDialog } from '@/features/encryption'
+import { useParticipantTrustLevel, formatFingerprint } from '@/features/encryption/useParticipantTrustLevel'
 import { useState } from 'react'
-
-function waitingParticipantTrustLevel(
-  participant: WaitingParticipant,
-  encryptionMode?: string,
-): TrustLevel {
-  // In basic mode, no PKI — only authenticated or anonymous
-  // In advanced mode, would check vault keys (but waiting participants haven't joined yet)
-  if (participant.is_authenticated) return 'authenticated'
-  return 'anonymous'
-}
 
 export const WaitingParticipantListItem = ({
   participant,
@@ -32,8 +22,13 @@ export const WaitingParticipantListItem = ({
   const roomData = useRoomData()
   const encryptedRoom = isEncryptedRoom(roomData)
   const { t: tBadge } = useTranslation('rooms', { keyPrefix: 'encryption.badge' })
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const trustLevel = waitingParticipantTrustLevel(participant, roomData?.encryption_mode)
+  const [isIdentityOpen, setIsDialogOpen] = useState(false)
+  // Build attributes-like object for the hook (waiting participants aren't in LiveKit yet)
+  const waitingAttrs = {
+    is_authenticated: participant.is_authenticated ? 'true' : 'false',
+    suite_user_id: participant.suite_user_id || '',
+  }
+  const { trustLevel, fingerprintStatus, fingerprint } = useParticipantTrustLevel(waitingAttrs, roomData?.encryption_mode)
   const badgeTooltip = encryptedRoom ? tBadge(trustLevel) : undefined
 
   return (
@@ -107,6 +102,24 @@ export const WaitingParticipantListItem = ({
               {participant.username}
             </Text>
           )}
+          {encryptedRoom && fingerprint && (
+            <Text
+              variant="sm"
+              className={css({
+                fontSize: '0.6rem',
+                fontFamily: 'monospace',
+                color: 'greyscale.400',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                paddingLeft: '0.25rem',
+                width: '100%',
+                minWidth: 0,
+              })}
+            >
+              {formatFingerprint(fingerprint)}
+            </Text>
+          )}
           {encryptedRoom && (() => {
             const email = participant.is_authenticated && participant.email
               ? participant.email
@@ -173,14 +186,16 @@ export const WaitingParticipantListItem = ({
         </Button>
       </HStack>
       {encryptedRoom && (
-        <FingerprintDialog
-          isOpen={isDialogOpen}
+        <EncryptionIdentityDialog
+          isOpen={isIdentityOpen}
           onOpenChange={setIsDialogOpen}
           participantName={participant.username}
           participantEmail={participant.email}
           suiteUserId={participant.suite_user_id}
           isAuthenticated={participant.is_authenticated}
           encryptionMode={roomData?.encryption_mode}
+          preloadedFingerprint={fingerprint}
+          preloadedFingerprintStatus={fingerprintStatus}
         />
       )}
     </HStack>

@@ -8,7 +8,7 @@
  * - 'anonymous': Key was distributed via ephemeral DH, participant is not authenticated.
  *   Identity is self-declared.
  */
-export type TrustLevel = 'verified' | 'authenticated' | 'anonymous'
+export type TrustLevel = 'verified' | 'authenticated' | 'anonymous' | 'refused' | 'unknown'
 
 /**
  * Metadata attached to participant attributes for encryption trust level.

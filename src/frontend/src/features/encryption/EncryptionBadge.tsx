@@ -1,13 +1,24 @@
 /**
  * Per-participant encryption trust badge.
  *
- * Single icon per trust level:
- * - "verified": Green shield — identity confirmed via PKI
- * - "authenticated": Blue shield — ProConnect-authenticated
- * - "anonymous": Orange warning — identity not verified
- * - default: Lock icon — encrypted, trust level unknown
+ * In advanced mode:
+ * - "verified": Green shield — fingerprint explicitly trusted
+ * - "unknown": Grey shield — has public key, not yet verified
+ * - "refused": Red shield — fingerprint previously refused
+ * - "authenticated": Blue shield — ProConnect, no vault keys
+ * - "anonymous": Orange warning — not signed in
+ *
+ * In basic mode:
+ * - "authenticated": Blue shield — ProConnect
+ * - "anonymous": Orange warning — not signed in
  */
-import { RiShieldCheckFill, RiErrorWarningFill, RiLockFill } from '@remixicon/react'
+import {
+  RiShieldCheckFill,
+  RiShieldFill,
+  RiShieldCrossFill,
+  RiErrorWarningFill,
+  RiLockFill,
+} from '@remixicon/react'
 import type { TrustLevel } from './types'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
@@ -32,6 +43,14 @@ export function EncryptionBadge({
     case 'verified':
       icon = <RiShieldCheckFill size={14} color="#22c55e" />
       label = t('verified')
+      break
+    case 'unknown':
+      icon = <RiShieldFill size={14} color="#9ca3af" />
+      label = t('unknown')
+      break
+    case 'refused':
+      icon = <RiShieldCrossFill size={14} color="#ef4444" />
+      label = t('refused')
       break
     case 'authenticated':
       icon = <RiShieldCheckFill size={14} color="#3b82f6" />

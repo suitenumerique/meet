@@ -275,15 +275,15 @@ export const Conference = ({
     keyProvider
       .setKey(passphrase)
       .then(async () => {
-        const onConnected = async () => {
-          try {
-            await room.setE2EEEnabled(true)
-          } catch (err) {
-            console.error('[Encryption] E2EE enable failed:', err)
-          }
+        // Enable E2EE BEFORE connecting — sets encryptionType=GCM so tracks
+        // are published with encryption metadata from the start.
+        // Also sends 'enable' to the Worker before any frames flow,
+        // eliminating the unencrypted frame window.
+        try {
+          await room.setE2EEEnabled(true)
+        } catch (err) {
+          console.error('[Encryption] E2EE enable failed:', err)
         }
-        if (room.state === 'connected') onConnected()
-        else room.once('connected', onConnected)
 
         setEncryptionSetupComplete(true)
       })
@@ -292,6 +292,18 @@ export const Conference = ({
       })
 
   }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin, useVaultE2EE])
+
+  // In basic encrypted rooms, the passphrase is in the URL hash.
+  // If the user changes the hash (e.g. corrects a typo), reload the page
+  // so the new passphrase is picked up by the encryption setup.
+  useEffect(() => {
+    if (!encryptionEnabled || useVaultE2EE) return
+    const handleHashChange = () => {
+      window.location.reload()
+    }
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [encryptionEnabled, useVaultE2EE])
 
   useEffect(() => {
     /**

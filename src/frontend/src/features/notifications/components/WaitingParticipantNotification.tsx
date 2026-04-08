@@ -3,7 +3,7 @@ import { HStack, VStack } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
 import { Button, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
-import { RiInfinityLine, RiShieldCheckLine, RiAlertLine } from '@remixicon/react'
+import { RiInfinityLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useRef, useState } from 'react'
 import { usePrevious } from '@/hooks/usePrevious'
@@ -12,10 +12,26 @@ import { useWaitingParticipants } from '@/features/rooms/hooks/useWaitingPartici
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useNotificationSound } from '../hooks/useSoundNotification'
 import { NotificationType } from '@/features/notifications'
+import { EncryptionBadge } from '@/features/encryption'
+import { useParticipantTrustLevel } from '@/features/encryption/useParticipantTrustLevel'
+import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
+
+const WaitingBadge = ({ participant }: { participant: WaitingParticipant }) => {
+  const roomData = useRoomData()
+  const attrs = {
+    is_authenticated: participant.is_authenticated ? 'true' : 'false',
+    suite_user_id: participant.suite_user_id || '',
+  }
+  const { trustLevel } = useParticipantTrustLevel(attrs, roomData?.encryption_mode)
+  return <EncryptionBadge isEncrypted={true} trustLevel={trustLevel} />
+}
 
 export const NOTIFICATION_DISPLAY_DURATION = 10000
 
 export const WaitingParticipantNotification = () => {
+  const roomData = useRoomData()
+  const encrypted = isEncryptedRoom(roomData)
   const { triggerNotificationSound } = useNotificationSound()
 
   const { t } = useTranslation('notifications', {
@@ -107,11 +123,7 @@ export const WaitingParticipantNotification = () => {
                 context="list"
                 notification
               />
-              {waitingParticipants[0].is_authenticated ? (
-                <RiShieldCheckLine size={16} color="#3b82f6" />
-              ) : (
-                <RiAlertLine size={16} color="#f59e0b" />
-              )}
+              {encrypted && <WaitingBadge participant={waitingParticipants[0]} />}
               <Text
                 variant="sm"
                 margin={false}

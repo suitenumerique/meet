@@ -698,9 +698,11 @@
     "banner": "Basic encryption",
     "bannerStrong": "Advanced encryption",
     "badge": {
-      "verified": "Advanced encryption",
-      "authenticated": "Encrypted (authenticated)",
-      "anonymous": "Encrypted (anonymous)",
+      "verified": "Verified — fingerprint trusted",
+      "unknown": "Not yet verified — click to check fingerprint",
+      "refused": "Refused — fingerprint previously rejected",
+      "authenticated": "Authenticated via ProConnect",
+      "anonymous": "Unverified identity",
       "default": "Encrypted"
     },
     "bannerModal": {
@@ -733,6 +735,8 @@
     "fingerprint": {
       "title": "Encryption identity",
       "description": "This shows the encryption identity of this participant. It allows you to verify they are who they claim to be.",
+      "descriptionSelf": "This is your encryption identity as seen by other participants. They can use it to verify that you are who you claim to be.",
+      "descriptionSelfAnonymous": "You joined without signing in. Other participants see your name as self-declared and unverified. Sign in via ProConnect for a verified identity.",
       "loading": "Checking encryption keys...",
       "noKey": "This participant has not completed encryption onboarding. Their identity is verified by the authentication server (ProConnect) only — not by a cryptographic public key. They can set up encryption in their account settings.",
       "noKeyBasicAuthenticated": "This participant is signed in via ProConnect. Their name and email are provided by the authentication server and cannot be falsified.",
@@ -747,6 +751,7 @@
       "unknownDescription": "This fingerprint has not been verified yet. Compare it with the participant (via phone, in person, or another secure channel) to confirm their identity.",
       "accept": "Trust",
       "refuse": "Refuse",
+      "changeDecision": "Change my decision",
       "anonymous": "Unverified identity"
     },
     "trustModal": {

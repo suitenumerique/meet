@@ -9,6 +9,7 @@ import { css } from '@/styled-system/css'
 import { VStack, HStack } from '@/styled-system/jsx'
 import { Dialog, Text, Button } from '@/primitives'
 import { Avatar } from '@/components/Avatar'
+import { useUser } from '@/features/auth'
 import {
   RiShieldCheckFill,
   RiShieldCheckLine,
@@ -18,9 +19,10 @@ import {
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useVaultClient } from './VaultClientProvider'
+import { formatFingerprint } from './useParticipantTrustLevel'
 import { useEffect, useState } from 'react'
 
-interface FingerprintDialogProps {
+interface EncryptionIdentityDialogProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   participantName: string
@@ -28,11 +30,14 @@ interface FingerprintDialogProps {
   suiteUserId?: string
   isAuthenticated: boolean
   encryptionMode?: 'basic' | 'advanced' | 'none'
+  isSelf?: boolean
+  preloadedFingerprint?: string | null
+  preloadedFingerprintStatus?: string | null
 }
 
 type FingerprintStatus = 'loading' | 'no-key' | 'trusted' | 'refused' | 'unknown' | 'error'
 
-export function FingerprintDialog({
+export function EncryptionIdentityDialog({
   isOpen,
   onOpenChange,
   participantName,
@@ -40,11 +45,23 @@ export function FingerprintDialog({
   suiteUserId,
   isAuthenticated,
   encryptionMode,
-}: FingerprintDialogProps) {
+  isSelf,
+  preloadedFingerprint,
+  preloadedFingerprintStatus,
+}: EncryptionIdentityDialogProps) {
   const { t } = useTranslation('rooms', { keyPrefix: 'encryption.fingerprint' })
   const { client: vaultClient } = useVaultClient()
-  const [status, setStatus] = useState<FingerprintStatus>('loading')
-  const [fingerprint, setFingerprint] = useState<string | null>(null)
+  const { isLoggedIn } = useUser()
+  const [status, setStatus] = useState<FingerprintStatus>(
+    (preloadedFingerprintStatus as FingerprintStatus) || 'loading'
+  )
+  const [fingerprint, setFingerprint] = useState<string | null>(preloadedFingerprint || null)
+
+  // Sync preloaded data when it becomes available (hook resolves after mount)
+  useEffect(() => {
+    if (preloadedFingerprintStatus) setStatus(preloadedFingerprintStatus as FingerprintStatus)
+    if (preloadedFingerprint) setFingerprint(preloadedFingerprint)
+  }, [preloadedFingerprint, preloadedFingerprintStatus])
 
   const isBasicMode = encryptionMode !== 'advanced'
 
@@ -68,7 +85,6 @@ export function FingerprintDialog({
 
     async function checkFingerprint() {
       try {
-        // Timeout after 3 seconds — the encryption server may not be available
         const timeout = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('timeout')), 3000)
         )
@@ -85,25 +101,34 @@ export function FingerprintDialog({
           return
         }
 
-        const { results } = await Promise.race([
-          vaultClient!.checkFingerprints(
-            { [suiteUserId!]: '' },
-            undefined
-          ),
-          timeout,
-        ])
+        // Compute fingerprint from the public key (SHA-256, first 16 hex chars)
+        const hash = await crypto.subtle.digest('SHA-256', publicKey)
+        const fp = Array.from(new Uint8Array(hash))
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('')
+          .slice(0, 16)
 
         if (cancelled) return
+        setFingerprint(fp)
 
-        const result = results.find((r) => r.userId === suiteUserId)
-        if (result) {
-          setFingerprint(result.providedFingerprint)
-          setStatus(result.status)
+        // Check local registry without triggering TOFU auto-trust
+        const { fingerprints: known } = await Promise.race([
+          vaultClient!.getKnownFingerprints(),
+          timeout,
+        ])
+        if (cancelled) return
+
+        const knownEntry = known[suiteUserId!]
+        if (!knownEntry) {
+          setStatus('unknown')
+        } else if (knownEntry.fingerprint === fp) {
+          setStatus(knownEntry.status)
         } else {
-          setStatus('no-key')
+          // Fingerprint changed — needs re-verification
+          setStatus('unknown')
         }
       } catch {
-        if (!cancelled) setStatus('no-key')
+        if (!cancelled) setStatus('error')
       }
     }
 
@@ -151,13 +176,15 @@ export function FingerprintDialog({
           <VStack gap="0" alignItems="start">
             <Text className={css({ fontWeight: 600, fontSize: '0.9rem' })}>{participantName}</Text>
             <Text variant="note" className={css({ fontSize: '0.8rem', color: 'greyscale.500' })}>
-              {participantEmail || t('anonymous')}
+              {isLoggedIn && participantEmail ? participantEmail : (!isAuthenticated ? t('anonymous') : '')}
             </Text>
           </VStack>
         </HStack>
 
         <Text variant="note" className={css({ fontSize: '0.8rem' })}>
-          {t('description')}
+          {isSelf
+            ? (isAuthenticated ? t('descriptionSelf') : t('descriptionSelfAnonymous'))
+            : t('description')}
         </Text>
 
         {status === 'loading' && (
@@ -182,7 +209,7 @@ export function FingerprintDialog({
           </HStack>
         )}
 
-        {status === 'no-key' && !(isBasicMode && isAuthenticated) && (
+        {status === 'no-key' && !(isBasicMode && isAuthenticated) && !isSelf && (
           <HStack
             gap="0.5rem"
             className={css({
@@ -224,7 +251,7 @@ export function FingerprintDialog({
               <Text variant="note" className={css({ fontSize: '0.7rem', fontFamily: 'inherit' })}>
                 {t('fingerprintLabel')}
               </Text>
-              {fingerprint}
+              {formatFingerprint(fingerprint)}
             </VStack>
 
             {status === 'trusted' && (
@@ -236,8 +263,17 @@ export function FingerprintDialog({
                   </Text>
                 </HStack>
                 <Text variant="note" className={css({ fontSize: '0.8rem' })}>
-                  {t('trustedDescription')}
+                  {isSelf ? t('descriptionSelf') : t('trustedDescription')}
                 </Text>
+                {!isSelf && (
+                  <Text
+                    variant="note"
+                    className={css({ fontSize: '0.75rem', color: 'greyscale.500', cursor: 'pointer', _hover: { textDecoration: 'underline' } })}
+                    onClick={() => setStatus('unknown')}
+                  >
+                    {t('changeDecision')}
+                  </Text>
+                )}
               </VStack>
             )}
 
@@ -252,10 +288,17 @@ export function FingerprintDialog({
                 <Text variant="note" className={css({ fontSize: '0.8rem' })}>
                   {t('refusedDescription')}
                 </Text>
+                <Text
+                  variant="note"
+                  className={css({ fontSize: '0.75rem', color: 'greyscale.500', cursor: 'pointer', _hover: { textDecoration: 'underline' } })}
+                  onClick={() => setStatus('unknown')}
+                >
+                  {t('changeDecision')}
+                </Text>
               </VStack>
             )}
 
-            {status === 'unknown' && (
+            {status === 'unknown' && !isSelf && (
               <VStack gap="0.5rem" className={css({ width: '100%' })}>
                 <Text variant="note" className={css({ fontSize: '0.8rem' })}>
                   {t('unknownDescription')}
