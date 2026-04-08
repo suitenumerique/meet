@@ -1,27 +1,26 @@
-import React, { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { RiMoreFill } from '@remixicon/react'
 import { Box, Button } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { PipOptionsMenuItems } from './PipOptionsMenuItems'
+import { useTranslation } from 'react-i18next'
+import type { CollapsibleControl } from '../PipControlBar'
 
 type PipOptionsMenuProps = {
-  wrapperRef: React.RefObject<HTMLDivElement>
-  isOpen: boolean
-  setIsOpen: (isOpen: boolean) => void
-  label: string
+  overflowControls?: Set<CollapsibleControl>
 }
 
 /**
  * PiP-specific options menu with absolute positioning for correct alignment in PiP window.
  * Renders locally (unlike standard Menu) and closes automatically on item click or outside click.
+ * Overflow controls from the toolbar are rendered as additional menu items.
  */
-export const PipOptionsMenu = ({
-  wrapperRef,
-  isOpen,
-  setIsOpen,
-  label,
-}: PipOptionsMenuProps) => {
-  // Close menu when a menu item action completes (e.g., transcription, effects, recording).
+export const PipOptionsMenu = ({ overflowControls }: PipOptionsMenuProps) => {
+  const { t } = useTranslation('rooms')
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const label = t('options.buttonLabel')
+
   useEffect(() => {
     if (!isOpen) return
     const doc = wrapperRef.current?.ownerDocument ?? document
@@ -31,12 +30,9 @@ export const PipOptionsMenu = ({
       const wrapper = wrapperRef.current
       if (!wrapper || !target) return
 
-      // Don't close if clicking the trigger button
       if (wrapper.querySelector('button')?.contains(target)) return
 
-      // Close if clicking a menu item (action will have fired)
       if (target.closest('[role="menuitem"]')) {
-        // Use requestAnimationFrame to ensure action completes first, without visible delay
         requestAnimationFrame(() => {
           setIsOpen(false)
         })
@@ -47,7 +43,7 @@ export const PipOptionsMenu = ({
     return () => {
       doc.removeEventListener('click', handleMenuItemClick, true)
     }
-  }, [isOpen, setIsOpen, wrapperRef])
+  }, [isOpen])
 
   return (
     <div
@@ -77,7 +73,7 @@ export const PipOptionsMenu = ({
           })}
         >
           <Box size="sm" type="popover" variant="dark">
-            <PipOptionsMenuItems />
+            <PipOptionsMenuItems overflowControls={overflowControls} />
           </Box>
         </div>
       )}
