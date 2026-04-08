@@ -17,6 +17,7 @@ and this project adheres to
 ### Changed
 
 - ⬆️(backend) bump lodash from 4.17.23 to 4.18.1 in /src/mail
+- ⬆️(frontend) bump hono from 4.12.8 to 4.12.12 in /src/frontend
 
 ### Fixed
 
