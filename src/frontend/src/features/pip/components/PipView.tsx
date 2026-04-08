@@ -7,7 +7,6 @@ import {
 import { useTracks } from '@livekit/components-react'
 import { Track } from 'livekit-client'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
-import { GridLayout } from '@/features/layout/components/GridLayout'
 import { SidePanel } from '@/features/rooms/livekit/components/SidePanel'
 import { pipLayoutStore } from '../stores/pipLayoutStore'
 import { PipControlBar } from './PipControlBar'
@@ -23,6 +22,22 @@ const pickTrackForPip = (
   if (screenShareTrack) return screenShareTrack
   return tracks[0]
 }
+
+const pickLocalCameraTrack = (
+  tracks: TrackReferenceOrPlaceholder[]
+): TrackReferenceOrPlaceholder | undefined =>
+  tracks.find(
+    (track) =>
+      track.source === Track.Source.Camera && track.participant?.isLocal
+  )
+
+const pickRemoteCameraTrack = (
+  tracks: TrackReferenceOrPlaceholder[]
+): TrackReferenceOrPlaceholder | undefined =>
+  tracks.find(
+    (track) =>
+      track.source === Track.Source.Camera && !track.participant?.isLocal
+  )
 
 /**
  * Main view component for the Picture-in-Picture window.
@@ -41,6 +56,13 @@ export const PipView = () => {
   const trackRef = pickTrackForPip(tracks)
   const browserSupportsScreenSharing = supportsScreenSharing()
   const hasMultipleTiles = tracks.length > 1
+  const localCameraTrack = pickLocalCameraTrack(tracks)
+  const remoteCameraTrack = pickRemoteCameraTrack(tracks)
+  const mainTrackRef = remoteCameraTrack ?? trackRef
+  const thumbnailTrackRef =
+    mainTrackRef && localCameraTrack && localCameraTrack !== mainTrackRef
+      ? localCameraTrack
+      : tracks.find((track) => track !== mainTrackRef)
 
   if (!trackRef && !hasMultipleTiles) return null
 
@@ -49,11 +71,14 @@ export const PipView = () => {
       {/* Keep stage height stable to avoid layout shifting on track changes. */}
       <PipStage>
         {hasMultipleTiles ? (
-          <PipGridWrapper>
-            <GridLayout tracks={tracks} style={{ height: '100%' }}>
-              <ParticipantTile disableMetadata />
-            </GridLayout>
-          </PipGridWrapper>
+          <>
+            {mainTrackRef && <ParticipantTile trackRef={mainTrackRef} disableMetadata />}
+            {thumbnailTrackRef && (
+              <PipThumbnail>
+                <ParticipantTile trackRef={thumbnailTrackRef} disableMetadata />
+              </PipThumbnail>
+            )}
+          </>
         ) : (
           <ParticipantTile trackRef={trackRef} disableMetadata />
         )}
@@ -97,14 +122,18 @@ const PipStage = styled('div', {
   },
 })
 
-const PipGridWrapper = styled('div', {
+const PipThumbnail = styled('div', {
   base: {
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    height: '100%',
+    position: 'absolute',
+    right: '1rem',
+    bottom: '1rem',
+    width: '42%',
+    maxWidth: '220px',
+    minWidth: '140px',
+    aspectRatio: '16 / 9',
+    borderRadius: 'md',
+    overflow: 'hidden',
+    boxShadow: 'md',
+    zIndex: 2,
   },
 })
