@@ -74,7 +74,8 @@ create-env-files: \
 	env.d/development/postgresql \
 	env.d/development/kc_postgresql \
 	env.d/development/summary \
-	env.d/development/kube-secret
+	env.d/development/kube-secret \
+	env.d/development/multi_user_transcriber
 .PHONY: create-env-files
 
 bootstrap: ## Prepare Docker images for the project
@@ -95,6 +96,7 @@ bootstrap: \
 build: ## build the project containers
 	@$(MAKE) build-backend
 	@$(MAKE) build-frontend
+	@$(MAKE) build-agents
 .PHONY: build
 
 build-backend: ## build the app-dev container
@@ -105,6 +107,10 @@ build-backend: ## build the app-dev container
 build-frontend: ## build the frontend container
 	@$(COMPOSE) build frontend
 .PHONY: build-frontend
+
+build-agents: ## build the multi-user-transcriber agent container
+	@$(COMPOSE) build multi-user-transcriber
+.PHONY: build-agents
 
 down: ## stop and remove containers, networks, images, and volumes
 	@$(COMPOSE) down
@@ -126,10 +132,15 @@ run-summary: ## start only the summary application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-summary-summarize
 .PHONY: run-summary
 
+run-agents: ## start the multi-user-transcriber agent
+	@$(COMPOSE) up --force-recreate -d multi-user-transcriber
+.PHONY: run-agents
+
 run:
 run: ## start the wsgi (production) and development server
 	@$(MAKE) run-backend
 	@$(MAKE) run-summary
+	@$(MAKE) run-agents
 	@$(COMPOSE) up --force-recreate -d frontend
 .PHONY: run
 
@@ -268,6 +279,9 @@ env.d/development/summary:
 
 env.d/development/kube-secret:
 	cp -n env.d/development/kube-secret.dist env.d/development/kube-secret
+
+env.d/development/multi_user_transcriber:
+	cp -n env.d/development/multi_user_transcriber.dist env.d/development/multi_user_transcriber
 
 # -- Internationalization
 

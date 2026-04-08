@@ -307,6 +307,14 @@ services:
         - action: rebuild
           path: ./src/summary
 
+  multi-user-transcriber:
+    build:
+      context: ./src/agents
+    env_file:
+      - env.d/development/multi_user_transcriber
+    volumes:
+      - ./src/agents:/app
+
 networks:
   default:
   resource-server:
