@@ -512,6 +512,10 @@
       "screenshare": {
         "label": "Bildschirm teilen",
         "description": "Wenn du diese Option deaktivierst, können Teilnehmende ihren Bildschirm nicht mehr teilen. Laufende Bildschirmfreigaben werden sofort beendet."
+      },
+      "mute": {
+        "label": "Andere stummschalten",
+        "description": "Wenn deaktiviert, können Teilnehmer andere Teilnehmer nicht mehr stummschalten."
       }
     }
   },
