@@ -14,9 +14,18 @@ class LiveKitTokenAuthentication(authentication.BaseAuthentication):
     """Authenticate using LiveKit token and load the associated Django user."""
 
     def authenticate(self, request):
-        token = request.data.get("token")
-        if not token:
+        auth_header = request.headers.get("Authorization")
+
+        if not auth_header:
             return None  # No authentication attempted
+
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            raise exceptions.AuthenticationFailed(
+                "Authorization header must be: Bearer <token>"
+            )
+
+        token = parts[1]
 
         try:
             verifier = TokenVerifier(

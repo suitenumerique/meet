@@ -17,9 +17,11 @@ export const useRaiseHand = () => {
 
     return fetchApi(`rooms/${data.id}/toggle-hand/`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         raised,
-        token,
       }),
     })
   }

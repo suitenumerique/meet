@@ -68,7 +68,9 @@ def test_toggle_hand_raise_success(mock_livekit_client, room, token):
     """Test successfully raising a participant's hand."""
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    response = client.post(url, {"raised": True, "token": token}, format="json")
+    response = client.post(
+        url, {"raised": True}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == {"status": "success"}
@@ -81,7 +83,9 @@ def test_toggle_hand_lower_success(mock_livekit_client, room, token):
     """Test successfully lowering a participant's hand."""
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    response = client.post(url, {"raised": False, "token": token}, format="json")
+    response = client.post(
+        url, {"raised": False}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == {"status": "success"}
@@ -96,7 +100,9 @@ def test_toggle_hand_raise_sets_timestamp(mock_livekit_client, room, token):
     """Test that raising a hand sets a non-empty ISO timestamp as the attribute."""
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    response = client.post(url, {"raised": True, "token": token}, format="json")
+    response = client.post(
+        url, {"raised": True}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -110,7 +116,9 @@ def test_toggle_hand_identity_derived_from_token(
     """Test that the participant identity is derived from the token, not supplied by the client."""
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    client.post(url, {"raised": True, "token": token}, format="json")
+    client.post(
+        url, {"raised": True}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     call_kwargs = mock_livekit_client.room.update_participant.call_args
     assert call_kwargs[0][0].identity == str(user.sub)
@@ -120,7 +128,7 @@ def test_toggle_hand_missing_raised_field(room, token):
     """Test toggle hand with missing raised field returns 400."""
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    response = client.post(url, {"token": token}, format="json")
+    response = client.post(url, {}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "raised" in response.data
@@ -131,7 +139,10 @@ def test_toggle_hand_invalid_raised_field(room, token):
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
     response = client.post(
-        url, {"raised": "not-a-boolean", "token": token}, format="json"
+        url,
+        {"raised": "not-a-boolean"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -154,7 +165,9 @@ def test_toggle_hand_forbidden_token_for_wrong_room(user):
 
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": target_room.id})
-    response = client.post(url, {"raised": True, "token": wrong_token}, format="json")
+    response = client.post(
+        url, {"raised": True}, format="json", HTTP_AUTHORIZATION=f"Bearer {wrong_token}"
+    )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -167,7 +180,9 @@ def test_toggle_hand_unexpected_twirp_error(mock_livekit_client, room, token):
 
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    response = client.post(url, {"raised": True, "token": token}, format="json")
+    response = client.post(
+        url, {"raised": True}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert response.data == {"error": "Failed to update participant hand state"}
@@ -182,7 +197,10 @@ def test_toggle_hand_raise_success_anonymous(
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
     response = client.post(
-        url, {"raised": True, "token": anonymous_token}, format="json"
+        url,
+        {"raised": True},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {anonymous_token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -199,7 +217,10 @@ def test_toggle_hand_lower_success_anonymous(
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
     response = client.post(
-        url, {"raised": False, "token": anonymous_token}, format="json"
+        url,
+        {"raised": False},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {anonymous_token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -215,7 +236,12 @@ def test_toggle_hand_identity_derived_from_token_anonymous(
     """Test that identity is derived from participant_id for anonymous users."""
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    client.post(url, {"raised": True, "token": anonymous_token}, format="json")
+    client.post(
+        url,
+        {"raised": True},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {anonymous_token}",
+    )
 
     call_kwargs = mock_livekit_client.room.update_participant.call_args
     assert call_kwargs[0][0].identity == "anon-participant-id"
@@ -230,7 +256,9 @@ def test_rename_participant_success(mock_livekit_client, room, token):
     """Test successfully renaming a participant."""
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    response = client.post(url, {"name": "John Doe", "token": token}, format="json")
+    response = client.post(
+        url, {"name": "John Doe"}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == {"status": "success"}
@@ -243,7 +271,9 @@ def test_rename_participant_sets_correct_name(mock_livekit_client, room, token):
     """Test that rename passes the correct name to LiveKit."""
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    client.post(url, {"name": "Jane Doe", "token": token}, format="json")
+    client.post(
+        url, {"name": "Jane Doe"}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     call_kwargs = mock_livekit_client.room.update_participant.call_args
     assert call_kwargs[0][0].name == "Jane Doe"
@@ -255,7 +285,9 @@ def test_rename_participant_uses_identity_from_token(
     """Test that rename derives participant identity from the LiveKit token, not the request."""
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    client.post(url, {"name": "John Doe", "token": token}, format="json")
+    client.post(
+        url, {"name": "John Doe"}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     call_kwargs = mock_livekit_client.room.update_participant.call_args
     assert call_kwargs[0][0].identity == str(user.sub)
@@ -265,7 +297,9 @@ def test_rename_participant_empty_name(room, token):
     """Test rename with an empty name returns 400."""
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    response = client.post(url, {"name": "", "token": token}, format="json")
+    response = client.post(
+        url, {"name": ""}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "name" in response.data
@@ -275,7 +309,7 @@ def test_rename_participant_missing_name(room, token):
     """Test rename with missing name field returns 400."""
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    response = client.post(url, {"token": token}, format="json")
+    response = client.post(url, {}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "name" in response.data
@@ -285,7 +319,9 @@ def test_rename_participant_name_too_long(room, token):
     """Test rename with a name exceeding 255 characters returns 400."""
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    response = client.post(url, {"name": "a" * 256, "token": token}, format="json")
+    response = client.post(
+        url, {"name": "a" * 256}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "name" in response.data
@@ -309,7 +345,10 @@ def test_rename_participant_forbidden_token_for_wrong_room(user):
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": target_room.id})
     response = client.post(
-        url, {"name": "John Doe", "token": wrong_token}, format="json"
+        url,
+        {"name": "John Doe"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {wrong_token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -323,7 +362,9 @@ def test_rename_participant_unexpected_twirp_error(mock_livekit_client, room, to
 
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    response = client.post(url, {"name": "John Doe", "token": token}, format="json")
+    response = client.post(
+        url, {"name": "John Doe"}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert response.data == {"error": "Failed to rename participant"}
@@ -338,7 +379,10 @@ def test_rename_participant_success_anonymous(
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
     response = client.post(
-        url, {"name": "Guest User", "token": anonymous_token}, format="json"
+        url,
+        {"name": "Guest User"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {anonymous_token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -354,7 +398,12 @@ def test_rename_participant_uses_identity_from_token_anonymous(
     """Test that rename derives identity from participant_id for anonymous users."""
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    client.post(url, {"name": "Guest User", "token": anonymous_token}, format="json")
+    client.post(
+        url,
+        {"name": "Guest User"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {anonymous_token}",
+    )
 
     call_kwargs = mock_livekit_client.room.update_participant.call_args
     assert call_kwargs[0][0].identity == "anon-participant-id"
@@ -366,7 +415,12 @@ def test_rename_participant_sets_correct_name_anonymous(
     """Test that rename passes the correct name to LiveKit for anonymous users."""
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    client.post(url, {"name": "Guest User", "token": anonymous_token}, format="json")
+    client.post(
+        url,
+        {"name": "Guest User"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {anonymous_token}",
+    )
 
     call_kwargs = mock_livekit_client.room.update_participant.call_args
     assert call_kwargs[0][0].name == "Guest User"
@@ -379,7 +433,10 @@ def test_rename_participant_forbidden_anonymous_token_for_wrong_room(anonymous_t
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": target_room.id})
     response = client.post(
-        url, {"name": "Guest User", "token": anonymous_token}, format="json"
+        url,
+        {"name": "Guest User"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {anonymous_token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -401,7 +458,12 @@ def test_toggle_hand_expired_token(room, expired_token):
     """Test toggle hand returns 403 when the LiveKit token is expired."""
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    response = client.post(url, {"raised": True, "token": expired_token}, format="json")
+    response = client.post(
+        url,
+        {"raised": True},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {expired_token}",
+    )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -411,7 +473,10 @@ def test_rename_participant_expired_token(room, expired_token):
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
     response = client.post(
-        url, {"name": "John Doe", "token": expired_token}, format="json"
+        url,
+        {"name": "John Doe"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {expired_token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -422,7 +487,10 @@ def test_toggle_hand_malformed_token(room):
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
     response = client.post(
-        url, {"raised": True, "token": "this-is-not-a-valid-jwt"}, format="json"
+        url,
+        {"raised": True},
+        format="json",
+        HTTP_AUTHORIZATION="Bearer this-is-not-a-valid-jwt",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -435,7 +503,9 @@ def test_toggle_hand_room_not_found(user):
 
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": non_existent_room_id})
-    response = client.post(url, {"raised": True, "token": token}, format="json")
+    response = client.post(
+        url, {"raised": True}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -448,7 +518,9 @@ def test_toggle_hand_participant_not_found(mock_livekit_client, room, token):
 
     client = APIClient()
     url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
-    response = client.post(url, {"raised": True, "token": token}, format="json")
+    response = client.post(
+        url, {"raised": True}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.data == {"error": "Participant not found"}
@@ -461,7 +533,10 @@ def test_rename_participant_malformed_token(room):
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
     response = client.post(
-        url, {"name": "John Doe", "token": "this-is-not-a-valid-jwt"}, format="json"
+        url,
+        {"name": "John Doe"},
+        format="json",
+        HTTP_AUTHORIZATION="Bearer this-is-not-a-valid-jwt",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -474,7 +549,9 @@ def test_rename_participant_room_not_found(user):
 
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": non_existent_room_id})
-    response = client.post(url, {"name": "John Doe", "token": token}, format="json")
+    response = client.post(
+        url, {"name": "John Doe"}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -487,7 +564,9 @@ def test_rename_participant_not_found(mock_livekit_client, room, token):
 
     client = APIClient()
     url = reverse("rooms-rename", kwargs={"pk": room.id})
-    response = client.post(url, {"name": "John Doe", "token": token}, format="json")
+    response = client.post(
+        url, {"name": "John Doe"}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.data == {"error": "Participant not found"}

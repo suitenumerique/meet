@@ -17,9 +17,11 @@ export const useRenameParticipant = () => {
 
     return fetchApi(`rooms/${data.id}/rename/`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         name,
-        token,
       }),
     })
   }

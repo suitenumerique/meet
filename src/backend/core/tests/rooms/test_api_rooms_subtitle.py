@@ -108,7 +108,9 @@ def test_start_subtitle_invalid_token():
     client.force_login(user)
 
     response = client.post(
-        f"/api/v1.0/rooms/{room.id}/start-subtitle/", {"token": "invalid-token"}
+        f"/api/v1.0/rooms/{room.id}/start-subtitle/",
+        {},
+        HTTP_AUTHORIZATION="Bearer invalid-token",
     )
 
     assert response.status_code == 403
@@ -125,7 +127,8 @@ def test_start_subtitle_disabled_by_default(mock_livekit_token):
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/start-subtitle/",
-        {"token": mock_livekit_token},
+        {},
+        HTTP_AUTHORIZATION=f"Bearer {mock_livekit_token}",
     )
 
     assert response.status_code == 404
@@ -144,7 +147,8 @@ def test_start_subtitle_valid_token(
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/start-subtitle/",
-        {"token": mock_livekit_token},
+        {},
+        HTTP_AUTHORIZATION=f"Bearer {mock_livekit_token}",
     )
 
     assert response.status_code == 200
@@ -173,7 +177,8 @@ def test_start_subtitle_twirp_error(
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/start-subtitle/",
-        {"token": mock_livekit_token},
+        {},
+        HTTP_AUTHORIZATION=f"Bearer {mock_livekit_token}",
     )
 
     assert response.status_code == 500
@@ -192,7 +197,8 @@ def test_start_subtitle_wrong_room(settings, mock_livekit_token):
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/start-subtitle/",
-        {"token": mock_livekit_token},
+        {},
+        HTTP_AUTHORIZATION=f"Bearer {mock_livekit_token}",
     )
 
     assert response.status_code == 403
@@ -212,7 +218,8 @@ def test_start_subtitle_wrong_signature(settings, mock_livekit_token):
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/start-subtitle/",
-        {"token": mock_livekit_token},
+        {},
+        HTTP_AUTHORIZATION=f"Bearer {mock_livekit_token}",
     )
 
     assert response.status_code == 403

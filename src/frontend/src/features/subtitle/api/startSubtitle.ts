@@ -14,9 +14,9 @@ const startSubtitle = ({
 }: StartSubtitleParams): Promise<ApiRoom> => {
   return fetchApi(`rooms/${id}/start-subtitle/`, {
     method: 'POST',
-    body: JSON.stringify({
-      token,
-    }),
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   })
 }
 
