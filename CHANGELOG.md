@@ -24,6 +24,7 @@ and this project adheres to
 
 - ⬆️(dependencies) update aiohttp to v3.13.4 [SECURITY]
 - ⬆️(dependencies) update vite to v7.3.2 [SECURITY]
+- ⬆️(dependencies) update django to v5.2.13 [SECURITY]
 
 ## [1.13.0] - 2026-03-31
 
