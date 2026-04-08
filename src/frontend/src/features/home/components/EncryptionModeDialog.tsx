@@ -15,8 +15,9 @@ export const EncryptionModeDialog = ({
   isForLater?: boolean
 } & Omit<DialogProps, 'title'>) => {
   const { t } = useTranslation('home', { keyPrefix: 'encryptionModeDialog' })
-  const { hasKeys } = useVaultClient()
-  const canUseAdvanced = !!hasKeys
+  const { hasKeys, client: vaultClient, error: vaultError, isLoading: vaultLoading } = useVaultClient()
+  const vaultUnavailable = !vaultClient && !vaultLoading
+  const canUseAdvanced = !!hasKeys && !vaultUnavailable
 
   return (
     <Dialog title={t('title')} isOpen {...dialogProps}>
@@ -118,17 +119,19 @@ export const EncryptionModeDialog = ({
               className={css({
                 marginTop: '0.5rem',
                 padding: '0.5rem 0.75rem',
-                backgroundColor: 'orange.50',
+                backgroundColor: vaultUnavailable ? 'red.50' : 'orange.50',
                 borderRadius: '0.375rem',
               })}
             >
               <RiAlertLine
                 size={14}
-                color="#d97706"
+                color={vaultUnavailable ? '#dc2626' : '#d97706'}
                 className={css({ flexShrink: 0 })}
               />
-              <Text variant="note" className={css({ color: 'orange.800' })}>
-                {t('advanced.onboardingRequired')}
+              <Text variant="note" className={css({ color: vaultUnavailable ? 'red.800' : 'orange.800' })}>
+                {vaultUnavailable
+                  ? t('advanced.serviceUnavailable')
+                  : t('advanced.onboardingRequired')}
               </Text>
             </HStack>
           )}

@@ -363,6 +363,7 @@
   },
   "moreTools": {
     "body": "Access more tools to enhance your meetings.",
+    "encryptedDisabled": "Transcription and recording are not available in encrypted meetings. The server cannot access the media content.",
     "linkAriaLabel": "Open documentation about tools - opens in new window",
     "moreLink": "Open documentation",
     "tools": {
@@ -556,6 +557,7 @@
     "subheading": "In room",
     "you": "You",
     "unknown": "Unknown participant",
+    "anonymous": "Unverified identity",
     "host": "Host",
     "contributors": "Contributors",
     "collapsable": {
@@ -724,19 +726,28 @@
       "hint": "The encrypted data could not be decoded. Try leaving and rejoining the meeting, or ask the host to restart the call.",
       "timeout": "Key exchange timed out",
       "timeoutHint": "The encryption key could not be received from the host. They may not be in the meeting yet.",
-      "refresh": "Retry"
+      "refresh": "Retry",
+      "vaultUnavailable": "This meeting requires advanced encryption, which is currently unavailable.",
+      "vaultUnavailableHint": "This may be a temporary issue. Try refreshing the page. If the problem persists, the encryption service may be undergoing maintenance — please try again later."
     },
     "fingerprint": {
       "title": "Encryption identity",
+      "description": "This shows the encryption identity of this participant. It allows you to verify they are who they claim to be.",
       "loading": "Checking encryption keys...",
-      "noKey": "This participant has not set up encryption keys. Their identity is verified by the authentication server only, not by a public key.",
-      "error": "Unable to check encryption keys.",
+      "noKey": "This participant has not completed encryption onboarding. Their identity is verified by the authentication server (ProConnect) only — not by a cryptographic public key. They can set up encryption in their account settings.",
+      "noKeyBasicAuthenticated": "This participant is signed in via ProConnect. Their name and email are provided by the authentication server and cannot be falsified.",
+      "noKeyAnonymous": "This participant joined without signing in. Their identity is self-declared and not verified. Only accept anonymous participants if you can confirm their identity through another channel.",
+      "error": "Unable to check encryption keys. The encryption service may be unavailable.",
       "fingerprintLabel": "Public key fingerprint",
+      "fingerprintHint": "Ask this participant to open their encryption settings and compare the fingerprint shown there with the one above.",
       "trusted": "Fingerprint verified and trusted",
+      "trustedDescription": "You have previously verified this participant's encryption fingerprint. Their identity is cryptographically confirmed.",
       "refused": "Fingerprint refused",
-      "unknownDescription": "This fingerprint has not been verified yet. Compare it with the participant to ensure their identity.",
+      "refusedDescription": "You previously refused this fingerprint. This person's identity could not be verified.",
+      "unknownDescription": "This fingerprint has not been verified yet. Compare it with the participant (via phone, in person, or another secure channel) to confirm their identity.",
       "accept": "Trust",
-      "refuse": "Refuse"
+      "refuse": "Refuse",
+      "anonymous": "Unverified identity"
     },
     "trustModal": {
       "title": "Encryption trust level",

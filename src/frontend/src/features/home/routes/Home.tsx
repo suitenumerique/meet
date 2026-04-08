@@ -7,7 +7,7 @@ import { Screen } from '@/layout/Screen'
 import { generateRoomId, useCreateRoom } from '@/features/rooms'
 import { useUser, UserAware } from '@/features/auth'
 import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
-import { RiAddLine, RiLink, RiLockLine } from '@remixicon/react'
+import { RiAddLine, RiLink, RiLockLine, RiShieldKeyholeLine } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
 import { EncryptionModeDialog } from '@/features/home/components/EncryptionModeDialog'
 import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
@@ -269,7 +269,7 @@ export const Home = () => {
                           onAction={() => setEncryptionDialogMode('later')}
                           data-attr="create-option-encrypted-later"
                         >
-                          <RiLockLine size={18} />
+                          <RiShieldKeyholeLine size={18} />
                           {t('createMenu.encryptedLaterOption')}
                         </MenuItem>
                       </>

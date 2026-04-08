@@ -620,6 +620,12 @@ class RoomViewSet(
 
         room = self.get_object()
 
+        if room.encryption_enabled:
+            return drf_response.Response(
+                {"error": "Transcription is not available in encrypted rooms."},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
         try:
             SubtitleService().start_subtitle(room)
         except SubtitleException:

@@ -42,17 +42,20 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   return (
     <TabPanel padding={'md'} flex id={id}>
       <H lvl={2}>{t('account.heading')}</H>
-      <Field
-        type="text"
-        label={t('account.nameLabel')}
-        value={name}
-        onChange={setName}
-        isDisabled={isNameLocked}
-        description={isNameLocked ? t('account.nameLockedEncryption') : undefined}
-        validate={(value) => {
-          return !value ? <p>{t('account.nameError')}</p> : null
-        }}
-      />
+      <div className={isNameLocked ? css({ opacity: 0.5, '& input': { cursor: 'not-allowed' } }) : undefined}>
+        <Field
+          type="text"
+          label={t('account.nameLabel')}
+          value={name}
+          onChange={setName}
+          isDisabled={isNameLocked}
+          isReadOnly={isNameLocked}
+          description={isNameLocked ? t('account.nameLockedEncryption') : undefined}
+          validate={(value) => {
+            return !value ? <p>{t('account.nameError')}</p> : null
+          }}
+        />
+      </div>
       <H lvl={2}>{t('account.authentication')}</H>
       {isLoggedIn ? (
         <>

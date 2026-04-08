@@ -23,6 +23,7 @@
   "logout": "Logout",
   "encryptionSetup": "Set up encryption",
   "encryptionSettings": "Encryption settings",
+  "encryptionUnavailable": "Encryption (unavailable)",
   "notFound": {
     "heading": "Verify your meeting code",
     "body": "Check that you have entered the correct meeting code in the URL. Example:"

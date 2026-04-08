@@ -8,6 +8,7 @@
 import { css } from '@/styled-system/css'
 import { VStack, HStack } from '@/styled-system/jsx'
 import { Dialog, Text, Button } from '@/primitives'
+import { Avatar } from '@/components/Avatar'
 import {
   RiShieldCheckFill,
   RiShieldCheckLine,
@@ -26,6 +27,7 @@ interface FingerprintDialogProps {
   participantEmail?: string
   suiteUserId?: string
   isAuthenticated: boolean
+  encryptionMode?: 'basic' | 'advanced' | 'none'
 }
 
 type FingerprintStatus = 'loading' | 'no-key' | 'trusted' | 'refused' | 'unknown' | 'error'
@@ -37,15 +39,28 @@ export function FingerprintDialog({
   participantEmail,
   suiteUserId,
   isAuthenticated,
+  encryptionMode,
 }: FingerprintDialogProps) {
   const { t } = useTranslation('rooms', { keyPrefix: 'encryption.fingerprint' })
   const { client: vaultClient } = useVaultClient()
   const [status, setStatus] = useState<FingerprintStatus>('loading')
   const [fingerprint, setFingerprint] = useState<string | null>(null)
 
+  const isBasicMode = encryptionMode !== 'advanced'
+
   useEffect(() => {
-    if (!isOpen || !vaultClient || !suiteUserId) {
-      setStatus(isAuthenticated ? 'loading' : 'no-key')
+    if (!isOpen) return
+    // In basic mode, no fingerprint check — identity is from ProConnect only
+    if (isBasicMode) {
+      setStatus(isAuthenticated ? 'no-key' : 'no-key')
+      return
+    }
+    if (!vaultClient) {
+      setStatus('error')
+      return
+    }
+    if (!suiteUserId) {
+      setStatus(isAuthenticated ? 'no-key' : 'no-key')
       return
     }
 
@@ -129,20 +144,45 @@ export function FingerprintDialog({
         alignItems="start"
         className={css({ maxWidth: '22rem' })}
       >
-        <HStack gap="0.5rem">
-          <Text className={css({ fontWeight: 600 })}>{participantName}</Text>
-          {participantEmail && (
-            <Text variant="note" className={css({ fontSize: '0.8rem' })}>
-              {participantEmail}
+        <HStack gap="0.65rem" className={css({ width: '100%' })}>
+          <div className={css({ flexShrink: 0, transform: 'scale(0.85)' })}>
+            <Avatar name={participantName} bgColor="rgb(87, 44, 216)" />
+          </div>
+          <VStack gap="0" alignItems="start">
+            <Text className={css({ fontWeight: 600, fontSize: '0.9rem' })}>{participantName}</Text>
+            <Text variant="note" className={css({ fontSize: '0.8rem', color: 'greyscale.500' })}>
+              {participantEmail || t('anonymous')}
             </Text>
-          )}
+          </VStack>
         </HStack>
+
+        <Text variant="note" className={css({ fontSize: '0.8rem' })}>
+          {t('description')}
+        </Text>
 
         {status === 'loading' && (
           <Text variant="note">{t('loading')}</Text>
         )}
 
-        {status === 'no-key' && (
+        {status === 'no-key' && isBasicMode && isAuthenticated && (
+          <HStack
+            gap="0.5rem"
+            className={css({
+              backgroundColor: '#eff6ff',
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+              width: '100%',
+              border: '1px solid #bfdbfe',
+            })}
+          >
+            <RiShieldCheckLine size={20} color="#3b82f6" className={css({ flexShrink: 0 })} />
+            <Text variant="note" className={css({ fontSize: '0.8rem' })}>
+              {t('noKeyBasicAuthenticated')}
+            </Text>
+          </HStack>
+        )}
+
+        {status === 'no-key' && !(isBasicMode && isAuthenticated) && (
           <HStack
             gap="0.5rem"
             className={css({
@@ -155,7 +195,7 @@ export function FingerprintDialog({
           >
             <RiAlertLine size={20} color="#f59e0b" className={css({ flexShrink: 0 })} />
             <Text variant="note" className={css({ fontSize: '0.8rem' })}>
-              {t('noKey')}
+              {isAuthenticated ? t('noKey') : t('noKeyAnonymous')}
             </Text>
           </HStack>
         )}
@@ -188,27 +228,40 @@ export function FingerprintDialog({
             </VStack>
 
             {status === 'trusted' && (
-              <HStack gap="0.5rem" className={css({ color: '#22c55e' })}>
-                <RiShieldCheckFill size={18} />
-                <Text className={css({ fontSize: '0.85rem', fontWeight: 600, color: 'inherit' })}>
-                  {t('trusted')}
+              <VStack gap="0.25rem" alignItems="start">
+                <HStack gap="0.5rem" className={css({ color: '#22c55e' })}>
+                  <RiShieldCheckFill size={18} />
+                  <Text className={css({ fontSize: '0.85rem', fontWeight: 600, color: 'inherit' })}>
+                    {t('trusted')}
+                  </Text>
+                </HStack>
+                <Text variant="note" className={css({ fontSize: '0.8rem' })}>
+                  {t('trustedDescription')}
                 </Text>
-              </HStack>
+              </VStack>
             )}
 
             {status === 'refused' && (
-              <HStack gap="0.5rem" className={css({ color: '#ef4444' })}>
-                <RiCloseLine size={18} />
-                <Text className={css({ fontSize: '0.85rem', fontWeight: 600, color: 'inherit' })}>
-                  {t('refused')}
+              <VStack gap="0.25rem" alignItems="start">
+                <HStack gap="0.5rem" className={css({ color: '#ef4444' })}>
+                  <RiCloseLine size={18} />
+                  <Text className={css({ fontSize: '0.85rem', fontWeight: 600, color: 'inherit' })}>
+                    {t('refused')}
+                  </Text>
+                </HStack>
+                <Text variant="note" className={css({ fontSize: '0.8rem' })}>
+                  {t('refusedDescription')}
                 </Text>
-              </HStack>
+              </VStack>
             )}
 
             {status === 'unknown' && (
               <VStack gap="0.5rem" className={css({ width: '100%' })}>
                 <Text variant="note" className={css({ fontSize: '0.8rem' })}>
                   {t('unknownDescription')}
+                </Text>
+                <Text variant="note" className={css({ fontSize: '0.75rem', fontStyle: 'italic' })}>
+                  {t('fingerprintHint')}
                 </Text>
                 <HStack gap="0.5rem">
                   <Button size="sm" variant="primary" onPress={handleAccept}>

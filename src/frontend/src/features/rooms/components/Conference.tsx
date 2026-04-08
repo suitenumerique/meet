@@ -20,6 +20,10 @@ import { useVaultClient } from '@/features/encryption'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
+import { CenteredContent } from '@/layout/CenteredContent'
+import { RiLockLine } from '@remixicon/react'
+import { Center } from '@/styled-system/jsx'
+import { Text } from '@/primitives'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
@@ -92,7 +96,7 @@ export const Conference = ({
   })
 
   const encryptionEnabled = isEncryptedRoom(data)
-  const { client: vaultClient, hasKeys: vaultHasKeys } = useVaultClient()
+  const { client: vaultClient, hasKeys: vaultHasKeys, error: vaultError, isLoading: vaultLoading } = useVaultClient()
 
   // Determine which E2EE backend to use based solely on the room's encryption_mode.
   // Advanced mode always uses VaultClient, basic mode always uses LiveKit Worker+KeyProvider.
@@ -353,6 +357,67 @@ export const Conference = ({
         title={t('error.createRoom.heading')}
         body={t('error.createRoom.body')}
       />
+    )
+  }
+
+  // Block entry to advanced encrypted rooms when vault service is unavailable
+  if (useVaultE2EE && !vaultLoading && !vaultClient) {
+    return (
+      <Screen layout="centered">
+        <CenteredContent withBackButton>
+          <Center>
+            <div
+              className={css({
+                maxWidth: '400px',
+                backgroundColor: 'white',
+                borderRadius: '1rem',
+                padding: '2rem',
+                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                border: '1px solid',
+                borderColor: 'greyscale.200',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1rem',
+                textAlign: 'center',
+              })}
+            >
+              <div
+                className={css({
+                  width: '3.5rem',
+                  height: '3.5rem',
+                  borderRadius: '50%',
+                  backgroundColor: '#fef2f2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                })}
+              >
+                <RiLockLine size={28} color="#dc2626" />
+              </div>
+              <Text as="h2" className={css({ fontWeight: 700, fontSize: '1.15rem' })}>
+                {t('encryption.error.title')}
+              </Text>
+              <Text as="p" className={css({ fontSize: '0.9rem', color: 'greyscale.700' })}>
+                {t('encryption.error.vaultUnavailable')}
+              </Text>
+              <div
+                className={css({
+                  backgroundColor: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1rem',
+                  width: '100%',
+                })}
+              >
+                <Text as="p" className={css({ fontSize: '0.8rem', color: '#92400e' })}>
+                  {t('encryption.error.vaultUnavailableHint')}
+                </Text>
+              </div>
+            </div>
+          </Center>
+        </CenteredContent>
+      </Screen>
     )
   }
 

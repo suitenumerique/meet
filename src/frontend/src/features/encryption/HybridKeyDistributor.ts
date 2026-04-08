@@ -39,17 +39,27 @@ export function determineTrustLevel(
  * and cannot be spoofed by clients. It indicates whether the participant
  * authenticated via OIDC (ProConnect/Keycloak).
  *
- * TODO: Once VaultClient integration is complete, also check for registered
- * public keys to distinguish "verified" (PKI) from "authenticated" (ephemeral).
+ * In basic encryption mode, the "verified" level is never returned because
+ * PKI keys are not used — encryption relies on a shared passphrase, not on
+ * per-user public keys. The green shield would be misleading.
+ *
+ * In advanced encryption mode, "verified" means the participant has completed
+ * encryption onboarding and their public key is used to encrypt the symmetric key.
  */
 export function getTrustLevelFromAttributes(
-  attributes: Record<string, string> | undefined
+  attributes: Record<string, string> | undefined,
+  encryptionMode?: 'basic' | 'advanced' | 'none',
 ): TrustLevel | null {
   if (!attributes) return null
 
-  // Check for explicit trust level (set by future PKI integration)
+  const isAdvanced = encryptionMode === 'advanced'
+
+  // Check for explicit trust level (set by PKI integration)
   const explicitLevel = attributes[PARTICIPANT_TRUST_ATTR]
-  if (explicitLevel === 'verified' || explicitLevel === 'authenticated' || explicitLevel === 'anonymous') {
+  if (explicitLevel === 'verified' && isAdvanced) {
+    return 'verified'
+  }
+  if (explicitLevel === 'authenticated' || explicitLevel === 'anonymous') {
     return explicitLevel
   }
 

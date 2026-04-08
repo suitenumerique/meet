@@ -1,16 +1,15 @@
 /**
  * Per-participant encryption trust badge.
  *
- * Single icon per trust level, consistent with lobby badges:
+ * Single icon per trust level:
  * - "verified": Green shield — identity confirmed via PKI
- * - "authenticated": Blue shield — ProConnect-authenticated, ephemeral key
- * - "anonymous": Orange warning — identity not verified, ephemeral key
- * - default (no trust level): Lock icon — encrypted, trust level unknown
+ * - "authenticated": Blue shield — ProConnect-authenticated
+ * - "anonymous": Orange warning — identity not verified
+ * - default: Lock icon — encrypted, trust level unknown
  */
-import { RiShieldCheckFill, RiAlertFill, RiLockFill } from '@remixicon/react'
+import { RiShieldCheckFill, RiErrorWarningFill, RiLockFill } from '@remixicon/react'
 import type { TrustLevel } from './types'
 import { css } from '@/styled-system/css'
-import { TooltipWrapper } from '@/primitives/TooltipWrapper'
 import { useTranslation } from 'react-i18next'
 
 interface EncryptionBadgeProps {
@@ -27,42 +26,38 @@ export function EncryptionBadge({
   if (!isEncrypted) return null
 
   let icon: React.ReactNode
-  let tooltip: string
+  let label: string
 
   switch (trustLevel) {
     case 'verified':
       icon = <RiShieldCheckFill size={14} color="#22c55e" />
-      tooltip = t('verified')
+      label = t('verified')
       break
     case 'authenticated':
       icon = <RiShieldCheckFill size={14} color="#3b82f6" />
-      tooltip = t('authenticated')
+      label = t('authenticated')
       break
     case 'anonymous':
-      icon = <RiAlertFill size={14} color="#f59e0b" />
-      tooltip = t('anonymous')
+      icon = <RiErrorWarningFill size={15} color="#d97706" />
+      label = t('anonymous')
       break
     default:
       icon = <RiLockFill size={14} />
-      tooltip = t('default')
+      label = t('default')
       break
   }
 
   return (
-    <TooltipWrapper tooltip={tooltip} tooltipType="instant">
-      <span
-        role="img"
-        aria-label={tooltip}
-        tabIndex={0}
-        className={css({
-          display: 'inline-flex',
-          alignItems: 'center',
-          marginRight: '0.25rem',
-          cursor: 'default',
-        })}
-      >
-        {icon}
-      </span>
-    </TooltipWrapper>
+    <span
+      aria-label={label}
+      className={css({
+        display: 'inline-flex',
+        alignItems: 'center',
+        marginRight: '0.15rem',
+        cursor: 'inherit',
+      })}
+    >
+      {icon}
+    </span>
   )
 }

@@ -12,12 +12,16 @@ import {
   ScreenRecordingSidePanel,
 } from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
+import { useRoomData } from '../hooks/useRoomData'
+import { isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
+import { RiLockLine } from '@remixicon/react'
 
 export interface ToolsButtonProps {
   icon: ReactNode
   title: string
   description: string
   onPress: () => void
+  isDisabled?: boolean
 }
 
 const ToolButton = ({
@@ -25,9 +29,11 @@ const ToolButton = ({
   title,
   description,
   onPress,
+  isDisabled,
 }: ToolsButtonProps) => {
   return (
     <RACButton
+      isDisabled={isDisabled}
       className={css({
         display: 'flex',
         flexDirection: 'row',
@@ -39,9 +45,13 @@ const ToolButton = ({
         width: 'full',
         backgroundColor: 'gray.50',
         textAlign: 'start',
-        '&[data-hovered]': {
+        '&[data-hovered]:not([data-disabled])': {
           backgroundColor: 'primary.50',
           cursor: 'pointer',
+        },
+        '&[data-disabled]': {
+          opacity: 0.5,
+          cursor: 'not-allowed',
         },
       })}
       onPress={onPress}
@@ -132,6 +142,9 @@ export const Tools = () => {
       break
   }
 
+  const roomData = useRoomData()
+  const encrypted = isEncryptedRoom(roomData)
+
   return (
     <Div
       display="flex"
@@ -166,12 +179,33 @@ export const Tools = () => {
           </A>
         )}
       </Text>
+      {encrypted && (
+        <div
+          className={css({
+            display: 'flex',
+            gap: '0.5rem',
+            alignItems: 'start',
+            padding: '0.6rem 0.75rem',
+            backgroundColor: '#fffbeb',
+            borderRadius: '0.5rem',
+            border: '1px solid #fde68a',
+            marginBottom: '0.5rem',
+            width: '100%',
+          })}
+        >
+          <RiLockLine size={16} color="#d97706" className={css({ flexShrink: 0, marginTop: '0.1rem' })} />
+          <Text variant="note" className={css({ fontSize: '0.8rem', color: '#92400e' })}>
+            {t('encryptedDisabled')}
+          </Text>
+        </div>
+      )}
       {isTranscriptEnabled && (
         <ToolButton
           icon={<Icon type="symbols" name="speech_to_text" />}
           title={t('tools.transcript.title')}
           description={t('tools.transcript.body')}
           onPress={() => openTranscript()}
+          isDisabled={encrypted}
         />
       )}
       {isScreenRecordingEnabled && (
@@ -180,6 +214,7 @@ export const Tools = () => {
           title={t('tools.screenRecording.title')}
           description={t('tools.screenRecording.body')}
           onPress={() => openScreenRecording()}
+          isDisabled={encrypted}
         />
       )}
     </Div>

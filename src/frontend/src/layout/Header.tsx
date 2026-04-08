@@ -135,7 +135,8 @@ export const Header = () => {
       vaultInjectedRef.current = false
     }
   }, [showEncryptionModal])
-  const isEncryptionAvailable = !!config?.encryption?.enabled && !!vaultClient
+  const isEncryptionEnabled = !!config?.encryption?.enabled
+  const isEncryptionAvailable = isEncryptionEnabled && !!vaultClient
   const userLabel = user?.full_name || user?.short_name || user?.email
   const loggedInTooltip = t('loggedInUserTooltip')
   const loggedInAriaLabel = userLabel
@@ -226,13 +227,14 @@ export const Header = () => {
                   <MenuList
                     variant={'light'}
                     items={[
-                      ...(isEncryptionAvailable
+                      ...(isEncryptionEnabled
                         ? [
                             {
                               value: 'encryption',
-                              label: hasKeys
-                                ? t('encryptionSettings')
-                                : t('encryptionSetup'),
+                              label: isEncryptionAvailable
+                                ? (hasKeys ? t('encryptionSettings') : t('encryptionSetup'))
+                                : t('encryptionUnavailable'),
+                              isDisabled: !isEncryptionAvailable,
                             },
                           ]
                         : []),
@@ -242,7 +244,7 @@ export const Header = () => {
                       if (value === 'logout') {
                         logout()
                       }
-                      if (value === 'encryption') {
+                      if (value === 'encryption' && isEncryptionAvailable) {
                         setShowEncryptionModal(true)
                       }
                     }}

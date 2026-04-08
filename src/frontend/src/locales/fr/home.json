@@ -36,7 +36,8 @@
     "advanced": {
       "title": "Chiffrement avancé",
       "description": "Sécurité maximale — la clé de chiffrement ne quitte jamais votre navigateur. Nécessite la configuration du chiffrement pour tous les participants.",
-      "onboardingRequired": "Vous devez compléter la configuration du chiffrement dans les paramètres de votre compte avant d'utiliser le chiffrement avancé."
+      "onboardingRequired": "Vous devez compléter la configuration du chiffrement dans les paramètres de votre compte avant d'utiliser le chiffrement avancé.",
+      "serviceUnavailable": "Le chiffrement avancé est actuellement indisponible. Veuillez réessayer plus tard ou contacter votre administrateur."
     }
   },
   "laterMeetingDialog": {

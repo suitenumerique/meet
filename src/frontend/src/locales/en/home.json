@@ -36,7 +36,8 @@
     "advanced": {
       "title": "Advanced encryption",
       "description": "Maximum security — the encryption key never leaves your browser. Requires encryption onboarding for all participants.",
-      "onboardingRequired": "You must complete the encryption setup in your account settings before using advanced encryption."
+      "onboardingRequired": "You must complete the encryption setup in your account settings before using advanced encryption.",
+      "serviceUnavailable": "Advanced encryption is currently unavailable. Please try again later or contact your administrator."
     }
   },
   "laterMeetingDialog": {

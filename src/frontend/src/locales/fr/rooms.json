@@ -363,6 +363,7 @@
   },
   "moreTools": {
     "body": "Accéder à davantage d'outils pour améliorer vos réunions.",
+    "encryptedDisabled": "La transcription et l'enregistrement ne sont pas disponibles dans les réunions chiffrées. Le serveur ne peut pas accéder au contenu média.",
     "linkAriaLabel": "Ouvrir la documentation sur les outils - ouvre dans une nouvelle fenêtre",
     "moreLink": "Ouvrir la documentation",
     "tools": {
@@ -556,6 +557,7 @@
     "subheading": "Dans la réunion",
     "you": "Vous",
     "unknown": "Participant inconnu",
+    "anonymous": "Identité non vérifiée",
     "contributors": "Contributeurs",
     "host": "Organisateur de la réunion",
     "collapsable": {
@@ -724,19 +726,28 @@
       "hint": "Les données chiffrées n'ont pas pu être décodées. Essayez de quitter et de rejoindre la réunion, ou demandez à l'hôte de relancer l'appel.",
       "timeout": "Échange de clés expiré",
       "timeoutHint": "La clé de chiffrement n'a pas pu être reçue de l'hôte. Il n'est peut-être pas encore dans la réunion.",
-      "refresh": "Réessayer"
+      "refresh": "Réessayer",
+      "vaultUnavailable": "Cette réunion nécessite le chiffrement avancé, qui est actuellement indisponible.",
+      "vaultUnavailableHint": "Il peut s'agir d'un problème temporaire. Essayez de rafraîchir la page. Si le problème persiste, le service de chiffrement est peut-être en maintenance — veuillez réessayer plus tard."
     },
     "fingerprint": {
       "title": "Identité chiffrée",
+      "description": "Ceci montre l'identité de chiffrement de ce participant. Cela vous permet de vérifier qu'il est bien celui qu'il prétend être.",
       "loading": "Vérification des clés de chiffrement...",
-      "noKey": "Ce participant n'a pas configuré de clés de chiffrement. Son identité est vérifiée par le serveur d'authentification uniquement, pas par une clé publique.",
-      "error": "Impossible de vérifier les clés de chiffrement.",
+      "noKey": "Ce participant n'a pas effectué l'onboarding chiffrement. Son identité est vérifiée par le serveur d'authentification (ProConnect) uniquement — pas par une clé publique cryptographique. Il peut configurer le chiffrement dans les paramètres de son compte.",
+      "noKeyBasicAuthenticated": "Ce participant est connecté via ProConnect. Son nom et son email proviennent du serveur d'authentification et ne peuvent pas être falsifiés.",
+      "noKeyAnonymous": "Ce participant a rejoint sans se connecter. Son identité est auto-déclarée et non vérifiée. N'acceptez les participants anonymes que si vous pouvez confirmer leur identité par un autre canal.",
+      "error": "Impossible de vérifier les clés de chiffrement. Le service de chiffrement est peut-être indisponible.",
       "fingerprintLabel": "Empreinte de la clé publique",
+      "fingerprintHint": "Demandez à ce participant d'ouvrir ses paramètres de chiffrement et de comparer l'empreinte affichée avec celle ci-dessus.",
       "trusted": "Empreinte vérifiée et approuvée",
+      "trustedDescription": "Vous avez précédemment vérifié l'empreinte de chiffrement de ce participant. Son identité est confirmée cryptographiquement.",
       "refused": "Empreinte refusée",
-      "unknownDescription": "Cette empreinte n'a pas encore été vérifiée. Comparez-la avec le participant pour confirmer son identité.",
+      "refusedDescription": "Vous avez précédemment refusé cette empreinte. L'identité de cette personne n'a pas pu être vérifiée.",
+      "unknownDescription": "Cette empreinte n'a pas encore été vérifiée. Comparez-la avec le participant (par téléphone, en personne ou par un autre canal sécurisé) pour confirmer son identité.",
       "accept": "Approuver",
-      "refuse": "Refuser"
+      "refuse": "Refuser",
+      "anonymous": "Identité non vérifiée"
     },
     "trustModal": {
       "title": "Niveau de confiance du chiffrement",

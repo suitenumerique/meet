@@ -125,9 +125,29 @@ def generate_token(
         "is_authenticated": "true" if not user.is_anonymous else "false",
     }
 
-    # Add identity info for authenticated users (visible to other participants
-    # for identity verification in encrypted rooms)
-    if not user.is_anonymous:
+    # Add identity info for authenticated users in encrypted rooms only.
+    #
+    # Email and suite_user_id are included in the JWT attributes for encrypted
+    # rooms because:
+    # - Email: allows admins to verify participant identity in the lobby and
+    #   participant list (important for trust decisions in encrypted meetings)
+    # - suite_user_id: required for vault key exchange in advanced encryption
+    #   (vaultClient.shareKeys needs the recipient's user ID)
+    #
+    # These attributes are NOT included in non-encrypted rooms because:
+    # - Non-encrypted rooms have no waiting room, so anonymous users can join
+    #   freely and would see everyone's email via LiveKit signaling
+    # - LiveKit JWT attributes are immutable and broadcast to ALL participants
+    #   equally — there is no way to show them only to authenticated users
+    #   at the protocol level
+    # - The frontend additionally hides email from anonymous users in the UI,
+    #   but this is defense-in-depth, not the primary protection
+    #
+    # Future improvement: serve email via a Django API endpoint that checks
+    # the requester's authentication, removing it from the JWT entirely.
+    # This would require the backend to call LiveKit's ListParticipants API
+    # to cross-reference identities with the user database.
+    if not user.is_anonymous and encryption_mode != 'none':
         if user.email:
             attributes["email"] = user.email
         if user.sub:
