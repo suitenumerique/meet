@@ -172,7 +172,7 @@ def test_start_subtitle_twirp_error(
     client = APIClient()
 
     mock_livekit_client.agent_dispatch.create_dispatch.side_effect = TwirpError(
-        msg="Internal server error", code=500, status=500
+        msg="Internal server error", code="unknown", status=500
     )
 
     response = client.post(

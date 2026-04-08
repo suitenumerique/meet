@@ -91,7 +91,7 @@ def test_mute_participant_unexpected_twirp_error(mock_livekit_client):
     client = APIClient()
 
     mock_livekit_client.room.mute_published_track.side_effect = TwirpError(
-        msg="Internal server error", code=500, status=500
+        msg="Internal server error", code="unknown", status=500
     )
 
     room = RoomFactory()
@@ -387,7 +387,7 @@ def test_update_participant_unexpected_twirp_error(mock_livekit_client):
     client = APIClient()
 
     mock_livekit_client.room.update_participant.side_effect = TwirpError(
-        msg="Internal server error", code=500, status=500
+        msg="Internal server error", code="unknown", status=500
     )
 
     room = RoomFactory()
@@ -526,7 +526,7 @@ def test_remove_participant_unexpected_twirp_error(mock_livekit_client):
     client = APIClient()
 
     mock_livekit_client.room.remove_participant.side_effect = TwirpError(
-        msg="Internal server error", code=500, status=500
+        msg="Internal server error", code="unknown", status=500
     )
 
     room = RoomFactory()

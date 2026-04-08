@@ -72,7 +72,7 @@ def test_create_dispatch_rule_api_failure(mock_client_factory):
 
     mock_api = create_mock_livekit_client()
     mock_api.sip.create_sip_dispatch_rule = mock.AsyncMock(
-        side_effect=TwirpError(msg="Internal server error", code=500, status=500)
+        side_effect=TwirpError(msg="Internal server error", code="unknown", status=500)
     )
     mock_client_factory.return_value = mock_api
 
@@ -177,7 +177,7 @@ def test_list_dispatch_rules_ids_api_failure(mock_client_factory):
 
     mock_api = create_mock_livekit_client()
     mock_api.sip.list_sip_dispatch_rule = mock.AsyncMock(
-        side_effect=TwirpError(msg="Internal server error", code=500, status=500)
+        side_effect=TwirpError(msg="Internal server error", code="unknown", status=500)
     )
     mock_client_factory.return_value = mock_api
 
@@ -270,7 +270,7 @@ def test_delete_dispatch_rule_partial_failure(mock_client_factory, mock_list_rul
         if call_count == 0:
             call_count += 1
             return None
-        raise TwirpError(msg="Deletion failed", code=500, status=500)
+        raise TwirpError(msg="Deletion failed", code="unknown", status=500)
 
     mock_api.sip.delete_sip_dispatch_rule = mock.AsyncMock(
         side_effect=delete_side_effect
@@ -294,7 +294,7 @@ def test_delete_dispatch_rule_api_failure(mock_client_factory, mock_list_rules):
     mock_list_rules.return_value = ["rule-1"]
     mock_api = create_mock_livekit_client()
     mock_api.sip.delete_sip_dispatch_rule = mock.AsyncMock(
-        side_effect=TwirpError(msg="Internal server error", code=500, status=500)
+        side_effect=TwirpError(msg="Internal server error", code="unknown", status=500)
     )
     mock_client_factory.return_value = mock_api
 
