@@ -1,37 +1,110 @@
 import { styled } from '@/styled-system/jsx'
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react'
 import { AudioDevicesControl } from '@/features/rooms/livekit/components/controls/Device/AudioDevicesControl'
 import { VideoDeviceControl } from '@/features/rooms/livekit/components/controls/Device/VideoDeviceControl'
 import { ScreenShareToggle } from '@/features/rooms/livekit/components/controls/ScreenShareToggle'
 import { LeaveButton } from '@/features/rooms/livekit/components/controls/LeaveButton'
 import { SubtitlesToggle } from '@/features/rooms/livekit/components/controls/SubtitlesToggle'
 import { HandToggle } from '@/features/rooms/livekit/components/controls/HandToggle'
-import { OptionsButton } from '@/features/rooms/livekit/components/controls/Options/OptionsButton'
 import { StartMediaButton } from '@/features/rooms/livekit/components/controls/StartMediaButton'
 import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
+import { PipOptionsMenu } from './controls/PipOptionsMenu'
+
+export type CollapsibleControl =
+  | 'hand'
+  | 'subtitles'
+  | 'screenShare'
+  | 'reactions'
+
+const COLLAPSE_ORDER: CollapsibleControl[] = [
+  'hand',
+  'subtitles',
+  'screenShare',
+  'reactions',
+]
+
+const BUTTON_SLOT = 50
+const ESSENTIAL_WIDTH = 260
+
+function getHiddenControls(
+  containerWidth: number,
+  showScreenShare: boolean
+): Set<CollapsibleControl> {
+  const hidden = new Set<CollapsibleControl>()
+  if (containerWidth <= 0) return hidden
+
+  const collapsible = showScreenShare
+    ? COLLAPSE_ORDER
+    : COLLAPSE_ORDER.filter((c) => c !== 'screenShare')
+
+  const available = containerWidth - ESSENTIAL_WIDTH
+  const maxVisible = Math.max(0, Math.floor(available / BUTTON_SLOT))
+
+  for (let i = 0; i < collapsible.length - maxVisible; i++) {
+    hidden.add(collapsible[i])
+  }
+  return hidden
+}
 
 /**
- * Compact control bar for the Picture-in-Picture window.
- * Centralizes all PiP controls (devices, reactions, screen share, options, etc.) in one reusable component.
+ * ResizeObserver that works inside the PiP document context
+ * (the global singleton from the main window cannot observe PiP elements).
  */
+function usePipSize(ref: React.RefObject<HTMLElement | null>) {
+  const [width, setWidth] = useState(0)
+
+  const measure = useCallback(() => {
+    if (ref.current) setWidth(ref.current.getBoundingClientRect().width)
+  }, [ref])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    measure()
+
+    const RO =
+      el.ownerDocument.defaultView?.ResizeObserver ?? window.ResizeObserver
+    const observer = new RO((entries) => {
+      const entry = entries[0]
+      if (entry) setWidth(entry.contentRect.width)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [ref, measure])
+
+  return width
+}
+
 export const PipControlBar = ({
   showScreenShare,
 }: {
   showScreenShare: boolean
-}) => (
-  <PipControls>
-    <PipControlsCenter>
-      <AudioDevicesControl hideMenu />
-      <VideoDeviceControl hideMenu />
-      <ReactionsToggle />
-      {showScreenShare && <ScreenShareToggle />}
-      <SubtitlesToggle />
-      <HandToggle />
-      <OptionsButton />
-      <LeaveButton />
-      <StartMediaButton />
-    </PipControlsCenter>
-  </PipControls>
-)
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const width = usePipSize(containerRef)
+
+  const hidden = useMemo(
+    () => getHiddenControls(width, showScreenShare),
+    [width, showScreenShare]
+  )
+
+  return (
+    <PipControls ref={containerRef}>
+      <PipControlsCenter>
+        <AudioDevicesControl hideMenu />
+        <VideoDeviceControl hideMenu />
+        {!hidden.has('reactions') && <ReactionsToggle />}
+        {showScreenShare && !hidden.has('screenShare') && <ScreenShareToggle />}
+        {!hidden.has('subtitles') && <SubtitlesToggle />}
+        {!hidden.has('hand') && <HandToggle />}
+        <PipOptionsMenu overflowControls={hidden} />
+        <LeaveButton />
+        <StartMediaButton />
+      </PipControlsCenter>
+    </PipControls>
+  )
+}
 
 const PipControls = styled('div', {
   base: {
@@ -50,7 +123,7 @@ const PipControls = styled('div', {
 const PipControlsCenter = styled('div', {
   base: {
     display: 'flex',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     justifyContent: 'center',
     alignItems: 'center',
     gap: '0.4rem',
