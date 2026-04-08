@@ -65,6 +65,7 @@ from core.services.lobby import (
     LobbyService,
 )
 from core.services.participants_management import (
+    ParticipantNotFoundException,
     ParticipantsManagement,
     ParticipantsManagementException,
 )
@@ -599,6 +600,11 @@ class RoomViewSet(
                 identity=str(serializer.validated_data["participant_identity"]),
                 track_sid=serializer.validated_data["track_sid"],
             )
+        except ParticipantNotFoundException:
+            return drf_response.Response(
+                {"error": "Participant not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
         except ParticipantsManagementException:
             return drf_response.Response(
                 {"error": "Failed to mute participant"},
@@ -637,6 +643,11 @@ class RoomViewSet(
                 permission=permission.model_dump() if permission else None,
                 name=serializer.validated_data.get("name"),
             )
+        except ParticipantNotFoundException:
+            return drf_response.Response(
+                {"error": "Participant not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
         except ParticipantsManagementException:
             return drf_response.Response(
                 {"error": "Failed to update participant"},
@@ -668,6 +679,11 @@ class RoomViewSet(
             ParticipantsManagement().remove(
                 room_name=str(room.pk),
                 identity=str(serializer.validated_data["participant_identity"]),
+            )
+        except ParticipantNotFoundException:
+            return drf_response.Response(
+                {"error": "Participant not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
             )
         except ParticipantsManagementException:
             return drf_response.Response(
@@ -710,6 +726,11 @@ class RoomViewSet(
                 identity=identity,
                 attributes={"handRaisedAt": hand_raised_at},
             )
+        except ParticipantNotFoundException:
+            return drf_response.Response(
+                {"error": "Participant not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
         except ParticipantsManagementException:
             return drf_response.Response(
                 {"error": "Failed to update participant hand state"},
@@ -743,6 +764,11 @@ class RoomViewSet(
                 room_name=str(room.pk),
                 identity=identity,
                 name=serializer.validated_data["name"],
+            )
+        except ParticipantNotFoundException:
+            return drf_response.Response(
+                {"error": "Participant not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
             )
         except ParticipantsManagementException:
             return drf_response.Response(

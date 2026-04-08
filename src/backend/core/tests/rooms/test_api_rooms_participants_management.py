@@ -545,3 +545,55 @@ def test_remove_participant_unexpected_twirp_error(mock_livekit_client):
     assert response.data == {"error": "Failed to remove participant"}
 
     mock_livekit_client.aclose.assert_called_once()
+
+
+def test_update_participant_not_found(mock_livekit_client):
+    """Test update participant returns 404 when the participant no longer exists in the room."""
+    client = APIClient()
+
+    mock_livekit_client.room.update_participant.side_effect = TwirpError(
+        msg="participant does not exist", code="not_found", status=404
+    )
+
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    payload = {"participant_identity": str(uuid4()), "name": "Test User"}
+
+    url = reverse("rooms-update-participant", kwargs={"pk": room.id})
+    response = client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data == {"error": "Participant not found"}
+
+    mock_livekit_client.aclose.assert_called_once()
+
+
+def test_remove_participant_not_found(mock_livekit_client):
+    """Test remove participant returns 404 when the participant no longer exists in the room."""
+    client = APIClient()
+
+    mock_livekit_client.room.remove_participant.side_effect = TwirpError(
+        msg="participant does not exist", code="not_found", status=404
+    )
+
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    payload = {"participant_identity": str(uuid4())}
+
+    url = reverse("rooms-remove-participant", kwargs={"pk": room.id})
+    response = client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data == {"error": "Participant not found"}
+
+    mock_livekit_client.aclose.assert_called_once()

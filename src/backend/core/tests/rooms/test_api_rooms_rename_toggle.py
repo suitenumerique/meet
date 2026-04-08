@@ -440,6 +440,22 @@ def test_toggle_hand_room_not_found(user):
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
+def test_toggle_hand_participant_not_found(mock_livekit_client, room, token):
+    """Test toggle hand returns 404 when the participant no longer exists in the room."""
+    mock_livekit_client.room.update_participant.side_effect = TwirpError(
+        msg="participant does not exist", code="not_found", status=404
+    )
+
+    client = APIClient()
+    url = reverse("rooms-toggle-hand", kwargs={"pk": room.id})
+    response = client.post(url, {"raised": True, "token": token}, format="json")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data == {"error": "Participant not found"}
+
+    mock_livekit_client.aclose.assert_called_once()
+
+
 def test_rename_participant_malformed_token(room):
     """Test rename returns 403 when the LiveKit token is malformed."""
     client = APIClient()
@@ -461,3 +477,19 @@ def test_rename_participant_room_not_found(user):
     response = client.post(url, {"name": "John Doe", "token": token}, format="json")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_rename_participant_not_found(mock_livekit_client, room, token):
+    """Test rename returns 404 when the participant no longer exists in the room."""
+    mock_livekit_client.room.update_participant.side_effect = TwirpError(
+        msg="participant does not exist", code="not_found", status=404
+    )
+
+    client = APIClient()
+    url = reverse("rooms-rename", kwargs={"pk": room.id})
+    response = client.post(url, {"name": "John Doe", "token": token}, format="json")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data == {"error": "Participant not found"}
+
+    mock_livekit_client.aclose.assert_called_once()

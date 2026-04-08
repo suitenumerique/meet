@@ -27,6 +27,10 @@ class ParticipantsManagementException(Exception):
     """Exception raised when a participant management operations fail."""
 
 
+class ParticipantNotFoundException(ParticipantsManagementException):
+    """Raised when the target participant does not exist in the room."""
+
+
 class ParticipantsManagement:
     """Service for managing participants."""
 
@@ -47,6 +51,14 @@ class ParticipantsManagement:
             )
 
         except TwirpError as e:
+            if e.code == "not_found":
+                logger.warning(
+                    "Participant %s not found in room %s, skipping muting",
+                    identity,
+                    room_name,
+                )
+                raise ParticipantNotFoundException("Participant does not exist") from e
+
             logger.exception(
                 "Unexpected error muting participant %s for room %s",
                 identity,
@@ -80,6 +92,14 @@ class ParticipantsManagement:
                 RoomParticipantIdentity(room=room_name, identity=identity)
             )
         except TwirpError as e:
+            if e.code == "not_found":
+                logger.warning(
+                    "Participant %s not found in room %s, skipping removing",
+                    identity,
+                    room_name,
+                )
+                raise ParticipantNotFoundException("Participant does not exist") from e
+
             logger.exception(
                 "Unexpected error removing participant %s for room %s",
                 identity,
@@ -117,6 +137,14 @@ class ParticipantsManagement:
             )
 
         except TwirpError as e:
+            if e.code == "not_found":
+                logger.warning(
+                    "Participant %s not found in room %s, skipping update",
+                    identity,
+                    room_name,
+                )
+                raise ParticipantNotFoundException("Participant does not exist") from e
+
             logger.exception(
                 "Unexpected error updating participant %s for room %s",
                 identity,
