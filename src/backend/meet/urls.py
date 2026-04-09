@@ -37,12 +37,12 @@ if settings.USE_SWAGGER or settings.DEBUG:
             name="client-api-schema",
         ),
         path(
-            f"{settings.API_VERSION}//swagger/",
+            f"{settings.API_VERSION}/swagger/",
             SpectacularSwaggerView.as_view(url_name="client-api-schema"),
             name="swagger-ui-schema",
         ),
         re_path(
-            f"{settings.API_VERSION}//redoc/",
+            f"{settings.API_VERSION}/redoc/",
             SpectacularRedocView.as_view(url_name="client-api-schema"),
             name="redoc-schema",
         ),

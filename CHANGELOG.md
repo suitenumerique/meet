@@ -25,6 +25,9 @@ and this project adheres to
 - 🚀 (paas) remove buildpack requirements.txt to use the new uv.lock #1349
 - ✨(backend) allow room configuration and access level via external api #1260
 
+### Fixed
+- 🩹(backend) fix swagger and redoc documentation URLs
+
 ## [1.16.0] - 2026-05-13
 
 ### Added
