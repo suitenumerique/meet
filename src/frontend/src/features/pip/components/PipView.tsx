@@ -10,6 +10,7 @@ import { ParticipantTile } from '@/features/rooms/livekit/components/Participant
 import { SidePanel } from '@/features/rooms/livekit/components/SidePanel'
 import { pipLayoutStore } from '../stores/pipLayoutStore'
 import { PipControlBar } from './PipControlBar'
+import { PipReactionsToolbar } from './PipReactionsToolbar'
 
 const pickTrackForPip = (
   tracks: TrackReferenceOrPlaceholder[]
@@ -72,7 +73,9 @@ export const PipView = () => {
       <PipStage>
         {hasMultipleTiles ? (
           <>
-            {mainTrackRef && <ParticipantTile trackRef={mainTrackRef} disableMetadata />}
+            {mainTrackRef && (
+              <ParticipantTile trackRef={mainTrackRef} disableMetadata />
+            )}
             {thumbnailTrackRef && (
               <PipThumbnail>
                 <ParticipantTile trackRef={thumbnailTrackRef} disableMetadata />
@@ -83,7 +86,7 @@ export const PipView = () => {
           <ParticipantTile trackRef={trackRef} disableMetadata />
         )}
       </PipStage>
-      {/* Compact control bar for PiP; extend here when adding more actions. */}
+      <PipReactionsToolbar />
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
       {/* Side panel (effects, settings, etc.) opens within PiP window. */}
       <SidePanel store={pipLayoutStore} />
@@ -96,7 +99,7 @@ const PipContainer = styled('div', {
     width: '100%',
     height: '100%',
     display: 'grid',
-    gridTemplateRows: 'minmax(0, 1fr) auto',
+    gridTemplateRows: 'minmax(0, 1fr) auto auto',
     backgroundColor: 'primaryDark.50',
     '& .lk-participant-tile': {
       height: '100%',
@@ -119,6 +122,9 @@ const PipStage = styled('div', {
   base: {
     position: 'relative',
     minHeight: 0,
+    margin: '0.5rem',
+    borderRadius: 'lg',
+    overflow: 'hidden',
   },
 })
 

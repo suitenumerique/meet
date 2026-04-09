@@ -7,8 +7,8 @@ import { LeaveButton } from '@/features/rooms/livekit/components/controls/LeaveB
 import { SubtitlesToggle } from '@/features/rooms/livekit/components/controls/SubtitlesToggle'
 import { HandToggle } from '@/features/rooms/livekit/components/controls/HandToggle'
 import { StartMediaButton } from '@/features/rooms/livekit/components/controls/StartMediaButton'
-import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 import { PipOptionsMenu } from './controls/PipOptionsMenu'
+import { PipReactionsToggle } from './PipReactionsToggle'
 
 export type CollapsibleControl =
   | 'hand'
@@ -94,7 +94,7 @@ export const PipControlBar = ({
       <PipControlsCenter>
         <AudioDevicesControl hideMenu />
         <VideoDeviceControl hideMenu />
-        {!hidden.has('reactions') && <ReactionsToggle />}
+        {!hidden.has('reactions') && <PipReactionsToggle />}
         {showScreenShare && !hidden.has('screenShare') && <ScreenShareToggle />}
         {!hidden.has('subtitles') && <SubtitlesToggle />}
         {!hidden.has('hand') && <HandToggle />}

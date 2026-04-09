@@ -4,6 +4,7 @@ import type { PanelId, SubPanelId } from '@/features/rooms/livekit/types/panel'
 type PipLayoutState = {
   activePanelId: PanelId | null
   activeSubPanelId: SubPanelId | null
+  showReactionsToolbar: boolean
 }
 
 /**
@@ -14,4 +15,5 @@ type PipLayoutState = {
 export const pipLayoutStore = proxy<PipLayoutState>({
   activePanelId: null,
   activeSubPanelId: null,
+  showReactionsToolbar: false,
 })
