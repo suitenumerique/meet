@@ -29,6 +29,7 @@ and this project adheres to
 - ⬆️(dependencies) update django to v5.2.13 [SECURITY]
 - 🔒(backend) rely on backend to allow participant update their metadata
 - 🩹(backend) fix swagger and redoc documentation URLs
+- 🩹(frontend) avoid waiting room requests without room id
 
 ## [1.13.0] - 2026-03-31
 

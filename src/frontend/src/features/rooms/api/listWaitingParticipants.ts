@@ -21,6 +21,10 @@ export type WaitingParticipantsParams = {
 export const listWaitingParticipants = async ({
   roomId,
 }: WaitingParticipantsParams): Promise<WaitingParticipantsResponse> => {
+  if (!roomId) {
+    throw new Error('Room id is not available')
+  }
+
   return fetchApi<WaitingParticipantsResponse>(
     `/rooms/${roomId}/waiting-participants/`,
     {
@@ -30,7 +34,7 @@ export const listWaitingParticipants = async ({
 }
 
 export const useListWaitingParticipants = (
-  roomId: string,
+  roomId: string | undefined,
   queryOptions?: Omit<
     UseQueryOptions<
       WaitingParticipantsResponse,
@@ -46,7 +50,7 @@ export const useListWaitingParticipants = (
     WaitingParticipantsResponse
   >({
     queryKey: [keys.waitingParticipants, roomId],
-    queryFn: () => listWaitingParticipants({ roomId }),
+    queryFn: () => listWaitingParticipants({ roomId: roomId ?? '' }),
     ...queryOptions,
   })
 }
