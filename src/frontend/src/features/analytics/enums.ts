@@ -4,4 +4,5 @@ export enum FeatureFlags {
   faceLandmarks = 'face-landmarks',
   noiseReduction = 'noise-reduction',
   subtitles = 'subtitles',
+  candidatePolling = 'candidate-polling',
 }
