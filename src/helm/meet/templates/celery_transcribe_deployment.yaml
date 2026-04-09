@@ -1,9 +1,13 @@
-{{- $envVars := include "meet.common.env" (list . .Values.celeryTranscribe) -}}
+{{- $sharedEnvVars := default (dict) .Values.celeryTranscribe.envVars -}}
 {{- $component := "celery-transcribe" -}}
 
 {{- range $idx, $instance := .Values.celeryTranscribe.instances }}
 {{- $instanceValues := merge $instance $.Values.celeryTranscribe }}
 {{- $fullName := printf "%s-%s" (include "meet.celeryTranscribe.fullname" $) $instance.name }}
+{{- $extraInstanceEnvVars := default (dict) $instance.extraEnvVars -}}
+{{- $mergedInstanceEnvVars := merge $extraInstanceEnvVars $sharedEnvVars -}}
+{{- $fakeInstanceObjectForEnvHelper := dict "envVars" $mergedInstanceEnvVars -}}
+{{- $envVars := include "meet.common.env" (list . $fakeInstanceObjectForEnvHelper) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -59,9 +63,6 @@ spec:
           env:
             {{- if $envVars }}
             {{- $envVars | indent 12 }}
-            {{- end }}
-            {{- with $instance.extraEnv }}
-            {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- with $instanceValues.securityContext }}
           securityContext:
