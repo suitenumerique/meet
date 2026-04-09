@@ -17,6 +17,10 @@ export const enterRoom = async ({
   allowEntry,
   participantId,
 }: EnterRoomParams): Promise<EnterRoomResponse> => {
+  if (!roomId) {
+    throw new Error('Room id is not available')
+  }
+
   return await fetchApi<EnterRoomResponse>(`/rooms/${roomId}/enter/`, {
     method: 'POST',
     body: JSON.stringify({
