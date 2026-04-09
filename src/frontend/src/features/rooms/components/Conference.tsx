@@ -230,7 +230,13 @@ export const Conference = ({
           onDisconnected={(e) => {
             switch (e) {
               case DisconnectReason.CLIENT_INITIATED:
-                navigateTo('feedback')
+                navigateTo(
+                  'feedback',
+                  {},
+                  {
+                    state: { room_id: roomId },
+                  }
+                )
                 return
               case DisconnectReason.DUPLICATE_IDENTITY:
               case DisconnectReason.PARTICIPANT_REMOVED:
@@ -238,7 +244,7 @@ export const Conference = ({
                   'feedback',
                   {},
                   {
-                    state: { reason: e },
+                    state: { reason: e, room_id: roomId },
                   }
                 )
                 return
