@@ -18,7 +18,7 @@ import { useRoomContext } from '@livekit/components-react'
 import { useRaisedHand } from '@/features/rooms/livekit/hooks/useRaisedHand'
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
 import { useAreSubtitlesAvailable } from '@/features/subtitle/hooks/useAreSubtitlesAvailable'
-import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
+import { useSnapshot } from 'valtio'
 import type { CollapsibleControl } from '../PipControlBar'
 
 type PipOptionsMenuItemsProps = {
@@ -74,7 +74,10 @@ const OverflowItems = ({
   })
   const { areSubtitlesOpen, toggleSubtitles } = useSubtitles()
   const areSubtitlesAvailable = useAreSubtitlesAvailable()
-  const { toggle: toggleReactions } = useReactionsToolbar()
+  const pipSnap = useSnapshot(pipLayoutStore)
+  const toggleReactions = () => {
+    pipLayoutStore.showReactionsToolbar = !pipSnap.showReactionsToolbar
+  }
   const itemClass = menuRecipe({ icon: true, variant: 'dark' }).item
 
   return (
@@ -107,9 +110,7 @@ const OverflowItems = ({
       {overflowControls.has('hand') && (
         <MenuItem onAction={toggleRaisedHand} className={itemClass}>
           <RiHand size={20} />
-          {isHandRaised
-            ? t('controls.hand.lower')
-            : t('controls.hand.raise')}
+          {isHandRaised ? t('controls.hand.lower') : t('controls.hand.raise')}
         </MenuItem>
       )}
     </>
