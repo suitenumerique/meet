@@ -3,7 +3,7 @@
   "heading": "Visioconférences simples et sécurisées",
   "intro": "Communiquez et travaillez en toute simplicité, sans compromis sur votre souveraineté",
   "joinInputError": "Saisissez un lien ou un code de réunion. Exemples :",
-  "joinInputExample": "Un code de réunion ressemble à ceci : abc-defg-hij",
+  "joinInputExample": "Un code de réunion ressemble à ceci : abc-defg-hij ou teamalpha",
   "joinInputLabel": "Lien complet ou code de la réunion",
   "joinInputSubmit": "Rejoindre la réunion",
   "joinMeeting": "Rejoindre une réunion",
@@ -15,7 +15,8 @@
   "moreAbout": "sur {{appTitle}}",
   "createMenu": {
     "laterOption": "Créer une réunion pour une date ultérieure",
-    "instantOption": "Démarrer une réunion instantanée"
+    "instantOption": "Démarrer une réunion instantanée",
+    "personalizeOption": "Créer un lien personnalisé"
   },
   "laterMeetingDialog": {
     "heading": "Vos informations de connexion",
@@ -28,6 +29,23 @@
       "call": "Appelez le :",
       "pinCode": "Code :"
     }
+  },
+  "personalizeMeetingDialog": {
+    "heading": "Votre lien personnalisé",
+    "label": "Votre lien personnalisé",
+    "submit": "Créer",
+    "placeholder": "standupbizdev",
+    "errors": {
+      "validation": {
+        "length": "Doit contenir au moins 5 caractères.",
+        "spaceOrSpecialCharacter": "Ne peut pas contenir d'espaces ou de caractères spéciaux"
+      },
+      "server": {
+        "taken": "Déjà utilisé, veuillez essayer autre chose",
+        "unknown": "Une erreur inconnue s'est produite, veuillez réessayer"
+      }
+    },
+    "warning": "Ce lien permet un accès direct à la réunion. Choisissez un nom long et complexe pour limiter les accès non autorisés."
   },
   "introSlider": {
     "carouselLabel": "Diaporama de présentation",
