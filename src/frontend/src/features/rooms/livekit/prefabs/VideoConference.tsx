@@ -34,6 +34,8 @@ import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
+import { RoomPiP } from '@/features/pip/components/RoomPiP'
+import { useRoomPiP } from '@/features/pip/hooks/useRoomPiP'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
@@ -227,6 +229,9 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   ])
   /* eslint-enable react-hooks/exhaustive-deps */
 
+  const { isOpen: isPiPOpen } = useRoomPiP()
+  const shouldRenderMainLayout = !isPiPOpen
+
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
   return (
@@ -248,32 +253,36 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
           />
           <IsIdleDisconnectModal />
           <RoomContentArea>
-            {!focusTrack ? (
-              <div
-                className="lk-grid-layout-wrapper"
-                style={{ height: 'auto' }}
-              >
-                <GridLayout tracks={tracks} style={{ padding: 0 }}>
-                  <ParticipantTile />
-                </GridLayout>
-              </div>
-            ) : (
-              <div
-                className="lk-focus-layout-wrapper"
-                style={{ height: 'auto' }}
-              >
-                <FocusLayoutContainer style={{ padding: 0 }}>
-                  <CarouselLayout
-                    tracks={carouselTracks}
-                    style={{
-                      minWidth: '200px',
-                    }}
+            {shouldRenderMainLayout && (
+              <>
+                {!focusTrack ? (
+                  <div
+                    className="lk-grid-layout-wrapper"
+                    style={{ height: 'auto' }}
                   >
-                    <ParticipantTile />
-                  </CarouselLayout>
-                  {focusTrack && <FocusLayout trackRef={focusTrack} />}
-                </FocusLayoutContainer>
-              </div>
+                    <GridLayout tracks={tracks} style={{ padding: 0 }}>
+                      <ParticipantTile />
+                    </GridLayout>
+                  </div>
+                ) : (
+                  <div
+                    className="lk-focus-layout-wrapper"
+                    style={{ height: 'auto' }}
+                  >
+                    <FocusLayoutContainer style={{ padding: 0 }}>
+                      <CarouselLayout
+                        tracks={carouselTracks}
+                        style={{
+                          minWidth: '200px',
+                        }}
+                      >
+                        <ParticipantTile />
+                      </CarouselLayout>
+                      {focusTrack && <FocusLayout trackRef={focusTrack} />}
+                    </FocusLayoutContainer>
+                  </div>
+                )}
+              </>
             )}
           </RoomContentArea>
           <ControlBar
@@ -289,6 +298,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             }}
           />
           <SidePanel />
+          <RoomPiP />
         </LayoutContextProvider>
       )}
       <RoomAudioRenderer />
