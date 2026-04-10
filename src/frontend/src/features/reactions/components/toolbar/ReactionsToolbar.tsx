@@ -120,6 +120,7 @@ const KeyboardNavigation = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div
+      id="reactions-toolbar"
       role="toolbar"
       aria-label={t('toolbar')}
       onKeyDown={onKeyDown}
