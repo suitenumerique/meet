@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Center, VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
+import { useTitle } from 'hoofd'
+import { useMemo } from 'react'
 import { mediaUrl } from '@/api/mediaUrl'
 import { UserAware, useUser } from '@/features/auth'
 import { Screen } from '@/layout/Screen'
@@ -13,6 +15,8 @@ import { LoadingScreen } from '@/components/LoadingScreen'
 import { fetchRecording } from '../api/fetchRecording'
 import { RecordingStatus } from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
+
+const APP_TITLE = import.meta.env.VITE_APP_TITLE ?? ''
 
 const BetaBadge = () => (
   <span
@@ -48,6 +52,21 @@ export const RecordingDownload = () => {
     retry: false,
     enabled: !!recordingId,
   })
+
+  const isSaved =
+    data?.status === RecordingStatus.Saved ||
+    data?.status === RecordingStatus.NotificationSucceed ||
+    data?.status === RecordingStatus.FailedToStop
+
+  const pageTitle = useMemo(() => {
+    if (isError) return `${APP_TITLE} - ${t('error.title')}`
+    if (data?.is_expired) return `${APP_TITLE} - ${t('expired.title')}`
+    if (data && !isSaved) return `${APP_TITLE} - ${t('unsaved.title')}`
+    if (data && isSaved) return `${APP_TITLE} - ${t('success.title')}`
+    return APP_TITLE
+  }, [isError, data, isSaved, t])
+
+  useTitle(pageTitle)
 
   if (isLoggedIn === undefined || isAuthLoading) {
     return <LoadingScreen />

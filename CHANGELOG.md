@@ -11,7 +11,7 @@ and this project adheres to
 ### Added
 
 - 🔒️(helm) Add pod and container securityContext #1197
-- ✨(summary) add routes v2 for async STT and summary tasks  #1171
+- ✨(summary) add routes v2 for async STT and summary tasks #1171
 - ✅(backend) add unit tests for JwtTokenService #1232
 
 ### Changed
@@ -19,8 +19,9 @@ and this project adheres to
 - ⬆️(backend) bump lodash from 4.17.23 to 4.18.1 in /src/mail
 - ⬆️(frontend) bump hono from 4.12.8 to 4.12.12 in /src/frontend
 - ⬆️(backend) bump pygments from 2.19.2 to 2.20.0 in /src/backend
-- ♻️(backend) use Authorization header for LiveKit token authentication 
+- ♻️(backend) use Authorization header for LiveKit token authentication
 - 🥅(backend) refine Twirp error handling for participant operations
+- ♿️(frontend) set explicit document title on recording download page #1261
 
 ### Fixed
 
