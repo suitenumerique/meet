@@ -23,6 +23,7 @@ and this project adheres to
 - 🥅(backend) refine Twirp error handling for participant operations
 - ✨(summary) allow more file extensions #1265
 - ♿️(frontend) refocus reactions toolbar with ctrl+shift+e is activated #1262
+- ♿️(frontend) set an explicit document title on recording download page #1261
 
 ### Fixed
 
