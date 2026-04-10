@@ -1,52 +1,62 @@
-{{- $envVars := include "meet.common.env" (list . .Values.celeryTranscribe) -}}
-{{- $fullName := include "meet.celeryTranscribe.fullname" . -}}
+{{- $sharedEnvVars := default (dict) .Values.celeryTranscribe.envVars -}}
 {{- $component := "celery-transcribe" -}}
+
+{{- range $idx, $instance := .Values.celeryTranscribe.instances }}
+{{- $instanceValues := merge $instance $.Values.celeryTranscribe }}
+{{- $fullName := printf "%s-%s" (include "meet.celeryTranscribe.fullname" $) $instance.name }}
+{{- $extraInstanceEnvVars := default (dict) $instance.extraEnvVars -}}
+{{- $mergedInstanceEnvVars := merge $extraInstanceEnvVars $sharedEnvVars -}}
+{{- $fakeInstanceObjectForEnvHelper := dict "envVars" $mergedInstanceEnvVars -}}
+{{- $envVars := include "meet.common.env" (list . $fakeInstanceObjectForEnvHelper) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullName }}
   annotations:
-   {{- with .Values.celeryTranscribe.dpAnnotations }}
+   {{- with $instanceValues.dpAnnotations }}
    {{- toYaml . | nindent 4 }}
    {{- end }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ $.Release.Namespace | quote }}
   labels:
-    {{- include "meet.common.labels" (list . $component) | nindent 4 }}
+    {{- include "meet.common.labels" (list $ $component) | nindent 4 }}
+    instance: {{ $instance.name }}
 spec:
-  replicas: {{ .Values.celeryTranscribe.replicas }}
+  replicas: {{ $instanceValues.replicas }}
   selector:
     matchLabels:
-      {{- include "meet.common.selectorLabels" (list . $component) | nindent 6 }}
+      {{- include "meet.common.selectorLabels" (list $ $component) | nindent 6 }}
+      instance: {{ $instance.name }}
   template:
     metadata:
       annotations:
-        {{- with .Values.celeryTranscribe.podAnnotations }}
+        {{- with $instanceValues.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "meet.common.selectorLabels" (list . $component) | nindent 8 }}
+        {{- include "meet.common.selectorLabels" (list $ $component) | nindent 8 }}
+        instance: {{ $instance.name }}
     spec:
       {{- if $.Values.image.credentials }}
       imagePullSecrets:
-        - name: {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" .) "imageCredentials" $.Values.image.credentials) }}
+        - name: {{ include "meet.secret.dockerconfigjson.name" (dict "fullname" (include "meet.fullname" $) "imageCredentials" $.Values.image.credentials) }}
       {{- end }}
-      shareProcessNamespace: {{ .Values.celeryTranscribe.shareProcessNamespace }}
-      {{- with .Values.celeryTranscribe.podSecurityContext }}
+      shareProcessNamespace: {{ $instanceValues.shareProcessNamespace }}
+      {{- with $instanceValues.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        {{- with .Values.celeryTranscribe.sidecars }}
+        {{- with $instanceValues.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-        - name: {{ .Chart.Name }}
-          image: "{{ (.Values.celeryTranscribe.image | default dict).repository | default .Values.image.repository }}:{{ (.Values.celeryTranscribe.image | default dict).tag | default .Values.image.tag }}"
-          imagePullPolicy: {{ (.Values.celeryTranscribe.image | default dict).pullPolicy | default .Values.image.pullPolicy }}
-          {{- with .Values.celeryTranscribe.command }}
+        - name: {{ $.Chart.Name }}
+          image: "{{ ($instanceValues.image | default dict).repository | default $.Values.image.repository }}:{{ ($instanceValues.image | default dict).tag | default $.Values.image.tag }}"
+          imagePullPolicy: {{ ($instanceValues.image | default dict).pullPolicy | default $.Values.image.pullPolicy }}
+          {{- with $instanceValues.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.celeryTranscribe.args }}
+          {{- with $instanceValues.args }}
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -54,65 +64,65 @@ spec:
             {{- if $envVars }}
             {{- $envVars | indent 12 }}
             {{- end }}
-          {{- with .Values.celeryTranscribe.securityContext }}
+          {{- with $instanceValues.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.celeryTranscribe.service.targetPort }}
+              containerPort: {{ $instanceValues.service.targetPort }}
               protocol: TCP
-          {{- if .Values.celeryTranscribe.probes.liveness }}
+          {{- if $instanceValues.probes.liveness }}
           livenessProbe:
-            {{- include "meet.probes.abstract" (merge .Values.celeryTranscribe.probes.liveness (dict "targetPort" .Values.celeryTranscribe.service.targetPort )) | nindent 12 }}
+            {{- include "meet.probes.abstract" (merge $instanceValues.probes.liveness (dict "targetPort" $instanceValues.service.targetPort)) | nindent 12 }}
           {{- end }}
-          {{- if .Values.celeryTranscribe.probes.readiness }}
+          {{- if $instanceValues.probes.readiness }}
           readinessProbe:
-            {{- include "meet.probes.abstract" (merge .Values.celeryTranscribe.probes.readiness (dict "targetPort" .Values.celeryTranscribe.service.targetPort )) | nindent 12 }}
+            {{- include "meet.probes.abstract" (merge $instanceValues.probes.readiness (dict "targetPort" $instanceValues.service.targetPort)) | nindent 12 }}
           {{- end }}
-          {{- if .Values.celeryTranscribe.probes.startup }}
+          {{- if $instanceValues.probes.startup }}
           startupProbe:
-            {{- include "meet.probes.abstract" (merge .Values.celeryTranscribe.probes.startup (dict "targetPort" .Values.celeryTranscribe.service.targetPort )) | nindent 12 }}
+            {{- include "meet.probes.abstract" (merge $instanceValues.probes.startup (dict "targetPort" $instanceValues.service.targetPort)) | nindent 12 }}
           {{- end }}
-          {{- with .Values.celeryTranscribe.resources }}
+          {{- with $instanceValues.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
-            {{- range $index, $value := .Values.mountFiles }}
+            {{- range $index, $value := $.Values.mountFiles }}
             - name: "files-{{ $index }}"
               mountPath: {{ $value.path }}
               subPath: content
             {{- end }}
-            {{- range $name, $volume := .Values.celeryTranscribe.persistence }}
+            {{- range $name, $volume := $instanceValues.persistence }}
             - name: "{{ $name }}"
               mountPath: "{{ $volume.mountPath }}"
             {{- end }}
-            {{- range .Values.celeryTranscribe.extraVolumeMounts }}
+            {{- range $instanceValues.extraVolumeMounts }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
               subPath: {{ .subPath | default "" }}
               readOnly: {{ .readOnly }}
             {{- end }}
-      {{- with .Values.celeryTranscribe.nodeSelector }}
+      {{- with $instanceValues.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.celeryTranscribe.affinity }}
+      {{- with $instanceValues.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.celeryTranscribe.tolerations }}
+      {{- with $instanceValues.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-        {{- range $index, $value := .Values.mountFiles }}
+        {{- range $index, $value := $.Values.mountFiles }}
         - name: "files-{{ $index }}"
           configMap:
             name: "{{ include "meet.fullname" $ }}-files-{{ $index }}"
         {{- end }}
-        {{- range $name, $volume := .Values.celeryTranscribe.persistence }}
+        {{- range $name, $volume := $instanceValues.persistence }}
         - name: "{{ $name }}"
           {{- if eq $volume.type "emptyDir" }}
           emptyDir: {}
@@ -121,7 +131,7 @@ spec:
             claimName: "{{ $fullName }}-{{ $name }}"
           {{- end }}
         {{- end }}
-        {{- range .Values.celeryTranscribe.extraVolumes }}
+        {{- range $instanceValues.extraVolumes }}
         - name: {{ .name }}
           {{- if .existingClaim }}
           persistentVolumeClaim:
@@ -143,15 +153,18 @@ spec:
           {{- end }}
         {{- end }}
 ---
-{{ if .Values.celeryTranscribe.pdb.enabled }}
+{{ if $instanceValues.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ $fullName }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ $.Release.Namespace | quote }}
 spec:
   maxUnavailable: 1
   selector:
     matchLabels:
-      {{- include "meet.common.selectorLabels" (list . $component) | nindent 6 }}
+      {{- include "meet.common.selectorLabels" (list $ $component) | nindent 6 }}
+      instance: {{ $instance.name }}
+---
 {{ end }}
+{{- end }}
