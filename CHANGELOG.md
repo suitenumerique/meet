@@ -21,6 +21,8 @@ and this project adheres to
 - ⬆️(backend) bump pygments from 2.19.2 to 2.20.0 in /src/backend
 - ♻️(backend) use Authorization header for LiveKit token authentication 
 - 🥅(backend) refine Twirp error handling for participant operations
+- ♿️(frontend) refocus reactions toolbar with ctrl+shift+e is activated
+
 
 ### Fixed
 
