@@ -239,7 +239,7 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
-      <KeyboardShortcutHint>
+      <KeyboardShortcutHint announce={hasKeyboardFocus}>
         {t('toolbarHint', {
           shortcut: formatShortcutLabel(
             getShortcutDescriptorById('open-shortcuts')?.shortcut
