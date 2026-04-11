@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react'
 import { styled } from '@/styled-system/jsx'
+import { srOnly } from '@/styles/a11y'
 
 const Hint = styled('div', {
   base: {
@@ -26,6 +27,7 @@ const Hint = styled('div', {
 
 export interface KeyboardShortcutHintProps {
   children: ReactNode
+  announce?: boolean
 }
 
 /**
@@ -34,6 +36,21 @@ export interface KeyboardShortcutHintProps {
  */
 export const KeyboardShortcutHint: React.FC<KeyboardShortcutHintProps> = ({
   children,
+  announce = false,
 }) => {
-  return <Hint>{children}</Hint>
+  return (
+    <>
+      <Hint aria-hidden="true">{children}</Hint>
+      {announce ? (
+        <span
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className={srOnly}
+        >
+          {children}
+        </span>
+      ) : null}
+    </>
+  )
 }
