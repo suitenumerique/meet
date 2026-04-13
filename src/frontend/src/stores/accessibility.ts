@@ -15,24 +15,11 @@ export const UI_FONT_OPTIONS: UiFont[] = [
   'opendyslexic',
 ]
 
-const SYSTEM_SANS_STACK = [
-  'ui-sans-serif',
-  'system-ui',
-  '-apple-system',
-  'BlinkMacSystemFont',
-  '"Segoe UI"',
-  'Roboto',
-  '"Helvetica Neue"',
-  'Arial',
-  '"Noto Sans"',
-  'sans-serif',
-].join(', ')
-
-export const UI_FONT_STACKS: Record<UiFont, string> = {
-  default: SYSTEM_SANS_STACK,
-  lexend: `"Lexend Variable", ${SYSTEM_SANS_STACK}`,
-  'atkinson-hyperlegible': `"Atkinson Hyperlegible Next", ${SYSTEM_SANS_STACK}`,
-  opendyslexic: `OpenDyslexic, ${SYSTEM_SANS_STACK}`,
+export const UI_FONT_OVERRIDES: Partial<Record<UiFont, string>> = {
+  lexend: '"Lexend Variable", var(--app-font-family-base)',
+  'atkinson-hyperlegible':
+    '"Atkinson Hyperlegible Next Variable", var(--app-font-family-base)',
+  opendyslexic: 'OpenDyslexic, var(--app-font-family-base)',
 }
 
 export type CaptionTextSize = 'small' | 'medium' | 'large'
