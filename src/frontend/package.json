@@ -13,8 +13,11 @@
     "check": "prettier --check ./src"
   },
   "dependencies": {
+    "@fontsource-variable/atkinson-hyperlegible-next": "^5.2.6",
+    "@fontsource-variable/lexend": "^5.2.11",
     "@fontsource-variable/material-symbols-outlined": "5.2.34",
     "@fontsource/material-icons-outlined": "5.2.6",
+    "@fontsource/opendyslexic": "^5.2.5",
     "@livekit/components-react": "2.9.19",
     "@livekit/components-styles": "1.2.0",
     "@livekit/track-processors": "0.7.0",
