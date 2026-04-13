@@ -31,7 +31,7 @@ const SYSTEM_SANS_STACK = [
 export const UI_FONT_STACKS: Record<UiFont, string> = {
   default: SYSTEM_SANS_STACK,
   lexend: `"Lexend Variable", ${SYSTEM_SANS_STACK}`,
-  'atkinson-hyperlegible': `"Atkinson Hyperlegible Next", ${SYSTEM_SANS_STACK}`,
+  'atkinson-hyperlegible': `"Atkinson Hyperlegible Next Variable", ${SYSTEM_SANS_STACK}`,
   opendyslexic: `OpenDyslexic, ${SYSTEM_SANS_STACK}`,
 }
 
