@@ -6,6 +6,11 @@ body,
   height: 100%;
 }
 
+:root {
+  --app-font-family-base: var(--fonts-sans);
+  --app-font-family: var(--app-font-family-base);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
