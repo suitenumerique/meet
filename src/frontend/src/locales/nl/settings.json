@@ -117,6 +117,16 @@
     "announceReactions": {
       "label": "Reacties hardop aankondigen"
     },
+    "font": {
+      "label": "Weergavelettertype",
+      "description": "Pas het lettertype van de interface aan om uw leescomfort te verbeteren.",
+      "options": {
+        "default": "Standaard (systeem)",
+        "lexend": "Lexend (verbeterde leesbaarheid)",
+        "atkinson-hyperlegible": "Atkinson Hyperlegible (slechtziend)",
+        "opendyslexic": "OpenDyslexic (dyslexie)"
+      }
+    },
     "captions": {
       "heading": "Ondertitels",
       "textSize": {

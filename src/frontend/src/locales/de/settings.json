@@ -117,6 +117,16 @@
     "announceReactions": {
       "label": "Reaktionen vorlesen"
     },
+    "font": {
+      "label": "Anzeigeschrift",
+      "description": "Passe die in der Oberfläche verwendete Schrift für ein besseres Leseerlebnis an.",
+      "options": {
+        "default": "Standard (System)",
+        "lexend": "Lexend (verbesserte Lesbarkeit)",
+        "atkinson-hyperlegible": "Atkinson Hyperlegible (Sehbeeinträchtigung)",
+        "opendyslexic": "OpenDyslexic (Dyslexie)"
+      }
+    },
     "captions": {
       "heading": "Untertitel",
       "textSize": {
