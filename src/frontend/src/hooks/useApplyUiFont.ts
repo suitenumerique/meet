@@ -21,7 +21,14 @@ export function useApplyUiFont() {
   useEffect(() => {
     const loader = fontImports[uiFont]
     if (loader && !loadedFonts.has(uiFont)) {
-      loader().then(() => loadedFonts.add(uiFont))
+      loader()
+        .then(() => loadedFonts.add(uiFont))
+        .catch((err) => {
+          console.error(
+            `[useApplyUiFont] Failed to load font "${uiFont}":`,
+            err
+          )
+        })
     }
 
     document.documentElement.style.setProperty(
