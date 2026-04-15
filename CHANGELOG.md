@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add metadata collection of VAD, connection and chat events
+- ✨(backend) introduce add-ons authentication backend
 
 ### Fixed
 

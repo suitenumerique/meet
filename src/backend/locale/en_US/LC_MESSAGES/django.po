@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 13:46+0000\n"
+"POT-Creation-Date: 2026-04-21 14:09+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -92,11 +92,11 @@ msgstr "Creator is me"
 msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr "You must be administrator or owner of a room to add accesses to it."
 
-#: core/api/serializers.py:516
+#: core/api/serializers.py:509
 msgid "This file extension is not allowed."
 msgstr "This file extension is not allowed."
 
-#: core/api/serializers.py:533
+#: core/api/viewsets.py:1090
 msgid "You have reached the maximum number of files for this type."
 msgstr "You have reached the maximum number of files for this type."
 
