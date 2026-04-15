@@ -43,6 +43,11 @@ export const FeedbackRoute = () => {
     }
   }, [])
 
+  const roomId = useMemo(() => {
+    const state = window.history.state
+    return state?.room_id
+  }, [])
+
   const showBackButton = reasonKey !== DisconnectReasonKey.ParticipantRemoved
 
   return (
@@ -60,7 +65,7 @@ export const FeedbackRoute = () => {
               {t('feedback.home')}
             </Button>
           </HStack>
-          <Rating />
+          <Rating roomId={roomId} />
         </VStack>
       </Center>
     </Screen>

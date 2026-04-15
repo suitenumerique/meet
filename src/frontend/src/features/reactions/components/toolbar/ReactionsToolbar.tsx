@@ -1,4 +1,5 @@
 import { FocusScope, useFocusManager } from '@react-aria/focus'
+import { REACTIONS_TOOLBAR_ID } from '../../constants'
 import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'
 import { ReactionButton } from './ReactionButton'
 import { Emoji } from '../../types'
@@ -120,6 +121,7 @@ const KeyboardNavigation = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div
+      id={REACTIONS_TOOLBAR_ID}
       role="toolbar"
       aria-label={t('toolbar')}
       onKeyDown={onKeyDown}
