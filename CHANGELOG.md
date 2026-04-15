@@ -31,8 +31,8 @@ and this project adheres to
 - ⬆️(dependencies) update vite to v7.3.2 [SECURITY]
 - ⬆️(dependencies) update django to v5.2.13 [SECURITY]
 - 🔒(backend) rely on backend to allow participant update their metadata
-- 🐛(summary) fix failure webhook notification #1233
-- 🐛(summary) relax whisperX payload format #1233
+- 🩹(backend) fix swagger and redoc documentation URLs
+- 🩹(frontend) avoid waiting room requests without room id
 
 ## [1.13.0] - 2026-03-31
 

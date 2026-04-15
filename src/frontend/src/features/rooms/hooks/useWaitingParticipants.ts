@@ -17,7 +17,7 @@ export const useWaitingParticipants = () => {
   const [listEnabled, setListEnabled] = useState(true)
 
   const roomData = useRoomData()
-  const roomId = roomData?.id || '' // FIXME - bad practice
+  const roomId = roomData?.id
 
   const room = useRoomContext()
   const isAdminOrOwner = useIsAdminOrOwner()
@@ -41,7 +41,7 @@ export const useWaitingParticipants = () => {
   const { data: waitingData, refetch: refetchWaiting } =
     useListWaitingParticipants(roomId, {
       retry: false,
-      enabled: listEnabled && isAdminOrOwner,
+      enabled: Boolean(roomId) && listEnabled && isAdminOrOwner,
       refetchInterval: POLL_INTERVAL_MS,
       refetchIntervalInBackground: true,
     })
@@ -61,8 +61,12 @@ export const useWaitingParticipants = () => {
     participant: WaitingParticipant,
     allowEntry: boolean
   ) => {
+    if (!roomId) {
+      throw new Error('Room id is not available')
+    }
+
     await enterRoom({
-      roomId: roomId,
+      roomId,
       allowEntry,
       participantId: participant.id,
     })
@@ -72,13 +76,17 @@ export const useWaitingParticipants = () => {
   const handleParticipantsEntry = async (
     allowEntry: boolean
   ): Promise<void> => {
+    if (!roomId) {
+      throw new Error('Room id is not available')
+    }
+
     try {
       setListEnabled(false)
 
       await Promise.all(
         waitingParticipants.map((participant) =>
           enterRoom({
-            roomId: roomId,
+            roomId,
             allowEntry,
             participantId: participant.id,
           })

@@ -40,3 +40,14 @@ def test_openapi_client_schema():
         "core/tests/swagger/swagger.json", "r", encoding="utf-8"
     ) as expected_schema:
         assert response.json() == json.load(expected_schema)
+
+
+def test_openapi_documentation_routes():
+    """Swagger and ReDoc documentation should be served on canonical URLs."""
+    client = Client()
+
+    swagger_response = client.get("/v1.0/swagger/")
+    redoc_response = client.get("/v1.0/redoc/")
+
+    assert swagger_response.status_code == 200
+    assert redoc_response.status_code == 200
