@@ -9,21 +9,33 @@ class WordSegment(BaseModel):
     """Word segment model for transcription tasks."""
 
     word: str = Field(title="Word")
-    start: float = Field(title="Start Time", description="Start time in seconds.")
-    end: float = Field(title="End Time", description="End time in seconds.")
+    start: float | None = Field(
+        default=None, title="Start Time", description="Start time in seconds."
+    )
+    end: float | None = Field(
+        default=None, title="End Time", description="End time in seconds."
+    )
     score: float | None = Field(
-        title="Confidence Score", description="Confidence score for the word segment."
+        default=None,
+        title="Confidence Score",
+        description="Confidence score for the word segment.",
     )
     speaker: str | None = Field(
-        title="Speaker", description="Speaker identifier for the word segment."
+        default=None,
+        title="Speaker",
+        description="Speaker identifier for the word segment.",
     )
 
 
 class Segment(BaseModel):
     """Segment model for transcription tasks."""
 
-    start: float = Field(title="Start Time", description="Start time in seconds.")
-    end: float = Field(title="End Time", description="End time in seconds.")
+    start: float | None = Field(
+        default=None, title="Start Time", description="Start time in seconds."
+    )
+    end: float | None = Field(
+        default=None, title="End Time", description="End time in seconds."
+    )
     text: str = Field(
         title="Segment Text", description="Transcribed text for the segment."
     )
@@ -31,7 +43,7 @@ class Segment(BaseModel):
         title="Word Segments", description="List of word segments within the segment."
     )
     speaker: str | None = Field(
-        title="Speaker", description="Speaker identifier for the segment."
+        default=None, title="Speaker", description="Speaker identifier for the segment."
     )
 
 

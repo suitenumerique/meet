@@ -369,9 +369,10 @@ frontend-i18n-generate: \
 .PHONY: frontend-i18n-generate
 
 # -- K8S
-build-k8s-cluster: \ ## build the kubernetes cluster using kind
-    env.d/development/kube-secret
-	./bin/start-kind.sh
+build-k8s-cluster: ## build the kubernetes cluster using kind
+build-k8s-cluster: \
+    env.d/development/kube-secret \
+    ./bin/start-kind.sh
 .PHONY: build-k8s-cluster
 
 start-tilt-keycloak: ## start the kubernetes cluster using kind, without Pro Connect for authentication, use keycloak
