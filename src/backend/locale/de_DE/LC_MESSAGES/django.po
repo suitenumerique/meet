@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 13:46+0000\n"
+"POT-Creation-Date: 2026-04-21 14:09+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,11 +94,11 @@ msgstr ""
 "Sie müssen Administrator oder Eigentümer eines Raums sein, um Zugriffe "
 "hinzuzufügen."
 
-#: core/api/serializers.py:516
+#: core/api/serializers.py:509
 msgid "This file extension is not allowed."
 msgstr "Diese Dateiendung ist nicht erlaubt."
 
-#: core/api/serializers.py:533
+#: core/api/viewsets.py:1090
 msgid "You have reached the maximum number of files for this type."
 msgstr "Sie haben die maximale Anzahl an Dateien dieses Typs erreicht."
 

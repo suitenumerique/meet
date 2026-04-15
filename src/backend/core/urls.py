@@ -4,8 +4,9 @@ from django.conf import settings
 from django.urls import include, path
 
 from lasuite.oidc_login.urls import urlpatterns as oidc_urls
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import DefaultRouter, SimpleRouter
 
+from core.addons import viewsets as addons_viewsets
 from core.api import get_frontend_configuration, viewsets
 from core.external_api import viewsets as external_viewsets
 
@@ -18,15 +19,19 @@ router.register("files", viewsets.FileViewSet, basename="files")
 router.register(
     "resource-accesses", viewsets.ResourceAccessViewSet, basename="resource_accesses"
 )
+router.register(
+    "addons/sessions",
+    addons_viewsets.SessionViewSet,
+    basename="addons_sessions",
+)
 
 # - External API
-external_router = DefaultRouter()
+external_router = SimpleRouter()
 external_router.register(
     "application",
     external_viewsets.ApplicationViewSet,
     basename="external_application",
 )
-
 external_router.register(
     "rooms",
     external_viewsets.RoomViewSet,
