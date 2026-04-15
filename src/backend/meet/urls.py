@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from django.urls import include, path, re_path
+from django.urls import include, path
 
 from drf_spectacular.views import (
     SpectacularJSONAPIView,
@@ -41,7 +41,7 @@ if settings.USE_SWAGGER or settings.DEBUG:
             SpectacularSwaggerView.as_view(url_name="client-api-schema"),
             name="swagger-ui-schema",
         ),
-        re_path(
+        path(
             f"{settings.API_VERSION}/redoc/",
             SpectacularRedocView.as_view(url_name="client-api-schema"),
             name="redoc-schema",
