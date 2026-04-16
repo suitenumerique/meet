@@ -23,7 +23,8 @@ from livekit.agents import (
 from livekit.agents import (
     room_io as lk_room_io,
 )
-from livekit.plugins import deepgram, silero
+from livekit.plugins import deepgram, mistralai, silero
+from mistralai.client import Mistral
 
 load_dotenv()
 
@@ -46,6 +47,15 @@ def create_stt_provider():
         )
     elif STT_PROVIDER == "kyutai":
         _stt_instance = kyutai.STT(base_url=os.getenv("KYUTAI_STT_BASE_URL"))
+    elif STT_PROVIDER == "voxtral-realtime":
+        client = Mistral(
+            api_key=os.getenv("VOXTRAL_REALTIME_STT_API_KEY"),
+            server_url=os.getenv("VOXTRAL_REALTIME_STT_BASE_URL"),
+        )
+        _stt_instance = mistralai.STT(
+            client=client,
+            model="voxtral-mini-latest",
+        )
     else:
         raise ValueError(f"Unknown STT_PROVIDER: {STT_PROVIDER}")
 
