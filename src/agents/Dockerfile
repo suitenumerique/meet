@@ -1,4 +1,4 @@
-FROM python:3.13-slim AS base
+FROM python:3.13.13-slim AS base
 
 # Install system dependencies required by LiveKit
 RUN apt-get update && apt-get install -y \
