@@ -232,11 +232,14 @@ class RecordingOptions(BaseModel):
             When `None`, falls back to the application default.
         original_mode: The original recording mode before any override.
             Must be one of the valid RecordingModeChoices values when provided.
+        collect_metadata: Whether to collect additional metadata during recording.
+            When `None`, no metadata are collected.
 
     """
 
     language: str | None = None
     transcribe: bool | None = None
+    collect_metadata: bool | None = None
     original_mode: Literal["screen_recording", "transcript"] | None = None
 
     model_config = {"extra": "forbid"}
