@@ -34,6 +34,7 @@ and this project adheres to
 - 🐛(summary) fix failure webhook notification #1233
 - 🐛(summary) relax whisperX payload format #1233
 - ⬆️(backend) upgrade dependencies to fix Pillow CVE-2026-40192
+- ⬆️(frontend) upgrade frontend image to Alpine 3.23 to address CVEs
 
 ## [1.13.0] - 2026-03-31
 
