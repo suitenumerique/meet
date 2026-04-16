@@ -39,15 +39,16 @@ COPY ./docker/dinum-frontend/fonts/ \
     ./dist/assets/fonts/
 
 # ---- Front-end image ----
-FROM nginxinc/nginx-unprivileged:alpine3.21 AS frontend-production
+FROM nginxinc/nginx-unprivileged:alpine3.23 AS frontend-production
 
 USER root
-RUN apk update && apk upgrade libssl3 \
-    libcrypto3 \
-    libxml2>=2.12.7-r2 \
-    libxslt>=1.1.39-r2 \
-    libexpat>=2.7.2-r0 \
-    libpng>=1.6.53-r0
+
+# Security patches for known CVEs
+RUN apk update && apk upgrade  \
+    musl \
+    musl-utils \
+    zlib>=1.3.2-r0 \
+    && apk del curl
 
 USER nginx
 
