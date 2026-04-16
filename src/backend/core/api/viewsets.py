@@ -343,8 +343,7 @@ class RoomViewSet(
             )
 
         if settings.METADATA_COLLECTOR_ENABLED and (
-            recording.mode == models.RecordingModeChoices.TRANSCRIPT
-            or recording.options.get("transcribe", False)
+            recording.options.get("collect_metadata", False)
         ):
             try:
                 MetadataCollectorService().start(recording)

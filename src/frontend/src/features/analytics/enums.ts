@@ -5,4 +5,5 @@ export enum FeatureFlags {
   noiseReduction = 'noise-reduction',
   subtitles = 'subtitles',
   candidatePolling = 'candidate-polling',
+  metadataCollector = 'metadata-collector',
 }
