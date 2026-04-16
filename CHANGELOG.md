@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-04-16
+
 ### Added
 
 - 🔒️(helm) Add pod and container securityContext #1197
