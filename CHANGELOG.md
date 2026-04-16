@@ -33,6 +33,7 @@ and this project adheres to
 - 🔒(backend) rely on backend to allow participant update their metadata
 - 🐛(summary) fix failure webhook notification #1233
 - 🐛(summary) relax whisperX payload format #1233
+- ⬆️(backend) upgrade dependencies to fix Pillow CVE-2026-40192
 
 ## [1.13.0] - 2026-03-31
 
