@@ -35,19 +35,22 @@ class TestTasks:
         assert response.json() == {"id": "task-id-abc", "message": "Task created"}
 
         args = mock_apply_async.call_args.kwargs["args"]
+        print(args)
         assert args == [
-            "owner-123",  # owner_id
-            "recording.mp4",  # recording_filename
-            "metadata.json",  # metadata_filename
-            "user@example.com",  # email
-            "sub-123",  # sub
-            1735725600.0,  # frozen time
-            "room-abc",  # room
-            "EG_test123",  # worker_id
-            "UTC",  # owner_timezone
-            None,  # language
-            "http://example.com/file.mp4",  # download_link
-            None,  # context_language
+            "owner-123",
+            "recording.mp4",
+            "metadata.json",
+            "user@example.com",
+            "sub-123",
+            1735725600.0,
+            "room-abc",
+            "EG_test123",
+            "UTC",
+            None,
+            "http://example.com/file.mp4",
+            None,
+            None,
+            None,
         ]
 
     def test_create_task_invalid_language(self, client):
