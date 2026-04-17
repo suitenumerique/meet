@@ -232,7 +232,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     """
     room = RoomFactory(
         access_level=RoomAccessLevel.PUBLIC,
-        configuration={"can_publish_sources": ["mock-source"]},
+        configuration={"can_publish_sources": ["camera"]},
     )
 
     user = UserFactory()
@@ -264,7 +264,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         user=user,
         username=None,
         color=None,
-        sources=["mock-source"],
+        sources=["camera"],
         is_admin_or_owner=False,
         participant_id=None,
     )
@@ -363,7 +363,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
     other_user = UserFactory()
 
     room = RoomFactory(
-        configuration={"can_publish_sources": ["mock-source"]},
+        configuration={"can_publish_sources": ["camera"]},
     )
     UserResourceAccessFactory(resource=room, user=user, role="member")
     UserResourceAccessFactory(resource=room, user=other_user, role="member")
@@ -401,7 +401,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
         user=user,
         username=None,
         color=None,
-        sources=["mock-source"],
+        sources=["camera"],
         is_admin_or_owner=False,
         participant_id=None,
     )

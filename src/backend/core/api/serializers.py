@@ -14,6 +14,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django_pydantic_field.rest_framework import SchemaField
 from pydantic import BaseModel, Field
+from pydantic import ValidationError as PydanticValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from timezone_field.rest_framework import TimeZoneSerializerField
@@ -130,6 +131,16 @@ class RoomSerializer(serializers.ModelSerializer):
         model = models.Room
         fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
         read_only_fields = ["id", "slug", "pin_code"]
+
+    def validate_configuration(self, value):
+        """Validate room configuration against the RoomConfiguration schema."""
+        if value is None or value == {}:
+            return value
+        try:
+            RoomConfiguration.model_validate(value)
+        except PydanticValidationError as e:
+            raise serializers.ValidationError(e.errors()) from e
+        return value
 
     def to_representation(self, instance):
         """
@@ -304,6 +315,22 @@ class MuteParticipantSerializer(BaseParticipantsManagementSerializer):
     track_sid = serializers.CharField(
         max_length=255, help_text="LiveKit track SID to mute"
     )
+
+
+RoomConfigurationTrackSource = Literal[
+    "camera", "microphone", "screen_share", "screen_share_audio"
+]
+
+
+class RoomConfiguration(BaseModel):
+    """Validate room configuration structure.
+
+    Unknown fields are rejected.
+    """
+
+    can_publish_sources: list[RoomConfigurationTrackSource] | None = None
+
+    model_config = {"extra": "forbid"}
 
 
 TrackSource = Literal["SCREEN_SHARE", "SCREEN_SHARE_AUDIO", "CAMERA", "MICROPHONE"]
