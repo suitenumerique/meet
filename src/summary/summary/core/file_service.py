@@ -1,6 +1,7 @@
 """File service to encapsulate files' manipulations."""
 
 import io
+import json
 import logging
 import os
 import subprocess
@@ -211,6 +212,26 @@ class FileService:
             if output_path.exists():
                 os.remove(output_path)
             raise RuntimeError("Failed to extract audio.") from e
+
+    def read_json(self, object_name: str) -> dict:
+        """Read and parse a JSON file from MinIO storage."""
+        logger.info("Reading JSON: %s", object_name)
+
+        if not object_name:
+            raise ValueError("Invalid object_name")
+
+        response = None
+        try:
+            response = self._minio_client.get_object(self._bucket_name, object_name)
+            return json.loads(response.read())
+        except (MinioException, S3Error) as e:
+            raise FileServiceException(
+                "Unexpected error while reading JSON object."
+            ) from e
+        finally:
+            if response:
+                response.close()
+                response.release_conn()
 
     @contextmanager
     def prepare_audio_file(

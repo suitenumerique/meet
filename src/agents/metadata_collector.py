@@ -156,7 +156,9 @@ class MetadataCollector:
     ):
         """Read a complete chat message and record it as an event."""
         full_text = await reader.read_all()
-        logger.info("Received chat message from %s", participant_identity)
+        logger.info(
+            "Received chat message from %s: '%s'", participant_identity, full_text
+        )
 
         self.events.append(
             MetadataEvent(
@@ -177,7 +179,7 @@ class MetadataCollector:
 
     def save(self):
         """Serialize collected events and upload as JSON to S3."""
-        logger.info("Persisting metadata…")
+        logger.info("Persisting metadata...")
 
         participants = []
         for k, v in self.participants.items():
@@ -372,7 +374,7 @@ async def entrypoint(ctx: JobContext):
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
     async def cleanup():
-        logger.info("Shutting down metadata collector…")
+        logger.info("Shutting down metadata collector...")
         await metadata_collector.aclose()
 
     ctx.add_shutdown_callback(cleanup)
