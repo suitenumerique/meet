@@ -67,7 +67,7 @@ def test_api_rooms_update_members():
             "name": "New name",
             "slug": "should-be-ignored",
             "access_level": RoomAccessLevel.RESTRICTED,
-            "configuration": {"the_key": "the_value"},
+            "configuration": {"can_publish_sources": ["camera", "microphone"]},
         },
         format="json",
     )
@@ -95,7 +95,7 @@ def test_api_rooms_update_administrators():
             "name": "New name",
             "slug": "should-be-ignored",
             "access_level": RoomAccessLevel.PUBLIC,
-            "configuration": {"the_key": "the_value"},
+            "configuration": {"can_publish_sources": ["camera", "microphone"]},
         },
         format="json",
     )
@@ -104,7 +104,98 @@ def test_api_rooms_update_administrators():
     assert room.name == "New name"
     assert room.slug == "new-name"
     assert room.access_level == RoomAccessLevel.PUBLIC
-    assert room.configuration == {"the_key": "the_value"}
+    assert room.configuration == {"can_publish_sources": ["camera", "microphone"]}
+
+
+@pytest.mark.parametrize(
+    "configuration",
+    [
+        {},
+        {"can_publish_sources": ["camera", "microphone"]},
+        {
+            "can_publish_sources": [
+                "camera",
+                "microphone",
+                "screen_share",
+                "screen_share_audio",
+            ]
+        },
+        {"can_publish_sources": []},
+        {"can_publish_sources": None},
+    ],
+)
+def test_api_rooms_update_configuration_valid(configuration):
+    """Administrators should be allowed to set valid configurations."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": configuration},
+        format="json",
+    )
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.configuration == configuration
+
+
+def test_api_rooms_update_configuration_extra_keys_rejected():
+    """Extra keys in configuration should be rejected."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {
+            "configuration": {
+                "can_publish_sources": ["camera"],
+                "arbitrary_key": "value",
+            }
+        },
+        format="json",
+    )
+    assert response.status_code == 400
+    room.refresh_from_db()
+    assert room.configuration == {}
+
+
+@pytest.mark.parametrize("invalid_source", ["invalid_source", "CAMERA"])
+def test_api_rooms_update_configuration_invalid_source_value(invalid_source):
+    """Invalid source values should be rejected."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": {"can_publish_sources": [invalid_source]}},
+        format="json",
+    )
+    assert response.status_code == 400
+    room.refresh_from_db()
+    assert room.configuration == {}
+
+
+def test_api_rooms_update_configuration_wrong_type():
+    """Configuration values with wrong types should be rejected."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": {"can_publish_sources": "camera"}},
+        format="json",
+    )
+    assert response.status_code == 400
+    room.refresh_from_db()
+    assert room.configuration == {}
 
 
 def test_api_rooms_update_administrators_of_another():
