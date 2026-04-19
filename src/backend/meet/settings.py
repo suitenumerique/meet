@@ -908,6 +908,18 @@ class Base(Configuration):
         environ_name="APPLICATION_BASE_URL",
         environ_prefix=None,
     )
+    # Warning: EXTERNAL_API_ALLOW_PUBLIC_ACCESS is ignored when
+    # EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public.
+    EXTERNAL_API_ALLOW_PUBLIC_ACCESS = values.BooleanValue(
+        False,
+        environ_name="EXTERNAL_API_ALLOW_PUBLIC_ACCESS",
+        environ_prefix=None,
+    )
+    EXTERNAL_API_DEFAULT_ACCESS_LEVEL = values.Value(
+        "trusted",
+        environ_name="EXTERNAL_API_DEFAULT_ACCESS_LEVEL",
+        environ_prefix=None,
+    )
     # Allows third-party platforms to create users with email-only identification.
     # Required for external integrations, but fragile due to deferred user reconciliation
     # on sub. Enable it with care /!\
