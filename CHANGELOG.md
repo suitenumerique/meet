@@ -12,6 +12,10 @@ and this project adheres to
 
 - 🔒️(backend) add validation of Room.configuration
 
+### Fixed
+
+- ♻(frontend) standardize role terminology across localizations
+
 ## [1.15.0] - 2026-04-30
 
 ### Added
