@@ -1,6 +1,7 @@
 """Meet storage event parser classes."""
 
 import logging
+import mimetypes
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -104,7 +105,7 @@ class MinioParser:
             bucket_name = s3["bucket"]["name"]
             file_object = s3["object"]
             filepath = file_object["key"]
-            filetype = file_object["contentType"]
+            filetype = file_object.get("contentType") or mimetypes.guess_type(filepath)[0] or ""
         except (KeyError, IndexError) as e:
             raise ParsingEventDataError(f"Missing or malformed key: {e}.") from e
         try:
