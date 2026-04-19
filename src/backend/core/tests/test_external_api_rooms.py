@@ -342,6 +342,7 @@ def test_api_rooms_retrieve_success(settings):
         "name": room.name,
         "slug": room.slug,
         "access_level": str(room.access_level),
+        "configuration": room.configuration,
         "url": f"http://your-application.com/{room.slug}",
         "telephony": {
             "enabled": True,
@@ -529,6 +530,38 @@ def test_api_rooms_create_success():
     room = Room.objects.get(id=response.data["id"])
     assert room.get_role(user) == RoleChoices.OWNER
     assert room.access_level == "trusted"
+    assert room.configuration == {}
+
+def test_api_rooms_create_with_params_success():
+    """Creating a room with access_level and configuration should succeed."""
+
+    user = UserFactory()
+
+    token = generate_test_token(
+        user, [ApplicationScope.ROOMS_CREATE, ApplicationScope.ROOMS_LIST]
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    
+    payload = {
+        "access_level": "restricted",
+        "configuration": {
+            "can_publish_sources": ["screen_share"],
+            "is_microphone_enabled": False
+        }
+    }
+    response = client.post("/external-api/v1.0/rooms/", payload, format="json")
+
+    assert response.status_code == 201
+    
+    # Verify room was created with parameters
+    room = Room.objects.get(id=response.data["id"])
+    assert room.access_level == "restricted"
+    assert room.configuration == {
+        "can_publish_sources": ["screen_share"],
+        "is_microphone_enabled": False
+    }
 
 
 def test_api_rooms_create_readonly_enforcement():
@@ -546,7 +579,6 @@ def test_api_rooms_create_readonly_enforcement():
             "id": "fake-id",
             "slug": "fake-slug",
             "name": "fake-name",
-            "access_level": "public",
         },
         format="json",
     )
@@ -565,8 +597,39 @@ def test_api_rooms_create_readonly_enforcement():
     assert room.access_level == "trusted"
 
 
-def test_api_rooms_unknown_actions():
-    """Updating or deleting a room are not supported yet."""
+def test_api_rooms_update_success():
+    """Updating a room should succeed with correct scope."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)], access_level=RoomAccessLevel.PUBLIC)
+
+    token = generate_test_token(
+        user,
+        [
+            ApplicationScope.ROOMS_UPDATE,
+        ],
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    
+    payload = {
+        "access_level": "restricted",
+        "configuration": {
+            "is_video_enabled": False
+        }
+    }
+    response = client.patch(f"/external-api/v1.0/rooms/{room.id}/", payload, format="json")
+
+    assert response.status_code == 200
+    
+    room.refresh_from_db()
+    assert room.access_level == "restricted"
+    assert room.configuration == {"is_video_enabled": False}
+
+
+def test_api_rooms_delete_success():
+    """Deleting a room should succeed with correct scope."""
 
     user = UserFactory()
     room = RoomFactory(users=[(user, RoleChoices.OWNER)])
@@ -574,9 +637,7 @@ def test_api_rooms_unknown_actions():
     token = generate_test_token(
         user,
         [
-            ApplicationScope.ROOMS_RETRIEVE,
             ApplicationScope.ROOMS_DELETE,
-            ApplicationScope.ROOMS_UPDATE,
         ],
     )
 
@@ -584,15 +645,8 @@ def test_api_rooms_unknown_actions():
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
 
-    assert response.status_code == 405
-    assert 'method "delete" not allowed.' in str(response.data).lower()
-
-    client = APIClient()
-    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
-    response = client.patch(f"/external-api/v1.0/rooms/{room.id}/")
-
-    assert response.status_code == 405
-    assert 'method "patch" not allowed.' in str(response.data).lower()
+    assert response.status_code == 204
+    assert not Room.objects.filter(id=room.id).exists()
 
 
 def test_api_rooms_response_no_url(settings):

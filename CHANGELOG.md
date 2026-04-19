@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(backend) allow room configuration and access level via external api #1260
 - ✨(backend) add metadata collection of VAD, connection and chat events
 
 ## [1.14.0] - 2026-04-16
