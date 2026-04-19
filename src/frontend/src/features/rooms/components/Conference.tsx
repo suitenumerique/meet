@@ -31,6 +31,8 @@ import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { navigateTo } from '@/navigation/navigateTo'
+import { useSnapshot } from 'valtio'
+import { connectionObserverStore } from '@/stores/connectionObserver'
 
 export const Conference = ({
   roomId,
@@ -43,6 +45,8 @@ export const Conference = ({
 }) => {
   const posthog = usePostHog()
   const { data: apiConfig } = useConfig()
+
+  const connectionObserverSnap = useSnapshot(connectionObserverStore)
 
   const { userChoices: userConfig } = usePersistentUserChoices() as {
     userChoices: LocalUserChoices
@@ -228,13 +232,32 @@ export const Conference = ({
             posthog.captureException(e)
           }}
           onDisconnected={(e) => {
+            const metadata = {
+              room_id: roomId,
+              pc_publisher: connectionObserverSnap.publisher && {
+                ...connectionObserverSnap.publisher,
+              },
+              pc_subscriber: connectionObserverSnap.subscriber && {
+                ...connectionObserverSnap.subscriber,
+              },
+              pc_publisher_changes_count:
+                connectionObserverSnap.publisherChangesCount,
+              pc_subscriber_changes_count:
+                connectionObserverSnap.subscriberChangesCount,
+            }
+
+            connectionObserverStore.publisher = null
+            connectionObserverStore.publisherChangesCount = 0
+            connectionObserverStore.subscriber = null
+            connectionObserverStore.subscriberChangesCount = 0
+
             switch (e) {
               case DisconnectReason.CLIENT_INITIATED:
                 navigateTo(
                   'feedback',
                   {},
                   {
-                    state: { room_id: roomId },
+                    state: { ...metadata },
                   }
                 )
                 return
@@ -244,7 +267,10 @@ export const Conference = ({
                   'feedback',
                   {},
                   {
-                    state: { reason: e, room_id: roomId },
+                    state: {
+                      reason: e,
+                      ...metadata,
+                    },
                   }
                 )
                 return

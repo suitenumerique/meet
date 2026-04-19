@@ -10,6 +10,12 @@ and this project adheres to
 
 ### Added
 
+- ✨(backend) add metadata collection of VAD, connection and chat events
+
+## [1.14.0] - 2026-04-16
+
+### Added
+
 - 🔒️(helm) Add pod and container securityContext #1197
 - ✨(summary) add routes v2 for async STT and summary tasks #1171
 - ✅(backend) add unit tests for JwtTokenService #1232
@@ -32,6 +38,10 @@ and this project adheres to
 - ⬆️(dependencies) update django to v5.2.13 [SECURITY]
 - 🔒(backend) rely on backend to allow participant update their metadata
 - 🩹(backend) fix swagger and redoc documentation URLs
+- 🐛(summary) fix failure webhook notification #1233
+- 🐛(summary) relax whisperX payload format #1233
+- ⬆️(backend) upgrade dependencies to fix Pillow CVE-2026-40192
+- ⬆️(frontend) upgrade frontend image to Alpine 3.23 to address CVEs
 
 ## [1.13.0] - 2026-03-31
 

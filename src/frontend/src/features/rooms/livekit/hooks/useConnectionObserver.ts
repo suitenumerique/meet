@@ -10,6 +10,9 @@ import { connectionObserverStore } from '@/stores/connectionObserver'
 import { useConfig } from '@/api/useConfig'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { useSnapshot } from 'valtio'
+import { useIsAdvancedConnectionObserverEnabled } from './useIsAdvancedConnectionObserverEnabled'
+
+const CANDIDATE_POLL_INTERVAL_MS = 5000
 
 export const useConnectionObserver = () => {
   const room = useRoomContext()
@@ -17,6 +20,8 @@ export const useConnectionObserver = () => {
 
   const { data } = useConfig()
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
+  const isAdvancedConnectionObserverEnabled =
+    useIsAdvancedConnectionObserverEnabled()
 
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
@@ -66,6 +71,100 @@ export const useConnectionObserver = () => {
     data?.idle_disconnect_warning_delay,
     userPreferencesSnap.is_idle_disconnect_modal_enabled,
   ])
+
+  useEffect(() => {
+    if (!isAdvancedConnectionObserverEnabled) return
+    if (!room) return
+
+    let interval: ReturnType<typeof setInterval> | null = null
+
+    const pollCandidate = async (
+      label: 'publisher' | 'subscriber',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      pc?: any
+    ) => {
+      if (!pc) return
+
+      let stats: RTCStatsReport
+      try {
+        stats = await pc.getStats()
+      } catch {
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      stats.forEach((report: any) => {
+        if (
+          report.type === 'candidate-pair' &&
+          report.state === 'succeeded' &&
+          report.nominated
+        ) {
+          const remoteCandidate = stats.get(report.remoteCandidateId)
+          if (!remoteCandidate) return
+
+          const next = {
+            type: remoteCandidate.candidateType,
+            address: remoteCandidate.address,
+            protocol: remoteCandidate.protocol,
+          }
+
+          const current = connectionObserverStore[label]
+
+          const hasChanged =
+            current?.type !== next.type ||
+            current?.address !== next.address ||
+            current?.protocol !== next.protocol
+
+          if (hasChanged) {
+            connectionObserverStore[label] = next
+            const key = `${label}ChangesCount` as const
+            connectionObserverStore[key] =
+              (connectionObserverStore[key] || 0) + 1
+          }
+        }
+      })
+    }
+
+    const poll = async () => {
+      const publisher = room.engine?.pcManager?.publisher
+      const subscriber = room.engine?.pcManager?.subscriber
+
+      await Promise.all([
+        pollCandidate('publisher', publisher),
+        pollCandidate('subscriber', subscriber),
+      ])
+    }
+
+    const startPolling = async () => {
+      if (interval) return // prevent duplicates
+
+      // Initial snapshot
+      await poll()
+
+      interval = setInterval(poll, CANDIDATE_POLL_INTERVAL_MS)
+    }
+
+    const stopPolling = () => {
+      if (!interval) return
+      clearInterval(interval)
+      interval = null
+    }
+
+    room.on(RoomEvent.Connected, startPolling)
+    room.on(RoomEvent.Reconnected, startPolling)
+
+    room.on(RoomEvent.Reconnecting, stopPolling)
+    room.on(RoomEvent.Disconnected, stopPolling)
+
+    return () => {
+      stopPolling()
+
+      room.off(RoomEvent.Connected, startPolling)
+      room.off(RoomEvent.Reconnected, startPolling)
+      room.off(RoomEvent.Reconnecting, stopPolling)
+      room.off(RoomEvent.Disconnected, stopPolling)
+    }
+  }, [room, isAdvancedConnectionObserverEnabled])
 
   useEffect(() => {
     if (!isAnalyticsEnabled) return

@@ -7,6 +7,7 @@ import { usePostHog } from 'posthog-js/react'
 import type { PostHog } from 'posthog-js'
 import { Button as RACButton } from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
+import { CandidateInfo } from '@/stores/connectionObserver'
 
 const Card = styled('div', {
   base: {
@@ -303,7 +304,19 @@ const AuthenticationMessage = ({
   )
 }
 
-export const Rating = ({ roomId }: { roomId?: string }) => {
+type RatingMetadata = {
+  room_id?: string
+  pc_publisher?: CandidateInfo
+  pc_subscriber?: CandidateInfo
+  pc_publisher_changes_count?: number
+  pc_subscriber_changes_count?: number
+}
+
+export const Rating = ({
+  metadata: metadataProp,
+}: {
+  metadata: RatingMetadata
+}) => {
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
   const posthog = usePostHog()
 
@@ -318,9 +331,9 @@ export const Rating = ({ roomId }: { roomId?: string }) => {
   const metadata = useMemo(
     () => ({
       session_id: sessionId,
-      room_id: roomId,
+      ...metadataProp,
     }),
-    [roomId, sessionId]
+    [sessionId, metadataProp]
   )
 
   if (!isAnalyticsEnabled) return

@@ -1061,51 +1061,130 @@ celerySummaryBackend:
     enabled: false
 
 
-## @section agents
+## @section agentMetadata
 
-agents:
+agentMetadata:
 
-  ## @param agents.image.repository Repository to use to pull meet's agents container image
-  ## @param agents.image.tag meet's agents container tag
-  ## @param agents.image.pullPolicy agents container image pull policy
+  ## @param agentMetadata.image.repository Repository to use to pull meet's agentMetadata container image
+  ## @param agentMetadata.image.tag meet's agentMetadata container tag
+  ## @param agentMetadata.image.pullPolicy agentMetadata container image pull policy
   image:
     repository: lasuite/meet-agents
     pullPolicy: IfNotPresent
     tag: "latest"
 
-  ## @param agents.dpAnnotations Annotations to add to the agents Deployment
+  ## @param agentMetadata.dpAnnotations Annotations to add to the agentMetadata Deployment
   dpAnnotations: {}
 
-  ## @param agents.command Override the agents container command
+  ## @param agentMetadata.command Override the agentMetadata container command
   command: []
 
-  ## @param agents.args Override the agents container args
+  ## @param agentMetadata.args Override the agentMetadata container args
   args: []
 
-  ## @param agents.replicas Amount of agents replicas
+  ## @param agentMetadata.replicas Amount of agentMetadata replicas
   replicas: 1
 
-  ## @param agents.shareProcessNamespace Enable share process namespace between containers
+  ## @param agentMetadata.shareProcessNamespace Enable share process namespace between containers
   shareProcessNamespace: false
 
-  ## @param agents.sidecars Add sidecars containers to agents deployment
+  ## @param agentMetadata.sidecars Add sidecars containers to agentMetadata deployment
   sidecars: []
 
-  ## @param agents.securityContext Configure agents Container security context
+  ## @param agentMetadata.securityContext Configure agentMetadata Container security context
   securityContext: null
 
-  ## @param agents.podSecurityContext Configure agents Pod security context
+  ## @param agentMetadata.podSecurityContext Configure agentMetadata Pod security context
   podSecurityContext: null
 
-  ## @param agents.envVars Configure agents container environment variables
-  ## @extra agents.envVars.BY_VALUE Example environment variable by setting value directly
-  ## @extra agents.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
-  ## @extra agents.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
-  ## @extra agents.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
-  ## @extra agents.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
-  ## @extra agents.envVars.DEEPGRAM_STT_MODEL Deepgram model to use for speech-to-text (default: nova-3)
-  ## @extra agents.envVars.DEEPGRAM_STT_LANGUAGE Language code for transcription or 'multi' for automatic multilingual support with real-time code-switching (default: multi, supports: en, es, fr, de, hi, ru, pt, ja, it, nl)
-  ## @skip agents.envVars
+  ## @param agentMetadata.envVars Configure agentMetadata container environment variables
+  ## @extra agentMetadata.envVars.BY_VALUE Example environment variable by setting value directly
+  ## @extra agentMetadata.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra agentMetadata.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra agentMetadata.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
+  ## @extra agentMetadata.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @extra agentMetadata.envVars.DEEPGRAM_STT_MODEL Deepgram model to use for speech-to-text (default: nova-3)
+  ## @extra agentMetadata.envVars.DEEPGRAM_STT_LANGUAGE Language code for transcription or 'multi' for automatic multilingual support with real-time code-switching (default: multi, supports: en, es, fr, de, hi, ru, pt, ja, it, nl)
+  ## @skip agentMetadata.envVars
+  envVars:
+    <<: *commonEnvVars
+
+  ## @param agentMetadata.podAnnotations Annotations to add to the agentMetadata Pod
+  podAnnotations: {}
+
+  ## @param agentMetadata.resources Resource requirements for the agentMetadata container
+  resources: {}
+
+  ## @param agentMetadata.nodeSelector Node selector for the agentMetadata Pod
+  nodeSelector: {}
+
+  ## @param agentMetadata.tolerations Tolerations for the agentMetadata Pod
+  tolerations: []
+
+  ## @param agentMetadata.affinity Affinity for the agentSubtitles Pod
+  affinity: {}
+
+  ## @param agentMetadata.persistence Additional volumes to create and mount on the agentSubtitles. Used for debugging purposes
+  ## @extra agentMetadata.persistence.volume-name.size Size of the additional volume
+  ## @extra agentMetadata.persistence.volume-name.type Type of the additional volume, persistentVolumeClaim or emptyDir
+  ## @extra agentMetadata.persistence.volume-name.mountPath Path where the volume should be mounted to
+  persistence: {}
+
+  ## @param agentMetadata.extraVolumeMounts Additional volumes to mount on the agentMetadata.
+  extraVolumeMounts: []
+
+  ## @param agentMetadata.extraVolumes Additional volumes to mount on the agentMetadata.
+  extraVolumes: []
+
+  ## @param agentMetadata.pdb.enabled Enable pdb on agentMetadata
+  pdb:
+    enabled: false
+
+## @section agentSubtitles
+
+agentSubtitles:
+
+  ## @param agentSubtitles.image.repository Repository to use to pull meet's agentSubtitles container image
+  ## @param agentSubtitles.image.tag meet's agentSubtitles container tag
+  ## @param agentSubtitles.image.pullPolicy agentSubtitles container image pull policy
+  image:
+    repository: lasuite/meet-agents
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  ## @param agentSubtitles.dpAnnotations Annotations to add to the agentSubtitles Deployment
+  dpAnnotations: {}
+
+  ## @param agentSubtitles.command Override the agentSubtitles container command
+  command: []
+
+  ## @param agentSubtitles.args Override the agentSubtitles container args
+  args: []
+
+  ## @param agentSubtitles.replicas Amount of agentSubtitles replicas
+  replicas: 1
+
+  ## @param agentSubtitles.shareProcessNamespace Enable share process namespace between containers
+  shareProcessNamespace: false
+
+  ## @param agentSubtitles.sidecars Add sidecars containers to agentSubtitles deployment
+  sidecars: []
+
+  ## @param agentSubtitles.securityContext Configure agentSubtitles Container security context
+  securityContext: null
+
+  ## @param agentSubtitles.podSecurityContext Configure agentSubtitles Pod security context
+  podSecurityContext: null
+
+  ## @param agentSubtitles.envVars Configure agentSubtitles container environment variables
+  ## @extra agentSubtitles.envVars.BY_VALUE Example environment variable by setting value directly
+  ## @extra agentSubtitles.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra agentSubtitles.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra agentSubtitles.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
+  ## @extra agentSubtitles.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @extra agentSubtitles.envVars.DEEPGRAM_STT_MODEL Deepgram model to use for speech-to-text (default: nova-3)
+  ## @extra agentSubtitles.envVars.DEEPGRAM_STT_LANGUAGE Language code for transcription or 'multi' for automatic multilingual support with real-time code-switching (default: multi, supports: en, es, fr, de, hi, ru, pt, ja, it, nl)
+  ## @skip agentSubtitles.envVars
   envVars:
     <<: *commonEnvVars
     # Deepgram Speech-to-Text configuration for real-time streaming
@@ -1119,34 +1198,34 @@ agents:
     # are NOT supported by the LiveKit Deepgram plugin in streaming mode.
     # Use language="multi" for automatic multilingual support (10 languages).
 
-  ## @param agents.podAnnotations Annotations to add to the agents Pod
+  ## @param agentSubtitles.podAnnotations Annotations to add to the agentSubtitles Pod
   podAnnotations: {}
 
-  ## @param agents.resources Resource requirements for the agents container
+  ## @param agentSubtitles.resources Resource requirements for the agentSubtitles container
   resources: {}
 
-  ## @param agents.nodeSelector Node selector for the agents Pod
+  ## @param agentSubtitles.nodeSelector Node selector for the agentSubtitles Pod
   nodeSelector: {}
 
-  ## @param agents.tolerations Tolerations for the agents Pod
+  ## @param agentSubtitles.tolerations Tolerations for the agentSubtitles Pod
   tolerations: []
 
-  ## @param agents.affinity Affinity for the agents Pod
+  ## @param agentSubtitles.affinity Affinity for the agentSubtitles Pod
   affinity: {}
 
-  ## @param agents.persistence Additional volumes to create and mount on the agents. Used for debugging purposes
-  ## @extra agents.persistence.volume-name.size Size of the additional volume
-  ## @extra agents.persistence.volume-name.type Type of the additional volume, persistentVolumeClaim or emptyDir
-  ## @extra agents.persistence.volume-name.mountPath Path where the volume should be mounted to
+  ## @param agentSubtitles.persistence Additional volumes to create and mount on the agentSubtitles. Used for debugging purposes
+  ## @extra agentSubtitles.persistence.volume-name.size Size of the additional volume
+  ## @extra agentSubtitles.persistence.volume-name.type Type of the additional volume, persistentVolumeClaim or emptyDir
+  ## @extra agentSubtitles.persistence.volume-name.mountPath Path where the volume should be mounted to
   persistence: {}
 
-  ## @param agents.extraVolumeMounts Additional volumes to mount on the agents.
+  ## @param agentSubtitles.extraVolumeMounts Additional volumes to mount on the agentSubtitles.
   extraVolumeMounts: []
 
-  ## @param agents.extraVolumes Additional volumes to mount on the agents.
+  ## @param agentSubtitles.extraVolumes Additional volumes to mount on the agentSubtitles.
   extraVolumes: []
 
-  ## @param agents.pdb.enabled Enable pdb on agents
+  ## @param agentSubtitles.pdb.enabled Enable pdb on agentSubtitles
   pdb:
     enabled: false
 

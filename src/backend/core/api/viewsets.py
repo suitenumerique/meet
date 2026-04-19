@@ -45,6 +45,10 @@ from core.recording.event.exceptions import (
 )
 from core.recording.event.notification import notification_service
 from core.recording.event.parsers import get_parser
+from core.recording.services.metadata_collector import (
+    MetadataCollectorException,
+    MetadataCollectorService,
+)
 from core.recording.worker.exceptions import (
     RecordingStartError,
     RecordingStopError,
@@ -337,6 +341,14 @@ class RoomViewSet(
                 {"error": f"Recording failed to start for room {room.slug}"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        if settings.METADATA_COLLECTOR_ENABLED and (
+            recording.options.get("collect_metadata", False)
+        ):
+            try:
+                MetadataCollectorService().start(recording)
+            except MetadataCollectorException:
+                logger.warning("Failed to start MetadataCollectorService")
 
         return drf_response.Response(
             {"message": f"Recording successfully started for room {room.slug}"},

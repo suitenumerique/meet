@@ -32,6 +32,7 @@ import { NoAccessView } from './NoAccessView'
 import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
 import { useMutateRecording } from '../hooks/useMutateRecording'
+import { useIsMetadataCollectorEnabled } from '../hooks/useMetadataCollectorEnabled'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 export const TranscriptSidePanel = () => {
@@ -58,6 +59,8 @@ export const TranscriptSidePanel = () => {
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
+
+  const isMetadataCollectorEnabled = useIsMetadataCollectorEnabled()
 
   const roomId = useRoomId()
 
@@ -106,6 +109,7 @@ export const TranscriptSidePanel = () => {
             transcribe: true,
             original_mode: RecordingMode.Transcript,
           }),
+          collect_metadata: isMetadataCollectorEnabled,
         }
 
         await startRecording({
