@@ -12,6 +12,10 @@ and this project adheres to
 
 - ✨(backend) add metadata collection of VAD, connection and chat events
 
+### Changed
+
+- ♻️(frontend) unify TrackSource usage to livekit-client Track.Source #1282
+
 ## [1.14.0] - 2026-04-16
 
 ### Added

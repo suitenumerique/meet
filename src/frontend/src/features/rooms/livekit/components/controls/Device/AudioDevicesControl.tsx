@@ -13,7 +13,7 @@ import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
-import { TrackSource } from '@livekit/protocol'
+
 import Source = Track.Source
 import { isSafari } from '@/utils/livekit'
 
@@ -53,7 +53,7 @@ export const AudioDevicesControl = ({
   const cannotUseDevice = useCannotUseDevice(kind)
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.AUDIO}`)
 
-  const canPublishTrack = useCanPublishTrack(TrackSource.MICROPHONE)
+  const canPublishTrack = useCanPublishTrack(Track.Source.Microphone)
 
   return (
     <div
