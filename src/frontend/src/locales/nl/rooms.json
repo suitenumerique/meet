@@ -437,7 +437,7 @@
     "linkMore": "Documentatie openen",
     "linkAriaLabel": "Documentatie over opname openen - opent in nieuw venster",
     "details": {
-      "receiver": "De opname wordt verzonden naar de organisator en co-organisatoren.",
+      "receiver": "De opname wordt verzonden naar de host en co-hosts.",
       "destination": "Deze opname wordt tijdelijk op onze servers bewaard",
       "loading": "Opname wordt gestart",
       "linkMore": "Meer informatie",
@@ -477,7 +477,7 @@
     "button": "Opnieuw proberen"
   },
   "admin": {
-    "description": "Deze organisatorinstellingen geven u controle over uw vergadering. Alleen organisatoren hebben toegang tot deze bedieningselementen.",
+    "description": "Deze hostinstellingen geven u controle over uw vergadering. Alleen hosts hebben toegang tot deze bedieningselementen.",
     "access": {
       "title": "Toegang tot vergadering",
       "description": "Deze instellingen zijn ook van toepassing op toekomstige sessies van deze vergadering.",

@@ -3,7 +3,7 @@
     "heading": {
       "normal": "You have left the meeting",
       "duplicateIdentity": "You have joined the meeting from another device",
-      "participantRemoved": "You have been removed from the meeting by an administrator"
+      "participantRemoved": "You have been removed from the meeting by a host"
     },
     "home": "Return to home",
     "back": "Rejoin the meeting"
@@ -328,7 +328,7 @@
       "chat": "Messages in the chat",
       "transcript": "Transcribe",
       "screenRecording": "Record",
-      "admin": "Admin settings",
+      "admin": "Host settings",
       "tools": "More tools",
       "info": "Meeting information"
     },
@@ -338,7 +338,7 @@
       "chat": "messages",
       "transcript": "transcribe",
       "screenRecording": "record",
-      "admin": "admin settings",
+      "admin": "host settings",
       "tools": "more tools",
       "info": "meeting information"
     },
@@ -477,7 +477,7 @@
     "button": "OK"
   },
   "admin": {
-    "description": "These organizer settings allow you to maintain control of your meeting. Only organizers can access these controls.",
+    "description": "These host settings allow you to maintain control of your meeting. Only hosts can access these controls.",
     "access": {
       "title": "Room access",
       "description": "These settings will also apply to future occurrences of this meeting.",
