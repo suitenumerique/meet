@@ -100,6 +100,13 @@ sequenceDiagram
 | **RECORDING_STORAGE_EVENT_TOKEN**       | Secret/File | `None`                                                                                                                                                             | Token used to authenticate storage webhook requests, if `RECORDING_ENABLE_STORAGE_EVENT_AUTH` is enabled.                                                                                                                                                                                          |
 | **RECORDING_EXPIRATION_DAYS**           | Integer     | `None`                                                                                                                                                             | Number of days before recordings expire. Should match bucket lifecycle policy. Set to `None` for no expiration.                                                                                                                                                                                    |
 | **RECORDING_MAX_DURATION**              | Integer     | `None`                                                                                                                                                             | Maximum duration of a recording in milliseconds. Must be synced with the LiveKit Egress configuration. Set to None for unlimited duration. When the maximum duration is reached, the recording is automatically stopped and saved, and the user is prompted in the frontend with an alert message. |
+| **RECORDING_ENCODING_ENABLED**          | Boolean     | `False`                                                                                                                                                            | When `False`, LiveKit Egress uses its built-in `H264_720P_30` preset. When `True`, the `RECORDING_ENCODING_*` values below are sent to LiveKit as advanced `EncodingOptions`. See [Tuning recording encoding](#tuning-recording-encoding).                                                          |
+| **RECORDING_ENCODING_WIDTH**            | Integer     | `1280`                                                                                                                                                             | Recording video width in pixels. Only applied when `RECORDING_ENCODING_ENABLED` is `True`.                                                                                                                                                                                                         |
+| **RECORDING_ENCODING_HEIGHT**           | Integer     | `720`                                                                                                                                                              | Recording video height in pixels. Only applied when `RECORDING_ENCODING_ENABLED` is `True`.                                                                                                                                                                                                        |
+| **RECORDING_ENCODING_FRAMERATE**        | Integer     | `30`                                                                                                                                                               | Recording video framerate (fps). Directly impacts egress worker CPU (roughly linear). Only applied when `RECORDING_ENCODING_ENABLED` is `True`.                                                                                                                                                    |
+| **RECORDING_ENCODING_VIDEO_BITRATE_KBPS** | Integer   | `3000`                                                                                                                                                             | H.264 MAIN video bitrate in kbps. Only applied when `RECORDING_ENCODING_ENABLED` is `True`.                                                                                                                                                                                                        |
+| **RECORDING_ENCODING_AUDIO_BITRATE_KBPS** | Integer   | `128`                                                                                                                                                              | AAC audio bitrate in kbps. Only applied when `RECORDING_ENCODING_ENABLED` is `True`.                                                                                                                                                                                                               |
+| **RECORDING_ENCODING_KEY_FRAME_INTERVAL_S** | Float   | `4.0`                                                                                                                                                              | Keyframe interval in seconds. Larger values reduce file size (~10–15 %) at the cost of slightly slower seeking. Only applied when `RECORDING_ENCODING_ENABLED` is `True`.                                                                                                                          |
 
 
 ### Manual Storage Webhook
@@ -141,3 +148,53 @@ Using default project meet
 
 This allows you to verify which recordings are in progress, troubleshoot egress issues, and confirm that recordings are being processed correctly.
 
+## Tuning recording encoding
+
+By default, LiveKit Egress records with the built-in `H264_720P_30` preset: 1280×720 at 30 fps, 3000 kbps H.264 MAIN video and 128 kbps AAC audio. For a one-hour meeting this produces a file of roughly **1.4 GB**, which is often heavier than necessary for talking-head content and screen sharing.
+
+The `RECORDING_ENCODING_*` settings let operators override this preset without modifying the source. Values are passed straight through LiveKit's `EncodingOptions.advanced` to the GStreamer pipeline (`x264enc` for video, `faac` for audio), so there are no hidden conversions — what you set is what the encoder receives.
+
+### How values map to GStreamer
+
+| Setting                               | GStreamer element | Property                           |
+| ------------------------------------- | ----------------- | ---------------------------------- |
+| `RECORDING_ENCODING_WIDTH/HEIGHT`     | capsfilter        | `video/x-raw,width=W,height=H`     |
+| `RECORDING_ENCODING_FRAMERATE`        | capsfilter        | `framerate=F/1`                    |
+| `RECORDING_ENCODING_VIDEO_BITRATE_KBPS` | `x264enc`       | `bitrate=kbps` (kilobits)          |
+| `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S` | `x264enc`     | `key-int-max = interval × fps`     |
+| `RECORDING_ENCODING_AUDIO_BITRATE_KBPS` | `faac`          | `bitrate = kbps × 1000` (bits)     |
+
+The H.264 profile is fixed to MAIN and the x264 `speed-preset` to `veryfast` by LiveKit (real-time constraint) — lowering the framerate is therefore the main lever to save CPU, while lowering the bitrate is the main lever to shrink the output file.
+
+### Reference profiles
+
+Rough 30-minute file-size estimates assume video + audio bitrate multiplied by duration. Actual sizes vary with content (static talking heads compress better than heavy screen motion).
+
+| Profile                | Resolution | FPS | Video (kbps) | Audio (kbps) | Keyframe (s) | ~ size / 30 min | Egress CPU (vs. default) | Suitable for                                        |
+| ---------------------- | ---------- | --- | ------------ | ------------ | ------------ | --------------- | ------------------------ | --------------------------------------------------- |
+| Default (preset)       | 1280×720   | 30  | 3000         | 128          | 4            | **~690 MB**     | 100 %                    | Unchanged LiveKit behaviour                         |
+| Balanced               | 1280×720   | 20  | 1000         | 96           | 6            | ~240 MB         | ~67 %                    | Mixed content, moderate motion                      |
+| **Low CPU / small file** | 1280×720 | 15  | 600          | 64           | 10           | **~150 MB**     | ~50 %                    | Videoconference (talking heads + screen share) ★    |
+| Minimum CPU            | 960×540    | 15  | 500          | 64           | 10           | ~125 MB         | ~30 %                    | Voice-first meetings, readable text not required    |
+| Audio-heavy fallback   | 1280×720   | 10  | 400          | 96           | 15           | ~110 MB         | ~35 %                    | Long webinars, low motion                           |
+
+★ Recommended starting point for typical La Suite Meet usage.
+
+Environment variables for the **Low CPU / small file** profile:
+
+```bash
+RECORDING_ENCODING_ENABLED=True
+RECORDING_ENCODING_WIDTH=1280
+RECORDING_ENCODING_HEIGHT=720
+RECORDING_ENCODING_FRAMERATE=15
+RECORDING_ENCODING_VIDEO_BITRATE_KBPS=600
+RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64
+RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=10.0
+```
+
+### Caveats
+
+- **Screen-share readability**: dropping bitrate below ~600 kbps at 720p may make small text in shared slides blocky. If your users share dense screens often, bump video bitrate to 800–1000 kbps.
+- **Motion handling**: the `veryfast` x264 preset is set by LiveKit and cannot be overridden here. Low-bitrate settings will therefore show more artefacts on fast motion than an offline re-encode with a slower preset would.
+- **Audio**: AAC at 64 kbps stereo is transparent for voice but starts to compress music noticeably. Keep 128 kbps if you expect music playback in meetings.
+- **Codec choice**: H.264 MAIN is hardcoded on purpose. Switching to HEVC or VP9 would increase egress CPU cost 2×–5×, defeating the goal of this tuning.

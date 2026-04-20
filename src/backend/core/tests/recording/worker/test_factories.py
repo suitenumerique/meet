@@ -63,12 +63,45 @@ def test_config_initialization(default_config):
         "bucket": "test-bucket",
         "force_path_style": True,
     }
+    # Encoding override is opt-in; disabled by default.
+    assert default_config.encoding_options is None
 
 
 def test_config_immutability(default_config):
     """Test that config instances are immutable after creation"""
     with pytest.raises(FrozenInstanceError):
         default_config.output_folder = "new/path"
+
+
+@override_settings(
+    RECORDING_OUTPUT_FOLDER="/test/output",
+    LIVEKIT_CONFIGURATION={"server": "test.example.com"},
+    AWS_S3_ENDPOINT_URL="https://s3.test.com",
+    AWS_S3_ACCESS_KEY_ID="test_key",
+    AWS_S3_SECRET_ACCESS_KEY="test_secret",
+    AWS_S3_REGION_NAME="test-region",
+    AWS_STORAGE_BUCKET_NAME="test-bucket",
+    RECORDING_ENCODING_ENABLED=True,
+    RECORDING_ENCODING_WIDTH=1280,
+    RECORDING_ENCODING_HEIGHT=720,
+    RECORDING_ENCODING_FRAMERATE=15,
+    RECORDING_ENCODING_VIDEO_BITRATE_KBPS=600,
+    RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64,
+    RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=10.0,
+)
+def test_config_encoding_options_enabled():
+    """When RECORDING_ENCODING_ENABLED is True, encoding options are populated."""
+    WorkerServiceConfig.from_settings.cache_clear()
+    config = WorkerServiceConfig.from_settings()
+
+    assert config.encoding_options == {
+        "width": 1280,
+        "height": 720,
+        "framerate": 15,
+        "video_bitrate": 600,
+        "audio_bitrate": 64,
+        "key_frame_interval": 10.0,
+    }
 
 
 @override_settings(
