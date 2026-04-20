@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🔒️(backend) add validation of Room.configuration
 - ✨(helm) add support multiple transcribe worker / endpoint #1247
+- ✨(backend) make LiveKit Egress recording encoding configurable #1288
 
 ### Fixed
 

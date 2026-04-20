@@ -1,5 +1,7 @@
 """Factory, configurations and Protocol to create worker services"""
 
+# pylint: disable=no-member
+
 import logging
 from dataclasses import dataclass
 from functools import lru_cache
@@ -8,7 +10,16 @@ from typing import Any, ClassVar, Dict, Optional, Protocol, Type
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from livekit import api as livekit_api
+
 logger = logging.getLogger(__name__)
+
+# Codec / frequency constants matching LiveKit's H264_720P_30 preset.
+# Kept fixed because changing them would shift the goal-post away from the
+# "safe drop-in replacement for the default preset" contract of this feature.
+_RECORDING_VIDEO_CODEC = livekit_api.VideoCodec.H264_MAIN
+_RECORDING_AUDIO_CODEC = livekit_api.AudioCodec.AAC
+_RECORDING_AUDIO_FREQUENCY_HZ = 48000
 
 
 @dataclass(frozen=True)
@@ -18,6 +29,7 @@ class WorkerServiceConfig:
     output_folder: str
     server_configurations: Dict[str, Any]
     bucket_args: Optional[dict]
+    encoding_options: Optional[Dict[str, Any]] = None
 
     @classmethod
     @lru_cache
@@ -25,6 +37,24 @@ class WorkerServiceConfig:
         """Load configuration from Django settings with caching for efficiency."""
 
         logger.debug("Loading WorkerServiceConfig from settings.")
+
+        encoding_options: Optional[Dict[str, Any]] = None
+        if settings.RECORDING_ENCODING_ENABLED:
+            # Single source of truth for the EncodingOptions kwargs:
+            # operator-tunable values live in Django settings, codec / frequency
+            # are pinned constants. The services layer only unpacks this dict.
+            encoding_options = {
+                "width": settings.RECORDING_ENCODING_WIDTH,
+                "height": settings.RECORDING_ENCODING_HEIGHT,
+                "framerate": settings.RECORDING_ENCODING_FRAMERATE,
+                "video_bitrate": settings.RECORDING_ENCODING_VIDEO_BITRATE_KBPS,
+                "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
+                "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
+                "video_codec": _RECORDING_VIDEO_CODEC,
+                "audio_codec": _RECORDING_AUDIO_CODEC,
+                "audio_frequency": _RECORDING_AUDIO_FREQUENCY_HZ,
+            }
+
         return cls(
             output_folder=settings.RECORDING_OUTPUT_FOLDER,
             server_configurations=settings.LIVEKIT_CONFIGURATION,
@@ -36,6 +66,7 @@ class WorkerServiceConfig:
                 "bucket": settings.AWS_STORAGE_BUCKET_NAME,
                 "force_path_style": True,
             },
+            encoding_options=encoding_options,
         )
 
 

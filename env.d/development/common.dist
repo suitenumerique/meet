@@ -68,6 +68,18 @@ SUMMARY_SERVICE_ENDPOINT=http://app-summary-dev:8000/api/v1/tasks/
 SUMMARY_SERVICE_API_TOKEN=password
 RECORDING_DOWNLOAD_BASE_URL=http://localhost:3000/recording
 
+# Recording encoding (LiveKit Egress advanced options).
+# When RECORDING_ENCODING_ENABLED is False (default), LiveKit uses its built-in
+# H264_720P_30 preset (1280x720, 30fps, 3000 kbps). Enable and tune to reduce
+# file size and CPU load on the egress worker.
+# RECORDING_ENCODING_ENABLED=False
+# RECORDING_ENCODING_WIDTH=1280
+# RECORDING_ENCODING_HEIGHT=720
+# RECORDING_ENCODING_FRAMERATE=30
+# RECORDING_ENCODING_VIDEO_BITRATE_KBPS=3000
+# RECORDING_ENCODING_AUDIO_BITRATE_KBPS=128
+# RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
+
 # Telephony
 ROOM_TELEPHONY_ENABLED=True
 

@@ -83,6 +83,22 @@ class BaseEgressService:
         """
         raise NotImplementedError("Subclass must implement this method.")
 
+    def _build_encoding_options(self):
+        """Build a LiveKit EncodingOptions from the service config, or None.
+
+        When None is returned, the caller should omit the `advanced` field so
+        LiveKit Egress falls back to its built-in preset (H264_720P_30).
+
+        The full EncodingOptions kwargs (operator-tunable values + pinned
+        codec / frequency constants) are assembled in `WorkerServiceConfig`,
+        so this method is a thin protobuf adapter.
+        """
+        opts = self._config.encoding_options
+        if not opts:
+            return None
+
+        return livekit_api.EncodingOptions(**opts)
+
 
 class VideoCompositeEgressService(BaseEgressService):
     """Record multiple participant video and audio tracks into a single output '.mp4' file."""
@@ -104,9 +120,17 @@ class VideoCompositeEgressService(BaseEgressService):
             s3=self._s3,
         )
 
-        request = livekit_api.RoomCompositeEgressRequest(
-            room_name=room_name, file_outputs=[file_output], layout="speaker-light"
-        )
+        request_kwargs = {
+            "room_name": room_name,
+            "file_outputs": [file_output],
+            "layout": "speaker-light",
+        }
+
+        advanced = self._build_encoding_options()
+        if advanced is not None:
+            request_kwargs["advanced"] = advanced
+
+        request = livekit_api.RoomCompositeEgressRequest(**request_kwargs)
 
         response = self._handle_request(request, "start_room_composite_egress")
 
