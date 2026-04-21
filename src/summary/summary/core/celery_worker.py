@@ -268,7 +268,9 @@ def process_audio_transcribe_summarize_v2(
     task_id = self.request.id
 
     # Transcribe the audio
-    transcription = transcribe_audio(task_id, recording_filename, language)
+    transcription = transcribe_audio(
+        task_id=task_id, recording_filename=recording_filename, language=language
+    )
     if transcription is None:
         return
 
