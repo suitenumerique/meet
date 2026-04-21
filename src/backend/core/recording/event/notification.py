@@ -209,6 +209,8 @@ class NotificationService:
             recording.worker_id
         )
 
+        logger.debug("test test %s , %s", started_at, ended_at)
+
         payload = {
             "owner_id": str(owner_access.user.id),
             "recording_filename": recording.key,

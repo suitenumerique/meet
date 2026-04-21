@@ -278,14 +278,18 @@ def process_audio_transcribe_summarize_v2(
     # (sourced from LiveKit FileInfo via the egress_ended webhook).
     recording_start_dt = None
     recording_end_dt = None
-    if recording_start_dt:
+    if recording_start_at:
         recording_start_dt = datetime.fromisoformat(recording_start_at)
     if recording_end_at:
         recording_end_dt = datetime.fromisoformat(recording_end_at)
 
-    # Assign user names from metadata and transcription
-    metadata = file_service.read_json(metadata_filename)
+    logger.debug(
+        "recording_start_dt: %s ; recording_end_dt: %s",
+        recording_start_dt,
+        recording_end_dt,
+    )
     if recording_start_dt is not None and recording_end_dt is not None:
+        metadata = file_service.read_json(metadata_filename)
         assignment_result = assign_speakers(
             metadata,
             transcription,
