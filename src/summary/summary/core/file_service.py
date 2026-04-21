@@ -1,6 +1,7 @@
 """File service to encapsulate files' manipulations."""
 
 import io
+import json
 import logging
 import os
 import subprocess
@@ -10,7 +11,6 @@ from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 
-import mutagen
 import requests
 from minio import Minio
 from minio.error import MinioException, S3Error
@@ -155,8 +155,24 @@ class FileService:
 
     def _validate_duration(self, local_path: Path) -> float:
         """Validate audio file duration against configured maximum."""
-        file_metadata = mutagen.File(local_path).info
-        duration = file_metadata.length
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_format",
+                local_path,
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        data = json.loads(result.stdout)
+        duration = float(data["format"]["duration"])
 
         logger.info(
             "Recording file duration: %.2f seconds",

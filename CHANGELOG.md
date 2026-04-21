@@ -12,6 +12,10 @@ and this project adheres to
 
 - ✨(backend) add metadata collection of VAD, connection and chat events
 
+### Fixed
+
+- 🐛(summary) support webm #1290
+
 ## [1.14.0] - 2026-04-16
 
 ### Added
