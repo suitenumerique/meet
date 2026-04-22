@@ -123,7 +123,7 @@ class LobbyService:
 
     def request_entry(
         self,
-        room,
+        room: models.Room,
         request,
         username: str,
     ) -> Tuple[LobbyParticipant, Optional[Dict]]:
