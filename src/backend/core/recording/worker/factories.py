@@ -18,6 +18,7 @@ class WorkerServiceConfig:
     output_folder: str
     server_configurations: Dict[str, Any]
     bucket_args: Optional[dict]
+    encoding_options: Optional[Dict[str, Any]] = None
 
     @classmethod
     @lru_cache
@@ -25,6 +26,18 @@ class WorkerServiceConfig:
         """Load configuration from Django settings with caching for efficiency."""
 
         logger.debug("Loading WorkerServiceConfig from settings.")
+
+        encoding_options: Optional[Dict[str, Any]] = None
+        if settings.RECORDING_ENCODING_ENABLED:
+            encoding_options = {
+                "width": settings.RECORDING_ENCODING_WIDTH,
+                "height": settings.RECORDING_ENCODING_HEIGHT,
+                "framerate": settings.RECORDING_ENCODING_FRAMERATE,
+                "video_bitrate": settings.RECORDING_ENCODING_VIDEO_BITRATE_KBPS,
+                "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
+                "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
+            }
+
         return cls(
             output_folder=settings.RECORDING_OUTPUT_FOLDER,
             server_configurations=settings.LIVEKIT_CONFIGURATION,
@@ -36,6 +49,7 @@ class WorkerServiceConfig:
                 "bucket": settings.AWS_STORAGE_BUCKET_NAME,
                 "force_path_style": True,
             },
+            encoding_options=encoding_options,
         )
 
 

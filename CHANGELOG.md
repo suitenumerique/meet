@@ -11,6 +11,10 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add metadata collection of VAD, connection and chat events
+- ✨(backend) make LiveKit Egress recording encoding configurable via
+  `RECORDING_ENCODING_*` settings (disabled by default, falls back to the
+  H264_720P_30 preset). Lowering framerate and bitrate reduces recording
+  file size and egress worker CPU load.
 
 ### Fixed
 

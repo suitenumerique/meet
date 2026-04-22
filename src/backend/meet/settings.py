@@ -700,6 +700,41 @@ class Base(Configuration):
     RECORDING_MAX_DURATION = values.IntegerValue(
         None, environ_name="RECORDING_MAX_DURATION", environ_prefix=None
     )
+
+    # Recording encoding options for LiveKit Egress.
+    # When disabled, LiveKit falls back to its built-in H264_720P_30 preset
+    # (1280x720, 30 fps, 3000 kbps H.264 MAIN video, 128 kbps AAC audio).
+    # When enabled, the values below are passed to LiveKit as EncodingOptions
+    # (advanced) and replace the preset. Lowering framerate and bitrate reduces
+    # output file size and CPU load on the egress worker.
+    RECORDING_ENCODING_ENABLED = values.BooleanValue(
+        False, environ_name="RECORDING_ENCODING_ENABLED", environ_prefix=None
+    )
+    RECORDING_ENCODING_WIDTH = values.PositiveIntegerValue(
+        1280, environ_name="RECORDING_ENCODING_WIDTH", environ_prefix=None
+    )
+    RECORDING_ENCODING_HEIGHT = values.PositiveIntegerValue(
+        720, environ_name="RECORDING_ENCODING_HEIGHT", environ_prefix=None
+    )
+    RECORDING_ENCODING_FRAMERATE = values.PositiveIntegerValue(
+        30, environ_name="RECORDING_ENCODING_FRAMERATE", environ_prefix=None
+    )
+    RECORDING_ENCODING_VIDEO_BITRATE_KBPS = values.PositiveIntegerValue(
+        3000,
+        environ_name="RECORDING_ENCODING_VIDEO_BITRATE_KBPS",
+        environ_prefix=None,
+    )
+    RECORDING_ENCODING_AUDIO_BITRATE_KBPS = values.PositiveIntegerValue(
+        128,
+        environ_name="RECORDING_ENCODING_AUDIO_BITRATE_KBPS",
+        environ_prefix=None,
+    )
+    RECORDING_ENCODING_KEY_FRAME_INTERVAL_S = values.FloatValue(
+        4.0,
+        environ_name="RECORDING_ENCODING_KEY_FRAME_INTERVAL_S",
+        environ_prefix=None,
+    )
+
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )

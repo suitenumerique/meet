@@ -40,6 +40,24 @@ def config():
 
 
 @pytest.fixture
+def config_with_encoding(config):
+    """Fixture for a config carrying custom encoding options."""
+    return WorkerServiceConfig(
+        output_folder=config.output_folder,
+        server_configurations=config.server_configurations,
+        bucket_args=config.bucket_args,
+        encoding_options={
+            "width": 1280,
+            "height": 720,
+            "framerate": 15,
+            "video_bitrate": 600,
+            "audio_bitrate": 64,
+            "key_frame_interval": 10.0,
+        },
+    )
+
+
+@pytest.fixture
 def mock_s3_upload():
     """Fixture for mocked S3Upload"""
     with patch("core.recording.worker.services.livekit_api.S3Upload") as mock:
@@ -222,6 +240,40 @@ def test_video_composite_egress_start_missing_egress_id(video_service):
         video_service.start("test-room", "rec-123")
 
     assert "Egress ID not found" in str(exc_info.value)
+
+
+def test_video_composite_egress_start_without_encoding_options(video_service):
+    """When no encoding options are configured, no `advanced` field is set.
+
+    LiveKit then falls back to its built-in preset (H264_720P_30).
+    """
+    video_service._handle_request.return_value = Mock(egress_id="eg-1")
+    video_service.start("test-room", "rec-1")
+
+    request = video_service._handle_request.call_args[0][0]
+    # Proto oneof `options` must be unset when no advanced encoding is provided.
+    assert request.WhichOneof("options") is None
+
+
+def test_video_composite_egress_start_with_encoding_options(config_with_encoding):
+    """Custom encoding options are forwarded as `advanced` EncodingOptions."""
+    service = VideoCompositeEgressService(config_with_encoding)
+    service._handle_request = Mock(return_value=Mock(egress_id="eg-2"))
+
+    service.start("test-room", "rec-2")
+
+    request = service._handle_request.call_args[0][0]
+    assert request.WhichOneof("options") == "advanced"
+
+    advanced = request.advanced
+    assert advanced.width == 1280
+    assert advanced.height == 720
+    assert advanced.framerate == 15
+    assert advanced.video_bitrate == 600
+    assert advanced.audio_bitrate == 64
+    assert advanced.key_frame_interval == pytest.approx(10.0)
+    assert advanced.video_codec == livekit_api.VideoCodec.H264_MAIN
+    assert advanced.audio_codec == livekit_api.AudioCodec.AAC
 
 
 def test_audio_composite_egress_hrid(audio_service):
