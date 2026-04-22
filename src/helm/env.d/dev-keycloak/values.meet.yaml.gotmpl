@@ -126,6 +126,9 @@ backend:
     CELERY_ENABLED: True
     CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
     METADATA_COLLECTOR_ENABLED: True
+    ADDONS_ENABLED: True
+    ADDONS_CSRF_SECRET: 'ThisIsAnExampleKeyForDevPurposeOnly'
+    ADDONS_TOKEN_SECRET_KEY: 'ThisIsAnExampleKeyForDevPurposeOnly'
 
   migrate:
     command:

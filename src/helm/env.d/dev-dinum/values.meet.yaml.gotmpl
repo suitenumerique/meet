@@ -110,6 +110,9 @@ backend:
     RECORDING_DOWNLOAD_BASE_URL: https://meet.127.0.0.1.nip.io/recording
     ROOM_TELEPHONY_ENABLED: True
     SSL_CERT_FILE: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
+    ADDONS_ENABLED: True
+    ADDONS_CSRF_SECRET: 'ThisIsAnExampleKeyForDevPurposeOnly'
+    ADDONS_TOKEN_SECRET_KEY: 'ThisIsAnExampleKeyForDevPurposeOnly'
 
 
   migrate:
