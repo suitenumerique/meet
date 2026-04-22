@@ -4,6 +4,7 @@
 
 import json
 import time
+from datetime import datetime
 from typing import Optional
 
 import openai
@@ -40,6 +41,7 @@ from summary.core.shared_models import (
     webhook_payload_adapter,
 )
 from summary.core.transcript_formatter import TranscriptFormatter
+from summary.core.user_assign import assign_speakers
 from summary.core.webhook_service import (
     call_webhook_v2,
     submit_content,
@@ -78,7 +80,7 @@ file_service = FileService()
 def transcribe_audio(
     *,
     task_id: str,
-    filename: str | None = None,
+    recording_filename: str | None = None,
     language: str,
     cloud_storage_url=None,
     raises: bool = False,
@@ -90,7 +92,7 @@ def transcribe_audio(
 
     Returns the transcription object, or None if the file could not be retrieved.
     """
-    if bool(filename) == bool(cloud_storage_url):
+    if bool(recording_filename) == bool(cloud_storage_url):
         raise ValueError(
             "Either filename or cloud_storage_url must be provided, but not both."
         )
@@ -105,11 +107,12 @@ def transcribe_audio(
     # Transcription
     try:
         with file_service.prepare_audio_file(
-            remote_object_key=filename,
+            remote_object_key=recording_filename,
             cloud_storage_url=cloud_storage_url,
         ) as (audio_file, metadata):
             metadata_manager.track(task_id, {"audio_length": metadata["duration"]})
 
+            # Compute language parameter
             if language is None:
                 language = settings.whisperx_default_language
                 logger.info(
@@ -122,18 +125,21 @@ def transcribe_audio(
                     language,
                 )
 
+            # Call remote service for transcription
             transcription_start_time = time.time()
-
             transcription = whisperx_client.audio.transcriptions.create(
                 model=settings.whisperx_asr_model, file=audio_file, language=language
             )
 
-            transcription_time = round(time.time() - transcription_start_time, 2)
+            # Logging
+            transcription_duration = round(time.time() - transcription_start_time, 2)
             metadata_manager.track(
                 task_id,
-                {"transcription_time": transcription_time},
+                {"transcription_time": transcription_duration},
             )
-            logger.info("Transcription received in %.2f seconds.", transcription_time)
+            logger.info(
+                "Transcription received in %.2f seconds.", transcription_duration
+            )
             logger.debug("Transcription: \n %s", transcription)
 
     except FileServiceException as e:
@@ -148,7 +154,7 @@ def transcribe_audio(
                 "Unexpected error while preparing file | filename: %s "
                 "| cloud_storage_url: %s"
             ),
-            filename,
+            recording_filename,
             redacted_cloud_storage_url,
         )
         return None
@@ -162,8 +168,8 @@ def format_transcript(
     context_language: str | None,
     language: str,
     room: str | None,
-    recording_date: str | None,
-    recording_time: str | None,
+    recording_datetime,
+    owner_timezone,
     download_link: str | None,
 ) -> tuple[str, str]:
     """Format a transcription into readable content with a title.
@@ -179,8 +185,8 @@ def format_transcript(
     return formatter.format(
         transcription,
         room=room,
-        recording_date=recording_date,
-        recording_time=recording_time,
+        recording_datetime=recording_datetime,
+        owner_timezone=owner_timezone,
         download_link=download_link,
     )
 
@@ -212,16 +218,19 @@ def format_actions(llm_output: dict) -> str:
 def process_audio_transcribe_summarize_v2(
     self,
     owner_id: str,
-    filename: str,
+    recording_filename: str,
+    metadata_filename: str,
     email: str,
     sub: str,
     received_at: float,
     room: Optional[str],
-    recording_date: Optional[str],
-    recording_time: Optional[str],
+    worker_id: Optional[str],
+    owner_timezone: Optional[str],
     language: Optional[str],
     download_link: Optional[str],
     context_language: Optional[str] = None,
+    recording_start_at: Optional[str] = None,
+    recording_end_at: Optional[str] = None,
 ):
     """Process an audio file by transcribing it and generating a summary.
 
@@ -234,16 +243,21 @@ def process_audio_transcribe_summarize_v2(
     Args:
         self: Celery task instance (passed on with bind=True)
         owner_id: Unique identifier of the recording owner.
-        filename: Name of the audio file in MinIO storage.
+        recording_filename: Name of the audio file in MinIO storage.
+        metadata_filename: Name of the audio file in MinIO storage.
         email: Email address of the recording owner.
         sub: OIDC subject identifier of the recording owner.
         received_at: Unix timestamp when the recording was received.
         room: room name where the recording took place.
-        recording_date: Date of the recording (localized display string).
-        recording_time: Time of the recording (localized display string).
+        worker_id: LiveKit egress ID used to fetch the egress JSON from S3.
+        owner_timezone: IANA timezone of the recording owner (e.g. "Europe/Paris").
         language: ISO 639-1 language code for transcription.
         download_link: URL to download the original recording.
         context_language: ISO 639-1 language code of the meeting summary context text.
+        recording_start_at: ISO 8601 timestamp of when file recording actually started
+            (from LiveKit FileInfo.started_at via the egress_ended webhook).
+        recording_end_at: ISO 8601 timestamp of when file recording ended
+            (from LiveKit FileInfo.ended_at via the egress_ended webhook).
     """
     logger.info(
         "Notification received | Owner: %s | Room: %s",
@@ -253,19 +267,46 @@ def process_audio_transcribe_summarize_v2(
 
     task_id = self.request.id
 
+    # Transcribe the audio
     transcription = transcribe_audio(
-        task_id=task_id, filename=filename, language=language
+        task_id=task_id, recording_filename=recording_filename, language=language
     )
     if transcription is None:
         return
 
+    # Use recording_start_at / recording_end_at from the backend
+    # (sourced from LiveKit FileInfo via the egress_ended webhook).
+    recording_start_dt = None
+    recording_end_dt = None
+    if recording_start_at:
+        recording_start_dt = datetime.fromisoformat(recording_start_at)
+    if recording_end_at:
+        recording_end_dt = datetime.fromisoformat(recording_end_at)
+
+    logger.debug(
+        "recording_start_dt: %s ; recording_end_dt: %s",
+        recording_start_dt,
+        recording_end_dt,
+    )
+    if recording_start_dt is not None and recording_end_dt is not None:
+        metadata = file_service.read_json(metadata_filename)
+        assignment_result = assign_speakers(
+            metadata,
+            transcription,
+            recording_start_dt,
+            recording_end_dt,
+            overlap_threshold=0.5,
+        )
+        transcription = assignment_result.apply({"segments": transcription.segments})
+
+    # Format output
     content, title = format_transcript(
         transcription,
         context_language,
         language,
         room,
-        recording_date,
-        recording_time,
+        recording_start_at,
+        owner_timezone,
         download_link,
     )
 

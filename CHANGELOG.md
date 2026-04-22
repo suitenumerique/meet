@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add metadata collection of VAD, connection and chat events
+- ✨(summary) add speaker-to-participant assignment 
 
 ## [1.14.0] - 2026-04-16
 
