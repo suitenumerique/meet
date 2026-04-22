@@ -35,7 +35,6 @@ class TestTasks:
         assert response.json() == {"id": "task-id-abc", "message": "Task created"}
 
         args = mock_apply_async.call_args.kwargs["args"]
-        print(args)
         assert args == [
             "owner-123",
             "recording.mp4",

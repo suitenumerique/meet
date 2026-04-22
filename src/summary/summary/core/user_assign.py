@@ -72,7 +72,7 @@ class AssignmentResult:
                 return {
                     **item,
                     "speaker": f"{speaker_to_name[item['speaker']]}"
-                    + f" ({item['speaker']})"  # Add precision if there are multiple speakers for same user
+                    + f" ({item['speaker']})"  # Detail if multiple speakers per user
                     * (name_to_speaker_count[speaker_to_name[item["speaker"]]] > 1),
                 }
             return item
