@@ -1,5 +1,6 @@
 """Service to notify external services when a new recording is ready."""
 
+import asyncio
 import logging
 import os
 import smtplib
@@ -148,32 +149,38 @@ class NotificationService:
         if not worker_id:
             return None, None
 
+        def _ns_to_utc(ns):
+            return datetime.fromtimestamp(ns / 1e9, tz=timezone.utc) if ns else None
+
         @async_to_sync
         async def _fetch():
             lkapi = utils.create_livekit_client()
             try:
-                egress_list = await lkapi.egress.list_egress(
-                    livekit_api.ListEgressRequest(egress_id=worker_id)
+                egress_list = await asyncio.wait_for(
+                    lkapi.egress.list_egress(
+                        livekit_api.ListEgressRequest(egress_id=worker_id)
+                    ),
+                    timeout=10,
                 )
-                if egress_list.items:
-                    file_results = egress_list.items[0].file_results
-                    if file_results:
-                        started_at = None
-                        ended_at = None
-                        if file_results[0].started_at:
-                            started_at = datetime.fromtimestamp(
-                                file_results[0].started_at / 1e9, tz=timezone.utc
-                            )
-                        if file_results[0].ended_at:
-                            ended_at = datetime.fromtimestamp(
-                                file_results[0].ended_at / 1e9, tz=timezone.utc
-                            )
-                        return started_at, ended_at
-            except Exception:
+            except (livekit_api.TwirpError, OSError, asyncio.TimeoutError):
                 logger.exception("Could not fetch egress info for worker %s", worker_id)
             finally:
                 await lkapi.aclose()
-            return None, None
+
+            if not egress_list.items or not egress_list.items[0].file_results:
+                logger.debug("No file_results for worker %s", worker_id)
+                return None, None
+
+            # If information exists, extract started_at, ended_at
+            file_results = egress_list.items[0].file_results
+            started_at = None
+            ended_at = None
+            if file_results[0].started_at:
+                started_at = _ns_to_utc(file_results[0].started_at)
+            if file_results[0].ended_at:
+                ended_at = _ns_to_utc(file_results[0].ended_at)
+
+            return started_at, ended_at
 
         return _fetch()
 
@@ -208,8 +215,6 @@ class NotificationService:
         started_at, ended_at = NotificationService._get_recording_timestamps(
             recording.worker_id
         )
-
-        logger.debug("test test %s , %s", started_at, ended_at)
 
         payload = {
             "owner_id": str(owner_access.user.id),
