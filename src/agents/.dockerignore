@@ -1,8 +1,41 @@
+# Python
 __pycache__
-**/__pycache__
 *.pyc
+**/__pycache__
 **/*.pyc
-.venv
+venv
 **/.venv
-.ruff_cache
+
+# System-specific files
+.DS_Store
+**/.DS_Store
+
+# Docker
+docker compose.*
+env.d
+
+# Docs
+docs
+*.md
+*.log
+
+# Development/test cache & configurations
+data
+.cache
+.circleci
+.git
+.iml
+db.sqlite3
+.pylint.d
+
+**/.idea
+**/.vscode
+**/.pytest_cache
+**/.mypy_cache
 **/.ruff_cache
+
+# Frontend
+**/node_modules
+
+# Env
+.env
