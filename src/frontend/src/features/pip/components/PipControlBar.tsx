@@ -1,5 +1,5 @@
 import { styled } from '@/styled-system/jsx'
-import { useRef, useMemo, useState, useEffect, useCallback } from 'react'
+import { useRef, useMemo } from 'react'
 import { AudioDevicesControl } from '@/features/rooms/livekit/components/controls/Device/AudioDevicesControl'
 import { VideoDeviceControl } from '@/features/rooms/livekit/components/controls/Device/VideoDeviceControl'
 import { ScreenShareToggle } from '@/features/rooms/livekit/components/controls/ScreenShareToggle'
@@ -7,6 +7,7 @@ import { LeaveButton } from '@/features/rooms/livekit/components/controls/LeaveB
 import { SubtitlesToggle } from '@/features/rooms/livekit/components/controls/SubtitlesToggle'
 import { HandToggle } from '@/features/rooms/livekit/components/controls/HandToggle'
 import { StartMediaButton } from '@/features/rooms/livekit/components/controls/StartMediaButton'
+import { usePipElementSize } from '../hooks/usePipElementSize'
 import { PipOptionsMenu } from './controls/PipOptionsMenu'
 import { PipReactionsToggle } from './PipReactionsToggle'
 
@@ -46,43 +47,13 @@ function getHiddenControls(
   return hidden
 }
 
-/**
- * ResizeObserver that works inside the PiP document context
- * (the global singleton from the main window cannot observe PiP elements).
- */
-function usePipSize(ref: React.RefObject<HTMLElement | null>) {
-  const [width, setWidth] = useState(0)
-
-  const measure = useCallback(() => {
-    if (ref.current) setWidth(ref.current.getBoundingClientRect().width)
-  }, [ref])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-
-    measure()
-
-    const RO =
-      el.ownerDocument.defaultView?.ResizeObserver ?? window.ResizeObserver
-    const observer = new RO((entries) => {
-      const entry = entries[0]
-      if (entry) setWidth(entry.contentRect.width)
-    })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [ref, measure])
-
-  return width
-}
-
 export const PipControlBar = ({
   showScreenShare,
 }: {
   showScreenShare: boolean
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const width = usePipSize(containerRef)
+  const { width } = usePipElementSize(containerRef)
 
   const hidden = useMemo(
     () => getHiddenControls(width, showScreenShare),
