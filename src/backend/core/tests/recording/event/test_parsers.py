@@ -18,9 +18,12 @@ from core.recording.event.exceptions import (
 )
 from core.recording.event.parsers import (
     MinioParser,
+    S3Parser,
     StorageEvent,
     get_parser,
 )
+
+# MinioParser
 
 
 @pytest.fixture
@@ -47,7 +50,7 @@ def minio_parser():
     return MinioParser(bucket_name="test-bucket")
 
 
-def test_parse_valid_event(minio_parser, valid_minio_event):
+def test_minio_parse_valid_event(minio_parser, valid_minio_event):
     """Test parsing a valid Minio event."""
     event = minio_parser.parse(valid_minio_event)
     assert isinstance(event, StorageEvent)
@@ -57,13 +60,33 @@ def test_parse_valid_event(minio_parser, valid_minio_event):
     assert event.metadata is None
 
 
-def test_parse_empty_data(minio_parser):
+def test_minio_parse_with_video_type(minio_parser):
+    """Test parsing event with video file type."""
+    video_event = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    "object": {
+                        "key": "46d1a121-2426-484d-8fb3-09b5d886f7a8.mp4",
+                        "contentType": "video/mp4",
+                    },
+                }
+            }
+        ]
+    }
+    event = minio_parser.parse(video_event)
+    assert event.filetype == "video/mp4"
+    assert event.filepath.endswith(".mp4")
+
+
+def test_minio_parse_empty_data(minio_parser):
     """Test parsing empty event data raises error."""
     with pytest.raises(ParsingEventDataError, match="Received empty data."):
         minio_parser.parse({})
 
 
-def test_parse_missing_keys(minio_parser):
+def test_minio_parse_missing_keys(minio_parser):
     """Test parsing event with missing key."""
 
     invalid_minio_event = {
@@ -77,11 +100,11 @@ def test_parse_missing_keys(minio_parser):
         ]
     }
 
-    with pytest.raises(ParsingEventDataError, match="Missing or malformed key"):
+    with pytest.raises(ParsingEventDataError, match="Malformed Minio event:"):
         minio_parser.parse(invalid_minio_event)
 
 
-def test_parse_none_key(minio_parser):
+def test_minio_parse_none_key(minio_parser):
     """Test parsing event with None field."""
 
     invalid_minio_event = {
@@ -102,7 +125,7 @@ def test_parse_none_key(minio_parser):
         minio_parser.parse(invalid_minio_event)
 
 
-def test_validate_invalid_bucket(minio_parser):
+def test_minio_validate_invalid_bucket(minio_parser):
     """Test validation with wrong bucket name."""
     event = StorageEvent(
         filepath="recording%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
@@ -114,7 +137,7 @@ def test_validate_invalid_bucket(minio_parser):
         minio_parser.validate(event)
 
 
-def test_validate_invalid_filetype(minio_parser):
+def test_minio_validate_invalid_filetype(minio_parser):
     """Test validation with unsupported file type."""
     event = StorageEvent(
         filepath="recording%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.txt",
@@ -139,7 +162,7 @@ def test_validate_invalid_filetype(minio_parser):
         "folder%2Fuploads%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",  # nested but no recordings/
     ],
 )
-def test_validate_invalid_filepath(invalid_filepath, minio_parser):
+def test_minio_validate_invalid_filepath(invalid_filepath, minio_parser):
     """Test validation with malformed filepath."""
     event = StorageEvent(
         filepath=invalid_filepath,
@@ -151,7 +174,7 @@ def test_validate_invalid_filepath(invalid_filepath, minio_parser):
         minio_parser.validate(event)
 
 
-def test_validate_valid_event(minio_parser):
+def test_minio_validate_valid_event(minio_parser):
     """Test validation with valid event data."""
     event = StorageEvent(
         filepath="recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
@@ -163,13 +186,13 @@ def test_validate_valid_event(minio_parser):
     assert recording_id == "46d1a121-2426-484d-8fb3-09b5d886f7a8"
 
 
-def test_get_recording_id_success(minio_parser, valid_minio_event):
+def test_minio_get_recording_id_success(minio_parser, valid_minio_event):
     """Test successful extraction of recording ID."""
     recording_id = minio_parser.get_recording_id(valid_minio_event)
     assert recording_id == "46d1a121-2426-484d-8fb3-09b5d886f7a8"
 
 
-def test_validate_filepath_with_folder(minio_parser):
+def test_minio_validate_filepath_with_folder(minio_parser):
     """Test validation of filepath with folder structure."""
     event = StorageEvent(
         filepath="parent_folder%2Frecordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
@@ -181,41 +204,21 @@ def test_validate_filepath_with_folder(minio_parser):
     assert recording_id == "46d1a121-2426-484d-8fb3-09b5d886f7a8"
 
 
-def test_parse_with_video_type(minio_parser):
-    """Test parsing event with video file type."""
-    video_event = {
-        "Records": [
-            {
-                "s3": {
-                    "bucket": {"name": "test-bucket"},
-                    "object": {
-                        "key": "46d1a121-2426-484d-8fb3-09b5d886f7a8.mp4",
-                        "contentType": "video/mp4",
-                    },
-                }
-            }
-        ]
-    }
-    event = minio_parser.parse(video_event)
-    assert event.filetype == "video/mp4"
-    assert event.filepath.endswith(".mp4")
-
-
-def test_empty_allowed_filetypes():
+def test_minio_empty_allowed_filetypes():
     """Test MinioParser with empty allowed_filetypes."""
     empty_types = set()
     parser = MinioParser(bucket_name="test-bucket", allowed_filetypes=empty_types)
     assert parser._allowed_filetypes == {"audio/ogg", "video/mp4"}
 
 
-def test_custom_allowed_filetypes():
+def test_minio_custom_allowed_filetypes():
     """Test MinioParser with empty allowed_filetypes."""
     custom_types = {"audio/mp3", "video/mov"}
     parser = MinioParser(bucket_name="test-bucket", allowed_filetypes=custom_types)
     assert parser._allowed_filetypes == {"audio/mp3", "video/mov"}
 
 
-def test_validate_custom_filetypes():
+def test_minio_validate_custom_filetypes():
     """Test validation of filepath with folder structure."""
 
     parser = MinioParser(bucket_name="test-bucket", allowed_filetypes={"audio/mp3"})
@@ -229,16 +232,122 @@ def test_validate_custom_filetypes():
     parser.validate(event)
 
 
-def test_constructor_none_bucket():
+def test_minio_constructor_none_bucket():
     """Test MinioParser constructor with None bucket name."""
     with pytest.raises(ValueError, match="Bucket name cannot be None or empty"):
         MinioParser(bucket_name=None)
 
 
-def test_constructor_empty_bucket():
+def test_minio_constructor_empty_bucket():
     """Test MinioParser constructor with empty bucket name."""
     with pytest.raises(ValueError, match="Bucket name cannot be None or empty"):
         MinioParser(bucket_name="")
+
+
+# S3Parser
+
+
+@pytest.fixture
+def valid_s3_event():
+    """Mock a valid S3 event."""
+    return {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    "object": {
+                        "key": "recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
+                    },
+                }
+            }
+        ]
+    }
+
+
+@pytest.fixture
+def s3_parser():
+    """Mock an S3 parser."""
+    return S3Parser(bucket_name="test-bucket")
+
+
+def test_s3_parse_valid_event(s3_parser, valid_s3_event):
+    """Test parsing a valid S3 event."""
+    event = s3_parser.parse(valid_s3_event)
+    assert isinstance(event, StorageEvent)
+    assert event.filepath == "recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg"
+    assert event.filetype == "audio/ogg"
+    assert event.bucket_name == "test-bucket"
+    assert event.metadata is None
+
+
+def test_s3_parse_empty_data(s3_parser):
+    """Test parsing empty S3 event data raises error."""
+    with pytest.raises(ParsingEventDataError, match="Received empty data."):
+        s3_parser.parse({})
+
+
+def test_s3_parse_missing_keys(s3_parser):
+    """Test parsing S3 event with missing key."""
+    invalid_s3_event = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    # Missing 'object' key
+                }
+            }
+        ]
+    }
+
+    with pytest.raises(ParsingEventDataError, match="Malformed S3 event:"):
+        s3_parser.parse(invalid_s3_event)
+
+
+def test_s3_parse_none_key(s3_parser):
+    """Test parsing S3 event with None field."""
+    invalid_s3_event = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    "object": {
+                        "key": None,
+                    },
+                }
+            }
+        ]
+    }
+
+    with pytest.raises(ParsingEventDataError, match="Missing object key name"):
+        s3_parser.parse(invalid_s3_event)
+
+
+def test_s3_parse_with_video_type(s3_parser):
+    """Test parsing S3 event with mp4 file extension."""
+    video_event = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    "object": {
+                        "key": "recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.mp4",
+                    },
+                }
+            }
+        ]
+    }
+    event = s3_parser.parse(video_event)
+    assert event.filetype == "video/mp4"
+    assert event.filepath.endswith(".mp4")
+
+
+def test_s3_get_recording_id_success(s3_parser, valid_s3_event):
+    """Test successful extraction of recording ID from S3 event."""
+    recording_id = s3_parser.get_recording_id(valid_s3_event)
+    assert recording_id == "46d1a121-2426-484d-8fb3-09b5d886f7a8"
+
+
+# get_parser
 
 
 @pytest.fixture

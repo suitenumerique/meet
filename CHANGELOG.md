@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add metadata collection of VAD, connection and chat events
+- ✨(backend) add core.recording.event.parsers.S3Parser 
 
 ## [1.14.0] - 2026-04-16
 

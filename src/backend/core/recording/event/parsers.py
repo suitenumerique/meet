@@ -1,6 +1,7 @@
 """Meet storage event parser classes."""
 
 import logging
+import mimetypes
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -17,6 +18,9 @@ from .exceptions import (
     InvalidFileTypeError,
     ParsingEventDataError,
 )
+
+# Additional MIME type mapping
+mimetypes.add_type("audio/ogg", ".ogg")
 
 logger = logging.getLogger(__name__)
 
@@ -74,8 +78,8 @@ def get_parser() -> EventParser:
     return event_parser_cls(bucket_name=settings.AWS_STORAGE_BUCKET_NAME)
 
 
-class MinioParser:
-    """Handle parsing and validation of Minio storage events."""
+class BaseParser:
+    """Base class for handling parsing and validation of S3-compatible storage events."""
 
     def __init__(self, bucket_name: str, allowed_filetypes=None):
         """Initialize parser with target bucket name and accepted filetypes."""
@@ -90,32 +94,6 @@ class MinioParser:
         self._filepath_regex = re.compile(
             rf"(?P<url_encoded_folder_path>(?:[^%]+%2F)+)?{settings.RECORDING_OUTPUT_FOLDER}%2F(?P<recording_id>{UUID_REGEX})\.(?P<extension>{FILE_EXT_REGEX})"
         )
-
-    @staticmethod
-    def parse(data):
-        """Convert raw Minio event dictionary to StorageEvent object."""
-
-        if not data:
-            raise ParsingEventDataError("Received empty data.")
-
-        try:
-            record = data["Records"][0]
-            s3 = record["s3"]
-            bucket_name = s3["bucket"]["name"]
-            file_object = s3["object"]
-            filepath = file_object["key"]
-            filetype = file_object["contentType"]
-        except (KeyError, IndexError) as e:
-            raise ParsingEventDataError(f"Missing or malformed key: {e}.") from e
-        try:
-            return StorageEvent(
-                filepath=filepath,
-                filetype=filetype,
-                bucket_name=bucket_name,
-                metadata=None,
-            )
-        except TypeError as e:
-            raise ParsingEventDataError(f"Missing essential data fields: {e}") from e
 
     def validate(self, event_data: StorageEvent) -> str:
         """Verify StorageEvent matches bucket, filetype and filepath requirements."""
@@ -141,9 +119,58 @@ class MinioParser:
         return recording_id
 
     def get_recording_id(self, data):
-        """Extract recording ID from Minio event through parsing and validation."""
+        """Extract recording ID from S3 event through parsing and validation."""
 
         event_data = self.parse(data)
-        recording_id = self.validate(event_data)
+        return self.validate(event_data)
 
-        return recording_id
+    def parse(self, data: Dict) -> StorageEvent:
+        """To be implemented by subclasses."""
+        raise NotImplementedError("Subclasses must implement parse()")
+
+
+class MinioParser(BaseParser):
+    """Minio specific event parsing."""
+
+    def parse(self, data: Dict) -> StorageEvent:
+        if not data:
+            raise ParsingEventDataError("Received empty data.")
+        try:
+            record = data["Records"][0]
+            s3 = record["s3"]
+            return StorageEvent(
+                filepath=s3["object"]["key"],
+                filetype=s3["object"].get("contentType"),  # Minio-specific field
+                bucket_name=s3["bucket"]["name"],
+                metadata=None,
+            )
+        except (KeyError, IndexError) as e:
+            raise ParsingEventDataError(f"Malformed Minio event: {e}") from e
+        except TypeError as e:
+            raise ParsingEventDataError(f"Missing essential data fields: {e}") from e
+
+
+class S3Parser(BaseParser):
+    """AWS S3 specific event parsing."""
+
+    def parse(self, data: Dict) -> StorageEvent:
+        if not data:
+            raise ParsingEventDataError("Received empty data.")
+        try:
+            # AWS S3 structure can slightly differ from Minio implementation
+            record = data["Records"][0]
+            s3 = record["s3"]
+            filepath = s3["object"]["key"]
+            if not filepath:
+                raise ParsingEventDataError(f"Missing object key name")
+            filetype, _ = mimetypes.guess_type(filepath)
+            return StorageEvent(
+                filepath=filepath,
+                filetype=filetype,
+                bucket_name=s3["bucket"]["name"],
+                metadata=None,
+            )
+        except (KeyError, IndexError) as e:
+            raise ParsingEventDataError(f"Malformed S3 event: {e}") from e
+        except TypeError as e:
+            raise ParsingEventDataError(f"Missing essential data fields: {e}") from e
