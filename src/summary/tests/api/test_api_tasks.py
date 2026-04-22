@@ -27,7 +27,7 @@ class TestTasks:
                 "worker_id": "EG_test123",
                 "owner_timezone": "UTC",
                 "language": None,
-                "download_link": "http://example.com/file.mp4",
+                "download_link": "https://example.com/file.mp4",
             },
         )
 
@@ -47,7 +47,7 @@ class TestTasks:
             "EG_test123",
             "UTC",
             None,
-            "http://example.com/file.mp4",
+            "https://example.com/file.mp4",
             None,
             None,
             None,

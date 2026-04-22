@@ -1,5 +1,6 @@
 """Tests for the speaker-to-user assignment service."""
 
+import math
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -125,30 +126,30 @@ class TestOverlapDuration:
         """Disjoint intervals have zero overlap."""
         a = [Interval(1, 2)]
         b = [Interval(3, 4)]
-        assert _overlap_duration(a, b) == 0.0
+        assert math.isclose(_overlap_duration(a, b), 0.0)
 
     def test_full_overlap(self):
         """Identical intervals have full overlap."""
         a = [Interval(1, 3)]
         b = [Interval(1, 3)]
-        assert _overlap_duration(a, b) == 2.0
+        assert math.isclose(_overlap_duration(a, b), 2.0)
 
     def test_partial_overlap(self):
         """Partially overlapping intervals."""
         a = [Interval(1, 3)]
         b = [Interval(2, 4)]
-        assert _overlap_duration(a, b) == 1.0
+        assert math.isclose(_overlap_duration(a, b), 1.0)
 
     def test_multiple_intervals(self):
         """Multiple intervals with a spanning interval."""
         a = [Interval(1, 3), Interval(5, 7)]
         b = [Interval(2, 6)]
-        assert _overlap_duration(a, b) == 2.0
+        assert math.isclose(_overlap_duration(a, b), 2.0)
 
     def test_empty(self):
         """Empty input yields zero overlap."""
-        assert _overlap_duration([], [Interval(1, 2)]) == 0.0
-        assert _overlap_duration([Interval(1, 2)], []) == 0.0
+        assert math.isclose(_overlap_duration([], [Interval(1, 2)]), 0.0)
+        assert math.isclose(_overlap_duration([Interval(1, 2)], []), 0.0)
 
 
 class TestTotalDuration:
@@ -157,11 +158,11 @@ class TestTotalDuration:
     def test_basic(self):
         """Sum of durations for multiple intervals."""
         ivs = [Interval(0, 1), Interval(2, 5)]
-        assert _total_duration(ivs) == 4.0
+        assert math.isclose(_total_duration(ivs), 4.0)
 
     def test_empty(self):
         """Empty input returns zero."""
-        assert _total_duration([]) == 0.0
+        assert math.isclose(_total_duration([]), 0.0)
 
 
 class TestAssignSpeakers:
