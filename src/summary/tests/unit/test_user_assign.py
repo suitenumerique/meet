@@ -20,6 +20,7 @@ class FakeTranscription:
 
     segments: list = field(default_factory=list)
 
+
 RECORDING_START = datetime.fromisoformat("2026-03-17T15:30:33.000001")
 RECORDING_END = datetime.fromisoformat("2026-03-17T15:31:33.000001")
 
@@ -226,7 +227,9 @@ class TestAssignSpeakers:
                 {"start": 5.0, "end": 7.0, "speaker": "SPEAKER_01"},
             ],
         )
-        result = assign_speakers(metadata, transcription, RECORDING_START, RECORDING_END)
+        result = assign_speakers(
+            metadata, transcription, RECORDING_START, RECORDING_END
+        )
         assert len(result.assignments) == 2
         pids = {a.participant_id for a in result.assignments}
         assert pids == {"user-a"}
@@ -267,7 +270,9 @@ class TestAssignSpeakers:
                 {"start": 5.5, "end": 7.5, "speaker": "SPEAKER_01"},
             ],
         )
-        result = assign_speakers(metadata, transcription, RECORDING_START, RECORDING_END)
+        result = assign_speakers(
+            metadata, transcription, RECORDING_START, RECORDING_END
+        )
         assert len(result.assignments) == 2
         by_speaker = {a.speaker_label: a for a in result.assignments}
         assert by_speaker["SPEAKER_00"].participant_name == "Alice"
@@ -314,7 +319,11 @@ class TestAssignSpeakers:
             ],
         )
         result = assign_speakers(
-            metadata, transcription, RECORDING_START, RECORDING_END, overlap_threshold=0.3
+            metadata,
+            transcription,
+            RECORDING_START,
+            RECORDING_END,
+            overlap_threshold=0.3,
         )
         assert len(result.assignments) == 2
         by_speaker = {a.speaker_label: a for a in result.assignments}
@@ -376,14 +385,19 @@ class TestAssignSpeakers:
                 {"start": 0.0, "end": 3.0, "speaker": "SPEAKER_00"},
             ],
         )
-        result = assign_speakers(metadata, transcription, RECORDING_START, RECORDING_END)
+        result = assign_speakers(
+            metadata, transcription, RECORDING_START, RECORDING_END
+        )
         assert len(result.assignments) == 1
         assert result.assignments[0].participant_name == "Early User"
 
     def test_empty_diarization(self):
         """No segments produces empty result."""
         result = assign_speakers(
-            METADATA_SINGLE_USER, FakeTranscription(segments=[]), RECORDING_START, RECORDING_END
+            METADATA_SINGLE_USER,
+            FakeTranscription(segments=[]),
+            RECORDING_START,
+            RECORDING_END,
         )
         assert result == AssignmentResult()
 
@@ -394,7 +408,9 @@ class TestAssignSpeakers:
                 {"start": 1.0, "end": 3.0, "text": "no speaker"},
             ],
         )
-        result = assign_speakers(METADATA_SINGLE_USER, transcription, RECORDING_START, RECORDING_END)
+        result = assign_speakers(
+            METADATA_SINGLE_USER, transcription, RECORDING_START, RECORDING_END
+        )
         assert result == AssignmentResult()
 
     def test_unclosed_speech_closed_at_recording_end(self):
@@ -417,7 +433,11 @@ class TestAssignSpeakers:
             ],
         )
         result = assign_speakers(
-            metadata, transcription, RECORDING_START, recording_end, overlap_threshold=0.5
+            metadata,
+            transcription,
+            RECORDING_START,
+            recording_end,
+            overlap_threshold=0.5,
         )
         assert len(result.assignments) == 1
         assert result.assignments[0].participant_name == "Still Talking"

@@ -117,10 +117,7 @@ def _overlap_duration(
     a_intervals: list[Interval],
     b_intervals: list[Interval],
 ) -> float:
-    """Compute total overlap between two merged interval lists, sorted by start time.
-
-    Uses a sweep-line approach in O(n + m).
-    """
+    """Compute total overlap between two merged interval lists, sorted by start time."""
     overlap = 0.0
     i = j = 0
     while i < len(a_intervals) and j < len(b_intervals):
@@ -135,11 +132,6 @@ def _overlap_duration(
         else:
             j += 1
     return overlap
-
-
-def _parse_iso(ts: str) -> datetime:
-    """Parse an ISO-formatted timestamp string."""
-    return datetime.fromisoformat(ts)
 
 
 def _build_participant_timelines(
@@ -176,7 +168,7 @@ def _build_participant_timelines(
 
     for event in events:
         pid = event["participant_id"]
-        ts = _parse_iso(event["timestamp"]).timestamp() - ref_epoch
+        ts = datetime.fromisoformat(event["timestamp"]).timestamp() - ref_epoch
         etype = event["type"]
 
         if etype == "speech_start":
