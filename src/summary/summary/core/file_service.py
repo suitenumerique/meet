@@ -155,6 +155,7 @@ class FileService:
 
     def _validate_duration(self, local_path: Path) -> float:
         """Validate audio file duration against configured maximum."""
+        # ruff: noqa: S607 Hard to know the ffprobe path, it depends on the deployment
         result = subprocess.run(
             [
                 "ffprobe",
