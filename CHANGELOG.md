@@ -15,6 +15,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(summary) support webm #1290
+- ⬆️(backend) bump django-lasuite to v0.0.26
 
 ## [1.14.0] - 2026-04-16
 

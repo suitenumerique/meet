@@ -33,7 +33,7 @@ dependencies = [
     "django-cors-headers==4.9.0",
     "django-countries==8.2.0",
     "django-filter==25.2",
-    "django-lasuite[all]==0.0.25",
+    "django-lasuite[all]==0.0.26",
     "django-parler==2.3",
     "redis==5.2.1",
     "django-redis==6.0.0",
