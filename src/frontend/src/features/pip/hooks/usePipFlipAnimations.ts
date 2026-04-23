@@ -34,8 +34,9 @@ export const usePipFlipAnimations = <T extends HTMLElement>(
 
     const doc = container.ownerDocument
     const view = doc.defaultView
-    const reduceMotion = view?.matchMedia('(prefers-reduced-motion: reduce)')
-      .matches
+    const reduceMotion = view?.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
 
     const children = Array.from(container.children) as HTMLElement[]
     const nextRects = new Map<string, DOMRect>()

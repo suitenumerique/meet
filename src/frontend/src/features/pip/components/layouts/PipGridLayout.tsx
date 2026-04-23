@@ -47,10 +47,7 @@ export const PipGridLayout = memo(function PipGridLayout({
   return (
     <GridContainer ref={containerRef} style={gridStyle}>
       {tracks.map((track, index) => (
-        <GridCell
-          key={tileKeys[index]}
-          style={placements[index]}
-        >
+        <GridCell key={tileKeys[index]} style={placements[index]}>
           <ParticipantTile trackRef={track} disableMetadata />
         </GridCell>
       ))}

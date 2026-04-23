@@ -65,7 +65,12 @@ export const PipControlBar = ({
   )
 
   return (
-    <PipControls ref={containerRef} id="pip-control-bar" role="toolbar" aria-label={t('controlBar')}>
+    <PipControls
+      ref={containerRef}
+      id="pip-control-bar"
+      role="toolbar"
+      aria-label={t('controlBar')}
+    >
       <PipControlsCenter>
         <AudioDevicesControl hideMenu />
         <VideoDeviceControl hideMenu />
