@@ -17,7 +17,7 @@ import { PipGridLayout } from './PipGridLayout'
  * (main + thumbnail) to the adaptive grid layout.
  */
 const FOCUS_MAX_TILES = 2
- 
+
 // Handles which layout to render inside the PiP stage.
 
 export const PipStage = () => {
@@ -32,10 +32,7 @@ export const PipStage = () => {
     { onlySubscribed: false }
   )
 
-  const screenShareTrack = useMemo(
-    () => pickScreenShareTrack(tracks),
-    [tracks]
-  )
+  const screenShareTrack = useMemo(() => pickScreenShareTrack(tracks), [tracks])
 
   // Order the list so the "focus target" (screen share when available,
   // otherwise a remote camera) is first. Both layouts consume this order.

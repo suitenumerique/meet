@@ -24,20 +24,21 @@ export const PipView = () => {
 
   // Side panels open via a menu item that unmounts on click; fall back to the
   // options button so focus returns somewhere visible.
-  const resolveTrigger = useCallback(
-    (activeEl: HTMLElement | null) => {
-      if (activeEl?.tagName === 'DIV') {
-        const doc = containerRef.current?.ownerDocument ?? document
-        return doc.getElementById('room-options-trigger')
-      }
-      return activeEl
-    },
-    []
-  )
+  const resolveTrigger = useCallback((activeEl: HTMLElement | null) => {
+    if (activeEl?.tagName === 'DIV') {
+      const doc = containerRef.current?.ownerDocument ?? document
+      return doc.getElementById('room-options-trigger')
+    }
+    return activeEl
+  }, [])
   usePipRestoreFocus(containerRef, isSidePanelOpen, { resolveTrigger })
 
   return (
-    <PipContainer ref={containerRef} role="region" aria-label={t('windowLabel')}>
+    <PipContainer
+      ref={containerRef}
+      role="region"
+      aria-label={t('windowLabel')}
+    >
       <PipStage />
       <PipReactionsToolbar />
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
@@ -55,12 +56,21 @@ const PipContainer = styled('div', {
     backgroundColor: 'primaryDark.50',
     '& .lk-participant-tile': {
       height: '100%',
+      overflow: 'hidden',
+      backgroundColor: 'primaryDark.100',
     },
     '& .lk-participant-media': {
       height: '100%',
+      overflow: 'hidden',
+      borderRadius: 0,
+      backgroundColor: 'primaryDark.100',
     },
     '& .lk-participant-media-video': {
+      display: 'block',
+      width: '100%',
       height: '100%',
+      borderRadius: 0,
+      backgroundColor: 'primaryDark.100',
       objectFit: 'cover',
     },
     '& .lk-grid-layout': {

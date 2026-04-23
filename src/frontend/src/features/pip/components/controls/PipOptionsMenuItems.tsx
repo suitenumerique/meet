@@ -7,7 +7,6 @@ import {
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { Separator } from '@/primitives/Separator'
-import { SettingsMenuItem } from '@/features/rooms/livekit/components/controls/Options/SettingsMenuItem'
 import { FeedbackMenuItem } from '@/features/rooms/livekit/components/controls/Options/FeedbackMenuItem'
 import { EffectsMenuItem } from '@/features/rooms/livekit/components/controls/Options/EffectsMenuItem'
 import { SupportMenuItem } from '@/features/rooms/livekit/components/controls/Options/SupportMenuItem'
@@ -54,7 +53,6 @@ export const PipOptionsMenuItems = ({
       <MenuSection>
         <SupportMenuItem />
         <FeedbackMenuItem />
-        <SettingsMenuItem />
       </MenuSection>
     </RACMenu>
   )

@@ -42,7 +42,11 @@ const pickGridShape = (
 
   const minCols = count >= FORCE_TWO_COLS_COUNT ? 2 : 1
 
-  let best = { cols: minCols, rows: Math.ceil(count / minCols), score: -Infinity }
+  let best = {
+    cols: minCols,
+    rows: Math.ceil(count / minCols),
+    score: -Infinity,
+  }
   for (let cols = minCols; cols <= count; cols++) {
     const rows = Math.ceil(count / cols)
     const tileW = width / cols
