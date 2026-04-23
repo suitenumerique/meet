@@ -136,3 +136,35 @@ class FilePermission(IsAuthenticated):
             raise Http404
 
         return obj.get_abilities(request.user).get(view.action, False)
+
+
+class CanMuteParticipant(permissions.BasePermission):
+    """
+    Grant muting rights based on role or room configuration.
+
+    Allows muting unconditionally for admins/owners. For other users, requires
+    both the room's ``everyone_can_mute`` option to be enabled and a valid
+    authentication (session/JWT or a LiveKit token matching the room ID).
+    """
+
+    def has_object_permission(self, request, view, obj):
+        """Check if the requesting user is allowed to mute a participant in the given room."""
+
+        # Always allow admins/owners
+        if obj.is_administrator_or_owner(request.user):
+            return True
+
+        everyone_can_mute = obj.configuration.get("everyone_can_mute", True)
+
+        if not everyone_can_mute:
+            return False
+
+        # Standard backend auth (e.g. session/JWT) — no LiveKit token needed
+        if request.user and request.user.is_authenticated:
+            return True
+
+        # LiveKit token auth
+        if request.auth and hasattr(request.auth, "video"):
+            return request.auth.video.room == str(obj.id)
+
+        return False

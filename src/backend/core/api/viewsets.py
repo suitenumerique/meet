@@ -31,6 +31,7 @@ from rest_framework import (
 from rest_framework import (
     status as drf_status,
 )
+from rest_framework.settings import api_settings
 
 from core import enums, models, utils
 from core.api.filters import ListFileFilter
@@ -597,7 +598,12 @@ class RoomViewSet(
         methods=["post"],
         url_path="mute-participant",
         url_name="mute-participant",
-        permission_classes=[permissions.HasPrivilegesOnRoom],
+        permission_classes=[permissions.CanMuteParticipant],
+        # Accept both session auth (privileged users) and LiveKit token auth (participants)
+        authentication_classes=[
+            *api_settings.DEFAULT_AUTHENTICATION_CLASSES,
+            LiveKitTokenAuthentication,
+        ],
     )
     def mute_participant(self, request, pk=None):  # pylint: disable=unused-argument
         """Mute a specific track for a participant in the room."""

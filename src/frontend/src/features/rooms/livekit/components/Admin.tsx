@@ -9,7 +9,8 @@ import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
-import { usePublishSourcesManager } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
+import { usePublishSourcesManager } from '../hooks/usePublishSourcesManager'
+import { usePermissionsManager } from '../hooks/usePermissionsManager'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -37,6 +38,8 @@ export const Admin = () => {
     isCameraEnabled,
     isScreenShareEnabled,
   } = usePublishSourcesManager()
+
+  const { toggleMuting, isMutingEnabled } = usePermissionsManager()
 
   return (
     <Div
@@ -125,6 +128,17 @@ export const Admin = () => {
             description={t('moderation.screenshare.description')}
             isSelected={isScreenShareEnabled}
             onChange={toggleScreenShare}
+            wrapperProps={{
+              noMargin: true,
+              fullWidth: true,
+            }}
+          />
+          <Field
+            type="switch"
+            label={t('moderation.mute.label')}
+            description={t('moderation.mute.description')}
+            isSelected={isMutingEnabled}
+            onChange={toggleMuting}
             wrapperProps={{
               noMargin: true,
               fullWidth: true,
