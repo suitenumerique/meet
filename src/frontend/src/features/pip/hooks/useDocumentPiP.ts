@@ -12,8 +12,8 @@ type WindowWithDocumentPiP = Window & {
 }
 
 export const useDocumentPiP = ({
-  width = 480,
-  height = 270,
+  width = 400,
+  height = 480,
 }: {
   width?: number
   height?: number
