@@ -144,7 +144,7 @@ const RateQuality = ({
   posthog,
   onNext,
   metadata,
-  maxRating = 7,
+  maxRating = 5,
 }: {
   posthog: PostHog
   onNext: () => void
