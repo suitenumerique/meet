@@ -44,7 +44,7 @@
     "wouter": "3.9.0"
   },
   "devDependencies": {
-    "@pandacss/dev": "1.8.2",
+    "@pandacss/dev": "1.10.0",
     "@tanstack/eslint-plugin-query": "5.91.4",
     "@tanstack/react-query-devtools": "5.91.3",
     "@types/humanize-duration": "3.27.4",
