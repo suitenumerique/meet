@@ -649,7 +649,7 @@ wheels = [
 
 [[package]]
 name = "django-lasuite"
-version = "0.0.25"
+version = "0.0.26"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
@@ -660,9 +660,9 @@ dependencies = [
     { name = "requests" },
     { name = "requests-toolbelt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/bc/5826a3e5ada5dad1ff6af9a2e1eb598a0dc2cb9c4d2dbf011f1bbb310c9e/django_lasuite-0.0.25.tar.gz", hash = "sha256:ee44783942e6ead74a732f6d7280c5fca961b66581350ce01c0589c3e80684cf", size = 34819, upload-time = "2026-03-10T13:40:28.705Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/d7/6c022ff6b2e5c6f7226005c5f62920763ddb9ae2d4948b6af6d206314036/django_lasuite-0.0.26.tar.gz", hash = "sha256:b4ffb15d3e56e366d71b527195d26198e2d26e28cc1ab1c11aefdc581db9c02b", size = 34952, upload-time = "2026-04-03T14:02:33.957Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/2f/819ebbc9d3a4b8233cef1e9b0b607724e4acf527988393b04a4036b9c235/django_lasuite-0.0.25-py3-none-any.whl", hash = "sha256:4c10f625005cd41d05e8d34269f1a3b58fea8be5296528bd58596227f50d9884", size = 54034, upload-time = "2026-03-10T13:40:26.903Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/ab/18a1505061b536616ea4b9f75154042116ca4f1a9f64467f5a3549c686d2/django_lasuite-0.0.26-py3-none-any.whl", hash = "sha256:ba812e643eae3f55a50a69bf09eaa3b8ffa4fe9dd3296b8e27b4f7bbc25e3400", size = 54158, upload-time = "2026-04-03T14:02:32.691Z" },
 ]
 
 [package.optional-dependencies]
@@ -1248,7 +1248,7 @@ requires-dist = [
     { name = "django-cors-headers", specifier = "==4.9.0" },
     { name = "django-countries", specifier = "==8.2.0" },
     { name = "django-filter", specifier = "==25.2" },
-    { name = "django-lasuite", extras = ["all"], specifier = "==0.0.25" },
+    { name = "django-lasuite", extras = ["all"], specifier = "==0.0.26" },
     { name = "django-parler", specifier = "==2.3" },
     { name = "django-pydantic-field", specifier = "==0.5.4" },
     { name = "django-redis", specifier = "==6.0.0" },
