@@ -1,23 +1,46 @@
+import { useCallback, useRef } from 'react'
 import { supportsScreenSharing } from '@livekit/components-core'
+import { useTranslation } from 'react-i18next'
 import { styled } from '@/styled-system/jsx'
 import { SidePanel } from '@/features/rooms/livekit/components/SidePanel'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { pipLayoutStore } from '../stores/pipLayoutStore'
+import { useEscapeDismiss } from '../hooks/useEscapeDismiss'
+import { usePipRestoreFocus } from '../hooks/usePipRestoreFocus'
 import { PipControlBar } from './PipControlBar'
 import { PipReactionsToolbar } from './PipReactionsToolbar'
 import { PipStage } from './layouts/PipStage'
 
-
-// Composition shell for the Picture-in-Picture window.
- 
 export const PipView = () => {
   const browserSupportsScreenSharing = supportsScreenSharing()
+  const { t } = useTranslation('rooms', {
+    keyPrefix: 'options.items.pictureInPicture',
+  })
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { isSidePanelOpen, closePanel } = useSidePanel(pipLayoutStore)
+
+  // Escape closes the side panel instead of the whole PiP window.
+  useEscapeDismiss(containerRef, isSidePanelOpen, closePanel)
+
+  // Side panels open via a menu item that unmounts on click; fall back to the
+  // options button so focus returns somewhere visible.
+  const resolveTrigger = useCallback(
+    (activeEl: HTMLElement | null) => {
+      if (activeEl?.tagName === 'DIV') {
+        const doc = containerRef.current?.ownerDocument ?? document
+        return doc.getElementById('room-options-trigger')
+      }
+      return activeEl
+    },
+    []
+  )
+  usePipRestoreFocus(containerRef, isSidePanelOpen, { resolveTrigger })
 
   return (
-    <PipContainer>
+    <PipContainer ref={containerRef} role="region" aria-label={t('windowLabel')}>
       <PipStage />
       <PipReactionsToolbar />
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
-      {/* Side panel (effects, settings, etc.) opens within PiP window. */}
       <SidePanel store={pipLayoutStore} />
     </PipContainer>
   )

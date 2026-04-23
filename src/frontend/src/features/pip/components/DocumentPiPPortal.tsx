@@ -1,6 +1,9 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { useDocumentPiP } from '../hooks/useDocumentPiP'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { UNSAFE_PortalProvider } from '@react-aria/overlays'
 
 // Minimal base styles so the PiP window renders correctly on first paint.
@@ -96,10 +99,9 @@ const syncCssVariables = (source: Document, target: Document) => {
 }
 
 /**
- * React Portal that renders children into a Document Picture-in-Picture window.
- * Handles PiP window lifecycle, style injection, React root management, and uses UNSAFE_PortalProvider
- * to ensure React Aria overlays render correctly within the PiP window.
- * Creates a fresh React root on reopen to prevent black screen issues.
+ * React portal into a Document Picture-in-Picture window. Handles window
+ * lifecycle, style/theme sync and routes React Aria overlays via
+ * `UNSAFE_PortalProvider` so they render inside the PiP document.
  */
 export const DocumentPiPPortal = ({
   isOpen,
@@ -118,8 +120,13 @@ export const DocumentPiPPortal = ({
     width,
     height,
   })
+  const { t } = useTranslation('rooms', {
+    keyPrefix: 'options.items.pictureInPicture',
+  })
+  const announce = useScreenReaderAnnounce()
   const [container, setContainer] = useState<HTMLElement | null>(null)
   const containerRef = useRef<HTMLElement | null>(null)
+  const prevOpenRef = useRef(false)
 
   useEffect(() => {
     if (!isOpen) {
@@ -139,6 +146,10 @@ export const DocumentPiPPortal = ({
       copyStyles(document, doc)
       syncThemeAttribute(document, doc)
       syncCssVariables(document, doc)
+
+      doc.documentElement.setAttribute('lang', document.documentElement.lang)
+      doc.title = t('windowLabel')
+
       const existingContainer = containerRef.current
       if (!existingContainer || existingContainer.ownerDocument !== doc) {
         const nextContainer = doc.createElement('div')
@@ -161,10 +172,40 @@ export const DocumentPiPPortal = ({
     }
   }, [closePiP, isOpen, isSupported, openPiP])
 
+  // Focus stays on the trigger; PiP is announced as an auxiliary surface.
+  useEffect(() => {
+    const wasOpen = prevOpenRef.current
+    prevOpenRef.current = isOpen
+
+    if (isOpen && !wasOpen) {
+      announce(t('opened'), 'polite')
+    }
+    if (!isOpen && wasOpen) {
+      announce(t('closed'), 'polite')
+    }
+  }, [isOpen, announce, t])
+
+  useRestoreFocus(isOpen, { restoreFocusRaf: true })
+
+  // Escape from either document closes PiP (unless a nested overlay handled it).
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      event.preventDefault()
+      onClose?.()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    pipWindow?.document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      pipWindow?.document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, onClose, pipWindow])
+
   useEffect(() => {
     if (!pipWindow) return
     const handleClose = () => {
-      // Reset container so reopening PiP mounts a fresh root.
       containerRef.current = null
       setContainer(null)
       onClose?.()
@@ -180,8 +221,6 @@ export const DocumentPiPPortal = ({
   const portal = useMemo(() => {
     if (!container) return null
     return createPortal(
-      // "UNSAFE" because it bypasses react-aria's default portal container.
-      // We need it to target the PiP document; otherwise overlays render in the main window.
       <UNSAFE_PortalProvider getContainer={() => container}>
         {children}
       </UNSAFE_PortalProvider>,
