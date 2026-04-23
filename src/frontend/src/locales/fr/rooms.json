@@ -243,7 +243,14 @@
       "switchCamera": "Changer de caméra",
       "pictureInPicture": {
         "enter": "Image dans l'image",
-        "exit": "Fermer l'image dans l'image"
+        "exit": "Fermer l'image dans l'image",
+        "opened": "Mode image dans l'image activé",
+        "closed": "Mode image dans l'image désactivé",
+        "windowLabel": "Réunion en image dans l'image",
+        "stage": "Participants",
+        "controlBar": "Commandes de la réunion",
+        "previousReactions": "Réactions précédentes",
+        "nextReactions": "Réactions suivantes"
       },
       "fullscreen": {
         "enter": "Plein écran",

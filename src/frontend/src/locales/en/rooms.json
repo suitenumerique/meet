@@ -243,7 +243,14 @@
       "switchCamera": "Switch camera",
       "pictureInPicture": {
         "enter": "Picture-in-picture",
-        "exit": "Close picture-in-picture"
+        "exit": "Close picture-in-picture",
+        "opened": "Picture-in-picture mode enabled",
+        "closed": "Picture-in-picture mode disabled",
+        "windowLabel": "Picture-in-picture meeting",
+        "stage": "Participants",
+        "controlBar": "Meeting controls",
+        "previousReactions": "Previous reactions",
+        "nextReactions": "Next reactions"
       },
       "fullscreen": {
         "enter": "Fullscreen",
