@@ -1,5 +1,6 @@
 import { styled } from '@/styled-system/jsx'
 import { useRef, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AudioDevicesControl } from '@/features/rooms/livekit/components/controls/Device/AudioDevicesControl'
 import { VideoDeviceControl } from '@/features/rooms/livekit/components/controls/Device/VideoDeviceControl'
 import { ScreenShareToggle } from '@/features/rooms/livekit/components/controls/ScreenShareToggle'
@@ -54,6 +55,9 @@ export const PipControlBar = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const { width } = usePipElementSize(containerRef)
+  const { t } = useTranslation('rooms', {
+    keyPrefix: 'options.items.pictureInPicture',
+  })
 
   const hidden = useMemo(
     () => getHiddenControls(width, showScreenShare),
@@ -61,7 +65,7 @@ export const PipControlBar = ({
   )
 
   return (
-    <PipControls ref={containerRef}>
+    <PipControls ref={containerRef} id="pip-control-bar" role="toolbar" aria-label={t('controlBar')}>
       <PipControlsCenter>
         <AudioDevicesControl hideMenu />
         <VideoDeviceControl hideMenu />

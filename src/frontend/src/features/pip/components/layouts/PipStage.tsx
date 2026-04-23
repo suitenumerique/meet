@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTracks } from '@livekit/components-react'
 import { Track } from 'livekit-client'
 import { styled } from '@/styled-system/jsx'
@@ -20,6 +21,9 @@ const FOCUS_MAX_TILES = 2
 // Handles which layout to render inside the PiP stage.
 
 export const PipStage = () => {
+  const { t } = useTranslation('rooms', {
+    keyPrefix: 'options.items.pictureInPicture',
+  })
   const tracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
@@ -41,11 +45,19 @@ export const PipStage = () => {
     return [screenShareTrack, ...cameraTracks]
   }, [tracks, screenShareTrack])
 
+  // avoid tabbing to the stage when it's not visible
+  const frameRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    frameRef.current?.setAttribute('inert', '')
+  }, [])
+
   if (stageTracks.length === 0) return null
+
+  const stageLabel = t('stage')
 
   if (stageTracks.length > FOCUS_MAX_TILES) {
     return (
-      <StageFrame>
+      <StageFrame ref={frameRef} role="region" aria-label={stageLabel}>
         <PipGridLayout tracks={stageTracks} />
       </StageFrame>
     )
@@ -60,7 +72,7 @@ export const PipStage = () => {
       : stageTracks.find((track) => track !== mainTrack)
 
   return (
-    <StageFrame>
+    <StageFrame ref={frameRef} role="region" aria-label={stageLabel}>
       <PipFocusLayout mainTrack={mainTrack} thumbnailTrack={thumbnailTrack} />
     </StageFrame>
   )
