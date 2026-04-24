@@ -38,6 +38,24 @@ COPY ./docker/dinum-frontend/assets/ \
 COPY ./docker/dinum-frontend/fonts/ \
     ./dist/assets/fonts/
 
+# ---- Addons builder image ----
+FROM node:20-alpine AS addons-builder
+
+ARG OUTLOOK_ADDON_URL_PROD="https://meet.127.0.0.1.nip.io/addons/outlook/"
+ENV URL_PROD=${OUTLOOK_ADDON_URL_PROD}
+
+WORKDIR /home/addons/outlook
+
+COPY ./src/addons/outlook/package.json ./package.json
+COPY ./src/addons/outlook/package-lock.json ./package-lock.json
+
+RUN npm ci
+
+COPY ./src/addons/outlook/ .
+
+RUN npx webpack --mode production
+
+
 # ---- Front-end image ----
 FROM nginxinc/nginx-unprivileged:alpine3.23 AS frontend-production
 
@@ -60,7 +78,11 @@ COPY --from=meet-builder \
     /home/frontend/dist \
     /usr/share/nginx/html
 
-COPY ./src/frontend/default.conf /etc/nginx/conf.d
+COPY --from=addons-builder \
+    /home/addons/outlook/dist \
+    /usr/share/nginx/html/addons/outlook
+
+COPY ./docker/dinum-frontend/nginx/dinum.conf /etc/nginx/conf.d
 COPY ./docker/files/usr/local/bin/entrypoint /usr/local/bin/entrypoint
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint" ]

@@ -34,10 +34,11 @@ docker_build(
     'localhost:5001/meet-frontend-dinum:latest',
     context='..',
     dockerfile='../docker/dinum-frontend/Dockerfile',
-    only=['./src/frontend', './docker', './.dockerignore'],
+    only=['./src/frontend', './src/addons', './docker', './.dockerignore'],
     target = 'frontend-production',
     live_update=[
         sync('../src/frontend', '/home/frontend'),
+        sync('../src/addons', '/home/addons'),
     ]
 )
 clean_old_images('localhost:5001/meet-frontend-dinum')
