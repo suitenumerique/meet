@@ -54,23 +54,17 @@ const PipContainer = styled('div', {
     display: 'grid',
     gridTemplateRows: 'minmax(0, 1fr) auto auto',
     backgroundColor: 'primaryDark.50',
+    // Disable LiveKit's own border-radius on tiles so our containers
+    // (GridCell, Thumbnail, StageFrame) own the clipping exclusively.
+    '--lk-border-radius': '4px',
     '& .lk-participant-tile': {
       height: '100%',
-      overflow: 'hidden',
-      backgroundColor: 'primaryDark.100',
     },
     '& .lk-participant-media': {
       height: '100%',
-      overflow: 'hidden',
-      borderRadius: 0,
-      backgroundColor: 'primaryDark.100',
     },
     '& .lk-participant-media-video': {
-      display: 'block',
-      width: '100%',
       height: '100%',
-      borderRadius: 0,
-      backgroundColor: 'primaryDark.100',
       objectFit: 'cover',
     },
     '& .lk-grid-layout': {

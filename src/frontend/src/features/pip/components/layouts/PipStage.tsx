@@ -81,7 +81,7 @@ const StageFrame = styled('div', {
     minWidth: 0,
     minHeight: 0,
     margin: '0.5rem',
-    borderRadius: 'lg',
+    borderRadius: '4px',
     overflow: 'hidden',
   },
 })
