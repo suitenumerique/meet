@@ -19,6 +19,10 @@ and this project adheres to
 - ⬆️(backend) bump django-lasuite to v0.0.26
 - 🩹(frontend) use a more standard (quality) rating scale
 
+### Changed
+
+- ♻️(frontend) unify TrackSource usage to livekit-client Track.Source #1282
+
 ## [1.14.0] - 2026-04-16
 
 ### Added

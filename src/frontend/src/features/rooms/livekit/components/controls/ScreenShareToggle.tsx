@@ -6,7 +6,7 @@ import { Track } from 'livekit-client'
 import React from 'react'
 import { type ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
-import { TrackSource } from '@livekit/protocol'
+
 import { useCanPublishTrack } from '@/features/rooms/livekit/hooks/useCanPublishTrack'
 
 type Props = Omit<
@@ -31,7 +31,7 @@ export const ScreenShareToggle = ({
   const tooltipLabel = enabled ? 'stop' : 'start'
   const Icon = enabled ? RiCloseFill : RiArrowUpLine
 
-  const canShareScreen = useCanPublishTrack(TrackSource.SCREEN_SHARE)
+  const canShareScreen = useCanPublishTrack(Track.Source.ScreenShare)
 
   // fixme - remove ToggleButton custom styles when we design a proper icon
   return (
