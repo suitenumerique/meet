@@ -48,6 +48,8 @@ const FocusContainer = styled('div', {
     position: 'relative',
     width: '100%',
     height: '100%',
+    borderRadius: '4px',
+    overflow: 'hidden',
     backgroundColor: 'primaryDark.100',
   },
 })
@@ -71,7 +73,7 @@ const Thumbnail = styled('div', {
     maxWidth: '220px',
     minWidth: '140px',
     aspectRatio: '16 / 9',
-    borderRadius: 'md',
+    borderRadius: '4px',
     overflow: 'hidden',
     boxShadow: 'md',
     zIndex: 2,

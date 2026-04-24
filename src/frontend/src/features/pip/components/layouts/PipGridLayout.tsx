@@ -69,7 +69,7 @@ const GridCell = styled('div', {
     position: 'relative',
     minWidth: 0,
     minHeight: 0,
-    borderRadius: 'md',
+    borderRadius: '4px',
     overflow: 'hidden',
     backgroundColor: 'primaryDark.100',
     // Paint on own layer so FLIP transforms don't trigger layout thrash.
