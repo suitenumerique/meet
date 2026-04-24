@@ -434,6 +434,15 @@ frontend:
   pdb:
     enabled: true
 
+  ## @param frontend.outlookAddon.enabled Enable the Outlook add-in ConfigMap (config.js + manifest.xml)
+  ## @param frontend.outlookAddon.appName Display name used in the Outlook add-in (manifest + runtime config)
+  ## @param frontend.outlookAddon.baseUrl Public base URL where the add-in is served (no trailing slash)
+  outlookAddon:
+    enabled: false
+    appName: ""
+    baseUrl: ""
+    id: ""
+
 ## @section posthog
 
 posthog:

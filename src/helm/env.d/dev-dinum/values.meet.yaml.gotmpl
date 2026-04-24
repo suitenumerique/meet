@@ -162,6 +162,30 @@ frontend:
     pullPolicy: Always
     tag: "latest"
 
+  extraVolumes:
+    - name: outlook-addon-config
+      configMap:
+        name: outlook-addon-config
+    - name: outlook-addon-manifest
+      configMap:
+        name: outlook-addon-manifest
+
+  extraVolumeMounts:
+    - name: outlook-addon-config
+      mountPath: /usr/share/nginx/html/addons/outlook/config.js
+      subPath: config.js
+      readOnly: true
+    - name: outlook-addon-manifest
+      mountPath: /usr/share/nginx/html/addons/outlook/manifest.xml
+      subPath: manifest.xml
+      readOnly: true
+
+  outlookAddon:
+    enabled: true
+    baseUrl: "https://meet.127.0.0.1.nip.io"
+    appName: "Visio"
+    id: "a025f0f6-757a-4790-97f3-99c66c4a5795"
+
 ingress:
   enabled: true
   host: meet.127.0.0.1.nip.io

@@ -1,0 +1,15 @@
+{{- if .Values.frontend.outlookAddon.enabled }}
+{{- $ctx := dict
+    "appName" .Values.frontend.outlookAddon.appName
+    "baseUrl" (printf "%s/addons/outlook" (trimSuffix "/" .Values.frontend.outlookAddon.baseUrl))
+    "id" .Values.frontend.outlookAddon.id
+}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: outlook-addon-manifest
+  namespace: {{ .Release.Namespace }}
+data:
+  manifest.xml: |
+{{ tpl (.Files.Get "files/outlook-manifest.xml.tpl") $ctx | indent 4 }}
+{{- end }}

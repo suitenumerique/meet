@@ -1,0 +1,81 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#sideload-msg {
+    display: none;
+}
+
+#status {
+    display: none;
+}
+
+.spinner-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+}
+
+.spinner-svg {
+    width: 56px;
+    height: 56px;
+}
+
+/* Background arc (light gray ring) */
+.spinner-track {
+    stroke: #E5E7EB; /* primary.100 equivalent */
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+/* Foreground rotating arc */
+.spinner-arc {
+    stroke: #000091; /* primary.800 equivalent */
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    /* circumference = 2 * PI * r where r = 11 -> ~69.115 */
+    /* show 30% -> dashoffset = c - 0.3 * c = ~48.38 */
+    stroke-dasharray: 69.115 69.115;
+    stroke-dashoffset: 48.38;
+    transform-origin: center;
+    animation: spinner-rotate 1s ease-in-out infinite;
+}
+
+@keyframes spinner-rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Hourglass fallback for reduced motion */
+.spinner-fallback {
+    display: none;
+    color: #000091;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spinner-svg {
+        display: none;
+    }
+    .spinner-fallback {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

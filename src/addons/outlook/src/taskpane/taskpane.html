@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-app-name></title>
+    <link rel="stylesheet" href="taskpane.css" />
+    <script nonce="NONCE_PLACEHOLDER" src="/addons/outlook/config.js"></script>
+    <script nonce="NONCE_PLACEHOLDER" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+</head>
+<body>
+<div id="sideload-msg">Veuillez charger le complément.</div>
+
+<div id="app-body">
+
+    <!-- Loading -->
+    <div id="view-loading">
+        <p class="intro-text">Chargement...</p>
+    </div>
+
+    <!-- Unauthenticated -->
+    <div id="view-unauth" style="display:none;">
+        <p class="intro-text">
+            <span>Ajoutez facilement un lien de réunion <span data-app-name></span> à vos événements Outlook.</span>
+        </p>
+        <hr class="divider" />
+        <button class="proconnect-button" id="btn-connect">
+            <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
+        </button>
+        <p>
+            <a
+                    href="https://www.proconnect.gouv.fr/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Qu’est-ce que ProConnect ? - nouvelle fenêtre"
+            >
+                Qu’est-ce que ProConnect ?
+            </a>
+        </p>
+    </div>
+
+    <!-- Authenticated -->
+    <div id="view-auth" style="display:none;">
+        <div id="btn-container">
+            <button id="btn-generate">Ajouter une réunion <span data-app-name></span></button>
+            <button id="btn-disconnect">Se déconnecter</button>
+        </div>
+    </div>
+</div>
+<footer id="version-tag">
+    <span class="version-badge">alpha</span>
+    <span class="version-number">0.0.1</span>
+</footer>
+</body>
+</html>
