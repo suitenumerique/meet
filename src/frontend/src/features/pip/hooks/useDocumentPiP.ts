@@ -70,6 +70,16 @@ export const useDocumentPiP = ({
     pipWindowRef.current = pipWindow
   }, [pipWindow])
 
+  // Force-close the native PiP window when the hook unmounts (e.g. the user
+  // hangs up and the room is navigated away before `closePiP` could run).
+  useEffect(() => {
+    return () => {
+      const win = pipWindowRef.current
+      if (win && !win.closed) win.close()
+      pipWindowRef.current = null
+    }
+  }, [])
+
   useEffect(() => {
     if (!pipWindow) return
 

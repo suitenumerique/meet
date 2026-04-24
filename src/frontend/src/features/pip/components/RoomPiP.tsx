@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
+import { roomPiPStore } from '@/stores/roomPiP'
 import { DocumentPiPPortal } from './DocumentPiPPortal'
 import { PipView } from './PipView'
 import { useRoomPiP } from '../hooks/useRoomPiP'
@@ -11,6 +12,14 @@ import { useRoomPiP } from '../hooks/useRoomPiP'
  */
 export const RoomPiP = (): ReactNode => {
   const { isOpen, close } = useRoomPiP()
+
+  // Reset PiP state on unmount (e.g. leaving the room) so the next session
+  // starts with PiP closed and doesn't try to auto-reopen without a user gesture.
+  useEffect(() => {
+    return () => {
+      roomPiPStore.isOpen = false
+    }
+  }, [])
 
   const portal = DocumentPiPPortal({
     isOpen,
