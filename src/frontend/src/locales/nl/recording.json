@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Opname niet beschikbaar",
-    "body": "De opname is niet beschikbaar of is mogelijk verwijderd. Alleen de organisator van de vergadering heeft toegang. Neem gerust contact met hem of haar op als dat nodig is."
+    "body": "De opname is niet beschikbaar of is mogelijk verwijderd. Alleen de host van de vergadering heeft toegang. Neem gerust contact met hem of haar op als dat nodig is."
   },
   "expired": {
     "title": "Opname verlopen",
@@ -22,7 +22,7 @@
     "button": "Downloaden",
     "warning": {
       "title": "Delen via link uitgeschakeld",
-      "body": "Het delen van de opname via een link is nog niet beschikbaar. Alleen organisatoren kunnen deze downloaden."
+      "body": "Het delen van de opname via een link is nog niet beschikbaar. Alleen hosts kunnen deze downloaden."
     }
   }
 }
