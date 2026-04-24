@@ -1,6 +1,8 @@
 import { styled } from '@/styled-system/jsx'
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { findFirstFocusable } from '@/utils/dom'
 import { AudioDevicesControl } from '@/features/rooms/livekit/components/controls/Device/AudioDevicesControl'
 import { VideoDeviceControl } from '@/features/rooms/livekit/components/controls/Device/VideoDeviceControl'
 import { ScreenShareToggle } from '@/features/rooms/livekit/components/controls/ScreenShareToggle'
@@ -63,6 +65,14 @@ export const PipControlBar = ({
     () => getHiddenControls(width, showScreenShare),
     [width, showScreenShare]
   )
+
+  useRegisterKeyboardShortcut({
+    id: 'focus-toolbar',
+    handler: useCallback(() => {
+      const doc = containerRef.current?.ownerDocument ?? document
+      findFirstFocusable(doc.getElementById('pip-control-bar'))?.focus()
+    }, []),
+  })
 
   return (
     <PipControls

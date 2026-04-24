@@ -6,6 +6,7 @@ import { SidePanel } from '@/features/rooms/livekit/components/SidePanel'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { pipLayoutStore } from '../stores/pipLayoutStore'
 import { useEscapeDismiss } from '../hooks/useEscapeDismiss'
+import { usePipKeyboardShortcuts } from '../hooks/usePipKeyboardShortcuts'
 import { usePipRestoreFocus } from '../hooks/usePipRestoreFocus'
 import { PipControlBar } from './PipControlBar'
 import { PipReactionsToolbar } from './PipReactionsToolbar'
@@ -21,6 +22,9 @@ export const PipView = () => {
 
   // Escape closes the side panel instead of the whole PiP window.
   useEscapeDismiss(containerRef, isSidePanelOpen, closePanel)
+
+  // Forward keyboard shortcuts (Ctrl+D, Ctrl+E, etc.) to the main store.
+  usePipKeyboardShortcuts(containerRef)
 
   // Side panels open via a menu item that unmounts on click; fall back to the
   // options button so focus returns somewhere visible.
