@@ -2,6 +2,39 @@ import { proxy, subscribe } from 'valtio'
 import { STORAGE_KEYS } from '@/utils/storageKeys'
 import { deserializeToProxyMap } from '@/utils/valtio'
 
+export type UiFont =
+  | 'default'
+  | 'lexend'
+  | 'atkinson-hyperlegible'
+  | 'opendyslexic'
+
+export const UI_FONT_OPTIONS: UiFont[] = [
+  'default',
+  'lexend',
+  'atkinson-hyperlegible',
+  'opendyslexic',
+]
+
+const SYSTEM_SANS_STACK = [
+  'ui-sans-serif',
+  'system-ui',
+  '-apple-system',
+  'BlinkMacSystemFont',
+  '"Segoe UI"',
+  'Roboto',
+  '"Helvetica Neue"',
+  'Arial',
+  '"Noto Sans"',
+  'sans-serif',
+].join(', ')
+
+export const UI_FONT_STACKS: Record<UiFont, string> = {
+  default: SYSTEM_SANS_STACK,
+  lexend: `"Lexend Variable", ${SYSTEM_SANS_STACK}`,
+  'atkinson-hyperlegible': `"Atkinson Hyperlegible Next Variable", ${SYSTEM_SANS_STACK}`,
+  opendyslexic: `OpenDyslexic, ${SYSTEM_SANS_STACK}`,
+}
+
 export type CaptionTextSize = 'small' | 'medium' | 'large'
 
 export const CAPTION_TEXT_SIZE_OPTIONS: CaptionTextSize[] = [
@@ -62,6 +95,7 @@ type AccessibilityState = {
   captionTextSize: CaptionTextSize
   captionFontColor: CaptionColor
   captionBackgroundColor: CaptionColor
+  uiFont: UiFont
 }
 
 const DEFAULT_STATE: AccessibilityState = {
@@ -69,6 +103,7 @@ const DEFAULT_STATE: AccessibilityState = {
   captionTextSize: 'medium',
   captionFontColor: 'default',
   captionBackgroundColor: 'default',
+  uiFont: 'default',
 }
 
 function getAccessibilityState(): AccessibilityState {
@@ -91,6 +126,9 @@ function getAccessibilityState(): AccessibilityState {
       )
         ? parsed.captionBackgroundColor
         : DEFAULT_STATE.captionBackgroundColor
+      const uiFont = UI_FONT_OPTIONS.includes(parsed.uiFont)
+        ? parsed.uiFont
+        : DEFAULT_STATE.uiFont
       return {
         ...DEFAULT_STATE,
         ...parsed,
@@ -101,6 +139,7 @@ function getAccessibilityState(): AccessibilityState {
         captionTextSize,
         captionFontColor,
         captionBackgroundColor,
+        uiFont,
       }
     }
 

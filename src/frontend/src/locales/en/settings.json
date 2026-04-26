@@ -117,6 +117,16 @@
     "announceReactions": {
       "label": "Announce reactions aloud"
     },
+    "font": {
+      "label": "Display font",
+      "description": "Customize the font used in the interface to improve your reading comfort.",
+      "options": {
+        "default": "Default (system)",
+        "lexend": "Lexend (improved readability)",
+        "atkinson-hyperlegible": "Atkinson Hyperlegible (low vision)",
+        "opendyslexic": "OpenDyslexic (dyslexia)"
+      }
+    },
     "captions": {
       "heading": "Captions",
       "textSize": {

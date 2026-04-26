@@ -6,6 +6,7 @@ import { useSnapshot } from 'valtio'
 import { Footer } from '@/layout/Footer'
 import { ScreenReaderAnnouncer } from '@/primitives'
 import { SkipLink, MAIN_CONTENT_ID } from './SkipLink'
+import { useApplyUiFont } from '@/hooks/useApplyUiFont'
 
 export type Layout = 'fullpage' | 'centered'
 
@@ -19,6 +20,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
   const layoutSnap = useSnapshot(layoutStore)
   const showHeader = layoutSnap.showHeader
   const showFooter = layoutSnap.showFooter
+  useApplyUiFont()
 
   return (
     <>
@@ -30,6 +32,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           backgroundColor: 'white',
           color: 'default.text',
           flex: '1',
+          fontFamily: 'var(--app-font-family, var(--fonts-sans))',
         })}
         style={{
           height: !showFooter ? '100%' : undefined,
