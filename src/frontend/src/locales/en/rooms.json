@@ -250,7 +250,13 @@
         "stage": "Participants",
         "controlBar": "Meeting controls",
         "previousReactions": "Previous reactions",
-        "nextReactions": "Next reactions"
+        "nextReactions": "Next reactions",
+        "notificationsLabel": "Notifications",
+        "dismissNotification": "Dismiss notification",
+        "connection": {
+          "reconnecting": "Reconnecting…",
+          "disconnected": "Disconnected"
+        }
       },
       "fullscreen": {
         "enter": "Fullscreen",

@@ -250,7 +250,13 @@
         "stage": "Participants",
         "controlBar": "Commandes de la réunion",
         "previousReactions": "Réactions précédentes",
-        "nextReactions": "Réactions suivantes"
+        "nextReactions": "Réactions suivantes",
+        "notificationsLabel": "Notifications",
+        "dismissNotification": "Fermer la notification",
+        "connection": {
+          "reconnecting": "Reconnexion…",
+          "disconnected": "Déconnecté"
+        }
       },
       "fullscreen": {
         "enter": "Plein écran",
