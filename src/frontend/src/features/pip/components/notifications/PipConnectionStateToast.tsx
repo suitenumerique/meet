@@ -25,19 +25,11 @@ export const PipConnectionStateToast = () => {
 
   if (!label) return null
 
-  return (
-    <Banner role="status" aria-live="polite">
-      {label}
-    </Banner>
-  )
+  return <Banner role="status">{label}</Banner>
 }
 
 const Banner = styled('div', {
   base: {
-    position: 'absolute',
-    top: '0.5rem',
-    left: '50%',
-    transform: 'translateX(-50%)',
     backgroundColor: 'greyscale.800',
     color: 'white',
     fontSize: '0.8125rem',
@@ -46,7 +38,9 @@ const Banner = styled('div', {
     borderRadius: '6px',
     boxShadow:
       'rgba(0, 0, 0, 0.4) 0px 2px 6px 0px, rgba(0, 0, 0, 0.25) 0px 4px 12px 2px',
-    zIndex: 1001,
     animation: 'fade 200ms',
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none',
+    },
   },
 })
