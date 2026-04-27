@@ -49,14 +49,33 @@ export const PipView = () => {
       <PipReactionsToolbar />
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
       <SidePanel store={pipLayoutStore} />
-      <PipConnectionStateToast />
-      <PipNotificationOverlay />
+      <OverlayStack>
+        <PipConnectionStateToast />
+        <PipNotificationOverlay />
+      </OverlayStack>
     </PipContainer>
   )
 }
 
+const OverlayStack = styled('div', {
+  base: {
+    position: 'absolute',
+    top: '0.5rem',
+    left: '0.5rem',
+    right: '0.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.375rem',
+    pointerEvents: 'none',
+    zIndex: 1000,
+    '& > *': { pointerEvents: 'auto' },
+  },
+})
+
 const PipContainer = styled('div', {
   base: {
+    position: 'relative',
     width: '100%',
     height: '100%',
     display: 'grid',

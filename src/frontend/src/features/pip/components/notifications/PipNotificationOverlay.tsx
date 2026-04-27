@@ -13,6 +13,8 @@ import { PipToastBody } from './PipToastBody'
  * Shows shared toasts in the PiP window.
  * We use a local aria-live region so screen readers can read them in PiP.
  */
+const MAX_VISIBLE = 3
+
 export const PipNotificationOverlay = () => {
   const state = useToastQueue<ToastData>(toastQueue)
   const { t } = useTranslation('rooms', {
@@ -21,14 +23,15 @@ export const PipNotificationOverlay = () => {
 
   if (state.visibleToasts.length === 0) return null
 
+  const toasts = state.visibleToasts.slice(0, MAX_VISIBLE)
+
   return (
     <Region
       role="region"
       aria-label={t('notificationsLabel')}
       aria-live="polite"
-      aria-relevant="additions"
     >
-      {state.visibleToasts.map((toast) => (
+      {toasts.map((toast) => (
         <ToastCard key={toast.key} aria-atomic="true">
           <PipToastBody toast={toast} />
           <Button
@@ -48,17 +51,11 @@ export const PipNotificationOverlay = () => {
 
 const Region = styled('div', {
   base: {
-    position: 'absolute',
-    top: '0.5rem',
-    left: '0.5rem',
-    right: '0.5rem',
     display: 'flex',
     flexDirection: 'column',
     gap: '0.375rem',
     alignItems: 'center',
-    pointerEvents: 'none',
-    zIndex: 1000,
-    '& > *': { pointerEvents: 'auto' },
+    width: '100%',
   },
 })
 
@@ -75,5 +72,8 @@ const ToastCard = styled('div', {
       'rgba(0, 0, 0, 0.4) 0px 2px 6px 0px, rgba(0, 0, 0, 0.25) 0px 4px 12px 2px',
     paddingRight: '0.25rem',
     animation: 'fade 200ms',
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none',
+    },
   },
 })
