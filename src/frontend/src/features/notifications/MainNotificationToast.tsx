@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { ChatMessage, isMobileBrowser } from '@livekit/components-core'
@@ -24,12 +24,18 @@ export const MainNotificationToast = () => {
 
   const { appendReaction } = useReactions()
 
+  // Chat uses keepAlive in multiple SidePanels (main + PiP), so the same
+  // message event can fire more than once. Track the last id to deduplicate.
+  const lastChatMsgIdRef = useRef<string>('')
+
   useEffect(() => {
     const handleChatMessage = (
       chatMessage: ChatMessage,
       participant?: Participant | undefined
     ) => {
       if (!participant || participant.isLocal) return
+      if (chatMessage.id && chatMessage.id === lastChatMsgIdRef.current) return
+      lastChatMsgIdRef.current = chatMessage.id ?? ''
       triggerNotificationSound(NotificationType.MessageReceived)
       toastQueue.add(
         {

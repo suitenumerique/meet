@@ -250,7 +250,13 @@
         "stage": "Deelnemers",
         "controlBar": "Vergaderbesturing",
         "previousReactions": "Vorige reacties",
-        "nextReactions": "Volgende reacties"
+        "nextReactions": "Volgende reacties",
+        "notificationsLabel": "Meldingen",
+        "dismissNotification": "Melding sluiten",
+        "connection": {
+          "reconnecting": "Opnieuw verbinden…",
+          "disconnected": "Verbinding verbroken"
+        }
       },
       "fullscreen": {
         "enter": "Volledig scherm",

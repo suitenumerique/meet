@@ -11,6 +11,8 @@ import { usePipRestoreFocus } from '../hooks/usePipRestoreFocus'
 import { PipControlBar } from './PipControlBar'
 import { PipReactionsToolbar } from './PipReactionsToolbar'
 import { PipStage } from './layouts/PipStage'
+import { PipNotificationOverlay } from './notifications/PipNotificationOverlay'
+import { PipConnectionStateToast } from './notifications/PipConnectionStateToast'
 
 export const PipView = () => {
   const browserSupportsScreenSharing = supportsScreenSharing()
@@ -47,6 +49,8 @@ export const PipView = () => {
       <PipReactionsToolbar />
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
       <SidePanel store={pipLayoutStore} />
+      <PipConnectionStateToast />
+      <PipNotificationOverlay />
     </PipContainer>
   )
 }

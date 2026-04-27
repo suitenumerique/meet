@@ -250,7 +250,13 @@
         "stage": "Teilnehmer",
         "controlBar": "Besprechungssteuerung",
         "previousReactions": "Vorherige Reaktionen",
-        "nextReactions": "Nächste Reaktionen"
+        "nextReactions": "Nächste Reaktionen",
+        "notificationsLabel": "Benachrichtigungen",
+        "dismissNotification": "Benachrichtigung schließen",
+        "connection": {
+          "reconnecting": "Verbindung wird wiederhergestellt…",
+          "disconnected": "Verbindung getrennt"
+        }
       },
       "fullscreen": {
         "enter": "Vollbild",

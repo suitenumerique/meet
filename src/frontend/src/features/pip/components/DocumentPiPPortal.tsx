@@ -170,7 +170,7 @@ export const DocumentPiPPortal = ({
     return () => {
       cancelled = true
     }
-  }, [closePiP, isOpen, isSupported, openPiP])
+  }, [closePiP, isOpen, isSupported, openPiP, t])
 
   // Focus stays on the trigger; PiP is announced as an auxiliary surface.
   useEffect(() => {
