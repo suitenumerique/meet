@@ -10,18 +10,23 @@ declare global {
     getPublicKey(): Promise<{ publicKey: ArrayBuffer }>
     encryptWithoutKey(
       data: ArrayBuffer,
-      userPublicKeys: Record<string, ArrayBuffer>
+      userPublicKeys: Record<string, ArrayBuffer>,
+      options?: { optimizeMemory?: boolean }
     ): Promise<{
       encryptedContent: ArrayBuffer
       encryptedKeys: Record<string, ArrayBuffer>
     }>
     encryptWithKey(
       data: ArrayBuffer,
-      encryptedSymmetricKey: ArrayBuffer
+      encryptedSymmetricKey: ArrayBuffer,
+      encryptedKeyChain?: ArrayBuffer[],
+      options?: { optimizeMemory?: boolean }
     ): Promise<{ encryptedData: ArrayBuffer }>
     decryptWithKey(
       encryptedData: ArrayBuffer,
-      encryptedSymmetricKey: ArrayBuffer
+      encryptedSymmetricKey: ArrayBuffer,
+      encryptedKeyChain?: ArrayBuffer[],
+      options?: { optimizeMemory?: boolean }
     ): Promise<{ data: ArrayBuffer }>
     shareKeys(
       encryptedSymmetricKey: ArrayBuffer,
@@ -59,6 +64,29 @@ declare global {
     off<K extends string>(event: K, listener: (data: unknown) => void): void
   }
 
+  /**
+   * Stable error codes carried by `VaultError`. Sourced from the
+   * encryption SDK (re-exported on `window.EncryptionClient.VaultErrorCode`)
+   * — meet consumers match on these via `(err as VaultError).code` rather
+   * than regexing message text. Keep in sync with the SDK definition.
+   */
+  type VaultErrorCode =
+    | 'MISSING_KEYS'
+    | 'WRONG_SECRET_KEY'
+    | 'INVALID_BACKUP'
+    | 'INVALID_MNEMONIC'
+    | 'NOT_INITIALIZED'
+    | 'AUTH_REQUIRED'
+    | 'PRIVILEGED_ORIGIN_REQUIRED'
+    | 'TIMEOUT'
+    | 'IFRAME_REQUIRED'
+    | 'CIPHERTEXT_TOO_SHORT'
+    | 'UNKNOWN'
+
+  interface VaultError extends Error {
+    readonly code: VaultErrorCode
+  }
+
   interface Window {
     EncryptionClient: {
       VaultClient: new (options: {
@@ -68,6 +96,9 @@ declare global {
         theme?: string
         lang?: string
       }) => VaultClient
+      VaultError: new (code: VaultErrorCode, message: string) => VaultError
+      VaultErrorCode: { readonly [K in VaultErrorCode]: K }
+      isVaultError: (err: unknown) => err is VaultError
     }
   }
 }
