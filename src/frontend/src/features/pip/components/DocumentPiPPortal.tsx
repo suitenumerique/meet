@@ -36,6 +36,8 @@ const syncThemeAttribute = (source: Document, target: Document) => {
   const theme = source.documentElement.getAttribute('data-lk-theme')
   if (theme) {
     target.documentElement.setAttribute('data-lk-theme', theme)
+  } else {
+    target.documentElement.removeAttribute('data-lk-theme')
   }
 }
 

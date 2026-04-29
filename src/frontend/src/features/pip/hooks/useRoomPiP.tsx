@@ -5,7 +5,7 @@ import { roomPiPStore } from '@/stores/roomPiP'
 export const useRoomPiP = () => {
   const { isOpen } = useSnapshot(roomPiPStore)
   const isSupported =
-    typeof window !== 'undefined' && 'documentPictureInPicture' in window
+    typeof globalThis !== 'undefined' && 'documentPictureInPicture' in globalThis
 
   const open = useCallback(() => {
     roomPiPStore.isOpen = true
