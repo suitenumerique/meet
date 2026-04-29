@@ -933,7 +933,7 @@ class Base(Configuration):
         environ_prefix=None,
     )
     ADDONS_TOKEN_SCOPE = values.Value(
-        "room:create",
+        "rooms:create",
         environ_name="ADDONS_TOKEN_SCOPE",
         environ_prefix=None,
     )

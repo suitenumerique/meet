@@ -258,7 +258,7 @@ def test_poll_session_authenticated():
     assert isinstance(access_token, str) and access_token  # non-empty string
     assert response_data == {
         "expires_in": 7200,
-        "scope": "room:create",
+        "scope": "rooms:create",
         "state": "authenticated",
         "token_type": "Bearer",
     }
