@@ -79,7 +79,7 @@ COPY --from=addons-builder \
     /home/addons/outlook/dist \
     /usr/share/nginx/html/addons/outlook
 
-COPY ./docker/dinum-frontend/nginx/dinum.conf /etc/nginx/conf.d
+COPY ./docker/dinum-frontend/nginx/default.conf /etc/nginx/conf.d
 COPY ./docker/files/usr/local/bin/entrypoint /usr/local/bin/entrypoint
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint" ]
