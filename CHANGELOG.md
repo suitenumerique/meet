@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(backend) add metadata collection of VAD, connection and chat events
 - ✨(backend) introduce add-ons authentication backend
+- 💬(backend) clarify french transcription audio download link text #1299
 
 ### Fixed
 
