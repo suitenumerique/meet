@@ -415,7 +415,7 @@
     },
     "premium": {
       "heading": "Fonctionnalité premium",
-      "body": "Cette fonctionnalité est réservée aux agents publics. Si votre adresse email n’est pas autorisée, contactez le support pour obtenir l'accès.",
+      "body": "Cette fonctionnalité ne vous est pas ouverte. Contactez le support pour obtenir plus d'informations.",
       "linkMore": "Ouvrir la documentation",
       "dividerLabel": "OU",
       "login": {
@@ -465,6 +465,22 @@
         "body": "L'hôte recevra une notification et pourra démarrer l'enregistrement pour vous.",
         "buttonLabel": "Demander"
       }
+    },
+    "premium": {
+      "heading": "Fonctionnalité premium",
+      "body": "Cette fonctionnalité ne vous est pas ouverte. Contactez le support pour obtenir plus d'informations.",
+      "linkMore": "Ouvrir la documentation",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Vous n'êtes pas connecté !",
+        "body": "Vous devez être connecté pour utiliser cette fonctionnalité. Connectez-vous, puis réessayez."
+      },
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer l'enregistrement pour vous.",
+        "buttonLabel": "Demander"
+      },
+      "linkAriaLabel": "Ouvrir la documentation sur l'accès premium - ouvre dans une nouvelle fenêtre"
     },
     "durationMessage": "(limité à {{max_duration}}) "
   },

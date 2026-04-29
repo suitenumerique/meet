@@ -21,6 +21,7 @@ interface NoAccessViewProps {
   imagePath: string
   handleRequest: () => Promise<void>
   isActive: boolean
+  isAdminOrOwner?: boolean
 }
 
 export const NoAccessView = ({
@@ -30,6 +31,7 @@ export const NoAccessView = ({
   imagePath,
   handleRequest,
   isActive,
+  isAdminOrOwner = false,
 }: NoAccessViewProps) => {
   const { isLoggedIn } = useUser()
   const { t } = useTranslation('rooms', { keyPrefix: i18nKeyPrefix })
@@ -105,7 +107,7 @@ export const NoAccessView = ({
       {!isLoggedIn && !isActive && (
         <Divider label={t(`${i18nKey}.dividerLabel`)} />
       )}
-      {!isActive && (
+      {!isActive && !isAdminOrOwner && (
         <RequestRecording
           heading={t(`${i18nKey}.request.heading`)}
           body={t(`${i18nKey}.request.body`)}
