@@ -21,9 +21,7 @@ type PipGridLayoutProps = {
  *
  * Tiles keep a stable key so resizing never remounts <video> elements.
  */
-export const PipGridLayout = memo(function PipGridLayout({
-  tracks,
-}: PipGridLayoutProps) {
+export const PipGridLayout = memo(({ tracks }: PipGridLayoutProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const { width, height } = usePipElementSize(containerRef)
 
@@ -54,6 +52,7 @@ export const PipGridLayout = memo(function PipGridLayout({
     </GridContainer>
   )
 })
+PipGridLayout.displayName = 'PipGridLayout'
 
 const GridContainer = styled('div', {
   base: {

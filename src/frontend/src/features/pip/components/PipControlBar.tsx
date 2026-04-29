@@ -30,10 +30,10 @@ const COLLAPSE_ORDER: CollapsibleControl[] = [
 const BUTTON_SLOT = 50
 const ESSENTIAL_WIDTH = 260
 
-function getHiddenControls(
+const getHiddenControls = (
   containerWidth: number,
   showScreenShare: boolean
-): Set<CollapsibleControl> {
+): Set<CollapsibleControl> => {
   const hidden = new Set<CollapsibleControl>()
   if (containerWidth <= 0) return hidden
 
