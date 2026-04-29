@@ -17,31 +17,31 @@ type PipFocusLayoutProps = {
  * above/below when the window shape doesn't match the source.
  * The thumbnail keeps the usual cover fill.
  */
-export const PipFocusLayout = memo(function PipFocusLayout({
-  mainTrack,
-  thumbnailTrack,
-}: PipFocusLayoutProps) {
-  return (
-    <FocusContainer>
-      <MainSlot>
-        <ParticipantTile
-          key={getTrackKey(mainTrack)}
-          trackRef={mainTrack}
-          disableMetadata
-        />
-      </MainSlot>
-      {thumbnailTrack && (
-        <Thumbnail>
+export const PipFocusLayout = memo(
+  ({ mainTrack, thumbnailTrack }: PipFocusLayoutProps) => {
+    return (
+      <FocusContainer>
+        <MainSlot>
           <ParticipantTile
-            key={getTrackKey(thumbnailTrack)}
-            trackRef={thumbnailTrack}
+            key={getTrackKey(mainTrack)}
+            trackRef={mainTrack}
             disableMetadata
           />
-        </Thumbnail>
-      )}
-    </FocusContainer>
-  )
-})
+        </MainSlot>
+        {thumbnailTrack && (
+          <Thumbnail>
+            <ParticipantTile
+              key={getTrackKey(thumbnailTrack)}
+              trackRef={thumbnailTrack}
+              disableMetadata
+            />
+          </Thumbnail>
+        )}
+      </FocusContainer>
+    )
+  }
+)
+PipFocusLayout.displayName = 'PipFocusLayout'
 
 const FocusContainer = styled('div', {
   base: {
