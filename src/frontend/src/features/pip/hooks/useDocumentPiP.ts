@@ -23,8 +23,8 @@ export const useDocumentPiP = ({
   const pendingPiPRef = useRef<Promise<Window | null> | null>(null)
 
   const [isSupported] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return 'documentPictureInPicture' in window
+    if (typeof globalThis === 'undefined') return false
+    return 'documentPictureInPicture' in globalThis
   })
 
   const openPiP = useCallback(async () => {
@@ -35,7 +35,8 @@ export const useDocumentPiP = ({
     if (pendingPiPRef.current) return pendingPiPRef.current
 
     // Request a new PiP window from the browser API.
-    const pip = (window as WindowWithDocumentPiP).documentPictureInPicture
+    const pip = (globalThis as unknown as WindowWithDocumentPiP)
+      .documentPictureInPicture
     if (!pip) return null
 
     const requestPromise = (async () => {

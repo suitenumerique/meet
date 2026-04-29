@@ -16,12 +16,11 @@ export const PipConnectionStateToast = () => {
     keyPrefix: 'options.items.pictureInPicture.connection',
   })
 
-  const label =
-    state === ConnectionState.Reconnecting
-      ? t('reconnecting')
-      : state === ConnectionState.Disconnected
-        ? t('disconnected')
-        : null
+  const connectionLabels: Partial<Record<ConnectionState, string>> = {
+    [ConnectionState.Reconnecting]: t('reconnecting'),
+    [ConnectionState.Disconnected]: t('disconnected'),
+  }
+  const label = connectionLabels[state] ?? null
 
   if (!label) return null
 

@@ -2,7 +2,7 @@ import { useSnapshot } from 'valtio'
 import { layoutStore } from '@/stores/layout'
 import { PanelId, SubPanelId } from '../types/panel'
 
-export { PanelId, SubPanelId }
+export { PanelId, SubPanelId } from '../types/panel'
 
 export type SidePanelStore = {
   activePanelId: PanelId | null

@@ -25,7 +25,7 @@ export const usePipElementSize = <T extends HTMLElement>(
     measure()
 
     const RO =
-      el.ownerDocument.defaultView?.ResizeObserver ?? window.ResizeObserver
+      el.ownerDocument.defaultView?.ResizeObserver ?? globalThis.ResizeObserver
     if (!RO) return
 
     const observer = new RO((entries) => {
