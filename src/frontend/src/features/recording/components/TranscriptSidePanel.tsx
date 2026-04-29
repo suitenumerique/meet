@@ -34,6 +34,7 @@ import { RowWrapper } from './RowWrapper'
 import { useMutateRecording } from '../hooks/useMutateRecording'
 import { useIsMetadataCollectorEnabled } from '../hooks/useMetadataCollectorEnabled'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -59,6 +60,8 @@ export const TranscriptSidePanel = () => {
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
+
+  const isAdminOrOwner = useIsAdminOrOwner()
 
   const isMetadataCollectorEnabled = useIsMetadataCollectorEnabled()
 
@@ -153,6 +156,7 @@ export const TranscriptSidePanel = () => {
         imagePath="/assets/intro-slider/3.png"
         handleRequest={handleRequestTranscription}
         isActive={statuses.isActive}
+        isAdminOrOwner={isAdminOrOwner}
       />
     )
   }

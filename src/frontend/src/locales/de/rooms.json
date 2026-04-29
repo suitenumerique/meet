@@ -416,7 +416,7 @@
     },
     "premium": {
       "heading": "Premium-Funktion",
-      "body": "Diese Funktion ist öffentlichen Bediensteten vorbehalten. Wenn deine E-Mail-Adresse nicht autorisiert ist, kontaktiere bitte den Support, um Zugriff zu erhalten.",
+      "body": "Diese Funktion ist für Sie nicht verfügbar. Bitte wenden Sie sich an den Support, um weitere Informationen zu erhalten.",
       "linkMore": "Dokumentation öffnen",
       "linkAriaLabel": "Dokumentation zum Premium-Zugang öffnen – öffnet in neuem Tab",
       "dividerLabel": "ODER",
@@ -456,6 +456,22 @@
       "body": "Aus Sicherheitsgründen kann nur die*der Ersteller:in bzw. Admin des Meetings eine Videoaufnahme (Beta) starten.",
       "linkMore": "Dokumentation öffnen",
       "linkAriaLabel": "Dokumentation zum Aufzeichnungszugang öffnen – öffnet in neuem Tab",
+      "dividerLabel": "ODER",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Nur die*der Ersteller:in bzw. Admin kann die Aufzeichnung starten. Melde dich an, um deine Berechtigungen zu überprüfen."
+      },
+      "request": {
+        "heading": "Aufnahme anfragen",
+        "body": "Die Moderation wird benachrichtigt und kann die Aufnahme starten.",
+        "buttonLabel": "Anfrage senden"
+      }
+    },
+    "premium": {
+      "heading": "Premium-Funktion",
+      "body": "Diese Funktion ist für Sie nicht verfügbar. Bitte wenden Sie sich an den Support, um weitere Informationen zu erhalten.",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Premium-Zugang öffnen – öffnet in neuem Tab",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",

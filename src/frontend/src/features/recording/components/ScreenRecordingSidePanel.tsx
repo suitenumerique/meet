@@ -5,6 +5,7 @@ import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
 import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
+  useHasRecordingAccess,
   useHumanizeRecordingMaxDuration,
   useRecordingStatuses,
 } from '@/features/recording'
@@ -26,7 +27,8 @@ import { Checkbox } from '@/primitives/Checkbox'
 import { useTranscriptionLanguage } from '@/features/settings'
 import { useMutateRecording } from '../hooks/useMutateRecording'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner.ts'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
+import { FeatureFlags } from '@/features/analytics/enums'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -38,6 +40,11 @@ export const ScreenRecordingSidePanel = () => {
   const [includeTranscript, setIncludeTranscript] = useState(false)
 
   const isAdminOrOwner = useIsAdminOrOwner()
+
+  const hasScreenRecordingAccess = useHasRecordingAccess(
+    RecordingMode.ScreenRecording,
+    FeatureFlags.ScreenRecording
+  )
 
   const { notifyParticipants } = useNotifyParticipants()
   const { selectedLanguageKey, isLanguageSetToAuto } =
@@ -113,6 +120,19 @@ export const ScreenRecordingSidePanel = () => {
         imagePath="/assets/intro-slider/4.png"
         handleRequest={handleRequestScreenRecording}
         isActive={statuses.isActive}
+      />
+    )
+  }
+
+  if (!hasScreenRecordingAccess) {
+    return (
+      <NoAccessView
+        i18nKeyPrefix={keyPrefix}
+        i18nKey="premium"
+        imagePath="/assets/intro-slider/3.png"
+        isActive={statuses.isActive}
+        handleRequest={handleRequestScreenRecording}
+        isAdminOrOwner={isAdminOrOwner}
       />
     )
   }

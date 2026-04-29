@@ -22,6 +22,7 @@ and this project adheres to
 - 🐛(summary) support webm #1290
 - ⬆️(backend) bump django-lasuite to v0.0.26
 - 🩹(frontend) use a more standard (quality) rating scale
+- 🩹(frontend) fix access control for screen recording feature flag
 
 ## [1.14.0] - 2026-04-16
 
