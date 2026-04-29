@@ -106,7 +106,7 @@ class SessionViewSet(viewsets.ViewSet):
         """Poll a session for its current state and, if terminal, consume it.
 
         Authenticates the caller using the addonsSid cookie (set by
-        /init) together with the X-CSRF-Token header, which must match
+        /init) together with the X-CSRFToken header, which must match
         the CSRF token issued for that session. The session id alone is not
         sufficient — both must be presented and must correspond.
 
@@ -127,7 +127,7 @@ class SessionViewSet(viewsets.ViewSet):
         """
 
         session_id = request.COOKIES.get(settings.ADDONS_SESSION_ID_COOKIE)
-        submitted_csrf = request.headers.get("X-CSRF-Token")
+        submitted_csrf = request.headers.get("X-CSRFToken")
 
         if not session_id:
             return drf_response.Response(

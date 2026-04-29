@@ -95,7 +95,7 @@ def test_init_cookie_authorizes_subsequent_poll():
 
     poll_response = api_client.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_token,
+        HTTP_X_CSRFTOKEN=csrf_token,
     )
 
     assert poll_response.status_code == 202
@@ -180,7 +180,7 @@ def test_poll_rejects_invalid_csrf_token():
 
     poll_response = api_client.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN="invalid-csrf-token",
+        HTTP_X_CSRFTOKEN="invalid-csrf-token",
     )
 
     # SuspiciousOperation translates to 400 via Django's exception middleware.
@@ -202,7 +202,7 @@ def test_poll_session_not_found(mock_get_session_data):
 
     poll_response = api_client.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_token,
+        HTTP_X_CSRFTOKEN=csrf_token,
     )
 
     assert poll_response.status_code == 404
@@ -224,7 +224,7 @@ def test_poll_session_corrupted(mock_get_session_data):
 
     poll_response = api_client.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_token,
+        HTTP_X_CSRFTOKEN=csrf_token,
     )
 
     assert poll_response.status_code == 400
@@ -249,7 +249,7 @@ def test_poll_session_authenticated():
 
     poll_response = api_client.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_token,
+        HTTP_X_CSRFTOKEN=csrf_token,
     )
 
     assert poll_response.status_code == 200
@@ -271,7 +271,7 @@ def test_poll_session_authenticated():
     # Server cleared the addonsSid cookie; APIClient drops it → no credentials.
     poll_response = api_client.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_token,
+        HTTP_X_CSRFTOKEN=csrf_token,
     )
     assert poll_response.status_code == 401
 
@@ -279,7 +279,7 @@ def test_poll_session_authenticated():
     api_client.cookies["addonsSid"] = session_id_cookie.value
     poll_response = api_client.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_token,
+        HTTP_X_CSRFTOKEN=csrf_token,
     )
     assert poll_response.status_code == 404
     assert poll_response.json() == {"detail": "Session not found."}
@@ -307,11 +307,11 @@ def test_poll_two_clients_do_not_interfere():
     # Each client polls its own session.
     poll_a = client_a.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_a,
+        HTTP_X_CSRFTOKEN=csrf_a,
     )
     poll_b = client_b.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_b,
+        HTTP_X_CSRFTOKEN=csrf_b,
     )
     assert poll_a.status_code == 202
     assert poll_b.status_code == 202
@@ -319,7 +319,7 @@ def test_poll_two_clients_do_not_interfere():
     # Cross-use (A's cookie + B's CSRF) must be rejected.
     cross_response = client_a.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_b,
+        HTTP_X_CSRFTOKEN=csrf_b,
     )
     assert cross_response.status_code == 400
 
@@ -336,13 +336,13 @@ def test_poll_two_clients_do_not_interfere():
     ):
         poll_a = client_a.post(
             "/api/v1.0/addons/sessions/poll/",
-            HTTP_X_CSRF_TOKEN=csrf_a,
+            HTTP_X_CSRFTOKEN=csrf_a,
         )
         assert poll_a.status_code == 200
 
     poll_b = client_b.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_b,
+        HTTP_X_CSRFTOKEN=csrf_b,
     )
     assert poll_b.status_code == 202
 
@@ -369,14 +369,14 @@ def test_poll_csrf_attack_does_not_disrupt_legitimate_client():
     # Fabricated CSRF token
     attack_bad_csrf = attacker.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN="attacker-guessed-token",
+        HTTP_X_CSRFTOKEN="attacker-guessed-token",
     )
     assert attack_bad_csrf.status_code == 400
 
     # Legitimate client's session is still usable.
     legitimate_poll = legitimate.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_token,
+        HTTP_X_CSRFTOKEN=csrf_token,
     )
     assert legitimate_poll.status_code == 202
     assert legitimate_poll.json() == {"state": "pending"}
@@ -508,7 +508,7 @@ def test_exchange_success_enables_poll_to_complete():
     # 3. Taskpane's next poll transitions from pending → authenticated.
     poll_response = taskpane.post(
         "/api/v1.0/addons/sessions/poll/",
-        HTTP_X_CSRF_TOKEN=csrf_token,
+        HTTP_X_CSRFTOKEN=csrf_token,
     )
     assert poll_response.status_code == 200
     response_data = poll_response.json()
