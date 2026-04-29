@@ -232,6 +232,26 @@ class ApplicationJWTAuthentication(BaseJWTAuthentication):
             raise exceptions.AuthenticationFailed("Invalid token type.")
 
 
+class AddonsJWTAuthentication(BaseJWTAuthentication):
+    """JWT authentication for addons API access.
+
+    Validates JWT tokens issued to addons.
+    """
+
+    def __init__(self):
+        """Initialize authentication backend with addons JWT settings from Django settings."""
+
+        super().__init__(
+            secret_key=settings.ADDONS_TOKEN_SECRET_KEY,
+            algorithm=settings.ADDONS_TOKEN_ALG,
+            issuer=settings.ADDONS_TOKEN_ISSUER,
+            audience=settings.ADDONS_TOKEN_AUDIENCE,
+            expiration_seconds=settings.ADDONS_TOKEN_TTL,
+            token_type=settings.ADDONS_TOKEN_TYPE,
+            is_enabled=settings.ADDONS_ENABLED,
+        )
+
+
 class ResourceServerBackend(LaSuiteBackend):
     """OIDC Resource Server backend for user creation and retrieval."""
 
