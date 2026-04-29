@@ -20,6 +20,7 @@ from rest_framework import (
 )
 
 from core import api, models
+from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
 
 from . import authentication, permissions, serializers
@@ -36,6 +37,7 @@ class ApplicationViewSet(viewsets.ViewSet):
         url_path="token",
         url_name="token",
     )
+    @FeatureFlag.require("application")
     def generate_jwt_access_token(self, request, *args, **kwargs):
         """Generate JWT access token for application delegation.
 

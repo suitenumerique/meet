@@ -819,6 +819,9 @@ class Base(Configuration):
     )
 
     # External Applications
+    APPLICATION_ENABLED = values.BooleanValue(
+        False, environ_name="APPLICATION_ENABLED", environ_prefix=None
+    )
     APPLICATION_CLIENT_ID_LENGTH = values.PositiveIntegerValue(
         40,
         environ_name="APPLICATION_CLIENT_ID_LENGTH",
@@ -1079,6 +1082,7 @@ class Test(Base):
         "url": "http://127.0.0.1.nip.io:7880",
     }
 
+    APPLICATION_ENABLED = True
     APPLICATION_JWT_SECRET_KEY = "secret-key-padded-for-minimum-len!-application"  # noqa:S105
     APPLICATION_JWT_AUDIENCE = "Test inc."
 

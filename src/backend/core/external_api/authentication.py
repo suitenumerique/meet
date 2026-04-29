@@ -23,7 +23,14 @@ class BaseJWTAuthentication(authentication.BaseAuthentication):
     """Base JWT authentication class."""
 
     def __init__(
-        self, secret_key, algorithm, issuer, audience, expiration_seconds, token_type
+        self,
+        secret_key,
+        algorithm,
+        issuer,
+        audience,
+        expiration_seconds,
+        token_type,
+        is_enabled,
     ):
         """Initialize the JWT authentication backend with the given token service configuration.
 
@@ -34,9 +41,16 @@ class BaseJWTAuthentication(authentication.BaseAuthentication):
             audience: Expected token audience identifier
             expiration_seconds: Token expiration time in seconds
             token_type: Token type (e.g. Bearer)
+            is_enabled: Whether this authentication backend is active
         """
 
         super().__init__()
+
+        self.is_enabled = is_enabled
+        self._token_service = None
+
+        if not self.is_enabled:
+            return
 
         self._token_service = jwt_token.JwtTokenService(
             secret_key=secret_key,
@@ -53,6 +67,9 @@ class BaseJWTAuthentication(authentication.BaseAuthentication):
         Returns:
             Tuple of (user, payload) if authentication successful, None otherwise
         """
+
+        if not self.is_enabled:
+            return None
 
         auth_header = authentication.get_authorization_header(request).split()
 
@@ -186,6 +203,7 @@ class ApplicationJWTAuthentication(BaseJWTAuthentication):
             audience=settings.APPLICATION_JWT_AUDIENCE,
             expiration_seconds=settings.APPLICATION_JWT_EXPIRATION_SECONDS,
             token_type=settings.APPLICATION_JWT_TOKEN_TYPE,
+            is_enabled=settings.APPLICATION_ENABLED,
         )
 
     def validate_payload(self, payload):

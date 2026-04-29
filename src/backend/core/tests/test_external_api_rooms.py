@@ -123,6 +123,25 @@ def test_api_rooms_list_with_expired_token(settings):
     assert "expired" in str(response.data).lower()
 
 
+@mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
+def test_api_rooms_list_with_application_disabled(mock_rs_authenticate, settings):
+    """Listing rooms should return 401 when application is disabled."""
+
+    settings.APPLICATION_ENABLED = False
+
+    user = UserFactory()
+
+    # Generate expired token
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 401
+    mock_rs_authenticate.assert_called_once()
+
+
 @responses.activate
 def test_api_rooms_list_with_invalid_rs_token(settings):
     """Listing rooms with invalid resource server token should return 400."""
@@ -1102,6 +1121,64 @@ def test_resource_server_authentication_successful(settings):
     expected_ids = {
         str(room_user_accesses.id),
     }
+    results_id = {result["id"] for result in results}
+    assert expected_ids == results_id
+
+
+@responses.activate
+def test_resource_server_authentication_successful_when_application_disabled(settings):
+    """Resource server should keep working when the application auth backend is disabled."""
+
+    settings.APPLICATION_ENABLED = False
+
+    user = UserFactory(sub="very-specific-sub")
+    other_user = UserFactory()
+
+    RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    RoomFactory(access_level=RoomAccessLevel.TRUSTED)
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    room_user_accesses = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED, users=[user]
+    )
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED, users=[other_user])
+
+    assert (
+        settings.OIDC_RS_BACKEND_CLASS
+        == "core.external_api.authentication.ResourceServerBackend"
+    )
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:list lasuite_meet:rooms:retrieve",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    results = response.json()["results"]
+    assert len(results) == 1
+    expected_ids = {str(room_user_accesses.id)}
     results_id = {result["id"] for result in results}
     assert expected_ids == results_id
 

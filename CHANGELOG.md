@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(backend) introduce add-ons authentication backend
 - 💬(backend) clarify french transcription audio download link text #1299
 - 🚧(addons) introduce initial Microsoft Outlook add-in support (alpha)
+- 🔧(backend) add setting to toggle application token exchange mechanism
 
 ### Fixed
 

@@ -19,6 +19,35 @@ from core.models import ApplicationScope, User
 pytestmark = pytest.mark.django_db
 
 
+def test_api_applications_generate_token_application_disabled(settings):
+    """When APPLICATION_ENABLED is False, the endpoint should return 404."""
+    settings.APPLICATION_ENABLED = False
+
+    user = UserFactory(email="user@example.com")
+    application = ApplicationFactory(
+        is_active=True,
+        scopes=[ApplicationScope.ROOMS_LIST],
+    )
+
+    plain_secret = "test-secret-123"
+    application.client_secret = plain_secret
+    application.save()
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        {
+            "client_id": application.client_id,
+            "client_secret": plain_secret,
+            "grant_type": "client_credentials",
+            "scope": user.email,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 404
+
+
 def test_api_applications_generate_token_success(settings):
     """Valid credentials should return a JWT token."""
     UserFactory(email="User.Family@example.com")
