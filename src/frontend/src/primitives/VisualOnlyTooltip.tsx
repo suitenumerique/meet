@@ -47,13 +47,17 @@ export const VisualOnlyTooltip = ({
     arrowLeft: number
   } | null>(null)
 
-  const isBottom = tooltipPosition === 'bottom'
+  const [effectiveBottom, setEffectiveBottom] = useState(
+    tooltipPosition === 'bottom'
+  )
 
   const showTooltip = () => {
     if (!wrapperRef.current) return
     const rect = wrapperRef.current.getBoundingClientRect()
+    const preferBottom = tooltipPosition === 'bottom'
+    setEffectiveBottom(preferBottom)
     setPosition({
-      top: isBottom ? rect.bottom + 8 : rect.top - 8,
+      top: preferBottom ? rect.bottom + 8 : rect.top - 8,
       left: rect.left + rect.width / 2,
     })
     setIsVisible(true)
@@ -66,19 +70,38 @@ export const VisualOnlyTooltip = ({
   }
 
   useLayoutEffect(() => {
-    if (!tooltipRef.current || !isVisible || !position) return
-    const tooltipWidth = tooltipRef.current.getBoundingClientRect().width
+    if (!tooltipRef.current || !wrapperRef.current || !isVisible || !position)
+      return
+    const tooltipRect = tooltipRef.current.getBoundingClientRect()
+    const triggerRect = wrapperRef.current.getBoundingClientRect()
     const doc = tooltipRef.current.ownerDocument
-    const viewportWidth = doc.defaultView?.innerWidth ?? window.innerWidth
+    const viewportWidth = doc.defaultView?.innerWidth ?? globalThis.innerWidth
     const padding = 8
-    const desiredLeft = position.left - tooltipWidth / 2
-    const maxLeft = viewportWidth - padding - tooltipWidth
-    if (desiredLeft <= maxLeft) {
+
+    // Vertical flip: if tooltip overflows the top, switch to bottom
+    if (!effectiveBottom && position.top - tooltipRect.height < 0) {
+      const flippedTop = triggerRect.bottom + 8
+      setEffectiveBottom(true)
+      setPosition({ top: flippedTop, left: position.left })
+      return
+    }
+
+    // Horizontal clamping (both edges)
+    const desiredLeft = position.left - tooltipRect.width / 2
+    const minLeft = padding
+    const maxLeft = viewportWidth - padding - tooltipRect.width
+
+    if (desiredLeft >= minLeft && desiredLeft <= maxLeft) {
       setComputedStyle(null)
       return
     }
-    setComputedStyle({ left: maxLeft, arrowLeft: position.left - maxLeft })
-  }, [isVisible, position])
+
+    const clampedLeft = Math.max(minLeft, Math.min(maxLeft, desiredLeft))
+    setComputedStyle({
+      left: clampedLeft,
+      arrowLeft: position.left - clampedLeft,
+    })
+  }, [isVisible, position, effectiveBottom])
 
   const portalContainer = useMemo(() => {
     if (getContainer) return getContainer()
@@ -126,7 +149,7 @@ export const VisualOnlyTooltip = ({
                 left: 'var(--tooltip-arrow-left, 50%)',
                 transform: 'translateX(-50%)',
                 border: '4px solid transparent',
-                ...(isBottom
+                ...(effectiveBottom
                   ? {
                       bottom: '100%',
                       borderBottomColor: 'primaryDark.100',
@@ -143,10 +166,10 @@ export const VisualOnlyTooltip = ({
                 ? `${computedStyle.left}px`
                 : `${position.left}px`,
               transform: computedStyle
-                ? isBottom
+                ? effectiveBottom
                   ? 'translateY(0)'
                   : 'translateY(-100%)'
-                : isBottom
+                : effectiveBottom
                   ? 'translate(-50%, 0)'
                   : 'translate(-50%, -100%)',
               ...(computedStyle
