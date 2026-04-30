@@ -15,6 +15,7 @@ and this project adheres to
 ### Fixed
 
 - ♻(frontend) standardize role terminology across localizations
+- 🐛(backend) make start-recording atomic and fault-tolerant
 
 ## [1.15.0] - 2026-04-30
 
