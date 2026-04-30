@@ -511,6 +511,10 @@
       "screenshare": {
         "label": "Share their screen",
         "description": "Disabling this option will prevent participants from sharing their screen, and any ongoing screen sharing will be stopped immediately."
+      },
+      "mute": {
+        "label": "Mute others",
+        "description": "When disabled, participants will no longer be able to mute other participants."
       }
     }
   },
