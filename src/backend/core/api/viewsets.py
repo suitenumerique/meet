@@ -6,7 +6,9 @@ from logging import getLogger
 from urllib.parse import unquote, urlparse
 
 from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.storage import default_storage
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -320,16 +322,25 @@ class RoomViewSet(
         options = serializer.validated_data.get("options")
         room = self.get_object()
 
-        # May raise exception if an active or initiated recording already exist for the room
-        recording = models.Recording.objects.create(
-            room=room,
-            mode=mode,
-            options=options.model_dump(exclude_none=True) if options else {},
-        )
-
-        models.RecordingAccess.objects.create(
-            user=self.request.user, role=models.RoleChoices.OWNER, recording=recording
-        )
+        try:
+            with transaction.atomic():
+                recording = models.Recording.objects.create(
+                    room=room,
+                    mode=mode,
+                    options=options.model_dump(exclude_none=True) if options else {},
+                )
+                models.RecordingAccess.objects.create(
+                    user=self.request.user,
+                    role=models.RoleChoices.OWNER,
+                    recording=recording,
+                )
+        except (IntegrityError, DjangoValidationError):
+            # The unique partial constraint may surface as ValidationError
+            # (via full_clean) or IntegrityError (DB-level race).
+            return drf_response.Response(
+                {"error": f"A recording is already in progress for room {room.slug}"},
+                status=drf_status.HTTP_409_CONFLICT,
+            )
 
         worker_service = get_worker_service(mode=recording.mode)
         worker_manager = WorkerServiceMediator(worker_service=worker_service)
@@ -337,6 +348,11 @@ class RoomViewSet(
         try:
             worker_manager.start(recording)
         except RecordingStartError:
+            # Move out of the unique-constraint window so the room is not
+            # locked from future recording attempts by this orphan row.
+            models.Recording.objects.filter(pk=recording.pk).update(
+                status=models.RecordingStatusChoices.FAILED_TO_START
+            )
             return drf_response.Response(
                 {"error": f"Recording failed to start for room {room.slug}"},
                 status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
