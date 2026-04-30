@@ -145,17 +145,81 @@ def test_start_recording_worker_error(
         "error": f"Recording failed to start for room {room.slug}"
     }
 
-    # Recording object should be created even if worker fails
+    # Recording object should be created even if worker fails, and moved out
+    # of the unique-constraint window so the room is not locked.
     assert Recording.objects.count() == 1
     recording = Recording.objects.first()
     assert recording.room == room
     assert recording.mode == "screen_recording"
+    assert recording.status == "failed_to_start"
 
     # Verify recording access details
     assert recording.accesses.count() == 1
     access = recording.accesses.first()
     assert access.user == user
     assert access.role == "owner"
+
+
+def test_start_recording_conflict_when_already_in_progress(
+    mock_worker_service_factory, mock_worker_manager, settings
+):
+    """A second start attempt while a recording is initiated/active returns 409."""
+    settings.RECORDING_ENABLE = True
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+
+    # Pre-existing active recording for the same room.
+    Recording.objects.create(room=room, mode="screen_recording", status="active")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+    )
+
+    assert response.status_code == 409
+    assert response.json() == {
+        "error": f"A recording is already in progress for room {room.slug}"
+    }
+    # No new recording row, no access row leaked from the rolled-back transaction.
+    assert Recording.objects.count() == 1
+    assert Recording.objects.first().accesses.count() == 0
+    mock_worker_manager.start.assert_not_called()
+
+
+def test_start_recording_after_worker_failure_unblocks_room(
+    mock_worker_service_factory, mock_worker_manager, settings
+):
+    """After a failed start, the room can accept a new recording."""
+    settings.RECORDING_ENABLE = True
+
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+
+    mock_worker_manager.start = mock.Mock(
+        side_effect=[RecordingStartError("boom"), None]
+    )
+
+    client = APIClient()
+    client.force_login(user)
+
+    first = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+    )
+    assert first.status_code == 500
+
+    second = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+    )
+    assert second.status_code == 201
+    assert Recording.objects.count() == 2
 
 
 def test_start_recording_success(

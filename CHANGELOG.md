@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛(backend) make start-recording atomic and unblock room on worker failure
+
 ## [1.15.0] - 2026-04-30
 
 ### Added
