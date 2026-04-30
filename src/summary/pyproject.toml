@@ -20,7 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ruff==0.15.6",
-    "pytest==9.0.2",
+    "pytest==9.0.3",
     "responses>=0.25.8",
 ]
 
