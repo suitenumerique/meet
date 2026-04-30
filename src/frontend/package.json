@@ -44,7 +44,7 @@
     "wouter": "3.9.0"
   },
   "devDependencies": {
-    "@pandacss/dev": "1.8.2",
+    "@pandacss/dev": "1.10.0",
     "@tanstack/eslint-plugin-query": "5.91.4",
     "@tanstack/react-query-devtools": "5.91.3",
     "@types/humanize-duration": "3.27.4",
@@ -59,7 +59,7 @@
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-react-refresh": "0.4.20",
-    "postcss": "8.5.6",
+    "postcss": "8.5.10",
     "prettier": "3.8.1",
     "typescript": "5.8.3",
     "vite": "7.3.2",
