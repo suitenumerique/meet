@@ -12,11 +12,9 @@ Office.onReady(function (info) {
   }
 });
 
-function notify(message, isError = false) {
+function notify(message) {
   Office.context.mailbox.item.notificationMessages.replaceAsync("meetNotif", {
-    type: isError
-      ? Office.MailboxEnums.ItemNotificationMessageType.ErrorMessage
-      : Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
+    type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
     message,
     persistent: false,
     icon: "Icon.16x16",
@@ -32,7 +30,7 @@ function insertMeetingLink(event, session) {
       return new Promise((resolve, reject) => {
         item.body.getAsync(Office.CoercionType.Html, (getResult) => {
           if (getResult.status !== Office.AsyncResultStatus.Succeeded) {
-            notify(`Erreur de lecture : ${getResult.error.message}`, true);
+            notify(`Erreur de lecture : ${getResult.error.message}`);
             resolve();
             return;
           }
@@ -40,7 +38,7 @@ function insertMeetingLink(event, session) {
           const newBody = getResult.value + message;
           item.body.setAsync(newBody, { coercionType: Office.CoercionType.Html }, (setResult) => {
             if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
-              notify(`Erreur d'insertion : ${setResult.error.message}`, true);
+              notify(`Erreur d'insertion : ${setResult.error.message}`);
               resolve();
               return;
             }
@@ -53,7 +51,7 @@ function insertMeetingLink(event, session) {
 
             item.location.setAsync(url, (locationResult) => {
               if (locationResult.status !== Office.AsyncResultStatus.Succeeded) {
-                notify(`Erreur de localisation : ${locationResult.error.message}`, true);
+                notify(`Erreur de localisation : ${locationResult.error.message}`);
               } else {
                 notify("Lien de réunion inséré !");
               }
@@ -64,7 +62,7 @@ function insertMeetingLink(event, session) {
       });
     })
     .catch((err) => {
-      notify(`Erreur : ${err.message}`, true);
+      notify(`Erreur : ${err.message}`);
     })
     .finally(() => {
       event.completed();
@@ -76,14 +74,16 @@ function connect(event) {
     .then((data) => {
       const stopPolling = startPolling(data.csrf_token, {
         onSuccess: (sessionData) => {
-          saveSession(sessionData).then(() => insertMeetingLink(event));
+          saveSession(sessionData).then(() => {
+            insertMeetingLink(event, sessionData);
+          });
         },
         onTimeout: () => {
-          notify("Connexion expirée, veuillez réessayer.", true);
+          notify("Connexion expirée, veuillez réessayer.");
           event.completed();
         },
         onError: (err) => {
-          notify("Une erreur est survenue, veuillez ré-essayer", true);
+          notify("Une erreur est survenue, veuillez ré-essayer");
           event.completed();
         },
       });
@@ -99,7 +99,7 @@ function connect(event) {
       });
     })
     .catch((err) => {
-      notify(`Erreur : ${err.message}`, true);
+      notify(`Erreur : ${err.message}`);
       event.completed();
     });
 }
