@@ -241,6 +241,23 @@
       "username": "Verander uw naam",
       "effects": "Pas effecten toe",
       "switchCamera": "Selecteer camera",
+      "pictureInPicture": {
+        "enter": "Beeld-in-beeld",
+        "exit": "Beeld-in-beeld sluiten",
+        "opened": "Beeld-in-beeld-modus ingeschakeld",
+        "closed": "Beeld-in-beeld-modus uitgeschakeld",
+        "windowLabel": "Beeld-in-beeld vergadering",
+        "stage": "Deelnemers",
+        "controlBar": "Vergaderbesturing",
+        "previousReactions": "Vorige reacties",
+        "nextReactions": "Volgende reacties",
+        "notificationsLabel": "Meldingen",
+        "dismissNotification": "Melding sluiten",
+        "connection": {
+          "reconnecting": "Opnieuw verbinden…",
+          "disconnected": "Verbinding verbroken"
+        }
+      },
       "fullscreen": {
         "enter": "Volledig scherm",
         "exit": "Stop volledig scherm stand"

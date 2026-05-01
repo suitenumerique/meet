@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { ChatMessage, isMobileBrowser } from '@livekit/components-core'
@@ -16,6 +16,10 @@ import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { Emoji } from '@/features/reactions/types'
 import { useReactions } from '@/features/reactions/hooks/useReactions'
 
+// Sliding window of recent chat ids kept for deduplication. Sized to comfortably
+// cover bursts and re-emits while staying negligible in memory.
+const MAX_TRACKED_CHAT_IDS = 16
+
 export const MainNotificationToast = () => {
   const room = useRoomContext()
   const { triggerNotificationSound } = useNotificationSound()
@@ -24,12 +28,23 @@ export const MainNotificationToast = () => {
 
   const { appendReaction } = useReactions()
 
+  // Multiple Chat instances may re-emit the same RoomEvent.ChatMessage.
+  // Dedupe against a small ring of recent ids.
+  const seenChatMsgIdsRef = useRef<string[]>([])
+
   useEffect(() => {
     const handleChatMessage = (
       chatMessage: ChatMessage,
       participant?: Participant | undefined
     ) => {
       if (!participant || participant.isLocal) return
+      const id = chatMessage.id
+      if (id) {
+        const seen = seenChatMsgIdsRef.current
+        if (seen.includes(id)) return
+        seen.push(id)
+        if (seen.length > MAX_TRACKED_CHAT_IDS) seen.shift()
+      }
       triggerNotificationSound(NotificationType.MessageReceived)
       toastQueue.add(
         {

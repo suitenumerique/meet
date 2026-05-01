@@ -241,6 +241,23 @@
       "username": "Deinen Namen aktualisieren",
       "effects": "Effekte anwenden",
       "switchCamera": "Kamera wechseln",
+      "pictureInPicture": {
+        "enter": "Bild-im-Bild",
+        "exit": "Bild-im-Bild schließen",
+        "opened": "Bild-im-Bild-Modus aktiviert",
+        "closed": "Bild-im-Bild-Modus deaktiviert",
+        "windowLabel": "Bild-im-Bild Besprechung",
+        "stage": "Teilnehmer",
+        "controlBar": "Besprechungssteuerung",
+        "previousReactions": "Vorherige Reaktionen",
+        "nextReactions": "Nächste Reaktionen",
+        "notificationsLabel": "Benachrichtigungen",
+        "dismissNotification": "Benachrichtigung schließen",
+        "connection": {
+          "reconnecting": "Verbindung wird wiederhergestellt…",
+          "disconnected": "Verbindung getrennt"
+        }
+      },
       "fullscreen": {
         "enter": "Vollbild",
         "exit": "Vollbildmodus verlassen"
