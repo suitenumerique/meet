@@ -34,6 +34,7 @@ and this project adheres to
 - 🔒️(helm) Add pod and container securityContext #1197
 - ✨(summary) add routes v2 for async STT and summary tasks #1171
 - ✅(backend) add unit tests for JwtTokenService #1232
+- ✨(helm) add support multiple transcribe worker / endpoint #1247
 
 ### Changed
 

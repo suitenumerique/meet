@@ -848,6 +848,21 @@ celeryTranscribe:
   pdb:
     enabled: false
 
+  ## @param celeryTranscribe.instances List of celeryTranscribe instances to deploy. Each entry creates a dedicated Deployment. Useful when wanting to use multiple instances of WhisperX (configure each endpoint in the extraEnv value specific to that instance).
+  ## @extra celeryTranscribe.instances[].name Unique name suffix for the instance (used in the Deployment name and pod labels)
+  ## @extra celeryTranscribe.instances[].replicas Override the number of replicas for this specific instance
+  ## @extra celeryTranscribe.instances[].extraEnvVars Additional environment variables for this specific instance (same structure as envVars)
+  ## @extra celeryTranscribe.instances[].command Override the container command for this specific instance
+  ## @extra celeryTranscribe.instances[].args Override the container args for this specific instance
+  ## @extra celeryTranscribe.instances[].resources Override resource requirements for this specific instance
+  ## @extra celeryTranscribe.instances[].nodeSelector Override node selector for this specific instance
+  ## @extra celeryTranscribe.instances[].affinity Override affinity for this specific instance
+  ## @extra celeryTranscribe.instances[].tolerations Override tolerations for this specific instance
+  ## @extra celeryTranscribe.instances[].pdb.enabled Enable pdb for this specific instance
+  instances:
+    - name: default
+      extraEnvVars: {}
+
 ## @section celerySummarize
 
 celerySummarize:
