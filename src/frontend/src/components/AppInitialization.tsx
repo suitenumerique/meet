@@ -21,11 +21,22 @@ export const AppInitialization = () => {
 
   useEffect(() => {
     if (custom_css_url) {
-      const link = document.createElement('link')
-      link.href = custom_css_url
-      link.id = 'meet-custom-css'
-      link.rel = 'stylesheet'
-      document.head.appendChild(link)
+      try {
+        const customCssUrl = new URL(custom_css_url, window.location.origin)
+        const trustedOrigins = [window.location.origin]
+
+        if (
+          customCssUrl.protocol === 'https:' &&
+          trustedOrigins.includes(customCssUrl.origin)
+        ) {
+          const link = document.createElement('link')
+          link.href = customCssUrl.toString()
+          link.id = 'meet-custom-css'
+          link.rel = 'stylesheet'
+          document.head.appendChild(link)
+        }
+      } catch {
+      }
     }
   }, [custom_css_url])
 
