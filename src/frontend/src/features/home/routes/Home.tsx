@@ -1,25 +1,26 @@
-import { useTranslation } from 'react-i18next'
-import { DialogTrigger, MenuItem, Menu as RACMenu } from 'react-aria-components'
+import { UserAware, useUser } from '@/features/auth'
+import { IntroSlider } from '@/features/home/components/IntroSlider'
+import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
+import { MoreLink } from '@/features/home/components/MoreLink'
+import { PersonalizeMeetingDialog } from '@/features/home/components/PersonalizeMeetingDialog'
+import { generateRoomId, useCreateRoom } from '@/features/rooms'
+import { Screen } from '@/layout/Screen'
+import { navigateTo } from '@/navigation/navigateTo'
 import { Button, Menu } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
-import { navigateTo } from '@/navigation/navigateTo'
-import { Screen } from '@/layout/Screen'
-import { generateRoomId, useCreateRoom } from '@/features/rooms'
-import { useUser, UserAware } from '@/features/auth'
-import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
-import { RiAddLine, RiLink } from '@remixicon/react'
-import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
-import { IntroSlider } from '@/features/home/components/IntroSlider'
-import { MoreLink } from '@/features/home/components/MoreLink'
+import { usePersistentUserChoices } from '@livekit/components-react'
+import { RiAddLine, RiLink, RiUserAddLine } from '@remixicon/react'
 import { ReactNode, useEffect, useState } from 'react'
+import { DialogTrigger, MenuItem, Menu as RACMenu } from 'react-aria-components'
+import { useTranslation } from 'react-i18next'
+import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
 
-import { css } from '@/styled-system/css'
-import { menuRecipe } from '@/primitives/menuRecipe.ts'
-import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { useConfig } from '@/api/useConfig'
+import { LoadingScreen } from '@/components/LoadingScreen'
 import { LoginButton } from '@/components/LoginButton'
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
-import { LoadingScreen } from '@/components/LoadingScreen'
+import { menuRecipe } from '@/primitives/menuRecipe.ts'
+import { css } from '@/styled-system/css'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -157,6 +158,7 @@ export const Home = () => {
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
   const [redirectFailed, setRedirectFailed] = useState(false)
+  const [isPersonalizeModalOpen, setIsPersonalizeModalOpen] = useState(false)
 
   const { data } = useConfig()
 
@@ -237,6 +239,18 @@ export const Home = () => {
                       <RiLink size={18} />
                       {t('createMenu.laterOption')}
                     </MenuItem>
+                    <MenuItem
+                      className={
+                        menuRecipe({ icon: true, variant: 'light' }).item
+                      }
+                      onAction={() => {
+                        setIsPersonalizeModalOpen(true)
+                      }}
+                      data-attr="create-option-personalize"
+                    >
+                      <RiUserAddLine size={18} />
+                      {t('createMenu.personalizeOption')}
+                    </MenuItem>
                   </RACMenu>
                 </Menu>
               ) : (
@@ -267,6 +281,10 @@ export const Home = () => {
         <LaterMeetingDialog
           room={laterRoom}
           onOpenChange={() => setLaterRoom(null)}
+        />
+        <PersonalizeMeetingDialog
+          isOpen={isPersonalizeModalOpen}
+          onOpenChange={() => setIsPersonalizeModalOpen(false)}
         />
       </Screen>
     </UserAware>

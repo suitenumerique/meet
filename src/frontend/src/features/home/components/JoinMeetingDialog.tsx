@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next'
-import { Field, Ul, H, P, Form, Dialog } from '@/primitives'
-import { navigateTo } from '@/navigation/navigateTo'
 import { isRoomValid } from '@/features/rooms'
+import { navigateTo } from '@/navigation/navigateTo'
+import { Dialog, Field, Form, H, P, Ul } from '@/primitives'
+import { useTranslation } from 'react-i18next'
 
 export const JoinMeetingDialog = () => {
   const { t } = useTranslation('home')
@@ -22,6 +22,7 @@ export const JoinMeetingDialog = () => {
         <Ul>
           <li>{window.location.origin}/uio-azer-jkl</li>
           <li>uio-azer-jkl</li>
+          <li>teamalpha</li>
         </Ul>
       </>
     ) : null
