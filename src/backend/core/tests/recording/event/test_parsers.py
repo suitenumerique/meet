@@ -81,25 +81,65 @@ def test_parse_missing_keys(minio_parser):
         minio_parser.parse(invalid_minio_event)
 
 
-def test_parse_none_key(minio_parser):
-    """Test parsing event with None field."""
+def test_parse_none_content_type_falls_back_to_guess(minio_parser):
+    """Test parsing event with None contentType falls back to mimetypes guess."""
 
-    invalid_minio_event = {
+    event_data = {
         "Records": [
             {
                 "s3": {
                     "bucket": {"name": "test-bucket"},
                     "object": {
-                        "key": "recording%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
-                        "contentType": None,  # 'contentType' should not be None
+                        "key": "recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.ogg",
+                        "contentType": None,
                     },
                 }
             }
         ]
     }
 
-    with pytest.raises(ParsingEventDataError, match="Missing essential data fields"):
-        minio_parser.parse(invalid_minio_event)
+    event = minio_parser.parse(event_data)
+    assert event.filetype == "audio/ogg"
+
+
+def test_parse_missing_content_type_falls_back_to_guess(minio_parser):
+    """Test parsing event with missing contentType falls back to mimetypes guess."""
+
+    event_data = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    "object": {
+                        "key": "recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.mp4",
+                    },
+                }
+            }
+        ]
+    }
+
+    event = minio_parser.parse(event_data)
+    assert event.filetype == "video/mp4"
+
+
+def test_parse_missing_content_type_unknown_extension(minio_parser):
+    """Test parsing event with missing contentType and unguessable extension."""
+
+    event_data = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    "object": {
+                        "key": "recordings%2F46d1a121-2426-484d-8fb3-09b5d886f7a8.xyz",
+                    },
+                }
+            }
+        ]
+    }
+
+    event = minio_parser.parse(event_data)
+    assert event.filetype == ""
 
 
 def test_validate_invalid_bucket(minio_parser):

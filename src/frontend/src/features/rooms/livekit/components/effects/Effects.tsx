@@ -3,13 +3,13 @@ import { LocalVideoTrack } from 'livekit-client'
 import { css } from '@/styled-system/css'
 import { EffectsConfiguration } from './EffectsConfiguration'
 import { useCanPublishTrack } from '@/features/rooms/livekit/hooks/useCanPublishTrack'
-import { TrackSource } from '@livekit/protocol'
+import { Track } from 'livekit-client'
 
 export const Effects = () => {
   const { cameraTrack } = useLocalParticipant()
   const localCameraTrack = cameraTrack?.track as LocalVideoTrack
 
-  const canPublishCamera = useCanPublishTrack(TrackSource.CAMERA)
+  const canPublishCamera = useCanPublishTrack(Track.Source.Camera)
 
   return (
     <div
