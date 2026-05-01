@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Aufzeichnung nicht verfügbar",
-    "body": "Die Aufzeichnung ist nicht verfügbar oder wurde möglicherweise gelöscht. Nur die*der Organisator:in der Besprechung hat Zugriff darauf. Wende dich bei Bedarf gerne an die Person."
+    "body": "Die Aufzeichnung ist nicht verfügbar oder wurde möglicherweise gelöscht. Nur der Host der Besprechung hat Zugriff darauf. Wende dich bei Bedarf gerne an die Person."
   },
   "expired": {
     "title": "Aufzeichnung abgelaufen",
@@ -22,7 +22,7 @@
     "button": "Herunterladen",
     "warning": {
       "title": "Linkfreigabe deaktiviert",
-      "body": "Die Freigabe der Aufzeichnung per Link ist noch nicht verfügbar. Nur Organisator:innen können sie herunterladen."
+      "body": "Die Freigabe der Aufzeichnung per Link ist noch nicht verfügbar. Nur Hosts können sie herunterladen."
     }
   }
 }

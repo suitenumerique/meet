@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Recording unavailable",
-    "body": "The recording is unavailable or may have been deleted. Only the meeting organizer can access it. Feel free to contact them if needed."
+    "body": "The recording is unavailable or may have been deleted. Only the meeting host can access it. Feel free to contact them if needed."
   },
   "expired": {
     "title": "Recording expired",
@@ -22,7 +22,7 @@
     "button": "Download",
     "warning": {
       "title": "Link sharing disabled",
-      "body": "Sharing the recording via link is not yet available. Only organizers can download it."
+      "body": "Sharing the recording via link is not yet available. Only hosts can download it."
     }
   }
 }
