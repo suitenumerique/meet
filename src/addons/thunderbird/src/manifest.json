@@ -18,5 +18,24 @@
     "default_popup": "popup/popup.html",
     "default_icon": "icons/icon-32.png"
   },
-  "permissions": ["compose"]
+  "permissions": ["compose"],
+  "experiment_apis": {
+    "calendar_provider": {
+      "schema": "experiments/calendar/schema/calendar-provider.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["calendar", "provider"]],
+        "script": "experiments/calendar/parent/ext-calendar-provider.js",
+        "events": ["startup"]
+      }
+    },
+    "calendar_calendars": {
+      "schema": "experiments/calendar/schema/calendar-calendars.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["calendar", "calendars"]],
+        "script": "experiments/calendar/parent/ext-calendar-calendars.js"
+      }
+    }
+  }
 }
