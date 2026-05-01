@@ -27,6 +27,10 @@ and this project adheres to
 - 🩹(frontend) fix access control for screen recording feature flag
 - 🩹(frontend) fix reconnect loop caused by connectionObserverStore updates
 
+### Changed
+
+- ♻️(frontend) unify TrackSource usage to livekit-client Track.Source #1282
+
 ## [1.14.0] - 2026-04-16
 
 ### Added
