@@ -45,6 +45,7 @@ and this project adheres to
 - ✨(summary) allow more file extensions #1265
 - ♿️(frontend) refocus reactions toolbar with ctrl+shift+e is activated #1262
 - ♿️(frontend) set an explicit document title on recording download page #1261
+- ♿️(frontend) add customizable accessibility fonts #1270
 
 ### Fixed
 

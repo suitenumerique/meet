@@ -117,6 +117,16 @@
     "announceReactions": {
       "label": "Vocaliser les réactions"
     },
+    "font": {
+      "label": "Police d'affichage",
+      "description": "Personnalisez la police utilisée dans l'interface pour améliorer votre confort de lecture.",
+      "options": {
+        "default": "Par défaut (système)",
+        "lexend": "Lexend (lisibilité améliorée)",
+        "atkinson-hyperlegible": "Atkinson Hyperlegible (basse vision)",
+        "opendyslexic": "OpenDyslexic (dyslexie)"
+      }
+    },
     "captions": {
       "heading": "Sous-titres",
       "textSize": {

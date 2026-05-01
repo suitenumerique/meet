@@ -38,7 +38,7 @@
   --lk-control-bar-height: 69px;
   --lk-chat-header-height: 69px;
 
-  --lk-font-family: var(--fonts-sans);
+  --lk-font-family: var(--app-font-family, var(--fonts-sans));
   --lk-font-size: 1rem;
   --lk-bg6: #6b7280;
   --lk-control-border-width: 1px;
