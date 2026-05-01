@@ -34,10 +34,16 @@ class RoomSerializer(serializers.ModelSerializer):
     following the principle of least privilege.
     """
 
+    access_level = serializers.ChoiceField(
+        choices=models.RoomAccessLevel.choices,
+        required=False,
+    )
+    configuration = serializers.JSONField(required=False)
+
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "pin_code", "access_level"]
-        read_only_fields = ["id", "name", "slug", "pin_code", "access_level"]
+        fields = ["id", "name", "slug", "pin_code", "access_level", "configuration"]
+        read_only_fields = ["id", "name", "slug", "pin_code"]
 
     def to_representation(self, instance):
         """Enrich response with application-specific computed fields."""
@@ -68,6 +74,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
         # Set secure defaults
         validated_data["name"] = utils.generate_room_slug()
-        validated_data["access_level"] = models.RoomAccessLevel.TRUSTED
+        validated_data.setdefault("access_level", models.RoomAccessLevel.TRUSTED)
+        validated_data.setdefault("configuration", {})
 
         return super().create(validated_data)
