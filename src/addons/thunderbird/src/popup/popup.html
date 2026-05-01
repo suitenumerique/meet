@@ -1,12 +1,18 @@
 <!doctype html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <title>Meeting link</title>
-</head>
-<body style="font: 13px system-ui; padding: 12px; min-width: 220px;">
-<button id="go">Hello from popup</button>
-<div id="status" style="margin-top: 8px; color: #555;"></div>
-<script src="popup.js"></script>
-</body>
+    <head>
+        <meta charset="utf-8">
+        <title>Meeting link</title>
+        <style>
+            body { font: 13px system-ui; padding: 12px; min-width: 240px; margin: 0; }
+            button { font: inherit; padding: 6px 12px; cursor: pointer; }
+            #status { margin-top: 8px; color: #555; min-height: 1.2em; white-space: pre-wrap; }
+            #status.error { color: #b00020; }
+        </style>
+    </head>
+    <body>
+        <button id="insert">Insert meeting link</button>
+        <div id="status"></div>
+        <script src="popup.js"></script>
+    </body>
 </html>

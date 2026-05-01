@@ -10,7 +10,8 @@
     }
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background.js"],
+    "type": "module"
   },
   "compose_action": {
     "default_title": "Insert meeting link",
