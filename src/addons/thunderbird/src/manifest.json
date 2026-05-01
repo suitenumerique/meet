@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Meeting Link (dev)",
+  "version": "0.1.0",
+  "description": "Spike 0 — verifying the dev loop",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "meeting-link-dev@yourcompany.example",
+      "strict_min_version": "128.0"
+    }
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "compose_action": {
+    "default_title": "Insert meeting link",
+    "default_popup": "popup/popup.html",
+    "default_icon": "icons/icon-32.png"
+  },
+  "permissions": ["compose"]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "thunderbird",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "web-ext run",
+    "lint": "web-ext lint --source-dir=./src"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "web-ext": "^10.1.0"
+  }
+}
