@@ -15,13 +15,6 @@ export const UI_FONT_OPTIONS: UiFont[] = [
   'opendyslexic',
 ]
 
-export const UI_FONT_OVERRIDES: Partial<Record<UiFont, string>> = {
-  lexend: '"Lexend Variable", var(--app-font-family-base)',
-  'atkinson-hyperlegible':
-    '"Atkinson Hyperlegible Next Variable", var(--app-font-family-base)',
-  opendyslexic: 'OpenDyslexic, var(--app-font-family-base)',
-}
-
 export type CaptionTextSize = 'small' | 'medium' | 'large'
 
 export const CAPTION_TEXT_SIZE_OPTIONS: CaptionTextSize[] = [
