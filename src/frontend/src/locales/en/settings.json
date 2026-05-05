@@ -121,7 +121,7 @@
       "label": "Display font",
       "description": "Customize the font used in the interface to improve your reading comfort.",
       "options": {
-        "default": "Default (system)",
+        "default": "Default",
         "lexend": "Lexend (improved readability)",
         "atkinson-hyperlegible": "Atkinson Hyperlegible (low vision)",
         "opendyslexic": "OpenDyslexic (dyslexia)"

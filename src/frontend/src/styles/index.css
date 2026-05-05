@@ -6,9 +6,17 @@ body,
   height: 100%;
 }
 
-:root {
-  --app-font-family-base: var(--fonts-sans);
-  --app-font-family: var(--app-font-family-base);
+html.font-lexend {
+  --fonts-sans: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+html.font-atkinson-hyperlegible {
+  --fonts-sans:
+    'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+html.font-opendyslexic {
+  --fonts-sans: OpenDyslexic, ui-sans-serif, system-ui, sans-serif;
 }
 
 .sr-only {
