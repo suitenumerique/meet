@@ -54,7 +54,9 @@ def create_stt_provider():
         )
         _stt_instance = mistralai.STT(
             client=client,
-            model=os.getenv("VOXTRAL_STT_MODEL", "voxtral-mini-latest"),
+            model=os.getenv(
+                "VOXTRAL_STT_MODEL", "oxtral-mini-transcribe-realtime-2602"
+            ),
         )
     else:
         raise ValueError(f"Unknown STT_PROVIDER: {STT_PROVIDER}")
