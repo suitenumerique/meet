@@ -25,7 +25,6 @@ export const PipFocusLayout = memo(
           <ParticipantTile
             key={getTrackKey(mainTrack)}
             trackRef={mainTrack}
-            disableMetadata
           />
         </MainSlot>
         {thumbnailTrack && (
@@ -33,7 +32,6 @@ export const PipFocusLayout = memo(
             <ParticipantTile
               key={getTrackKey(thumbnailTrack)}
               trackRef={thumbnailTrack}
-              disableMetadata
             />
           </Thumbnail>
         )}
