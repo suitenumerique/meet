@@ -8,6 +8,7 @@ import { pipLayoutStore } from '../stores/pipLayoutStore'
 import { useEscapeDismiss } from '../hooks/useEscapeDismiss'
 import { usePipKeyboardShortcuts } from '../hooks/usePipKeyboardShortcuts'
 import { usePipRestoreFocus } from '../hooks/usePipRestoreFocus'
+import { usePipFocusModality } from '../hooks/usePipFocusModality'
 import { PipControlBar } from './PipControlBar'
 import { PipReactionsToolbar } from './PipReactionsToolbar'
 import { PipStage } from './layouts/PipStage'
@@ -28,6 +29,9 @@ export const PipView = () => {
 
   // Forward keyboard shortcuts (Ctrl+D, Ctrl+E, etc.) to the main store.
   usePipKeyboardShortcuts(containerRef)
+
+  // Sync React Aria's focus-visible modality with the PiP document.
+  usePipFocusModality(containerRef)
 
   // Side panels open via a menu item that unmounts on click; fall back to the
   // options button so focus returns somewhere visible.
