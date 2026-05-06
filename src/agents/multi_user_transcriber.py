@@ -47,14 +47,14 @@ def create_stt_provider():
         )
     elif STT_PROVIDER == "kyutai":
         _stt_instance = kyutai.STT(base_url=os.getenv("KYUTAI_STT_BASE_URL"))
-    elif STT_PROVIDER == "voxtral-realtime":
+    elif STT_PROVIDER == "voxtral-realtime":os.getenv("
         client = Mistral(
             api_key=os.getenv("VOXTRAL_REALTIME_STT_API_KEY"),
             server_url=os.getenv("VOXTRAL_REALTIME_STT_BASE_URL"),
         )
         _stt_instance = mistralai.STT(
             client=client,
-            model="voxtral-mini-latest",
+            model=os.getenv("VOXTRAL_STT_MODEL", "voxtral-mini-latest"),
         )
     else:
         raise ValueError(f"Unknown STT_PROVIDER: {STT_PROVIDER}")
