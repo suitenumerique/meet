@@ -13,17 +13,17 @@ import {
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
-import { setSymmetricKey, getSymmetricKey, getEncryptedVaultKey, generatePassphrase } from '@/features/encryption/lobbyKeyExchange'
-import { isEncryptedRoom, ApiEncryptionMode } from '../api/ApiRoom'
-import { VaultE2EEManager } from '@/features/encryption/VaultE2EEManager'
-import { useVaultClient } from '@/features/encryption'
+import {
+  generatePassphrase,
+  getPassphraseFromHash,
+  isValidPassphrase,
+  EncryptionStatusProvider,
+  EncryptionMismatchScreen,
+  EncryptionPhase,
+} from '@/features/encryption'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
-import { CenteredContent } from '@/layout/CenteredContent'
-import { RiLockLine } from '@remixicon/react'
-import { Center } from '@/styled-system/jsx'
-import { Text } from '@/primitives'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
@@ -95,28 +95,43 @@ export const Conference = ({
     retry: false,
   })
 
-  const encryptionEnabled = isEncryptedRoom(data)
-  const { client: vaultClient, hasKeys: vaultHasKeys, error: vaultError, isLoading: vaultLoading } = useVaultClient()
+  // Trust the URL hash for the runtime "is encrypted" decision: it's the
+  // only signal a hacked server can't fabricate. The DB flag tells us
+  // whether the room creator *meant* this room to be encrypted — it's used
+  // to detect mismatches (see below) but never to enable encryption alone.
+  const hashPassphrase = getPassphraseFromHash()
+  const dbSaysEncrypted = !!data?.is_encrypted
+  const hasValidHash = isValidPassphrase(hashPassphrase)
 
-  // Determine which E2EE backend to use based solely on the room's encryption_mode.
-  // Advanced mode always uses VaultClient, basic mode always uses LiveKit Worker+KeyProvider.
-  const useVaultE2EE = data?.encryption_mode === ApiEncryptionMode.ADVANCED
+  const encryptionMismatch:
+    | 'missingPassphrase'
+    | 'unexpectedPassphrase'
+    | null =
+    data === undefined
+      ? null
+      : dbSaysEncrypted && !hasValidHash
+        ? 'missingPassphrase'
+        : !dbSaysEncrypted && hashPassphrase.length > 0
+          ? 'unexpectedPassphrase'
+          : null
 
-  // Refs for both approaches (only one is used per session)
+  const isEncrypted = dbSaysEncrypted && hasValidHash
+
   const keyProviderRef = useRef<ExternalE2EEKeyProvider | null>(null)
   const workerRef = useRef<Worker | null>(null)
-  const vaultManagerRef = useRef<VaultE2EEManager | null>(null)
-  const [encryptionSetupComplete, setEncryptionSetupComplete] = useState(!encryptionEnabled)
+  const [encryptionSetupComplete, setEncryptionSetupComplete] = useState(
+    !isEncrypted
+  )
 
   const getKeyProvider = () => {
-    if (!keyProviderRef.current && encryptionEnabled && !useVaultE2EE) {
+    if (!keyProviderRef.current && isEncrypted) {
       keyProviderRef.current = new ExternalE2EEKeyProvider()
     }
     return keyProviderRef.current
   }
 
   const getWorker = () => {
-    if (!workerRef.current && encryptionEnabled && !useVaultE2EE && typeof window !== 'undefined') {
+    if (!workerRef.current && isEncrypted && typeof window !== 'undefined') {
       workerRef.current = new Worker(
         new URL('livekit-client/e2ee-worker', import.meta.url)
       )
@@ -124,20 +139,13 @@ export const Conference = ({
     return workerRef.current
   }
 
-  const getVaultManager = () => {
-    if (!vaultManagerRef.current && useVaultE2EE && vaultClient) {
-      vaultManagerRef.current = new VaultE2EEManager(vaultClient)
-    }
-    return vaultManagerRef.current
-  }
-
   const roomOptions = useMemo((): RoomOptions => {
     const baseOptions: RoomOptions = {
       adaptiveStream: true,
       dynacast: true,
       publishDefaults: {
-        videoCodec: encryptionEnabled ? undefined : 'vp9',
-        red: !encryptionEnabled,
+        videoCodec: isEncrypted ? undefined : 'vp9',
+        red: !isEncrypted,
       },
       videoCaptureDefaults: {
         deviceId: userConfig.videoDeviceId ?? undefined,
@@ -153,12 +161,7 @@ export const Conference = ({
       },
     }
 
-    if (useVaultE2EE) {
-      const vaultManager = getVaultManager()
-      if (vaultManager) {
-        baseOptions.encryption = { e2eeManager: vaultManager }
-      }
-    } else if (encryptionEnabled) {
+    if (isEncrypted) {
       const worker = getWorker()
       const keyProvider = getKeyProvider()
       if (keyProvider && worker) {
@@ -168,9 +171,10 @@ export const Conference = ({
 
     return baseOptions
     // do not rely on the userConfig object directly as its reference may change on every render
+    // getKeyProvider/getWorker are stable refs, intentionally not in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    encryptionEnabled,
-    useVaultE2EE,
+    isEncrypted,
     userConfig.videoDeviceId,
     userConfig.videoPublishResolution,
     userConfig.audioDeviceId,
@@ -193,46 +197,12 @@ export const Conference = ({
     return livekit_url
   }, [apiConfig?.livekit])
 
-  // Encryption key setup:
-  // VaultE2EE: admin generates key via vaultClient.encryptWithoutKey(), joiner receives wrapped key
-  // Fallback: admin generates passphrase, joiner receives via lobby DH exchange
   const isAdmin = mode === 'create' || data?.is_administrable === true
   const adminPassphraseRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!encryptionEnabled || encryptionSetupComplete) return
+    if (!isEncrypted || encryptionSetupComplete) return
 
-    if (useVaultE2EE) {
-      // Advanced mode: VaultE2EEManager delegates crypto to VaultClient iframe
-      const vaultManager = getVaultManager()
-      if (!vaultManager || !vaultClient) return
-      if (isAdmin) {
-        const existingKey = data?.encrypted_symmetric_key
-        if (existingKey) {
-          const binaryStr = atob(existingKey)
-          const bytes = new Uint8Array(binaryStr.length)
-          for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
-          vaultManager.setEncryptedSymmetricKey(bytes.buffer)
-        }
-      } else {
-        const vaultKey = getEncryptedVaultKey()
-        if (vaultKey) {
-          vaultManager.setEncryptedSymmetricKey(vaultKey)
-        }
-      }
-
-      // Enable E2EE BEFORE connecting — no tracks exist yet so
-      // republishAllTracks() is a no-op. Calling after connection
-      // triggers republish which times out.
-      room.setE2EEEnabled(true).catch((err) => {
-        console.error('[VaultE2EE] E2EE enable failed:', err)
-      })
-
-      setEncryptionSetupComplete(true)
-      return
-    }
-
-    // Basic mode: LiveKit Worker+KeyProvider with passphrase
     const keyProvider = getKeyProvider()
     if (!keyProvider) return
 
@@ -240,7 +210,7 @@ export const Conference = ({
 
     if (isAdmin) {
       if (!adminPassphraseRef.current) {
-        const existingHash = window.location.hash.slice(1)
+        const existingHash = getPassphraseFromHash()
         if (existingHash) {
           adminPassphraseRef.current = existingHash
         } else {
@@ -253,18 +223,8 @@ export const Conference = ({
         }
       }
       passphrase = adminPassphraseRef.current
-      setSymmetricKey(new TextEncoder().encode(passphrase))
     } else {
-      const hashKey = window.location.hash.slice(1)
-      if (hashKey) {
-        passphrase = hashKey
-        setSymmetricKey(new TextEncoder().encode(passphrase))
-      } else {
-        const preExchangedKey = getSymmetricKey()
-        if (preExchangedKey) {
-          passphrase = new TextDecoder().decode(preExchangedKey)
-        }
-      }
+      passphrase = getPassphraseFromHash() || null
     }
 
     if (!passphrase) {
@@ -277,8 +237,6 @@ export const Conference = ({
       .then(async () => {
         // Enable E2EE BEFORE connecting — sets encryptionType=GCM so tracks
         // are published with encryption metadata from the start.
-        // Also sends 'enable' to the Worker before any frames flow,
-        // eliminating the unencrypted frame window.
         try {
           await room.setE2EEEnabled(true)
         } catch (err) {
@@ -290,28 +248,24 @@ export const Conference = ({
       .catch((err) => {
         console.error('[Encryption] Key setup failed:', err)
       })
+    // getKeyProvider is a stable ref; not part of deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room, isEncrypted, encryptionSetupComplete, isAdmin])
 
-  }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin, useVaultE2EE])
-
-  // In basic encrypted rooms, the passphrase is in the URL hash.
-  // If the user changes the hash (e.g. corrects a typo), reload the page
+  // If the user changes the hash mid-session (e.g. corrects a typo), reload
   // so the new passphrase is picked up by the encryption setup.
   useEffect(() => {
-    if (!encryptionEnabled || useVaultE2EE) return
+    if (!isEncrypted) return
     const handleHashChange = () => {
       window.location.reload()
     }
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [encryptionEnabled, useVaultE2EE])
+  }, [isEncrypted])
 
   useEffect(() => {
     /**
      * Warm up connection to LiveKit server before joining room
-     * This prefetch helps reduce initial connection latency by establishing
-     * an early HTTP connection to the WebRTC signaling server
-     *
-     * It should cache DNS and TLS keys.
      */
     const prepareConnection = async () => {
       if (!apiConfig || isConnectionWarmedUp) return
@@ -325,20 +279,9 @@ export const Conference = ({
               .replace(/\/$/, '') + '/rtc'
 
           /**
-           * FIREFOX + PROXY WORKAROUND:
-           *
-           * Issue: On Firefox behind proxy configurations, WebSocket signaling fails to establish.
-           * Symptom: Client receives HTTP 200 instead of expected 101 (Switching Protocols).
-           * Root Cause: Certificate/security issue where the initial request is considered unsecure.
-           *
-           * Solution: Pre-establish a WebSocket connection to the signaling server, which fails.
-           * This "primes" the connection, allowing subsequent WebSocket establishments to work correctly.
-           *
-           * Note: This issue is reproducible on LiveKit's demo app.
-           * Reference: livekit-examples/meet/issues/466
+           * FIREFOX + PROXY WORKAROUND — see livekit-examples/meet/issues/466
            */
           const ws = new WebSocket(wssUrl)
-          // 401 unauthorized response is expected
           ws.onerror = () => ws.readyState <= 1 && ws.close()
         } catch (e) {
           console.debug('Firefox WebSocket workaround failed.', e)
@@ -349,6 +292,21 @@ export const Conference = ({
     }
     prepareConnection()
   }, [room, apiConfig, isConnectionWarmedUp])
+
+  const handlePhaseChange = (phase: EncryptionPhase) => {
+    if (!isEncrypted) return
+    if (phase === EncryptionPhase.PAUSED) {
+      void room.setE2EEEnabled(false).catch((err) => {
+        console.error('[Encryption] E2EE pause failed', err)
+      })
+    } else if (phase === EncryptionPhase.ENCRYPTED) {
+      // Resume path: re-enable E2EE with the same URL passphrase that's
+      // already loaded into the keyProvider.
+      void room.setE2EEEnabled(true).catch((err) => {
+        console.error('[Encryption] E2EE resume failed', err)
+      })
+    }
+  }
 
   const [showInviteDialog, setShowInviteDialog] = useState(mode === 'create')
   const [mediaDeviceError, setMediaDeviceError] = useState<{
@@ -363,7 +321,6 @@ export const Conference = ({
 
   const { t } = useTranslation('rooms')
   if (isCreateError) {
-    // this error screen should be replaced by a proper waiting room for anonymous user.
     return (
       <ErrorScreen
         title={t('error.createRoom.heading')}
@@ -372,72 +329,14 @@ export const Conference = ({
     )
   }
 
-  // Block entry to advanced encrypted rooms when vault service is unavailable
-  if (useVaultE2EE && !vaultLoading && !vaultClient) {
-    return (
-      <Screen layout="centered">
-        <CenteredContent withBackButton>
-          <Center>
-            <div
-              className={css({
-                maxWidth: '400px',
-                backgroundColor: 'white',
-                borderRadius: '1rem',
-                padding: '2rem',
-                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                border: '1px solid',
-                borderColor: 'greyscale.200',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '1rem',
-                textAlign: 'center',
-              })}
-            >
-              <div
-                className={css({
-                  width: '3.5rem',
-                  height: '3.5rem',
-                  borderRadius: '50%',
-                  backgroundColor: '#fef2f2',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                })}
-              >
-                <RiLockLine size={28} color="#dc2626" />
-              </div>
-              <Text as="h2" className={css({ fontWeight: 700, fontSize: '1.15rem' })}>
-                {t('encryption.error.title')}
-              </Text>
-              <Text as="p" className={css({ fontSize: '0.9rem', color: 'greyscale.700' })}>
-                {t('encryption.error.vaultUnavailable')}
-              </Text>
-              <div
-                className={css({
-                  backgroundColor: '#fffbeb',
-                  border: '1px solid #fde68a',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem 1rem',
-                  width: '100%',
-                })}
-              >
-                <Text as="p" className={css({ fontSize: '0.8rem', color: '#92400e' })}>
-                  {t('encryption.error.vaultUnavailableHint')}
-                </Text>
-              </div>
-            </div>
-          </Center>
-        </CenteredContent>
-      </Screen>
-    )
+  if (encryptionMismatch) {
+    return <EncryptionMismatchScreen reason={encryptionMismatch} />
   }
 
   // Some clients (like DINUM) operate in bandwidth-constrained environments
-  // These settings help ensure successful connections in poor network conditions
   const connectOptions = {
-    maxRetries: 5, // Default: 1. Only for unreachable server scenarios
-    peerConnectionTimeout: 60000, // Default: 15s. Extended for slow TURN/TLS negotiation
+    maxRetries: 5,
+    peerConnectionTimeout: 60000,
   }
 
   return (
@@ -486,7 +385,12 @@ export const Conference = ({
             }
           }}
         >
-          <VideoConference />
+          <EncryptionStatusProvider
+            isEncrypted={isEncrypted}
+            onPhaseChange={handlePhaseChange}
+          >
+            <VideoConference />
+          </EncryptionStatusProvider>
           {showInviteDialog && !isMobile && (
             <InviteDialog
               isOpen={showInviteDialog}

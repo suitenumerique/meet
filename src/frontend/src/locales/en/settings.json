@@ -5,8 +5,30 @@
     "youAreNotLoggedIn": "You are not logged in.",
     "nameLabel": "Your Name",
     "authentication": "Authentication",
-    "nameError": "Your name cannot be empty",
-    "nameLockedEncryption": "In encrypted meetings, your name comes from your account and cannot be changed."
+    "nameError": "Your name cannot be empty"
+  },
+  "security": {
+    "heading": "End-to-end encryption",
+    "description": "When this is on, new meetings you create are end-to-end encrypted by default.",
+    "signInRequired": "Sign in to set encryption preferences.",
+    "featureDisabled": "End-to-end encryption is not available on this server.",
+    "toggle": {
+      "label": "End-to-end encryption",
+      "description": "Encrypt audio, video and chat in your meetings. The server cannot read the content while encryption is on."
+    },
+    "confirmModal": {
+      "title": "Turn on encryption?",
+      "description": "While encryption is on, these features are unavailable. Encryption can be turned off for individual meetings when needed.",
+      "items": {
+        "phone": "Phone dial-in",
+        "devices": "Meeting room devices",
+        "transcription": "Transcription",
+        "recording": "Recording"
+      },
+      "footnote": "You can change this preference at any time.",
+      "cancel": "Cancel",
+      "confirm": "Turn on"
+    }
   },
   "preferences": {
     "title": "Preferences",
@@ -163,6 +185,7 @@
     "audio": "Audio",
     "video": "Video",
     "general": "General",
+    "security": "Security",
     "notifications": "Notifications",
     "accessibility": "Accessibility",
     "transcription": "Transcription",

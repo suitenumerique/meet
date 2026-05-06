@@ -6,7 +6,6 @@ import { navigateTo } from '@/navigation/navigateTo'
 import { isRoomValid } from '@/features/rooms'
 import { normalizeRoomId } from '@/features/rooms/utils/isRoomValid'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 
 export const JoinMeetingDialog = () => {
   const { t } = useTranslation('home')
@@ -31,18 +30,16 @@ export const JoinMeetingDialog = () => {
     const input = data.roomId as string
     const parsed = parseInput(input)
 
-    // If URL already has a hash, navigate directly with it
     if (parsed.hash) {
       navigateTo('room', parsed.roomId)
       window.location.hash = parsed.hash
       return
     }
 
-    // Check if the room uses basic encryption (needs passphrase)
     setIsLoading(true)
     try {
       const room = await fetchRoom({ roomId: parsed.roomId })
-      if (room.encryption_mode === ApiEncryptionMode.BASIC) {
+      if (room.is_encrypted) {
         setRoomId(parsed.roomId)
         setStep('passphrase')
         return
@@ -122,7 +119,9 @@ export const JoinMeetingDialog = () => {
             isRequired
             name="passphrase"
             label={t('joinPassphraseLabel')}
-            errorMessage={t('joinPassphraseError')}
+            validate={(value: string) =>
+              !value ? t('joinPassphraseError') : null
+            }
           />
 
           <P

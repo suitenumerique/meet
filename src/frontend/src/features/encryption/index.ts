@@ -1,17 +1,16 @@
-export { VaultClientProvider, useVaultClient } from './VaultClientProvider'
-export type { VaultClientContextValue } from './VaultClientProvider'
 export {
-  determineTrustLevel,
-  getTrustLevelFromAttributes,
-  distributeKeyViaPKI,
-  encodeTrustLevelAttribute,
-} from './HybridKeyDistributor'
-export type { ParticipantEncryptionInfo } from './HybridKeyDistributor'
-export { EncryptionBadge } from './EncryptionBadge'
-export { EncryptedMeetingBanner } from './EncryptedMeetingBanner'
-export { EncryptionTrustModal } from './EncryptionTrustModal'
-export { EncryptionIdentityDialog } from './EncryptionIdentityDialog'
-export { useParticipantTrustLevel } from './useParticipantTrustLevel'
-
-export { PARTICIPANT_TRUST_ATTR } from './types'
-export type { TrustLevel } from './types'
+  generatePassphrase,
+  isValidPassphrase,
+  getPassphraseFromHash,
+  PASSPHRASE_LENGTH,
+} from './passphrase'
+export { EncryptionStatusProvider } from './EncryptionStatusContext'
+export { useEncryptionStatus } from './useEncryptionStatus'
+export { EncryptionPhase } from './encryptionStatusTypes'
+export type { EncryptionStatus, PauseReason } from './encryptionStatusTypes'
+export { RoomStatusBanner } from './RoomStatusBanner'
+export { EncryptionStatusSnackbars } from './EncryptionStatusSnackbars'
+export { PauseEncryptionConfirmDialog } from './PauseEncryptionConfirmDialog'
+export { IdentityBadge } from './IdentityBadge'
+export { EncryptionMismatchScreen } from './EncryptionMismatchScreen'
+export { EncryptionAutoResumeWatcher } from './EncryptionAutoResumeWatcher'

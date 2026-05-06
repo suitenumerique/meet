@@ -56,7 +56,7 @@ export class PopupManager {
         case PopupMessageType.CALLBACK_ID:
           onCallbackId(data.callbackId as string)
           return
-        case PopupMessageType.ROOM_DATA:
+        case PopupMessageType.ROOM_DATA: {
           if (!data?.room) return
           onRoomData(data.room)
           const baseUrl = getRouteUrl('room', data.room.slug)
@@ -68,6 +68,7 @@ export class PopupManager {
             },
           })
           return
+        }
       }
     }
     window.addEventListener('message', this.messageHandler)

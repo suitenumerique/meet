@@ -33,7 +33,7 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 - Optimized for stability in large meetings (+100 p.)
 - Support for multiple screen sharing streams
 - Non-persistent, secure chat
-- End-to-end encryption with hybrid key distribution
+- End-to-end encryption with passphrase-in-link key distribution
 - Meeting recording
 - Meeting transcription & Summary (currently in beta)
 - Telephony integration
@@ -48,52 +48,42 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 
 ### End-to-end encryption
 
-La Suite Meet supports end-to-end encryption (E2EE) for meetings, ensuring that the media server (LiveKit SFU) cannot access audio/video content. Two encryption modes are available:
+La Suite Meet supports end-to-end encryption (E2EE) for meetings, so the media server (LiveKit SFU) cannot read audio, video or screen-share content.
 
-#### Basic encryption
+#### How it works
 
-- Passphrase-based — the encryption key is embedded in the meeting URL hash (`#passphrase`)
-- Uses LiveKit's built-in Worker + `crypto.subtle` (AES-GCM) for frame encryption
-- Sharing the meeting link shares the encryption key
-- No account or onboarding required
-- Security depends on keeping the link private
+- Each encrypted meeting carries a 48-character random passphrase appended to the URL hash (`#…`). The server never sees it; sharing the meeting link shares the key.
+- Frames are encrypted in the browser via LiveKit's Worker + `crypto.subtle` (AES-GCM); only the media payload is encrypted, codec headers stay clear so the SFU can still packetize RTP.
+- The runtime "is this call encrypted?" decision keys off the URL hash, not the database flag — a compromised server cannot fabricate a passphrase that all participants happen to share.
+- The DB flag (`Room.is_encrypted`) is a hint used at room creation time only (so the Create button knows to generate a hash) and to detect link/server inconsistencies.
 
-#### Advanced encryption
+#### Opt-in by user
 
-- Key managed by [La Suite Encryption](https://github.com/suitenumerique/encryption) — the symmetric key never leaves the vault iframe
-- Uses XChaCha20-Poly1305 (libsodium) via the VaultClient iframe for frame encryption
-- Key distribution uses `vaultClient.shareKeys()` (hybrid PKI with X25519 + post-quantum slot)
-- All participants must complete encryption onboarding (key generation + backup) before joining
-- Requires a Chromium-based browser (Chrome, Edge, Brave) — uses the Insertable Streams API
+End-to-end encryption is a per-user preference. In **Settings → Security**, signed-in users can enable "End-to-end encryption" — from then on every meeting they create is encrypted by default. Joining is unaffected: if a meeting URL has a passphrase, the joining client uses it.
 
-**Frame encryption (both modes):**
+#### Pause / resume for recording and transcription
 
-- Codec header bytes (VP8 payload descriptor) are preserved unencrypted — required for proper RTP packetization
-- Only the media payload is encrypted, with a per-frame random nonce
-- The server (LiveKit SFU) only forwards encrypted data it cannot read
+While encryption is on, the SFU cannot record or transcribe (it has nothing to read). When an admin (or, if no admin is present, the longest-present participant — provided a pause has already been observed in the session) starts a recording or transcription:
 
-**Trust levels (advanced mode):**
-| Badge | Level | Description |
-|-------|-------|-------------|
-| 🟢 Green shield | Verified | User completed encryption onboarding (public key registered). Identity cryptographically verified. |
-| 🔵 Blue shield | Authenticated | User signed in via ProConnect/OIDC. Identity server-verified. |
-| 🟡 Orange warning | Anonymous | User not signed in. Self-declared name. Admin should verify identity before accepting. |
+1. A confirmation dialog warns that encryption will be paused.
+2. On confirm, an `ENCRYPTION_PAUSED` message is broadcast over a LiveKit reliable data channel. While the sender hasn't yet flipped its own state, that message is itself encrypted — which is the trust anchor: only callers holding the passphrase can produce frames everyone can decrypt.
+3. Each receiver disables E2EE locally and republishes its tracks unencrypted.
+4. Late joiners send an `ENCRYPTION_STATUS_PROBE` so the leader can re-emit the announcement to them.
+5. When **both** recording and transcription stop, the participant who paused broadcasts `ENCRYPTION_RESUMED` and everyone re-enables E2EE with the same URL passphrase.
 
-**Security guarantees:**
+The pause state is intentionally session-only and never persisted — `Room.is_encrypted` does not flip.
 
-- Encrypted rooms enforce restricted access (lobby approval required)
-- Trust information (`is_authenticated`, `email`) comes from server-signed JWT tokens — cannot be spoofed
-- Recording and transcription are not available in encrypted rooms (server cannot decrypt media)
+#### Phone / SIP participants
 
-**Configuration:**
+Phone and other external devices can't decrypt our frames. When one joins an encrypted room, the backend webhook detects them, broadcasts a system notice (admins see a snackbar with an "Open settings" CTA), and removes the external participant. The admin can then disable encryption from the Security settings and the user can dial in again.
+
+#### Configuration
 
 ```env
 ENCRYPTION_ENABLED=true
-ENCRYPTION_VAULT_URL=https://data.encryption.example.fr
-ENCRYPTION_INTERFACE_URL=https://encryption.example.fr
 ```
 
-When the encryption service is deployed and configured, rooms can use advanced encryption. Without it, only basic (passphrase) encryption is available.
+Setting `ENCRYPTION_ENABLED=false` disables the user preference toggle entirely; existing encrypted rooms stay encrypted but no new ones can be created.
 
 La Suite Meet is fully self-hostable and released under the MIT License, ensuring complete control and flexibility. It's simple to [get started](https://visio.numerique.gouv.fr/) or [request a demo](mailto:visio@numerique.gouv.fr).
 

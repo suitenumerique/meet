@@ -281,32 +281,19 @@ class RoomViewSet(
 
     def perform_create(self, serializer):
         """Set the current user as owner of the newly created room."""
-        encryption_mode = serializer.validated_data.get("encryption_mode", models.EncryptionMode.NONE)
+        is_encrypted = serializer.validated_data.get("is_encrypted", False)
 
         # Block encrypted room creation if encryption is not enabled on this instance
-        if encryption_mode != models.EncryptionMode.NONE and not settings.ENCRYPTION_ENABLED:
+        if is_encrypted and not settings.ENCRYPTION_ENABLED:
             raise drf_exceptions.ValidationError(
-                {"encryption_mode": "Encryption is not enabled on this server."}
+                {"is_encrypted": "Encryption is not enabled on this server."}
             )
-
-        # Advanced encryption requires the vault service to be configured
-        if encryption_mode == models.EncryptionMode.ADVANCED and not getattr(settings, 'ENCRYPTION_VAULT_URL', ''):
-            raise drf_exceptions.ValidationError(
-                {"encryption_mode": "Advanced encryption requires the encryption service to be configured."}
-            )
-
-        # Encrypted rooms must use restricted access to enforce lobby approval
-        # before the encryption key is shared with participants.
-        if encryption_mode != models.EncryptionMode.NONE:
-            serializer.validated_data["access_level"] = models.RoomAccessLevel.RESTRICTED
 
         room = serializer.save()
-        encrypted_symmetric_key = self.request.data.get("encrypted_symmetric_key", "")
         models.ResourceAccess.objects.create(
             resource=room,
             user=self.request.user,
             role=models.RoleChoices.OWNER,
-            encrypted_symmetric_key=encrypted_symmetric_key,
         )
 
         if callback_id := self.request.data.get("callback_id"):
@@ -334,12 +321,6 @@ class RoomViewSet(
         mode = serializer.validated_data["mode"]
         options = serializer.validated_data.get("options")
         room = self.get_object()
-
-        if room.encryption_enabled:
-            return drf_response.Response(
-                {"detail": "Recording is not available in encrypted rooms."},
-                status=drf_status.HTTP_403_FORBIDDEN,
-            )
 
         # May raise exception if an active or initiated recording already exist for the room
         recording = models.Recording.objects.create(
@@ -425,20 +406,6 @@ class RoomViewSet(
         room = self.get_object()
         validated_data = serializer.validated_data
 
-        # Advanced encrypted rooms require authentication
-        if room.encryption_mode == models.EncryptionMode.ADVANCED and not request.user.is_authenticated:
-            return drf_response.Response(
-                {"detail": "This meeting requires authentication to join."},
-                status=drf_status.HTTP_403_FORBIDDEN,
-            )
-
-        # In encrypted rooms, authenticated users must use their real name
-        # from the OIDC profile — they cannot choose an arbitrary name.
-        if room.encryption_enabled and request.user.is_authenticated:
-            validated_data["username"] = (
-                request.user.full_name or request.user.email
-            )
-
         lobby_service = LobbyService()
 
         participant, livekit = lobby_service.request_entry(
@@ -480,9 +447,6 @@ class RoomViewSet(
                 room_id=room.id,
                 participant_id=str(serializer.validated_data.get("participant_id")),
                 allow_entry=serializer.validated_data.get("allow_entry"),
-                encrypted_key=serializer.validated_data.get("encrypted_key", ''),
-                admin_ephemeral_public_key=serializer.validated_data.get("admin_ephemeral_public_key", ''),
-                encrypted_vault_key=serializer.validated_data.get("encrypted_vault_key", ''),
             )
             return drf_response.Response({"message": "Participant was updated."})
 
@@ -510,13 +474,6 @@ class RoomViewSet(
         lobby_service = LobbyService()
 
         participants = lobby_service.list_waiting_participants(room.id)
-
-        # Only expose email and ephemeral keys in encrypted rooms.
-        # Strip them otherwise to avoid leaking personal data.
-        if not room.encryption_enabled:
-            for p in participants:
-                p.pop("email", None)
-                p.pop("ephemeral_public_key", None)
 
         return drf_response.Response({"participants": participants})
 
@@ -619,12 +576,6 @@ class RoomViewSet(
         """
 
         room = self.get_object()
-
-        if room.encryption_enabled:
-            return drf_response.Response(
-                {"error": "Transcription is not available in encrypted rooms."},
-                status=drf_status.HTTP_403_FORBIDDEN,
-            )
 
         try:
             SubtitleService().start_subtitle(room)

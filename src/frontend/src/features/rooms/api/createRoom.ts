@@ -1,22 +1,20 @@
 import { useMutation, UseMutationOptions } from '@tanstack/react-query'
 import { fetchApi } from '@/api/fetchApi'
 import { ApiError } from '@/api/ApiError'
-import { ApiRoom, ApiEncryptionMode } from './ApiRoom'
+import { ApiRoom } from './ApiRoom'
 
 export interface CreateRoomParams {
   slug: string
   callbackId?: string
   username?: string
-  encryptionMode?: ApiEncryptionMode
-  encryptedSymmetricKey?: string
+  isEncrypted?: boolean
 }
 
 const createRoom = ({
   slug,
   callbackId,
   username = '',
-  encryptionMode = ApiEncryptionMode.NONE,
-  encryptedSymmetricKey = '',
+  isEncrypted = false,
 }: CreateRoomParams): Promise<ApiRoom> => {
   const queryParams = username ? `?username=${encodeURIComponent(username)}` : ''
   return fetchApi(`rooms/${queryParams}`, {
@@ -24,8 +22,7 @@ const createRoom = ({
     body: JSON.stringify({
       name: slug,
       callback_id: callbackId,
-      encryption_mode: encryptionMode,
-      encrypted_symmetric_key: encryptedSymmetricKey,
+      is_encrypted: isEncrypted,
     }),
   })
 }

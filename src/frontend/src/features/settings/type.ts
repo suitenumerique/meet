@@ -3,6 +3,7 @@ export enum SettingsDialogExtendedKey {
   AUDIO = 'audio',
   VIDEO = 'video',
   GENERAL = 'general',
+  SECURITY = 'security',
   NOTIFICATIONS = 'notifications',
   TRANSCRIPTION = 'transcription',
   SHORTCUTS = 'shortcuts',

@@ -9,10 +9,6 @@
   },
   "createPopup": {
     "title": "Créer une réunion",
-    "standard": "Réunion standard",
-    "encrypted": "Réunion chiffrée",
-    "advancedEncrypted": "Réunion chiffrée avancée",
-    "advancedDescription": "Sécurité maximale — les clés de chiffrement ne quittent jamais votre appareil. Tous les participants doivent configurer le chiffrement avant de rejoindre. Nécessite une sauvegarde des clés.",
-    "advancedUnavailable": "Service de chiffrement non disponible"
+    "create": "Créer"
   }
 }

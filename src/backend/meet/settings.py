@@ -808,15 +808,11 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
-    # End-to-end encryption settings
+    # End-to-end encryption (passphrase-in-URL-hash mode).
+    # When True, users may opt in (account preference) to have their meetings
+    # created as end-to-end encrypted by default.
     ENCRYPTION_ENABLED = values.BooleanValue(
         False, environ_name="ENCRYPTION_ENABLED", environ_prefix=None
-    )
-    ENCRYPTION_VAULT_URL = values.Value(
-        None, environ_name="ENCRYPTION_VAULT_URL", environ_prefix=None
-    )
-    ENCRYPTION_INTERFACE_URL = values.Value(
-        None, environ_name="ENCRYPTION_INTERFACE_URL", environ_prefix=None
     )
 
     # External Applications

@@ -8,4 +8,5 @@ export type ApiUser = {
   last_name: string
   language: BackendLanguage
   timezone: string
+  default_encryption: boolean
 }

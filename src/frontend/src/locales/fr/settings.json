@@ -5,8 +5,30 @@
     "youAreNotLoggedIn": "Vous n'êtes pas connecté.",
     "nameLabel": "Votre Nom",
     "authentication": "Authentification",
-    "nameError": "Votre Nom ne peut pas être vide",
-    "nameLockedEncryption": "Dans les réunions chiffrées, votre nom provient de votre compte et ne peut pas être modifié."
+    "nameError": "Votre Nom ne peut pas être vide"
+  },
+  "security": {
+    "heading": "Chiffrement de bout en bout",
+    "description": "Lorsque cette option est activée, vos nouvelles réunions sont chiffrées de bout en bout par défaut.",
+    "signInRequired": "Connectez-vous pour configurer vos préférences de chiffrement.",
+    "featureDisabled": "Le chiffrement de bout en bout n'est pas disponible sur ce serveur.",
+    "toggle": {
+      "label": "Chiffrement de bout en bout",
+      "description": "Chiffre l'audio, la vidéo et le tchat. Le serveur ne peut pas lire le contenu tant que le chiffrement est actif."
+    },
+    "confirmModal": {
+      "title": "Activer le chiffrement ?",
+      "description": "Pendant que le chiffrement est actif, ces fonctionnalités sont indisponibles. Vous pourrez désactiver le chiffrement pour des réunions individuelles si besoin.",
+      "items": {
+        "phone": "Appel téléphonique entrant",
+        "devices": "Salles de réunion connectées",
+        "transcription": "Transcription",
+        "recording": "Enregistrement"
+      },
+      "footnote": "Vous pouvez modifier cette préférence à tout moment.",
+      "cancel": "Annuler",
+      "confirm": "Activer"
+    }
   },
   "preferences": {
     "title": "Préférences",
@@ -163,6 +185,7 @@
     "audio": "Audio",
     "video": "Vidéo",
     "general": "Général",
+    "security": "Sécurité",
     "notifications": "Notifications",
     "accessibility": "Accessibilité",
     "transcription": "Transcription",

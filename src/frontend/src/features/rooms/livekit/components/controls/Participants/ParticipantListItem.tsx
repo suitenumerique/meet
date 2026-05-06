@@ -21,13 +21,7 @@ import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { ParticipantMenuButton } from '../../ParticipantMenu/ParticipantMenuButton'
 import { PinBadge } from './PinBadge'
-import { EncryptionBadge, EncryptionIdentityDialog } from '@/features/encryption'
-import { useParticipantTrustLevel } from '@/features/encryption/useParticipantTrustLevel'
-import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
-import { isEncryptedRoom as isEncryptedRoomFn } from '@/features/rooms/api/ApiRoom'
-import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
-import { useUser } from '@/features/auth'
-import { TooltipWrapper } from '@/primitives/TooltipWrapper'
+import { IdentityBadge, useEncryptionStatus, EncryptionPhase } from '@/features/encryption'
 
 type MicIndicatorProps = {
   participant: Participant
@@ -104,16 +98,9 @@ export const ParticipantListItem = ({
   participant,
 }: ParticipantListItemProps) => {
   const { t } = useTranslation('rooms')
-  const roomData = useRoomData()
-  const isEncryptedRoom = isEncryptedRoomFn(roomData)
-  const isAdmin = useIsAdminOrOwner()
-  const { isLoggedIn } = useUser()
-  const { t: tEncBadge } = useTranslation('rooms', { keyPrefix: 'encryption.badge' })
-  const [isIdentityOpen, setIsFingerprintOpen] = useState(false)
+  const { phase } = useEncryptionStatus()
+  const showIdentityBadge = phase !== EncryptionPhase.UNENCRYPTED
   const name = participant.name || participant.identity
-  const attrs = participant.attributes as Record<string, string> | undefined
-  const { trustLevel, fingerprintStatus, fingerprint } = useParticipantTrustLevel(attrs, roomData?.encryption_mode, isLocal(participant))
-  const badgeTooltip = tEncBadge(trustLevel)
   return (
     <HStack
       role="listitem"
@@ -134,131 +121,31 @@ export const ParticipantListItem = ({
           <PinBadge participant={participant} />
         </div>
         <VStack gap={0} alignItems="start">
-          {isEncryptedRoom ? (
-            <Button
-              variant="greyscale"
-              size="sm"
-              tooltip={badgeTooltip}
-              aria-label={badgeTooltip}
-              onPress={() => setIsFingerprintOpen(true)}
-              className={css({
-                padding: '0.1rem 0.25rem !important',
-                minWidth: 'auto !important',
-                height: 'auto !important',
-                gap: '0.15rem !important',
-                borderRadius: '0.25rem !important',
-                backgroundColor: 'transparent !important',
-                color: 'greyscale.900 !important',
-                cursor: isEncryptedRoom ? 'pointer' : 'default',
-                '&[data-hovered]': {
-                  backgroundColor: 'greyscale.100 !important',
-                },
-              })}
-            >
-              <EncryptionBadge
-                isEncrypted={true}
-                trustLevel={trustLevel}
-              />
-              <Text
-                variant="sm"
-                className={css({
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '120px',
-                })}
-              >
-                {name}
-              </Text>
-              {isLocal(participant) && (
-                <Text
-                  variant="sm"
-                  className={css({ whiteSpace: 'nowrap', flexShrink: 0 })}
-                >
-                  ({t('participants.you')})
-                </Text>
-              )}
-            </Button>
-          ) : (
-            <Text
-              variant="sm"
-              className={css({
-                userSelect: 'none',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '150px',
-              })}
-            >
-              {name}
-              {isLocal(participant) && ` (${t('participants.you')})`}
-            </Text>
-          )}
+          <Text
+            variant="sm"
+            className={css({
+              userSelect: 'none',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '150px',
+            })}
+          >
+            {name}
+            {isLocal(participant) && ` (${t('participants.you')})`}
+          </Text>
           {getParticipantIsRoomAdmin(participant) && (
             <Text variant="xsNote">{t('participants.host')}</Text>
           )}
-          {/* Email is only in JWT for encrypted rooms (backend restriction).
-              Additionally, only show to authenticated users in the UI — anonymous
-              users in encrypted rooms could still extract it from LiveKit signaling
-              but won't see it in the interface. See utils.py for details. */}
-          {isEncryptedRoom && isLoggedIn && (() => {
-            const email = participant.attributes?.is_authenticated === 'true' && participant.attributes?.email
-              ? participant.attributes.email
-              : null
-            const label = email || t('participants.anonymous')
-            return (
-              <Button
-                variant="greyscale"
-                size="sm"
-                tooltip={email || undefined}
-                aria-label={label}
-                className={css({
-                  padding: '0 !important',
-                  minWidth: 'auto !important',
-                  height: 'auto !important',
-                  backgroundColor: 'transparent !important',
-                  color: 'greyscale.500 !important',
-                  fontSize: '0.7rem !important',
-                  fontWeight: 'normal !important',
-                  width: '100%',
-                  minW: 0,
-                  justifyContent: 'flex-start !important',
-                  '&[data-hovered]': {
-                    backgroundColor: 'transparent !important',
-                  },
-                })}
-              >
-                <span className={css({
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  minWidth: 0,
-                })}>
-                  {label}
-                </span>
-              </Button>
-            )
-          })()}
+          {showIdentityBadge && (
+            <IdentityBadge participant={participant} size="sm" />
+          )}
         </VStack>
       </HStack>
       <HStack>
         <MicIndicator participant={participant} />
         <ParticipantMenuButton participant={participant} />
       </HStack>
-      {isEncryptedRoom && (
-        <EncryptionIdentityDialog
-          isOpen={isIdentityOpen}
-          onOpenChange={setIsFingerprintOpen}
-          participantName={name}
-          participantEmail={attrs?.email}
-          suiteUserId={attrs?.suite_user_id}
-          isAuthenticated={attrs?.is_authenticated === 'true'}
-          encryptionMode={roomData?.encryption_mode}
-          isSelf={isLocal(participant)}
-          preloadedFingerprint={fingerprint}
-          preloadedFingerprintStatus={fingerprintStatus}
-        />
-      )}
     </HStack>
   )
 }

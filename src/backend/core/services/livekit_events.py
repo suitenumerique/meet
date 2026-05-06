@@ -18,6 +18,10 @@ from core.recording.services.recording_events import (
 )
 
 from .lobby import LobbyService
+from .participants_management import (
+    ParticipantsManagement,
+    ParticipantsManagementException,
+)
 from .telephony import TelephonyException, TelephonyService
 
 logger = getLogger(__name__)
@@ -184,6 +188,76 @@ class LiveKitEventsService:
                 raise ActionFailedError(
                     f"Failed to process limit reached event for recording {recording}"
                 ) from e
+
+    def _handle_participant_joined(self, data):
+        """Handle 'participant_joined' event.
+
+        When a SIP/phone participant joins an end-to-end encrypted room they
+        cannot decrypt anything. We:
+          1. Send an in-band notification (chat-style) to everyone, which
+             surfaces an admin snackbar and a system message in the chat;
+          2. Eject the SIP participant — the admin can then disable encryption
+             from the Security settings and the user can dial back in.
+
+        This is the simplest reliable fallback. A future improvement is a
+        dedicated "audio guard" agent that joins encrypted rooms and plays a
+        recorded prompt to SIP participants instead of disconnecting them.
+        """
+
+        participant = getattr(data, "participant", None)
+        if participant is None:
+            return
+
+        # LiveKit ParticipantInfo.Kind: 0 = STANDARD, 1 = INGRESS, 2 = EGRESS,
+        # 3 = SIP, 4 = AGENT. We treat both SIP and INGRESS as "external
+        # device that can't run our E2EE code".
+        kind = getattr(participant, "kind", 0)
+        is_external_device = kind in (1, 3)
+        if not is_external_device:
+            return
+
+        try:
+            room_id = uuid.UUID(data.room.name)
+        except ValueError:
+            return
+
+        try:
+            room = models.Room.objects.get(id=room_id)
+        except models.Room.DoesNotExist:
+            return
+
+        if not room.is_encrypted:
+            return
+
+        # 1. Broadcast a system notice — frontends decode this on the
+        #    "encryption-state" or notifications channel and show a snackbar.
+        try:
+            utils.notify_participants(
+                room_name=str(room_id),
+                notification_data={
+                    "type": "external_device_blocked",
+                    "participant_identity": participant.identity,
+                    "participant_name": participant.name or participant.identity,
+                },
+            )
+        except utils.NotificationError:
+            logger.exception(
+                "Failed to notify room about blocked external device"
+            )
+
+        # 2. Disconnect the external participant so they don't sit in a
+        #    silent encrypted room. The admin can disable encryption and the
+        #    user can dial in again.
+        try:
+            ParticipantsManagement().remove(
+                room_name=str(room_id), identity=participant.identity
+            )
+        except ParticipantsManagementException:
+            logger.exception(
+                "Failed to remove external device participant %s from encrypted room %s",
+                participant.identity,
+                room_id,
+            )
 
     def _handle_room_started(self, data):
         """Handle 'room_started' event."""

@@ -9,6 +9,7 @@ import {
   RiAccountCircleLine,
   RiNotification3Line,
   RiSettings3Line,
+  RiShieldKeyholeLine,
   RiSpeakerLine,
   RiVideoOnLine,
   RiEyeLine,
@@ -19,6 +20,7 @@ import { NotificationsTab } from './tabs/NotificationsTab'
 import { GeneralTab } from './tabs/GeneralTab'
 import { AudioTab } from './tabs/AudioTab'
 import { VideoTab } from './tabs/VideoTab'
+import { SecurityTab } from './tabs/SecurityTab'
 import { TranscriptionTab } from './tabs/TranscriptionTab'
 import { ShortcutTab } from './tabs/ShortcutTab'
 import { useRef } from 'react'
@@ -105,6 +107,10 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               <RiSettings3Line />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.GENERAL}`)}
             </Tab>
+            <Tab icon highlight id={SettingsDialogExtendedKey.SECURITY}>
+              <RiShieldKeyholeLine />
+              {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.SECURITY}`)}
+            </Tab>
             <Tab icon highlight id={SettingsDialogExtendedKey.NOTIFICATIONS}>
               <RiNotification3Line />
               {isWideScreen &&
@@ -136,6 +142,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
           <AudioTab id={SettingsDialogExtendedKey.AUDIO} />
           <VideoTab id={SettingsDialogExtendedKey.VIDEO} />
           <GeneralTab id={SettingsDialogExtendedKey.GENERAL} />
+          <SecurityTab id={SettingsDialogExtendedKey.SECURITY} />
           <NotificationsTab id={SettingsDialogExtendedKey.NOTIFICATIONS} />
           <ShortcutTab id={SettingsDialogExtendedKey.SHORTCUTS} />
           {/* Transcription tab won't be accessible if the tab is not active in the tab list */}

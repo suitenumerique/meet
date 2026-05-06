@@ -54,8 +54,6 @@ export interface ApiConfig {
   }
   encryption?: {
     enabled: boolean
-    vault_url: string
-    interface_url: string
   }
   transcription_destination?: string
 }
