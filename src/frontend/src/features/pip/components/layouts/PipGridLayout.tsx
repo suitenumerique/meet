@@ -2,6 +2,7 @@ import { memo, useMemo, useRef } from 'react'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { styled } from '@/styled-system/jsx'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { pipLayoutStore } from '../../stores/pipLayoutStore'
 import { usePipElementSize } from '../../hooks/usePipElementSize'
 import { usePipFlipAnimations } from '../../hooks/usePipFlipAnimations'
 import { computePipGridLayout } from '../../utils/pipGrid'
@@ -46,7 +47,7 @@ export const PipGridLayout = memo(({ tracks }: PipGridLayoutProps) => {
     <GridContainer ref={containerRef} style={gridStyle}>
       {tracks.map((track, index) => (
         <GridCell key={tileKeys[index]} style={placements[index]}>
-          <ParticipantTile trackRef={track} />
+          <ParticipantTile trackRef={track} sidePanelStore={pipLayoutStore} />
         </GridCell>
       ))}
     </GridContainer>

@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { styled } from '@/styled-system/jsx'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { pipLayoutStore } from '../../stores/pipLayoutStore'
 import { getTrackKey } from '../../utils/pipTrackSelection'
 
 type PipFocusLayoutProps = {
@@ -25,6 +26,7 @@ export const PipFocusLayout = memo(
           <ParticipantTile
             key={getTrackKey(mainTrack)}
             trackRef={mainTrack}
+            sidePanelStore={pipLayoutStore}
           />
         </MainSlot>
         {thumbnailTrack && (
@@ -32,6 +34,7 @@ export const PipFocusLayout = memo(
             <ParticipantTile
               key={getTrackKey(thumbnailTrack)}
               trackRef={thumbnailTrack}
+              sidePanelStore={pipLayoutStore}
             />
           </Thumbnail>
         )}

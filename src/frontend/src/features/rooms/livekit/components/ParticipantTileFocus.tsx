@@ -16,7 +16,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { useEffect, useRef, useState } from 'react'
-import { useSidePanel } from '../hooks/useSidePanel'
+import { type SidePanelStore, useSidePanel } from '../hooks/useSidePanel'
 import { useFullScreen } from '../hooks/useFullScreen'
 import { Participant, Track } from 'livekit-client'
 import { MuteAlertDialog } from './MuteAlertDialog'
@@ -74,9 +74,9 @@ const FocusButton = ({
   )
 }
 
-const EffectsButton = () => {
+const EffectsButton = ({ store }: { store?: SidePanelStore }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
-  const { isEffectsOpen, toggleEffects } = useSidePanel()
+  const { isEffectsOpen, toggleEffects } = useSidePanel(store)
   return (
     <Button
       size={'sm'}
@@ -132,9 +132,11 @@ const MOUSE_IDLE_TIME = 3000
 export const ParticipantTileFocus = ({
   trackRef,
   hasKeyboardFocus,
+  sidePanelStore,
 }: {
   trackRef: TrackReferenceOrPlaceholder
   hasKeyboardFocus: boolean
+  sidePanelStore?: SidePanelStore
 }) => {
   const [hovered, setHovered] = useState(false)
   const [opacity, setOpacity] = useState(0)
@@ -216,7 +218,7 @@ export const ParticipantTileFocus = ({
             {!isScreenShare ? (
               <>
                 {participant.isLocal ? (
-                  <EffectsButton />
+                  <EffectsButton store={sidePanelStore} />
                 ) : (
                   canMute && <MuteButton participant={participant} />
                 )}
