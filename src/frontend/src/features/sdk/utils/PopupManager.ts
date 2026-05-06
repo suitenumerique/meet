@@ -59,9 +59,11 @@ export class PopupManager {
         case PopupMessageType.ROOM_DATA:
           if (!data?.room) return
           onRoomData(data.room)
+          const baseUrl = getRouteUrl('room', data.room.slug)
+          const roomUrl = data.room.hash ? `${baseUrl}#${data.room.hash}` : baseUrl
           this.sendRoomData({
             room: {
-              url: getRouteUrl('room', data.room.slug),
+              url: roomUrl,
               ...data.room,
             },
           })

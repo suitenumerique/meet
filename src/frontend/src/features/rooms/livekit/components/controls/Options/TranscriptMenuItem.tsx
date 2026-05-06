@@ -5,17 +5,21 @@ import { menuRecipe } from '@/primitives/menuRecipe'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { RecordingMode, useHasRecordingAccess } from '@/features/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
+import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { isEncryptedRoom as checkEncryptedRoom } from '@/features/rooms/api/ApiRoom'
 
 export const TranscriptMenuItem = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
   const { isTranscriptOpen, openTranscript, toggleTools } = useSidePanel()
+  const roomData = useRoomData()
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
 
-  if (!hasTranscriptAccess) return null
+  // Recording/transcription not available in encrypted rooms
+  if (!hasTranscriptAccess || checkEncryptedRoom(roomData)) return null
 
   return (
     <MenuItem

@@ -1,10 +1,12 @@
 export type CallbackCreationRoomData = {
   slug: string
+  hash?: string
 }
 
 export enum ClientMessageType {
   ROOM_CREATED = 'ROOM_CREATED',
   STATE_CLEAR = 'STATE_CLEAR',
+  RESIZE = 'RESIZE',
 }
 
 export interface PopupMessageData {

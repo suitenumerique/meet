@@ -4,12 +4,14 @@ import { Separator as RACSeparator } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { ApiAccessLevel, isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
+import { RiLockFill } from '@remixicon/react'
+import { HStack } from '@/styled-system/jsx'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -166,6 +168,25 @@ export const Admin = () => {
         >
           {t('access.description')}
         </Text>
+        {isEncryptedRoom(readOnlyData) && (
+          <HStack
+            gap="0.5rem"
+            className={css({
+              backgroundColor: 'primary.100',
+              borderRadius: '0.5rem',
+              padding: '0.75rem',
+              marginBottom: '0.75rem',
+            })}
+          >
+            <RiLockFill size={16} className={css({ flexShrink: 0 })} />
+            <Text
+              variant="note"
+              className={css({ textStyle: 'sm' })}
+            >
+              {t('access.encryptionWarning')}
+            </Text>
+          </HStack>
+        )}
         <Field
           type="radioGroup"
           label={t('access.type')}
@@ -192,11 +213,13 @@ export const Admin = () => {
               value: ApiAccessLevel.PUBLIC,
               label: t('access.levels.public.label'),
               description: t('access.levels.public.description'),
+              isDisabled: isEncryptedRoom(readOnlyData),
             },
             {
               value: ApiAccessLevel.TRUSTED,
               label: t('access.levels.trusted.label'),
               description: t('access.levels.trusted.description'),
+              isDisabled: isEncryptedRoom(readOnlyData),
             },
             {
               value: ApiAccessLevel.RESTRICTED,

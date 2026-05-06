@@ -7,7 +7,7 @@ import { getRouteUrl } from '@/navigation/getRouteUrl'
 
 const COPY_SUCCESS_TIMEOUT = 3000
 
-export const useCopyRoomToClipboard = (room: ApiRoom | undefined) => {
+export const useCopyRoomToClipboard = (room: ApiRoom | undefined, hashOverride?: string) => {
   const telephony = useTelephony()
   const { t } = useTranslation('global', { keyPrefix: 'clipboardContent' })
 
@@ -32,8 +32,12 @@ export const useCopyRoomToClipboard = (room: ApiRoom | undefined) => {
   }, [isRoomUrlCopied])
 
   const roomUrl = useMemo(() => {
-    return room?.slug ? getRouteUrl('room', room.slug) : ''
-  }, [room?.slug])
+    if (!room?.slug) return ''
+    const base = getRouteUrl('room', room.slug)
+    // In basic encrypted mode, the passphrase is in the URL hash
+    const hash = hashOverride ? `#${hashOverride}` : window.location.hash
+    return hash ? `${base}${hash}` : base
+  }, [room?.slug, hashOverride])
 
   const hasTelephonyInfo = useMemo(() => {
     return telephony.enabled && room?.pin_code

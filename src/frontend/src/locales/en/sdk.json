@@ -6,5 +6,13 @@
     "resetLabel": "Reset",
     "participantLimit": "Up to 150 participants.",
     "popupBlocked": "Popup was blocked. Please allow popups for this site."
+  },
+  "createPopup": {
+    "title": "Create a meeting",
+    "standard": "Standard meeting",
+    "encrypted": "Encrypted meeting",
+    "advancedEncrypted": "Advanced encrypted meeting",
+    "advancedDescription": "Maximum security — encryption keys never leave your device. All participants must complete encryption setup before joining. Requires key backup.",
+    "advancedUnavailable": "Encryption service not available"
   }
 }

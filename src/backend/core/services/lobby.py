@@ -46,15 +46,36 @@ class LobbyParticipant:
     username: str
     color: str
     id: str
+    is_authenticated: bool = False
+    email: Optional[str] = None
+    suite_user_id: Optional[str] = None
+    ephemeral_public_key: str = ''
+    encrypted_key: str = ''
+    admin_ephemeral_public_key: str = ''
+    encrypted_vault_key: str = ''
 
     def to_dict(self) -> Dict[str, str]:
         """Serialize the participant object to a dict representation."""
-        return {
+        result = {
             "status": self.status.value,
             "username": self.username,
             "id": self.id,
             "color": self.color,
+            "is_authenticated": self.is_authenticated,
         }
+        if self.email:
+            result["email"] = self.email
+        if self.suite_user_id:
+            result["suite_user_id"] = self.suite_user_id
+        if self.ephemeral_public_key:
+            result["ephemeral_public_key"] = self.ephemeral_public_key
+        if self.encrypted_key:
+            result["encrypted_key"] = self.encrypted_key
+        if self.admin_ephemeral_public_key:
+            result["admin_ephemeral_public_key"] = self.admin_ephemeral_public_key
+        if self.encrypted_vault_key:
+            result["encrypted_vault_key"] = self.encrypted_vault_key
+        return result
 
     @classmethod
     def from_dict(cls, data: dict) -> "LobbyParticipant":
@@ -68,6 +89,13 @@ class LobbyParticipant:
                 username=data["username"],
                 id=data["id"],
                 color=data["color"],
+                is_authenticated=data.get("is_authenticated", False),
+                email=data.get("email"),
+                suite_user_id=data.get("suite_user_id"),
+                ephemeral_public_key=data.get("ephemeral_public_key", ''),
+                encrypted_key=data.get("encrypted_key", ''),
+                admin_ephemeral_public_key=data.get("admin_ephemeral_public_key", ''),
+                encrypted_vault_key=data.get("encrypted_vault_key", ''),
             )
         except (KeyError, ValueError) as e:
             logger.exception("Error creating Participant from dict:")
@@ -99,7 +127,7 @@ class LobbyService:
                 key=settings.LOBBY_COOKIE_NAME,
                 value=participant_id,
                 httponly=True,
-                secure=True,
+                secure=not settings.DEBUG,
                 samesite="Lax",
             )
 
@@ -111,11 +139,16 @@ class LobbyService:
         1. The room is public (open to everyone)
         2. The room has TRUSTED access level and the user is authenticated
 
+        Encrypted rooms never bypass the lobby — participants must go through
+        the lobby key exchange to receive the encryption key.
+
         Note: Room access levels can change while participants are waiting in the lobby.
         This function only checks the current state and should be called each time
         a participant requests entry to ensure consistent access control, even for
         participants who have already begun waiting.
         """
+        if hasattr(room, 'encryption_mode') and room.encryption_mode != 'none':
+            return False
         return room.is_public or (
             room.access_level == models.RoomAccessLevel.TRUSTED
             and user.is_authenticated
@@ -126,6 +159,7 @@ class LobbyService:
         room,
         request,
         username: str,
+        ephemeral_public_key: str = '',
     ) -> Tuple[LobbyParticipant, Optional[Dict]]:
         """Request entry to a room for a participant.
 
@@ -164,19 +198,42 @@ class LobbyService:
                 configuration=room.configuration,
                 is_admin_or_owner=False,
                 participant_id=participant_id,
+                encryption_mode=room.encryption_mode,
             )
             return participant, livekit_config
 
         livekit_config = None
 
         if participant is None:
-            participant = self.enter(room.id, participant_id, username)
+            participant = self.enter(
+                room.id, participant_id, username,
+                is_authenticated=request.user.is_authenticated,
+                email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
+                suite_user_id=str(request.user.sub) if request.user.is_authenticated else None,
+                ephemeral_public_key=ephemeral_public_key,
+            )
 
         elif participant.status == LobbyParticipantStatus.WAITING:
             self.refresh_waiting_status(room.id, participant_id)
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
-            # wrongly named, contains access token to join a room
+            # If the joiner comes back with a different ephemeral key (e.g. browser
+            # closed and reopened), they can no longer decrypt the encrypted symmetric
+            # key. Reset them to WAITING so the admin re-accepts with the new key.
+            if (
+                ephemeral_public_key
+                and participant.ephemeral_public_key
+                and ephemeral_public_key != participant.ephemeral_public_key
+            ):
+                participant = self.enter(
+                    room.id, participant_id, username,
+                    is_authenticated=request.user.is_authenticated,
+                    email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
+                    suite_user_id=str(request.user.sub) if request.user.is_authenticated else None,
+                    ephemeral_public_key=ephemeral_public_key,
+                )
+                return participant, None
+
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
                 user=request.user,
@@ -185,6 +242,7 @@ class LobbyService:
                 configuration=room.configuration,
                 is_admin_or_owner=False,
                 participant_id=participant_id,
+                encryption_mode=room.encryption_mode,
             )
 
         return participant, livekit_config
@@ -201,7 +259,11 @@ class LobbyService:
         )
 
     def enter(
-        self, room_id: UUID, participant_id: str, username: str
+        self, room_id: UUID, participant_id: str, username: str,
+        is_authenticated: bool = False,
+        email: Optional[str] = None,
+        suite_user_id: Optional[str] = None,
+        ephemeral_public_key: str = '',
     ) -> LobbyParticipant:
         """Add participant to waiting lobby.
 
@@ -216,6 +278,10 @@ class LobbyService:
             username=username,
             id=participant_id,
             color=color,
+            is_authenticated=is_authenticated,
+            email=email,
+            suite_user_id=suite_user_id,
+            ephemeral_public_key=ephemeral_public_key,
         )
 
         try:
@@ -284,6 +350,9 @@ class LobbyService:
         room_id: UUID,
         participant_id: str,
         allow_entry: bool,
+        encrypted_key: str = '',
+        admin_ephemeral_public_key: str = '',
+        encrypted_vault_key: str = '',
     ) -> None:
         """Handle decision on participant entry.
 
@@ -302,7 +371,13 @@ class LobbyService:
                 "timeout": settings.LOBBY_DENIED_TIMEOUT,
             }
 
-        self._update_participant_status(room_id, participant_id, **decision)
+        self._update_participant_status(
+            room_id, participant_id,
+            encrypted_key=encrypted_key,
+            admin_ephemeral_public_key=admin_ephemeral_public_key,
+            encrypted_vault_key=encrypted_vault_key,
+            **decision,
+        )
 
     def _update_participant_status(
         self,
@@ -310,6 +385,9 @@ class LobbyService:
         participant_id: str,
         status: LobbyParticipantStatus,
         timeout: int,
+        encrypted_key: str = '',
+        admin_ephemeral_public_key: str = '',
+        encrypted_vault_key: str = '',
     ) -> None:
         """Update participant status with appropriate timeout."""
 
@@ -330,6 +408,12 @@ class LobbyService:
             raise
 
         participant.status = status
+        if encrypted_key:
+            participant.encrypted_key = encrypted_key
+        if admin_ephemeral_public_key:
+            participant.admin_ephemeral_public_key = admin_ephemeral_public_key
+        if encrypted_vault_key:
+            participant.encrypted_vault_key = encrypted_vault_key
         cache.set(cache_key, participant.to_dict(), timeout=timeout)
 
     def clear_room_cache(self, room_id: UUID) -> None:

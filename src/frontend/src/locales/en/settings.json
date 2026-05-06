@@ -5,7 +5,8 @@
     "youAreNotLoggedIn": "You are not logged in.",
     "nameLabel": "Your Name",
     "authentication": "Authentication",
-    "nameError": "Your name cannot be empty"
+    "nameError": "Your name cannot be empty",
+    "nameLockedEncryption": "In encrypted meetings, your name comes from your account and cannot be changed."
   },
   "preferences": {
     "title": "Preferences",

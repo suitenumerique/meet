@@ -13,11 +13,12 @@ import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRo
 // fixme - duplication with the InviteDialog
 export const LaterMeetingDialog = ({
   room,
+  hash,
   ...dialogProps
-}: { room: null | ApiRoom } & Omit<DialogProps, 'title'>) => {
+}: { room: null | ApiRoom; hash?: string } & Omit<DialogProps, 'title'>) => {
   const { t } = useTranslation('home', { keyPrefix: 'laterMeetingDialog' })
 
-  const roomUrl = room && getRouteUrl('room', room?.slug)
+  const roomUrl = room ? `${getRouteUrl('room', room.slug)}${hash ? `#${hash}` : ''}` : null
   const telephony = useTelephony()
 
   const [isHovered, setIsHovered] = useState(false)
@@ -31,7 +32,7 @@ export const LaterMeetingDialog = ({
     copyRoomToClipboard,
     isRoomUrlCopied,
     copyRoomUrlToClipboard,
-  } = useCopyRoomToClipboard(room || undefined)
+  } = useCopyRoomToClipboard(room || undefined, hash)
 
   return (
     <Dialog isOpen={!!room} {...dialogProps} title={t('heading')}>

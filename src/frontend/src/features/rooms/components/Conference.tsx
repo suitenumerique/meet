@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -7,14 +7,23 @@ import {
 } from '@livekit/components-react'
 import {
   DisconnectReason,
+  ExternalE2EEKeyProvider,
   MediaDeviceFailure,
   Room,
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
+import { setSymmetricKey, getSymmetricKey, getEncryptedVaultKey, generatePassphrase } from '@/features/encryption/lobbyKeyExchange'
+import { isEncryptedRoom, ApiEncryptionMode } from '../api/ApiRoom'
+import { VaultE2EEManager } from '@/features/encryption/VaultE2EEManager'
+import { useVaultClient } from '@/features/encryption'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
+import { CenteredContent } from '@/layout/CenteredContent'
+import { RiLockLine } from '@remixicon/react'
+import { Center } from '@/styled-system/jsx'
+import { Text } from '@/primitives'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
@@ -86,12 +95,49 @@ export const Conference = ({
     retry: false,
   })
 
+  const encryptionEnabled = isEncryptedRoom(data)
+  const { client: vaultClient, hasKeys: vaultHasKeys, error: vaultError, isLoading: vaultLoading } = useVaultClient()
+
+  // Determine which E2EE backend to use based solely on the room's encryption_mode.
+  // Advanced mode always uses VaultClient, basic mode always uses LiveKit Worker+KeyProvider.
+  const useVaultE2EE = data?.encryption_mode === ApiEncryptionMode.ADVANCED
+
+  // Refs for both approaches (only one is used per session)
+  const keyProviderRef = useRef<ExternalE2EEKeyProvider | null>(null)
+  const workerRef = useRef<Worker | null>(null)
+  const vaultManagerRef = useRef<VaultE2EEManager | null>(null)
+  const [encryptionSetupComplete, setEncryptionSetupComplete] = useState(!encryptionEnabled)
+
+  const getKeyProvider = () => {
+    if (!keyProviderRef.current && encryptionEnabled && !useVaultE2EE) {
+      keyProviderRef.current = new ExternalE2EEKeyProvider()
+    }
+    return keyProviderRef.current
+  }
+
+  const getWorker = () => {
+    if (!workerRef.current && encryptionEnabled && !useVaultE2EE && typeof window !== 'undefined') {
+      workerRef.current = new Worker(
+        new URL('livekit-client/e2ee-worker', import.meta.url)
+      )
+    }
+    return workerRef.current
+  }
+
+  const getVaultManager = () => {
+    if (!vaultManagerRef.current && useVaultE2EE && vaultClient) {
+      vaultManagerRef.current = new VaultE2EEManager(vaultClient)
+    }
+    return vaultManagerRef.current
+  }
+
   const roomOptions = useMemo((): RoomOptions => {
-    return {
+    const baseOptions: RoomOptions = {
       adaptiveStream: true,
       dynacast: true,
       publishDefaults: {
-        videoCodec: 'vp9',
+        videoCodec: encryptionEnabled ? undefined : 'vp9',
+        red: !encryptionEnabled,
       },
       videoCaptureDefaults: {
         deviceId: userConfig.videoDeviceId ?? undefined,
@@ -106,8 +152,25 @@ export const Conference = ({
         deviceId: userConfig.audioOutputDeviceId ?? undefined,
       },
     }
+
+    if (useVaultE2EE) {
+      const vaultManager = getVaultManager()
+      if (vaultManager) {
+        baseOptions.encryption = { e2eeManager: vaultManager }
+      }
+    } else if (encryptionEnabled) {
+      const worker = getWorker()
+      const keyProvider = getKeyProvider()
+      if (keyProvider && worker) {
+        baseOptions.encryption = { keyProvider, worker }
+      }
+    }
+
+    return baseOptions
     // do not rely on the userConfig object directly as its reference may change on every render
   }, [
+    encryptionEnabled,
+    useVaultE2EE,
     userConfig.videoDeviceId,
     userConfig.videoPublishResolution,
     userConfig.audioDeviceId,
@@ -115,6 +178,132 @@ export const Conference = ({
   ])
 
   const room = useMemo(() => new Room(roomOptions), [roomOptions])
+
+  /*
+   * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
+   * (Firefox <124, Chrome <125, Edge <125) where HTTPS URLs in WebSocket() constructor
+   *  may fail - the force_wss_protocol flag allows explicit WSS protocol conversion
+   */
+  const serverUrl = useMemo(() => {
+    const livekit_url = apiConfig?.livekit.url
+    if (!livekit_url) return
+    if (apiConfig?.livekit.force_wss_protocol) {
+      return livekit_url.replace('https://', 'wss://')
+    }
+    return livekit_url
+  }, [apiConfig?.livekit])
+
+  // Encryption key setup:
+  // VaultE2EE: admin generates key via vaultClient.encryptWithoutKey(), joiner receives wrapped key
+  // Fallback: admin generates passphrase, joiner receives via lobby DH exchange
+  const isAdmin = mode === 'create' || data?.is_administrable === true
+  const adminPassphraseRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!encryptionEnabled || encryptionSetupComplete) return
+
+    if (useVaultE2EE) {
+      // Advanced mode: VaultE2EEManager delegates crypto to VaultClient iframe
+      const vaultManager = getVaultManager()
+      if (!vaultManager || !vaultClient) return
+      if (isAdmin) {
+        const existingKey = data?.encrypted_symmetric_key
+        if (existingKey) {
+          const binaryStr = atob(existingKey)
+          const bytes = new Uint8Array(binaryStr.length)
+          for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
+          vaultManager.setEncryptedSymmetricKey(bytes.buffer)
+        }
+      } else {
+        const vaultKey = getEncryptedVaultKey()
+        if (vaultKey) {
+          vaultManager.setEncryptedSymmetricKey(vaultKey)
+        }
+      }
+
+      // Enable E2EE BEFORE connecting — no tracks exist yet so
+      // republishAllTracks() is a no-op. Calling after connection
+      // triggers republish which times out.
+      room.setE2EEEnabled(true).catch((err) => {
+        console.error('[VaultE2EE] E2EE enable failed:', err)
+      })
+
+      setEncryptionSetupComplete(true)
+      return
+    }
+
+    // Basic mode: LiveKit Worker+KeyProvider with passphrase
+    const keyProvider = getKeyProvider()
+    if (!keyProvider) return
+
+    let passphrase: string | null = null
+
+    if (isAdmin) {
+      if (!adminPassphraseRef.current) {
+        const existingHash = window.location.hash.slice(1)
+        if (existingHash) {
+          adminPassphraseRef.current = existingHash
+        } else {
+          adminPassphraseRef.current = generatePassphrase()
+          window.history.replaceState(
+            window.history.state,
+            '',
+            `${window.location.pathname}${window.location.search}#${adminPassphraseRef.current}`
+          )
+        }
+      }
+      passphrase = adminPassphraseRef.current
+      setSymmetricKey(new TextEncoder().encode(passphrase))
+    } else {
+      const hashKey = window.location.hash.slice(1)
+      if (hashKey) {
+        passphrase = hashKey
+        setSymmetricKey(new TextEncoder().encode(passphrase))
+      } else {
+        const preExchangedKey = getSymmetricKey()
+        if (preExchangedKey) {
+          passphrase = new TextDecoder().decode(preExchangedKey)
+        }
+      }
+    }
+
+    if (!passphrase) {
+      console.error('[Encryption] No passphrase available')
+      return
+    }
+
+    keyProvider
+      .setKey(passphrase)
+      .then(async () => {
+        // Enable E2EE BEFORE connecting — sets encryptionType=GCM so tracks
+        // are published with encryption metadata from the start.
+        // Also sends 'enable' to the Worker before any frames flow,
+        // eliminating the unencrypted frame window.
+        try {
+          await room.setE2EEEnabled(true)
+        } catch (err) {
+          console.error('[Encryption] E2EE enable failed:', err)
+        }
+
+        setEncryptionSetupComplete(true)
+      })
+      .catch((err) => {
+        console.error('[Encryption] Key setup failed:', err)
+      })
+
+  }, [room, encryptionEnabled, encryptionSetupComplete, isAdmin, useVaultE2EE])
+
+  // In basic encrypted rooms, the passphrase is in the URL hash.
+  // If the user changes the hash (e.g. corrects a typo), reload the page
+  // so the new passphrase is picked up by the encryption setup.
+  useEffect(() => {
+    if (!encryptionEnabled || useVaultE2EE) return
+    const handleHashChange = () => {
+      window.location.reload()
+    }
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [encryptionEnabled, useVaultE2EE])
 
   useEffect(() => {
     /**
@@ -172,20 +361,6 @@ export const Conference = ({
 
   const isMobile = useIsMobile()
 
-  /*
-   * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
-   * (Firefox <124, Chrome <125, Edge <125) where HTTPS URLs in WebSocket() constructor
-   *  may fail - the force_wss_protocol flag allows explicit WSS protocol conversion
-   */
-  const serverUrl = useMemo(() => {
-    const livekit_url = apiConfig?.livekit.url
-    if (!livekit_url) return
-    if (apiConfig?.livekit.force_wss_protocol) {
-      return livekit_url.replace('https://', 'wss://')
-    }
-    return livekit_url
-  }, [apiConfig?.livekit])
-
   const { t } = useTranslation('rooms')
   if (isCreateError) {
     // this error screen should be replaced by a proper waiting room for anonymous user.
@@ -194,6 +369,67 @@ export const Conference = ({
         title={t('error.createRoom.heading')}
         body={t('error.createRoom.body')}
       />
+    )
+  }
+
+  // Block entry to advanced encrypted rooms when vault service is unavailable
+  if (useVaultE2EE && !vaultLoading && !vaultClient) {
+    return (
+      <Screen layout="centered">
+        <CenteredContent withBackButton>
+          <Center>
+            <div
+              className={css({
+                maxWidth: '400px',
+                backgroundColor: 'white',
+                borderRadius: '1rem',
+                padding: '2rem',
+                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                border: '1px solid',
+                borderColor: 'greyscale.200',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1rem',
+                textAlign: 'center',
+              })}
+            >
+              <div
+                className={css({
+                  width: '3.5rem',
+                  height: '3.5rem',
+                  borderRadius: '50%',
+                  backgroundColor: '#fef2f2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                })}
+              >
+                <RiLockLine size={28} color="#dc2626" />
+              </div>
+              <Text as="h2" className={css({ fontWeight: 700, fontSize: '1.15rem' })}>
+                {t('encryption.error.title')}
+              </Text>
+              <Text as="p" className={css({ fontSize: '0.9rem', color: 'greyscale.700' })}>
+                {t('encryption.error.vaultUnavailable')}
+              </Text>
+              <div
+                className={css({
+                  backgroundColor: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1rem',
+                  width: '100%',
+                })}
+              >
+                <Text as="p" className={css({ fontSize: '0.8rem', color: '#92400e' })}>
+                  {t('encryption.error.vaultUnavailableHint')}
+                </Text>
+              </div>
+            </div>
+          </Center>
+        </CenteredContent>
+      </Screen>
     )
   }
 
@@ -211,7 +447,7 @@ export const Conference = ({
           room={room}
           serverUrl={serverUrl}
           token={data?.livekit?.token}
-          connect={isConnectionWarmedUp}
+          connect={isConnectionWarmedUp && encryptionSetupComplete}
           audio={userConfig.audioEnabled}
           video={
             userConfig.videoEnabled && {

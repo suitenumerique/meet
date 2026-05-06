@@ -57,7 +57,7 @@ export const Avatar = ({
   style,
   ...props
 }: AvatarProps) => {
-  const initial = name?.trim()?.charAt(0) ?? ''
+  const initial = name?.trim()?.charAt(0)?.toUpperCase() ?? ''
   return (
     <div
       style={{
@@ -70,7 +70,7 @@ export const Avatar = ({
       <span
         aria-hidden="true"
         className={css({
-          marginTop: '-0.3rem',
+          lineHeight: 1,
         })}
       >
         {initial}

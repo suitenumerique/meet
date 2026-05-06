@@ -561,12 +561,12 @@ class Base(Configuration):
         "returnTo", environ_name="OIDC_REDIRECT_FIELD_NAME", environ_prefix=None
     )
     OIDC_USERINFO_FULLNAME_FIELDS = values.ListValue(
-        default=["given_name", "usual_name"],
+        default=["first_name", "last_name"],
         environ_name="OIDC_USERINFO_FULLNAME_FIELDS",
         environ_prefix=None,
     )
     OIDC_USERINFO_SHORTNAME_FIELD = values.Value(
-        default="given_name",
+        default="first_name",
         environ_name="OIDC_USERINFO_SHORTNAME_FIELD",
         environ_prefix=None,
     )
@@ -806,6 +806,17 @@ class Base(Configuration):
         "multi-user-transcriber",
         environ_name="ROOM_SUBTITLE_AGENT_NAME",
         environ_prefix=None,
+    )
+
+    # End-to-end encryption settings
+    ENCRYPTION_ENABLED = values.BooleanValue(
+        False, environ_name="ENCRYPTION_ENABLED", environ_prefix=None
+    )
+    ENCRYPTION_VAULT_URL = values.Value(
+        None, environ_name="ENCRYPTION_VAULT_URL", environ_prefix=None
+    )
+    ENCRYPTION_INTERFACE_URL = values.Value(
+        None, environ_name="ENCRYPTION_INTERFACE_URL", environ_prefix=None
     )
 
     # External Applications

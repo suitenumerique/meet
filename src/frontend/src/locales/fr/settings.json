@@ -5,7 +5,8 @@
     "youAreNotLoggedIn": "Vous n'êtes pas connecté.",
     "nameLabel": "Votre Nom",
     "authentication": "Authentification",
-    "nameError": "Votre Nom ne peut pas être vide"
+    "nameError": "Votre Nom ne peut pas être vide",
+    "nameLockedEncryption": "Dans les réunions chiffrées, votre nom provient de votre compte et ne peut pas être modifié."
   },
   "preferences": {
     "title": "Préférences",

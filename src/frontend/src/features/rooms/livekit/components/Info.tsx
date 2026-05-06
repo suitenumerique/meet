@@ -14,7 +14,10 @@ export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
 
   const data = useRoomData()
-  const roomUrl = getRouteUrl('room', data?.slug)
+  const baseRoomUrl = getRouteUrl('room', data?.slug)
+  const roomUrl = window.location.hash
+    ? `${baseRoomUrl}${window.location.hash}`
+    : baseRoomUrl
 
   const telephony = useTelephony()
 
@@ -50,7 +53,14 @@ export const Info = () => {
             flexDirection: 'column',
           })}
         >
-          <Text as="p" variant="xsNote" wrap="pretty">
+          <Text
+            as="p"
+            variant="xsNote"
+            className={css({
+              wordBreak: 'break-all',
+              whiteSpace: 'normal',
+            })}
+          >
             {roomUrl.replace(/^https?:\/\//, '')}
           </Text>
           {isTelephonyReadyForUse && (

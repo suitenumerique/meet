@@ -11,8 +11,10 @@ import { Menu } from '@/primitives/Menu'
 import { MenuList } from '@/primitives/MenuList'
 import { LoginButton } from '@/components/LoginButton'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
-
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { useVaultClient } from '@/features/encryption'
+import { useConfig } from '@/api/useConfig'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const Logo = () => (
   <img
@@ -91,7 +93,51 @@ export const Header = () => {
   const isTermsOfService = useMatchesRoute('termsOfService')
   const isRoom = useMatchesRoute('room')
   const { user, isLoggedIn, logout } = useUser()
-  const userLabel = user?.full_name || user?.email
+  const { data: config } = useConfig()
+  const { client: vaultClient, hasKeys } = useVaultClient()
+  const encryptionContainerRef = useRef<HTMLDivElement | null>(null)
+  const [showEncryptionModal, setShowEncryptionModal] = useState(false)
+  // Track whether the vault interface has been injected for the current modal session.
+  // This prevents re-injection when vault events (onboarding:complete, keys-destroyed)
+  // trigger re-renders via hasKeys state changes — which would destroy the iframe mid-flow.
+  const vaultInjectedRef = useRef(false)
+
+  const encryptionRefCallback = useCallback((el: HTMLDivElement | null) => {
+    encryptionContainerRef.current = el
+  }, [])
+
+  useEffect(() => {
+    const el = encryptionContainerRef.current
+    if (!showEncryptionModal || !el || !vaultClient || vaultInjectedRef.current) return
+
+    vaultInjectedRef.current = true
+    el.innerHTML = ''
+    if (hasKeys) {
+      vaultClient.openSettings(el)
+    } else {
+      vaultClient.openOnboarding(el)
+    }
+
+    const handleClosed = () => {
+      setShowEncryptionModal(false)
+      vaultClient.off('interface:closed', handleClosed)
+    }
+    vaultClient.on('interface:closed', handleClosed)
+
+    return () => {
+      vaultClient.off('interface:closed', handleClosed)
+    }
+  }, [showEncryptionModal, vaultClient])
+
+  // Reset injection flag when modal closes
+  useEffect(() => {
+    if (!showEncryptionModal) {
+      vaultInjectedRef.current = false
+    }
+  }, [showEncryptionModal])
+  const isEncryptionEnabled = !!config?.encryption?.enabled
+  const isEncryptionAvailable = isEncryptionEnabled && !!vaultClient
+  const userLabel = user?.full_name || user?.short_name || user?.email
   const loggedInTooltip = t('loggedInUserTooltip')
   const loggedInAriaLabel = userLabel
     ? `${loggedInTooltip} ${userLabel}`
@@ -174,16 +220,32 @@ export const Header = () => {
                           display: { base: 'none', xsm: 'block' },
                         })}
                       >
-                        {user?.full_name || user?.email}
+                        {user?.full_name || user?.short_name || user?.email}
                       </span>
                     </VisualOnlyTooltip>
                   </Button>
                   <MenuList
                     variant={'light'}
-                    items={[{ value: 'logout', label: t('logout') }]}
+                    items={[
+                      ...(isEncryptionEnabled
+                        ? [
+                            {
+                              value: 'encryption',
+                              label: isEncryptionAvailable
+                                ? (hasKeys ? t('encryptionSettings') : t('encryptionSetup'))
+                                : t('encryptionUnavailable'),
+                              isDisabled: !isEncryptionAvailable,
+                            },
+                          ]
+                        : []),
+                      { value: 'logout', label: t('logout') },
+                    ]}
                     onAction={(value) => {
                       if (value === 'logout') {
                         logout()
+                      }
+                      if (value === 'encryption' && isEncryptionAvailable) {
+                        setShowEncryptionModal(true)
                       }
                     }}
                   />
@@ -194,6 +256,64 @@ export const Header = () => {
           </nav>
         </HStack>
       </div>
+      {showEncryptionModal && vaultClient && (
+        <div
+          className={css({
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          })}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowEncryptionModal(false)
+              vaultClient.closeInterface()
+            }
+          }}
+        >
+          <div
+            className={css({
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              width: '90%',
+              maxWidth: '550px',
+              maxHeight: '85vh',
+              overflow: 'auto',
+              position: 'relative',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            })}
+          >
+            <button
+              onClick={() => {
+                setShowEncryptionModal(false)
+                vaultClient.closeInterface()
+              }}
+              className={css({
+                position: 'absolute',
+                top: '0.75rem',
+                right: '0.75rem',
+                zIndex: 1,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                color: 'greyscale.500',
+                _hover: { color: 'greyscale.900' },
+              })}
+              aria-label={t('close')}
+            >
+              ✕
+            </button>
+            <div
+              ref={encryptionRefCallback}
+              className={css({ minHeight: '300px' })}
+            />
+          </div>
+        </div>
+      )}
     </>
   )
 }

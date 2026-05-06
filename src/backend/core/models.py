@@ -98,6 +98,14 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
+class EncryptionMode(models.TextChoices):
+    """Encryption mode choices for rooms."""
+
+    NONE = "none", _("No encryption")
+    BASIC = "basic", _("Basic encryption")
+    ADVANCED = "advanced", _("Advanced encryption")
+
+
 class BaseModel(models.Model):
     """
     Serves as an abstract base model for other models, ensuring that records are validated
@@ -324,6 +332,15 @@ class ResourceAccess(BaseModel):
     role = models.CharField(
         max_length=20, choices=RoleChoices.choices, default=RoleChoices.MEMBER
     )
+    encrypted_symmetric_key = models.TextField(
+        blank=True,
+        default='',
+        verbose_name=_("Encrypted symmetric key"),
+        help_text=_(
+            "Vault-wrapped symmetric encryption key for advanced E2EE mode. "
+            "Each user's copy is encrypted for their own vault public key."
+        ),
+    )
 
     class Meta:
         db_table = "meet_resource_access"
@@ -388,6 +405,13 @@ class Room(Resource):
         choices=RoomAccessLevel.choices,
         default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
     )
+    encryption_mode = models.CharField(
+        max_length=20,
+        choices=EncryptionMode.choices,
+        default=EncryptionMode.NONE,
+        verbose_name=_("Encryption mode"),
+        help_text=_("End-to-end encryption mode for this room."),
+    )
     configuration = models.JSONField(
         blank=True,
         default=dict,
@@ -441,6 +465,11 @@ class Room(Resource):
     def is_public(self):
         """Check if a room is public"""
         return self.access_level == RoomAccessLevel.PUBLIC
+
+    @property
+    def encryption_enabled(self):
+        """Check if any encryption mode is active."""
+        return self.encryption_mode != EncryptionMode.NONE
 
     @staticmethod
     def generate_unique_pin_code(length):

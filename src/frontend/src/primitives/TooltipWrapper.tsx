@@ -25,7 +25,7 @@ export const TooltipWrapper = ({
   children: ReactNode
 } & TooltipWrapperProps) => {
   return tooltip ? (
-    <TooltipTrigger delay={tooltipType === 'instant' ? 150 : 1000}>
+    <TooltipTrigger delay={tooltipType === 'instant' ? 500 : 1000}>
       {children}
       <Tooltip>{tooltip}</Tooltip>
     </TooltipTrigger>

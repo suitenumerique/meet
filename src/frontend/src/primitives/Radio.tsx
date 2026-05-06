@@ -48,6 +48,11 @@ export const StyledRadio = styled(RACRadio, {
     '&[data-selected][data-pressed] .mt-Radio-check': {
       backgroundColor: 'primary.active',
     },
+    '&[data-disabled]': {
+      opacity: 0.4,
+      cursor: 'not-allowed',
+      pointerEvents: 'none',
+    },
   },
   variants: {
     size: {

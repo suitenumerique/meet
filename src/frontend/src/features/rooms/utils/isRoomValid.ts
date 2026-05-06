@@ -5,10 +5,16 @@ export const flexibleRoomIdPattern =
   '(?:[a-zA-Z0-9]{3}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{3})'
 
 const roomRegex = new RegExp(`^${roomIdPattern}$`)
+const roomWithoutHyphensRegex = /^[a-z]{10}$/
 
-export const isRoomValid = (roomIdOrUrl: string) =>
-  roomRegex.test(roomIdOrUrl) ||
-  new RegExp(`^${window.location.origin}/${roomIdPattern}$`).test(roomIdOrUrl)
+export const isRoomValid = (roomIdOrUrl: string) => {
+  const lower = roomIdOrUrl.toLowerCase()
+  return (
+    roomRegex.test(lower) ||
+    roomWithoutHyphensRegex.test(lower) ||
+    new RegExp(`^${window.location.origin}/${roomIdPattern}`).test(roomIdOrUrl)
+  )
+}
 
 export const normalizeRoomId = (roomId: string) => {
   const cleanId = roomId.toLowerCase().replace(/-/g, '')

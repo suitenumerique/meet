@@ -21,6 +21,8 @@
     "proconnectLink": "Qu'est-ce que ProConnect ?"
   },
   "logout": "Se déconnecter",
+  "encryptionSetup": "Configurer le chiffrement",
+  "encryptionSettings": "Paramètres de chiffrement",
   "notFound": {
     "heading": "Vérifier votre code de réunion",
     "body": "Vérifiez que vous avez saisi le code de réunion correct dans l'URL. Exemple :"

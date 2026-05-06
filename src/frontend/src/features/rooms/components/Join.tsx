@@ -32,8 +32,122 @@ import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/queryClient'
 import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
-import { ApiAccessLevel } from '../api/ApiRoom'
+import { ApiAccessLevel, ApiEncryptionMode, isEncryptedRoom as checkEncryptedRoom } from '../api/ApiRoom'
+import { useVaultClient } from '@/features/encryption'
+import { LoginButton } from '@/components/LoginButton'
+
+const AdvancedOnboardingScreen = ({
+  modalOpen,
+  onModalOpenChange,
+}: {
+  modalOpen: boolean
+  onModalOpenChange: (open: boolean) => void
+}) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { client: vaultClient } = useVaultClient()
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!modalOpen || !vaultClient) return
+
+    const el = containerRef.current
+    if (!el) return
+
+    el.innerHTML = ''
+    vaultClient.openOnboarding(el)
+
+    const handleClosed = () => {
+      onModalOpenChange(false)
+      vaultClient.off('interface:closed', handleClosed)
+    }
+    vaultClient.on('interface:closed', handleClosed)
+
+    return () => {
+      vaultClient.off('interface:closed', handleClosed)
+    }
+  }, [modalOpen, vaultClient, onModalOpenChange])
+
+  return (
+    <>
+      <VStack alignItems="center" textAlign="center" gap="0.75rem">
+        <RiLockLine size={32} color="#d97706" />
+        <H lvl={1} margin={false} centered>
+          {t('advancedOnboarding.title')}
+        </H>
+        <Text as="p" variant="note">
+          {t('advancedOnboarding.body')}
+        </Text>
+        <Button
+          variant="primary"
+          onPress={() => onModalOpenChange(true)}
+        >
+          {t('advancedOnboarding.button')}
+        </Button>
+      </VStack>
+      {modalOpen && (
+        <div
+          className={css({
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          })}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              onModalOpenChange(false)
+              vaultClient?.closeInterface()
+            }
+          }}
+        >
+          <div
+            className={css({
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              width: '90%',
+              maxWidth: '550px',
+              maxHeight: '85vh',
+              overflow: 'auto',
+              position: 'relative',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            })}
+          >
+            <button
+              onClick={() => {
+                onModalOpenChange(false)
+                vaultClient?.closeInterface()
+              }}
+              className={css({
+                position: 'absolute',
+                top: '0.75rem',
+                right: '0.75rem',
+                zIndex: 1,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                color: 'greyscale.500',
+                _hover: { color: 'greyscale.900' },
+              })}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            <div
+              ref={containerRef}
+              className={css({ minHeight: '300px' })}
+            />
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { useUser } from '@/features/auth'
+import { RiInformationLine, RiLockLine } from '@remixicon/react'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
@@ -102,6 +216,31 @@ export const Join = ({
   roomId: string
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+  const { isLoggedIn, user } = useUser()
+
+  // Early fetch to check if the room is encrypted (needed before form submission)
+  const { data: roomInfo } = useQuery({
+    queryKey: [keys.room, roomId, 'info'],
+    queryFn: () => fetchRoom({ roomId }),
+    staleTime: 6 * 60 * 60 * 1000,
+    retry: false,
+  })
+  const isEncryptedRoom = checkEncryptedRoom(roomInfo)
+  const isBasicEncrypted = roomInfo?.encryption_mode === ApiEncryptionMode.BASIC
+  const isAdvancedEncrypted = roomInfo?.encryption_mode === ApiEncryptionMode.ADVANCED
+
+  // Basic mode: validate the passphrase in the URL hash
+  const hashKey = window.location.hash.slice(1)
+  const hasValidBasicKey = isBasicEncrypted ? (hashKey.length === 48 && /^[a-z0-9]+$/.test(hashKey)) : true
+
+  // Advanced mode: require auth + vault onboarding
+  const { hasKeys: vaultHasKeys, isReady: vaultReady } = useVaultClient()
+  const advancedRequiresLogin = isAdvancedEncrypted && !isLoggedIn
+  const advancedRequiresOnboarding = isAdvancedEncrypted && isLoggedIn && vaultReady && !vaultHasKeys
+
+  // In encrypted rooms, authenticated users must use their OIDC name
+  const isNameLocked = isEncryptedRoom && !!isLoggedIn
+  const lockedName = user?.full_name || user?.email || ''
 
   const {
     userChoices: {
@@ -325,8 +464,10 @@ export const Join = ({
     roomId,
     username,
     onAccepted: handleAccepted,
+    encryptionEnabled: isEncryptedRoom,
   })
 
+  const [advancedOnboardingOpen, setAdvancedOnboardingOpen] = useState(false)
   const { openLoginHint } = useLoginHint()
 
   const handleSubmit = async () => {
@@ -426,6 +567,41 @@ export const Join = ({
         )
 
       default:
+        if (advancedRequiresLogin) {
+          return (
+            <VStack alignItems="center" textAlign="center" gap="0.75rem">
+              <RiLockLine size={32} color="#2563eb" />
+              <H lvl={1} margin={false} centered>
+                {t('advancedAuth.title')}
+              </H>
+              <Text as="p" variant="note">
+                {t('advancedAuth.body')}
+              </Text>
+              <LoginButton proConnectHint={false} />
+            </VStack>
+          )
+        }
+        if (advancedRequiresOnboarding || advancedOnboardingOpen) {
+          return (
+            <AdvancedOnboardingScreen
+              modalOpen={advancedOnboardingOpen}
+              onModalOpenChange={setAdvancedOnboardingOpen}
+            />
+          )
+        }
+        if (isBasicEncrypted && !hasValidBasicKey) {
+          return (
+            <VStack alignItems="center" textAlign="center" gap="0.75rem">
+              <RiLockLine size={32} color="#dc2626" />
+              <H lvl={1} margin={false} centered>
+                {t('invalidKey.title')}
+              </H>
+              <Text as="p" variant="note">
+                {t('invalidKey.body')}
+              </Text>
+            </VStack>
+          )
+        }
         return (
           <Form
             onSubmit={handleSubmit}
@@ -438,20 +614,81 @@ export const Join = ({
               <H lvl={1} margin="sm" centered>
                 {t('heading')}
               </H>
-              <Field
-                type="text"
-                onChange={saveUsername}
-                label={t('usernameLabel')}
-                id="input-name"
-                defaultValue={username}
-                validate={(value) => !value && t('errors.usernameEmpty')}
-                wrapperProps={{
-                  noMargin: true,
-                  fullWidth: true,
-                }}
-                autoComplete="name"
-                maxLength={50}
-              />
+              {isNameLocked ? (
+                <div
+                  className={css({
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.25rem',
+                    width: '100%',
+                  })}
+                >
+                  <Text
+                    variant="sm"
+                    className={css({
+                      color: 'greyscale.500',
+                      fontSize: '0.8rem',
+                    })}
+                  >
+                    {t('usernameLabel')}
+                  </Text>
+                  <div
+                    className={css({
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: 'greyscale.100',
+                      borderRadius: '0.375rem',
+                      border: '1px solid',
+                      borderColor: 'greyscale.200',
+                    })}
+                  >
+                    <RiLockLine size={14} color="#6b7280" />
+                    <Text
+                      variant="sm"
+                      className={css({
+                        fontWeight: 500,
+                      })}
+                    >
+                      {lockedName}
+                    </Text>
+                  </div>
+                  <div
+                    className={css({
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                    })}
+                  >
+                    <RiInformationLine size={12} color="#9ca3af" />
+                    <Text
+                      variant="note"
+                      className={css({
+                        fontSize: '0.7rem',
+                        color: 'greyscale.400',
+                      })}
+                    >
+                      {t('encryptedNameLocked')}
+                    </Text>
+                  </div>
+                </div>
+              ) : (
+                <Field
+                  type="text"
+                  onChange={saveUsername}
+                  label={t('usernameLabel')}
+                  id="input-name"
+                  defaultValue={username}
+                  validate={(value) => !value && t('errors.usernameEmpty')}
+                  wrapperProps={{
+                    noMargin: true,
+                    fullWidth: true,
+                  }}
+                  autoComplete="name"
+                  maxLength={50}
+                />
+              )}
             </VStack>
           </Form>
         )

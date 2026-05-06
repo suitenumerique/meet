@@ -15,6 +15,7 @@ import { PopupManager } from '../utils/PopupManager'
 import { CallbackCreationRoomData } from '../utils/types'
 import { useSearchParams } from 'wouter'
 
+
 const popupManager = new PopupManager()
 
 export const CreateMeetingButton = () => {
@@ -39,18 +40,24 @@ export const CreateMeetingButton = () => {
 
   const { data } = useRoomCreationCallback({ callbackId })
 
+  const [basicHash, setBasicHash] = useState<string | undefined>(undefined)
+
   const roomUrl = useMemo(() => {
-    if (room?.slug) return getRouteUrl('room', room.slug)
-  }, [room])
+    if (!room?.slug) return undefined
+    const base = getRouteUrl('room', room.slug)
+    return basicHash ? `${base}#${basicHash}` : base
+  }, [room, basicHash])
 
   useEffect(() => {
     if (!data?.room?.slug) return
     setRoom(data.room)
     setCallbackId(undefined)
     setIsPending(false)
+
+    const url = getRouteUrl('room', data.room.slug)
     popupManager.sendRoomData({
       room: {
-        url: getRouteUrl('room', data.room.slug),
+        url,
         ...data.room,
       },
     })
@@ -61,11 +68,24 @@ export const CreateMeetingButton = () => {
       (id) => setCallbackId(id),
       (data) => {
         setRoom(data)
+        if (data.hash) setBasicHash(data.hash)
         setIsPending(false)
       }
     )
 
     return () => popupManager.cleanup()
+  }, [])
+
+  // Communicate iframe height to parent for proper sizing
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      window.parent.postMessage(
+        { type: 'RESIZE', data: { height: document.body.scrollHeight } },
+        '*'
+      )
+    })
+    observer.observe(document.body)
+    return () => observer.disconnect()
   }, [])
 
   const resetState = () => {

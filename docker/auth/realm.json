@@ -60,7 +60,7 @@
     },
     {
       "username": "user-e2e-chromium",
-      "email": "user@chromium.e2e",
+      "email": "user.test@chromium.test",
       "firstName": "E2E",
       "lastName": "Chromium",
       "enabled": "true",
@@ -74,7 +74,7 @@
     },
     {
       "username": "user-e2e-webkit",
-      "email": "user@webkit.e2e",
+      "email": "user.test@webkit.test",
       "firstName": "E2E",
       "lastName": "Webkit",
       "enabled": "true",
@@ -88,7 +88,7 @@
     },
     {
       "username": "user-e2e-firefox",
-      "email": "user@firefox.e2e",
+      "email": "user.test@firefox.test",
       "firstName": "E2E",
       "lastName": "Firefox",
       "enabled": "true",
@@ -845,6 +845,23 @@
         "offline_access",
         "microprofile-jwt"
       ]
+    },
+    {
+      "clientId": "encryption",
+      "name": "Encryption Service",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://encryption.localhost:7200/auth/callback"
+      ],
+      "webOrigins": [
+        "http://encryption.localhost:7200",
+        "http://data.encryption.localhost:7200"
+      ],
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true
     }
   ],
   "clientScopes": [

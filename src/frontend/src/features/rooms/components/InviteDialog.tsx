@@ -43,7 +43,11 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'shareDialog' })
 
   const roomData = useRoomData()
-  const roomUrl = getRouteUrl('room', roomData?.slug)
+  const baseRoomUrl = getRouteUrl('room', roomData?.slug)
+  // Include the hash (passphrase) for basic encrypted rooms so the full link is visible
+  const roomUrl = window.location.hash
+    ? `${baseRoomUrl}${window.location.hash}`
+    : baseRoomUrl
 
   const telephony = useTelephony()
 
