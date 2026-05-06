@@ -47,7 +47,7 @@ def create_stt_provider():
         )
     elif STT_PROVIDER == "kyutai":
         _stt_instance = kyutai.STT(base_url=os.getenv("KYUTAI_STT_BASE_URL"))
-    elif STT_PROVIDER == "voxtral-realtime":os.getenv("
+    elif STT_PROVIDER == "voxtral-realtime":
         client = Mistral(
             api_key=os.getenv("VOXTRAL_REALTIME_STT_API_KEY"),
             server_url=os.getenv("VOXTRAL_REALTIME_STT_BASE_URL"),
