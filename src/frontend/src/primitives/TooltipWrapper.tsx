@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactElement, type ReactNode } from 'react'
 import {
   OverlayArrow,
   Tooltip as RACTooltip,
@@ -27,11 +27,12 @@ export const TooltipWrapper = ({
   tooltipType,
   children,
 }: {
-  children: ReactNode
+  children: ReactElement
 } & TooltipWrapperProps) => {
   const portalContainer = useOverlayPortalContainer()
   const isExternalDocument =
-    portalContainer && portalContainer.ownerDocument !== document
+    !!portalContainer?.ownerDocument &&
+    portalContainer.ownerDocument !== document
 
   return tooltip ? (
     isExternalDocument ? (

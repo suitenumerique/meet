@@ -26,5 +26,5 @@ export const RoomPiP = (): ReactNode => {
     onClose: close,
     children: <PipView />,
   })
-  return portal as ReactNode
+  return portal
 }

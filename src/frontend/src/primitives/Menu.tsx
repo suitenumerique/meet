@@ -28,8 +28,7 @@ export const Menu = ({
   // Detect if we're in PiP: portal container is in a different document than the main window
   const isInPiP = useMemo(
     () =>
-      portalContainer &&
-      portalContainer.ownerDocument &&
+      !!portalContainer?.ownerDocument &&
       portalContainer.ownerDocument !== document,
     [portalContainer]
   )

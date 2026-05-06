@@ -33,11 +33,11 @@ const copyStyles = (source: Document, target: Document) => {
 }
 
 const syncThemeAttribute = (source: Document, target: Document) => {
-  const theme = source.documentElement.getAttribute('data-lk-theme')
+  const theme = source.documentElement.dataset.lkTheme
   if (theme) {
-    target.documentElement.setAttribute('data-lk-theme', theme)
+    target.documentElement.dataset.lkTheme = theme
   } else {
-    target.documentElement.removeAttribute('data-lk-theme')
+    delete target.documentElement.dataset.lkTheme
   }
 }
 

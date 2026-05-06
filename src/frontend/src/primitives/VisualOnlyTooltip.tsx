@@ -113,6 +113,20 @@ export const VisualOnlyTooltip = ({
       })
     : children
 
+  const translateY = effectiveBottom ? 'translateY(0)' : 'translateY(-100%)'
+  const translateXY = effectiveBottom
+    ? 'translate(-50%, 0)'
+    : 'translate(-50%, -100%)'
+
+  const tooltipInlineStyle: React.CSSProperties & Record<string, string> = {
+    top: `${position?.top}px`,
+    left: computedStyle ? `${computedStyle.left}px` : `${position?.left}px`,
+    transform: computedStyle ? translateY : translateXY,
+    ...(computedStyle
+      ? { '--tooltip-arrow-left': `${computedStyle.arrowLeft}px` }
+      : null),
+  }
+
   return (
     <>
       <div
@@ -160,24 +174,7 @@ export const VisualOnlyTooltip = ({
                     }),
               },
             })}
-            style={{
-              top: `${position.top}px`,
-              left: computedStyle
-                ? `${computedStyle.left}px`
-                : `${position.left}px`,
-              transform: computedStyle
-                ? effectiveBottom
-                  ? 'translateY(0)'
-                  : 'translateY(-100%)'
-                : effectiveBottom
-                  ? 'translate(-50%, 0)'
-                  : 'translate(-50%, -100%)',
-              ...(computedStyle
-                ? {
-                    '--tooltip-arrow-left': `${computedStyle.arrowLeft}px`,
-                  }
-                : null),
-            }}
+            style={tooltipInlineStyle}
           >
             {tooltip}
           </div>,
