@@ -1,7 +1,9 @@
 """Service to notify external services when a new recording is ready."""
 
+import asyncio
 import logging
 import smtplib
+from datetime import datetime, timezone
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -10,8 +12,10 @@ from django.utils.translation import get_language, override
 from django.utils.translation import gettext_lazy as _
 
 import requests
+from asgiref.sync import async_to_sync
+from livekit import api as livekit_api
 
-from core import models
+from core import models, utils
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +135,47 @@ class NotificationService:
         return not has_failures
 
     @staticmethod
-    def _notify_summary_service(recording):
+    async def _get_recording_timestamps(worker_id):
+        """Fetch FileInfo.started_at and ended_at from LiveKit's egress API.
+
+        FileInfo.started_at is more accurate than EgressInfo.started_at because
+        it reflects when file recording actually began. The started_at value exposed
+        in the manifest file, as well as in the EgressInfo returned by the API,
+        corresponds to when the egress service received the request, not the moment
+        the egress worker effectively joined the room.
+
+        Returns:
+            Tuple of (started_at, ended_at) datetimes, either may be None.
+        """
+
+        if not worker_id:
+            return None, None
+
+        custom_configuration = {**settings.LIVEKIT_CONFIGURATION, "timeout": 10}
+        lkapi = utils.create_livekit_client(custom_configuration=custom_configuration)
+        try:
+            egress_list = await lkapi.egress.list_egress(
+                livekit_api.ListEgressRequest(egress_id=worker_id)  # pylint: disable=no-member
+            )
+        except (livekit_api.TwirpError, OSError, asyncio.TimeoutError):
+            logger.exception("Could not fetch egress info for worker %s", worker_id)
+            return None, None
+        finally:
+            await lkapi.aclose()
+
+        if not egress_list.items or not egress_list.items[0].file_results:
+            logger.debug("No file_results for worker %s", worker_id)
+            return None, None
+
+        file_result = egress_list.items[0].file_results[0]
+
+        def _ns_to_utc(ns):
+            return datetime.fromtimestamp(ns / 1e9, tz=timezone.utc) if ns else None
+
+        return _ns_to_utc(file_result.started_at), _ns_to_utc(file_result.ended_at)
+
+    @staticmethod
+    def _notify_summary_service(recording: models.Recording):
         """Notify summary service about a new recording."""
 
         if (
@@ -150,24 +194,37 @@ class NotificationService:
             .first()
         )
 
+        if settings.METADATA_COLLECTOR_ENABLED and recording.options.get(
+            "collect_metadata", False
+        ):
+            output_folder = settings.METADATA_COLLECTOR_OUTPUT_FOLDER
+            metadata_filename = f"{output_folder}/{recording.id}-metadata.json"
+        else:
+            metadata_filename = None
+
         if not owner_access:
             logger.error("No owner found for recording %s", recording.id)
             return False
+
+        started_at, ended_at = async_to_sync(
+            NotificationService._get_recording_timestamps
+        )(recording.worker_id)
+
         payload = {
             "owner_id": str(owner_access.user.id),
-            "filename": recording.key,
+            "recording_filename": recording.key,
+            "metadata_filename": metadata_filename,  # For future use
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
             "room": recording.room.name,
             "language": recording.options.get("language"),
-            "recording_date": recording.created_at.astimezone(
-                owner_access.user.timezone
-            ).strftime("%Y-%m-%d"),
-            "recording_time": recording.created_at.astimezone(
-                owner_access.user.timezone
-            ).strftime("%H:%M"),
+            "owner_timezone": str(owner_access.user.timezone),
             "download_link": f"{get_recording_download_base_url()}/{recording.id}",
             "context_language": owner_access.user.language,
+            "recording_start_at": (started_at.isoformat() if started_at else None),
+            "recording_end_at": (
+                ended_at.isoformat() if ended_at else None
+            ),  # For future use
         }
 
         headers = {

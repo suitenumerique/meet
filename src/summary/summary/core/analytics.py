@@ -112,7 +112,9 @@ class MetadataManager:
         if self._is_disabled or self.has_task_id(task_id):
             return
 
-        _, filename, email, _, received_at, *_ = task_args
+        # Positional args mirror process_audio_transcribe_summarize_v2 signature:
+        # owner_id, recording_filename, metadata_filename, email, sub, received_at, ...
+        _, filename, _, email, _, received_at, *_ = task_args
 
         start_time = time.time()
         initial_metadata = {

@@ -817,6 +817,11 @@ class Base(Configuration):
         environ_name="METADATA_COLLECTOR_AGENT_NAME",
         environ_prefix=None,
     )
+    METADATA_COLLECTOR_OUTPUT_FOLDER = values.Value(
+        "metadata",
+        environ_name="METADATA_COLLECTOR_OUTPUT_FOLDER",
+        environ_prefix=None,
+    )
 
     # External Applications
     APPLICATION_ENABLED = values.BooleanValue(
