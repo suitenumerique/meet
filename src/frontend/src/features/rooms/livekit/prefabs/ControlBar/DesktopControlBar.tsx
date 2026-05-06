@@ -16,17 +16,20 @@ import { VideoDeviceControl } from '../../components/controls/Device/VideoDevice
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 import { ControlBarRegion } from '@/features/layout/components/ControlBarRegion'
+import { useRoomPiP } from '@/features/pip/hooks/useRoomPiP'
 
 export function DesktopControlBar({
   onDeviceError,
 }: Readonly<ControlBarAuxProps>) {
   const browserSupportsScreenSharing = supportsScreenSharing()
   const desktopControlBarEl = useRef<HTMLDivElement>(null)
+  const { isOpen: isPiPOpen } = useRoomPiP()
 
   const { toggleFullScreen, isFullscreenAvailable } = useFullScreen({})
 
   useRegisterKeyboardShortcut({
     id: 'focus-toolbar',
+    isDisabled: isPiPOpen,
     handler: () => {
       const root = desktopControlBarEl.current
       if (!root) return

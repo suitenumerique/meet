@@ -7,6 +7,7 @@ import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKey
 import { REACTIONS_TOOLBAR_ID } from '../constants'
 import { useReactionsToolbar } from '../hooks/useReactionsToolbar'
 import { layoutStore } from '@/stores/layout'
+import { useRoomPiP } from '@/features/pip/hooks/useRoomPiP'
 
 const focusReactionsToolbar = () => {
   document
@@ -17,6 +18,7 @@ const focusReactionsToolbar = () => {
 
 export const ReactionsToggle = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
+  const { isOpen: isPiPOpen } = useRoomPiP()
 
   const { isOpen, toggle } = useReactionsToolbar()
 
@@ -31,6 +33,7 @@ export const ReactionsToggle = () => {
   useRegisterKeyboardShortcut({
     id: 'reaction',
     handler: handleShortcut,
+    isDisabled: isPiPOpen,
   })
 
   return (

@@ -56,15 +56,14 @@ export const PipReactionsPill = ({ isOpen, availableWidth }: Props) => {
     <Pill isVisible={isVisible}>
       {hasOverflow && (
         <ArrowSlot>
-          {canGoLeft && (
-            <ArrowButton
-              type="button"
-              onClick={() => paginate('left')}
-              aria-label={t('previousReactions')}
-            >
-              <RiArrowLeftSLine size={16} />
-            </ArrowButton>
-          )}
+          <ArrowButton
+            type="button"
+            onClick={() => paginate('left')}
+            aria-label={t('previousReactions')}
+            disabled={!canGoLeft}
+          >
+            <RiArrowLeftSLine size={16} />
+          </ArrowButton>
         </ArrowSlot>
       )}
       <EmojiRow>
@@ -74,15 +73,14 @@ export const PipReactionsPill = ({ isOpen, availableWidth }: Props) => {
       </EmojiRow>
       {hasOverflow && (
         <ArrowSlot>
-          {canGoRight && (
-            <ArrowButton
-              type="button"
-              onClick={() => paginate('right')}
-              aria-label={t('nextReactions')}
-            >
-              <RiArrowRightSLine size={16} />
-            </ArrowButton>
-          )}
+          <ArrowButton
+            type="button"
+            onClick={() => paginate('right')}
+            aria-label={t('nextReactions')}
+            disabled={!canGoRight}
+          >
+            <RiArrowRightSLine size={16} />
+          </ArrowButton>
         </ArrowSlot>
       )}
     </Pill>
@@ -155,6 +153,11 @@ const ArrowButton = styled('button', {
     _hover: {
       opacity: 1,
       backgroundColor: 'primaryDark.300',
+    },
+    _disabled: {
+      opacity: 0.3,
+      cursor: 'default',
+      pointerEvents: 'none',
     },
   },
 })

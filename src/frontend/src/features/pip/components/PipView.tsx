@@ -13,6 +13,7 @@ import { PipReactionsToolbar } from './PipReactionsToolbar'
 import { PipStage } from './layouts/PipStage'
 import { PipNotificationOverlay } from './notifications/PipNotificationOverlay'
 import { PipConnectionStateToast } from './notifications/PipConnectionStateToast'
+import { PipReactionPortals } from './PipReactionPortals'
 
 export const PipView = () => {
   const browserSupportsScreenSharing = supportsScreenSharing()
@@ -49,6 +50,7 @@ export const PipView = () => {
       <PipReactionsToolbar />
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
       <SidePanel store={pipLayoutStore} />
+      <PipReactionPortals />
       <OverlayStack>
         <PipConnectionStateToast />
         <PipNotificationOverlay />

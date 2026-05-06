@@ -19,10 +19,14 @@ export const useRegisterKeyboardShortcut = ({
     const descriptor = getShortcutDescriptorById(id)
     if (!descriptor?.shortcut) return
     const formattedKey = formatShortcutKey(descriptor.shortcut)
-    if (isDisabled) {
-      keyboardShortcutsStore.shortcuts.delete(formattedKey)
-    } else {
+    if (!isDisabled) {
       keyboardShortcutsStore.shortcuts.set(formattedKey, handler)
+    }
+    return () => {
+      // Remove only if this is still the registered handler
+      if (keyboardShortcutsStore.shortcuts.get(formattedKey) === handler) {
+        keyboardShortcutsStore.shortcuts.delete(formattedKey)
+      }
     }
   }, [handler, id, isDisabled])
 }
