@@ -4,6 +4,7 @@
 
 import json
 import time
+from datetime import datetime
 
 import openai
 import sentry_sdk
@@ -39,6 +40,7 @@ from summary.core.shared_models import (
     webhook_payload_adapter,
 )
 from summary.core.transcript_formatter import TranscriptFormatter
+from summary.core.user_assign import resolve_speaker_identities
 from summary.core.webhook_service import (
     call_webhook_v2,
     submit_content,
@@ -160,6 +162,65 @@ def transcribe_audio(
     return transcription
 
 
+def resolve_speaker_identities_and_apply_to(
+    transcription, recording_start_at, recording_end_at, metadata_filename, task_id
+):
+    """Assign users to detected speakers and rewrite the transcriptions.
+
+    Args:
+        transcription: output of meet-whisperx after transcription and diarization
+        recording_start_at: sourced from LiveKit FileInfo via the egress_ended webhook
+        recording_end_at: sourced from LiveKit FileInfo via the egress_ended webhook
+        metadata_filename: name of metadata file containing VAD information in S3
+        task_id: current task id, for logging purposes
+    """
+    recording_start_dt = (
+        datetime.fromisoformat(recording_start_at) if recording_start_at else None
+    )
+    recording_end_dt = (
+        datetime.fromisoformat(recording_end_at) if recording_end_at else None
+    )
+
+    logger.debug(
+        "recording_start_dt: %s ; recording_end_dt: %s",
+        recording_start_dt,
+        recording_end_dt,
+    )
+    if (recording_start_dt is None) or (recording_end_dt is None):
+        logger.debug("Skipping resolve_speaker_identities")
+        return transcription
+
+    logger.debug("Running resolve_speaker_identities")
+    try:
+        metadata = file_service.read_json(metadata_filename)
+        speaker_mapping = resolve_speaker_identities(
+            metadata,
+            transcription,
+            recording_start_dt,
+            recording_end_dt,
+        )
+        new_transcription = speaker_mapping.apply_to(transcription.model_dump())
+        return new_transcription
+
+    except FileServiceException as exc:
+        logger.error(
+            "Error reading metadata for task %s; skipping speaker assignment."
+            " Error: %s",
+            task_id,
+            exc,
+        )
+        return transcription
+
+    except Exception as exc:
+        logger.exception(
+            "resolve_speaker_identities failed for task %s; skipping"
+            " speaker assignment. Error: %s",
+            task_id,
+            exc,
+        )
+        return transcription
+
+
 def format_transcript(
     transcription,
     context_language: str | None,
@@ -268,6 +329,18 @@ def process_audio_transcribe_summarize_v2(
     )
     if transcription is None:
         return
+
+    # Assign speakers and rewrite transcription/diarization output
+    if settings.is_resolve_speaker_identities_enabled and (
+        metadata_filename is not None
+    ):
+        transcription = resolve_speaker_identities_and_apply_to(
+            transcription,
+            recording_start_at,
+            recording_end_at,
+            metadata_filename,
+            task_id,
+        )
 
     # Format output
     content, title = format_transcript(

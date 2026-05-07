@@ -363,6 +363,7 @@ class RoomViewSet(
         ):
             try:
                 MetadataCollectorService().start(recording)
+                logger.debug("Started MetadataCollectorService")
             except MetadataCollectorException:
                 logger.warning("Failed to start MetadataCollectorService")
 

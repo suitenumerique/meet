@@ -213,7 +213,7 @@ class NotificationService:
         payload = {
             "owner_id": str(owner_access.user.id),
             "recording_filename": recording.key,
-            "metadata_filename": metadata_filename,  # For future use
+            "metadata_filename": metadata_filename,
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
             "room": recording.room.name,
@@ -222,9 +222,7 @@ class NotificationService:
             "download_link": f"{get_recording_download_base_url()}/{recording.id}",
             "context_language": owner_access.user.language,
             "recording_start_at": (started_at.isoformat() if started_at else None),
-            "recording_end_at": (
-                ended_at.isoformat() if ended_at else None
-            ),  # For future use
+            "recording_end_at": (ended_at.isoformat() if ended_at else None),
         }
 
         headers = {

@@ -103,6 +103,9 @@ class Settings(BaseSettings):
     # Transcription processing
     hallucination_patterns: List[str] = ["Vap'n'Roll Thierry"]
 
+    # Speaker to user assignment
+    is_resolve_speaker_identities_enabled: bool = True
+
     # Webhook-related settings
     webhook_max_retries: int = 2
     webhook_status_forcelist: List[int] = [502, 503, 504]
