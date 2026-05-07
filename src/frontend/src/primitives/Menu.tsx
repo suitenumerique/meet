@@ -13,12 +13,10 @@ export const Menu = ({
   children,
   variant = 'light',
   placement = 'top',
-  shouldFlip,
 }: {
   children: [trigger: ReactNode, menu: ReactNode]
   variant?: 'dark' | 'light'
   placement?: 'bottom' | 'top' | 'left' | 'right'
-  shouldFlip?: boolean
 }) => {
   const [trigger, menu] = children
   const boundaryElement = useOverlayBoundaryElement()
@@ -28,7 +26,6 @@ export const Menu = ({
       {trigger}
       <StyledPopover
         placement={placement}
-        shouldFlip={shouldFlip}
         boundaryElement={boundaryElement}
       >
         <Box size="sm" type="popover" variant={variant}>
