@@ -4,7 +4,6 @@ import { FeedbackMenuItem } from '@/features/rooms/livekit/components/controls/O
 import { EffectsMenuItem } from '@/features/rooms/livekit/components/controls/Options/EffectsMenuItem'
 import { SupportMenuItem } from '@/features/rooms/livekit/components/controls/Options/SupportMenuItem'
 import { PictureInPictureMenuItem } from '@/features/rooms/livekit/components/controls/Options/PictureInPictureMenuItem'
-import { pipLayoutStore } from '@/features/pip/stores/pipLayoutStore'
 import { PipOverflowItems } from './PipOverflowItems'
 import type { CollapsibleControl } from '../PipControlBar'
 
@@ -34,7 +33,7 @@ export const PipOptionsMenuItems = ({
       )}
       <MenuSection>
         <PictureInPictureMenuItem />
-        <EffectsMenuItem store={pipLayoutStore} />
+        <EffectsMenuItem />
       </MenuSection>
       <Separator />
       <MenuSection>

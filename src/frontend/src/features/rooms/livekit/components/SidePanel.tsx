@@ -5,7 +5,7 @@ import { Button, Div } from '@/primitives'
 import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from './controls/Participants/ParticipantsList'
-import { type SidePanelStore, useSidePanel } from '../hooks/useSidePanel'
+import { useSidePanel } from '../hooks/useSidePanel'
 import { ReactNode } from 'react'
 import { Chat } from '../prefabs/Chat'
 import { Effects } from './effects/Effects'
@@ -143,7 +143,7 @@ const Panel = ({ isOpen, keepAlive = false, children }: PanelProps) => (
     {keepAlive || isOpen ? children : null}
   </div>
 )
-export const SidePanel = ({ store }: { store?: SidePanelStore }) => {
+export const SidePanel = () => {
   const {
     activePanelId,
     isParticipantsOpen,
@@ -157,7 +157,7 @@ export const SidePanel = ({ store }: { store?: SidePanelStore }) => {
     activeSubPanelId,
     closePanel,
     goBack,
-  } = useSidePanel(store)
+  } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
   const title = t(`heading.${activeSubPanelId || activePanelId}`)
 

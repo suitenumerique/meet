@@ -27,7 +27,6 @@ import { HStack } from '@/styled-system/jsx'
 import { MutedMicIndicator } from './MutedMicIndicator'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
 import { ParticipantTileFocus } from './ParticipantTileFocus'
-import type { SidePanelStore } from '../hooks/useSidePanel'
 import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { ParticipantName } from './ParticipantName'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
@@ -53,7 +52,6 @@ export function TrackRefContextIfNeeded(
 
 interface ParticipantTileExtendedProps extends ParticipantTileProps {
   disableMetadata?: boolean
-  sidePanelStore?: SidePanelStore
 }
 
 export const ParticipantTile: (
@@ -68,7 +66,6 @@ export const ParticipantTile: (
     onParticipantClick,
     disableSpeakingIndicator,
     disableMetadata,
-    sidePanelStore,
     ...htmlProps
   }: ParticipantTileExtendedProps,
   ref
@@ -238,7 +235,6 @@ export const ParticipantTile: (
             <ParticipantTileFocus
               trackRef={trackReference}
               hasKeyboardFocus={hasKeyboardFocus}
-              sidePanelStore={sidePanelStore}
             />
           )}
         </ParticipantContextIfNeeded>

@@ -3,7 +3,10 @@ import { supportsScreenSharing } from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
 import { styled } from '@/styled-system/jsx'
 import { SidePanel } from '@/features/rooms/livekit/components/SidePanel'
-import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+import {
+  SidePanelStoreProvider,
+  useSidePanel,
+} from '@/features/rooms/livekit/hooks/useSidePanel'
 import { pipLayoutStore } from '../stores/pipLayoutStore'
 import { useEscapeDismiss } from '../hooks/useEscapeDismiss'
 import { usePipKeyboardShortcuts } from '../hooks/usePipKeyboardShortcuts'
@@ -17,12 +20,20 @@ import { PipConnectionStateToast } from './notifications/PipConnectionStateToast
 import { PipReactionPortals } from './PipReactionPortals'
 
 export const PipView = () => {
+  return (
+    <SidePanelStoreProvider value={pipLayoutStore}>
+      <PipViewContent />
+    </SidePanelStoreProvider>
+  )
+}
+
+const PipViewContent = () => {
   const browserSupportsScreenSharing = supportsScreenSharing()
   const { t } = useTranslation('rooms', {
     keyPrefix: 'options.items.pictureInPicture',
   })
   const containerRef = useRef<HTMLDivElement>(null)
-  const { isSidePanelOpen, closePanel } = useSidePanel(pipLayoutStore)
+  const { isSidePanelOpen, closePanel } = useSidePanel()
 
   // Escape closes the side panel instead of the whole PiP window.
   useEscapeDismiss(containerRef, isSidePanelOpen, closePanel)
@@ -53,7 +64,7 @@ export const PipView = () => {
       <PipStage />
       <PipReactionsToolbar />
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
-      <SidePanel store={pipLayoutStore} />
+      <SidePanel />
       <PipReactionPortals />
       <OverlayStack>
         <PipConnectionStateToast />

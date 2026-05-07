@@ -1,3 +1,4 @@
+import { createContext, useContext } from 'react'
 import { useSnapshot } from 'valtio'
 import { layoutStore } from '@/stores/layout'
 import { PanelId, SubPanelId } from '../types/panel'
@@ -9,7 +10,13 @@ export type SidePanelStore = {
   activeSubPanelId: SubPanelId | null
 }
 
-export const useSidePanel = (store: SidePanelStore = layoutStore) => {
+const SidePanelStoreContext = createContext<SidePanelStore>(layoutStore)
+
+export const SidePanelStoreProvider = SidePanelStoreContext.Provider
+
+export const useSidePanel = (store?: SidePanelStore) => {
+  const currentStore = useContext(SidePanelStoreContext)
+  store ??= currentStore
   const layoutSnap = useSnapshot(store)
   const activePanelId = layoutSnap.activePanelId
   const activeSubPanelId = layoutSnap.activeSubPanelId
