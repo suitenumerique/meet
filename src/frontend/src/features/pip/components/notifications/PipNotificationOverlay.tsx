@@ -7,6 +7,7 @@ import {
   toastQueue,
   type ToastData,
 } from '@/features/notifications/components/ToastProvider'
+import { StyledToastContainer } from '@/features/notifications/components/Toast'
 import { PipToastBody } from './PipToastBody'
 
 /**
@@ -32,7 +33,11 @@ export const PipNotificationOverlay = () => {
       aria-live="polite"
     >
       {toasts.map((toast) => (
-        <ToastCard key={toast.key} aria-atomic="true">
+        <StyledToastContainer
+          key={toast.key}
+          aria-atomic="true"
+          css={{ margin: 0, marginLeft: 0, display: 'flex', alignItems: 'center', paddingRight: '0.25rem' }}
+        >
           <PipToastBody toast={toast} />
           <Button
             square
@@ -43,7 +48,7 @@ export const PipNotificationOverlay = () => {
           >
             <RiCloseLine size={16} color="white" aria-hidden="true" />
           </Button>
-        </ToastCard>
+        </StyledToastContainer>
       ))}
     </Region>
   )
@@ -59,21 +64,3 @@ const Region = styled('div', {
   },
 })
 
-const ToastCard = styled('div', {
-  base: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.25rem',
-    maxWidth: '100%',
-    backgroundColor: 'greyscale.700',
-    color: 'white',
-    borderRadius: '6px',
-    boxShadow:
-      'rgba(0, 0, 0, 0.4) 0px 2px 6px 0px, rgba(0, 0, 0, 0.25) 0px 4px 12px 2px',
-    paddingRight: '0.25rem',
-    animation: 'fade 200ms',
-    '@media (prefers-reduced-motion: reduce)': {
-      animation: 'none',
-    },
-  },
-})
