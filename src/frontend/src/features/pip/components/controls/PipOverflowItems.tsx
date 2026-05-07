@@ -55,14 +55,14 @@ export const PipOverflowItems = ({
           {t('controls.screenShare.start')}
         </MenuItem>
       )}
-      {overflowControls.has('subtitles') && areSubtitlesAvailable && (
-        <MenuItem onAction={toggleSubtitles} className={itemClass}>
-          <RiClosedCaptioningLine size={20} />
-          {areSubtitlesOpen
-            ? t('controls.subtitles.open')
-            : t('controls.subtitles.closed')}
-        </MenuItem>
-      )}
+      {/*{overflowControls.has('subtitles') && areSubtitlesAvailable && (*/}
+      {/*  <MenuItem onAction={toggleSubtitles} className={itemClass}>*/}
+      {/*    <RiClosedCaptioningLine size={20} />*/}
+      {/*    {areSubtitlesOpen*/}
+      {/*      ? t('controls.subtitles.open')*/}
+      {/*      : t('controls.subtitles.closed')}*/}
+      {/*  </MenuItem>*/}
+      {/*)}*/}
       {overflowControls.has('hand') && (
         <MenuItem onAction={toggleRaisedHand} className={itemClass}>
           <RiHand size={20} />

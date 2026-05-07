@@ -16,13 +16,13 @@ import { PipReactionsToggle } from './PipReactionsToggle'
 
 export type CollapsibleControl =
   | 'hand'
-  | 'subtitles'
+  // | 'subtitles'
   | 'screenShare'
   | 'reactions'
 
 const COLLAPSE_ORDER: CollapsibleControl[] = [
   'hand',
-  'subtitles',
+  // 'subtitles',
   'screenShare',
   'reactions',
 ]
@@ -86,7 +86,7 @@ export const PipControlBar = ({
         <VideoDeviceControl hideMenu />
         {!hidden.has('reactions') && <PipReactionsToggle />}
         {showScreenShare && !hidden.has('screenShare') && <ScreenShareToggle />}
-        {!hidden.has('subtitles') && <SubtitlesToggle />}
+        {/*{!hidden.has('subtitles') && <SubtitlesToggle />}*/}
         {!hidden.has('hand') && <HandToggle />}
         <PipOptionsMenu overflowControls={hidden} />
         <LeaveButton />
