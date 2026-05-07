@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import get_language, override
 from django.utils.translation import gettext_lazy as _
 
+import aiohttp
 import requests
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
@@ -151,7 +152,10 @@ class NotificationService:
         if not worker_id:
             return None, None
 
-        custom_configuration = {**settings.LIVEKIT_CONFIGURATION, "timeout": 10}
+        custom_configuration = {
+            **settings.LIVEKIT_CONFIGURATION,
+            "timeout": aiohttp.ClientTimeout(total=10),
+        }
         lkapi = utils.create_livekit_client(custom_configuration=custom_configuration)
         try:
             egress_list = await lkapi.egress.list_egress(
