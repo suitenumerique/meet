@@ -1,3 +1,4 @@
+import React from 'react'
 import { MenuItem } from 'react-aria-components'
 import {
   RiHand,
@@ -5,57 +6,60 @@ import {
   RiArrowUpLine,
   RiEmotionLine,
 } from '@remixicon/react'
-import { TFunction } from 'i18next'
+import { useTranslation } from 'react-i18next'
+import { Track } from 'livekit-client'
 import { pipLayoutStore } from '@/features/pip/stores/pipLayoutStore'
 import { menuRecipe } from '@/primitives/menuRecipe'
-import { useRoomContext } from '@livekit/components-react'
+import { useRoomContext, useTrackToggle } from '@livekit/components-react'
 import { useRaisedHand } from '@/features/rooms/livekit/hooks/useRaisedHand'
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
 import { useAreSubtitlesAvailable } from '@/features/subtitle/hooks/useAreSubtitlesAvailable'
 import { useSnapshot } from 'valtio'
-import type { CollapsibleControl } from '../PipControlBar'
+import { CollapsibleControls, type CollapsibleControl } from '../PipControlBar'
 
 type PipOverflowItemsProps = {
   overflowControls: Set<CollapsibleControl>
-  t: TFunction<'rooms'>
 }
 
 export const PipOverflowItems = ({
   overflowControls,
-  t,
 }: PipOverflowItemsProps) => {
+  const { t } = useTranslation('rooms')
   const room = useRoomContext()
   const { isHandRaised, toggleRaisedHand } = useRaisedHand({
     participant: room.localParticipant,
   })
   const { areSubtitlesOpen, toggleSubtitles } = useSubtitles()
   const areSubtitlesAvailable = useAreSubtitlesAvailable()
-  const pipSnap = useSnapshot(pipLayoutStore)
+  const { buttonProps: screenShareProps, enabled: isScreenSharing } =
+    useTrackToggle({
+      source: Track.Source.ScreenShare,
+      captureOptions: { audio: true, selfBrowserSurface: 'include' },
+    })
+  const pipLayoutSnap = useSnapshot(pipLayoutStore)
   const toggleReactions = () => {
-    pipLayoutStore.showReactionsToolbar = !pipSnap.showReactionsToolbar
+    pipLayoutStore.showReactionsToolbar = !pipLayoutSnap.showReactionsToolbar
   }
   const itemClass = menuRecipe({ icon: true, variant: 'dark' }).item
 
   return (
     <>
-      {overflowControls.has('reactions') && (
+      {overflowControls.has(CollapsibleControls.REACTIONS) && (
         <MenuItem onAction={toggleReactions} className={itemClass}>
           <RiEmotionLine size={20} />
           {t('controls.reactions.button')}
         </MenuItem>
       )}
-      {overflowControls.has('screenShare') && (
+      {overflowControls.has(CollapsibleControls.SCREEN_SHARE) && (
         <MenuItem
-          onAction={() => {
-            /* screen share requires track toggle, handled externally */
-          }}
+          onAction={() => screenShareProps.onClick?.({} as React.MouseEvent<HTMLButtonElement>)}
           className={itemClass}
         >
           <RiArrowUpLine size={20} />
-          {t('controls.screenShare.start')}
+          {t(isScreenSharing ? 'controls.screenShare.stop' : 'controls.screenShare.start')}
         </MenuItem>
       )}
-      {overflowControls.has('subtitles') && areSubtitlesAvailable && (
+      {overflowControls.has(CollapsibleControls.SUBTITLES) && areSubtitlesAvailable && (
         <MenuItem onAction={toggleSubtitles} className={itemClass}>
           <RiClosedCaptioningLine size={20} />
           {areSubtitlesOpen
@@ -63,7 +67,7 @@ export const PipOverflowItems = ({
             : t('controls.subtitles.closed')}
         </MenuItem>
       )}
-      {overflowControls.has('hand') && (
+      {overflowControls.has(CollapsibleControls.HAND) && (
         <MenuItem onAction={toggleRaisedHand} className={itemClass}>
           <RiHand size={20} />
           {isHandRaised ? t('controls.hand.lower') : t('controls.hand.raise')}

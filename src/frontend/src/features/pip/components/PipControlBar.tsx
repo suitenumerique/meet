@@ -14,17 +14,21 @@ import { usePipElementSize } from '../hooks/usePipElementSize'
 import { PipOptionsMenu } from './controls/PipOptionsMenu'
 import { PipReactionsToggle } from './PipReactionsToggle'
 
+export const CollapsibleControls = {
+  HAND: 'hand',
+  SUBTITLES: 'subtitles',
+  SCREEN_SHARE: 'screenShare',
+  REACTIONS: 'reactions',
+} as const
+
 export type CollapsibleControl =
-  | 'hand'
-  | 'subtitles'
-  | 'screenShare'
-  | 'reactions'
+  (typeof CollapsibleControls)[keyof typeof CollapsibleControls]
 
 const COLLAPSE_ORDER: CollapsibleControl[] = [
-  'hand',
-  'subtitles',
-  'screenShare',
-  'reactions',
+  CollapsibleControls.HAND,
+  CollapsibleControls.SUBTITLES,
+  CollapsibleControls.SCREEN_SHARE,
+  CollapsibleControls.REACTIONS,
 ]
 
 const BUTTON_SLOT = 50
@@ -39,7 +43,7 @@ const getHiddenControls = (
 
   const collapsible = showScreenShare
     ? COLLAPSE_ORDER
-    : COLLAPSE_ORDER.filter((c) => c !== 'screenShare')
+    : COLLAPSE_ORDER.filter((c) => c !== CollapsibleControls.SCREEN_SHARE)
 
   const available = containerWidth - ESSENTIAL_WIDTH
   const maxVisible = Math.max(0, Math.floor(available / BUTTON_SLOT))
@@ -84,10 +88,10 @@ export const PipControlBar = ({
       <PipControlsCenter>
         <AudioDevicesControl hideMenu />
         <VideoDeviceControl hideMenu />
-        {!hidden.has('reactions') && <PipReactionsToggle />}
-        {showScreenShare && !hidden.has('screenShare') && <ScreenShareToggle />}
-        {!hidden.has('subtitles') && <SubtitlesToggle />}
-        {!hidden.has('hand') && <HandToggle />}
+        {!hidden.has(CollapsibleControls.REACTIONS) && <PipReactionsToggle />}
+        {showScreenShare && !hidden.has(CollapsibleControls.SCREEN_SHARE) && <ScreenShareToggle />}
+        {!hidden.has(CollapsibleControls.SUBTITLES) && <SubtitlesToggle />}
+        {!hidden.has(CollapsibleControls.HAND) && <HandToggle />}
         <PipOptionsMenu overflowControls={hidden} />
         <LeaveButton />
         <StartMediaButton />

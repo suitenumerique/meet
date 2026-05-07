@@ -1,5 +1,4 @@
 import { Menu as RACMenu, MenuSection } from 'react-aria-components'
-import { useTranslation } from 'react-i18next'
 import { Separator } from '@/primitives/Separator'
 import { FeedbackMenuItem } from '@/features/rooms/livekit/components/controls/Options/FeedbackMenuItem'
 import { EffectsMenuItem } from '@/features/rooms/livekit/components/controls/Options/EffectsMenuItem'
@@ -16,7 +15,6 @@ type PipOptionsMenuItemsProps = {
 export const PipOptionsMenuItems = ({
   overflowControls,
 }: PipOptionsMenuItemsProps) => {
-  const { t } = useTranslation('rooms')
   const hasOverflow = overflowControls && overflowControls.size > 0
 
   return (
@@ -29,7 +27,7 @@ export const PipOptionsMenuItems = ({
       {hasOverflow && (
         <>
           <MenuSection>
-            <PipOverflowItems overflowControls={overflowControls} t={t} />
+            <PipOverflowItems overflowControls={overflowControls} />
           </MenuSection>
           <Separator />
         </>
