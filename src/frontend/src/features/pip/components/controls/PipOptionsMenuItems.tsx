@@ -39,10 +39,10 @@ export const PipOptionsMenuItems = ({
         <EffectsMenuItem store={pipLayoutStore} />
       </MenuSection>
       <Separator />
-      <MenuSection>
-        <SupportMenuItem />
-        <FeedbackMenuItem />
-      </MenuSection>
+      {/*<MenuSection>*/}
+      {/*  <SupportMenuItem />*/}
+      {/*  <FeedbackMenuItem />*/}
+      {/*</MenuSection>*/}
     </RACMenu>
   )
 }
