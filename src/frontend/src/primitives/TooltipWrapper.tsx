@@ -6,8 +6,8 @@ import {
   type TooltipProps,
 } from 'react-aria-components'
 import { styled } from '@/styled-system/jsx'
-import { useOverlayPortalContainer } from './useOverlayPortalContainer'
 import { VisualOnlyTooltip } from './VisualOnlyTooltip'
+import { useVisualOnlyTooltips } from './VisualOnlyTooltipsContext'
 
 export type TooltipWrapperProps = {
   tooltip?: string
@@ -29,28 +29,23 @@ export const TooltipWrapper = ({
 }: {
   children: ReactElement
 } & TooltipWrapperProps) => {
-  const portalContainer = useOverlayPortalContainer()
-  const isExternalDocument =
-    !!portalContainer?.ownerDocument &&
-    portalContainer.ownerDocument !== document
+  const visualOnly = useVisualOnlyTooltips()
+  const tooltipDelay =
+    tooltipType === 'instant'
+      ? INSTANT_TOOLTIP_DELAY_MS
+      : DELAYED_TOOLTIP_DELAY_MS
 
-  return tooltip ? (
-    isExternalDocument ? (
-      <VisualOnlyTooltip tooltip={tooltip}>{children}</VisualOnlyTooltip>
-    ) : (
-      <TooltipTrigger
-        delay={
-          tooltipType === 'instant'
-            ? INSTANT_TOOLTIP_DELAY_MS
-            : DELAYED_TOOLTIP_DELAY_MS
-        }
-      >
-        {children}
-        <Tooltip>{tooltip}</Tooltip>
-      </TooltipTrigger>
-    )
-  ) : (
-    children
+  if (!tooltip) return children
+
+  if (visualOnly) {
+    return <VisualOnlyTooltip tooltip={tooltip}>{children}</VisualOnlyTooltip>
+  }
+
+  return (
+    <TooltipTrigger delay={tooltipDelay}>
+      {children}
+      <Tooltip>{tooltip}</Tooltip>
+    </TooltipTrigger>
   )
 }
 

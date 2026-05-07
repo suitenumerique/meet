@@ -5,6 +5,7 @@ import { useDocumentPiP } from '../hooks/useDocumentPiP'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { UNSAFE_PortalProvider } from '@react-aria/overlays'
+import { VisualOnlyTooltipsContext } from '@/primitives/VisualOnlyTooltipsContext'
 
 // Minimal base styles so the PiP window renders correctly on first paint.
 const ensureBaseStyles = (target: Document) => {
@@ -224,7 +225,9 @@ export const DocumentPiPPortal = ({
     if (!container) return null
     return createPortal(
       <UNSAFE_PortalProvider getContainer={() => container}>
-        {children}
+        <VisualOnlyTooltipsContext.Provider value={true}>
+          {children}
+        </VisualOnlyTooltipsContext.Provider>
       </UNSAFE_PortalProvider>,
       container
     )

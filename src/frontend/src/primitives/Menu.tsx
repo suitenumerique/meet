@@ -1,11 +1,8 @@
-import { ReactNode, useMemo } from 'react'
+import { ReactNode } from 'react'
 import { MenuTrigger } from 'react-aria-components'
 import { StyledPopover } from './Popover'
 import { Box } from './Box'
-import {
-  useOverlayBoundaryElement,
-  useOverlayPortalContainer,
-} from './useOverlayPortalContainer'
+import { useOverlayBoundaryElement } from './useOverlayPortalContainer'
 
 /**
  * a Menu is a tuple of a trigger component (most usually a Button) that toggles menu items in a tooltip around the trigger
@@ -15,33 +12,22 @@ import {
 export const Menu = ({
   children,
   variant = 'light',
-  placement,
+  placement = 'top',
+  shouldFlip,
 }: {
   children: [trigger: ReactNode, menu: ReactNode]
   variant?: 'dark' | 'light'
   placement?: 'bottom' | 'top' | 'left' | 'right'
+  shouldFlip?: boolean
 }) => {
   const [trigger, menu] = children
   const boundaryElement = useOverlayBoundaryElement()
-  const portalContainer = useOverlayPortalContainer()
-
-  // Detect if we're in PiP: portal container is in a different document than the main window
-  const isInPiP = useMemo(
-    () =>
-      !!portalContainer?.ownerDocument &&
-      portalContainer.ownerDocument !== document,
-    [portalContainer]
-  )
-
-  // Default placement: 'bottom' in PiP, 'top' elsewhere (to match existing behavior)
-  const defaultPlacement = isInPiP ? 'bottom' : 'top'
-  const shouldFlip = isInPiP ? false : undefined
 
   return (
     <MenuTrigger>
       {trigger}
       <StyledPopover
-        placement={placement ?? defaultPlacement}
+        placement={placement}
         shouldFlip={shouldFlip}
         boundaryElement={boundaryElement}
       >
