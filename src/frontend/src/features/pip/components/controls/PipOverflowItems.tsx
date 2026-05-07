@@ -2,7 +2,6 @@ import React from 'react'
 import { MenuItem } from 'react-aria-components'
 import {
   RiHand,
-  RiClosedCaptioningLine,
   RiArrowUpLine,
   RiEmotionLine,
 } from '@remixicon/react'
@@ -12,8 +11,6 @@ import { pipLayoutStore } from '@/features/pip/stores/pipLayoutStore'
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { useRoomContext, useTrackToggle } from '@livekit/components-react'
 import { useRaisedHand } from '@/features/rooms/livekit/hooks/useRaisedHand'
-import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
-import { useAreSubtitlesAvailable } from '@/features/subtitle/hooks/useAreSubtitlesAvailable'
 import { useSnapshot } from 'valtio'
 import { CollapsibleControls, type CollapsibleControl } from '../PipControlBar'
 
@@ -29,8 +26,6 @@ export const PipOverflowItems = ({
   const { isHandRaised, toggleRaisedHand } = useRaisedHand({
     participant: room.localParticipant,
   })
-  const { areSubtitlesOpen, toggleSubtitles } = useSubtitles()
-  const areSubtitlesAvailable = useAreSubtitlesAvailable()
   const { buttonProps: screenShareProps, enabled: isScreenSharing } =
     useTrackToggle({
       source: Track.Source.ScreenShare,
@@ -57,14 +52,6 @@ export const PipOverflowItems = ({
         >
           <RiArrowUpLine size={20} />
           {t(isScreenSharing ? 'controls.screenShare.stop' : 'controls.screenShare.start')}
-        </MenuItem>
-      )}
-      {overflowControls.has(CollapsibleControls.SUBTITLES) && areSubtitlesAvailable && (
-        <MenuItem onAction={toggleSubtitles} className={itemClass}>
-          <RiClosedCaptioningLine size={20} />
-          {areSubtitlesOpen
-            ? t('controls.subtitles.open')
-            : t('controls.subtitles.closed')}
         </MenuItem>
       )}
       {overflowControls.has(CollapsibleControls.HAND) && (

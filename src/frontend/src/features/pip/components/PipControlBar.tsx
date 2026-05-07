@@ -7,7 +7,6 @@ import { AudioDevicesControl } from '@/features/rooms/livekit/components/control
 import { VideoDeviceControl } from '@/features/rooms/livekit/components/controls/Device/VideoDeviceControl'
 import { ScreenShareToggle } from '@/features/rooms/livekit/components/controls/ScreenShareToggle'
 import { LeaveButton } from '@/features/rooms/livekit/components/controls/LeaveButton'
-import { SubtitlesToggle } from '@/features/rooms/livekit/components/controls/SubtitlesToggle'
 import { HandToggle } from '@/features/rooms/livekit/components/controls/HandToggle'
 import { StartMediaButton } from '@/features/rooms/livekit/components/controls/StartMediaButton'
 import { usePipElementSize } from '../hooks/usePipElementSize'
@@ -16,7 +15,6 @@ import { PipReactionsToggle } from './PipReactionsToggle'
 
 export const CollapsibleControls = {
   HAND: 'hand',
-  SUBTITLES: 'subtitles',
   SCREEN_SHARE: 'screenShare',
   REACTIONS: 'reactions',
 } as const
@@ -26,7 +24,6 @@ export type CollapsibleControl =
 
 const COLLAPSE_ORDER: CollapsibleControl[] = [
   CollapsibleControls.HAND,
-  CollapsibleControls.SUBTITLES,
   CollapsibleControls.SCREEN_SHARE,
   CollapsibleControls.REACTIONS,
 ]
@@ -90,7 +87,6 @@ export const PipControlBar = ({
         <VideoDeviceControl hideMenu />
         {!hidden.has(CollapsibleControls.REACTIONS) && <PipReactionsToggle />}
         {showScreenShare && !hidden.has(CollapsibleControls.SCREEN_SHARE) && <ScreenShareToggle />}
-        {!hidden.has(CollapsibleControls.SUBTITLES) && <SubtitlesToggle />}
         {!hidden.has(CollapsibleControls.HAND) && <HandToggle />}
         <PipOptionsMenu overflowControls={hidden} />
         <LeaveButton />
