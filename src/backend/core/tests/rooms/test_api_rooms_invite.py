@@ -187,6 +187,53 @@ def test_api_rooms_invite_partially_invalid_emails():
 
 
 @mock.patch.object(InvitationService, "invite_to_room")
+def test_api_rooms_invite_too_many_emails(mock_invite_to_room, settings):
+    """Should reject payloads exceeding ROOM_INVITE_MAX_EMAILS without sending."""
+    settings.ROOM_INVITE_MAX_EMAILS = 5
+
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role=random.choice(["administrator", "owner"]))
+    client.force_login(user)
+
+    emails = [f"user{i}@yopmail.com" for i in range(6)]
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/invite/",
+        json.dumps({"emails": emails}),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    assert "emails" in response.json()
+    mock_invite_to_room.assert_not_called()
+
+
+@mock.patch.object(InvitationService, "invite_to_room")
+def test_api_rooms_invite_at_cap_accepted(mock_invite_to_room, settings):
+    """Should accept payloads of exactly ROOM_INVITE_MAX_EMAILS recipients."""
+    settings.ROOM_INVITE_MAX_EMAILS = 5
+
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role=random.choice(["administrator", "owner"]))
+    client.force_login(user)
+
+    emails = [f"user{i}@yopmail.com" for i in range(5)]
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/invite/",
+        json.dumps({"emails": emails}),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    mock_invite_to_room.assert_called_once()
+
+
+@mock.patch.object(InvitationService, "invite_to_room")
 def test_api_rooms_invite_duplicates(mock_invite_to_room):
     """Test duplicate emails should be deduplicated before processing."""
 

@@ -344,6 +344,16 @@ class Base(Configuration):
                 environ_name="CREATION_CALLBACK_THROTTLE_RATES",
                 environ_prefix=None,
             ),
+            "invite_burst": values.Value(
+                default="1/second",
+                environ_name="INVITE_BURST_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "invite_sustained": values.Value(
+                default="10/minute",
+                environ_name="INVITE_SUSTAINED_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
         },
     }
     MONITORED_THROTTLE_FAILURE_CALLBACK = (
@@ -806,6 +816,13 @@ class Base(Configuration):
     ROOM_CREATION_CALLBACK_CACHE_TIMEOUT = values.PositiveIntegerValue(
         600,  # 10 minutes
         environ_name="ROOM_CREATION_CALLBACK_CACHE_TIMEOUT",
+        environ_prefix=None,
+    )
+
+    # Maximum recipients accepted by the room invitation endpoint per request.
+    ROOM_INVITE_MAX_EMAILS = values.PositiveIntegerValue(
+        50,
+        environ_name="ROOM_INVITE_MAX_EMAILS",
         environ_prefix=None,
     )
 
