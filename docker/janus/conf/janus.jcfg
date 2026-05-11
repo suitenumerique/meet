@@ -1,0 +1,42 @@
+// Minimal Janus config for browser-↔-SIP demo. Trimmed from the upstream
+// sample to the bits we actually need.
+general: {
+    configs_folder = "/usr/local/etc/janus"
+    plugins_folder = "/usr/local/lib/janus/plugins"
+    transports_folder = "/usr/local/lib/janus/transports"
+    events_folder = "/usr/local/lib/janus/events"
+    log_to_stdout = true
+    debug_level = 4
+    server_name = "meet-sip-demo"
+}
+
+media: {
+    // Janus ↔ Browser media (WebRTC over TCP — Lima only forwards TCP).
+    rtp_port_range = "10100-10120"
+    ipv6 = false
+}
+
+nat: {
+    // The whole reason this works without vmnet — Janus offers TCP ICE
+    // candidates the Mac browser can actually connect to.
+    ice_tcp = true
+    // libnice quirk: ICE-TCP needs ICE Lite mode on the server side or
+    // the connectivity check state machine deadlocks. Janus warns about
+    // this at startup if Lite is off while TCP is on.
+    ice_lite = true
+    // Janus advertises this IP in ICE candidates. From the Mac browser's
+    // perspective, the Janus daemon lives at 127.0.0.1:<port> (Lima
+    // forwards Mac:127.0.0.1:<port> → VM → docker port-map → container).
+    nat_1_1_mapping = "127.0.0.1"
+    keep_private_host = true
+}
+
+plugins: {
+    // Only keep the SIP plugin. Everything else trimmed for boot time.
+    disable = "libjanus_audiobridge.so,libjanus_videoroom.so,libjanus_streaming.so,libjanus_textroom.so,libjanus_recordplay.so,libjanus_voicemail.so,libjanus_echotest.so,libjanus_videocall.so,libjanus_nosip.so,libjanus_duktape.so,libjanus_lua.so"
+}
+
+transports: {
+    // Only HTTP. WS is overkill for the demo and adds another port.
+    disable = "libjanus_websockets.so,libjanus_mqtt.so,libjanus_nanomsg.so,libjanus_rabbitmq.so,libjanus_pfunix.so"
+}

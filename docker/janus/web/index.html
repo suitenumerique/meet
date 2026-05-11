@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<!--
+Minimal SIP-via-Janus demo. Replaces the upstream siptest.html bundle with
+a single self-contained page. Everything is auto-driven: page load creates
+the Janus session, attaches to the SIP plugin, registers as guest, places
+the call. The user just needs to type the room PIN on the dialpad.
+
+Co-located only with janus.js (vendor lib, ~113KB) — no settings.js, no
+navbar/footer, no shared CSS, no logos. nginx serves these two files.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SIP Demo</title>
+<style>
+	* { box-sizing: border-box; }
+	html, body { margin: 0; padding: 0; height: 100%; background: #1b1b1f; color: #e8e8e8;
+	             font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100vh; max-width: 720px; margin: 0 auto; padding: 16px; gap: 12px; }
+	h1 { margin: 0; font-size: 18px; font-weight: 600; }
+	#status { padding: 8px 12px; border-radius: 6px; background: #2c2c33; font-family: ui-monospace, monospace; font-size: 13px; }
+	#video-wrap { position: relative; flex: 1; background: #000; border-radius: 8px; overflow: hidden; min-height: 240px; }
+	#remoteVideo { width: 100%; height: 100%; object-fit: contain; }
+	#noVideo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #555; font-size: 14px; }
+	.row { display: flex; gap: 8px; flex-wrap: wrap; }
+	button { font: inherit; padding: 8px 14px; border: 0; border-radius: 6px; background: #4a90e2; color: #fff; cursor: pointer; }
+	button:hover:not(:disabled) { background: #357ec0; }
+	button:disabled { opacity: 0.4; cursor: not-allowed; }
+	button.danger { background: #dc3545; }
+	button.danger:hover:not(:disabled) { background: #b62733; }
+	button.success { background: #28a745; }
+	button.success:hover:not(:disabled) { background: #1f8035; }
+	.dialpad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+	.dialpad button { padding: 14px 0; font-size: 16px; background: #3a3a44; }
+	.dialpad button:hover:not(:disabled) { background: #4a4a55; }
+	#pin-row input { flex: 1; padding: 8px 12px; border: 1px solid #444; border-radius: 6px; background: #2c2c33; color: #fff; font: inherit; font-family: ui-monospace, monospace; letter-spacing: 0.2em; }
+	#log { font-family: ui-monospace, monospace; font-size: 11px; max-height: 120px; overflow-y: auto; background: #15151a; padding: 8px; border-radius: 6px; color: #888; }
+	.log-line { white-space: pre-wrap; word-break: break-word; }
+	.log-err { color: #ff7373; }
+	.disabled { opacity: 0.35; pointer-events: none; transition: opacity 0.2s; }
+</style>
+</head>
+<body>
+<div id="app">
+	<h1>SIP demo (browser → Janus → livekit-sip → room)</h1>
+	<div id="status">Loading…</div>
+
+	<div id="video-wrap">
+		<video id="remoteVideo" autoplay playsinline muted></video>
+		<audio id="remoteAudio" autoplay></audio>
+		<div id="noVideo">No remote video yet</div>
+	</div>
+
+	<div id="pin-row" class="row" style="display:none">
+		<input type="text" id="pin" placeholder="Enter PIN then press # on the pad" inputmode="numeric" pattern="[0-9]*">
+		<button id="sendPin" class="success">Send PIN</button>
+	</div>
+
+	<div id="dialpad" class="dialpad" style="display:none">
+		<button data-d="1">1</button><button data-d="2">2</button><button data-d="3">3</button><button data-d="A">A</button>
+		<button data-d="4">4</button><button data-d="5">5</button><button data-d="6">6</button><button data-d="B">B</button>
+		<button data-d="7">7</button><button data-d="8">8</button><button data-d="9">9</button><button data-d="C">C</button>
+		<button data-d="*">*</button><button data-d="0">0</button><button data-d="#">#</button><button data-d="D">D</button>
+	</div>
+
+	<div id="controls" class="row">
+		<button id="muteBtn" class="danger">🔇 Mic muted</button>
+		<button id="cameraBtn" class="success">📷 Camera on</button>
+		<button id="speakerBtn" class="success">🔊 Speaker on</button>
+		<button id="hangupBtn" class="danger" disabled>Hangup</button>
+		<button id="rejoinBtn" style="display:none">Re-join</button>
+	</div>
+
+	<details><summary style="cursor:pointer; opacity:0.7; font-size:12px">debug log</summary>
+		<div id="log"></div>
+	</details>
+</div>
+
+<!-- webrtc-adapter is required by janus.js (cross-browser WebRTC API
+     normalizer). The upstream siptest pulls it from CDN; we do the same.
+     Without it Janus.init() silently fails. -->
+<script src="https://cdn.jsdelivr.net/npm/webrtc-adapter@9.0.1/out/adapter.min.js"></script>
+<script src="janus.js"></script>
+<script>
+// ============================================================================
+// Configuration (hard-coded; this is a dev demo)
+// ============================================================================
+const JANUS_SERVER  = location.origin + "/janus";   // nginx proxies to janus
+const SIP_PROXY     = "sip:sip:5060";               // docker service name
+const SIP_IDENTITY  = "sip:demo@example.invalid";   // no registrar, guest
+const SIP_PEER      = "sip:phone@sip:5060";         // user-part irrelevant
+                                                    // (Direct+PIN rule)
+const DISPLAY_NAME  = "test-user";
+const ICE_SERVERS   = [];                           // ICE-TCP via janus.jcfg
+
+// ============================================================================
+// UI helpers
+// ============================================================================
+const $ = id => document.getElementById(id);
+function setStatus(text) { $("status").textContent = text; log(text); }
+function log(msg, isErr = false) {
+	const line = document.createElement("div");
+	line.className = "log-line" + (isErr ? " log-err" : "");
+	line.textContent = "[" + new Date().toLocaleTimeString() + "] " + msg;
+	$("log").appendChild(line);
+	$("log").scrollTop = $("log").scrollHeight;
+}
+
+// ============================================================================
+// Janus state
+// ============================================================================
+let janus = null;
+let sipcall = null;
+let inCall = false;
+
+// ============================================================================
+// Init: create Janus → session → SIP handle → register → call
+// ============================================================================
+Janus.init({
+	debug: false,
+	callback: () => {
+		if (!Janus.isWebrtcSupported()) {
+			setStatus("WebRTC not supported in this browser.");
+			return;
+		}
+		createSession();
+	}
+});
+
+function createSession() {
+	setStatus("Connecting to Janus…");
+	janus = new Janus({
+		server: JANUS_SERVER,
+		iceServers: ICE_SERVERS,
+		success: () => {
+			setStatus("Connected. Attaching SIP plugin…");
+			attachSip();
+		},
+		error: (err) => setStatus("Janus error: " + err),
+		destroyed: () => setStatus("Janus session destroyed."),
+	});
+}
+
+function attachSip() {
+	janus.attach({
+		plugin: "janus.plugin.sip",
+		opaqueId: "sip-demo-" + Janus.randomString(8),
+		success: (handle) => {
+			sipcall = handle;
+			window.sipcall = handle; // for ad-hoc console debugging
+			registerAsGuest();
+		},
+		error: (err) => setStatus("Plugin attach error: " + err),
+		onmessage: handleMessage,
+		onlocaltrack: (track, on) => {
+			// We don't render local preview — Meet tab is already showing it.
+		},
+		onremotetrack: (track, mid, on, meta) => {
+			if (!on) return;
+			const stream = new MediaStream([track]);
+			if (track.kind === "audio") {
+				$("remoteAudio").srcObject = stream;
+			} else if (track.kind === "video") {
+				$("remoteVideo").srcObject = stream;
+				$("noVideo").style.display = "none";
+			}
+		},
+		oncleanup: () => { setStatus("Call cleaned up."); endCallUi(); },
+	});
+}
+
+function registerAsGuest() {
+	setStatus("Registering as guest…");
+	sipcall.send({
+		message: {
+			request: "register",
+			type: "guest",
+			proxy: SIP_PROXY,
+			username: SIP_IDENTITY,
+			display_name: DISPLAY_NAME,
+		},
+	});
+}
+
+function placeCall() {
+	setStatus("Calling " + SIP_PEER + "…");
+	const tracks = [
+		{ type: "audio", capture: true, recv: true },
+		{ type: "video", capture: true, recv: true },
+	];
+	sipcall.createOffer({
+		tracks: tracks,
+		success: (jsep) => {
+			sipcall.send({
+				message: { request: "call", uri: SIP_PEER, autoaccept_reinvites: false },
+				jsep: jsep,
+			});
+		},
+		error: (err) => setStatus("createOffer failed: " + err),
+	});
+}
+
+// ============================================================================
+// Plugin event router
+// ============================================================================
+function handleMessage(msg, jsep) {
+	const result = msg && msg.result;
+	const event  = result && result.event;
+	if (event) log("event: " + event);
+
+	if (event === "registered") {
+		setStatus("Registered. Placing call…");
+		// Small delay to settle the registration
+		setTimeout(placeCall, 100);
+	}
+	else if (event === "calling") {
+		setStatus("Calling…");
+	}
+	else if (event === "accepted") {
+		setStatus("Call accepted. You should hear the IVR — enter PIN on the dialpad.");
+		startCallUi();
+		if (jsep) sipcall.handleRemoteJsep({ jsep: jsep });
+	}
+	else if (event === "hangup") {
+		setStatus("Call ended: " + (result.reason || result.code || ""));
+		endCallUi();
+	}
+	else if (event === "missed_call") {
+		setStatus("Missed call.");
+		endCallUi();
+	}
+	else if (event === "registration_failed") {
+		setStatus("Registration failed: " + result.code + " " + result.reason, true);
+	}
+	else if (msg && msg.error) {
+		setStatus("Plugin error: " + msg.error, true);
+	}
+
+	if (jsep && event !== "accepted") {
+		sipcall.handleRemoteJsep({ jsep: jsep });
+	}
+}
+
+// ============================================================================
+// In-call UI: mute, hangup, dialpad, PIN entry
+// ============================================================================
+function startCallUi() {
+	inCall = true;
+	$("pin-row").style.display = "flex";
+	$("pin-row").classList.remove("disabled");
+	$("dialpad").style.display = "grid";
+	$("dialpad").classList.remove("disabled");
+	$("hangupBtn").disabled = false;
+	$("rejoinBtn").style.display = "none";
+	// Auto-mute mic so two tabs on the same Mac don't feedback-howl.
+	if (sipcall.isAudioMuted && !sipcall.isAudioMuted()) {
+		sipcall.muteAudio();
+	}
+	updateMuteButton();
+	updateCameraButton();
+	updateSpeakerButton();
+}
+
+function endCallUi() {
+	inCall = false;
+	$("pin-row").style.display = "none";
+	$("pin-row").classList.remove("disabled");
+	$("dialpad").style.display = "none";
+	$("dialpad").classList.remove("disabled");
+	$("hangupBtn").disabled = true;
+	$("rejoinBtn").style.display = "inline-block";
+	$("remoteVideo").srcObject = null;
+	$("remoteAudio").srcObject = null;
+	$("noVideo").style.display = "flex";
+}
+
+function updateMuteButton() {
+	const b = $("muteBtn");
+	if (!sipcall || !sipcall.isAudioMuted) return;
+	if (sipcall.isAudioMuted()) {
+		b.textContent = "🔇 Mic muted";
+		b.className = "danger";
+	} else {
+		b.textContent = "🎤 Mic on";
+		b.className = "success";
+	}
+}
+
+function updateCameraButton() {
+	const b = $("cameraBtn");
+	if (!sipcall || !sipcall.isVideoMuted) return;
+	if (sipcall.isVideoMuted()) {
+		b.textContent = "📷 Camera off";
+		b.className = "danger";
+	} else {
+		b.textContent = "📷 Camera on";
+		b.className = "success";
+	}
+}
+
+function updateSpeakerButton() {
+	const b = $("speakerBtn");
+	const audio = $("remoteAudio");
+	if (audio.muted) {
+		b.textContent = "🔇 Speaker off";
+		b.className = "danger";
+	} else {
+		b.textContent = "🔊 Speaker on";
+		b.className = "success";
+	}
+}
+
+$("muteBtn").addEventListener("click", () => {
+	if (!sipcall) return;
+	if (sipcall.isAudioMuted()) sipcall.unmuteAudio();
+	else sipcall.muteAudio();
+	setTimeout(updateMuteButton, 50);
+});
+
+$("cameraBtn").addEventListener("click", () => {
+	if (!sipcall || !sipcall.muteVideo) return;
+	if (sipcall.isVideoMuted()) sipcall.unmuteVideo();
+	else sipcall.muteVideo();
+	setTimeout(updateCameraButton, 50);
+});
+
+$("speakerBtn").addEventListener("click", () => {
+	const audio = $("remoteAudio");
+	audio.muted = !audio.muted;
+	updateSpeakerButton();
+});
+
+$("hangupBtn").addEventListener("click", () => {
+	if (!sipcall) return;
+	sipcall.send({ message: { request: "hangup" } });
+	sipcall.hangup();
+});
+
+$("rejoinBtn").addEventListener("click", () => location.reload());
+
+// ============================================================================
+// DTMF — try the in-band RTP-event path first (RFC 4733 via the handle's
+// dtmf() method), which is what livekit-sip's IVR actually listens for.
+// Fall back to SIP INFO if RTP DTMF isn't available (older Janus, no
+// telephone-event in SDP, etc.).
+// ============================================================================
+function sendDtmf(digit) {
+	if (!sipcall || !inCall) return;
+	log("DTMF → " + digit);
+	let sent = false;
+	try {
+		if (typeof sipcall.dtmf === "function") {
+			sipcall.dtmf({
+				dtmf: { tones: String(digit), duration: 200, gap: 70 },
+				success: () => {},
+				error: (err) => log("dtmf() error: " + err, true),
+			});
+			sent = true;
+		}
+	} catch (e) {
+		log("dtmf() threw: " + e, true);
+	}
+	if (!sent) {
+		// Fallback: SIP INFO method
+		sipcall.send({
+			message: { request: "dtmf_info", digit: String(digit) },
+		});
+	}
+}
+
+document.querySelectorAll(".dialpad button").forEach(b => {
+	b.addEventListener("click", () => sendDtmf(b.dataset.d));
+});
+
+$("sendPin").addEventListener("click", () => {
+	const pin = $("pin").value.replace(/[^\d#*]/g, "");
+	if (!pin) return;
+	const tones = (pin.endsWith("#") ? pin : pin + "#");
+	log("DTMF batch → " + tones);
+	// Send all tones in ONE call. Per-digit looping with setTimeout races
+	// the WebRTC DTMF sender's internal queue and drops digits (we lost
+	// the trailing "0" before "#" doing it digit-by-digit). The browser's
+	// RTCDTMFSender paces them itself given duration/gap.
+	try {
+		sipcall.dtmf({
+			dtmf: { tones: tones, duration: 400, gap: 100 },
+			success: () => log("DTMF batch sent"),
+			error: (err) => log("dtmf() error: " + err, true),
+		});
+	} catch (e) {
+		log("dtmf() threw, falling back to SIP INFO per digit: " + e, true);
+		for (const ch of tones) {
+			sipcall.send({ message: { request: "dtmf_info", digit: String(ch) } });
+		}
+	}
+	$("pin").value = "";
+	// PIN + dialpad are no longer needed once you've submitted. Gateway
+	// either bridges you in (correct PIN) or hangs up with wrong-pin
+	// (the hangup event re-resets everything via endCallUi).
+	$("pin-row").classList.add("disabled");
+	$("dialpad").classList.add("disabled");
+});
+</script>
+</body>
+</html>

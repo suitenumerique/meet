@@ -1,0 +1,8 @@
+// SIP plugin defaults. RTP range for the SIP leg (Janus ↔ livekit/sip)
+// is kept separate from WebRTC range — both legs are inside the docker
+// bridge network, so any UDP range works.
+general: {
+    local_ip = "0.0.0.0"
+    rtp_port_range = "20000-20100"
+    events = true
+}

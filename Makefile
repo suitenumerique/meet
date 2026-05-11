@@ -125,10 +125,16 @@ run-summary: ## start only the summary application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-summary-summarize
 .PHONY: run-summary
 
+run-sip: ## start the SIP gateway and the browser-based softphone (Janus + nginx)
+	@$(COMPOSE) up --force-recreate -d sip
+	@$(COMPOSE) up --force-recreate -d sip-web-janus sip-web
+.PHONY: run-sip
+
 run:
 run: ## start the wsgi (production) and development server
 	@$(MAKE) run-backend
 	@$(MAKE) run-summary
+	@$(MAKE) run-sip
 	@$(COMPOSE) up --force-recreate -d frontend
 .PHONY: run
 

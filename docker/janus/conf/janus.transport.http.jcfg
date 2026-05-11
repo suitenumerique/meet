@@ -1,0 +1,24 @@
+// HTTP transport: bind 0.0.0.0:8088 inside the container, served to the
+// browser through the nginx sidecar that also hosts the demo HTML.
+general: {
+    json = "indented"
+    base_path = "/janus"
+    http = true
+    port = 8088
+    https = false
+    mhd_connection_limit = 1020
+}
+
+admin: {
+    admin_base_path = "/admin"
+    admin_http = false
+    admin_https = false
+}
+
+certificates: {
+}
+
+cors: {
+    // Same-origin via nginx proxy; demo page and API share a host.
+    # allow_origin = "*"
+}

@@ -168,8 +168,7 @@ services:
       - "3000:8080"
 
   dockerize:
-    image: jwilder/dockerize
-    platform: linux/x86_64
+    image: powerman/dockerize:0.19.0
 
   crowdin:
     image: crowdin/cli:4.0.0
@@ -245,6 +244,60 @@ services:
         - ./docker/livekit/out:/out
       depends_on:
         - redis
+
+  # SIP gateway. Built from the sibling livekit-sip checkout so any dev
+  # cloning both repos gets a working `docker compose up`. TODO: replace
+  # the build: block with `image: livekit/sip` once upstream ships an
+  # image with the team's video bridging.
+  sip:
+    build:
+      context: ../livekit-sip
+      dockerfile: build/sip/Dockerfile
+    ports:
+      - "5060:5060/udp"
+      - "5060:5060/tcp"
+      - "10000-10020:10000-10020/udp"
+    environment:
+      SIP_CONFIG_BODY: |
+        api_key: 'devkey'
+        api_secret: 'secret'
+        ws_url: 'ws://livekit:7880'
+        redis:
+          address: 'redis:6379'
+        sip_port: 5060
+        rtp_port: 10000-10020
+        use_external_ip: false
+        logging:
+          level: debug
+    depends_on:
+      - livekit
+      - redis
+
+  # Janus WebRTC gateway with the SIP plugin. Bridges a browser SIP demo
+  # tab to the SIP gateway above. ICE-TCP enabled (janus.jcfg) so media
+  # works under Lima port-forwarding without vmnet.
+  sip-web-janus:
+    build: ./docker/janus
+    ports:
+      - "10100-10120:10100-10120/tcp"
+    volumes:
+      - ./docker/janus/conf/janus.jcfg:/usr/local/etc/janus/janus.jcfg:ro
+      - ./docker/janus/conf/janus.transport.http.jcfg:/usr/local/etc/janus/janus.transport.http.jcfg:ro
+      - ./docker/janus/conf/janus.plugin.sip.jcfg:/usr/local/etc/janus/janus.plugin.sip.jcfg:ro
+    depends_on:
+      - sip
+
+  # Serves docker/janus/web/{index.html,janus.js} and proxies /janus to
+  # the Janus container so the demo is single-origin.
+  sip-web:
+    image: nginx:alpine
+    ports:
+      - "8088:80"
+    volumes:
+      - ./docker/janus/web:/usr/share/nginx/html:ro
+      - ./docker/janus/conf/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - sip-web-janus
 
   redis-summary:
     image: redis
