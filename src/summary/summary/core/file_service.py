@@ -23,6 +23,97 @@ settings = get_settings()
 logger = logging.getLogger(__name__)
 
 
+def _get_duration_from_packets(local_path: Path) -> float:
+    """Estimate duration from audio packet timestamps."""
+    # Run ffprobe to inspect the first audio stream in the file.
+    # ffprobe is part of FFmpeg and can output media metadata as JSON.
+    #
+    # ruff: noqa: S607 Hard to know the ffprobe path, it depends on the deployment
+    result = subprocess.run(
+        [
+            "ffprobe",
+            # Suppress normal ffprobe logging output.
+            "-v",
+            "quiet",
+            # Ask ffprobe to return JSON.
+            "-print_format",
+            "json",
+            # Select only the first audio stream.
+            "-select_streams",
+            "a:0",
+            # Include packet-level information in the output.
+            "-show_packets",
+            # Only include each packet's start timestamp and duration.
+            "-show_entries",
+            "packet=pts_time,duration_time",
+            # Read only the last ~10 packets 99999999 is to go to the end of the file
+            "-read_intervals",
+            "99999999%+#10",
+            # Skip non-reference frames for speed
+            "-skip_frame",
+            "noref",
+            local_path,
+        ],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,  # Decode stdout/stderr as strings instead of bytes.
+    )
+
+    data = json.loads(result.stdout)
+    # Build a list containing the end time of each audio packet.
+    #
+    # For each packet:
+    #   end time = packet start time + packet duration
+    #
+    # pts_time is the packet presentation timestamp, meaning when that packet
+    # starts during playback.
+    #
+    # duration_time may be missing, so it defaults to 0.
+    packet_ends = [
+        float(packet["pts_time"]) + float(packet.get("duration_time", 0))
+        for packet in data.get("packets", [])
+        if "pts_time" in packet
+    ]
+
+    # If no usable packets were found, the duration cannot be estimated.
+    if not packet_ends:
+        raise ValueError("Unable to determine recording duration.")
+
+    # The recording duration is estimated as the latest packet end time.
+    return max(packet_ends)
+
+
+def get_media_duration(local_path: Path):
+    """Get media (audio or video) file duration in seconds."""
+    # ruff: noqa: S607 Hard to know the ffprobe path, it depends on the deployment
+    result = subprocess.run(
+        [
+            "ffprobe",
+            # Suppress normal ffprobe logging output.
+            "-v",
+            "quiet",
+            # Ask ffprobe to return JSON.
+            "-print_format",
+            "json",
+            "-show_format",
+            local_path,
+        ],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+    data = json.loads(result.stdout)
+    duration_value = data.get("format", {}).get("duration")
+
+    if duration_value not in (None, "N/A"):
+        return float(duration_value)
+
+    return _get_duration_from_packets(local_path)
+
+
 class FileServiceException(Exception):
     """Base exception for file service operations."""
 
@@ -155,25 +246,7 @@ class FileService:
 
     def _validate_duration(self, local_path: Path) -> float:
         """Validate audio file duration against configured maximum."""
-        # ruff: noqa: S607 Hard to know the ffprobe path, it depends on the deployment
-        result = subprocess.run(
-            [
-                "ffprobe",
-                "-v",
-                "quiet",
-                "-print_format",
-                "json",
-                "-show_format",
-                local_path,
-            ],
-            check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-
-        data = json.loads(result.stdout)
-        duration = float(data["format"]["duration"])
+        duration = get_media_duration(local_path)
 
         logger.info(
             "Recording file duration: %.2f seconds",

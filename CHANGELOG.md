@@ -25,6 +25,7 @@ and this project adheres to
 - 🐛(backend) make start-recording atomic and fault-tolerant
 - 🔒️(frontend) room ids are generated with non-cryptographic rand
 - ⬆️(mail) fix dependencies not having resolved or integrity field by updating #1321
+- 🐛(summary) complete webm support #1328
 
 ## [1.15.0] - 2026-04-30
 
