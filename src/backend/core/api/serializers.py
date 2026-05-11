@@ -300,6 +300,15 @@ class RoomInviteSerializer(serializers.Serializer):
 
     emails = serializers.ListField(child=serializers.EmailField(), allow_empty=False)
 
+    def validate_emails(self, value):
+        """Cap the number of recipients per request."""
+        max_emails = settings.ROOM_INVITE_MAX_EMAILS
+        if len(value) > max_emails:
+            raise serializers.ValidationError(
+                f"Cannot invite more than {max_emails} recipients in a single request."
+            )
+        return value
+
 
 class BaseParticipantsManagementSerializer(BaseValidationOnlySerializer):
     """Base serializer for participant management operations."""

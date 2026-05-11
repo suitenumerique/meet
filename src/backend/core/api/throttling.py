@@ -73,3 +73,23 @@ class CreationCallbackAnonRateThrottle(MonitoredAnonRateThrottle):
     """Throttle Anonymous user requesting room generation callback"""
 
     scope = "creation_callback"
+
+
+class InviteBurstUserRateThrottle(MonitoredUserRateThrottle):
+    """Burst throttle for the room invitation endpoint.
+
+    Caps the request rate to a near-human cadence to deter scripted loops
+    from a single authenticated account.
+    """
+
+    scope = "invite_burst"
+
+
+class InviteSustainedUserRateThrottle(MonitoredUserRateThrottle):
+    """Sustained throttle for the room invitation endpoint.
+
+    Catches slower but persistent abuse that would slip past the burst
+    throttle by pacing requests just under one per second.
+    """
+
+    scope = "invite_sustained"

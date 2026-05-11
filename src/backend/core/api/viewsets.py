@@ -553,6 +553,10 @@ class RoomViewSet(
         permission_classes=[
             permissions.HasPrivilegesOnRoom,
         ],
+        throttle_classes=[
+            throttling.InviteBurstUserRateThrottle,
+            throttling.InviteSustainedUserRateThrottle,
+        ],
     )
     def invite(self, request, pk=None):  # pylint: disable=unused-argument
         """Send email invitations to join a room.
