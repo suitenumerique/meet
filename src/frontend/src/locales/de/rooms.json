@@ -256,6 +256,11 @@
         "connection": {
           "reconnecting": "Verbindung wird wiederhergestellt…",
           "disconnected": "Verbindung getrennt"
+        },
+        "placeholder": {
+          "title": "Ihr Videoanruf befindet sich in einem anderen Fenster.",
+          "description": "Im Bild-im-Bild-Modus bleiben Sie mit dem Anruf verbunden, während Sie andere Aufgaben erledigen.",
+          "bringBack": "Anruf hierher zurückholen"
         }
       },
       "fullscreen": {

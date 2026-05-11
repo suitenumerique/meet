@@ -35,6 +35,7 @@ import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubsc
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { RoomPiP } from '@/features/pip/components/RoomPiP'
+import { PipPlaceholder } from '@/features/pip/components/PipPlaceholder'
 import { useRoomPiP } from '@/features/pip/hooks/useRoomPiP'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
@@ -230,7 +231,6 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const { isOpen: isPiPOpen } = useRoomPiP()
-  const shouldRenderMainLayout = !isPiPOpen
 
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
@@ -253,7 +253,9 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
           />
           <IsIdleDisconnectModal />
           <RoomContentArea>
-            {shouldRenderMainLayout && (
+            {isPiPOpen ? (
+              <PipPlaceholder />
+            ) : (
               <>
                 {!focusTrack ? (
                   <div

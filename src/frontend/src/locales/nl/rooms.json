@@ -256,6 +256,11 @@
         "connection": {
           "reconnecting": "Opnieuw verbinden…",
           "disconnected": "Verbinding verbroken"
+        },
+        "placeholder": {
+          "title": "Uw videogesprek bevindt zich in een ander venster.",
+          "description": "Met de beeld-in-beeld-modus kunt u verbonden blijven met het gesprek terwijl u andere taken uitvoert.",
+          "bringBack": "Gesprek hier terughalen"
         }
       },
       "fullscreen": {
