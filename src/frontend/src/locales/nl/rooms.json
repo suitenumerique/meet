@@ -219,6 +219,8 @@
       "toolbar": "Stuur reactie",
       "announce": "{{name}} : {{emoji}}",
       "you": "U",
+      "previousReactions": "Vorige reacties",
+      "nextReactions": "Volgende reacties",
       "emojis": {
         "thumbs-up": "duim omhoog",
         "thumbs-down": "duim omlaag",
@@ -249,8 +251,6 @@
         "windowLabel": "Beeld-in-beeld vergadering",
         "stage": "Deelnemers",
         "controlBar": "Vergaderbesturing",
-        "previousReactions": "Vorige reacties",
-        "nextReactions": "Volgende reacties",
         "notificationsLabel": "Meldingen",
         "dismissNotification": "Melding sluiten",
         "connection": {

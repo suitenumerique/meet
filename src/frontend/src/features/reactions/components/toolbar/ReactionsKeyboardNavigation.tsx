@@ -2,31 +2,24 @@ import { useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFocusManager } from '@react-aria/focus'
 import { findFirstFocusable } from '@/utils/dom'
-import { pipLayoutStore } from '@/features/pip/stores/pipLayoutStore'
-import { useEscapeDismiss } from '@/features/pip/hooks/useEscapeDismiss'
+import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'
+import { REACTIONS_TOOLBAR_ID } from '../../constants'
 
-const REACTIONS_TOGGLE_ID = 'pip-reactions-toggle'
-const CONTROL_BAR_ID = 'pip-control-bar'
-
-const closeToolbar = () => {
-  pipLayoutStore.showReactionsToolbar = false
+type Props = {
+  children: ReactNode
+  toggleId?: string
+  controlBarId?: string
 }
 
-/** Keyboard navigation for the PiP reactions toolbar (mirrors the main app). */
-export const PipReactionsKeyboardNavigation = ({
+export const ReactionsKeyboardNavigation = ({
   children,
-}: {
-  children: ReactNode
-}) => {
+  toggleId = 'reactions-toggle',
+  controlBarId = 'control-bar',
+}: Props) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
   const focusManager = useFocusManager()
   const rootRef = useRef<HTMLDivElement>(null)
-
-  useEscapeDismiss(rootRef, true, () => {
-    const doc = rootRef.current?.ownerDocument ?? document
-    doc.getElementById(REACTIONS_TOGGLE_ID)?.focus()
-    closeToolbar()
-  })
+  const { close } = useReactionsToolbar()
 
   const onFocus = (event: React.FocusEvent<HTMLDivElement>) => {
     const fromOutside = !event.currentTarget.contains(event.relatedTarget)
@@ -34,6 +27,8 @@ export const PipReactionsKeyboardNavigation = ({
   }
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const doc = rootRef.current?.ownerDocument ?? document
+
     switch (event.key) {
       case 'ArrowRight':
         focusManager?.focusNext({ wrap: true })
@@ -41,11 +36,15 @@ export const PipReactionsKeyboardNavigation = ({
       case 'ArrowLeft':
         focusManager?.focusPrevious({ wrap: true })
         break
+      case 'Escape':
+        event.preventDefault()
+        doc.getElementById(toggleId)?.focus()
+        close()
+        break
       case 'Tab':
         if (!event.shiftKey) {
           event.preventDefault()
-          const doc = rootRef.current?.ownerDocument ?? document
-          findFirstFocusable(doc.getElementById(CONTROL_BAR_ID))?.focus()
+          findFirstFocusable(doc.getElementById(controlBarId))?.focus()
         }
         break
     }
@@ -54,6 +53,7 @@ export const PipReactionsKeyboardNavigation = ({
   return (
     <div
       ref={rootRef}
+      id={REACTIONS_TOOLBAR_ID}
       role="toolbar"
       aria-label={t('toolbar')}
       onFocus={onFocus}

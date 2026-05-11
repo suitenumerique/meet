@@ -24,10 +24,7 @@ export const Menu = ({
   return (
     <MenuTrigger>
       {trigger}
-      <StyledPopover
-        placement={placement}
-        boundaryElement={boundaryElement}
-      >
+      <StyledPopover placement={placement} boundaryElement={boundaryElement}>
         <Box size="sm" type="popover" variant={variant}>
           {menu}
         </Box>

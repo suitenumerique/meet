@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { styled } from '@/styled-system/jsx'
 import { useRoomPiP } from '../hooks/useRoomPiP'
-import pipIllustration from '/assets/pip.svg'
 
 export const PipPlaceholder = () => {
   const { t } = useTranslation('rooms', {
@@ -11,7 +10,13 @@ export const PipPlaceholder = () => {
 
   return (
     <Container>
-      <Illustration src={pipIllustration} alt="" width={102} height={72} aria-hidden="true" />
+      <Illustration
+        src="/assets/pip.svg"
+        alt=""
+        width={102}
+        height={72}
+        aria-hidden="true"
+      />
       <Title>{t('title')}</Title>
       <Description>{t('description')}</Description>
       <BringBackLink onClick={close}>{t('bringBack')}</BringBackLink>

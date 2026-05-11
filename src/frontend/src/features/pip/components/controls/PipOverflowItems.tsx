@@ -1,17 +1,12 @@
 import React from 'react'
 import { MenuItem } from 'react-aria-components'
-import {
-  RiHand,
-  RiArrowUpLine,
-  RiEmotionLine,
-} from '@remixicon/react'
+import { RiHand, RiArrowUpLine, RiEmotionLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { Track } from 'livekit-client'
-import { pipLayoutStore } from '@/features/pip/stores/pipLayoutStore'
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { useRoomContext, useTrackToggle } from '@livekit/components-react'
 import { useRaisedHand } from '@/features/rooms/livekit/hooks/useRaisedHand'
-import { useSnapshot } from 'valtio'
+import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 import { CollapsibleControls, type CollapsibleControl } from '../PipControlBar'
 
 type PipOverflowItemsProps = {
@@ -31,10 +26,7 @@ export const PipOverflowItems = ({
       source: Track.Source.ScreenShare,
       captureOptions: { audio: true, selfBrowserSurface: 'include' },
     })
-  const pipLayoutSnap = useSnapshot(pipLayoutStore)
-  const toggleReactions = () => {
-    pipLayoutStore.showReactionsToolbar = !pipLayoutSnap.showReactionsToolbar
-  }
+  const { toggle: toggleReactions } = useReactionsToolbar()
   const itemClass = menuRecipe({ icon: true, variant: 'dark' }).item
 
   return (
@@ -47,11 +39,19 @@ export const PipOverflowItems = ({
       )}
       {overflowControls.has(CollapsibleControls.SCREEN_SHARE) && (
         <MenuItem
-          onAction={() => screenShareProps.onClick?.({} as React.MouseEvent<HTMLButtonElement>)}
+          onAction={() =>
+            screenShareProps.onClick?.(
+              {} as React.MouseEvent<HTMLButtonElement>
+            )
+          }
           className={itemClass}
         >
           <RiArrowUpLine size={20} />
-          {t(isScreenSharing ? 'controls.screenShare.stop' : 'controls.screenShare.start')}
+          {t(
+            isScreenSharing
+              ? 'controls.screenShare.stop'
+              : 'controls.screenShare.start'
+          )}
         </MenuItem>
       )}
       {overflowControls.has(CollapsibleControls.HAND) && (

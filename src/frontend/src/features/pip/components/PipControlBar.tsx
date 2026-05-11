@@ -11,7 +11,7 @@ import { HandToggle } from '@/features/rooms/livekit/components/controls/HandTog
 import { StartMediaButton } from '@/features/rooms/livekit/components/controls/StartMediaButton'
 import { usePipElementSize } from '../hooks/usePipElementSize'
 import { PipOptionsMenu } from './controls/PipOptionsMenu'
-import { PipReactionsToggle } from './PipReactionsToggle'
+import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 
 export const CollapsibleControls = {
   HAND: 'hand',
@@ -85,8 +85,12 @@ export const PipControlBar = ({
       <PipControlsCenter>
         <AudioDevicesControl hideMenu />
         <VideoDeviceControl hideMenu />
-        {!hidden.has(CollapsibleControls.REACTIONS) && <PipReactionsToggle />}
-        {showScreenShare && !hidden.has(CollapsibleControls.SCREEN_SHARE) && <ScreenShareToggle />}
+        {!hidden.has(CollapsibleControls.REACTIONS) && (
+          <ReactionsToggle id="pip-reactions-toggle" />
+        )}
+        {showScreenShare && !hidden.has(CollapsibleControls.SCREEN_SHARE) && (
+          <ScreenShareToggle />
+        )}
         {!hidden.has(CollapsibleControls.HAND) && <HandToggle />}
         <PipOptionsMenu overflowControls={hidden} />
         <LeaveButton />

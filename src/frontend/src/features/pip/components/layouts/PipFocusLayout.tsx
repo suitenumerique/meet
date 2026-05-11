@@ -22,10 +22,7 @@ export const PipFocusLayout = memo(
     return (
       <FocusContainer>
         <MainSlot>
-          <ParticipantTile
-            key={getTrackKey(mainTrack)}
-            trackRef={mainTrack}
-          />
+          <ParticipantTile key={getTrackKey(mainTrack)} trackRef={mainTrack} />
         </MainSlot>
         {thumbnailTrack && (
           <Thumbnail>

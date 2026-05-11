@@ -7,13 +7,14 @@ import {
   SidePanelStoreProvider,
   useSidePanel,
 } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { ReactionsToolbarStoreProvider } from '@/features/reactions/hooks/useReactionsToolbar'
 import { pipLayoutStore } from '../stores/pipLayoutStore'
 import { useEscapeDismiss } from '../hooks/useEscapeDismiss'
 import { usePipKeyboardShortcuts } from '../hooks/usePipKeyboardShortcuts'
 import { usePipRestoreFocus } from '../hooks/usePipRestoreFocus'
 import { usePipFocusModality } from '../hooks/usePipFocusModality'
 import { PipControlBar } from './PipControlBar'
-import { PipReactionsToolbar } from './PipReactionsToolbar'
+import { ReactionsToolbar } from '@/features/reactions/components/toolbar/ReactionsToolbar'
 import { PipStage } from './layouts/PipStage'
 import { PipNotificationOverlay } from './notifications/PipNotificationOverlay'
 import { PipConnectionStateToast } from './notifications/PipConnectionStateToast'
@@ -22,7 +23,9 @@ import { PipReactionPortals } from './PipReactionPortals'
 export const PipView = () => {
   return (
     <SidePanelStoreProvider value={pipLayoutStore}>
-      <PipViewContent />
+      <ReactionsToolbarStoreProvider value={pipLayoutStore}>
+        <PipViewContent />
+      </ReactionsToolbarStoreProvider>
     </SidePanelStoreProvider>
   )
 }
@@ -62,7 +65,10 @@ const PipViewContent = () => {
       aria-label={t('windowLabel')}
     >
       <PipStage />
-      <PipReactionsToolbar />
+      <ReactionsToolbar
+        toggleId="pip-reactions-toggle"
+        controlBarId="pip-control-bar"
+      />
       <PipControlBar showScreenShare={browserSupportsScreenSharing} />
       <SidePanel />
       <PipReactionPortals />

@@ -219,6 +219,8 @@
       "toolbar": "Envoyer une réaction",
       "announce": "{{name}} : {{emoji}}",
       "you": "vous",
+      "previousReactions": "Réactions précédentes",
+      "nextReactions": "Réactions suivantes",
       "emojis": {
         "thumbs-up": "pouce levé",
         "thumbs-down": "pouce baissé",
@@ -249,8 +251,6 @@
         "windowLabel": "Réunion en image dans l'image",
         "stage": "Participants",
         "controlBar": "Commandes de la réunion",
-        "previousReactions": "Réactions précédentes",
-        "nextReactions": "Réactions suivantes",
         "notificationsLabel": "Notifications",
         "dismissNotification": "Fermer la notification",
         "connection": {

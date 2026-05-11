@@ -1,13 +1,28 @@
+import { createContext, useContext } from 'react'
 import { useSnapshot } from 'valtio'
 import { layoutStore } from '@/stores/layout'
 
+export type ReactionsToolbarStore = {
+  showReactionsToolbar: boolean
+}
+
+const ReactionsToolbarStoreContext =
+  createContext<ReactionsToolbarStore>(layoutStore)
+
+export const ReactionsToolbarStoreProvider =
+  ReactionsToolbarStoreContext.Provider
+
 export const useReactionsToolbar = () => {
-  const layoutSnap = useSnapshot(layoutStore)
+  const store = useContext(ReactionsToolbarStoreContext)
+  const snap = useSnapshot(store)
 
   return {
-    isOpen: layoutSnap.showReactionsToolbar,
+    isOpen: snap.showReactionsToolbar,
     toggle: () => {
-      layoutStore.showReactionsToolbar = !layoutSnap.showReactionsToolbar
+      store.showReactionsToolbar = !store.showReactionsToolbar
+    },
+    close: () => {
+      store.showReactionsToolbar = false
     },
   }
 }

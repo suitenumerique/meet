@@ -14,10 +14,9 @@ type PipOptionsMenuItemsProps = {
 export const PipOptionsMenuItems = ({
   overflowControls,
 }: PipOptionsMenuItemsProps) => {
-
   const hasOverflow = (overflowControls?.size ?? 0) > 0
 
-  const hasOverflowControls  = hasOverflow && overflowControls
+  const hasOverflowControls = hasOverflow && overflowControls
 
   return (
     <RACMenu

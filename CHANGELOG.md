@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(helm) add support multiple transcribe worker / endpoint #1247
 - ✨(backend) make LiveKit Egress recording encoding configurable #1288
 - ✨(summary) add speaker-to-participant assignment
+- ✨(feat) Introduce Picture-in-Picture (PiP) #890
 
 ### Changed
 
@@ -235,8 +236,6 @@ and this project adheres to
 
 - ✨(backend) monitor throttling rate failure through sentry #964
 - 🚀(paas) add PaaS deployment scripts, tested on Scalingo #957
-- ✨(feat) Introduce Picture-in-Picture (PiP) #890
-
 
 ### Changed
 

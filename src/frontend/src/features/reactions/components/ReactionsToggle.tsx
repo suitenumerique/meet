@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiEmotionLine } from '@remixicon/react'
 import { ToggleButton } from '@/primitives'
@@ -6,40 +6,37 @@ import { ToggleButton } from '@/primitives'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { REACTIONS_TOOLBAR_ID } from '../constants'
 import { useReactionsToolbar } from '../hooks/useReactionsToolbar'
-import { layoutStore } from '@/stores/layout'
-import { useRoomPiP } from '@/features/pip/hooks/useRoomPiP'
 
-const focusReactionsToolbar = () => {
-  document
-    .getElementById(REACTIONS_TOOLBAR_ID)
-    ?.querySelector<HTMLElement>('button')
-    ?.focus()
+type ReactionsToggleProps = {
+  id?: string
 }
 
-export const ReactionsToggle = () => {
+export const ReactionsToggle = ({
+  id = 'reactions-toggle',
+}: ReactionsToggleProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
-  const { isOpen: isPiPOpen } = useRoomPiP()
-
   const { isOpen, toggle } = useReactionsToolbar()
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   const handleShortcut = useCallback(() => {
-    if (layoutStore.showReactionsToolbar) {
-      focusReactionsToolbar()
+    if (isOpen) {
+      const doc = buttonRef.current?.ownerDocument ?? document
+      doc
+        .getElementById(REACTIONS_TOOLBAR_ID)
+        ?.querySelector<HTMLElement>('button')
+        ?.focus()
     } else {
-      layoutStore.showReactionsToolbar = true
+      toggle()
     }
-  }, [])
+  }, [isOpen, toggle])
 
-  useRegisterKeyboardShortcut({
-    id: 'reaction',
-    handler: handleShortcut,
-    isDisabled: isPiPOpen,
-  })
+  useRegisterKeyboardShortcut({ id: 'reaction', handler: handleShortcut })
 
   return (
     <ToggleButton
-      id="reactions-toggle"
-      data-attr="reactions-toggle"
+      ref={buttonRef}
+      id={id}
+      data-attr={id}
       square
       variant="primaryDark"
       aria-label={t('button')}

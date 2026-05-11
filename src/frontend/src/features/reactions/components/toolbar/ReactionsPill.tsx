@@ -2,21 +2,17 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { styled } from '@/styled-system/jsx'
-import { ReactionButton } from '@/features/reactions/components/toolbar/ReactionButton'
+import { ReactionButton } from './ReactionButton'
 import {
   computeReactionsPage,
   getMaxPageStart,
-} from '../../utils/pipReactionsPagination'
+} from '../../utils/reactionsPagination'
 
 type Props = { isOpen: boolean; availableWidth: number }
 
-/**
- * Paginated emoji pill with animated entry/exit. Responsibility: layout the
- * visible emojis for the currently available width and expose prev/next arrows.
- */
-export const PipReactionsPill = ({ isOpen, availableWidth }: Props) => {
+export const ReactionsPill = ({ isOpen, availableWidth }: Props) => {
   const { t } = useTranslation('rooms', {
-    keyPrefix: 'options.items.pictureInPicture',
+    keyPrefix: 'controls.reactions',
   })
   const [isVisible, setIsVisible] = useState(false)
   const [pageStart, setPageStart] = useState(0)
@@ -36,7 +32,6 @@ export const PipReactionsPill = ({ isOpen, availableWidth }: Props) => {
       [availableWidth, pageStart]
     )
 
-  // Clamp pageStart if the window was resized and the current page no longer fits.
   useEffect(() => {
     if (!hasOverflow) {
       setPageStart(0)

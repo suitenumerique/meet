@@ -36,7 +36,13 @@ export const PipNotificationOverlay = () => {
         <StyledToastContainer
           key={toast.key}
           aria-atomic="true"
-          css={{ margin: 0, marginLeft: 0, display: 'flex', alignItems: 'center', paddingRight: '0.25rem' }}
+          css={{
+            margin: 0,
+            marginLeft: 0,
+            display: 'flex',
+            alignItems: 'center',
+            paddingRight: '0.25rem',
+          }}
         >
           <PipToastBody toast={toast} />
           <Button
@@ -63,4 +69,3 @@ const Region = styled('div', {
     width: '100%',
   },
 })
-

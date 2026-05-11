@@ -219,6 +219,8 @@
       "toolbar": "Reaktion senden",
       "announce": "{{name}} : {{emoji}}",
       "you": "du",
+      "previousReactions": "Vorherige Reaktionen",
+      "nextReactions": "Nächste Reaktionen",
       "emojis": {
         "thumbs-up": "Daumen hoch",
         "thumbs-down": "Daumen runter",
@@ -249,8 +251,6 @@
         "windowLabel": "Bild-im-Bild Besprechung",
         "stage": "Teilnehmer",
         "controlBar": "Besprechungssteuerung",
-        "previousReactions": "Vorherige Reaktionen",
-        "nextReactions": "Nächste Reaktionen",
         "notificationsLabel": "Benachrichtigungen",
         "dismissNotification": "Benachrichtigung schließen",
         "connection": {

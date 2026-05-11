@@ -7,5 +7,4 @@ import { createContext, useContext } from 'react'
  */
 export const VisualOnlyTooltipsContext = createContext(false)
 
-export const useVisualOnlyTooltips = () =>
-  useContext(VisualOnlyTooltipsContext)
+export const useVisualOnlyTooltips = () => useContext(VisualOnlyTooltipsContext)
