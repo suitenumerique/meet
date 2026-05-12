@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useDocumentPiP } from '../hooks/useDocumentPiP'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
-import { UNSAFE_PortalProvider } from '@react-aria/overlays'
+import { UNSAFE_PortalProvider as PortalProvider } from '@react-aria/overlays'
 import { VisualOnlyTooltipsContext } from '@/primitives/VisualOnlyTooltipsContext'
 
 // Minimal base styles so the PiP window renders correctly on first paint.
@@ -65,8 +65,7 @@ const syncCssVariables = (source: Document, target: Document) => {
     const collectVarsFrom = (element: HTMLElement | null) => {
       if (!element) return
       const styles = sourceView.getComputedStyle(element)
-      for (let i = 0; i < styles.length; i += 1) {
-        const property = styles[i]
+      for (const property of Array.from(styles)) {
         if (property.startsWith('--')) {
           varNames.add(property)
         }
@@ -224,11 +223,11 @@ export const DocumentPiPPortal = ({
   const portal = useMemo(() => {
     if (!container) return null
     return createPortal(
-      <UNSAFE_PortalProvider getContainer={() => container}>
+      <PortalProvider getContainer={() => container}>
         <VisualOnlyTooltipsContext.Provider value={true}>
           {children}
         </VisualOnlyTooltipsContext.Provider>
-      </UNSAFE_PortalProvider>,
+      </PortalProvider>,
       container
     )
   }, [children, container])
