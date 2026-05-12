@@ -118,8 +118,13 @@ export const Join = ({
   })
 
   const isEncryptedRoom = !!roomInfo?.is_encrypted
+  const isPaused = !!roomInfo?.encryption_paused
+  // Live encryption is what gates the "needs a passphrase" UX. A paused
+  // encrypted room accepts hashless joiners (they join in plaintext) and
+  // re-enforces the passphrase requirement once the admin resumes.
+  const liveEncryption = isEncryptedRoom && !isPaused
   const passphrase = getPassphraseFromHash()
-  const hasValidPassphrase = isEncryptedRoom
+  const hasValidPassphrase = liveEncryption
     ? isValidPassphrase(passphrase)
     : true
   // If the URL has a passphrase but the room itself is not encrypted, the
@@ -439,7 +444,7 @@ export const Join = ({
         if (unexpectedPassphrase) {
           return <EncryptionMismatchScreen reason="unexpectedPassphrase" />
         }
-        if (isEncryptedRoom && !hasValidPassphrase) {
+        if (liveEncryption && !hasValidPassphrase) {
           return <EncryptionMismatchScreen reason="missingPassphrase" />
         }
         return (
@@ -468,7 +473,7 @@ export const Join = ({
                 autoComplete="name"
                 maxLength={50}
               />
-              {isEncryptedRoom && (
+              {liveEncryption && (
                 <div
                   className={css({
                     display: 'flex',

@@ -8,13 +8,13 @@
     "nameError": "Votre Nom ne peut pas être vide"
   },
   "security": {
-    "heading": "Chiffrement de bout en bout",
-    "description": "Lorsque cette option est activée, vos nouvelles réunions sont chiffrées de bout en bout par défaut.",
+    "heading": "Sécurité",
     "signInRequired": "Connectez-vous pour configurer vos préférences de chiffrement.",
     "featureDisabled": "Le chiffrement de bout en bout n'est pas disponible sur ce serveur.",
+    "defaultHeading": "Nouvelles réunions",
     "toggle": {
-      "label": "Chiffrement de bout en bout",
-      "description": "Chiffre l'audio, la vidéo et le tchat. Le serveur ne peut pas lire le contenu tant que le chiffrement est actif."
+      "label": "Chiffrer les nouvelles réunions par défaut",
+      "description": "Lorsque cette option est activée, chaque nouvelle réunion que vous créez démarre chiffrée de bout en bout. Vous pouvez toujours mettre le chiffrement en pause pour une réunion donnée depuis ce même panneau Sécurité."
     },
     "confirmModal": {
       "title": "Activer le chiffrement ?",
@@ -28,6 +28,14 @@
       "footnote": "Vous pouvez modifier cette préférence à tout moment.",
       "cancel": "Annuler",
       "confirm": "Activer"
+    },
+    "thisMeeting": {
+      "heading": "Cette réunion",
+      "toggle": {
+        "label": "Mettre le chiffrement en pause",
+        "descriptionLive": "Le chiffrement est actif. Mettez-le en pause pour laisser un téléphone ou un autre appareil externe rejoindre — le lien porte toujours la clé de chiffrement, vous pourrez le réactiver à tout moment.",
+        "descriptionPaused": "Le chiffrement est en pause. Les appareils externes peuvent rejoindre en audio et vidéo non chiffrés. Désactivez pour réactiver la protection."
+      }
     }
   },
   "preferences": {

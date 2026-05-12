@@ -399,11 +399,21 @@ class Room(Resource):
     # Boolean for now: today the only encryption mode is the passphrase-in-URL
     # one. If a follow-up adds a stronger "local-keys" mode (private keys held
     # in a vault iframe), this can grow into a CharField with choices like
-    # `none / passphrase / local_keys`.
+    # `none / passphrase / local_keys`. Set at creation; never mutated after —
+    # changing it would change the link's semantics (copy-link / hash carry).
     is_encrypted = models.BooleanField(
         default=False,
         verbose_name=_("Encryption enabled"),
         help_text=_("Whether end-to-end encryption is enabled for this room."),
+    )
+    # Mid-call admin override: when True on an `is_encrypted` room, the active
+    # encryption is suspended so a phone/SIP/device caller can join in plaintext.
+    # The link still carries the hash; toggling back to False resumes E2EE.
+    # Always False on non-encrypted rooms (enforced by the serializer).
+    encryption_paused = models.BooleanField(
+        default=False,
+        verbose_name=_("Encryption paused"),
+        help_text=_("Temporarily suspend E2EE so external devices can join."),
     )
     configuration = models.JSONField(
         blank=True,
@@ -430,12 +440,43 @@ class Room(Resource):
         return capfirst(self.name)
 
     def save(self, *args, **kwargs):
-        """Generate a unique n-digit pin code for new rooms."""
         if settings.ROOM_TELEPHONY_ENABLED and not self.pk and not self.pin_code:
             self.pin_code = self.generate_unique_pin_code(
                 length=settings.ROOM_TELEPHONY_PIN_LENGTH
             )
+
+        previous = None
+        if self.pk:
+            try:
+                previous = Room.objects.only(
+                    "is_encrypted", "encryption_paused"
+                ).get(pk=self.pk)
+            except Room.DoesNotExist:
+                previous = None
+
         super().save(*args, **kwargs)
+
+        # Sync encryption state to LiveKit room metadata so the SIP gateway can
+        # decide between bridge mode and placeholder mode. Best-effort: if no
+        # LiveKit room exists yet, the call is a no-op.
+        encryption_changed = previous is None or (
+            previous.is_encrypted != self.is_encrypted
+            or previous.encryption_paused != self.encryption_paused
+        )
+        if encryption_changed:
+            try:
+                from core import utils as core_utils  # local import: avoid cycle
+
+                core_utils.update_room_metadata(
+                    room_name=str(self.pk),
+                    metadata={
+                        "is_encrypted": bool(self.is_encrypted),
+                        "encryption_paused": bool(self.encryption_paused),
+                    },
+                )
+            except Exception:  # pylint: disable=broad-except
+                # Metadata sync is advisory — never break Room.save() over it.
+                pass
 
     def clean_fields(self, exclude=None):
         """

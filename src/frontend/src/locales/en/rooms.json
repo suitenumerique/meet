@@ -516,6 +516,19 @@
         "label": "Share their screen",
         "description": "Disabling this option will prevent participants from sharing their screen, and any ongoing screen sharing will be stopped immediately."
       }
+    },
+    "encryption": {
+      "title": "Encryption",
+      "description": "Temporarily pause end-to-end encryption so a phone or other external device can join. The meeting link still carries the encryption key, so you can resume at any time.",
+      "toggle": {
+        "label": "Pause encryption",
+        "descriptionLive": "Encryption is active for this meeting.",
+        "descriptionPaused": "Encryption is paused — external devices can join in plain audio and video."
+      },
+      "blocked": {
+        "recording": "Encryption can't resume while a recording is in progress. Stop the recording first.",
+        "transcript": "Encryption can't resume while transcription is running. Stop the transcript first."
+      }
     }
   },
   "rating": {
@@ -678,7 +691,7 @@
     "screenShare": "{{name}}'s screen"
   },
   "identity": {
-    "proconnect": "ProConnect",
+    "proconnect": "Connected",
     "anonymous": "Anonymous"
   },
   "roomStatus": {
@@ -720,9 +733,19 @@
       "reasonManual": "An admin turned off encryption for this meeting.",
       "reasonSip": "Encryption was paused so a phone participant can join.",
       "sipTitle": "A participant can't decrypt this meeting",
-      "sipBody": "{{name}} joined by phone or another device that cannot decrypt this meeting.",
-      "openSettings": "Open settings",
+      "sipBody": "{{name}} joined by phone or another device that cannot decrypt this meeting. Pause encryption from the Admin panel to let them in.",
+      "openAdmin": "Open admin",
       "dismiss": "OK"
+    },
+    "sipBlocked": {
+      "title": "Can't decrypt this caller",
+      "bodyAdmin": "This participant joined by phone or another device that doesn't support end-to-end encryption. Pause encryption from the Admin panel to bridge their audio and video.",
+      "bodyParticipant": "This participant joined by phone or another device that doesn't support end-to-end encryption. Ask the host to pause encryption to let them in.",
+      "openAdmin": "Open admin"
+    },
+    "decryptionFailed": {
+      "title": "Decryption failed",
+      "body": "Check that you and this person are using the correct meeting link. If they are the only one you can't see, the issue is likely on their side."
     }
   }
 }

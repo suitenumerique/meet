@@ -19,10 +19,11 @@ import {
 } from '@remixicon/react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useRoomContext } from '@livekit/components-react'
-import { RoomEvent } from 'livekit-client'
-import { EncryptionPhase } from './encryptionStatusTypes'
-import { useEncryptionStatus } from './useEncryptionStatus'
+import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import {
+  RecordingMode,
+  useRecordingStatuses,
+} from '@/features/recording'
 
 const COLLAPSE_DELAY_MS = 4000
 
@@ -85,31 +86,26 @@ function StatusPill({ icon, label, background, pulse }: PillProps) {
   )
 }
 
-function useRecordingStatus() {
-  const room = useRoomContext()
-  const [isRecording, setIsRecording] = useState(!!room.isRecording)
-
-  useEffect(() => {
-    const handler = () => setIsRecording(!!room.isRecording)
-    room.on(RoomEvent.RecordingStatusChanged, handler)
-    return () => {
-      room.off(RoomEvent.RecordingStatusChanged, handler)
-    }
-  }, [room])
-
-  return isRecording
-}
-
 export function RoomStatusBanner() {
   const { t } = useTranslation('rooms', { keyPrefix: 'roomStatus' })
-  const { phase, pauseReason } = useEncryptionStatus()
-  const isRecording = useRecordingStatus()
+  const roomData = useRoomData()
 
-  if (
-    phase === EncryptionPhase.UNENCRYPTED &&
-    !isRecording &&
-    pauseReason !== 'transcript'
-  ) {
+  // Use the metadata-driven `isStarted` for both pills — it flips to
+  // false the moment the user clicks stop (recording_status moves to
+  // Saving), so the pill disappears immediately instead of lingering
+  // through LK's 1-2s post-stop callback delay.
+  const screenRec = useRecordingStatuses(RecordingMode.ScreenRecording)
+  const transcript = useRecordingStatuses(RecordingMode.Transcript)
+  const isRecording = screenRec.isStarted
+  const isTranscribing = transcript.isStarted
+
+  // The encryption pill reflects the room's nature plus its current paused
+  // state — never disappears just because encryption is temporarily off
+  // mid-call.
+  const encryptionCapable = !!roomData?.is_encrypted
+  const encryptionPaused = !!roomData?.encryption_paused
+
+  if (!encryptionCapable && !isRecording && !isTranscribing) {
     return null
   }
 
@@ -123,7 +119,7 @@ export function RoomStatusBanner() {
         zIndex: 10,
       })}
     >
-      {phase === EncryptionPhase.ENCRYPTED && (
+      {encryptionCapable && !encryptionPaused && (
         <StatusPill
           key="encrypted"
           icon={<RiLockFill size={13} color="white" />}
@@ -131,7 +127,7 @@ export function RoomStatusBanner() {
           background="#1e3a5f"
         />
       )}
-      {phase === EncryptionPhase.PAUSED && (
+      {encryptionCapable && encryptionPaused && (
         <StatusPill
           key="paused"
           icon={<RiLockUnlockFill size={13} color="white" />}
@@ -139,7 +135,7 @@ export function RoomStatusBanner() {
           background="#b45309"
         />
       )}
-      {pauseReason === 'transcript' && (
+      {isTranscribing && (
         <StatusPill
           key="transcript"
           icon={<RiFileTextFill size={13} color="white" />}

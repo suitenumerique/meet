@@ -314,8 +314,16 @@ class RoomViewSet(
         serializer = serializers.StartRecordingSerializer(data=request.data)
 
         if not serializer.is_valid():
+            print(
+                "[start-recording] body=",
+                request.data,
+                "errors=",
+                serializer.errors,
+                flush=True,
+            )
             return drf_response.Response(
-                {"detail": "Invalid request."}, status=drf_status.HTTP_400_BAD_REQUEST
+                {"detail": "Invalid request.", "errors": serializer.errors},
+                status=drf_status.HTTP_400_BAD_REQUEST,
             )
 
         mode = serializer.validated_data["mode"]

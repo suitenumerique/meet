@@ -516,6 +516,19 @@
         "label": "Partager leur écran",
         "description": "En désactivant cette option, les participants ne pourront plus partager leur écran et tout partage en cours sera immédiatement interrompu."
       }
+    },
+    "encryption": {
+      "title": "Chiffrement",
+      "description": "Mettre temporairement le chiffrement de bout en bout en pause pour qu'un téléphone ou un autre appareil externe puisse rejoindre. Le lien de la réunion porte toujours la clé, vous pouvez réactiver à tout moment.",
+      "toggle": {
+        "label": "Mettre le chiffrement en pause",
+        "descriptionLive": "Le chiffrement est actif pour cette réunion.",
+        "descriptionPaused": "Le chiffrement est en pause — les appareils externes peuvent rejoindre en audio et vidéo non chiffrés."
+      },
+      "blocked": {
+        "recording": "Le chiffrement ne peut pas être réactivé tant qu'un enregistrement est en cours. Arrêtez l'enregistrement d'abord.",
+        "transcript": "Le chiffrement ne peut pas être réactivé tant qu'une transcription est en cours. Arrêtez la transcription d'abord."
+      }
     }
   },
   "rating": {
@@ -678,7 +691,7 @@
     "screenShare": "Écran de {{name}}"
   },
   "identity": {
-    "proconnect": "ProConnect",
+    "proconnect": "Connecté",
     "anonymous": "Anonyme"
   },
   "roomStatus": {
@@ -720,9 +733,19 @@
       "reasonManual": "Un administrateur a désactivé le chiffrement pour cette réunion.",
       "reasonSip": "Le chiffrement a été mis en pause pour permettre à un participant téléphonique de rejoindre.",
       "sipTitle": "Un participant ne peut pas déchiffrer cette réunion",
-      "sipBody": "{{name}} a rejoint par téléphone ou un appareil incompatible avec le chiffrement.",
-      "openSettings": "Ouvrir les paramètres",
+      "sipBody": "{{name}} a rejoint par téléphone ou un appareil incompatible avec le chiffrement. Mettez le chiffrement en pause depuis le panneau Admin pour le laisser entrer.",
+      "openAdmin": "Ouvrir l'admin",
       "dismiss": "OK"
+    },
+    "sipBlocked": {
+      "title": "Impossible de déchiffrer ce participant",
+      "bodyAdmin": "Ce participant a rejoint depuis un téléphone ou un appareil qui ne prend pas en charge le chiffrement de bout en bout. Mettez le chiffrement en pause depuis le panneau Admin pour relayer son audio et sa vidéo.",
+      "bodyParticipant": "Ce participant a rejoint depuis un téléphone ou un appareil qui ne prend pas en charge le chiffrement de bout en bout. Demandez à l'hôte de mettre le chiffrement en pause pour lui permettre d'entrer.",
+      "openAdmin": "Ouvrir l'admin"
+    },
+    "decryptionFailed": {
+      "title": "Échec du déchiffrement",
+      "body": "Vérifiez que vous et cette personne utilisez le même lien de réunion. Si vous êtes le seul à ne pas la voir, le problème vient probablement de son côté."
     }
   }
 }

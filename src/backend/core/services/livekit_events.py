@@ -194,14 +194,15 @@ class LiveKitEventsService:
 
         When a SIP/phone participant joins an end-to-end encrypted room they
         cannot decrypt anything. We:
-          1. Send an in-band notification (chat-style) to everyone, which
-             surfaces an admin snackbar and a system message in the chat;
-          2. Eject the SIP participant — the admin can then disable encryption
-             from the Security settings and the user can dial back in.
+          1. Send an in-band notification so admins see a snackbar with an
+             "Open settings" CTA.
+          2. Leave the participant connected — the gateway is responsible for
+             holding them on a placeholder prompt loop ("this meeting is
+             encrypted, ask the host to disable it") until either the admin
+             turns encryption off (we update LiveKit room metadata, gateway
+             reacts) or the user hangs up.
 
-        This is the simplest reliable fallback. A future improvement is a
-        dedicated "audio guard" agent that joins encrypted rooms and plays a
-        recorded prompt to SIP participants instead of disconnecting them.
+        See README "Phone / SIP participants" for the full flow.
         """
 
         participant = getattr(data, "participant", None)
@@ -226,7 +227,10 @@ class LiveKitEventsService:
         except models.Room.DoesNotExist:
             return
 
-        if not room.is_encrypted:
+        # Live encryption: is_encrypted set AND not currently paused.
+        # If the admin has already paused encryption, the gateway will bridge
+        # the call normally — no need to surface a blocked notification.
+        if not room.is_encrypted or room.encryption_paused:
             return
 
         # 1. Broadcast a system notice — frontends decode this on the
@@ -245,19 +249,11 @@ class LiveKitEventsService:
                 "Failed to notify room about blocked external device"
             )
 
-        # 2. Disconnect the external participant so they don't sit in a
-        #    silent encrypted room. The admin can disable encryption and the
-        #    user can dial in again.
-        try:
-            ParticipantsManagement().remove(
-                room_name=str(room_id), identity=participant.identity
-            )
-        except ParticipantsManagementException:
-            logger.exception(
-                "Failed to remove external device participant %s from encrypted room %s",
-                participant.identity,
-                room_id,
-            )
+        # No eject. The gateway reads LiveKit room metadata
+        # (`{is_encrypted, encryption_paused}` — see `Room.save()`) and stays
+        # in placeholder-prompt mode for the SIP leg as long as encryption is
+        # live. When the admin sets encryption_paused=true, the gateway
+        # transitions to a normal bridge without dropping the call.
 
     def _handle_room_started(self, data):
         """Handle 'room_started' event."""
@@ -275,6 +271,22 @@ class LiveKitEventsService:
             room = models.Room.objects.get(id=room_id)
         except models.Room.DoesNotExist as err:
             raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
+
+        # Now that the LiveKit room object exists, push the encryption flags
+        # into its metadata so the SIP gateway can read them as soon as a SIP
+        # caller joins. Room.save() also tries this on every change, but at
+        # *creation* time the LiveKit room didn't exist yet — this is the
+        # first reliable opportunity.
+        try:
+            utils.update_room_metadata(
+                str(room_id),
+                {
+                    "is_encrypted": bool(room.is_encrypted),
+                    "encryption_paused": bool(room.encryption_paused),
+                },
+            )
+        except utils.MetadataUpdateException as e:
+            logger.exception("Failed to seed encryption metadata: %s", e)
 
         if settings.ROOM_TELEPHONY_ENABLED:
             try:

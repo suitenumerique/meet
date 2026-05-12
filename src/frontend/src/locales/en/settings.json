@@ -8,13 +8,13 @@
     "nameError": "Your name cannot be empty"
   },
   "security": {
-    "heading": "End-to-end encryption",
-    "description": "When this is on, new meetings you create are end-to-end encrypted by default.",
+    "heading": "Security",
     "signInRequired": "Sign in to set encryption preferences.",
     "featureDisabled": "End-to-end encryption is not available on this server.",
+    "defaultHeading": "New meetings",
     "toggle": {
-      "label": "End-to-end encryption",
-      "description": "Encrypt audio, video and chat in your meetings. The server cannot read the content while encryption is on."
+      "label": "Encrypt new meetings by default",
+      "description": "When on, every new meeting you create starts end-to-end encrypted. You can still pause encryption per-meeting from this same Security panel."
     },
     "confirmModal": {
       "title": "Turn on encryption?",
@@ -28,6 +28,14 @@
       "footnote": "You can change this preference at any time.",
       "cancel": "Cancel",
       "confirm": "Turn on"
+    },
+    "thisMeeting": {
+      "heading": "This meeting",
+      "toggle": {
+        "label": "Pause encryption",
+        "descriptionLive": "Encryption is active. Pause it to let a phone or other external device join — the link still carries the encryption key, so you can resume at any time.",
+        "descriptionPaused": "Encryption is paused. External devices can join in plain audio and video. Toggle off to resume protection."
+      }
     }
   },
   "preferences": {

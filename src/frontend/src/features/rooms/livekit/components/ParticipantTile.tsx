@@ -22,7 +22,12 @@ import { Track } from 'livekit-client'
 import { RiHand } from '@remixicon/react'
 import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
 import { HStack } from '@/styled-system/jsx'
-import { IdentityBadge, useEncryptionStatus, EncryptionPhase } from '@/features/encryption'
+import {
+  IdentityBadge,
+  SipBlockedTileOverlay,
+  DecryptionFailedTileOverlay,
+} from '@/features/encryption'
+import { useRoomData } from '../hooks/useRoomData'
 import { MutedMicIndicator } from './MutedMicIndicator'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
 import { ParticipantTileFocus } from './ParticipantTileFocus'
@@ -106,9 +111,13 @@ export const ParticipantTile: (
 
   const isScreenShare = trackReference.source != Track.Source.Camera
   const [hasKeyboardFocus, setHasKeyboardFocus] = React.useState(false)
-  const { phase } = useEncryptionStatus()
+  // Show the badge in any encryption-capable room — including while the
+  // room is paused. The badge reflects the *room's nature* (encrypted vs
+  // unencrypted-by-design), which doesn't change when an admin temporarily
+  // pauses encryption for SIP/recording/transcription.
+  const tileRoomData = useRoomData()
   const showIdentityBadge =
-    !isScreenShare && phase !== EncryptionPhase.UNENCRYPTED
+    !isScreenShare && !!tileRoomData?.is_encrypted
 
   const participantName = getParticipantName(trackReference.participant)
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
@@ -239,6 +248,16 @@ export const ParticipantTile: (
               trackRef={trackReference}
               hasKeyboardFocus={hasKeyboardFocus}
             />
+          )}
+          {!isScreenShare && (
+            <>
+              <SipBlockedTileOverlay
+                participant={trackReference.participant}
+              />
+              <DecryptionFailedTileOverlay
+                participant={trackReference.participant}
+              />
+            </>
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>

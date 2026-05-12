@@ -90,12 +90,20 @@ interface EncryptionStatusProviderProps {
   isEncrypted: boolean
   /** Called when the local client should toggle E2EE on/off. */
   onPhaseChange?: (phase: EncryptionPhase) => void
+  /**
+   * Optional hook to mirror local pause/resume to the room's
+   * server-side encryption_paused field. When provided, recording and
+   * transcription pauses also propagate to the SIP gateway (so phone
+   * callers transition out of placeholder mode automatically).
+   */
+  setServerEncryptionPaused?: (paused: boolean) => Promise<void> | void
 }
 
 export function EncryptionStatusProvider({
   children,
   isEncrypted,
   onPhaseChange,
+  setServerEncryptionPaused,
 }: EncryptionStatusProviderProps) {
   const room = useRoomContext()
   const initialPhase = isEncrypted
@@ -309,6 +317,18 @@ export function EncryptionStatusProvider({
       setPauseReason(reason)
       setPausedByMe(true)
 
+      // Mirror to the server's encryption_paused field if a setter was
+      // wired through. This is what makes the SIP gateway transition out
+      // of placeholder mode for recording/transcription too, not just
+      // for an explicit admin pause from the Admin panel.
+      if (setServerEncryptionPaused) {
+        try {
+          await setServerEncryptionPaused(true)
+        } catch (err) {
+          console.error('[encryption] server-side pause failed', err)
+        }
+      }
+
       await sendProtocolMessage({
         type: 'ENCRYPTION_PAUSED',
         reason,
@@ -318,7 +338,7 @@ export function EncryptionStatusProvider({
       })
       return true
     },
-    [room, sendProtocolMessage, localCanInitiate]
+    [room, sendProtocolMessage, localCanInitiate, setServerEncryptionPaused]
   )
 
   const resumeEncryption = useCallback(async () => {
@@ -329,13 +349,21 @@ export function EncryptionStatusProvider({
     setPauseReason(undefined)
     setPausedByMe(false)
 
+    if (setServerEncryptionPaused) {
+      try {
+        await setServerEncryptionPaused(false)
+      } catch (err) {
+        console.error('[encryption] server-side resume failed', err)
+      }
+    }
+
     await sendProtocolMessage({
       type: 'ENCRYPTION_RESUMED',
       senderIsAdmin: isParticipantAdmin(room.localParticipant),
       senderJoinedAt: room.localParticipant.joinedAt?.getTime() ?? Date.now(),
     })
     return true
-  }, [room, sendProtocolMessage, localCanInitiate])
+  }, [room, sendProtocolMessage, localCanInitiate, setServerEncryptionPaused])
 
   const value = useMemo(
     () => ({

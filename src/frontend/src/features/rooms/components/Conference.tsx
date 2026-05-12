@@ -10,6 +10,7 @@ import {
   ExternalE2EEKeyProvider,
   MediaDeviceFailure,
   Room,
+  RoomEvent,
   RoomOptions,
   VideoPresets,
 } from 'livekit-client'
@@ -29,6 +30,7 @@ import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
 import { ApiRoom } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
+import { usePatchRoom } from '../api/patchRoom'
 import { InviteDialog } from './InviteDialog'
 import { VideoConference } from '../livekit/prefabs/VideoConference'
 import { css } from '@/styled-system/css'
@@ -99,8 +101,20 @@ export const Conference = ({
   // only signal a hacked server can't fabricate. The DB flag tells us
   // whether the room creator *meant* this room to be encrypted — it's used
   // to detect mismatches (see below) but never to enable encryption alone.
+  // encryption_paused is an admin override on an encrypted room: when set,
+  // E2EE is suspended for this call so external devices can join, but the
+  // link still carries the hash and the room can be resumed at any time.
+  //
+  // Two derived flags:
+  //   encryptionCapable — this room has an encryption key; the Room object
+  //     is constructed with the e2ee worker + key provider regardless of
+  //     whether E2EE is currently active. Stable across mid-call pauses, so
+  //     the Room instance never gets recreated mid-call.
+  //   liveEncryption — encryption is currently active (capable AND not
+  //     paused). Drives room.setE2EEEnabled() and the encryption phase UI.
   const hashPassphrase = getPassphraseFromHash()
   const dbSaysEncrypted = !!data?.is_encrypted
+  const isPaused = !!data?.encryption_paused
   const hasValidHash = isValidPassphrase(hashPassphrase)
 
   const encryptionMismatch:
@@ -109,29 +123,40 @@ export const Conference = ({
     | null =
     data === undefined
       ? null
-      : dbSaysEncrypted && !hasValidHash
+      : dbSaysEncrypted && !isPaused && !hasValidHash
         ? 'missingPassphrase'
         : !dbSaysEncrypted && hashPassphrase.length > 0
           ? 'unexpectedPassphrase'
           : null
 
-  const isEncrypted = dbSaysEncrypted && hasValidHash
+  const encryptionCapable = dbSaysEncrypted && hasValidHash
+  const liveEncryption = encryptionCapable && !isPaused
+  // Kept as `isEncrypted` so legacy reads below stay readable. Refers to
+  // the live state — flip-on-pause/flip-on-resume is wired below.
+  const isEncrypted = liveEncryption
 
   const keyProviderRef = useRef<ExternalE2EEKeyProvider | null>(null)
   const workerRef = useRef<Worker | null>(null)
+  // Setup is complete once the key provider is wired up; it does NOT need
+  // to re-run when encryption_paused flips. We toggle the active state of
+  // E2EE separately via room.setE2EEEnabled.
   const [encryptionSetupComplete, setEncryptionSetupComplete] = useState(
-    !isEncrypted
+    !encryptionCapable
   )
 
   const getKeyProvider = () => {
-    if (!keyProviderRef.current && isEncrypted) {
+    if (!keyProviderRef.current && encryptionCapable) {
       keyProviderRef.current = new ExternalE2EEKeyProvider()
     }
     return keyProviderRef.current
   }
 
   const getWorker = () => {
-    if (!workerRef.current && isEncrypted && typeof window !== 'undefined') {
+    if (
+      !workerRef.current &&
+      encryptionCapable &&
+      typeof window !== 'undefined'
+    ) {
       workerRef.current = new Worker(
         new URL('livekit-client/e2ee-worker', import.meta.url)
       )
@@ -144,8 +169,13 @@ export const Conference = ({
       adaptiveStream: true,
       dynacast: true,
       publishDefaults: {
-        videoCodec: isEncrypted ? undefined : 'vp9',
-        red: !isEncrypted,
+        // VP8 whenever the room is encryption-capable: encryption_paused
+        // can flip mid-call to let a SIP/phone caller bridge, and the
+        // gateway's room→SIP GStreamer path only handles VP8 today. Using
+        // VP8 unconditionally for encryption-capable rooms keeps the Room
+        // instance stable across pause/resume.
+        videoCodec: encryptionCapable ? 'vp8' : 'vp8',
+        red: !encryptionCapable,
       },
       videoCaptureDefaults: {
         deviceId: userConfig.videoDeviceId ?? undefined,
@@ -161,7 +191,11 @@ export const Conference = ({
       },
     }
 
-    if (isEncrypted) {
+    // Always wire up the E2EE worker + key provider for an encryption-
+    // capable room. We toggle whether encryption is *active* with
+    // room.setE2EEEnabled below; the worker stays around so resume is a
+    // single API call rather than a Room reconstruction.
+    if (encryptionCapable) {
       const worker = getWorker()
       const keyProvider = getKeyProvider()
       if (keyProvider && worker) {
@@ -174,7 +208,7 @@ export const Conference = ({
     // getKeyProvider/getWorker are stable refs, intentionally not in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    isEncrypted,
+    encryptionCapable,
     userConfig.videoDeviceId,
     userConfig.videoPublishResolution,
     userConfig.audioDeviceId,
@@ -201,7 +235,7 @@ export const Conference = ({
   const adminPassphraseRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!isEncrypted || encryptionSetupComplete) return
+    if (!encryptionCapable || encryptionSetupComplete) return
 
     const keyProvider = getKeyProvider()
     if (!keyProvider) return
@@ -236,9 +270,11 @@ export const Conference = ({
       .setKey(passphrase)
       .then(async () => {
         // Enable E2EE BEFORE connecting — sets encryptionType=GCM so tracks
-        // are published with encryption metadata from the start.
+        // are published with encryption metadata from the start. If the
+        // room is currently paused, we set up the worker but leave E2EE
+        // disabled (resume flips it on without rebuilding the Room).
         try {
-          await room.setE2EEEnabled(true)
+          await room.setE2EEEnabled(liveEncryption)
         } catch (err) {
           console.error('[Encryption] E2EE enable failed:', err)
         }
@@ -250,18 +286,79 @@ export const Conference = ({
       })
     // getKeyProvider is a stable ref; not part of deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room, isEncrypted, encryptionSetupComplete, isAdmin])
+  }, [room, encryptionCapable, encryptionSetupComplete, isAdmin])
+
+  // Mid-call admin toggle: when the server flips encryption_paused, every
+  // browser client sees the change as `liveEncryption` flipping. A single
+  // setE2EEEnabled call is enough — livekit-client internally calls
+  // republishAllTracks so the SFU forwards tracks in the new mode (plain
+  // during pause so SIP can bridge; E2EE on resume).
+  //
+  // republishAllTracks occasionally drops a track silently when its
+  // renegotiation hits a transport-state race. We snapshot the local
+  // mic/camera enabled state before the toggle and re-assert them
+  // afterwards so the user doesn't lose their camera or microphone over a
+  // pause/resume cycle.
+  const prevLiveRef = useRef<boolean | null>(null)
+  useEffect(() => {
+    if (!encryptionCapable || !encryptionSetupComplete) return
+    if (prevLiveRef.current === null) {
+      prevLiveRef.current = liveEncryption
+      return // initial setup already covered this value
+    }
+    if (prevLiveRef.current === liveEncryption) return
+    prevLiveRef.current = liveEncryption
+    void (async () => {
+      const lp = room.localParticipant
+      const camWasOn = lp.isCameraEnabled
+      const micWasOn = lp.isMicrophoneEnabled
+      try {
+        await room.setE2EEEnabled(liveEncryption)
+      } catch (err) {
+        console.error('[Encryption] mid-call E2EE toggle failed', err)
+        return
+      }
+      // Re-assert track state — republishAllTracks may have silently
+      // dropped one of them mid-renegotiation.
+      try {
+        if (camWasOn && !lp.isCameraEnabled) {
+          await lp.setCameraEnabled(true)
+        }
+        if (micWasOn && !lp.isMicrophoneEnabled) {
+          await lp.setMicrophoneEnabled(true)
+        }
+      } catch (err) {
+        console.error('[Encryption] track re-assert failed', err)
+      }
+    })()
+  }, [room, encryptionCapable, encryptionSetupComplete, liveEncryption])
+
+  // Listen for server-driven metadata updates (admin pausing/resuming from
+  // a different client) and refresh the room query so liveEncryption above
+  // reflects the new state.
+  useEffect(() => {
+    if (!room) return
+    const onMetadataChanged = () => {
+      queryClient.invalidateQueries({ queryKey: fetchKey })
+    }
+    room.on(RoomEvent.RoomMetadataChanged, onMetadataChanged)
+    return () => {
+      room.off(RoomEvent.RoomMetadataChanged, onMetadataChanged)
+    }
+    // fetchKey is derived from roomId; both stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room])
 
   // If the user changes the hash mid-session (e.g. corrects a typo), reload
   // so the new passphrase is picked up by the encryption setup.
   useEffect(() => {
-    if (!isEncrypted) return
+    if (!encryptionCapable) return
     const handleHashChange = () => {
       window.location.reload()
     }
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [isEncrypted])
+  }, [encryptionCapable])
 
   useEffect(() => {
     /**
@@ -293,8 +390,13 @@ export const Conference = ({
     prepareConnection()
   }, [room, apiConfig, isConnectionWarmedUp])
 
+  const { mutateAsync: patchRoom } = usePatchRoom()
+  const setServerEncryptionPaused = async (paused: boolean) => {
+    await patchRoom({ roomId, room: { encryption_paused: paused } })
+  }
+
   const handlePhaseChange = (phase: EncryptionPhase) => {
-    if (!isEncrypted) return
+    if (!encryptionCapable) return
     if (phase === EncryptionPhase.PAUSED) {
       void room.setE2EEEnabled(false).catch((err) => {
         console.error('[Encryption] E2EE pause failed', err)
@@ -388,6 +490,7 @@ export const Conference = ({
           <EncryptionStatusProvider
             isEncrypted={isEncrypted}
             onPhaseChange={handlePhaseChange}
+            setServerEncryptionPaused={setServerEncryptionPaused}
           >
             <VideoConference />
           </EncryptionStatusProvider>

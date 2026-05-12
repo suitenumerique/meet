@@ -138,15 +138,42 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "configuration", "access_level", "pin_code", "is_encrypted"]
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "configuration",
+            "access_level",
+            "pin_code",
+            "is_encrypted",
+            "encryption_paused",
+        ]
         read_only_fields = ["id", "slug", "pin_code"]
 
     def validate_is_encrypted(self, value):
-        """Encryption is decided at room creation and cannot be flipped afterwards."""
+        """is_encrypted is set at creation and is part of the link's identity
+        (copy-link always carries the hash for an encrypted room). Mid-call
+        toggling is done via encryption_paused, not by mutating this flag."""
         instance = self.instance
         if instance and instance.is_encrypted != value:
             raise serializers.ValidationError(
-                "Encryption flag cannot be changed after room creation."
+                "Encryption mode cannot be changed after room creation. "
+                "Use encryption_paused to temporarily suspend encryption."
+            )
+        return value
+
+    def validate_encryption_paused(self, value):
+        """encryption_paused only makes sense on encrypted rooms. Allow either
+        direction (True ↔ False) post-creation: admins suspend E2EE so a
+        SIP/device caller can join, then resume once they hang up."""
+        is_encrypted = (
+            self.instance.is_encrypted
+            if self.instance is not None
+            else self.initial_data.get("is_encrypted", False)
+        )
+        if value and not is_encrypted:
+            raise serializers.ValidationError(
+                "Cannot pause encryption on a non-encrypted room."
             )
         return value
 

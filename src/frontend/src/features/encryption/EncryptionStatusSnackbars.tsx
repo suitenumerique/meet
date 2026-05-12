@@ -9,10 +9,10 @@ import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { Button, Text } from '@/primitives'
-import { ParticipantKind, RemoteParticipant, RoomEvent } from 'livekit-client'
-import { useRoomContext } from '@livekit/components-react'
+import { ParticipantKind, RemoteParticipant } from 'livekit-client'
+import { useRemoteParticipants } from '@livekit/components-react'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
-import { useSettingsDialog, SettingsDialogExtendedKey } from '@/features/settings'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { EncryptionPhase, PauseReason } from './encryptionStatusTypes'
 import { useEncryptionStatus } from './useEncryptionStatus'
 
@@ -57,9 +57,9 @@ function useTransient<T>(value: T, displayMs: number) {
 export function EncryptionStatusSnackbars() {
   const { t } = useTranslation('rooms', { keyPrefix: 'encryption.snackbar' })
   const { phase, pauseReason, pausedByMe } = useEncryptionStatus()
-  const room = useRoomContext()
+  const remoteParticipants = useRemoteParticipants()
   const isAdmin = useIsAdminOrOwner()
-  const { openSettingsDialog } = useSettingsDialog()
+  const { toggleAdmin, isAdminOpen } = useSidePanel()
 
   const [pauseSignal, setPauseSignal] = useState<{
     reason?: PauseReason
@@ -82,32 +82,31 @@ export function EncryptionStatusSnackbars() {
     DISPLAY_DURATION_MS
   )
 
-  const [sipParticipant, setSipParticipant] = useState<string | null>(null)
-  const [sipDismissed, dismissSip] = useTransient(
-    sipParticipant,
-    DISPLAY_DURATION_MS
-  )
+  // The SIP-blocked snackbar persists as long as a SIP participant is
+  // present in the encrypted room — admin needs to either pause encryption
+  // (Settings → Security → This meeting) or wait for the SIP user to hang
+  // up. Manual dismiss hides it until a different SIP participant arrives.
+  //
+  // useRemoteParticipants re-renders on participant join/leave/state — that
+  // gives us a reactive participant list without manual event listeners,
+  // which is more reliable than the prior subscribe-on-mount approach.
+  const [sipDismissedIdentity, setSipDismissedIdentity] = useState<string | null>(null)
 
-  // Detect SIP / phone participants joining an encrypted meeting.
-  useEffect(() => {
-    if (!isAdmin) return
-    if (phase !== EncryptionPhase.ENCRYPTED) return
+  const isSip = (p: RemoteParticipant) =>
+    p.kind === ParticipantKind.SIP || p.identity.startsWith('sip_')
 
-    const handler = (participant: RemoteParticipant) => {
-      if (participant.kind === ParticipantKind.SIP) {
-        setSipParticipant(participant.name || participant.identity)
-      }
-    }
-    room.on(RoomEvent.ParticipantConnected, handler)
-    room.remoteParticipants.forEach((p) => {
-      if (p.kind === ParticipantKind.SIP) {
-        setSipParticipant(p.name || p.identity)
-      }
-    })
-    return () => {
-      room.off(RoomEvent.ParticipantConnected, handler)
-    }
-  }, [room, isAdmin, phase])
+  const sipParticipant =
+    isAdmin && phase === EncryptionPhase.ENCRYPTED
+      ? remoteParticipants.find(isSip) ?? null
+      : null
+
+  const sipLabel = sipParticipant
+    ? sipParticipant.name || sipParticipant.identity
+    : null
+
+  const showSipSnack =
+    sipParticipant !== null &&
+    sipDismissedIdentity !== sipParticipant.identity
 
   return (
     <>
@@ -157,7 +156,7 @@ export function EncryptionStatusSnackbars() {
           </HStack>
         </SnackbarShell>
       )}
-      {sipDismissed && phase === EncryptionPhase.ENCRYPTED && (
+      {showSipSnack && phase === EncryptionPhase.ENCRYPTED && (
         <SnackbarShell>
           <HStack
             gap="1rem"
@@ -181,19 +180,29 @@ export function EncryptionStatusSnackbars() {
                   fontSize: '0.8rem',
                 })}
               >
-                {t('sipBody', { name: sipDismissed })}
+                {t('sipBody', { name: sipLabel })}
               </Text>
             </VStack>
+            {!isAdminOpen && (
+              <Button
+                size="sm"
+                variant="text"
+                className={css({ color: 'white !important' })}
+                onPress={toggleAdmin}
+              >
+                {t('openAdmin')}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="text"
               className={css({ color: 'white !important' })}
-              onPress={() => {
-                openSettingsDialog(SettingsDialogExtendedKey.SECURITY)
-                dismissSip()
-              }}
+              onPress={() =>
+                sipParticipant &&
+                setSipDismissedIdentity(sipParticipant.identity)
+              }
             >
-              {t('openSettings')}
+              {t('dismiss')}
             </Button>
           </HStack>
         </SnackbarShell>

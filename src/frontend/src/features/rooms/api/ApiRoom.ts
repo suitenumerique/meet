@@ -18,6 +18,7 @@ export type ApiRoom = {
   is_administrable: boolean
   access_level: ApiAccessLevel
   is_encrypted: boolean
+  encryption_paused: boolean
   livekit?: ApiLiveKit
   configuration?: {
     [key: string]: string | number | boolean | string[]
