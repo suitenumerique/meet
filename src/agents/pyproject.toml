@@ -2,7 +2,7 @@
 [project]
 name = "agents"
 version = "1.15.0"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "livekit-agents>=1.4.5",
     "livekit-plugins-deepgram==1.4.5",
