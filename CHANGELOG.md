@@ -23,6 +23,7 @@ and this project adheres to
 ### Changed
 
 - 🧑‍💻(agents) use `uv` for package management
+- ✨(summary) improve speaker-to-participant assignment
 
 ### Fixed
 

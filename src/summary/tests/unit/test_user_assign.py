@@ -4,10 +4,12 @@ import math
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from summary.core import user_assign
 from summary.core.user_assign import (
     AssignmentResult,
     Interval,
     SpeakerAssignment,
+    _build_speaker_timelines,
     _merge_intervals,
     _overlap_duration,
     _total_duration,
@@ -73,12 +75,22 @@ DIARIZATION_SINGLE_SPEAKER = FakeTranscription(
             "end": 3.545,
             "text": " The stale smell.",
             "speaker": "SPEAKER_00",
+            "words": [
+                {"word": "The", "start": 1.363, "end": 1.8},
+                {"word": "stale", "start": 1.8, "end": 2.7},
+                {"word": "smell.", "start": 2.7, "end": 3.545},
+            ],
         },
         {
             "start": 4.466,
             "end": 6.247,
             "text": "It takes heat.",
             "speaker": "SPEAKER_00",
+            "words": [
+                {"word": "It", "start": 4.466, "end": 4.7},
+                {"word": "takes", "start": 4.7, "end": 5.5},
+                {"word": "heat.", "start": 5.5, "end": 6.247},
+            ],
         },
     ],
 )
@@ -163,6 +175,174 @@ class TestTotalDuration:
     def test_empty(self):
         """Empty input returns zero."""
         assert math.isclose(_total_duration([]), 0.0)
+
+
+class TestBuildSpeakerTimelines:
+    """Tests for _build_speaker_timelines."""
+
+    def test_segment_without_words_falls_back_to_segment_bounds(self):
+        """Segments missing a `words` key use the segment start/end as one interval."""
+        transcription = FakeTranscription(
+            segments=[{"start": 1.5, "end": 3.5, "speaker": "SPEAKER_00"}],
+        )
+        result = _build_speaker_timelines(transcription)
+        assert result == {"SPEAKER_00": [Interval(1.5, 3.5)]}
+
+    def test_segment_with_only_none_word_timestamps_falls_back(self):
+        """If every word has None start/end, fall back to segment bounds."""
+        transcription = FakeTranscription(
+            segments=[
+                {
+                    "start": 1.0,
+                    "end": 4.0,
+                    "speaker": "SPEAKER_00",
+                    "words": [
+                        {"word": "hi", "start": None, "end": None},
+                        {"word": "there", "start": None, "end": None},
+                    ],
+                },
+            ],
+        )
+        result = _build_speaker_timelines(transcription)
+        assert result == {"SPEAKER_00": [Interval(1.0, 4.0)]}
+
+    def test_short_words_only_uses_segment_start_and_last_word_end(self):
+        """With no overly long words, the interval runs segment start to end."""
+        transcription = FakeTranscription(
+            segments=[
+                {
+                    "start": 1.0,
+                    "end": 5.0,
+                    "speaker": "SPEAKER_00",
+                    "words": [
+                        {"word": "a", "start": 1.0, "end": 1.3},
+                        {"word": "b", "start": 1.4, "end": 1.7},
+                        {"word": "c", "start": 1.8, "end": 2.1},
+                    ],
+                },
+            ],
+        )
+        result = _build_speaker_timelines(transcription)
+        # Tail: min(2.1, 1.8 + 1.0) = 2.1
+        assert result == {"SPEAKER_00": [Interval(1.0, 2.1)]}
+
+    def test_long_word_caps_interval_at_max_duration(self):
+        """A word longer than the max-word-duration cap truncates the segment."""
+        max_word_duration = (
+            user_assign.settings.resolve_speaker_identities_max_word_duration
+        )
+        transcription = FakeTranscription(
+            segments=[
+                {
+                    "start": 0.0,
+                    "end": max_word_duration + 7,
+                    "speaker": "SPEAKER_00",
+                    "words": [
+                        {
+                            "word": "pause",
+                            "start": 0.0,
+                            "end": max_word_duration + 7,
+                        },
+                    ],
+                },
+            ],
+        )
+        result = _build_speaker_timelines(transcription)
+        assert result == {"SPEAKER_00": [Interval(0.0, max_word_duration)]}
+
+    def test_long_word_in_middle_splits_segment(self):
+        """Short words around a long word produce two intervals (before-cap + after)."""
+        transcription = FakeTranscription(
+            segments=[
+                {
+                    "start": 0.0,
+                    "end": 20.0,
+                    "speaker": "SPEAKER_00",
+                    "words": [
+                        {"word": "a", "start": 0.0, "end": 0.5},
+                        {"word": "long", "start": 1.0, "end": 15.0},
+                        {"word": "z", "start": 18.0, "end": 18.4},
+                    ],
+                },
+            ],
+        )
+        result = _build_speaker_timelines(transcription)
+        # First emit: (0.0, 1.0 + 1.0). Then start_time resets, picks up at "z" (18.0).
+        # Tail: min(18.4, 18.0 + 1.0) = 18.4. So second interval is (18.0, 18.4).
+        assert result == {
+            "SPEAKER_00": [Interval(0.0, 2.0), Interval(18.0, 18.4)],
+        }
+
+    def test_tail_word_is_capped_at_max_duration(self):
+        """The trailing word's end is capped at word.start + max_word_duration."""
+        transcription = FakeTranscription(
+            segments=[
+                {
+                    "start": 0.0,
+                    "end": 50.0,
+                    "speaker": "SPEAKER_00",
+                    "words": [
+                        {"word": "a", "start": 0.0, "end": 0.4},
+                        # Last word ends inside the cap, so the cap doesn't apply.
+                        {"word": "b", "start": 1.0, "end": 1.5},
+                    ],
+                },
+            ],
+        )
+        result = _build_speaker_timelines(transcription)
+        # Tail: min(1.5, 1.0 + 1.0) = 1.5
+        assert result == {"SPEAKER_00": [Interval(0.0, 1.5)]}
+
+    def test_split_on_words_disabled_keeps_segment_as_one_interval(self, monkeypatch):
+        """With splitting disabled, long words don't split the interval."""
+        monkeypatch.setattr(
+            user_assign,
+            "settings",
+            user_assign.settings.model_copy(
+                update={"resolve_speaker_identities_enable_split_on_words": False},
+            ),
+        )
+        transcription = FakeTranscription(
+            segments=[
+                {
+                    "start": 0.0,
+                    "end": 20.0,
+                    "speaker": "SPEAKER_00",
+                    "words": [
+                        {"word": "a", "start": 0.0, "end": 0.5},
+                        {"word": "long", "start": 1.0, "end": 15.0},
+                        {"word": "z", "start": 18.0, "end": 18.4},
+                    ],
+                },
+            ],
+        )
+        result = _build_speaker_timelines(transcription)
+        # No mid-segment split; tail caps at min(18.4, 18.0 + 1.0) = 18.4.
+        assert result == {"SPEAKER_00": [Interval(0.0, 18.4)]}
+
+    def test_multiple_speakers_keep_separate_timelines(self):
+        """Segments from different speakers populate independent timeline entries."""
+        transcription = FakeTranscription(
+            segments=[
+                {
+                    "start": 0.0,
+                    "end": 1.0,
+                    "speaker": "SPEAKER_00",
+                    "words": [{"word": "hi", "start": 0.0, "end": 0.5}],
+                },
+                {
+                    "start": 2.0,
+                    "end": 3.0,
+                    "speaker": "SPEAKER_01",
+                    "words": [{"word": "yo", "start": 2.0, "end": 2.5}],
+                },
+            ],
+        )
+        result = _build_speaker_timelines(transcription)
+        assert result == {
+            "SPEAKER_00": [Interval(0.0, 0.5)],
+            "SPEAKER_01": [Interval(2.0, 2.5)],
+        }
 
 
 class TestResolveSpeakerIdentities:

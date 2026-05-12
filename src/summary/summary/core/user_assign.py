@@ -14,11 +14,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from summary.core.config import get_settings
 
-# Minimum fraction of a speaker's total duration that must overlap with a
-# participant's VAD to accept the assignment.
-DEFAULT_OVERLAP_THRESHOLD = 0.5
+settings = get_settings()
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -74,7 +74,7 @@ class AssignmentResult:
                     f" ({item['speaker']})" if name_to_speaker_count[name] > 1 else ""
                 )  # Add suffix only if there are multiple detected speakers per user
                 return {**item, "speaker": f"{name}{suffix}"}
-            return item
+            return {**item}
 
         def _process_segment(
             item: dict[str, Any], include_words: bool = False
@@ -138,6 +138,78 @@ def _overlap_duration(
     return overlap
 
 
+def _format_timelines_debug(
+    participant_timelines: dict[str, list[Interval]],
+    participant_names: dict[str, str],
+    speaker_timelines: dict[str, list[Interval]],
+) -> str:
+    """Render participant and speaker timelines side-by-side for debugging.
+
+    Each row is the slice between two consecutive interval boundaries
+    (drawn from both sides). A filled cell marks an active participant
+    (left block) or speaker (right block) during that slice, so vertical
+    alignment makes overlap visually obvious.
+    """
+    participant_ids = sorted(participant_timelines.keys())
+    speaker_labels = sorted(speaker_timelines.keys())
+
+    if not participant_ids and not speaker_labels:
+        return "(no timelines)"
+
+    boundaries: set[float] = set()
+    for intervals in (*participant_timelines.values(), *speaker_timelines.values()):
+        for iv in intervals:
+            boundaries.add(iv.start)
+            boundaries.add(iv.end)
+    sorted_boundaries = sorted(boundaries)
+    if len(sorted_boundaries) < 2:
+        return "(no intervals)"
+
+    p_headers = [participant_names.get(pid, pid) for pid in participant_ids]
+    s_headers = list(speaker_labels)
+    p_widths = [max(len(h), 3) for h in p_headers]
+    s_widths = [max(len(h), 3) for h in s_headers]
+
+    def _active(intervals: list[Interval], lo: float, hi: float) -> bool:
+        mid = (lo + hi) / 2
+        return any(iv.start <= mid < iv.end for iv in intervals)
+
+    def _cells(
+        intervals_list: list[list[Interval]],
+        widths: list[int],
+        lo: float,
+        hi: float,
+    ) -> str:
+        return " ".join(
+            ("█" * w if _active(iv, lo, hi) else "·" * w)
+            for iv, w in zip(intervals_list, widths, strict=True)
+        )
+
+    p_iv_list = [participant_timelines[pid] for pid in participant_ids]
+    s_iv_list = [speaker_timelines[sl] for sl in speaker_labels]
+
+    time_col = "[   start →      end]"
+    p_hdr = (
+        " ".join(h.center(w) for h, w in zip(p_headers, p_widths, strict=True))
+        or "(none)"
+    )
+    s_hdr = (
+        " ".join(h.center(w) for h, w in zip(s_headers, s_widths, strict=True))
+        or "(none)"
+    )
+    sep = "  ||  "
+    lines = [
+        f"{time_col}  {p_hdr}{sep}{s_hdr}",
+        "-" * (len(time_col) + 2 + len(p_hdr) + len(sep) + len(s_hdr)),
+    ]
+    for lo, hi in zip(sorted_boundaries, sorted_boundaries[1:], strict=False):
+        time_str = f"[{lo:8.2f} → {hi:8.2f}]"
+        p_row = _cells(p_iv_list, p_widths, lo, hi) or " " * len(p_hdr)
+        s_row = _cells(s_iv_list, s_widths, lo, hi) or " " * len(s_hdr)
+        lines.append(f"{time_str}  {p_row}{sep}{s_row}")
+    return "\n".join(lines)
+
+
 def _build_participant_timelines(
     metadata: dict[str, Any],
     recording_start_datetime: datetime,
@@ -199,24 +271,50 @@ def _build_participant_timelines(
     return intervals, participants_info
 
 
-def _build_speaker_timelines(
-    transcription: Any,
-) -> dict[str, list[Interval]]:
+def _build_speaker_timelines(transcription: Any) -> dict[str, list[Interval]]:
     """Build interval timelines from WhisperX transcription segments."""
     intervals: dict[str, list[Interval]] = {}
-
     segments = transcription.segments if hasattr(transcription, "segments") else []
+    max_word_duration = settings.resolve_speaker_identities_max_word_duration
+
     for segment in segments:
         speaker = segment.get("speaker")
         if speaker is None:
             continue
-        intervals.setdefault(speaker, []).append(
-            Interval(segment["start"], segment["end"])
-        )
+
+        words = [
+            w
+            for w in segment.get("words", [])
+            if w.get("start") is not None and w.get("end") is not None
+        ]
+        if not words:
+            intervals.setdefault(speaker, []).append(
+                Interval(segment["start"], segment["end"])
+            )
+            continue
+
+        start_time: float | None = segment["start"]
+        for word in words:
+            if start_time is None:
+                start_time = word["start"]
+            if not settings.resolve_speaker_identities_enable_split_on_words:
+                continue
+            if word["end"] - word["start"] > max_word_duration:
+                end_time = word["start"] + max_word_duration
+                if end_time > start_time:
+                    intervals.setdefault(speaker, []).append(
+                        Interval(start_time, end_time)
+                    )
+                start_time = None
+
+        if start_time is not None:
+            last = words[-1]
+            end_time = min(last["end"], last["start"] + max_word_duration)
+            if end_time > start_time:
+                intervals.setdefault(speaker, []).append(Interval(start_time, end_time))
 
     for speaker, speaker_intervals in intervals.items():
         intervals[speaker] = _merge_intervals(speaker_intervals)
-
     return intervals
 
 
@@ -225,7 +323,7 @@ def resolve_speaker_identities(
     transcription: Any,
     recording_start_datetime: datetime,
     recording_end_datetime: datetime,
-    overlap_threshold: float = DEFAULT_OVERLAP_THRESHOLD,
+    overlap_threshold: float = settings.resolve_speaker_identities_default_overlap_threshold,  # noqa: E501
 ) -> AssignmentResult:
     """Match WhisperX speaker labels to participants.
 
@@ -247,9 +345,14 @@ def resolve_speaker_identities(
     speaker_timelines = _build_speaker_timelines(transcription)
 
     logger.debug(
-        "Assignment inputs: %d participants, %d speakers",
+        "Assignment inputs: %d participants, %d speakers\n%s\n%s\n%s",
         len(participant_timelines),
         len(speaker_timelines),
+        participant_timelines,
+        speaker_timelines,
+        _format_timelines_debug(
+            participant_timelines, participant_names, speaker_timelines
+        ),
     )
 
     result = AssignmentResult()
