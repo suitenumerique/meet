@@ -18,6 +18,7 @@ and this project adheres to
 ### Changed
 
 - ♻️(summary) change tasks endpoint signature
+- ⬆️(dependencies) update urllib3 to v2.7.0 [SECURITY]
 
 ### Fixed
 
