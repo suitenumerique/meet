@@ -150,13 +150,14 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-          cache: "pip"
-      - name: Install development dependencies
-        run: pip install --user .[dev]
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Install the project
+        run: uv sync --locked --all-extras
       - name: Check code formatting with ruff
-        run: ~/.local/bin/ruff format . --diff
+        run: uv run ruff format . --diff
       - name: Lint code with ruff
-        run: ~/.local/bin/ruff check .
+        run: uv run ruff check .
 
   lint-summary:
     runs-on: ubuntu-latest
