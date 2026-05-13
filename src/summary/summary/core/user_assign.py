@@ -8,9 +8,10 @@ Multiple speakers can map to the same participant (e.g. two people sharing
 one microphone). A participant with no matching speaker gets no assignment.
 """
 
+import json
 import logging
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import datetime
 from typing import Any
 
@@ -318,6 +319,24 @@ def _build_speaker_timelines(transcription: Any) -> dict[str, list[Interval]]:
     return intervals
 
 
+def _json_default(obj: Any) -> Any:
+    """Encode datetimes, dataclasses, and pydantic models for `json.dumps`.
+
+    Intended to be used for logging of `resolve_speaker_identities` (input
+    and computed variables)
+    """
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if is_dataclass(obj) and not isinstance(obj, type):
+        return asdict(obj)
+    if hasattr(obj, "segments") and hasattr(obj, "word_segments"):
+        return {"segments": obj.segments, "word_segments": obj.word_segments}
+    if hasattr(obj, "model_dump"):
+        return obj.model_dump(mode="json")
+
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+
 def resolve_speaker_identities(
     metadata: dict[str, Any],
     transcription: Any,
@@ -343,17 +362,6 @@ def resolve_speaker_identities(
         metadata, recording_start_datetime, recording_end_datetime
     )
     speaker_timelines = _build_speaker_timelines(transcription)
-
-    logger.debug(
-        "Assignment inputs: %d participants, %d speakers\n%s\n%s\n%s",
-        len(participant_timelines),
-        len(speaker_timelines),
-        participant_timelines,
-        speaker_timelines,
-        _format_timelines_debug(
-            participant_timelines, participant_names, speaker_timelines
-        ),
-    )
 
     result = AssignmentResult()
 
@@ -396,5 +404,31 @@ def resolve_speaker_identities(
                 best_score,
                 overlap_threshold,
             )
+
+    logger.debug(
+        json.dumps(
+            {
+                "input": {
+                    "recording_start_datetime": recording_start_datetime.isoformat(),
+                    "recording_end_datetime": recording_end_datetime.isoformat(),
+                    "metadata": metadata,
+                    "transcription": transcription,
+                },
+                "computed": {
+                    "speaker_timelines": speaker_timelines,
+                    "participant_timelines": participant_timelines,
+                    "result": result,
+                },
+            },
+            default=_json_default,
+            indent=2,
+            ensure_ascii=False,
+        ),
+    )
+    logger.debug(
+        _format_timelines_debug(
+            participant_timelines, participant_names, speaker_timelines
+        ),
+    )
 
     return result
