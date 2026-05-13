@@ -271,6 +271,16 @@ services:
         - action: rebuild
           path: ./src/agents
 
+  multi-user-transcriber-dev:
+    build:
+      context: ./src/agents
+      target: development
+    env_file:
+      - env.d/development/multi_user_transcriber
+    volumes:
+      - ./src/agents:/app
+      - /app/.venv
+
   redis-summary:
     image: redis
     ports:
@@ -331,16 +341,6 @@ services:
       watch:
         - action: rebuild
           path: ./src/summary
-
-  multi-user-transcriber:
-    build:
-      context: ./src/agents
-      target: development
-    env_file:
-      - env.d/development/multi_user_transcriber
-    volumes:
-      - ./src/agents:/app
-      - /app/.venv
 
 networks:
   default:
