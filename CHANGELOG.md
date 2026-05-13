@@ -19,9 +19,6 @@ and this project adheres to
 
 - ♻️(summary) change tasks endpoint signature
 - ⬆️(dependencies) update urllib3 to v2.7.0 [SECURITY]
-
-### Changed
-
 - 🧑‍💻(agents) use `uv` for package management
 - ✨(summary) improve speaker-to-participant assignment
 
