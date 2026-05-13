@@ -59,6 +59,7 @@ def test_request_entry_anonymous(settings):
         "username": "test_user",
         "status": "waiting",
         "color": "mocked-color",
+        "is_authenticated": False,
         "livekit": None,
     }
 
@@ -108,6 +109,7 @@ def test_request_entry_authenticated_user(settings):
         "username": "test_user",
         "status": "waiting",
         "color": "mocked-color",
+        "is_authenticated": True,
         "livekit": None,
     }
 
@@ -180,6 +182,7 @@ def test_request_entry_with_existing_participants(settings):
         "username": "test_user",
         "status": "waiting",
         "color": "mocked-color",
+        "is_authenticated": False,
         "livekit": None,
     }
 
@@ -232,6 +235,7 @@ def test_request_entry_public_room(settings):
         "username": "test_user",
         "status": "accepted",
         "color": "mocked-color",
+        "is_authenticated": False,
         "livekit": {"token": "test-token"},
     }
 
@@ -284,6 +288,7 @@ def test_request_entry_authenticated_user_public_room(settings):
         "username": "test_user",
         "status": "accepted",
         "color": "mocked-color",
+        "is_authenticated": True,
         "livekit": {"token": "test-token"},
     }
 
@@ -338,6 +343,7 @@ def test_request_entry_waiting_participant_public_room(settings):
         "username": "user1",
         "status": "accepted",
         "color": "#123456",
+        "is_authenticated": False,
         "livekit": {"token": "test-token"},
     }
 
@@ -601,12 +607,14 @@ def test_list_waiting_participants_success(settings):
             "username": "user1",
             "status": "waiting",
             "color": "#123456",
+            "is_authenticated": False,
         },
         {
             "id": "f4ca3ab8a6c04ad88097b8da33f60f10",
             "username": "user2",
             "status": "waiting",
             "color": "#654321",
+            "is_authenticated": False,
         },
     ]
 

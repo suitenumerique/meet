@@ -268,6 +268,7 @@ def test_request_entry_public_room(
         configuration=room.configuration,
         is_admin_or_owner=False,
         participant_id="test-participant-id",
+        encryption_mode="none",
     )
 
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
@@ -307,6 +308,7 @@ def test_request_entry_trusted_room(
         configuration=room.configuration,
         is_admin_or_owner=False,
         participant_id="test-participant-id",
+        encryption_mode="none",
     )
 
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
@@ -337,7 +339,12 @@ def test_request_entry_new_participant(
 
     assert participant == participant_data
     assert livekit_config is None
-    mock_enter.assert_called_once_with(room.id, participant_id, username)
+    mock_enter.assert_called_once_with(
+        room.id,
+        participant_id,
+        username,
+        is_authenticated=request.user.is_authenticated,
+    )
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
 
@@ -402,6 +409,7 @@ def test_request_entry_accepted_participant(
         configuration=room.configuration,
         is_admin_or_owner=False,
         participant_id="test-participant-id",
+        encryption_mode="none",
     )
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
@@ -777,6 +785,7 @@ def test_update_participant_status_success(mock_cache, lobby_service, participan
         "username": "test-username",
         "id": participant_id,
         "color": "#123456",
+        "is_authenticated": False,
     }
     mock_cache.set.assert_called_once_with(
         "mocked_cache_key", expected_data, timeout=60

@@ -316,7 +316,11 @@ class RoomViewSet(
         """Start recording a room."""
 
         serializer = serializers.StartRecordingSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return drf_response.Response(
+                {"detail": "Invalid request."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
 
         mode = serializer.validated_data["mode"]
         options = serializer.validated_data.get("options")

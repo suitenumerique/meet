@@ -32,7 +32,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = models.User
         fields = [
             "id",
-            "sub",
             "email",
             "full_name",
             "short_name",
@@ -40,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
             "language",
             "default_encryption_mode",
         ]
-        read_only_fields = ["id", "sub", "email", "full_name", "short_name"]
+        read_only_fields = ["id", "email", "full_name", "short_name"]
 
 
 class UserLightSerializer(serializers.ModelSerializer):

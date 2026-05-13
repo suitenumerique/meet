@@ -33,6 +33,7 @@ def test_api_rooms_retrieve_anonymous_private_pk():
         "is_administrable": False,
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -52,6 +53,7 @@ def test_api_rooms_retrieve_anonymous_trusted_pk():
         "is_administrable": False,
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -70,6 +72,7 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
         "is_administrable": False,
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -86,6 +89,7 @@ def test_api_rooms_retrieve_anonymous_private_slug():
         "is_administrable": False,
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -102,6 +106,7 @@ def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
         "is_administrable": False,
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -211,6 +216,7 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once()
@@ -257,6 +263,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once_with(
@@ -267,6 +274,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         sources=["mock-source"],
         is_admin_or_owner=False,
         participant_id=None,
+        encryption_mode="none",
     )
 
 
@@ -308,6 +316,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once_with(
@@ -318,6 +327,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
         sources=None,
         is_admin_or_owner=False,
         participant_id=None,
+        encryption_mode="none",
     )
 
 
@@ -343,6 +353,7 @@ def test_api_rooms_retrieve_authenticated():
         "is_administrable": False,
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -394,6 +405,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once_with(
@@ -404,6 +416,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
         sources=["mock-source"],
         is_admin_or_owner=False,
         participant_id=None,
+        encryption_mode="none",
     )
 
 
@@ -453,6 +466,7 @@ def test_api_rooms_retrieve_administrators(
                     "short_name": other_user_access.user.short_name,
                     "timezone": "UTC",
                     "language": other_user_access.user.language,
+                    "default_encryption_mode": "none",
                 },
                 "resource": str(room.id),
                 "role": other_user_access.role,
@@ -466,6 +480,7 @@ def test_api_rooms_retrieve_administrators(
                     "short_name": user_access.user.short_name,
                     "timezone": "UTC",
                     "language": user_access.user.language,
+                    "default_encryption_mode": "none",
                 },
                 "resource": str(room.id),
                 "role": user_access.role,
@@ -487,6 +502,7 @@ def test_api_rooms_retrieve_administrators(
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once_with(
@@ -497,4 +513,5 @@ def test_api_rooms_retrieve_administrators(
         sources=None,
         is_admin_or_owner=True,
         participant_id=None,
+        encryption_mode="none",
     )
