@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-05-13
+
 ### Added
 
 - 🔒️(backend) add validation of Room.configuration
