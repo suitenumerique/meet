@@ -30,6 +30,7 @@ and this project adheres to
 - ⬆️(mail) fix dependencies not having resolved or integrity field #1321
 - 🐛(summary) complete webm support #1328
 - 🐛(backend) add link to "Open" text in recording email
+- 🩹(frontend) fix spacing regression in mobile control bar
 
 ## [1.15.0] - 2026-04-30
 

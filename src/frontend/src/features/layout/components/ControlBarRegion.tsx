@@ -12,7 +12,7 @@ const controlBarRegion = cva({
   variants: {
     mobile: {
       true: {
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         width: '330px',
       },
     },
