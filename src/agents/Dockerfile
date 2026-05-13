@@ -49,7 +49,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["python", "metadata_collector.py", "dev"]
+CMD ["python", "multi_user_transcriber.py", "dev"]
 
 
 # ---- Production image ----

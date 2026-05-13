@@ -109,7 +109,7 @@ build-frontend: ## build the frontend container
 .PHONY: build-frontend
 
 build-agents: ## build the multi-user-transcriber agent container
-	@$(COMPOSE) build multi-user-transcriber
+	@$(COMPOSE) build multi-user-transcriber-dev
 .PHONY: build-agents
 
 down: ## stop and remove containers, networks, images, and volumes
@@ -138,7 +138,7 @@ run-agents: ## start the multi-user-transcriber agent
 .PHONY: run-agents
 
 run-agent-multi-user-transcriber: ## start the LiveKit agents (multi users transcriber)
-	@$(COMPOSE) up --force-recreate -d multi-user-transcriber
+	@$(COMPOSE) up --force-recreate -d multi-user-transcriber-dev
 .PHONY: run-agent-multi-user-transcriber
 
 run-agent-metadata-collector: ## start the LiveKit agents (metadata collector)
