@@ -202,7 +202,16 @@ class LiveKitEventsService:
         except models.Room.DoesNotExist as err:
             raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
 
-        if settings.ROOM_TELEPHONY_ENABLED:
+        # Note: `encryption_mode` is stamped into the LK room's metadata at
+        # creation time via the access token's RoomConfiguration (see
+        # `utils.generate_token`), so we don't need to patch it here.
+
+        # Phone dial-in is incompatible with end-to-end encryption — a SIP
+        # caller has no way to derive the room key, and the SIP gateway will
+        # play "encryption_not_supported" and hang up on them anyway. Skip
+        # the dispatch rule for encrypted rooms so no metadata mentions a
+        # PIN that won't be reachable.
+        if settings.ROOM_TELEPHONY_ENABLED and not room.is_encrypted:
             try:
                 self.telephony_service.create_dispatch_rule(room)
             except TelephonyException as e:

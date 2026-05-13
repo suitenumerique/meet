@@ -30,7 +30,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.User
-        fields = ["id", "sub", "email", "full_name", "short_name", "timezone", "language"]
+        fields = [
+            "id",
+            "sub",
+            "email",
+            "full_name",
+            "short_name",
+            "timezone",
+            "language",
+            "default_encryption_mode",
+        ]
         read_only_fields = ["id", "sub", "email", "full_name", "short_name"]
 
 
@@ -75,22 +84,6 @@ class ResourceAccessSerializerMixin:
                 "Only owners of a room can assign other users as owners."
             )
 
-        # In advanced encrypted rooms, new accesses require an encrypted_symmetric_key
-        # so the new member can decrypt the room's streams. Without it, they'd have
-        # access but no key — which is useless and confusing.
-        # Future: a sharing UI (like Docs) could provide the key via vault shareKeys.
-        if not self.instance and "resource" in data:
-            resource = data["resource"]
-            if (
-                hasattr(resource, 'encryption_mode')
-                and resource.encryption_mode == models.EncryptionMode.ADVANCED
-                and not data.get("encrypted_symmetric_key")
-            ):
-                raise serializers.ValidationError(
-                    "Adding members to advanced encrypted rooms requires "
-                    "an encrypted_symmetric_key for the new user."
-                )
-
         return data
 
     def validate_resource(self, resource):
@@ -115,7 +108,7 @@ class ResourceAccessSerializer(
 
     class Meta:
         model = models.ResourceAccess
-        fields = ["id", "user", "resource", "role", "encrypted_symmetric_key"]
+        fields = ["id", "user", "resource", "role"]
         read_only_fields = ["id"]
 
     def update(self, instance, validated_data):
@@ -145,26 +138,59 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "configuration", "access_level", "pin_code", "encryption_mode"]
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "configuration",
+            "access_level",
+            "pin_code",
+            "encryption_mode",
+        ]
         read_only_fields = ["id", "slug", "pin_code"]
 
-    def validate_access_level(self, value):
-        """Encrypted rooms must stay restricted — prevent downgrading access level."""
+    def validate_encryption_mode(self, value):
+        """Encryption mode is part of the link's semantics (the passphrase
+        lives in the URL hash for `basic` rooms) so it cannot be changed once
+        the room exists."""
         instance = self.instance
-        if instance and instance.encryption_enabled and value != models.RoomAccessLevel.RESTRICTED:
+        if instance and instance.encryption_mode != value:
             raise serializers.ValidationError(
-                "Encrypted rooms require restricted access level to enforce lobby approval."
+                "Encryption mode cannot be changed after room creation."
             )
         return value
 
-    def validate_encryption_mode(self, value):
-        """Once encryption is enabled on a room, it cannot be disabled or downgraded."""
+    def validate_access_level(self, value):
+        """Encrypted rooms must stay restricted — the lobby is the only way
+        to enforce per-participant admission, and basic encryption relies on
+        the host vetting each joiner before they receive the in-URL key."""
         instance = self.instance
-        if instance and instance.encryption_enabled and value == models.EncryptionMode.NONE:
+        if (
+            instance
+            and instance.encryption_mode != models.EncryptionMode.NONE
+            and value != models.RoomAccessLevel.RESTRICTED
+        ):
             raise serializers.ValidationError(
-                "Encryption cannot be disabled once enabled on a room."
+                "Encrypted rooms require restricted access level."
             )
         return value
+
+    def validate(self, attrs):
+        """Force encrypted rooms to RESTRICTED at creation time.
+
+        Doing this here (rather than in validate_access_level) lets the
+        client omit `access_level` entirely when creating an encrypted room
+        — we silently override whatever the default would have been.
+        """
+        encryption_mode = attrs.get(
+            "encryption_mode",
+            self.instance.encryption_mode
+            if self.instance
+            else models.EncryptionMode.NONE,
+        )
+        if encryption_mode != models.EncryptionMode.NONE and not self.instance:
+            attrs["access_level"] = models.RoomAccessLevel.RESTRICTED
+        return super().validate(attrs)
 
     def to_representation(self, instance):
         """
@@ -208,9 +234,11 @@ class RoomSerializer(serializers.ModelSerializer):
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
 
-            # In encrypted rooms, authenticated users must use their real name from
-            # the OIDC profile (ProConnect) — they cannot choose an arbitrary name.
-            if instance.encryption_enabled and request.user.is_authenticated:
+            # In encrypted rooms, authenticated users cannot pick an
+            # arbitrary display name — it must come from the OIDC profile.
+            # We enforce this server-side so a tampered client cannot
+            # override what other participants see.
+            if instance.is_encrypted and request.user.is_authenticated:
                 username = request.user.full_name or request.user.email
 
             output["livekit"] = utils.generate_livekit_config(
@@ -225,15 +253,6 @@ class RoomSerializer(serializers.ModelSerializer):
             del output["pin_code"]
 
         output["is_administrable"] = is_admin_or_owner
-
-        # Include the current user's encrypted symmetric key for advanced E2EE
-        if request.user.is_authenticated and instance.encryption_mode == models.EncryptionMode.ADVANCED:
-            try:
-                access = instance.accesses.get(user=request.user)
-                if access.encrypted_symmetric_key:
-                    output["encrypted_symmetric_key"] = access.encrypted_symmetric_key
-            except models.ResourceAccess.DoesNotExist:
-                pass
 
         return output
 
@@ -317,7 +336,6 @@ class RequestEntrySerializer(BaseValidationOnlySerializer):
     """Validate request entry data."""
 
     username = serializers.CharField(required=True, allow_blank=True)
-    ephemeral_public_key = serializers.CharField(required=False, allow_blank=True, default='')
 
 
 class ParticipantEntrySerializer(BaseValidationOnlySerializer):
@@ -325,9 +343,6 @@ class ParticipantEntrySerializer(BaseValidationOnlySerializer):
 
     participant_id = serializers.UUIDField(required=True)
     allow_entry = serializers.BooleanField(required=True)
-    encrypted_key = serializers.CharField(required=False, allow_blank=True, default='')
-    admin_ephemeral_public_key = serializers.CharField(required=False, allow_blank=True, default='')
-    encrypted_vault_key = serializers.CharField(required=False, allow_blank=True, default='')
 
 
 class CreationCallbackSerializer(BaseValidationOnlySerializer):

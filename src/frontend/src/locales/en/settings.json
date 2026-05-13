@@ -5,8 +5,18 @@
     "youAreNotLoggedIn": "You are not logged in.",
     "nameLabel": "Your Name",
     "authentication": "Authentication",
-    "nameError": "Your name cannot be empty",
-    "nameLockedEncryption": "In encrypted meetings, your name comes from your account and cannot be changed."
+    "nameError": "Your name cannot be empty"
+  },
+  "security": {
+    "heading": "Security",
+    "subtitle": "Add security options.",
+    "signInRequired": "Sign in to set encryption preferences.",
+    "featureDisabled": "End-to-end encryption is not available on this server.",
+    "encryption": {
+      "label": "End-to-end encryption",
+      "description": "You can create encrypted meetings on demand. Only participants can access the content, not even our servers.",
+      "learnMore": "Learn more"
+    }
   },
   "preferences": {
     "title": "Preferences",
@@ -163,6 +173,7 @@
     "audio": "Audio",
     "video": "Video",
     "general": "General",
+    "security": "Security",
     "notifications": "Notifications",
     "accessibility": "Accessibility",
     "transcription": "Transcription",

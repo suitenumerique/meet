@@ -6,25 +6,29 @@ import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { RecordingMode, useHasRecordingAccess } from '@/features/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
-import { isEncryptedRoom as checkEncryptedRoom } from '@/features/rooms/api/ApiRoom'
 
 export const TranscriptMenuItem = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
   const { isTranscriptOpen, openTranscript, toggleTools } = useSidePanel()
   const roomData = useRoomData()
+  const isEncrypted = roomData?.encryption_mode === 'basic'
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
 
-  // Recording/transcription not available in encrypted rooms
-  if (!hasTranscriptAccess || checkEncryptedRoom(roomData)) return null
+  if (!hasTranscriptAccess) return null
 
   return (
     <MenuItem
       className={menuRecipe({ icon: true, variant: 'dark' }).item}
-      onAction={() => (!isTranscriptOpen ? openTranscript() : toggleTools())}
+      isDisabled={isEncrypted}
+      onAction={() => {
+        if (isEncrypted) return
+        if (!isTranscriptOpen) openTranscript()
+        else toggleTools()
+      }}
     >
       <RiFileTextLine size={20} />
       {t('transcript')}

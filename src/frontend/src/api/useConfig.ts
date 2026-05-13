@@ -13,6 +13,7 @@ export interface ApiConfig {
     help_article_transcript: string
     help_article_recording: string
     help_article_more_tools: string
+    help_article_encryption?: string
   }
   feedback: {
     url: string
@@ -54,8 +55,6 @@ export interface ApiConfig {
   }
   encryption?: {
     enabled: boolean
-    vault_url: string
-    interface_url: string
   }
   transcription_destination?: string
 }

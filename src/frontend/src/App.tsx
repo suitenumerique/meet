@@ -14,7 +14,6 @@ import './i18n/init'
 import { queryClient } from '@/api/queryClient'
 import { AppInitialization } from '@/components/AppInitialization'
 import { useIsSdkContext } from '@/features/sdk/hooks/useIsSdkContext'
-import { VaultClientProvider } from '@/features/encryption'
 
 function App() {
   const { i18n } = useTranslation()
@@ -26,22 +25,20 @@ function App() {
     <QueryClientProvider client={queryClient}>
       {!isSDKContext && <AppInitialization />}
       <Suspense fallback={null}>
-        <VaultClientProvider>
-          <I18nProvider locale={i18n.language}>
-            <Layout>
+        <I18nProvider locale={i18n.language}>
+          <Layout>
             <Switch>
               {Object.entries(routes).map(([, route], i) => (
                 <Route key={i} path={route.path} component={route.Component} />
               ))}
               <Route component={NotFoundScreen} />
             </Switch>
-            </Layout>
-            <ReactQueryDevtools
-              initialIsOpen={false}
-              buttonPosition="bottom-left"
-            />
-          </I18nProvider>
-        </VaultClientProvider>
+          </Layout>
+          <ReactQueryDevtools
+            initialIsOpen={false}
+            buttonPosition="bottom-left"
+          />
+        </I18nProvider>
       </Suspense>
     </QueryClientProvider>
   )

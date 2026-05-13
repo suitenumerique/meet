@@ -6,7 +6,7 @@ import { navigateTo } from '@/navigation/navigateTo'
 import { isRoomValid } from '@/features/rooms'
 import { normalizeRoomId } from '@/features/rooms/utils/isRoomValid'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
+import { isValidPassphrase } from '@/features/encryption'
 
 export const JoinMeetingDialog = () => {
   const { t } = useTranslation('home')
@@ -31,18 +31,15 @@ export const JoinMeetingDialog = () => {
     const input = data.roomId as string
     const parsed = parseInput(input)
 
-    // If URL already has a hash, navigate directly with it
     if (parsed.hash) {
-      navigateTo('room', parsed.roomId)
-      window.location.hash = parsed.hash
+      navigateTo('room', parsed.roomId, { hash: parsed.hash })
       return
     }
 
-    // Check if the room uses basic encryption (needs passphrase)
     setIsLoading(true)
     try {
       const room = await fetchRoom({ roomId: parsed.roomId })
-      if (room.encryption_mode === ApiEncryptionMode.BASIC) {
+      if (room.encryption_mode === 'basic') {
         setRoomId(parsed.roomId)
         setStep('passphrase')
         return
@@ -56,32 +53,42 @@ export const JoinMeetingDialog = () => {
     }
   }
 
-  const handlePassphraseSubmit = (data: { passphrase?: FormDataEntryValue }) => {
+  const handlePassphraseSubmit = (data: {
+    passphrase?: FormDataEntryValue
+  }) => {
     const passphrase = (data.passphrase as string).trim()
-    navigateTo('room', roomId)
-    window.location.hash = passphrase
+    navigateTo('room', roomId, { hash: passphrase })
   }
 
   const validateRoomId = (value: string) => {
     const trimmed = value.trim()
     if (!trimmed) return null
-    const { roomId: id } = parseInput(trimmed)
-    return !isRoomValid(id) ? (
-      <>
-        <p>{t('joinInputError')}</p>
-        <Ul>
-          <li>{window.location.origin}/uio-azer-jkl</li>
-          <li>uio-azer-jkl</li>
-          <li>uioazerjkl</li>
-        </Ul>
-      </>
-    ) : null
+    const { roomId: id, hash } = parseInput(trimmed)
+    if (!isRoomValid(id))
+      return (
+        <>
+          <p>{t('joinInputError')}</p>
+          <Ul>
+            <li>{window.location.origin}/uio-azer-jkl</li>
+            <li>uio-azer-jkl</li>
+            <li>uioazerjkl</li>
+          </Ul>
+        </>
+      )
+    // If a hash is pasted in, refuse malformed passphrases now (instead of
+    // letting Conference render the mismatch screen after navigation).
+    if (hash && !isValidPassphrase(hash))
+      return <p>{t('joinPassphraseInvalidFormat')}</p>
+    return null
   }
 
   if (step === 'passphrase') {
     return (
       <Dialog title={t('joinMeeting')}>
-        <Form onSubmit={handlePassphraseSubmit} submitLabel={t('joinPassphraseSubmit')}>
+        <Form
+          onSubmit={handlePassphraseSubmit}
+          submitLabel={t('joinPassphraseSubmit')}
+        >
           <P
             dangerouslySetInnerHTML={{
               __html: t('joinPassphraseDescription', {
@@ -122,7 +129,12 @@ export const JoinMeetingDialog = () => {
             isRequired
             name="passphrase"
             label={t('joinPassphraseLabel')}
-            errorMessage={t('joinPassphraseError')}
+            validate={(value: string) => {
+              const v = (value || '').trim()
+              if (!v) return t('joinPassphraseError')
+              if (!isValidPassphrase(v)) return t('joinPassphraseInvalidFormat')
+              return null
+            }}
           />
 
           <P
@@ -141,7 +153,10 @@ export const JoinMeetingDialog = () => {
 
   return (
     <Dialog title={t('joinMeeting')}>
-      <Form onSubmit={handleRoomSubmit} submitLabel={isLoading ? '...' : t('joinInputSubmit')}>
+      <Form
+        onSubmit={handleRoomSubmit}
+        submitLabel={isLoading ? '...' : t('joinInputSubmit')}
+      >
         {/* eslint-disable jsx-a11y/no-autofocus -- Focus on input when modal opens, required for accessibility */}
         <Field
           type="text"

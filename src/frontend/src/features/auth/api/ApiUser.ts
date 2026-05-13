@@ -1,4 +1,5 @@
 import { BackendLanguage } from '@/utils/languages'
+import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 
 export type ApiUser = {
   id: string
@@ -8,4 +9,5 @@ export type ApiUser = {
   last_name: string
   language: BackendLanguage
   timezone: string
+  default_encryption_mode: ApiEncryptionMode
 }

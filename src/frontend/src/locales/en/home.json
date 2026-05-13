@@ -23,22 +23,28 @@
   "createMenu": {
     "laterOption": "Create a meeting for a later date",
     "instantOption": "Start an instant meeting",
-    "encryptedInstantOption": "Start an encrypted meeting",
-    "encryptedLaterOption": "Create an encrypted meeting for later"
+    "encryptedOption": "Create an encrypted meeting"
   },
-  "encryptionModeDialog": {
-    "title": "Choose encryption mode",
-    "description": "Select the level of encryption for your meeting.",
-    "basic": {
-      "title": "Basic encryption",
-      "description": "Protects your meeting with a shared passphrase. Accessible to everyone — no setup required."
+  "createEncryptedMeetingDialog": {
+    "title": "Create an encrypted meeting",
+    "description": "Encryption disables these features:",
+    "features": {
+      "dialIn": "Phone dial-in",
+      "meetingRoom": "Meeting room devices",
+      "transcription": "Transcription",
+      "recording": "Recording"
     },
-    "advanced": {
-      "title": "Advanced encryption",
-      "description": "Maximum security — the encryption key never leaves your browser. Requires encryption onboarding for all participants.",
-      "onboardingRequired": "You must complete the encryption setup in your account settings before using advanced encryption.",
-      "serviceUnavailable": "Advanced encryption is currently unavailable. Please try again later or contact your administrator."
-    }
+    "warning": "Encryption may slow down your meeting and can't be turned off later.",
+    "cancel": "Cancel",
+    "confirm": "Create encrypted meeting"
+  },
+  "connectionDetailsDialog": {
+    "title": "Your connection details",
+    "description": "Share this link with your guests. They'll wait in the lobby until you let them in.",
+    "warning": "Treat this link like a password. Anyone with it can join the lobby, and decrypt the meeting once you let them in.",
+    "iUnderstand": "I understand",
+    "startMeeting": "Start meeting",
+    "copy": "Copy meeting link"
   },
   "laterMeetingDialog": {
     "heading": "Your connection details",
@@ -81,5 +87,6 @@
     },
     "carouselLabel": "Introduction slideshow",
     "slidePosition": "Slide {{current}} of {{total}}"
-  }
+  },
+  "joinPassphraseInvalidFormat": "The passphrase looks malformed. It should be 48 hexadecimal characters from the meeting link."
 }

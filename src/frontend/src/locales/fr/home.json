@@ -23,22 +23,28 @@
   "createMenu": {
     "laterOption": "Créer une réunion pour une date ultérieure",
     "instantOption": "Démarrer une réunion instantanée",
-    "encryptedInstantOption": "Démarrer une réunion chiffrée",
-    "encryptedLaterOption": "Créer une réunion chiffrée pour plus tard"
+    "encryptedOption": "Créer une réunion chiffrée"
   },
-  "encryptionModeDialog": {
-    "title": "Choisir le mode de chiffrement",
-    "description": "Sélectionnez le niveau de chiffrement pour votre réunion.",
-    "basic": {
-      "title": "Chiffrement basique",
-      "description": "Protège votre réunion avec une phrase secrète partagée. Accessible à tous — aucune configuration requise."
+  "createEncryptedMeetingDialog": {
+    "title": "Créer une réunion chiffrée",
+    "description": "Le chiffrement désactive ces fonctionnalités :",
+    "features": {
+      "dialIn": "Appel téléphonique",
+      "meetingRoom": "Appareils de salle de réunion",
+      "transcription": "Transcription",
+      "recording": "Enregistrement"
     },
-    "advanced": {
-      "title": "Chiffrement avancé",
-      "description": "Sécurité maximale — la clé de chiffrement ne quitte jamais votre navigateur. Nécessite la configuration du chiffrement pour tous les participants.",
-      "onboardingRequired": "Vous devez compléter la configuration du chiffrement dans les paramètres de votre compte avant d'utiliser le chiffrement avancé.",
-      "serviceUnavailable": "Le chiffrement avancé est actuellement indisponible. Veuillez réessayer plus tard ou contacter votre administrateur."
-    }
+    "warning": "Le chiffrement peut ralentir votre réunion et ne pourra pas être désactivé par la suite.",
+    "cancel": "Annuler",
+    "confirm": "Créer la réunion chiffrée"
+  },
+  "connectionDetailsDialog": {
+    "title": "Vos informations de connexion",
+    "description": "Partagez ce lien avec vos invités. Ils patienteront dans le salon d'attente jusqu'à ce que vous les autorisiez.",
+    "warning": "Traitez ce lien comme un mot de passe. Toute personne qui le possède peut rejoindre le salon d'attente et déchiffrer la réunion dès que vous l'aurez laissée entrer.",
+    "iUnderstand": "J'ai compris",
+    "startMeeting": "Démarrer la réunion",
+    "copy": "Copier le lien de la réunion"
   },
   "laterMeetingDialog": {
     "heading": "Vos informations de connexion",
@@ -81,5 +87,6 @@
       "title": "Transformez vos réunions avec l'IA",
       "body": "Obtenez des transcriptions précises et actionnables, pour booster votre productivité. Fonctionnalité en beta, essayez-la maintenant !"
     }
-  }
+  },
+  "joinPassphraseInvalidFormat": "La phrase secrète semble incorrecte. Elle doit être composée de 48 caractères hexadécimaux issus du lien de la réunion."
 }

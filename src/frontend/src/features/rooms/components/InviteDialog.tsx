@@ -5,14 +5,18 @@ import { HStack, styled, VStack } from '@/styled-system/jsx'
 import { Heading, Dialog } from 'react-aria-components'
 import { Text, text } from '@/primitives/Text'
 import {
+  RiAlertFill,
   RiCheckLine,
   RiCloseLine,
+  RiComputerLine,
   RiFileCopyLine,
+  RiPhoneLine,
   RiSpam2Fill,
 } from '@remixicon/react'
 import { useMemo } from 'react'
 import { css } from '@/styled-system/css'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { FeaturePill } from '@/features/encryption'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
@@ -41,8 +45,16 @@ const StyledRACDialog = styled(Dialog, {
 
 export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'shareDialog' })
+  const { t: tHome } = useTranslation('home', {
+    keyPrefix: 'connectionDetailsDialog',
+  })
+  const { t: tFeatures } = useTranslation('home', {
+    keyPrefix: 'createEncryptedMeetingDialog',
+  })
 
   const roomData = useRoomData()
+  const isEncrypted = roomData?.encryption_mode === 'basic'
+  const isAdminOrOwner = !!roomData?.is_administrable
   const baseRoomUrl = getRouteUrl('room', roomData?.slug)
   // Include the hash (passphrase) for basic encrypted rooms so the full link is visible
   const roomUrl = window.location.hash
@@ -51,9 +63,12 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
 
   const telephony = useTelephony()
 
+  // Encrypted rooms never get a working PIN (backend skips both pin_code
+  // and dispatch_rule allocation), so the phone block must stay hidden
+  // even if a stale pin_code somehow slipped through.
   const isTelephonyReadyForUse = useMemo(() => {
-    return telephony?.enabled && roomData?.pin_code
-  }, [telephony?.enabled, roomData?.pin_code])
+    return telephony?.enabled && roomData?.pin_code && !isEncrypted
+  }, [telephony?.enabled, roomData?.pin_code, isEncrypted])
 
   const {
     isCopied,
@@ -72,7 +87,7 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
           style={{ maxWidth: '100%', overflow: 'visible' }}
         >
           <Heading slot="title" level={2} className={text({ variant: 'h2' })}>
-            {t('heading')}
+            {isEncrypted ? t('encryptedHeading') : t('heading')}
           </Heading>
           <Div position="absolute" top="5" right="5">
             <Button
@@ -88,8 +103,119 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
               <RiCloseLine />
             </Button>
           </Div>
-          <P>{t('description')}</P>
-          {isTelephonyReadyForUse ? (
+          {isEncrypted && !isAdminOrOwner ? (
+            <P>{t('encryptedGuestBody')}</P>
+          ) : (
+            <P>{t('description')}</P>
+          )}
+          {isEncrypted && !isAdminOrOwner ? null : isEncrypted ? (
+            <div
+              className={css({
+                width: '100%',
+                marginTop: '0.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              })}
+            >
+              <div
+                role="alert"
+                className={css({
+                  display: 'flex',
+                  gap: '0.5rem',
+                  alignItems: 'center',
+                  padding: '0.6rem 0.85rem',
+                  borderRadius: '0.5rem',
+                  backgroundColor: '#fff7ed',
+                  border: '1px solid #fed7aa',
+                  color: '#7c2d12',
+                })}
+              >
+                <RiAlertFill
+                  size={18}
+                  color="#b45309"
+                  className={css({ flexShrink: 0 })}
+                />
+                <Text
+                  variant="sm"
+                  margin={false}
+                  className={css({
+                    color: '#7c2d12',
+                    fontSize: '0.85rem',
+                    lineHeight: 1.4,
+                  })}
+                >
+                  {tHome('warning')}
+                </Text>
+              </div>
+              <div
+                className={css({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid',
+                  borderColor: 'greyscale.250',
+                })}
+              >
+                <span
+                  className={css({
+                    flex: 1,
+                    fontFamily: 'monospace',
+                    fontSize: '0.8rem',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  })}
+                >
+                  {roomUrl?.replace(/^https?:\/\//, '')}
+                </span>
+                <Button
+                  variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
+                  square
+                  size="sm"
+                  onPress={copyRoomUrlToClipboard}
+                  aria-label={isRoomUrlCopied ? t('copied') : t('copyUrl')}
+                  tooltip={isRoomUrlCopied ? t('copied') : t('copyUrl')}
+                >
+                  {isRoomUrlCopied ? (
+                    <RiCheckLine size={16} />
+                  ) : (
+                    <RiFileCopyLine size={16} />
+                  )}
+                </Button>
+              </div>
+              <Text
+                margin={false}
+                className={css({
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  color: 'greyscale.500',
+                })}
+              >
+                {t('encryptedDisabledHeading')}
+              </Text>
+              <div
+                className={css({
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.4rem',
+                })}
+              >
+                <FeaturePill
+                  size="sm"
+                  icon={<RiPhoneLine size={13} />}
+                  label={tFeatures('features.dialIn')}
+                />
+                <FeaturePill
+                  size="sm"
+                  icon={<RiComputerLine size={13} />}
+                  label={tFeatures('features.meetingRoom')}
+                />
+              </div>
+            </div>
+          ) : isTelephonyReadyForUse ? (
             <div
               className={css({
                 width: '100%',

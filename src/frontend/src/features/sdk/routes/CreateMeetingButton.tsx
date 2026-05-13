@@ -15,7 +15,6 @@ import { PopupManager } from '../utils/PopupManager'
 import { CallbackCreationRoomData } from '../utils/types'
 import { useSearchParams } from 'wouter'
 
-
 const popupManager = new PopupManager()
 
 export const CreateMeetingButton = () => {

@@ -99,11 +99,14 @@ class RoomAccessLevel(models.TextChoices):
 
 
 class EncryptionMode(models.TextChoices):
-    """Encryption mode choices for rooms."""
+    """Encryption mode for a room.
+
+    Kept as an enum (not a boolean) so future modes — e.g. a vault-managed
+    per-user key flow — can be added without another schema migration.
+    """
 
     NONE = "none", _("No encryption")
-    BASIC = "basic", _("Basic encryption")
-    ADVANCED = "advanced", _("Advanced encryption")
+    BASIC = "basic", _("Passphrase-in-URL encryption")
 
 
 class BaseModel(models.Model):
@@ -206,6 +209,15 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
         help_text=_(
             "Whether this user should be treated as active. "
             "Unselect this instead of deleting accounts."
+        ),
+    )
+    default_encryption_mode = models.CharField(
+        _("Default encryption mode"),
+        max_length=20,
+        choices=EncryptionMode.choices,
+        default=EncryptionMode.NONE,
+        help_text=_(
+            "Encryption mode pre-selected when this user creates a new meeting."
         ),
     )
 
@@ -332,15 +344,6 @@ class ResourceAccess(BaseModel):
     role = models.CharField(
         max_length=20, choices=RoleChoices.choices, default=RoleChoices.MEMBER
     )
-    encrypted_symmetric_key = models.TextField(
-        blank=True,
-        default='',
-        verbose_name=_("Encrypted symmetric key"),
-        help_text=_(
-            "Vault-wrapped symmetric encryption key for advanced E2EE mode. "
-            "Each user's copy is encrypted for their own vault public key."
-        ),
-    )
 
     class Meta:
         db_table = "meet_resource_access"
@@ -405,6 +408,8 @@ class Room(Resource):
         choices=RoomAccessLevel.choices,
         default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
     )
+    # Set at creation, immutable after (the URL hash carries the passphrase,
+    # so changing the mode would break every previously-shared link).
     encryption_mode = models.CharField(
         max_length=20,
         choices=EncryptionMode.choices,
@@ -437,8 +442,19 @@ class Room(Resource):
         return capfirst(self.name)
 
     def save(self, *args, **kwargs):
-        """Generate a unique n-digit pin code for new rooms."""
-        if settings.ROOM_TELEPHONY_ENABLED and not self.pk and not self.pin_code:
+        """Generate a unique n-digit pin code for new rooms.
+
+        Skip PIN allocation for encrypted rooms — the SIP gateway will
+        always reject calls to them (no way to derive the key), and the
+        PIN namespace is finite (10**length): no point burning slots that
+        can never be dialed.
+        """
+        if (
+            settings.ROOM_TELEPHONY_ENABLED
+            and not self.pk
+            and not self.pin_code
+            and self.encryption_mode == EncryptionMode.NONE
+        ):
             self.pin_code = self.generate_unique_pin_code(
                 length=settings.ROOM_TELEPHONY_PIN_LENGTH
             )
@@ -467,8 +483,8 @@ class Room(Resource):
         return self.access_level == RoomAccessLevel.PUBLIC
 
     @property
-    def encryption_enabled(self):
-        """Check if any encryption mode is active."""
+    def is_encrypted(self):
+        """Convenience: any non-none encryption mode counts as encrypted."""
         return self.encryption_mode != EncryptionMode.NONE
 
     @staticmethod

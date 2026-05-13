@@ -7,7 +7,10 @@ import { getRouteUrl } from '@/navigation/getRouteUrl'
 
 const COPY_SUCCESS_TIMEOUT = 3000
 
-export const useCopyRoomToClipboard = (room: ApiRoom | undefined, hashOverride?: string) => {
+export const useCopyRoomToClipboard = (
+  room: ApiRoom | undefined,
+  hashOverride?: string
+) => {
   const telephony = useTelephony()
   const { t } = useTranslation('global', { keyPrefix: 'clipboardContent' })
 
@@ -39,9 +42,14 @@ export const useCopyRoomToClipboard = (room: ApiRoom | undefined, hashOverride?:
     return hash ? `${base}${hash}` : base
   }, [room?.slug, hashOverride])
 
+  // Encrypted rooms never get a dispatch rule on the SIP gateway side
+  // (the backend skips it because no PIN-driven join can ever decrypt),
+  // so make sure we don't paste a non-functional phone+PIN snippet either.
   const hasTelephonyInfo = useMemo(() => {
-    return telephony.enabled && room?.pin_code
-  }, [telephony.enabled, room?.pin_code])
+    return (
+      telephony.enabled && room?.pin_code && room?.encryption_mode !== 'basic'
+    )
+  }, [telephony.enabled, room?.pin_code, room?.encryption_mode])
 
   const content = useMemo(() => {
     if (!roomUrl || !room) return ''

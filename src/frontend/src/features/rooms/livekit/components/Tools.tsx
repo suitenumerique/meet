@@ -3,6 +3,7 @@ import { css } from '@/styled-system/css'
 import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { ReactNode } from 'react'
+import { RiAlertFill } from '@remixicon/react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import {
@@ -12,9 +13,7 @@ import {
   ScreenRecordingSidePanel,
 } from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
-import { useRoomData } from '../hooks/useRoomData'
-import { isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
-import { RiLockLine } from '@remixicon/react'
+import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -108,17 +107,15 @@ export const Tools = () => {
   const { openTranscript, openScreenRecording, activeSubPanelId, isToolsOpen } =
     useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
+  const roomData = useRoomData()
+  const isEncrypted = roomData?.encryption_mode === 'basic'
 
   // Restore focus to the element that opened the Tools panel
-  // following the same pattern as Chat.
   useRestoreFocus(isToolsOpen, {
-    // If the active element is a MenuItem (DIV) that will be unmounted when the menu closes,
-    // find the "more options" button ("Plus d'options") that opened the menu
     resolveTrigger: (activeEl) => {
       if (activeEl?.tagName === 'DIV') {
         return document.querySelector<HTMLElement>('#room-options-trigger')
       }
-      // For direct button clicks (e.g. "Plus d'outils"), use the active element as is
       return activeEl
     },
     restoreFocusRaf: true,
@@ -141,9 +138,6 @@ export const Tools = () => {
     default:
       break
   }
-
-  const roomData = useRoomData()
-  const encrypted = isEncryptedRoom(roomData)
 
   return (
     <Div
@@ -179,23 +173,32 @@ export const Tools = () => {
           </A>
         )}
       </Text>
-      {encrypted && (
+      {isEncrypted && (
         <div
           className={css({
             display: 'flex',
             gap: '0.5rem',
-            alignItems: 'start',
-            padding: '0.6rem 0.75rem',
-            backgroundColor: '#fffbeb',
+            alignItems: 'center',
+            padding: '0.6rem 0.85rem',
+            margin: '0 0.75rem 0.75rem',
             borderRadius: '0.5rem',
-            border: '1px solid #fde68a',
-            marginBottom: '0.5rem',
-            width: '100%',
+            backgroundColor: '#fff7ed',
+            border: '1px solid #fed7aa',
+            color: '#7c2d12',
           })}
+          role="alert"
         >
-          <RiLockLine size={16} color="#d97706" className={css({ flexShrink: 0, marginTop: '0.1rem' })} />
-          <Text variant="note" className={css({ fontSize: '0.8rem', color: '#92400e' })}>
-            {t('encryptedDisabled')}
+          <RiAlertFill size={18} color="#b45309" />
+          <Text
+            variant="sm"
+            margin={false}
+            className={css({
+              color: '#7c2d12',
+              fontSize: '0.85rem',
+              lineHeight: 1.4,
+            })}
+          >
+            {t('encryptedBlock')}
           </Text>
         </div>
       )}
@@ -204,8 +207,8 @@ export const Tools = () => {
           icon={<Icon type="symbols" name="speech_to_text" />}
           title={t('tools.transcript.title')}
           description={t('tools.transcript.body')}
-          onPress={() => openTranscript()}
-          isDisabled={encrypted}
+          onPress={openTranscript}
+          isDisabled={isEncrypted}
         />
       )}
       {isScreenRecordingEnabled && (
@@ -213,8 +216,8 @@ export const Tools = () => {
           icon={<Icon type="symbols" name="mode_standby" />}
           title={t('tools.screenRecording.title')}
           description={t('tools.screenRecording.body')}
-          onPress={() => openScreenRecording()}
-          isDisabled={encrypted}
+          onPress={openScreenRecording}
+          isDisabled={isEncrypted}
         />
       )}
     </Div>

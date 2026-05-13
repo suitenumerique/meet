@@ -58,7 +58,12 @@ const StyledLabel = styled(Label, {
 
 type OmittedRACProps = 'type' | 'label' | 'items' | 'description' | 'validate'
 type Items<T = ReactNode> = {
-  items: Array<{ value: string; description?: string; label: T; isDisabled?: boolean }>
+  items: Array<{
+    value: string
+    description?: string
+    label: T
+    isDisabled?: boolean
+  }>
 }
 type PartialTextFieldProps = Omit<TextFieldProps, OmittedRACProps>
 type PartialCheckboxProps = Omit<CheckboxProps, OmittedRACProps>
@@ -110,7 +115,7 @@ type FieldProps<T extends object> = (
     } & PartialSwitchProps)
 ) & {
   label: string
-  description?: string
+  description?: ReactNode
   wrapperProps?: React.ComponentProps<typeof FieldWrapper>
   labelProps?: React.ComponentProps<typeof StyledLabel>
 }

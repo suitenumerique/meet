@@ -54,7 +54,6 @@
     "toggleOn": "Cliquez pour activer",
     "usernameHint": "Affiché aux autres participants",
     "usernameLabel": "Votre nom",
-    "encryptedNameLocked": "Réunion chiffrée — nom issu de votre compte.",
     "errors": {
       "usernameEmpty": "Votre nom ne peut pas être vide"
     },
@@ -86,15 +85,7 @@
       "title": "Lien de réunion invalide",
       "body": "Cette réunion chiffrée nécessite une clé de chiffrement valide dans l'URL. Veuillez demander le lien correct à l'organisateur de la réunion."
     },
-    "advancedAuth": {
-      "title": "Authentification requise",
-      "body": "Cette réunion utilise le chiffrement avancé. Vous devez être connecté pour la rejoindre."
-    },
-    "advancedOnboarding": {
-      "title": "Configuration du chiffrement requise",
-      "body": "Cette réunion utilise le chiffrement avancé. Vous devez configurer votre chiffrement avant de pouvoir rejoindre.",
-      "button": "Configurer le chiffrement"
-    }
+    "encryptedNameLocked": "Identité authentifiée — vous ne pouvez pas modifier votre nom dans une réunion chiffrée."
   },
   "leaveRoomPrompt": "Revenir à l'accueil vous fera quitter la réunion.",
   "shareDialog": {
@@ -108,7 +99,10 @@
     "phone": {
       "call": "Appelez le :",
       "pinCode": "Code :"
-    }
+    },
+    "encryptedHeading": "Informations de la réunion",
+    "encryptedGuestBody": "Cette réunion est chiffrée. Le lien de la réunion n'est visible que sur l'appareil sur lequel elle a été créée.",
+    "encryptedDisabledHeading": "Les fonctionnalités suivantes sont désactivées :"
   },
   "pagination": {
     "count": "{{currentPage}} sur {{totalPageCount}}",
@@ -167,6 +161,10 @@
       "helpLinkLabel": "Problème de présentation",
       "closeButton": "Ignorer",
       "newTab": "Nouvelle fenêtre"
+    },
+    "encryptionSetup": {
+      "heading": "Échec de l'activation du chiffrement",
+      "body": "Votre navigateur n'a pas pu configurer la couche de chiffrement pour cette réunion. Rechargez la page ; si l'erreur persiste, essayez un autre navigateur."
     }
   },
   "isIdleDisconnectModal": {
@@ -363,7 +361,6 @@
   },
   "moreTools": {
     "body": "Accéder à davantage d'outils pour améliorer vos réunions.",
-    "encryptedDisabled": "La transcription et l'enregistrement ne sont pas disponibles dans les réunions chiffrées. Le serveur ne peut pas accéder au contenu média.",
     "linkAriaLabel": "Ouvrir la documentation sur les outils - ouvre dans une nouvelle fenêtre",
     "moreLink": "Ouvrir la documentation",
     "tools": {
@@ -375,19 +372,30 @@
         "title": "Enregistrer",
         "body": "Enregistrer la réunion en vidéo."
       }
-    }
+    },
+    "encryptedBlock": "Les outils ne sont pas disponibles en mode chiffré."
   },
   "info": {
     "roomInformation": {
-      "title": "Informations de connexions",
+      "title": "Informations de connexion",
       "button": {
-        "ariaLabel": "Copier les informations de votre réunion",
         "copy": "Copier les informations",
-        "copied": "Informations copiées"
+        "copied": "Informations copiées",
+        "ariaLabel": "Copier les informations de la réunion"
       },
       "phone": {
-        "call": "Appelez le :",
+        "call": "Appel :",
         "pinCode": "Code :"
+      }
+    },
+    "encrypted": {
+      "heading": "Informations de la réunion",
+      "guestBody": "Cette réunion est chiffrée. Le lien de la réunion n'est visible que sur l'appareil sur lequel elle a été créée.",
+      "linkLabel": "Informations de connexion",
+      "disabledHeading": "Les fonctionnalités suivantes sont désactivées :",
+      "features": {
+        "dialIn": "Appel téléphonique",
+        "meetingRoom": "Appareils de salle de réunion"
       }
     }
   },
@@ -495,7 +503,6 @@
     "access": {
       "title": "Accès à la réunion",
       "description": "Ces paramètres s'appliqueront également aux futures occurrences de cette réunion.",
-      "encryptionWarning": "Cette réunion est chiffrée. L'accès doit rester restreint afin que chaque participant soit approuvé avant de recevoir la clé de chiffrement.",
       "type": "Type d'accès à la réunion",
       "levels": {
         "public": {
@@ -510,7 +517,8 @@
           "label": "Restreindre",
           "description": "Les personnes qui n'ont pas été invitées à la réunion doivent demander à la rejoindre."
         }
-      }
+      },
+      "encryptedLocked": "Les réunions chiffrées sont toujours restreintes — les invités patientent dans le salon d'attente jusqu'à ce que vous les autorisiez."
     },
     "moderation": {
       "title": "Modération de la réunion",
@@ -587,12 +595,6 @@
         "button": "Refuser",
         "label": "Refuser {{name}} dans la réunion",
         "all": "Tout rejeter"
-      },
-      "trust": {
-        "verified": "Identité vérifiée — l'empreinte est de confiance.",
-        "refused": "ATTENTION — Cette empreinte a été refusée. Cette personne n'est peut-être pas celle qu'elle prétend être.",
-        "authenticated": "Identité authentifiée (ProConnect). Cliquez pour vérifier l'empreinte.",
-        "anonymous": "Utilisateur anonyme — identité non vérifiée. Vérifiez son identité avant d'accepter."
       }
     },
     "moreOptions": "Plus d'options"
@@ -694,83 +696,31 @@
   "participantTile": {
     "screenShare": "Écran de {{name}}"
   },
+  "identity": {
+    "anonymous": {
+      "tooltip": "Cet utilisateur n'est pas authentifié"
+    }
+  },
+  "roomStatus": {
+    "encrypted": "Chiffrée de bout en bout",
+    "recording": "Enregistrement en cours",
+    "transcribing": "Transcription en cours"
+  },
   "encryption": {
-    "banner": "Chiffrement basique",
-    "bannerStrong": "Chiffrement avancé",
-    "badge": {
-      "verified": "Vérifié — empreinte approuvée",
-      "unknown": "Non vérifié — cliquez pour vérifier l'empreinte",
-      "refused": "Refusé — empreinte précédemment rejetée",
-      "authenticated": "Authentifié via ProConnect",
-      "anonymous": "Identité non vérifiée",
-      "default": "Chiffré"
-    },
-    "bannerModal": {
-      "title": "Réunion chiffrée de bout en bout",
-      "descriptionBasic": "Cette réunion utilise le chiffrement de bout en bout basique. L'audio et la vidéo sont chiffrés à l'aide d'une phrase secrète intégrée au lien de la réunion. Toute personne disposant du lien peut rejoindre et déchiffrer le contenu.",
-      "descriptionAdvanced": "Cette réunion utilise le chiffrement de bout en bout avancé. La clé de chiffrement est gérée par le service de chiffrement de La Suite et ne quitte jamais votre appareil. Tous les participants doivent effectuer l'onboarding chiffrement pour rejoindre.",
-      "guarantees": "Ce que cela protège :",
-      "guarantee1": "Le serveur ne peut pas accéder au contenu audio, vidéo ou de partage d'écran",
-      "guarantee2": "Seuls les participants approuvés disposant de la clé de chiffrement peuvent voir le contenu",
-      "guarantee3": "Le niveau de confiance de chaque participant est visible (vérifié, authentifié ou anonyme)",
-      "limitations": "Limitations :",
-      "limitation1": "L'enregistrement et la transcription ne sont pas disponibles (le serveur ne peut pas déchiffrer le contenu)",
-      "limitation2Basic": "La sécurité dépend de la confidentialité du lien de la réunion",
-      "limitation2Advanced": "Tous les participants doivent effectuer l'onboarding chiffrement dans les paramètres de leur compte avant de rejoindre",
-      "note": "Pour le plus haut niveau de confiance, utilisez le chiffrement avancé et demandez aux participants de vérifier mutuellement leurs empreintes."
-    },
-    "settingUp": {
-      "title": "Sécurisation de votre connexion",
-      "description": "Échange des clés de chiffrement avec l'administrateur de la réunion..."
-    },
-    "error": {
-      "title": "Erreur de chiffrement",
-      "hint": "Les données chiffrées n'ont pas pu être décodées. Essayez de quitter et de rejoindre la réunion, ou demandez à l'hôte de relancer l'appel.",
-      "timeout": "Échange de clés expiré",
-      "timeoutHint": "La clé de chiffrement n'a pas pu être reçue de l'hôte. Il n'est peut-être pas encore dans la réunion.",
-      "refresh": "Réessayer",
-      "vaultUnavailable": "Cette réunion nécessite le chiffrement avancé, qui est actuellement indisponible.",
-      "vaultUnavailableHint": "Il peut s'agir d'un problème temporaire. Essayez de rafraîchir la page. Si le problème persiste, le service de chiffrement est peut-être en maintenance — veuillez réessayer plus tard."
-    },
-    "fingerprint": {
-      "title": "Identité chiffrée",
-      "description": "Ceci montre l'identité de chiffrement de ce participant. Cela vous permet de vérifier qu'il est bien celui qu'il prétend être.",
-      "descriptionSelf": "Ceci est votre identité de chiffrement telle que vue par les autres participants. Ils peuvent l'utiliser pour vérifier que vous êtes bien qui vous prétendez être.",
-      "descriptionSelfAnonymous": "Vous avez rejoint sans vous connecter. Les autres participants voient votre nom comme auto-déclaré et non vérifié. Connectez-vous via ProConnect pour une identité vérifiée.",
-      "loading": "Vérification des clés de chiffrement...",
-      "noKey": "Ce participant n'a pas effectué l'onboarding chiffrement. Son identité est vérifiée par le serveur d'authentification (ProConnect) uniquement — pas par une clé publique cryptographique. Il peut configurer le chiffrement dans les paramètres de son compte.",
-      "noKeyBasicAuthenticated": "Ce participant est connecté via ProConnect. Son nom et son email proviennent du serveur d'authentification et ne peuvent pas être falsifiés.",
-      "noKeyAnonymous": "Ce participant a rejoint sans se connecter. Son identité est auto-déclarée et non vérifiée. N'acceptez les participants anonymes que si vous pouvez confirmer leur identité par un autre canal.",
-      "error": "Impossible de vérifier les clés de chiffrement. Le service de chiffrement est peut-être indisponible.",
-      "fingerprintLabel": "Empreinte de la clé publique",
-      "fingerprintHint": "Demandez à ce participant d'ouvrir ses paramètres de chiffrement et de comparer l'empreinte affichée avec celle ci-dessus.",
-      "trusted": "Empreinte vérifiée et approuvée",
-      "trustedDescription": "Vous avez précédemment vérifié l'empreinte de chiffrement de ce participant. Son identité est confirmée cryptographiquement.",
-      "refused": "Empreinte refusée",
-      "refusedDescription": "Vous avez précédemment refusé cette empreinte. L'identité de cette personne n'a pas pu être vérifiée.",
-      "unknownDescription": "Cette empreinte n'a pas encore été vérifiée. Comparez-la avec le participant (par téléphone, en personne ou par un autre canal sécurisé) pour confirmer son identité.",
-      "accept": "Approuver",
-      "refuse": "Refuser",
-      "changeDecision": "Modifier ma décision",
-      "anonymous": "Identité non vérifiée"
-    },
-    "trustModal": {
-      "title": "Niveau de confiance du chiffrement",
-      "intro": "Ceci indique comment « {{name}} » a été identifié avant de rejoindre la réunion chiffrée.",
-      "authenticated": {
-        "title": "Identité authentifiée",
-        "description": "Cette personne s'est connectée via ProConnect. Son identité est vérifiée par le serveur d'authentification. La clé de chiffrement sera échangée de manière sécurisée."
+    "mismatch": {
+      "missingPassphrase": {
+        "title": "Cette réunion nécessite une phrase secrète",
+        "body": "Le lien que vous utilisez ne contient pas la clé de chiffrement. Demandez au créateur de partager le lien complet, ou créez une nouvelle réunion chiffrée."
       },
-      "anonymous": {
-        "title": "Utilisateur anonyme",
-        "description": "Cette personne n'est pas connectée. Son nom affiché est déclaratif et pourrait être usurpé. Vérifiez son identité de vive voix avant de l'accepter. La clé de chiffrement sera échangée via un échange éphémère."
+      "unexpectedPassphrase": {
+        "title": "Cette réunion n'est pas chiffrée",
+        "body": "Le lien contient une clé de chiffrement mais la réunion n'est pas configurée pour le chiffrement bout-en-bout. Le lien a peut-être été altéré. Créez une nouvelle réunion chiffrée pour préserver la confidentialité."
       },
-      "levels": {
-        "title": "Niveaux de confiance en réunion chiffrée",
-        "verified": "Vérifié — onboarding chiffrement effectué, identité confirmée par clé publique.",
-        "authenticated": "Authentifié — connecté via ProConnect, identité vérifiée par le serveur.",
-        "anonymous": "Anonyme — non connecté, nom auto-déclaré. Vérifiez avant d'accepter."
-      }
+      "backHome": "Retour à l'accueil"
+    },
+    "decryptionFailed": {
+      "title": "Échec du déchiffrement",
+      "body": "Vérifiez que vous et cette personne utilisez bien le même lien de réunion. Si seule cette personne est concernée, le problème vient probablement de chez elle."
     }
   }
 }

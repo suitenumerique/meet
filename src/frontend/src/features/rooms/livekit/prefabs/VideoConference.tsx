@@ -42,7 +42,7 @@ import { Subtitles } from '@/features/subtitle/component/Subtitles'
 import { CarouselLayout } from '../components/layout/CarouselLayout'
 import { GridLayout } from '../components/layout/GridLayout'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
-import { EncryptedMeetingBanner } from '@/features/encryption/EncryptedMeetingBanner'
+import { RoomStatusBanner } from '@/features/encryption'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
@@ -277,7 +277,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             onClose={() => setIsShareErrorVisible(false)}
           />
           <IsIdleDisconnectModal />
-          <EncryptedMeetingBanner />
+          <RoomStatusBanner />
           <div
             // todo - extract these magic values into constant
             style={{

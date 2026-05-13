@@ -135,8 +135,9 @@ export const Checkbox = ({
         <StyledCheckbox {...props}>
           {(renderProps) => {
             if (renderProps.isInvalid && !!props.validate) {
-              setError(props.validate(renderProps.isSelected))
-            } else {
+              const next = props.validate(renderProps.isSelected)
+              if (next !== error) setError(next)
+            } else if (error !== null) {
               setError(null)
             }
             return (

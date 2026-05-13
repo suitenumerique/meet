@@ -33,7 +33,7 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 - Optimized for stability in large meetings (+100 p.)
 - Support for multiple screen sharing streams
 - Non-persistent, secure chat
-- End-to-end encryption with hybrid key distribution
+- End-to-end encryption with passphrase-in-link key distribution
 - Meeting recording
 - Meeting transcription & Summary (currently in beta)
 - Telephony integration
@@ -48,52 +48,31 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
 
 ### End-to-end encryption
 
-La Suite Meet supports end-to-end encryption (E2EE) for meetings, ensuring that the media server (LiveKit SFU) cannot access audio/video content. Two encryption modes are available:
+La Suite Meet supports end-to-end encryption (E2EE) for meetings, so the media server (LiveKit SFU) cannot read audio, video or screen-share content.
 
-#### Basic encryption
+#### How it works
 
-- Passphrase-based — the encryption key is embedded in the meeting URL hash (`#passphrase`)
-- Uses LiveKit's built-in Worker + `crypto.subtle` (AES-GCM) for frame encryption
-- Sharing the meeting link shares the encryption key
-- No account or onboarding required
-- Security depends on keeping the link private
+- Each encrypted meeting carries a 48-character hex passphrase appended to the URL hash (`#…`) — 192 bits of entropy. The server never sees it; sharing the meeting link shares the key.
+- Frames are encrypted in the browser via LiveKit's Worker + `crypto.subtle` (AES-GCM); only the media payload is encrypted, codec headers stay clear so the SFU can still packetize RTP.
+- The runtime "is this call encrypted?" decision keys off the URL hash, not the database flag. The DB column (`Room.encryption_mode`) is only used as a sanity reference: if the URL hash and the server's claim disagree, the joining client surfaces an explicit mismatch screen instead of silently joining in clear or in a private encrypted bubble.
 
-#### Advanced encryption
+> **Threat model.** "Server doesn't see plaintext" — not "users are safe from a malicious server." A compromised server could still serve modified JavaScript to a participant, who would then leak their passphrase. The E2EE story protects the media path against a passive or compromised SFU, not against a fully compromised origin.
 
-- Key managed by [La Suite Encryption](https://github.com/suitenumerique/encryption) — the symmetric key never leaves the vault iframe
-- Uses XChaCha20-Poly1305 (libsodium) via the VaultClient iframe for frame encryption
-- Key distribution uses `vaultClient.shareKeys()` (hybrid PKI with X25519 + post-quantum slot)
-- All participants must complete encryption onboarding (key generation + backup) before joining
-- Requires a Chromium-based browser (Chrome, Edge, Brave) — uses the Insertable Streams API
+#### Encryption mode is set at creation, immutable after
 
-**Frame encryption (both modes):**
+`Room.encryption_mode` is a string enum (`none` / `basic`) chosen when the room is created and never mutated afterwards — changing it would change the link's semantics, since the passphrase lives in the URL hash. There is no mid-call "pause encryption" mechanism: while a meeting is encrypted, **recording and transcription endpoints reject requests with a 400** (`Recording is unavailable in encrypted rooms.` / `Subtitles are unavailable in encrypted rooms.`), the More-tools panel renders those items disabled with an explanatory banner, and the SIP gateway never gets a dispatch rule for encrypted rooms (so dial-in numbers and PINs aren't allocated). Encrypted rooms are also force-locked to `restricted` access level (lobby admission), since basic E2EE only meaningfully protects against passive eavesdropping if the host vets joiners before they receive the in-URL key.
 
-- Codec header bytes (VP8 payload descriptor) are preserved unencrypted — required for proper RTP packetization
-- Only the media payload is encrypted, with a per-frame random nonce
-- The server (LiveKit SFU) only forwards encrypted data it cannot read
+#### Opt-in by user
 
-**Trust levels (advanced mode):**
-| Badge | Level | Description |
-|-------|-------|-------------|
-| 🟢 Green shield | Verified | User completed encryption onboarding (public key registered). Identity cryptographically verified. |
-| 🔵 Blue shield | Authenticated | User signed in via ProConnect/OIDC. Identity server-verified. |
-| 🟡 Orange warning | Anonymous | User not signed in. Self-declared name. Admin should verify identity before accepting. |
+End-to-end encryption is a per-user preference. In **Settings**, under the **Security** section, signed-in users can flip the **End-to-end encryption** toggle — once enabled, a third "Create an encrypted meeting" entry appears in the home-page create-menu (with its own confirmation modal that lists the disabled features and a "Treat this link like a password" connection-details dialog before the meeting starts). Joining is unaffected by the toggle: any participant clicking a meeting link that carries a valid hash joins encrypted, regardless of their own setting. Authenticated joiners of encrypted rooms cannot edit their displayed name — the server enforces the OIDC name on the JWT.
 
-**Security guarantees:**
-
-- Encrypted rooms enforce restricted access (lobby approval required)
-- Trust information (`is_authenticated`, `email`) comes from server-signed JWT tokens — cannot be spoofed
-- Recording and transcription are not available in encrypted rooms (server cannot decrypt media)
-
-**Configuration:**
+#### Configuration
 
 ```env
 ENCRYPTION_ENABLED=true
-ENCRYPTION_VAULT_URL=https://data.encryption.example.fr
-ENCRYPTION_INTERFACE_URL=https://encryption.example.fr
 ```
 
-When the encryption service is deployed and configured, rooms can use advanced encryption. Without it, only basic (passphrase) encryption is available.
+Setting `ENCRYPTION_ENABLED=false` rejects encrypted-room creation at the API level. Existing encrypted rooms stay encrypted (the mode is immutable), but no new ones can be created.
 
 La Suite Meet is fully self-hostable and released under the MIT License, ensuring complete control and flexibility. It's simple to [get started](https://visio.numerique.gouv.fr/) or [request a demo](mailto:visio@numerique.gouv.fr).
 

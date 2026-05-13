@@ -1,5 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { DialogTrigger, MenuItem, Menu as RACMenu, Separator as RACSeparator } from 'react-aria-components'
+import {
+  DialogTrigger,
+  MenuItem,
+  Menu as RACMenu,
+  Separator as RACSeparator,
+} from 'react-aria-components'
 import { Button, Menu } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
 import { navigateTo } from '@/navigation/navigateTo'
@@ -7,12 +12,12 @@ import { Screen } from '@/layout/Screen'
 import { generateRoomId, useCreateRoom } from '@/features/rooms'
 import { useUser, UserAware } from '@/features/auth'
 import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
-import { RiAddLine, RiLink, RiLockLine, RiShieldKeyholeLine } from '@remixicon/react'
+import { RiAddLine, RiLink, RiShieldCrossLine } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
-import { EncryptionModeDialog } from '@/features/home/components/EncryptionModeDialog'
+import { CreateEncryptedMeetingDialog } from '@/features/home/components/CreateEncryptedMeetingDialog'
+import { ConnectionDetailsDialog } from '@/features/home/components/ConnectionDetailsDialog'
+import { generatePassphrase } from '@/features/encryption'
 import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
-import { generatePassphrase } from '@/features/encryption/lobbyKeyExchange'
-import { useVaultClient } from '@/features/encryption'
 import { IntroSlider } from '@/features/home/components/IntroSlider'
 import { MoreLink } from '@/features/home/components/MoreLink'
 import { ReactNode, useEffect, useState } from 'react'
@@ -152,19 +157,42 @@ const IntroText = styled('div', {
 
 export const Home = () => {
   const { t } = useTranslation('home')
-  const { isLoggedIn } = useUser()
+  const { isLoggedIn, user } = useUser()
 
   const {
     userChoices: { username },
   } = usePersistentUserChoices()
 
   const { mutateAsync: createRoom } = useCreateRoom()
-  const { client: vaultClient } = useVaultClient()
-  const [laterRoom, setLaterRoom] = useState<null | { room: ApiRoom; hash?: string }>(null)
-  const [encryptionDialogMode, setEncryptionDialogMode] = useState<null | 'instant' | 'later'>(null)
+  const [laterRoom, setLaterRoom] = useState<null | { room: ApiRoom }>(null)
+  const [encryptedRoom, setEncryptedRoom] = useState<null | {
+    room: ApiRoom
+    hash: string
+  }>(null)
+  const [showEncryptedConfirm, setShowEncryptedConfirm] = useState(false)
   const [redirectFailed, setRedirectFailed] = useState(false)
 
   const { data } = useConfig()
+  // The encrypted dropdown entry is offered only when:
+  //   - the server has encryption enabled (instance config), AND
+  //   - the user opted into the feature in their preferences.
+  // "Instant meeting" and "Later date" stay plain regardless — encryption
+  // is always an explicit, opt-in flow with its own confirmation modal.
+  const encryptionAvailable =
+    !!data?.encryption?.enabled &&
+    user?.default_encryption_mode === ApiEncryptionMode.BASIC
+
+  const buildRoomBundle = async (
+    encryptionMode: ApiEncryptionMode = ApiEncryptionMode.NONE
+  ) => {
+    const slug = generateRoomId()
+    const hash =
+      encryptionMode === ApiEncryptionMode.BASIC
+        ? generatePassphrase()
+        : undefined
+    const room = await createRoom({ slug, username, encryptionMode })
+    return { room, hash }
+  }
 
   useEffect(() => {
     const checkSiteAndRedirect = async () => {
@@ -216,12 +244,10 @@ export const Home = () => {
                         menuRecipe({ icon: true, variant: 'light' }).item
                       }
                       onAction={async () => {
-                        const slug = generateRoomId()
-                        createRoom({ slug, username }).then((data) =>
-                          navigateTo('room', data.slug, {
-                            state: { create: true, initialRoomData: data },
-                          })
-                        )
+                        const { room } = await buildRoomBundle()
+                        navigateTo('room', room.slug, {
+                          state: { create: true, initialRoomData: room },
+                        })
                       }}
                       data-attr="create-option-instant"
                     >
@@ -232,45 +258,34 @@ export const Home = () => {
                       className={
                         menuRecipe({ icon: true, variant: 'light' }).item
                       }
-                      onAction={() => {
-                        const slug = generateRoomId()
-                        createRoom({ slug, username }).then((data) =>
-                          setLaterRoom({ room: data })
-                        )
+                      onAction={async () => {
+                        const { room } = await buildRoomBundle()
+                        setLaterRoom({ room })
                       }}
                       data-attr="create-option-later"
                     >
                       <RiLink size={18} />
                       {t('createMenu.laterOption')}
                     </MenuItem>
-                    {data?.encryption?.enabled && (
+                    {encryptionAvailable && (
                       <>
                         <RACSeparator
                           className={css({
-                            borderTop: '1px solid',
-                            borderColor: 'greyscale.200',
-                            margin: '0.25rem 0',
+                            border: 'none',
+                            height: '1px',
+                            background: 'greyscale.250',
+                            margin: '0.35rem 0',
                           })}
                         />
                         <MenuItem
                           className={
                             menuRecipe({ icon: true, variant: 'light' }).item
                           }
-                          onAction={() => setEncryptionDialogMode('instant')}
-                          data-attr="create-option-encrypted-instant"
+                          onAction={() => setShowEncryptedConfirm(true)}
+                          data-attr="create-option-encrypted"
                         >
-                          <RiLockLine size={18} />
-                          {t('createMenu.encryptedInstantOption')}
-                        </MenuItem>
-                        <MenuItem
-                          className={
-                            menuRecipe({ icon: true, variant: 'light' }).item
-                          }
-                          onAction={() => setEncryptionDialogMode('later')}
-                          data-attr="create-option-encrypted-later"
-                        >
-                          <RiShieldKeyholeLine size={18} />
-                          {t('createMenu.encryptedLaterOption')}
+                          <RiShieldCrossLine size={18} />
+                          {t('createMenu.encryptedOption')}
                         </MenuItem>
                       </>
                     )}
@@ -303,57 +318,35 @@ export const Home = () => {
         </Columns>
         <LaterMeetingDialog
           room={laterRoom?.room ?? null}
-          hash={laterRoom?.hash}
           onOpenChange={() => setLaterRoom(null)}
         />
-        {encryptionDialogMode && (
-          <EncryptionModeDialog
-            onSelect={async (mode) => {
-              const dialogMode = encryptionDialogMode
-              setEncryptionDialogMode(null)
-              const slug = generateRoomId()
-              const hash = mode === ApiEncryptionMode.BASIC ? generatePassphrase() : undefined
-
-              let encryptedSymmetricKey = ''
-              if (mode === ApiEncryptionMode.ADVANCED && vaultClient) {
-                // encryptWithoutKey requires data to encrypt, but we only care about
-                // the generated symmetric key (encryptedKeys), not the encrypted content.
-                // The same symmetric key will be used for all streams (video/audio/chat).
-                const dummyData = new Uint8Array(32).buffer
-                const { publicKey } = await vaultClient.getPublicKey()
-                const { encryptedKeys } = await vaultClient.encryptWithoutKey(
-                  dummyData,
-                  { self: publicKey }
-                )
-                const keyBytes = new Uint8Array(encryptedKeys['self'])
-                encryptedSymmetricKey = btoa(String.fromCharCode(...keyBytes))
-              }
-
-              createRoom({
-                slug,
-                username,
-                encryptionMode: mode,
-                encryptedSymmetricKey,
-              }).then((data) => {
-                if (dialogMode === 'instant') {
-                  navigateTo('room', data.slug, {
-                    state: { create: true, initialRoomData: data },
-                  })
-                  if (hash) {
-                    window.history.replaceState(
-                      window.history.state,
-                      '',
-                      `${window.location.pathname}#${hash}`
-                    )
-                  }
-                } else {
-                  setLaterRoom({ room: data, hash })
-                }
-              })
-            }}
-            onOpenChange={() => setEncryptionDialogMode(null)}
-          />
-        )}
+        <CreateEncryptedMeetingDialog
+          isOpen={showEncryptedConfirm}
+          onOpenChange={setShowEncryptedConfirm}
+          onConfirm={async () => {
+            setShowEncryptedConfirm(false)
+            const { room, hash } = await buildRoomBundle(
+              ApiEncryptionMode.BASIC
+            )
+            if (hash) setEncryptedRoom({ room, hash })
+          }}
+        />
+        <ConnectionDetailsDialog
+          room={encryptedRoom?.room ?? null}
+          hash={encryptedRoom?.hash ?? ''}
+          onOpenChange={(open) => {
+            if (!open) setEncryptedRoom(null)
+          }}
+          onStart={() => {
+            if (!encryptedRoom) return
+            const { room, hash } = encryptedRoom
+            setEncryptedRoom(null)
+            navigateTo('room', room.slug, {
+              state: { create: true, initialRoomData: room },
+              hash,
+            })
+          }}
+        />
       </Screen>
     </UserAware>
   )

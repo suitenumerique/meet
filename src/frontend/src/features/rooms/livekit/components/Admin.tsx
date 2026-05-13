@@ -1,17 +1,16 @@
 import { Div, Field, H, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { Separator as RACSeparator } from 'react-aria-components'
+import { RiAlertFill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { ApiAccessLevel, isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
+import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
-import { RiLockFill } from '@remixicon/react'
-import { HStack } from '@/styled-system/jsx'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -168,66 +167,98 @@ export const Admin = () => {
         >
           {t('access.description')}
         </Text>
-        {isEncryptedRoom(readOnlyData) && (
-          <HStack
-            gap="0.5rem"
-            className={css({
-              backgroundColor: 'primary.100',
-              borderRadius: '0.5rem',
-              padding: '0.75rem',
-              marginBottom: '0.75rem',
-            })}
-          >
-            <RiLockFill size={16} className={css({ flexShrink: 0 })} />
-            <Text
-              variant="note"
-              className={css({ textStyle: 'sm' })}
-            >
-              {t('access.encryptionWarning')}
-            </Text>
-          </HStack>
-        )}
-        <Field
-          type="radioGroup"
-          label={t('access.type')}
-          aria-label={t('access.type')}
-          labelProps={{
-            className: css({
-              fontSize: '1rem',
-              paddingBottom: '1rem',
-            }),
-          }}
-          value={readOnlyData?.access_level}
-          onChange={(value) =>
-            patchRoom({
-              roomId,
-              room: { access_level: value as ApiAccessLevel },
-            })
-              .then((room) => {
-                queryClient.setQueryData([keys.room, roomId], room)
-              })
-              .catch((e) => console.error(e))
-          }
-          items={[
-            {
-              value: ApiAccessLevel.PUBLIC,
-              label: t('access.levels.public.label'),
-              description: t('access.levels.public.description'),
-              isDisabled: isEncryptedRoom(readOnlyData),
-            },
-            {
-              value: ApiAccessLevel.TRUSTED,
-              label: t('access.levels.trusted.label'),
-              description: t('access.levels.trusted.description'),
-              isDisabled: isEncryptedRoom(readOnlyData),
-            },
-            {
-              value: ApiAccessLevel.RESTRICTED,
-              label: t('access.levels.restricted.label'),
-              description: t('access.levels.restricted.description'),
-            },
-          ]}
-        />
+        {(() => {
+          const isEncrypted = readOnlyData?.encryption_mode === 'basic'
+          return (
+            <>
+              {isEncrypted && (
+                <div
+                  role="alert"
+                  className={css({
+                    display: 'flex',
+                    gap: '0.5rem',
+                    alignItems: 'center',
+                    padding: '0.6rem 0.85rem',
+                    marginBottom: '0.75rem',
+                    borderRadius: '0.5rem',
+                    backgroundColor: '#fff7ed',
+                    border: '1px solid #fed7aa',
+                    color: '#7c2d12',
+                  })}
+                >
+                  <RiAlertFill
+                    size={18}
+                    color="#b45309"
+                    className={css({ flexShrink: 0 })}
+                  />
+                  <Text
+                    margin={false}
+                    className={css({
+                      color: '#7c2d12',
+                      fontSize: '0.85rem',
+                      lineHeight: 1.4,
+                    })}
+                  >
+                    {t('access.encryptedLocked')}
+                  </Text>
+                </div>
+              )}
+              <div
+                className={css({
+                  opacity: isEncrypted ? 0.7 : 1,
+                  pointerEvents: isEncrypted ? 'none' : undefined,
+                  transition: 'opacity 200ms ease',
+                })}
+                aria-disabled={isEncrypted || undefined}
+              >
+                <Field
+                  type="radioGroup"
+                  label={t('access.type')}
+                  aria-label={t('access.type')}
+                  labelProps={{
+                    className: css({
+                      fontSize: '1rem',
+                      paddingBottom: '1rem',
+                    }),
+                  }}
+                  isDisabled={isEncrypted}
+                  value={
+                    isEncrypted
+                      ? ApiAccessLevel.RESTRICTED
+                      : readOnlyData?.access_level
+                  }
+                  onChange={(value) =>
+                    patchRoom({
+                      roomId,
+                      room: { access_level: value as ApiAccessLevel },
+                    })
+                      .then((room) => {
+                        queryClient.setQueryData([keys.room, roomId], room)
+                      })
+                      .catch((e) => console.error(e))
+                  }
+                  items={[
+                    {
+                      value: ApiAccessLevel.PUBLIC,
+                      label: t('access.levels.public.label'),
+                      description: t('access.levels.public.description'),
+                    },
+                    {
+                      value: ApiAccessLevel.TRUSTED,
+                      label: t('access.levels.trusted.label'),
+                      description: t('access.levels.trusted.description'),
+                    },
+                    {
+                      value: ApiAccessLevel.RESTRICTED,
+                      label: t('access.levels.restricted.label'),
+                      description: t('access.levels.restricted.description'),
+                    },
+                  ]}
+                />
+              </div>
+            </>
+          )
+        })()}
       </div>
     </Div>
   )

@@ -32,6 +32,7 @@ from livekit.api import (  # pylint: disable=E0611
     UpdateRoomMetadataRequest,
     VideoGrants,
 )
+from livekit.protocol.room import RoomConfiguration  # pylint: disable=E0611
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ def generate_token(
     sources: Optional[List[str]] = None,
     is_admin_or_owner: bool = False,
     participant_id: Optional[str] = None,
-    encryption_mode: str = 'none',
+    encryption_mode: str = "none",
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -93,15 +94,17 @@ def generate_token(
     if sources is None:
         sources = settings.LIVEKIT_DEFAULT_SOURCES
 
-    # In encrypted rooms, no one can change their name/metadata to prevent
-    # identity spoofing — the admin accepted them based on their declared identity.
-    can_update_metadata = encryption_mode == 'none'
+    # In encrypted rooms, no one can change their name/attributes after the
+    # admin accepted them — otherwise a participant authenticated under one
+    # identity could rewrite their JWT-presented name to spoof someone else
+    # mid-meeting. In plain rooms, free naming is fine.
+    can_update_own_metadata = encryption_mode == "none"
 
     video_grants = VideoGrants(
         room=room,
         room_join=True,
         room_admin=is_admin_or_owner,
-        can_update_own_metadata=can_update_metadata,
+        can_update_own_metadata=can_update_own_metadata,
         can_publish=bool(sources),
         can_publish_sources=sources,
         can_subscribe=True,
@@ -117,41 +120,26 @@ def generate_token(
     if color is None:
         color = generate_color(identity)
 
-    # Build participant attributes — these are server-signed in the JWT
-    # and visible to all participants in the room.
     attributes = {
         "color": color,
         "room_admin": "true" if is_admin_or_owner else "false",
         "is_authenticated": "true" if not user.is_anonymous else "false",
     }
 
-    # Add identity info for authenticated users in encrypted rooms only.
-    #
-    # Email and suite_user_id are included in the JWT attributes for encrypted
-    # rooms because:
-    # - Email: allows admins to verify participant identity in the lobby and
-    #   participant list (important for trust decisions in encrypted meetings)
-    # - suite_user_id: required for vault key exchange in advanced encryption
-    #   (vaultClient.shareKeys needs the recipient's user ID)
-    #
-    # These attributes are NOT included in non-encrypted rooms because:
-    # - Non-encrypted rooms have no waiting room, so anonymous users can join
-    #   freely and would see everyone's email via LiveKit signaling
-    # - LiveKit JWT attributes are immutable and broadcast to ALL participants
-    #   equally — there is no way to show them only to authenticated users
-    #   at the protocol level
-    # - The frontend additionally hides email from anonymous users in the UI,
-    #   but this is defense-in-depth, not the primary protection
-    #
-    # Future improvement: serve email via a Django API endpoint that checks
-    # the requester's authentication, removing it from the JWT entirely.
-    # This would require the backend to call LiveKit's ListParticipants API
-    # to cross-reference identities with the user database.
-    if not user.is_anonymous and encryption_mode != 'none':
-        if user.email:
-            attributes["email"] = user.email
-        if user.sub:
-            attributes["suite_user_id"] = str(user.sub)
+    # Emit the email only for authenticated participants of *encrypted*
+    # rooms. LK signaling broadcasts attributes to every peer in the room,
+    # so making this conditional on the encryption gate is what prevents
+    # an anonymous joiner of a public/trusted room from harvesting all
+    # authenticated users' emails. Frontend hiding (the
+    # `isLoggedIn`-gated render in ParticipantListItem) is only
+    # defense-in-depth — anyone with devtools can read attributes
+    # otherwise.
+    if (
+        not user.is_anonymous
+        and encryption_mode != "none"
+        and getattr(user, "email", None)
+    ):
+        attributes["email"] = user.email
 
     token = (
         AccessToken(
@@ -164,6 +152,21 @@ def generate_token(
         .with_attributes(attributes)
     )
 
+    # Encode the encryption mode into the room's metadata at LK-creation
+    # time (via the access token's room_config). LiveKit creates the room
+    # lazily when the first participant joins; the embedded config tells
+    # it to stamp `{"encryption_mode": "<mode>"}` into the metadata at
+    # that moment — no extra round-trip, no race window where a SIP
+    # caller could read empty metadata before the `room_started` webhook
+    # has time to push it.
+    if encryption_mode != "none":
+        token = token.with_room_config(
+            RoomConfiguration(
+                name=room,
+                metadata=json.dumps({"encryption_mode": encryption_mode}),
+            )
+        )
+
     return token.to_jwt()
 
 
@@ -175,7 +178,7 @@ def generate_livekit_config(
     color: Optional[str] = None,
     configuration: Optional[dict] = None,
     participant_id: Optional[str] = None,
-    encryption_mode: str = 'none',
+    encryption_mode: str = "none",
 ) -> dict:
     """Generate LiveKit configuration for room access.
 

@@ -1,8 +1,18 @@
 import { Trans, useTranslation } from 'react-i18next'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
-import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
+import {
+  A,
+  Badge,
+  Dialog,
+  type DialogProps,
+  Field,
+  H,
+  P,
+  Text,
+} from '@/primitives'
 import { useUser } from '@/features/auth'
 import { LoginButton } from '@/components/LoginButton'
+import { EncryptionDefaultField } from './EncryptionDefaultField'
 
 export type SettingsDialogProps = Pick<DialogProps, 'isOpen' | 'onOpenChange'>
 
@@ -46,6 +56,13 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
           i18n.changeLanguage(lang as string)
         }}
       />
+      <H lvl={2} margin={false}>
+        {t('security.heading')}
+      </H>
+      <Text variant="note" margin="md">
+        {t('security.subtitle')}
+      </Text>
+      <EncryptionDefaultField />
     </Dialog>
   )
 }

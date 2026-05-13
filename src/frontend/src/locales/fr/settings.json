@@ -5,8 +5,18 @@
     "youAreNotLoggedIn": "Vous n'êtes pas connecté.",
     "nameLabel": "Votre Nom",
     "authentication": "Authentification",
-    "nameError": "Votre Nom ne peut pas être vide",
-    "nameLockedEncryption": "Dans les réunions chiffrées, votre nom provient de votre compte et ne peut pas être modifié."
+    "nameError": "Votre Nom ne peut pas être vide"
+  },
+  "security": {
+    "heading": "Sécurité",
+    "subtitle": "Ajoutez des options de sécurité.",
+    "signInRequired": "Connectez-vous pour configurer vos préférences de chiffrement.",
+    "featureDisabled": "Le chiffrement de bout en bout n'est pas disponible sur ce serveur.",
+    "encryption": {
+      "label": "Chiffrement de bout en bout",
+      "description": "Vous pouvez créer des réunions chiffrées à la demande. Seuls les participants ont accès au contenu, pas même nos serveurs.",
+      "learnMore": "En savoir plus"
+    }
   },
   "preferences": {
     "title": "Préférences",
@@ -163,6 +173,7 @@
     "audio": "Audio",
     "video": "Vidéo",
     "general": "Général",
+    "security": "Sécurité",
     "notifications": "Notifications",
     "accessibility": "Accessibilité",
     "transcription": "Transcription",

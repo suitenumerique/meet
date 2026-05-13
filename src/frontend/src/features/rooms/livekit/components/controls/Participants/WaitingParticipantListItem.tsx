@@ -4,12 +4,8 @@ import { css } from '@/styled-system/css'
 import { Avatar } from '@/components/Avatar'
 import { useTranslation } from 'react-i18next'
 import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
-import { RiCloseLine } from '@remixicon/react'
-import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
-import { isEncryptedRoom } from '@/features/rooms/api/ApiRoom'
-import { EncryptionBadge, EncryptionIdentityDialog } from '@/features/encryption'
-import { useParticipantTrustLevel, formatFingerprint } from '@/features/encryption/useParticipantTrustLevel'
-import { useState } from 'react'
+import { RiCloseLine, RiErrorWarningLine } from '@remixicon/react'
+import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 
 export const WaitingParticipantListItem = ({
   participant,
@@ -19,17 +15,7 @@ export const WaitingParticipantListItem = ({
   onAction: (participant: WaitingParticipant, allowEntry: boolean) => void
 }) => {
   const { t } = useTranslation('rooms')
-  const roomData = useRoomData()
-  const encryptedRoom = isEncryptedRoom(roomData)
-  const { t: tBadge } = useTranslation('rooms', { keyPrefix: 'encryption.badge' })
-  const [isIdentityOpen, setIsDialogOpen] = useState(false)
-  // Build attributes-like object for the hook (waiting participants aren't in LiveKit yet)
-  const waitingAttrs = {
-    is_authenticated: participant.is_authenticated ? 'true' : 'false',
-    suite_user_id: participant.suite_user_id || '',
-  }
-  const { trustLevel, fingerprintStatus, fingerprint } = useParticipantTrustLevel(waitingAttrs, roomData?.encryption_mode)
-  const badgeTooltip = encryptedRoom ? tBadge(trustLevel) : undefined
+  const anonymousLabel = t('identity.anonymous.tooltip')
 
   return (
     <HStack
@@ -50,120 +36,46 @@ export const WaitingParticipantListItem = ({
         })}
       >
         <Avatar name={participant.username} bgColor={participant.color} />
-        <VStack gap={0} alignItems="start" className={css({ flex: 1, minWidth: 0 })}>
-          {encryptedRoom ? (
-            <Button
-              variant="greyscale"
-              size="sm"
-              tooltip={badgeTooltip}
-              aria-label={badgeTooltip}
-              onPress={() => setIsDialogOpen(true)}
-              className={css({
-                padding: '0.1rem 0.25rem !important',
-                minWidth: 'auto !important',
-                height: 'auto !important',
-                gap: '0.15rem !important',
-                borderRadius: '0.25rem !important',
-                backgroundColor: 'transparent !important',
-                color: 'greyscale.900 !important',
-                cursor: 'pointer',
-                '&[data-hovered]': {
-                  backgroundColor: 'greyscale.100 !important',
-                },
-              })}
-            >
-              <EncryptionBadge
-                isEncrypted={true}
-                trustLevel={trustLevel}
-              />
-              <Text
-                variant="sm"
-                className={css({
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  minWidth: 0,
-                })}
-              >
-                {participant.username}
-              </Text>
-            </Button>
-          ) : (
+        <VStack
+          gap={0}
+          alignItems="start"
+          className={css({ flex: 1, minWidth: 0 })}
+        >
+          <HStack gap="0.2rem" alignItems="center">
             <Text
               variant="sm"
+              margin={false}
               className={css({
                 userSelect: 'none',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 padding: '0.1rem 0.25rem',
+                lineHeight: 1.2,
               })}
             >
               {participant.username}
             </Text>
-          )}
-          {encryptedRoom && fingerprint && (
-            <Text
-              variant="sm"
-              className={css({
-                fontSize: '0.6rem',
-                fontFamily: 'monospace',
-                color: 'greyscale.400',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                paddingLeft: '0.25rem',
-                width: '100%',
-                minWidth: 0,
-              })}
-            >
-              {formatFingerprint(fingerprint)}
-            </Text>
-          )}
-          {encryptedRoom && (() => {
-            const email = participant.is_authenticated && participant.email
-              ? participant.email
-              : null
-            const label = email || t('participants.anonymous')
-            return (
-              <Button
-                variant="greyscale"
-                size="sm"
-                tooltip={email || undefined}
-                aria-label={label}
-                className={css({
-                  padding: '0 0.25rem !important',
-                  minWidth: 'auto !important',
-                  height: 'auto !important',
-                  backgroundColor: 'transparent !important',
-                  color: 'greyscale.500 !important',
-                  fontSize: '0.7rem !important',
-                  fontWeight: 'normal !important',
-                  width: '100%',
-                  minW: 0,
-                  justifyContent: 'flex-start !important',
-                  '&[data-hovered]': {
-                    backgroundColor: 'transparent !important',
-                  },
-                })}
+            {!participant.is_authenticated && (
+              <VisualOnlyTooltip
+                tooltip={anonymousLabel}
+                ariaLabel={anonymousLabel}
               >
-                <span className={css({
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  minWidth: 0,
-                })}>
-                  {label}
+                <span
+                  className={css({
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    cursor: 'help',
+                  })}
+                >
+                  <RiErrorWarningLine size={14} color="#dc2626" />
                 </span>
-              </Button>
-            )
-          })()}
+              </VisualOnlyTooltip>
+            )}
+          </HStack>
         </VStack>
       </HStack>
-      <HStack
-        gap="0.25rem"
-        className={css({ flexShrink: '0' })}
-      >
+      <HStack gap="0.25rem" className={css({ flexShrink: '0' })}>
         <Button
           size="sm"
           variant="tertiary"
@@ -185,19 +97,6 @@ export const WaitingParticipantListItem = ({
           <RiCloseLine />
         </Button>
       </HStack>
-      {encryptedRoom && (
-        <EncryptionIdentityDialog
-          isOpen={isIdentityOpen}
-          onOpenChange={setIsDialogOpen}
-          participantName={participant.username}
-          participantEmail={participant.email}
-          suiteUserId={participant.suite_user_id}
-          isAuthenticated={participant.is_authenticated}
-          encryptionMode={roomData?.encryption_mode}
-          preloadedFingerprint={fingerprint}
-          preloadedFingerprintStatus={fingerprintStatus}
-        />
-      )}
     </HStack>
   )
 }
