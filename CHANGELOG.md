@@ -8,6 +8,17 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(encryption) opt-in end-to-end encryption for meetings, with the
+  passphrase carried in the URL hash and an explicit "Create an
+  encrypted meeting" entry in the home create menu (gated by a
+  per-user Security preference) #1337
+- ✨(encryption) authenticated participant emails surfaced in the
+  participants list of encrypted rooms; anonymous participants get a
+  red badge with tooltip in the list, waiting room, and the floating
+  join-request notification
+
 ### Changed
 
 - ⬆️(dependencies) update python dependencies
