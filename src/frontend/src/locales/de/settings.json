@@ -35,6 +35,11 @@
       "ongoingTest": "Soundtest läuft…",
       "safariWarning": "Die Audioausgabeauswahl ist auf Safari aufgrund von Browser-Einschränkungen noch nicht verfügbar."
     },
+    "participantAudioLeveling": {
+      "heading": "Audio-Anpassung der Teilnehmer",
+      "label": "Audiopegel der Teilnehmer automatisch angleichen",
+      "description": "Passt die Lautstärke der entfernten Teilnehmer während des Anrufs schrittweise an, damit die Stimmen gleichmäßiger klingen."
+    },
     "permissionsRequired": "Berechtigungen erforderlich"
   },
   "video": {
