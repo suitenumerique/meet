@@ -59,7 +59,7 @@ export const CAPTION_FONT_COLOR_VALUES: Record<CaptionColor, string> = {
 }
 
 export const CAPTION_BACKGROUND_COLOR_VALUES: Record<CaptionColor, string> = {
-  default: 'rgba(0, 0, 0, 0.75)',
+  default: 'transparent',
   black: 'rgba(0, 0, 0, 0.75)',
   white: 'rgba(255, 255, 255, 0.75)',
   blue: 'rgba(0, 0, 255, 0.75)',
