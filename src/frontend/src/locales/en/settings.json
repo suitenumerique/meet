@@ -35,6 +35,11 @@
       "ongoingTest": "Testing sound…",
       "safariWarning": "Speaker selection is not available yet on Safari due to browser limitations."
     },
+    "participantAudioLeveling": {
+      "heading": "Participant audio leveling",
+      "label": "Automatically balance participant audio levels",
+      "description": "Adjusts remote participant volume gradually during the call so voices sound more consistent."
+    },
     "permissionsRequired": "Permissions required"
   },
   "video": {

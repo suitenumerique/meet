@@ -35,6 +35,11 @@
       "ongoingTest": "Test du son…",
       "safariWarning": "La sélection du haut-parleur n'est pas encore disponible sur Safari en raison de limitations du navigateur."
     },
+    "participantAudioLeveling": {
+      "heading": "Égalisation audio des participants",
+      "label": "Équilibrer automatiquement les niveaux audio des participants",
+      "description": "Ajuste progressivement le volume des participants distants pendant l'appel pour que les voix soient plus homogènes."
+    },
     "permissionsRequired": "Autorisations nécessaires"
   },
   "video": {
