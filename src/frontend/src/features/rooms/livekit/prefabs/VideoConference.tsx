@@ -32,6 +32,7 @@ import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKey
 import { useSettingsDialog } from '@/features/settings'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
+import { useParticipantAudioLeveling } from '../hooks/useParticipantAudioLeveling'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
@@ -90,6 +91,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   useConnectionObserver()
   useRoomPageTitle()
   useVideoResolutionSubscription()
+  useParticipantAudioLeveling()
 
   useRegisterKeyboardShortcut({
     id: 'open-shortcuts',

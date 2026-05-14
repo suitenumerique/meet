@@ -4,10 +4,12 @@ import { STORAGE_KEYS } from '@/utils/storageKeys'
 
 type State = {
   is_idle_disconnect_modal_enabled: boolean
+  is_participant_audio_leveling_enabled: boolean
 }
 
 const DEFAULT_STATE = {
   is_idle_disconnect_modal_enabled: true,
+  is_participant_audio_leveling_enabled: false,
 }
 
 function getUserPreferencesState(): State {

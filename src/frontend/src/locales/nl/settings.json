@@ -35,6 +35,11 @@
       "ongoingTest": "Testgeluid ...",
       "safariWarning": "Luidsprekerselectie is nog niet beschikbaar op Safari vanwege browserbeperkingen."
     },
+    "participantAudioLeveling": {
+      "heading": "Audionivellering deelnemers",
+      "label": "Audioniveaus van deelnemers automatisch balanceren",
+      "description": "Past het volume van externe deelnemers geleidelijk aan tijdens het gesprek zodat stemmen consistenter klinken."
+    },
     "permissionsRequired": "Machtigingen vereist"
   },
   "video": {
