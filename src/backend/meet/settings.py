@@ -744,6 +744,10 @@ class Base(Configuration):
     SUMMARY_SERVICE_API_TOKEN = SecretFileValue(
         None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
     )
+    TRANSCRIPTION_DEFAULT_LANGUAGE = values.Value(
+        default="fr", environ_name="TRANSCRIPTION_DEFAULT_LANGUAGE", environ_prefix=None
+    )
+
     SCREEN_RECORDING_BASE_URL = values.Value(
         None, environ_name="SCREEN_RECORDING_BASE_URL", environ_prefix=None
     )

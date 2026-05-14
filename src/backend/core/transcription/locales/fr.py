@@ -1,6 +1,6 @@
 """French locale strings (default)."""
 
-from summary.core.locales.strings import LocaleStrings
+from core.transcription.locales.strings import LocaleStrings
 
 STRINGS = LocaleStrings(
     empty_transcription="""

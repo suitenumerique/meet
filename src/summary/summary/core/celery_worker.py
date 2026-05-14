@@ -4,7 +4,6 @@
 
 import json
 import time
-from datetime import datetime
 
 import openai
 import sentry_sdk
@@ -16,8 +15,8 @@ from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
 from summary.core.file_service import FileService, FileServiceException
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
-from summary.core.locales import get_locale
 from summary.core.models import (
+    RecordingMetadata,
     SummarizeTaskV2Payload,
     TranscribeTaskV2Payload,
 )
@@ -39,11 +38,9 @@ from summary.core.shared_models import (
     WhisperXResponse,
     webhook_payload_adapter,
 )
-from summary.core.transcript_formatter import TranscriptFormatter
 from summary.core.user_assign import resolve_speaker_identities
 from summary.core.webhook_service import (
     call_webhook_v2,
-    submit_content,
 )
 
 settings = get_settings()
@@ -79,23 +76,17 @@ file_service = FileService()
 def transcribe_audio(
     *,
     task_id: str,
-    recording_filename: str | None = None,
     language: str,
-    cloud_storage_url=None,
+    cloud_storage_url: str,
     raises: bool = False,
 ):
     """Transcribe an audio file using WhisperX.
 
-    Downloads the audio from MinIO or a cloud storage URL, sends it to
+    Downloads the audio from a cloud storage URL, sends it to
     WhisperX for transcription, and tracks metadata throughout the process.
 
     Returns the transcription object, or None if the file could not be retrieved.
     """
-    if bool(recording_filename) == bool(cloud_storage_url):
-        raise ValueError(
-            "Either filename or cloud_storage_url must be provided, but not both."
-        )
-
     logger.info("Initiating WhisperX client")
     whisperx_client = openai.OpenAI(
         api_key=settings.whisperx_api_key.get_secret_value(),
@@ -106,7 +97,6 @@ def transcribe_audio(
     # Transcription
     try:
         with file_service.prepare_audio_file(
-            remote_object_key=recording_filename,
             cloud_storage_url=cloud_storage_url,
         ) as (audio_file, metadata):
             metadata_manager.track(task_id, {"audio_length": metadata["duration"]})
@@ -150,10 +140,8 @@ def transcribe_audio(
         )
         logger.exception(
             (
-                "Unexpected error while preparing file | filename: %s "
-                "| cloud_storage_url: %s"
+                "Unexpected error while preparing file %s "
             ),
-            recording_filename,
             redacted_cloud_storage_url,
         )
         return None
@@ -163,41 +151,31 @@ def transcribe_audio(
 
 
 def resolve_speaker_identities_and_apply_to(
-    transcription, recording_start_at, recording_end_at, metadata_filename, task_id
-):
+    *, transcription: WhisperXResponse, recording_metadata: RecordingMetadata, task_id
+) -> WhisperXResponse:
     """Assign users to detected speakers and rewrite the transcriptions.
 
     Args:
         transcription: output of meet-whisperx after transcription and diarization
-        recording_start_at: sourced from LiveKit FileInfo via the egress_ended webhook
-        recording_end_at: sourced from LiveKit FileInfo via the egress_ended webhook
-        metadata_filename: name of metadata file containing VAD information in S3
+        recording_metadata: Metadata of the recording
         task_id: current task id, for logging purposes
     """
-    recording_start_dt = (
-        datetime.fromisoformat(recording_start_at) if recording_start_at else None
-    )
-    recording_end_dt = (
-        datetime.fromisoformat(recording_end_at) if recording_end_at else None
-    )
-
     logger.debug(
         "recording_start_dt: %s ; recording_end_dt: %s",
-        recording_start_dt,
-        recording_end_dt,
+        recording_metadata.start_at,
+        recording_metadata.end_at,
     )
-    if (recording_start_dt is None) or (recording_end_dt is None):
-        logger.debug("Skipping resolve_speaker_identities")
-        return transcription
 
     logger.debug("Running resolve_speaker_identities")
     try:
-        metadata = file_service.read_json(metadata_filename)
+        metadata = file_service.read_cloud_storage_json(
+            recording_metadata.cloud_storage_url
+        )
         speaker_mapping = resolve_speaker_identities(
             metadata,
             transcription,
-            recording_start_dt,
-            recording_end_dt,
+            recording_metadata.start_at,
+            recording_metadata.end_at,
         )
         new_transcription = speaker_mapping.apply_to(transcription.model_dump())
         return new_transcription
@@ -221,34 +199,6 @@ def resolve_speaker_identities_and_apply_to(
         return transcription
 
 
-def format_transcript(
-    transcription,
-    context_language: str | None,
-    language: str,
-    room: str | None,
-    recording_datetime: str | None,
-    owner_timezone: str | None,
-    download_link: str | None,
-) -> tuple[str, str]:
-    """Format a transcription into readable content with a title.
-
-    Resolves the locale from context_language / language, then uses
-    TranscriptFormatter to produce markdown content and a title.
-
-    Returns a (content, title) tuple.
-    """
-    locale = get_locale(context_language, language)
-    formatter = TranscriptFormatter(locale)
-
-    return formatter.format(
-        transcription,
-        room=room,
-        recording_datetime=recording_datetime,
-        owner_timezone=owner_timezone,
-        download_link=download_link,
-    )
-
-
 def format_actions(llm_output: dict) -> str:
     """Format the actions from the LLM output into a markdown list.
 
@@ -267,126 +217,23 @@ def format_actions(llm_output: dict) -> str:
     return ""
 
 
-@celery.task(
-    bind=True,
-    autoretry_for=[exceptions.HTTPError],
-    max_retries=settings.celery_max_retries,
-    queue=settings.transcribe_queue,
-)
-def process_audio_transcribe_summarize_v2(
-    self,
-    owner_id: str,
-    recording_filename: str,
-    metadata_filename: str | None,
-    email: str,
-    sub: str,
-    received_at: float,
-    room: str | None,
-    owner_timezone: str | None,
-    language: str | None,
-    download_link: str | None,
-    context_language: str | None = None,
-    recording_start_at: str | None = None,
-    recording_end_at: str | None = None,
-):
-    """Process an audio file by transcribing it and generating a summary.
-
-    This Celery task orchestrates:
-    1. Audio transcription via WhisperX
-    2. Transcript formatting
-    3. Webhook submission
-    4. Conditional summarization queuing
-
-    Args:
-        self: Celery task instance (passed on with bind=True)
-        owner_id: Unique identifier of the recording owner.
-        recording_filename: Name of the audio file in MinIO storage.
-        metadata_filename: Name of the audio file in MinIO storage.
-        email: Email address of the recording owner.
-        sub: OIDC subject identifier of the recording owner.
-        received_at: Unix timestamp when the recording was received.
-        room: room name where the recording took place.
-        owner_timezone: IANA timezone of the recording owner (e.g. "Europe/Paris").
-        language: ISO 639-1 language code for transcription.
-        download_link: URL to download the original recording.
-        context_language: ISO 639-1 language code of the meeting summary context text.
-        recording_start_at: ISO 8601 timestamp of when file recording actually started
-            (from LiveKit FileInfo.started_at via the egress_ended webhook).
-        recording_end_at: ISO 8601 timestamp of when file recording ended
-            (from LiveKit FileInfo.ended_at via the egress_ended webhook).
-    """
-    logger.info(
-        "Notification received | Owner: %s | Room: %s",
-        owner_id,
-        room,
-    )
-
-    task_id = self.request.id
-
-    # Transcribe the audio
-    transcription = transcribe_audio(
-        task_id=task_id, recording_filename=recording_filename, language=language
-    )
-    if transcription is None:
-        return
-
-    # Assign speakers and rewrite transcription/diarization output
-    if settings.is_resolve_speaker_identities_enabled and (
-        metadata_filename is not None
-    ):
-        transcription = resolve_speaker_identities_and_apply_to(
-            transcription,
-            recording_start_at,
-            recording_end_at,
-            metadata_filename,
-            task_id,
-        )
-
-    # Format output
-    content, title = format_transcript(
-        transcription,
-        context_language,
-        language,
-        room,
-        recording_start_at,
-        owner_timezone,
-        download_link,
-    )
-
-    submit_content(content, title, email, sub)
-    metadata_manager.capture(task_id, settings.posthog_event_success)
-
-    # LLM Summarization
-    if (
-        analytics.is_feature_enabled("summary-enabled", distinct_id=owner_id)
-        and settings.is_summary_enabled
-    ):
-        logger.info("Queuing summary generation task.")
-        summarize_transcription.apply_async(
-            args=[owner_id, content, email, sub, title],
-            queue=settings.summarize_queue,
-        )
-    else:
-        logger.info("Summary generation not enabled for this user. Skipping.")
-
-
-@signals.task_prerun.connect(sender=process_audio_transcribe_summarize_v2)
-def task_started(task_id=None, task=None, args=None, **kwargs):
-    """Signal handler called before task execution begins."""
-    task_args = args or []
-    metadata_manager.create(task_id, task_args)
-
-
-@signals.task_retry.connect(sender=process_audio_transcribe_summarize_v2)
-def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
-    """Signal handler called when task execution retries."""
-    metadata_manager.retry(request.id)
-
-
-@signals.task_failure.connect(sender=process_audio_transcribe_summarize_v2)
-def task_failure_handler(task_id, exception=None, **kwargs):
-    """Signal handler called when task execution fails permanently."""
-    metadata_manager.capture(task_id, settings.posthog_event_failure)
+# @signals.task_prerun.connect(sender=process_audio_transcribe_summarize_v2)
+# def task_started(task_id=None, task=None, args=None, **kwargs):
+#     """Signal handler called before task execution begins."""
+#     task_args = args or []
+#     metadata_manager.create(task_id, task_args)
+#
+#
+# @signals.task_retry.connect(sender=process_audio_transcribe_summarize_v2)
+# def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
+#     """Signal handler called when task execution retries."""
+#     metadata_manager.retry(request.id)
+#
+#
+# @signals.task_failure.connect(sender=process_audio_transcribe_summarize_v2)
+# def task_failure_handler(task_id, exception=None, **kwargs):
+#     """Signal handler called when task execution fails permanently."""
+#     metadata_manager.capture(task_id, settings.posthog_event_failure)
 
 
 def summarize_transcription_internals(
@@ -468,29 +315,6 @@ def summarize_transcription_internals(
     return summary
 
 
-@celery.task(
-    bind=True,
-    autoretry_for=[LLMException, Exception],
-    max_retries=settings.celery_max_retries,
-    queue=settings.summarize_queue,
-)
-def summarize_transcription(
-    self, owner_id: str, transcript: str, email: str, sub: str, title: str
-):
-    """Generate a summary from the provided transcription text.
-
-    This Celery task performs the following operations:
-    1. Run summary internals
-    2. Sends the final summary via webhook.
-    """
-    summary = summarize_transcription_internals(
-        owner_id=owner_id, transcript=transcript, session_id=self.request.id
-    )
-    summary_title = settings.summary_title_template.format(title=title)
-
-    submit_content(summary, summary_title, email, sub)
-
-
 ##################################################################################
 # Tasks v2
 ##################################################################################
@@ -549,6 +373,17 @@ def process_audio_transcribe_v2_task(
         ).model_dump()
     )
 
+    # Assign speakers and rewrite transcription/diarization output
+    if settings.is_resolve_speaker_identities_enabled and payload.metadata is not None:
+        try:
+            transcription_res = resolve_speaker_identities_and_apply_to(
+                transcription=transcription_res,
+                recording_metadata=payload.metadata,
+                task_id=job_id,
+            )
+        except BaseException as e:
+            logger.error(f"Failed to resolve speaker identities, skipping: {e}")
+
     file_service.store_transcript(
         transcript=transcription_res,
         job_id=job_id,
@@ -561,6 +396,8 @@ def process_audio_transcribe_v2_task(
     call_webhook_v2_task.apply_async(
         args=[success_payload.model_dump(), payload.tenant_id]
     )
+    metadata_manager.capture(job_id, settings.posthog_event_success)
+
     return success_payload.model_dump()
 
 

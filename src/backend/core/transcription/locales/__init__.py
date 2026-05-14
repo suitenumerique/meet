@@ -2,9 +2,10 @@
 
 from typing import Optional
 
-from summary.core.config import get_settings
-from summary.core.locales import de, en, fr, nl
-from summary.core.locales.strings import LocaleStrings
+from django.conf import settings
+
+from core.transcription.locales import de, en, fr, nl
+from core.transcription.locales.strings import LocaleStrings
 
 _LOCALES = {"fr": fr, "en": en, "de": de, "nl": nl}
 
@@ -27,4 +28,4 @@ def get_locale(*languages: Optional[str]) -> LocaleStrings:
         if base_lang in _LOCALES:
             return _LOCALES[base_lang].STRINGS
 
-    return _LOCALES[get_settings().default_context_language].STRINGS
+    return _LOCALES[settings.TRANSCRIPTION_DEFAULT_LANGUAGE].STRINGS

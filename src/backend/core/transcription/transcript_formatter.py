@@ -5,10 +5,9 @@ from datetime import datetime
 from typing import Tuple
 from zoneinfo import ZoneInfo
 
-from summary.core.config import get_settings
-from summary.core.locales import LocaleStrings
+from django.conf import settings
 
-settings = get_settings()
+from core.transcription.locales.strings import LocaleStrings
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ class TranscriptFormatter:
 
         return None
 
-    def format(
+    def format(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         transcription,
         room: str | None = None,

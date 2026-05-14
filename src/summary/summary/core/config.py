@@ -1,9 +1,8 @@
 """Application configuration and settings."""
 
 import logging
-import os
 from functools import cached_property, lru_cache
-from typing import Annotated, Any, List, Literal, Mapping, Optional, Set
+from typing import Annotated, List, Literal, Mapping, Optional, Set
 
 from fastapi import Depends
 from pydantic import (
@@ -36,8 +35,6 @@ class AuthorizedTenant(BaseModel):
     )
 
 
-V1_DEFAULT_TENANT_ID = "__deprecated_meet_tenant__"
-
 
 class Settings(BaseSettings):
     """Configuration settings loaded from environment variables and .env file."""
@@ -45,14 +42,12 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", frozen=True)
 
     app_name: str = "summary"
-    app_api_v1_str: str = "/api/v1"
     app_api_v2_str: str = "/api/v2"
 
     # Authorized Tenants
     # Using env variables to store authorized tenants for now
     # to avoid any other external dependency (DB)
     authorized_tenants: tuple[AuthorizedTenant, ...] = Field(default_factory=tuple)
-    v1_tenant_id: str = V1_DEFAULT_TENANT_ID
 
     # Audio recordings
     recording_max_duration: Optional[int] = None
@@ -72,8 +67,6 @@ class Settings(BaseSettings):
     celery_result_backend: str = "redis://redis/0"
     celery_max_retries: int = 1
 
-    transcribe_queue: str = "transcribe-queue"
-    summarize_queue: str = "summarize-queue"
     # v2 tasks
     transcribe_queue_v2: str = "transcribe-queue-v2"
     summarize_queue_v2: str = "summarize-queue-v2"
@@ -114,9 +107,6 @@ class Settings(BaseSettings):
     webhook_status_forcelist: List[int] = [502, 503, 504]
     webhook_backoff_factor: float = 0.1
 
-    # Locale
-    default_context_language: Literal["de", "en", "fr", "nl"] = "fr"
-
     # Output related settings
     summary_title_template: Optional[str] = "Résumé de {title}"
 
@@ -145,33 +135,6 @@ class Settings(BaseSettings):
     task_tracker_redis_url: str = "redis://redis/0"
     task_tracker_prefix: str = "task_metadata:"
 
-    @model_validator(mode="before")
-    @classmethod
-    def legacy_default_tenant_config(cls, data: Any) -> Any:
-        """Migrate the legacy default tenant configuration."""
-        if isinstance(data, dict):
-            api_key = os.getenv("APP_API_TOKEN")
-            webhook_api_key = os.getenv("WEBHOOK_API_TOKEN")
-            webhook_url = os.getenv("WEBHOOK_URL")
-            if api_key and webhook_api_key and webhook_url:
-                logger.warning(
-                    "Deprecated legacy app configuration detected, "
-                    "please use only the new 'authorized_tenants' field instead."
-                )
-
-                authorized_tenants = list(data.get("authorized_tenants", []))
-                authorized_tenants.append(
-                    AuthorizedTenant(
-                        id=V1_DEFAULT_TENANT_ID,
-                        api_key=SecretStr(api_key),
-                        webhook_url=webhook_url,
-                        webhook_api_key=SecretStr(webhook_api_key),
-                    )
-                )
-                data["authorized_tenants"] = tuple(authorized_tenants)
-
-        return data
-
     @model_validator(mode="after")
     def validate_authorized_tenants(self):
         """Validate authorized tenants configuration."""
@@ -188,16 +151,6 @@ class Settings(BaseSettings):
 
         if len(api_keys) != len(self.authorized_tenants):
             raise ValueError("Duplicate application API api_keys are not allowed")
-        return self
-
-    @model_validator(mode="after")
-    def validate_default_v1_tenant(self):
-        """Validate default v1 tenant configuration."""
-        if not any(
-            tenant.id == self.v1_tenant_id for tenant in self.authorized_tenants
-        ):
-            raise ValueError("v1 tenant is not configured in authorized tenants")
-
         return self
 
     @cached_property

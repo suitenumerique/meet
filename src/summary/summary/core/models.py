@@ -1,6 +1,6 @@
 """Models for the API & Celery tasks creation."""
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import AwareDatetime, BaseModel, Field, field_validator
 
 from summary.core.config import get_settings
 from summary.core.types import Url
@@ -12,6 +12,17 @@ class SharedV2TaskCreation(BaseModel):
     """Model that holds basic information for task creation."""
 
     user_sub: str = Field(title="User Sub", description="The user's sub.")
+
+
+class RecordingMetadata(BaseModel):
+    """Model for recording metadata."""
+
+    cloud_storage_url: Url = Field(
+        title="Cloud Storage URL",
+        description="The URL of the metadata file for speaker assignement.",
+    )
+    start_at: AwareDatetime = Field(title="Start time of the recording to transcribe")
+    end_at: AwareDatetime = Field(title="End time of the recording to transcribe")
 
 
 class TranscribeTaskV2Request(SharedV2TaskCreation):
@@ -27,7 +38,12 @@ class TranscribeTaskV2Request(SharedV2TaskCreation):
         description="The language of the context text.",
     )
     language: str = Field(
-        title="Language", description="The language of the content to summarize."
+        title="Language", description="The language of the content to transcribe."
+    )
+    metadata: RecordingMetadata | None = Field(
+        title="Metadata",
+        description="The metadata for the transcribe task.",
+        default=None,
     )
 
     @field_validator("language")
