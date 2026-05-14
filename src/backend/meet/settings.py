@@ -19,6 +19,7 @@ from socket import gethostbyname, gethostname
 from django.utils.translation import gettext_lazy as _
 
 import dj_database_url
+import posthog
 import sentry_sdk
 from configurations import Configuration, values
 from lasuite.configuration.values import SecretFileValue
@@ -451,6 +452,11 @@ class Base(Configuration):
     CELERY_BROKER_URL = values.Value("redis://redis:6379/0", environ_prefix=None)
     CELERY_BROKER_TRANSPORT_OPTIONS = values.DictValue({}, environ_prefix=None)
 
+    # Analytics
+    POSTHOG_ENABLED = values.BooleanValue(False, environ_prefix=None)
+    POSTHOG_API_KEY = values.Value(None, environ_prefix=None)
+    POSTHOG_API_HOST = values.Value(None, environ_prefix=None)
+
     # Session
     SESSION_ENGINE = values.Value(
         default="django.contrib.sessions.backends.cache",
@@ -743,6 +749,16 @@ class Base(Configuration):
     )
     SUMMARY_SERVICE_API_TOKEN = SecretFileValue(
         None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
+    )
+    DOCS_BASE_URL = values.Value(
+        "https://example.com",
+        environ_name="DOCS_BASE_URL",
+        environ_prefix=None,
+    )
+    DOCS_SERVER_TO_SERVER_API_KEY = SecretFileValue(
+        None,
+        environ_name="DOCS_SERVER_TO_SERVER_API_KEY",
+        environ_prefix=None,
     )
     TRANSCRIPTION_DEFAULT_LANGUAGE = values.Value(
         default="fr", environ_name="TRANSCRIPTION_DEFAULT_LANGUAGE", environ_prefix=None

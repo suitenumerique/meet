@@ -590,6 +590,16 @@ class Recording(BaseModel):
         verbose_name=_("Recording options"),
         help_text=_("Recording options"),
     )
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=_("Recording start timestamp as recorded by livekit."),
+    )
+    ended_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=_("Recording end timestamp as recorded by livekit."),
+    )
 
     class Meta:
         db_table = "meet_recording"
@@ -734,6 +744,66 @@ class RecordingAccess(BaseAccess):
         Compute and return abilities for a given user on the recording access.
         """
         return self._get_abilities(self.recording, user)
+
+
+class AiJobStatusChoices(models.TextChoices):
+    """Possible states of a file."""
+
+    PENDING = "pending", _("Pending")
+    SUCCESS = "success", _("Success")
+    FAILED = "failed", _("Failed")
+
+
+class AiJobTypeChoices(models.TextChoices):
+    """Possible types of Ai Jobs."""
+
+    TRANSCRIPT = "transcript", _("Transcript")
+    SUMMARIZE = "summary", _("Summary")
+
+
+class AiRecordingJob(BaseModel):
+    """
+    A job that is run to process an audio file.
+    """
+
+    remote_job_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    type = models.CharField(
+        max_length=25,
+        choices=AiJobTypeChoices.choices,
+    )
+    recording = models.ForeignKey(
+        Recording, on_delete=models.CASCADE, related_name="ai_jobs"
+    )
+    status = models.CharField(
+        max_length=25,
+        choices=AiJobStatusChoices.choices,
+    )
+    language = models.CharField(
+        max_length=2,
+        choices=(("fr", "fr"), ("en", "en"), ("de", "de"), ("nl", "nl")),
+        default="fr",
+    )
+    docs_app_id = models.CharField(max_length=255, null=True, blank=True)
+
+    class Meta:
+        db_table = "ai_job"
+        verbose_name = _("AiJob")
+        verbose_name_plural = _("AiJobs")
+        ordering = ("created_at",)
+        indexes = [
+            models.Index(fields=["recording", "type", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.recording.id} - {self.type} - {self.status}"
+
+    @property
+    def user(self):
+        return (
+            RecordingAccess.objects.select_related("user")
+            .filter(role=RoleChoices.OWNER, recording_id=self.recording.id)
+            .first()
+        ).user
 
 
 class ApplicationScope(models.TextChoices):

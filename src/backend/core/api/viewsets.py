@@ -17,6 +17,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from django_filters import rest_framework as django_filters
+from pydantic import ValidationError
 from rest_framework import (
     decorators,
     filters,
@@ -34,7 +35,7 @@ from rest_framework import (
     status as drf_status,
 )
 
-from core import enums, models, utils
+from core import analytics, enums, models, utils
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
@@ -80,6 +81,10 @@ from core.services.subtitle import SubtitleException, SubtitleService
 from core.tasks.file import process_file_deletion
 
 from ..authentication.livekit import LiveKitTokenAuthentication
+from ..authentication.webhooks import AiWebhookAuthentication
+from ..models import AiJobStatusChoices, AiRecordingJob
+from ..tasks.ai_job import handle_summary_received, handle_transcript_received
+from ..transcription import webhook_schemas
 from . import permissions, serializers, throttling
 from .feature_flag import FeatureFlag
 
@@ -915,15 +920,9 @@ class RecordingViewSet(
 
         # Attempt to notify external services about the recording
         # This is a non-blocking operation - failures are logged but don't interrupt the flow
-        notification_succeeded = notification_service.notify_external_services(
-            recording
-        )
+        notification_service.notify_external_services(recording)
 
-        recording.status = (
-            models.RecordingStatusChoices.NOTIFICATION_SUCCEEDED
-            if notification_succeeded
-            else models.RecordingStatusChoices.SAVED
-        )
+        recording.status = models.RecordingStatusChoices.SAVED
         recording.save()
 
         return drf_response.Response(
@@ -1332,3 +1331,92 @@ class FileViewSet(
         request = utils.generate_s3_authorization_headers(f"{url_params.get('key'):s}")
 
         return drf_response.Response("authorized", headers=request.headers, status=200)
+
+
+class AiJobViewSet(
+    viewsets.GenericViewSet,
+):
+    """AI jobs API."""
+
+    permission_classes = []
+    serializer_class = None
+
+    def get_queryset(self):
+        """Restrict AI jobs to current user except webhook endpoint."""
+
+        raise NotImplementedError()
+
+    @decorators.action(
+        detail=False,
+        methods=["post"],
+        url_path="webhook",
+        authentication_classes=[AiWebhookAuthentication],
+        permission_classes=[permissions.TranscribeWebhookPermission],
+    )
+    def on_ai_event(self, request):
+        """Handle incoming hook events for recordings."""
+        logger.debug("Received transcribe webhook event: %s", request.data)
+
+        try:
+            payload = webhook_schemas.webhook_payload_adapter.validate_python(
+                request.data
+            )
+        except ValidationError as exc:
+            logger.error("Invalid webhook payload: %s", exc)
+            raise drf_exceptions.ValidationError(detail=exc) from exc
+
+        ai_recording_job = AiRecordingJob.objects.filter(
+            remote_job_id=payload.job_id
+        ).first()
+
+        if not ai_recording_job:
+            logger.warning("No AI recording job found for job ID: %s", payload.job_id)
+            return drf_response.Response(
+                {"message": "No AI recording job found for job ID, ignoring."},
+            )
+
+        if ai_recording_job.status == AiJobStatusChoices.SUCCESS:
+            logger.warning(
+                "AI recording job already in success state for job ID: %s",
+                payload.job_id,
+            )
+            return drf_response.Response(
+                {"message": "AI recording job already in success state, ignoring."},
+            )
+
+        if isinstance(payload, webhook_schemas.TranscribeWebhookSuccessPayload):
+            handle_transcript_received.apply_async(
+                args=[payload.job_id, payload.transcription_data_url]
+            )
+        elif isinstance(payload, webhook_schemas.SummarizeWebhookSuccessPayload):
+            handle_summary_received.apply_async(
+                args=[payload.job_id, payload.summary_data_url]
+            )
+        elif isinstance(
+            payload,
+            (
+                webhook_schemas.SummarizeWebhookFailurePayload,
+                webhook_schemas.TranscribeWebhookFailurePayload,
+            ),
+        ):
+            ai_recording_job.status = AiJobStatusChoices.FAILED
+            ai_recording_job.save()
+            analytics.capture_event(
+                analytics.EventName.TRANSCRIPT_GENERATION_FAILURE
+                if isinstance(payload, webhook_schemas.TranscribeWebhookFailurePayload)
+                else analytics.EventName.SUMMARY_GENERATION_FAILURE,
+                user=ai_recording_job.user,
+                properties={
+                    "generation_time_seconds": (
+                        timezone.now() - ai_recording_job.created_at
+                    ).total_seconds(),
+                    "ai_recording_job_id": ai_recording_job.id,
+                    "recording_id": ai_recording_job.recording.id,
+                },
+            )
+        else:
+            raise NotImplementedError()
+
+        return drf_response.Response(
+            {"message": "Event processed."},
+        )

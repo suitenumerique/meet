@@ -12,11 +12,11 @@ from django.utils.translation import get_language, override
 from django.utils.translation import gettext_lazy as _
 
 import aiohttp
-import requests
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from core import models, utils
+from core.tasks.ai_job import call_transcribe_service
 
 logger = logging.getLogger(__name__)
 
@@ -45,22 +45,17 @@ class NotificationService:
         """Process a recording based on its mode."""
 
         if recording.mode == models.RecordingModeChoices.TRANSCRIPT:
-            return self._notify_summary_service(recording)
-
-        if recording.mode == models.RecordingModeChoices.SCREEN_RECORDING:
-            summary_success = True
+            self._notify_summary_service(recording)
+        elif recording.mode == models.RecordingModeChoices.SCREEN_RECORDING:
             if recording.options.get("transcribe", False):
-                summary_success = self._notify_summary_service(recording)
-
-            email_success = self._notify_user_by_email(recording)
-            return email_success and summary_success
-
-        logger.error(
-            "Unknown recording mode %s for recording %s",
-            recording.mode,
-            recording.id,
-        )
-        return False
+                self._notify_summary_service(recording)
+            self._notify_user_by_email(recording)
+        else:
+            logger.error(
+                "Unknown recording mode %s for recording %s",
+                recording.mode,
+                recording.id,
+            )
 
     @staticmethod
     def _notify_user_by_email(recording) -> bool:
@@ -187,71 +182,17 @@ class NotificationService:
             or not settings.SUMMARY_SERVICE_API_TOKEN
         ):
             logger.error("Summary service not configured")
-            return False
-
-        owner_access = (
-            models.RecordingAccess.objects.select_related("user")
-            .filter(
-                role=models.RoleChoices.OWNER,
-                recording_id=recording.id,
-            )
-            .first()
-        )
-
-        if settings.METADATA_COLLECTOR_ENABLED and recording.options.get(
-            "collect_metadata", False
-        ):
-            output_folder = settings.METADATA_COLLECTOR_OUTPUT_FOLDER
-            metadata_filename = f"{output_folder}/{recording.id}-metadata.json"
-        else:
-            metadata_filename = None
-
-        if not owner_access:
-            logger.error("No owner found for recording %s", recording.id)
-            return False
+            return
 
         started_at, ended_at = async_to_sync(
             NotificationService._get_recording_timestamps
         )(recording.worker_id)
 
-        payload = {
-            "owner_id": str(owner_access.user.id),
-            "recording_filename": recording.key,
-            "metadata_filename": metadata_filename,
-            "email": owner_access.user.email,
-            "sub": owner_access.user.sub,
-            "room": recording.room.name,
-            "language": recording.options.get("language"),
-            "owner_timezone": str(owner_access.user.timezone),
-            "download_link": f"{get_recording_download_base_url()}/{recording.id}",
-            "context_language": owner_access.user.language,
-            "recording_start_at": (started_at.isoformat() if started_at else None),
-            "recording_end_at": (ended_at.isoformat() if ended_at else None),
-        }
+        recording.started_at = started_at
+        recording.ended_at = ended_at
+        recording.save()
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {settings.SUMMARY_SERVICE_API_TOKEN}",
-        }
-
-        try:
-            response = requests.post(
-                settings.SUMMARY_SERVICE_ENDPOINT,
-                json=payload,
-                headers=headers,
-                timeout=30,
-            )
-            response.raise_for_status()
-        except requests.RequestException as exc:
-            logger.exception(
-                "Summary service error for recording %s. URL: %s. Exception: %s",
-                recording.id,
-                settings.SUMMARY_SERVICE_ENDPOINT,
-                exc,
-            )
-            return False
-
-        return True
+        call_transcribe_service.apply_async(args=[recording.id])
 
 
 notification_service = NotificationService()

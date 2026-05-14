@@ -41,7 +41,7 @@ class TranscriptFormatter:
         self,
         transcription,
         room: str | None = None,
-        recording_datetime: str | None = None,
+        recording_datetime: datetime | None = None,
         owner_timezone: str | None = None,
         download_link: str | None = None,
     ) -> Tuple[str, str]:
@@ -99,14 +99,14 @@ class TranscriptFormatter:
     def _generate_title(
         self,
         room: str | None = None,
-        recording_datetime: str | None = None,
+        recording_datetime: datetime | None = None,
         owner_timezone: str | None = None,
     ) -> str:
         """Generate title from context or return default."""
         if not room or not recording_datetime:
             return self._locale.document_default_title
 
-        dt = datetime.fromisoformat(recording_datetime)
+        dt = recording_datetime
         if owner_timezone:
             dt = dt.astimezone(ZoneInfo(owner_timezone))
 

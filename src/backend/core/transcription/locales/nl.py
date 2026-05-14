@@ -30,4 +30,5 @@ Een paar punten die wij u aanraden te controleren:
     document_title_template=(
         'Vergadering "{room}" op {room_recording_date} om {room_recording_time}'
     ),
+    summary_title_template="Samenvatting van {title}",
 )

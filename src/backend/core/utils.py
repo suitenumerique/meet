@@ -455,3 +455,38 @@ def generate_upload_policy(file):
     )
 
     return policy
+
+
+def generate_download_s3_file_url(
+    key, *, expires_in: int, override_domain: bool = True
+):
+    """
+    Generate a S3 signed download url for a given key.
+    """
+
+    # This settings should be used if the backend application and the frontend application
+    # can't connect to the object storage with the same domain. This is the case in the
+    # docker compose stack used in development. The frontend application will use localhost
+    # to connect to the object storage while the backend application will use the object storage
+    # service name declared in the docker compose stack.
+    # This is needed because the domain name is used to compute the signature. So it can't be
+    # changed dynamically by the frontend application.
+    if settings.AWS_S3_DOMAIN_REPLACE and override_domain:
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
+            endpoint_url=settings.AWS_S3_DOMAIN_REPLACE,
+            config=botocore.client.Config(
+                region_name=settings.AWS_S3_REGION_NAME,
+                signature_version=settings.AWS_S3_SIGNATURE_VERSION,
+            ),
+        )
+    else:
+        s3_client = default_storage.connection.meta.client
+
+    return s3_client.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={"Bucket": default_storage.bucket_name, "Key": key},
+        ExpiresIn=expires_in,
+    )
