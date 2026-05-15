@@ -77,6 +77,11 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
 from core.services.subtitle import SubtitleException, SubtitleService
 from core.tasks.file import process_file_deletion
 
@@ -299,6 +304,33 @@ class RoomViewSet(
 
         if callback_id := self.request.data.get("callback_id"):
             RoomCreation().persist_callback_state(callback_id, room)
+
+    def perform_update(self, serializer):
+        """Persist the room update, then sync metadata to LiveKit."""
+
+        old_configuration = serializer.instance.configuration
+        room = serializer.save()
+
+        if room.configuration == old_configuration:
+            return
+
+        metadata = {"configuration": room.configuration}
+
+        try:
+            RoomManagement().update_metadata(
+                room_name=str(room.id),
+                metadata=metadata,
+            )
+        except RoomNotFoundException:
+            logger.info(
+                "LiveKit room %s does not exist yet, skipping metadata sync",
+                room.id,
+            )
+        except RoomManagementException:
+            logger.warning(
+                "Failed to sync metadata to LiveKit for room %s",
+                room.id,
+            )
 
     @decorators.action(
         detail=True,
