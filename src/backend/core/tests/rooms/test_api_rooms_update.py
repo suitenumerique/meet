@@ -3,12 +3,18 @@ Test rooms API endpoints in the Meet core app: update.
 """
 
 import random
+from unittest.mock import patch
 
 import pytest
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory
 from ...models import RoomAccessLevel
+from ...services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -79,12 +85,14 @@ def test_api_rooms_update_members():
     assert room.configuration == {}
 
 
-def test_api_rooms_update_administrators():
-    """Administrators or owners of a room should be allowed to update it."""
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_administrators(mock_update_metadata):
+    """Should sync LiveKit metadata when both configuration and access level change."""
     user = UserFactory()
     room = RoomFactory(
         access_level=RoomAccessLevel.RESTRICTED,
         users=[(user, random.choice(["administrator", "owner"]))],
+        configuration={"can_publish_sources": ["camera"]},
     )
     client = APIClient()
     client.force_login(user)
@@ -106,11 +114,112 @@ def test_api_rooms_update_administrators():
     assert room.access_level == RoomAccessLevel.PUBLIC
     assert room.configuration == {"can_publish_sources": ["camera", "microphone"]}
 
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={
+            "configuration": {"can_publish_sources": ["camera", "microphone"]},
+        },
+    )
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_administrators_configuration_only(mock_update_metadata):
+    """Should sync LiveKit metadata when only configuration changes."""
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED,
+        users=[(user, random.choice(["administrator", "owner"]))],
+        configuration={},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.put(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {
+            "name": "New name",
+            "slug": "should-be-ignored",
+            "configuration": {"can_publish_sources": ["camera", "microphone"]},
+        },
+        format="json",
+    )
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.name == "New name"
+    assert room.slug == "new-name"
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+    assert room.configuration == {"can_publish_sources": ["camera", "microphone"]}
+
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={
+            "configuration": {"can_publish_sources": ["camera", "microphone"]},
+        },
+    )
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_administrators_access_level_only(mock_update_metadata):
+    """Should not sync LiveKit metadata when only access level changes."""
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED,
+        users=[(user, random.choice(["administrator", "owner"]))],
+        configuration={"can_publish_sources": ["camera"]},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.put(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {
+            "name": "New name",
+            "access_level": RoomAccessLevel.PUBLIC,
+        },
+        format="json",
+    )
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.name == "New name"
+    assert room.slug == "new-name"
+    assert room.access_level == RoomAccessLevel.PUBLIC
+    assert room.configuration == {"can_publish_sources": ["camera"]}
+
+    mock_update_metadata.assert_not_called()
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_administrators_name_only(mock_update_metadata):
+    """Should not sync LiveKit metadata when neither configuration nor access level changes."""
+    user = UserFactory()
+    room = RoomFactory(
+        name="Old name",
+        access_level=RoomAccessLevel.PUBLIC,
+        configuration={"can_publish_sources": ["camera"]},
+        users=[(user, random.choice(["administrator", "owner"]))],
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"name": "New name"},
+        format="json",
+    )
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.name == "New name"
+    assert room.slug == "new-name"
+    # Unrelated fields untouched
+    assert room.access_level == RoomAccessLevel.PUBLIC
+    assert room.configuration == {"can_publish_sources": ["camera"]}
+
+    mock_update_metadata.assert_not_called()
+
 
 @pytest.mark.parametrize(
     "configuration",
     [
-        {},
         {"can_publish_sources": ["camera", "microphone"]},
         {
             "can_publish_sources": [
@@ -128,10 +237,11 @@ def test_api_rooms_update_administrators():
         {"can_publish_sources": None, "everyone_can_mute": "1"},
     ],
 )
-def test_api_rooms_update_configuration_valid(configuration):
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_configuration_valid(mock_update_metadata, configuration):
     """Administrators should be allowed to set valid configurations."""
     user = UserFactory()
-    room = RoomFactory(users=[(user, "owner")])
+    room = RoomFactory(users=[(user, "owner")], configuration={})
     client = APIClient()
     client.force_login(user)
 
@@ -143,6 +253,28 @@ def test_api_rooms_update_configuration_valid(configuration):
     assert response.status_code == 200
     room.refresh_from_db()
     assert room.configuration == configuration
+
+    mock_update_metadata.assert_called_once()
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_configuration_unchanged_empty(mock_update_metadata):
+    """Should not sync LiveKit metadata when patching an already empty configuration."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")], configuration={})
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": {}},
+        format="json",
+    )
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.configuration == {}
+
+    mock_update_metadata.assert_not_called()
 
 
 def test_api_rooms_update_configuration_extra_keys_rejected():
@@ -239,3 +371,55 @@ def test_api_rooms_update_administrators_of_another():
     other_room.refresh_from_db()
     assert other_room.name == "Old name"
     assert other_room.slug == "old-name"
+
+
+@patch.object(RoomManagement, "update_metadata", side_effect=RoomNotFoundException)
+def test_api_rooms_update_livekit_room_not_found(mock_update_metadata):
+    """Should not fail the API request when the LiveKit room does not exist yet."""
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, random.choice(["administrator", "owner"]))],
+        configuration={},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": {"can_publish_sources": ["camera"]}},
+        format="json",
+    )
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.configuration == {"can_publish_sources": ["camera"]}
+
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={"configuration": {"can_publish_sources": ["camera"]}},
+    )
+
+
+@patch.object(RoomManagement, "update_metadata", side_effect=RoomManagementException)
+def test_api_rooms_update_livekit_sync_failure(mock_update_metadata):
+    """Should not fail the API request when the LiveKit metadata sync fails."""
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, random.choice(["administrator", "owner"]))],
+        configuration={},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": {"can_publish_sources": ["camera"]}},
+        format="json",
+    )
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.configuration == {"can_publish_sources": ["camera"]}
+
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={"configuration": {"can_publish_sources": ["camera"]}},
+    )
