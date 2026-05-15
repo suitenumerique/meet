@@ -39,10 +39,6 @@ export const usePublishSourcesManager = () => {
 
   const { notifyParticipants } = useNotifyParticipants()
 
-  const defaultSources = configData?.livekit?.default_sources?.map((source) => {
-    return source as Source
-  })
-
   // The name can be misleading—use the slug instead to ensure the correct React Query key is updated.
   const roomId = data?.slug
 
@@ -54,16 +50,16 @@ export const usePublishSourcesManager = () => {
   )
 
   const currentSources = useMemo(() => {
+    const defaultSources = configData?.livekit?.default_sources ?? []
+
     if (
       configuration?.can_publish_sources == undefined ||
       !Array.isArray(configuration?.can_publish_sources)
     ) {
       return defaultSources
     }
-    return configuration.can_publish_sources.map((source) => {
-      return source as Source
-    })
-  }, [defaultSources, configuration?.can_publish_sources])
+    return configuration.can_publish_sources
+  }, [configData, configuration?.can_publish_sources])
 
   const updateSource = useCallback(
     async (sources: Source[], enabled: boolean) => {
@@ -78,7 +74,7 @@ export const usePublishSourcesManager = () => {
 
         const newConfiguration = {
           ...configuration,
-          can_publish_sources: newSources as string[],
+          can_publish_sources: newSources,
         }
 
         const room = await patchRoom({
