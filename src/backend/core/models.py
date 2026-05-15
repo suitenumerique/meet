@@ -388,6 +388,7 @@ class Room(Resource):
         choices=RoomAccessLevel.choices,
         default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
     )
+    # Public configuration exposed to any room participant via the API
     configuration = models.JSONField(
         blank=True,
         default=dict,

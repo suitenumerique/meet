@@ -28,6 +28,7 @@ def test_api_rooms_retrieve_anonymous_private_pk():
 
     assert response.status_code == 200
     assert response.json() == {
+        "configuration": {},
         "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
@@ -47,6 +48,7 @@ def test_api_rooms_retrieve_anonymous_trusted_pk():
 
     assert response.status_code == 200
     assert response.json() == {
+        "configuration": {},
         "access_level": "trusted",
         "id": str(room.id),
         "is_administrable": False,
@@ -65,6 +67,7 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
 
     assert response.status_code == 200
     assert response.json() == {
+        "configuration": {},
         "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
@@ -81,6 +84,7 @@ def test_api_rooms_retrieve_anonymous_private_slug():
 
     assert response.status_code == 200
     assert response.json() == {
+        "configuration": {},
         "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
@@ -97,6 +101,7 @@ def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
 
     assert response.status_code == 200
     assert response.json() == {
+        "configuration": {},
         "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
@@ -200,6 +205,7 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
     assert response.status_code == 200
     expected_name = f"{room.id!s}"
     assert response.json() == {
+        "configuration": {},
         "access_level": str(room.access_level),
         "id": str(room.id),
         "is_administrable": False,
@@ -246,6 +252,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
 
     expected_name = f"{room.id!s}"
     assert response.json() == {
+        "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
         "id": str(room.id),
         "is_administrable": False,
@@ -297,6 +304,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
 
     expected_name = f"{room.id!s}"
     assert response.json() == {
+        "configuration": {},
         "access_level": str(room.access_level),
         "id": str(room.id),
         "is_administrable": False,
@@ -338,6 +346,7 @@ def test_api_rooms_retrieve_authenticated():
     assert response.status_code == 200
 
     assert response.json() == {
+        "configuration": {},
         "access_level": "restricted",
         "id": str(room.id),
         "is_administrable": False,
@@ -383,6 +392,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
 
     expected_name = str(room.id)
     assert content_dict == {
+        "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
         "id": str(room.id),
         "is_administrable": False,
