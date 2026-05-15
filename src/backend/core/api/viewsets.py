@@ -309,12 +309,20 @@ class RoomViewSet(
         """Persist the room update, then sync metadata to LiveKit."""
 
         old_configuration = serializer.instance.configuration
+        old_access_level = serializer.instance.access_level
+
         room = serializer.save()
 
-        if room.configuration == old_configuration:
+        if (
+            room.configuration == old_configuration
+            and room.access_level == old_access_level
+        ):
             return
 
-        metadata = {"configuration": room.configuration}
+        metadata = {
+            "configuration": room.configuration,
+            "access_level": room.access_level,
+        }
 
         try:
             RoomManagement().update_metadata(
