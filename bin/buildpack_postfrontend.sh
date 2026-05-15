@@ -47,4 +47,3 @@ mv src/backend/* ./
 mv deploy/paas/* ./
 
 echo "3.13" > .python-version
-echo "." > requirements.txt

@@ -21,6 +21,7 @@ and this project adheres to
 - ♻️(fullstack) simplify source serialization
 - ✨(backend) expose room configuration to all API consumers
 - 🩹(frontend) improve reaction toolbar centering with dynamic positioning
+- 🚀 (paas) remove buildpack requirements.txt to use the new uv.lock #1349
 
 ## [1.16.0] - 2026-05-13
 
