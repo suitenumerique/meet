@@ -1,3 +1,6 @@
+import { Track } from 'livekit-client'
+import Source = Track.Source
+
 export type ApiLiveKit = {
   url: string
   room: string
@@ -10,6 +13,11 @@ export enum ApiAccessLevel {
   RESTRICTED = 'restricted',
 }
 
+export type RoomConfiguration = {
+  can_publish_sources?: Source[] | null
+  everyone_can_mute?: boolean | null
+}
+
 export type ApiRoom = {
   id: string
   name: string
@@ -18,7 +26,5 @@ export type ApiRoom = {
   is_administrable: boolean
   access_level: ApiAccessLevel
   livekit?: ApiLiveKit
-  configuration?: {
-    [key: string]: string | number | boolean | string[]
-  }
+  configuration?: RoomConfiguration
 }

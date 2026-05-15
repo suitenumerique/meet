@@ -2,6 +2,8 @@ import { fetchApi } from './fetchApi'
 import { keys } from './queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { RecordingMode } from '@/features/recording'
+import { Track } from 'livekit-client'
+import Source = Track.Source
 
 export interface ApiConfig {
   analytics?: {
@@ -50,7 +52,7 @@ export interface ApiConfig {
     url: string
     force_wss_protocol: boolean
     enable_firefox_proxy_workaround: boolean
-    default_sources: string[]
+    default_sources: Source[]
   }
   transcription_destination?: string
 }

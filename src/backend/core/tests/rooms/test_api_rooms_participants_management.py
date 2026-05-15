@@ -2,7 +2,7 @@
 Test rooms API endpoints in the Meet core app: participants management.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument,protected-access
+# pylint: disable=redefined-outer-name,unused-argument,protected-access,no-name-in-module
 
 import random
 from unittest import mock
@@ -13,7 +13,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.urls import reverse
 
 import pytest
-from livekit.api import TwirpError
+from livekit.api import TwirpError, UpdateParticipantRequest
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -385,8 +385,8 @@ def test_update_participant_success(mock_livekit_client):
             "can_publish": True,
             "can_publish_data": True,
             "can_publish_sources": [
-                "CAMERA",
-                "MICROPHONE",
+                "camera",
+                "microphone",
             ],
             "can_update_metadata": True,
             "can_subscribe_metrics": True,
@@ -413,8 +413,8 @@ def test_update_participant_success(mock_livekit_client):
         {"can_publish_data": True},
         {
             "can_publish_sources": [
-                "CAMERA",
-                "MICROPHONE",
+                "camera",
+                "microphone",
             ]
         },
         {"can_update_metadata": True},
@@ -445,7 +445,39 @@ def test_update_participant_permission_fields_are_optional(
     assert response.data == {"status": "success"}
 
     mock_livekit_client.room.update_participant.assert_called_once()
+
+    (request_arg,), _ = mock_livekit_client.room.update_participant.call_args
+    assert isinstance(request_arg, UpdateParticipantRequest)
+
     mock_livekit_client.aclose.assert_called_once()
+
+
+def test_update_participant_permission_fields_invalid_case(mock_livekit_client):
+    """Should raise bad request when can_publish_sources is uppercase."""
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    payload = {
+        "participant_identity": str(uuid4()),
+        "permission": {
+            "can_publish_sources": [
+                "CAMERA",
+                "microphone",
+            ]
+        },
+    }
+
+    url = reverse("rooms-update-participant", kwargs={"pk": room.id})
+    response = client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    mock_livekit_client.room.update_participant.assert_not_called()
+    mock_livekit_client.aclose.assert_not_called()
 
 
 @pytest.mark.parametrize(

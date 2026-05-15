@@ -8,7 +8,7 @@ export const useParticipantPermissions = () => {
 
   const updateParticipantPermissions = async (
     participant: Participant,
-    sources: Array<Source>
+    sources: Source[]
   ) => {
     if (!data?.id) {
       throw new Error('Room id is not available')
@@ -20,7 +20,7 @@ export const useParticipantPermissions = () => {
       can_update_metadata: participant.permissions?.canUpdateMetadata,
       can_subscribe_metrics: participant.permissions?.canSubscribeMetrics,
       can_publish: sources.length > 0,
-      can_publish_sources: sources.map((source) => source.toUpperCase()),
+      can_publish_sources: sources,
     }
 
     try {

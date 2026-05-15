@@ -13,7 +13,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import gettext_lazy as _
 
 from django_pydantic_field.rest_framework import SchemaField
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from pydantic import ValidationError as PydanticValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -317,9 +317,7 @@ class MuteParticipantSerializer(BaseParticipantsManagementSerializer):
     )
 
 
-RoomConfigurationTrackSource = Literal[
-    "camera", "microphone", "screen_share", "screen_share_audio"
-]
+TrackSource = Literal["camera", "microphone", "screen_share", "screen_share_audio"]
 
 
 class RoomConfiguration(BaseModel):
@@ -328,13 +326,10 @@ class RoomConfiguration(BaseModel):
     Unknown fields are rejected.
     """
 
-    can_publish_sources: list[RoomConfigurationTrackSource] | None = None
+    can_publish_sources: list[TrackSource] | None = None
     everyone_can_mute: bool | None = None
 
     model_config = {"extra": "forbid"}
-
-
-TrackSource = Literal["SCREEN_SHARE", "SCREEN_SHARE_AUDIO", "CAMERA", "MICROPHONE"]
 
 
 class ParticipantPermission(BaseModel):
@@ -355,6 +350,10 @@ class ParticipantPermission(BaseModel):
     can_subscribe_metrics: bool | None = None
 
     model_config = {"extra": "forbid"}
+
+    @field_serializer("can_publish_sources")
+    def _serialize_sources(self, sources: list[str]) -> list[str]:
+        return [s.upper() for s in sources]
 
 
 class UpdateParticipantSerializer(BaseParticipantsManagementSerializer):
