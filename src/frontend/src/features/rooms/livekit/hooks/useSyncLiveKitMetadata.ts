@@ -4,7 +4,11 @@ import { useEffect } from 'react'
 import { RoomEvent } from 'livekit-client'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
-import type { ApiRoom, RoomConfiguration } from '@/features/rooms/api/ApiRoom'
+import {
+  ApiAccessLevel,
+  ApiRoom,
+  RoomConfiguration,
+} from '@/features/rooms/api/ApiRoom'
 import { useRoomContext } from '@livekit/components-react'
 import { useRoomData } from './useRoomData'
 
@@ -14,6 +18,7 @@ import { useRoomData } from './useRoomData'
  */
 type RoomLiveKitMetadata = {
   configuration?: RoomConfiguration
+  access_level?: ApiAccessLevel
 }
 
 const parseMetadata = (raw: string | undefined): RoomLiveKitMetadata | null => {
@@ -46,19 +51,24 @@ export const useSyncLiveKitMetadata = () => {
 
     const applyMetadata = (raw: string | undefined) => {
       const parsed = parseMetadata(raw)
-      // No configuration key → leave the cache alone. Don't clobber the
-      // value we already loaded from the API with `undefined`.
-      if (!parsed?.configuration) return
+      if (!parsed) return
 
       queryClient.setQueryData<ApiRoom>([keys.room, roomSlug], (prev) => {
         if (!prev) return prev
+        const nextConfiguration = parsed.configuration ?? prev.configuration
+        const nextAccessLevel = parsed.access_level ?? prev.access_level
         if (
-          JSON.stringify(prev.configuration) ===
-          JSON.stringify(parsed.configuration)
+          nextConfiguration === prev.configuration &&
+          nextAccessLevel === prev.access_level
         ) {
           return prev
         }
-        return { ...prev, configuration: parsed.configuration }
+
+        return {
+          ...prev,
+          configuration: nextConfiguration,
+          access_level: nextAccessLevel,
+        }
       })
     }
 

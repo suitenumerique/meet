@@ -117,6 +117,7 @@ def test_api_rooms_update_administrators(mock_update_metadata):
     mock_update_metadata.assert_called_once_with(
         room_name=str(room.id),
         metadata={
+            "access_level": "public",
             "configuration": {"can_publish_sources": ["camera", "microphone"]},
         },
     )
@@ -153,6 +154,7 @@ def test_api_rooms_update_administrators_configuration_only(mock_update_metadata
     mock_update_metadata.assert_called_once_with(
         room_name=str(room.id),
         metadata={
+            "access_level": "restricted",
             "configuration": {"can_publish_sources": ["camera", "microphone"]},
         },
     )
@@ -160,7 +162,7 @@ def test_api_rooms_update_administrators_configuration_only(mock_update_metadata
 
 @patch.object(RoomManagement, "update_metadata")
 def test_api_rooms_update_administrators_access_level_only(mock_update_metadata):
-    """Should not sync LiveKit metadata when only access level changes."""
+    """Should sync LiveKit metadata when only access level changes."""
     user = UserFactory()
     room = RoomFactory(
         access_level=RoomAccessLevel.RESTRICTED,
@@ -185,7 +187,13 @@ def test_api_rooms_update_administrators_access_level_only(mock_update_metadata)
     assert room.access_level == RoomAccessLevel.PUBLIC
     assert room.configuration == {"can_publish_sources": ["camera"]}
 
-    mock_update_metadata.assert_not_called()
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={
+            "access_level": "public",
+            "configuration": {"can_publish_sources": ["camera"]},
+        },
+    )
 
 
 @patch.object(RoomManagement, "update_metadata")
@@ -395,7 +403,10 @@ def test_api_rooms_update_livekit_room_not_found(mock_update_metadata):
 
     mock_update_metadata.assert_called_once_with(
         room_name=str(room.id),
-        metadata={"configuration": {"can_publish_sources": ["camera"]}},
+        metadata={
+            "access_level": room.access_level,
+            "configuration": {"can_publish_sources": ["camera"]},
+        },
     )
 
 
@@ -421,5 +432,8 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata):
 
     mock_update_metadata.assert_called_once_with(
         room_name=str(room.id),
-        metadata={"configuration": {"can_publish_sources": ["camera"]}},
+        metadata={
+            "access_level": room.access_level,
+            "configuration": {"can_publish_sources": ["camera"]},
+        },
     )
