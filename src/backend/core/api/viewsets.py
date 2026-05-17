@@ -671,7 +671,7 @@ class RoomViewSet(
         # TEMPORARY: a LiveKit token proves access was granted, not that the caller
         # joined. Cross-check identity against the live participant list until auth
         # is hardened. Skipped for non-LiveKit auth backends.
-        caller_identity = request.auth.identity if request.auth is not None else None
+        caller_identity = getattr(request.auth, "identity", None)
         if caller_identity is not None:
             try:
                 ParticipantsManagement().check_if_in_meeting(
