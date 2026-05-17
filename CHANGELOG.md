@@ -8,6 +8,16 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(fullstack)  allow participants to mute others based on room configuration
+- ✨(frontend) add synchronizer for room metadata updates
+
+### Changed 
+
+- ♻️(fullstack) simplify source serialization
+- ✨(backend) expose room configuration to all API consumers
+
 ## [1.16.0] - 2026-05-13
 
 ### Added
