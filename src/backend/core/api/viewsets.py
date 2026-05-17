@@ -668,6 +668,26 @@ class RoomViewSet(
         serializer = serializers.MuteParticipantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        # TEMPORARY: a LiveKit token proves access was granted, not that the caller
+        # joined. Cross-check identity against the live participant list until auth
+        # is hardened. Skipped for non-LiveKit auth backends.
+        caller_identity = request.auth.identity if request.auth is not None else None
+        if caller_identity is not None:
+            try:
+                ParticipantsManagement().check_if_in_meeting(
+                    room_name=str(room.pk),
+                    identity=caller_identity,
+                )
+            except (ParticipantNotFoundException, ParticipantsManagementException):
+                logger.warning(
+                    "Failed to verify caller presence for mute in room %s; denying",
+                    room.pk,
+                )
+                return drf_response.Response(
+                    {"error": "Could not verify caller presence"},
+                    status=drf_status.HTTP_403_FORBIDDEN,
+                )
+
         try:
             ParticipantsManagement().mute(
                 room_name=str(room.pk),
