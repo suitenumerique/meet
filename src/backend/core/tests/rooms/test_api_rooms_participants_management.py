@@ -2,7 +2,7 @@
 Test rooms API endpoints in the Meet core app: participants management.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument,protected-access,no-name-in-module
+# pylint: disable=redefined-outer-name,unused-argument,protected-access,no-name-in-module,too-many-lines
 
 import random
 from unittest import mock
@@ -14,6 +14,7 @@ from django.urls import reverse
 
 import pytest
 from livekit.api import TwirpError, UpdateParticipantRequest
+from livekit.protocol.models import ParticipantInfo
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -365,6 +366,141 @@ def test_mute_participant_admin_token_replayed_does_not_grant_admin(
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_livekit_token_triggers_presence_check(mock_livekit_client):
+    """Should check participant presence when authenticated via LiveKit token only."""
+    client = APIClient()
+    room = RoomFactory()
+
+    user = AnonymousUser()
+    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    # Presence is verified against LiveKit before the mute is issued.
+    mock_livekit_client.room.get_participant.assert_called_once()
+    mock_livekit_client.room.mute_published_track.assert_called_once()
+
+
+def test_mute_participant_livekit_token_presence_check_returns_participant(
+    mock_livekit_client,
+):
+    """Should mute when the authentified participant is currently in the room."""
+    client = APIClient()
+    room = RoomFactory()
+
+    # Simulate LiveKit confirming the caller is currently in the room.
+    # State != DISCONNECTED (3) means present.
+    mock_livekit_client.room.get_participant.return_value = ParticipantInfo(
+        identity="caller-identity",
+        state=ParticipantInfo.State.ACTIVE,
+    )
+
+    user = AnonymousUser()
+    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {"status": "success"}
+    mock_livekit_client.room.get_participant.assert_called_once()
+    mock_livekit_client.room.mute_published_track.assert_called_once()
+
+
+def test_mute_participant_livekit_token_presence_check_participant_not_found(
+    mock_livekit_client,
+):
+    """Should not mute when the authentified participant is not found."""
+    client = APIClient()
+    room = RoomFactory()
+
+    mock_livekit_client.room.get_participant.side_effect = TwirpError(
+        msg="participant does not exist", code="not_found", status=404
+    )
+
+    user = AnonymousUser()
+    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.data == {"error": "Could not verify caller presence"}
+    mock_livekit_client.room.get_participant.assert_called_once()
+    # The presence check failed, so we never reach the mute call.
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_livekit_token_presence_check_twirp_error_forbidden(
+    mock_livekit_client,
+):
+    """Should not mute when the presence check fail."""
+    client = APIClient()
+    room = RoomFactory()
+
+    mock_livekit_client.room.get_participant.side_effect = TwirpError(
+        msg="an error occured", code="not_found", status=500
+    )
+
+    user = AnonymousUser()
+    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.data == {"error": "Could not verify caller presence"}
+    mock_livekit_client.room.get_participant.assert_called_once()
+    # The presence check failed, so we never reach the mute call.
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_session_auth_skips_presence_check(mock_livekit_client):
+    """Should not check presence of the participant when authentified with a session cookie."""
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.force_authenticate(user=user)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    # Session auth has no LiveKit identity to verify against, so the
+    # stop-gap presence check is skipped.
+    mock_livekit_client.room.get_participant.assert_not_called()
+    mock_livekit_client.room.mute_published_track.assert_called_once()
 
 
 def test_update_participant_success(mock_livekit_client):

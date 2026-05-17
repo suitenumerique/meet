@@ -15,6 +15,7 @@ from livekit.api import (
     TwirpError,
     UpdateParticipantRequest,
 )
+from livekit.protocol.models import ParticipantInfo
 
 from core import utils
 
@@ -154,3 +155,44 @@ class ParticipantsManagement:
 
         finally:
             await lkapi.aclose()
+
+    @async_to_sync
+    async def check_if_in_meeting(self, room_name: str, identity: str) -> bool:
+        """Check whether `identity` is currently a participant in `room_name`.
+
+        Raises ParticipantsManagementException for unexpected LiveKit errors
+        so callers can fail closed rather than silently allowing the action.
+        """
+
+        if not room_name or not identity:
+            return False
+
+        lkapi = utils.create_livekit_client()
+
+        try:
+            participant = await lkapi.room.get_participant(
+                RoomParticipantIdentity(
+                    room=room_name,
+                    identity=identity,
+                )
+            )
+        except TwirpError as e:
+            if e.code == "not_found":
+                raise ParticipantNotFoundException("Participant does not exist") from e
+
+            logger.exception(
+                "Unexpected error checking participant %s in room %s",
+                identity,
+                room_name,
+            )
+            raise ParticipantsManagementException(
+                "Could not verify participant presence"
+            ) from e
+
+        finally:
+            await lkapi.aclose()
+
+        return (
+            participant is not None
+            and participant.state != ParticipantInfo.State.DISCONNECTED
+        )
