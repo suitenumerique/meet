@@ -211,6 +211,9 @@ export const buttonRecipe = cva({
           outlineColor: 'focusRing',
           outlineOffset: '2px',
         },
+        '&[data-disabled]': {
+          opacity: 0.2,
+        },
       },
       quaternaryText: {
         backgroundColor: 'transparent',
