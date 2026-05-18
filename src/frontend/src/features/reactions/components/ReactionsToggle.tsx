@@ -15,6 +15,8 @@ const focusReactionsToolbar = () => {
     ?.focus()
 }
 
+export const REACTIONS_TOGGLE_ID = 'reactions-toggle'
+
 export const ReactionsToggle = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
 
@@ -35,7 +37,7 @@ export const ReactionsToggle = () => {
 
   return (
     <ToggleButton
-      id="reactions-toggle"
+      id={REACTIONS_TOGGLE_ID}
       data-attr="reactions-toggle"
       square
       variant="primaryDark"

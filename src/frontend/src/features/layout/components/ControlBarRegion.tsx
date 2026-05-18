@@ -22,6 +22,8 @@ const controlBarRegion = cva({
   },
 })
 
+export const CONTROL_BAR_REGION_ID = 'control-bar-region'
+
 export type ControlBarRegionProps = React.HTMLAttributes<HTMLDivElement> &
   RecipeVariantProps<typeof controlBarRegion>
 
@@ -34,6 +36,7 @@ export function ControlBarRegion({
   return (
     <div
       role="region"
+      id={CONTROL_BAR_REGION_ID}
       aria-label={t('controls.region')}
       className={controlBarRegion({ mobile })}
       {...props}
