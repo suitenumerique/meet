@@ -1,15 +1,12 @@
-import { FocusScope, useFocusManager } from '@react-aria/focus'
-import { REACTIONS_TOOLBAR_ID } from '../../constants'
+import { FocusScope } from '@react-aria/focus'
 import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'
 import { ReactionButton } from './ReactionButton'
 import { Emoji } from '../../types'
 import { styled } from '@/styled-system/jsx'
-import { layoutStore } from '@/stores/layout'
-import { getFirstControlBarFocusable } from '@/utils/dom'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { useEffect, useRef, useState } from 'react'
 import { useDelayUnmount } from '@/hooks/useDelayUnmount'
-import { useTranslation } from 'react-i18next'
+import { ReactionsKeyboardNavigation } from './ReactionsKeyboardNavigation'
 
 const Container = styled('div', {
   base: {
@@ -86,52 +83,6 @@ const Strip = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-const KeyboardNavigation = ({ children }: { children: React.ReactNode }) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })
-  const focusManager = useFocusManager()
-
-  const onFocus = (e: React.FocusEvent<HTMLDivElement>) => {
-    const comingFromOutside = !e.currentTarget.contains(e.relatedTarget)
-    if (comingFromOutside) {
-      focusManager?.focusFirst()
-    }
-  }
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    switch (e.key) {
-      case 'ArrowRight':
-        focusManager?.focusNext({ wrap: true })
-        break
-      case 'ArrowLeft':
-        focusManager?.focusPrevious({ wrap: true })
-        break
-      case 'Escape':
-        e.preventDefault()
-        document.getElementById('reactions-toggle')?.focus()
-        layoutStore.showReactionsToolbar = false
-        break
-      case 'Tab':
-        if (!e.shiftKey) {
-          e.preventDefault()
-          getFirstControlBarFocusable('control-bar')?.focus()
-        }
-        break
-    }
-  }
-
-  return (
-    <div
-      id={REACTIONS_TOOLBAR_ID}
-      role="toolbar"
-      aria-label={t('toolbar')}
-      onKeyDown={onKeyDown}
-      onFocus={onFocus}
-    >
-      {children}
-    </div>
-  )
-}
-
 export const ReactionsToolbar = () => {
   const { isOpen } = useReactionsToolbar()
   const shouldMount = useDelayUnmount(isOpen, 300)
@@ -142,13 +93,13 @@ export const ReactionsToolbar = () => {
     <Container>
       {/* eslint-disable-next-line jsx-a11y/no-autofocus*/}
       <FocusScope autoFocus>
-        <KeyboardNavigation>
+        <ReactionsKeyboardNavigation>
           <Strip>
             {Object.values(Emoji).map((emoji) => (
               <ReactionButton key={emoji} emoji={emoji} />
             ))}
           </Strip>
-        </KeyboardNavigation>
+        </ReactionsKeyboardNavigation>
       </FocusScope>
     </Container>
   )
