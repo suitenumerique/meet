@@ -1,15 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { styled } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'
 import { useIsMobile } from '@/utils/useIsMobile'
+import { css } from '@/styled-system/css'
+import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
+import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
+import { Button } from '@/primitives'
 
 const StyledContainer = styled('div', {
   base: {
     display: 'flex',
+    alignItems: 'center',
     gap: '0.2rem',
     borderRadius: '21px',
-    padding: '0.15rem',
     backgroundColor: 'primaryDark.100',
+    maxWidth: '100%',
     opacity: 0,
     transform: 'translateY(3.25rem)',
     transition: 'opacity, transform',
@@ -37,6 +42,23 @@ const StyledContainer = styled('div', {
   },
 })
 
+const scrollViewport = css({
+  display: 'flex',
+  gap: '0.2rem',
+  overflowX: 'auto',
+  padding: '0.19rem',
+  scrollBehavior: 'smooth',
+  minWidth: 0,
+  flex: '1 1 auto',
+  scrollbarWidth: 'none',
+  '&::-webkit-scrollbar': { display: 'none' },
+  '& > *': {
+    flexShrink: 0,
+  },
+})
+
+const SCROLL_AMOUNT = 120 // roughly 3 buttons
+
 export const ReactionButtonsContainer = ({
   children,
 }: {
@@ -44,28 +66,70 @@ export const ReactionButtonsContainer = ({
 }) => {
   const { isOpen } = useReactionsToolbar()
   const isMobile = useIsMobile()
-  const ref = useRef<HTMLDivElement>(null)
+
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const { width } = useSize(scrollRef)
 
   const [isVisible, setIsVisible] = useState(false)
+  const [overflowing, setOverflowing] = useState(false)
+  const [atStart, setAtStart] = useState(true)
+  const [atEnd, setAtEnd] = useState(false)
+
+  const updateArrows = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setOverflowing(el.scrollWidth > el.clientWidth + 1)
+    setAtStart(el.scrollLeft <= 0)
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1)
+  }, [])
 
   useEffect(() => {
     if (isOpen) {
-      // defer one frame so the browser paints opacity:0 first
       const id = requestAnimationFrame(() => setIsVisible(true))
       return () => cancelAnimationFrame(id)
-    } else {
-      setIsVisible(false)
     }
+    setIsVisible(false)
   }, [isOpen])
+
+  useEffect(() => {
+    updateArrows()
+  }, [width, updateArrows])
+
+  const scrollBy = (delta: number) => {
+    scrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
+  }
 
   return (
     <StyledContainer
-      ref={ref}
       aria-hidden={!isOpen}
       isVisible={isVisible}
       desktopOffset={!isMobile}
     >
-      {children}
+      {overflowing && (
+        <Button
+          onPress={() => scrollBy(-SCROLL_AMOUNT)}
+          variant="primaryTextDark"
+          size="sm"
+          isDisabled={atStart}
+          round
+        >
+          <RiArrowLeftSLine />
+        </Button>
+      )}
+      <div ref={scrollRef} className={scrollViewport} onScroll={updateArrows}>
+        {children}
+      </div>
+      {overflowing && (
+        <Button
+          onPress={() => scrollBy(SCROLL_AMOUNT)}
+          variant="primaryTextDark"
+          size="sm"
+          isDisabled={atEnd}
+          round
+        >
+          <RiArrowRightSLine />
+        </Button>
+      )}
     </StyledContainer>
   )
 }
