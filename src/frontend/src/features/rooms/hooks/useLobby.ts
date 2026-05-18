@@ -56,7 +56,7 @@ export const useLobby = ({
     enabled: status === ApiLobbyStatus.WAITING,
   })
 
-  const startWaiting = useCallback(async () => {
+  const startWaiting = useCallback(() => {
     setStatus(ApiLobbyStatus.WAITING)
     startWaitingTimeout()
   }, [startWaitingTimeout])

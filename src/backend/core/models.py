@@ -448,7 +448,12 @@ class Room(Resource):
         always reject calls to them (no way to derive the key), and the
         PIN namespace is finite (10**length): no point burning slots that
         can never be dialed.
+
+        Also run `clean()` so the encryption invariants are enforced on
+        every save path (ORM, admin, shell), not only via the DRF
+        serializer.
         """
+        self.clean()
         if (
             settings.ROOM_TELEPHONY_ENABLED
             and not self.pk
@@ -459,6 +464,41 @@ class Room(Resource):
                 length=settings.ROOM_TELEPHONY_PIN_LENGTH
             )
         super().save(*args, **kwargs)
+
+    def clean(self):
+        """Enforce encryption-mode invariants outside DRF.
+
+        Two rules:
+        - `encryption_mode` is set at creation and never mutated afterwards
+          (the URL-hash passphrase encodes assumptions about it).
+        - An encrypted room must be at the RESTRICTED access level so the
+          host vets joiners before they ever see the in-URL key.
+        """
+        super().clean()
+        if self.pk is not None:
+            previous = Room.objects.filter(pk=self.pk).only("encryption_mode").first()
+            if (
+                previous is not None
+                and previous.encryption_mode != self.encryption_mode
+            ):
+                raise ValidationError(
+                    {
+                        "encryption_mode": _(
+                            "Encryption mode cannot be changed after room creation."
+                        )
+                    }
+                )
+        if (
+            self.encryption_mode != EncryptionMode.NONE
+            and self.access_level != RoomAccessLevel.RESTRICTED
+        ):
+            raise ValidationError(
+                {
+                    "access_level": _(
+                        "Encrypted rooms must use the 'restricted' access level."
+                    )
+                }
+            )
 
     def clean_fields(self, exclude=None):
         """

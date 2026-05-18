@@ -147,9 +147,16 @@ class LobbyService:
 
         # In encrypted rooms, authenticated users cannot pick an arbitrary
         # display name — server enforces the OIDC name so a tampered client
-        # can't impersonate someone else with their account.
+        # can't impersonate someone else with their account. If both
+        # full_name and email are absent (degenerate OIDC payload), fall
+        # back to a server-controlled technical name rather than trusting
+        # whatever the client posted.
         if room.is_encrypted and request.user.is_authenticated:
-            username = request.user.full_name or request.user.email or username
+            username = (
+                request.user.full_name
+                or request.user.email
+                or f"noname-{request.user.id}"
+            )
 
         participant_id = self._get_or_create_participant_id(request)
         participant = self._get_participant(room.id, participant_id)

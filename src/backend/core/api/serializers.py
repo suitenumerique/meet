@@ -41,6 +41,19 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "email", "full_name", "short_name"]
 
+    def validate_default_encryption_mode(self, value):
+        """Reject a non-none default when the server has encryption disabled.
+
+        Keeps the user preference DB in sync with the deployment's posture:
+        if an operator flips ENCRYPTION_ENABLED off, no client should be able
+        to keep persisting `basic` as their default behind their back.
+        """
+        if value != models.EncryptionMode.NONE and not settings.ENCRYPTION_ENABLED:
+            raise serializers.ValidationError(
+                _("End-to-end encryption is disabled on this server.")
+            )
+        return value
+
 
 class UserLightSerializer(serializers.ModelSerializer):
     """Serialize users with limited fields."""

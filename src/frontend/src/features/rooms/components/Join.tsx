@@ -125,7 +125,16 @@ export const Join = ({
   // re-enforces this when minting the JWT.
   const isNameLocked = isEncryptedRoom && !!isLoggedIn
   const lockedName = user?.full_name || user?.email || ''
-  const passphrase = getPassphraseFromHash()
+
+  // Keep the passphrase in state and refresh on `hashchange` so the
+  // mismatch screen recovers immediately when the user pastes the
+  // correct hash into the address bar.
+  const [passphrase, setPassphrase] = useState(getPassphraseFromHash)
+  useEffect(() => {
+    const onHashChange = () => setPassphrase(getPassphraseFromHash())
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
   const hasValidPassphrase = isEncryptedRoom
     ? isValidPassphrase(passphrase)
     : true

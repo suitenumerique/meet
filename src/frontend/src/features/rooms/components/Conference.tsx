@@ -255,7 +255,7 @@ export const Conference = ({
   }, [room, isEncrypted, roomWithE2EE])
 
   useEffect(() => {
-    if (!isEncrypted) return
+    if (!data) return
     let currentHash = getPassphraseFromHash()
     const onHashChange = () => {
       const next = getPassphraseFromHash()
@@ -265,22 +265,23 @@ export const Conference = ({
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
-  }, [isEncrypted])
+  }, [data])
 
   useEffect(() => {
     /**
-     * Warm up connection to LiveKit server before joining room
+     * Warm up connection to LiveKit server before joining room.
+     * Use the normalized `serverUrl` (the same value the LiveKitRoom
+     * will connect to after `force_wss_protocol`) so the warm-up matches
+     * the actual connection target.
      */
     const prepareConnection = async () => {
-      if (!apiConfig || isConnectionWarmedUp) return
-      await room.prepareConnection(apiConfig.livekit.url)
+      if (!apiConfig || !serverUrl || isConnectionWarmedUp) return
+      await room.prepareConnection(serverUrl)
 
       if (isFireFox() && apiConfig.livekit.enable_firefox_proxy_workaround) {
         try {
           const wssUrl =
-            apiConfig.livekit.url
-              .replace('https://', 'wss://')
-              .replace(/\/$/, '') + '/rtc'
+            serverUrl.replace('https://', 'wss://').replace(/\/$/, '') + '/rtc'
 
           /**
            * FIREFOX + PROXY WORKAROUND — see livekit-examples/meet/issues/466
@@ -295,7 +296,7 @@ export const Conference = ({
       setIsConnectionWarmedUp(true)
     }
     prepareConnection()
-  }, [room, apiConfig, isConnectionWarmedUp])
+  }, [room, apiConfig, serverUrl, isConnectionWarmedUp])
 
   const [showInviteDialog, setShowInviteDialog] = useState(mode === 'create')
   const [mediaDeviceError, setMediaDeviceError] = useState<{

@@ -4,13 +4,12 @@ import { Separator as RACSeparator } from 'react-aria-components'
 import { RiAlertFill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
-import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { ApiAccessLevel, ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
-import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
+import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -23,12 +22,7 @@ export const Admin = () => {
 
   const { mutateAsync: patchRoom } = usePatchRoom()
 
-  const { data: readOnlyData } = useQuery({
-    queryKey: [keys.room, roomId],
-    queryFn: () => fetchRoom({ roomId }),
-    retry: false,
-    enabled: false,
-  })
+  const readOnlyData = useRoomData()
 
   const {
     toggleMicrophone,

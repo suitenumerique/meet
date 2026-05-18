@@ -845,23 +845,6 @@
         "offline_access",
         "microprofile-jwt"
       ]
-    },
-    {
-      "clientId": "encryption",
-      "name": "Encryption Service",
-      "enabled": true,
-      "publicClient": true,
-      "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
-      "redirectUris": [
-        "http://encryption.localhost:7200/auth/callback"
-      ],
-      "webOrigins": [
-        "http://encryption.localhost:7200",
-        "http://data.encryption.localhost:7200"
-      ],
-      "protocol": "openid-connect",
-      "fullScopeAllowed": true
     }
   ],
   "clientScopes": [

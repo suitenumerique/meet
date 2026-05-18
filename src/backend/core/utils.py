@@ -90,7 +90,9 @@ def generate_token(
 
     # Local import: core.models loads core.utils mid-import (see models.py:28),
     # so importing EncryptionMode at module top would deadlock the bootstrap.
-    from core.models import EncryptionMode  # pylint: disable=import-outside-toplevel
+    from core.models import (  # noqa: PLC0415  pylint: disable=import-outside-toplevel
+        EncryptionMode,
+    )
 
     if is_admin_or_owner or sources is None:
         sources = settings.LIVEKIT_DEFAULT_SOURCES
