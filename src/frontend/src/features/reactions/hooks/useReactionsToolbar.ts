@@ -9,5 +9,8 @@ export const useReactionsToolbar = () => {
     toggle: () => {
       layoutStore.showReactionsToolbar = !layoutSnap.showReactionsToolbar
     },
+    close: () => {
+      layoutStore.showReactionsToolbar = false
+    },
   }
 }
