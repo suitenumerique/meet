@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import { styled } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'
 import { useIsMobile } from '@/utils/useIsMobile'
@@ -6,6 +12,9 @@ import { css } from '@/styled-system/css'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { Button } from '@/primitives'
+
+import { CONTROL_BAR_REGION_ID } from '@/features/layout/components/ControlBarRegion'
+import { REACTIONS_TOGGLE_ID } from '../ReactionsToggle'
 
 const StyledContainer = styled('div', {
   base: {
@@ -28,15 +37,6 @@ const StyledContainer = styled('div', {
         opacity: 1,
         transform: 'translateY(0)',
         pointerEvents: 'auto',
-      },
-    },
-    desktopOffset: {
-      true: {
-        // Ideally this value should be calculated dynamically in JavaScript to keep
-        // the reaction toolbar perfectly centered relative to the reaction toggle.
-        // However, for simplicity and to follow a pragmatic 80/20 approach,
-        // this value is currently hardcoded in CSS.
-        marginRight: '30px',
       },
     },
   },
@@ -67,6 +67,7 @@ export const ReactionButtonsContainer = ({
   const { isOpen } = useReactionsToolbar()
   const isMobile = useIsMobile()
 
+  const containerRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const { width } = useSize(scrollRef)
 
@@ -74,6 +75,11 @@ export const ReactionButtonsContainer = ({
   const [overflowing, setOverflowing] = useState(false)
   const [atStart, setAtStart] = useState(true)
   const [atEnd, setAtEnd] = useState(false)
+  const [
+    shouldBeCenteredWithToggleButton,
+    setShouldBeCenteredWithToggleButton,
+  ] = useState(false)
+  const [rightOffset, setRightOffset] = useState(0)
 
   const updateArrows = useCallback(() => {
     const el = scrollRef.current
@@ -82,6 +88,71 @@ export const ReactionButtonsContainer = ({
     setAtStart(el.scrollLeft <= 0)
     setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1)
   }, [])
+
+  useEffect(() => {
+    if (isMobile) return
+    const region = document.getElementById(CONTROL_BAR_REGION_ID)
+    if (!region) return
+    const check = () => {
+      setShouldBeCenteredWithToggleButton(
+        window.innerWidth > region.clientWidth
+      )
+    }
+    check()
+    const ro = new ResizeObserver(check)
+    ro.observe(region)
+    window.addEventListener('resize', check)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', check)
+    }
+  }, [isMobile])
+
+  useLayoutEffect(() => {
+    if (!shouldBeCenteredWithToggleButton || isMobile) {
+      setRightOffset(0)
+      return
+    }
+
+    const container = containerRef.current
+    if (!container) return
+
+    let frame = 0
+
+    const align = () => {
+      const toggle = document.getElementById(REACTIONS_TOGGLE_ID)
+      if (!toggle) return
+      const toggleRect = toggle.getBoundingClientRect()
+      const containerRect = container.getBoundingClientRect()
+      const toggleCenterX = toggleRect.left + toggleRect.width / 2
+      const containerCenterX = containerRect.left + containerRect.width / 2
+      const shift = toggleCenterX - containerCenterX
+      if (Math.abs(shift) < 0.5) return
+      setRightOffset((prev) => prev - shift * 2)
+    }
+
+    const schedule = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(align)
+    }
+
+    schedule()
+
+    const ro = new ResizeObserver(schedule)
+    ro.observe(container)
+    const region = document.getElementById(CONTROL_BAR_REGION_ID)
+    if (region) ro.observe(region)
+    const toggle = document.getElementById(REACTIONS_TOGGLE_ID)
+    if (toggle) ro.observe(toggle)
+
+    window.addEventListener('resize', schedule)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      ro.disconnect()
+      window.removeEventListener('resize', schedule)
+    }
+  }, [shouldBeCenteredWithToggleButton, isMobile, isOpen])
 
   useEffect(() => {
     if (isOpen) {
@@ -101,9 +172,14 @@ export const ReactionButtonsContainer = ({
 
   return (
     <StyledContainer
+      ref={containerRef}
       aria-hidden={!isOpen}
       isVisible={isVisible}
-      desktopOffset={!isMobile}
+      style={
+        shouldBeCenteredWithToggleButton && !isMobile
+          ? { marginRight: `${rightOffset}px` }
+          : { margin: '0 15px' }
+      }
     >
       {overflowing && (
         <Button

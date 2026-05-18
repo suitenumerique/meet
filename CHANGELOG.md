@@ -18,6 +18,7 @@ and this project adheres to
 
 - ♻️(fullstack) simplify source serialization
 - ✨(backend) expose room configuration to all API consumers
+- 🩹(frontend) improve reaction toolbar centering with dynamic positioning
 
 ## [1.16.0] - 2026-05-13
 
