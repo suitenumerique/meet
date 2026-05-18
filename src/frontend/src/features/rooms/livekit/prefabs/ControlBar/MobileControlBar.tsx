@@ -26,6 +26,7 @@ import { AudioDevicesControl } from '../../components/controls/Device/AudioDevic
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
 import { ControlBarRegion } from '@/features/layout/components/ControlBarRegion'
+import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 
 export function MobileControlBar({
   onDeviceError,
@@ -62,6 +63,7 @@ export function MobileControlBar({
             }
             hideMenu={true}
           />
+          <ReactionsToggle />
           <HandToggle />
           <Button
             id="room-options-trigger"
