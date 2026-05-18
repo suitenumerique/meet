@@ -32,7 +32,7 @@ import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/queryClient'
 import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
-import { ApiAccessLevel } from '../api/ApiRoom'
+import { ApiAccessLevel, ApiEncryptionMode } from '../api/ApiRoom'
 import {
   isValidPassphrase,
   getPassphraseFromHash,
@@ -118,7 +118,7 @@ export const Join = ({
     retry: false,
   })
 
-  const isEncryptedRoom = roomInfo?.encryption_mode === 'basic'
+  const isEncryptedRoom = roomInfo?.encryption_mode === ApiEncryptionMode.BASIC
   const { user, isLoggedIn } = useUser()
   // Authenticated joiners of an encrypted room can't pick an arbitrary
   // display name — it must match the OIDC profile, and the backend

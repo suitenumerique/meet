@@ -16,6 +16,7 @@ import { formatPinCode } from '../../utils/telephony'
 import { useTelephony } from '../hooks/useTelephony'
 import { useCopyRoomToClipboard } from '../hooks/useCopyRoomToClipboard'
 import { FeaturePill } from '@/features/encryption'
+import { ApiEncryptionMode } from '../../api/ApiRoom'
 
 export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
@@ -30,7 +31,7 @@ export const Info = () => {
     : baseRoomUrl
 
   const telephony = useTelephony()
-  const isEncrypted = data?.encryption_mode === 'basic'
+  const isEncrypted = data?.encryption_mode === ApiEncryptionMode.BASIC
   const isAdminOrOwner = !!data?.is_administrable
 
   const isTelephonyReadyForUse = useMemo(() => {

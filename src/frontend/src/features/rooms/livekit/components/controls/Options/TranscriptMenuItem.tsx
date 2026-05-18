@@ -6,12 +6,13 @@ import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { RecordingMode, useHasRecordingAccess } from '@/features/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 
 export const TranscriptMenuItem = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
   const { isTranscriptOpen, openTranscript, toggleTools } = useSidePanel()
   const roomData = useRoomData()
-  const isEncrypted = roomData?.encryption_mode === 'basic'
+  const isEncrypted = roomData?.encryption_mode === ApiEncryptionMode.BASIC
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,

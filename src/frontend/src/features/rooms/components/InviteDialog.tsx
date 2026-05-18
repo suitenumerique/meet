@@ -17,7 +17,7 @@ import { useMemo } from 'react'
 import { css } from '@/styled-system/css'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { FeaturePill } from '@/features/encryption'
-import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { ApiAccessLevel, ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
@@ -53,7 +53,7 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
   })
 
   const roomData = useRoomData()
-  const isEncrypted = roomData?.encryption_mode === 'basic'
+  const isEncrypted = roomData?.encryption_mode === ApiEncryptionMode.BASIC
   const isAdminOrOwner = !!roomData?.is_administrable
   const baseRoomUrl = getRouteUrl('room', roomData?.slug)
   // Include the hash (passphrase) for basic encrypted rooms so the full link is visible
@@ -108,219 +108,230 @@ export const InviteDialog = (props: Omit<DialogProps, 'title'>) => {
           ) : (
             <P>{t('description')}</P>
           )}
-          {isEncrypted && !isAdminOrOwner ? null : isEncrypted ? (
-            <div
-              className={css({
-                width: '100%',
-                marginTop: '0.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-              })}
-            >
-              <div
-                role="alert"
-                className={css({
-                  display: 'flex',
-                  gap: '0.5rem',
-                  alignItems: 'center',
-                  padding: '0.6rem 0.85rem',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#fff7ed',
-                  border: '1px solid #fed7aa',
-                  color: '#7c2d12',
-                })}
-              >
-                <RiAlertFill
-                  size={18}
-                  color="#b45309"
-                  className={css({ flexShrink: 0 })}
-                />
-                <Text
-                  variant="sm"
-                  margin={false}
+          {(() => {
+            if (isEncrypted && !isAdminOrOwner) return null
+            if (isEncrypted) {
+              return (
+                <div
                   className={css({
-                    color: '#7c2d12',
-                    fontSize: '0.85rem',
-                    lineHeight: 1.4,
+                    width: '100%',
+                    marginTop: '0.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
                   })}
                 >
-                  {tHome('warning')}
-                </Text>
-              </div>
-              <div
-                className={css({
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid',
-                  borderColor: 'greyscale.250',
-                })}
-              >
-                <span
-                  className={css({
-                    flex: 1,
-                    fontFamily: 'monospace',
-                    fontSize: '0.8rem',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  })}
-                >
-                  {roomUrl?.replace(/^https?:\/\//, '')}
-                </span>
-                <Button
-                  variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
-                  square
-                  size="sm"
-                  onPress={copyRoomUrlToClipboard}
-                  aria-label={isRoomUrlCopied ? t('copied') : t('copyUrl')}
-                  tooltip={isRoomUrlCopied ? t('copied') : t('copyUrl')}
-                >
-                  {isRoomUrlCopied ? (
-                    <RiCheckLine size={16} />
-                  ) : (
-                    <RiFileCopyLine size={16} />
-                  )}
-                </Button>
-              </div>
-              <Text
-                margin={false}
-                className={css({
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  color: 'greyscale.500',
-                })}
-              >
-                {t('encryptedDisabledHeading')}
-              </Text>
-              <div
-                className={css({
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '0.4rem',
-                })}
-              >
-                <FeaturePill
-                  size="sm"
-                  icon={<RiPhoneLine size={13} />}
-                  label={tFeatures('features.dialIn')}
-                />
-                <FeaturePill
-                  size="sm"
-                  icon={<RiComputerLine size={13} />}
-                  label={tFeatures('features.meetingRoom')}
-                />
-              </div>
-            </div>
-          ) : isTelephonyReadyForUse ? (
-            <div
-              className={css({
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                marginTop: '0.5rem',
-                gap: '1rem',
-                overflow: 'visible',
-              })}
-            >
-              <div
-                className={css({
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                })}
-              >
-                <Text as="p" wrap="pretty">
-                  {roomUrl?.replace(/^https?:\/\//, '')}
-                </Text>
-                {isTelephonyReadyForUse && roomUrl && (
-                  <Button
-                    variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
-                    square
-                    size={'sm'}
-                    onPress={copyRoomUrlToClipboard}
-                    aria-label={isRoomUrlCopied ? t('copied') : t('copyUrl')}
-                    tooltip={isRoomUrlCopied ? t('copied') : t('copyUrl')}
+                  <div
+                    role="alert"
+                    className={css({
+                      display: 'flex',
+                      gap: '0.5rem',
+                      alignItems: 'center',
+                      padding: '0.6rem 0.85rem',
+                      borderRadius: '0.5rem',
+                      backgroundColor: '#fff7ed',
+                      border: '1px solid #fed7aa',
+                      color: '#7c2d12',
+                    })}
                   >
-                    {isRoomUrlCopied ? (
-                      <RiCheckLine aria-hidden="true" />
+                    <RiAlertFill
+                      size={18}
+                      color="#b45309"
+                      className={css({ flexShrink: 0 })}
+                    />
+                    <Text
+                      variant="sm"
+                      margin={false}
+                      className={css({
+                        color: '#7c2d12',
+                        fontSize: '0.85rem',
+                        lineHeight: 1.4,
+                      })}
+                    >
+                      {tHome('warning')}
+                    </Text>
+                  </div>
+                  <div
+                    className={css({
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '0.5rem',
+                      border: '1px solid',
+                      borderColor: 'greyscale.250',
+                    })}
+                  >
+                    <span
+                      className={css({
+                        flex: 1,
+                        fontFamily: 'monospace',
+                        fontSize: '0.8rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      })}
+                    >
+                      {roomUrl?.replace(/^https?:\/\//, '')}
+                    </span>
+                    <Button
+                      variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
+                      square
+                      size="sm"
+                      onPress={copyRoomUrlToClipboard}
+                      aria-label={isRoomUrlCopied ? t('copied') : t('copyUrl')}
+                      tooltip={isRoomUrlCopied ? t('copied') : t('copyUrl')}
+                    >
+                      {isRoomUrlCopied ? (
+                        <RiCheckLine size={16} />
+                      ) : (
+                        <RiFileCopyLine size={16} />
+                      )}
+                    </Button>
+                  </div>
+                  <Text
+                    margin={false}
+                    className={css({
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      color: 'greyscale.500',
+                    })}
+                  >
+                    {t('encryptedDisabledHeading')}
+                  </Text>
+                  <div
+                    className={css({
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.4rem',
+                    })}
+                  >
+                    <FeaturePill
+                      size="sm"
+                      icon={<RiPhoneLine size={13} />}
+                      label={tFeatures('features.dialIn')}
+                    />
+                    <FeaturePill
+                      size="sm"
+                      icon={<RiComputerLine size={13} />}
+                      label={tFeatures('features.meetingRoom')}
+                    />
+                  </div>
+                </div>
+              )
+            }
+            if (isTelephonyReadyForUse) {
+              return (
+                <div
+                  className={css({
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    marginTop: '0.5rem',
+                    gap: '1rem',
+                    overflow: 'visible',
+                  })}
+                >
+                  <div
+                    className={css({
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    })}
+                  >
+                    <Text as="p" wrap="pretty">
+                      {roomUrl?.replace(/^https?:\/\//, '')}
+                    </Text>
+                    {isTelephonyReadyForUse && roomUrl && (
+                      <Button
+                        variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
+                        square
+                        size={'sm'}
+                        onPress={copyRoomUrlToClipboard}
+                        aria-label={
+                          isRoomUrlCopied ? t('copied') : t('copyUrl')
+                        }
+                        tooltip={isRoomUrlCopied ? t('copied') : t('copyUrl')}
+                      >
+                        {isRoomUrlCopied ? (
+                          <RiCheckLine aria-hidden="true" />
+                        ) : (
+                          <RiFileCopyLine aria-hidden="true" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                  <div
+                    className={css({
+                      display: 'flex',
+                      flexDirection: 'column',
+                    })}
+                  >
+                    <Text as="p" wrap="pretty">
+                      <Bold>{t('phone.call')}</Bold> ({telephony?.country}){' '}
+                      {telephony?.internationalPhoneNumber}
+                    </Text>
+                    <Text as="p" wrap="pretty">
+                      <Bold>{t('phone.pinCode')}</Bold>{' '}
+                      {formatPinCode(roomData?.pin_code)}
+                    </Text>
+                  </div>
+
+                  <Button
+                    variant={isCopied ? 'success' : 'secondaryText'}
+                    size="sm"
+                    fullWidth
+                    aria-label={isCopied ? t('copied') : t('copy')}
+                    style={{
+                      justifyContent: 'start',
+                    }}
+                    onPress={copyRoomToClipboard}
+                    data-attr="share-dialog-copy"
+                  >
+                    {isCopied ? (
+                      <>
+                        <RiCheckLine
+                          size={18}
+                          style={{ marginRight: '8px' }}
+                          aria-hidden="true"
+                        />
+                        {t('copied')}
+                      </>
                     ) : (
-                      <RiFileCopyLine aria-hidden="true" />
+                      <>
+                        <RiFileCopyLine
+                          style={{ marginRight: '6px', minWidth: '18px' }}
+                          aria-hidden="true"
+                        />
+                        {t('copy')}
+                      </>
                     )}
                   </Button>
-                )}
-              </div>
-              <div
-                className={css({
-                  display: 'flex',
-                  flexDirection: 'column',
-                })}
-              >
-                <Text as="p" wrap="pretty">
-                  <Bold>{t('phone.call')}</Bold> ({telephony?.country}){' '}
-                  {telephony?.internationalPhoneNumber}
-                </Text>
-                <Text as="p" wrap="pretty">
-                  <Bold>{t('phone.pinCode')}</Bold>{' '}
-                  {formatPinCode(roomData?.pin_code)}
-                </Text>
-              </div>
-
+                </div>
+              )
+            }
+            return (
               <Button
-                variant={isCopied ? 'success' : 'secondaryText'}
-                size="sm"
+                variant={isCopied ? 'success' : 'tertiary'}
                 fullWidth
                 aria-label={isCopied ? t('copied') : t('copy')}
-                style={{
-                  justifyContent: 'start',
-                }}
                 onPress={copyRoomToClipboard}
                 data-attr="share-dialog-copy"
               >
                 {isCopied ? (
                   <>
-                    <RiCheckLine
-                      size={18}
-                      style={{ marginRight: '8px' }}
-                      aria-hidden="true"
-                    />
+                    <RiCheckLine size={24} style={{ marginRight: '8px' }} />
                     {t('copied')}
                   </>
                 ) : (
                   <>
-                    <RiFileCopyLine
-                      style={{ marginRight: '6px', minWidth: '18px' }}
-                      aria-hidden="true"
-                    />
-                    {t('copy')}
+                    <RiFileCopyLine size={24} style={{ marginRight: '8px' }} />
+                    {t('copyUrl')}
                   </>
                 )}
               </Button>
-            </div>
-          ) : (
-            <Button
-              variant={isCopied ? 'success' : 'tertiary'}
-              fullWidth
-              aria-label={isCopied ? t('copied') : t('copy')}
-              onPress={copyRoomToClipboard}
-              data-attr="share-dialog-copy"
-            >
-              {isCopied ? (
-                <>
-                  <RiCheckLine size={24} style={{ marginRight: '8px' }} />
-                  {t('copied')}
-                </>
-              ) : (
-                <>
-                  <RiFileCopyLine size={24} style={{ marginRight: '8px' }} />
-                  {t('copyUrl')}
-                </>
-              )}
-            </Button>
-          )}
+            )
+          })()}
           {roomData?.access_level === ApiAccessLevel.PUBLIC && (
             <HStack>
               <div

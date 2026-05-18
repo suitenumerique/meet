@@ -5,7 +5,7 @@ import { RiAlertFill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { ApiAccessLevel, ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
@@ -168,7 +168,8 @@ export const Admin = () => {
           {t('access.description')}
         </Text>
         {(() => {
-          const isEncrypted = readOnlyData?.encryption_mode === 'basic'
+          const isEncrypted =
+            readOnlyData?.encryption_mode === ApiEncryptionMode.BASIC
           return (
             <>
               {isEncrypted && (

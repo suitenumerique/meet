@@ -77,10 +77,17 @@ export const CreateMeetingButton = () => {
 
   // Communicate iframe height to parent for proper sizing
   useEffect(() => {
+    const targetOrigin = (() => {
+      try {
+        return document.referrer ? new URL(document.referrer).origin : '/'
+      } catch {
+        return '/'
+      }
+    })()
     const observer = new ResizeObserver(() => {
       window.parent.postMessage(
         { type: 'RESIZE', data: { height: document.body.scrollHeight } },
-        '*'
+        targetOrigin
       )
     })
     observer.observe(document.body)

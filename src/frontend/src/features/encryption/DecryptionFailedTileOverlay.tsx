@@ -17,6 +17,7 @@ import { css } from '@/styled-system/css'
 
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { ParticipantPlaceholder } from '@/features/rooms/livekit/components/ParticipantPlaceholder'
+import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 
 interface Props {
   participant: Participant
@@ -28,7 +29,7 @@ export function DecryptionFailedTileOverlay({ participant }: Props) {
   })
   const room = useRoomContext()
   const roomData = useRoomData()
-  const isEncrypted = roomData?.encryption_mode === 'basic'
+  const isEncrypted = roomData?.encryption_mode === ApiEncryptionMode.BASIC
 
   const [failed, setFailed] = useState(false)
 
@@ -56,8 +57,7 @@ export function DecryptionFailedTileOverlay({ participant }: Props) {
   if (!failed) return null
 
   return (
-    <div
-      role="status"
+    <output
       aria-label={t('title')}
       className={css({
         position: 'absolute',
@@ -108,6 +108,6 @@ export function DecryptionFailedTileOverlay({ participant }: Props) {
           {t('body')}
         </div>
       </div>
-    </div>
+    </output>
   )
 }

@@ -20,8 +20,7 @@ export const navigateTo = <S = unknown>(
   // Including the hash in the URL passed to `navigate` lets us avoid a
   // brittle pushState + replaceState dance at the call site: the URL the
   // app first renders already carries the fragment.
-  const target = options?.hash ? `${to}#${options.hash}` : to
-  const { hash: _hash, ...navigateOptions } = options ?? {}
-  void _hash
+  const { hash, ...navigateOptions } = options ?? {}
+  const target = hash ? `${to}#${hash}` : to
   return navigate(target, navigateOptions)
 }

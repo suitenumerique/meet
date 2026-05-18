@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { RecordingMode, useRecordingStatuses } from '@/features/recording'
+import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 
 const COLLAPSE_DELAY_MS = 4000
 
@@ -39,10 +40,9 @@ function StatusPill({ icon, label, background, pulse }: PillProps) {
   }, [])
 
   return (
-    <div
+    <output
       onMouseEnter={() => setCollapsed(false)}
       onMouseLeave={() => setCollapsed(true)}
-      role="status"
       aria-label={label}
       className={css({
         display: 'inline-flex',
@@ -78,7 +78,7 @@ function StatusPill({ icon, label, background, pulse }: PillProps) {
       >
         {label}
       </span>
-    </div>
+    </output>
   )
 }
 
@@ -95,7 +95,7 @@ export function RoomStatusBanner() {
   const isRecording = screenRec.isStarted
   const isTranscribing = transcript.isStarted
 
-  const isEncrypted = roomData?.encryption_mode === 'basic'
+  const isEncrypted = roomData?.encryption_mode === ApiEncryptionMode.BASIC
 
   if (!isEncrypted && !isRecording && !isTranscribing) {
     return null

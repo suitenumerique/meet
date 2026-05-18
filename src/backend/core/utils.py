@@ -88,17 +88,18 @@ def generate_token(
         str: The LiveKit JWT access token.
     """
 
-    if is_admin_or_owner:
-        sources = settings.LIVEKIT_DEFAULT_SOURCES
+    # Local import: core.models loads core.utils mid-import (see models.py:28),
+    # so importing EncryptionMode at module top would deadlock the bootstrap.
+    from core.models import EncryptionMode  # pylint: disable=import-outside-toplevel
 
-    if sources is None:
+    if is_admin_or_owner or sources is None:
         sources = settings.LIVEKIT_DEFAULT_SOURCES
 
     # In encrypted rooms, no one can change their name/attributes after the
     # admin accepted them — otherwise a participant authenticated under one
     # identity could rewrite their JWT-presented name to spoof someone else
     # mid-meeting. In plain rooms, free naming is fine.
-    can_update_own_metadata = encryption_mode == "none"
+    can_update_own_metadata = encryption_mode == EncryptionMode.NONE
 
     video_grants = VideoGrants(
         room=room,
@@ -136,7 +137,7 @@ def generate_token(
     # otherwise.
     if (
         not user.is_anonymous
-        and encryption_mode != "none"
+        and encryption_mode != EncryptionMode.NONE
         and getattr(user, "email", None)
     ):
         attributes["email"] = user.email
@@ -159,7 +160,7 @@ def generate_token(
     # that moment — no extra round-trip, no race window where a SIP
     # caller could read empty metadata before the `room_started` webhook
     # has time to push it.
-    if encryption_mode != "none":
+    if encryption_mode != EncryptionMode.NONE:
         token = token.with_room_config(
             RoomConfiguration(
                 name=room,

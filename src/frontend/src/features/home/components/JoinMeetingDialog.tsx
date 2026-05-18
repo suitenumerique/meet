@@ -7,6 +7,7 @@ import { isRoomValid } from '@/features/rooms'
 import { normalizeRoomId } from '@/features/rooms/utils/isRoomValid'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { isValidPassphrase } from '@/features/encryption'
+import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 
 export const JoinMeetingDialog = () => {
   const { t } = useTranslation('home')
@@ -39,7 +40,7 @@ export const JoinMeetingDialog = () => {
     setIsLoading(true)
     try {
       const room = await fetchRoom({ roomId: parsed.roomId })
-      if (room.encryption_mode === 'basic') {
+      if (room.encryption_mode === ApiEncryptionMode.BASIC) {
         setRoomId(parsed.roomId)
         setStep('passphrase')
         return

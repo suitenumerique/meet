@@ -30,16 +30,21 @@ export const EncryptionDefaultField = () => {
 
   const isOn = user?.default_encryption_mode === ApiEncryptionMode.BASIC
 
-  const handleToggle = (next: boolean) => {
+  const handleToggle = async (next: boolean) => {
     if (!user) return
-    void mutateAsync({
-      user: {
-        id: user.id,
-        default_encryption_mode: next
-          ? ApiEncryptionMode.BASIC
-          : ApiEncryptionMode.NONE,
-      },
-    })
+    try {
+      await mutateAsync({
+        user: {
+          id: user.id,
+          default_encryption_mode: next
+            ? ApiEncryptionMode.BASIC
+            : ApiEncryptionMode.NONE,
+        },
+      })
+    } catch {
+      // react-query stores the error on the mutation; the UI shows
+      // isPending while in flight and reverts the toggle on failure.
+    }
   }
 
   if (!isLoggedIn) {

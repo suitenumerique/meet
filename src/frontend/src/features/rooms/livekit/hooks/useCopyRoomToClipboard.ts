@@ -2,7 +2,7 @@ import { useTelephony } from './useTelephony'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useState } from 'react'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
-import { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import { ApiRoom, ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 
 const COPY_SUCCESS_TIMEOUT = 3000
@@ -47,7 +47,9 @@ export const useCopyRoomToClipboard = (
   // so make sure we don't paste a non-functional phone+PIN snippet either.
   const hasTelephonyInfo = useMemo(() => {
     return (
-      telephony.enabled && room?.pin_code && room?.encryption_mode !== 'basic'
+      telephony.enabled &&
+      room?.pin_code &&
+      room?.encryption_mode !== ApiEncryptionMode.BASIC
     )
   }, [telephony.enabled, room?.pin_code, room?.encryption_mode])
 

@@ -103,17 +103,19 @@ export const Conference = ({
   const hasValidHash = isValidPassphrase(hashPassphrase)
   const dbSaysEncrypted = data?.encryption_mode === ApiEncryptionMode.BASIC
 
-  const encryptionMismatch:
+  type EncryptionMismatch =
     | 'missingPassphrase'
     | 'unexpectedPassphrase'
-    | null =
-    data === undefined
-      ? null
-      : dbSaysEncrypted && !hasValidHash
-        ? 'missingPassphrase'
-        : !dbSaysEncrypted && hashPassphrase.length > 0
-          ? 'unexpectedPassphrase'
-          : null
+    | null
+
+  let encryptionMismatch: EncryptionMismatch = null
+  if (data !== undefined) {
+    if (dbSaysEncrypted && !hasValidHash) {
+      encryptionMismatch = 'missingPassphrase'
+    } else if (!dbSaysEncrypted && hashPassphrase.length > 0) {
+      encryptionMismatch = 'unexpectedPassphrase'
+    }
+  }
 
   // We treat the room as encrypted purely because we have a valid hash.
   // No server condition. If the hash is valid we MUST run E2EE; if not,

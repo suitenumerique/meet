@@ -14,6 +14,7 @@ import {
 } from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { ApiEncryptionMode } from '@/features/rooms/api/ApiRoom'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -108,7 +109,7 @@ export const Tools = () => {
     useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
   const roomData = useRoomData()
-  const isEncrypted = roomData?.encryption_mode === 'basic'
+  const isEncrypted = roomData?.encryption_mode === ApiEncryptionMode.BASIC
 
   // Restore focus to the element that opened the Tools panel
   useRestoreFocus(isToolsOpen, {
