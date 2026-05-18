@@ -1,10 +1,8 @@
-import { FocusScope } from '@react-aria/focus'
 import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'
 import { ReactionButton } from './ReactionButton'
 import { Emoji } from '../../types'
 import { styled } from '@/styled-system/jsx'
 import { useDelayUnmount } from '@/hooks/useDelayUnmount'
-import { ReactionsKeyboardNavigation } from './ReactionsKeyboardNavigation'
 import { ReactionButtonsContainer } from './ReactionButtonsContainer'
 
 const Container = styled('div', {
@@ -27,16 +25,11 @@ export const ReactionsToolbar = () => {
 
   return (
     <Container>
-      {/* eslint-disable-next-line jsx-a11y/no-autofocus*/}
-      <FocusScope autoFocus>
-        <ReactionsKeyboardNavigation>
-          <ReactionButtonsContainer>
-            {Object.values(Emoji).map((emoji) => (
-              <ReactionButton key={emoji} emoji={emoji} />
-            ))}
-          </ReactionButtonsContainer>
-        </ReactionsKeyboardNavigation>
-      </FocusScope>
+      <ReactionButtonsContainer>
+        {Object.values(Emoji).map((emoji) => (
+          <ReactionButton key={emoji} emoji={emoji} />
+        ))}
+      </ReactionButtonsContainer>
     </Container>
   )
 }

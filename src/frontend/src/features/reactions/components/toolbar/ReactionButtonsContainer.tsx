@@ -8,10 +8,11 @@ import {
 import { styled } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'
 import { useIsMobile } from '@/utils/useIsMobile'
-import { css } from '@/styled-system/css'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { Button } from '@/primitives'
+import { ReactionsKeyboardNavigation } from './ReactionsKeyboardNavigation'
+import { FocusScope } from '@react-aria/focus'
 
 import { CONTROL_BAR_REGION_ID } from '@/features/layout/components/ControlBarRegion'
 import { REACTIONS_TOGGLE_ID } from '../ReactionsToggle'
@@ -42,18 +43,20 @@ const StyledContainer = styled('div', {
   },
 })
 
-const scrollViewport = css({
-  display: 'flex',
-  gap: '0.2rem',
-  overflowX: 'auto',
-  padding: '0.19rem',
-  scrollBehavior: 'smooth',
-  minWidth: 0,
-  flex: '1 1 auto',
-  scrollbarWidth: 'none',
-  '&::-webkit-scrollbar': { display: 'none' },
-  '& > *': {
-    flexShrink: 0,
+const StyledScrollViewport = styled('div', {
+  base: {
+    display: 'flex',
+    gap: '0.2rem',
+    overflowX: 'auto',
+    padding: '0.19rem',
+    scrollBehavior: 'smooth',
+    minWidth: 0,
+    flex: '1 1 auto',
+    scrollbarWidth: 'none',
+    '&::-webkit-scrollbar': { display: 'none' },
+    '& > *': {
+      flexShrink: 0,
+    },
   },
 })
 
@@ -182,29 +185,40 @@ export const ReactionButtonsContainer = ({
       }
     >
       {overflowing && (
-        <Button
-          onPress={() => scrollBy(-SCROLL_AMOUNT)}
-          variant="primaryTextDark"
-          size="sm"
-          isDisabled={atStart}
-          round
-        >
-          <RiArrowLeftSLine />
-        </Button>
+        <div aria-hidden="true">
+          <Button
+            onPress={() => scrollBy(-SCROLL_AMOUNT)}
+            variant="primaryTextDark"
+            size="sm"
+            isDisabled={atStart}
+            round
+            excludeFromTabOrder
+          >
+            <RiArrowLeftSLine />
+          </Button>
+        </div>
       )}
-      <div ref={scrollRef} className={scrollViewport} onScroll={updateArrows}>
-        {children}
-      </div>
+      {/* eslint-disable-next-line jsx-a11y/no-autofocus*/}
+      <FocusScope autoFocus>
+        <ReactionsKeyboardNavigation>
+          <StyledScrollViewport ref={scrollRef} onScroll={updateArrows}>
+            {children}
+          </StyledScrollViewport>
+        </ReactionsKeyboardNavigation>
+      </FocusScope>
       {overflowing && (
-        <Button
-          onPress={() => scrollBy(SCROLL_AMOUNT)}
-          variant="primaryTextDark"
-          size="sm"
-          isDisabled={atEnd}
-          round
-        >
-          <RiArrowRightSLine />
-        </Button>
+        <div aria-hidden="true">
+          <Button
+            onPress={() => scrollBy(SCROLL_AMOUNT)}
+            variant="primaryTextDark"
+            size="sm"
+            isDisabled={atEnd}
+            round
+            excludeFromTabOrder
+          >
+            <RiArrowRightSLine />
+          </Button>
+        </div>
       )}
     </StyledContainer>
   )
