@@ -47,6 +47,8 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
     )
 
     this.destinationNode = audioContext.createMediaStreamDestination()
+    // this.destinationNode.channelCount = 1
+    // this.destinationNode.channelCountMode = 'explicit'
 
     // Connect the audio processing chain
     this.sourceNode
