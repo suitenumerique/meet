@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(agent) support Voxtral realtime as inference engine
+
 ### Changed
 
 - 🔥(backend) remove the S3 storage-event webhook for recordings
