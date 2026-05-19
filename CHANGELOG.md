@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(frontend) add synchronizer for room metadata updates
 - ✨(frontend) make reaction toolbar responsive on small viewports
 - ✨(frontend) enable reactions on mobile devices
+- ✨(frontend) introduce picture-in-picture meeting
 
 ### Changed 
 
