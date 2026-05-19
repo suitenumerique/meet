@@ -12,6 +12,8 @@ dependencies = [
     "protobuf==6.33.6",
     "minio==7.2.20",
     "sentry-sdk==2.66.1",
+    "websockets==17.1",
+    "httpx==0.28.1",
 ]
 
 [project.optional-dependencies]

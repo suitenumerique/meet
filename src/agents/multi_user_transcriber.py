@@ -1,6 +1,7 @@
 """Multi user transcription agent."""
 
 import asyncio
+import contextlib
 import logging
 import os
 
@@ -25,6 +26,7 @@ from livekit.agents import (
 )
 from livekit.plugins import deepgram, silero
 
+import voxtral_vllm_stt
 from observability import configure_sentry, set_job_context
 from tasks import done_callback
 
@@ -36,9 +38,18 @@ TRANSCRIBER_AGENT_NAME = os.getenv("TRANSCRIBER_AGENT_NAME", "multi-user-transcr
 STT_PROVIDER = os.getenv("STT_PROVIDER", "deepgram")
 ENABLE_SILERO_VAD = os.getenv("ENABLE_SILERO_VAD", "true").lower() == "true"
 
+SESSION_DRAIN_TIMEOUT_S = 15.0
 
-def create_stt_provider():
-    """Create STT provider based on environment configuration."""
+
+def create_stt_provider(vad: silero.VAD | None = None):
+    """Create STT provider based on environment configuration.
+
+    Args:
+        vad: Shared, prewarmed VAD instance. Required in practice for
+            voxtral-vllm (no server-side endpointing): if omitted, the plugin
+            loads its own Silero model synchronously on the event loop, once
+            per participant, freezing all active sessions for the duration.
+    """
     if STT_PROVIDER == "deepgram":
         # Note: Not all Deepgram API parameters are supported by the LiveKit plugin
         # detect_language is NOT supported for real-time streaming
@@ -49,6 +60,9 @@ def create_stt_provider():
         )
     elif STT_PROVIDER == "kyutai":
         _stt_instance = kyutai.STT(base_url=os.getenv("KYUTAI_STT_BASE_URL"))
+    elif STT_PROVIDER == "voxtral-vllm":
+        # The plugin resolves base_url / model / api_key from the environment.
+        _stt_instance = voxtral_vllm_stt.STT(vad=vad)
     else:
         raise ValueError(f"Unknown STT_PROVIDER: {STT_PROVIDER}")
 
@@ -58,9 +72,9 @@ def create_stt_provider():
 class Transcriber(Agent):
     """Create a transcription agent for a specific participant."""
 
-    def __init__(self, *, participant_identity: str):
+    def __init__(self, *, participant_identity: str, vad: silero.VAD | None = None):
         """Init transcription agent."""
-        stt = create_stt_provider()
+        stt = create_stt_provider(vad=vad)
 
         super().__init__(
             instructions="not-needed",
@@ -76,6 +90,7 @@ class MultiUserTranscriber:
         """Init multi user transcription agent."""
         self.ctx = ctx
         self._sessions: dict[str, AgentSession] = {}
+        self._starting: dict[str, asyncio.Task] = {}
         self._tasks: set[asyncio.Task] = set()
 
     def start(self):
@@ -96,22 +111,30 @@ class MultiUserTranscriber:
 
     def on_participant_connected(self, participant: rtc.RemoteParticipant):
         """Handle new participant connection by starting transcription session."""
-        if participant.identity in self._sessions:
+        identity = participant.identity
+        if identity in self._sessions or identity in self._starting:
             return
 
-        logger.info(f"starting session for {participant.identity}")
+        logger.info(f"starting session for {identity}")
         task = asyncio.create_task(self._start_session(participant))
+        self._starting[identity] = task
         self._tasks.add(task)
+        task.add_done_callback(lambda t, i=identity: self._starting.pop(i, None))
         task.add_done_callback(
             done_callback(
                 logger,
                 self._tasks,
-                f"start transcription session for {participant.identity}",
+                f"start transcription session for {identity}",
             )
         )
 
     def on_participant_disconnected(self, participant: rtc.RemoteParticipant):
         """Handle participant disconnection by closing transcription session."""
+        if (start_task := self._starting.pop(participant.identity, None)) is not None:
+            logger.info(f"cancelling pending session start for {participant.identity}")
+            start_task.cancel()
+            return
+
         if (session := self._sessions.pop(participant.identity, None)) is None:
             return
 
@@ -127,10 +150,12 @@ class MultiUserTranscriber:
         )
 
     async def _start_session(self, participant: rtc.RemoteParticipant) -> AgentSession:
-        """Create and start transcription session for participant."""
-        if participant.identity in self._sessions:
-            return self._sessions[participant.identity]
+        """Create and start transcription session for participant.
 
+        Deduplication happens synchronously in on_participant_connected via
+        self._starting; by the time this coroutine runs, the identity is
+        already reserved.
+        """
         vad = self.ctx.proc.userdata.get("vad", None)
         session = AgentSession(vad=vad)
         room_io = RoomIO(
@@ -141,18 +166,30 @@ class MultiUserTranscriber:
                 text_input=False, audio_output=False, text_output=True
             ),
         )
-        await room_io.start()
-        await session.start(
-            agent=Transcriber(
-                participant_identity=participant.identity,
+        try:
+            await room_io.start()
+            await session.start(
+                agent=Transcriber(
+                    participant_identity=participant.identity,
+                    vad=vad,
+                )
             )
-        )
+        except BaseException:
+            with contextlib.suppress(Exception):
+                await session.aclose()
+            raise
         self._sessions[participant.identity] = session
         return session
 
     async def _close_session(self, sess: AgentSession) -> None:
         """Close and cleanup transcription session."""
-        await sess.drain()
+        try:
+            await asyncio.wait_for(sess.drain(), timeout=SESSION_DRAIN_TIMEOUT_S)
+        except (TimeoutError, asyncio.TimeoutError):
+            logger.warning(
+                "session drain timed out after %.0fs; forcing close",
+                SESSION_DRAIN_TIMEOUT_S,
+            )
         await sess.aclose()
 
 

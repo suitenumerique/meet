@@ -251,6 +251,7 @@ services:
     build:
       context: ./src/agents
       target: development
+    command: ["python", "multi_user_transcriber.py", "dev"]
     env_file:
       - env.d/development/multi_user_transcriber
     volumes:
