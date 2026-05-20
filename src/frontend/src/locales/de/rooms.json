@@ -237,6 +237,7 @@
       "description": "Im Bild-im-Bild-Modus bleiben Sie mit dem Anruf verbunden, während Sie andere Aufgaben erledigen.",
       "bringBack": "Anruf hierher zurückholen"
     },
+    "stage": "Teilnehmer",
     "controlBar": "Besprechungssteuerung"
   },
   "options": {

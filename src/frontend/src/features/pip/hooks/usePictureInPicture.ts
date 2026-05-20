@@ -1,7 +1,9 @@
 import { ref, useSnapshot } from 'valtio'
 import { useCallback, useMemo } from 'react'
-import { IS_PIP_SUPPORTED } from '@/features/pip/utils'
 import { documentPictureInPictureStore } from '@/stores/documentPictureInPicture'
+
+export const IS_PIP_SUPPORTED =
+  typeof globalThis !== 'undefined' && 'documentPictureInPicture' in globalThis
 
 export const usePictureInPicture = () => {
   const { window: pipWindowRef } = useSnapshot(documentPictureInPictureStore)
