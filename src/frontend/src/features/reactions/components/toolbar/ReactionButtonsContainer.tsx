@@ -64,7 +64,7 @@ const SCROLL_AMOUNT = 120 // roughly 3 buttons
 
 export const ReactionButtonsContainer = ({
   children,
-  adjustedCentering,
+  adjustedCentering = true,
 }: {
   children: React.ReactNode
   adjustedCentering?: boolean
