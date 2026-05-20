@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(backend) add per-recording encoding quality presets to start-recording API #1344
 - ✨(fullstack) allow participants to mute others based on room configuration
 - ✨(frontend) add synchronizer for room metadata updates
 - ✨(frontend) make reaction toolbar responsive on small viewports
