@@ -64,8 +64,10 @@ const SCROLL_AMOUNT = 120 // roughly 3 buttons
 
 export const ReactionButtonsContainer = ({
   children,
+  adjustedCentering,
 }: {
   children: React.ReactNode
+  adjustedCentering?: boolean
 }) => {
   const { isOpen } = useReactionsToolbar()
   const isMobile = useIsMobile()
@@ -93,7 +95,7 @@ export const ReactionButtonsContainer = ({
   }, [])
 
   useEffect(() => {
-    if (isMobile) return
+    if (isMobile || !adjustedCentering) return
     const region = document.getElementById(CONTROL_BAR_REGION_ID)
     if (!region) return
     const check = () => {
@@ -109,7 +111,7 @@ export const ReactionButtonsContainer = ({
       ro.disconnect()
       window.removeEventListener('resize', check)
     }
-  }, [isMobile])
+  }, [isMobile, adjustedCentering])
 
   useLayoutEffect(() => {
     if (!shouldBeCenteredWithToggleButton || isMobile) {
@@ -179,7 +181,7 @@ export const ReactionButtonsContainer = ({
       aria-hidden={!isOpen}
       isVisible={isVisible}
       style={
-        shouldBeCenteredWithToggleButton && !isMobile
+        shouldBeCenteredWithToggleButton && !isMobile && adjustedCentering
           ? { marginRight: `${rightOffset}px` }
           : { margin: '0 15px' }
       }
