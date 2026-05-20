@@ -227,6 +227,20 @@ class BaseValidationOnlySerializer(serializers.Serializer):
         raise NotImplementedError(f"{self.__class__.__name__} is validation-only")
 
 
+class EncodingConfig(BaseModel):
+    """Configuration options for recording encoding.
+
+    Attributes:
+        resolution: Target video resolution. When `None`, use the default preset.
+        profile: Encoding profile to balance quality and CPU usage. When `None`,
+        use the default profile.
+    """
+
+    resolution: Literal["1080p", "720p", "540p"] | None = None
+    profile: Literal["balanced", "slide_heavy", "low_cpu"] | None = None
+    model_config = {"extra": "forbid"}
+
+
 class RecordingOptions(BaseModel):
     """Configuration options for recording.
 
@@ -247,7 +261,7 @@ class RecordingOptions(BaseModel):
     transcribe: bool | None = None
     collect_metadata: bool | None = None
     original_mode: Literal["screen_recording", "transcript"] | None = None
-
+    encoding: EncodingConfig | None = None
     model_config = {"extra": "forbid"}
 
 

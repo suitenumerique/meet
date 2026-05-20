@@ -6,6 +6,7 @@ from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from ... import utils
+from ..encodings import resolve_audio_encoding_options
 from ..enums import FileExtension
 from .exceptions import WorkerConnectionError, WorkerResponseError
 from .factories import WorkerServiceConfig
@@ -145,8 +146,16 @@ class AudioCompositeEgressService(BaseEgressService):
 
     hrid = "audio-recording-composite-livekit-egress"
 
-    def start(self, room_name, recording_id):
-        """Start the audio composite egress process for a recording."""
+    def start(self, room_name, recording_id, encoding_config=None):
+        """Start the audio composite egress process for a recording.
+
+        Args:
+            room_name: LiveKit room name to record.
+            recording_id: Recording identifier used in the output filename.
+            encoding_config: Optional per-recording encoding options. When
+                provided, it is resolved to LiveKit `EncodingOptions` and
+                passed as `advanced` in the egress request.
+        """
 
         # Save room's recording as an ogg audio file.
         file_type = livekit_api.EncodedFileType.OGG
@@ -160,9 +169,23 @@ class AudioCompositeEgressService(BaseEgressService):
             s3=self._s3,
         )
 
-        request = livekit_api.RoomCompositeEgressRequest(
-            room_name=room_name, file_outputs=[file_output], audio_only=True
+        # Transcript mode is audio-only: ignore any per-recording resolution and
+        # apply only the profile's audio bitrate when encoding_config is provided.
+        encoding_options = (
+            resolve_audio_encoding_options(encoding_config)
+            if encoding_config is not None
+            else self._build_encoding_options()
         )
+
+        request_kwargs = {
+            "room_name": room_name,
+            "file_outputs": [file_output],
+            "audio_only": True,
+        }
+        if encoding_options is not None:
+            request_kwargs["advanced"] = encoding_options
+
+        request = livekit_api.RoomCompositeEgressRequest(**request_kwargs)
 
         response = self._handle_request(request, "start_room_composite_egress")
 

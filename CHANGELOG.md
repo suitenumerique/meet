@@ -15,6 +15,7 @@ and this project adheres to
 - ✨(backend) add command to clean pending and deleted files
 - 🧱(helm) run clean files command as cronjob
 - ✨(backend) add fallback to save recordings without S3/MinIO webhooks
+- ✨(backend) add per-recording encoding quality presets to start-recording API #1344
 
 ### Changed
 
