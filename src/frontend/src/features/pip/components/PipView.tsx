@@ -4,6 +4,7 @@ import { PipFloatingReactions } from './PipFloatingReactions'
 import { PipStage } from './layout/PipStage'
 import { ReactionsToolbar } from '@/features/reactions/components/toolbar/ReactionsToolbar'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
+import { NotificationProvider } from '@/features/notifications/NotificationProvider'
 
 const Container = styled('div', {
   base: {
@@ -53,6 +54,7 @@ export const PipView = () => {
       <ReactionsToolbar adjustedCentering={false} />
       <PipControlBar showScreenShare={false} />
       <PipFloatingReactions />
+      <NotificationProvider bottom={30} />
     </Container>
   )
 }
