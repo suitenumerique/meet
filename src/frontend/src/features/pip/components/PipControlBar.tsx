@@ -7,6 +7,7 @@ import { LeaveButton } from '@/features/rooms/livekit/components/controls/LeaveB
 import { HandToggle } from '@/features/rooms/livekit/components/controls/HandToggle'
 import { StartMediaButton } from '@/features/rooms/livekit/components/controls/StartMediaButton'
 import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
+import { PipOptionsMenu } from './controls/PipOptionsMenu'
 
 export const PipControlBar = ({
   showScreenShare,
@@ -30,6 +31,7 @@ export const PipControlBar = ({
         {showScreenShare && <ScreenShareToggle />}
         <HandToggle />
         <StartMediaButton />
+        <PipOptionsMenu />
         <LeaveButton />
       </PipControlsCenter>
     </PipControls>
