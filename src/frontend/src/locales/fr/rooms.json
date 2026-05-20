@@ -237,6 +237,7 @@
       "description": "Le mode image dans l'image vous permet de rester connecté à l'appel tout en effectuant d'autres tâches.",
       "bringBack": "Ramener l'appel ici"
     },
+    "stage": "Participants",
     "controlBar": "Commandes de la réunion"
   },
   "options": {
