@@ -32,8 +32,7 @@ import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { navigateTo } from '@/navigation/navigateTo'
 import { connectionObserverStore } from '@/stores/connectionObserver'
-import { PictureInPicturePortal } from '@/features/pip/components/PictureInPicturePortal'
-import { Spinner } from '@/primitives/Spinner'
+import { PictureInPictureConference } from '@/features/pip/components/PictureInPictureConference'
 
 export const Conference = ({
   roomId,
@@ -293,9 +292,7 @@ export const Conference = ({
             {...mediaDeviceError}
             onClose={() => setMediaDeviceError({ error: null, kind: null })}
           />
-          <PictureInPicturePortal>
-            <Spinner />
-          </PictureInPicturePortal>
+          <PictureInPictureConference />
         </LiveKitRoom>
       </Screen>
     </QueryAware>
