@@ -231,6 +231,13 @@
       }
     }
   },
+  "pictureInPicture": {
+    "placeholder": {
+      "title": "Your video call is in another window.",
+      "description": "Picture-in-Picture mode allows you to stay connected to the call while performing other tasks.",
+      "bringBack": "Bring the call back here"
+    }
+  },
   "options": {
     "buttonLabel": "More Options",
     "items": {
