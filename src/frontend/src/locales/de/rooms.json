@@ -236,7 +236,8 @@
       "title": "Ihr Videoanruf befindet sich in einem anderen Fenster.",
       "description": "Im Bild-im-Bild-Modus bleiben Sie mit dem Anruf verbunden, während Sie andere Aufgaben erledigen.",
       "bringBack": "Anruf hierher zurückholen"
-    }
+    },
+    "controlBar": "Besprechungssteuerung"
   },
   "options": {
     "buttonLabel": "Weitere Optionen",

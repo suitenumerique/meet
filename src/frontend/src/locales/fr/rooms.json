@@ -236,7 +236,8 @@
       "title": "Votre appel vidéo est dans une autre fenêtre.",
       "description": "Le mode image dans l'image vous permet de rester connecté à l'appel tout en effectuant d'autres tâches.",
       "bringBack": "Ramener l'appel ici"
-    }
+    },
+    "controlBar": "Commandes de la réunion"
   },
   "options": {
     "buttonLabel": "Plus d'options",
