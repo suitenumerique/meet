@@ -238,7 +238,8 @@
       "bringBack": "Gesprek hier terughalen"
     },
     "stage": "Deelnemers",
-    "controlBar": "Vergaderbesturing"
+    "controlBar": "Vergaderbesturing",
+    "title": "Beeld-in-beeld vergadering"
   },
   "options": {
     "buttonLabel": "Meer opties",

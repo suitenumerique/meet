@@ -238,7 +238,8 @@
       "bringBack": "Bring the call back here"
     },
     "stage": "Participants",
-    "controlBar": "Meeting controls"
+    "controlBar": "Meeting controls",
+    "title": "Picture-in-picture meeting"
   },
   "options": {
     "buttonLabel": "More Options",

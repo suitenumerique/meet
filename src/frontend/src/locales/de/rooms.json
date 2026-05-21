@@ -238,7 +238,8 @@
       "bringBack": "Anruf hierher zurückholen"
     },
     "stage": "Teilnehmer",
-    "controlBar": "Besprechungssteuerung"
+    "controlBar": "Besprechungssteuerung",
+    "title": "Bild-im-Bild Besprechung"
   },
   "options": {
     "buttonLabel": "Weitere Optionen",

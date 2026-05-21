@@ -238,7 +238,8 @@
       "bringBack": "Ramener l'appel ici"
     },
     "stage": "Participants",
-    "controlBar": "Commandes de la réunion"
+    "controlBar": "Commandes de la réunion",
+    "title": "Réunion en image dans l'image"
   },
   "options": {
     "buttonLabel": "Plus d'options",

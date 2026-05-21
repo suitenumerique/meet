@@ -1,11 +1,15 @@
 import { ref, useSnapshot } from 'valtio'
 import { useCallback, useMemo } from 'react'
 import { documentPictureInPictureStore } from '@/stores/documentPictureInPicture'
+import { useTranslation } from 'react-i18next'
 
 export const IS_PIP_SUPPORTED =
   typeof globalThis !== 'undefined' && 'documentPictureInPicture' in globalThis
 
 export const usePictureInPicture = () => {
+  const { t } = useTranslation('rooms', {
+    keyPrefix: 'pictureInPicture',
+  })
   const { window: pipWindowRef } = useSnapshot(documentPictureInPictureStore)
 
   const isOpen = useMemo(() => {
@@ -63,7 +67,7 @@ export const usePictureInPicture = () => {
             height,
           })
 
-        initializeTitleAndLanguage(pipWindow, 'wip')
+        initializeTitleAndLanguage(pipWindow, t('title'))
         initializePortalContainer(pipWindow)
         syncStyles(pipWindow)
 
@@ -83,7 +87,13 @@ export const usePictureInPicture = () => {
         return null
       }
     },
-    [initializePortalContainer, initializeTitleAndLanguage, isOpen, syncStyles]
+    [
+      initializePortalContainer,
+      initializeTitleAndLanguage,
+      isOpen,
+      syncStyles,
+      t,
+    ]
   )
 
   const close = useCallback(() => {
