@@ -20,6 +20,7 @@ export const ReactionsKeyboardNavigation = ({
   const { close } = useReactionsToolbar()
 
   const onFocus = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!e.target.matches(':focus-visible')) return
     const comingFromOutside = !e.currentTarget.contains(e.relatedTarget)
     if (comingFromOutside) {
       focusManager?.focusFirst()
