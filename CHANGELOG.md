@@ -15,7 +15,8 @@ and this project adheres to
 - ✨(frontend) make reaction toolbar responsive on small viewports
 - ✨(frontend) enable reactions on mobile devices
 - ✨(frontend) introduce picture-in-picture meeting
-- ✨(backend) add core.recording.event.parsers.S3Parser 
+- ✨(backend) add core.recording.event.parsers.S3Parser
+- ✨(summary) extended support for all video / audio files #1358
 
 ### Changed 
 

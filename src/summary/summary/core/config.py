@@ -56,16 +56,16 @@ class Settings(BaseSettings):
 
     # Audio recordings
     recording_max_duration: Optional[int] = None
-    recording_allowed_extensions: Set[str] = {
-        ".ogg",
-        ".mp4",
-        ".m4a",
-        ".webm",
-        ".ogv",
-        ".opus",
-        ".wav",
-    }
-    recording_video_extensions: Set[str] = {".mp4"}
+    codec_to_extension: dict[str, str] = Field(
+        default_factory=lambda: {
+            "aac": ".m4a",
+            "alac": ".m4a",
+            "mp3": ".mp3",
+            "opus": ".opus",
+            "vorbis": ".ogg",
+            "flac": ".flac",
+        }
+    )
 
     # Celery settings
     celery_broker_url: str = "redis://redis/0"
