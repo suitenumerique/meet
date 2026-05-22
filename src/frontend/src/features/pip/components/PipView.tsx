@@ -5,6 +5,7 @@ import { PipStage } from './layout/PipStage'
 import { ReactionsToolbar } from '@/features/reactions/components/toolbar/ReactionsToolbar'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 import { NotificationProvider } from '@/features/notifications/NotificationProvider'
+import { ConnectionStateToast } from '@livekit/components-react'
 
 const Container = styled('div', {
   base: {
@@ -46,10 +47,25 @@ const Container = styled('div', {
   },
 })
 
+const ConnectionStateWrapper = styled('div', {
+  base: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    pointerEvents: 'none',
+    '& > *': { pointerEvents: 'auto' },
+  },
+})
+
 export const PipView = () => {
   const { isOpen: isReactionToolbarOpen } = useReactionsToolbar()
   return (
     <Container isReactionToolbarOpen={isReactionToolbarOpen}>
+      <ConnectionStateWrapper>
+        <ConnectionStateToast />
+      </ConnectionStateWrapper>
       <PipStage />
       <ReactionsToolbar adjustedCentering={false} />
       <PipControlBar showScreenShare={false} />
