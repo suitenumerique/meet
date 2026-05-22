@@ -279,6 +279,7 @@ const config: Config = {
         'room-side-panel-margin': { value: '1.5rem' },
         'room-control-bar': { value: '80px' },
         'room-reaction-toolbar-height': { value: '42px' },
+        'tooltip-spacing': { value: '8px' },
       },
       spacing,
     }),
