@@ -6,6 +6,8 @@ import {
   type TooltipProps,
 } from 'react-aria-components'
 import { styled } from '@/styled-system/jsx'
+import { useCrossDocumentOverlays } from '@/primitives/CrossDocumentOverlaysContext'
+import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 
 export type TooltipWrapperProps = {
   tooltip?: string
@@ -24,13 +26,18 @@ export const TooltipWrapper = ({
 }: {
   children: ReactNode
 } & TooltipWrapperProps) => {
-  return tooltip ? (
+  const isCrossDocumentOverlays = useCrossDocumentOverlays()
+
+  if (!tooltip) return children
+
+  if (isCrossDocumentOverlays)
+    return <VisualOnlyTooltip tooltip={tooltip}>{children}</VisualOnlyTooltip>
+
+  return (
     <TooltipTrigger delay={tooltipType === 'instant' ? 150 : 1000}>
       {children}
       <Tooltip>{tooltip}</Tooltip>
     </TooltipTrigger>
-  ) : (
-    children
   )
 }
 

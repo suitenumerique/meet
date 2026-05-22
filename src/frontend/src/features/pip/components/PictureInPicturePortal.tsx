@@ -4,6 +4,7 @@ import { UNSAFE_PortalProvider } from '@react-aria/overlays'
 import { documentPictureInPictureStore } from '@/stores/documentPictureInPicture'
 import { useSnapshot } from 'valtio'
 import { useEffect, useMemo } from 'react'
+import { CrossDocumentOverlaysContext } from '@/primitives/CrossDocumentOverlaysContext'
 
 const InternalPortal = ({ children }: { children: React.ReactNode }) => {
   const pipStoreSnap = useSnapshot(documentPictureInPictureStore)
@@ -32,7 +33,11 @@ const InternalPortal = ({ children }: { children: React.ReactNode }) => {
      * instead.
      */
     <UNSAFE_PortalProvider getContainer={() => container}>
-      {children}
+      {/*React Aria computes overlay position based on the main window size, so*/}
+      {/*we must disable it to position overlays correctly across documents.*/}
+      <CrossDocumentOverlaysContext.Provider value={true}>
+        {children}
+      </CrossDocumentOverlaysContext.Provider>
     </UNSAFE_PortalProvider>,
     container
   )

@@ -1,9 +1,6 @@
 import { Menu as RACMenu, MenuItem } from 'react-aria-components'
 import { PictureInPictureMenuItem } from '@/features/rooms/livekit/components/controls/Options/PictureInPictureMenuItem'
-import {
-  CollapsibleControl,
-  CollapsibleControls,
-} from '../PipControlBar'
+import { CollapsibleControl, CollapsibleControls } from '../PipControlBar'
 import { RiArrowUpLine, RiEmotionLine, RiHand } from '@remixicon/react'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
