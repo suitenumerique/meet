@@ -8,18 +8,66 @@ import { HandToggle } from '@/features/rooms/livekit/components/controls/HandTog
 import { StartMediaButton } from '@/features/rooms/livekit/components/controls/StartMediaButton'
 import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 import { PipOptionsMenu } from './controls/PipOptionsMenu'
+import { usePipElementSize } from '../hooks/usePipElementSize'
+import { useMemo, useRef } from 'react'
+
+export const CollapsibleControls = {
+  HAND: 'hand',
+  SCREEN_SHARE: 'screenShare',
+  REACTIONS: 'reactions',
+} as const
+
+export type CollapsibleControl =
+  (typeof CollapsibleControls)[keyof typeof CollapsibleControls]
+
+const COLLAPSE_ORDER: CollapsibleControl[] = [
+  CollapsibleControls.HAND,
+  CollapsibleControls.SCREEN_SHARE,
+  CollapsibleControls.REACTIONS,
+]
+
+const BUTTON_SLOT = 50
+const ESSENTIAL_WIDTH = 260
+
+const getHiddenControls = (
+  containerWidth: number,
+  showScreenShare: boolean
+): Set<CollapsibleControl> => {
+  const hidden = new Set<CollapsibleControl>()
+  if (containerWidth <= 0) return hidden
+
+  const collapsible = showScreenShare
+    ? COLLAPSE_ORDER
+    : COLLAPSE_ORDER.filter((c) => c !== CollapsibleControls.SCREEN_SHARE)
+
+  const available = containerWidth - ESSENTIAL_WIDTH
+  const maxVisible = Math.max(0, Math.floor(available / BUTTON_SLOT))
+
+  for (let i = 0; i < collapsible.length - maxVisible; i++) {
+    hidden.add(collapsible[i])
+  }
+  return hidden
+}
 
 export const PipControlBar = ({
   showScreenShare,
 }: {
   showScreenShare: boolean
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { width } = usePipElementSize(containerRef)
   const { t } = useTranslation('rooms', {
     keyPrefix: 'pictureInPicture',
   })
 
+  const hidden = useMemo(
+    () => getHiddenControls(width, showScreenShare),
+    [width, showScreenShare]
+  )
+
   return (
     <PipControls
+      ref={containerRef}
       id="pip-control-bar"
       role="toolbar"
       aria-label={t('controlBar')}
@@ -27,11 +75,13 @@ export const PipControlBar = ({
       <PipControlsCenter>
         <AudioDevicesControl hideMenu />
         <VideoDeviceControl hideMenu />
-        <ReactionsToggle />
-        {showScreenShare && <ScreenShareToggle />}
-        <HandToggle />
+        {!hidden.has(CollapsibleControls.REACTIONS) && <ReactionsToggle />}
+        {showScreenShare && !hidden.has(CollapsibleControls.SCREEN_SHARE) && (
+          <ScreenShareToggle />
+        )}
+        {!hidden.has(CollapsibleControls.HAND) && <HandToggle />}
         <StartMediaButton />
-        <PipOptionsMenu />
+        <PipOptionsMenu overflowControls={hidden} />
         <LeaveButton />
       </PipControlsCenter>
     </PipControls>
