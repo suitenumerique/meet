@@ -48,31 +48,31 @@ export const TooltipWrapper = ({
  */
 const StyledTooltip = styled(RACTooltip, {
   base: {
-    boxShadow: '0 8px 20px rgba(0 0 0 / 0.1)',
+    boxShadow: '0 var(--sizes-tooltip-spacing) 20px rgba(0 0 0 / 0.1)',
     borderRadius: '4px',
     backgroundColor: 'primaryDark.100',
     color: 'gray.100',
     forcedColorAdjust: 'none',
     outline: 'none',
-    padding: '2px 8px',
+    padding: '2px var(--sizes-tooltip-spacing)',
     maxWidth: '200px',
     textAlign: 'center',
     fontSize: 14,
     transform: 'translate3d(0, 0, 0)',
     '&[data-placement=top]': {
-      marginBottom: '8px',
+      marginBottom: 'var(--sizes-tooltip-spacing)',
       '--origin': 'translateY(4px)',
     },
     '&[data-placement=bottom]': {
-      marginTop: '8px',
+      marginTop: 'var(--sizes-tooltip-spacing)',
       '--origin': 'translateY(-4px)',
     },
     '&[data-placement=right]': {
-      marginLeft: '8px',
+      marginLeft: 'var(--sizes-tooltip-spacing)',
       '--origin': 'translateX(-4px)',
     },
     '&[data-placement=left]': {
-      marginRight: '8px',
+      marginRight: 'var(--sizes-tooltip-spacing)',
       '--origin': 'translateX(4px)',
     },
     '& .react-aria-OverlayArrow svg': {
