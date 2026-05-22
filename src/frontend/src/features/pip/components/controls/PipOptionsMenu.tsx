@@ -6,7 +6,11 @@ import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { PipOptionsMenuItems } from './PipOptionsMenuItems'
 import { useDismissOnEscape } from '../../hooks/useDismissOnEscape'
+import { CollapsibleControl } from '@/features/pip/components/PipControlBar'
 
+type PipOptionsMenuProps = {
+  overflowControls: Set<CollapsibleControl>
+}
 /**
  * PiP-native options menu.
  *
@@ -35,7 +39,7 @@ import { useDismissOnEscape } from '../../hooks/useDismissOnEscape'
  *
  * So in PiP we replace the primitive with this component.
  */
-export const PipOptionsMenu = () => {
+export const PipOptionsMenu = ({ overflowControls }: PipOptionsMenuProps) => {
   const { t } = useTranslation('rooms')
 
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -115,7 +119,7 @@ export const PipOptionsMenu = () => {
           {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
           <FocusScope autoFocus>
             <Box size="sm" type="popover" variant="dark">
-              <PipOptionsMenuItems />
+              <PipOptionsMenuItems overflowControls={overflowControls} />
             </Box>
           </FocusScope>
         </div>
