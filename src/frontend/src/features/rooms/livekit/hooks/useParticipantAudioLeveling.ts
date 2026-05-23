@@ -7,7 +7,8 @@ import { userPreferencesStore } from '@/stores/userPreferences'
 const TARGET_AUDIO_LEVEL = 0.35
 const MIN_GAIN = 0.6
 const MAX_GAIN = 1
-const SMOOTHING_FACTOR = 0.08
+const ATTENUATION_SMOOTHING_FACTOR = 0.25
+const RECOVERY_SMOOTHING_FACTOR = 0.08
 const UPDATE_INTERVAL_MS = 500
 const MIN_AUDIO_LEVEL = 0.02
 
@@ -50,8 +51,12 @@ export const useParticipantAudioLeveling = () => {
         const prevGain = gainMapRef.current.get(sid) ?? 1
         const desiredGain = TARGET_AUDIO_LEVEL / audioLevel
         const clampedGain = Math.min(MAX_GAIN, Math.max(MIN_GAIN, desiredGain))
+        const smoothingFactor =
+          clampedGain < prevGain
+            ? ATTENUATION_SMOOTHING_FACTOR
+            : RECOVERY_SMOOTHING_FACTOR
         const smoothedGain =
-          prevGain + SMOOTHING_FACTOR * (clampedGain - prevGain)
+          prevGain + smoothingFactor * (clampedGain - prevGain)
 
         gainMapRef.current.set(sid, smoothedGain)
         touchedTracksRef.current.add(audioTrack)
