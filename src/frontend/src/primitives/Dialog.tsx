@@ -8,7 +8,10 @@ import {
   type DialogProps as RACDialogProps,
   Heading,
 } from 'react-aria-components'
-import { Div, Button, Box, VerticallyOffCenter } from '@/primitives'
+import { Div } from './Div'
+import { Button } from './Button'
+import { Box } from './Box'
+import { VerticallyOffCenter } from './VerticallyOffCenter'
 import { text } from './Text'
 import { MutableRefObject } from 'react'
 import { css } from '@/styled-system/css'
