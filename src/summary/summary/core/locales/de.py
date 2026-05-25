@@ -30,4 +30,5 @@ Einige Punkte, die wir Ihnen empfehlen zu überprüfen:
     document_title_template=(
         'Besprechung "{room}" am {room_recording_date} um {room_recording_time}'
     ),
+    summary_title_template="Zusammenfassung von {title}",
 )

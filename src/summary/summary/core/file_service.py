@@ -13,7 +13,6 @@ from urllib.parse import urlparse
 
 import requests
 from minio import Minio
-from minio.error import MinioException, S3Error
 
 from summary.core.config import get_settings
 from summary.core.shared_models import WhisperXResponse
@@ -144,54 +143,6 @@ class FileService:
         self._allowed_extensions = settings.recording_allowed_extensions
         self._max_duration = settings.recording_max_duration
 
-    def _download_from_minio(self, remote_object_key) -> Path:
-        """Download file from MinIO to local temporary file.
-
-        The file is downloaded to a temporary location for local manipulation
-        such as validation, conversion, or processing before being used.
-        """
-        logger.info("Download recording | object_key: %s", remote_object_key)
-
-        if not remote_object_key:
-            logger.warning("Invalid object_key '%s'", remote_object_key)
-            raise ValueError("Invalid object_key")
-
-        extension = Path(remote_object_key).suffix.lower()
-
-        if extension not in self._allowed_extensions:
-            logger.warning("Invalid file extension '%s'", extension)
-            raise ValueError(f"Invalid file extension '{extension}'")
-
-        response = None
-
-        try:
-            response = self._minio_client.get_object(
-                self._bucket_name, remote_object_key
-            )
-
-            with tempfile.NamedTemporaryFile(
-                suffix=extension, delete=False, prefix="minio_download_"
-            ) as tmp:
-                for chunk in response.stream(self._stream_chunk_size):
-                    tmp.write(chunk)
-
-                tmp.flush()
-                local_path = Path(tmp.name)
-
-                logger.info("Recording successfully downloaded")
-                logger.debug("Recording local file path: %s", local_path)
-
-                return local_path
-
-        except (MinioException, S3Error) as e:
-            raise FileServiceException(
-                "Unexpected error while downloading object."
-            ) from e
-
-        finally:
-            if response:
-                response.close()
-
     def _download_from_cloud_storage_url(self, cloud_storage_url: str) -> Path:
         """Download file from a cloud storage URL to local temporary file."""
         logger.info(
@@ -302,33 +253,19 @@ class FileService:
                 os.remove(output_path)
             raise RuntimeError("Failed to extract audio.") from e
 
-    def read_json(self, object_name: str) -> dict:
+    def read_cloud_storage_json(self, cloud_storage_url: str) -> dict:
         """Read and parse a JSON file from MinIO storage."""
-        logger.info("Reading JSON: %s", object_name)
-
-        if not object_name:
-            raise ValueError("Invalid object_name")
-
-        response = None
+        logger.info("Reading JSON: %s", cloud_storage_url)
+        local_path = self._download_from_cloud_storage_url(cloud_storage_url)
         try:
-            response = self._minio_client.get_object(self._bucket_name, object_name)
-            return json.loads(response.read())
-        except (MinioException, S3Error) as e:
-            raise FileServiceException(
-                "Unexpected error while reading JSON object."
-            ) from e
+            return json.load(local_path.open("r"))
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
             raise FileServiceException("Invalid JSON content.") from e
-        finally:
-            if response:
-                response.close()
-                response.release_conn()
 
     @contextmanager
     def prepare_audio_file(
         self,
-        remote_object_key: str | None = None,
-        cloud_storage_url: str | None = None,
+        cloud_storage_url: str,
     ):
         """Download and prepare audio file for processing.
 
@@ -341,20 +278,7 @@ class FileService:
         file_handle = None
 
         try:
-            if bool(remote_object_key) == bool(cloud_storage_url):
-                raise ValueError(
-                    (
-                        "Exactly one of 'remote_object_key' or "
-                        "'cloud_storage_url' must be provided."
-                    )
-                )
-
-            if cloud_storage_url:
-                downloaded_path = self._download_from_cloud_storage_url(
-                    cloud_storage_url
-                )
-            else:
-                downloaded_path = self._download_from_minio(remote_object_key)
+            downloaded_path = self._download_from_cloud_storage_url(cloud_storage_url)
 
             duration = self._validate_duration(downloaded_path)
 

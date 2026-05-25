@@ -30,4 +30,5 @@ Quelques points que nous vous conseillons de vérifier :
     document_title_template=(
         'Réunion "{room}" du {room_recording_date} à {room_recording_time}'
     ),
+    summary_title_template="Résumé de {title}",
 )

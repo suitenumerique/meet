@@ -159,4 +159,5 @@ __all__ = [
     "SummarizeWebhookPayloads",
     "WebhookPayloads",
     "WhisperXResponse",
+    "webhook_payload_adapter",
 ]

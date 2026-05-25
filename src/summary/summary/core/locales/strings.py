@@ -13,3 +13,4 @@ class LocaleStrings:
     hallucination_replacement_text: str
     document_default_title: str
     document_title_template: str
+    summary_title_template: str

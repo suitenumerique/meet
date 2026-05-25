@@ -1,7 +1,10 @@
 """API routes related to application tasks (V2 / tenant friendly)."""
 
+import logging
+from datetime import datetime, timezone
+
 from celery.result import AsyncResult
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from summary.core.celery_worker import (
     celery,
@@ -20,6 +23,7 @@ from summary.core.shared_models import (
     TranscribeWebhookSuccessPayload,
 )
 
+logger = logging.getLogger(__name__)
 router_tasks_v2 = APIRouter()
 
 
@@ -29,8 +33,20 @@ async def create_transcribe_task_v2(
     request_tenant: AuthorizedTenant = Depends(verify_tenant_api_key_v2),
 ):
     """Create a transcription task."""
+    if (
+        request.push_to_docs_config is not None
+        and not request_tenant.allowed_push_to_docs
+    ):
+        logger.error(
+            f"Push to docs is not allowed for this tenant ({request_tenant.id})."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Push to docs is not allowed for this tenant.",
+        )
+
     task = process_audio_transcribe_v2_task.apply_async(
-        args=[{**request.model_dump(), "tenant_id": request_tenant.id}]
+        args=[{**request.model_dump(), "tenant_id": request_tenant.id, "received_at": datetime.now(timezone.utc)}]
     )
 
     return TranscribeWebhookPendingPayload(job_id=task.id).model_dump()
