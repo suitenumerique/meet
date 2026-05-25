@@ -2,7 +2,6 @@
 export { useIsRecordingModeEnabled } from './hooks/useIsRecordingModeEnabled'
 export { useHasRecordingAccess } from './hooks/useHasRecordingAccess'
 export { useHasFeatureWithoutAdminRights } from './hooks/useHasFeatureWithoutAdminRights'
-export { useHumanizeRecordingMaxDuration } from './hooks/useHumanizeRecordingMaxDuration'
 export { useRecordingStatuses } from './hooks/useRecordingStatuses'
 
 // api
