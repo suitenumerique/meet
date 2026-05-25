@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "panda codegen && vite",
     "build": "panda codegen && tsc -b && vite build",
+    "build:debug": "VITE_ANALYZE=true npm run build -- --debug",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "i18n:extract": "npx i18next -c i18next-parser.config.json",
@@ -64,6 +65,7 @@
     "eslint-plugin-react-refresh": "0.4.20",
     "postcss": "8.5.14",
     "prettier": "3.8.1",
+    "rollup-plugin-visualizer": "7.0.1",
     "typescript": "5.8.3",
     "vite": "7.3.2",
     "vite-tsconfig-paths": "6.1.1"
