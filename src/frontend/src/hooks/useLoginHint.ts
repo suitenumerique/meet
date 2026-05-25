@@ -1,6 +1,6 @@
 import { useSnapshot } from 'valtio'
 import { hintsStore } from '@/stores/hints'
-import { useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
 import { useEffect } from 'react'
 
 export const useLoginHint = () => {

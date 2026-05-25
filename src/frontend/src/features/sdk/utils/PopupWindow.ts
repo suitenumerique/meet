@@ -1,4 +1,4 @@
-import { authUrl } from '@/features/auth'
+import { authUrl } from '@/features/auth/utils/authUrl'
 import { PopupMessageType, CallbackCreationRoomData } from './types'
 
 export class PopupWindow {

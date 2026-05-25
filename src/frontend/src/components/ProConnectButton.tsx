@@ -1,5 +1,5 @@
 import { Link as RALink } from 'react-aria-components'
-import { authUrl } from '@/features/auth'
+import { authUrl } from '@/features/auth/utils/authUrl'
 import { cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { VStack } from '@/styled-system/jsx'

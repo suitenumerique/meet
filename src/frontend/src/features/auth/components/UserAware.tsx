@@ -1,4 +1,4 @@
-import { useUser } from '@/features/auth'
+import { useUser } from '../api/useUser'
 import { LoadingScreen } from '@/components/LoadingScreen'
 
 /**

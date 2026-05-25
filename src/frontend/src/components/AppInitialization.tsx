@@ -2,7 +2,7 @@ import { silenceLiveKitLogs } from '@/utils/livekit'
 import { useConfig } from '@/api/useConfig'
 import { useAnalytics } from '@/features/analytics/hooks/useAnalytics'
 import { useSupport } from '@/features/support/hooks/useSupport'
-import { useSyncUserPreferencesWithBackend } from '@/features/auth'
+import { useSyncUserPreferencesWithBackend } from '@/features/auth/api/useSyncUserPreferencesWithBackend'
 import { useEffect } from 'react'
 
 export const AppInitialization = () => {

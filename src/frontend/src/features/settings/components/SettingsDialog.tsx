@@ -1,7 +1,7 @@
 import { Trans, useTranslation } from 'react-i18next'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
 import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
-import { useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
 import { LoginButton } from '@/components/LoginButton'
 
 export type SettingsDialogProps = Pick<DialogProps, 'isOpen' | 'onOpenChange'>

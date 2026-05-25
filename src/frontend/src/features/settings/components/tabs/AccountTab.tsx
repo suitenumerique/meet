@@ -1,7 +1,7 @@
 import { A, Badge, Button, DialogProps, Field, H, P } from '@/primitives'
 import { Trans, useTranslation } from 'react-i18next'
 import { useRoomContext } from '@livekit/components-react'
-import { useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
 import { css } from '@/styled-system/css'
 import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import { HStack } from '@/styled-system/jsx'
