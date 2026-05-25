@@ -41,7 +41,7 @@ const BetaBadge = () => (
   </span>
 )
 
-export const RecordingDownload = () => {
+const RecordingDownload = () => {
   const { t } = useTranslation('recording')
   const { data: configData } = useConfig()
   const { recordingId } = useParams()
@@ -176,3 +176,5 @@ export const RecordingDownload = () => {
     </UserAware>
   )
 }
+
+export default RecordingDownload

@@ -28,7 +28,7 @@ enum DisconnectReasonKey {
   ParticipantRemoved = 'participantRemoved',
 }
 
-export const FeedbackRoute = () => {
+const FeedbackRoute = () => {
   const { t } = useTranslation('rooms')
   const [, setLocation] = useLocation()
 
@@ -78,3 +78,5 @@ export const FeedbackRoute = () => {
     </Screen>
   )
 }
+
+export default FeedbackRoute

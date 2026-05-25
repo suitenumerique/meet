@@ -9,7 +9,7 @@ import { PopupWindow } from '../utils/PopupWindow'
 const callbackIdHandler = new CallbackIdHandler()
 const popupWindow = new PopupWindow()
 
-export const CreatePopup = () => {
+const CreatePopup = () => {
   const { isLoggedIn } = useUser({ fetchUserOptions: { attemptSilent: false } })
   const { mutateAsync: createRoom } = useCreateRoom()
 
@@ -74,3 +74,5 @@ export const CreatePopup = () => {
     </div>
   )
 }
+
+export default CreatePopup

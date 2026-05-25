@@ -1,15 +1,25 @@
-import {
-  FeedbackRoute,
-  RoomRoute,
-  flexibleRoomIdPattern,
-} from '@/features/rooms'
-import { HomeRoute } from '@/features/home'
-import { LegalTermsRoute } from '@/features/legalsTerms/LegalTermsRoute'
-import { AccessibilityRoute } from '@/features/legalsTerms/Accessibility'
-import { TermsOfServiceRoute } from '@/features/legalsTerms/TermsOfService'
-import { CreatePopup } from '@/features/sdk/routes/CreatePopup'
-import { CreateMeetingButton } from '@/features/sdk/routes/CreateMeetingButton'
-import { RecordingDownloadRoute } from '@/features/recording'
+import { flexibleRoomIdPattern } from '@/features/rooms'
+import { ComponentType, lazy, LazyExoticComponent } from 'react'
+
+const HomeRoute = lazy(() => import('@/features/home/routes/Home'))
+const RecordingDownloadRoute = lazy(
+  () => import('@/features/recording/routes/RecordingDownload')
+)
+const CreatePopup = lazy(() => import('@/features/sdk/routes/CreatePopup'))
+const CreateMeetingButton = lazy(
+  () => import('@/features/sdk/routes/CreateMeetingButton')
+)
+const LegalTermsRoute = lazy(
+  () => import('@/features/legalsTerms/LegalTermsRoute')
+)
+const TermsOfServiceRoute = lazy(
+  () => import('@/features/legalsTerms/TermsOfService')
+)
+const AccessibilityRoute = lazy(
+  () => import('@/features/legalsTerms/Accessibility')
+)
+const RoomRoute = lazy(() => import('@/features/rooms/routes/Room'))
+const FeedbackRoute = lazy(() => import('@/features/rooms/routes/Feedback'))
 
 const roomIdRegex = new RegExp(`^[/](?<roomId>${flexibleRoomIdPattern})$`)
 
@@ -26,7 +36,7 @@ export const routes: Record<
   {
     name: RouteName
     path: RegExp | string
-    Component: () => JSX.Element
+    Component: LazyExoticComponent<ComponentType>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     to?: (...args: any[]) => string | URL
   }

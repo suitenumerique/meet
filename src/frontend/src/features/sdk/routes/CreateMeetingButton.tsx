@@ -17,7 +17,7 @@ import { useSearchParams } from 'wouter'
 
 const popupManager = new PopupManager()
 
-export const CreateMeetingButton = () => {
+const CreateMeetingButton = () => {
   const { t } = useTranslation('sdk', { keyPrefix: 'createMeeting' })
 
   const [searchParams] = useSearchParams()
@@ -182,3 +182,5 @@ export const CreateMeetingButton = () => {
     </div>
   )
 }
+
+export default CreateMeetingButton

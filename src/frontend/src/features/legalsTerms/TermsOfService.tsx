@@ -12,7 +12,7 @@ const ensureArray = (value: any) => {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export const TermsOfServiceRoute = () => {
+const TermsOfServiceRoute = () => {
   const { t } = useTranslation('termsOfService')
 
   return (
@@ -199,3 +199,5 @@ export const TermsOfServiceRoute = () => {
     </Screen>
   )
 }
+
+export default TermsOfServiceRoute
