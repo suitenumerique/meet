@@ -3,7 +3,7 @@ import { H, P, A, Italic, Ul } from '@/primitives'
 import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 
-export const AccessibilityRoute = () => {
+const AccessibilityRoute = () => {
   const { t } = useTranslation('accessibility', { keyPrefix: 'accessibility' })
 
   return (
@@ -78,3 +78,5 @@ export const AccessibilityRoute = () => {
     </Screen>
   )
 }
+
+export default AccessibilityRoute

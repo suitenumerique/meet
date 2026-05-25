@@ -21,7 +21,7 @@ const BaseRoom = ({ children }: { children: ReactNode }) => {
   )
 }
 
-export const Room = () => {
+const Room = () => {
   const { isLoggedIn } = useUser()
   const [hasSubmittedEntry, setHasSubmittedEntry] = useState(false)
 
@@ -74,3 +74,5 @@ export const Room = () => {
     </BaseRoom>
   )
 }
+
+export default Room

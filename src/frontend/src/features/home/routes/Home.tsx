@@ -147,7 +147,7 @@ const IntroText = styled('div', {
   },
 })
 
-export const Home = () => {
+const Home = () => {
   const { t } = useTranslation('home')
   const { isLoggedIn } = useUser()
 
@@ -273,3 +273,5 @@ export const Home = () => {
     </UserAware>
   )
 }
+
+export default Home
