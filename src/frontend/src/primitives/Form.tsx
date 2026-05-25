@@ -3,7 +3,7 @@ import { Form as RACForm, type FormProps } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { HStack } from '@/styled-system/jsx'
 import { Button, useCloseDialog } from '@/primitives'
-import { ButtonProps } from '@/primitives/Button'
+import { type ButtonProps } from '@/primitives/Button'
 
 /**
  * From wrapper that exposes form data on submit and adds submit/cancel buttons

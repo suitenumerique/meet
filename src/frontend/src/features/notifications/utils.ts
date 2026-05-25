@@ -1,9 +1,9 @@
 import { toastQueue } from './components/ToastProvider'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
-import { Participant } from 'livekit-client'
-import { NotificationPayload } from './NotificationPayload'
-import { RecordingMode } from '@/features/recording'
+import type { Participant } from 'livekit-client'
+import type { NotificationPayload } from './NotificationPayload'
+import type { RecordingMode } from '@/features/recording'
 
 export const showLowerHandToast = (
   participant: Participant,

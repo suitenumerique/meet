@@ -1,4 +1,4 @@
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { useLowerHandParticipant } from './lowerHandParticipant'
 
 export const useLowerHandParticipants = () => {

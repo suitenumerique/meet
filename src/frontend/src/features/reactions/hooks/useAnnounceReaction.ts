@@ -5,7 +5,7 @@ import { accessibilityStore } from '@/stores/accessibility'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 import { getEmojiLabel } from '../utils'
-import { Reaction } from '../types'
+import type { Reaction } from '../types'
 
 export const useAnnounceReaction = (latestReaction: Reaction | undefined) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.reactions' })

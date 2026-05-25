@@ -9,7 +9,7 @@ import { HandRaisedListItem } from '../../controls/Participants/HandRaisedListIt
 import { LowerAllHandsButton } from '../../controls/Participants/LowerAllHandsButton'
 import { WaitingParticipantListItem } from './WaitingParticipantListItem'
 import { useWaitingParticipants } from '@/features/rooms/hooks/useWaitingParticipants'
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
 import { MuteEveryoneButton } from './MuteEveryoneButton'
 

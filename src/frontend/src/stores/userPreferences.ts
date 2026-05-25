@@ -1,5 +1,4 @@
-import { proxy } from 'valtio'
-import { subscribe } from 'valtio/index'
+import { proxy, subscribe } from 'valtio'
 import { STORAGE_KEYS } from '@/utils/storageKeys'
 
 type State = {

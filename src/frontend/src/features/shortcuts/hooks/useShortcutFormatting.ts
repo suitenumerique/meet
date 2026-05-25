@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Shortcut } from '../types'
+import type { Shortcut } from '../types'
 import {
   formatShortcutLabel,
   formatShortcutLabelForSR,

@@ -1,7 +1,7 @@
 import { useMutation, UseMutationOptions } from '@tanstack/react-query'
 import { fetchApi } from '@/api/fetchApi'
-import { ApiError } from '@/api/ApiError'
-import { ApiRoom } from './ApiRoom'
+import type { ApiError } from '@/api/ApiError'
+import type { ApiRoom } from './ApiRoom'
 
 export interface CreateRoomParams {
   slug: string

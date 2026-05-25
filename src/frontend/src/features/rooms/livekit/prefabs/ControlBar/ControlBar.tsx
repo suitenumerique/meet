@@ -1,4 +1,4 @@
-import { Track } from 'livekit-client'
+import type { Track } from 'livekit-client'
 import * as React from 'react'
 
 import { MobileControlBar } from './MobileControlBar'

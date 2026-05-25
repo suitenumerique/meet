@@ -1,5 +1,5 @@
 import { useFocusToggleParticipant } from '@/features/rooms/livekit/hooks/useFocusToggleParticipant'
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { RiPushpin2Fill } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 

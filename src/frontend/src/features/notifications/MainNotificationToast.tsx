@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
-import { ChatMessage, isMobileBrowser } from '@livekit/components-core'
+import { type ChatMessage, isMobileBrowser } from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'

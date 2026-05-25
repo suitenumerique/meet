@@ -7,7 +7,7 @@ import { Text } from '@/primitives'
 import { useRoomContext } from '@livekit/components-react'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
-import { Participant, RoomEvent } from 'livekit-client'
+import { type Participant, RoomEvent } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import {
   accessibilityStore,

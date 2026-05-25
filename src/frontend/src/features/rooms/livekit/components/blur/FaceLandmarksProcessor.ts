@@ -1,4 +1,4 @@
-import { ProcessorOptions, Track, TrackProcessor } from 'livekit-client'
+import type { ProcessorOptions, Track, TrackProcessor } from 'livekit-client'
 import posthog from 'posthog-js'
 import {
   FilesetResolver,

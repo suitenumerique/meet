@@ -1,4 +1,4 @@
-import { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
+import type { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
 import { NoiseSuppressorWorklet_Name } from '@timephy/rnnoise-wasm'
 
 // This is an example how to get the script path using Vite, may be different when using other build tools

@@ -1,6 +1,6 @@
 import { ApiError } from '@/api/ApiError'
 import { fetchApi } from '@/api/fetchApi'
-import { useMutation, UseMutationOptions } from '@tanstack/react-query'
+import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 
 export interface EnterRoomParams {
   roomId: string

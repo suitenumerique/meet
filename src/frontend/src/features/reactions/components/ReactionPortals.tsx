@@ -5,7 +5,7 @@ import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
 import { reactionsStore } from '@/stores/reactions'
 import { useAnnounceReaction } from '../hooks/useAnnounceReaction'
-import { Reaction } from '../types'
+import type { Reaction } from '../types'
 import {
   ANIMATION_DISTANCE,
   ANIMATION_DURATION,

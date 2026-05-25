@@ -1,4 +1,4 @@
-import { Shortcut } from './types'
+import type { Shortcut } from './types'
 import { isMacintosh } from '@/utils/livekit'
 
 // Visible label for a shortcut (uses ⌘/Ctrl prefix when needed).

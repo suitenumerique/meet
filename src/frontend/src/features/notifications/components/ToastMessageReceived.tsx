@@ -1,7 +1,7 @@
 import { useToast } from '@react-aria/toast'
 import { useEffect, useRef } from 'react'
 
-import { StyledToastContainer, ToastProps } from './Toast'
+import { StyledToastContainer, type ToastProps } from './Toast'
 import { Text } from '@/primitives'
 import { RiMessage2Line } from '@remixicon/react'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'

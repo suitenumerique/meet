@@ -1,6 +1,6 @@
 import { Button } from '@/primitives'
 import { useTranslation } from 'react-i18next'
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { useMuteParticipants } from '@/features/rooms/api/muteParticipants'
 import { RiMicOffLine } from '@remixicon/react'

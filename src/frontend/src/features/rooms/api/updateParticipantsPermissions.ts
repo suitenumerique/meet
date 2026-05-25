@@ -1,4 +1,4 @@
-import { Participant, Track } from 'livekit-client'
+import type { Participant, Track } from 'livekit-client'
 import { useParticipantPermissions } from './updateParticipantPermissions'
 type Source = Track.Source
 

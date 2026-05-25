@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
-import { Emoji } from '../../types'
+import type { Emoji } from '../../types'
 import { useReactions } from '../../hooks/useReactions'
 import { Button } from '@/primitives'
 

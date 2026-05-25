@@ -1,4 +1,4 @@
-import { MediaDeviceFailure } from 'livekit-client'
+import type { MediaDeviceFailure } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { Button, Dialog, P } from '@/primitives'
 

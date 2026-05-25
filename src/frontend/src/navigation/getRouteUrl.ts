@@ -1,4 +1,4 @@
-import { RouteName } from '@/routes'
+import { type RouteName } from '@/routes'
 import { getRoutePath } from './getRoutePath'
 
 export const getRouteUrl = (

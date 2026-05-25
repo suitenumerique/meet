@@ -1,6 +1,6 @@
 import { DialogProps, Field } from '@/primitives'
 
-import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
+import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import { useMediaDeviceSelect, useRoomContext } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
 import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { css } from '@/styled-system/css'
 import {
   createLocalVideoTrack,
-  LocalVideoTrack,
+  type LocalVideoTrack,
   Track,
   VideoPresets,
   VideoQuality,

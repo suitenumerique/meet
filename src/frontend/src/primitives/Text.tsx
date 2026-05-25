@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import type { HTMLAttributes } from 'react'
-import { RecipeVariantProps, cva, cx } from '@/styled-system/css'
+import { type RecipeVariantProps, cva, cx } from '@/styled-system/css'
 
 export const text = cva({
   base: {},

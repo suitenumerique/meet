@@ -1,7 +1,10 @@
 import { Div, ToggleButton } from '@/primitives'
 import { RiArrowUpLine, RiCloseFill, RiRectangleLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
-import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
+import {
+  useTrackToggle,
+  type UseTrackToggleProps,
+} from '@livekit/components-react'
 import { Track } from 'livekit-client'
 import React from 'react'
 import { type ButtonRecipeProps } from '@/primitives/buttonRecipe'

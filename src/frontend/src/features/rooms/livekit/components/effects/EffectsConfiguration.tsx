@@ -1,4 +1,4 @@
-import { LocalVideoTrack, Track } from 'livekit-client'
+import { type LocalVideoTrack, Track } from 'livekit-client'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {

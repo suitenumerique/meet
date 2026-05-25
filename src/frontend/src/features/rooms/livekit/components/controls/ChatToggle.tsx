@@ -5,7 +5,7 @@ import { css } from '@/styled-system/css'
 import { ToggleButton } from '@/primitives'
 import { chatStore } from '@/stores/chat'
 import { useSidePanel } from '../../hooks/useSidePanel'
-import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 
 export const ChatToggle = ({

@@ -2,7 +2,7 @@ import {
   getBrowser,
   LocalParticipant,
   LogLevel,
-  Participant,
+  type Participant,
   setLogLevel,
 } from 'livekit-client'
 

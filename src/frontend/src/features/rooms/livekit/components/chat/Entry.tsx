@@ -2,7 +2,7 @@ import type { ReceivedChatMessage } from '@livekit/components-core'
 import * as React from 'react'
 import { css } from '@/styled-system/css'
 import { Text } from '@/primitives'
-import { MessageFormatter } from '@livekit/components-react'
+import type { MessageFormatter } from '@livekit/components-react'
 
 export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
   entry: ReceivedChatMessage

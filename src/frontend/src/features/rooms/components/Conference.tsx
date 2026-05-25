@@ -9,7 +9,7 @@ import {
   DisconnectReason,
   MediaDeviceFailure,
   Room,
-  RoomOptions,
+  type RoomOptions,
   VideoPresets,
 } from 'livekit-client'
 import { keys } from '@/api/queryKeys'
@@ -18,7 +18,7 @@ import { Screen } from '@/layout/Screen'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
-import { ApiRoom } from '../api/ApiRoom'
+import type { ApiRoom } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
 import { VideoConference } from '../livekit/prefabs/VideoConference'

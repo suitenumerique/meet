@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { Text } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { useParticipantInfo } from '@livekit/components-react'
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 
 const participantNameStyles: CSSProperties = {
   paddingBottom: '0.1rem',

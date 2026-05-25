@@ -1,6 +1,6 @@
 import { DialogProps, Field, Switch, Text } from '@/primitives'
 
-import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
+import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import {
   useIsSpeaking,
   useMediaDeviceSelect,

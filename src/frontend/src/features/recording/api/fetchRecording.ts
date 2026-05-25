@@ -1,6 +1,6 @@
 import { fetchApi } from '@/api/fetchApi'
-import { ApiRoom } from '@/features/rooms/api/ApiRoom'
-import { RecordingMode, RecordingStatus } from '@/features/recording'
+import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import type { RecordingMode, RecordingStatus } from '@/features/recording'
 
 export type RecordingApi = {
   id: string

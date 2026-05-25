@@ -4,8 +4,8 @@ import { reactionsStore } from '@/stores/reactions'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { useNotifyParticipants } from '@/features/notifications'
 import useRateLimiter from '@/hooks/useRateLimiter'
-import { Participant } from 'livekit-client'
-import { Emoji } from '../types'
+import type { Participant } from 'livekit-client'
+import type { Emoji } from '../types'
 import { ANIMATION_DURATION } from '../constants'
 
 export const useReactions = () => {

@@ -1,7 +1,7 @@
 import React from 'react'
 import { css } from '@/styled-system/css'
 import { text } from '@/primitives/Text'
-import { ShortcutDescriptor } from '../catalog'
+import type { ShortcutDescriptor } from '../catalog'
 import { ShortcutBadge } from './ShortcutBadge'
 import { useShortcutFormatting } from '../hooks/useShortcutFormatting'
 import { useTranslation } from 'react-i18next'

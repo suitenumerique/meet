@@ -2,7 +2,7 @@ import { useTelephony } from './useTelephony'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useState } from 'react'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
-import { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 
 const COPY_SUCCESS_TIMEOUT = 3000

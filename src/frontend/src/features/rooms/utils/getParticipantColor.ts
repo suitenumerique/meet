@@ -1,4 +1,4 @@
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 
 const DEFAULT_COLOR = 'rgb(87, 44, 216)'
 
