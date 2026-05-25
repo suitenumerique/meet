@@ -2,8 +2,8 @@ import { type FormEvent } from 'react'
 import { Form as RACForm, type FormProps } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { HStack } from '@/styled-system/jsx'
-import { Button, useCloseDialog } from '@/primitives'
-import { type ButtonProps } from '@/primitives/Button'
+import { useCloseDialog } from './useCloseDialog'
+import { type ButtonProps, Button } from './Button'
 
 /**
  * From wrapper that exposes form data on submit and adds submit/cancel buttons
