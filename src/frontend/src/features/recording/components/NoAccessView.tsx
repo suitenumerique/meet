@@ -3,7 +3,7 @@ import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { LoginPrompt } from './LoginPrompt'
 import { RequestRecording } from './RequestRecording'
-import { useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
 import { HStack, VStack } from '@/styled-system/jsx'
 
 const Divider = ({ label }: { label: string }) => (
