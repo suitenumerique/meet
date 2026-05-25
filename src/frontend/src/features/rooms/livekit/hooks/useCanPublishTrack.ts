@@ -1,4 +1,4 @@
-import { TrackSource } from '@livekit/protocol'
+import type { TrackSource } from '@livekit/protocol'
 import {
   useLocalParticipant,
   useParticipantPermissions,

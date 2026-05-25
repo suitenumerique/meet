@@ -1,7 +1,7 @@
 import { useMutation, UseMutationOptions } from '@tanstack/react-query'
 import { fetchApi } from '@/api/fetchApi'
-import { ApiError } from '@/api/ApiError'
-import { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import type { ApiError } from '@/api/ApiError'
+import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
 
 export interface StopRecordingParams {
   id: string

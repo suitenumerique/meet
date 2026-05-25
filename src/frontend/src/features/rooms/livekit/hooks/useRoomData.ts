@@ -1,4 +1,4 @@
-import { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { useParams } from 'wouter'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'

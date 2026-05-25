@@ -1,4 +1,4 @@
-import { ProcessorOptions, Track } from 'livekit-client'
+import type { ProcessorOptions, Track } from 'livekit-client'
 import posthog from 'posthog-js'
 import {
   FilesetResolver,
@@ -11,7 +11,11 @@ import {
   TIMEOUT_TICK,
   timerWorkerScript,
 } from './TimerWorker'
-import { BackgroundProcessorInterface, ProcessorConfig, ProcessorType } from '.'
+import {
+  BackgroundProcessorInterface,
+  type ProcessorConfig,
+  type ProcessorType,
+} from '.'
 
 const PROCESSING_WIDTH = 256
 const PROCESSING_HEIGHT = 144

@@ -6,8 +6,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   createLocalAudioTrack,
   createLocalVideoTrack,
-  LocalAudioTrack,
-  LocalVideoTrack,
+  type LocalAudioTrack,
+  type LocalVideoTrack,
   Track,
 } from 'livekit-client'
 import { H } from '@/primitives/H'
@@ -30,7 +30,7 @@ import { keys } from '@/api/queryKeys'
 import { useLobby } from '../hooks/useLobby'
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/queryClient'
-import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
+import { ApiLobbyStatus, type ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'

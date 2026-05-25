@@ -3,7 +3,7 @@
 // @ts-nocheck
 
 import { useMemo, useState } from 'react'
-import { TrackReferenceOrPlaceholder } from '@livekit/components-core'
+import { type TrackReferenceOrPlaceholder } from '@livekit/components-core'
 
 export function useFullScreen({
   trackRef,

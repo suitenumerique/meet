@@ -1,5 +1,5 @@
 import { useLocalParticipant } from '@livekit/components-react'
-import { LocalVideoTrack } from 'livekit-client'
+import type { LocalVideoTrack } from 'livekit-client'
 import { css } from '@/styled-system/css'
 import { EffectsConfiguration } from './EffectsConfiguration'
 import { useCanPublishTrack } from '@/features/rooms/livekit/hooks/useCanPublishTrack'

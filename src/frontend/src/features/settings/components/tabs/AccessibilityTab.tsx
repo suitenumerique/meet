@@ -1,5 +1,5 @@
 import { Field, H, Text } from '@/primitives'
-import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
+import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import { css } from '@/styled-system/css'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'

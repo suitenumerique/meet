@@ -1,5 +1,5 @@
-import { Track } from 'livekit-client'
-import Source = Track.Source
+import type { Track } from 'livekit-client'
+type Source = Track.Source
 
 export type ApiLiveKit = {
   url: string

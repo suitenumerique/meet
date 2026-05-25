@@ -1,7 +1,7 @@
 import useSound from 'use-sound'
 import { useSnapshot } from 'valtio'
 import { notificationsStore } from '@/stores/notifications'
-import { NotificationType } from '@/features/notifications/NotificationType'
+import type { NotificationType } from '@/features/notifications/NotificationType'
 
 // fixme - handle dynamic audio output changes
 export const useNotificationSound = () => {

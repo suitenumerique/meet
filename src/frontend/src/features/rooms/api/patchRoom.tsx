@@ -1,7 +1,7 @@
 import { type ApiRoom } from './ApiRoom'
 import { fetchApi } from '@/api/fetchApi'
-import { useMutation, UseMutationOptions } from '@tanstack/react-query'
-import { ApiError } from '@/api/ApiError'
+import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
+import type { ApiError } from '@/api/ApiError'
 
 export type PatchRoomParams = {
   roomId: string

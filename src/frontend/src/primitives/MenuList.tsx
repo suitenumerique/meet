@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { Menu, MenuProps, MenuItem } from 'react-aria-components'
+import { Menu, type MenuProps, MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { VisuallyHidden } from '@/styled-system/jsx'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'

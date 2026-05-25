@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { RoomEvent } from 'livekit-client'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
-import {
+import type {
   ApiAccessLevel,
   ApiRoom,
   RoomConfiguration,

@@ -5,7 +5,7 @@ import {
 } from '@/features/rooms/livekit/components/blur'
 import {
   loadUserChoices,
-  LocalUserChoices as LocalUserChoicesLK,
+  type LocalUserChoices as LocalUserChoicesLK,
   saveUserChoices,
 } from '@livekit/components-core'
 import { VideoQuality } from 'livekit-client'

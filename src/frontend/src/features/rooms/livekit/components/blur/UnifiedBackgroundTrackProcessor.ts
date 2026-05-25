@@ -1,10 +1,14 @@
-import { ProcessorOptions, Track } from 'livekit-client'
+import type { ProcessorOptions, Track } from 'livekit-client'
 import {
   BackgroundBlur,
   ProcessorWrapper,
   VirtualBackground,
 } from '@livekit/track-processors'
-import { ProcessorConfig, BackgroundProcessorInterface, ProcessorType } from '.'
+import {
+  type ProcessorConfig,
+  BackgroundProcessorInterface,
+  ProcessorType,
+} from '.'
 
 export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInterface {
   processor: ProcessorWrapper<{ imagePath?: string; blurRadius?: number }>

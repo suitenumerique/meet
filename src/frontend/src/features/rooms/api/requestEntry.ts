@@ -1,5 +1,5 @@
 import { fetchApi } from '@/api/fetchApi'
-import { ApiLiveKit } from '@/features/rooms/api/ApiRoom'
+import type { ApiLiveKit } from '@/features/rooms/api/ApiRoom'
 
 export interface RequestEntryParams {
   roomId: string

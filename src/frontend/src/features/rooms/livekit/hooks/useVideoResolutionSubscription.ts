@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { usePersistentUserChoices } from './usePersistentUserChoices'
 import { useRoomContext } from '@livekit/components-react'
 import {
-  RemoteParticipant,
-  RemoteTrackPublication,
+  type RemoteParticipant,
+  type RemoteTrackPublication,
   RoomEvent,
   Track,
   VideoQuality,

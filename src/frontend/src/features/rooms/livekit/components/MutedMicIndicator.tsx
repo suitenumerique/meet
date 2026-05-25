@@ -1,5 +1,5 @@
 import { useTrackMutedIndicator } from '@livekit/components-react'
-import { Participant, Track } from 'livekit-client'
+import { type Participant, Track } from 'livekit-client'
 import Source = Track.Source
 import { RiMicOffFill } from '@remixicon/react'
 import { css } from '@/styled-system/css'

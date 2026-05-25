@@ -4,7 +4,7 @@ import { ProcessorType } from '../blur'
 import { RiGlassesLine, RiGoblet2Fill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { FaceLandmarksProcessor } from '../blur/FaceLandmarksProcessor'
-import { LocalVideoTrack } from 'livekit-client'
+import type { LocalVideoTrack } from 'livekit-client'
 
 export type FunnyEffectsProps = {
   videoTrack: LocalVideoTrack

@@ -1,5 +1,5 @@
 import { useFocusToggle } from '@livekit/components-react'
-import { Participant, Track } from 'livekit-client'
+import { type Participant, Track } from 'livekit-client'
 import { useCallback } from 'react'
 import type { MouseEvent } from 'react'
 import Source = Track.Source

@@ -1,4 +1,4 @@
-import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
+import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import { Field, H } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { RecordingLanguage, recordingStore } from '@/stores/recording'

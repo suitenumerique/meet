@@ -1,4 +1,4 @@
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { styled } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
 import { useIsSpeaking } from '@livekit/components-react'

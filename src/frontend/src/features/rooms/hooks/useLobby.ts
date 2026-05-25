@@ -4,7 +4,7 @@ import { keys } from '@/api/queryKeys'
 import {
   requestEntry,
   ApiLobbyStatus,
-  ApiRequestEntry,
+  type ApiRequestEntry,
 } from '../api/requestEntry'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes

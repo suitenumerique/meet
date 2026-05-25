@@ -1,4 +1,4 @@
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { HStack } from '@/styled-system/jsx'
 import { RiCloseLine } from '@remixicon/react'

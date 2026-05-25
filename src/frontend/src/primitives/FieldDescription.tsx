@@ -1,5 +1,5 @@
 import { styled } from '@/styled-system/jsx'
-import { Text, TextProps } from 'react-aria-components'
+import { Text, type TextProps } from 'react-aria-components'
 
 const StyledDescription = styled(Text, {
   base: {

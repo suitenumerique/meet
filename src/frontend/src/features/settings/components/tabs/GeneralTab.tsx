@@ -1,7 +1,7 @@
 import { Field, H } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
-import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
+import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { useSnapshot } from 'valtio'
 

@@ -1,10 +1,10 @@
 import { useToast } from '@react-aria/toast'
 import { Button } from '@/primitives'
 import { RiCloseLine } from '@remixicon/react'
-import { ToastState } from '@react-stately/toast'
 import { styled } from '@/styled-system/jsx'
 import { useRef } from 'react'
-import { ToastData } from './ToastProvider'
+import type { ToastState } from '@react-stately/toast'
+import type { ToastData } from './ToastProvider'
 import type { QueuedToast } from '@react-stately/toast'
 
 export const StyledToastContainer = styled('div', {

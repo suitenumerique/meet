@@ -9,7 +9,7 @@ import {
   TabPanelProps as RACTabPanelProps,
 } from 'react-aria-components'
 import { styled } from '@/styled-system/jsx'
-import { StyledVariantProps } from '@/styled-system/types'
+import { type StyledVariantProps } from '@/styled-system/types'
 import React from 'react'
 
 const StyledTabs = styled(RACTabs, {

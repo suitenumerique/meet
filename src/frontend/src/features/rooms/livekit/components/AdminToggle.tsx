@@ -2,7 +2,7 @@ import { ToggleButton } from '@/primitives'
 import { RiAdminLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
-import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
 import { useSidePanel } from '../hooks/useSidePanel'
 

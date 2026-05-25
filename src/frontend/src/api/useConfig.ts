@@ -2,8 +2,8 @@ import { fetchApi } from './fetchApi'
 import { keys } from './queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { RecordingMode } from '@/features/recording'
-import { Track } from 'livekit-client'
-import Source = Track.Source
+import type { Track } from 'livekit-client'
+type Source = Track.Source
 
 export interface ApiConfig {
   analytics?: {

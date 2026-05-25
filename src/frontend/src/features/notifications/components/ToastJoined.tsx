@@ -6,7 +6,7 @@ import Source = Track.Source
 
 import { useMaybeLayoutContext } from '@livekit/components-react'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
-import { StyledToastContainer, ToastProps } from './Toast'
+import { StyledToastContainer, type ToastProps } from './Toast'
 import { HStack, styled } from '@/styled-system/jsx'
 import { Div } from '@/primitives'
 import { useTranslation } from 'react-i18next'

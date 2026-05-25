@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { useEffect, useMemo } from 'react'
 import { Select, SelectProps } from '@/primitives/Select'
-import { Placement } from '@react-types/overlays'
+import type { Placement } from '@react-types/overlays'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '@/features/rooms/livekit/hooks/useDeviceIcons'
 

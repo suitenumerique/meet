@@ -1,4 +1,4 @@
-import { Fragment, ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 
 export const parseLineBreaks = (text: string): ReactNode[] => {
   const parts = text.split(/(<br\s*\/?>)/gi)

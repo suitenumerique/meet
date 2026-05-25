@@ -12,13 +12,16 @@ import {
   useLocalParticipant,
   useMaybeRoomContext,
 } from '@livekit/components-react'
-import { ButtonRecipeProps } from '@/primitives/buttonRecipe'
-import { ToggleButtonProps } from '@/primitives/ToggleButton'
+import type { ButtonRecipeProps } from '@/primitives/buttonRecipe'
+import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
 import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
-import { ToggleSource, CaptureOptionsBySource } from '@livekit/components-core'
+import type {
+  ToggleSource,
+  CaptureOptionsBySource,
+} from '@livekit/components-core'
 import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 
 type ToggleDeviceStyleProps = {

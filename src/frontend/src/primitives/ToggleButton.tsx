@@ -4,7 +4,7 @@ import {
   ToggleButtonProps as RACToggleButtonProps,
 } from 'react-aria-components'
 import { type ButtonRecipeProps, buttonRecipe } from './buttonRecipe'
-import { TooltipWrapper, TooltipWrapperProps } from './TooltipWrapper'
+import { TooltipWrapper, type TooltipWrapperProps } from './TooltipWrapper'
 
 export type ToggleButtonProps = RACToggleButtonProps &
   ButtonRecipeProps &

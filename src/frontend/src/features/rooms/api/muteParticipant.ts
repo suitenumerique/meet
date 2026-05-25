@@ -1,4 +1,4 @@
-import { Participant, Track } from 'livekit-client'
+import { type Participant, Track } from 'livekit-client'
 import Source = Track.Source
 import { useRoomData } from '../livekit/hooks/useRoomData'
 import {

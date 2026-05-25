@@ -1,4 +1,4 @@
-import { RouteName } from '@/routes'
+import { type RouteName } from '@/routes'
 import { navigate } from 'wouter/use-browser-location'
 import { getRouteByName } from './getRouteByName'
 

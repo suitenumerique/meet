@@ -1,5 +1,5 @@
 import { proxy } from 'valtio'
-import { SettingsDialogExtendedKey } from '@/features/settings/type'
+import type { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 type State = {
   areSettingsOpen: boolean

@@ -1,5 +1,5 @@
 import { isMacintosh } from '@/utils/livekit'
-import { Shortcut } from '@/features/shortcuts/types'
+import type { Shortcut } from '@/features/shortcuts/types'
 
 export const CTRL = 'ctrl'
 
