@@ -12,6 +12,8 @@ import {
   isRoomValid,
   normalizeRoomId,
 } from '@/features/rooms/utils/isRoomValid'
+import { useConfig } from '@/api/useConfig.ts'
+import { LogLevel, setLogLevel } from 'livekit-client'
 
 const BaseRoom = ({ children }: { children: ReactNode }) => {
   return (
@@ -31,6 +33,13 @@ const Room = () => {
   const initialRoomData = history.state?.initialRoomData
   const mode = isLoggedIn && history.state?.create ? 'create' : 'join'
   const skipJoinScreen = isLoggedIn && mode === 'create'
+
+  const { data } = useConfig()
+
+  useEffect(() => {
+    const shouldSilenceLogs = data?.silence_livekit_debug_logs || false
+    setLogLevel(shouldSilenceLogs ? LogLevel.silent : LogLevel.debug)
+  }, [data?.silence_livekit_debug_logs])
 
   useKeyboardShortcuts()
 
