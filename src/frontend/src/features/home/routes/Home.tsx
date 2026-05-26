@@ -147,18 +147,63 @@ const IntroText = styled('div', {
   },
 })
 
-const Home = () => {
-  const { t } = useTranslation('home')
-  const { isLoggedIn } = useUser()
-
+const CreateMeetingMenu = () => {
   const {
     userChoices: { username },
   } = usePersistentUserChoices()
 
+  const { t } = useTranslation('home')
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
-  const [redirectFailed, setRedirectFailed] = useState(false)
 
+  return (
+    <>
+      <Menu>
+        <Button variant="primary" data-attr="create-meeting">
+          {t('createMeeting')}
+        </Button>
+        <RACMenu>
+          <MenuItem
+            className={menuRecipe({ icon: true, variant: 'light' }).item}
+            onAction={() => {
+              const slug = generateRoomId()
+              createRoom({ slug, username }).then((data) =>
+                navigateTo('room', data.slug, {
+                  state: { create: true, initialRoomData: data },
+                })
+              )
+            }}
+            data-attr="create-option-instant"
+          >
+            <RiAddLine size={18} />
+            {t('createMenu.instantOption')}
+          </MenuItem>
+          <MenuItem
+            className={menuRecipe({ icon: true, variant: 'light' }).item}
+            onAction={() => {
+              const slug = generateRoomId()
+              createRoom({ slug, username }).then(setLaterRoom)
+            }}
+            data-attr="create-option-later"
+          >
+            <RiLink size={18} />
+            {t('createMenu.laterOption')}
+          </MenuItem>
+        </RACMenu>
+      </Menu>
+      <LaterMeetingDialog
+        room={laterRoom}
+        onOpenChange={() => setLaterRoom(null)}
+      />
+    </>
+  )
+}
+
+const Home = () => {
+  const { t } = useTranslation('home')
+  const { isLoggedIn } = useUser()
+
+  const [redirectFailed, setRedirectFailed] = useState(false)
   const { data } = useConfig()
 
   useEffect(() => {
@@ -201,45 +246,7 @@ const Home = () => {
               })}
             >
               {isLoggedIn ? (
-                <Menu>
-                  <Button variant="primary" data-attr="create-meeting">
-                    {t('createMeeting')}
-                  </Button>
-                  <RACMenu>
-                    <MenuItem
-                      className={
-                        menuRecipe({ icon: true, variant: 'light' }).item
-                      }
-                      onAction={async () => {
-                        const slug = generateRoomId()
-                        createRoom({ slug, username }).then((data) =>
-                          navigateTo('room', data.slug, {
-                            state: { create: true, initialRoomData: data },
-                          })
-                        )
-                      }}
-                      data-attr="create-option-instant"
-                    >
-                      <RiAddLine size={18} />
-                      {t('createMenu.instantOption')}
-                    </MenuItem>
-                    <MenuItem
-                      className={
-                        menuRecipe({ icon: true, variant: 'light' }).item
-                      }
-                      onAction={() => {
-                        const slug = generateRoomId()
-                        createRoom({ slug, username }).then((data) =>
-                          setLaterRoom(data)
-                        )
-                      }}
-                      data-attr="create-option-later"
-                    >
-                      <RiLink size={18} />
-                      {t('createMenu.laterOption')}
-                    </MenuItem>
-                  </RACMenu>
-                </Menu>
+                <CreateMeetingMenu />
               ) : (
                 <LoginButton proConnectHint={false} />
               )}
@@ -265,10 +272,6 @@ const Home = () => {
             <IntroSlider />
           </RightColumn>
         </Columns>
-        <LaterMeetingDialog
-          room={laterRoom}
-          onOpenChange={() => setLaterRoom(null)}
-        />
       </Screen>
     </UserAware>
   )
