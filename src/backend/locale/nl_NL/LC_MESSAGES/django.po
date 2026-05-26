@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-21 14:09+0000\n"
+"POT-Creation-Date: 2026-05-26 16:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -88,16 +88,16 @@ msgstr "Scopes"
 msgid "Creator is me"
 msgstr "Maker ben ik"
 
-#: core/api/serializers.py:88
+#: core/api/serializers.py:89
 msgid "You must be administrator or owner of a room to add accesses to it."
 msgstr ""
 "Je moet beheerder of eigenaar van een ruimte zijn om toegang toe te voegen."
 
-#: core/api/serializers.py:509
+#: core/api/serializers.py:534
 msgid "This file extension is not allowed."
 msgstr "Deze bestandsextensie is niet toegestaan."
 
-#: core/api/viewsets.py:1090
+#: core/api/viewsets.py:1228
 msgid "You have reached the maximum number of files for this type."
 msgstr "Het maximale aantal bestanden voor dit type is bereikt."
 
@@ -145,51 +145,59 @@ msgstr "Stoppen mislukt"
 msgid "Notification succeeded"
 msgstr "Notificatie geslaagd"
 
-#: core/models.py:89
+#: core/models.py:65
+msgid "External process successful"
+msgstr ""
+
+#: core/models.py:67
+msgid "External process failed"
+msgstr ""
+
+#: core/models.py:96
 msgid "SCREEN_RECORDING"
 msgstr "SCHERM_OPNAME"
 
-#: core/models.py:90
+#: core/models.py:97
 msgid "TRANSCRIPT"
 msgstr "TRANSCRIPT"
 
-#: core/models.py:96
+#: core/models.py:103
 msgid "Public Access"
 msgstr "Openbare toegang"
 
-#: core/models.py:97
+#: core/models.py:104
 msgid "Trusted Access"
 msgstr "Vertrouwde toegang"
 
-#: core/models.py:98
+#: core/models.py:105
 msgid "Restricted Access"
 msgstr "Beperkte toegang"
 
-#: core/models.py:110
+#: core/models.py:117
 msgid "id"
 msgstr "id"
 
-#: core/models.py:111
+#: core/models.py:118
 msgid "primary key for the record as UUID"
 msgstr "primaire sleutel voor het record als UUID"
 
-#: core/models.py:117
+#: core/models.py:124
 msgid "created on"
 msgstr "aangemaakt op"
 
-#: core/models.py:118
+#: core/models.py:125
 msgid "date and time at which a record was created"
 msgstr "datum en tijd waarop een record werd aangemaakt"
 
-#: core/models.py:123
+#: core/models.py:130
 msgid "updated on"
 msgstr "bijgewerkt op"
 
-#: core/models.py:124
+#: core/models.py:131
 msgid "date and time at which a record was last updated"
 msgstr "datum en tijd waarop een record voor het laatst werd bijgewerkt"
 
-#: core/models.py:144
+#: core/models.py:151
 msgid ""
 "Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/"
 "_ characters."
@@ -197,11 +205,11 @@ msgstr ""
 "Voer een geldige sub in. Deze waarde mag alleen letters, cijfers en @/./+/-/"
 "_ tekens bevatten."
 
-#: core/models.py:150
+#: core/models.py:157
 msgid "sub"
 msgstr "sub"
 
-#: core/models.py:152
+#: core/models.py:159
 msgid ""
 "Optional for pending users; required upon account activation. 255 characters "
 "or fewer. Letters, numbers, and @/./+/-/_ characters only."
@@ -209,55 +217,55 @@ msgstr ""
 "Optioneel voor gebruikers in afwachting; vereist bij accountactivering. "
 "Maximum 255 tekens. Alleen letters, cijfers en @/./+/-/_ toegestaan."
 
-#: core/models.py:161
+#: core/models.py:168
 msgid "identity email address"
 msgstr "identiteit e-mailadres"
 
-#: core/models.py:166
+#: core/models.py:173
 msgid "admin email address"
 msgstr "beheerder e-mailadres"
 
-#: core/models.py:168
+#: core/models.py:175
 msgid "full name"
 msgstr "volledige naam"
 
-#: core/models.py:170
+#: core/models.py:177
 msgid "short name"
 msgstr "korte naam"
 
-#: core/models.py:176
+#: core/models.py:183
 msgid "language"
 msgstr "taal"
 
-#: core/models.py:177
+#: core/models.py:184
 msgid "The language in which the user wants to see the interface."
 msgstr "De taal waarin de gebruiker de interface wil zien."
 
-#: core/models.py:183
+#: core/models.py:190
 msgid "The timezone in which the user wants to see times."
 msgstr "De tijdzone waarin de gebruiker tijden wil zien."
 
-#: core/models.py:186
+#: core/models.py:193
 msgid "device"
 msgstr "apparaat"
 
-#: core/models.py:188
+#: core/models.py:195
 msgid "Whether the user is a device or a real user."
 msgstr "Of de gebruiker een apparaat is of een echte gebruiker."
 
-#: core/models.py:191
+#: core/models.py:198
 msgid "staff status"
 msgstr "personeelsstatus"
 
-#: core/models.py:193
+#: core/models.py:200
 msgid "Whether the user can log into this admin site."
 msgstr "Of de gebruiker kan inloggen op deze beheersite."
 
-#: core/models.py:196
+#: core/models.py:203
 msgid "active"
 msgstr "actief"
 
-#: core/models.py:199
+#: core/models.py:206
 msgid ""
 "Whether this user should be treated as active. Unselect this instead of "
 "deleting accounts."
@@ -265,64 +273,64 @@ msgstr ""
 "Of deze gebruiker als actief moet worden behandeld. Deselecteer dit in "
 "plaats van accounts te verwijderen."
 
-#: core/models.py:212
+#: core/models.py:219
 msgid "user"
 msgstr "gebruiker"
 
-#: core/models.py:213
+#: core/models.py:220
 msgid "users"
 msgstr "gebruikers"
 
-#: core/models.py:272
+#: core/models.py:279
 msgid "Resource"
 msgstr "Bron"
 
-#: core/models.py:273
+#: core/models.py:280
 msgid "Resources"
 msgstr "Bronnen"
 
-#: core/models.py:331
+#: core/models.py:338
 msgid "Resource access"
 msgstr "Brontoegang"
 
-#: core/models.py:332
+#: core/models.py:339
 msgid "Resource accesses"
 msgstr "Brontoegangsrechten"
 
-#: core/models.py:338
+#: core/models.py:345
 msgid "Resource access with this User and Resource already exists."
 msgstr "Brontoegang met deze gebruiker en bron bestaat al."
 
-#: core/models.py:394
+#: core/models.py:402
 msgid "Visio room configuration"
 msgstr "Visio-ruimteconfiguratie"
 
-#: core/models.py:395
+#: core/models.py:403
 msgid "Values for Visio parameters to configure the room."
 msgstr "Waarden voor Visio-parameters om de ruimte te configureren."
 
-#: core/models.py:402
+#: core/models.py:410
 msgid "Room PIN code"
 msgstr "Pincode van de kamer"
 
-#: core/models.py:403
+#: core/models.py:411
 msgid "Unique n-digit code that identifies this room in telephony mode."
 msgstr ""
 "Unieke n-cijferige code die deze kamer identificeert in telefonie-modus."
 
-#: core/models.py:409 core/models.py:563
+#: core/models.py:417 core/models.py:571
 msgid "Room"
 msgstr "Ruimte"
 
-#: core/models.py:410
+#: core/models.py:418
 msgid "Rooms"
 msgstr "Ruimtes"
 
-#: core/models.py:574
+#: core/models.py:582
 msgid "Worker ID"
 msgstr "Worker ID"
 
-#: core/models.py:576
+#: core/models.py:584
 msgid ""
 "Enter an identifier for the worker recording.This ID is retained even when "
 "the worker stops, allowing for easy tracking."
@@ -330,140 +338,148 @@ msgstr ""
 "Voer een identificatie in voor de worker-opname. Deze ID blijft behouden, "
 "zelfs wanneer de worker stopt, waardoor eenvoudige tracking mogelijk is."
 
-#: core/models.py:584
+#: core/models.py:592
 msgid "Recording mode"
 msgstr "Opnamemodus"
 
-#: core/models.py:585
+#: core/models.py:593
 msgid "Defines the mode of recording being called."
 msgstr "Definieert de modus van opname die wordt aangeroepen."
 
-#: core/models.py:590 core/models.py:591
+#: core/models.py:598 core/models.py:599
 msgid "Recording options"
 msgstr "Opnameopties"
 
-#: core/models.py:597
+#: core/models.py:606
+msgid "External Process ID"
+msgstr ""
+
+#: core/models.py:607
+msgid "ID of the external process associated with the recording."
+msgstr ""
+
+#: core/models.py:613
 msgid "Recording"
 msgstr "Opname"
 
-#: core/models.py:598
+#: core/models.py:614
 msgid "Recordings"
 msgstr "Opnames"
 
-#: core/models.py:706
+#: core/models.py:724
 msgid "Recording/user relation"
 msgstr "Opname/gebruiker-relatie"
 
-#: core/models.py:707
+#: core/models.py:725
 msgid "Recording/user relations"
 msgstr "Opname/gebruiker-relaties"
 
-#: core/models.py:713
+#: core/models.py:731
 msgid "This user is already in this recording."
 msgstr "Deze gebruiker is al in deze opname."
 
-#: core/models.py:719
+#: core/models.py:737
 msgid "This team is already in this recording."
 msgstr "Dit team is al in deze opname."
 
-#: core/models.py:725
+#: core/models.py:743
 msgid "Either user or team must be set, not both."
 msgstr "Ofwel gebruiker of team moet worden ingesteld, niet beide."
 
-#: core/models.py:742
+#: core/models.py:760
 msgid "Create rooms"
 msgstr "Ruimtes aanmaken"
 
-#: core/models.py:743
+#: core/models.py:761
 msgid "List rooms"
 msgstr "Ruimtes weergeven"
 
-#: core/models.py:744
+#: core/models.py:762
 msgid "Retrieve room details"
 msgstr "Details van een ruimte ophalen"
 
-#: core/models.py:745
+#: core/models.py:763
 msgid "Update rooms"
 msgstr "Ruimtes bijwerken"
 
-#: core/models.py:746
+#: core/models.py:764
 msgid "Delete rooms"
 msgstr "Ruimtes verwijderen"
 
-#: core/models.py:759
+#: core/models.py:777
 msgid "Application name"
 msgstr "Naam van de applicatie"
 
-#: core/models.py:760
+#: core/models.py:778
 msgid "Descriptive name for this application."
 msgstr "Beschrijvende naam voor deze applicatie."
 
-#: core/models.py:770
+#: core/models.py:788
 msgid "Hashed on Save. Copy it now if this is a new secret."
 msgstr ""
 "Wordt gehasht bij het opslaan. Kopieer het nu als dit een nieuw geheim is."
 
-#: core/models.py:781
+#: core/models.py:799
 msgid "Application"
 msgstr "Applicatie"
 
-#: core/models.py:782
+#: core/models.py:800
 msgid "Applications"
 msgstr "Applicaties"
 
-#: core/models.py:805
+#: core/models.py:823
 msgid "Enter a valid domain"
 msgstr "Voer een geldig domein in"
 
-#: core/models.py:808
+#: core/models.py:826
 msgid "Domain"
 msgstr "Domein"
 
-#: core/models.py:809
+#: core/models.py:827
 msgid "Email domain this application can act on behalf of."
 msgstr "E-maildomein namens welke deze applicatie kan handelen."
 
-#: core/models.py:821
+#: core/models.py:839
 msgid "Application domain"
 msgstr "Applicatiedomein"
 
-#: core/models.py:822
+#: core/models.py:840
 msgid "Application domains"
 msgstr "Applicatiedomeinen"
 
-#: core/models.py:840
+#: core/models.py:858
 msgid "Pending"
 msgstr "In afwachting"
 
-#: core/models.py:848
+#: core/models.py:866
 msgid "Ready"
 msgstr "Klaar"
 
-#: core/models.py:854
+#: core/models.py:872
 msgid "Background image"
 msgstr "Achtergrondafbeelding"
 
-#: core/models.py:866
+#: core/models.py:884
 msgid "title"
 msgstr "Titel"
 
-#: core/models.py:890
+#: core/models.py:908
 msgid "Malware detection info when the analysis status is unsafe."
 msgstr "Informatie over malwaredetectie wanneer de analysestatus onveilig is."
 
-#: core/models.py:895
+#: core/models.py:913
 msgid "File"
 msgstr "Bestand"
 
-#: core/models.py:896
+#: core/models.py:914
 msgid "Files"
 msgstr "Bestanden"
 
-#: core/models.py:1000
+#: core/models.py:1018
 msgid "This file is already hard deleted."
 msgstr "Dit bestand is al definitief verwijderd."
 
-#: core/models.py:1010
+#: core/models.py:1028
 #, fuzzy
 #| msgid "To hard delete a file, it must first be soft deleted."
 msgid "To hard delete a file, it must first be soft deleted."
@@ -471,7 +487,7 @@ msgstr ""
 "Om een bestand definitief te verwijderen, moet het eerst zacht verwijderd "
 "zijn."
 
-#: core/recording/event/notification.py:116
+#: core/recording/event/notification.py:124
 msgid "Your recording is ready"
 msgstr "Je opname is klaar"
 
@@ -571,7 +587,9 @@ msgstr "Om deze opname permanent te bewaren:"
 
 #: core/templates/mail/html/screen_recording.html:208
 #: core/templates/mail/text/screen_recording.txt:13
-msgid "Click the \"<a href=\"%(link)s\">Open</a>\" link below "
+#, fuzzy
+#| msgid "Click the \"<a href=\"%(link)s\">Open</a>\" link below "
+msgid "Click the \"Open\" button below "
 msgstr "Klik op de \"<a href=\"%(link)s\">Openen</a>\"-link hieronder "
 
 #: core/templates/mail/html/screen_recording.html:209

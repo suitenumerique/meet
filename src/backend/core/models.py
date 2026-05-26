@@ -60,6 +60,11 @@ class RecordingStatusChoices(models.TextChoices):
     FAILED_TO_START = "failed_to_start", _("Failed to Start")
     FAILED_TO_STOP = "failed_to_stop", _("Failed to Stop")
     NOTIFICATION_SUCCEEDED = "notification_succeeded", _("Notification succeeded")
+    EXTERNAL_PROCESS_SUCCESSFUL = (
+        "external_process_successful",
+        _("External process successful"),
+    )
+    EXTERNAL_PROCESS_FAILED = "external_process_failed", _("External process failed")
 
     @classmethod
     def is_final(cls, status):
@@ -73,6 +78,8 @@ class RecordingStatusChoices(models.TextChoices):
             cls.STOPPED,
             cls.SAVED,
             cls.ABORTED,
+            cls.EXTERNAL_PROCESS_SUCCESSFUL,
+            cls.EXTERNAL_PROCESS_FAILED,
             cls.FAILED_TO_START,
             cls.FAILED_TO_STOP,
         }
@@ -591,6 +598,14 @@ class Recording(BaseModel):
         verbose_name=_("Recording options"),
         help_text=_("Recording options"),
     )
+    external_process_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        unique=True,
+        verbose_name=_("External Process ID"),
+        help_text=_("ID of the external process associated with the recording."),
+    )
 
     class Meta:
         db_table = "meet_recording"
@@ -646,6 +661,8 @@ class Recording(BaseModel):
         return self.status in {
             RecordingStatusChoices.NOTIFICATION_SUCCEEDED,
             RecordingStatusChoices.SAVED,
+            RecordingStatusChoices.EXTERNAL_PROCESS_SUCCESSFUL,
+            RecordingStatusChoices.EXTERNAL_PROCESS_FAILED,
         }
 
     @property

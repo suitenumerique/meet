@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 class MachineUser:
     """Represent a non-interactive system user for automated storage operations."""
 
-    def __init__(self) -> None:
+    def __init__(self, username: str = "storage_event_user") -> None:
         self.pk = None
-        self.username = "storage_event_user"
+        self.username = username
         self.is_active = True
 
     @property
@@ -91,3 +91,29 @@ class StorageEventAuthentication(BaseAuthentication):
     def authenticate_header(self, request):
         """Return the WWW-Authenticate header value."""
         return f"{self.TOKEN_TYPE} realm='Storage event API'"
+
+
+class RecordingProcessWebhookAuthentication(BaseAuthentication):
+    """
+    Custom authentication class for recording process webhook requests.
+    Validates the API key in the Authorization header.
+    """
+
+    def authenticate(self, request):
+        """
+        Authenticate the request and return a two-tuple of (user, token).
+        """
+        logger.info("Authentificating")
+        authorization_header: str = request.headers.get("Authorization") or ""
+
+        if not secrets.compare_digest(
+            authorization_header.removeprefix("Bearer "),
+            settings.SUMMARY_SERVICE_WEBHOOK_API_TOKEN,
+        ):
+            logger.warning(
+                "Authentication failed: Bad Authorization header (ip: %s)",
+                request.META.get("REMOTE_ADDR"),
+            )
+            raise AuthenticationFailed()
+
+        return MachineUser("external_process_user"), None

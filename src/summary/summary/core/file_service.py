@@ -155,12 +155,6 @@ class FileService:
             raise ValueError("Invalid cloud_storage_url")
 
         extension = Path(urlparse(cloud_storage_url).path).suffix.lower()
-        if extension not in self._allowed_extensions:
-            logger.warning(
-                "Invalid file extension '%s' from cloud_storage_url", extension
-            )
-            raise ValueError(f"Invalid file extension '{extension}'")
-
         try:
             with requests.get(
                 cloud_storage_url,

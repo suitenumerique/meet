@@ -1,8 +1,10 @@
 """Service to notify external services when a new recording is ready."""
 
 import asyncio
+import json
 import logging
 import smtplib
+import warnings
 from datetime import datetime, timezone
 
 from django.conf import settings
@@ -17,6 +19,7 @@ from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from core import models, utils
+from core.utils import generate_download_s3_file_url
 
 logger = logging.getLogger(__name__)
 
@@ -215,18 +218,45 @@ class NotificationService:
         )(recording.worker_id)
 
         payload = {
+            # Legacy V1 params to avoid a breaking change
             "owner_id": str(owner_access.user.id),
             "recording_filename": recording.key,
             "metadata_filename": metadata_filename,
             "email": owner_access.user.email,
             "sub": owner_access.user.sub,
             "room": recording.room.name,
-            "language": recording.options.get("language"),
             "owner_timezone": str(owner_access.user.timezone),
             "download_link": f"{get_recording_download_base_url()}/{recording.id}",
-            "context_language": owner_access.user.language,
             "recording_start_at": (started_at.isoformat() if started_at else None),
             "recording_end_at": (ended_at.isoformat() if ended_at else None),
+            # V2 params
+            "user_sub": owner_access.user.sub,
+            "user_email": owner_access.user.email,
+            "cloud_storage_url": generate_download_s3_file_url(
+                recording.key, expires_in=60 * 60 * 24, override_domain=False
+            ),
+            "language": recording.options.get("language", "fr"),
+            "context_language": owner_access.user.language,
+            "push_to_docs_config": {
+                "user_email": owner_access.user.email,
+                "title": "TODO",
+                "download_link": f"{get_recording_download_base_url()}/{recording.id}",
+                # For now the feature flag logic is handled on summary side
+                "auto_create_summary": True,
+            },
+            "metadata": (
+                {
+                    "cloud_storage_url": generate_download_s3_file_url(
+                        metadata_filename,
+                        expires_in=60 * 60 * 24,
+                        override_domain=False,
+                    ),
+                    "started_at": started_at.isoformat(),
+                    "ended_at": ended_at.isoformat(),
+                }
+                if (started_at and ended_at)
+                else None
+            ),
         }
 
         headers = {
@@ -242,6 +272,31 @@ class NotificationService:
                 timeout=30,
             )
             response.raise_for_status()
+            is_v2_implementation = False
+            try:
+                response_json = response.json()
+                # We do not require a job_id to avoid a breaking change
+                if job_id := response_json.get("job_id"):
+                    recording.external_process_id = job_id
+                    recording.save()
+                    is_v2_implementation = True
+            except json.JSONDecodeError:
+                pass
+
+            if not is_v2_implementation:
+                warnings.warn(
+                    "You are likely using your own implementation for the summary / "
+                    "transcribe service."
+                    "We have released a new version and API contract for that service, "
+                    "we recommend checking it out"
+                    # pylint: disable=line-too-long
+                    "https://github.com/suitenumerique/meet/blob/19c2a378e7e66652afbfa3e749badd697e3917ac/src/summary/summary/api/route/tasks_v2.py "
+                    "and mimicking it's behavior. We will remove the legacy "
+                    "handling in a future version.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+
         except requests.RequestException as exc:
             logger.exception(
                 "Summary service error for recording %s. URL: %s. Exception: %s",
