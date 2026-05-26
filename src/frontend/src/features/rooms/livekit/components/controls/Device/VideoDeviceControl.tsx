@@ -6,7 +6,6 @@ import { Track, type VideoCaptureOptions } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
-import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
 import { useCanPublishTrack } from '../../../hooks/useCanPublishTrack'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useSidePanel } from '../../../hooks/useSidePanel'
@@ -17,6 +16,13 @@ import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
+import { useSnapshot } from 'valtio'
+
+import {
+  saveVideoInputDeviceId,
+  saveVideoInputEnabled,
+  userChoicesStore,
+} from '@/stores/userChoices'
 
 const EffectsButton = ({ onPress }: { onPress: () => void }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
@@ -51,13 +57,12 @@ export const VideoDeviceControl = ({
 }: VideoDeviceControlProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
-  const { userChoices, saveVideoInputDeviceId, saveVideoInputEnabled } =
-    usePersistentUserChoices()
+  const { videoDeviceId, processorConfig } = useSnapshot(userChoicesStore)
 
   const onChange = React.useCallback(
     (enabled: boolean, isUserInitiated: boolean) =>
       isUserInitiated ? saveVideoInputEnabled(enabled) : null,
-    [saveVideoInputEnabled]
+    []
   )
 
   const trackProps = useTrackToggle({
@@ -82,9 +87,8 @@ export const VideoDeviceControl = ({
      *
      * See https://github.com/numerique-gouv/meet/pull/309#issuecomment-2622404121
      */
-    const processor = BackgroundProcessorFactory.fromProcessorConfig(
-      userChoices.processorConfig
-    )
+    const processor =
+      BackgroundProcessorFactory.fromProcessorConfig(processorConfig)
 
     const toggle = trackProps.toggle as (
       forceState: boolean,
@@ -152,7 +156,7 @@ export const VideoDeviceControl = ({
                 <SelectDevice
                   context="room"
                   kind={kind}
-                  id={userChoices.videoDeviceId}
+                  id={videoDeviceId}
                   onSubmit={saveVideoInputDeviceId}
                 />
               </div>

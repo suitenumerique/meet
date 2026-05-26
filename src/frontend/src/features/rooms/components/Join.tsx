@@ -22,7 +22,6 @@ import {
 } from '../livekit/components/effects/EffectsConfiguration'
 import { SelectDevice } from '../livekit/components/controls/Device/SelectDevice'
 import { ToggleDevice } from '../livekit/components/controls/Device/ToggleDevice'
-import { usePersistentUserChoices } from '../livekit/hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { isMobileBrowser } from '@livekit/components-core'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
@@ -37,8 +36,20 @@ import { useLoginHint } from '@/hooks/useLoginHint'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
-import type { LocalUserChoices } from '@/stores/userChoices'
+
+import {
+  type LocalUserChoices,
+  saveAudioInputDeviceId,
+  saveAudioInputEnabled,
+  saveAudioOutputDeviceId,
+  saveUsername,
+  saveVideoInputDeviceId,
+  saveVideoInputEnabled,
+  userChoicesStore,
+} from '@/stores/userChoices'
+
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
+import { useSnapshot } from 'valtio'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -104,22 +115,14 @@ export const Join = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
   const {
-    userChoices: {
-      audioEnabled,
-      videoEnabled,
-      audioDeviceId,
-      audioOutputDeviceId,
-      videoDeviceId,
-      processorConfig,
-      username,
-    },
-    saveAudioInputEnabled,
-    saveAudioOutputDeviceId,
-    saveVideoInputEnabled,
-    saveAudioInputDeviceId,
-    saveVideoInputDeviceId,
-    saveUsername,
-  } = usePersistentUserChoices()
+    audioEnabled,
+    videoEnabled,
+    audioDeviceId,
+    audioOutputDeviceId,
+    videoDeviceId,
+    processorConfig,
+    username,
+  } = useSnapshot(userChoicesStore)
 
   const initialUserChoices = useRef<LocalUserChoices | null>(null)
 

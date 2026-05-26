@@ -16,11 +16,12 @@ import { ReactNode, useEffect, useState } from 'react'
 
 import { css } from '@/styled-system/css'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
-import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { useConfig } from '@/api/useConfig'
 import { LoginButton } from '@/components/LoginButton'
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { LoadingScreen } from '@/components/LoadingScreen'
+import { useSnapshot } from 'valtio'
+import { userChoicesStore } from '@/stores/userChoices'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -148,9 +149,7 @@ const IntroText = styled('div', {
 })
 
 const CreateMeetingMenu = () => {
-  const {
-    userChoices: { username },
-  } = usePersistentUserChoices()
+  const { username } = useSnapshot(userChoicesStore)
 
   const { t } = useTranslation('home')
   const { mutateAsync: createRoom } = useCreateRoom()
