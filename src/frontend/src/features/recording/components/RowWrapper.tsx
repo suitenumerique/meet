@@ -45,7 +45,6 @@ export const RowWrapper = ({
           paddingInline: '0.25rem',
         })}
       >
-        {/*  fixme - doesn't handle properly material-symbols  */}
         <Icon name={iconName} />
       </div>
       <div

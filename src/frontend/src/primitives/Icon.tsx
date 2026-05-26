@@ -1,48 +1,43 @@
 import { cva, RecipeVariantProps } from '@/styled-system/css'
-import { ComponentPropsWithoutRef } from 'react'
+import { ComponentPropsWithoutRef, FunctionComponent, SVGProps } from 'react'
+
+// Eagerly import every .svg in the icons folder as a React component.
+// Drop a new file in /assets/icons and it's available immediately.
+const modules = import.meta.glob<{
+  default: FunctionComponent<SVGProps<SVGSVGElement>>
+}>('../assets/icons/*.svg', { eager: true, query: '?react', import: 'default' })
+
+// Build the registry: { 'chevron-down': Component, 'check': Component, ... }
+// Key = filename without extension.
+const icons = Object.fromEntries(
+  Object.entries(modules).map(([path, mod]) => {
+    const name = path
+      .split('/')
+      .pop()!
+      .replace(/\.svg$/, '')
+    return [name, mod as unknown as FunctionComponent<SVGProps<SVGSVGElement>>]
+  })
+) as Record<string, FunctionComponent<SVGProps<SVGSVGElement>>>
+
+export type IconName = keyof typeof icons
 
 const iconRecipe = cva({
   base: {
-    fontWeight: 'normal',
-    fontStyle: 'normal',
     display: 'inline-block',
+    flexShrink: 0,
     lineHeight: 1,
-    textTransform: 'none',
-    letterSpacing: 'normal',
-    wordWrap: 'normal',
-    whiteSpace: 'nowrap',
-    direction: 'ltr',
+    color: 'currentColor',
+    fill: 'currentColor',
   },
   variants: {
-    type: {
-      icons: {
-        fontFamily: 'Material Icons Outlined',
-        webkitFontSmoothing: 'antialiased',
-        mozOsxFontSmoothing: 'grayscale',
-        textRendering: 'optimizeLegibility',
-        fontFeatureSettings: '"liga"',
-      },
-      symbols: {
-        fontFamily: 'Material Symbols Outlined Variable',
-      },
-    },
     size: {
-      sm: {
-        fontSize: '18px',
-      },
-      md: {
-        fontSize: '24px',
-      },
-      lg: {
-        fontSize: '32px',
-      },
-      xl: {
-        fontSize: '40px',
-      },
+      sm: { width: '18px', height: '18px' },
+      md: { width: '24px', height: '24px' },
+      lg: { width: '32px', height: '32px' },
+      xl: { width: '40px', height: '40px' },
     },
   },
   defaultVariants: {
-    type: 'icons',
     size: 'md',
   },
 })
@@ -50,22 +45,33 @@ const iconRecipe = cva({
 export type IconRecipeProps = RecipeVariantProps<typeof iconRecipe>
 
 export type IconProps = IconRecipeProps &
-  ComponentPropsWithoutRef<'span'> & {
-    name: string
+  Omit<ComponentPropsWithoutRef<'svg'>, 'name'> & {
+    name: IconName
   }
 
 export const Icon = ({ name, ...props }: IconProps) => {
   const [variantProps, componentProps] = iconRecipe.splitVariantProps(props)
-  const { className, ...remainingComponentProps } = componentProps
+  const { className, ...rest } = componentProps
+
+  const SvgIcon = icons[name]
+
+  if (!SvgIcon) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(
+        `[Icon] Unknown icon name: "${name}". Available: ${Object.keys(icons).join(', ')}`
+      )
+    }
+    return null
+  }
 
   return (
-    <span
-      translate="no"
+    <SvgIcon
       aria-hidden="true"
-      className={[iconRecipe(variantProps), className].join(' ')}
-      {...remainingComponentProps}
-    >
-      {name}
-    </span>
+      focusable="false"
+      className={[iconRecipe(variantProps), className]
+        .filter(Boolean)
+        .join(' ')}
+      {...rest}
+    />
   )
 }

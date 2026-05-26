@@ -24,7 +24,7 @@ export const LoginPrompt = ({ heading, body }: LoginPromptProps) => {
       })}
     >
       <HStack justify="start" alignItems="center" marginBottom="0.5rem">
-        <Icon type="symbols" name="login" />
+        <Icon name="login" />
         <H lvl={3} margin={false} padding={false}>
           {heading}
         </H>

@@ -15,8 +15,8 @@ export const RecordingStatusIcon = ({
   }
 
   if (isTranscriptActive) {
-    return <Icon type="symbols" name="speech_to_text" />
+    return <Icon name="speech_to_text" />
   }
 
-  return <Icon type="symbols" name="screen_record" />
+  return <Icon name="screen_record" />
 }

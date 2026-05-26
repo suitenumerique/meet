@@ -59,7 +59,7 @@ export const RequestRecording = ({
       })}
     >
       <HStack justify="start" alignItems="center" marginBottom="0.5rem">
-        <Icon type="symbols" name="person_raised_hand" />
+        <Icon name="person_raised_hand" />
         <H lvl={3} margin={false} padding={false}>
           {heading}
         </H>
