@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { LoginButton } from '@/components/LoginButton'
 import { useRenameParticipant } from '@/features/rooms/api/renameParticipant'
 import { saveUsername } from '@/stores/userChoices'
+import { logout } from '@/features/auth/utils/logout'
 
 export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -16,7 +17,7 @@ export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &
 export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   const { t } = useTranslation('settings')
   const room = useRoomContext()
-  const { user, isLoggedIn, logout } = useUser()
+  const { user, isLoggedIn } = useUser()
 
   const { renameParticipant } = useRenameParticipant()
 

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Crisp } from 'crisp-sdk-web'
-import { ApiUser } from '@/features/auth/api/ApiUser'
+import { type ApiUser } from '@/features/auth/api/ApiUser'
+import { useUser } from '@/features/auth/api/useUser'
 import { useConfig } from '@/api/useConfig'
 
 export const initializeSupportSession = (user: ApiUser) => {
@@ -23,11 +24,18 @@ export type useSupportProps = {
 
 // Configure Crisp chat for real-time support across all pages.
 export const useSupport = ({ id, isDisabled }: useSupportProps) => {
+  const { user } = useUser()
+
   useEffect(() => {
     if (!id || Crisp.isCrispInjected() || isDisabled) return
     Crisp.configure(id)
     Crisp.setHideOnMobile(true)
   }, [id, isDisabled])
+
+  useEffect(() => {
+    if (!user) return
+    initializeSupportSession(user)
+  }, [user])
 
   return null
 }

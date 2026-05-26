@@ -2,16 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { keys } from '@/api/queryKeys'
 import { fetchUser } from './fetchUser'
 import { type ApiUser } from './ApiUser'
-import { useEffect, useMemo } from 'react'
-import {
-  startAnalyticsSession,
-  terminateAnalyticsSession,
-} from '@/features/analytics/hooks/useAnalytics'
-import {
-  initializeSupportSession,
-  terminateSupportSession,
-} from '@/features/support/hooks/useSupport'
-import { logoutUrl } from '../utils/logoutUrl'
+import { useMemo } from 'react'
 import { useConfig } from '@/api/useConfig'
 
 /**
@@ -45,19 +36,6 @@ export const useUser = (
     enabled: !isConfigLoading,
   })
 
-  useEffect(() => {
-    if (query?.data) {
-      startAnalyticsSession(query.data)
-      initializeSupportSession(query.data)
-    }
-  }, [query.data])
-
-  const logout = () => {
-    terminateAnalyticsSession()
-    terminateSupportSession()
-    window.location.href = logoutUrl()
-  }
-
   const isLoggedIn =
     query.status === 'success' ? query.data !== false : undefined
   const isLoggedOut = isLoggedIn === false
@@ -67,6 +45,5 @@ export const useUser = (
     user: isLoggedOut ? undefined : (query.data as ApiUser | undefined),
     isLoggedIn,
     isLoading: query.isLoading,
-    logout,
   }
 }

@@ -3,12 +3,13 @@ import { useLanguageLabels } from '@/i18n/useLanguageLabels'
 import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
 import { useUser } from '@/features/auth/api/useUser'
 import { LoginButton } from '@/components/LoginButton'
+import { logout } from '@/features/auth/utils/logout'
 
 export type SettingsDialogProps = Pick<DialogProps, 'isOpen' | 'onOpenChange'>
 
 export const SettingsDialog = (props: SettingsDialogProps) => {
   const { t, i18n } = useTranslation('settings')
-  const { user, isLoggedIn, logout } = useUser()
+  const { user, isLoggedIn } = useUser()
   const { languagesList, currentLanguage } = useLanguageLabels()
   const userDisplay =
     user?.full_name && user?.email
