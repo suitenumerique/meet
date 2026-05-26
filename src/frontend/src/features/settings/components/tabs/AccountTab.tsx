@@ -7,15 +7,14 @@ import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
 import { HStack } from '@/styled-system/jsx'
 import { useState } from 'react'
 import { LoginButton } from '@/components/LoginButton'
-import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { useRenameParticipant } from '@/features/rooms/api/renameParticipant'
+import { saveUsername } from '@/stores/userChoices'
 
 export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
 
 export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   const { t } = useTranslation('settings')
-  const { saveUsername } = usePersistentUserChoices()
   const room = useRoomContext()
   const { user, isLoggedIn, logout } = useUser()
 

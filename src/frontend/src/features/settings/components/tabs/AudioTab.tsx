@@ -10,10 +10,16 @@ import { isSafari } from '@/utils/livekit'
 import { useTranslation } from 'react-i18next'
 import { SoundTester } from '@/components/SoundTester'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
-import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { useNoiseReductionAvailable } from '@/features/rooms/livekit/hooks/useNoiseReductionAvailable'
 import posthog from 'posthog-js'
 import { RowWrapper } from './layout/RowWrapper'
+import { useSnapshot } from 'valtio'
+import {
+  saveAudioInputDeviceId,
+  saveAudioOutputDeviceId,
+  saveNoiseReductionEnabled,
+  userChoicesStore,
+} from '@/stores/userChoices'
 
 export type AudioTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -24,12 +30,8 @@ export const AudioTab = ({ id }: AudioTabProps) => {
   const { t } = useTranslation('settings')
   const { localParticipant } = useRoomContext()
 
-  const {
-    userChoices: { noiseReductionEnabled, audioDeviceId, audioOutputDeviceId },
-    saveAudioInputDeviceId,
-    saveNoiseReductionEnabled,
-    saveAudioOutputDeviceId,
-  } = usePersistentUserChoices()
+  const { noiseReductionEnabled, audioDeviceId, audioOutputDeviceId } =
+    useSnapshot(userChoicesStore)
 
   const isSpeaking = useIsSpeaking(localParticipant)
 

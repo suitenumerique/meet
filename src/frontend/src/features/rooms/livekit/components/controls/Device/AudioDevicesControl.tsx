@@ -6,7 +6,6 @@ import { Track } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
-import { usePersistentUserChoices } from '../../../hooks/usePersistentUserChoices'
 import { useCanPublishTrack } from '../../../hooks/useCanPublishTrack'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import * as React from 'react'
@@ -16,6 +15,14 @@ import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import Source = Track.Source
 import { isSafari } from '@/utils/livekit'
+import {
+  saveAudioInputDeviceId,
+  saveAudioInputEnabled,
+  saveAudioOutputDeviceId,
+  userChoicesStore,
+} from '@/stores/userChoices'
+
+import { useSnapshot } from 'valtio'
 
 type AudioDevicesControlProps = Omit<
   UseTrackToggleProps<Source.Microphone>,
@@ -30,17 +37,12 @@ export const AudioDevicesControl = ({
 }: AudioDevicesControlProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
-  const {
-    userChoices: { audioDeviceId, audioOutputDeviceId },
-    saveAudioInputDeviceId,
-    saveAudioInputEnabled,
-    saveAudioOutputDeviceId,
-  } = usePersistentUserChoices()
+  const { audioDeviceId, audioOutputDeviceId } = useSnapshot(userChoicesStore)
 
   const onChange = React.useCallback(
     (enabled: boolean, isUserInitiated: boolean) =>
       isUserInitiated ? saveAudioInputEnabled(enabled) : null,
-    [saveAudioInputEnabled]
+    []
   )
 
   const trackProps = useTrackToggle({

@@ -2,16 +2,15 @@ import { useEffect } from 'react'
 import { Track } from 'livekit-client'
 import { useRoomContext } from '@livekit/components-react'
 import { RnnNoiseProcessor } from '../processors/RnnNoiseProcessor'
-import { usePersistentUserChoices } from './usePersistentUserChoices'
 import { useNoiseReductionAvailable } from '@/features/rooms/livekit/hooks/useNoiseReductionAvailable'
+import { useSnapshot } from 'valtio'
+import { userChoicesStore } from '@/stores/userChoices'
 
 export const useNoiseReduction = () => {
   const room = useRoomContext()
   const noiseReductionAvailable = useNoiseReductionAvailable()
 
-  const {
-    userChoices: { noiseReductionEnabled },
-  } = usePersistentUserChoices()
+  const { noiseReductionEnabled } = useSnapshot(userChoicesStore)
 
   const audioTrack = room.localParticipant.getTrackPublication(
     Track.Source.Microphone
