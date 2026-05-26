@@ -1,3 +1,4 @@
+import '@livekit/components-styles'
 import { ReactNode, useEffect, useState } from 'react'
 import { useLocation, useParams } from 'wouter'
 import { ErrorScreen } from '@/components/ErrorScreen'
