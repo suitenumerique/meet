@@ -1,14 +1,4 @@
-import {
-  getBrowser,
-  LocalParticipant,
-  LogLevel,
-  type Participant,
-  setLogLevel,
-} from 'livekit-client'
-
-export const silenceLiveKitLogs = (shouldSilenceLogs: boolean) => {
-  setLogLevel(shouldSilenceLogs ? LogLevel.silent : LogLevel.debug)
-}
+import { getBrowser, LocalParticipant, type Participant } from 'livekit-client'
 
 export function isFireFox(): boolean {
   return getBrowser()?.name === 'Firefox'
