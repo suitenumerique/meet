@@ -13,6 +13,7 @@ import { LoginButton } from '@/components/LoginButton'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { logout } from '@/features/auth/utils/logout'
 
 const Logo = () => (
   <img
@@ -90,7 +91,7 @@ export const Header = () => {
   const isAccessibility = useMatchesRoute('accessibility')
   const isTermsOfService = useMatchesRoute('termsOfService')
   const isRoom = useMatchesRoute('room')
-  const { user, isLoggedIn, logout } = useUser()
+  const { user, isLoggedIn } = useUser()
   const userLabel = user?.full_name || user?.email
   const loggedInTooltip = t('loggedInUserTooltip')
   const loggedInAriaLabel = userLabel
