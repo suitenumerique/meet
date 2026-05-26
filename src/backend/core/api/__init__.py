@@ -8,6 +8,8 @@ from rest_framework import views as drf_views
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from core.utils import build_telephony_config
+
 
 def exception_handler(exc, context):
     """Handle Django ValidationError as an accepted exception.
@@ -58,13 +60,7 @@ def get_frontend_configuration(request):
                 "allowed_mimetypes"
             ],
         },
-        "telephony": {
-            "enabled": settings.ROOM_TELEPHONY_ENABLED,
-            "phone_number": settings.ROOM_TELEPHONY_PHONE_NUMBER
-            if settings.ROOM_TELEPHONY_ENABLED
-            else None,
-            "default_country": settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
-        },
+        "telephony": build_telephony_config(),
         "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],

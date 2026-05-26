@@ -44,7 +44,7 @@ export interface ApiConfig {
   }
   telephony: {
     enabled: boolean
-    phone_number?: string
+    international_phone_number?: string
     default_country?: string
   }
   manifest_link?: string

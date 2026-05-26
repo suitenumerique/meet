@@ -12,6 +12,7 @@ import mimetypes
 import random
 import secrets
 import string
+from functools import lru_cache
 from typing import List, Optional
 from uuid import uuid4
 
@@ -22,6 +23,7 @@ import aiohttp
 import boto3
 import botocore
 import magic
+import phonenumbers
 from asgiref.sync import async_to_sync
 from livekit.api import (  # pylint: disable=E0611
     AccessToken,
@@ -455,3 +457,58 @@ def generate_upload_policy(file):
     )
 
     return policy
+
+
+@lru_cache(maxsize=1)
+def _format_telephony_phone_number(raw_number, default_country):
+    """Parse a configured phone number and return (country, international_format).
+
+    Returns (None, None) if the inputs are missing or the number cannot be
+    parsed. Logs a warning on parse failure so operators see the misconfiguration.
+    """
+    if not raw_number or not default_country:
+        return None, None
+
+    try:
+        parsed = phonenumbers.parse(raw_number, default_country)
+    except phonenumbers.NumberParseException:
+        logger.warning(
+            "ROOM_TELEPHONY_PHONE_NUMBER %r is not a valid phone number for "
+            "default country %r; telephony block will be returned without "
+            "formatted number.",
+            raw_number,
+            default_country,
+        )
+        return None, None
+
+    country = phonenumbers.region_code_for_number(parsed)
+    international = phonenumbers.format_number(
+        parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL
+    )
+    return country, international
+
+
+def build_telephony_config():
+    """Build the telephony block of the frontend configuration."""
+    if not settings.ROOM_TELEPHONY_ENABLED:
+        return {"enabled": False}
+
+    country, international = _format_telephony_phone_number(
+        settings.ROOM_TELEPHONY_PHONE_NUMBER,
+        settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
+    )
+
+    if international is None:
+        logger.warning(
+            "Telephony is enabled but ROOM_TELEPHONY_PHONE_NUMBER %r with "
+            "default country %r could not be formatted; telephony will be disabled.",
+            settings.ROOM_TELEPHONY_PHONE_NUMBER,
+            settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
+        )
+        return {"enabled": False}
+
+    return {
+        "enabled": True,
+        "default_country": country,
+        "international_phone_number": international,
+    }
