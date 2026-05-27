@@ -20,8 +20,7 @@ import { useConfig } from '@/api/useConfig'
 import { LoginButton } from '@/components/LoginButton'
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { LoadingScreen } from '@/components/LoadingScreen'
-import { useSnapshot } from 'valtio'
-import { userChoicesStore } from '@/stores/userChoices'
+import { loadUserChoices } from '@livekit/components-core'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -149,7 +148,7 @@ const IntroText = styled('div', {
 })
 
 const CreateMeetingMenu = () => {
-  const { username } = useSnapshot(userChoicesStore)
+  const { username } = loadUserChoices()
 
   const { t } = useTranslation('home')
   const { mutateAsync: createRoom } = useCreateRoom()
