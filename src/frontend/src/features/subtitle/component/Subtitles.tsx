@@ -65,8 +65,6 @@ const useTranscriptionState = () => {
   ) => {
     console.log(participant, segments)
 
-
-
     if (!participant || segments.length === 0) return
 
     if (segments.length > 1) {

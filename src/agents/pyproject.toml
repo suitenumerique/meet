@@ -4,7 +4,7 @@ name = "agents"
 version = "1.15.0"
 requires-python = ">=3.12"
 dependencies = [
-    "livekit-agents>=1.4.5",
+    "livekit-agents==1.4.5",
     "livekit-plugins-deepgram==1.4.5",
     "livekit-plugins-silero==1.4.5",
     "livekit-plugins-kyutai-lasuite==0.0.6",

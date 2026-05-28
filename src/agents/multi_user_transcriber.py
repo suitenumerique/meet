@@ -49,9 +49,7 @@ def create_stt_provider():
     elif STT_PROVIDER == "kyutai":
         _stt_instance = kyutai.STT(base_url=os.getenv("KYUTAI_STT_BASE_URL"))
     elif STT_PROVIDER == "voxtral-vllm":
-        # The plugin resolves base_url / model / api_key from the environment
-        # itself (with sensible defaults). Passing os.getenv(...) directly would
-        # forward an explicit None for unset vars, which defeats that fallback.
+        # The plugin resolves base_url / model / api_key from the environment.
         _stt_instance = voxtral_vllm_stt.STT()
     else:
         raise ValueError(f"Unknown STT_PROVIDER: {STT_PROVIDER}")

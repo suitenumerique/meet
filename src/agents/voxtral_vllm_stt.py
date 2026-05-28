@@ -49,6 +49,7 @@ class _STTOptions:
     base_url: str
     model: str
     api_key: str | None
+    target_streaming_delay_ms: int | None
 
 
 @dataclass
@@ -76,6 +77,7 @@ class STT(stt.STT):
         base_url: NotGivenOr[str] = NOT_GIVEN,
         model: NotGivenOr[str] = NOT_GIVEN,
         api_key: NotGivenOr[str] = NOT_GIVEN,
+        target_streaming_delay_ms: NotGivenOr[int] = NOT_GIVEN,
         vad: vad_module.VAD | None = None,
     ) -> None:
         """Build the STT.
@@ -86,6 +88,9 @@ class STT(stt.STT):
             model: Model name exposed by vLLM, default
                 mistralai/Voxtral-Mini-4B-Realtime-2602.
             api_key: Optional bearer token. Falls back to $VOXTRAL_VLLM_API_KEY.
+            target_streaming_delay_ms: Target streaming delay in ms forwarded to
+                vLLM via session.update. Falls back to
+                $VOXTRAL_VLLM_TARGET_STREAMING_DELAY_MS, else server default.
             vad: Voice Activity Detector. If omitted, Silero VAD is loaded.
         """
         super().__init__(
@@ -108,6 +113,15 @@ class STT(stt.STT):
         )
         resolved_key = (
             api_key if is_given(api_key) else os.environ.get("VOXTRAL_VLLM_API_KEY")
+        )
+        resolved_delay = (
+            target_streaming_delay_ms
+            if is_given(target_streaming_delay_ms)
+            else (
+                int(os.environ["VOXTRAL_VLLM_TARGET_STREAMING_DELAY_MS"])
+                if os.environ.get("VOXTRAL_VLLM_TARGET_STREAMING_DELAY_MS")
+                else None
+            )
         )
 
         if vad is None:
