@@ -146,10 +146,11 @@ class SpeechStream(stt.RecognizeStream):
         super().__init__(stt=stt, conn_options=conn_options, sample_rate=SAMPLE_RATE)
         self._opts = opts
         self._vad = vad_instance
-        self._utterance_q: asyncio.Queue[bytes | None] | None = None
+        self._audio_q: asyncio.Queue[bytes | None] = asyncio.Queue()
         self._speaking = False
         self._preroll: deque[bytes] = deque(maxlen=PREROLL_CHUNKS)
-        self._inflight: set[asyncio.Task] = set()
+        self._idle = asyncio.Event()
+        self._idle.set()
 
     @utils.log_exceptions(logger=logger)
     async def _run(self) -> None:
@@ -181,48 +182,6 @@ class SpeechStream(stt.RecognizeStream):
                 elif ev.type == vad_module.VADEventType.END_OF_SPEECH:
                     self._on_end_of_speech()
 
-        try:
-            await asyncio.gather(input_task(), vad_task())
-            if self._inflight:
-                await asyncio.gather(*self._inflight, return_exceptions=True)
-        finally:
-            for task in self._inflight:
-                if not task.done():
-                    task.cancel()
-            await vad_stream.aclose()
-
-    def _handle_chunk(self, chunk: bytes) -> None:
-        self._preroll.append(chunk)
-        if self._speaking and self._utterance_q is not None:
-            self._utterance_q.put_nowait(chunk)
-
-    def _on_start_of_speech(self) -> None:
-        if self._speaking:
-            return
-        self._speaking = True
-        q: asyncio.Queue[bytes | None] = asyncio.Queue()
-        for chunk in self._preroll:
-            q.put_nowait(chunk)
-        self._utterance_q = q
-        self._event_ch.send_nowait(
-            stt.SpeechEvent(type=stt.SpeechEventType.START_OF_SPEECH)
-        )
-        task = asyncio.create_task(self._run_utterance(q))
-        self._inflight.add(task)
-        task.add_done_callback(self._inflight.discard)
-
-    def _on_end_of_speech(self) -> None:
-        if not self._speaking:
-            return
-        self._speaking = False
-        if self._utterance_q is not None:
-            self._utterance_q.put_nowait(None)
-        self._utterance_q = None
-        self._event_ch.send_nowait(
-            stt.SpeechEvent(type=stt.SpeechEventType.END_OF_SPEECH)
-        )
-
-    async def _run_utterance(self, q: asyncio.Queue[bytes | None]) -> None:
         headers: dict[str, str] = {}
         if self._opts.api_key:
             headers["Authorization"] = f"Bearer {self._opts.api_key}"
@@ -234,24 +193,52 @@ class SpeechStream(stt.RecognizeStream):
                 open_timeout=self._conn_options.timeout,
             ) as ws:
                 request_id = await self._handshake(ws)
-
-                send_t = asyncio.create_task(self._send_audio(ws, q))
+                send_t = asyncio.create_task(self._send_audio(ws, self._audio_q))
+                recv_t = asyncio.create_task(self._receive_events(ws, request_id))
                 try:
-                    await self._receive_events(ws, request_id)
+                    await asyncio.gather(input_task(), vad_task())
+                    # wait for any in-flight utterance to finish transcribing
+                    await self._idle.wait()
                 finally:
-                    if not send_t.done():
-                        send_t.cancel()
-                    try:
-                        await send_t
-                    except asyncio.CancelledError:
-                        pass
-                    except Exception:
-                        logger.exception("send-audio task failed during finalize")
+                    for t in (send_t, recv_t):
+                        if not t.done():
+                            t.cancel()
+                    for t in (send_t, recv_t):
+                        try:
+                            await t
+                        except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                            pass
+                    await vad_stream.aclose()
         except (APIStatusError, APIConnectionError, asyncio.CancelledError):
             raise
         except Exception as exc:
-            logger.exception("vLLM realtime utterance failed")
+            logger.exception("vLLM realtime stream failed")
             raise APIConnectionError() from exc
+
+    def _handle_chunk(self, chunk: bytes) -> None:
+        self._preroll.append(chunk)
+        if self._speaking:
+            self._audio_q.put_nowait(chunk)
+
+    def _on_start_of_speech(self) -> None:
+        if self._speaking:
+            return
+        self._speaking = True
+        self._idle.clear()
+        for chunk in self._preroll:
+            self._audio_q.put_nowait(chunk)
+        self._event_ch.send_nowait(
+            stt.SpeechEvent(type=stt.SpeechEventType.START_OF_SPEECH)
+        )
+
+    def _on_end_of_speech(self) -> None:
+        if not self._speaking:
+            return
+        self._speaking = False
+        self._audio_q.put_nowait(None)
+        self._event_ch.send_nowait(
+            stt.SpeechEvent(type=stt.SpeechEventType.END_OF_SPEECH)
+        )
 
     async def _handshake(self, ws: websockets.ClientConnection) -> str:
         created = json.loads(await ws.recv())
@@ -275,7 +262,7 @@ class SpeechStream(stt.RecognizeStream):
                 await ws.send(
                     json.dumps({"type": "input_audio_buffer.commit", "final": True})
                 )
-                return
+                continue
             await ws.send(
                 json.dumps(
                     {
@@ -321,7 +308,8 @@ class SpeechStream(stt.RecognizeStream):
                         ),
                     )
                 )
-                return
+                current_text = ""
+                self._idle.set()
             elif event_type == "error":
                 err = data.get("error")
                 raise APIStatusError(str(err), status_code=500, body=data)
