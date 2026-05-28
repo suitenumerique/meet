@@ -1,9 +1,6 @@
 """Transcript formatting into readable conversation format with speaker labels."""
 
 import logging
-from datetime import datetime
-from typing import Tuple
-from zoneinfo import ZoneInfo
 
 from summary.core.config import get_settings
 from summary.core.locales import LocaleStrings
@@ -38,16 +35,13 @@ class TranscriptFormatter:
 
         return None
 
-    def format(  # noqa: PLR0913
+    def format(
         self,
         transcription,
-        room: str | None = None,
-        recording_datetime: str | None = None,
-        owner_timezone: str | None = None,
         download_link: str | None = None,
         form_link: str | None = None,
-    ) -> Tuple[str, str]:
-        """Format transcription into the final document and its title."""
+    ) -> str:
+        """Format transcription into the final document."""
         segments = self._get_segments(transcription)
 
         if not segments:
@@ -59,9 +53,7 @@ class TranscriptFormatter:
             if form_link:
                 content = self._add_footer(content, form_link)
 
-        title = self._generate_title(room, recording_datetime, owner_timezone)
-
-        return content, title
+        return content
 
     def _remove_hallucinations(self, content: str) -> str:
         """Remove hallucination patterns from content."""
@@ -104,23 +96,3 @@ class TranscriptFormatter:
 
         footer = self._locale.form_footer_template.format(form_link=form_link)
         return content + footer
-
-    def _generate_title(
-        self,
-        room: str | None = None,
-        recording_datetime: str | None = None,
-        owner_timezone: str | None = None,
-    ) -> str:
-        """Generate title from context or return default."""
-        if not room or not recording_datetime:
-            return self._locale.document_default_title
-
-        dt = datetime.fromisoformat(recording_datetime)
-        if owner_timezone:
-            dt = dt.astimezone(ZoneInfo(owner_timezone))
-
-        return self._locale.document_title_template.format(
-            room=room,
-            room_recording_date=dt.strftime("%Y-%m-%d"),
-            room_recording_time=dt.strftime("%H:%M"),
-        )

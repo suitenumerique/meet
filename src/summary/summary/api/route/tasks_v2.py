@@ -1,14 +1,18 @@
 """API routes related to application tasks (V2 / tenant friendly)."""
 
-from celery.result import AsyncResult
-from fastapi import APIRouter, Depends, HTTPException, Request
+import logging
+from datetime import datetime, timezone
 
+from celery.result import AsyncResult
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+
+from summary.core.analytics import get_analytics
 from summary.core.celery_worker import (
     celery,
     process_audio_transcribe_v2_task,
     summarize_v2_task,
 )
-from summary.core.config import AuthorizedTenant
+from summary.core.config import AuthorizedTenant, get_settings
 from summary.core.models import SummarizeTaskV2Request, TranscribeTaskV2Request
 from summary.core.security import verify_tenant_api_key_v2
 from summary.core.shared_models import (
@@ -20,7 +24,11 @@ from summary.core.shared_models import (
     TranscribeWebhookSuccessPayload,
 )
 
+logger = logging.getLogger(__name__)
 router_tasks_v2 = APIRouter()
+
+analytics = get_analytics()
+settings = get_settings()
 
 
 @router_tasks_v2.post("/async-jobs/transcribe")
@@ -29,8 +37,39 @@ async def create_transcribe_task_v2(
     request_tenant: AuthorizedTenant = Depends(verify_tenant_api_key_v2),
 ):
     """Create a transcription task."""
+    if (
+        request.push_to_docs_config is not None
+        and not request_tenant.allowed_push_to_docs
+    ):
+        logger.error(
+            f"Push to docs is not allowed for this tenant ({request_tenant.id})."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Push to docs is not allowed for this tenant.",
+        )
+
     task = process_audio_transcribe_v2_task.apply_async(
-        args=[{**request.model_dump(), "tenant_id": request_tenant.id}]
+        args=[
+            {
+                **request.model_dump(),
+                "tenant_id": request_tenant.id,
+                "received_at": datetime.now(timezone.utc),
+            }
+        ]
+    )
+
+    # We track the request, this also properly initializes the user in the
+    # analytics system, so that later feature flags work properly
+    analytics.capture(
+        settings.posthog_event_request,
+        request.user_sub,
+        properties={
+            "kind": "transcribe",
+            "$set": {
+                "email": request.user_email,
+            },
+        },
     )
 
     return TranscribeWebhookPendingPayload(job_id=task.id).model_dump()
@@ -43,9 +82,27 @@ async def create_summarize_task_v2(
 ):
     """Create a summarization task."""
     task = summarize_v2_task.apply_async(
-        args=[{**request.model_dump(), "tenant_id": request_tenant.id}]
+        args=[
+            {
+                **request.model_dump(),
+                "tenant_id": request_tenant.id,
+                "received_at": datetime.now(timezone.utc),
+            }
+        ]
     )
 
+    # We track the request, this also properly initializes the user in the
+    # analytics system, so that later feature flags work properly
+    analytics.capture(
+        settings.posthog_event_request,
+        request.user_sub,
+        properties={
+            "kind": "summarize",
+            "$set": {
+                "email": request.user_email,
+            },
+        },
+    )
     return SummarizeWebhookPendingPayload(job_id=task.id).model_dump()
 
 
