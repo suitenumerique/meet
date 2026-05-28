@@ -12,6 +12,8 @@ and this project adheres to
 
 - ⬆️(agents) upgrade to python 3.14 slim
 - ⬆️(dependencies) update python dependencies
+- 💥(summary) remove v1 related code #1362
+- ✨(meet) use compatible with summary v2 #1362
 
 ### Fixed
 

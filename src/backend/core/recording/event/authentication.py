@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 class MachineUser:
     """Represent a non-interactive system user for automated storage operations."""
 
-    def __init__(self) -> None:
+    def __init__(self, username: str = "storage_event_user") -> None:
         self.pk = None
-        self.username = "storage_event_user"
+        self.username = username
         self.is_active = True
 
     @property
@@ -91,3 +91,46 @@ class StorageEventAuthentication(BaseAuthentication):
     def authenticate_header(self, request):
         """Return the WWW-Authenticate header value."""
         return f"{self.TOKEN_TYPE} realm='Storage event API'"
+
+
+class RecordingProcessWebhookAuthentication(BaseAuthentication):
+    """
+    Custom authentication class for recording process webhook requests.
+    Validates the API key in the Authorization header.
+    """
+
+    AUTH_HEADER = "Authorization"
+    TOKEN_TYPE = "Bearer"  # noqa S105
+
+    def authenticate(self, request):
+        """
+        Authenticate the request and return a two-tuple of (user, token).
+        """
+        required_token = settings.SUMMARY_SERVICE_WEBHOOK_API_TOKEN
+        if not required_token:
+            raise AuthenticationFailed("Webhook authentication is not configured.")
+
+        auth_header: str = request.headers.get("Authorization") or ""
+        if not auth_header.startswith("Bearer "):
+            logger.warning(
+                "Authentication failed: Invalid authorization header format (ip: %s)",
+                request.META.get("REMOTE_ADDR"),
+            )
+            raise AuthenticationFailed("Invalid authorization header format.")
+        token = auth_header[7:]  # len("Bearer ") == 7
+
+        if not secrets.compare_digest(
+            token,
+            required_token,
+        ):
+            logger.warning(
+                "Authentication failed: Bad Authorization header (ip: %s)",
+                request.META.get("REMOTE_ADDR"),
+            )
+            raise AuthenticationFailed()
+
+        return MachineUser("external_process_user"), None
+
+    def authenticate_header(self, request):
+        """Return the WWW-Authenticate header value."""
+        return f"{self.TOKEN_TYPE} realm='External process webhook API'"

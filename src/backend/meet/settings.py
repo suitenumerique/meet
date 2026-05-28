@@ -748,11 +748,29 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    SUMMARY_SERVICE_VERSION = values.PositiveIntegerValue(
+        1, environ_name="SUMMARY_SERVICE_VERSION", environ_prefix=None
+    )
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
     SUMMARY_SERVICE_API_TOKEN = SecretFileValue(
         None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
+    )
+    SUMMARY_SERVICE_WEBHOOK_API_TOKEN = SecretFileValue(
+        None, environ_name="SUMMARY_SERVICE_WEBHOOK_API_TOKEN", environ_prefix=None
+    )
+    SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS = (
+        values.PositiveIntegerValue(
+            60 * 60 * 24,
+            environ_name="SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS",
+            environ_prefix=None,
+        )
+    )
+    TRANSCRIPTION_SATISFACTION_FORM_BASE_URL = values.Value(
+        None,
+        environ_name="TRANSCRIPTION_SATISFACTION_FORM_BASE_URL",
+        environ_prefix=None,
     )
     SCREEN_RECORDING_BASE_URL = values.Value(
         None, environ_name="SCREEN_RECORDING_BASE_URL", environ_prefix=None
