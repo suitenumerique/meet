@@ -50,7 +50,6 @@ from summary.core.transcript_formatter import TranscriptFormatter
 from summary.core.user_assign import resolve_speaker_identities
 from summary.core.webhook_service import (
     call_webhook_v2,
-    submit_content,
 )
 
 settings = get_settings()
@@ -317,136 +316,6 @@ def format_actions(llm_output: dict) -> str:
     return ""
 
 
-@celery.task(
-    bind=True,
-    autoretry_for=[exceptions.HTTPError],
-    max_retries=settings.celery_max_retries,
-    queue=settings.transcribe_queue,
-)
-def process_audio_transcribe_summarize_v2(
-    self,
-    owner_id: str,
-    recording_filename: str,
-    metadata_filename: str | None,
-    email: str,
-    sub: str,
-    received_at: float,
-    room: str | None,
-    owner_timezone: str | None,
-    language: str | None,
-    download_link: str | None,
-    context_language: str | None = None,
-    recording_start_at: str | None = None,
-    recording_end_at: str | None = None,
-):
-    """Process an audio file by transcribing it and generating a summary.
-
-    This Celery task orchestrates:
-    1. Audio transcription via WhisperX
-    2. Transcript formatting
-    3. Webhook submission
-    4. Conditional summarization queuing
-
-    Args:
-        self: Celery task instance (passed on with bind=True)
-        owner_id: Unique identifier of the recording owner.
-        recording_filename: Name of the audio file in MinIO storage.
-        metadata_filename: Name of the audio file in MinIO storage.
-        email: Email address of the recording owner.
-        sub: OIDC subject identifier of the recording owner.
-        received_at: Unix timestamp when the recording was received.
-        room: room name where the recording took place.
-        owner_timezone: IANA timezone of the recording owner (e.g. "Europe/Paris").
-        language: ISO 639-1 language code for transcription.
-        download_link: URL to download the original recording.
-        context_language: ISO 639-1 language code of the meeting summary context text.
-        recording_start_at: ISO 8601 timestamp of when file recording actually started
-            (from LiveKit FileInfo.started_at via the egress_ended webhook).
-        recording_end_at: ISO 8601 timestamp of when file recording ended
-            (from LiveKit FileInfo.ended_at via the egress_ended webhook).
-    """
-    logger.info(
-        "Notification received | Owner: %s | Room: %s",
-        owner_id,
-        room,
-    )
-
-    task_id = self.request.id
-
-    # Transcribe the audio
-    transcription = transcribe_audio(
-        task_id=task_id, recording_filename=recording_filename, language=language
-    )
-    if transcription is None:
-        return
-
-    # Assign speakers and rewrite transcription/diarization output
-    if settings.is_resolve_speaker_identities_enabled and (
-        metadata_filename is not None
-    ):
-        transcription = resolve_speaker_identities_and_apply_to(
-            transcription,
-            recording_start_at,
-            recording_end_at,
-            metadata_filename,
-            task_id,
-        )
-
-    form_base_url = settings.transcription_satisfaction_form_base_url
-    form_link = (
-        f"{form_base_url}?room_id={room}"
-        if (form_base_url and metadata_filename is not None)
-        else None
-    )
-
-    # Format output
-    content, title = format_transcript(
-        transcription,
-        context_language,
-        language,
-        room,
-        recording_start_at,
-        owner_timezone,
-        download_link,
-        form_link,
-    )
-
-    submit_content(content, title, email, sub)
-    metadata_manager.capture(task_id, settings.posthog_event_success)
-
-    # LLM Summarization
-    if (
-        analytics.is_feature_enabled("summary-enabled", distinct_id=owner_id)
-        and settings.is_summary_enabled
-    ):
-        logger.info("Queuing summary generation task.")
-        summarize_transcription.apply_async(
-            args=[owner_id, content, email, sub, title],
-            queue=settings.summarize_queue,
-        )
-    else:
-        logger.info("Summary generation not enabled for this user. Skipping.")
-
-
-@signals.task_prerun.connect(sender=process_audio_transcribe_summarize_v2)
-def task_started(task_id=None, task=None, args=None, **kwargs):
-    """Signal handler called before task execution begins."""
-    task_args = args or []
-    metadata_manager.create(task_id, task_args)
-
-
-@signals.task_retry.connect(sender=process_audio_transcribe_summarize_v2)
-def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
-    """Signal handler called when task execution retries."""
-    metadata_manager.retry(request.id)
-
-
-@signals.task_failure.connect(sender=process_audio_transcribe_summarize_v2)
-def task_failure_handler(task_id, exception=None, **kwargs):
-    """Signal handler called when task execution fails permanently."""
-    metadata_manager.capture(task_id, settings.posthog_event_failure)
-
-
 def summarize_transcription_internals(
     *, owner_id: str, transcript: str, session_id: str
 ) -> str:
@@ -524,29 +393,6 @@ def summarize_transcription_internals(
     logger.debug("LLM observability flushed")
 
     return summary
-
-
-@celery.task(
-    bind=True,
-    autoretry_for=[LLMException, Exception],
-    max_retries=settings.celery_max_retries,
-    queue=settings.summarize_queue,
-)
-def summarize_transcription(
-    self, owner_id: str, transcript: str, email: str, sub: str, title: str
-):
-    """Generate a summary from the provided transcription text.
-
-    This Celery task performs the following operations:
-    1. Run summary internals
-    2. Sends the final summary via webhook.
-    """
-    summary = summarize_transcription_internals(
-        owner_id=owner_id, transcript=transcript, session_id=self.request.id
-    )
-    summary_title = settings.summary_title_template.format(title=title)
-
-    submit_content(summary, summary_title, email, sub)
 
 
 ##################################################################################

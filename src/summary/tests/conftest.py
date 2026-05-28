@@ -11,7 +11,6 @@ from summary.main import app
 def get_settings_override():
     """Return settings for tests."""
     return Settings(
-        v1_tenant_id="test-tenant",
         authorized_tenants=(
             AuthorizedTenant(
                 webhook_url="https://example.com/webhook",
