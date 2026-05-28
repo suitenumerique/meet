@@ -301,7 +301,7 @@ services:
       context: ./src/summary
       dockerfile: Dockerfile
       target: production
-    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q transcribe-queue
+    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q transcribe-queue-v2
     env_file:
       - env.d/development/summary
     volumes:
@@ -321,7 +321,7 @@ services:
       context: ./src/summary
       dockerfile: Dockerfile
       target: production
-    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q summarize-queue
+    command: celery -A summary.core.celery_worker worker --pool=solo --loglevel=debug -Q summarize-queue-v2
     env_file:
       - env.d/development/summary
     volumes:
