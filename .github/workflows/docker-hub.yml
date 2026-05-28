@@ -46,7 +46,7 @@ jobs:
           images: '${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-backend'
       -
         name: Login to DockerHub
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
@@ -65,7 +65,7 @@ jobs:
           target: backend-production
           platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -92,7 +92,7 @@ jobs:
           images: '${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend'
       -
         name: Login to DockerHub
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
@@ -112,7 +112,7 @@ jobs:
           target: frontend-production
           platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -139,7 +139,7 @@ jobs:
           images: '${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend-dinum'
       -
         name: Login to DockerHub
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
@@ -159,7 +159,7 @@ jobs:
           target: frontend-production
           platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -186,7 +186,7 @@ jobs:
           images: '${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-summary'
       -
         name: Login to DockerHub
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
@@ -208,7 +208,7 @@ jobs:
           target: production
           platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -235,7 +235,7 @@ jobs:
           images: lasuite/meet-agents
       -
         name: Login to DockerHub
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
@@ -257,7 +257,7 @@ jobs:
           target: production
           platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
