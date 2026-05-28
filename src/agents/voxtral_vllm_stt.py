@@ -136,7 +136,10 @@ class STT(stt.STT):
         self._vad = vad
 
         self._opts = _STTOptions(
-            base_url=resolved_url, model=resolved_model, api_key=resolved_key
+            base_url=resolved_url,
+            model=resolved_model,
+            api_key=resolved_key,
+            target_streaming_delay_ms=resolved_delay,
         )
         self._streams: weakref.WeakSet[SpeechStream] = weakref.WeakSet()
 
@@ -284,7 +287,12 @@ class SpeechStream(stt.RecognizeStream):
                 status_code=500,
                 body=created,
             )
-        await ws.send(json.dumps({"type": "session.update", "model": self._opts.model}))
+        session_update: dict = {"type": "session.update", "model": self._opts.model}
+        if self._opts.target_streaming_delay_ms is not None:
+            session_update["target_streaming_delay_ms"] = (
+                self._opts.target_streaming_delay_ms
+            )
+        await ws.send(json.dumps(session_update))
         return created.get("id", "")
 
     def _auth_headers(self) -> dict[str, str]:
