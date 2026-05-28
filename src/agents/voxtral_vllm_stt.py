@@ -35,7 +35,7 @@ logger = logging.getLogger("voxtral-vllm-stt")
 SAMPLE_RATE = 16000
 NUM_CHANNELS = 1
 CHUNK_SAMPLES = 1600  # 100 ms @ 16 kHz mono
-PREROLL_CHUNKS = 5  # keep 500 ms of audio before START_OF_SPEECH
+PREROLL_CHUNKS = 5  # keep 500 ms of audio before start of speech as detected by VAD
 
 # Reconnect policy: exponential backoff capped at MAX, give up after MAX_ATTEMPTS
 # consecutive failures (a successful handshake resets the counter).
@@ -54,7 +54,7 @@ class _STTOptions:
 
 @dataclass
 class _PendingUtterance:
-    """An utterance in flight on the shared websocket.
+    """An utterance in flight on the shared websocket used for reconnect.
 
     `sent_chunks` holds every chunk we have already enqueued for send on this
     or a prior connection; on reconnect we replay them before resuming reads
@@ -65,7 +65,7 @@ class _PendingUtterance:
 
     queue: asyncio.Queue[bytes | None]
     sent_chunks: list[bytes] = field(default_factory=list)
-    ended: bool = False  # the None sentinel has been drained from `queue`
+    ended: bool = False
 
 
 class STT(stt.STT):
