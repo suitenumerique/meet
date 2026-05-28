@@ -29,8 +29,5 @@ Quelques points que nous vous conseillons de vérifier :
         "\n\n*[Donnez nous votre avis sur cette transcription]({form_link})*\n"
     ),
     hallucination_replacement_text="[Texte impossible à transcrire]",
-    document_default_title="Transcription",
-    document_title_template=(
-        'Réunion "{room}" du {room_recording_date} à {room_recording_time}'
-    ),
+    summary_title_template="Résumé de {title}",
 )

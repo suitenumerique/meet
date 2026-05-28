@@ -4,12 +4,14 @@ import json
 import time
 from collections import Counter
 from functools import lru_cache
+from urllib.parse import urlsplit, urlunsplit
 
 import redis
 from celery.utils.log import get_task_logger
 from posthog import Posthog
 
 from summary.core.config import get_settings
+from summary.core.models import TranscribeTaskJob
 
 logger = get_task_logger(__name__)
 settings = get_settings()
@@ -107,23 +109,24 @@ class MetadataManager:
         """Check if task_id exists in tasks metadata cache."""
         return self._redis.exists(self._get_redis_key(task_id))
 
-    def create(self, task_id, task_args):
+    def create(self, task_id: str, task_payload: TranscribeTaskJob):
         """Create initial metadata entry for a new task."""
         if self._is_disabled or self.has_task_id(task_id):
             return
 
-        # Positional args mirror process_audio_transcribe_summarize_v2 signature:
-        # owner_id, recording_filename, metadata_filename, email, sub, received_at, ...
-        _, filename, _, email, _, received_at, *_ = task_args
-
         start_time = time.time()
+        parts = urlsplit(task_payload.cloud_storage_url)
+        clean_url = urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
         initial_metadata = {
             "start_time": start_time,
             "asr_model": settings.whisperx_asr_model,
             "retries": 0,
-            "filename": filename,
-            "email": email,
-            "queuing_time": round(start_time - received_at, 2),
+            "filename": clean_url,
+            "sub": task_payload.user_sub,
+            # avoid None in redis, it shouldn't happen anyway in prod
+            "email": task_payload.user_email or "",
+            "tenant_id": task_payload.tenant_id,
+            "queuing_time": round(start_time - task_payload.received_at.timestamp(), 2),
         }
 
         self._save_metadata(task_id, initial_metadata)
@@ -210,6 +213,6 @@ class MetadataManager:
         self.clear(task_id)
 
         try:
-            self._analytics.capture(event_name, metadata.get("email"), metadata)
+            self._analytics.capture(event_name, metadata.get("sub"), metadata)
         except AnalyticsException:
             logger.exception("Failed to capture analytics event")

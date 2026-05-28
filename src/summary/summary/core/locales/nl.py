@@ -30,8 +30,5 @@ Een paar punten die wij u aanraden te controleren:
         "(externe link)]({form_link})*\n"
     ),
     hallucination_replacement_text="[Tekst kon niet worden getranscribeerd]",
-    document_default_title="Transcriptie",
-    document_title_template=(
-        'Vergadering "{room}" op {room_recording_date} om {room_recording_time}'
-    ),
+    summary_title_template="Samenvatting van {title}",
 )
