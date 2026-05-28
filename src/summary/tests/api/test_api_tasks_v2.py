@@ -1,5 +1,6 @@
 """Integration tests for the V2 task API endpoints."""
 
+from datetime import datetime
 from unittest.mock import ANY, MagicMock, patch
 
 
@@ -31,6 +32,8 @@ class TestTasksV2:
         }
 
         args = mock_apply_async.call_args.kwargs["args"]
+        received_at = args[0].pop("received_at")
+        assert isinstance(received_at, datetime)
         assert args == [
             {
                 "user_sub": "remote-001",
@@ -38,6 +41,9 @@ class TestTasksV2:
                 "language": "en",
                 "context_language": "fr",
                 "tenant_id": "test-tenant",
+                "user_email": None,
+                "metadata": None,
+                "push_to_docs_config": None,
             }
         ]
 
@@ -64,11 +70,14 @@ class TestTasksV2:
         }
 
         args = mock_apply_async.call_args.kwargs["args"]
+        received_at = args[0].pop("received_at")
+        assert isinstance(received_at, datetime)
         assert args == [
             {
                 "user_sub": "remote-002",
                 "content": "This is a long meeting transcript to summarize.",
                 "tenant_id": "test-tenant",
+                "user_email": None,
             }
         ]
 

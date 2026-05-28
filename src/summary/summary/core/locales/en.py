@@ -30,8 +30,5 @@ A few things we recommend you check:
         "(external link)]({form_link})*\n"
     ),
     hallucination_replacement_text="[Unable to transcribe text]",
-    document_default_title="Transcription",
-    document_title_template=(
-        'Meeting "{room}" on {room_recording_date} at {room_recording_time}'
-    ),
+    summary_title_template="Summary of {title}",
 )

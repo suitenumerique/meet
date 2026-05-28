@@ -1,9 +1,8 @@
 """Application configuration and settings."""
 
 import logging
-import os
 from functools import cached_property, lru_cache
-from typing import Annotated, Any, List, Literal, Mapping, Optional, Set
+from typing import Annotated, List, Mapping, Optional, Set
 
 from fastapi import Depends
 from pydantic import (
@@ -33,6 +32,12 @@ class AuthorizedTenant(BaseModel):
     webhook_api_key: SecretStr = Field(
         title="Webhook API Key",
         description="The api_key to authenticate the webhook request.",
+    )
+    allowed_push_to_docs: bool = Field(
+        title="Allow Push to Docs",
+        description="Whether to allow pushing transcript"
+        " and summaries to docs for this tenant.",
+        default=False,
     )
 
 
@@ -83,7 +88,7 @@ class Settings(BaseSettings):
 
     # AI-related settings
     whisperx_api_key: SecretStr
-    whisperx_base_url: str = "https://api.openai.com/v1"
+    whisperx_base_url: Url = "https://api.openai.com/v1"
     whisperx_asr_model: str = "whisper-1"
     # ISO 639-1 language code (e.g., "en", "fr", "es")
     whisperx_default_language: Optional[str] = None
@@ -105,10 +110,17 @@ class Settings(BaseSettings):
     webhook_max_retries: int = 2
     webhook_status_forcelist: List[int] = [502, 503, 504]
     webhook_backoff_factor: float = 0.1
+    app_external_user_agent: str = "summary"
 
     # Summary related settings
     is_summary_enabled: bool = True
-    transcription_satisfaction_form_base_url: Optional[str] = None
+
+    # Docs service configuration
+    is_lasuite_docs_integration_enabled: bool = False
+    lasuite_docs_base_url: Url = "https://example.com"
+    lasuite_docs_server_to_server_api_key: SecretStr = Field(
+        title="API key for using docs server to server api", default="NO_API_KEY"
+    )
 
     # Sentry
     sentry_is_enabled: bool = False
@@ -120,6 +132,7 @@ class Settings(BaseSettings):
     posthog_api_host: Optional[str] = "https://eu.i.posthog.com"
     posthog_event_failure: str = "transcript-failure"
     posthog_event_success: str = "transcript-success"
+    posthog_event_request: str = "transcript-request"
 
     # Langfuse (LLM Observability)
     langfuse_enabled: bool = False
@@ -148,6 +161,25 @@ class Settings(BaseSettings):
             raise ValueError("Duplicate application API api_keys are not allowed")
         return self
 
+    @model_validator(mode="after")
+    def validate_docs_config(self):
+        """Validate docs integration configuration."""
+        if not self.is_lasuite_docs_integration_enabled:
+            return self
+
+        if not self.lasuite_docs_base_url:
+            raise ValueError(
+                "lasuite_docs_base_url is required when docs integration is enabled"
+            )
+        if self.lasuite_docs_server_to_server_api_key.get_secret_value() in {
+            "",
+            "NO_API_KEY",
+        }:
+            raise ValueError(
+                "Valid lasuite_docs_server_to_server_api_key is required when"
+                " docs integration is enabled"
+            )
+        return self
 
     @cached_property
     def authorized_tenant_api_keys(self) -> frozenset[str]:
