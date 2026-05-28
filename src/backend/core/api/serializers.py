@@ -563,3 +563,13 @@ class RenameParticipantSerializer(BaseValidationOnlySerializer):
     """Serializer for renaming a participant in a room."""
 
     name = serializers.CharField(min_length=1, max_length=255, allow_blank=False)
+
+
+class ExternalProcessEventSerializer(BaseValidationOnlySerializer):
+    """Validate external process event data."""
+
+    job_id = serializers.CharField(required=True)
+    # We are not strict on purpose on those fields to avoid
+    # useless bad requests
+    type = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    status = serializers.CharField(required=False, allow_null=True, allow_blank=True)

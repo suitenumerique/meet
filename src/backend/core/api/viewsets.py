@@ -39,7 +39,10 @@ from core import analytics, enums, models, utils
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
-from core.recording.event.authentication import StorageEventAuthentication
+from core.recording.event.authentication import (
+    RecordingProcessWebhookAuthentication,
+    StorageEventAuthentication,
+)
 from core.recording.event.exceptions import (
     InvalidBucketError,
     InvalidFilepathError,
@@ -998,6 +1001,60 @@ class RecordingViewSet(
         return drf_response.Response(
             {"message": "Event processed."},
         )
+
+    @decorators.action(
+        detail=False,
+        methods=["post"],
+        url_path="external-process-hook",
+        authentication_classes=[RecordingProcessWebhookAuthentication],
+        serializer_class=serializers.ExternalProcessEventSerializer,
+    )
+    def on_external_process_event_received(self, request, pk=None):  # pylint: disable=unused-argument
+        """Handle incoming external process events for recordings."""
+        logger.debug("Processing external process event %s", request.data)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        ok_response = drf_response.Response(
+            {"message": "Event processed."},
+        )
+
+        validated_data = serializer.validated_data
+        job_id = validated_data["job_id"]
+        try:
+            recording = models.Recording.objects.get(external_process_id=job_id)
+        except models.Recording.DoesNotExist as e:
+            logger.warning("No recording found for job_id %s: %s", job_id, e)
+            return ok_response
+
+        if validated_data.get("type") == "transcript":
+            if validated_data.get("status") == "success":
+                logger.info(
+                    "External process transcript success received for recording %s",
+                    job_id,
+                )
+                recording.status = (
+                    models.RecordingStatusChoices.EXTERNAL_PROCESS_SUCCESSFUL
+                )
+                recording.save()
+                return ok_response
+
+            if validated_data.get("status") == "failure":
+                logger.info(
+                    "External process transcript failure received for recording %s",
+                    job_id,
+                )
+                recording.status = models.RecordingStatusChoices.EXTERNAL_PROCESS_FAILED
+                recording.save()
+                return ok_response
+
+        logger.info(
+            "No changes to save for external process id %s and payload %s",
+            job_id,
+            validated_data,
+        )
+
+        return ok_response
 
     def _auth_get_original_url(self, request):
         """

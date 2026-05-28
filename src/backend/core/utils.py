@@ -459,12 +459,14 @@ def generate_upload_policy(file):
     return policy
 
 
-def generate_download_file_url(file, *, expires_in: int, override_domain: bool = True):
+def generate_download_s3_url(
+    key: str, *, expires_in: int, override_domain: bool = True
+):
     """
-    Generate a S3 signed download url for a given file.
+    Generate a S3 signed download url for a given key.
     """
-
-    key = file.file_key
+    if not key:
+        raise ValueError("key cannot be empty")
 
     # This setting should be used if the backend application and the frontend application
     # can't connect to the object storage with the same domain. This is the case in the

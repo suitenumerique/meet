@@ -30,3 +30,4 @@ POSTHOG_ENABLED="False"
 
 # Transcription
 TRANSCRIPTION_SATISFACTION_FORM_BASE_URL=
+AUTHORIZED_TENANTS='[{"id": "meet","api_key": "password","webhook_url": "https://configure-your-url.com/api/v1.0/recordings/external-process-hook/","webhook_api_key": "webhook-password","allowed_push_to_docs": true}]'

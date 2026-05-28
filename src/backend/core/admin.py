@@ -11,7 +11,7 @@ from core.recording.event import notification
 
 from . import models
 from .tasks.file import process_file_deletion
-from .utils import generate_download_file_url
+from .utils import generate_download_s3_url
 
 
 def hard_delete_file(file):
@@ -242,7 +242,7 @@ class FileAdmin(admin.ModelAdmin):
         """Return a clickable preview URL for the file."""
         if not obj.is_ready:
             return "-"
-        url = generate_download_file_url(obj, expires_in=60 * 60)
+        url = generate_download_s3_url(obj.key, expires_in=60 * 60)
 
         return format_html(
             '<a href="{}" target="_blank" rel="noopener noreferrer">Open File</a>', url
