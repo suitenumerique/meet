@@ -23,8 +23,7 @@ from livekit.agents import (
 from livekit.agents import (
     room_io as lk_room_io,
 )
-from livekit.plugins import deepgram, mistralai, silero
-from mistralai.client import Mistral
+from livekit.plugins import deepgram, silero
 
 import voxtral_vllm_stt
 
@@ -49,18 +48,6 @@ def create_stt_provider():
         )
     elif STT_PROVIDER == "kyutai":
         _stt_instance = kyutai.STT(base_url=os.getenv("KYUTAI_STT_BASE_URL"))
-    elif STT_PROVIDER == "voxtral-realtime":
-        client = Mistral(
-            api_key=os.getenv("VOXTRAL_REALTIME_STT_API_KEY"),
-            server_url=os.getenv("VOXTRAL_REALTIME_STT_BASE_URL"),
-        )
-        _stt_instance = mistralai.STT(
-            client=client,
-            model=os.getenv(
-                "VOXTRAL_STT_MODEL",
-                "voxtral-mini-transcribe-realtime-2602",
-            ),
-        )
     elif STT_PROVIDER == "voxtral-vllm":
         # The plugin resolves base_url / model / api_key from the environment
         # itself (with sensible defaults). Passing os.getenv(...) directly would
