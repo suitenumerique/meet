@@ -39,7 +39,10 @@ from core import enums, models, utils
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
-from core.recording.event.authentication import StorageEventAuthentication
+from core.recording.event.authentication import (
+    RecordingProcessWebhookAuthentication,
+    StorageEventAuthentication,
+)
 from core.recording.event.exceptions import (
     InvalidBucketError,
     InvalidFilepathError,
@@ -984,6 +987,47 @@ class RecordingViewSet(
                 f"Recording with ID {recording_id} cannot be saved because it is either,"
                 " in an error state or has already been saved."
             ) from None
+
+        return drf_response.Response(
+            {"message": "Event processed."},
+        )
+
+    @decorators.action(
+        detail=False,
+        methods=["post"],
+        url_path="external-process-hook",
+        authentication_classes=[RecordingProcessWebhookAuthentication],
+    )
+    def on_external_process_event_received(self, request, pk=None):  # pylint: disable=unused-argument
+        """Handle incoming external process events for recordings."""
+        logger.debug("Processing external process event %s", request.data)
+        data = request.data
+        if not data.get("job_id"):
+            raise drf_exceptions.ValidationError(detail="No job_id provided")
+
+        job_id = data["job_id"]
+        try:
+            recording = models.Recording.objects.get(external_process_id=job_id)
+        except models.Recording.DoesNotExist as e:
+            logger.warning("No recording found for job_id %s: %s", job_id, e)
+            recording = None
+
+        changed = False
+        if recording and data.get("type") == "transcript":
+            if data.get("status") == "success":
+                logger.info("External process received for recording %s", job_id)
+                recording.status = (
+                    models.RecordingStatusChoices.EXTERNAL_PROCESS_SUCCESSFUL
+                )
+                changed = True
+            if data.get("status") == "failure":
+                recording.status = models.RecordingStatusChoices.EXTERNAL_PROCESS_FAILED
+                changed = True
+
+        if changed and recording:
+            recording.save()
+        else:
+            logger.info("No changes to save for external process id %s", job_id)
 
         return drf_response.Response(
             {"message": "Event processed."},

@@ -754,6 +754,14 @@ class Base(Configuration):
     SUMMARY_SERVICE_API_TOKEN = SecretFileValue(
         None, environ_name="SUMMARY_SERVICE_API_TOKEN", environ_prefix=None
     )
+    SUMMARY_SERVICE_WEBHOOK_API_TOKEN = SecretFileValue(
+        None, environ_name="SUMMARY_SERVICE_WEBHOOK_API_TOKEN", environ_prefix=None
+    )
+    TRANSCRIPTION_SATISFACTION_FORM_BASE_URL = values.Value(
+        None,
+        environ_name="TRANSCRIPTION_SATISFACTION_FORM_BASE_URL",
+        environ_prefix=None,
+    )
     SCREEN_RECORDING_BASE_URL = values.Value(
         None, environ_name="SCREEN_RECORDING_BASE_URL", environ_prefix=None
     )

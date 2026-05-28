@@ -465,6 +465,19 @@ def generate_download_file_url(file, *, expires_in: int, override_domain: bool =
     """
 
     key = file.file_key
+    return generate_download_s3_file_url(
+        key, expires_in=expires_in, override_domain=override_domain
+    )
+
+
+def generate_download_s3_file_url(
+    key: str, *, expires_in: int, override_domain: bool = True
+):
+    """
+    Generate a S3 signed download url for a given key.
+    """
+    if not key:
+        raise ValueError("key cannot be empty")
 
     # This setting should be used if the backend application and the frontend application
     # can't connect to the object storage with the same domain. This is the case in the
