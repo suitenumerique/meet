@@ -409,7 +409,17 @@ class SpeechStream(stt.RecognizeStream):
             event_type = data.get("type")
 
             if event_type == "transcription.delta":
-                current_text += data.get("delta", "")
+                delta = data.get("delta", "")
+                if not delta:
+                    continue
+                current_text += delta
+                self._event_ch.send_nowait(
+                    stt.SpeechEvent(
+                        type=stt.SpeechEventType.INTERIM_TRANSCRIPT,
+                        request_id=request_id,
+                        alternatives=[stt.SpeechData(text=current_text, language="")],
+                    )
+                )
             elif event_type == "transcription.done":
                 final_text = data.get("text") or current_text
                 self._event_ch.send_nowait(
