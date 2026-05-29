@@ -245,6 +245,7 @@ class SpeechStream(stt.RecognizeStream):
             try:
                 await pipeline_t
             except asyncio.CancelledError:
+                # CancelledError is the expected flow on cancel()
                 pass
             except Exception:
                 logger.exception("utterance pipeline failed during finalize")
