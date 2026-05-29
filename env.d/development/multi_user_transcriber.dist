@@ -1,9 +1,21 @@
+AWS_S3_ENDPOINT_URL=minio:9000
+AWS_S3_ACCESS_KEY_ID=meet
+AWS_S3_SECRET_ACCESS_KEY=password
+
 LIVEKIT_URL=ws://livekit:7880
 LIVEKIT_API_KEY=devkey
 LIVEKIT_API_SECRET=secret
 
-STT_PROVIDER=kyutai
+STT_PROVIDER=voxtral-vllm # voxtral-vllm, kyutai, deepgram
 ENABLE_SILERO_VAD=False
 
-KYUTAI_STT_BASE_URL=
-KYUTAI_API_KEY=
+DEEPGRAM_API_KEY=your-deepgram-api-key
+
+KYUTAI_STT_BASE_URL=url
+KYUTAI_API_KEY=your-kyutai-api-key
+
+VOXTRAL_VLLM_BASE_URL=wss://<host>/v1/realtime
+VOXTRAL_VLLM_MODEL=voxtral-mini-4b-realtime-2602
+VOXTRAL_VLLM_API_KEY=your-vllm-api-key
+VOXTRAL_VLLM_TARGET_STREAMING_DELAY_MS=480
+
