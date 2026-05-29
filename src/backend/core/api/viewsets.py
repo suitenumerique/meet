@@ -586,7 +586,8 @@ class RoomViewSet(
             permissions.HasLiveKitRoomAccess,
         ],
         authentication_classes=[LiveKitTokenAuthentication],
-    )  # @FeatureFlag.require("subtitle")
+    )
+    @FeatureFlag.require("subtitle")
     def start_subtitle(self, request, pk=None):  # pylint: disable=unused-argument
         """Start realtime transcription for the room.
 
