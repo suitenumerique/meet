@@ -1,17 +1,15 @@
 .podSecurityContext: &podSecurityContext
-  runAsUser: 1000
-  runAsGroup: 1000
-  fsGroup: 1000
-  fsGroupChangePolicy: "OnRootMismatch"
-  runAsNonRoot: true
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  runAsNonRoot: false
   seccompProfile:
     type: RuntimeDefault
 
 .securityContext: &securityContext
-  allowPrivilegeEscalation: false
+  allowPrivilegeEscalation: true
   capabilities:
-    drop:
-      - ALL
+    drop: []
 
 frontend:
   podSecurityContext: *podSecurityContext
