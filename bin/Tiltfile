@@ -23,8 +23,8 @@ docker_build(
     live_update=[
         sync('../src/backend', '/app'),
         run(
-            'pip install -r /app/requirements.txt',
-            trigger=['./api/requirements.txt']
+            'uv sync --locked --no-dev',
+            trigger=['../src/backend/uv.lock', '../src/backend/pyproject.toml']
         )
     ]
 )
