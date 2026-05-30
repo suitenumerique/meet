@@ -185,6 +185,7 @@ paths:
                           pin_code: "123456"
                           phone_number: "+1-555-0100"
                           default_country: "US"
+                        configuration: {}
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -197,10 +198,6 @@ paths:
       summary: Create a room
       description: |
         Creates a new room with secure defaults for external API usage.
-        
-        **Restrictions:**
-        - Rooms are always created with `trusted` access (no public rooms via API)
-        - Room access_level can be updated from the webapp interface.
         
         **Defaults:**
         - Delegated user is set as owner
@@ -218,8 +215,17 @@ paths:
               $ref: '#/components/schemas/RoomCreate'
             examples:
               emptyBody:
-                summary: No parameters (default)
-                value: {}
+                summary: No parameters (use all defaults)
+                value: { }
+              withAccessLevel:
+                summary: Specify access level
+                value:
+                  access_level: "trusted"
+              withConfiguration:
+                summary: Provide room configuration
+                value:
+                  configuration:
+                    everyone_can_mute: true
       responses:
         '201':
           description: Room created successfully
@@ -269,6 +275,7 @@ paths:
                       pin_code: "123456"
                       phone_number: "+1-555-0100"
                       default_country: "US"
+                    configuration: {}
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -344,8 +351,56 @@ components:
 
     RoomCreate:
       type: object
-      description: Empty object - all room properties are auto-generated
-      properties: {}
+      description: |
+        Optional fields for room creation. All fields have secure defaults if omitted.
+      properties:
+        access_level:
+          $ref: '#/components/schemas/RoomAccessLevel'
+        configuration:
+          $ref: '#/components/schemas/RoomConfiguration'
+
+    RoomConfiguration:
+      type: object
+      description: |
+        Optional room behaviour settings. Unknown fields are rejected.
+        All fields are optional and default to `null` (server-side defaults apply).
+      properties:
+        can_publish_sources:
+          type: array
+          nullable: true
+          description: |
+            Restricts which media tracks participants are allowed to publish.
+            If `null`, all sources are permitted.
+          items:
+            type: string
+            enum:
+              - camera
+              - microphone
+              - screen_share
+              - screen_share_audio
+          example: [ "camera", "microphone" ]
+        everyone_can_mute:
+          type: boolean
+          nullable: true
+          description: |
+            Whether any participant can mute others, or only the room owner/moderator.
+            If `null`, the server default applies.
+          example: true
+      additionalProperties: false
+
+    RoomAccessLevel:
+      type: string
+      enum:
+        - public
+        - trusted
+        - restricted
+      description: |
+        Controls who can join the room without going through the lobby.
+
+        - `public`: Anyone with the room link can join directly, no authentication required.
+        - `trusted`: Authenticated users join directly. Unauthenticated users wait in the lobby for approval.
+        - `restricted`: Only participants explicitly trusted by the owner bypass the lobby. Everyone else waits for approval regardless of authentication.
+      example: "trusted"
 
     Room:
       type: object
@@ -362,10 +417,7 @@ components:
           description: URL-friendly room identifier (auto-generated)
           example: "aze-eere-zer"
         access_level:
-          type: string
-          readOnly: true
-          description: Room access level (always 'trusted' for API-created rooms)
-          example: "trusted"
+          $ref: '#/components/schemas/RoomAccessLevel'
         url:
           type: string
           format: uri
@@ -393,6 +445,8 @@ components:
               type: string
               description: Default country code
               example: "US"
+        configuration:
+          $ref: '#/components/schemas/RoomConfiguration'
 
     OAuthError:
       type: object
