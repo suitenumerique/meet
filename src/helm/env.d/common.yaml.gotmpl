@@ -77,6 +77,7 @@ backend:
     DJANGO_SETTINGS_MODULE: meet.settings
     DJANGO_SILENCED_SYSTEM_CHECKS: security.W004, security.W008
     DJANGO_SUPERUSER_PASSWORD: admin
+    # Email notification
     DJANGO_EMAIL_HOST: "mailcatcher"
     DJANGO_EMAIL_PORT: 1025
     DJANGO_EMAIL_USE_SSL: False
@@ -85,6 +86,7 @@ backend:
     DJANGO_EMAIL_LOGO_IMG: https://meet.127.0.0.1.nip.io/assets/logo-suite-numerique.png
     DJANGO_EMAIL_DOMAIN: meet.127.0.0.1.nip.io
     DJANGO_EMAIL_APP_BASE_URL: https://meet.127.0.0.1.nip.io
+    # OIDC & Auth
     OIDC_OP_JWKS_ENDPOINT: https://keycloak.127.0.0.1.nip.io/realms/meet/protocol/openid-connect/certs
     OIDC_OP_AUTHORIZATION_ENDPOINT: https://keycloak.127.0.0.1.nip.io/realms/meet/protocol/openid-connect/auth
     OIDC_OP_TOKEN_ENDPOINT: https://keycloak.127.0.0.1.nip.io/realms/meet/protocol/openid-connect/token
@@ -99,13 +101,20 @@ backend:
     LOGIN_REDIRECT_URL: https://meet.127.0.0.1.nip.io
     LOGIN_REDIRECT_URL_FAILURE: https://meet.127.0.0.1.nip.io
     LOGOUT_REDIRECT_URL: https://meet.127.0.0.1.nip.io
+    # Databases
     DB_HOST: postgres
     DB_NAME: meet
     DB_USER: dinum
     DB_PASSWORD: pass
     DB_PORT: 5432
     REDIS_URL: redis://default:pass@redis-master:6379/1
+    # Static files
     STORAGES_STATICFILES_BACKEND: django.contrib.staticfiles.storage.StaticFilesStorage
+    # Permissions
+    ALLOW_UNREGISTERED_ROOMS: False
+    # Certs for dev purpose only
+    SSL_CERT_FILE: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
+    # Livekit
     {{- with .Values.livekit.keys }}
     {{- range $key, $value := . }}
     LIVEKIT_API_SECRET: {{ $value }}
@@ -114,29 +123,49 @@ backend:
     {{- end }}
     LIVEKIT_API_URL: https://livekit.127.0.0.1.nip.io/
     LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    # Frontend
     LIVEKIT_FORCE_WSS_PROTOCOL: True
     LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: True
-    ALLOW_UNREGISTERED_ROOMS: False
     FRONTEND_IDLE_DISCONNECT_WARNING_DELAY: 9000
     FRONTEND_SILENCE_LIVEKIT_DEBUG: False
     FRONTEND_SUPPORT: "{'id': '58ea6697-8eba-4492-bc59-ad6562585041', 'help_article_transcript': 'https://lasuite.crisp.help/fr/article/visio-transcript-1sjq43x', 'help_article_recording': 'https://lasuite.crisp.help/fr/article/visio-enregistrement-wgc8o0', 'help_article_more_tools': 'https://lasuite.crisp.help/fr/article/visio-tools-bvxj23'}"
     FRONTEND_FEEDBACK: "{'url': 'https://grist.numerique.gouv.fr/o/docs/cbMv4G7pLY3Z/USER-RESEARCH-or-LA-SUITE/f/26'}"
     FRONTEND_MANIFEST_LINK: "https://docs.numerique.gouv.fr/docs/1ef86abf-f7e0-46ce-b6c7-8be8b8af4c3d/"
+    FRONTEND_IDLE_DISCONNECT_WARNING_DELAY: 9000
+    FRONTEND_TRANSCRIPTION_DESTINATION: "https://docs.numerique.gouv.fr"
+    FRONTEND_IS_SILENT_LOGIN_ENABLED: False
+    # S3 Storage
     AWS_S3_ENDPOINT_URL: http://minio.meet.svc.cluster.local:9000
     AWS_S3_ACCESS_KEY_ID: meet
     AWS_S3_SECRET_ACCESS_KEY: password
     AWS_STORAGE_BUCKET_NAME: meet-media-storage
+    # Telephony
+    ROOM_TELEPHONY_ENABLED: True
+    ROOM_TELEPHONY_DEFAULT_COUNTRY: 'FR'
+    ROOM_TELEPHONY_PHONE_NUMBER: '+33901020304'
+    # Metadata Agent
+    METADATA_COLLECTOR_ENABLED: True
+    # External API
+    EXTERNAL_API_ENABLED: True
+    # Service Account
+    APPLICATION_JWT_AUDIENCE: https://meet.127.0.0.1.nip.io/external-api/v1.0/
+    APPLICATION_JWT_SECRET_KEY: devKeyApplication
+    APPLICATION_BASE_URL: https://meet.127.0.0.1.nip.io
+    # Custom Background
     AWS_S3_REGION_NAME: local
     AWS_S3_SIGNATURE_VERSION: s3v4
+    AWS_S3_DOMAIN_REPLACE: https://minio.127.0.0.1.nip.io
     MEDIA_BASE_URL: https://meet.127.0.0.1.nip.io
+    FILE_UPLOAD_ENABLED: True
+    CELERY_ENABLED: True
+    CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
+    # Recording & Transcription
     RECORDING_ENABLE: True
     RECORDING_STORAGE_EVENT_ENABLE: True
     RECORDING_STORAGE_EVENT_TOKEN: password
     SUMMARY_SERVICE_ENDPOINT: http://meet-summary:80/api/v1/tasks/
     SUMMARY_SERVICE_API_TOKEN: password
     RECORDING_DOWNLOAD_BASE_URL: https://meet.127.0.0.1.nip.io/recording
-    ROOM_TELEPHONY_ENABLED: True
-    SSL_CERT_FILE: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
 
   migrate:
     command:
@@ -200,6 +229,8 @@ posthog:
   ingressAssets:
     enabled: false
 
+# ---- Extra ingress/service for recording file downloads -----------
+
 ingressMedia:
   enabled: true
   host: meet.127.0.0.1.nip.io
@@ -212,6 +243,24 @@ ingressMedia:
 serviceMedia:
   host: minio.meet.svc.cluster.local
   port: 9000
+
+# ---- Extra ingress/service for background file uploads ------------
+
+ingressMediaFiles:
+  enabled: true
+  host: meet.127.0.0.1.nip.io
+
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: https://meet.127.0.0.1.nip.io/api/v1.0/files/media-auth/
+    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
+    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
+    nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/files/$1
+
+serviceMediaFiles:
+  host: minio.meet.svc.cluster.local
+  port: 9000
+
+# ---- STT Orchestration Microservice Components --------------------
 
 summary:
   replicas: 1
@@ -272,3 +321,48 @@ celerySummaryBackend:
     - "--loglevel=info"
     - "-Q"
     - "call-webhook-queue-v2"
+
+# ---- Livekit agents components ------------------------------------
+
+agentMetadata:
+  replicas: 1
+  envVars:
+    LIVEKIT_URL: https://livekit.127.0.0.1.nip.io/
+    {{- with .Values.livekit.keys }}
+    {{- range $key, $value := . }}
+    LIVEKIT_API_SECRET: {{ $value }}
+    LIVEKIT_API_KEY: {{ $key }}
+    {{- end }}
+    {{- end }}
+    ENABLE_SILERO_VAD: "false"
+    AWS_S3_ENDPOINT_URL: minio.meet.svc.cluster.local:9000
+    AWS_S3_ACCESS_KEY_ID: meet
+    AWS_S3_SECRET_ACCESS_KEY: password
+    AWS_S3_SECURE_ACCESS: False
+    AWS_STORAGE_BUCKET_NAME: meet-media-storage
+    AWS_S3_OUTPUT_FOLDER: metadata
+
+  image:
+    repository: localhost:5001/meet-agents
+    pullPolicy: Always
+    tag: "latest"
+
+  command:
+    - "python"
+    - "metadata_collector.py"
+    - "start"
+
+  # Extra volume mounts to manage our local custom CA and avoid to disable ssl
+  extraVolumeMounts:
+    - name: certs
+      mountPath: /usr/lib/ssl/cert.pem
+      subPath: cert.pem
+
+  # Extra volumes to manage our local custom CA and avoid to disable ssl
+  extraVolumes:
+    - name: certs
+      configMap:
+        name: certifi
+        items:
+        - key: cacert.pem
+          path: cert.pem

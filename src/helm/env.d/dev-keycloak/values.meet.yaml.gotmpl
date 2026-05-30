@@ -1,24 +1,7 @@
 
 backend:
   envVars:
-    LIVEKIT_FORCE_WSS_PROTOCOL: True
-    LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: True
-    FRONTEND_IDLE_DISCONNECT_WARNING_DELAY: 9000
-    FRONTEND_TRANSCRIPTION_DESTINATION: "https://docs.numerique.gouv.fr"
-    ROOM_TELEPHONY_ENABLED: True
-    ROOM_TELEPHONY_DEFAULT_COUNTRY: 'FR'
-    ROOM_TELEPHONY_PHONE_NUMBER: '+33901020304'
     ROOM_SUBTITLE_ENABLED: True
-    EXTERNAL_API_ENABLED: True
-    APPLICATION_JWT_AUDIENCE: https://meet.127.0.0.1.nip.io/external-api/v1.0/
-    APPLICATION_JWT_SECRET_KEY: devKeyApplication
-    APPLICATION_BASE_URL: https://meet.127.0.0.1.nip.io
-    FILE_UPLOAD_ENABLED: True
-    AWS_S3_DOMAIN_REPLACE: https://minio.127.0.0.1.nip.io
-    CELERY_ENABLED: True
-    CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
-    METADATA_COLLECTOR_ENABLED: True
-    FRONTEND_IS_SILENT_LOGIN_ENABLED: False
 
 # ---- Frontend : Generic/white-label build (meet-frontend-generic) — Outlook add-in disabled ----
 frontend:
@@ -32,52 +15,6 @@ frontend:
     repository: localhost:5001/meet-frontend-generic
     pullPolicy: Always
     tag: "latest"
-
-
-
-# ---- Extra component: agentMetadata -------------------------
-agentMetadata:
-  replicas: 1
-  envVars:
-    LIVEKIT_URL: https://livekit.127.0.0.1.nip.io/
-    {{- with .Values.livekit.keys }}
-    {{- range $key, $value := . }}
-    LIVEKIT_API_SECRET: {{ $value }}
-    LIVEKIT_API_KEY: {{ $key }}
-    {{- end }}
-    {{- end }}
-    ENABLE_SILERO_VAD: "false"
-    AWS_S3_ENDPOINT_URL: minio.meet.svc.cluster.local:9000
-    AWS_S3_ACCESS_KEY_ID: meet
-    AWS_S3_SECRET_ACCESS_KEY: password
-    AWS_S3_SECURE_ACCESS: False
-    AWS_STORAGE_BUCKET_NAME: meet-media-storage
-    AWS_S3_OUTPUT_FOLDER: metadata
-
-  image:
-    repository: localhost:5001/meet-agents
-    pullPolicy: Always
-    tag: "latest"
-
-  command:
-    - "python"
-    - "metadata_collector.py"
-    - "start"
-
-  # Extra volume mounts to manage our local custom CA and avoid to disable ssl
-  extraVolumeMounts:
-    - name: certs
-      mountPath: /usr/lib/ssl/cert.pem
-      subPath: cert.pem
-
-  # Extra volumes to manage our local custom CA and avoid to disable ssl
-  extraVolumes:
-    - name: certs
-      configMap:
-        name: certifi
-        items:
-        - key: cacert.pem
-          path: cert.pem
 
 # ---- Extra component: agentSubtitles -------------------------
 agentSubtitles:
@@ -116,18 +53,3 @@ agentSubtitles:
         items:
         - key: cacert.pem
           path: cert.pem
-
-# ---- Extra ingress/service for file uploads -----------------
-ingressMediaFiles:
-  enabled: true
-  host: meet.127.0.0.1.nip.io
-
-  annotations:
-    nginx.ingress.kubernetes.io/auth-url: https://meet.127.0.0.1.nip.io/api/v1.0/files/media-auth/
-    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
-    nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/files/$1
-
-serviceMediaFiles:
-  host: minio.meet.svc.cluster.local
-  port: 9000
