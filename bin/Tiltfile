@@ -110,11 +110,20 @@ k8s_resource('meet-celery-backend', resource_deps=['redis'])
 k8s_resource('meet-celery-summarize', resource_deps=['redis'])
 k8s_resource('meet-celery-summary-backend', resource_deps=['redis'])
 k8s_resource('meet-celery-transcribe-default', resource_deps=['redis'])
-k8s_resource('meet-backend-migrate', resource_deps=['meet-backend'])
 k8s_resource('livekit-livekit-server', resource_deps=['redis'])
 k8s_resource('livekit-livekit-server-test-connection', resource_deps=['livekit-livekit-server'])
 k8s_resource('keycloak', resource_deps=['kc-postgresql'])
-k8s_resource('meet-backend-createsuperuser', resource_deps=['meet-backend-migrate'])
+# Trigger once on launch
+k8s_resource(
+    'meet-backend-createsuperuser',
+    resource_deps=['meet-backend-migrate'],
+    trigger_mode=TRIGGER_MODE_MANUAL,
+)
+k8s_resource(
+    'meet-backend-migrate',
+    resource_deps=['meet-backend'],
+    trigger_mode=TRIGGER_MODE_MANUAL,
+)
 
 migration = '''
 set -eu
