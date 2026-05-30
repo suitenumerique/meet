@@ -1,26 +1,20 @@
 import { useTranslation } from 'react-i18next'
-import { DialogTrigger, MenuItem, Menu as RACMenu } from 'react-aria-components'
-import { Button, Menu } from '@/primitives'
+import { DialogTrigger } from 'react-aria-components'
+import { Button } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
-import { navigateTo } from '@/navigation/navigateTo'
 import { Screen } from '@/layout/Screen'
-import { generateRoomId, useCreateRoom } from '@/features/rooms'
 import { UserAware } from '@/features/auth/components/UserAware'
 import { useUser } from '@/features/auth/api/useUser'
 import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
-import { RiAddLine, RiLink } from '@remixicon/react'
-import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
-import { IntroSlider } from '@/features/home/components/IntroSlider'
-import { MoreLink } from '@/features/home/components/MoreLink'
+import { IntroSlider } from '../components/IntroSlider'
+import { MoreLink } from '../components/MoreLink'
+import { CreateMeetingMenu } from '../components/CreateMeetingMenu'
 import { ReactNode, useEffect, useState } from 'react'
 
 import { css } from '@/styled-system/css'
-import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { useConfig } from '@/api/useConfig'
 import { LoginButton } from '@/components/LoginButton'
-import { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { LoadingScreen } from '@/components/LoadingScreen'
-import { loadUserChoices } from '@livekit/components-core'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -146,56 +140,6 @@ const IntroText = styled('div', {
     maxWidth: '32rem',
   },
 })
-
-const CreateMeetingMenu = () => {
-  const { username } = loadUserChoices()
-
-  const { t } = useTranslation('home')
-  const { mutateAsync: createRoom } = useCreateRoom()
-  const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
-
-  return (
-    <>
-      <Menu>
-        <Button variant="primary" data-attr="create-meeting">
-          {t('createMeeting')}
-        </Button>
-        <RACMenu>
-          <MenuItem
-            className={menuRecipe({ icon: true, variant: 'light' }).item}
-            onAction={() => {
-              const slug = generateRoomId()
-              createRoom({ slug, username }).then((data) =>
-                navigateTo('room', data.slug, {
-                  state: { create: true, initialRoomData: data },
-                })
-              )
-            }}
-            data-attr="create-option-instant"
-          >
-            <RiAddLine size={18} />
-            {t('createMenu.instantOption')}
-          </MenuItem>
-          <MenuItem
-            className={menuRecipe({ icon: true, variant: 'light' }).item}
-            onAction={() => {
-              const slug = generateRoomId()
-              createRoom({ slug, username }).then(setLaterRoom)
-            }}
-            data-attr="create-option-later"
-          >
-            <RiLink size={18} />
-            {t('createMenu.laterOption')}
-          </MenuItem>
-        </RACMenu>
-      </Menu>
-      <LaterMeetingDialog
-        room={laterRoom}
-        onOpenChange={() => setLaterRoom(null)}
-      />
-    </>
-  )
-}
 
 const Home = () => {
   const { t } = useTranslation('home')
