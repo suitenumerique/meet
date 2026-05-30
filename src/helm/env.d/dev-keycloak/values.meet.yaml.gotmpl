@@ -1,50 +1,5 @@
-_summaryEnvVars: &summaryEnvVars
-  APP_NAME: summary-microservice
-  APP_API_TOKEN: password
-  AWS_STORAGE_BUCKET_NAME: meet-media-storage
-  AWS_S3_ENDPOINT_URL: http://minio.meet.svc.cluster.local:9000/
-  AWS_S3_ACCESS_KEY_ID: meet
-  AWS_S3_SECRET_ACCESS_KEY: password
-  AWS_S3_SECURE_ACCESS: False
-  AUTHORIZED_TENANTS: '[{"id": "dictaphone", "api_key": "dictaphone_token", "webhook_url": "http://dictaphone-backend.dictaphone.svc.cluster.local/api/v1.0/ai-jobs/webhook/", "webhook_api_key": "token_summary"}]'
-  WHISPERX_API_KEY:
-    secretKeyRef:
-      name: secret-dev
-      key: WHISPERX_API_KEY
-  WHISPERX_BASE_URL:
-    secretKeyRef:
-      name: secret-dev
-      key: WHISPERX_BASE_URL
-  WHISPERX_ASR_MODEL: large-v2
-  WHISPERX_DEFAULT_LANGUAGE: fr
-  LLM_BASE_URL:
-    secretKeyRef:
-      name: secret-dev
-      key: LLM_BASE_URL
-  LLM_API_KEY:
-    secretKeyRef:
-      name: secret-dev
-      key: LLM_API_KEY
-  LLM_MODEL: Qwen/Qwen3-Coder-30B-A3B-Instruct
-  WEBHOOK_API_TOKEN: password
-  WEBHOOK_URL: https://www.mock-impress.com/webhook/
-  CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
-  CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
-  TASK_TRACKER_REDIS_URL: redis://default:pass@redis-master:6379/1
-
-
-_summaryImage: &summaryImage
-  repository: localhost:5001/meet-summary
-  pullPolicy: Always
-  tag: "latest"
-
-image:
-  repository: localhost:5001/meet-backend
-  pullPolicy: Always
-  tag: "latest"
 
 backend:
-  replicas: 1
   envVars:
     DJANGO_CSRF_TRUSTED_ORIGINS: https://meet.127.0.0.1.nip.io,http://meet.127.0.0.1.nip.io
     DJANGO_CONFIGURATION: Production
@@ -131,44 +86,7 @@ backend:
     ADDONS_TOKEN_SECRET_KEY: 'ThisIsAnExampleKeyForDevPurposeOnly'
     FRONTEND_IS_SILENT_LOGIN_ENABLED: False
 
-  migrate:
-    command:
-      - "/bin/sh"
-      - "-c"
-      - |
-        python manage.py migrate --no-input
-    restartPolicy: Never
-
-  command:
-    - "gunicorn"
-    - "-c"
-    - "/usr/local/etc/gunicorn/meet.py"
-    - "meet.wsgi:application"
-    - "--reload"
-
-  createsuperuser:
-    command:
-      - "/bin/sh"
-      - "-c"
-      - |
-        python manage.py createsuperuser --email admin@example.com --password admin
-    restartPolicy: Never
-
-  # Extra volume mounts to manage our local custom CA and avoid to set ssl_verify: false
-  extraVolumeMounts:
-    - name: certs
-      mountPath: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
-      subPath: cacert.pem
-
-  # Extra volumes to manage our local custom CA and avoid to set ssl_verify: false
-  extraVolumes:
-    - name: certs
-      configMap:
-        name: certifi
-        items:
-        - key: cacert.pem
-          path: cacert.pem
-
+# ---- Frontend : Generic/white-label build (meet-frontend-generic) — Outlook add-in disabled ----
 frontend:
   envVars:
     VITE_APP_TITLE: "LaSuite Meet"
@@ -176,88 +94,14 @@ frontend:
     VITE_HOST: 0.0.0.0
     VITE_API_BASE_URL: https://meet.127.0.0.1.nip.io/
 
-  replicas: 1
-
   image:
     repository: localhost:5001/meet-frontend-generic
     pullPolicy: Always
     tag: "latest"
 
-ingress:
-  enabled: true
-  host: meet.127.0.0.1.nip.io
 
-ingressAdmin:
-  enabled: true
-  host: meet.127.0.0.1.nip.io
 
-ingressWebhook:
-  enabled: true
-  host: meet.127.0.0.1.nip.io
-
-posthog:
-  ingress:
-    enabled: false
-
-  ingressAssets:
-    enabled: false
-
-summary:
-  replicas: 1
-  image: *summaryImage
-  envVars:
-    <<: *summaryEnvVars
-
-celeryTranscribe:
-  replicas: 1
-  image: *summaryImage
-  envVars:
-    <<: *summaryEnvVars
-  command:
-    - "celery"
-    - "-A"
-    - "summary.core.celery_worker"
-    - "worker"
-    - "--pool=solo"
-    - "--loglevel=info"
-    - "-Q"
-    - "transcribe-queue,transcribe-queue-v2"
-
-celerySummarize:
-  replicas: 1
-  image: *summaryImage
-  envVars:
-    <<: *summaryEnvVars
-  command:
-    - "celery"
-    - "-A"
-    - "summary.core.celery_worker"
-    - "worker"
-    - "--pool=solo"
-    - "--loglevel=info"
-    - "-Q"
-    - "summarize-queue,summarize-queue-v2"
-
-celerySummaryBackend:
-  replicas: 1
-  envVars:
-    <<: *summaryEnvVars
-
-  image:
-    repository: localhost:5001/meet-summary
-    pullPolicy: Always
-    tag: "latest"
-
-  command:
-    - "celery"
-    - "-A"
-    - "summary.core.celery_worker"
-    - "worker"
-    - "--pool=solo"
-    - "--loglevel=info"
-    - "-Q"
-    - "call-webhook-queue-v2"
-
+# ---- Extra component: agentMetadata -------------------------
 agentMetadata:
   replicas: 1
   envVars:
@@ -301,6 +145,7 @@ agentMetadata:
         - key: cacert.pem
           path: cert.pem
 
+# ---- Extra component: agentSubtitles -------------------------
 agentSubtitles:
   replicas: 1
   envVars:
@@ -338,21 +183,7 @@ agentSubtitles:
         - key: cacert.pem
           path: cert.pem
 
-ingressMedia:
-  enabled: true
-  host: meet.127.0.0.1.nip.io
-
-  annotations:
-    nginx.ingress.kubernetes.io/auth-url: https://meet.127.0.0.1.nip.io/api/v1.0/recordings/media-auth/
-    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
-    nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/$1
-
-serviceMedia:
-  host: minio.meet.svc.cluster.local
-  port: 9000
-
-
+# ---- Extra ingress/service for file uploads -----------------
 ingressMediaFiles:
   enabled: true
   host: meet.127.0.0.1.nip.io
