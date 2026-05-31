@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-05-31
+
 ### Added
 
 - ✨(fullstack) allow participants to mute others based on room configuration
