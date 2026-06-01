@@ -1,5 +1,13 @@
 /**
- * From https://github.com/jitsi/jitsi-meet
+ * Web Worker timer that fires at the requested interval even when the page tab
+ * is hidden (browsers throttle setTimeout/setInterval in background tabs).
+ * Adapted from https://github.com/jitsi/jitsi-meet.
+ *
+ * Called by: FaceLandmarksProcessor._initWorker().
+ *
+ * Pipeline role: Keeps the FaceLandmarksProcessor frame loop running at ~30 fps
+ * in hidden tabs. Not used by the main matting pipeline; AdvancedMattingProcessor
+ * uses rVFC + rAF instead.
  */
 
 /**
