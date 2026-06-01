@@ -231,16 +231,6 @@
       }
     }
   },
-  "pictureInPicture": {
-    "placeholder": {
-      "title": "Votre appel vidéo est dans une autre fenêtre.",
-      "description": "Le mode image dans l'image vous permet de rester connecté à l'appel tout en effectuant d'autres tâches.",
-      "bringBack": "Ramener l'appel ici"
-    },
-    "stage": "Participants",
-    "controlBar": "Commandes de la réunion",
-    "title": "Réunion en image dans l'image"
-  },
   "options": {
     "buttonLabel": "Plus d'options",
     "items": {
@@ -251,10 +241,6 @@
       "username": "Choisir votre nom",
       "effects": "Arrière-plans et effets",
       "switchCamera": "Changer de caméra",
-      "pictureInPicture": {
-        "enter": "Image dans l'image",
-        "exit": "Fermer l'image dans l'image"
-      },
       "fullscreen": {
         "enter": "Plein écran",
         "exit": "Quitter le mode plein écran"
@@ -319,6 +305,24 @@
           "6": "Bibliothèque grise",
           "7": "Comptoir de café"
         }
+      },
+      "themes": {
+        "interior": "Intérieur & Bureau",
+        "nature": "Nature",
+        "urban": "Ville & Urbain",
+        "abstract": "Abstrait",
+        "tech": "Technologie",
+        "childhood": "Enfance"
+      }
+    },
+    "matting": {
+      "errors": {
+        "MEDIAPIPE_INIT_FAILED": "Le modèle de segmentation n'a pas pu être chargé. Vérifiez votre connexion internet.",
+        "WEBGL2_INIT_FAILED": "WebGL2 n'est pas disponible sur ce navigateur. L'effet vidéo ne peut pas être appliqué.",
+        "CAPTURESTREAM_UNSUPPORTED": "Ce navigateur ne supporte pas la capture vidéo nécessaire au traitement.",
+        "VIRTUAL_BG_LOAD_FAILED": "L'image de fond n'a pas pu être chargée.",
+        "POSTPROCESS_SHADER_COMPILE_FAILED": "Une erreur GPU empêche l'effet de fonctionner.",
+        "CANVAS2D_FALLBACK": "Le rendu GPU n'est pas disponible, mode dégradé Canvas2D activé. Les performances peuvent être réduites."
       }
     },
     "faceLandmarks": {
@@ -541,10 +545,6 @@
       "screenshare": {
         "label": "Partager leur écran",
         "description": "En désactivant cette option, les participants ne pourront plus partager leur écran et tout partage en cours sera immédiatement interrompu."
-      },
-      "mute": {
-        "label": "Muter les autres",
-        "description": "En désactivant cette option, les participants ne pourront plus muter d'autres participants."
       }
     }
   },

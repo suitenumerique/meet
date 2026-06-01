@@ -231,16 +231,6 @@
       }
     }
   },
-  "pictureInPicture": {
-    "placeholder": {
-      "title": "Uw videogesprek bevindt zich in een ander venster.",
-      "description": "Met de beeld-in-beeld-modus kunt u verbonden blijven met het gesprek terwijl u andere taken uitvoert.",
-      "bringBack": "Gesprek hier terughalen"
-    },
-    "stage": "Deelnemers",
-    "controlBar": "Vergaderbesturing",
-    "title": "Beeld-in-beeld vergadering"
-  },
   "options": {
     "buttonLabel": "Meer opties",
     "items": {
@@ -251,10 +241,6 @@
       "username": "Verander uw naam",
       "effects": "Pas effecten toe",
       "switchCamera": "Selecteer camera",
-      "pictureInPicture": {
-        "enter": "Beeld-in-beeld",
-        "exit": "Beeld-in-beeld sluiten"
-      },
       "fullscreen": {
         "enter": "Volledig scherm",
         "exit": "Stop volledig scherm stand"
@@ -319,6 +305,24 @@
           "6": "Grijze bibliotheek",
           "7": "Koffiebar"
         }
+      },
+      "themes": {
+        "interior": "Interieur & Kantoor",
+        "nature": "Natuur",
+        "urban": "Stad & Urbaan",
+        "abstract": "Abstract",
+        "tech": "Technologie",
+        "childhood": "Kindertijd"
+      }
+    },
+    "matting": {
+      "errors": {
+        "MEDIAPIPE_INIT_FAILED": "Het segmentatiemodel kon niet worden geladen. Controleer uw internetverbinding.",
+        "WEBGL2_INIT_FAILED": "WebGL2 is niet beschikbaar in deze browser. Het video-effect kan niet worden toegepast.",
+        "CAPTURESTREAM_UNSUPPORTED": "Deze browser ondersteunt de vereiste videovastlegging voor verwerking niet.",
+        "VIRTUAL_BG_LOAD_FAILED": "De achtergrondafbeelding kon niet worden geladen.",
+        "POSTPROCESS_SHADER_COMPILE_FAILED": "Een GPU-fout verhindert het werken van het effect.",
+        "CANVAS2D_FALLBACK": "GPU-rendering niet beschikbaar, Canvas2D-fallback actief. De prestaties kunnen verminderd zijn."
       }
     },
     "faceLandmarks": {
@@ -541,10 +545,6 @@
       "screenshare": {
         "label": "Hun scherm delen",
         "description": "Als u deze optie uitschakelt, kunnen deelnemers hun scherm niet meer delen en wordt elke lopende schermdeling onmiddellijk gestopt."
-      },
-      "mute": {
-        "label": "Anderen dempen",
-        "description": "Wanneer uitgeschakeld, kunnen deelnemers andere deelnemers niet meer dempen."
       }
     }
   },
