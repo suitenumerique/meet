@@ -22,6 +22,7 @@ and this project adheres to
 - ✨(meet) use compatible with summary v2 #1362
 - ♻️(backend) refactor analytics backend from Protocol to abstract class
 - 🔥(summary) remove call to summary enabled feature flag
+- ♻️(frontend) wrap MuteEveryoneButton with AdminOrOwnerOnly
 
 ### Fixed
 
