@@ -1,4 +1,18 @@
-import type { ProcessorOptions, Track, TrackProcessor } from 'livekit-client'
+/**
+ * Fun face-effects track processor (glasses, mustache, beret overlays).
+ *
+ * Called by: FunnyEffects.tsx — instantiated directly when the user selects
+ * ProcessorType.FACE_LANDMARKS.
+ *
+ * Pipeline role: Independent of the background-matting pipeline. Uses
+ * MediaPipe FaceLandmarker to detect 478 facial landmarks per frame, then
+ * draws overlay images on a Canvas2D output canvas at ~30 fps via a
+ * Web Worker timer. The output canvas is captured as a MediaStreamTrack
+ * and replaces the raw camera track in LiveKit. Does not share any
+ * infrastructure with AdvancedMattingProcessor.
+ */
+
+import { ProcessorOptions, Track, TrackProcessor } from 'livekit-client'
 import posthog from 'posthog-js'
 import {
   FilesetResolver,
