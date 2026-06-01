@@ -955,12 +955,28 @@ class File(BaseModel):
         return f"{settings.FILE_UPLOAD_PATH}/{self.pk!s}"
 
     @property
+    def temporary_key_base(self):
+        """Temporary key base used while upload is still pending."""
+        if not self.pk:
+            raise RuntimeError(
+                "The file instance must be saved before requesting a storage key."
+            )
+
+        return f"{settings.FILE_UPLOAD_TMP_PATH}/{self.pk!s}"
+
+    @property
     def file_key(self):
         """Key used to store the file in object storage."""
         _, extension = splitext(self.filename)
         # We store only the extension in the storage system to avoid
         # leaking Personal Information in logs, etc.
         return f"{self.key_base}{extension!s}"
+
+    @property
+    def temporary_file_key(self):
+        """Temporary key used to upload the file before it is finalized."""
+        _, extension = splitext(self.filename)
+        return f"{self.temporary_key_base}{extension!s}"
 
     def get_abilities(self, user):
         """

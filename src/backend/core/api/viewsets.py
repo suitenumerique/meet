@@ -1196,95 +1196,115 @@ class FileViewSet(
         """
         Check the actual uploaded file and mark it as ready.
         """
-
-        file = self.get_object()
-
-        if not file.is_pending_upload:
-            raise drf_exceptions.ValidationError(
-                {"file": "This action is only available for files in PENDING state."},
-                code="file_upload_state_not_pending",
-            )
+        # Ensures we go through authorization checks
+        self.get_object()
 
         s3_client = default_storage.connection.meta.client
+        validation_error = None
 
-        head_response = s3_client.head_object(
-            Bucket=default_storage.bucket_name, Key=file.file_key
-        )
-        file_size = head_response["ContentLength"]
+        with transaction.atomic():
+            file = self.get_queryset().select_for_update().get(pk=kwargs["pk"])
 
-        if settings.FILE_UPLOAD_APPLY_RESTRICTIONS:
-            config_for_file_type = settings.FILE_UPLOAD_RESTRICTIONS[file.type]
-            if file_size > config_for_file_type["max_size"]:
-                self._complete_file_deletion(file)
-                logger.info(
-                    "upload_ended: file size (%s) for file %s higher than the allowed max size",
-                    file_size,
-                    file.file_key,
-                )
+            if not file.is_pending_upload:
                 raise drf_exceptions.ValidationError(
-                    detail="The file size is higher than the allowed max size.",
-                    code="file_size_exceeded",
+                    {
+                        "file": "This action is only available for files in PENDING state."
+                    },
+                    code="file_upload_state_not_pending",
                 )
 
-        # python-magic recommends using at least the first 2048 bytes
-        # to reduce incorrect identification.
-        # This is a tradeoff between pulling in the whole file and the most likely relevant bytes
-        # of the file for mime type identification.
-        if file_size > 2048:
-            range_response = s3_client.get_object(
-                Bucket=default_storage.bucket_name,
-                Key=file.file_key,
-                Range="bytes=0-2047",
-            )
-            file_head = range_response["Body"].read()
-        else:
-            file_head = s3_client.get_object(
-                Bucket=default_storage.bucket_name, Key=file.file_key
-            )["Body"].read()
-
-        # Use improved MIME type detection combining magic bytes and file extension
-        logger.info("upload_ended: detecting mimetype for file: %s", file.file_key)
-        mimetype = utils.detect_mimetype(file_head, filename=file.filename)
-
-        if settings.FILE_UPLOAD_APPLY_RESTRICTIONS:
-            config_for_file_type = settings.FILE_UPLOAD_RESTRICTIONS[file.type]
-            allowed_file_mimetypes = config_for_file_type["allowed_mimetypes"]
-            if mimetype not in allowed_file_mimetypes:
-                self._complete_file_deletion(file)
-                logger.warning(
-                    "upload_ended: mimetype not allowed %s for file %s",
-                    mimetype,
-                    file.file_key,
-                )
-                raise drf_exceptions.ValidationError(
-                    detail="The file type is not allowed.",
-                    code="file_type_not_allowed",
-                )
-
-        file.upload_state = models.FileUploadStateChoices.READY
-        file.mimetype = mimetype
-        file.size = file_size
-
-        file.save(update_fields=["upload_state", "mimetype", "size"])
-
-        if head_response["ContentType"] != mimetype:
-            logger.info(
-                "upload_ended: content type mismatch between object storage and file,"
-                " updating from %s to %s",
-                head_response["ContentType"],
-                mimetype,
-            )
+            # We copy the file to its final destination, we will run the checks on that
+            # final file and ignore any updates to the temporary file. (We cannot revoke the policy,
+            # so the temporary file might still be updated after that.)
+            # The temporary folders will need to be cleaned periodically
             s3_client.copy_object(
                 Bucket=default_storage.bucket_name,
                 Key=file.file_key,
                 CopySource={
                     "Bucket": default_storage.bucket_name,
-                    "Key": file.file_key,
+                    "Key": file.temporary_file_key,
                 },
-                ContentType=mimetype,
-                Metadata=head_response["Metadata"],
-                MetadataDirective="REPLACE",
             )
+
+            head_response = s3_client.head_object(
+                Bucket=default_storage.bucket_name, Key=file.file_key
+            )
+            file_size = head_response["ContentLength"]
+            # python-magic recommends using at least the first 2048 bytes
+            # to reduce incorrect identification.
+            # This is a tradeoff between pulling in the whole file and
+            # the most likely relevant bytes
+            # of the file for mime type identification.
+            if file_size > 2048:
+                range_response = s3_client.get_object(
+                    Bucket=default_storage.bucket_name,
+                    Key=file.file_key,
+                    Range="bytes=0-2047",
+                )
+                file_head = range_response["Body"].read()
+            else:
+                file_head = s3_client.get_object(
+                    Bucket=default_storage.bucket_name, Key=file.file_key
+                )["Body"].read()
+
+            logger.info("upload_ended: detecting mimetype for file: %s", file.file_key)
+            mimetype = utils.detect_mimetype(file_head, filename=file.filename)
+
+            if settings.FILE_UPLOAD_APPLY_RESTRICTIONS:
+                config_for_file_type = settings.FILE_UPLOAD_RESTRICTIONS[file.type]
+                if file_size > config_for_file_type["max_size"]:
+                    logger.info(
+                        "upload_ended: file size (%s) for file %s higher than the allowed max size",
+                        file_size,
+                        file.file_key,
+                    )
+                    validation_error = drf_exceptions.ValidationError(
+                        detail="The file size is higher than the allowed max size.",
+                        code="file_size_exceeded",
+                    )
+                else:
+                    # Use improved MIME type detection combining magic bytes and file extension
+                    allowed_file_mimetypes = config_for_file_type["allowed_mimetypes"]
+                    if mimetype not in allowed_file_mimetypes:
+                        logger.warning(
+                            "upload_ended: mimetype not allowed %s for file %s",
+                            mimetype,
+                            file.file_key,
+                        )
+                        validation_error = drf_exceptions.ValidationError(
+                            detail="The file type is not allowed.",
+                            code="file_type_not_allowed",
+                        )
+
+            if validation_error is not None:
+                self._complete_file_deletion(file)
+            else:
+                file.upload_state = models.FileUploadStateChoices.READY
+                file.mimetype = mimetype
+                file.size = file_size
+                file.save(update_fields=["upload_state", "mimetype", "size"])
+
+                if head_response["ContentType"] != mimetype:
+                    logger.info(
+                        "upload_ended: content type mismatch between object storage and file,"
+                        " updating from %s to %s",
+                        head_response["ContentType"],
+                        mimetype,
+                    )
+                    s3_client.copy_object(
+                        Bucket=default_storage.bucket_name,
+                        Key=file.file_key,
+                        CopySource={
+                            "Bucket": default_storage.bucket_name,
+                            "Key": file.file_key,
+                        },
+                        ContentType=mimetype,
+                        Metadata=head_response["Metadata"],
+                        MetadataDirective="REPLACE",
+                    )
+
+        if validation_error:
+            raise validation_error
 
         # Not yet implemented
         # Change the file.upload_state when this will be done
@@ -1298,7 +1318,7 @@ class FileViewSet(
         """Delete a file completely."""
         file.soft_delete()
         file.hard_delete()
-        process_file_deletion.delay(file.id)
+        transaction.on_commit(lambda: process_file_deletion.delay(file.id))
 
     def _authorize_subrequest(self, request, pattern):
         """
