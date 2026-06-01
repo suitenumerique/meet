@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "i18n:extract": "npx i18next -c i18next-parser.config.json",
     "format": "prettier --write ./src",
-    "check": "prettier --check ./src"
+    "check": "prettier --check ./src",
+    "test": "vitest run"
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "5.2.6",
@@ -66,6 +67,7 @@
     "typescript": "5.8.3",
     "vite": "7.3.2",
     "vite-plugin-svgr": "5.2.0",
-    "vite-tsconfig-paths": "6.1.1"
+    "vite-tsconfig-paths": "6.1.1",
+    "vitest": "^4.1.7"
   }
 }
