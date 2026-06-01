@@ -30,6 +30,7 @@ and this project adheres to
 - ♻️(backend) prefix Swagger routes with /api
 
 ### Fixed
+
 - 🩹(backend) fix swagger and redoc documentation URLs
 
 ## [1.16.0] - 2026-05-13
