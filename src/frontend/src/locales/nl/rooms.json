@@ -97,6 +97,7 @@
     }
   },
   "pagination": {
+    "label": "Pagina's van deelnemers",
     "count": "{{currentPage}} van {{totalPageCount}}",
     "next": "volgende pagina",
     "previous": "vorige pagina"

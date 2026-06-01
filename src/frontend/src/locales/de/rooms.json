@@ -97,6 +97,7 @@
     }
   },
   "pagination": {
+    "label": "Teilnehmerseiten",
     "count": "{{currentPage}} von {{totalPageCount}}",
     "next": "nächste Seite",
     "previous": "vorherige Seite"
