@@ -33,7 +33,6 @@ import {
   pushMattingError,
   dismissMattingError,
 } from './errors/MattingErrorStore'
-import { debugWarn } from './debug'
 
 import { MattingCanvasManager } from './preprocessing/MattingCanvasManager'
 import { SegmenterBenchmarker } from './segmenters/SegmenterBenchmarker'
@@ -217,7 +216,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
       this._configuredModel = this._getModel(this.options)
       this._loadSegmenter(this._configuredModel, true)
     } catch (e) {
-      debugWarn('[AMP INIT] Initialization failed, falling back to passthrough track.', e)
       pushMattingError({
         code: 'WEBGL2_INIT_FAILED',
         level: 'warn',

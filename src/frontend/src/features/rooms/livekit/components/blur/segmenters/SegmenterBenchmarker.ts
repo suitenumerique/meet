@@ -15,7 +15,6 @@
  * warmup.
  */
 import { Segmenter, probeMediapipeDelegate } from './Segmenter'
-import { debugLog, debugWarn } from '../debug'
 
 export class SegmenterBenchmarker {
   /**
@@ -102,36 +101,21 @@ export class SegmenterBenchmarker {
     try {
       const probe = await probeMediapipeDelegate()
       if (probe === 'CPU') {
-        debugWarn('[AMP BENCHMARK] Skipped: CPU delegate detected. Falling back to Landscape.')
         return 'landscape'
       }
 
       let p75: number | null
       try {
         p75 = await this.measureInferenceP75(seg, videoElement, onPairCreated, isDestroyed)
-      } catch (e) {
-        debugWarn('[AMP BENCHMARK] Warm-up/Inference run failed. Falling back to Landscape.', e)
+      } catch {
         return 'landscape'
       }
       if (p75 === null || isDestroyed()) return 'landscape'
 
-      let result: 'landscape' | 'multiclass_skip1' | 'multiclass_skip2'
-      let resultVal: string
-      if (p75 < 25) {
-        result = 'multiclass_skip1'
-        resultVal = 'PASS — Multiclass 30fps (skip=1)'
-      } else if (p75 <= 50) {
-        result = 'multiclass_skip2'
-        resultVal = 'PASS — Multiclass 15fps (skip=2)'
-      } else {
-        result = 'landscape'
-        resultVal = 'FAIL — Landscape fallback'
-      }
-
-      debugLog(`[AMP BENCHMARK] Multiclass Performance: P75 Latency = ${p75.toFixed(2)} ms. Result = ${resultVal}`)
-      return result
-    } catch (e) {
-      debugWarn('[AMP BENCHMARK] Error during Multiclass benchmark. Falling back to Landscape.', e)
+      if (p75 < 25) return 'multiclass_skip1'
+      if (p75 <= 50) return 'multiclass_skip2'
+      return 'landscape'
+    } catch {
       return 'landscape'
     }
   }
@@ -146,22 +130,13 @@ export class SegmenterBenchmarker {
       let p75: number | null
       try {
         p75 = await this.measureInferenceP75(seg, videoElement, onPairCreated, isDestroyed)
-      } catch (e) {
-        debugWarn('[AMP BENCHMARK] Landscape warm-up failed. Defaulting to skip=2.', e)
+      } catch {
         return 'skip2'
       }
       if (p75 === null || isDestroyed()) return 'skip2'
 
-      const result: 'skip1' | 'skip2' = p75 < 25 ? 'skip1' : 'skip2'
-      const resultVal =
-        result === 'skip1'
-          ? 'PASS — 30fps (skip=1)'
-          : 'FALLBACK — 15fps (skip=2)'
-
-      debugLog(`[AMP BENCHMARK] Landscape Performance: P75 Latency = ${p75.toFixed(2)} ms. Result = ${resultVal}`)
-      return result
-    } catch (e) {
-      debugWarn('[AMP BENCHMARK] Landscape benchmark error. Defaulting to skip=2.', e)
+      return p75 < 25 ? 'skip1' : 'skip2'
+    } catch {
       return 'skip2'
     }
   }

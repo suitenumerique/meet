@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## Added
+
+- ✨(frontend) reworked background blur and virtual background #<PR-id>
+
 ### Changed
 
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
