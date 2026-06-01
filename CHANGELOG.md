@@ -8,9 +8,9 @@ and this project adheres to
 
 ## [Unreleased]
 
-## Added
+### Added
 
-- ✨(frontend) reworked background blur and virtual background #<PR-id>
+- ✨(frontend) reworked background blur and virtual background #1378
 
 ## [1.17.0] - 2026-05-31
 
