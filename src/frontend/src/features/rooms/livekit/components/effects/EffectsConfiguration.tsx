@@ -4,9 +4,14 @@ import { useTranslation } from 'react-i18next'
 import {
   BackgroundProcessorFactory,
   BackgroundProcessorInterface,
+  PostProcessingConfig,
+  PreProcessingConfig,
+  UpsamplingConfig,
   ProcessorConfig,
   ProcessorType,
+  SegmentationModel,
 } from '../blur'
+import { useMattingErrors } from '../blur/errors/MattingErrorStore'
 import { css } from '@/styled-system/css'
 import { Button, Dialog, H, P, Text, ToggleButton } from '@/primitives'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
@@ -116,6 +121,74 @@ export const EffectsConfiguration = ({
   const effectAnnouncementId = useRef(0)
 
   const { processorConfig } = useSnapshot(userChoicesStore)
+  const mattingErrors = useMattingErrors()
+
+  // ----- Advanced matting settings (model + pre/post-processing toggles) -----
+  // These are the defaults used until a UI is built to expose them.
+  const model: SegmentationModel = SegmentationModel.AUTO
+  const roiCroppingEnabled = true
+  const erosionEnabled = true
+  const erosionPixels = 3
+  const upsamplingRadius = 8
+  const upsamplingEpsLog = Math.log10(0.01)
+  const emaEnabled = true
+  const emaAlpha = 0.7
+  const openingEnabled = true
+  const openingRadius = 3
+  const closingEnabled = true
+  const closingRadius = 3
+  const buildPreProcessing = useCallback((): PreProcessingConfig => {
+    const cfg: PreProcessingConfig = {}
+    if (roiCroppingEnabled) cfg.roiCropping = { enabled: true }
+    return cfg
+  }, [roiCroppingEnabled])
+
+  const buildPostProcessing = useCallback((): PostProcessingConfig => {
+    const cfg: PostProcessingConfig = {}
+    if (erosionEnabled && erosionPixels > 0)
+      cfg.erosion = { pixels: erosionPixels }
+    if (emaEnabled) cfg.ema = { alpha: emaAlpha }
+    if (openingEnabled && openingRadius > 0)
+      cfg.opening = { radius: openingRadius }
+    if (closingEnabled && closingRadius > 0)
+      cfg.closing = { radius: closingRadius }
+    return cfg
+  }, [
+    erosionEnabled,
+    erosionPixels,
+    emaEnabled,
+    emaAlpha,
+    openingEnabled,
+    openingRadius,
+    closingEnabled,
+    closingRadius,
+  ])
+
+  const buildUpsampling = useCallback((): UpsamplingConfig => {
+    return {
+      radius: upsamplingRadius,
+      eps: Math.pow(10, upsamplingEpsLog),
+    }
+  }, [upsamplingRadius, upsamplingEpsLog])
+
+  const withAdvanced = useCallback(
+    (config: ProcessorConfig): ProcessorConfig => {
+      if (
+        config.type === ProcessorType.BLUR ||
+        config.type === ProcessorType.VIRTUAL
+      ) {
+        return {
+          ...config,
+          model,
+          preProcessing: buildPreProcessing(),
+          postProcessing: buildPostProcessing(),
+          upsampling: buildUpsampling(),
+        }
+      }
+      return config
+    },
+    [model, buildPreProcessing, buildPostProcessing, buildUpsampling]
+  )
 
   const selectedId = useMemo(
     () =>
@@ -184,7 +257,8 @@ export const EffectsConfiguration = ({
   )
 
   const toggleEffect = useCallback(
-    async (config: ProcessorConfig) => {
+    async (rawConfig: ProcessorConfig) => {
+      const config = withAdvanced(rawConfig)
       setProcessorPending(true)
       const wasSelectedBeforeToggle =
         selectedId === deriveIdFromProcessorConfig(config)
@@ -247,7 +321,14 @@ export const EffectsConfiguration = ({
         setTimeout(() => setProcessorPending(false))
       }
     },
-    [enabled, selectedId, toggle, updateEffectStatusMessage, videoTrack]
+    [
+      enabled,
+      selectedId,
+      toggle,
+      updateEffectStatusMessage,
+      videoTrack,
+      withAdvanced,
+    ]
   )
 
   const { data: appConfig } = useConfig()
@@ -630,6 +711,17 @@ export const EffectsConfiguration = ({
         )}
         {isSupported ? (
           <div>
+            {mattingErrors
+              .filter((e) => e.level === 'error')
+              .map((e) => (
+                <Information key={e.code} style={{ marginBottom: '1rem' }}>
+                  <Text variant="bodyXsMedium">
+                    {t(`matting.errors.${e.code}`, {
+                      defaultValue: e.detail ?? e.code,
+                    })}
+                  </Text>
+                </Information>
+              ))}
             <div>
               <H
                 lvl={2}
