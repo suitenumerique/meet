@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add file specific admin #1387
+
 ### Changed
 
 - 🐛(agents) fix bug when closing metadata-collector
