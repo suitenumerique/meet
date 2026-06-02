@@ -4,7 +4,7 @@ from logging import getLogger
 
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
-from django.core.exceptions import SuspiciousOperation, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
@@ -23,6 +23,11 @@ from core import api, models
 from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
 
+from ..services.provisional_user_service import (
+    ProvisionalUserCreationDisabledError,
+    ProvisionalUserIntegrityError,
+    ProvisionalUserService,
+)
 from . import authentication, permissions, serializers
 
 logger = getLogger(__name__)
@@ -94,40 +99,14 @@ class ApplicationViewSet(viewsets.ViewSet):
             )
 
         try:
-            user = models.User.objects.get(email__iexact=email)
-        except models.User.DoesNotExist as e:
-            if (
-                settings.APPLICATION_ALLOW_USER_CREATION
-                and settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION
-                and not settings.OIDC_USER_SUB_FIELD_IMMUTABLE
-            ):
-                # Create a provisional user without `sub`, identified by email only.
-                #
-                # This relies on Django LaSuite implicitly updating the `sub` field on the
-                # user's first successful OIDC authentication. If this stops working,
-                # check for behavior changes in Django LaSuite.
-                #
-                # `OIDC_USER_SUB_FIELD_IMMUTABLE` comes from Django LaSuite and prevents `sub`
-                # updates. We override its default value to allow setting `sub` for
-                # provisional users.
-                user = models.User(
-                    sub=None,
-                    email=email,
-                )
-                user.set_unusable_password()
-                user.save()
-                logger.info(
-                    "Provisional user created via application: user_id=%s, email=%s, client_id=%s",
-                    user.id,
-                    email,
-                    application.client_id,
-                )
-            else:
-                raise drf_exceptions.NotFound("User not found.") from e
-        except models.User.MultipleObjectsReturned as e:
-            raise SuspiciousOperation(
-                "Multiple user accounts share a common email."
-            ) from e
+            user, _ = ProvisionalUserService().get_or_create(email, client_id)
+        except ProvisionalUserCreationDisabledError as not_found_error:
+            raise drf_exceptions.NotFound("User not found.") from not_found_error
+        except ProvisionalUserIntegrityError:
+            return drf_response.Response(
+                {"error": "Failed to create or retrieve provisional user."},
+                status=drf_status.HTTP_409_CONFLICT,
+            )
 
         scope = " ".join(application.scopes or [])
 
