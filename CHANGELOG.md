@@ -12,6 +12,10 @@ and this project adheres to
 
 - 🔧(backend) backport logging configuration from docs
 
+### Fixed
+
+- 🐛(backend) prevent duplicate pending users on concurrent requests
+
 ## [1.17.0] - 2026-05-31
 
 ### Added

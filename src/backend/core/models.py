@@ -211,6 +211,13 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
         ordering = ("-created_at",)
         verbose_name = _("user")
         verbose_name_plural = _("users")
+        constraints = [
+            models.UniqueConstraint(
+                models.functions.Lower("email"),
+                condition=models.Q(sub__isnull=True),
+                name="unique_email_when_sub_is_null",
+            )
+        ]
 
     def __str__(self):
         return self.email or self.admin_email or str(self.id)
