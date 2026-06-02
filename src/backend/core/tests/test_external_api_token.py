@@ -4,6 +4,8 @@ Tests for external API /token endpoint
 
 # pylint: disable=W0621
 
+from unittest import mock
+
 import jwt
 import pytest
 from freezegun import freeze_time
@@ -15,6 +17,7 @@ from core.factories import (
     UserFactory,
 )
 from core.models import ApplicationScope, User
+from core.services import provisional_user_service
 
 pytestmark = pytest.mark.django_db
 
@@ -436,3 +439,88 @@ def test_api_applications_token_existing_user(settings):
         "delegated": True,
         "scope": "rooms:list rooms:create",
     }
+
+
+@mock.patch.object(provisional_user_service.ProvisionalUserService, "_get_by_email")
+def test_api_applications_token_new_user_race_condition(mock_get_by_email, settings):
+    """Should handle race condition where two concurrent requests create the same user."""
+    settings.APPLICATION_ALLOW_USER_CREATION = True
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
+    settings.OIDC_USER_SUB_FIELD_IMMUTABLE = False
+
+    application = ApplicationFactory(
+        is_active=True, scopes=[ApplicationScope.ROOMS_LIST]
+    )
+    plain_secret = "test-secret-123"
+    application.client_secret = plain_secret
+    application.save()
+
+    email = "john.doe@example.com"
+
+    # First call: lie and say user doesn't exist, simulating the race window
+    # Second call (recovery path): return the real user
+    existing_user = UserFactory(sub=None, email=email)
+    mock_get_by_email.side_effect = [None, existing_user]
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        {
+            "client_id": application.client_id,
+            "client_secret": plain_secret,
+            "grant_type": "client_credentials",
+            "scope": email,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert mock_get_by_email.call_count == 2
+
+    token = response.data["access_token"]
+    payload = jwt.decode(
+        token,
+        settings.APPLICATION_JWT_SECRET_KEY,
+        algorithms=[settings.APPLICATION_JWT_ALG],
+        issuer=settings.APPLICATION_JWT_ISSUER,
+        audience=settings.APPLICATION_JWT_AUDIENCE,
+    )
+    assert payload["user_id"] == str(existing_user.id)
+    assert User.objects.filter(email=email).count() == 1
+
+
+@mock.patch.object(
+    provisional_user_service.ProvisionalUserService,
+    "get_or_create",
+    side_effect=provisional_user_service.ProvisionalUserIntegrityError,
+)
+def test_api_applications_token_new_user_race_condition_unrecoverable(
+    mock_get_or_create, settings
+):
+    """Should return 500 when ProvisionalUserIntegrityError is raised."""
+
+    settings.APPLICATION_ALLOW_USER_CREATION = True
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
+    settings.OIDC_USER_SUB_FIELD_IMMUTABLE = False
+
+    application = ApplicationFactory(
+        is_active=True, scopes=[ApplicationScope.ROOMS_LIST]
+    )
+    plain_secret = "test-secret-123"
+    application.client_secret = plain_secret
+    application.save()
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        {
+            "client_id": application.client_id,
+            "client_secret": plain_secret,
+            "grant_type": "client_credentials",
+            "scope": "john.doe@example.com",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 409
+    assert mock_get_or_create.call_count == 1
