@@ -1,9 +1,12 @@
 import { useMemo } from 'react'
-import { useTracks } from '@livekit/components-react'
+import { usePagination, useTracks } from '@livekit/components-react'
 import { RoomEvent, Track } from 'livekit-client'
+import { styled } from '@/styled-system/jsx'
 import { PipFocusLayout } from './PipFocusLayout'
 import { PipGridLayout } from './PipGridLayout'
+import { PipPagination } from './PipPagination'
 import { StageFrame } from './StageFrame'
+import { MAX_PIP_TILES } from '../../utils/pipGrid'
 import {
   isTrackReference,
   TrackReferenceOrPlaceholder,
@@ -38,21 +41,38 @@ export const PipStage = () => {
     [tracks]
   )
 
+  // Grid mode order: screen share leads, then cameras (already ordered by
+  // active speaker via the `ActiveSpeakersChanged` update above).
+  const gridTracks = useMemo(
+    () =>
+      screenShareTrack ? [screenShareTrack, ...cameraTracks] : cameraTracks,
+    [screenShareTrack, cameraTracks]
+  )
+
+  // Cap the grid at MAX_PIP_TILES per page. `usePagination` keeps the visible
+  // page visually stable (active/recent speakers stay put) via its internal
+  // `useVisualStableUpdate`. Called unconditionally to respect hook rules.
+  const pagination = usePagination(MAX_PIP_TILES, gridTracks)
+
   if (tracks.length === 0) return null
 
   /**
    * The focus layout shows one main track with one thumbnail overlay,
    * so it can only fit 2 tracks. Beyond that we switch to the grid.
    */
-  if (tracks.length > 2) {
-    // Grid mode: 3+ tracks. Screen share goes first so it leads the grid.
-    const gridTracks = screenShareTrack
-      ? [screenShareTrack, ...cameraTracks]
-      : cameraTracks
+  if (gridTracks.length > 2) {
     return (
-      <StageFrame>
-        <PipGridLayout tracks={gridTracks} />
-      </StageFrame>
+      <StageWrapper>
+        <StageFrame>
+          <PipGridLayout tracks={pagination.tracks} />
+        </StageFrame>
+        <PipPagination
+          totalPageCount={pagination.totalPageCount}
+          currentPage={pagination.currentPage}
+          nextPage={pagination.nextPage}
+          prevPage={pagination.prevPage}
+        />
+      </StageWrapper>
     )
   }
 
@@ -75,3 +95,12 @@ export const PipStage = () => {
     </StageFrame>
   )
 }
+
+const StageWrapper = styled('div', {
+  base: {
+    display: 'flex',
+    flexDirection: 'column',
+    minWidth: 0,
+    minHeight: 0,
+  },
+})

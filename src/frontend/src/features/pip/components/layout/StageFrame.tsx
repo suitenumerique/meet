@@ -15,6 +15,7 @@ export const StageFrame = ({ children }: { children: React.ReactNode }) => {
 const Container = styled('div', {
   base: {
     position: 'relative',
+    flex: 1,
     minWidth: 0,
     minHeight: 0,
     marginLeft: '0.5rem',

@@ -1,3 +1,10 @@
+/**
+ * Maximum number of tiles rendered per PiP page. Beyond this the grid
+ * paginates so large meetings stay glanceable (active speaker priority)
+ * instead of subscribing to and rendering every camera in a small window.
+ */
+export const MAX_PIP_TILES = 5
+
 export type PipTilePlacement = {
   gridColumn: string
   gridRow: number
