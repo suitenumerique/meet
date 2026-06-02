@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🔧(backend) backport logging configuration from docs
 - 🧑‍💻(backend) add management command to merge duplicate users
+- 👷(helm) add Kubernetes job for duplicate user merge command
 
 ### Fixed
 
