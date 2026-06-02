@@ -427,3 +427,34 @@ def test_merge_is_atomic_rolls_back_all_on_any_failure(mock_reassign_files):
     for f in files:
         f.refresh_from_db()
         assert f.creator == user1
+
+
+# ── Email filter ───────────────────────────────────────────────────────────────
+
+
+def test_merge_email_filter_only_merges_matching_emails():
+    """Command should only merge users whose email matches the filter."""
+    UserFactory(email="user1@example.com")
+    UserFactory(email="user1@example.com")
+    other1 = UserFactory(email="user1@other.com")
+    other2 = UserFactory(email="user1@other.com")
+    call_command("merge_duplicate_users", email_filter="@example.com")
+    assert User.objects.filter(email="user1@example.com").count() == 1
+    assert User.objects.filter(id=other1.id).exists()
+    assert User.objects.filter(id=other2.id).exists()
+
+
+def test_merge_email_filter_no_match_does_nothing():
+    """Command should do nothing when the email filter matches no users."""
+    UserFactory(email="user1@example.com")
+    UserFactory(email="user1@example.com")
+    call_command("merge_duplicate_users", email_filter="@nomatch.com")
+    assert User.objects.filter(email="user1@example.com").count() == 2
+
+
+def test_merge_email_filter_is_case_insensitive():
+    """Command should match emails case-insensitively when filtering."""
+    UserFactory(email="user1@Example.com")
+    UserFactory(email="user1@Example.com")
+    call_command("merge_duplicate_users", email_filter="@example.com")
+    assert User.objects.filter(email="user1@Example.com").count() == 1
