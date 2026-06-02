@@ -39,7 +39,7 @@
     "react": "18.3.1",
     "react-aria-components": "1.14.0",
     "react-dom": "18.3.1",
-    "react-i18next": "15.1.1",
+    "react-i18next": "15.7.4",
     "use-sound": "5.0.0",
     "valtio": "2.3.0",
     "wouter": "3.9.0"
