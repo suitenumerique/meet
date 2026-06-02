@@ -279,6 +279,17 @@ backend:
         python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
     restartPolicy: Never
 
+  ## @param backend.mergeDuplicateUsers.command backend merge_duplicate_users command
+  ## @param backend.mergeDuplicateUsers.restartPolicy backend merge_duplicate_users job restart policy
+  mergeDuplicateUsers:
+    annotations: {}
+    enabled: false
+    command:
+      - python
+      - manage.py
+      - merge_duplicate_users
+    restartPolicy: Never
+
   ## @param backend.probes.liveness.path [nullable] Configure path for backend HTTP liveness probe
   ## @param backend.probes.liveness.targetPort [nullable] Configure port for backend HTTP liveness probe
   ## @param backend.probes.liveness.initialDelaySeconds [nullable] Configure initial delay for backend liveness probe
