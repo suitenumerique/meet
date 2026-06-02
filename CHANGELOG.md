@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## Added
+
+- 🔧(backend) backport logging configuration from docs
+
 ## [1.17.0] - 2026-05-31
 
 ### Added
