@@ -94,3 +94,23 @@ def test_models_users_sub_null_email_null_does_not_prevent_creation():
     u1 = factories.UserFactory(sub=None, email=None)
     u2 = factories.UserFactory(sub=None, email=None)
     assert u1.pk != u2.pk
+
+
+def test_models_users_sub_can_be_null():
+    """sub is nullable: pending users exist before OIDC activation."""
+    user = factories.UserFactory(sub=None)
+    user.refresh_from_db()
+    assert user.sub is None
+
+
+def test_models_users_sub_null_does_not_prevent_creation():
+    """Multiple users can be created with sub=None (pending state)."""
+    u1 = factories.UserFactory(sub=None)
+    u2 = factories.UserFactory(sub=None)
+    assert u1.pk != u2.pk
+
+
+def test_models_users_sub_blank_is_accepted():
+    """sub='' passes validation because blank=True; null is preferred but not enforced."""
+    user = factories.UserFactory.build(sub="")
+    user.full_clean()
