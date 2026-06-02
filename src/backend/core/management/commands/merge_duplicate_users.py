@@ -36,17 +36,28 @@ class Command(BaseCommand):
             action="store_true",
             help="Simulate the merge without writing any changes to the database.",
         )
+        parser.add_argument(
+            "--email-filter",
+            type=str,
+            default=None,
+            help="Only merge users whose email contains this string (e.g. '@example.com').",
+        )
 
     def handle(self, *args, **options):
         """Execute the management command."""
         dry_run = options["dry_run"]
+        email_filter = options["email_filter"]
 
         if dry_run:
             self.stdout.write("[DRY-RUN] No changes will be written.\n")
 
+        users_qs = User.objects.all()
+        if email_filter:
+            users_qs = users_qs.filter(email__icontains=email_filter)
+            self.stdout.write(f"[INFO] Filtering emails containing '{email_filter}'.\n")
+
         duplicate_emails = (
-            User.objects.all()
-            .exclude(email__isnull=True)
+            users_qs.exclude(email__isnull=True)
             .exclude(email="")
             .values("email")
             .annotate(cnt=Count("id"))
