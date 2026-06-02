@@ -846,8 +846,8 @@ class FileUploadStateChoices(models.TextChoices):
     """Possible states of a file."""
 
     PENDING = "pending", _("Pending")
+    ANALYZING = "analyzing", _("Analyzing")
     # Commented out for now, as we may need this when we implement the malware detection logic.
-    # ANALYZING = "analyzing", _("Analyzing")
     # SUSPICIOUS = "suspicious", _("Suspicious")
     # FILE_TOO_LARGE_TO_ANALYZE = (
     #     "file_too_large_to_analyze",

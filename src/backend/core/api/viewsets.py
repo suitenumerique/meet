@@ -1197,22 +1197,25 @@ class FileViewSet(
         Check the actual uploaded file and mark it as ready.
         """
         # Ensures we go through authorization checks
-        self.get_object()
+        file = self.get_object()
+
+        # Try to update the file with the new state. If the file is already in this state
+        # we are in a concurrent request, and we should reject that request
+        updated_rows = models.File.objects.filter(
+            upload_state=models.FileUploadStateChoices.PENDING,
+            pk=kwargs["pk"],
+        ).update(upload_state=models.FileUploadStateChoices.ANALYZING)
+        if updated_rows != 1:
+            raise drf_exceptions.ValidationError(
+                {"file": "This action is only available for files in PENDING state."},
+                code="file_upload_state_not_pending",
+            )
+        file.refresh_from_db()
 
         s3_client = default_storage.connection.meta.client
         validation_error = None
 
-        with transaction.atomic():
-            file = self.get_queryset().select_for_update().get(pk=kwargs["pk"])
-
-            if not file.is_pending_upload:
-                raise drf_exceptions.ValidationError(
-                    {
-                        "file": "This action is only available for files in PENDING state."
-                    },
-                    code="file_upload_state_not_pending",
-                )
-
+        try:
             # We copy the file to its final destination, we will run the checks on that
             # final file and ignore any updates to the temporary file. (We cannot revoke the policy,
             # so the temporary file might still be updated after that.)
@@ -1302,6 +1305,11 @@ class FileViewSet(
                         Metadata=head_response["Metadata"],
                         MetadataDirective="REPLACE",
                     )
+        except Exception as e:
+            logger.exception("Failed to analyze file, reverting to pending state")
+            file.upload_state = models.FileUploadStateChoices.PENDING
+            file.save()
+            raise e
 
         if validation_error:
             raise validation_error
@@ -1318,7 +1326,7 @@ class FileViewSet(
         """Delete a file completely."""
         file.soft_delete()
         file.hard_delete()
-        transaction.on_commit(lambda: process_file_deletion.delay(file.id))
+        process_file_deletion.delay(file.id)
 
     def _authorize_subrequest(self, request, pattern):
         """
