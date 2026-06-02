@@ -8,9 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
-## Added
+### Added
 
 - 🔧(backend) backport logging configuration from docs
+- 🧑‍💻(backend) add management command to merge duplicate users
 
 ### Fixed
 
