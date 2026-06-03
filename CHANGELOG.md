@@ -15,8 +15,9 @@ and this project adheres to
 ### Changed
 
 - 🐛(agents) fix bug when closing metadata-collector
+- ⬆️(dependencies) update python dependencies
 
-### Fixed
+### Fixed
 
 - 🔇(summary) make ffmpeg quiet #1404
 
