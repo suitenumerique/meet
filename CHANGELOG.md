@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+
+### Changed
+
+- 🐛(agents) fix bug when closing metadata-collector
+
 ## [1.18.0] - 2026-06-03
 
 ### Added
