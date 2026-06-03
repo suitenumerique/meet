@@ -24,6 +24,10 @@ and this project adheres to
 
 - 🐛(frontend) fix metadata agent collector enabled check
 
+### Fixed
+
+- ♿️(frontend) improve accessibilty of the Effects panel #1401
+
 ## [1.20.0] - 2026-06-12
 
 ### Changed
@@ -52,7 +56,7 @@ and this project adheres to
 
 - 🔇(summary) make ffmpeg quiet #1404
 - 🔒️(backend) prevent accessing files if they are not ready #1395
-- ⬆️(backend) upgrade idna to >=3.15 to address CVE-2026-45409
+- # ⬆️(backend) upgrade idna to >=3.15 to address CVE-2026-45409
 
 ## [1.18.0] - 2026-06-03
 

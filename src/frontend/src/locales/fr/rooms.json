@@ -290,11 +290,14 @@
       "apply": "Remplacer votre arrière plan :",
       "personal": {
         "title": "Mes arrière-plans",
+        "selectedLabel": "Ne plus utiliser comme arrière-plan (actuellement actif).",
+        "apply": "Utiliser comme arrière plan.",
         "selectFileTooltip": "Sélectionnez une image à utiliser comme arrière-plan",
         "notLoggedInWarning": "Vous n'êtes pas connecté, l'arrière-plan personnel ne sera pas sauvegardé d'une réunion à l'autre.",
         "warningUploadDisabled": "Les arrière-plans personnels ne sont actuellement pas sauvegardés d'une réunion à l'autre.",
         "uploadLimitReached": "Vous ne pouvez pas ajouter plus d'arrière-plans personnels.",
         "uploadInProgress": "Image en cours d'envoi…",
+        "deleteLabel": "Supprimer l'arrière-plan.",
         "errors": {
           "close": "Fermer",
           "file_too_large": {

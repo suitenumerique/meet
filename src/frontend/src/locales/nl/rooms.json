@@ -290,11 +290,14 @@
       "apply": "Vervang je achtergrond:",
       "personal": {
         "title": "Mijn achtergronden",
+        "selectedLabel": "Deselecteer de achtergrond (deze is momenteel toegepast).",
+        "apply": "Gebruik als achtergrond.",
         "selectFileTooltip": "Selecteer een afbeeldingsbestand om te gebruiken als persoonlijke achtergrond",
         "notLoggedInWarning": "U bent niet ingelogd, persoonlijke achtergronden worden niet opgeslagen van de ene vergadering naar de andere.",
         "warningUploadDisabled": "Persoonlijke achtergronden worden momenteel niet opgeslagen van de ene vergadering naar de andere.",
         "uploadLimitReached": "U kunt geen persoonlijke achtergronden meer uploaden.",
         "uploadInProgress": "Afbeelding wordt geüpload…",
+        "deleteLabel": "Aangepaste achtergrond verwijderen.",
         "errors": {
           "close": "Sluiten",
           "file_too_large": {

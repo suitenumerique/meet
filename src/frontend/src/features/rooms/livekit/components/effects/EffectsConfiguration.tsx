@@ -400,6 +400,8 @@ export const EffectsConfiguration = ({
       config: ProcessorConfig
       isSelected: boolean
       tooltip: string
+      ariaLabel: string
+      ariaDeleteLabel: string
       file: ApiFileItem
     }[]
   }>(() => {
@@ -445,9 +447,11 @@ export const EffectsConfiguration = ({
         }
         const id = deriveIdFromProcessorConfig(config)
         const isSelected = selectedId === id
-        const prefix = isSelected ? 'selectedLabel' : 'apply'
         const backgroundName = t(`virtual.presets.descriptions.${index}`)
-        const ariaLabel = `${t(`virtual.presets.${prefix}`)} ${backgroundName}`
+        const ariaLabelPrefix = t(
+          isSelected ? `virtual.selectedLabel` : `virtual.apply`
+        )
+        const ariaLabel = `${ariaLabelPrefix} ${backgroundName}`
 
         return {
           tooltip: backgroundName,
@@ -469,13 +473,22 @@ export const EffectsConfiguration = ({
           }
 
           const id = deriveIdFromProcessorConfig(config)
+          const isSelected = selectedId === id
+          const ariaLabel = t(
+            isSelected
+              ? `virtual.personal.selectedLabel`
+              : `virtual.personal.apply`
+          )
+          const ariaDeleteLabel = t('virtual.personal.deleteLabel')
 
           return {
             tooltip: file.title,
             id,
             config,
-            isSelected: selectedId === id,
+            isSelected,
             file,
+            ariaLabel,
+            ariaDeleteLabel,
           }
         }),
     }
@@ -727,47 +740,52 @@ export const EffectsConfiguration = ({
                           }
                           role="listitem"
                         >
-                          <VisualOnlyTooltip tooltip={option.tooltip}>
-                            <ToggleButton
-                              variant="bigSquare"
-                              aria-label={option.tooltip}
-                              isDisabled={processorOptions.isDisabled}
-                              onChange={getHandleSelectChangeFile(option.file)}
-                              isSelected={option.isSelected}
-                              className={css({
-                                bgSize: 'cover',
-                              })}
-                              style={{
-                                backgroundImage: `url(${option.file.url!})`,
-                              }}
-                              data-attr={`toggle-virtual-${option.file.id}`}
-                            />
-                          </VisualOnlyTooltip>
-                          <Button
-                            className={
-                              'hoverGroupChild ' +
-                              css({
-                                position: 'absolute',
-                                top: '-8px',
-                                right: '-8px',
-                                transition: 'opacity 0.2s ease-in-out',
-                              })
-                            }
-                            size={'xs'}
-                            variant={'tertiary'}
-                            onClick={() => {
-                              if (option.isSelected) {
-                                // we remove the current effect
-                                toggleEffect(option.config)
+                          <div role="group" aria-label={option.file.title}>
+                            <VisualOnlyTooltip tooltip={option.tooltip}>
+                              <ToggleButton
+                                variant="bigSquare"
+                                aria-label={option.ariaLabel}
+                                isDisabled={processorOptions.isDisabled}
+                                onChange={getHandleSelectChangeFile(
+                                  option.file
+                                )}
+                                isSelected={option.isSelected}
+                                className={css({
+                                  bgSize: 'cover',
+                                })}
+                                style={{
+                                  backgroundImage: `url(${option.file.url!})`,
+                                }}
+                                data-attr={`toggle-virtual-${option.file.id}`}
+                              />
+                            </VisualOnlyTooltip>
+                            <Button
+                              className={
+                                'hoverGroupChild ' +
+                                css({
+                                  position: 'absolute',
+                                  top: '-8px',
+                                  right: '-8px',
+                                  transition: 'opacity 0.2s ease-in-out',
+                                })
                               }
-                              deleteFileMutation.mutate({
-                                fileId: option.file.id,
-                              })
-                            }}
-                            isDisabled={deleteFileMutation.isPending}
-                          >
-                            <RiDeleteBinLine size={16} />
-                          </Button>
+                              aria-label={option.ariaDeleteLabel}
+                              size={'xs'}
+                              variant={'tertiary'}
+                              onClick={() => {
+                                if (option.isSelected) {
+                                  // we remove the current effect
+                                  toggleEffect(option.config)
+                                }
+                                deleteFileMutation.mutate({
+                                  fileId: option.file.id,
+                                })
+                              }}
+                              isDisabled={deleteFileMutation.isPending}
+                            >
+                              <RiDeleteBinLine size={16} />
+                            </Button>
+                          </div>
                         </div>
                       )
                     )}
@@ -780,9 +798,13 @@ export const EffectsConfiguration = ({
                       >
                         <ToggleButton
                           variant="bigSquare"
-                          aria-label={
-                            uploadNotPossibleSnap.imageBackgroundConfig.label
-                          }
+                          aria-label={`${t(
+                            deriveIdFromProcessorConfig(
+                              uploadNotPossibleSnap.imageBackgroundConfig
+                            ) === selectedId
+                              ? `virtual.selectedLabel`
+                              : `virtual.apply`
+                          )} ${uploadNotPossibleSnap.imageBackgroundConfig.label}`}
                           isDisabled={
                             processorOptions.isDisabled ||
                             createFileMutation.isPending

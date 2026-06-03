@@ -290,11 +290,14 @@
       "apply": "Ersetze deinen Hintergrund:",
       "personal": {
         "title": "Meine Hintergründe",
+        "selectedLabel": "Hintergrund abwählen (er ist aktuell angewendet).",
+        "apply": "Als Hintergrund verwenden.",
         "selectFileTooltip": "Wähle ein Bild aus, das als persönlicher Hintergrund verwendet werden soll",
         "notLoggedInWarning": "Du bist nicht angemeldet, der persönliche Hintergrund wird nicht von einem Meeting zum anderen gespeichert.",
         "warningUploadDisabled": "Persönliche Hintergründe werden derzeit nicht von einem Meeting zum anderen gespeichert.",
         "uploadLimitReached": "Du kannst keine weiteren persönlichen Hintergründe hinzufügen.",
         "uploadInProgress": "Datei wird hochgeladen…",
+        "deleteLabel": "Benutzerdefinierten Hintergrund löschen.",
         "errors": {
           "close": "Schließen",
           "file_too_large": {
