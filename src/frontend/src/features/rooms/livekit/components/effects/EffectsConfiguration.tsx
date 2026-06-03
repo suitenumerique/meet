@@ -554,6 +554,7 @@ export const EffectsConfiguration = ({
               [layout === 'vertical' ? 'height' : 'minHeight']: '175px',
               borderRadius: '8px',
             }}
+            aria-hidden={true}
           />
         ) : (
           <div
