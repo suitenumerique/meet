@@ -324,7 +324,6 @@ class MetadataCollector:
     async def _close_session(self, session: AgentSession) -> None:
         """Close and cleanup VAD monitoring session."""
         try:
-            await session.drain()
             await session.aclose()
         except Exception:
             logger.exception("Error closing session")
