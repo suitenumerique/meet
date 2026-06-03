@@ -16,7 +16,9 @@ export const useUpdateParticipantsPermissions = () => {
       return Promise.all(promises)
     } catch (error) {
       console.error('An error occurred while updating permissions :', error)
-      throw new Error('An error occurred while updating permissions.')
+      throw new Error('An error occurred while updating permissions.', {
+        cause: error,
+      })
     }
   }
   return { updateParticipantsPermissions }

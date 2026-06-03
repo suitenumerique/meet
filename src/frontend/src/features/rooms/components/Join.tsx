@@ -301,7 +301,6 @@ export const Join = ({
     isError,
     refetch: refetchRoom,
   } = useQuery({
-    /* eslint-disable @tanstack/query/exhaustive-deps */
     queryKey: [keys.room, roomId],
     queryFn: () => fetchRoom({ roomId, username }),
     staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
@@ -582,7 +581,7 @@ export const Join = ({
                         transform: 'scale(1.02)',
                       })}
                     >
-                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                      {/* eslint-disable jsx-a11y/media-has-caption */}
                       <video
                         ref={videoEl}
                         width="1280"

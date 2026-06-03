@@ -37,7 +37,6 @@ export const useLobby = ({
   }, [clearWaitingTimeout])
 
   const { data: waitingData } = useQuery({
-    /* eslint-disable @tanstack/query/exhaustive-deps */
     queryKey: [keys.requestEntry, roomId],
     queryFn: async () => {
       const response = await requestEntry({

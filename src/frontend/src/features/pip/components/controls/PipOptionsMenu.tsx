@@ -116,7 +116,7 @@ export const PipOptionsMenu = ({ overflowControls }: PipOptionsMenuProps) => {
             zIndex: 10,
           })}
         >
-          {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+          {/* eslint-disable-next-line jsx-a11y/no-autofocus*/}
           <FocusScope autoFocus>
             <Box size="sm" type="popover" variant="dark">
               <PipOptionsMenuItems overflowControls={overflowControls} />

@@ -180,7 +180,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         >
           {localParticipant.isCameraEnabled ? (
             <>
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              {/* eslint-disable jsx-a11y/media-has-caption */}
               <video
                 ref={videoCallbackRef}
                 width="160px"
