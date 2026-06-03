@@ -925,9 +925,9 @@ class File(BaseModel):
         return super().delete(using, keep_parents)
 
     @property
-    def is_pending_upload(self):
-        """Return whether the file is in a pending upload state"""
-        return self.upload_state == FileUploadStateChoices.PENDING
+    def is_ready(self):
+        """Return whether the file is in a ready upload state"""
+        return self.upload_state == FileUploadStateChoices.READY
 
     @property
     def extension(self):

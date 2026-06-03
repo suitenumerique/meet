@@ -456,7 +456,7 @@ class ListFileSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         """Return the URL of the file."""
-        if obj.is_pending_upload:
+        if not obj.is_ready:
             return None
 
         return f"{settings.MEDIA_BASE_URL}{settings.MEDIA_URL}{quote(obj.file_key)}"

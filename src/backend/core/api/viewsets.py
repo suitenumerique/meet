@@ -1417,7 +1417,7 @@ class FileViewSet(
             request, MEDIA_STORAGE_URL_PATTERN
         )
 
-        if file.is_pending_upload:
+        if not file.is_ready:
             logger.warning("File '%s' is not ready", file.id)
             raise drf_exceptions.PermissionDenied()
 

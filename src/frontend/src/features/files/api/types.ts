@@ -5,7 +5,7 @@ export type ApiFileCreator = {
 }
 
 export type ApiFileType = 'background_image'
-export type ApiFileUploadState = 'pending' | 'ready'
+export type ApiFileUploadState = 'pending' | 'analyzing' | 'ready'
 
 export type ApiFileItem = {
   id: string // UUID

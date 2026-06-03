@@ -177,7 +177,7 @@ class FileAdmin(admin.ModelAdmin):
         "hard_deleted_at",
         "description",
         "malware_detection_info",
-        "is_pending_upload",
+        "is_ready",
         "preview_url",
         "extension",
         "key_base",
@@ -226,7 +226,7 @@ class FileAdmin(admin.ModelAdmin):
             _("Derived info"),
             {
                 "fields": (
-                    "is_pending_upload",
+                    "is_ready",
                     "extension",
                     "key_base",
                     "file_key",
@@ -240,7 +240,7 @@ class FileAdmin(admin.ModelAdmin):
     @admin.display(description=_("File preview"))
     def preview_url(self, obj):
         """Return a clickable preview URL for the file."""
-        if obj.is_pending_upload:
+        if not obj.is_ready:
             return "-"
         url = generate_download_file_url(obj, expires_in=60 * 60)
 

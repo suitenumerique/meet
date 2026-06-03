@@ -20,6 +20,7 @@ and this project adheres to
 ### Fixed
 
 - 🔇(summary) make ffmpeg quiet #1404
+- 🔒️(backend) prevent accessing files if they are not ready #1395
 
 ## [1.18.0] - 2026-06-03
 
