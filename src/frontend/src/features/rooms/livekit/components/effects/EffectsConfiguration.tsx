@@ -426,7 +426,9 @@ export const EffectsConfiguration = ({
         const id = deriveIdFromProcessorConfig(config)
         return {
           id,
-          tooltip: t(`blur.light.${selectedId === id ? 'clear' : 'apply'}`),
+          tooltip: t(
+            `blur.${item.key}.${selectedId === id ? 'clear' : 'apply'}`
+          ),
           radius: item.radius,
           isSelected: selectedId === id,
           Icon: item.icon,
