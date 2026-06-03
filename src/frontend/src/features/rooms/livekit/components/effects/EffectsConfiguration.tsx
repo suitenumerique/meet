@@ -667,7 +667,7 @@ export const EffectsConfiguration = ({
                 })}
               >
                 <H
-                  lvl={2}
+                  lvl={3}
                   style={{
                     marginBottom: '0.4rem',
                   }}
@@ -683,6 +683,7 @@ export const EffectsConfiguration = ({
                     paddingBottom: '0.5rem',
                     flexWrap: 'wrap',
                   })}
+                  role="list"
                 >
                   {createFileMutation.isPending &&
                     fileBeingUploadedObjectUrlRef.current && (
@@ -724,6 +725,7 @@ export const EffectsConfiguration = ({
                           className={
                             'hoverGroup ' + css({ position: 'relative' })
                           }
+                          role="listitem"
                         >
                           <VisualOnlyTooltip tooltip={option.tooltip}>
                             <ToggleButton
@@ -860,7 +862,7 @@ export const EffectsConfiguration = ({
                 })}
               >
                 <H
-                  lvl={2}
+                  lvl={3}
                   style={{
                     marginBottom: '0.4rem',
                   }}
@@ -875,24 +877,27 @@ export const EffectsConfiguration = ({
                     paddingBottom: '0.5rem',
                     flexWrap: 'wrap',
                   })}
+                  role="list"
                 >
                   {processorOptions.virtualBackgrounds.map((option) => (
-                    <VisualOnlyTooltip key={option.id} tooltip={option.tooltip}>
-                      <ToggleButton
-                        variant="bigSquare"
-                        aria-label={option.ariaLabel}
-                        isDisabled={processorOptions.isDisabled}
-                        onChange={() => toggleEffect(option.config)}
-                        isSelected={option.isSelected}
-                        className={css({
-                          bgSize: 'cover',
-                        })}
-                        style={{
-                          backgroundImage: `url(${option.thumbnailPath})`,
-                        }}
-                        data-attr={`toggle-virtual-preset-${option.index}`}
-                      />
-                    </VisualOnlyTooltip>
+                    <div role="listitem" key={option.id}>
+                      <VisualOnlyTooltip tooltip={option.tooltip}>
+                        <ToggleButton
+                          variant="bigSquare"
+                          aria-label={option.ariaLabel}
+                          isDisabled={processorOptions.isDisabled}
+                          onChange={() => toggleEffect(option.config)}
+                          isSelected={option.isSelected}
+                          className={css({
+                            bgSize: 'cover',
+                          })}
+                          style={{
+                            backgroundImage: `url(${option.thumbnailPath})`,
+                          }}
+                          data-attr={`toggle-virtual-preset-${option.index}`}
+                        />
+                      </VisualOnlyTooltip>
+                    </div>
                   ))}
                 </div>
               </div>
