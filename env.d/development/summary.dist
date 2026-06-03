@@ -22,3 +22,6 @@ WEBHOOK_URL="https://configure-your-url.com"
 
 POSTHOG_API_KEY="your-posthog-key"
 POSTHOG_ENABLED="False"
+
+# Transcription
+TRANSCRIPTION_SATISFACTION_FORM_BASE_URL=

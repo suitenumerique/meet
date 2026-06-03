@@ -25,6 +25,10 @@ Einige Punkte, die wir Ihnen empfehlen zu überprüfen:
     download_header_template=(
         "\n*[Laden Sie hier Ihre Aufnahme herunter (externer Link)]({download_link})*\n"
     ),
+    form_footer_template=(
+        "\n\n*[Teilen Sie uns mit, wie Ihnen diese Transkription gefallen hat "
+        "(externer Link)]({form_link})*\n"
+    ),
     hallucination_replacement_text="[Text konnte nicht transkribiert werden]",
     document_default_title="Transkription",
     document_title_template=(

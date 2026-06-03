@@ -233,6 +233,7 @@ def format_transcript(
     recording_datetime: str | None,
     owner_timezone: str | None,
     download_link: str | None,
+    form_link: str | None,
 ) -> tuple[str, str]:
     """Format a transcription into readable content with a title.
 
@@ -250,6 +251,7 @@ def format_transcript(
         recording_datetime=recording_datetime,
         owner_timezone=owner_timezone,
         download_link=download_link,
+        form_link=form_link,
     )
 
 
@@ -346,6 +348,13 @@ def process_audio_transcribe_summarize_v2(
             task_id,
         )
 
+    form_base_url = settings.transcription_satisfaction_form_base_url
+    form_link = (
+        f"{form_base_url}?room_id={room}"
+        if (form_base_url and metadata_filename is not None)
+        else None
+    )
+
     # Format output
     content, title = format_transcript(
         transcription,
@@ -355,6 +364,7 @@ def process_audio_transcribe_summarize_v2(
         recording_start_at,
         owner_timezone,
         download_link,
+        form_link,
     )
 
     submit_content(content, title, email, sub)

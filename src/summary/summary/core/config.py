@@ -122,6 +122,7 @@ class Settings(BaseSettings):
 
     # Summary related settings
     is_summary_enabled: bool = True
+    transcription_satisfaction_form_base_url: Optional[str] = None
 
     # Sentry
     sentry_is_enabled: bool = False

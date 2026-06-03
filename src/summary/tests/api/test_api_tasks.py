@@ -27,6 +27,7 @@ class TestTasks:
                 "owner_timezone": "UTC",
                 "language": None,
                 "download_link": "https://example.com/file.mp4",
+                "form_link": "https://satisfaction.com?room_id=test",
             },
         )
 

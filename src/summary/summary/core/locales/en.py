@@ -25,6 +25,10 @@ A few things we recommend you check:
     download_header_template=(
         "\n*[Download your recording (external link)]({download_link})*\n"
     ),
+    form_footer_template=(
+        "\n\n*[Tell us what you thought of this transcription "
+        "(external link)]({form_link})*\n"
+    ),
     hallucination_replacement_text="[Unable to transcribe text]",
     document_default_title="Transcription",
     document_title_template=(
