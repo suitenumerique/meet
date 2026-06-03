@@ -17,6 +17,7 @@ and this project adheres to
 - 🐛(agents) fix bug when closing metadata-collector
 - ⬆️(dependencies) update python dependencies
 - ⬆️(frontend) update js dependencies
+- ♻️(agents) replace deprecated room options API
 
 ### Fixed
 
