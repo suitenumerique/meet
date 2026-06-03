@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(frontend) allow disabling silent login via a URL parameter
 - ✨(frontend) allow hiding the login button via a URL parameter
+- ✨(summary) add optional satisfaction survey footer
 
 ### Changed
 

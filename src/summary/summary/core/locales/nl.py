@@ -25,6 +25,10 @@ Een paar punten die wij u aanraden te controleren:
     download_header_template=(
         "\n*[Download hier je opname (externe link)]({download_link})*\n"
     ),
+    form_footer_template=(
+        "\n\n*[Laat ons weten wat je van deze transcriptie vond "
+        "(externe link)]({form_link})*\n"
+    ),
     hallucination_replacement_text="[Tekst kon niet worden getranscribeerd]",
     document_default_title="Transcriptie",
     document_title_template=(

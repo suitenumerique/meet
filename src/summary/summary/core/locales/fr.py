@@ -25,6 +25,9 @@ Quelques points que nous vous conseillons de vérifier :
     download_header_template=(
         "\n*[Télécharger votre enregistrement Audio]({download_link})*\n"
     ),
+    form_footer_template=(
+        "\n\n*[Donnez nous votre avis sur cette transcription]({form_link})*\n"
+    ),
     hallucination_replacement_text="[Texte impossible à transcrire]",
     document_default_title="Transcription",
     document_title_template=(

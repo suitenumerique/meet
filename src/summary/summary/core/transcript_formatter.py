@@ -38,13 +38,14 @@ class TranscriptFormatter:
 
         return None
 
-    def format(
+    def format(  # noqa: PLR0913
         self,
         transcription,
         room: str | None = None,
         recording_datetime: str | None = None,
         owner_timezone: str | None = None,
         download_link: str | None = None,
+        form_link: str | None = None,
     ) -> Tuple[str, str]:
         """Format transcription into the final document and its title."""
         segments = self._get_segments(transcription)
@@ -55,6 +56,8 @@ class TranscriptFormatter:
             content = self._format_speaker(segments)
             content = self._remove_hallucinations(content)
             content = self._add_header(content, download_link)
+            if form_link:
+                content = self._add_footer(content, form_link)
 
         title = self._generate_title(room, recording_datetime, owner_timezone)
 
@@ -93,9 +96,14 @@ class TranscriptFormatter:
         header = self._locale.download_header_template.format(
             download_link=download_link
         )
-        content = header + content
+        return header + content
 
-        return content
+    def _add_footer(self, content, form_link: str | None):
+        if not form_link:
+            return content
+
+        footer = self._locale.form_footer_template.format(form_link=form_link)
+        return content + footer
 
     def _generate_title(
         self,
