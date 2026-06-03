@@ -182,7 +182,9 @@ class Base(Configuration):
         environ_name="FILE_UPLOAD_ENABLED",
         environ_prefix=None,
     )
-
+    FILE_PURGE_GRACE_DAYS = values.PositiveIntegerValue(
+        default=7, environ_name="FILE_PURGE_GRACE_DAYS", environ_prefix=None
+    )
     FILE_UPLOAD_PATH = values.Value(
         "files", environ_name="FILE_UPLOAD_PATH", environ_prefix=None
     )

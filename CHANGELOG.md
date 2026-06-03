@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add command to clean pending and deleted files
+- 🧱(helm) run clean files command as cronjob
+
 ## [1.21.0] - 2026-06-15
 
 ### Added

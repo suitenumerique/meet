@@ -1187,7 +1187,10 @@ class FileViewSet(
         serializer.save(creator=self.request.user)
 
     def perform_destroy(self, instance):
-        """Override to implement a soft delete instead of dumping the record in database."""
+        """Override to implement a soft delete instead of dumping the record in database.
+
+        Files are actually purged by commands that should run periodically.
+        """
         instance.soft_delete()
 
     @decorators.action(detail=True, methods=["post"], url_path="upload-ended")
