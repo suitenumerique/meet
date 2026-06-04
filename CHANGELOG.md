@@ -22,6 +22,7 @@ and this project adheres to
 
 - 🔇(summary) make ffmpeg quiet #1404
 - 🔒️(backend) prevent accessing files if they are not ready #1395
+- ⬆️(backend) upgrade idna to >=3.15 to address CVE-2026-45409
 
 ## [1.18.0] - 2026-06-03
 
