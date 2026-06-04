@@ -1326,7 +1326,7 @@ class FileViewSet(
         """Delete a file completely."""
         file.soft_delete()
         file.hard_delete()
-        process_file_deletion.delay(file.id)
+        transaction.on_commit(lambda: process_file_deletion.delay(file.id))
 
     def _authorize_subrequest(self, request, pattern):
         """
