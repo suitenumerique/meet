@@ -1,6 +1,6 @@
 import { useSnapshot } from 'valtio'
 import { reactionsStore } from '@/stores/reactions'
-import { useMemo, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { FloatingReaction } from '@/features/reactions/components/ReactionPortals'
 import { Reaction } from '@/features/reactions/types'
 import { css } from '@/styled-system/css'
@@ -19,8 +19,8 @@ export const PipFloatingReactions = () => {
 
 const PipFloatingReaction = ({ reaction }: { reaction: Reaction }) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const speed = useMemo(() => Math.random() * 1.5 + 0.5, [])
-  const scale = useMemo(() => Math.max(Math.random() + 0.5, 1), [])
+  const [speed] = useState(() => Math.random() * 1.5 + 0.5)
+  const [scale] = useState(() => Math.max(Math.random() + 0.5, 1))
   return (
     <div
       ref={containerRef}

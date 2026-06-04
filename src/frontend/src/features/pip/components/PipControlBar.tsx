@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { styled } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 import { AudioDevicesControl } from '@/features/rooms/livekit/components/controls/Device/AudioDevicesControl'

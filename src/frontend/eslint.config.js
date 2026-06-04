@@ -54,6 +54,13 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
 
+      // React Compiler rules (v7+) — disable until migrated to React 19
+      'react-hooks/react-compiler': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/refs': 'off',
+
       // jsx-a11y recommended rules
       ...jsxA11y.configs.recommended.rules,
 
