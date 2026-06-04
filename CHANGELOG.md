@@ -8,10 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
-
 ### Changed
 
 - 🐛(agents) fix bug when closing metadata-collector
+
+### Fixed
+
+- 🔇(summary) make ffmpeg quiet #1404
 
 ## [1.18.0] - 2026-06-03
 

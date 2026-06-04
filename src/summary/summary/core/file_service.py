@@ -224,6 +224,8 @@ def extract_audio_from_video(media_info: MediaInfo) -> Path:
 
     extract_command = [
         "ffmpeg",
+        "-v",
+        "quiet",
         "-i",
         str(media_info.path),
         "-vn",
