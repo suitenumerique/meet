@@ -140,7 +140,7 @@ export class MaskPostProcessor {
       gl.activeTexture(gl.TEXTURE1)
       gl.bindTexture(gl.TEXTURE_2D, this.tex.emaTex)
       gl.uniform1i(this.uLoc.ema.uPrev, 1)
-      gl.uniform1f(this.uLoc.ema.uAlpha, this.hasEmaState ? alpha : 1.0)
+      gl.uniform1f(this.uLoc.ema.uAlpha, this.hasEmaState ? alpha : 1)
       this.drawQuad()
       advance()
       // Copy current result into emaTex for next frame

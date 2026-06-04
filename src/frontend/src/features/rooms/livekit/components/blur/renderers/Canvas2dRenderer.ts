@@ -112,10 +112,7 @@ export class Canvas2dRenderer implements GpuRenderer {
     // the smoothed result in `emaPrevMask` for next frame.
     let src = mask
     if (this.emaAlpha > 0 && this.emaAlpha < 1) {
-      if (!this.emaPrevMask || this.emaPrevMask.length !== mask.length) {
-        this.emaPrevMask = new Float32Array(mask.length)
-        this.emaPrevMask.set(mask)
-      } else {
+      if (this.emaPrevMask?.length === mask.length) {
         const a = this.emaAlpha
         const inv = 1 - a
         const prev = this.emaPrevMask
@@ -124,6 +121,9 @@ export class Canvas2dRenderer implements GpuRenderer {
           prev[i] = blended
         }
         src = this.emaPrevMask
+      } else {
+        this.emaPrevMask = new Float32Array(mask.length)
+        this.emaPrevMask.set(mask)
       }
     } else {
       this.emaPrevMask = null
@@ -135,7 +135,7 @@ export class Canvas2dRenderer implements GpuRenderer {
     const data = this.maskImageData.data
     for (let i = 0, j = 0; i < src.length; i++, j += 4) {
       const v = src[i]
-      const a = v <= 0 ? 0 : v >= 1 ? 255 : (v * 255 + 0.5) | 0
+      const a = Math.trunc(Math.max(0, Math.min(1, v)) * 255 + 0.5)
       data[j] = 255
       data[j + 1] = 255
       data[j + 2] = 255
@@ -165,7 +165,9 @@ export class Canvas2dRenderer implements GpuRenderer {
     if (this.emaAlpha === 0) this.emaPrevMask = null
   }
 
-  setUpsampling(): void {}
+  setUpsampling(): void {
+    // Upsampling is a no-op on the Canvas2D path.
+  }
 
   render(source: RenderSource): void {
     if (!source) return
@@ -211,21 +213,7 @@ export class Canvas2dRenderer implements GpuRenderer {
       }
       bgCtx.filter = 'none'
     } else {
-      // Virtual background: stretch the image to fill the canvas. If the image
-      // isn't ready, fall back to a neutral grey so we never leak the raw
-      // camera feed in the background area.
-      const img = this.virtualImg
-      if (img && img.complete && img.naturalWidth > 0) {
-        try {
-          bgCtx.drawImage(img, 0, 0, this.outW, this.outH)
-        } catch {
-          bgCtx.fillStyle = '#202020'
-          bgCtx.fillRect(0, 0, this.outW, this.outH)
-        }
-      } else {
-        bgCtx.fillStyle = '#202020'
-        bgCtx.fillRect(0, 0, this.outW, this.outH)
-      }
+      this._drawVirtualBackground(bgCtx)
     }
 
     // 3. Composite to output: background first, then subject on top.
@@ -249,6 +237,23 @@ export class Canvas2dRenderer implements GpuRenderer {
     }
   }
 
+  private _drawVirtualBackground(bgCtx: CanvasRenderingContext2D): void {
+    // Virtual background: stretch the image to fill the canvas. If the image
+    // isn't ready, fall back to a neutral grey so we never leak the raw
+    // camera feed in the background area.
+    const img = this.virtualImg
+    if (img?.complete && img.naturalWidth > 0) {
+      try {
+        bgCtx.drawImage(img, 0, 0, this.outW, this.outH)
+        return
+      } catch {
+        // Fall through to neutral grey
+      }
+    }
+    bgCtx.fillStyle = '#202020'
+    bgCtx.fillRect(0, 0, this.outW, this.outH)
+  }
+
   private _allocMaskBuffers(w: number, h: number): void {
     this.procW = w
     this.procH = h
@@ -266,9 +271,8 @@ export class Canvas2dRenderer implements GpuRenderer {
 
   private _ensureScratchCanvases(): void {
     if (
-      !this.bgCanvas ||
-      this.bgCanvas.width !== this.outW ||
-      this.bgCanvas.height !== this.outH
+      this.bgCanvas?.width !== this.outW ||
+      this.bgCanvas?.height !== this.outH
     ) {
       const c = document.createElement('canvas')
       c.width = this.outW
@@ -282,9 +286,8 @@ export class Canvas2dRenderer implements GpuRenderer {
       this.bgCtx = ctx
     }
     if (
-      !this.fgCanvas ||
-      this.fgCanvas.width !== this.outW ||
-      this.fgCanvas.height !== this.outH
+      this.fgCanvas?.width !== this.outW ||
+      this.fgCanvas?.height !== this.outH
     ) {
       const c = document.createElement('canvas')
       c.width = this.outW
@@ -300,11 +303,11 @@ export class Canvas2dRenderer implements GpuRenderer {
   }
 
   private _sourceWidth(s: RenderSource): number {
-    return 'videoWidth' in s ? s.videoWidth : (s as ImageBitmap).width
+    return 'videoWidth' in s ? s.videoWidth : s.width
   }
 
   private _sourceHeight(s: RenderSource): number {
-    return 'videoHeight' in s ? s.videoHeight : (s as ImageBitmap).height
+    return 'videoHeight' in s ? s.videoHeight : s.height
   }
 
 }

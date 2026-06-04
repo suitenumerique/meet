@@ -355,13 +355,13 @@ export class WebGl2Renderer implements GpuRenderer {
     }
     // Convert Float32 [0,1] → Uint8, reusing a pre-allocated buffer.
     const len = mask.length
-    if (!this.u8MaskBuffer || this.u8MaskBuffer.length !== len) {
+    if (this.u8MaskBuffer?.length !== len) {
       this.u8MaskBuffer = new Uint8Array(len)
     }
     const u8 = this.u8MaskBuffer
     for (let i = 0; i < len; i++) {
       const v = mask[i]
-      u8[i] = v <= 0 ? 0 : v >= 1 ? 255 : (v * 255 + 0.5) | 0
+      u8[i] = Math.trunc(Math.max(0, Math.min(1, v)) * 255 + 0.5)
     }
     const gl = this.gl
     gl.bindTexture(gl.TEXTURE_2D, this.rawMaskTex)
@@ -400,7 +400,7 @@ export class WebGl2Renderer implements GpuRenderer {
   render(source: RenderSource) {
     if (!source) return
     const isVideo = 'videoWidth' in source
-    const sw = isVideo ? (source as HTMLVideoElement).videoWidth : (source as ImageBitmap).width
+    const sw = isVideo ? source.videoWidth : source.width
     if (!sw) return
     const gl = this.gl
 
@@ -423,10 +423,9 @@ export class WebGl2Renderer implements GpuRenderer {
         gl.UNSIGNED_BYTE,
         source
       )
-    } catch (e) {
+    } catch {
       if (!isVideo) gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
       // Some browsers throw if the video frame isn't ready yet — skip this tick.
-      void e
       return
     }
     if (!isVideo) gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
@@ -592,9 +591,7 @@ export class WebGl2Renderer implements GpuRenderer {
       if (this.virtualImgPending && !this.virtualImgUploaded) {
         const img = this.virtualImgPending
         if (img.complete && img.naturalWidth > 0) {
-          if (!this.virtualBgTex) {
-            this.virtualBgTex = gl.createTexture()!
-          }
+          this.virtualBgTex ??= gl.createTexture()
           gl.bindTexture(gl.TEXTURE_2D, this.virtualBgTex)
           gl.texImage2D(
             gl.TEXTURE_2D,
@@ -634,8 +631,8 @@ export class WebGl2Renderer implements GpuRenderer {
     gl.uniform1i(this.uLoc.maskedDown.uMask, 1)
     gl.uniform2f(
       this.uLoc.maskedDown.uSourceTexelSize,
-      1.0 / this.outW,
-      1.0 / this.outH
+      1 / this.outW,
+      1 / this.outH
     )
     this._drawQuad()
 
@@ -648,8 +645,8 @@ export class WebGl2Renderer implements GpuRenderer {
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, maskTex)
     gl.uniform1i(this.uLoc.blur.uMask, 1)
-    gl.uniform2f(this.uLoc.blur.uDirection, 1.0, 0.0)
-    gl.uniform2f(this.uLoc.blur.uTexelSize, 1.0 / this.halfW, 1.0 / this.halfH)
+    gl.uniform2f(this.uLoc.blur.uDirection, 1, 0)
+    gl.uniform2f(this.uLoc.blur.uTexelSize, 1 / this.halfW, 1 / this.halfH)
     gl.uniform1f(this.uLoc.blur.uRadius, radius)
     this._drawQuad()
 
@@ -662,8 +659,8 @@ export class WebGl2Renderer implements GpuRenderer {
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, maskTex)
     gl.uniform1i(this.uLoc.blur.uMask, 1)
-    gl.uniform2f(this.uLoc.blur.uDirection, 0.0, 1.0)
-    gl.uniform2f(this.uLoc.blur.uTexelSize, 1.0 / this.halfW, 1.0 / this.halfH)
+    gl.uniform2f(this.uLoc.blur.uDirection, 0, 1)
+    gl.uniform2f(this.uLoc.blur.uTexelSize, 1 / this.halfW, 1 / this.halfH)
     gl.uniform1f(this.uLoc.blur.uRadius, radius)
     this._drawQuad()
 
@@ -678,9 +675,17 @@ export class WebGl2Renderer implements GpuRenderer {
 
   private _buildQuad() {
     const gl = this.gl
-    this.vao = gl.createVertexArray()!
+    const vao = gl.createVertexArray()
+    if (!vao) {
+      throw new Error('Failed to create WebGL vertex array object')
+    }
+    this.vao = vao
     gl.bindVertexArray(this.vao)
-    this.quadBuffer = gl.createBuffer()!
+    const buf = gl.createBuffer()
+    if (!buf) {
+      throw new Error('Failed to create WebGL buffer')
+    }
+    this.quadBuffer = buf
     gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer)
     // Full-screen triangle covering [-1,1]² with UVs in [0,1]² (Y flipped to
     // sample non-mirrored video).
@@ -703,7 +708,10 @@ export class WebGl2Renderer implements GpuRenderer {
       type: number,
       filter: number = gl.LINEAR
     ) => {
-      const t = gl.createTexture()!
+      const t = gl.createTexture()
+      if (!t) {
+        throw new Error('Failed to create WebGL texture')
+      }
       gl.bindTexture(gl.TEXTURE_2D, t)
       gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, type, null)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
@@ -713,7 +721,10 @@ export class WebGl2Renderer implements GpuRenderer {
       return t
     }
     const makeFbo = (tex: WebGLTexture) => {
-      const f = gl.createFramebuffer()!
+      const f = gl.createFramebuffer()
+      if (!f) {
+        throw new Error('Failed to create WebGL framebuffer')
+      }
       gl.bindFramebuffer(gl.FRAMEBUFFER, f)
       gl.framebufferTexture2D(
         gl.FRAMEBUFFER,
@@ -809,7 +820,10 @@ export class WebGl2Renderer implements GpuRenderer {
 
   private _compile(stage: number, src: string): WebGLShader {
     const gl = this.gl
-    const sh = gl.createShader(stage)!
+    const sh = gl.createShader(stage)
+    if (!sh) {
+      throw new Error(`Failed to create WebGL shader for stage ${stage}`)
+    }
     gl.shaderSource(sh, src)
     gl.compileShader(sh)
     if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
@@ -824,7 +838,10 @@ export class WebGl2Renderer implements GpuRenderer {
     const gl = this.gl
     const vs = this._compile(gl.VERTEX_SHADER, vsSrc)
     const fs = this._compile(gl.FRAGMENT_SHADER, fsSrc)
-    const p = gl.createProgram()!
+    const p = gl.createProgram()
+    if (!p) {
+      throw new Error('Failed to create WebGL program')
+    }
     gl.attachShader(p, vs)
     gl.attachShader(p, fs)
     gl.bindAttribLocation(p, 0, 'aPos')

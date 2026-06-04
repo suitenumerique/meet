@@ -231,6 +231,16 @@
       }
     }
   },
+  "pictureInPicture": {
+    "placeholder": {
+      "title": "Your video call is in another window.",
+      "description": "Picture-in-Picture mode allows you to stay connected to the call while performing other tasks.",
+      "bringBack": "Bring the call back here"
+    },
+    "stage": "Participants",
+    "controlBar": "Meeting controls",
+    "title": "Picture-in-picture meeting"
+  },
   "options": {
     "buttonLabel": "More Options",
     "items": {
@@ -241,6 +251,10 @@
       "username": "Update Your Name",
       "effects": "Backgrounds and Effects",
       "switchCamera": "Switch camera",
+      "pictureInPicture": {
+        "enter": "Picture-in-picture",
+        "exit": "Close picture-in-picture"
+      },
       "fullscreen": {
         "enter": "Fullscreen",
         "exit": "Exit fullscreen mode"
@@ -315,16 +329,6 @@
         "childhood": "Childhood"
       }
     },
-    "matting": {
-      "errors": {
-        "MEDIAPIPE_INIT_FAILED": "The segmentation model could not be loaded. Please check your internet connection.",
-        "WEBGL2_INIT_FAILED": "WebGL2 is not available in this browser. The video effect cannot be applied.",
-        "CAPTURESTREAM_UNSUPPORTED": "This browser does not support the video capture required for processing.",
-        "VIRTUAL_BG_LOAD_FAILED": "The background image could not be loaded.",
-        "POSTPROCESS_SHADER_COMPILE_FAILED": "A GPU error is preventing the effect from working.",
-        "CANVAS2D_FALLBACK": "GPU rendering unavailable, falling back to Canvas2D. Performance may be reduced."
-      }
-    },
     "faceLandmarks": {
       "title": "Visual Effects",
       "glasses": {
@@ -334,6 +338,16 @@
       "french": {
         "apply": "Add French touch",
         "clear": "Remove French touch"
+      }
+    },
+    "matting": {
+      "errors": {
+        "MEDIAPIPE_INIT_FAILED": "The segmentation model could not be loaded. Please check your internet connection.",
+        "WEBGL2_INIT_FAILED": "WebGL2 is not available in this browser. The video effect cannot be applied.",
+        "CAPTURESTREAM_UNSUPPORTED": "This browser does not support the video capture required for processing.",
+        "VIRTUAL_BG_LOAD_FAILED": "The background image could not be loaded.",
+        "POSTPROCESS_SHADER_COMPILE_FAILED": "A GPU error is preventing the effect from working.",
+        "CANVAS2D_FALLBACK": "GPU rendering unavailable, falling back to Canvas2D. Performance may be reduced."
       }
     }
   },
@@ -545,6 +559,10 @@
       "screenshare": {
         "label": "Share their screen",
         "description": "Disabling this option will prevent participants from sharing their screen, and any ongoing screen sharing will be stopped immediately."
+      },
+      "mute": {
+        "label": "Mute others",
+        "description": "When disabled, participants will no longer be able to mute other participants."
       }
     }
   },

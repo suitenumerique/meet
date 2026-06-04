@@ -61,8 +61,8 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
   outputCanvas?: HTMLCanvasElement
 
   // Refactored helpers & architectural sub-modules
-  private _canvasManager = new MattingCanvasManager()
-  private _frameTracker = new VideoFrameTracker()
+  private readonly _canvasManager = new MattingCanvasManager()
+  private readonly _frameTracker = new VideoFrameTracker()
   private _segmenterRunner!: SegmenterLoopRunner
   private _renderRunner!: RenderLoopRunner
 
@@ -80,7 +80,7 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
   processingWidth = 256
   processingHeight = 144
   private _pendingModel?: SegmentationModel
-  private _readyResolvers: Array<() => void> = []
+  private readonly _readyResolvers: Array<() => void> = []
   private _destroyed = false
   private _preProcessingPipeline?: PreProcessingPipeline
 
@@ -132,8 +132,9 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     if (!opts.element) {
       throw new Error('Element is required for processing')
     }
-    this.source = opts.track as MediaStreamTrack
-    this.sourceSettings = this.source!.getSettings()
+    const track = opts.track as MediaStreamTrack
+    this.source = track
+    this.sourceSettings = track.getSettings()
     this.videoElement = opts.element as HTMLVideoElement
     const video = this.videoElement
 
@@ -167,8 +168,8 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
 
       if (this._destroyed) return
 
-      const realW = video.videoWidth || this.sourceSettings!.width || 1280
-      const realH = video.videoHeight || this.sourceSettings!.height || 720
+      const realW = video.videoWidth || this.sourceSettings?.width || 1280
+      const realH = video.videoHeight || this.sourceSettings?.height || 720
 
       this._initVirtualBackgroundImage()
       this._createMainCanvasWithSize(realW, realH)
@@ -288,9 +289,19 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
       this.options.type === ProcessorType.VIRTUAL
     ) {
       return {
-        post: this.options.postProcessing ?? {},
-        up: this.options.upsampling ?? {},
-        pre: this.options.preProcessing,
+        post: this.options.postProcessing ?? {
+          erosion: { pixels: 3 },
+          ema: { alpha: 0.7 },
+          opening: { radius: 3 },
+          closing: { radius: 3 },
+        },
+        up: this.options.upsampling ?? {
+          radius: 8,
+          eps: 0.01,
+        },
+        pre: this.options.preProcessing ?? {
+          roiCropping: { enabled: true },
+        },
       }
     }
     return { post: {}, up: {}, pre: undefined }
@@ -338,60 +349,88 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
       : undefined
   }
 
+  private async _calibrateMulticlass(
+    seg: Segmenter,
+    model: SegmentationModel
+  ): Promise<{ seg: Segmenter; targetModel: SegmentationModel } | undefined> {
+    const isCancelled = () => this._destroyed || this._pendingModel !== model
+
+    const benchResult = await SegmenterBenchmarker.benchmarkSegmenter(
+      seg,
+      this.videoElement,
+      (mask, source, time) => this._publishBenchmarkPair(mask, source, time),
+      isCancelled
+    )
+
+    if (isCancelled()) {
+      seg.destroy()
+      return undefined
+    }
+
+    if (benchResult === 'landscape' && model === SegmentationModel.AUTO) {
+      seg.destroy()
+      const landscapeSeg = createSegmenter(SegmentationModel.LANDSCAPE)
+      await landscapeSeg.init()
+      if (isCancelled()) {
+        landscapeSeg.destroy()
+        return undefined
+      }
+      return { seg: landscapeSeg, targetModel: SegmentationModel.LANDSCAPE }
+    }
+
+    this._segmenterFrameSkip = benchResult === 'multiclass_skip1' ? 1 : 2
+    return { seg, targetModel: SegmentationModel.MULTICLASS }
+  }
+
+  private async _calibrateLandscape(
+    seg: Segmenter,
+    model: SegmentationModel
+  ): Promise<boolean> {
+    const isCancelled = () => this._destroyed || this._pendingModel !== model
+
+    const skipResult = await SegmenterBenchmarker.benchmarkLandscapeSkip(
+      seg,
+      this.videoElement,
+      (mask, source, time) => this._publishBenchmarkPair(mask, source, time),
+      isCancelled
+    )
+
+    if (isCancelled()) {
+      return false
+    }
+
+    this._segmenterFrameSkip = skipResult === 'skip1' ? 1 : 2
+    return true
+  }
+
   private async _createAndCalibrateSegmenter(model: SegmentationModel): Promise<{
     seg: Segmenter
     targetModel: SegmentationModel
   } | undefined> {
-    let targetModel = model
-    if (model === SegmentationModel.AUTO) {
-      targetModel = SegmentationModel.MULTICLASS
-    }
+    const isCancelled = () => this._destroyed || this._pendingModel !== model
 
+    let targetModel: SegmentationModel = model === SegmentationModel.AUTO ? SegmentationModel.MULTICLASS : model
     let seg = createSegmenter(targetModel)
     await seg.init()
 
-    if (this._destroyed || this._pendingModel !== model) {
+    if (isCancelled()) {
       seg.destroy()
       return undefined
     }
 
     if (targetModel === SegmentationModel.MULTICLASS) {
-      const benchResult = await SegmenterBenchmarker.benchmarkSegmenter(
-        seg,
-        this.videoElement,
-        (mask, source, time) => this._publishBenchmarkPair(mask, source, time),
-        () => this._destroyed || this._pendingModel !== model
-      )
-      if (this._destroyed || this._pendingModel !== model) {
-        seg.destroy()
-        return undefined
-      }
-      if (benchResult === 'landscape' && model === SegmentationModel.AUTO) {
-        seg.destroy()
-        targetModel = SegmentationModel.LANDSCAPE
-        seg = createSegmenter(targetModel)
-        await seg.init()
-        if (this._destroyed || this._pendingModel !== model) {
-          seg.destroy()
-          return undefined
-        }
-      } else {
-        this._segmenterFrameSkip = benchResult === 'multiclass_skip1' ? 1 : 2
-      }
+      const calibrated = await this._calibrateMulticlass(seg, model)
+      if (!calibrated) return undefined
+      seg = calibrated.seg
+      targetModel = calibrated.targetModel
     }
 
     if (targetModel === SegmentationModel.LANDSCAPE) {
-      const skipResult = await SegmenterBenchmarker.benchmarkLandscapeSkip(
-        seg,
-        this.videoElement,
-        (mask, source, time) => this._publishBenchmarkPair(mask, source, time),
-        () => this._destroyed || this._pendingModel !== model
-      )
-      if (this._destroyed || this._pendingModel !== model) {
+      const ok = await this._calibrateLandscape(seg, model)
+      if (!ok) {
         seg.destroy()
         return undefined
       }
-      this._segmenterFrameSkip = skipResult === 'skip1' ? 1 : 2
     }
 
     return { seg, targetModel }
@@ -499,11 +538,11 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     let canvas = document.querySelector(
       `canvas#${BLUR_CANVAS_ID}`
     ) as HTMLCanvasElement | null
-    if (!canvas) {
-      canvas = this._canvasManager.createCanvas(BLUR_CANVAS_ID, w, h)
-    } else {
+    if (canvas) {
       canvas.setAttribute('width', '' + w)
       canvas.setAttribute('height', '' + h)
+    } else {
+      canvas = this._canvasManager.createCanvas(BLUR_CANVAS_ID, w, h)
     }
     this.outputCanvas = canvas
   }

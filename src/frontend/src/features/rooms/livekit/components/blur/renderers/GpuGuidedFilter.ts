@@ -216,13 +216,13 @@ void main() {
 }`
 
 export class GpuGuidedFilter {
-  private gl: WebGL2RenderingContext
+  private readonly gl: WebGL2RenderingContext
   // Low-res "stats" plane: every box-filter pass (the expensive part) runs here.
-  private statsW: number
-  private statsH: number
+  private readonly statsW: number
+  private readonly statsH: number
   // Full-res "apply" plane: only the final per-pixel apply pass renders here.
-  private outW: number
-  private outH: number
+  private readonly outW: number
+  private readonly outH: number
 
   // Intermediate textures (RGBA16F). All stats/coeff textures are at statsW×statsH.
   // gfOut is at outW×outH (final apply pass writes here).
@@ -330,8 +330,8 @@ export class GpuGuidedFilter {
   ): WebGLTexture {
     const gl = this.gl
     const r = Math.max(1, Math.round(radius))
-    const texelX = 1.0 / this.statsW
-    const texelY = 1.0 / this.statsH
+    const texelX = 1 / this.statsW
+    const texelY = 1 / this.statsH
 
     // All stats and coeff passes render at low resolution.
     gl.viewport(0, 0, this.statsW, this.statsH)
@@ -512,7 +512,10 @@ export class GpuGuidedFilter {
     }
 
     const makeTex = (w: number, h: number) => {
-      const t = gl.createTexture()!
+      const t = gl.createTexture()
+      if (!t) {
+        throw new Error('Failed to create WebGL texture')
+      }
       gl.bindTexture(gl.TEXTURE_2D, t)
       gl.texImage2D(
         gl.TEXTURE_2D,
@@ -533,7 +536,10 @@ export class GpuGuidedFilter {
     }
 
     const makeFbo = (tex: WebGLTexture) => {
-      const f = gl.createFramebuffer()!
+      const f = gl.createFramebuffer()
+      if (!f) {
+        throw new Error('Failed to create WebGL framebuffer')
+      }
       gl.bindFramebuffer(gl.FRAMEBUFFER, f)
       gl.framebufferTexture2D(
         gl.FRAMEBUFFER,
@@ -636,7 +642,10 @@ export class GpuGuidedFilter {
 
   private _compile(stage: number, src: string): WebGLShader {
     const gl = this.gl
-    const sh = gl.createShader(stage)!
+    const sh = gl.createShader(stage)
+    if (!sh) {
+      throw new Error(`Failed to create WebGL shader for stage ${stage}`)
+    }
     gl.shaderSource(sh, src)
     gl.compileShader(sh)
     if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
@@ -651,7 +660,10 @@ export class GpuGuidedFilter {
     const gl = this.gl
     const vs = this._compile(gl.VERTEX_SHADER, vsSrc)
     const fs = this._compile(gl.FRAGMENT_SHADER, fsSrc)
-    const p = gl.createProgram()!
+    const p = gl.createProgram()
+    if (!p) {
+      throw new Error('Failed to create WebGL program')
+    }
     gl.attachShader(p, vs)
     gl.attachShader(p, fs)
     gl.bindAttribLocation(p, 0, 'aPos')

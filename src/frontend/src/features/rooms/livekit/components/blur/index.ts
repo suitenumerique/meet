@@ -79,8 +79,12 @@ export class BackgroundProcessorFactory {
   }
 
   static isSupported() {
+    if (typeof HTMLCanvasElement === 'undefined') return false
+    if (!('captureStream' in HTMLCanvasElement.prototype)) return false
+    // Optional: probe WebGL2 to log a perf warning, but Canvas2D fallback exists
     return true
   }
+
 
   static getProcessor(
     config: ProcessorConfig

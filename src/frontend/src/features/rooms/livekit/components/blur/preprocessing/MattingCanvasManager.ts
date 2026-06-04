@@ -40,9 +40,8 @@ export class MattingCanvasManager {
     const vw = videoElement.videoWidth
     const vh = videoElement.videoHeight
     if (
-      !this._snapshotCanvas ||
-      this._snapshotCanvas.width !== vw ||
-      this._snapshotCanvas.height !== vh
+      this._snapshotCanvas?.width !== vw ||
+      this._snapshotCanvas?.height !== vh
     ) {
       const canvas = this._snapshotCanvas ?? document.createElement('canvas')
       canvas.width = vw
@@ -121,19 +120,19 @@ export class MattingCanvasManager {
       `#${SEGMENTATION_MASK_CANVAS_ID}`
     ) as HTMLCanvasElement | null
 
-    if (!canvas) {
+    if (canvas) {
+      if (canvas.width !== processingW || canvas.height !== processingH) {
+        canvas.setAttribute('width', '' + processingW)
+        canvas.setAttribute('height', '' + processingH)
+      }
+    } else {
       canvas = this.createCanvas(
         SEGMENTATION_MASK_CANVAS_ID,
         processingW,
         processingH
       )
-    } else {
-      if (canvas.width !== processingW || canvas.height !== processingH) {
-        canvas.setAttribute('width', '' + processingW)
-        canvas.setAttribute('height', '' + processingH)
-      }
     }
-    if (!this._segmentationMaskCanvasCtx || this._segmentationMaskCanvasCtx.canvas !== canvas) {
+    if (this._segmentationMaskCanvasCtx?.canvas !== canvas) {
       this._segmentationMaskCanvasCtx = canvas.getContext('2d', {
         willReadFrequently: true,
       })!
@@ -142,7 +141,7 @@ export class MattingCanvasManager {
   }
 
   getPassthroughMask(w: number, h: number): Float32Array {
-    if (!this._passthroughMask || this._passthroughMask.length !== w * h) {
+    if (this._passthroughMask?.length !== w * h) {
       this._passthroughMask = new Float32Array(w * h).fill(1)
     }
     return this._passthroughMask

@@ -21,7 +21,7 @@ import { BBox, RoiCropper } from './RoiCropper'
  Right now, it only is a thin wrapper around RoiCropper. 
 */
 export class PreProcessingPipeline {
-  private roiCropper?: RoiCropper
+  private readonly roiCropper?: RoiCropper
 
   constructor(cfg: PreProcessingConfig) {
     if (cfg.roiCropping?.enabled) this.roiCropper = new RoiCropper()

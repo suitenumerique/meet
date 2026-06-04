@@ -11,7 +11,8 @@
  * (probeMediapipeDelegate) so they are loaded only once regardless of how
  * many segmenter instances are created.
  */
-import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
+import { FilesetResolver, ImageSegmenter, ImageSegmenterResult } from '@mediapipe/tasks-vision'
+import { pushMattingError } from '../errors/MattingErrorStore'
 
 type MediapipeFileset = Awaited<
   ReturnType<typeof FilesetResolver.forVisionTasks>
@@ -29,6 +30,65 @@ export interface Segmenter {
   readonly inputSize: { width: number; height: number }
 }
 
+export abstract class BaseMediaPipeSegmenter implements Segmenter {
+  abstract readonly inputSize: { width: number; height: number }
+  protected abstract readonly modelUrl: string
+  protected abstract readonly modelName: string
+  private imageSegmenter?: ImageSegmenter
+  protected _maskBuffer?: Float32Array
+
+  async init() {
+    try {
+      const [fileset, delegate] = await Promise.all([
+        getMediapipeFileset(),
+        probeMediapipeDelegate(),
+      ])
+      this.imageSegmenter = await ImageSegmenter.createFromOptions(fileset, {
+        baseOptions: {
+          modelAssetPath: this.modelUrl,
+          delegate,
+        },
+        runningMode: 'VIDEO',
+        outputCategoryMask: false,
+        outputConfidenceMasks: true,
+      })
+    } catch (e) {
+      pushMattingError({
+        code: 'MEDIAPIPE_INIT_FAILED',
+        level: 'error',
+        detail: `${this.modelName}: ${e instanceof Error ? e.message : String(e)}`,
+      })
+      throw e
+    }
+  }
+
+  protected abstract processSegmenterResult(result: ImageSegmenterResult): Float32Array
+
+  async segment(
+    imageData: ImageData,
+    timestampMs: number
+  ): Promise<Float32Array> {
+    const segPromise = new Promise<Float32Array>((resolve) => {
+      this.imageSegmenter!.segmentForVideo(
+        imageData,
+        timestampMs,
+        (result: ImageSegmenterResult) => {
+          resolve(this.processSegmenterResult(result))
+        }
+      )
+    })
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('segment() timeout after 2s')), 2000)
+    )
+    return Promise.race([segPromise, timeout])
+  }
+
+  destroy() {
+    this.imageSegmenter?.close()
+    this.imageSegmenter = undefined
+  }
+}
+
 const MEDIAPIPE_WASM_URL =
   'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
 
@@ -36,14 +96,12 @@ let _filesetPromise: Promise<MediapipeFileset> | null = null
 
 /** Cache the FilesetResolver across segmenter instances — it loads ~1MB of WASM. */
 export function getMediapipeFileset(): Promise<MediapipeFileset> {
-  if (!_filesetPromise) {
-    _filesetPromise = FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL).catch(
-      (e) => {
-        _filesetPromise = null
-        throw e
-      }
-    )
-  }
+  _filesetPromise ??= FilesetResolver.forVisionTasks(
+    MEDIAPIPE_WASM_URL
+  ).catch((e) => {
+    _filesetPromise = null
+    throw e
+  })
   return _filesetPromise
 }
 
@@ -63,12 +121,11 @@ let _delegateProbe: Promise<'GPU' | 'CPU'> | null = null
  * (80–150 ms per frame at 256² → queue saturation → frames look like passthrough).
  */
 export function probeMediapipeDelegate(): Promise<'GPU' | 'CPU'> {
-  if (_delegateProbe) return _delegateProbe
   if (FORCE_CPU_DELEGATE) {
-    _delegateProbe = Promise.resolve('CPU')
+    _delegateProbe ??= Promise.resolve('CPU')
     return _delegateProbe
   }
-  _delegateProbe = (async () => {
+  _delegateProbe ??= (async () => {
     // Quick WebGL2 check first — without it the GPU delegate has nowhere to run.
     let webgl2Available = false
     try {

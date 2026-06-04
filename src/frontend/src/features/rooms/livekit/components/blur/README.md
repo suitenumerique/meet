@@ -37,7 +37,7 @@ processed `MediaStreamTrack` to the rest of the application.
 The two loops on either side of the diagram run independently. They meet at
 the shared `_latestPair` slot: the segmenter loop writes it, the render loop
 reads it. After that point, the rest of the pipeline runs entirely inside the
-render loop on the GPU.
+render loop on the GPU. (See §3.1 for more details)
 
 Each box shows: what the step does, why it exists, which loop and processor it
 runs on (`[seg·CPU]` = segmenter loop on CPU, `[rnd·GPU]` = render loop on
@@ -385,6 +385,21 @@ error store rather than a thrown exception:
 The render loop is designed so that it can always proceed: if there is no
 mask yet, it composites against the passthrough mask, which `mix()`-es to
 the raw camera frame.
+
+---
+
+## 4. Choice of segmenter models
+
+The two segmenters wired into [§3.3](#33-segmenter-selection--gpu-delegate-probing), 
+Mediapipe **Selfie Multiclass** and **Selfie Landscape**, were not picked
+arbitrarily. They were the surviving candidates of an offline benchmark of nine
+real-time matting models, run in a companion research repository:
+[suitenumerique/meet-matting](https://github.com/suitenumerique/meet-matting).
+
+They were chosen because they had the best balance between performance and efficiency among the nine tested models (RVM (for Robust Video Matting), Mediapipe Selfie Multiclass, Mediapipe Selfie Landscape, Mediapipe Selfie Portrait, MODNet,
+PP-HumanSeg V2, MobileNetV3 + LRASPP, SegFormer-B0, and Trimap Matting V3.)
+
+Several processing methods of this folder were prototyped in this companion repository first.
 
 ---
 
