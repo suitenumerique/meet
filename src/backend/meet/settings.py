@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 # pylint: disable=too-many-lines
 
 import json
+from datetime import timedelta
 from os import path
 from socket import gethostbyname, gethostname
 
@@ -291,6 +292,8 @@ class Base(Configuration):
         "rest_framework",
         "parler",
         "easy_thumbnails",
+        "rest_framework_simplejwt",
+        "rest_framework_simplejwt.token_blacklist",
         # Django
         "django.contrib.admin",
         "django.contrib.auth",
@@ -321,6 +324,7 @@ class Base(Configuration):
 
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": (
+            "rest_framework_simplejwt.authentication.JWTAuthentication",
             "mozilla_django_oidc.contrib.drf.OIDCAuthentication",
             "rest_framework.authentication.SessionAuthentication",
         ),
@@ -466,8 +470,12 @@ class Base(Configuration):
     )
 
     # OIDC - Authorization Code Flow
-    OIDC_AUTHENTICATE_CLASS = "lasuite.oidc_login.views.OIDCAuthenticationRequestView"
-    OIDC_CALLBACK_CLASS = "lasuite.oidc_login.views.OIDCAuthenticationCallbackView"
+    OIDC_AUTHENTICATE_CLASS = (
+        "core.authentication.views.PKCEOIDCAuthenticationRequestView"
+    )
+    OIDC_CALLBACK_CLASS = (
+        "core.authentication.views.OIDCAuthenticationCallbackWithPkceView"
+    )
     OIDC_CREATE_USER = values.BooleanValue(
         default=True, environ_name="OIDC_CREATE_USER", environ_prefix=None
     )
@@ -578,6 +586,60 @@ class Base(Configuration):
         environ_name="OIDC_USERINFO_ESSENTIAL_CLAIMS",
         environ_prefix=None,
     )
+
+    # Native App PKCE Login (RFC 8252)
+    # The mobile/desktop client opens an in-app browser to the standard OIDC
+    # flow with `response_type=code` + `code_challenge`; on successful login the
+    # callback view redirects to `MOBILE_DEEP_LINK_SCHEME?code=...&state=...`.
+    # The client then exchanges the code at `/api/v1.0/oauth/token/`.
+    AUTH_PKCE_CACHE_TTL_SECONDS = values.IntegerValue(
+        default=60,
+        environ_name="AUTH_PKCE_CACHE_TTL_SECONDS",
+        environ_prefix=None,
+    )
+    MOBILE_DEEP_LINK_SCHEME = values.Value(
+        default="visio://auth-callback",
+        environ_name="MOBILE_DEEP_LINK_SCHEME",
+        environ_prefix=None,
+    )
+    SIMPLE_JWT_SIGNING_KEY = SecretFileValue(
+        None,
+        environ_name="SIMPLE_JWT_SIGNING_KEY",
+        environ_prefix=None,
+    )
+    JWT_ACCESS_TOKEN_LIFETIME_SECONDS = values.IntegerValue(
+        default=10 * 60,
+        environ_name="JWT_ACCESS_TOKEN_LIFETIME_SECONDS",
+        environ_prefix=None,
+    )
+    JWT_REFRESH_TOKEN_LIFETIME_SECONDS = values.IntegerValue(
+        default=7 * 24 * 60 * 60,
+        environ_name="JWT_REFRESH_TOKEN_LIFETIME_SECONDS",
+        environ_prefix=None,
+    )
+
+    # pylint: disable=invalid-name
+    @property
+    def SIMPLE_JWT(self):
+        """Build SimpleJWT config, falling back to SECRET_KEY for the signing key.
+
+        SimpleJWT's own default already points at ``settings.SECRET_KEY`` when
+        ``SIGNING_KEY`` is unset, but we still want a dedicated env var
+        (``SIMPLE_JWT_SIGNING_KEY``) for production deployments so JWT and
+        Django session signing can be rotated independently.
+        """
+        return {
+            "ALGORITHM": "HS256",
+            "SIGNING_KEY": self.SIMPLE_JWT_SIGNING_KEY or self.SECRET_KEY,
+            "ACCESS_TOKEN_LIFETIME": timedelta(
+                seconds=self.JWT_ACCESS_TOKEN_LIFETIME_SECONDS
+            ),
+            "REFRESH_TOKEN_LIFETIME": timedelta(
+                seconds=self.JWT_REFRESH_TOKEN_LIFETIME_SECONDS
+            ),
+            "ROTATE_REFRESH_TOKENS": True,
+            "BLACKLIST_AFTER_ROTATION": True,
+        }
 
     # OIDC Resource Server Backend
     OIDC_RS_BACKEND_CLASS = "core.external_api.authentication.ResourceServerBackend"

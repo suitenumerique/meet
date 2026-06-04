@@ -8,6 +8,20 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ➕(backend) add djangorestframework-simplejwt 5.5.1 #1409
+- ✨(backend) add update_url_query_params helper #1409
+- ✨(backend) add Pydantic schemas for PKCE OAuth2 flow #1409
+- ✨(backend) add OAuth2 + PKCE views for native mobile/desktop login #1409
+- ✨(backend) wire PKCE auth + JWT for native app login #1409
+- ✨(backend) expose PKCE token endpoints + /mobile-login URL #1409
+- ✅(backend) port dictaphone PKCE view test suite (19 tests) #1409
+
+### Fixed
+
+- 🔒️(backend) restrict /mobile-login to GET only #1409
+
 ## [1.19.0] - 2026-06-04
 
 ### Added

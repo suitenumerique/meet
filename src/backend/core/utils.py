@@ -14,6 +14,7 @@ import secrets
 import string
 from functools import lru_cache
 from typing import List, Optional
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
 from django.conf import settings
@@ -547,3 +548,19 @@ def build_telephony_config():
         "default_country": country,
         "international_phone_number": international,
     }
+
+
+def update_url_query_params(url: str, query_parameters: dict[str, list[str]]) -> str:
+    """Update the query parameters of a URL with the provided parameters."""
+    parsed_url = urlsplit(url)
+    query = dict(parse_qsl(parsed_url.query, keep_blank_values=True))
+    query.update(query_parameters)
+    return urlunsplit(
+        (
+            parsed_url.scheme,
+            parsed_url.netloc,
+            parsed_url.path,
+            urlencode(query, doseq=True),
+            parsed_url.fragment,
+        )
+    )
