@@ -7,6 +7,7 @@ import {
   ProcessorConfig,
   ProcessorType,
 } from '../blur'
+import { useMattingErrors } from '../blur/errors/MattingErrorStore'
 import { css } from '@/styled-system/css'
 import { Button, Dialog, H, P, Text, ToggleButton } from '@/primitives'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
@@ -36,11 +37,13 @@ import { userChoicesStore, saveProcessorConfig } from '@/stores/userChoices'
 
 enum BlurRadius {
   NONE = 0,
-  LIGHT = 5,
-  NORMAL = 10,
+  LIGHT = 10,
+  NORMAL = 20,
 }
 
 const isSupported = BackgroundProcessorFactory.isSupported()
+
+
 
 const Information = styled('div', {
   base: {
@@ -115,6 +118,9 @@ export const EffectsConfiguration = ({
   const effectAnnouncementId = useRef(0)
 
   const { processorConfig } = useSnapshot(userChoicesStore)
+  const mattingErrors = useMattingErrors()
+
+
 
   const selectedId = useMemo(
     () =>
@@ -244,7 +250,13 @@ export const EffectsConfiguration = ({
         setTimeout(() => setProcessorPending(false))
       }
     },
-    [enabled, selectedId, toggle, updateEffectStatusMessage, videoTrack]
+    [
+      enabled,
+      selectedId,
+      toggle,
+      updateEffectStatusMessage,
+      videoTrack,
+    ]
   )
 
   const { data: appConfig } = useConfig()
@@ -451,7 +463,7 @@ export const EffectsConfiguration = ({
           tooltip: backgroundName,
           id,
           config,
-          isSelected: selectedId === id,
+          isSelected,
           thumbnailPath,
           ariaLabel,
           index,
@@ -611,6 +623,17 @@ export const EffectsConfiguration = ({
         )}
         {isSupported ? (
           <div>
+            {mattingErrors
+              .filter((e) => e.level === 'error')
+              .map((e) => (
+                <Information key={e.code} style={{ marginBottom: '1rem' }}>
+                  <Text variant="bodyXsMedium">
+                    {t(`matting.errors.${e.code}`, {
+                      defaultValue: e.detail ?? e.code,
+                    })}
+                  </Text>
+                </Information>
+              ))}
             <div>
               <H
                 lvl={2}
@@ -893,6 +916,7 @@ export const EffectsConfiguration = ({
                   ))}
                 </div>
               </div>
+
             </div>
           </div>
         ) : (

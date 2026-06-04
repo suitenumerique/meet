@@ -1,5 +1,5 @@
 /**
- * From https://github.com/jitsi/jitsi-meet
+  * From https://github.com/jitsi/jitsi-meet
  */
 
 /**
@@ -67,5 +67,5 @@ const code = `
 `
 
 export const timerWorkerScript = URL.createObjectURL(
-  new Blob([code], { type: 'application/javascript' })
+    new Blob([code], { type: 'application/javascript' })
 )

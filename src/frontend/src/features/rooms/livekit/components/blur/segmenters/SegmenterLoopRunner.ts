@@ -1,0 +1,153 @@
+import { Segmenter } from './Segmenter'
+import { PreProcessingPipeline } from '../preprocessing/PreProcessingPipeline'
+import { MattingCanvasManager } from '../preprocessing/MattingCanvasManager'
+import { VideoFrameTracker } from '../preprocessing/VideoFrameTracker'
+
+export interface FrameMaskPair {
+  mask: Float32Array
+  source: ImageBitmap
+  captureTime: number
+  cameraCaptureTime: number
+  procW: number
+  procH: number
+}
+
+export class SegmenterLoopRunner {
+  private videoElement?: HTMLVideoElement
+  private _segLoopActive = false
+  private _lastInferenceSeq = -1
+
+  constructor(
+    private readonly getSegmenter: () => Segmenter | undefined,
+    private readonly getPreProcessingPipeline: () => PreProcessingPipeline | undefined,
+    private readonly getCanvasManager: () => MattingCanvasManager,
+    private readonly getFrameTracker: () => VideoFrameTracker,
+    private readonly getSegmenterFrameSkip: () => number,
+    private readonly getProcessingDimensions: () => { w: number; h: number },
+    private readonly onPairProduced: (pair: FrameMaskPair) => void
+  ) { }
+
+  start(videoElement: HTMLVideoElement) {
+    this.videoElement = videoElement
+    this._segLoopActive = true
+    this._lastInferenceSeq = -1
+    this._runSegmenterLoop() 
+  }
+
+  stop() {
+    this._segLoopActive = false
+    this.videoElement = undefined
+  }
+
+  private async _runSegmenterLoop(): Promise<void> {
+    const FALLBACK_MS = 1000 / 60
+    const tracker = this.getFrameTracker()
+
+    while (this._segLoopActive) {
+      const hasRvfc = tracker.latestVideoFrameMeta !== undefined
+
+      if (hasRvfc) {
+        await tracker.waitNextFrame()
+        if (!this._segLoopActive) return
+        const seq = tracker.videoFrameSeq
+        if (seq - this._lastInferenceSeq < this.getSegmenterFrameSkip()) continue
+        this._lastInferenceSeq = seq
+      }
+
+      const t0 = performance.now()
+      await this._processNextFrame(t0, FALLBACK_MS)
+
+      if (!hasRvfc) {
+        const elapsed = performance.now() - t0
+        await new Promise<void>((r) =>
+          setTimeout(r, Math.max(0, FALLBACK_MS - elapsed))
+        )
+      }
+    }
+  }
+
+  private _handleProcessError(e: unknown, capturedSource: ImageBitmap | null): void {
+    if (capturedSource) {
+      try {
+        capturedSource.close()
+      } catch {
+        /* ImageBitmap.close() — best-effort */
+      }
+    }
+    if (!this._segLoopActive) return
+    console.error('[AMP] segmenter loop error', e)
+    console.warn('[matting:SEGMENTER_TIMEOUT_PASSTHROUGH]', e instanceof Error ? `${e.name}: ${e.message}` : String(e))
+  }
+
+  private async _processNextFrame(t0: number, fallbackMs: number): Promise<void> {
+    const seg = this.getSegmenter()
+    if (!seg || !this.videoElement || this.videoElement.videoWidth === 0) {
+      await new Promise<void>((r) => setTimeout(r, fallbackMs))
+      return
+    }
+
+    let capturedSource: ImageBitmap | null = null
+    try {
+      const canvasManager = this.getCanvasManager()
+      const snapshot = canvasManager.captureSnapshot(this.videoElement)
+      if (!snapshot) {
+        await new Promise<void>((r) => setTimeout(r, fallbackMs))
+        return
+      }
+
+      const tracker = this.getFrameTracker()
+      const cameraCaptureTime = tracker.latestVideoFrameMeta?.captureTime ?? t0
+      const prePipeline = this.getPreProcessingPipeline()
+
+      const motionRgba = prePipeline
+        ? (canvasManager.getMotionFrameRgba() ?? undefined)
+        : undefined
+
+      const cropBbox = prePipeline?.getNextCropBbox(
+        motionRgba,
+        MattingCanvasManager.MOTION_W,
+        MattingCanvasManager.MOTION_H
+      ) ?? null
+
+      const dims = this.getProcessingDimensions()
+      const sourceImageData = canvasManager.sizeSource(
+        snapshot,
+        dims.w,
+        dims.h,
+        cropBbox
+      )
+
+      capturedSource = await createImageBitmap(snapshot, {
+        imageOrientation: 'flipY',
+      })
+
+      const inferStart = performance.now()
+      const rawMask = await seg.segment(sourceImageData, inferStart)
+
+      if (this.getSegmenter() === seg) {
+        const mask = prePipeline
+          ? prePipeline.applyAfterInference(
+            rawMask,
+            dims.w,
+            dims.h,
+            cropBbox
+          )
+          : rawMask
+
+        this.onPairProduced({
+          mask,
+          source: capturedSource,
+          captureTime: t0,
+          cameraCaptureTime,
+          procW: dims.w,
+          procH: dims.h,
+        })
+      } else {
+        capturedSource.close()
+      }
+    } catch (e) {
+      this._handleProcessError(e, capturedSource)
+      await new Promise<void>((r) => setTimeout(r, 100))
+    }
+  }
+}

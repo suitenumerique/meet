@@ -319,9 +319,16 @@
           "6": "Graue Bibliothek",
           "7": "Kaffeetheke"
         }
+      },
+      "themes": {
+        "interior": "Innenräume & Büro",
+        "nature": "Natur",
+        "urban": "Stadt & Urban",
+        "abstract": "Abstrakt",
+        "tech": "Technologie",
+        "childhood": "Kindheit"
       }
     },
-
     "faceLandmarks": {
       "title": "Visuelle Effekte",
       "glasses": {
@@ -331,6 +338,16 @@
       "french": {
         "apply": "Französischen Touch hinzufügen",
         "clear": "Französischen Touch entfernen"
+      }
+    },
+    "matting": {
+      "errors": {
+        "MEDIAPIPE_INIT_FAILED": "Das Segmentierungsmodell konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung.",
+        "WEBGL2_INIT_FAILED": "WebGL2 ist in diesem Browser nicht verfügbar. Der Videoeffekt kann nicht angewendet werden.",
+        "CAPTURESTREAM_UNSUPPORTED": "Dieser Browser unterstützt die für die Verarbeitung erforderliche Videoaufnahme nicht.",
+        "VIRTUAL_BG_LOAD_FAILED": "Das Hintergrundbild konnte nicht geladen werden.",
+        "POSTPROCESS_SHADER_COMPILE_FAILED": "Ein GPU-Fehler verhindert die Funktion des Effekts.",
+        "CANVAS2D_FALLBACK": "GPU-Rendering nicht verfügbar, Canvas2D-Fallback aktiv. Die Leistung kann eingeschränkt sein."
       }
     }
   },
@@ -547,6 +564,164 @@
         "label": "Andere stummschalten",
         "description": "Wenn deaktiviert, können Teilnehmer andere Teilnehmer nicht mehr stummschalten."
       }
+    },
+    "rating": {
+      "submit": "Absenden",
+      "question": "Wie bewertest du die Qualität dieses Meetings?",
+      "levels": {
+        "min": "sehr schlecht",
+        "max": "hervorragend"
+      }
+    },
+    "openFeedback": {
+      "question": "Was können wir tun, um uns zu verbessern?",
+      "placeholder": "Beschreibe deine Fehler oder teile deine Vorschläge…",
+      "submit": "Absenden",
+      "skip": "Überspringen"
+    },
+    "confirmationMessage": {
+      "heading": "Vielen Dank für dein Feedback",
+      "body": "Unser Produktteam nimmt sich Zeit, dein Feedback sorgfältig zu prüfen. Wir melden uns so bald wie möglich bei dir."
+    },
+    "authenticationMessage": {
+      "heading": "Wie können wir dich kontaktieren?",
+      "placeholder": "Deine E-Mail-Adresse",
+      "submit": "Senden",
+      "ignore": "Ignorieren"
+    },
+    "participants": {
+      "subheading": "Im Raum",
+      "you": "Du",
+      "unknown": "Unbekannte Person",
+      "host": "Host",
+      "contributors": "Teilnehmende",
+      "collapsable": {
+        "open": "{{name}}-Liste öffnen",
+        "close": "{{name}}-Liste schließen"
+      },
+      "muteYourself": "Mikrofon ausschalten",
+      "muteParticipant": "{{name}}’s Mikrofon ausschalten",
+      "muteParticipantAlert": {
+        "heading": "{{name}} stummschalten",
+        "description": "{{name}} für alle Teilnehmenden stummschalten? {{name}} kann sich nur selbst wieder einschalten.",
+        "confirm": "Stummschalten",
+        "cancel": "Abbrechen"
+      },
+      "raisedHands": "Meldungen",
+      "lowerParticipantHand": "{{name}}’s Hand senken",
+      "lowerParticipantsHand": "Alle Hände senken",
+      "muteParticipants": "Alle Mikrofone stummschalten",
+      "waiting": {
+        "title": "Warteraum",
+        "accept": {
+          "button": "Zulassen",
+          "label": "{{name}} zum Meeting zulassen",
+          "all": "Alle zulassen"
+        },
+        "deny": {
+          "button": "Ablehnen",
+          "label": "{{name}} vom Meeting ablehnen",
+          "all": "Alle ablehnen"
+        }
+      },
+      "moreOptions": "Weitere Optionen"
+    },
+    "participantMenu": {
+      "remove": {
+        "label": "Vom Meeting ausschließen",
+        "ariaLabel": "{{name}} vom Meeting ausschließen"
+      },
+      "unpin": {
+        "label": "Lösen",
+        "ariaLabel": "Löse {{name}}"
+      },
+      "pin": {
+        "label": "Anheften",
+        "ariaLabel": "Hefte {{name}} an"
+      }
+    },
+    "pinAnnouncements": {
+      "pin": "Das Video von {{name}} ist angeheftet.",
+      "unpin": "Das Video von {{name}} ist nicht mehr angeheftet.",
+      "self": {
+        "pin": "Dein Video ist angeheftet.",
+        "unpin": "Dein Video ist nicht mehr angeheftet."
+      }
+    },
+    "recordingStateToast": {
+      "transcript": {
+        "started": "Transkription läuft",
+        "starting": "Transkription wird gestartet",
+        "stopping": "Transkription wird gestoppt"
+      },
+      "screen_recording": {
+        "started": "Aufzeichnung läuft",
+        "starting": "Aufzeichnung wird gestartet",
+        "stopping": "Aufzeichnung wird gestoppt"
+      },
+      "any": {
+        "started": "Aufzeichnung läuft"
+      },
+      "limitReachedAlert": {
+        "title": "Aufzeichnungslimit überschritten",
+        "description": "Die Aufzeichnung hat die zulässige Höchstdauer{{duration_message}} überschritten. Sie wird jetzt automatisch gespeichert.",
+        "durationMessage": " von {{duration}}",
+        "button": "OK"
+      }
+    },
+    "participantTileFocus": {
+      "containerLabel": "Optionen für {{name}}",
+      "toolbarHint": "{{shortcut}}: Direkt auf die Tastenkürzel zugreifen.",
+      "pin": {
+        "enable": "Anheften",
+        "disable": "Lösen"
+      },
+      "effects": "Hintergründe und Effekte anwenden",
+      "muteParticipant": "{{name}} stummschalten",
+      "fullScreen": "Vollbild"
+    },
+    "shortcutsPanel": {
+      "title": "Tastenkürzel",
+      "categories": {
+        "navigation": "Navigation",
+        "media": "Medien",
+        "interaction": "Interaktion"
+      },
+      "actions": {
+        "open-shortcuts": "Tastenkürzel-Hilfe öffnen",
+        "focus-toolbar": "Fokus auf die untere Symbolleiste",
+        "toggle-microphone": "Mikrofon umschalten",
+        "toggle-camera": "Kamera umschalten",
+        "push-to-talk": "Push-to-talk",
+        "reaction": "Reaktionspanel",
+        "fullscreen": "Vollbild umschalten",
+        "recording": "Aufnahmepanel umschalten",
+        "raise-hand": "Hand heben oder senken",
+        "toggle-chat": "Chat anzeigen/ausblenden",
+        "toggle-participants": "Teilnehmende anzeigen/ausblenden",
+        "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen"
+      },
+      "sr": {
+        "control": "Steuerung",
+        "command": "Befehl",
+        "alt": "Alt",
+        "option": "Option",
+        "shift": "Umschalt",
+        "plus": "plus",
+        "hold": "Halte {{key}} gedrückt",
+        "noShortcut": "Kein Tastenkürzel"
+      },
+      "visual": {
+        "hold": "Halte {{key}} gedrückt"
+      }
+    },
+    "fullScreenWarning": {
+      "message": "Damit dein Bildschirm nicht unendlich gespiegelt wird, teile nicht deinen gesamten Bildschirm. Teile stattdessen einen Tab oder ein anderes Fenster.",
+      "stop": "Teilen beenden",
+      "ignore": "Ignorieren"
+    },
+    "participantTile": {
+      "screenShare": "{{name}}’s Bildschirm"
     }
   },
   "rating": {

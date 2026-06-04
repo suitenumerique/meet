@@ -8,23 +8,9 @@ and this project adheres to
 
 ## [Unreleased]
 
-
-### Changed
-
-- 🐛(agents) fix bug when closing metadata-collector
-
-## [1.18.0] - 2026-06-03
-
 ### Added
 
-- 🔧(backend) backport logging configuration from docs
-- 🧑‍💻(backend) add management command to merge duplicate users
-- 👷(helm) add Kubernetes job for duplicate user merge command
-
-### Fixed
-
-- 🐛(backend) prevent duplicate pending users on concurrent requests
-- 🔒️(backend) prevent file change post checks #1377
+- ✨(frontend) reworked background blur and virtual background #1378
 
 ## [1.17.0] - 2026-05-31
 
@@ -55,6 +41,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(frontend) add GPU video matting pipeline (blur & virtual bg)
 - 🔒️(backend) add validation of Room.configuration
 - ✨(helm) add support multiple transcribe worker / endpoint #1247
 - ✨(backend) make LiveKit Egress recording encoding configurable #1288

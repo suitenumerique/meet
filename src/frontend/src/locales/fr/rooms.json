@@ -319,6 +319,14 @@
           "6": "Bibliothèque grise",
           "7": "Comptoir de café"
         }
+      },
+      "themes": {
+        "interior": "Intérieur & Bureau",
+        "nature": "Nature",
+        "urban": "Ville & Urbain",
+        "abstract": "Abstrait",
+        "tech": "Technologie",
+        "childhood": "Enfance"
       }
     },
     "faceLandmarks": {
@@ -330,6 +338,16 @@
       "french": {
         "apply": "Ajouter la touche française",
         "clear": "Retirer la touche française"
+      }
+    },
+    "matting": {
+      "errors": {
+        "MEDIAPIPE_INIT_FAILED": "Le modèle de segmentation n'a pas pu être chargé. Vérifiez votre connexion internet.",
+        "WEBGL2_INIT_FAILED": "WebGL2 n'est pas disponible sur ce navigateur. L'effet vidéo ne peut pas être appliqué.",
+        "CAPTURESTREAM_UNSUPPORTED": "Ce navigateur ne supporte pas la capture vidéo nécessaire au traitement.",
+        "VIRTUAL_BG_LOAD_FAILED": "L'image de fond n'a pas pu être chargée.",
+        "POSTPROCESS_SHADER_COMPILE_FAILED": "Une erreur GPU empêche l'effet de fonctionner.",
+        "CANVAS2D_FALLBACK": "Le rendu GPU n'est pas disponible, mode dégradé Canvas2D activé. Les performances peuvent être réduites."
       }
     }
   },
