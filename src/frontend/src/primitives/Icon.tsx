@@ -56,7 +56,7 @@ export const Icon = ({ name, ...props }: IconProps) => {
   const SvgIcon = icons[name]
 
   if (!SvgIcon) {
-    if (process.env.NODE_ENV !== 'production') {
+    if (import.meta.env.NODE_ENV !== 'production') {
       console.warn(
         `[Icon] Unknown icon name: "${name}". Available: ${Object.keys(icons).join(', ')}`
       )

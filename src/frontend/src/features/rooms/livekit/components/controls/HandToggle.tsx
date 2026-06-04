@@ -22,7 +22,7 @@ export const HandToggle = () => {
   })
 
   const isSpeaking = room.localParticipant.isSpeaking
-  const speakingTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const speakingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [hasShownToast, setHasShownToast] = useState(false)
 
   const resetToastState = () => {

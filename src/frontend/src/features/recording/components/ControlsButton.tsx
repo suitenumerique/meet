@@ -57,7 +57,7 @@ export const ControlsButton = ({
   const isRoomConnected = room.state == ConnectionState.Connected
 
   const [showSaving, setShowSaving] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
   const isSaving = statuses.isSaving || isPendingToStop
   const isDisabled = !isRoomConnected || statuses.isAnotherModeStarted
