@@ -14,7 +14,9 @@ export default function useRateLimiter<T extends (...args: any[]) => any>({
   windowMs = 1000,
 }: RateLimiterProps<T>) {
   const callsCountRef = useRef(0)
-  const resetTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  )
 
   const rateLimitedFn = useCallback(
     (...args: Parameters<T>) => {

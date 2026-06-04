@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react'
  */
 export function useSyncAfterDelay<T>(value: T, waitFor: number = 300) {
   const valueRef = useRef(value)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const [syncValue, setSyncValue] = useState<T>()
 
   useEffect(() => {

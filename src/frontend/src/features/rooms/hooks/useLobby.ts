@@ -20,7 +20,7 @@ export const useLobby = ({
   onAccepted: (e: ApiRequestEntry) => void
 }) => {
   const [status, setStatus] = useState(ApiLobbyStatus.IDLE)
-  const waitingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const waitingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const clearWaitingTimeout = useCallback(() => {
     if (waitingTimeoutRef.current) {

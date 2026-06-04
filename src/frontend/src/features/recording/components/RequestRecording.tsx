@@ -19,7 +19,7 @@ export const RequestRecording = ({
   handleRequest,
 }: RequestRecordingProps) => {
   const [isDisabled, setIsDisabled] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
     return () => {
