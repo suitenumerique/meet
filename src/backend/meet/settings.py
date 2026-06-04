@@ -291,6 +291,8 @@ class Base(Configuration):
         "rest_framework",
         "parler",
         "easy_thumbnails",
+        "rest_framework_simplejwt",
+        "rest_framework_simplejwt.token_blacklist",
         # Django
         "django.contrib.admin",
         "django.contrib.auth",
