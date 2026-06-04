@@ -1,26 +1,9 @@
-/**
- * Canvas2D fallback renderer used when WebGL2 is unavailable.
- *
- * Called by: AdvancedMattingProcessor._initRendererWithFallback() — used only
- * after WebGl2Renderer.init() throws (no GPU, GPU blacklisted, low-power mode).
- *
- * Pipeline role: Degraded but functional compositor. Implements the same
- * GpuRenderer interface as WebGl2Renderer so the rest of the pipeline is
- * unaware of the fallback. Supports blur (ctx.filter) and virtual background;
- * only honours the temporal EMA from PostProcessingConfig — morphological
- * opening/closing and guided filter upsampling are skipped on this path.
- */
+
 import { PostProcessingConfig } from '..'
 import { pushMattingError } from '../errors/MattingErrorStore'
 import { GpuRenderer, GpuRendererInitOpts, RenderSource } from './GpuRenderer'
 
-/**
- * Canvas2D fallback renderer. Used when WebGL2 is unavailable (no GPU, GPU
- * blacklisted, browser in low-power mode, etc.). The matting is functional
- * but degraded: no shader-based morphology / guided filter, only a simple
- * CPU temporal EMA on the mask. Blur is done via `ctx.filter = 'blur(Xpx)'`
- * which is acceptable here — the WebGL2 path remains shader-only.
- */
+
 export class Canvas2dRenderer implements GpuRenderer {
   readonly backend = 'canvas2d' as const
 
@@ -30,17 +13,12 @@ export class Canvas2dRenderer implements GpuRenderer {
   private canvas!: HTMLCanvasElement
   private ctx!: CanvasRenderingContext2D
 
-  // Mask buffer at processing resolution. The Float32 mask is converted to
-  // RGBA8 (alpha channel only) once per uploadMask() and stored here; it is
-  // drawn into the output canvas via `globalCompositeOperation = 'destination-in'`
-  // at render time, which scales it up bilinearly to outW × outH.
   private maskCanvas!: HTMLCanvasElement
   private maskCtx!: CanvasRenderingContext2D
   private maskImageData!: ImageData
   private procW = 0
   private procH = 0
 
-  // Offscreen scratch canvases — lazy-allocated, recreated on resize.
   private bgCanvas: HTMLCanvasElement | null = null
   private bgCtx: CanvasRenderingContext2D | null = null
   private fgCanvas: HTMLCanvasElement | null = null
@@ -50,8 +28,7 @@ export class Canvas2dRenderer implements GpuRenderer {
   private blurRadius = 10
   private virtualImg: HTMLImageElement | null = null
 
-  // Simple CPU temporal EMA. `alpha` is the new-frame weight:
-  // out = alpha * current + (1 - alpha) * previous. 0 means EMA disabled.
+
   private emaAlpha = 0
   private emaPrevMask: Float32Array | null = null
 
@@ -108,8 +85,6 @@ export class Canvas2dRenderer implements GpuRenderer {
       this.resizeProcessing(w, h)
     }
 
-    // Optional temporal EMA in CPU. Output overwrites `mask` in place; we keep
-    // the smoothed result in `emaPrevMask` for next frame.
     let src = mask
     if (this.emaAlpha > 0 && this.emaAlpha < 1) {
       if (this.emaPrevMask?.length === mask.length) {
@@ -129,9 +104,6 @@ export class Canvas2dRenderer implements GpuRenderer {
       this.emaPrevMask = null
     }
 
-    // Pack mask into the alpha channel of the mask ImageData. RGB stays at
-    // 255 so a debug-render of the mask canvas would show white silhouette.
-    // Composition uses `destination-in` against alpha, so RGB is irrelevant.
     const data = this.maskImageData.data
     for (let i = 0, j = 0; i < src.length; i++, j += 4) {
       const v = src[i]
@@ -157,8 +129,7 @@ export class Canvas2dRenderer implements GpuRenderer {
   }
 
   setPostProcessing(cfg: PostProcessingConfig): void {
-    // Only the temporal EMA is honored on the Canvas2D path. Sigmoid, erosion,
-    // opening, closing all require shader passes we don't reproduce in CPU.
+
     const a = cfg.ema?.alpha
     this.emaAlpha =
       typeof a === 'number' && Number.isFinite(a) && a > 0 && a <= 1 ? a : 0
@@ -176,15 +147,12 @@ export class Canvas2dRenderer implements GpuRenderer {
     if (!sw || !sh) return
 
 
-    // Ensure offscreen scratch canvases exist at output size.
     this._ensureScratchCanvases()
     const bg = this.bgCanvas!
     const bgCtx = this.bgCtx!
     const fg = this.fgCanvas!
     const fgCtx = this.fgCtx!
 
-    // 1. Build the foreground (subject only) in fgCanvas: draw source full,
-    //    then composite mask via destination-in to keep only the subject.
     fgCtx.globalCompositeOperation = 'source-over'
     fgCtx.clearRect(0, 0, this.outW, this.outH)
     try {
@@ -197,13 +165,10 @@ export class Canvas2dRenderer implements GpuRenderer {
     fgCtx.drawImage(this.maskCanvas, 0, 0, this.outW, this.outH)
     fgCtx.globalCompositeOperation = 'source-over'
 
-    // 2. Build the background in bgCanvas.
     bgCtx.globalCompositeOperation = 'source-over'
     bgCtx.clearRect(0, 0, this.outW, this.outH)
     if (this.mode === 'blur') {
-      // Blur the camera frame. ctx.filter is acceptable here — this is the
-      // Canvas2D fallback path, explicitly the only place blur via filter is
-      // allowed in this codebase.
+
       bgCtx.filter = this.blurRadius > 0 ? `blur(${this.blurRadius}px)` : 'none'
       try {
         bgCtx.drawImage(source, 0, 0, this.outW, this.outH)
@@ -229,8 +194,7 @@ export class Canvas2dRenderer implements GpuRenderer {
     this.bgCtx = null
     this.fgCanvas = null
     this.fgCtx = null
-    // The main canvas and maskCanvas are released when their owning class is
-    // dropped; setting width = 0 prompts the browser to free their backing.
+
     if (this.maskCanvas) {
       this.maskCanvas.width = 0
       this.maskCanvas.height = 0
@@ -238,9 +202,7 @@ export class Canvas2dRenderer implements GpuRenderer {
   }
 
   private _drawVirtualBackground(bgCtx: CanvasRenderingContext2D): void {
-    // Virtual background: stretch the image to fill the canvas. If the image
-    // isn't ready, fall back to a neutral grey so we never leak the raw
-    // camera feed in the background area.
+
     const img = this.virtualImg
     if (img?.complete && img.naturalWidth > 0) {
       try {

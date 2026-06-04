@@ -1,16 +1,4 @@
-/**
- * Manages the off-screen canvases used by the segmenter loop.
- *
- * Called by: AdvancedMattingProcessor (owns the instance), SegmenterLoopRunner
- * (consumes captureSnapshot, sizeSource, getMotionFrameRgba).
- *
- * Pipeline role: Creates and maintains three canvases:
- *   - snapshot canvas  (video res)   — atomic reference frame for a pipeline tick
- *   - motion canvas    (128×72)      — down-sampled luma for RoiCropper motion detection
- *   - segmentation canvas (procW×procH) — model input after optional crop + resize
- * Also supplies the all-ones passthrough mask used before the first real
- * segmentation result is available.
- */
+
 import { BBox } from './RoiCropper'
 
 const SEGMENTATION_MASK_CANVAS_ID = 'background-blur-local-segmentation'
@@ -29,12 +17,7 @@ export class MattingCanvasManager {
   public static readonly MOTION_W = 128
   public static readonly MOTION_H = 72
 
-  /**
-   * Ensures the snapshot canvas exists and matches the current video size,
-   * then draws the current video frame into it. Synchronous → defines the
-   * atomic instant from which the segmenter input and the renderer bitmap
-   * are both derived.
-   */
+
   captureSnapshot(videoElement: HTMLVideoElement): HTMLCanvasElement | null {
     if (videoElement.videoWidth === 0) return null
     const vw = videoElement.videoWidth
@@ -72,11 +55,7 @@ export class MattingCanvasManager {
     return this._motionCanvasCtx!.getImageData(0, 0, mw, mh).data
   }
 
-  /**
-   * Downsample a source image (canvas or video) into the proc-res segmentation
-   * canvas and read it back as ImageData. The source's natural dimensions are
-   * read from `width`/`height` (canvas) or `videoWidth`/`videoHeight` (video).
-   */
+ 
   sizeSource(
     source: HTMLCanvasElement | HTMLVideoElement,
     processingW: number,
@@ -126,7 +105,7 @@ export class MattingCanvasManager {
         canvas.setAttribute('height', '' + processingH)
       }
     } else {
-      canvas = this.createCanvas(
+      canvas = createCanvas(
         SEGMENTATION_MASK_CANVAS_ID,
         processingW,
         processingH
@@ -147,14 +126,6 @@ export class MattingCanvasManager {
     return this._passthroughMask
   }
 
-  createCanvas(id: string, width: number, height: number): HTMLCanvasElement {
-    const el = document.createElement('canvas')
-    el.setAttribute('id', id)
-    el.setAttribute('width', '' + width)
-    el.setAttribute('height', '' + height)
-    return el
-  }
-
   destroy() {
     this._snapshotCanvas = undefined
     this._snapshotCanvasCtx = undefined
@@ -163,4 +134,12 @@ export class MattingCanvasManager {
     this._segmentationMaskCanvasCtx = undefined
     this._passthroughMask = undefined
   }
+}
+
+export function createCanvas(id: string, width: number, height: number): HTMLCanvasElement {
+  const el = document.createElement('canvas')
+  el.id = id
+  el.width = width
+  el.height = height
+  return el
 }

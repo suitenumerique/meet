@@ -1,16 +1,4 @@
-/**
- * Tracks new video frames via requestVideoFrameCallback (rVFC) and exposes
- * a promise-based "wait for next frame" API used to pace the segmenter loop.
- *
- * Called by: AdvancedMattingProcessor._launch(), SegmenterLoopRunner,
- * RenderLoopRunner.
- *
- * Pipeline role: Shared timing source for both loops. The segmenter loop
- * awaits waitNextFrame() so inference only starts when a genuinely new camera
- * frame has arrived. The render loop reads videoFrameSeq to skip render calls
- * when no new frame is available. Falls back gracefully to timer-based
- * polling on browsers that do not support rVFC.
- */
+
 export interface VideoFrameMeta {
   captureTime: number
   presentationTime: number
@@ -51,11 +39,6 @@ export class VideoFrameTracker {
     this._onTick = undefined
   }
 
-  /**
-   * Promise resolved by the next rVFC tick. The segmenter loop awaits this to
-   * align with the camera's native cadence instead of polling on a timer.
-   * Multiple ticks between two awaits collapse into a single wake.
-   */
   waitNextFrame(): Promise<void> {
     if (!this._frameAwaiter) {
       let resolve!: () => void

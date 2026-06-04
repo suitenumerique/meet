@@ -1,16 +1,4 @@
-/**
- * Centralized error state store for the background matting pipeline.
- *
- * Called by: AdvancedMattingProcessor, LandscapeSegmenter, MulticlassSegmenter,
- * WebGl2Renderer, Canvas2dRenderer (push errors), and EffectsConfiguration.tsx
- * (reads errors via useMattingErrors).
- *
- * Pipeline role: Cross-cutting observability layer. Any module in the pipeline
- * can call pushMattingError() to surface a problem; errors are deduplicated by
- * code. The React hook useMattingErrors() exposes the current error list to UI
- * components so the user sees relevant warnings without digging through the
- * console.
- */
+
 import { proxy, useSnapshot } from 'valtio'
 
 export type MattingErrorCode =

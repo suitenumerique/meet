@@ -1,17 +1,3 @@
-/**
- * Primary WebGL2 compositor for the background matting pipeline.
- *
- * Called by: AdvancedMattingProcessor._initRendererWithFallback() — tried
- * first; Canvas2dRenderer is used only if this throws during init.
- *
- * Pipeline role: Implements the full GPU render path per frame:
- *   uploadMask()  → raw mask uploaded to rawMaskTex
- *   render()      → MaskPostProcessor (morphology + EMA)
- *                 → GpuGuidedFilter upsampling to output resolution
- *                 → background build (blur path or virtual image)
- *                 → SegmoCompositor (virtual path) or standard composite shader
- * All blur passes are GLSL shaders — ctx.filter is never used on this path.
- */
 import { PostProcessingConfig, UpsamplingConfig } from '..'
 import { pushMattingError } from '../errors/MattingErrorStore'
 import { GpuRenderer, GpuRendererInitOpts, RenderSource } from './GpuRenderer'
@@ -33,22 +19,6 @@ import {
   FS_FG_COLOR_CAST,
 } from './WebGl2Shaders'
 
-/**
- * WebGL2 implementation of the matting compositor.
- *
- * Pipeline per frame (`render(videoElement)`):
- *   videoTex ← upload from <video>
- *   maskTex  ← uploaded once per new mask (uploadMask)
- *   maskRefined ← post-processing chain (morpho → ema)
- *   bgBlur ← (mode === 'blur') maskedDownsample(videoTex, mask)
- *                              → maskWeightedGaussH → maskWeightedGaussV  (half-res)
- *           (mode === 'virtual') virtualBgTex
- *   canvas  ← composite(videoTex, bgBlur, maskRefined)
- *
- * SAFARI: never uses ctx.filter. Every blur is a shader.
- * NOTE: Guided filter is NOT implemented in shaders here yet — the orchestrator
- *       falls back to the CPU implementation when guided filter is enabled.
- */
 export class WebGl2Renderer implements GpuRenderer {
   readonly backend = 'webgl2'
 
@@ -69,35 +39,29 @@ export class WebGl2Renderer implements GpuRenderer {
   private vao!: WebGLVertexArrayObject
   private quadBuffer!: WebGLBuffer
 
-  // programs
   private pEma!: WebGLProgram
   private pCopyR!: WebGLProgram
   private pMaskedDownsample!: WebGLProgram
   private pMaskWeightedBlur!: WebGLProgram
   private pMorphology!: WebGLProgram
   private pComposite!: WebGLProgram
-  // Segmo-style virtual-background compositor (foreground recovery + edge-adaptive
-  // sharpening + closed-form alpha matting). Used ONLY when mode === 'virtual' and
-  // a virtual background image is uploaded. Never runs in the blur path.
   private pCompositeSegmo!: WebGLProgram
   private pSegmoEdgeFeather!: WebGLProgram
   private pLightWrap!: WebGLProgram
   private pMaskedFg!: WebGLProgram
   private pFgColorCast!: WebGLProgram
 
-  // textures
   private videoTex!: WebGLTexture
-  private rawMaskTex!: WebGLTexture // R8 at proc res — uploaded from segmenter
-  private maskA!: WebGLTexture // R8 ping
-  private maskB!: WebGLTexture // R8 pong
-  private emaTex!: WebGLTexture // R8, persistent across frames
-  private bgDownTex!: WebGLTexture // RGBA half-res masked downsample
-  private bgBlurPingTex!: WebGLTexture // RGBA half-res after H blur
-  private bgBlurPongTex!: WebGLTexture // RGBA half-res after V blur
-  private halfVideoTex: WebGLTexture | null = null // RGBA half-res video guide for GF
+  private rawMaskTex!: WebGLTexture 
+  private maskA!: WebGLTexture 
+  private maskB!: WebGLTexture 
+  private emaTex!: WebGLTexture 
+  private bgDownTex!: WebGLTexture 
+  private bgBlurPingTex!: WebGLTexture 
+  private bgBlurPongTex!: WebGLTexture
+  private halfVideoTex: WebGLTexture | null = null 
   private virtualBgTex: WebGLTexture | null = null
 
-  // FBOs
   private fboMaskA!: WebGLFramebuffer
   private fboMaskB!: WebGLFramebuffer
   private fboEma!: WebGLFramebuffer
@@ -111,11 +75,8 @@ export class WebGl2Renderer implements GpuRenderer {
   private virtualImgPending: HTMLImageElement | null = null
   private virtualImgUploaded = false
 
-  // Reusable CPU buffer for Float32→Uint8 mask conversion (avoids per-frame allocation).
   private u8MaskBuffer?: Uint8Array
 
-  // Cached uniform locations — resolved once in _buildPrograms(), reused every frame.
-  // Eliminates ~43 string-lookup driver calls per frame.
   private uLoc!: {
     copyR: {
       uTex: WebGLUniformLocation | null
@@ -146,10 +107,8 @@ export class WebGl2Renderer implements GpuRenderer {
       alpha: false,
       antialias: false,
       premultipliedAlpha: true,
-      // Must be true for captureStream() to read WebGL output correctly on Safari.
-      // With false, the browser clears the buffer before captureStream can grab it.
+      
       preserveDrawingBuffer: true,
-      // Important for Safari: ensure the GPU is allowed.
       powerPreference: 'high-performance',
     })
     if (!gl) {
@@ -173,11 +132,7 @@ export class WebGl2Renderer implements GpuRenderer {
     canvas.width = this.outW
     canvas.height = this.outH
     gl.viewport(0, 0, this.outW, this.outH)
-    // HTML element uploads (video, virtual bg image) get Y-flipped on upload so
-    // that texture coord (0,0) corresponds to the BOTTOM-LEFT pixel of the source
-    // image — matching WebGL's bottom-up coord system. Mask typed-array uploads
-    // are not affected (UNPACK_FLIP_Y_WEBGL does not apply); we compensate by
-    // sampling the mask with `(x, 1-y)` in the composite shader.
+   
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 
     try {
@@ -230,7 +185,6 @@ export class WebGl2Renderer implements GpuRenderer {
     this.procW = w
     this.procH = h
     const gl = this.gl
-    // Reallocate proc-sized textures (rawMask, maskA, maskB, ema)
     for (const tex of [this.rawMaskTex, this.maskA, this.maskB, this.emaTex]) {
       gl.bindTexture(gl.TEXTURE_2D, tex)
       gl.texImage2D(
@@ -258,7 +212,6 @@ export class WebGl2Renderer implements GpuRenderer {
     const gl = this.gl
     if (!gl) return
 
-    // 1. Reallocate videoTex at new size
     if (this.videoTex) {
       gl.bindTexture(gl.TEXTURE_2D, this.videoTex)
       gl.texImage2D(
@@ -274,7 +227,6 @@ export class WebGl2Renderer implements GpuRenderer {
       )
     }
 
-    // 2. Reallocate half-res textures
     if (this.bgDownTex) {
       gl.bindTexture(gl.TEXTURE_2D, this.bgDownTex)
       gl.texImage2D(
@@ -332,16 +284,12 @@ export class WebGl2Renderer implements GpuRenderer {
       )
     }
 
-    // 3. Clear lazily-allocated Segmo textures so they get recreated at the new size
     this.segmoCompositor?.invalidateOnResize(gl)
 
-    // 4. Destroy Guided Filter so it gets recreated at the new size
     if (this.gf) {
       this.gf.destroy()
       this.gf = null
     }
-
-    // 5. Update canvas dimensions
     const canvas = gl.canvas as HTMLCanvasElement
     if (canvas) {
       canvas.width = w
@@ -353,7 +301,6 @@ export class WebGl2Renderer implements GpuRenderer {
     if (w !== this.procW || h !== this.procH) {
       this.resizeProcessing(w, h)
     }
-    // Convert Float32 [0,1] → Uint8, reusing a pre-allocated buffer.
     const len = mask.length
     if (this.u8MaskBuffer?.length !== len) {
       this.u8MaskBuffer = new Uint8Array(len)
@@ -404,13 +351,7 @@ export class WebGl2Renderer implements GpuRenderer {
     if (!sw) return
     const gl = this.gl
 
-    // 1. Upload current source frame to videoTex (full output size).
-    // The shader assumes texture origin = bottom-left. For HTMLVideoElement
-    // we let the global UNPACK_FLIP_Y_WEBGL=true do the flip. For
-    // ImageBitmap, the bitmap is pre-flipped at creation (imageOrientation
-    // 'flipY') because UNPACK_FLIP_Y_WEBGL is unreliable for bitmaps across
-    // browsers — so we explicitly disable the GL flip for this upload, then
-    // restore it afterwards to preserve global state used by other uploads.
+
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.videoTex)
     if (!isVideo) gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
@@ -425,24 +366,16 @@ export class WebGl2Renderer implements GpuRenderer {
       )
     } catch {
       if (!isVideo) gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
-      // Some browsers throw if the video frame isn't ready yet — skip this tick.
       return
     }
     if (!isVideo) gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 
-    // 2. Run post-processing chain on the mask at processing resolution.
     const procMaskTex = this.maskPostProcessor.run(this.postCfg, this.procW, this.procH)
 
-    // 3. Upsample mask to full output resolution (guided filter).
     const finalMaskTex = this._upsampleMask(procMaskTex)
 
-    // 4. Build background (blurred camera or virtual image).
     const bgTex = this._buildBackground(finalMaskTex)
 
-    // 5. Composite — segmo-style path is taken ONLY for virtual mode with an
-    //    uploaded virtual background. The blur path (and the virtual-no-image
-    //    fallback, which currently returns the blurred camera) falls through to
-    //    the original composite below, unchanged.
     if (
       this.mode === 'virtual' &&
       this.virtualImgUploaded &&
@@ -462,7 +395,6 @@ export class WebGl2Renderer implements GpuRenderer {
       return
     }
 
-    // 5. Composite to the canvas.
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
     gl.viewport(0, 0, this.outW, this.outH)
     gl.useProgram(this.pComposite)
@@ -488,9 +420,7 @@ export class WebGl2Renderer implements GpuRenderer {
   private _upsampleMask(procMaskTex: WebGLTexture): WebGLTexture {
     if (!this.gf) {
       try {
-        // Fast guided filter:
-        //  - stats/coeff passes at halfW×halfH (the heavy work, 4× fewer pixels)
-        //  - final apply pass at outW×outH (uses full-res guide → preserves edge precision)
+  
         this.gf = new GpuGuidedFilter(
           this.gl,
           this.halfW,
@@ -509,9 +439,6 @@ export class WebGl2Renderer implements GpuRenderer {
       }
     }
     const gl = this.gl
-    // Blit videoTex → halfVideoTex (1 draw call; GL bilinear handles the 2× downsample).
-    // The low-res guide is used by the GF's stats passes; the apply pass still
-    // samples the full-res videoTex so fine details (hair, edges) survive.
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboHalfVideo)
     gl.viewport(0, 0, this.halfW, this.halfH)
     gl.useProgram(this.pCopyR)
@@ -581,13 +508,11 @@ export class WebGl2Renderer implements GpuRenderer {
     for (const p of programs) if (p) gl.deleteProgram(p)
   }
 
-  // ─────────────────────────────── internals ───────────────────────────────
 
   private _buildBackground(maskTex: WebGLTexture): WebGLTexture {
     const gl = this.gl
 
     if (this.mode === 'virtual') {
-      // Lazy upload virtual bg image when ready.
       if (this.virtualImgPending && !this.virtualImgUploaded) {
         const img = this.virtualImgPending
         if (img.complete && img.naturalWidth > 0) {
@@ -611,16 +536,11 @@ export class WebGl2Renderer implements GpuRenderer {
       if (this.virtualBgTex && this.virtualImgUploaded) {
         return this.virtualBgTex
       }
-      // Fallback to blur if image not ready.
     }
 
-    // Blur path: masked downsample → mask-weighted gaussian H → V on half-res buffers.
     const radius = Math.max(1, this.blurRadius / 2)
     gl.viewport(0, 0, this.halfW, this.halfH)
 
-    // Stage 1: masked downsample — 3x3 weighted average sampling the FULL-res
-    // source, normalised by accumulated bgWeight so transition-zone pixels
-    // don't darken the result (this is what causes the halo if omitted).
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboBgDown)
     gl.useProgram(this.pMaskedDownsample)
     gl.activeTexture(gl.TEXTURE0)
@@ -636,7 +556,6 @@ export class WebGl2Renderer implements GpuRenderer {
     )
     this._drawQuad()
 
-    // Stage 2: horizontal mask-weighted gaussian.
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboBgBlurPing)
     gl.useProgram(this.pMaskWeightedBlur)
     gl.activeTexture(gl.TEXTURE0)
@@ -650,7 +569,6 @@ export class WebGl2Renderer implements GpuRenderer {
     gl.uniform1f(this.uLoc.blur.uRadius, radius)
     this._drawQuad()
 
-    // Stage 3: vertical mask-weighted gaussian.
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboBgBlurPong)
     gl.useProgram(this.pMaskWeightedBlur)
     gl.activeTexture(gl.TEXTURE0)
@@ -687,9 +605,6 @@ export class WebGl2Renderer implements GpuRenderer {
     }
     this.quadBuffer = buf
     gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer)
-    // Full-screen triangle covering [-1,1]² with UVs in [0,1]² (Y flipped to
-    // sample non-mirrored video).
-    // Vertex shader expects only position; it computes UV from gl_Position.
     const verts = new Float32Array([-1, -1, 3, -1, -1, 3])
     gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW)
     gl.enableVertexAttribArray(0)
@@ -747,7 +662,6 @@ export class WebGl2Renderer implements GpuRenderer {
       gl.RGBA,
       gl.UNSIGNED_BYTE
     )
-    // Mask textures at processing res
     this.rawMaskTex = makeTex(
       this.procW,
       this.procH,
@@ -780,7 +694,6 @@ export class WebGl2Renderer implements GpuRenderer {
     this.fboMaskB = makeFbo(this.maskB)
     this.fboEma = makeFbo(this.emaTex)
 
-    // BG half-res buffers (RGBA8)
     this.bgDownTex = makeTex(
       this.halfW,
       this.halfH,
@@ -818,59 +731,20 @@ export class WebGl2Renderer implements GpuRenderer {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
   }
 
-  private _compile(stage: number, src: string): WebGLShader {
-    const gl = this.gl
-    const sh = gl.createShader(stage)
-    if (!sh) {
-      throw new Error(`Failed to create WebGL shader for stage ${stage}`)
-    }
-    gl.shaderSource(sh, src)
-    gl.compileShader(sh)
-    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-      const log = gl.getShaderInfoLog(sh) ?? '<no log>'
-      gl.deleteShader(sh)
-      throw new Error(`Shader compile failed: ${log}\nSrc:\n${src}`)
-    }
-    return sh
-  }
-
-  private _link(vsSrc: string, fsSrc: string): WebGLProgram {
-    const gl = this.gl
-    const vs = this._compile(gl.VERTEX_SHADER, vsSrc)
-    const fs = this._compile(gl.FRAGMENT_SHADER, fsSrc)
-    const p = gl.createProgram()
-    if (!p) {
-      throw new Error('Failed to create WebGL program')
-    }
-    gl.attachShader(p, vs)
-    gl.attachShader(p, fs)
-    gl.bindAttribLocation(p, 0, 'aPos')
-    gl.linkProgram(p)
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
-      const log = gl.getProgramInfoLog(p) ?? '<no log>'
-      gl.deleteProgram(p)
-      throw new Error(`Program link failed: ${log}`)
-    }
-    gl.deleteShader(vs)
-    gl.deleteShader(fs)
-    return p
-  }
-
   private _buildPrograms() {
-    this.pEma = this._link(VS, FS_EMA)
-    this.pCopyR = this._link(VS, FS_COPY_R)
-    this.pMaskedDownsample = this._link(VS, FS_MASKED_DOWNSAMPLE)
-    this.pMaskWeightedBlur = this._link(VS, FS_MASK_WEIGHTED_BLUR)
-    this.pMorphology = this._link(VS, FS_MORPHOLOGY)
-    this.pComposite = this._link(VS, FS_COMPOSITE)
-    this.pCompositeSegmo = this._link(VS, FS_COMPOSITE_SEGMO)
-    this.pSegmoEdgeFeather = this._link(VS, FS_SEGMO_EDGE_FEATHER)
-    this.pLightWrap = this._link(VS, FS_LIGHT_WRAP)
-    this.pMaskedFg = this._link(VS, FS_MASKED_FG)
-    this.pFgColorCast = this._link(VS, FS_FG_COLOR_CAST)
+    const gl = this.gl
+    this.pEma = linkProgram(gl, VS, FS_EMA)
+    this.pCopyR = linkProgram(gl, VS, FS_COPY_R)
+    this.pMaskedDownsample = linkProgram(gl, VS, FS_MASKED_DOWNSAMPLE)
+    this.pMaskWeightedBlur = linkProgram(gl, VS, FS_MASK_WEIGHTED_BLUR)
+    this.pMorphology = linkProgram(gl, VS, FS_MORPHOLOGY)
+    this.pComposite = linkProgram(gl, VS, FS_COMPOSITE)
+    this.pCompositeSegmo = linkProgram(gl, VS, FS_COMPOSITE_SEGMO)
+    this.pSegmoEdgeFeather = linkProgram(gl, VS, FS_SEGMO_EDGE_FEATHER)
+    this.pLightWrap = linkProgram(gl, VS, FS_LIGHT_WRAP)
+    this.pMaskedFg = linkProgram(gl, VS, FS_MASKED_FG)
+    this.pFgColorCast = linkProgram(gl, VS, FS_FG_COLOR_CAST)
 
-    // Cache all uniform locations once — avoids per-frame string lookups
-    // through the GL driver which can stall the CPU-GPU pipeline.
     const loc = (p: WebGLProgram, n: string) => this.gl.getUniformLocation(p, n)
     this.uLoc = {
       copyR: {
@@ -897,4 +771,50 @@ export class WebGl2Renderer implements GpuRenderer {
       },
     }
   }
+}
+
+export function compileShader(
+  gl: WebGL2RenderingContext,
+  stage: number,
+  src: string,
+  errorPrefix = 'Shader compile failed'
+): WebGLShader {
+  const sh = gl.createShader(stage)
+  if (!sh) {
+    throw new Error(`Failed to create WebGL shader for stage ${stage}`)
+  }
+  gl.shaderSource(sh, src)
+  gl.compileShader(sh)
+  if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+    const log = gl.getShaderInfoLog(sh) ?? '<no log>'
+    gl.deleteShader(sh)
+    throw new Error(`${errorPrefix}: ${log}\nSrc:\n${src}`)
+  }
+  return sh
+}
+
+export function linkProgram(
+  gl: WebGL2RenderingContext,
+  vsSrc: string,
+  fsSrc: string,
+  errorPrefix = 'Program link failed'
+): WebGLProgram {
+  const vs = compileShader(gl, gl.VERTEX_SHADER, vsSrc, errorPrefix)
+  const fs = compileShader(gl, gl.FRAGMENT_SHADER, fsSrc, errorPrefix)
+  const p = gl.createProgram()
+  if (!p) {
+    throw new Error('Failed to create WebGL program')
+  }
+  gl.attachShader(p, vs)
+  gl.attachShader(p, fs)
+  gl.bindAttribLocation(p, 0, 'aPos')
+  gl.linkProgram(p)
+  gl.deleteShader(vs)
+  gl.deleteShader(fs)
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+    const log = gl.getProgramInfoLog(p) ?? '<no log>'
+    gl.deleteProgram(p)
+    throw new Error(`${errorPrefix}: ${log}`)
+  }
+  return p
 }

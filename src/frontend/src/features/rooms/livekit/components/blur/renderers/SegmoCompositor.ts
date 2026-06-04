@@ -1,22 +1,3 @@
-/**
- * Segmo-style virtual background compositor for the WebGL2 render path.
- *
- * Called by: WebGl2Renderer.render() — only when mode === 'virtual' and a
- * virtual background image has been successfully uploaded.
- *
- * Pipeline role: Replaces the standard composite shader for virtual backgrounds.
- * Runs up to three GPU passes:
- *   Pass A: edge-only feather — widens the transition band near silhouettes
- *   Pass B: segmo composite  — foreground recovery + closed-form alpha matting
- *   Pass C: light wrap       — background color spill onto foreground edges
- * Optionally prepends a foreground color-cast correction (passes T1+T2) to
- * remove old-background color contamination from edge pixels.
- */
-
-/**
- * Uniform locations for the Segmo compositing shaders.
- * Resolved once by WebGl2Renderer._buildPrograms() and passed in at construction.
- */
 export interface SegmoCompositorUniforms {
   segmo: {
     uVideo: WebGLUniformLocation | null
@@ -47,18 +28,6 @@ export interface SegmoCompositorUniforms {
   }
 }
 
-/**
- * Segmo-style compositor for virtual backgrounds.
- *
- * Runs the foreground-recovery composite shader: edge-adaptive sharpening from
- * the camera gradient, closed-form alpha matting on a 13-tap cross pattern in
- * the transition zone, chroma-aware color-separation gate, and the VFX
- * decontamination equation `output = I + (B_new − B_old) * (1 − α)` to remove
- * the old background's color contribution from contaminated edge pixels.
- *
- * Extracted verbatim from WebGl2Renderer._compositeVirtualSegmo() and its
- * target-management helpers. No GL logic, state, or threshold was modified.
- */
 export class SegmoCompositor {
   private readonly segmoFeatherRadius = 3
   private readonly segmoLightWrapStrength = 0.08
@@ -176,8 +145,6 @@ export class SegmoCompositor {
   ) {
     const gl = this.gl
 
-    // Pass A: edge-only feather (widens the transition band near silhouettes,
-    // leaves interior/exterior alone). Output is R8 at output resolution.
     this._ensureSegmoFeatherTarget(outW, outH)
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboSegmoFeatheredMask)
     gl.viewport(0, 0, outW, outH)
@@ -189,14 +156,9 @@ export class SegmoCompositor {
     gl.uniform1f(this.uLoc.feather.uRadius, this.segmoFeatherRadius)
     this.drawQuad()
 
-    // Passes T1+T2 (foreground color cast — pure GPU via mipmaps). Skipped when
-    // strength <= 0; otherwise produces tintedVideoTex which feeds the composite
-    // in place of videoTex. Bg mipmaps are regenerated lazily after each upload.
     const useTint = this.segmoForegroundTintStrength > 0
     let videoSrc: WebGLTexture = videoTex
     if (useTint) {
-      // Lazy: ensure the bg texture has a mipmap chain after upload. Detects
-      // upload-completed transitions via virtualImgUploaded.
       if (
         virtualImgUploaded &&
         !this._segmoBgMipmapsValid &&
@@ -216,9 +178,6 @@ export class SegmoCompositor {
 
       if (this._segmoBgMipmapsValid) {
         this._ensureSegmoTintTargets(outW, outH)
-        // T1: render video × foreground weight to maskedFgTex. Weight in alpha
-        // lets the cast shader recover the weighted mean as rgb/a from the top
-        // mip level.
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboMaskedFg)
         gl.viewport(0, 0, outW, outH)
         gl.useProgram(this.programs.maskedFg)
@@ -229,12 +188,9 @@ export class SegmoCompositor {
         gl.bindTexture(gl.TEXTURE_2D, this.segmoFeatheredMaskTex!)
         gl.uniform1i(this.uLoc.maskedFg.uMask, 1)
         this.drawQuad()
-        // Build the mip pyramid so textureLod can fetch the global mean.
         gl.bindTexture(gl.TEXTURE_2D, this.maskedFgTex!)
         gl.generateMipmap(gl.TEXTURE_2D)
 
-        // T2: tint video toward bg's tint. Both means read from top mip via
-        // textureLod inside the shader.
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboTintedVideo)
         gl.viewport(0, 0, outW, outH)
         gl.useProgram(this.programs.fgColorCast)
@@ -256,8 +212,6 @@ export class SegmoCompositor {
       }
     }
 
-    // Pass B: segmo composite, fed by the feathered mask. When light wrap is
-    // enabled we render to an intermediate texture; otherwise straight to canvas.
     const useLightWrap = this.segmoLightWrapStrength > 0
     if (useLightWrap) {
       this._ensureSegmoCompositeTarget(outW, outH)
@@ -281,8 +235,6 @@ export class SegmoCompositor {
 
     if (!useLightWrap) return
 
-    // Pass C: light wrap — mix a small amount of the background color into the
-    // narrow edge band so the subject looks lit by the virtual scene.
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
     gl.viewport(0, 0, outW, outH)
     gl.useProgram(this.programs.lightWrap)

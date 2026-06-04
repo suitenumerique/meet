@@ -1,29 +1,6 @@
-/**
- * Startup benchmark that measures segmenter inference latency and selects the
- * appropriate model and frame-skip setting for the current device.
- *
- * Called by: AdvancedMattingProcessor._createAndCalibrateSegmenter() — once
- * per session after the initial segmenter loads.
- *
- * Pipeline role: Runs 5 warm-up + 15 timed inference passes on real video
- * frames and computes the p75 latency. Decision table:
- *   - Multiclass p75 < 25 ms  → keep multiclass, skip=1 (30 fps inference)
- *   - Multiclass p75 ≤ 50 ms  → keep multiclass, skip=2 (15 fps inference)
- *   - Multiclass p75 > 50 ms  → switch to landscape model
- * Landscape is further benchmarked for skip=1 vs skip=2. Intermediate results
- * are published as FrameMaskPairs so the render loop shows progress during
- * warmup.
- */
 import { Segmenter, probeMediapipeDelegate } from './Segmenter'
 
 export class SegmenterBenchmarker {
-  /**
-   * Common measurement protocol: 5 warm-up runs (displayed but not timed) +
-   * 15 timed runs on fresh video frames. Returns p75 latency in ms, or null
-   * if a warm-up run throws (caller decides how to handle).
-   * Each result is published via onPairCreated so the render loop shows the
-   * effect building up during the benchmark.
-   */
   static async measureInferenceP75(
     seg: Segmenter,
     videoElement: HTMLVideoElement | undefined,

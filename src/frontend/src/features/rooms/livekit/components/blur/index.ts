@@ -1,20 +1,3 @@
-/**
- * Public API of the blur module.
- *
- * Exports the ProcessorType and SegmentationModel enums, all configuration
- * types (ProcessorConfig, PostProcessingConfig, UpsamplingConfig,
- * PreProcessingConfig), the BackgroundProcessorInterface, and the
- * BackgroundProcessorFactory that instantiates AdvancedMattingProcessor.
- *
- * Called by: EffectsConfiguration.tsx, VideoTab.tsx, Join.tsx, Conference.tsx,
- * VideoDeviceControl.tsx, FunnyEffects.tsx, usePersistentUserChoices.ts,
- * userChoices.ts.
- *
- * Pipeline role: Entry point for all external consumers. Callers obtain a
- * processor via BackgroundProcessorFactory.getProcessor(config) and attach it
- * to a LiveKit video track; the processor replaces the raw camera track with a
- * composited MediaStreamTrack captured from the output canvas.
- */
 import type { Track, TrackProcessor } from 'livekit-client'
 import { AdvancedMattingProcessor } from './AdvancedMattingProcessor'
 import { FaceLandmarksOptions } from './FaceLandmarksProcessor'
