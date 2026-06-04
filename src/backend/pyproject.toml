@@ -60,7 +60,7 @@ dependencies = [
     "whitenoise==6.12.0",
     "mozilla-django-oidc==5.0.2",
     "livekit-api==1.1.0",
-    "aiohttp==3.13.5",
+    "aiohttp==3.14.0",
     "urllib3==2.7.0",
     "phonenumbers==9.0.31",
 ]
