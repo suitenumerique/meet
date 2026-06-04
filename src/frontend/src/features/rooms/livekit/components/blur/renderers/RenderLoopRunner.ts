@@ -24,12 +24,12 @@ export class RenderLoopRunner {
   private _lastVideoTime = -1
 
   constructor(
-    private getGpuRenderer: () => GpuRenderer | undefined,
-    private getFrameTracker: () => VideoFrameTracker,
-    private getLatestPair: () => FrameMaskPair | null,
-    private getPassthroughMask: (w: number, h: number) => Float32Array,
-    private getProcessingDimensions: () => { w: number; h: number }
-  ) {}
+    private readonly getGpuRenderer: () => GpuRenderer | undefined,
+    private readonly getFrameTracker: () => VideoFrameTracker,
+    private readonly getLatestPair: () => FrameMaskPair | null,
+    private readonly getPassthroughMask: (w: number, h: number) => Float32Array,
+    private readonly getProcessingDimensions: () => { w: number; h: number }
+  ) { }
 
   start(videoElement: HTMLVideoElement) {
     this.videoElement = videoElement
@@ -57,13 +57,11 @@ export class RenderLoopRunner {
           this._lastRenderedSeq = seq
           this._renderFrame()
         }
-      } else {
-        if (this.videoElement) {
-          const t = this.videoElement.currentTime
-          if (t !== this._lastVideoTime) {
-            this._lastVideoTime = t
-            this._renderFrame()
-          }
+      } else if (this.videoElement) {
+        const t = this.videoElement.currentTime
+        if (t !== this._lastVideoTime) {
+          this._lastVideoTime = t
+          this._renderFrame()
         }
       }
       this._scheduleRender()

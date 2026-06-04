@@ -31,7 +31,7 @@ export interface BBox {
 const FULL_FRAME: BBox = { x: 0, y: 0, width: 1, height: 1 }
 
 function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v
+  return Math.max(lo, Math.min(hi, v))
 }
 
 /** Scan the mask and return the tightest bbox around pixels above threshold,
@@ -49,10 +49,10 @@ export function computePersonBbox(
   for (let y = 0; y < maskH; y++) {
     for (let x = 0; x < maskW; x++) {
       if (mask[y * maskW + x] > MASK_THRESHOLD) {
-        if (x < minX) minX = x
-        if (x > maxX) maxX = x
-        if (y < minY) minY = y
-        if (y > maxY) maxY = y
+        minX = Math.min(minX, x)
+        maxX = Math.max(maxX, x)
+        minY = Math.min(minY, y)
+        maxY = Math.max(maxY, y)
       }
     }
   }
@@ -113,20 +113,20 @@ function resizeFloat32Into(
     const sy0 = Math.floor(sy)
     const sy1 = sy0 + 1
     const fy = sy - sy0
-    const iy0 = sy0 < 0 ? 0 : sy0 >= srcH ? srcH - 1 : sy0
-    const iy1 = sy1 < 0 ? 0 : sy1 >= srcH ? srcH - 1 : sy1
+    const iy0 = clamp(sy0, 0, srcH - 1)
+    const iy1 = clamp(sy1, 0, srcH - 1)
 
     for (let dx = 0; dx < dstW; dx++) {
       const sx = (dx + 0.5) * scaleX - 0.5
       const sx0 = Math.floor(sx)
       const sx1 = sx0 + 1
       const fx = sx - sx0
-      const ix0 = sx0 < 0 ? 0 : sx0 >= srcW ? srcW - 1 : sx0
-      const ix1 = sx1 < 0 ? 0 : sx1 >= srcW ? srcW - 1 : sx1
+      const ix0 = clamp(sx0, 0, srcW - 1)
+      const ix1 = clamp(sx1, 0, srcW - 1)
 
       const v =
         (1 - fy) *
-          ((1 - fx) * src[iy0 * srcW + ix0] + fx * src[iy0 * srcW + ix1]) +
+        ((1 - fx) * src[iy0 * srcW + ix0] + fx * src[iy0 * srcW + ix1]) +
         fy * ((1 - fx) * src[iy1 * srcW + ix0] + fx * src[iy1 * srcW + ix1])
       dst[dy * dstW + dx] = v
     }
@@ -218,7 +218,7 @@ export class RoiCropper {
   ): void {
     if (!rgba || !w || !h) return
     const n = w * h
-    if (!this.prevLuma || this.prevLuma.length !== n) {
+    if (this.prevLuma?.length !== n) {
       this.prevLuma = new Uint8Array(n)
     }
     for (let i = 0; i < n; i++) {
@@ -241,7 +241,7 @@ export class RoiCropper {
     fullH: number
   ): Float32Array {
     const fullLen = fullW * fullH
-    if (!this._fullBuf || this._fullBuf.length !== fullLen) {
+    if (this._fullBuf?.length !== fullLen) {
       this._fullBuf = new Float32Array(fullLen)
     }
     const full = this._fullBuf
@@ -255,7 +255,7 @@ export class RoiCropper {
     if (dstW <= 0 || dstH <= 0) return full
 
     const resizeLen = dstW * dstH
-    if (!this._resizeBuf || this._resizeBuf.length !== resizeLen) {
+    if (this._resizeBuf?.length !== resizeLen) {
       this._resizeBuf = new Float32Array(resizeLen)
     }
     resizeFloat32Into(

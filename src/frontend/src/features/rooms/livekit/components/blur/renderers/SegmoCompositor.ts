@@ -60,9 +60,9 @@ export interface SegmoCompositorUniforms {
  * target-management helpers. No GL logic, state, or threshold was modified.
  */
 export class SegmoCompositor {
-  private segmoFeatherRadius = 3.0
-  private segmoLightWrapStrength = 0.08
-  private segmoForegroundTintStrength = 0.15
+  private readonly segmoFeatherRadius = 3
+  private readonly segmoLightWrapStrength = 0.08
+  private readonly segmoForegroundTintStrength = 0.15
   private _segmoBgMipmapsValid = false
 
   private segmoFeatheredMaskTex: WebGLTexture | null = null
@@ -192,7 +192,7 @@ export class SegmoCompositor {
     // Passes T1+T2 (foreground color cast — pure GPU via mipmaps). Skipped when
     // strength <= 0; otherwise produces tintedVideoTex which feeds the composite
     // in place of videoTex. Bg mipmaps are regenerated lazily after each upload.
-    const useTint = this.segmoForegroundTintStrength > 0.0
+    const useTint = this.segmoForegroundTintStrength > 0
     let videoSrc: WebGLTexture = videoTex
     if (useTint) {
       // Lazy: ensure the bg texture has a mipmap chain after upload. Detects
@@ -258,7 +258,7 @@ export class SegmoCompositor {
 
     // Pass B: segmo composite, fed by the feathered mask. When light wrap is
     // enabled we render to an intermediate texture; otherwise straight to canvas.
-    const useLightWrap = this.segmoLightWrapStrength > 0.0
+    const useLightWrap = this.segmoLightWrapStrength > 0
     if (useLightWrap) {
       this._ensureSegmoCompositeTarget(outW, outH)
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.fboSegmoComposite)
@@ -308,7 +308,10 @@ export class SegmoCompositor {
     filter: number = this.gl.LINEAR
   ): { tex: WebGLTexture; fbo: WebGLFramebuffer } {
     const gl = this.gl
-    const tex = gl.createTexture()!
+    const tex = gl.createTexture()
+    if (!tex) {
+      throw new Error('Failed to create WebGL texture')
+    }
     gl.bindTexture(gl.TEXTURE_2D, tex)
     gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, null)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
@@ -316,7 +319,11 @@ export class SegmoCompositor {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
-    const fbo = gl.createFramebuffer()!
+    const fbo = gl.createFramebuffer()
+    if (!fbo) {
+      gl.deleteTexture(tex)
+      throw new Error('Failed to create WebGL framebuffer')
+    }
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0)
 

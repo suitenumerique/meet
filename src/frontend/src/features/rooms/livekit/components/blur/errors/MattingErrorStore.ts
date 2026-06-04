@@ -43,12 +43,12 @@ export function pushMattingError(e: MattingError) {
     mattingErrorStore.errors.push(e)
   }
   // Surface every problem in the JS console too — easier to debug from Safari.
-  const fn =
-    e.level === 'error'
-      ? console.error
-      : e.level === 'warn'
-        ? console.warn
-        : console.info
+  let fn = console.info
+  if (e.level === 'error') {
+    fn = console.error
+  } else if (e.level === 'warn') {
+    fn = console.warn
+  }
   fn(`[matting:${e.code}]`, e.detail ?? '')
 }
 

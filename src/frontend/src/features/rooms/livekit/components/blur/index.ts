@@ -88,9 +88,11 @@ export class BackgroundProcessorFactory {
 
   static isSupported() {
     // AdvancedMattingProcessor does not rely on MediaStreamTrackProcessor /
-    // MediaStreamTrackGenerator, so it is not limited to Chromium. It degrades
-    // at runtime instead: WebGL2 falls back to Canvas2D for compositing, and
-    // the MediaPipe delegate is probed and falls back to CPU.
+    // MediaStreamTrackGenerator, so it is not limited to Chromium. It only
+    // needs canvas.captureStream(); WebGL2 and the MediaPipe GPU delegate are
+    // probed at runtime and fall back to Canvas2D / CPU when unavailable.
+    if (typeof HTMLCanvasElement === 'undefined') return false
+    if (!('captureStream' in HTMLCanvasElement.prototype)) return false
     return true
   }
 
