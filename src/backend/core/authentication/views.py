@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 
 from lasuite.oidc_login.views import (
     OIDCAuthenticationCallbackView,
@@ -77,9 +77,9 @@ class PKCEOIDCAuthenticationRequestView(OIDCAuthenticationRequestView):
                 }
             )
         except ValidationError as e:
-            return Response(
+            return JsonResponse(
                 {"detail": "Invalid pkce request parameters.", "errors": e.errors()},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=400,
             )
 
         request.session["pkce_oidc_response_type"] = "code"

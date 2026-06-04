@@ -1,5 +1,6 @@
 """Tests for PKCE/OIDC authentication views and OAuth token endpoints."""
 
+import json
 from unittest import mock
 
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -79,7 +80,7 @@ def test_pkce_oidc_authentication_request_view_invalid_parameters():
         response = PKCEOIDCAuthenticationRequestView().get(request)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["detail"] == "Invalid pkce request parameters."
+    assert json.loads(response.content)["detail"] == "Invalid pkce request parameters."
 
 
 @pytest.mark.parametrize(
@@ -147,8 +148,9 @@ def test_pkce_oidc_authentication_request_view_rejects_out_of_bounds_lengths(
         response = PKCEOIDCAuthenticationRequestView().get(request)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["detail"] == "Invalid pkce request parameters."
-    assert any(error["loc"] == (field_name,) for error in response.data["errors"])
+    body = json.loads(response.content)
+    assert body["detail"] == "Invalid pkce request parameters."
+    assert any(error["loc"] == [field_name] for error in body["errors"])
 
 
 def test_pkce_oidc_authentication_request_view_non_code_response_type():
