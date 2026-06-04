@@ -118,7 +118,7 @@ def test_api_files_create_file_authenticated_success():
 
     assert policy_parsed.scheme == "http"
     assert policy_parsed.netloc in ["minio:9000", "localhost:9000"]
-    assert policy_parsed.path == f"/meet-media-storage/files/{file.id!s}.png"
+    assert policy_parsed.path == f"/meet-media-storage/tmp/files/{file.id!s}.png"
 
     query_params = parse_qs(policy_parsed.query)
 

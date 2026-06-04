@@ -346,8 +346,11 @@ def test_authentication_getter_existing_user_change_fields(
 
     # One and only one additional update query when a field has changed
     # Note: .save() triggers uniqueness validation queries for unique fields,
-    # adding extra SELECT queries before the UPDATE (e.g., checking unique=True on 'sub')
-    with django_assert_num_queries(3):
+    # adding extra SELECT queries before the UPDATE:
+    #   - unique=True on 'sub'
+    #   - unique=True on 'admin_email'
+    #   - partial unique index 'unique_email_when_sub_is_null'
+    with django_assert_num_queries(5):
         authenticated_user = klass.get_or_create_user(
             access_token="test-token", id_token=None, payload=None
         )

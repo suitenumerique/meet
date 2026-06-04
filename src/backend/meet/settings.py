@@ -186,6 +186,9 @@ class Base(Configuration):
     FILE_UPLOAD_PATH = values.Value(
         "files", environ_name="FILE_UPLOAD_PATH", environ_prefix=None
     )
+    FILE_UPLOAD_TMP_PATH = values.Value(
+        "tmp/files", environ_name="FILE_UPLOAD_TMP_PATH", environ_prefix=None
+    )
 
     FILE_UPLOAD_APPLY_RESTRICTIONS = values.BooleanValue(
         default=True, environ_name="FILE_UPLOAD_APPLY_RESTRICTIONS", environ_prefix=None
@@ -1011,6 +1014,44 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Logging
+    # We want to make it easy to log to console but by default we log production
+    # to Sentry and don't want to log to console.
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "simple": {
+                "format": "{asctime} {name} {levelname} {message}",
+                "style": "{",
+            },
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "simple",
+            },
+        },
+        # Override root logger to send it to console
+        "root": {
+            "handlers": ["console"],
+            "level": values.Value(
+                "INFO", environ_name="LOGGING_LEVEL_LOGGERS_ROOT", environ_prefix=None
+            ),
+        },
+        "loggers": {
+            "core": {
+                "handlers": ["console"],
+                "level": values.Value(
+                    "INFO",
+                    environ_name="LOGGING_LEVEL_LOGGERS_APP",
+                    environ_prefix=None,
+                ),
+                "propagate": False,
+            },
+        },
+    }
+
     # pylint: disable=invalid-name
     @property
     def ENVIRONMENT(self):
@@ -1048,6 +1089,11 @@ class Base(Configuration):
         settings to be loaded.
         """
         super().post_setup()
+
+        if cls.FILE_UPLOAD_TMP_PATH == cls.FILE_UPLOAD_PATH:
+            raise ValueError(
+                "FILE_UPLOAD_TMP_PATH cannot be the same as FILE_UPLOAD_PATH"
+            )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:

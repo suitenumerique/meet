@@ -426,7 +426,7 @@ def generate_upload_policy(file):
         Originally taken from https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L102  # pylint: disable=line-too-long
     """
 
-    key = file.file_key
+    key = file.temporary_file_key
 
     # This settings should be used if the backend application and the frontend application
     # can't connect to the object storage with the same domain. This is the case in the

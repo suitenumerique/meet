@@ -29,7 +29,6 @@ export const useUser = (
   }, [data, opts, isConfigLoading])
 
   const query = useQuery({
-    // eslint-disable-next-line @tanstack/query/exhaustive-deps
     queryKey: [keys.user],
     queryFn: () => fetchUser(options),
     staleTime: Infinity,

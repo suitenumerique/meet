@@ -23,7 +23,6 @@ export const useVideoResolutionSubscription = () => {
     if (!room) return
     const handleTrackPublished = (
       publication: RemoteTrackPublication,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _participant: RemoteParticipant
     ) => {
       // By default, the maximum quality is set to high

@@ -44,3 +44,73 @@ def test_models_users_send_mail_main_missing():
         user.email_user("my subject", "my message")
 
     assert str(excinfo.value) == "User has no email address."
+
+
+def test_models_users_email_unique_when_sub_is_null():
+    """Email should be unique among users with no sub (pending users)."""
+    user = factories.UserFactory(sub=None, email="test@example.com")
+    with pytest.raises(
+        ValidationError, match="Constraint “unique_email_when_sub_is_null” is violated."
+    ):
+        factories.UserFactory(sub=None, email=user.email)
+
+
+def test_models_users_email_unique_case_insensitive_when_sub_is_null():
+    """Email uniqueness should be case-insensitive among users with no sub (pending users)."""
+    factories.UserFactory(sub=None, email="Test@example.com")
+    with pytest.raises(
+        ValidationError, match="Constraint “unique_email_when_sub_is_null” is violated."
+    ):
+        factories.UserFactory(sub=None, email="test@example.com")
+
+
+def test_models_users_email_not_unique_when_sub_is_set():
+    """Email uniqueness should not be enforced when users have a sub."""
+    user = factories.UserFactory(sub="sub-1", email="test@example.com")
+    user2 = factories.UserFactory(sub="sub-2", email=user.email)
+    assert user2.email == user.email
+
+
+def test_models_users_email_not_unique_between_sub_null_and_sub_set():
+    """A user with a sub and a pending user (sub=None) can share the same email."""
+    user = factories.UserFactory(sub="sub-1", email="test@example.com")
+    user2 = factories.UserFactory(sub=None, email=user.email)
+    assert user2.email == user.email
+
+
+def test_models_users_email_unique_constraint_allows_multiple_null_emails():
+    """Multiple users with sub=None and email=None should be allowed."""
+    factories.UserFactory(sub=None, email=None)
+    factories.UserFactory(sub=None, email=None)
+
+
+def test_models_users_sub_null_email_null_does_not_prevent_creation():
+    """Multiple pending users (sub=None, email=None) can be created without conflict.
+
+    sub=None is not unique-constrained. email uniqueness is only enforced among
+    sub=None users with a non-null email, so email=None bypasses it (NULL != NULL in SQL).
+    """
+    # Ghost row can still appear from bad code path
+    u1 = factories.UserFactory(sub=None, email=None)
+    u2 = factories.UserFactory(sub=None, email=None)
+    assert u1.pk != u2.pk
+
+
+def test_models_users_sub_can_be_null():
+    """sub is nullable: pending users exist before OIDC activation."""
+    user = factories.UserFactory(sub=None)
+    user.refresh_from_db()
+    assert user.sub is None
+
+
+def test_models_users_sub_null_does_not_prevent_creation():
+    """Multiple users can be created with sub=None (pending state)."""
+    u1 = factories.UserFactory(sub=None)
+    u2 = factories.UserFactory(sub=None)
+    assert u1.pk != u2.pk
+
+
+def test_models_users_sub_blank_is_accepted():
+    """sub='' passes validation because blank=True; null is preferred but not enforced."""
+    user = factories.UserFactory.build(sub="")
+    user.full_clean()

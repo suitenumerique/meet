@@ -24,7 +24,7 @@ and this project adheres to
 - ✨(backend) add core.recording.event.parsers.S3Parser
 - ✨(summary) extended support for all video / audio files #1358
 
-### Changed 
+### Changed
 
 - ♻️(fullstack) simplify source serialization
 - ✨(backend) expose room configuration to all API consumers
@@ -34,6 +34,7 @@ and this project adheres to
 - ♻️(backend) prefix Swagger routes with /api
 
 ### Fixed
+
 - 🩹(backend) fix swagger and redoc documentation URLs
 
 ## [1.16.0] - 2026-05-13

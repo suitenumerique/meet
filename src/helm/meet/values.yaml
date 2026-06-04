@@ -262,8 +262,8 @@ backend:
         python manage.py migrate --no-input
     restartPolicy: Never
 
-  ## @param backend.createsuperuser.command backend migrate command
-  ## @param backend.createsuperuser.restartPolicy backend migrate job restart policy
+  ## @param backend.createsuperuser.command backend createsuperuser command
+  ## @param backend.createsuperuser.restartPolicy backend createsuperuser job restart policy
   createsuperuser:
     command:
       - "/bin/sh"
@@ -277,6 +277,17 @@ backend:
         echo "Database is ready"
 
         python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
+    restartPolicy: Never
+
+  ## @param backend.mergeDuplicateUsers.command backend merge_duplicate_users command
+  ## @param backend.mergeDuplicateUsers.restartPolicy backend merge_duplicate_users job restart policy
+  mergeDuplicateUsers:
+    annotations: {}
+    enabled: false
+    command:
+      - python
+      - manage.py
+      - merge_duplicate_users
     restartPolicy: Never
 
   ## @param backend.probes.liveness.path [nullable] Configure path for backend HTTP liveness probe

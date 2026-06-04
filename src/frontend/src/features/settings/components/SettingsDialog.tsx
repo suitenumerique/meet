@@ -24,7 +24,7 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
             <Trans
               i18nKey="settings:account.currentlyLoggedAs"
               values={{ user: userDisplay }}
-              components={[<Badge />]}
+              components={[<Badge key="user-badge" />]}
             />
           </P>
           <P>
