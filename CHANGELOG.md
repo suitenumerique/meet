@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-06-04
+
 ### Added
 
 - ✨(backend) add file specific admin #1387
