@@ -1,6 +1,5 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import tsconfigPaths from 'vite-tsconfig-paths'
 import { visualizer } from 'rollup-plugin-visualizer'
 import svgr from 'vite-plugin-svgr'
 
@@ -10,7 +9,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
-      tsconfigPaths(),
       svgr({
         svgrOptions: {
           replaceAttrValues: { '#000': 'currentColor', '#000000': 'currentColor', '#1f1f1f': 'currentColor' },
@@ -23,6 +21,9 @@ export default defineConfig(({ mode }) => {
         brotliSize: true,
       }),
     ],
+    resolve: {
+      tsconfigPaths: true
+    },
     build: {
       sourcemap: env.VITE_BUILD_SOURCEMAP === 'true',
     },
