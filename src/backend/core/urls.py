@@ -1,14 +1,27 @@
 """URL configuration for the core app."""
 
 from django.conf import settings
+from django.http import HttpResponse
 from django.urls import include, path
 
 from lasuite.oidc_login.urls import urlpatterns as oidc_urls
 from rest_framework.routers import DefaultRouter, SimpleRouter
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from core.addons import viewsets as addons_viewsets
 from core.api import get_frontend_configuration, viewsets
+from core.authentication.views import PKCEOAuthTokenExchangeView
 from core.external_api import viewsets as external_viewsets
+
+
+def mobile_login_landing(request):  # noqa: ARG001
+    """Empty 200 page used as the success_url marker for native-app PKCE login.
+
+    The PKCE callback view detects this path before swapping in the
+    `MOBILE_DEEP_LINK_SCHEME` redirect; users following the web flow never
+    reach this page.
+    """
+    return HttpResponse(status=204)
 
 # - Main endpoints
 router = DefaultRouter()
@@ -39,6 +52,7 @@ external_router.register(
 )
 
 urlpatterns = [
+    path("mobile-login", mobile_login_landing, name="mobile_login_landing"),
     path(
         f"api/{settings.API_VERSION}/",
         include(
@@ -46,6 +60,16 @@ urlpatterns = [
                 *router.urls,
                 *oidc_urls,
                 path("config/", get_frontend_configuration, name="config"),
+                path(
+                    "oauth/token/",
+                    PKCEOAuthTokenExchangeView.as_view(),
+                    name="token_obtain_pair",
+                ),
+                path(
+                    "oauth/token/refresh/",
+                    TokenRefreshView.as_view(),
+                    name="token_refresh",
+                ),
             ]
         ),
     ),
