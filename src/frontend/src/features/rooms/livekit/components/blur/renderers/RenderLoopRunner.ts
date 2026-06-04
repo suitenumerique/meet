@@ -1,17 +1,3 @@
-/**
- * Render loop — the compositing half of the two-loop engine.
- *
- * Called by: AdvancedMattingProcessor._initRunners() (construction) and
- * _launch() (start/stop).
- *
- * Pipeline role: Runs a requestAnimationFrame loop that fires on every display
- * refresh. Each tick reads the latest FrameMaskPair from AdvancedMattingProcessor,
- * uploads the mask to GpuRenderer, then calls GpuRenderer.render() to write the
- * composited frame to the output canvas. Before the first pair arrives it renders
- * in passthrough mode (all-ones mask) so the raw camera feed is always visible.
- * Decoupled from the segmenter loop: rendering runs at display framerate
- * regardless of inference speed.
- */
 import { GpuRenderer } from './GpuRenderer'
 import { VideoFrameTracker } from '../preprocessing/VideoFrameTracker'
 import { FrameMaskPair } from '../segmenters/SegmenterLoopRunner'

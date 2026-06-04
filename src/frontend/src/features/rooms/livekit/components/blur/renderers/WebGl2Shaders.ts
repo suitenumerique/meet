@@ -1,24 +1,3 @@
-/**
- * GLSL shader source constants for the WebGL2 matting compositor.
- *
- * Called by: WebGl2Renderer._buildPrograms() — every shader in this file is
- * compiled once at renderer initialisation.
- *
- * Pipeline role: Static data module; supplies the complete GLSL source for
- * every GPU pass in the WebGL2 path:
- *   VS                    shared full-screen triangle vertex shader
- *   FS_COPY_R             blit a single-channel texture
- *   FS_EMA                temporal exponential moving average on the mask
- *   FS_MORPHOLOGY         GPU morphology (positive radius = dilation, negative = erosion)
- *   FS_MASKED_DOWNSAMPLE  background-only 3×3 weighted downsample to half-res
- *   FS_MASK_WEIGHTED_BLUR mask-weighted separable Gaussian blur
- *   FS_COMPOSITE          standard blur / virtual background composite
- *   FS_COMPOSITE_SEGMO, FS_SEGMO_EDGE_FEATHER, FS_LIGHT_WRAP,
- *   FS_MASKED_FG, FS_FG_COLOR_CAST  — segmo virtual-background pass shaders
- */
-
-// ─────────────────────── Vertex shader (shared by all passes) ───────────────
-
 export const VS = `#version 300 es
 in vec2 aPos;
 out vec2 vUv;
@@ -28,7 +7,6 @@ void main() {
   gl_Position = vec4(aPos, 0.0, 1.0);
 }`
 
-// ─────────────────────── Mask post-processing shaders ───────────────────────
 
 export const FS_COPY_R = `#version 300 es
 precision mediump float;
@@ -78,7 +56,6 @@ void main() {
   fragColor = vec4(val, 0.0, 0.0, 1.0);
 }`
 
-// ─────────────────────── Background blur shaders ────────────────────────────
 
 export const FS_MASKED_DOWNSAMPLE = `#version 300 es
 precision mediump float;
@@ -139,7 +116,6 @@ void main() {
   fragColor = vec4(acc / max(wsum, 0.001), 1.0);
 }`
 
-// ─────────────────────── Standard composite shader ──────────────────────────
 
 export const FS_COMPOSITE = `#version 300 es
 precision mediump float;
@@ -173,16 +149,6 @@ void main() {
   fragColor = vec4(mix(bg, fg, t), 1.0);
 }`
 
-// ─────────────────────── Segmo virtual-background shaders ───────────────────
-
-// Segmo-style compositor for virtual backgrounds. Ported from
-// eyalfishler/segmo (src/shaders.ts COMPOSITE_SHADER, MIT).
-// Implements:
-//   - Edge-adaptive sharpening using camera RGB gradient
-//   - Closed-form alpha matting on a 13-tap cross pattern
-//   - Chroma-aware color-separation gate (disables matting when F≈B)
-//   - Foreground recovery: output = I + (B_new − B_old) * (1 − α)
-// Not used by the blur path.
 export const FS_COMPOSITE_SEGMO = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -275,9 +241,6 @@ void main() {
   fragColor = vec4(result, 1.0);
 }`
 
-// Edge-only feather. Ported from eyalfishler/segmo (EDGE_FEATHER_SHADER, MIT).
-// Detects edges (max neighbor mask diff), then blends a 5×5 gaussian-blurred
-// mask value over the original only where an edge is present.
 export const FS_SEGMO_EDGE_FEATHER = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -338,9 +301,6 @@ void main() {
   fragColor = vec4(result, 0.0, 0.0, 1.0);
 }`
 
-// Light wrap. Ported from eyalfishler/segmo (LIGHT_WRAP_SHADER, MIT).
-// Adds subtle background spill onto foreground edge pixels so the subject
-// looks lit by the virtual scene instead of pasted on top of it.
 export const FS_LIGHT_WRAP = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -361,10 +321,6 @@ void main() {
   fragColor = mix(comp, bg, edgeMask * uStrength);
 }`
 
-// Masked-foreground pre-pass for color cast. Writes rgb = video * weight,
-// a = weight, where weight = smoothstep(0.3, 0.7, mask). Generating mipmaps
-// on this target produces a top mip where rgb is the weighted sum and a is
-// the weight sum; their ratio is the foreground mean color.
 export const FS_MASKED_FG = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -377,12 +333,6 @@ void main() {
   fragColor = vec4(v * w, w);
 }`
 
-// Foreground color cast. Reads global means from top mips via textureLod
-// (the GPU clamps the LOD argument to the deepest available level — a 1×1
-// or near-1 texel that holds the average of the texture). Computes a
-// per-channel correction that shifts the foreground toward the background's
-// tint, clamped to a safe range to protect skin tones, and applied at the
-// requested strength.
 export const FS_FG_COLOR_CAST = `#version 300 es
 precision highp float;
 in vec2 vUv;

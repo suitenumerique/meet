@@ -1,20 +1,3 @@
-/**
- * Public API of the blur module.
- *
- * Exports the ProcessorType and SegmentationModel enums, all configuration
- * types (ProcessorConfig, PostProcessingConfig, UpsamplingConfig,
- * PreProcessingConfig), the BackgroundProcessorInterface, and the
- * BackgroundProcessorFactory that instantiates AdvancedMattingProcessor.
- *
- * Called by: EffectsConfiguration.tsx, VideoTab.tsx, Join.tsx, Conference.tsx,
- * VideoDeviceControl.tsx, FunnyEffects.tsx, usePersistentUserChoices.ts,
- * userChoices.ts.
- *
- * Pipeline role: Entry point for all external consumers. Callers obtain a
- * processor via BackgroundProcessorFactory.getProcessor(config) and attach it
- * to a LiveKit video track; the processor replaces the raw camera track with a
- * composited MediaStreamTrack captured from the output canvas.
- */
 import { Track, TrackProcessor } from 'livekit-client'
 import { AdvancedMattingProcessor } from './AdvancedMattingProcessor'
 import { FaceLandmarksOptions } from './FaceLandmarksProcessor'
@@ -49,22 +32,22 @@ export type PreProcessingConfig = {
 
 export type ProcessorConfig =
   | {
-      type: ProcessorType.BLUR
-      blurRadius: number
-      model?: SegmentationModel
-      preProcessing?: PreProcessingConfig
-      postProcessing?: PostProcessingConfig
-      upsampling?: UpsamplingConfig
-    }
+    type: ProcessorType.BLUR
+    blurRadius: number
+    model?: SegmentationModel
+    preProcessing?: PreProcessingConfig
+    postProcessing?: PostProcessingConfig
+    upsampling?: UpsamplingConfig
+  }
   | {
-      type: ProcessorType.VIRTUAL
-      imagePath: string
-      fileId?: string
-      model?: SegmentationModel
-      preProcessing?: PreProcessingConfig
-      postProcessing?: PostProcessingConfig
-      upsampling?: UpsamplingConfig
-    }
+    type: ProcessorType.VIRTUAL
+    imagePath: string
+    fileId?: string
+    model?: SegmentationModel
+    preProcessing?: PreProcessingConfig
+    postProcessing?: PostProcessingConfig
+    upsampling?: UpsamplingConfig
+  }
   | ({ type: ProcessorType.FACE_LANDMARKS } & FaceLandmarksOptions)
 
 export interface BackgroundProcessorInterface extends TrackProcessor<Track.Kind> {
@@ -81,7 +64,6 @@ export class BackgroundProcessorFactory {
   static isSupported() {
     if (typeof HTMLCanvasElement === 'undefined') return false
     if (!('captureStream' in HTMLCanvasElement.prototype)) return false
-    // Optional: probe WebGL2 to log a perf warning, but Canvas2D fallback exists
     return true
   }
 

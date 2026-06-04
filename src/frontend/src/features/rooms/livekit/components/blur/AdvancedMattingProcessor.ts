@@ -1,16 +1,3 @@
-/**
- * Main orchestrator of the background matting pipeline.
- *
- * Called by: BackgroundProcessorFactory.getProcessor() in index.ts.
- *
- * Pipeline role: Implements the LiveKit TrackProcessor interface and wires
- * together all sub-modules into the two-loop engine:
- *   - SegmenterLoopRunner: async inference loop paced by rVFC
- *   - RenderLoopRunner: rAF render loop that composites the latest mask
- * Runs the startup benchmark (SegmenterBenchmarker) to pick the best model
- * and frame-skip for the current device, and falls back from WebGL2 to
- * Canvas2D if the GPU is unavailable.
- */
 import { ProcessorOptions, Track } from 'livekit-client'
 import {
   BackgroundProcessorInterface,
@@ -34,7 +21,7 @@ import {
   dismissMattingError,
 } from './errors/MattingErrorStore'
 
-import { MattingCanvasManager } from './preprocessing/MattingCanvasManager'
+import { MattingCanvasManager, createCanvas } from './preprocessing/MattingCanvasManager'
 import { SegmenterBenchmarker } from './segmenters/SegmenterBenchmarker'
 import { VideoFrameTracker } from './preprocessing/VideoFrameTracker'
 import { SegmenterLoopRunner, FrameMaskPair } from './segmenters/SegmenterLoopRunner'
@@ -43,10 +30,6 @@ import { RenderLoopRunner } from './renderers/RenderLoopRunner'
 const BLUR_CANVAS_ID = 'background-blur-local'
 const DEFAULT_BLUR = 10
 
-/**
- * Unified background processor using WebGL2 for compositing.
- * Orchestrates high-performance background blur and virtual backgrounds.
- */
 export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
   options: ProcessorConfig
   name: string
@@ -60,7 +43,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
 
   outputCanvas?: HTMLCanvasElement
 
-  // Refactored helpers & architectural sub-modules
   private readonly _canvasManager = new MattingCanvasManager()
   private readonly _frameTracker = new VideoFrameTracker()
   private _segmenterRunner!: SegmenterLoopRunner
@@ -69,7 +51,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
   segmenter?: Segmenter
   gpuRenderer?: GpuRenderer
 
-  // Shared two-loop states
   private _latestPair: FrameMaskPair | null = null
   private _segmenterFrameSkip = 2
 
@@ -117,7 +98,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     prev?.source.close()
   }
 
-  /** Resolves once the active segmenter is loaded and producing frames. */
   waitForReady(): Promise<void> {
     if (this.segmenter || this._destroyed) return Promise.resolve()
     return new Promise((resolve) => this._readyResolvers.push(resolve))
@@ -139,8 +119,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     const video = this.videoElement
 
     try {
-      if (this._destroyed) return
-
       if (video.videoWidth === 0 || video.readyState < 2) {
         await new Promise<void>((resolve) => {
           const handleLoaded = () => {
@@ -175,8 +153,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
       this._createMainCanvasWithSize(realW, realH)
       this._canvasManager.ensureMaskCanvas(this.processingWidth, this.processingHeight)
 
-      if (this._destroyed) return
-
       const { post, up } = this._getEffectsConfig()
       const rendererOpts: GpuRendererInitOpts = {
         outW: realW,
@@ -206,11 +182,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
         throw new Error('No tracks found in captureStream()')
       }
       this.processedTrack = tracks[0]
-
-      if (this._destroyed) {
-        this._stopTrackCleanup()
-        return
-      }
 
       this._startLoops()
 
@@ -447,10 +418,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
 
       const old = this.segmenter
       this.segmenter = result.seg
-      if (this._destroyed) {
-        result.seg.destroy()
-        return
-      }
       this.currentModel = result.targetModel
       this.processingWidth = result.seg.inputSize.width
       this.processingHeight = result.seg.inputSize.height
@@ -512,7 +479,6 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     this.virtualBackgroundImage = img
   }
 
-  // ─── Two-loop engine ────────────────────────────────────────────────────────
 
   private _startLoops(): void {
     if (this._destroyed) return
@@ -542,7 +508,7 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
       canvas.setAttribute('width', '' + w)
       canvas.setAttribute('height', '' + h)
     } else {
-      canvas = this._canvasManager.createCanvas(BLUR_CANVAS_ID, w, h)
+      canvas = createCanvas(BLUR_CANVAS_ID, w, h)
     }
     this.outputCanvas = canvas
   }

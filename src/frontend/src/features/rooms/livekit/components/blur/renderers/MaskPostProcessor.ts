@@ -1,23 +1,5 @@
-/**
- * GPU mask post-processing chain (morphological opening/closing + temporal EMA).
- *
- * Called by: WebGl2Renderer.render() on every frame, using programs and
- * textures owned by WebGl2Renderer.
- *
- * Pipeline role: Refines the raw low-resolution segmenter mask before it is
- * upsampled and composited. Runs entirely at processing resolution (procW×procH)
- * using ping-pong framebuffers. The chain order is:
- *   Opening  (erosion → dilation)  — removes stray foreground specks at edges
- *   Closing  (dilation → erosion)  — fills small holes inside the mask
- *   EMA      (temporal blend)      — smooths flicker between frames
- * Returns the WebGLTexture containing the refined mask.
- */
 import { PostProcessingConfig } from '..'
 
-/**
- * Uniform locations for the mask post-processing shaders.
- * Resolved once by WebGl2Renderer._buildPrograms() and passed in at construction.
- */
 export interface MaskPostProcessorUniforms {
   ema: {
     uTex: WebGLUniformLocation | null
@@ -32,10 +14,6 @@ export interface MaskPostProcessorUniforms {
   }
 }
 
-/**
- * GPU resources needed by the mask post-processing chain.
- * Owned by WebGl2Renderer — this class borrows them (no lifecycle management).
- */
 export interface MaskPostProcessorTextures {
   rawMaskTex: WebGLTexture
   maskA: WebGLTexture
@@ -45,15 +23,6 @@ export interface MaskPostProcessorTextures {
   fboMaskB: WebGLFramebuffer
   fboEma: WebGLFramebuffer
 }
-
-/**
- * Runs the low-resolution mask post-processing chain on the GPU.
- *
- * Pipeline: Morphology (Opening / Closing) → Temporal EMA.
- *
- * Extracted verbatim from WebGl2Renderer._runPostProcessing() and
- * _applyMorphology(). No value, threshold, or GL call order has been changed.
- */
 export class MaskPostProcessor {
   private hasEmaState = false
 
@@ -119,7 +88,6 @@ export class MaskPostProcessor {
       advance()
     }
 
-    // Closing (Dilation then Erosion — fills small holes inside the mask)
     if (postCfg.closing && postCfg.closing.radius > 0) {
       const r = postCfg.closing.radius
       this._applyMorphology(dstFbo, src, r, procW, procH) // Dilation
@@ -128,10 +96,8 @@ export class MaskPostProcessor {
       advance()
     }
 
-    // EMA
     if (postCfg.ema) {
       const alpha = postCfg.ema.alpha
-      // out = alpha * src + (1 - alpha) * prev
       gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo)
       gl.useProgram(this.programs.ema)
       gl.activeTexture(gl.TEXTURE0)
@@ -143,7 +109,6 @@ export class MaskPostProcessor {
       gl.uniform1f(this.uLoc.ema.uAlpha, this.hasEmaState ? alpha : 1)
       this.drawQuad()
       advance()
-      // Copy current result into emaTex for next frame
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.tex.fboEma)
       gl.useProgram(this.programs.copyR)
       gl.activeTexture(gl.TEXTURE0)

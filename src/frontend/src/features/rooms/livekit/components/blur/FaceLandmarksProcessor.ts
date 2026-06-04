@@ -1,17 +1,3 @@
-/**
- * Fun face-effects track processor (glasses, mustache, beret overlays).
- *
- * Called by: FunnyEffects.tsx — instantiated directly when the user selects
- * ProcessorType.FACE_LANDMARKS.
- *
- * Pipeline role: Independent of the background-matting pipeline. Uses
- * MediaPipe FaceLandmarker to detect 478 facial landmarks per frame, then
- * draws overlay images on a Canvas2D output canvas at ~30 fps via a
- * Web Worker timer. The output canvas is captured as a MediaStreamTrack
- * and replaces the raw camera track in LiveKit. Does not share any
- * infrastructure with AdvancedMattingProcessor.
- */
-
 import { ProcessorOptions, Track, TrackProcessor } from 'livekit-client'
 import posthog from 'posthog-js'
 import {
@@ -26,6 +12,7 @@ import {
   timerWorkerScript,
 } from './TimerWorker'
 import { ProcessorType } from '.'
+import { createCanvas } from './preprocessing/MattingCanvasManager'
 
 const PROCESSING_WIDTH = 256 * 3
 const PROCESSING_HEIGHT = 144 * 3
@@ -47,21 +34,18 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
   videoElement?: HTMLVideoElement
   videoElementLoaded?: boolean
 
-  // Canvas containing the video processing result
   outputCanvas?: HTMLCanvasElement
   outputCanvasCtx?: CanvasRenderingContext2D
 
   faceLandmarker?: FaceLandmarker
   faceLandmarkerResult?: FaceLandmarkerResult
 
-  // The resized image of the video source
   sourceImageData?: ImageData
 
   timerWorker?: Worker
 
   type: ProcessorType
 
-  // Effect images
   glassesImage?: HTMLImageElement
   mustacheImage?: HTMLImageElement
   beretImage?: HTMLImageElement
@@ -87,7 +71,7 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
   }
 
   static get isSupported() {
-    return true // Face landmarks should work in all modern browsers
+    return true 
   }
 
   async init(opts: ProcessorOptions<Track.Kind>) {
@@ -194,35 +178,29 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
     heightScale: number,
     yOffset: number = 0
   ) {
-    // Calculate distance between points
     const distance = Math.sqrt(
       Math.pow(rightPoint.x - leftPoint.x, 2) +
-        Math.pow(rightPoint.y - leftPoint.y, 2)
+      Math.pow(rightPoint.y - leftPoint.y, 2)
     )
 
-    // Scale image based on distance
     const width = distance * PROCESSING_WIDTH * widthScale
     const height = width * heightScale
 
-    // Calculate center position between points
     const centerX = (leftPoint.x + rightPoint.x) / 2
     const centerY = (leftPoint.y + rightPoint.y) / 2 + yOffset
 
-    // Draw image
     this.outputCanvasCtx!.save()
     this.outputCanvasCtx!.translate(
       centerX * PROCESSING_WIDTH,
       centerY * PROCESSING_HEIGHT
     )
 
-    // Calculate rotation angle based on point positions
     const angle = Math.atan2(
       rightPoint.y - leftPoint.y,
       rightPoint.x - leftPoint.x
     )
     this.outputCanvasCtx!.rotate(angle)
 
-    // Draw image centered at the midpoint between points
     this.outputCanvasCtx!.drawImage(
       image,
       -width / 2,
@@ -235,7 +213,6 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
   }
 
   async drawFaceLandmarks() {
-    // Draw the original video frame at the canvas size
     this.outputCanvasCtx!.drawImage(
       this.videoElement!,
       0,
@@ -252,20 +229,16 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
       return
     }
 
-    // Draw face landmarks (optional, for debugging)
     this.outputCanvasCtx!.strokeStyle = '#00FF00'
     this.outputCanvasCtx!.lineWidth = 2
 
     for (const face of this.faceLandmarkerResult.faceLandmarks) {
-      // Find eye landmarks
       const leftEye = face[468]
       const rightEye = face[473]
 
-      // Find mouth landmarks for mustache
       const leftMoustache = face[92]
       const rightMoustache = face[322]
 
-      // Find forehead landmarks for beret
       const leftForehead = face[103]
       const rightForehead = face[332]
 
@@ -312,21 +285,13 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
       `#${FACE_LANDMARKS_CANVAS_ID}`
     ) as HTMLCanvasElement
     if (!this.outputCanvas) {
-      this.outputCanvas = this._createCanvas(
+      this.outputCanvas = createCanvas(
         FACE_LANDMARKS_CANVAS_ID,
         PROCESSING_WIDTH,
         PROCESSING_HEIGHT
       )
     }
     this.outputCanvasCtx = this.outputCanvas.getContext('2d')!
-  }
-
-  _createCanvas(id: string, width: number, height: number) {
-    const element = document.createElement('canvas')
-    element.setAttribute('id', id)
-    element.setAttribute('width', '' + width)
-    element.setAttribute('height', '' + height)
-    return element
   }
 
   update(opts: FaceLandmarksOptions): void {

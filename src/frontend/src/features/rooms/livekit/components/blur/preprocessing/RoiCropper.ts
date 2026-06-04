@@ -1,17 +1,4 @@
-/**
- * Region-of-Interest (ROI) cropper with dead-zone stabilization.
- *
- * Called by: PreProcessingPipeline (wraps RoiCropper in its thin facade).
- *
- * Pipeline role: Optional pre-inference step that narrows the segmenter input
- * to a stabilized bounding box around the person. Per-frame call order:
- *   1. getNextCropBbox()  — returns the bbox used to crop the video snapshot
- *   2. model.segment()   — runs on the cropped ImageData
- *   3. remapMask()        — maps the crop-space mask back to full-frame space
- *   4. updateWithMask()   — updates the stable bbox for the next frame
- * Motion outside the current bbox triggers a full-frame reset so sudden
- * scene changes don't trap the crop on the wrong region.
- */
+
 const DEAD_ZONE_POSITION = 0.03
 const DEAD_ZONE_SIZE = 0.015
 const BBOX_PADDING = 0.08
@@ -34,8 +21,7 @@ function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v))
 }
 
-/** Scan the mask and return the tightest bbox around pixels above threshold,
- *  expanded by BBOX_PADDING, clamped to [0, 1]. Returns null if no pixel qualifies. */
+
 export function computePersonBbox(
   mask: Float32Array,
   maskW: number,
@@ -72,7 +58,6 @@ export function computePersonBbox(
   }
 }
 
-/** Stabilise a raw bbox against the current stable bbox using a dead zone + EMA. */
 export function stabilizeBbox(current: BBox, next: BBox): BBox {
   const cxCurr = current.x + current.width / 2
   const cyCurr = current.y + current.height / 2
@@ -96,7 +81,6 @@ export function stabilizeBbox(current: BBox, next: BBox): BBox {
   }
 }
 
-/** Bilinear resize of a Float32 single-channel image into a pre-allocated destination. */
 function resizeFloat32Into(
   src: Float32Array,
   srcW: number,
@@ -133,15 +117,7 @@ function resizeFloat32Into(
   }
 }
 
-/**
- * ROI Cropper — maintains a stabilised bounding box of the person across frames.
- *
- * Per-frame call order in AdvancedMattingProcessor:
- *   1. bbox = roiCropper.getNextCropBbox()         (used by sizeSource to crop the video)
- *   2. model.segment(croppedFrame)                 → maskInCropSpace
- *   3. fullMask = roiCropper.remapMask(maskInCropSpace, maskW, maskH, bbox)
- *   4. roiCropper.updateWithMask(fullMask, maskW, maskH)
- */
+
 export class RoiCropper {
   private currentBbox: BBox = { ...FULL_FRAME }
   private frameCounter = 0
@@ -152,7 +128,6 @@ export class RoiCropper {
   private _resizeBuf: Float32Array | null = null
   private _fullBuf: Float32Array | null = null
 
-  /** Returns the stabilised bbox to use when extracting the model input for this frame. */
   getNextCropBbox(
     currentRgba?: Uint8ClampedArray,
     rgbaW?: number,
@@ -227,11 +202,7 @@ export class RoiCropper {
     }
   }
 
-  /**
-   * Remap a mask that lives in crop-bbox space back to the full-frame mask space.
-   * Creates a zero-filled fullW×fullH array and pastes the resized crop mask at
-   * the correct position.
-   */
+
   remapMask(
     cropMask: Float32Array,
     cropMaskW: number,
@@ -280,7 +251,6 @@ export class RoiCropper {
     return full
   }
 
-  /** Update internal state from the full-frame mask produced this frame. */
   updateWithMask(fullMask: Float32Array, maskW: number, maskH: number): void {
     const raw = computePersonBbox(fullMask, maskW, maskH)
     if (!raw) {
