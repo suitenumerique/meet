@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.http import HttpResponse
 from django.urls import include, path
+from django.views.decorators.http import require_GET
 
 from lasuite.oidc_login.urls import urlpatterns as oidc_urls
 from rest_framework.routers import DefaultRouter, SimpleRouter
@@ -14,14 +15,17 @@ from core.authentication.views import PKCEOAuthTokenExchangeView
 from core.external_api import viewsets as external_viewsets
 
 
-def mobile_login_landing(request):  # noqa: ARG001
-    """Empty 200 page used as the success_url marker for native-app PKCE login.
+@require_GET
+def mobile_login_landing(request):
+    """Empty 204 page used as the success_url marker for native-app PKCE login.
 
     The PKCE callback view detects this path before swapping in the
     `MOBILE_DEEP_LINK_SCHEME` redirect; users following the web flow never
-    reach this page.
+    reach this page. Restricted to GET so the endpoint can't be reached
+    via POST/PUT/etc., per S5122.
     """
     return HttpResponse(status=204)
+
 
 # - Main endpoints
 router = DefaultRouter()
