@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { MenuTrigger } from 'react-aria-components'
-import { StyledPopover } from './Popover'
+import { StyledPopover } from './StyledPopover'
 import { Box } from './Box'
 
 /**

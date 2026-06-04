@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
@@ -32,9 +32,8 @@ export function FloatingReaction({
   const [deltaY, setDeltaY] = useState(0)
   const [opacity, setOpacity] = useState(1)
 
-  const left = useMemo(
-    () => Math.random() * window.innerWidth * REACTION_SPAWN_WIDTH_RATIO,
-    []
+  const [left] = useState(
+    () => Math.random() * window.innerWidth * REACTION_SPAWN_WIDTH_RATIO
   )
 
   useEffect(() => {
@@ -115,8 +114,8 @@ export function FloatingReaction({
 }
 
 const ReactionPortal = ({ reaction }: { reaction: Reaction }) => {
-  const speed = useMemo(() => Math.random() * 1.5 + 0.5, [])
-  const scale = useMemo(() => Math.max(Math.random() + 0.5, 1), [])
+  const [speed] = useState(() => Math.random() * 1.5 + 0.5)
+  const [scale] = useState(() => Math.max(Math.random() + 0.5, 1))
   return createPortal(
     <div
       className={css({

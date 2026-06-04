@@ -1,4 +1,4 @@
-import { StyledToastContainer } from './Toast'
+import { StyledToastContainer } from './StyledToastContainer'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
 import { Button, Text } from '@/primitives'

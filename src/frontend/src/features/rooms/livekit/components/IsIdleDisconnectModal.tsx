@@ -50,7 +50,6 @@ const VisualCountDown = () => {
   useSrCountdownAnnouncement(remainingSeconds)
 
   useEffect(() => {
-    setTimeRemaining(IDLE_DISCONNECT_TIMEOUT_MS)
     const interval = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1000) {

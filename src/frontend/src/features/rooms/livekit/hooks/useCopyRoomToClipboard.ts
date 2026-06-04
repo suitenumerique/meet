@@ -31,13 +31,14 @@ export const useCopyRoomToClipboard = (room: ApiRoom | undefined) => {
     }
   }, [isRoomUrlCopied])
 
+  const roomSlug = room?.slug
   const roomUrl = useMemo(() => {
-    return room?.slug ? getRouteUrl('room', room.slug) : ''
-  }, [room?.slug])
+    return roomSlug ? getRouteUrl('room', roomSlug) : ''
+  }, [roomSlug])
 
   const hasTelephonyInfo = useMemo(() => {
     return telephony.enabled && room?.pin_code
-  }, [telephony.enabled, room?.pin_code])
+  }, [telephony.enabled, room])
 
   const content = useMemo(() => {
     if (!roomUrl || !room) return ''

@@ -1,7 +1,8 @@
 import { useToast } from '@react-aria/toast'
 import { useMemo, useRef } from 'react'
 
-import { StyledToastContainer, type ToastProps } from './Toast'
+import type { ToastProps } from './Toast'
+import { StyledToastContainer } from './StyledToastContainer'
 import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 import { NotificationType } from '../NotificationType'

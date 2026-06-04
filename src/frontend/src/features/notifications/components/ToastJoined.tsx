@@ -6,10 +6,11 @@ import Source = Track.Source
 
 import { useMaybeLayoutContext } from '@livekit/components-react'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
-import { StyledToastContainer, type ToastProps } from './Toast'
+import { type ToastProps } from './Toast'
 import { HStack, styled } from '@/styled-system/jsx'
 import { Div } from '@/primitives'
 import { useTranslation } from 'react-i18next'
+import { StyledToastContainer } from './StyledToastContainer'
 
 const ClickableToast = styled(RACButton, {
   base: {
