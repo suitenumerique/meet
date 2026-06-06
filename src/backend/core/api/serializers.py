@@ -236,8 +236,8 @@ class EncodingConfig(BaseModel):
         use the default profile.
     """
 
-    resolution: Literal["1080p", "720p", "540p"] | None = None
-    profile: Literal["balanced", "slide_heavy", "low_cpu"] | None = None
+    resolution: Literal["540p", "720p", "1080p"] | None = None
+    profile: Literal["talking_heads", "text", "mixed"] | None = None
     model_config = {"extra": "forbid"}
 
 

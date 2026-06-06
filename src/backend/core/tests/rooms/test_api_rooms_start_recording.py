@@ -485,7 +485,7 @@ def test_start_recording_options_encoding_valid(
         f"/api/v1.0/rooms/{room.id}/start-recording/",
         {
             "mode": "screen_recording",
-            "options": {"encoding": {"resolution": "720p", "profile": "low_cpu"}},
+            "options": {"encoding": {"resolution": "720p", "profile": "talking_heads"}},
         },
         format="json",
     )
