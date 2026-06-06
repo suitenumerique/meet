@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ♻️(addon) improve Outlook add-on: i18n support, feedback link, smarter link
+- ⬆️(frontend) upgrade react-i18next from 15.1.1 to 17.0.8
 
 ### Fixed
 
