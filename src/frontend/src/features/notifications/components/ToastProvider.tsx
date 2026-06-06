@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { ToastQueue, useToastQueue } from '@react-stately/toast'
+import { ToastQueue, useToastQueue } from 'react-stately'
 import { ToastRegion } from './ToastRegion'
 import { Participant } from 'livekit-client'
 import type { NotificationType } from '../NotificationType'

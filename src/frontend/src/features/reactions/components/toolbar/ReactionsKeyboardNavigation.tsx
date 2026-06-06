@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useFocusManager } from '@react-aria/focus'
+import { useFocusManager } from 'react-aria'
 import { getFirstControlBarFocusable } from '@/utils/dom'
 import { REACTIONS_TOOLBAR_ID } from '../../constants'
 import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'

@@ -1,4 +1,4 @@
-import { useToast } from '@react-aria/toast'
+import { useToast } from 'react-aria'
 import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'

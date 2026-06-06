@@ -12,7 +12,7 @@ import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { Button } from '@/primitives'
 import { ReactionsKeyboardNavigation } from './ReactionsKeyboardNavigation'
-import { FocusScope } from '@react-aria/focus'
+import { FocusScope } from 'react-aria'
 
 import { CONTROL_BAR_REGION_ID } from '@/features/layout/components/ControlBarRegion'
 import { REACTIONS_TOGGLE_ID } from '../ReactionsToggle'

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { RiMoreFill } from '@remixicon/react'
-import { FocusScope } from '@react-aria/focus'
+import { FocusScope } from 'react-aria'
 import { Box, Button } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
