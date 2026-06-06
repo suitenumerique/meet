@@ -1,10 +1,10 @@
-import { useToast } from '@react-aria/toast'
+import { useToast } from 'react-aria'
 import { Button } from '@/primitives'
 import { RiCloseLine } from '@remixicon/react'
 import { useRef } from 'react'
-import type { ToastState } from '@react-stately/toast'
+import type { ToastState } from 'react-stately'
 import type { ToastData } from './ToastProvider'
-import type { QueuedToast } from '@react-stately/toast'
+import type { QueuedToast } from 'react-stately'
 import { StyledToastContainer } from './StyledToastContainer'
 import { StyledToast } from './StyledToast'
 

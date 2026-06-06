@@ -1,5 +1,5 @@
-import { AriaToastRegionProps, useToastRegion } from '@react-aria/toast'
-import type { QueuedToast, ToastState } from '@react-stately/toast'
+import { AriaToastRegionProps, useToastRegion } from 'react-aria'
+import type { QueuedToast, ToastState } from 'react-stately'
 import { Toast } from './Toast'
 import { useRef } from 'react'
 import { NotificationType } from '../NotificationType'
