@@ -21,7 +21,7 @@ function _formatPhone(phone) {
 }
 
 // todo - escape html / link
-function buildMeetingMessage(data) {
+function buildMeetingMessage(data, isWeb) {
   if (!data?.url) {
     throw new Error("buildMeetingMessage: missing url in data");
   }
@@ -30,23 +30,45 @@ function buildMeetingMessage(data) {
   const phone = _formatPhone(data.telephony?.phone_number);
   const pin = _formatPin(data.telephony?.pin_code);
 
-  const telephonyBlock =
-    phone && pin
-      ? `
+  let textLines = "";
+  let phoneLines = [];
 
-Ou appelez (audio uniquement)
-(FR) ${phone}
-Code : ${pin}`
-      : "";
+    phoneLines = phone &&
+      pin && [
+        "<br><br>Ou appelez (audio uniquement)",
+        `<br>(FR) ${phone}`,
+        `<br>Code ${pin}`
+      ];
 
-  const message = `<pre style="font-family:inherit; font-size:inherit; border:none; background:none; margin:16px 0;">
-────────────────────────────────────────
-Rejoindre la réunion ${APP_NAME}
+    textLines = [
+      "<br><br>────────────────────────────────────────",
+      `<br>Rejoindre la réunion ${APP_NAME}`,
+      `<br><br><a href="${url}" target="_blank">${url}</a>`,
+      ...phoneLines,
+      "<br>────────────────────────────────────────<br>",
+    ];
 
-<a href="${url}">${url}</a>${telephonyBlock}
-────────────────────────────────────────</pre>`;
+  } else {
 
-  return { url, message };
+    phoneLines = phone &&
+      pin && [
+        "\n\nOu appelez (audio uniquement)",
+        `\n(FR) ${phone}`,
+        `\nCode ${pin}`
+      ];
+
+    textLines = [
+      "\n\n────────────────────────────────────────",
+      `\nRejoindre la réunion ${APP_NAME}`,
+      `\n\n${url}`,
+      ...phoneLines,
+      "\n────────────────────────────────────────\n",
+    ];
+  }
+
+  const text = textLines.join("");
+
+  return { url, text };
 }
 
 module.exports = { buildMeetingMessage };

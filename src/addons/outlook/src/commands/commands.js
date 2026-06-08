@@ -24,19 +24,21 @@ function notify(message) {
 function insertMeetingLink(event, session) {
   createRoom(session)
     .then((data) => {
-      const { url, message } = buildMeetingMessage(data);
+      const isWeb = Office.context.diagnostics.platform === "OfficeOnline";
+      const { url, text } = buildMeetingMessage(data, isWeb);
       const item = Office.context.mailbox.item;
+      const coercionType = isWeb ? Office.CoercionType.Html : Office.CoercionType.Text;
 
       return new Promise((resolve, reject) => {
-        item.body.getAsync(Office.CoercionType.Html, (getResult) => {
+        item.body.getAsync(coercionType, (getResult) => {
           if (getResult.status !== Office.AsyncResultStatus.Succeeded) {
             notify(`Erreur de lecture : ${getResult.error.message}`);
             resolve();
             return;
           }
-
-          const newBody = getResult.value + message;
-          item.body.setAsync(newBody, { coercionType: Office.CoercionType.Html }, (setResult) => {
+          item.body.setAsync(
+            getResult.value + text,
+            { coercionType: coercionType }, (setResult) => {
             if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
               notify(`Erreur d'insertion : ${setResult.error.message}`);
               resolve();
