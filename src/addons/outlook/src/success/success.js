@@ -11,10 +11,18 @@ if (!transitToken) {
   window.close();
 } else {
   exchangeSession(transitToken)
+    .then(() => {
+      document.querySelector(".spinner-container").style.display = "none";
+      document.querySelector("#close-msg").style.display = "block";
+    })
     .catch((e) => {
       console.error(`Error occured: ${e}`);
     })
     .finally(() => {
+      // NOTE: doesn't work with the desktop client — the browser considers
+      // this window wasn't opened by this script (it was opened externally),
+      // so it blocks window.close() for security reasons. The "#close-msg"
+      // shown above is the fallback for that case.g
       window.close();
     });
 }
