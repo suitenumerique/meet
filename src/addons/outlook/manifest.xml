@@ -87,9 +87,9 @@
                     <Description resid="GenerateLink.Tooltip"/>
                   </Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="Add.16x16"/>
-                    <bt:Image size="32" resid="Add.32x32"/>
-                    <bt:Image size="80" resid="Add.80x80"/>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
                   </Icon>
                   <Action xsi:type="ExecuteFunction">
                     <FunctionName>generateMeetingLinkFromMail</FunctionName>
@@ -126,9 +126,9 @@
                     <Description resid="GenerateLink.Tooltip"/>
                   </Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="Add.16x16"/>
-                    <bt:Image size="32" resid="Add.32x32"/>
-                    <bt:Image size="80" resid="Add.80x80"/>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
                   </Icon>
                   <Action xsi:type="ExecuteFunction">
                     <FunctionName>generateMeetingLinkFromCalendar</FunctionName>
