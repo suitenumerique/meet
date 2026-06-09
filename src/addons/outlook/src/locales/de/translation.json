@@ -1,0 +1,34 @@
+{
+  "app": {
+    "sideload": "Laden Sie das Add-In.",
+    "loading": "Wird geladen..."
+  },
+  "unauth": {
+    "intro": "Fügen Sie Ihren Outlook-Terminen ganz einfach einen {{app_name}}-Besprechungslink hinzu.",
+    "proconnect_btn": "Aanmelden met ProConnect",
+    "proconnect_link": "Wat is ProConnect?",
+    "proconnect_link_title": "Wat is ProConnect? - nieuw venster"
+  },
+  "success": {
+    "close_window": "Falls sich dieses Fenster nicht automatisch schließt, schließen Sie es bitte manuell."
+  },
+  "auth": {
+    "disconnect": "Abmelden"
+  },
+  "meeting": {
+    "link_inserted": "Besprechungslink erfolgreich eingefügt",
+    "generating": "Wird erstellt...",
+    "add_meeting": "{{app_name}}-Besprechung hinzufügen",
+    "error": {
+      "auth": "Ihre Sitzung ist abgelaufen. Bitte versuchen Sie es erneut.",
+      "retry": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+      "details": "Fehler: {{message}}"
+    }
+  },
+  "meeting_message": {
+    "join": "An der {{app_name}}-Besprechung teilnehmen",
+    "phone_only": "Oder per Telefon teilnehmen (nur Audio)",
+    "phone_fr": "(FR) {{phone}}",
+    "pin_code": "Code {{pin}}"
+  }
+}

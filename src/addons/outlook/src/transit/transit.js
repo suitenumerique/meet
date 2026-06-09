@@ -2,6 +2,7 @@ const { applyAppName } = require("../common/helpers");
 const { URLS } = require("../common/urls");
 const { save } = require("../common/transitToken");
 const { DIALOG_SIGNALS } = require("../common/transitDialog");
+const { initI18n, translateUI } = require("../common/i18n");
 
 // Initiate the authentication flow, then return to the success page
 function getAuthenticateUrl() {
@@ -10,7 +11,11 @@ function getAuthenticateUrl() {
   return url.toString();
 }
 
-Office.onReady(function (info) {
+Office.onReady(async function (info) {
+
+  await initI18n();
+  translateUI();
+
   if (info.host === Office.HostType.Outlook) {
     applyAppName();
   }

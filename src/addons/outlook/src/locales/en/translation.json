@@ -1,0 +1,34 @@
+{
+  "app": {
+    "sideload": "Please load the add-in.",
+    "loading": "Loading..."
+  },
+  "unauth": {
+    "intro": "Easily add a {{app_name}} meeting link to your Outlook events.",
+    "proconnect_btn": "Sign in with ProConnect",
+    "proconnect_link": "What is ProConnect?",
+    "proconnect_link_title": "What is ProConnect? - new window"
+  },
+  "success": {
+    "close_window": "If this window does not close automatically, please close it manually."
+  },
+  "auth": {
+    "disconnect": "Sign out"
+  },
+  "meeting": {
+    "link_inserted": "Meeting link inserted successfully",
+    "generating": "Generating...",
+    "add_meeting": "Add a {{app_name}} meeting",
+    "error": {
+      "auth": "Your session has expired. Please try again.",
+      "retry": "An error occurred. Please try again.",
+      "details": "Error: {{message}}"
+    }
+  },
+  "meeting_message": {
+    "join": "Join the {{app_name}} meeting",
+    "phone_only": "Or call in (audio only)",
+    "phone_fr": "(FR) {{phone}}",
+    "pin_code": "Code {{pin}}"
+  }
+}

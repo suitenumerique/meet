@@ -1,4 +1,5 @@
 const { APP_NAME } = require("./index");
+const { t } = require("./i18n");
 
 function _formatPin(pin) {
   if (!pin) return "";
@@ -33,16 +34,17 @@ function buildMeetingMessage(data, isWeb) {
   let textLines = "";
   let phoneLines = [];
 
-    phoneLines = phone &&
-      pin && [
-        "<br><br>Ou appelez (audio uniquement)",
-        `<br>(FR) ${phone}`,
-        `<br>Code ${pin}`
-      ];
+  const join = t("meeting_message.join", { app_name: APP_NAME });
+  const phoneOnly = t("meeting_message.phone_only");
+  const phoneFr = t("meeting_message.phone_fr", { phone });
+  const pinCode = t("meeting_message.pin_code", { pin });
+
+  if (isWeb) {
+    phoneLines = phone && pin ? [`<br><br>${phoneOnly}`, `<br>${phoneFr}`, `<br>${pinCode}`] : [];
 
     textLines = [
       "<br><br>────────────────────────────────────────",
-      `<br>Rejoindre la réunion ${APP_NAME}`,
+      `<br>${join}`,
       `<br><br><a href="${url}" target="_blank">${url}</a>`,
       ...phoneLines,
       "<br>────────────────────────────────────────<br>",
@@ -50,16 +52,11 @@ function buildMeetingMessage(data, isWeb) {
 
   } else {
 
-    phoneLines = phone &&
-      pin && [
-        "\n\nOu appelez (audio uniquement)",
-        `\n(FR) ${phone}`,
-        `\nCode ${pin}`
-      ];
+    phoneLines = phone && pin ? [`\n\n${phoneOnly}`, `\n${phoneFr}`, `\n${pinCode}`] : [];
 
     textLines = [
       "\n\n────────────────────────────────────────",
-      `\nRejoindre la réunion ${APP_NAME}`,
+      `\n${join}`,
       `\n\n${url}`,
       ...phoneLines,
       "\n────────────────────────────────────────\n",

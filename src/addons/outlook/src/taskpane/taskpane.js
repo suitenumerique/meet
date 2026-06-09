@@ -7,6 +7,8 @@ const { openTransitDialog } = require("../common/transitDialog");
 const { loadSession, saveSession, clearSession } = require("../common/session");
 
 const { buildMeetingMessage } = require("../common/messageBuilder");
+const { initI18n, t, translateUI } = require("../common/i18n");
+
 
 // todo - support loading view while polling
 // todo - support error view
@@ -50,13 +52,15 @@ function disconnect() {
 function _setButtonLoading() {
   const btn = document.getElementById("btn-generate");
   btn.disabled = true;
-  btn.textContent = "Génération...";
+  btn.textContent = t("meeting.generating");
 }
 
 function _setButtonIdle() {
   const btn = document.getElementById("btn-generate");
   btn.disabled = false;
-  btn.textContent = `Ajouter une réunion ${APP_NAME}`;
+  btn.textContent = t("meeting.add_meeting", {
+    app_name: APP_NAME,
+  });
 }
 
 function generateMeetingLink() {
@@ -99,7 +103,11 @@ function generateMeetingLink() {
     });
 }
 
-Office.onReady((info) => {
+Office.onReady(async (info) => {
+
+  await initI18n();
+  translateUI();
+
   if (info.host === Office.HostType.Outlook) {
     applyAppName();
     document.getElementById("sideload-msg").style.display = "none";
