@@ -1,0 +1,34 @@
+{
+  "app": {
+    "sideload": "Veuillez charger le complément.",
+    "loading": "Chargement..."
+  },
+  "unauth": {
+    "intro": "Ajoutez facilement un lien de réunion {{app_name}} à vos événements Outlook.",
+    "proconnect_btn": "S'identifier avec ProConnect",
+    "proconnect_link": "Qu'est-ce que ProConnect ?",
+    "proconnect_link_title": "Qu'est-ce que ProConnect ? - nouvelle fenêtre"
+  },
+  "success": {
+    "close_window": "Si cette fenêtre ne se ferme pas toute seule, veuillez la fermer manuellement."
+  },
+  "auth": {
+    "disconnect": "Se déconnecter"
+  },
+  "meeting": {
+    "link_inserted": "Lien de réunion inséré avec succès",
+    "generating": "Génération...",
+    "add_meeting": "Ajouter une réunion {{app_name}}",
+    "error": {
+      "auth": "Connexion expirée, veuillez réessayer.",
+      "retry": "Une erreur est survenue, veuillez ré-essayer",
+      "details": "Erreur : {{message}}"
+    }
+  },
+  "meeting_message": {
+    "join": "Rejoindre la réunion {{app_name}}",
+    "phone_only": "Ou appelez (audio uniquement)",
+    "phone_fr": "(FR) {{phone}}",
+    "pin_code": "Code {{pin}}"
+  }
+}

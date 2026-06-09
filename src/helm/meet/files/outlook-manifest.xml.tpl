@@ -175,15 +175,34 @@
         <bt:Url id="Taskpane.Url" DefaultValue="{{ .baseUrl }}/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
+        <!-- Default (French) -->
         <bt:String id="GroupLabel" DefaultValue="{{ .appName }}"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Ouvrir les paramètres"/>
-        <bt:String id="GenerateLink.Label" DefaultValue="Ajouter un lien {{ .appName }}"/>
-        <bt:String id="OpenSettings.Label" DefaultValue="Paramètres"/>
+        <bt:String id="GenerateLink.Label" DefaultValue="Ajouter un lien {{ .appName }}">
+          <bt:Override Locale="en-US" Value="Add a {{ .appName }} link"/>
+          <bt:Override Locale="de-DE" Value="{{ .appName }}-Link hinzufügen"/>
+        </bt:String>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Ouvrir les paramètres">
+          <bt:Override Locale="en-US" Value="Open settings"/>
+          <bt:Override Locale="de-DE" Value="Einstellungen öffnen"/>
+        </bt:String>
+        <bt:String id="OpenSettings.Label" DefaultValue="Paramètres">
+          <bt:Override Locale="en-US" Value="Settings"/>
+          <bt:Override Locale="de-DE" Value="Einstellungen"/>
+        </bt:String>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Ouvre les paramètres de connexion {{ .appName }}."/>
-        <bt:String id="GenerateLink.Tooltip" DefaultValue="Génère un lien de réunion {{ .appName }} et l'insère dans l'événement."/>
-        <bt:String id="OpenSettings.Tooltip" DefaultValue="Ouvre les paramètres de connexion {{ .appName }}."/>
+        <bt:String id="GenerateLink.Tooltip" DefaultValue="Génère un lien de réunion {{ .appName }} et l'insère dans l'événement.">
+          <bt:Override Locale="de-DE" Value="Generiert einen {{ .appName }}-Besprechungslink und fügt ihn in den Termin ein."/>
+          <bt:Override Locale="en-US" Value="Generates a {{ .appName }} meeting link and inserts it into the item."/>
+        </bt:String>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Ouvre les paramètres de connexion {{ .appName }}.">
+          <bt:Override Locale="de-DE" Value="Öffnet die {{ .appName }}-Verbindungseinstellungen."/>
+          <bt:Override Locale="en-US" Value="Opens the {{ .appName }} connection settings."/>
+        </bt:String>
+        <bt:String id="OpenSettings.Tooltip" DefaultValue="Ouvre les paramètres de connexion {{ .appName }}.">
+          <bt:Override Locale="de-DE" Value="Öffnet die {{ .appName }}-Verbindungseinstellungen."/>
+          <bt:Override Locale="en-US" Value="Opens the {{ .appName }} connection settings."/>
+        </bt:String>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
