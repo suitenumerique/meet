@@ -77,29 +77,17 @@ function generateMeetingLink() {
       const coercionType = isWeb ? Office.CoercionType.Html : Office.CoercionType.Text;
 
       return new Promise((resolve, reject) => {
-        item.body.getAsync(coercionType, (getResult) => {
-          if (getResult.status !== Office.AsyncResultStatus.Succeeded) {
-            reject(getResult.error);
+        item.body.setSelectedDataAsync(text, { coercionType }, (setResult) => {
+          if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
+            reject(setResult.error);
             return;
           }
-          item.body.setAsync(
-            getResult.value + text,
-            { coercionType: coercionType },
-            (setResult) => {
-              if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
-                reject(setResult.error);
-                return;
-              }
-
-              // ─── If calendar event, also set location ──────────────
-              if (item.itemType === Office.MailboxEnums.ItemType.Appointment) {
-                item.location.setAsync(url, () => resolve());
-                return;
-              }
-
-              resolve();
-            }
-          );
+          // ─── If calendar event, also set location ──────────────
+          if (item.itemType === Office.MailboxEnums.ItemType.Appointment) {
+            item.location.setAsync(url, () => resolve());
+            return;
+          }
+          resolve();
         });
       });
     })

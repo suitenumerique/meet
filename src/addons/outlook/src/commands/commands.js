@@ -30,35 +30,26 @@ function insertMeetingLink(event, session) {
       const coercionType = isWeb ? Office.CoercionType.Html : Office.CoercionType.Text;
 
       return new Promise((resolve, reject) => {
-        item.body.getAsync(coercionType, (getResult) => {
-          if (getResult.status !== Office.AsyncResultStatus.Succeeded) {
-            notify(`Erreur de lecture : ${getResult.error.message}`);
+        item.body.setSelectedDataAsync(text, { coercionType }, (setResult) => {
+          if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
+            notify(`Erreur d'insertion : ${setResult.error.message}`);
             resolve();
             return;
           }
-          item.body.setAsync(
-            getResult.value + text,
-            { coercionType: coercionType }, (setResult) => {
-            if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
-              notify(`Erreur d'insertion : ${setResult.error.message}`);
-              resolve();
-              return;
-            }
 
-            if (item.itemType !== Office.MailboxEnums.ItemType.Appointment) {
+          if (item.itemType !== Office.MailboxEnums.ItemType.Appointment) {
+            notify("Lien de réunion inséré !");
+            resolve();
+            return;
+          }
+
+          item.location.setAsync(url, (locationResult) => {
+            if (locationResult.status !== Office.AsyncResultStatus.Succeeded) {
+              notify(`Erreur de localisation : ${locationResult.error.message}`);
+            } else {
               notify("Lien de réunion inséré !");
-              resolve();
-              return;
             }
-
-            item.location.setAsync(url, (locationResult) => {
-              if (locationResult.status !== Office.AsyncResultStatus.Succeeded) {
-                notify(`Erreur de localisation : ${locationResult.error.message}`);
-              } else {
-                notify("Lien de réunion inséré !");
-              }
-              resolve();
-            });
+            resolve();
           });
         });
       });
