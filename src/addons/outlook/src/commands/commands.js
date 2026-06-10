@@ -1,4 +1,5 @@
 /* global Office */
+const { APP_NAME } = require("../common/index");
 const { createRoom, initSession } = require("../common/api");
 const { startPolling } = require("../common/polling");
 const { saveSession, loadSession } = require("../common/session");
@@ -6,6 +7,7 @@ const { openTransitDialog } = require("../common/transitDialog");
 const { buildMeetingMessage } = require("../common/messageBuilder");
 const { applyAppName } = require("../common/helpers");
 const { initI18n, t } = require("../common/i18n");
+const { isMeetingAlreadyAdded } = require("../common/meetingDetector");
 
 Office.onReady(async function (info) {
 
@@ -26,6 +28,24 @@ function notify(message) {
 }
 
 function insertMeetingLink(event, session) {
+  const item = Office.context.mailbox.item;
+
+  isMeetingAlreadyAdded(item)
+    .then((alreadyAdded) => {
+      if (alreadyAdded) {
+        notify(t("meeting.already_added", { app_name: APP_NAME }));
+        event.completed();
+        return;
+      }
+      return _doInsertMeetingLink(event, session);
+    })
+    .catch((err) => {
+      notify(t("meeting.error.details", { message: err.message }));
+      event.completed();
+    });
+}
+
+function _doInsertMeetingLink(event, session) {
   createRoom(session)
     .then((data) => {
       const isWeb = Office.context.diagnostics.platform === "OfficeOnline";
@@ -36,7 +56,7 @@ function insertMeetingLink(event, session) {
       return new Promise((resolve, reject) => {
         item.body.setSelectedDataAsync(text, { coercionType }, (setResult) => {
           if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
-            notify(t('meeting.error.details', { message: setResult.error.message }));
+            notify(t("meeting.error.details", { message: setResult.error.message }));
             resolve();
             return;
           }

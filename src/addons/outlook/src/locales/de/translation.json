@@ -16,6 +16,7 @@
     "disconnect": "Abmelden"
   },
   "meeting": {
+    "already_added": "Es wurde bereits ein {{app_name}}-Meeting hinzugefügt.",
     "link_inserted": "Besprechungslink erfolgreich eingefügt",
     "generating": "Wird erstellt...",
     "add_meeting": "{{app_name}}-Besprechung hinzufügen",
