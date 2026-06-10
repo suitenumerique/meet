@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add structured audit logging
+
 ## [1.19.0] - 2026-06-04
 
 ### Added
