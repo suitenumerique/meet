@@ -1,5 +1,5 @@
 /* global Office */
-const { APP_NAME } = require("../common");
+const { APP_NAME, FEEDBACK_FORM } = require("../common");
 const { applyAppName } = require("../common/helpers");
 const { initSession, createRoom } = require("../common/api");
 const { startPolling } = require("../common/polling");
@@ -173,6 +173,12 @@ function removeMeetingLinkFromItem() {
 Office.onReady(async (info) => {
   await initI18n();
   translateUI();
+
+  if (FEEDBACK_FORM) {
+    const link = document.getElementById("feedback-link");
+    link.href = FEEDBACK_FORM;
+    link.style.display = "inline";
+  }
 
   if (info.host === Office.HostType.Outlook) {
     applyAppName();

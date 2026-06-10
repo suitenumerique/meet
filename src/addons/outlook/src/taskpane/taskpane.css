@@ -143,15 +143,36 @@ button {
 #version-tag {
     position: fixed;
     bottom: 8px;
+    left: 8px;
     right: 8px;
-    display: inline-flex;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 4px;
     font-size: 11px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #6b7280;
     user-select: none;
     pointer-events: none;
+}
+
+#feedback-link {
+    font-size: 11px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #6b7280;
+    text-decoration: underline;
+    pointer-events: all; /* override parent's pointer-events: none */
+    cursor: pointer;
+}
+
+#feedback-link:hover {
+    color: #374151;
+}
+
+#footer-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
 }
 
 .version-badge {

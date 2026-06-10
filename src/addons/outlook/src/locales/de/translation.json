@@ -33,5 +33,8 @@
     "phone_only": "Oder per Telefon teilnehmen (nur Audio)",
     "phone_fr": "(FR) {{phone}}",
     "pin_code": "Code {{pin}}"
+  },
+  "footer": {
+    "feedback": "Teilen Sie uns Ihr Feedback mit"
   }
 }

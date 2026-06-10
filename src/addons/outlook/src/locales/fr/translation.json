@@ -33,5 +33,8 @@
     "phone_only": "Ou appelez (audio uniquement)",
     "phone_fr": "(FR) {{phone}}",
     "pin_code": "Code {{pin}}"
+  },
+  "footer": {
+    "feedback": "Partagez-nous vos retours"
   }
 }
