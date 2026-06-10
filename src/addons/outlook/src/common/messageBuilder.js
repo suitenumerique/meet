@@ -1,4 +1,4 @@
-const { APP_NAME } = require("./index");
+const { APP_NAME, ENABLE_SOURCE_TRACKING } = require("./index");
 const { t } = require("./i18n");
 
 function _formatPin(pin) {
@@ -21,13 +21,21 @@ function _formatPhone(phone) {
   return clean;
 }
 
+function _appendTrackingParams(url) {
+  if (!ENABLE_SOURCE_TRACKING) return url;
+  const u = new URL(url);
+  u.searchParams.set("from", "outlook-addin");
+  return u.toString();
+}
+
+
 // todo - escape html / link
 function buildMeetingMessage(data, isWeb) {
   if (!data?.url) {
     throw new Error("buildMeetingMessage: missing url in data");
   }
 
-  const url = data.url;
+  const url = _appendTrackingParams(data.url);
   const phone = _formatPhone(data.telephony?.phone_number);
   const pin = _formatPin(data.telephony?.pin_code);
 
