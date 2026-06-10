@@ -115,6 +115,29 @@ button {
     background-color: #f5f5f5;
 }
 
+/* ── Danger button (remove meeting) ── */
+
+#btn-remove {
+    background-color: #CA3632; /* error.400 */
+    color: #FFFFFF;
+    border: none;
+}
+
+#btn-remove:hover {
+    background-color: #EE6A66; /* error.600 */
+}
+
+#btn-remove:active {
+    background-color: #F28D8A; /* error.700 */
+    color: #F6AFAD;            /* error.200 */
+}
+
+#btn-remove:disabled {
+    background-color: #F6AFAD; /* error.800 */
+    color: #FAD2D1;            /* error.900 */
+    cursor: not-allowed;
+}
+
 /* ── Version ── */
 
 #version-tag {

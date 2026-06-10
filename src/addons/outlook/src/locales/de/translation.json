@@ -20,6 +20,8 @@
     "link_inserted": "Besprechungslink erfolgreich eingefügt",
     "generating": "Wird erstellt...",
     "add_meeting": "{{app_name}}-Besprechung hinzufügen",
+    "remove_meeting": "{{app_name}}-Besprechung entfernen",
+    "removing": "Wird entfernt...",
     "error": {
       "auth": "Ihre Sitzung ist abgelaufen. Bitte versuchen Sie es erneut.",
       "retry": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",

@@ -20,6 +20,8 @@
     "link_inserted": "Meeting link inserted successfully",
     "generating": "Generating...",
     "add_meeting": "Add a {{app_name}} meeting",
+    "remove_meeting": "Remove the {{app_name}} meeting",
+    "removing": "Removing...",
     "error": {
       "auth": "Your session has expired. Please try again.",
       "retry": "An error occurred. Please try again.",

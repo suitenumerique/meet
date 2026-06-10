@@ -20,6 +20,8 @@
     "link_inserted": "Lien de réunion inséré avec succès",
     "generating": "Génération...",
     "add_meeting": "Ajouter une réunion {{app_name}}",
+    "remove_meeting": "Supprimer la réunion {{app_name}}",
+    "removing": "Suppression en cours...",
     "error": {
       "auth": "Connexion expirée, veuillez réessayer.",
       "retry": "Une erreur est survenue, veuillez ré-essayer",
