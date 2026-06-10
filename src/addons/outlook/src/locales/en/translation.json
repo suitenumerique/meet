@@ -16,6 +16,7 @@
     "disconnect": "Sign out"
   },
   "meeting": {
+    "already_added": "A {{app_name}} meeting has already been added.",
     "link_inserted": "Meeting link inserted successfully",
     "generating": "Generating...",
     "add_meeting": "Add a {{app_name}} meeting",

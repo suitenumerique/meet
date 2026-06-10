@@ -16,6 +16,7 @@
     "disconnect": "Se déconnecter"
   },
   "meeting": {
+    "already_added": "Une réunion {{app_name}} a déjà été ajoutée.",
     "link_inserted": "Lien de réunion inséré avec succès",
     "generating": "Génération...",
     "add_meeting": "Ajouter une réunion {{app_name}}",
