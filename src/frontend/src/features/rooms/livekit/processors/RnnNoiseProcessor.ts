@@ -43,7 +43,16 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
 
     this.noiseSuppressionNode = new AudioWorkletNode(
       audioContext,
-      NoiseSuppressorWorklet_Name
+      NoiseSuppressorWorklet_Name,
+      {
+        // RNNoise is a mono algorithm. Its worklet only denoises and writes
+        // channel 0. Force any (possibly stereo) input to down-mix to a single
+        // channel and emit a single channel, so we don't produce a stereo frame
+        // whose right channel is left silent.
+        channelCount: 1,
+        channelCountMode: 'explicit',
+        outputChannelCount: [1],
+      }
     )
 
     this.destinationNode = audioContext.createMediaStreamDestination()
