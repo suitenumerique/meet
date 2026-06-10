@@ -449,11 +449,13 @@ frontend:
   ## @param frontend.outlookAddon.appName Display name used in the Outlook add-in (manifest + runtime config)
   ## @param frontend.outlookAddon.baseUrl Public base URL where the add-in is served (no trailing slash)
   ## @param frontend.outlookAddon.enableSourceTracking Enable appending ?from=outlook-addon to the URL
+  ## @param frontend.outlookAddon.feedbackForm Add a link to the footer opening a feedback form
   outlookAddon:
     enabled: false
     appName: ""
     baseUrl: ""
     enableSourceTracking: false
+    feedbackForm: ""
     id: ""
 
 ## @section posthog

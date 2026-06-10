@@ -10,5 +10,6 @@ data:
       BASE_URL: {{ .Values.frontend.outlookAddon.baseUrl | quote }},
       APP_NAME: {{ .Values.frontend.outlookAddon.appName | quote }},
       ENABLE_SOURCE_TRACKING: {{ .Values.frontend.outlookAddon.enableSourceTracking | quote }},
+      FEEDBACK_FORM: {{ .Values.frontend.outlookAddon.feedbackForm | quote }}
     };
 {{- end }}
