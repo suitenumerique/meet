@@ -1025,11 +1025,21 @@ class Base(Configuration):
                 "format": "{asctime} {name} {levelname} {message}",
                 "style": "{",
             },
+            "audit_json": {
+                "()": "core.audit.AuditJsonFormatter",
+            },
         },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "simple",
+            },
+            # Audit events go to stdout on their own handler so they stay
+            # distinguishable from regular application logs.
+            "audit_console": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stdout",
+                "formatter": "audit_json",
             },
         },
         # Override root logger to send it to console
@@ -1045,6 +1055,15 @@ class Base(Configuration):
                 "level": values.Value(
                     "INFO",
                     environ_name="LOGGING_LEVEL_LOGGERS_APP",
+                    environ_prefix=None,
+                ),
+                "propagate": False,
+            },
+            "audit": {
+                "handlers": ["audit_console"],
+                "level": values.Value(
+                    "INFO",
+                    environ_name="LOGGING_LEVEL_LOGGERS_AUDIT",
                     environ_prefix=None,
                 ),
                 "propagate": False,
@@ -1158,15 +1177,30 @@ class Test(Base):
         {
             "version": 1,
             "disable_existing_loggers": False,
+            "formatters": {
+                "audit_json": {
+                    "()": "core.audit.AuditJsonFormatter",
+                },
+            },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
+                },
+                "audit_console": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                    "formatter": "audit_json",
                 },
             },
             "loggers": {
                 "meet": {
                     "handlers": ["console"],
                     "level": "DEBUG",
+                },
+                "audit": {
+                    "handlers": ["audit_console"],
+                    "level": "INFO",
+                    "propagate": False,
                 },
             },
         }

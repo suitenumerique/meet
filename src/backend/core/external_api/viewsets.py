@@ -1,7 +1,5 @@
 """External API endpoints"""
 
-from logging import getLogger
-
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
@@ -21,6 +19,7 @@ from rest_framework import (
 
 from core import api, models
 from core.api.feature_flag import FeatureFlag
+from core.audit_meet import getLogger
 from core.services.jwt_token import JwtTokenService
 
 from ..services.provisional_user_service import (
@@ -30,7 +29,7 @@ from ..services.provisional_user_service import (
 )
 from . import authentication, permissions, serializers
 
-logger = getLogger(__name__)
+audit_logger = getLogger(__name__)
 
 
 class ApplicationViewSet(viewsets.ViewSet):
@@ -86,10 +85,11 @@ class ApplicationViewSet(viewsets.ViewSet):
             )
 
         if not application.can_delegate_email(email):
-            logger.warning(
-                "Application %s denied delegation for %s",
-                application.client_id,
-                email,
+            audit_logger.warning(
+                "Application denied delegation",
+                request=request,
+                application_client_id=application.client_id,
+                email=email,
             )
             return drf_response.Response(
                 {
@@ -195,9 +195,10 @@ class RoomViewSet(
         )
 
         # Log for auditing
-        logger.info(
-            "Room created via application: room_id=%s, user_id=%s, client_id=%s",
-            room.id,
-            self.request.user.id,
-            getattr(self.request.auth, "client_id", "unknown"),
+        audit_logger.info(
+            "room_created_via_application",
+            request=self.request,
+            # Extra
+            room=room,
+            client_id=getattr(self.request.auth, "client_id", "unknown"),
         )
