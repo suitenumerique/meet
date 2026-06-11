@@ -56,7 +56,7 @@ data:
 
             set $nonce $request_id;
 
-            set $csp "upgrade-insecure-requests; ";
+            set $csp "default-src 'self'; upgrade-insecure-requests; ";
             set $csp "${csp}frame-ancestors ${ms_domains}; ";
             set $csp "${csp}script-src 'nonce-${nonce}' 'strict-dynamic'; ";
             set $csp "${csp}connect-src 'self' ${ms_domains}; ";
