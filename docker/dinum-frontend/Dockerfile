@@ -60,6 +60,8 @@ USER root
 
 # Security patches for known CVEs
 RUN apk update && apk upgrade  \
+    libcrypto3>=3.5.7-r0 \
+    libssl3>=3.5.7-r0 \
     musl \
     musl-utils \
     zlib>=1.3.2-r0 \
