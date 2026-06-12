@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ⬆️(agents) upgrade to python 3.14 slim
+
 ### Fixed
 
 - 🚀(front) fix frontend build failure
