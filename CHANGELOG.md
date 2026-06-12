@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-06-12
+
 ### Changed
 
 - ♻️(addon) improve Outlook add-on: i18n support, feedback link, smarter link
