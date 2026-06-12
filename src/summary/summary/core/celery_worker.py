@@ -5,11 +5,14 @@
 import json
 import time
 from datetime import datetime
+from typing import Any
+from urllib.parse import urljoin
 
-import openai
+import requests
 import sentry_sdk
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
+from openai.types.audio import Transcription
 from requests import exceptions
 
 from summary.core.analytics import MetadataManager, get_analytics
@@ -101,11 +104,6 @@ def transcribe_audio(
         )
 
     logger.info("Initiating WhisperX client")
-    whisperx_client = openai.OpenAI(
-        api_key=settings.whisperx_api_key.get_secret_value(),
-        base_url=settings.whisperx_base_url,
-        max_retries=settings.whisperx_max_retries,
-    )
 
     # Transcription
     try:
@@ -130,8 +128,54 @@ def transcribe_audio(
 
             # Call remote service for transcription
             transcription_start_time = time.time()
-            transcription = whisperx_client.audio.transcriptions.create(
-                model=settings.whisperx_asr_model, file=audio_file, language=language
+
+            api_key = settings.whisperx_api_key.get_secret_value()
+            base_url = settings.whisperx_base_url
+
+            # We use a manual call to the transcripion endpoint, and we do not
+            # directly use the OpenAI lib for this.
+            # This is because, depending on the requested response format,
+            # the OpenAI lib will cast the response to a different dataclass,
+            # which can result in stripping out keys & data that we are interested in.
+            # This is in particular true for word_segments and words.
+            # WhisperX response is slightly different from OpenAI STT endpoints
+            # response.
+            # At the same time "diarized_json" should be the value
+            # provided to STT endpoints in our context.
+            url = urljoin(base_url.rstrip("/") + "/", "audio/transcriptions")
+            res = requests.post(
+                url,
+                data={
+                    "model": settings.whisperx_asr_model,
+                    "language": language,
+                    "timestamp_granularities": ["word", "segment"],
+                    "response_format": "diarized_json",
+                },
+                files={"file": audio_file},
+                headers={"Authorization": f"Bearer {api_key}"},
+                # Mimic OpenAI's timeout settings
+                timeout=(60, 10 * 60),
+            )
+            try:
+                res.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                raise RuntimeError("WhisperX transcription failed, %s", res.text) from e
+
+            transcription_json: dict[str, Any] = res.json()
+            # We remove the "usage" key from the transcription_json dictionary
+            # as it may cause issues with parsing inside the Transcription model
+            # Some API don't share the exact same structure for the "usage" key
+            transcription_json.pop("usage", None)
+
+            # We force the use of the Transcription model here
+            # to avoid changing too much code for now.
+            # Note that it should be WhisperXResponse instead.
+            transcription = Transcription.model_validate(
+                # We add a dummy "text" to make the model validate,
+                # Some API responses lack the "text" key.
+                {"text": "", **transcription_json},
+                extra="allow",
+                strict=False,
             )
 
             # Logging

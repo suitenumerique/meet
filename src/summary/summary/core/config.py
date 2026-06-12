@@ -92,7 +92,6 @@ class Settings(BaseSettings):
     whisperx_api_key: SecretStr
     whisperx_base_url: str = "https://api.openai.com/v1"
     whisperx_asr_model: str = "whisper-1"
-    whisperx_max_retries: int = 0
     # ISO 639-1 language code (e.g., "en", "fr", "es")
     whisperx_default_language: Optional[str] = None
     whisperx_allowed_languages: Set[str] = {"en", "fr", "de", "nl"}
