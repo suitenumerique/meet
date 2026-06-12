@@ -40,7 +40,9 @@ class Segment(BaseModel):
         title="Segment Text", description="Transcribed text for the segment."
     )
     words: tuple[WordSegment, ...] | None = Field(
-        title="Word Segments", description="List of word segments within the segment."
+        title="Word Segments",
+        description="List of word segments within the segment.",
+        default=None,
     )
     speaker: str | None = Field(
         default=None, title="Speaker", description="Speaker identifier for the segment."
@@ -54,7 +56,9 @@ class WhisperXResponse(BaseModel):
         title="Segments", description="List of transcribed segments."
     )
     word_segments: tuple[WordSegment, ...] = Field(
-        title="Word Segments", description="List of word segments."
+        title="Word Segments",
+        description="List of word segments.",
+        default_factory=tuple,
     )
 
 
