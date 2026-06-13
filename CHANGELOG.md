@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(frontend) allow disabling silent login via a URL parameter
+- ✨(frontend) allow hiding the login button via a URL parameter
 
 ### Changed
 

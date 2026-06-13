@@ -14,6 +14,7 @@ import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { logout } from '@/features/auth/utils/logout'
+import { useMemo } from 'react'
 
 const Logo = () => (
   <img
@@ -84,6 +85,16 @@ const LoginHint = () => {
   )
 }
 
+const HIDE_LOGIN_PARAM = 'hideLogin'
+
+const isLoginButtonHidden = () => {
+  if (typeof window === 'undefined') return false
+  const value = new URLSearchParams(window.location.search).get(
+    HIDE_LOGIN_PARAM
+  )
+  return value === 'true'
+}
+
 export const Header = () => {
   const { t } = useTranslation()
   const isHome = useMatchesRoute('home')
@@ -92,6 +103,9 @@ export const Header = () => {
   const isTermsOfService = useMatchesRoute('termsOfService')
   const isRoom = useMatchesRoute('room')
   const { user, isLoggedIn } = useUser()
+
+  const loginButtonDisabledByUrl = useMemo(() => isLoginButtonHidden(), [])
+
   const userLabel = user?.full_name || user?.email
   const loggedInTooltip = t('loggedInUserTooltip')
   const loggedInAriaLabel = userLabel
@@ -152,7 +166,8 @@ export const Header = () => {
                 !isHome &&
                 !isLegalTerms &&
                 !isAccessibility &&
-                !isTermsOfService && (
+                !isTermsOfService &&
+                !loginButtonDisabledByUrl && (
                   <>
                     <LoginButton proConnectHint={false} />
                     <LoginHint />
