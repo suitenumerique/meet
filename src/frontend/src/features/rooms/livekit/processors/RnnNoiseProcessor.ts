@@ -1,10 +1,29 @@
-
 import type { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
-import { createWasmProcessor } from '@libreaudio/la-call'
 
 // Use Jitsi's approach: maintain a global AudioContext variable
 // and suspend/resume it as needed to manage audio state
 let audioContext: AudioContext
+
+/**
+ * Lazily load the WASM processor factory.
+ *
+ * '@libreaudio/la-call' pulls in a WebAssembly payload, so we defer importing
+ * it until a processor is actually initialized rather than at module load.
+ * The import promise is cached so repeated init() calls reuse the same module.
+ */
+type CreateWasmProcessor =
+  (typeof import('@libreaudio/la-call'))['createWasmProcessor']
+
+let wasmProcessorPromise: Promise<CreateWasmProcessor> | undefined
+
+function loadWasmProcessor(): Promise<CreateWasmProcessor> {
+  if (!wasmProcessorPromise) {
+    wasmProcessorPromise = import('@libreaudio/la-call').then(
+      (mod) => mod.createWasmProcessor
+    )
+  }
+  return wasmProcessorPromise
+}
 
 export interface AudioProcessorInterface extends TrackProcessor<Track.Kind.Audio> {
   name: string
@@ -36,6 +55,7 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
       new MediaStream([this.source])
     )
 
+    const createWasmProcessor = await loadWasmProcessor()
     this.noiseSuppressionNode = await createWasmProcessor(audioContext, {
       intensity: 90,
     })
