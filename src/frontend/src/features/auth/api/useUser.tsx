@@ -37,7 +37,7 @@ export const useUser = (
 
     if (silentDisabled) {
       return {
-        ...opts,
+        ...opts.fetchUserOptions,
         attemptSilent: false,
       }
     }
