@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) allow disabling silent login via a URL parameter
+
 ### Changed
 
 - ✨(frontend) enhance noise reduction with BBBA audio processing pipeline
