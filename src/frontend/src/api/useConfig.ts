@@ -55,6 +55,7 @@ export interface ApiConfig {
     default_sources: Source[]
   }
   transcription_destination?: string
+  max_participants_for_sound: number
 }
 
 const fetchConfig = (): Promise<ApiConfig> => {

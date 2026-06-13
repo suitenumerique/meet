@@ -16,6 +16,7 @@ and this project adheres to
 ### Changed
 
 - ✨(frontend) enhance noise reduction with BBBA audio processing pipeline
+- 🚸(frontend) mute join notification sound in larger rooms
 
 ## [1.20.0] - 2026-06-12
 

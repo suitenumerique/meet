@@ -411,6 +411,9 @@ class Base(Configuration):
         "transcription_destination": values.Value(
             None, environ_name="FRONTEND_TRANSCRIPTION_DESTINATION", environ_prefix=None
         ),
+        "max_participants_for_sound": values.PositiveIntegerValue(
+            5, environ_name="FRONTEND_MAX_PARTICIPANTS_FOR_SOUND", environ_prefix=None
+        )
     }
 
     # Mail
