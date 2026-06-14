@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { keyboardShortcutsStore } from '@/stores/keyboardShortcuts'
 import { formatShortcutKey } from '@/features/shortcuts/utils'
-import { ShortcutId, getShortcutDescriptorById } from './catalog'
+import { type ShortcutId, getShortcutDescriptorById } from './catalog'
 
 export type useRegisterKeyboardShortcutProps = {
   id?: ShortcutId

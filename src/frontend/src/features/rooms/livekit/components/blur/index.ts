@@ -1,5 +1,5 @@
 import { ProcessorWrapper } from '@livekit/track-processors'
-import { Track, TrackProcessor } from 'livekit-client'
+import type { Track, TrackProcessor } from 'livekit-client'
 import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
 import { UnifiedBackgroundTrackProcessor } from './UnifiedBackgroundTrackProcessor'
 import { FaceLandmarksOptions } from './FaceLandmarksProcessor'

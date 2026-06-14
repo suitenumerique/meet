@@ -776,7 +776,7 @@ def test_update_participant_invalid_permission():
                 "loc": ["invalid-attributes"],
                 "msg": "Extra inputs are not permitted",
                 "input": "True",
-                "url": "https://errors.pydantic.dev/2.12/v/extra_forbidden",
+                "url": "https://errors.pydantic.dev/2.13/v/extra_forbidden",
             },
         ]
     }

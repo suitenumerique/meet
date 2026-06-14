@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useSnapshot } from 'valtio'
-import { accessibilityStore, UiFont } from '@/stores/accessibility'
+import { accessibilityStore, type UiFont } from '@/stores/accessibility'
 
 const fontImports: Partial<Record<UiFont, () => Promise<unknown>>> = {
   lexend: () => import('@fontsource-variable/lexend'),

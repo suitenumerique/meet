@@ -1,6 +1,6 @@
 import { supportsScreenSharing } from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
-import { ControlBarAuxProps } from './ControlBar'
+import type { ControlBarAuxProps } from './ControlBar'
 import React from 'react'
 import { css } from '@/styled-system/css'
 import { LeaveButton } from '../../components/controls/LeaveButton'

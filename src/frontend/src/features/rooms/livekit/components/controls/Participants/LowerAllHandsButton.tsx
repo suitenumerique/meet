@@ -1,6 +1,6 @@
 import { Button } from '@/primitives'
 import { useTranslation } from 'react-i18next'
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { useLowerHandParticipants } from '@/features/rooms/api/lowerHandParticipants'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { css } from '@/styled-system/css'

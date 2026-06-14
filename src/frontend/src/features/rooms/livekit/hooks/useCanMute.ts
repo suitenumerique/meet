@@ -1,5 +1,5 @@
 import { useIsAdminOrOwner } from './useIsAdminOrOwner'
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 
 export const useCanMute = (participant: Participant) => {

@@ -7,6 +7,7 @@ import { EffectsMenuItem } from './EffectsMenuItem'
 import { SupportMenuItem } from './SupportMenuItem'
 import { TranscriptMenuItem } from './TranscriptMenuItem'
 import { ScreenRecordingMenuItem } from './ScreenRecordingMenuItem'
+import { PictureInPictureMenuItem } from '@/features/rooms/livekit/components/controls/Options/PictureInPictureMenuItem'
 
 // @todo try refactoring it to use MenuList component
 export const OptionsMenuItems = () => {
@@ -18,6 +19,7 @@ export const OptionsMenuItems = () => {
       }}
     >
       <MenuSection>
+        <PictureInPictureMenuItem />
         <TranscriptMenuItem />
         <ScreenRecordingMenuItem />
         <FullScreenMenuItem />

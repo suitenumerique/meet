@@ -2,12 +2,13 @@ import { useToast } from '@react-aria/toast'
 import { useMemo, useRef } from 'react'
 import { Text } from '@/primitives'
 
-import { StyledToastContainer, ToastProps } from './Toast'
+import { type ToastProps } from './Toast'
 import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
-import { useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
 import { css } from '@/styled-system/css'
 import { RecordingMode } from '@/features/recording'
+import { StyledToastContainer } from './StyledToastContainer'
 
 export function ToastRecordingSaving({
   state,

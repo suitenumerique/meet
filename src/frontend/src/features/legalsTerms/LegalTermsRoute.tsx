@@ -4,7 +4,7 @@ import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 
-export const LegalTermsRoute = () => {
+const LegalTermsRoute = () => {
   const { t } = useTranslation('legals')
 
   const indentedStyle = css({
@@ -72,3 +72,5 @@ export const LegalTermsRoute = () => {
     </Screen>
   )
 }
+
+export default LegalTermsRoute

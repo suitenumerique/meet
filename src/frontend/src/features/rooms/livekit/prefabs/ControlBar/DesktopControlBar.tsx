@@ -1,5 +1,5 @@
 import { supportsScreenSharing } from '@livekit/components-core'
-import { ControlBarAuxProps } from './ControlBar'
+import type { ControlBarAuxProps } from './ControlBar'
 import { css } from '@/styled-system/css'
 import { LeaveButton } from '../../components/controls/LeaveButton'
 import { Track } from 'livekit-client'

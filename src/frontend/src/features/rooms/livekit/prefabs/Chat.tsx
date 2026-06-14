@@ -13,7 +13,11 @@ import { Div, Text } from '@/primitives'
 import { ChatInput } from '../components/chat/Input'
 import { ChatEntry } from '../components/chat/Entry'
 import { useSidePanel } from '../hooks/useSidePanel'
-import { LocalParticipant, RemoteParticipant, RoomEvent } from 'livekit-client'
+import {
+  type LocalParticipant,
+  type RemoteParticipant,
+  RoomEvent,
+} from 'livekit-client'
 import { css } from '@/styled-system/css'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 

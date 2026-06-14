@@ -11,16 +11,80 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add per-recording encoding config to start-recording API #1344
+- ✨(frontend) allow disabling silent login via a URL parameter
+- ✨(frontend) allow hiding the login button via a URL parameter
+
+### Changed
+
+- ✨(frontend) enhance noise reduction with BBBA audio processing pipeline
+
+## [1.20.0] - 2026-06-12
+
+### Changed
+
+- ♻️(addon) improve Outlook add-on: i18n support, feedback link, smarter link
+- ⬆️(frontend) upgrade react-i18next from 15.1.1 to 17.0.8
+
+### Fixed
+
+- 🐛(frontend) fix noise reduction left-channel-only audio
+
+## [1.19.0] - 2026-06-04
+
+### Added
+
+- ✨(backend) add file specific admin #1387
+
+### Changed
+
+- 🐛(agents) fix bug when closing metadata-collector
+- ⬆️(dependencies) update python dependencies
+- ⬆️(frontend) update js dependencies
+- ♻️(agents) replace deprecated room options API
+
+### Fixed
+
+- 🔇(summary) make ffmpeg quiet #1404
+- 🔒️(backend) prevent accessing files if they are not ready #1395
+- ⬆️(backend) upgrade idna to >=3.15 to address CVE-2026-45409
+
+## [1.18.0] - 2026-06-03
+
+### Added
+
+- 🔧(backend) backport logging configuration from docs
+- 🧑‍💻(backend) add management command to merge duplicate users
+- 👷(helm) add Kubernetes job for duplicate user merge command
+
+### Fixed
+
+- 🐛(backend) prevent duplicate pending users on concurrent requests
+- 🔒️(backend) prevent file change post checks #1377
+
+## [1.17.0] - 2026-05-31
+
+### Added
+
 - ✨(fullstack) allow participants to mute others based on room configuration
 - ✨(frontend) add synchronizer for room metadata updates
 - ✨(frontend) make reaction toolbar responsive on small viewports
 - ✨(frontend) enable reactions on mobile devices
+- ✨(frontend) introduce picture-in-picture meeting
+- ✨(backend) add core.recording.event.parsers.S3Parser
+- ✨(summary) extended support for all video / audio files #1358
 
-### Changed 
+### Changed
 
 - ♻️(fullstack) simplify source serialization
 - ✨(backend) expose room configuration to all API consumers
 - 🩹(frontend) improve reaction toolbar centering with dynamic positioning
+- 🚀 (paas) remove buildpack requirements.txt to use the new uv.lock #1349
+- ✨(backend) allow room configuration and access level via external api #1260
+- ♻️(backend) prefix Swagger routes with /api
+
+### Fixed
+
+- 🩹(backend) fix swagger and redoc documentation URLs
 
 ## [1.16.0] - 2026-05-13
 

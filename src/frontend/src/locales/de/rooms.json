@@ -231,6 +231,16 @@
       }
     }
   },
+  "pictureInPicture": {
+    "placeholder": {
+      "title": "Ihr Videoanruf befindet sich in einem anderen Fenster.",
+      "description": "Im Bild-im-Bild-Modus bleiben Sie mit dem Anruf verbunden, während Sie andere Aufgaben erledigen.",
+      "bringBack": "Anruf hierher zurückholen"
+    },
+    "stage": "Teilnehmer",
+    "controlBar": "Besprechungssteuerung",
+    "title": "Bild-im-Bild Besprechung"
+  },
   "options": {
     "buttonLabel": "Weitere Optionen",
     "items": {
@@ -241,6 +251,10 @@
       "username": "Deinen Namen aktualisieren",
       "effects": "Effekte anwenden",
       "switchCamera": "Kamera wechseln",
+      "pictureInPicture": {
+        "enter": "Bild-im-Bild",
+        "exit": "Bild-im-Bild schließen"
+      },
       "fullscreen": {
         "enter": "Vollbild",
         "exit": "Vollbildmodus verlassen"

@@ -1,4 +1,4 @@
-import { StyledToastContainer } from './Toast'
+import { StyledToastContainer } from './StyledToastContainer'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
 import { Button, Text } from '@/primitives'
@@ -22,7 +22,7 @@ export const WaitingParticipantNotification = () => {
     keyPrefix: 'waitingParticipants',
   })
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { isParticipantsOpen, toggleParticipants } = useSidePanel()
   const [showQuickActionsMessage, setShowQuickActionsMessage] = useState(false)
   const { waitingParticipants, handleParticipantEntry } =

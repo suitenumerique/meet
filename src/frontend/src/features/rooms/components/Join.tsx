@@ -6,8 +6,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   createLocalAudioTrack,
   createLocalVideoTrack,
-  LocalAudioTrack,
-  LocalVideoTrack,
+  type LocalAudioTrack,
+  type LocalVideoTrack,
   Track,
 } from 'livekit-client'
 import { H } from '@/primitives/H'
@@ -22,7 +22,6 @@ import {
 } from '../livekit/components/effects/EffectsConfiguration'
 import { SelectDevice } from '../livekit/components/controls/Device/SelectDevice'
 import { ToggleDevice } from '../livekit/components/controls/Device/ToggleDevice'
-import { usePersistentUserChoices } from '../livekit/hooks/usePersistentUserChoices'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { isMobileBrowser } from '@livekit/components-core'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
@@ -30,15 +29,27 @@ import { keys } from '@/api/queryKeys'
 import { useLobby } from '../hooks/useLobby'
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/queryClient'
-import { ApiLobbyStatus, ApiRequestEntry } from '../api/requestEntry'
+import { ApiLobbyStatus, type ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
-import type { LocalUserChoices } from '@/stores/userChoices'
+
+import {
+  type LocalUserChoices,
+  saveAudioInputDeviceId,
+  saveAudioInputEnabled,
+  saveAudioOutputDeviceId,
+  saveUsername,
+  saveVideoInputDeviceId,
+  saveVideoInputEnabled,
+  userChoicesStore,
+} from '@/stores/userChoices'
+
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
+import { useSnapshot } from 'valtio'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -104,22 +115,14 @@ export const Join = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
   const {
-    userChoices: {
-      audioEnabled,
-      videoEnabled,
-      audioDeviceId,
-      audioOutputDeviceId,
-      videoDeviceId,
-      processorConfig,
-      username,
-    },
-    saveAudioInputEnabled,
-    saveAudioOutputDeviceId,
-    saveVideoInputEnabled,
-    saveAudioInputDeviceId,
-    saveVideoInputDeviceId,
-    saveUsername,
-  } = usePersistentUserChoices()
+    audioEnabled,
+    videoEnabled,
+    audioDeviceId,
+    audioOutputDeviceId,
+    videoDeviceId,
+    processorConfig,
+    username,
+  } = useSnapshot(userChoicesStore)
 
   const initialUserChoices = useRef<LocalUserChoices | null>(null)
 
@@ -213,6 +216,14 @@ export const Join = ({
       try {
         const track = await createLocalAudioTrack({
           deviceId: { exact: audioDeviceId },
+          noiseSuppression: true,
+          echoCancellation: true,
+          autoGainControl: true,
+          voiceIsolation: false,
+          // Audio quality optimized for voice
+          sampleRate: 48000, // High quality sample rate
+          channelCount: 1, // Mono for voice calls (saves bandwidth)
+          sampleSize: 16, // 16-bit audio
         })
         setDynamicAudioTrack(track)
       } catch (error) {
@@ -298,7 +309,6 @@ export const Join = ({
     isError,
     refetch: refetchRoom,
   } = useQuery({
-    /* eslint-disable @tanstack/query/exhaustive-deps */
     queryKey: [keys.room, roomId],
     queryFn: () => fetchRoom({ roomId, username }),
     staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
@@ -579,7 +589,7 @@ export const Join = ({
                         transform: 'scale(1.02)',
                       })}
                     >
-                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                      {/* eslint-disable jsx-a11y/media-has-caption */}
                       <video
                         ref={videoEl}
                         width="1280"

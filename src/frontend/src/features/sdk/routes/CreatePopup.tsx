@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { css } from '@/styled-system/css'
 import { generateRoomId, useCreateRoom } from '../../rooms'
-import { useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
 import { Spinner } from '@/primitives/Spinner'
 import { CallbackIdHandler } from '../utils/CallbackIdHandler'
 import { PopupWindow } from '../utils/PopupWindow'
@@ -9,7 +9,7 @@ import { PopupWindow } from '../utils/PopupWindow'
 const callbackIdHandler = new CallbackIdHandler()
 const popupWindow = new PopupWindow()
 
-export const CreatePopup = () => {
+const CreatePopup = () => {
   const { isLoggedIn } = useUser({ fetchUserOptions: { attemptSilent: false } })
   const { mutateAsync: createRoom } = useCreateRoom()
 
@@ -74,3 +74,5 @@ export const CreatePopup = () => {
     </div>
   )
 }
+
+export default CreatePopup

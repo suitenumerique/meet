@@ -17,7 +17,11 @@ const Container = styled('div', {
   },
 })
 
-export const ReactionsToolbar = () => {
+export const ReactionsToolbar = ({
+  adjustedCentering,
+}: {
+  adjustedCentering?: boolean
+}) => {
   const { isOpen } = useReactionsToolbar()
   const shouldMount = useDelayUnmount(isOpen, 300)
 
@@ -25,7 +29,7 @@ export const ReactionsToolbar = () => {
 
   return (
     <Container>
-      <ReactionButtonsContainer>
+      <ReactionButtonsContainer adjustedCentering={adjustedCentering}>
         {Object.values(Emoji).map((emoji) => (
           <ReactionButton key={emoji} emoji={emoji} />
         ))}

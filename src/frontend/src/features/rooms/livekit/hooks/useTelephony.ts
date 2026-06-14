@@ -1,20 +1,17 @@
-import { useConfig } from '@/api/useConfig.ts'
-import { useMemo } from 'react'
-import { parseConfigPhoneNumber } from '../../utils/telephony'
+import { useConfig } from '@/api/useConfig'
 
 export const useTelephony = () => {
   const { data } = useConfig()
 
-  const parsedPhoneNumber = useMemo(() => {
-    return parseConfigPhoneNumber(
-      data?.telephony?.phone_number,
-      data?.telephony?.default_country
-    )
-  }, [data?.telephony])
+  if (!data?.telephony?.enabled) {
+    return {
+      enabled: false,
+    }
+  }
 
   return {
-    enabled: data?.telephony?.enabled && parsedPhoneNumber,
-    country: parsedPhoneNumber?.country,
-    internationalPhoneNumber: parsedPhoneNumber?.formatInternational(),
+    enabled: data?.telephony?.enabled,
+    country: data?.telephony.default_country,
+    internationalPhoneNumber: data?.telephony.international_phone_number,
   }
 }

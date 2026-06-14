@@ -1,13 +1,14 @@
 import { useToast } from '@react-aria/toast'
 import { useEffect, useRef } from 'react'
 
-import { StyledToastContainer, ToastProps } from './Toast'
+import { type ToastProps } from './Toast'
 import { Text } from '@/primitives'
 import { RiMessage2Line } from '@remixicon/react'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { Button as RACButton } from 'react-aria-components'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
+import { StyledToastContainer } from './StyledToastContainer'
 
 export function ToastMessageReceived({
   state,

@@ -12,6 +12,7 @@ import mimetypes
 import random
 import secrets
 import string
+from functools import lru_cache
 from typing import List, Optional
 from uuid import uuid4
 
@@ -22,6 +23,7 @@ import aiohttp
 import boto3
 import botocore
 import magic
+import phonenumbers
 from asgiref.sync import async_to_sync
 from livekit.api import (  # pylint: disable=E0611
     AccessToken,
@@ -424,7 +426,7 @@ def generate_upload_policy(file):
         Originally taken from https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L102  # pylint: disable=line-too-long
     """
 
-    key = file.file_key
+    key = file.temporary_file_key
 
     # This settings should be used if the backend application and the frontend application
     # can't connect to the object storage with the same domain. This is the case in the
@@ -455,3 +457,93 @@ def generate_upload_policy(file):
     )
 
     return policy
+
+
+def generate_download_file_url(file, *, expires_in: int, override_domain: bool = True):
+    """
+    Generate a S3 signed download url for a given file.
+    """
+
+    key = file.file_key
+
+    # This setting should be used if the backend application and the frontend application
+    # can't connect to the object storage with the same domain. This is the case in the
+    # docker compose stack used in development. The frontend application will use localhost
+    # to connect to the object storage while the backend application will use the object storage
+    # service name declared in the docker compose stack.
+    # This is needed because the domain name is used to compute the signature. So it can't be
+    # changed dynamically by the frontend application.
+    if settings.AWS_S3_DOMAIN_REPLACE and override_domain:
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
+            endpoint_url=settings.AWS_S3_DOMAIN_REPLACE,
+            config=botocore.client.Config(
+                region_name=settings.AWS_S3_REGION_NAME,
+                signature_version=settings.AWS_S3_SIGNATURE_VERSION,
+            ),
+        )
+    else:
+        s3_client = default_storage.connection.meta.client
+
+    return s3_client.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={"Bucket": default_storage.bucket_name, "Key": key},
+        ExpiresIn=expires_in,
+    )
+
+
+@lru_cache(maxsize=1)
+def _format_telephony_phone_number(raw_number, default_country):
+    """Parse a configured phone number and return (country, international_format).
+
+    Returns (None, None) if the inputs are missing or the number cannot be
+    parsed. Logs a warning on parse failure so operators see the misconfiguration.
+    """
+    if not raw_number or not default_country:
+        return None, None
+
+    try:
+        parsed = phonenumbers.parse(raw_number, default_country)
+    except phonenumbers.NumberParseException:
+        logger.warning(
+            "ROOM_TELEPHONY_PHONE_NUMBER %r is not a valid phone number for "
+            "default country %r; telephony block will be returned without "
+            "formatted number.",
+            raw_number,
+            default_country,
+        )
+        return None, None
+
+    country = phonenumbers.region_code_for_number(parsed)
+    international = phonenumbers.format_number(
+        parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL
+    )
+    return country, international
+
+
+def build_telephony_config():
+    """Build the telephony block of the frontend configuration."""
+    if not settings.ROOM_TELEPHONY_ENABLED:
+        return {"enabled": False}
+
+    country, international = _format_telephony_phone_number(
+        settings.ROOM_TELEPHONY_PHONE_NUMBER,
+        settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
+    )
+
+    if international is None:
+        logger.warning(
+            "Telephony is enabled but ROOM_TELEPHONY_PHONE_NUMBER %r with "
+            "default country %r could not be formatted; telephony will be disabled.",
+            settings.ROOM_TELEPHONY_PHONE_NUMBER,
+            settings.ROOM_TELEPHONY_DEFAULT_COUNTRY,
+        )
+        return {"enabled": False}
+
+    return {
+        "enabled": True,
+        "default_country": country,
+        "international_phone_number": international,
+    }

@@ -4,7 +4,7 @@ import { keys } from '@/api/queryKeys'
 import {
   requestEntry,
   ApiLobbyStatus,
-  ApiRequestEntry,
+  type ApiRequestEntry,
 } from '../api/requestEntry'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
@@ -20,7 +20,7 @@ export const useLobby = ({
   onAccepted: (e: ApiRequestEntry) => void
 }) => {
   const [status, setStatus] = useState(ApiLobbyStatus.IDLE)
-  const waitingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const waitingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const clearWaitingTimeout = useCallback(() => {
     if (waitingTimeoutRef.current) {
@@ -37,7 +37,6 @@ export const useLobby = ({
   }, [clearWaitingTimeout])
 
   const { data: waitingData } = useQuery({
-    /* eslint-disable @tanstack/query/exhaustive-deps */
     queryKey: [keys.requestEntry, roomId],
     queryFn: async () => {
       const response = await requestEntry({

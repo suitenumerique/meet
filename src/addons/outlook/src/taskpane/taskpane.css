@@ -115,15 +115,39 @@ button {
     background-color: #f5f5f5;
 }
 
+/* ── Danger button (remove meeting) ── */
+
+#btn-remove {
+    background-color: #CA3632; /* error.400 */
+    color: #FFFFFF;
+    border: none;
+}
+
+#btn-remove:hover {
+    background-color: #EE6A66; /* error.600 */
+}
+
+#btn-remove:active {
+    background-color: #F28D8A; /* error.700 */
+    color: #F6AFAD;            /* error.200 */
+}
+
+#btn-remove:disabled {
+    background-color: #F6AFAD; /* error.800 */
+    color: #FAD2D1;            /* error.900 */
+    cursor: not-allowed;
+}
+
 /* ── Version ── */
 
 #version-tag {
     position: fixed;
     bottom: 8px;
+    left: 8px;
     right: 8px;
-    display: inline-flex;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 4px;
     font-size: 11px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #6b7280;
@@ -131,9 +155,29 @@ button {
     pointer-events: none;
 }
 
+#feedback-link {
+    font-size: 11px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #6b7280;
+    text-decoration: underline;
+    pointer-events: all; /* override parent's pointer-events: none */
+    cursor: pointer;
+}
+
+#feedback-link:hover {
+    color: #374151;
+}
+
+#footer-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+}
+
 .version-badge {
-    background: #fef3c7;
-    color: #92400e;
+    background: #EEF1F4;
+    color: #2845C1;
     padding: 1px 6px;
     border-radius: 3px;
     font-weight: 600;

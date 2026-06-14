@@ -1,8 +1,8 @@
 import { LinkButton } from '@/primitives'
-import { authUrl } from '@/features/auth'
 import { useTranslation } from 'react-i18next'
 import { useConfig } from '@/api/useConfig'
 import { ProConnectButton } from './ProConnectButton'
+import { authUrl } from '@/features/auth/utils/authUrl'
 
 type LoginButtonProps = {
   proConnectHint?: boolean // Hide hint in layouts where space doesn't allow it.

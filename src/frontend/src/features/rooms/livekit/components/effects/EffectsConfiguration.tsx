@@ -1,4 +1,4 @@
-import { LocalVideoTrack, Track } from 'livekit-client'
+import { type LocalVideoTrack, Track } from 'livekit-client'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -27,12 +27,12 @@ import { useCreateFile } from '@/features/files/api/createFile.ts'
 import { FileTrigger } from 'react-aria-components'
 import { RiDeleteBinLine, RiImageAddFill } from '@remixicon/react'
 import { useDeleteFile } from '@/features/files/api/deleteFile.ts'
-import { useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
 import { ApiFileItem } from '@/features/files/api/types.ts'
 import { useConfig } from '@/api/useConfig.ts'
-import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices.ts'
 import { proxy, useSnapshot } from 'valtio'
 import { Spinner } from '@/primitives/Spinner.tsx'
+import { userChoicesStore, saveProcessorConfig } from '@/stores/userChoices'
 
 enum BlurRadius {
   NONE = 0,
@@ -114,10 +114,7 @@ export const EffectsConfiguration = ({
   > | null>(null)
   const effectAnnouncementId = useRef(0)
 
-  const {
-    saveProcessorConfig,
-    userChoices: { processorConfig },
-  } = usePersistentUserChoices()
+  const { processorConfig } = useSnapshot(userChoicesStore)
 
   const selectedId = useMemo(
     () =>
@@ -247,14 +244,7 @@ export const EffectsConfiguration = ({
         setTimeout(() => setProcessorPending(false))
       }
     },
-    [
-      enabled,
-      saveProcessorConfig,
-      selectedId,
-      toggle,
-      updateEffectStatusMessage,
-      videoTrack,
-    ]
+    [enabled, selectedId, toggle, updateEffectStatusMessage, videoTrack]
   )
 
   const { data: appConfig } = useConfig()

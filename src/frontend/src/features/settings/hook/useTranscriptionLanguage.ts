@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { RecordingLanguage, recordingStore } from '@/stores/recording'
 import { useTranslation } from 'react-i18next'
-import { useSnapshot } from 'valtio/index'
+import { useSnapshot } from 'valtio'
 
 export const useTranscriptionLanguage = () => {
   const { t } = useTranslation('settings', { keyPrefix: 'transcription' })

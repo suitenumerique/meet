@@ -7,7 +7,7 @@ import { usePostHog } from 'posthog-js/react'
 import type { PostHog } from 'posthog-js'
 import { Button as RACButton } from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
-import { CandidateInfo } from '@/stores/connectionObserver'
+import type { CandidateInfo } from '@/stores/connectionObserver'
 
 const Card = styled('div', {
   base: {

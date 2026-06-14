@@ -2,7 +2,7 @@
 import { ToastQueue, useToastQueue } from '@react-stately/toast'
 import { ToastRegion } from './ToastRegion'
 import { Participant } from 'livekit-client'
-import { NotificationType } from '../NotificationType'
+import type { NotificationType } from '../NotificationType'
 
 export interface ToastData {
   participant?: Participant

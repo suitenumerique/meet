@@ -87,7 +87,7 @@ const ToolButton = ({
           alignItems: 'center',
         })}
       >
-        <Icon type="symbols" name="chevron_forward" />
+        <Icon name="chevron_forward" />
       </div>
     </RACButton>
   )
@@ -168,7 +168,7 @@ export const Tools = () => {
       </Text>
       {isTranscriptEnabled && (
         <ToolButton
-          icon={<Icon type="symbols" name="speech_to_text" />}
+          icon={<Icon name="speech_to_text" />}
           title={t('tools.transcript.title')}
           description={t('tools.transcript.body')}
           onPress={() => openTranscript()}
@@ -176,7 +176,7 @@ export const Tools = () => {
       )}
       {isScreenRecordingEnabled && (
         <ToolButton
-          icon={<Icon type="symbols" name="mode_standby" />}
+          icon={<Icon name="mode_standby" />}
           title={t('tools.screenRecording.title')}
           description={t('tools.screenRecording.body')}
           onPress={() => openScreenRecording()}

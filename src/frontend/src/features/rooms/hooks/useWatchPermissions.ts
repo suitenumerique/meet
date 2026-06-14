@@ -7,7 +7,7 @@ const POLLING_TIME = 500
 export const useWatchPermissions = () => {
   useEffect(() => {
     let cleanup: (() => void) | undefined
-    let intervalId: NodeJS.Timeout | undefined
+    let intervalId: ReturnType<typeof setTimeout> | undefined
     let isCancelled = false
 
     const checkPermissions = async () => {

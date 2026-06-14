@@ -1,6 +1,6 @@
-import { useSnapshot } from 'valtio/index'
+import { useSnapshot } from 'valtio'
 import { settingsStore } from '@/stores/settings'
-import { SettingsDialogExtendedKey } from '@/features/settings/type'
+import type { SettingsDialogExtendedKey } from '@/features/settings/type'
 
 export const useSettingsDialog = () => {
   const { areSettingsOpen } = useSnapshot(settingsStore)

@@ -1,21 +1,27 @@
 import { DialogProps, Field } from '@/primitives'
 
-import { TabPanel, TabPanelProps } from '@/primitives/Tabs'
+import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import { useMediaDeviceSelect, useRoomContext } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
-import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { css } from '@/styled-system/css'
 import {
   createLocalVideoTrack,
-  LocalVideoTrack,
+  type LocalVideoTrack,
   Track,
   VideoPresets,
   VideoQuality,
 } from 'livekit-client'
 import { BackgroundProcessorFactory } from '@/features/rooms/livekit/components/blur'
-import { VideoResolution } from '@/stores/userChoices'
+import {
+  saveVideoInputDeviceId,
+  saveVideoPublishResolution,
+  saveVideoSubscribeQuality,
+  userChoicesStore,
+  VideoResolution,
+} from '@/stores/userChoices'
 import { RowWrapper } from './layout/RowWrapper'
+import { useSnapshot } from 'valtio'
 
 export type VideoTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -29,16 +35,12 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   const { localParticipant, remoteParticipants } = useRoomContext()
 
   const {
-    userChoices: {
-      videoDeviceId,
-      processorConfig,
-      videoPublishResolution,
-      videoSubscribeQuality,
-    },
-    saveVideoInputDeviceId,
-    saveVideoPublishResolution,
-    saveVideoSubscribeQuality,
-  } = usePersistentUserChoices()
+    videoDeviceId,
+    processorConfig,
+    videoPublishResolution,
+    videoSubscribeQuality,
+  } = useSnapshot(userChoicesStore)
+
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null
   )
@@ -178,7 +180,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         >
           {localParticipant.isCameraEnabled ? (
             <>
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              {/* eslint-disable jsx-a11y/media-has-caption */}
               <video
                 ref={videoCallbackRef}
                 width="160px"

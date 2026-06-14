@@ -1,4 +1,4 @@
-import { Shortcut } from './types'
+import type { Shortcut } from './types'
 
 // Central list of current keyboard shortcuts.
 // Keep a single source of truth for display and, later, customization

@@ -2,17 +2,18 @@ import { useQuery } from '@tanstack/react-query'
 import { keys } from '@/api/queryKeys'
 import { fetchUser } from './fetchUser'
 import { type ApiUser } from './ApiUser'
-import { useEffect, useMemo } from 'react'
-import {
-  startAnalyticsSession,
-  terminateAnalyticsSession,
-} from '@/features/analytics/hooks/useAnalytics'
-import {
-  initializeSupportSession,
-  terminateSupportSession,
-} from '@/features/support/hooks/useSupport'
-import { logoutUrl } from '../utils/logoutUrl'
+import { useMemo } from 'react'
 import { useConfig } from '@/api/useConfig'
+
+const SILENT_LOGIN_PARAM = 'silentLogin'
+
+const isSilentLoginDisabledByUrl = () => {
+  if (typeof window === 'undefined') return false
+  const value = new URLSearchParams(window.location.search).get(
+    SILENT_LOGIN_PARAM
+  )
+  return value === 'false'
+}
 
 /**
  * returns info about currently logged-in user
@@ -26,37 +27,29 @@ export const useUser = (
 ) => {
   const { data, isLoading: isConfigLoading } = useConfig()
 
+  const disabledByUrl = useMemo(() => isSilentLoginDisabledByUrl(), [])
+
   const options = useMemo(() => {
     if (isConfigLoading) return
-    if (data?.is_silent_login_enabled !== true) {
+
+    const silentDisabled =
+      data?.is_silent_login_enabled !== true || disabledByUrl
+
+    if (silentDisabled) {
       return {
-        ...opts,
+        ...opts.fetchUserOptions,
         attemptSilent: false,
       }
     }
     return opts.fetchUserOptions
-  }, [data, opts, isConfigLoading])
+  }, [data, opts, isConfigLoading, disabledByUrl])
 
   const query = useQuery({
-    // eslint-disable-next-line @tanstack/query/exhaustive-deps
     queryKey: [keys.user],
     queryFn: () => fetchUser(options),
     staleTime: Infinity,
     enabled: !isConfigLoading,
   })
-
-  useEffect(() => {
-    if (query?.data) {
-      startAnalyticsSession(query.data)
-      initializeSupportSession(query.data)
-    }
-  }, [query.data])
-
-  const logout = () => {
-    terminateAnalyticsSession()
-    terminateSupportSession()
-    window.location.href = logoutUrl()
-  }
 
   const isLoggedIn =
     query.status === 'success' ? query.data !== false : undefined
@@ -67,6 +60,5 @@ export const useUser = (
     user: isLoggedOut ? undefined : (query.data as ApiUser | undefined),
     isLoggedIn,
     isLoading: query.isLoading,
-    logout,
   }
 }

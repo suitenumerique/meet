@@ -6,7 +6,7 @@ import { Rating } from '@/features/rooms/components/Rating.tsx'
 import { useLocation } from 'wouter'
 import { useMemo } from 'react'
 import { DisconnectReason } from 'livekit-client'
-import { CandidateInfo } from '@/stores/connectionObserver.ts'
+import type { CandidateInfo } from '@/stores/connectionObserver'
 
 // fixme - duplicated with home, refactor in a proper style
 const Heading = styled('h1', {
@@ -28,7 +28,7 @@ enum DisconnectReasonKey {
   ParticipantRemoved = 'participantRemoved',
 }
 
-export const FeedbackRoute = () => {
+const FeedbackRoute = () => {
   const { t } = useTranslation('rooms')
   const [, setLocation] = useLocation()
 
@@ -78,3 +78,5 @@ export const FeedbackRoute = () => {
     </Screen>
   )
 }
+
+export default FeedbackRoute

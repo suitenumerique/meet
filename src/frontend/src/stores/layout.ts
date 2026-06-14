@@ -1,5 +1,5 @@
 import { proxy } from 'valtio'
-import {
+import type {
   PanelId,
   SubPanelId,
 } from '@/features/rooms/livekit/hooks/useSidePanel'

@@ -9,10 +9,10 @@
     <script nonce="NONCE_PLACEHOLDER" src="/addons/outlook/config.js"></script>
 </head>
     <body>
-        <div id="sideload-msg">Veuillez charger le complément.</div>
+        <div id="sideload-msg" data-i18n="app.sideload"></div>
         <div class="spinner-container"
              role="progressbar"
-             aria-label="Chargement..."
+             data-i18n-aria="app.loading"
         >
             <svg class="spinner-svg"
                  viewBox="0 0 28 28"
@@ -40,5 +40,6 @@
                         </svg>
                     </span>
         </div>
+        <p id="close-msg" style="display: none; text-align: center; font-size: 13px; color: #666; margin-top: 16px;" data-i18n="success.close_window"></p>
     </body>
 </html>

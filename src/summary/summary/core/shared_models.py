@@ -89,9 +89,11 @@ class TranscribeWebhookFailurePayload(BaseWebhook):
 
     type: Literal["transcript"] = Field(default="transcript")
     status: Literal["failure"] = Field(default="failure")
-    error_code: Literal["unknown_error"] = Field(
-        title="Error code", description="The error code."
-    )
+    # we authorized any other string than the one in the literal
+    # to avoid causing a breaking change on the client side
+    error_code: (
+        Literal["unknown_error", "no_audio_in_file", "media_duration_too_long"] | str
+    ) = Field(title="Error code", description="The error code.")
 
 
 TranscribeWebhookPayloads = Annotated[
@@ -126,7 +128,9 @@ class SummarizeWebhookFailurePayload(BaseWebhook):
 
     type: Literal["summary"] = Field(default="summary")
     status: Literal["failure"] = Field(default="failure")
-    error_code: Literal["unknown_error"] = Field(
+    # we authorized any other string than unkown_error
+    # to avoid causing a breaking change on the client side
+    error_code: Literal["unknown_error"] | str = Field(
         title="Error code", description="The error code."
     )
 

@@ -6,7 +6,7 @@ import { styled } from '@/styled-system/jsx'
 import { type StyledVariantProps } from '@/styled-system/types'
 
 // styled taken from example at https://react-spectrum.adobe.com/react-aria/Checkbox.html and changed for round radios
-export const StyledRadio = styled(RACRadio, {
+const StyledRadio = styled(RACRadio, {
   base: {
     display: 'flex',
     alignItems: 'center',

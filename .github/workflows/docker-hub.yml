@@ -19,6 +19,8 @@ env:
   DOCKER_USER: 1001:127
   DOCKER_CONTAINER_REGISTRY_HOSTNAME: docker.io
   DOCKER_CONTAINER_REGISTRY_NAMESPACE: lasuite
+  IS_MULTI_PLATFORM_BUILD: ${{ startsWith(github.ref, 'refs/tags/v') }}
+  BUILD_PLATFORMS: ${{ startsWith(github.ref, 'refs/tags/v') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
 
 jobs:
   build-and-push-backend:
@@ -31,6 +33,7 @@ jobs:
         uses: actions/checkout@v6
       -
         name: Set up QEMU
+        if: env.IS_MULTI_PLATFORM_BUILD == 'true'
         uses: docker/setup-qemu-action@v3
       -
         name: Set up Docker Buildx
@@ -60,7 +63,7 @@ jobs:
         with:
           context: .
           target: backend-production
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -76,6 +79,7 @@ jobs:
         uses: actions/checkout@v6
       -
         name: Set up QEMU
+        if: env.IS_MULTI_PLATFORM_BUILD == 'true'
         uses: docker/setup-qemu-action@v3
       -
         name: Set up Docker Buildx
@@ -106,7 +110,7 @@ jobs:
           context: .
           file: ./src/frontend/Dockerfile
           target: frontend-production
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -122,6 +126,7 @@ jobs:
         uses: actions/checkout@v6
       -
         name: Set up QEMU
+        if: env.IS_MULTI_PLATFORM_BUILD == 'true'
         uses: docker/setup-qemu-action@v3
       -
         name: Set up Docker Buildx
@@ -152,7 +157,7 @@ jobs:
           context: .
           file: ./docker/dinum-frontend/Dockerfile
           target: frontend-production
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -168,6 +173,7 @@ jobs:
         uses: actions/checkout@v6
       -
         name: Set up QEMU
+        if: env.IS_MULTI_PLATFORM_BUILD == 'true'
         uses: docker/setup-qemu-action@v3
       -
         name: Set up Docker Buildx
@@ -200,7 +206,7 @@ jobs:
           context: ./src/summary
           file: ./src/summary/Dockerfile
           target: production
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -216,6 +222,7 @@ jobs:
         uses: actions/checkout@v6
       -
         name: Set up QEMU
+        if: env.IS_MULTI_PLATFORM_BUILD == 'true'
         uses: docker/setup-qemu-action@v3
       -
         name: Set up Docker Buildx
@@ -248,7 +255,7 @@ jobs:
           context: ./src/agents
           file: ./src/agents/Dockerfile
           target: production
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.BUILD_PLATFORMS }}
           build-args: DOCKER_USER=${{ env.DOCKER_USER }}:-1000
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}

@@ -1,13 +1,29 @@
-import { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
-import { NoiseSuppressorWorklet_Name } from '@timephy/rnnoise-wasm'
-
-// This is an example how to get the script path using Vite, may be different when using other build tools
-// NOTE: `?worker&url` is important (`worker` to generate a working script, `url` to get its url to load it)
-import NoiseSuppressorWorklet from '@timephy/rnnoise-wasm/NoiseSuppressorWorklet?worker&url'
+import type { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
 
 // Use Jitsi's approach: maintain a global AudioContext variable
 // and suspend/resume it as needed to manage audio state
 let audioContext: AudioContext
+
+/**
+ * Lazily load the WASM processor factory.
+ *
+ * '@libreaudio/la-call' pulls in a WebAssembly payload, so we defer importing
+ * it until a processor is actually initialized rather than at module load.
+ * The import promise is cached so repeated init() calls reuse the same module.
+ */
+type CreateWasmProcessor =
+  (typeof import('@libreaudio/la-call'))['createWasmProcessor']
+
+let wasmProcessorPromise: Promise<CreateWasmProcessor> | undefined
+
+function loadWasmProcessor(): Promise<CreateWasmProcessor> {
+  if (!wasmProcessorPromise) {
+    wasmProcessorPromise = import('@libreaudio/la-call').then(
+      (mod) => mod.createWasmProcessor
+    )
+  }
+  return wasmProcessorPromise
+}
 
 export interface AudioProcessorInterface extends TrackProcessor<Track.Kind.Audio> {
   name: string
@@ -20,7 +36,7 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
   private source?: MediaStreamTrack
   private sourceNode?: MediaStreamAudioSourceNode
   private destinationNode?: MediaStreamAudioDestinationNode
-  private noiseSuppressionNode?: AudioWorkletNode
+  private noiseSuppressionNode?: AudioNode
 
   async init(opts: ProcessorOptions<Track.Kind.Audio>) {
     if (!opts.track) {
@@ -35,16 +51,17 @@ export class RnnNoiseProcessor implements AudioProcessorInterface {
       await audioContext.resume()
     }
 
-    await audioContext.audioWorklet.addModule(NoiseSuppressorWorklet)
-
     this.sourceNode = audioContext.createMediaStreamSource(
       new MediaStream([this.source])
     )
 
-    this.noiseSuppressionNode = new AudioWorkletNode(
-      audioContext,
-      NoiseSuppressorWorklet_Name
-    )
+    const createWasmProcessor = await loadWasmProcessor()
+    this.noiseSuppressionNode = await createWasmProcessor(audioContext, {
+      intensity: 90,
+    })
+    if (!this.noiseSuppressionNode) {
+      throw new Error('Failed to create Wasm processor')
+    }
 
     this.destinationNode = audioContext.createMediaStreamDestination()
 

@@ -5,7 +5,7 @@ import {
 } from '@/features/rooms/livekit/components/blur'
 import {
   loadUserChoices,
-  LocalUserChoices as LocalUserChoicesLK,
+  type LocalUserChoices as LocalUserChoicesLK,
   saveUserChoices,
 } from '@livekit/components-core'
 import { VideoQuality } from 'livekit-client'
@@ -60,4 +60,46 @@ if (userChoicesStore.processorConfig?.type === ProcessorType.VIRTUAL) {
         userChoicesStore.processorConfig = undefined
       })
   }
+}
+
+export const saveAudioInputEnabled = (isEnabled: boolean) => {
+  userChoicesStore.audioEnabled = isEnabled
+}
+
+export const saveVideoInputEnabled = (isEnabled: boolean) => {
+  userChoicesStore.videoEnabled = isEnabled
+}
+
+export const saveAudioInputDeviceId = (deviceId: string) => {
+  userChoicesStore.audioDeviceId = deviceId
+}
+
+export const saveAudioOutputDeviceId = (deviceId: string) => {
+  userChoicesStore.audioOutputDeviceId = deviceId
+}
+
+export const saveVideoInputDeviceId = (deviceId: string) => {
+  userChoicesStore.videoDeviceId = deviceId
+}
+
+export const saveVideoPublishResolution = (resolution: VideoResolution) => {
+  userChoicesStore.videoPublishResolution = resolution
+}
+
+export const saveVideoSubscribeQuality = (quality: VideoQuality) => {
+  userChoicesStore.videoSubscribeQuality = quality
+}
+
+export const saveUsername = (username: string) => {
+  userChoicesStore.username = username
+}
+
+export const saveNoiseReductionEnabled = (enabled: boolean) => {
+  userChoicesStore.noiseReductionEnabled = enabled
+}
+
+export const saveProcessorConfig = (
+  processorConfig: ProcessorConfig | undefined
+) => {
+  userChoicesStore.processorConfig = processorConfig
 }

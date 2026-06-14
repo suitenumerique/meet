@@ -11,7 +11,7 @@ import {
 } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { Box } from './Box'
-import { StyledPopover } from './Popover'
+import { StyledPopover } from './StyledPopover'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { css } from '@/styled-system/css'
 import type { Placement } from '@react-types/overlays'

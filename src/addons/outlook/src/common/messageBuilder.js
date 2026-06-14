@@ -1,4 +1,5 @@
-const { APP_NAME } = require("./index");
+const { APP_NAME, ENABLE_SOURCE_TRACKING } = require("./index");
+const { t } = require("./i18n");
 
 function _formatPin(pin) {
   if (!pin) return "";
@@ -20,33 +21,59 @@ function _formatPhone(phone) {
   return clean;
 }
 
+function _appendTrackingParams(url) {
+  if (!ENABLE_SOURCE_TRACKING) return url;
+  const u = new URL(url);
+  u.searchParams.set("from", "outlook-addin");
+  return u.toString();
+}
+
+
 // todo - escape html / link
-function buildMeetingMessage(data) {
+function buildMeetingMessage(data, isWeb) {
   if (!data?.url) {
     throw new Error("buildMeetingMessage: missing url in data");
   }
 
-  const url = data.url;
+  const url = _appendTrackingParams(data.url);
   const phone = _formatPhone(data.telephony?.phone_number);
   const pin = _formatPin(data.telephony?.pin_code);
 
-  const telephonyBlock =
-    phone && pin
-      ? `
+  let textLines = "";
+  let phoneLines = [];
 
-Ou appelez (audio uniquement)
-(FR) ${phone}
-Code : ${pin}`
-      : "";
+  const join = t("meeting_message.join", { app_name: APP_NAME });
+  const phoneOnly = t("meeting_message.phone_only");
+  const phoneFr = t("meeting_message.phone_fr", { phone });
+  const pinCode = t("meeting_message.pin_code", { pin });
 
-  const message = `<pre style="font-family:inherit; font-size:inherit; border:none; background:none; margin:16px 0;">
-────────────────────────────────────────
-Rejoindre la réunion ${APP_NAME}
+  if (isWeb) {
+    phoneLines = phone && pin ? [`<br><br>${phoneOnly}`, `<br>${phoneFr}`, `<br>${pinCode}`] : [];
 
-<a href="${url}">${url}</a>${telephonyBlock}
-────────────────────────────────────────</pre>`;
+    textLines = [
+      "<br><br>────────────────────────────────────────",
+      `<br>${join}`,
+      `<br><br><a href="${url}" target="_blank">${url}</a>`,
+      ...phoneLines,
+      "<br>────────────────────────────────────────<br>",
+    ];
 
-  return { url, message };
+  } else {
+
+    phoneLines = phone && pin ? [`\n\n${phoneOnly}`, `\n${phoneFr}`, `\n${pinCode}`] : [];
+
+    textLines = [
+      "\n\n────────────────────────────────────────",
+      `\n${join}`,
+      `\n\n${url}`,
+      ...phoneLines,
+      "\n────────────────────────────────────────\n",
+    ];
+  }
+
+  const text = textLines.join("");
+
+  return { url, text };
 }
 
 module.exports = { buildMeetingMessage };

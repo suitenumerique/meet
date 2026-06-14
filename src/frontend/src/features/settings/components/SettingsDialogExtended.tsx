@@ -116,7 +116,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
             </Tab>
             {isAdminOrOwner && (
               <Tab icon highlight id={SettingsDialogExtendedKey.TRANSCRIPTION}>
-                <Icon type="symbols" name="speech_to_text" />
+                <Icon name="speech_to_text" />
                 {isWideScreen &&
                   t(`tabs.${SettingsDialogExtendedKey.TRANSCRIPTION}`)}
               </Tab>

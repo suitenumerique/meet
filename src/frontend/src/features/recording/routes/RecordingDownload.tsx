@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next'
 import { useTitle } from 'hoofd'
 import { useMemo } from 'react'
 import { mediaUrl } from '@/api/mediaUrl'
-import { UserAware, useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
+import { UserAware } from '@/features/auth/components/UserAware'
 import { Screen } from '@/layout/Screen'
 import { H, LinkButton, Text } from '@/primitives'
 import { formatDate } from '@/utils/formatDate'
@@ -40,7 +41,7 @@ const BetaBadge = () => (
   </span>
 )
 
-export const RecordingDownload = () => {
+const RecordingDownload = () => {
   const { t } = useTranslation('recording')
   const { data: configData } = useConfig()
   const { recordingId } = useParams()
@@ -175,3 +176,5 @@ export const RecordingDownload = () => {
     </UserAware>
   )
 }
+
+export default RecordingDownload

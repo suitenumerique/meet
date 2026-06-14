@@ -1,12 +1,18 @@
 /* global Office */
+const { APP_NAME } = require("../common/index");
 const { createRoom, initSession } = require("../common/api");
 const { startPolling } = require("../common/polling");
 const { saveSession, loadSession } = require("../common/session");
 const { openTransitDialog } = require("../common/transitDialog");
 const { buildMeetingMessage } = require("../common/messageBuilder");
 const { applyAppName } = require("../common/helpers");
+const { initI18n, t } = require("../common/i18n");
+const { isMeetingAlreadyAdded } = require("../common/meetingDetector");
 
-Office.onReady(function (info) {
+Office.onReady(async function (info) {
+
+  await initI18n()
+
   if (info.host === Office.HostType.Outlook) {
     applyAppName();
   }
@@ -22,41 +28,52 @@ function notify(message) {
 }
 
 function insertMeetingLink(event, session) {
+  const item = Office.context.mailbox.item;
+
+  isMeetingAlreadyAdded(item)
+    .then((alreadyAdded) => {
+      if (alreadyAdded) {
+        notify(t("meeting.already_added", { app_name: APP_NAME }));
+        event.completed();
+        return;
+      }
+      return _doInsertMeetingLink(event, session);
+    })
+    .catch((err) => {
+      notify(t("meeting.error.details", { message: err.message }));
+      event.completed();
+    });
+}
+
+function _doInsertMeetingLink(event, session) {
   createRoom(session)
     .then((data) => {
-      const { url, message } = buildMeetingMessage(data);
+      const isWeb = Office.context.diagnostics.platform === "OfficeOnline";
+      const { url, text } = buildMeetingMessage(data, isWeb);
       const item = Office.context.mailbox.item;
+      const coercionType = isWeb ? Office.CoercionType.Html : Office.CoercionType.Text;
 
       return new Promise((resolve, reject) => {
-        item.body.getAsync(Office.CoercionType.Html, (getResult) => {
-          if (getResult.status !== Office.AsyncResultStatus.Succeeded) {
-            notify(`Erreur de lecture : ${getResult.error.message}`);
+        item.body.setSelectedDataAsync(text, { coercionType }, (setResult) => {
+          if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
+            notify(t("meeting.error.details", { message: setResult.error.message }));
             resolve();
             return;
           }
 
-          const newBody = getResult.value + message;
-          item.body.setAsync(newBody, { coercionType: Office.CoercionType.Html }, (setResult) => {
-            if (setResult.status !== Office.AsyncResultStatus.Succeeded) {
-              notify(`Erreur d'insertion : ${setResult.error.message}`);
-              resolve();
-              return;
-            }
+          if (item.itemType !== Office.MailboxEnums.ItemType.Appointment) {
+            notify(t("meeting.link_inserted"));
+            resolve();
+            return;
+          }
 
-            if (item.itemType !== Office.MailboxEnums.ItemType.Appointment) {
-              notify("Lien de réunion inséré !");
-              resolve();
-              return;
+          item.location.setAsync(url, (locationResult) => {
+            if (locationResult.status !== Office.AsyncResultStatus.Succeeded) {
+              notify(t("meeting.error.details", { message: locationResult.error.message }));
+            } else {
+              notify(t("meeting.link_inserted"));
             }
-
-            item.location.setAsync(url, (locationResult) => {
-              if (locationResult.status !== Office.AsyncResultStatus.Succeeded) {
-                notify(`Erreur de localisation : ${locationResult.error.message}`);
-              } else {
-                notify("Lien de réunion inséré !");
-              }
-              resolve();
-            });
+            resolve();
           });
         });
       });
@@ -79,11 +96,11 @@ function connect(event) {
           });
         },
         onTimeout: () => {
-          notify("Connexion expirée, veuillez réessayer.");
+          notify(t("meeting.error.auth"));
           event.completed();
         },
         onError: (err) => {
-          notify("Une erreur est survenue, veuillez ré-essayer");
+          notify(t("meeting.error.retry"));
           event.completed();
         },
       });
@@ -99,7 +116,7 @@ function connect(event) {
       });
     })
     .catch((err) => {
-      notify(`Erreur : ${err.message}`);
+      notify(t("meeting.error.details", { message: err.message }));
       event.completed();
     });
 }

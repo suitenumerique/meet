@@ -1,6 +1,6 @@
 import { fetchApi } from '@/api/fetchApi'
-import { useQuery, UseQueryOptions } from '@tanstack/react-query'
-import { ApiError } from '@/api/ApiError'
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query'
+import type { ApiError } from '@/api/ApiError'
 import { keys } from '@/api/queryKeys'
 
 export type WaitingParticipant = {

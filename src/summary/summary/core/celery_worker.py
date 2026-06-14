@@ -14,7 +14,11 @@ from requests import exceptions
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
-from summary.core.file_service import FileService, FileServiceException
+from summary.core.file_service import (
+    FileService,
+    FileServiceException,
+    TranscribeError,
+)
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.locales import get_locale
 from summary.core.models import (
@@ -540,14 +544,24 @@ def process_audio_transcribe_v2_task(
 
     job_id = self.request.id
 
-    transcription_res = WhisperXResponse(
-        **transcribe_audio(  # type: ignore
-            task_id=job_id,
-            cloud_storage_url=payload.cloud_storage_url,
-            language=payload.language,
-            raises=True,
-        ).model_dump()
-    )
+    try:
+        transcription_res = WhisperXResponse(
+            **transcribe_audio(  # type: ignore
+                task_id=job_id,
+                cloud_storage_url=payload.cloud_storage_url,
+                language=payload.language,
+                raises=True,
+            ).model_dump()
+        )
+    except TranscribeError as e:
+        failure_payload = TranscribeWebhookFailurePayload(
+            job_id=job_id,
+            error_code=e.error_code,
+        )
+        call_webhook_v2_task.apply_async(
+            args=[failure_payload.model_dump(), payload.tenant_id]
+        )
+        return failure_payload.model_dump()
 
     file_service.store_transcript(
         transcript=transcription_res,

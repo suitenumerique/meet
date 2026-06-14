@@ -1,24 +1,19 @@
 import { useTranslation } from 'react-i18next'
-import { DialogTrigger, MenuItem, Menu as RACMenu } from 'react-aria-components'
-import { Button, Menu } from '@/primitives'
+import { DialogTrigger } from 'react-aria-components'
+import { Button } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
-import { navigateTo } from '@/navigation/navigateTo'
 import { Screen } from '@/layout/Screen'
-import { generateRoomId, useCreateRoom } from '@/features/rooms'
-import { useUser, UserAware } from '@/features/auth'
+import { UserAware } from '@/features/auth/components/UserAware'
+import { useUser } from '@/features/auth/api/useUser'
 import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
-import { RiAddLine, RiLink } from '@remixicon/react'
-import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
-import { IntroSlider } from '@/features/home/components/IntroSlider'
-import { MoreLink } from '@/features/home/components/MoreLink'
+import { IntroSlider } from '../components/IntroSlider'
+import { MoreLink } from '../components/MoreLink'
+import { CreateMeetingMenu } from '../components/CreateMeetingMenu'
 import { ReactNode, useEffect, useState } from 'react'
 
 import { css } from '@/styled-system/css'
-import { menuRecipe } from '@/primitives/menuRecipe.ts'
-import { usePersistentUserChoices } from '@/features/rooms/livekit/hooks/usePersistentUserChoices'
 import { useConfig } from '@/api/useConfig'
 import { LoginButton } from '@/components/LoginButton'
-import { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { LoadingScreen } from '@/components/LoadingScreen'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
@@ -146,18 +141,11 @@ const IntroText = styled('div', {
   },
 })
 
-export const Home = () => {
+const Home = () => {
   const { t } = useTranslation('home')
   const { isLoggedIn } = useUser()
 
-  const {
-    userChoices: { username },
-  } = usePersistentUserChoices()
-
-  const { mutateAsync: createRoom } = useCreateRoom()
-  const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
   const [redirectFailed, setRedirectFailed] = useState(false)
-
   const { data } = useConfig()
 
   useEffect(() => {
@@ -200,45 +188,7 @@ export const Home = () => {
               })}
             >
               {isLoggedIn ? (
-                <Menu>
-                  <Button variant="primary" data-attr="create-meeting">
-                    {t('createMeeting')}
-                  </Button>
-                  <RACMenu>
-                    <MenuItem
-                      className={
-                        menuRecipe({ icon: true, variant: 'light' }).item
-                      }
-                      onAction={async () => {
-                        const slug = generateRoomId()
-                        createRoom({ slug, username }).then((data) =>
-                          navigateTo('room', data.slug, {
-                            state: { create: true, initialRoomData: data },
-                          })
-                        )
-                      }}
-                      data-attr="create-option-instant"
-                    >
-                      <RiAddLine size={18} />
-                      {t('createMenu.instantOption')}
-                    </MenuItem>
-                    <MenuItem
-                      className={
-                        menuRecipe({ icon: true, variant: 'light' }).item
-                      }
-                      onAction={() => {
-                        const slug = generateRoomId()
-                        createRoom({ slug, username }).then((data) =>
-                          setLaterRoom(data)
-                        )
-                      }}
-                      data-attr="create-option-later"
-                    >
-                      <RiLink size={18} />
-                      {t('createMenu.laterOption')}
-                    </MenuItem>
-                  </RACMenu>
-                </Menu>
+                <CreateMeetingMenu />
               ) : (
                 <LoginButton proConnectHint={false} />
               )}
@@ -264,11 +214,9 @@ export const Home = () => {
             <IntroSlider />
           </RightColumn>
         </Columns>
-        <LaterMeetingDialog
-          room={laterRoom}
-          onOpenChange={() => setLaterRoom(null)}
-        />
       </Screen>
     </UserAware>
   )
 }
+
+export default Home

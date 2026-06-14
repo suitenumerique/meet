@@ -1,4 +1,4 @@
-import { Participant } from 'livekit-client'
+import type { Participant } from 'livekit-client'
 import { useRoomData } from '../livekit/hooks/useRoomData'
 import { fetchApi } from '@/api/fetchApi'
 

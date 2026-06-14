@@ -1,22 +1,21 @@
 import { useEffect } from 'react'
-import { usePersistentUserChoices } from './usePersistentUserChoices'
 import { useRoomContext } from '@livekit/components-react'
 import {
-  RemoteParticipant,
-  RemoteTrackPublication,
+  type RemoteParticipant,
+  type RemoteTrackPublication,
   RoomEvent,
   Track,
   VideoQuality,
 } from 'livekit-client'
+import { useSnapshot } from 'valtio'
+import { userChoicesStore } from '@/stores/userChoices'
 
 /**
  * This hook sets initial video quality for new participants as they join.
  * LiveKit doesn't allow handling video quality preferences at the room level.
  */
 export const useVideoResolutionSubscription = () => {
-  const {
-    userChoices: { videoSubscribeQuality },
-  } = usePersistentUserChoices()
+  const { videoSubscribeQuality } = useSnapshot(userChoicesStore)
 
   const room = useRoomContext()
 
@@ -24,7 +23,6 @@ export const useVideoResolutionSubscription = () => {
     if (!room) return
     const handleTrackPublished = (
       publication: RemoteTrackPublication,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _participant: RemoteParticipant
     ) => {
       // By default, the maximum quality is set to high

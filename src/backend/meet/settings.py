@@ -186,6 +186,9 @@ class Base(Configuration):
     FILE_UPLOAD_PATH = values.Value(
         "files", environ_name="FILE_UPLOAD_PATH", environ_prefix=None
     )
+    FILE_UPLOAD_TMP_PATH = values.Value(
+        "tmp/files", environ_name="FILE_UPLOAD_TMP_PATH", environ_prefix=None
+    )
 
     FILE_UPLOAD_APPLY_RESTRICTIONS = values.BooleanValue(
         default=True, environ_name="FILE_UPLOAD_APPLY_RESTRICTIONS", environ_prefix=None
@@ -908,6 +911,18 @@ class Base(Configuration):
         environ_name="APPLICATION_BASE_URL",
         environ_prefix=None,
     )
+    # Warning: EXTERNAL_API_ALLOW_PUBLIC_ACCESS is ignored when
+    # EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public.
+    EXTERNAL_API_ALLOW_PUBLIC_ACCESS = values.BooleanValue(
+        False,
+        environ_name="EXTERNAL_API_ALLOW_PUBLIC_ACCESS",
+        environ_prefix=None,
+    )
+    EXTERNAL_API_DEFAULT_ACCESS_LEVEL = values.Value(
+        "trusted",
+        environ_name="EXTERNAL_API_DEFAULT_ACCESS_LEVEL",
+        environ_prefix=None,
+    )
     # Allows third-party platforms to create users with email-only identification.
     # Required for external integrations, but fragile due to deferred user reconciliation
     # on sub. Enable it with care /!\
@@ -999,6 +1014,44 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Logging
+    # We want to make it easy to log to console but by default we log production
+    # to Sentry and don't want to log to console.
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "simple": {
+                "format": "{asctime} {name} {levelname} {message}",
+                "style": "{",
+            },
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "simple",
+            },
+        },
+        # Override root logger to send it to console
+        "root": {
+            "handlers": ["console"],
+            "level": values.Value(
+                "INFO", environ_name="LOGGING_LEVEL_LOGGERS_ROOT", environ_prefix=None
+            ),
+        },
+        "loggers": {
+            "core": {
+                "handlers": ["console"],
+                "level": values.Value(
+                    "INFO",
+                    environ_name="LOGGING_LEVEL_LOGGERS_APP",
+                    environ_prefix=None,
+                ),
+                "propagate": False,
+            },
+        },
+    }
+
     # pylint: disable=invalid-name
     @property
     def ENVIRONMENT(self):
@@ -1036,6 +1089,11 @@ class Base(Configuration):
         settings to be loaded.
         """
         super().post_setup()
+
+        if cls.FILE_UPLOAD_TMP_PATH == cls.FILE_UPLOAD_PATH:
+            raise ValueError(
+                "FILE_UPLOAD_TMP_PATH cannot be the same as FILE_UPLOAD_PATH"
+            )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:

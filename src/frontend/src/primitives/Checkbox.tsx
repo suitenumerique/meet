@@ -10,7 +10,7 @@ import { FieldErrors } from './FieldErrors'
 import { FieldDescription } from './FieldDescription'
 
 // styled taken from example at https://react-spectrum.adobe.com/react-aria/Checkbox.html
-export const StyledCheckbox = styled(RACCheckbox, {
+const StyledCheckbox = styled(RACCheckbox, {
   base: {
     display: 'flex',
     alignItems: 'center',

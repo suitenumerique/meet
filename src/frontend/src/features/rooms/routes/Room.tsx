@@ -1,7 +1,9 @@
+import '@livekit/components-styles'
 import { ReactNode, useEffect, useState } from 'react'
 import { useLocation, useParams } from 'wouter'
 import { ErrorScreen } from '@/components/ErrorScreen'
-import { useUser, UserAware } from '@/features/auth'
+import { UserAware } from '@/features/auth/components/UserAware'
+import { useUser } from '@/features/auth/api/useUser'
 import { Conference } from '../components/Conference'
 import { Join } from '../components/Join'
 import { Permissions } from '../components/Permissions'
@@ -10,6 +12,8 @@ import {
   isRoomValid,
   normalizeRoomId,
 } from '@/features/rooms/utils/isRoomValid'
+import { useConfig } from '@/api/useConfig.ts'
+import { LogLevel, setLogLevel } from 'livekit-client'
 
 const BaseRoom = ({ children }: { children: ReactNode }) => {
   return (
@@ -20,7 +24,7 @@ const BaseRoom = ({ children }: { children: ReactNode }) => {
   )
 }
 
-export const Room = () => {
+const Room = () => {
   const { isLoggedIn } = useUser()
   const [hasSubmittedEntry, setHasSubmittedEntry] = useState(false)
 
@@ -29,6 +33,13 @@ export const Room = () => {
   const initialRoomData = history.state?.initialRoomData
   const mode = isLoggedIn && history.state?.create ? 'create' : 'join'
   const skipJoinScreen = isLoggedIn && mode === 'create'
+
+  const { data } = useConfig()
+
+  useEffect(() => {
+    const shouldSilenceLogs = data?.silence_livekit_debug_logs || false
+    setLogLevel(shouldSilenceLogs ? LogLevel.silent : LogLevel.debug)
+  }, [data?.silence_livekit_debug_logs])
 
   useKeyboardShortcuts()
 
@@ -73,3 +84,5 @@ export const Room = () => {
     </BaseRoom>
   )
 }
+
+export default Room

@@ -10,47 +10,56 @@
     <script nonce="NONCE_PLACEHOLDER" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
 </head>
 <body>
-<div id="sideload-msg">Veuillez charger le complément.</div>
+<div id="sideload-msg" data-i18n="app.sideload"></div>
 
 <div id="app-body">
 
     <!-- Loading -->
     <div id="view-loading">
-        <p class="intro-text">Chargement...</p>
+        <p class="intro-text" data-i18n="app.loading"></p>
     </div>
 
     <!-- Unauthenticated -->
     <div id="view-unauth" style="display:none;">
         <p class="intro-text">
-            <span>Ajoutez facilement un lien de réunion <span data-app-name></span> à vos événements Outlook.</span>
+            <span data-i18n="unauth.intro"></span>
         </p>
         <hr class="divider" />
         <button class="proconnect-button" id="btn-connect">
-            <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
+            <span class="proconnect-sr-only" data-i18n="unauth.proconnect_btn"></span>
         </button>
         <p>
-            <a
-                    href="https://www.proconnect.gouv.fr/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Qu’est-ce que ProConnect ? - nouvelle fenêtre"
-            >
-                Qu’est-ce que ProConnect ?
-            </a>
+            <a href="https://www.proconnect.gouv.fr/"
+               target="_blank"
+               rel="noopener noreferrer"
+               data-i18n-attr="title:unauth.proconnect_link_title"
+               data-i18n="unauth.proconnect_link"
+            ></a>
         </p>
     </div>
 
     <!-- Authenticated -->
     <div id="view-auth" style="display:none;">
         <div id="btn-container">
-            <button id="btn-generate">Ajouter une réunion <span data-app-name></span></button>
-            <button id="btn-disconnect">Se déconnecter</button>
+            <!-- shown when no meeting is present -->
+            <button id="btn-generate" data-i18n="meeting.add_meeting"></button>
+            <!-- shown when a meeting is already present -->
+            <button id="btn-remove" style="display:none;" data-i18n="meeting.remove_meeting"></button>
+            <button id="btn-disconnect" data-i18n="auth.disconnect"></button>
         </div>
     </div>
 </div>
 <footer id="version-tag">
-    <span class="version-badge">alpha</span>
-    <span class="version-number">0.0.1</span>
+    <a id="feedback-link"
+       style="display:none;"
+       target="_blank"
+       rel="noopener noreferrer"
+       data-i18n="footer.feedback"
+    ></a>
+    <div id="footer-right">
+        <span class="version-badge">beta</span>
+        <span class="version-number">0.0.2</span>
+    </div>
 </footer>
 </body>
 </html>

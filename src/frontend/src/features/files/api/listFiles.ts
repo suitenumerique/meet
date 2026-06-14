@@ -6,7 +6,7 @@ import {
   ApiFileType,
   ApiFileUploadState,
 } from '@/features/files/api/types.ts'
-import { useUser } from '@/features/auth'
+import { useUser } from '@/features/auth/api/useUser'
 import { useConfig } from '@/api/useConfig.ts'
 
 type ListFilesResponse = {

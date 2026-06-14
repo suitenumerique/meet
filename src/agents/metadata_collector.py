@@ -19,12 +19,13 @@ from livekit.agents import (
     JobContext,
     JobProcess,
     JobRequest,
-    RoomInputOptions,
     RoomIO,
-    RoomOutputOptions,
     WorkerPermissions,
     cli,
     utils,
+)
+from livekit.agents import (
+    room_io as lk_room_io,
 )
 from livekit.plugins import silero
 from minio import Minio
@@ -302,13 +303,11 @@ class MetadataCollector:
             agent_session=session,
             room=self.ctx.room,
             participant=participant,
-            input_options=RoomInputOptions(
-                audio_enabled=True,
-                text_enabled=False,
-            ),
-            output_options=RoomOutputOptions(
-                audio_enabled=False,
-                transcription_enabled=False,
+            options=lk_room_io.RoomOptions(
+                audio_input=lk_room_io.AudioInputOptions(),
+                text_input=False,
+                audio_output=False,
+                text_output=False,
             ),
         )
 
@@ -324,7 +323,6 @@ class MetadataCollector:
     async def _close_session(self, session: AgentSession) -> None:
         """Close and cleanup VAD monitoring session."""
         try:
-            await session.drain()
             await session.aclose()
         except Exception:
             logger.exception("Error closing session")

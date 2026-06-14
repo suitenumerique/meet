@@ -1,7 +1,7 @@
-import { Participant, Track } from 'livekit-client'
+import type { Participant, Track } from 'livekit-client'
 import { fetchApi } from '@/api/fetchApi'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
-import Source = Track.Source
+type Source = Track.Source
 
 export const useParticipantPermissions = () => {
   const data = useRoomData()

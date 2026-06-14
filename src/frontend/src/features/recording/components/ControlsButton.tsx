@@ -3,7 +3,7 @@ import { HStack } from '@/styled-system/jsx'
 import { Spinner } from '@/primitives/Spinner'
 import { Button, Icon, Text } from '@/primitives'
 import { useTranslation } from 'react-i18next'
-import { RecordingStatuses } from '../hooks/useRecordingStatuses'
+import type { RecordingStatuses } from '../hooks/useRecordingStatuses'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { ConnectionState } from 'livekit-client'
@@ -57,7 +57,7 @@ export const ControlsButton = ({
   const isRoomConnected = room.state == ConnectionState.Connected
 
   const [showSaving, setShowSaving] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
   const isSaving = statuses.isSaving || isPendingToStop
   const isDisabled = !isRoomConnected || statuses.isAnotherModeStarted

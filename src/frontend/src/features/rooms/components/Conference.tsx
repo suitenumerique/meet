@@ -9,7 +9,7 @@ import {
   DisconnectReason,
   MediaDeviceFailure,
   Room,
-  RoomOptions,
+  type RoomOptions,
   VideoPresets,
 } from 'livekit-client'
 import { keys } from '@/api/queryKeys'
@@ -18,7 +18,7 @@ import { Screen } from '@/layout/Screen'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
-import { ApiRoom } from '../api/ApiRoom'
+import type { ApiRoom } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
 import { VideoConference } from '../livekit/prefabs/VideoConference'
@@ -32,6 +32,7 @@ import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { navigateTo } from '@/navigation/navigateTo'
 import { connectionObserverStore } from '@/stores/connectionObserver'
+import { PictureInPictureConference } from '@/features/pip/components/PictureInPictureConference'
 
 export const Conference = ({
   roomId,
@@ -71,7 +72,6 @@ export const Conference = ({
     isError: isFetchError,
     data,
   } = useQuery({
-    /* eslint-disable @tanstack/query/exhaustive-deps */
     queryKey: fetchKey,
     staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
     initialData: initialRoomData,
@@ -291,6 +291,7 @@ export const Conference = ({
             {...mediaDeviceError}
             onClose={() => setMediaDeviceError({ error: null, kind: null })}
           />
+          <PictureInPictureConference />
         </LiveKitRoom>
       </Screen>
     </QueryAware>

@@ -4,10 +4,11 @@
 
 from django.conf import settings
 
+from pydantic import ValidationError
 from rest_framework import serializers
 
 from core import models, utils
-from core.api.serializers import BaseValidationOnlySerializer
+from core.api.serializers import BaseValidationOnlySerializer, RoomConfiguration
 
 OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials"
 
@@ -34,10 +35,37 @@ class RoomSerializer(serializers.ModelSerializer):
     following the principle of least privilege.
     """
 
+    configuration = serializers.JSONField(required=False)
+
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "pin_code", "access_level"]
-        read_only_fields = ["id", "name", "slug", "pin_code", "access_level"]
+        fields = ["id", "name", "slug", "pin_code", "access_level", "configuration"]
+        read_only_fields = ["id", "name", "slug", "pin_code"]
+
+    def validate_configuration(self, value):
+        """Validate room configuration against the RoomConfiguration schema."""
+        if value is None or value == {}:
+            return value
+        try:
+            RoomConfiguration.model_validate(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(e.errors()) from e
+        return value
+
+    def validate_access_level(self, access_level):
+        """Reject public access_level unless explicitly allowed or the default is already public."""
+
+        if settings.EXTERNAL_API_DEFAULT_ACCESS_LEVEL == models.RoomAccessLevel.PUBLIC:
+            return access_level
+
+        if (
+            access_level == models.RoomAccessLevel.PUBLIC
+            and not settings.EXTERNAL_API_ALLOW_PUBLIC_ACCESS
+        ):
+            raise serializers.ValidationError(
+                "Public rooms are disabled for the external API."
+            )
+        return access_level
 
     def to_representation(self, instance):
         """Enrich response with application-specific computed fields."""
@@ -68,6 +96,9 @@ class RoomSerializer(serializers.ModelSerializer):
 
         # Set secure defaults
         validated_data["name"] = utils.generate_room_slug()
-        validated_data["access_level"] = models.RoomAccessLevel.TRUSTED
+        validated_data.setdefault(
+            "access_level", settings.EXTERNAL_API_DEFAULT_ACCESS_LEVEL
+        )
+        validated_data.setdefault("configuration", {})
 
         return super().create(validated_data)

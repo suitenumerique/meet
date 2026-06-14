@@ -6,7 +6,7 @@ import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOw
 import { useEnterRoom } from '../api/enterRoom'
 import {
   useListWaitingParticipants,
-  WaitingParticipant,
+  type WaitingParticipant,
 } from '../api/listWaitingParticipants'
 import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'

@@ -3,10 +3,10 @@ import {
   SwitchProps as RACSwitchProps,
 } from 'react-aria-components'
 import { styled } from '@/styled-system/jsx'
-import { StyledVariantProps } from '@/styled-system/types'
+import { type StyledVariantProps } from '@/styled-system/types'
 import { RiCheckLine, RiCloseFill } from '@remixicon/react'
 
-export const StyledSwitch = styled(RACSwitch, {
+const StyledSwitch = styled(RACSwitch, {
   base: {
     display: 'flex',
     alignItems: 'center',

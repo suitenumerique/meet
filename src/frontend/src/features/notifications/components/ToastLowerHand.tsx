@@ -1,11 +1,12 @@
 import { useToast } from '@react-aria/toast'
 import { useRef } from 'react'
 
-import { StyledToastContainer, ToastProps } from './Toast'
+import { type ToastProps } from './Toast'
 import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/primitives'
 import { css } from '@/styled-system/css'
+import { StyledToastContainer } from './StyledToastContainer'
 
 export function ToastLowerHand({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications', { keyPrefix: 'lowerHand' })

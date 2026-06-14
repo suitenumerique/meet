@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Emoji } from './types'
+import type { Emoji } from './types'
 
 export const getEmojiLabel = (
   emoji: string | Emoji,

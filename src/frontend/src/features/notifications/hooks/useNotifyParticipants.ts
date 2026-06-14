@@ -1,6 +1,6 @@
 import { useRoomContext } from '@livekit/components-react'
-import { NotificationType } from '../NotificationType'
-import { NotificationPayload } from '../NotificationPayload'
+import type { NotificationType } from '../NotificationType'
+import type { NotificationPayload } from '../NotificationPayload'
 
 export const useNotifyParticipants = () => {
   const room = useRoomContext()

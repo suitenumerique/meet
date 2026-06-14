@@ -2,7 +2,7 @@ import { Button } from '@/primitives'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { RiCameraSwitchLine } from '@remixicon/react'
 import { useEffect, useState } from 'react'
-import { ButtonProps } from 'react-aria-components'
+import type { ButtonProps } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 
 enum FacingMode {

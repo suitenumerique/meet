@@ -231,6 +231,16 @@
       }
     }
   },
+  "pictureInPicture": {
+    "placeholder": {
+      "title": "Votre appel vidéo est dans une autre fenêtre.",
+      "description": "Le mode image dans l'image vous permet de rester connecté à l'appel tout en effectuant d'autres tâches.",
+      "bringBack": "Ramener l'appel ici"
+    },
+    "stage": "Participants",
+    "controlBar": "Commandes de la réunion",
+    "title": "Réunion en image dans l'image"
+  },
   "options": {
     "buttonLabel": "Plus d'options",
     "items": {
@@ -241,6 +251,10 @@
       "username": "Choisir votre nom",
       "effects": "Arrière-plans et effets",
       "switchCamera": "Changer de caméra",
+      "pictureInPicture": {
+        "enter": "Image dans l'image",
+        "exit": "Fermer l'image dans l'image"
+      },
       "fullscreen": {
         "enter": "Plein écran",
         "exit": "Quitter le mode plein écran"
