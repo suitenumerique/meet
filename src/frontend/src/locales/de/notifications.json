@@ -14,6 +14,10 @@
     "auto": "Du hast begonnen zu sprechen – deine Hand wird daher automatisch gesenkt.",
     "dismiss": "Hand oben lassen"
   },
+  "autoMuteLargeRoom": {
+    "auto": "Sie haben an einer großen Besprechung teilgenommen. Ihr Mikrofon wurde automatisch stummgeschaltet.",
+    "dismiss": "Stummschaltung aufheben"
+  },
   "reaction": {
     "description": "{{name}} hat mit {{emoji}} reagiert"
   },

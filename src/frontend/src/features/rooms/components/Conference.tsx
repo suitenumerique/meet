@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -33,6 +33,9 @@ import { useIsMobile } from '@/utils/useIsMobile'
 import { navigateTo } from '@/navigation/navigateTo'
 import { connectionObserverStore } from '@/stores/connectionObserver'
 import { PictureInPictureConference } from '@/features/pip/components/PictureInPictureConference'
+import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
+import { useSnapshot } from 'valtio'
+import { userPreferencesStore } from '@/stores/userPreferences'
 
 export const Conference = ({
   roomId,
@@ -56,6 +59,8 @@ export const Conference = ({
   const fetchKey = [keys.room, roomId]
 
   const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
+
+  const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
   const {
     mutateAsync: createRoom,
@@ -173,6 +178,8 @@ export const Conference = ({
 
   const isMobile = useIsMobile()
 
+  const hasAutoMutedRef = useRef(false)
+
   /*
    * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
    * (Firefox <124, Chrome <125, Edge <125) where HTTPS URLs in WebSocket() constructor
@@ -227,6 +234,19 @@ export const Conference = ({
           })}
           onError={(e) => {
             posthog.captureException(e)
+          }}
+          onConnected={async () => {
+            if (!apiConfig) return
+            if (
+              userPreferencesSnap.is_auto_mute_large_room_enabled &&
+              !hasAutoMutedRef.current &&
+              userConfig.audioEnabled &&
+              room.numParticipants > apiConfig.auto_mute_on_join_threshold
+            ) {
+              hasAutoMutedRef.current = true
+              await room.localParticipant.setMicrophoneEnabled(false)
+              notifyAutoMutedOnJoin()
+            }
           }}
           onDisconnected={(e) => {
             const metadata = {

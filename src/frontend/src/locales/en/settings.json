@@ -12,6 +12,10 @@
     "idleDisconnectModal": {
       "label": "Leave calls with no participants",
       "description": "Automatically leaves a call after a few minutes if no other participant joins"
+    },
+    "autoMuteLargeRoom": {
+      "label": "Automatically mute my microphone",
+      "description": "Automatically mute your microphone when joining a large meeting."
     }
   },
   "audio": {

@@ -12,6 +12,10 @@
     "idleDisconnectModal": {
       "label": "Verlaat oproepen zonder deelnemers",
       "description": "Verlaat automatisch een oproep na een paar minuten als geen andere deelnemer meedoet"
+    },
+    "autoMuteLargeRoom": {
+      "label": "Mijn microfoon automatisch dempen",
+      "description": "Uw microfoon wordt automatisch gedempt wanneer u deelneemt aan een grote vergadering."
     }
   },
   "audio": {

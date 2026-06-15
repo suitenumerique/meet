@@ -39,6 +39,19 @@ export const GeneralTab = ({ id }: GeneralTabProps) => {
           fullWidth: true,
         }}
       />
+      <Field
+        type="switch"
+        label={t('preferences.autoMuteLargeRoom.label')}
+        description={t('preferences.autoMuteLargeRoom.description')}
+        isSelected={userPreferencesSnap.is_auto_mute_large_room_enabled}
+        onChange={(value) =>
+          (userPreferencesStore.is_auto_mute_large_room_enabled = value)
+        }
+        wrapperProps={{
+          noMargin: true,
+          fullWidth: true,
+        }}
+      />
     </TabPanel>
   )
 }

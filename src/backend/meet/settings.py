@@ -413,7 +413,10 @@ class Base(Configuration):
         ),
         "max_participants_for_sound": values.PositiveIntegerValue(
             5, environ_name="FRONTEND_MAX_PARTICIPANTS_FOR_SOUND", environ_prefix=None
-        )
+        ),
+        "auto_mute_on_join_threshold": values.PositiveIntegerValue(
+            50, environ_name="FRONTEND_AUTO_MUTE_ON_JOIN_THRESHOLD", environ_prefix=None
+        ),
     }
 
     # Mail

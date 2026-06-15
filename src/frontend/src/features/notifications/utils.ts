@@ -5,6 +5,15 @@ import type { Participant } from 'livekit-client'
 import type { NotificationPayload } from './NotificationPayload'
 import type { RecordingMode } from '@/features/recording'
 
+export const notifyAutoMutedOnJoin = () => {
+  toastQueue.add(
+    {
+      type: NotificationType.AutoMuteLargeRoom,
+    },
+    { timeout: NotificationDuration.ALERT }
+  )
+}
+
 export const showLowerHandToast = (
   participant: Participant,
   onClose: () => void

@@ -14,6 +14,10 @@
     "auto": "Het lijkt erop dat u bent begonnen te spreken, dus we laten uw hand zakken.",
     "dismiss": "Houdt uw hand opgestoken"
   },
+  "autoMuteLargeRoom": {
+    "auto": "U bent zojuist lid geworden van een grote vergadering. Uw microfoon is automatisch gedempt.",
+    "dismiss": "Microfoon inschakelen"
+  },
   "reaction": {
     "description": "{{name}} reageerde met {{emoji}}"
   },
