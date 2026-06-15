@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-06-15
+
 ### Added
 
 - ✨(frontend) allow disabling silent login via a URL parameter
