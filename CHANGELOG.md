@@ -20,6 +20,10 @@ and this project adheres to
 - 🚸(frontend) mute join notification sound in larger rooms
 - 🚸(frontend) mute participants by default when joining a large meeting
 
+### Fixed
+
+- 🐛(frontend) fix metadata agent collector enabled check
+
 ## [1.20.0] - 2026-06-12
 
 ### Changed
