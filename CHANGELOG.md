@@ -17,6 +17,7 @@ and this project adheres to
 
 - ✨(frontend) enhance noise reduction with BBBA audio processing pipeline
 - 🚸(frontend) mute join notification sound in larger rooms
+- 🚸(frontend) mute participants by default when joining a large meeting
 
 ## [1.20.0] - 2026-06-12
 

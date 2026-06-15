@@ -14,6 +14,10 @@
     "auto": "It seems you have started speaking, so your hand will be lowered.",
     "dismiss": "Keep hand raised"
   },
+  "autoMuteLargeRoom": {
+    "auto": "You have joined a large meeting. Your microphone has been automatically muted.",
+    "dismiss": "Unmute"
+  },
   "reaction": {
     "description": "{{name}} reacted with {{emoji}}"
   },

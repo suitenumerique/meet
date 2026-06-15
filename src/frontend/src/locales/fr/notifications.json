@@ -14,6 +14,10 @@
     "auto": "Il semblerait que vous ayez pris la parole, donc la main va être baissée.",
     "dismiss": "Laisser la main levée"
   },
+  "autoMuteLargeRoom": {
+    "auto": "Vous venez de rejoindre une grande réunion. Votre micro a été automatiquement coupé.",
+    "dismiss": "Rétablir le micro"
+  },
   "reaction": {
     "description": "{{name}} a reagi avec {{emoji}}"
   },

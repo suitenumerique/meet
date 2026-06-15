@@ -12,6 +12,10 @@
     "idleDisconnectModal": {
       "label": "Meetings ohne Teilnehmende verlassen",
       "description": "Meetings nach einigen Minuten automatisch verlassen, wenn keine andere Person beitritt"
+    },
+    "autoMuteLargeRoom": {
+      "label": "Mikrofon automatisch stummschalten",
+      "description": "Dein Mikrofon wird automatisch stummgeschaltet, wenn du an einer großen Besprechung teilnimmst."
     }
   },
   "audio": {

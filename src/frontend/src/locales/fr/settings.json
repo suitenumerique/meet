@@ -12,6 +12,10 @@
     "idleDisconnectModal": {
       "label": "Quitter les appels sans autre participant",
       "description": "Vous fait quitter un appel au bout de quelques minutes si aucun autre participant ne vous rejoint"
+    },
+    "autoMuteLargeRoom": {
+      "label": "Couper automatiquement mon micro",
+      "description": "Coupe automatiquement votre micro lorsque vous rejoignez une réunion de grande taille."
     }
   },
   "audio": {

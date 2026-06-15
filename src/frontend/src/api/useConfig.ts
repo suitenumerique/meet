@@ -56,6 +56,7 @@ export interface ApiConfig {
   }
   transcription_destination?: string
   max_participants_for_sound: number
+  auto_mute_on_join_threshold: number
 }
 
 const fetchConfig = (): Promise<ApiConfig> => {
