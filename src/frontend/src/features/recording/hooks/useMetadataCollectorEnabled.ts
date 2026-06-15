@@ -6,5 +6,5 @@ export const useIsMetadataCollectorEnabled = () => {
   const featureEnabled = useFeatureFlagEnabled(FeatureFlags.metadataCollector)
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
 
-  return (featureEnabled && isAnalyticsEnabled) || true
+  return !isAnalyticsEnabled || Boolean(featureEnabled)
 }
