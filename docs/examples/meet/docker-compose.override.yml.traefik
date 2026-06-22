@@ -1,0 +1,28 @@
+# Traefik override for Meet
+#
+# Adds Traefik router labels so Traefik automatically routes and issues
+# TLS certificates for each service.
+#
+# Usage:
+#   cp docker-compose.override.yml.traefik docker-compose.override.yml
+#   docker compose up -d
+
+services:
+
+  frontend:
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.meet-frontend.rule: "Host(`${MEET_HOST}`)"
+      traefik.http.routers.meet-frontend.entrypoints: websecure
+      traefik.http.routers.meet-frontend.tls: "true"
+      traefik.http.routers.meet-frontend.tls.certresolver: letsencrypt
+      traefik.http.services.meet-frontend.loadbalancer.server.port: "8083"
+
+  livekit:
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.meet-livekit.rule: "Host(`${LIVEKIT_HOST}`)"
+      traefik.http.routers.meet-livekit.entrypoints: websecure
+      traefik.http.routers.meet-livekit.tls: "true"
+      traefik.http.routers.meet-livekit.tls.certresolver: letsencrypt
+      traefik.http.services.meet-livekit.loadbalancer.server.port: "7880"
