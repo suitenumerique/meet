@@ -1,0 +1,72 @@
+[project]
+site_name = "Visio Documentation"
+site_url = "https://meet-doc.bebopo.eu"
+
+nav = [
+  {"Home" = "index.md"},
+  {"Background" = [
+    {"What is LaSuite Meet?" = "overview/what-is-meet.md"},
+    {"Architecture" = "overview/architecture.md"},
+    {"Key Concepts" = "overview/key-concepts.md"},
+    {"Feature Matrix" = "overview/feature-matrix.md"},
+    {"Changelog" = "overview/changelog.md"}
+  ]},
+  {"User Guide" = [
+    {"Getting Started" = "user/getting-started.md"},
+    {"Features & Controls" = "user/features-controls.md"},
+    {"Settings" = "user/settings.md"},
+    {"Recording" = "user/recording.md"},
+    {"AI Transcription" = "user/transcription.md"},
+    {"Accessibility" = "user/accessibility.md"},
+    {"Keyboard Shortcuts" = "user/keyboard-shortcuts.md"}
+  ]},
+  {"Self-Hosting" = [
+    {"Overview" = "self-hosting/index.md"},
+    {"Quick Start" = "self-hosting/compose/quick-start.md"},
+    {"Docker Compose" = [
+      {"Prerequisites" = "self-hosting/compose/prerequisites.md"},
+      {"Reverse Proxy" = [
+        {"nginx-proxy" = "self-hosting/compose/nginx.md"},
+        {"Traefik" = "self-hosting/compose/traefik.md"}
+      ]},
+      {"Deployment Guide" = "self-hosting/compose/deployment-guide.md"}
+    ]},
+    {"Kubernetes / Helm" = [
+      {"Prerequisites" = "self-hosting/kubernetes/prerequisites.md"},
+      {"Helm Deployment" = "self-hosting/kubernetes/helm.md"}
+    ]},
+    {"Scalingo" = "self-hosting/scalingo.md"},
+    {"Configuration" = [
+      {"LiveKit" = "self-hosting/configuration/livekit.md"},
+      {"Firewall & Ports" = "self-hosting/configuration/firewall.md"},
+      {"TURN Server" = "self-hosting/configuration/turn.md"},
+      {"SSO & Authentication" = "self-hosting/configuration/sso.md"},
+      {"Recording" = "self-hosting/configuration/recording.md"},
+      {"AI Transcription" = "self-hosting/configuration/transcription.md"},
+      {"Telephony" = "self-hosting/configuration/telephony.md"},
+      {"Theming" = "self-hosting/configuration/theming.md"},
+      {"Upgrading" = "self-hosting/configuration/upgrade.md"}
+    ]}
+  ]},
+  {"Reference" = [
+    {"API" = "reference/api.md"},
+    {"External API" = [
+      {"Application-Delegated" = "reference/external-api-delegated.md"},
+      {"Resource Server (OAuth2)" = "reference/external-api-resource-server.md"}
+    ]},
+    {"Environment Variables" = "reference/env-variables.md"},
+    {"Networking" = "reference/networking.md"},
+    {"Security" = "reference/security.md"}
+  ]},
+  {"Troubleshooting" = "reference/troubleshooting.md"},
+  {"FAQ" = "faq.md"},
+  {"Contributing" = [
+    {"Local Development" = "contributing/local-dev.md"},
+    {"Repository Structure" = "contributing/repo-structure.md"},
+    {"Backend" = "contributing/backend.md"},
+    {"Frontend" = "contributing/frontend.md"},
+    {"LiveKit Integration" = "contributing/livekit-integration.md"},
+    {"Testing" = "contributing/testing.md"},
+    {"Pull Requests" = "contributing/pull-requests.md"}
+  ]}
+]

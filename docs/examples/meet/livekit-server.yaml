@@ -1,0 +1,14 @@
+port: 7880
+rtc:
+  tcp_port: 7881
+  udp_port: 7882
+  use_external_ip: true   # required on cloud servers behind NAT
+
+keys:
+  meet: REPLACE_ME  # must match LIVEKIT_API_SECRET in .env
+
+redis:
+  address: redis:6379
+
+logging:
+  level: info

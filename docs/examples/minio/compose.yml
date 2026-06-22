@@ -1,0 +1,44 @@
+# MinIO stack
+#
+# S3-compatible object storage for Meet recording.
+# Only needed if you want meeting recording.
+# Skip this if you use an external S3-compatible service (AWS S3, Scaleway, OVH, etc.)
+#
+# Usage:
+#   cd ~/docker/minio
+#   cp .env.example .env && nano .env   # fill in your values
+#   docker compose up -d
+#   # Then run the bucket initialization - see the Recording guide.
+#
+# MinIO console: https://s3.example.com (or http://localhost:9001 if not proxied)
+#
+# External network expected:
+#   proxy    - for reverse proxy access to the console (optional)
+#   internal - must match the network name used by your Meet stack
+
+services:
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - minio_data:/data
+    networks:
+      - meet_internal  # must match the 'internal' network name of your Meet stack
+
+volumes:
+  minio_data:
+
+networks:
+  meet_internal:
+    external: true
+    name: ${MEET_INTERNAL_NETWORK:-meet_internal}
