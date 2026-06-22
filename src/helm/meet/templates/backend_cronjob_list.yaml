@@ -23,6 +23,9 @@ items:
           template:
             metadata:
               name: {{ $fullName }}-{{ .name }}
+              labels:
+                cronjob-name: {{ .name }}
+                {{- include "meet.common.labels" (list $ $component) | nindent 16 }}
             spec:
               {{- if $.Values.image.credentials }}
               imagePullSecrets:
