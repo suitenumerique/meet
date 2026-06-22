@@ -1,0 +1,63 @@
+# Keycloak stack
+#
+# Standalone identity provider for Meet.
+# Skip this entirely if you already have an OIDC provider (Authentik, Auth0, etc.)
+#
+# Usage:
+#   cd ~/docker/keycloak
+#   cp docker-compose.override.yml.nginx docker-compose.override.yml  # or traefik
+#   # edit env.d/hosts and env.d/keycloak
+#   docker compose up -d
+#
+# External network expected:
+#   proxy - shared with your reverse proxy
+
+services:
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-latest}
+    restart: unless-stopped
+    command:
+      - start
+      - --import-realm
+    env_file:
+      - env.d/hosts
+      - env.d/kc_postgresql
+      - env.d/keycloak
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    volumes:
+      - ./keycloak-realm.json:/opt/keycloak/data/import/realm.json:ro
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    networks:
+      - proxy
+      - internal
+
+  postgresql:
+    image: postgres:16
+    restart: unless-stopped
+    env_file:
+      - env.d/kc_postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d keycloak -U keycloak"]
+      interval: 1s
+      timeout: 2s
+      retries: 300
+    volumes:
+      - kc_db:/var/lib/postgresql/data
+    networks:
+      - internal
+
+volumes:
+  kc_db:
+
+networks:
+  proxy:
+    external: true
+  internal:

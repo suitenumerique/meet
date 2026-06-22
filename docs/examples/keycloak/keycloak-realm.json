@@ -1,0 +1,26 @@
+{
+  "realm": "meet",
+  "enabled": true,
+  "sslRequired": "external",
+  "clients": [
+    {
+      "clientId": "meet",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "REPLACE_ME",
+      "standardFlowEnabled": true,
+      "redirectUris": ["https://meet.example.com/api/v1.0/callback/"],
+      "webOrigins": ["https://meet.example.com"]
+    }
+  ],
+  "users": [
+    {
+      "username": "meet-admin",
+      "email": "admin@example.com",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{"type": "password", "value": "ChangeMe!", "temporary": true}]
+    }
+  ]
+}
