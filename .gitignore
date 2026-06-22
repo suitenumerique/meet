@@ -86,3 +86,6 @@ docker/livekit/rootCA.pem
 
 # Frontend rollup-plugin-visualizer
 /src/frontend/rollup-plugin-visualizer/*
+
+# Zensical build document site
+site
