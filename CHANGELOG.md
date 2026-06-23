@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- 📝(docs) document rebranding the favicon via a volume mount #1443
 - ✨(backend) add command to clean pending and deleted files
 - 🧱(helm) run clean files command as cronjob
 
