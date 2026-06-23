@@ -244,6 +244,69 @@ meet-admin               <none>   meet.127.0.0.1.nip.io       localhost   80, 44
 
 You can use LaSuite Meet on https://meet.127.0.0.1.nip.io from the local device. The provisioning user in keycloak is meet/meet.
 
+## Rebranding the favicon
+
+The favicon is bundled into the frontend image and served as a set of static
+files from `/usr/share/nginx/html` (`favicon.ico`, `favicon-16x16.png`,
+`favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`,
+`android-chrome-512x512.png`, `icon.png`). To rebrand without forking and
+rebuilding the image, overlay your own icons onto those paths with a volume —
+this serves the right icon from the first byte (no rebuild, no flash) and
+covers every variant, including the iOS home-screen and Android/PWA icons.
+
+Put your icons in a `ConfigMap` (`binaryData` keeps the PNGs intact)…
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: meet-favicon
+binaryData:
+  # base64 of each replacement icon
+  favicon.ico: <base64…>
+  favicon-16x16.png: <base64…>
+  favicon-32x32.png: <base64…>
+  apple-touch-icon.png: <base64…>
+  android-chrome-192x192.png: <base64…>
+  android-chrome-512x512.png: <base64…>
+```
+
+```bash
+# e.g. build the ConfigMap straight from a directory of icons
+$ kubectl create configmap meet-favicon --from-file=./my-icons/
+```
+
+…then mount each file over the bundled one via the chart's
+`frontend.extraVolumes` / `frontend.extraVolumeMounts` (the `subPath` mounts
+the single file without hiding the rest of `html/`):
+
+```yaml
+frontend:
+  extraVolumes:
+    - name: favicon
+      configMap:
+        name: meet-favicon
+  extraVolumeMounts:
+    - name: favicon
+      mountPath: /usr/share/nginx/html/favicon.ico
+      subPath: favicon.ico
+    - name: favicon
+      mountPath: /usr/share/nginx/html/favicon-16x16.png
+      subPath: favicon-16x16.png
+    - name: favicon
+      mountPath: /usr/share/nginx/html/favicon-32x32.png
+      subPath: favicon-32x32.png
+    - name: favicon
+      mountPath: /usr/share/nginx/html/apple-touch-icon.png
+      subPath: apple-touch-icon.png
+    - name: favicon
+      mountPath: /usr/share/nginx/html/android-chrome-192x192.png
+      subPath: android-chrome-192x192.png
+    - name: favicon
+      mountPath: /usr/share/nginx/html/android-chrome-512x512.png
+      subPath: android-chrome-512x512.png
+```
+
 ## All options
 
 These are the environmental options available on meet backend.
