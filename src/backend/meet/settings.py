@@ -699,6 +699,11 @@ class Base(Configuration):
     RESOURCE_DEFAULT_ACCESS_LEVEL = values.Value(
         "public", environ_name="RESOURCE_DEFAULT_ACCESS_LEVEL", environ_prefix=None
     )
+    RESOURCE_ALLOWED_ACCESS_LEVELS = values.ListValue(
+        ["public", "trusted", "restricted"],
+        environ_name="RESOURCE_ALLOWED_ACCESS_LEVELS",
+        environ_prefix=None,
+    )
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
@@ -1198,6 +1203,11 @@ class Base(Configuration):
                 # We use UserWarning to make sure it shows up in production deployment
                 UserWarning,
                 stacklevel=2,
+            )
+
+        if cls.RESOURCE_DEFAULT_ACCESS_LEVEL not in cls.RESOURCE_ALLOWED_ACCESS_LEVELS:
+            raise ValueError(
+                "RESOURCE_DEFAULT_ACCESS_LEVEL must be one of RESOURCE_ALLOWED_ACCESS_LEVELS"
             )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
