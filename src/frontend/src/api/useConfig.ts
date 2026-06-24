@@ -48,6 +48,9 @@ export interface ApiConfig {
   diagnostics: {
     connection_test_enabled?: boolean
   }
+  room?: {
+    allowed_access_levels: ApiAccessLevel[]
+  }
   telephony: {
     enabled: boolean
     international_phone_number?: string
