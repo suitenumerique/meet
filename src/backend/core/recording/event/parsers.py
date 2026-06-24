@@ -58,7 +58,7 @@ class EventParser(Protocol):
     def parse(self, data: Dict) -> StorageEvent:
         """Extract storage event data from raw dictionary input."""
 
-    def validate(self, data: StorageEvent) -> None:
+    def validate(self, data: StorageEvent) -> str:
         """Verify storage event data meets all requirements."""
 
     def get_recording_id(self, data: Dict) -> str:
