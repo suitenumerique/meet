@@ -39,7 +39,7 @@
     "livekit-client": "2.19.0",
     "posthog-js": "1.376.4",
     "react": "18.3.1",
-    "react-aria-components": "1.14.0",
+    "react-aria-components": "1.17.0",
     "react-dom": "18.3.1",
     "react-i18next": "17.0.8",
     "use-sound": "5.0.0",
