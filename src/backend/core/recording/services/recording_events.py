@@ -8,12 +8,17 @@ from livekit import api
 
 from core import models, utils
 from core.models import Recording
+from core.recording.event.notification import notification_service
 
 logger = getLogger(__name__)
 
 
 class RecordingEventsError(Exception):
     """Recording event handling fails."""
+
+
+class RecordingNotSavableError(Exception):
+    """Recording cannot be saved because it is either in an error state or has already been saved"""
 
 
 class RecordingEventsService:
@@ -73,3 +78,23 @@ class RecordingEventsService:
                 f"Failed to notify participants in room '{recording.room.id}' about "
                 f"recording limit reached (recording_id={recording.id})"
             ) from e
+
+    @staticmethod
+    def handle_complete(recording: Recording):
+        """Notify external services and save recording."""
+
+        if not recording.is_savable():
+            raise RecordingNotSavableError
+
+        # Attempt to notify external services about the recording
+        # This is a non-blocking operation - failures are logged but don't interrupt the flow
+        notification_succeeded = notification_service.notify_external_services(
+            recording
+        )
+
+        recording.status = (
+            models.RecordingStatusChoices.NOTIFICATION_SUCCEEDED
+            if notification_succeeded
+            else models.RecordingStatusChoices.SAVED
+        )
+        recording.save()

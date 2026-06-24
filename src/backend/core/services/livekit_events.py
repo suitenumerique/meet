@@ -19,6 +19,7 @@ from core.recording.services.metadata_collector import (
 from core.recording.services.recording_events import (
     RecordingEventsError,
     RecordingEventsService,
+    RecordingNotSavableError,
 )
 
 from .lobby import LobbyService
@@ -88,6 +89,13 @@ class LiveKitEventsService:
     def __init__(self):
         """Initialize with required services."""
 
+        self._webhook_handlers = {
+            "egress_updated": self._handle_egress_updated,
+            "egress_ended": self._handle_egress_ended,
+            "room_started": self._handle_room_started,
+            "room_finished": self._handle_room_finished,
+        }
+
         token_verifier = api.TokenVerifier(
             settings.LIVEKIT_CONFIGURATION["api_key"],
             settings.LIVEKIT_CONFIGURATION["api_secret"],
@@ -135,14 +143,11 @@ class LiveKitEventsService:
                 f"Unknown webhook type: {data.event}"
             ) from e
 
-        handler_name = f"_handle_{webhook_type.value}"
-        handler = getattr(self, handler_name, None)
+        # Handle according to received webhook type
+        handler = self._webhook_handlers.get(webhook_type.value)
 
-        if not handler or not callable(handler):
-            return
-
-        # pylint: disable=not-callable
-        handler(data)
+        if handler is not None:
+            handler(data)
 
     def _handle_egress_updated(self, data):
         """Handle 'egress_updated' event."""
@@ -194,6 +199,24 @@ class LiveKitEventsService:
                 raise ActionFailedError(
                     f"Failed to process limit reached event for recording {recording}"
                 ) from e
+
+        # Fallback for completion when no MinIO/S3 webhooks are configured
+        if (
+            not settings.RECORDING_STORAGE_EVENT_ENABLE
+        ) and data.egress_info.status in [
+            api.EgressStatus.EGRESS_COMPLETE,
+            api.EgressStatus.EGRESS_LIMIT_REACHED,
+        ]:
+            try:
+                self.recording_events.handle_complete(recording)
+            except RecordingNotSavableError:
+                logger.warning(
+                    "Recording %s is not savable on egress complete "
+                    "(already saved or in an error state); ignoring.",
+                    recording.id,
+                )
+
+        # Silently ignoring EGRESS_ABORTED, EGRESS_FAILED
 
     def _handle_room_started(self, data):
         """Handle 'room_started' event."""

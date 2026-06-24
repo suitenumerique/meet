@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(backend) add command to clean pending and deleted files
 - 🧱(helm) run clean files command as cronjob
+- ✨(backend) add fallback to save recordings without S3/MinIO webhooks
 
 ### Changed
 
