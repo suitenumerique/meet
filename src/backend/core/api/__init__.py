@@ -62,6 +62,9 @@ def get_frontend_configuration(request):
         },
         "telephony": build_telephony_config(),
         "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
+        "room": {
+            "allowed_access_levels": settings.RESOURCE_ALLOWED_ACCESS_LEVELS,
+        },
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "force_wss_protocol": settings.LIVEKIT_FORCE_WSS_PROTOCOL,
