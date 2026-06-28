@@ -95,14 +95,47 @@ We hope to see many more, here is an incomplete list of public La Suite Meet ins
 | [mosacloud.cloud](https://mosa.cloud/)                        | mosa.cloud    | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps. |
 
 
-## Contributing
+# Contributing
 
-We <3 contributions of any kind, big and small:
+We <3 contributions of all kinds **big or small** and we’re genuinely glad you’re here. 🌱
 
-- Vote on features or get early access to beta functionality in our [roadmap](https://github.com/orgs/suitenumerique/projects/11/views/4)
-- Open a PR (see our instructions on [developing La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md))
-- Submit a [feature request](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=enhancement&template=Feature_request.md) or [bug report](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md)
+### Start by saying hi
 
+**The best first contribution is simply to come say hi.**
+
+Before opening a PR, especially a larger one, or one written with the help of AI, we encourage you to reach out to a maintainer on our [Matrix channel](https://matrix.to/#/#meet-official:matrix.org) (@antoine.lebaud:matrix.org).
+
+Getting in touch early helps us align on goals, avoid duplicated or wasted effort, and build a community that stays active, welcoming, and fun to be part of. There are no silly questions here: whether you’ve shipped hundreds of PRs or you’re just getting started, you’re welcome.
+
+### AI contributions
+
+AI-assisted contributions are welcome. But code is never the end goal. What matters most is building relationships, sharing knowledge, and growing a sustainable community over time.
+
+If your contribution has been heavily generated with AI, please be transparent about it. This helps maintainers review it with the right context and respects the time they invest in the project.
+
+Using AI does not transfer ownership of the contribution: you should still fully understand the code, the problem it solves, and the reasoning behind the approach you propose. In short, even if AI helped write it, the why should still be yours.
+
+### Contributions beyond code
+
+**Not technical? We need you too.**
+Open source is much more than code. Writing documentation, improving onboarding, translating content, answering questions, reporting bugs, or simply helping others feel welcome all make a huge difference.
+
+### Ways to contribute
+
+When you’re ready, here are a few ways to get involved:
+
+* 👋 **Say hello** and share your ideas with the community and maintainers on our [Matrix channel](https://matrix.to/#/#meet-official:matrix.org)
+* 🛠️ **Open a PR** by following our guide to [develop La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md)
+* 💡 **Suggest an idea** by opening a [feature request](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=enhancement&template=Feature_request.md)
+* 🐛 **Report a bug** by opening a [bug report](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md)
+
+Thank you for helping build something open, useful, and human. 💙
+
+### Community call
+
+We host a community call on the first Friday of every month to share updates, discuss ideas, and connect with contributors.
+
+Whether you’re actively contributing or just curious about the project, you’re welcome to join. More details are shared on the [Matrix channel](https://matrix.to/#/#meet-official:matrix.org).
 
 ## Philosophy
 
