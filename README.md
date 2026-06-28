@@ -63,7 +63,7 @@ We’re continuously adding new features to enhance your experience, with the la
 
 ### 🚀 Major roll out to all French public servants
 
-On the 25th of January 2026, David Amiel, France’s Minister for Civil Service and State Reform, announced the full deployment of Visio—the French government’s dedicated Meet platform—to all public servants. ([Source in French](https://www.latribune.fr/article/la-tribune-dimanche/politique/73157688099661/david-amiel-ministre-delegue-de-la-fonction-publique-nous-allons-sortir-de-la-dependance-aux-outils-americains))
+On the 29th of January 2026, Prime Minister Sébastien Lecornu, announced the full deployment of Visio—the French government’s dedicated Meet platform—to all public servants. ([Source in English](https://www.nytimes.com/2026/01/29/world/europe/france-zoom-alternative-visio.html))
 
 ## Table of Contents
 
