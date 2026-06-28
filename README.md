@@ -31,6 +31,14 @@
 ## La Suite Meet: Simple Video Conferencing
 
 Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level performance with high-quality video and audio. No installation required—simply join calls directly from your browser. Check out LiveKit's impressive optimizations in their [blog post](https://blog.livekit.io/livekit-one-dot-zero/).
+
+> [!TIP]
+> New here? Start by introducing yourself in our Matrix channel:
+> **https://matrix.to/#/#meet-official:matrix.org**
+>
+> We’re happy to discuss ideas, answer questions, and help to deploy LaSuite Meet.
+
+
 ### Features
 - Optimized for stability in large meetings (+100 p.)
 - Support for multiple screen sharing streams
