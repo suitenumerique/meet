@@ -95,12 +95,13 @@ We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/
 #### Known instances
 We hope to see many more, here is an incomplete list of public La Suite Meet instances. Feel free to make a PR to add ones that are not listed below🙏
 
-| Url                                                           | Org | Access |
-|---------------------------------------------------------------| --- | ------- |
-| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/)   | DINUM    | French public agents working for the central administration and the extended public sphere. ProConnect is required to login in or sign up|
-| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT    | French public agents working for the territorial administration and the extended public sphere. ProConnect is required to login in or sign up|
-| [visio.lasuite.coop](https://visio.lasuite.coop/)             | lasuite.coop    | Free and open demo to all. Content and accounts are reset after one month |
-| [mosacloud.cloud](https://mosa.cloud/)                        | mosa.cloud    | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps. |
+| Url                                                          | Org          | Access                                                                                                                                    |
+|--------------------------------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/)  | DINUM        | French public agents working for the central administration and the extended public sphere. ProConnect is required to login in or sign up |
+| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT         | French public agents working for the territorial administration and the extended public sphere. ProConnect is required to login in or sign up |
+| [visio.lasuite.coop](https://visio.lasuite.coop/)            | lasuite.coop | Free and open demo to all. Content and accounts are reset after one month                                                                 |
+| [mosacloud.cloud](https://mosa.cloud/)                       | mosa.cloud   | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps.                                                     |
+| [Clever Cloud](https://www.clever.cloud/product/visio/)                           | clever cloud | Openvisio is a sovereign video conferencing solution based on LaSuite Meet offered by [Clever Cloud](https://www.clever.cloud/).          |
 
 
 # Contributing
