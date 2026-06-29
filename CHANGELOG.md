@@ -18,6 +18,7 @@ and this project adheres to
 ### Changed
 
 - ✨(summary) generalized stt api call #1420
+- ♻️(env) refactor env variables handling
 
 ## [1.21.0] - 2026-06-15
 
