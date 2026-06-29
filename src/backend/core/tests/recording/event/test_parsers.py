@@ -360,6 +360,50 @@ def test_s3_parse_unrecognized_extension(s3_parser):
         s3_parser.parse(event_with_unknown_ext)
 
 
+def test_s3_parser_keeps_encoded_filepath_compatible(settings):
+    settings.RECORDING_OUTPUT_FOLDER = "recordings"
+
+    recording_id = "80ae9fe5-639a-438b-b86e-9e3dd2d55f4d"
+    parser = S3Parser(bucket_name="recordings-bucket")
+
+    data = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "recordings-bucket"},
+                    "object": {
+                        "key": f"recordings%2F{recording_id}.mp4",
+                    },
+                }
+            }
+        ]
+    }
+
+    assert parser.get_recording_id(data) == recording_id
+
+
+def test_s3_parser_accepts_unencoded_filepath(settings):
+    settings.RECORDING_OUTPUT_FOLDER = "recordings"
+
+    recording_id = "80ae9fe5-639a-438b-b86e-9e3dd2d55f4d"
+    parser = S3Parser(bucket_name="recordings-bucket")
+
+    data = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "recordings-bucket"},
+                    "object": {
+                        "key": f"recordings/{recording_id}.mp4",
+                    },
+                }
+            }
+        ]
+    }
+
+    assert parser.get_recording_id(data) == recording_id
+
+
 def test_s3_get_recording_id_success(s3_parser, valid_s3_event):
     """Test successful extraction of recording ID from S3 event."""
     recording_id = s3_parser.get_recording_id(valid_s3_event)
