@@ -68,7 +68,7 @@ export const PipView = () => {
       </ConnectionStateWrapper>
       <PipStage />
       <ReactionsToolbar adjustedCentering={false} />
-      <PipControlBar showScreenShare={false} />
+      <PipControlBar showScreenShare={true} />
       <PipFloatingReactions />
       <NotificationProvider bottom={30} />
     </Container>
