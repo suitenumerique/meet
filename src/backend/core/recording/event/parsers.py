@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Dict, Optional, Protocol
+from urllib.parse import quote_plus
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -164,6 +165,8 @@ class S3Parser(BaseS3Parser):
             if not filepath:
                 raise ParsingEventDataError("Missing object key name")
             filetype, _ = mimetypes.guess_type(filepath)
+            # Preserve already URL-encoded separators while encoding raw S3 object keys.
+            filepath = quote_plus(filepath, safe="%")
             return StorageEvent(
                 filepath=filepath,
                 filetype=filetype,
