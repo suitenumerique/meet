@@ -432,10 +432,10 @@
       }
     },
     "premium": {
-      "heading": "Premium-Funktion",
+      "heading": "Advanced-Funktion",
       "body": "Diese Funktion ist für Sie nicht verfügbar. Bitte wenden Sie sich an den Support, um weitere Informationen zu erhalten.",
       "linkMore": "Dokumentation öffnen",
-      "linkAriaLabel": "Dokumentation zum Premium-Zugang öffnen – öffnet in neuem Tab",
+      "linkAriaLabel": "Dokumentation zum Advanced-Zugang öffnen – öffnet in neuem Tab",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
@@ -485,10 +485,10 @@
       }
     },
     "premium": {
-      "heading": "Premium-Funktion",
+      "heading": "Advanced-Funktion",
       "body": "Diese Funktion ist für Sie nicht verfügbar. Bitte wenden Sie sich an den Support, um weitere Informationen zu erhalten.",
       "linkMore": "Dokumentation öffnen",
-      "linkAriaLabel": "Dokumentation zum Premium-Zugang öffnen – öffnet in neuem Tab",
+      "linkAriaLabel": "Dokumentation zum Advanced-Zugang öffnen – öffnet in neuem Tab",
       "dividerLabel": "ODER",
       "login": {
         "heading": "Anmeldung erforderlich",
