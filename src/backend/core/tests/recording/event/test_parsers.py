@@ -361,6 +361,7 @@ def test_s3_parse_unrecognized_extension(s3_parser):
 
 
 def test_s3_parser_keeps_encoded_filepath_compatible(settings):
+    """Test S3 parser keeps already encoded object keys compatible."""
     settings.RECORDING_OUTPUT_FOLDER = "recordings"
 
     recording_id = "80ae9fe5-639a-438b-b86e-9e3dd2d55f4d"
@@ -383,6 +384,7 @@ def test_s3_parser_keeps_encoded_filepath_compatible(settings):
 
 
 def test_s3_parser_accepts_unencoded_filepath(settings):
+    """Test S3 parser accepts raw object keys with slash separators."""
     settings.RECORDING_OUTPUT_FOLDER = "recordings"
 
     recording_id = "80ae9fe5-639a-438b-b86e-9e3dd2d55f4d"
