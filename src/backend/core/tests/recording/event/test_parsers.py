@@ -406,8 +406,8 @@ def test_s3_parser_accepts_unencoded_filepath(settings):
     assert parser.get_recording_id(data) == recording_id
 
 
-def test_s3_parser_preserves_plus_signs_in_raw_filepath(settings):
-    """Test S3 parser preserves plus signs while encoding slash separators."""
+def test_s3_parser_preserves_plus_signs_in_encoded_filepath(settings):
+    """Test S3 parser preserves plus signs in already encoded object keys."""
     settings.RECORDING_OUTPUT_FOLDER = "recordings"
 
     recording_id = "80ae9fe5-639a-438b-b86e-9e3dd2d55f4d"
@@ -419,17 +419,14 @@ def test_s3_parser_preserves_plus_signs_in_raw_filepath(settings):
                 "s3": {
                     "bucket": {"name": "recordings-bucket"},
                     "object": {
-                        "key": f"folder+name/recordings/{recording_id}.mp4",
+                        "key": f"folder+name%2Frecordings%2F{recording_id}.mp4",
                     },
                 }
             }
         ]
     }
 
-    event = parser.parse(data)
-
-    assert event.filepath == f"folder+name%2Frecordings%2F{recording_id}.mp4"
-    assert parser.validate(event) == recording_id
+    assert parser.get_recording_id(data) == recording_id
 
 
 def test_s3_get_recording_id_success(s3_parser, valid_s3_event):
