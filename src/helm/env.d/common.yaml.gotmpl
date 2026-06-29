@@ -53,6 +53,12 @@ _summaryEnvVars: &summaryEnvVars
   CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
   CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
   TASK_TRACKER_REDIS_URL: redis://default:pass@redis-master:6379/1
+  IS_RESOLVE_SPEAKER_IDENTITIES_ENABLED: true
+  RESOLVE_SPEAKER_IDENTITIES_DEFAULT_OVERLAP: 0.5
+  RESOLVE_SPEAKER_ENABLE_SPLIT_ON_WORDS: true
+  RESOLVE_SPEAKER_MAX_WORD_DURATION: 1
+  POSTHOG_API_KEY: your-posthog-key
+  POSTHOG_ENABLED: False
 
 _summaryImage: &summaryImage
   repository: localhost:5001/meet-summary

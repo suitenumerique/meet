@@ -75,7 +75,8 @@ create-env-files: \
 	env.d/development/kc_postgresql \
 	env.d/development/summary \
 	env.d/development/kube-secret \
-	env.d/development/multi_user_transcriber
+	env.d/development/multi_user_transcriber \
+	env.d/development/metadata_collector
 .PHONY: create-env-files
 
 bootstrap: ## Prepare Docker images for the project
@@ -291,6 +292,9 @@ env.d/development/kube-secret:
 
 env.d/development/multi_user_transcriber:
 	cp -n env.d/development/multi_user_transcriber.dist env.d/development/multi_user_transcriber
+
+env.d/development/metadata_collector:
+	cp -n env.d/development/metadata_collector.dist env.d/development/metadata_collector
 
 # -- Internationalization
 
