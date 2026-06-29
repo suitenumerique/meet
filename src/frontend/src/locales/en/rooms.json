@@ -431,10 +431,10 @@
       }
     },
     "premium": {
-      "heading": "Premium feature",
+      "heading": "Advanced feature",
       "body": "This feature is not available to you. Please contact support for more information.",
       "linkMore": "Open documentation",
-      "linkAriaLabel": "Open documentation about premium access - opens in new window",
+      "linkAriaLabel": "Open documentation about advanced access - opens in new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "You are not logged in!",
@@ -484,10 +484,10 @@
       }
     },
     "premium": {
-      "heading": "Premium feature",
+      "heading": "Advanced feature",
       "body": "This feature is not available to you. Please contact support for more information.",
       "linkMore": "Open documentation",
-      "linkAriaLabel": "Open documentation about premium access - opens in new window",
+      "linkAriaLabel": "Open documentation about advanced access - opens in new window",
       "dividerLabel": "OR",
       "login": {
         "heading": "You are not logged in!",

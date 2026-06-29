@@ -19,6 +19,7 @@ and this project adheres to
 
 - ✨(summary) generalized stt api call #1420
 - ♻️(env) refactor env variables handling
+- 🚸(frontend) use "Advanced" instead of "Premium" in the sidepanel
 
 ## [1.21.0] - 2026-06-15
 

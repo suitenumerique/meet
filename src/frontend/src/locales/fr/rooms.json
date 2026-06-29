@@ -431,7 +431,7 @@
       }
     },
     "premium": {
-      "heading": "Fonctionnalité premium",
+      "heading": "Fonctionnalité avancée",
       "body": "Cette fonctionnalité ne vous est pas ouverte. Contactez le support pour obtenir plus d'informations.",
       "linkMore": "Ouvrir la documentation",
       "dividerLabel": "OU",
@@ -444,7 +444,7 @@
         "body": "L'hôte recevra une notification et pourra démarrer la transcription pour vous.",
         "buttonLabel": "Demander"
       },
-      "linkAriaLabel": "Ouvrir la documentation sur l'accès premium - ouvre dans une nouvelle fenêtre"
+      "linkAriaLabel": "Ouvrir la documentation sur la fonctionnalité avancée - ouvre dans une nouvelle fenêtre"
     }
   },
   "screenRecording": {
@@ -484,7 +484,7 @@
       }
     },
     "premium": {
-      "heading": "Fonctionnalité premium",
+      "heading": "Fonctionnalité avancée",
       "body": "Cette fonctionnalité ne vous est pas ouverte. Contactez le support pour obtenir plus d'informations.",
       "linkMore": "Ouvrir la documentation",
       "dividerLabel": "OU",
@@ -497,7 +497,7 @@
         "body": "L'hôte recevra une notification et pourra démarrer l'enregistrement pour vous.",
         "buttonLabel": "Demander"
       },
-      "linkAriaLabel": "Ouvrir la documentation sur l'accès premium - ouvre dans une nouvelle fenêtre"
+      "linkAriaLabel": "Ouvrir la documentation sur la fonctionnalité avancée - ouvre dans une nouvelle fenêtre"
     },
     "durationMessage": "(limité à {{max_duration}}) "
   },
