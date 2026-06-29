@@ -6,8 +6,8 @@ import { Button, Div } from '@/primitives'
 import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from './controls/Participants/ParticipantsList'
-import { useSidePanel } from '../hooks/useSidePanel'
-import { ReactNode } from 'react'
+import { PanelId, useSidePanel } from '../hooks/useSidePanel'
+import React, { ReactNode, useCallback, useRef } from 'react'
 import { Chat } from '../prefabs/Chat'
 import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
@@ -15,6 +15,7 @@ import { Tools } from './Tools'
 import { Info } from './Info'
 import { HStack } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
+import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 
 type StyledSidePanelProps = {
   title: string
@@ -29,102 +30,114 @@ type StyledSidePanelProps = {
   isReactionToolbarOpen?: boolean
 }
 
-const StyledSidePanel = ({
-  title,
-  ariaLabel,
-  children,
-  onClose,
-  isClosed,
-  isReactionToolbarOpen,
-  closeButtonTooltip,
-  isSubmenu = false,
-  onBack,
-  backButtonLabel,
-}: StyledSidePanelProps) => (
-  <aside
-    className={css({
-      borderWidth: '1px',
-      borderStyle: 'solid',
-      borderColor: 'box.border',
-      backgroundColor: 'box.bg',
-      color: 'box.text',
-      borderRadius: 8,
-      flex: 1,
-      position: 'absolute',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      margin: 'var(--sizes-room-side-panel-margin)',
-      marginLeft: 0,
-      marginBottom: 0,
-      padding: 0,
-      gap: 0,
-      right: 0,
-      top: 0,
-      width: 'var(--sizes-room-side-panel)',
-      transition: '.5s cubic-bezier(.4,0,.2,1) 5ms',
-    })}
-    style={{
-      transform: isClosed
-        ? 'translateX(calc(var(--sizes-room-side-panel) + var(--sizes-room-side-panel-margin)))'
-        : 'none',
-      bottom: isReactionToolbarOpen
-        ? 'calc( var(--sizes-room-control-bar) + var(--sizes-room-reaction-toolbar-height) + calc(var(--lk-grid-gap) / 2))'
-        : 'var(--sizes-room-control-bar)',
-    }}
-    aria-hidden={isClosed}
-    aria-label={ariaLabel}
-  >
-    <HStack alignItems="center">
-      {isSubmenu && (
-        <Button
-          variant="secondaryText"
-          size="sm"
-          square
-          className={css({ marginRight: '0.5rem', marginLeft: '1rem' })}
-          aria-label={backButtonLabel}
-          onPress={onBack}
+const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
+  (
+    {
+      title,
+      ariaLabel,
+      children,
+      onClose,
+      isClosed,
+      isReactionToolbarOpen,
+      closeButtonTooltip,
+      isSubmenu = false,
+      onBack,
+      backButtonLabel,
+    },
+    ref
+  ) => (
+    <aside
+      ref={ref}
+      tabIndex={-1}
+      className={css({
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderColor: 'box.border',
+        backgroundColor: 'box.bg',
+        color: 'box.text',
+        borderRadius: 8,
+        flex: 1,
+        position: 'absolute',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        margin: 'var(--sizes-room-side-panel-margin)',
+        marginLeft: 0,
+        marginBottom: 0,
+        padding: 0,
+        gap: 0,
+        right: 0,
+        top: 0,
+        width: 'var(--sizes-room-side-panel)',
+        transition: '.5s cubic-bezier(.4,0,.2,1) 5ms',
+        '&:focus': {
+          outline: 'none',
+        },
+      })}
+      style={{
+        transform: isClosed
+          ? 'translateX(calc(var(--sizes-room-side-panel) + var(--sizes-room-side-panel-margin)))'
+          : 'none',
+        bottom: isReactionToolbarOpen
+          ? 'calc( var(--sizes-room-control-bar) + var(--sizes-room-reaction-toolbar-height) + calc(var(--lk-grid-gap) / 2))'
+          : 'var(--sizes-room-control-bar)',
+      }}
+      aria-hidden={isClosed}
+      aria-label={ariaLabel}
+    >
+      <HStack alignItems="center">
+        {isSubmenu && (
+          <Button
+            variant="secondaryText"
+            size="sm"
+            square
+            className={css({ marginRight: '0.5rem', marginLeft: '1rem' })}
+            aria-label={backButtonLabel}
+            onPress={onBack}
+          >
+            <RiArrowLeftLine size={20} aria-hidden="true" />
+          </Button>
+        )}
+        <Heading
+          slot="title"
+          level={1}
+          className={text({ variant: 'h2' })}
+          style={{
+            paddingLeft: isSubmenu ? 0 : '1.5rem',
+            paddingTop: '1rem',
+            display: isClosed ? 'none' : 'flex',
+            justifyContent: 'start',
+            alignItems: 'center',
+          }}
         >
-          <RiArrowLeftLine size={20} aria-hidden="true" />
-        </Button>
-      )}
-      <Heading
-        slot="title"
-        level={1}
-        className={text({ variant: 'h2' })}
+          {title}
+        </Heading>
+      </HStack>
+      <Div
+        position="absolute"
+        top="5"
+        right="5"
         style={{
-          paddingLeft: isSubmenu ? 0 : '1.5rem',
-          paddingTop: '1rem',
-          display: isClosed ? 'none' : 'flex',
-          justifyContent: 'start',
-          alignItems: 'center',
+          display: isClosed ? 'none' : undefined,
         }}
       >
-        {title}
-      </Heading>
-    </HStack>
-    <Div
-      position="absolute"
-      top="5"
-      right="5"
-      style={{
-        display: isClosed ? 'none' : undefined,
-      }}
-    >
-      <Button
-        invisible
-        variant="tertiaryText"
-        size="xs"
-        onPress={onClose}
-        aria-label={closeButtonTooltip}
-        tooltip={closeButtonTooltip}
-      >
-        <RiCloseLine />
-      </Button>
-    </Div>
-    {children}
-  </aside>
+        <Button
+          invisible
+          variant="tertiaryText"
+          size="xs"
+          onPress={onClose}
+          aria-label={closeButtonTooltip}
+          tooltip={closeButtonTooltip}
+        >
+          <RiCloseLine />
+        </Button>
+      </Div>
+      {children}
+    </aside>
+  )
 )
+
+StyledSidePanel.displayName = 'StyledSidePanel'
 
 type PanelProps = {
   isOpen: boolean
@@ -162,8 +175,24 @@ export const SidePanel = () => {
 
   const { isOpen: isReactionToolbarOpen } = useReactionsToolbar()
 
+  const asideRef = useRef<HTMLElement>(null)
+
+  const panelManagesFocus = activePanelId === PanelId.CHAT
+
+  const focusAside = useCallback(() => {
+    requestAnimationFrame(() => {
+      asideRef.current?.focus({ preventScroll: true })
+    })
+  }, [])
+
+  useRestoreFocus(isSidePanelOpen && !panelManagesFocus, {
+    onOpened: focusAside,
+    preventScroll: true,
+  })
+
   return (
     <StyledSidePanel
+      ref={asideRef}
       title={title}
       ariaLabel={t('ariaLabel', { title })}
       onClose={() => {
