@@ -1,6 +1,6 @@
 import { css } from '@/styled-system/css'
 import { Button, Text } from '@/primitives'
-import { useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { screenSharePreferenceStore } from '@/stores/screenSharePreferences'
 import { useSnapshot } from 'valtio'
 import { useLocalParticipant } from '@livekit/components-react'
@@ -61,9 +61,19 @@ export const FullScreenShareWarning = ({
     await localParticipant.setScreenShareEnabled(false, {}, {})
   }
 
-  const handleDismissWarning = () => {
+  const handleDismissWarning = useCallback(() => {
     screenSharePreferenceStore.enabled = false
-  }
+  }, [])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        handleDismissWarning()
+      }
+    },
+    [handleDismissWarning]
+  )
 
   if (!shouldShowWarning) return null
 
@@ -98,6 +108,7 @@ export const FullScreenShareWarning = ({
             })}
           >
             <Text
+              role="alert"
               style={{
                 color: 'white',
                 flexBasis: '55%',
@@ -117,11 +128,14 @@ export const FullScreenShareWarning = ({
               })}
             >
               <Button
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus
                 variant="tertiary"
                 size="sm"
                 style={{
                   height: 'fit-content',
                 }}
+                onKeyDown={handleKeyDown}
                 onPress={async () => {
                   await handleStopScreenShare()
                 }}
@@ -134,6 +148,7 @@ export const FullScreenShareWarning = ({
                 style={{
                   height: 'fit-content',
                 }}
+                onKeyDown={handleKeyDown}
                 onPress={() => handleDismissWarning()}
               >
                 {t('ignore')}

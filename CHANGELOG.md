@@ -23,6 +23,7 @@ and this project adheres to
 - ✨(summary) generalized stt api call #1420
 - ♻️(env) refactor env variables handling
 - 🚸(frontend) use "Advanced" instead of "Premium" in the sidepanel
+- ♿️(frontend) make fullscreen share warning keyboard accessible #1459
 
 ### Fixed
 
