@@ -23,6 +23,10 @@ and this project adheres to
 - ♻️(env) refactor env variables handling
 - 🚸(frontend) use "Advanced" instead of "Premium" in the sidepanel
 
+### Fixed
+
+- 🛂(backend) reject user access tokens on the API
+
 ## [1.21.0] - 2026-06-15
 
 ### Added

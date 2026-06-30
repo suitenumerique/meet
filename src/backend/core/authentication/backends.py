@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from lasuite.oidc_login.backends import (
     OIDCAuthenticationBackend as LaSuiteOIDCAuthenticationBackend,
 )
+from rest_framework.authentication import SessionAuthentication
 
 from core.models import User
 from core.services.marketing import (
@@ -96,3 +97,17 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
                         "Multiple user accounts share a common email."
                     ) from e
         return None
+
+
+class SessionAuthenticationWith401(SessionAuthentication):
+    """
+    Identical to DRF's SessionAuthentication, but returns a WWW-Authenticate
+    header so unauthenticated requests get a 401 instead of a 403.
+
+    The scheme is deliberately NOT 'Basic' — that would trigger the browser's
+    native login popup. 'Session' is ignored by the browser's auth UI but is
+    still truthy, so DRF keeps the status at 401.
+    """
+
+    def authenticate_header(self, request):
+        return "Session"
