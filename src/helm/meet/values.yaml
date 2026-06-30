@@ -1170,6 +1170,8 @@ agentMetadata:
   ## @extra agentMetadata.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
   ## @extra agentMetadata.envVars.DEEPGRAM_STT_MODEL Deepgram model to use for speech-to-text (default: nova-3)
   ## @extra agentMetadata.envVars.DEEPGRAM_STT_LANGUAGE Language code for transcription or 'multi' for automatic multilingual support with real-time code-switching (default: multi, supports: en, es, fr, de, hi, ru, pt, ja, it, nl)
+  ## @extra agentMetadata.envVars.SENTRY_DSN Sentry DSN to enable error reporting (disabled when unset)
+  ## @extra agentMetadata.envVars.SENTRY_ENVIRONMENT Environment name reported to Sentry (e.g. production, staging)
   ## @skip agentMetadata.envVars
   envVars:
     <<: *commonEnvVars
@@ -1249,6 +1251,8 @@ agentSubtitles:
   ## @extra agentSubtitles.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
   ## @extra agentSubtitles.envVars.DEEPGRAM_STT_MODEL Deepgram model to use for speech-to-text (default: nova-3)
   ## @extra agentSubtitles.envVars.DEEPGRAM_STT_LANGUAGE Language code for transcription or 'multi' for automatic multilingual support with real-time code-switching (default: multi, supports: en, es, fr, de, hi, ru, pt, ja, it, nl)
+  ## @extra agentSubtitles.envVars.SENTRY_DSN Sentry DSN to enable error reporting (disabled when unset)
+  ## @extra agentSubtitles.envVars.SENTRY_ENVIRONMENT Environment name reported to Sentry (e.g. production, staging)
   ## @skip agentSubtitles.envVars
   envVars:
     <<: *commonEnvVars
