@@ -22,7 +22,7 @@
     "@livekit/components-react": "2.9.21",
     "@livekit/components-styles": "1.2.0",
     "@livekit/track-processors": "0.7.2",
-    "@pandacss/preset-panda": "1.11.1",
+    "@pandacss/preset-panda": "1.11.3",
     "@react-aria/toast": "3.0.10",
     "@react-types/overlays": "3.10.0",
     "@remixicon/react": "4.9.0",
