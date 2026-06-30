@@ -749,6 +749,34 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Per-recording encoding presets for the start-recording API.
+    # Unlike the global RECORDING_ENCODING_* values above (a single fixed
+    # preset), these maps let a recording request pick a resolution and a
+    # quality profile. To add a profile: add one row per resolution in
+    # RECORDING_ENCODING_PROFILE_MAP. To add a resolution: add one entry to
+    # RECORDING_ENCODING_RESOLUTION_MAP and one row per profile in
+    # RECORDING_ENCODING_PROFILE_MAP. No control-flow changes needed elsewhere.
+
+    # Map resolution string -> (width, height) in pixels.
+    RECORDING_ENCODING_RESOLUTION_MAP = {
+        "540p": (960, 540),
+        "720p": (1280, 720),
+        "1080p": (1920, 1080),
+    }
+    # (fps, video_kbps) keyed by (resolution, profile). Bitrate scales with
+    # resolution so quality stays consistent across sizes.
+    RECORDING_ENCODING_PROFILE_MAP = {
+        ("540p", "talking_heads"): (15, 400),
+        ("540p", "text"): (15, 600),
+        ("540p", "mixed"): (20, 900),
+        ("720p", "talking_heads"): (15, 700),
+        ("720p", "text"): (15, 1000),
+        ("720p", "mixed"): (20, 1500),
+        ("1080p", "talking_heads"): (15, 1200),
+        ("1080p", "text"): (15, 1800),
+        ("1080p", "mixed"): (20, 2500),
+    }
+
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
@@ -1091,6 +1119,35 @@ class Base(Configuration):
         }
 
     @classmethod
+    def _check_recording_encoding_maps(cls):
+        """Ensure the per-recording encoding maps are mutually consistent.
+
+        Every resolution must appear in both RECORDING_ENCODING_RESOLUTION_MAP
+        and RECORDING_ENCODING_PROFILE_MAP, and every resolution must expose the
+        same set of profiles in RECORDING_ENCODING_PROFILE_MAP.
+        """
+        resolutions = set(cls.RECORDING_ENCODING_RESOLUTION_MAP)
+        profiles_by_resolution = {}
+        for resolution, profile in cls.RECORDING_ENCODING_PROFILE_MAP:
+            profiles_by_resolution.setdefault(resolution, set()).add(profile)
+
+        profile_resolutions = set(profiles_by_resolution)
+        if resolutions != profile_resolutions:
+            raise ValueError(
+                "Inconsistent recording encoding resolutions between "
+                "RECORDING_ENCODING_RESOLUTION_MAP and "
+                "RECORDING_ENCODING_PROFILE_MAP: "
+                f"{resolutions ^ profile_resolutions}"
+            )
+
+        profile_sets = set(map(frozenset, profiles_by_resolution.values()))
+        if len(profile_sets) > 1:
+            raise ValueError(
+                "Every resolution in RECORDING_ENCODING_PROFILE_MAP must expose "
+                f"the same set of profiles, got: {profiles_by_resolution}"
+            )
+
+    @classmethod
     def post_setup(cls):
         """Post setup configuration.
         This is the place where you can configure settings that require other
@@ -1102,6 +1159,8 @@ class Base(Configuration):
             raise ValueError(
                 "FILE_UPLOAD_TMP_PATH cannot be the same as FILE_UPLOAD_PATH"
             )
+
+        cls._check_recording_encoding_maps()
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:

@@ -2,16 +2,12 @@
 
 # pylint: disable=no-member
 
+from django.conf import settings
+
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from ... import utils
-from ..encodings import (
-    AUDIO_BITRATE_MAP,
-    DEFAULT_KEY_FRAME_INTERVAL,
-    ENCODING_MAP,
-    RESOLUTION_MAP,
-)
 from ..enums import FileExtension
 from .exceptions import WorkerConnectionError, WorkerResponseError
 from .factories import WorkerServiceConfig
@@ -117,41 +113,25 @@ class BaseEgressService:
         resolution = encoding_config.resolution
         profile = encoding_config.profile
 
-        width, height = RESOLUTION_MAP[resolution] if resolution else (None, None)
+        width, height = (
+            settings.RECORDING_ENCODING_RESOLUTION_MAP[resolution]
+            if resolution
+            else (None, None)
+        )
 
         if resolution and profile:
-            fps, video_kbps = ENCODING_MAP[(resolution, profile)]
+            fps, video_kbps = settings.RECORDING_ENCODING_PROFILE_MAP[
+                (resolution, profile)
+            ]
         else:
             fps, video_kbps = None, None
-
-        audio_kbps = AUDIO_BITRATE_MAP[profile] if profile else None
 
         return livekit_api.EncodingOptions(
             width=width,
             height=height,
             framerate=fps,
             video_bitrate=video_kbps,
-            audio_bitrate=audio_kbps,
-            key_frame_interval=DEFAULT_KEY_FRAME_INTERVAL,
-        )
-
-    def _resolve_audio_encoding_options(self, encoding_config):
-        """Resolve per-recording EncodingConfig to LiveKit EncodingOptions for audio-only.
-
-        Resolution is ignored — audio-only recordings have no video track.
-        """
-        if encoding_config is None:
-            return None
-
-        audio_kbps = (
-            AUDIO_BITRATE_MAP[encoding_config.profile]
-            if encoding_config.profile
-            else None
-        )
-
-        return livekit_api.EncodingOptions(
-            audio_bitrate=audio_kbps,
-            key_frame_interval=DEFAULT_KEY_FRAME_INTERVAL,
+            key_frame_interval=settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
         )
 
 
@@ -203,16 +183,8 @@ class AudioCompositeEgressService(BaseEgressService):
 
     hrid = "audio-recording-composite-livekit-egress"
 
-    def start(self, room_name, recording_id, encoding_config=None):
-        """Start the audio composite egress process for a recording.
-
-        Args:
-            room_name: LiveKit room name to record.
-            recording_id: Recording identifier used in the output filename.
-            encoding_config: Optional per-recording encoding options. When
-                provided, it is resolved to LiveKit `EncodingOptions` and
-                passed as `advanced` in the egress request.
-        """
+    def start(self, room_name, recording_id):
+        """Start the audio composite egress process for a recording."""
 
         # Save room's recording as an ogg audio file.
         file_type = livekit_api.EncodedFileType.OGG
@@ -226,22 +198,9 @@ class AudioCompositeEgressService(BaseEgressService):
             s3=self._s3,
         )
 
-        # Transcript mode is audio-only: ignore any per-recording resolution and
-        # apply only the profile's audio bitrate when encoding_config is provided.
-        encoding_options = (
-            self._resolve_audio_encoding_options(encoding_config)
-            or self._build_encoding_options()
+        request = livekit_api.RoomCompositeEgressRequest(
+            room_name=room_name, file_outputs=[file_output], audio_only=True
         )
-
-        request_kwargs = {
-            "room_name": room_name,
-            "file_outputs": [file_output],
-            "audio_only": True,
-        }
-        if encoding_options is not None:
-            request_kwargs["advanced"] = encoding_options
-
-        request = livekit_api.RoomCompositeEgressRequest(**request_kwargs)
 
         response = self._handle_request(request, "start_room_composite_egress")
 
