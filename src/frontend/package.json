@@ -23,7 +23,7 @@
     "@livekit/components-styles": "1.2.0",
     "@livekit/track-processors": "0.7.2",
     "@pandacss/preset-panda": "1.11.1",
-    "@react-aria/toast": "3.0.10",
+    "@react-aria/toast": "3.1.0",
     "@react-types/overlays": "3.10.0",
     "@remixicon/react": "4.9.0",
     "@tanstack/react-query": "5.100.14",
