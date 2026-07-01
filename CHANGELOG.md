@@ -22,6 +22,7 @@ and this project adheres to
 - ✨(summary) generalized stt api call #1420
 - ♻️(env) refactor env variables handling
 - 🚸(frontend) use "Advanced" instead of "Premium" in the sidepanel
+- ♿️(frontend) focus side panel container on open #1452
 
 ## [1.21.0] - 2026-06-15
 
