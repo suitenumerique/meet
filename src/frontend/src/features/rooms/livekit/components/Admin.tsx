@@ -7,6 +7,7 @@ import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
+import { useConfig } from '@/api/useConfig'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '../hooks/usePublishSourcesManager'
@@ -40,6 +41,35 @@ export const Admin = () => {
   } = usePublishSourcesManager()
 
   const { toggleMuting, isMutingEnabled } = usePermissionsManager()
+
+  const { data: config } = useConfig()
+
+  const accessLevelItems = [
+    {
+      value: ApiAccessLevel.PUBLIC,
+      label: t('access.levels.public.label'),
+      description: t('access.levels.public.description'),
+    },
+    {
+      value: ApiAccessLevel.TRUSTED,
+      label: t('access.levels.trusted.label'),
+      description: t('access.levels.trusted.description'),
+    },
+    {
+      value: ApiAccessLevel.RESTRICTED,
+      label: t('access.levels.restricted.label'),
+      description: t('access.levels.restricted.description'),
+    },
+  ]
+
+  const allowedAccessLevels = config?.room?.allowed_access_levels
+  const visibleAccessLevelItems = allowedAccessLevels
+    ? accessLevelItems.filter(
+        (item) =>
+          allowedAccessLevels.includes(item.value) ||
+          item.value === readOnlyData?.access_level
+      )
+    : accessLevelItems
 
   return (
     <Div
@@ -201,23 +231,7 @@ export const Admin = () => {
               })
               .catch((e) => console.error(e))
           }
-          items={[
-            {
-              value: ApiAccessLevel.PUBLIC,
-              label: t('access.levels.public.label'),
-              description: t('access.levels.public.description'),
-            },
-            {
-              value: ApiAccessLevel.TRUSTED,
-              label: t('access.levels.trusted.label'),
-              description: t('access.levels.trusted.description'),
-            },
-            {
-              value: ApiAccessLevel.RESTRICTED,
-              label: t('access.levels.restricted.label'),
-              description: t('access.levels.restricted.description'),
-            },
-          ]}
+          items={visibleAccessLevelItems}
         />
       </div>
     </Div>
