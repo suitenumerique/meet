@@ -9,6 +9,7 @@ export interface ApiConfig {
   analytics?: {
     id: string
     host: string
+    flags_api_host?: string
   }
   support?: {
     id: string
