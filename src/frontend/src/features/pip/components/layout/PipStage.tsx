@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { usePagination, useTracks } from '@livekit/components-react'
 import { RoomEvent, Track } from 'livekit-client'
 import { styled } from '@/styled-system/jsx'
 import { PipFocusLayout } from './PipFocusLayout'
 import { PipGridLayout } from './PipGridLayout'
 import { PipPagination } from './PipPagination'
+import { PipScreenShareLayout } from './PipScreenShareLayout'
 import { StageFrame } from './StageFrame'
 import { MAX_PIP_TILES } from '../../utils/pipGrid'
 import {
@@ -13,9 +14,12 @@ import {
 } from '@livekit/components-core'
 
 /**
- * PipStage picks between two layouts based on track count:
- *   - Focus mode (≤ 2 tracks): one main track + one thumbnail overlay.
- *   - Grid mode  (3+ tracks):  adaptive tiling.
+ * PipStage picks between three layouts:
+ *   - Screen share mode (any screen share active):
+ *     small camera tiles in a row at the top, large screen share below.
+ *   - Grid mode  (3+ camera tracks, no screen share): adaptive tiling.
+ *   - Focus mode (≤ 2 camera tracks, no screen share): one main track
+ *     + one thumbnail overlay.
  */
 export const PipStage = () => {
   const tracks = useTracks(
@@ -41,51 +45,43 @@ export const PipStage = () => {
     [tracks]
   )
 
-  // Grid mode order: screen share leads, then cameras (already ordered by
-  // active speaker via the `ActiveSpeakersChanged` update above).
-  const gridTracks = useMemo(
-    () =>
-      screenShareTrack ? [screenShareTrack, ...cameraTracks] : cameraTracks,
-    [screenShareTrack, cameraTracks]
-  )
+  // Cap camera tiles in screen-share mode. Called unconditionally for hook rules.
+  const paginatedCameraTracks = usePagination(MAX_PIP_TILES - 1, cameraTracks)
 
-  // Cap the grid at MAX_PIP_TILES per page. `usePagination` keeps the visible
-  // page visually stable (active/recent speakers stay put) via its internal
-  // `useVisualStableUpdate`. Called unconditionally to respect hook rules.
-  const pagination = usePagination(MAX_PIP_TILES, gridTracks)
+  // Cap the grid at MAX_PIP_TILES per page for the non-screenshare grid mode.
+  const pagination = usePagination(MAX_PIP_TILES, cameraTracks)
 
   if (tracks.length === 0) return null
 
-  /**
-   * The focus layout shows one main track with one thumbnail overlay,
-   * so it can only fit 2 tracks. Beyond that we switch to the grid.
-   */
-  if (gridTracks.length > 2) {
+  // Screen share active → Google Meet-style layout
+  if (screenShareTrack) {
     return (
-      <StageWrapper>
-        <StageFrame>
-          <PipGridLayout tracks={pagination.tracks} />
-        </StageFrame>
-        <PipPagination
-          totalPageCount={pagination.totalPageCount}
-          currentPage={pagination.currentPage}
-          nextPage={pagination.nextPage}
-          prevPage={pagination.prevPage}
+      <PaginatedStage pagination={paginatedCameraTracks}>
+        <PipScreenShareLayout
+          screenShareTrack={screenShareTrack}
+          cameraTracks={paginatedCameraTracks.tracks}
         />
-      </StageWrapper>
+      </PaginatedStage>
     )
   }
 
+  // 3+ camera tracks → adaptive grid
+  if (cameraTracks.length > 2) {
+    return (
+      <PaginatedStage pagination={pagination}>
+        <PipGridLayout tracks={pagination.tracks} />
+      </PaginatedStage>
+    )
+  }
+
+  // ≤ 2 camera tracks → focus layout (main + optional thumbnail)
   const localCameraTrack = cameraTracks.find(
     (track) => track.participant?.isLocal
   )
-
   const remoteCameraTrack = cameraTracks.find(
     (track) => !track.participant?.isLocal
   )
-
-  const mainTrack = screenShareTrack ?? remoteCameraTrack ?? localCameraTrack
-
+  const mainTrack = remoteCameraTrack ?? localCameraTrack
   const thumbnailTrack =
     mainTrack === localCameraTrack ? undefined : localCameraTrack
 
@@ -95,6 +91,31 @@ export const PipStage = () => {
     </StageFrame>
   )
 }
+
+type PaginationResult = {
+  totalPageCount: number
+  currentPage: number
+  nextPage: () => void
+  prevPage: () => void
+}
+
+const PaginatedStage = ({
+  pagination,
+  children,
+}: {
+  pagination: PaginationResult
+  children: React.ReactNode
+}) => (
+  <StageWrapper>
+    <StageFrame>{children}</StageFrame>
+    <PipPagination
+      totalPageCount={pagination.totalPageCount}
+      currentPage={pagination.currentPage}
+      nextPage={pagination.nextPage}
+      prevPage={pagination.prevPage}
+    />
+  </StageWrapper>
+)
 
 const StageWrapper = styled('div', {
   base: {
