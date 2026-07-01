@@ -14,8 +14,6 @@ PostHog for anything else is a configuration change, not a code change.
 from functools import lru_cache
 
 from django.conf import settings
-from django.core.signals import setting_changed
-from django.dispatch import receiver
 from django.utils.module_loading import import_string
 
 from .base import AnalyticsBackend, NoOpAnalytics
