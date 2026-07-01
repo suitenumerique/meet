@@ -280,7 +280,9 @@ class NotificationService:
             "user_sub": owner_access.user.sub,
             "user_email": owner_access.user.email,
             "cloud_storage_url": generate_download_s3_url(
-                recording.key, expires_in=60 * 60 * 24, override_domain=False
+                recording.key,
+                expires_in=settings.SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS,
+                override_domain=False,
             ),
             "language": recording.options.get("language", "fr"),
             "context_language": owner_access.user.language,
@@ -304,7 +306,7 @@ class NotificationService:
                 {
                     "cloud_storage_url": generate_download_s3_url(
                         metadata_filename,
-                        expires_in=60 * 60 * 24,
+                        expires_in=settings.SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS,
                         override_domain=False,
                     ),
                     "started_at": started_at.isoformat(),
