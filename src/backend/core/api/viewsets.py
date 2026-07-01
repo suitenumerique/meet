@@ -74,6 +74,11 @@ from core.services.lobby import (
     LobbyParticipantNotFound,
     LobbyService,
 )
+from core.services.participant_promotion import (
+    AlreadyAdminException,
+    OwnerPromotionException,
+    ParticipantPromotionService,
+)
 from core.services.participants_management import (
     ParticipantNotFoundException,
     ParticipantsManagement,
@@ -876,6 +881,123 @@ class RoomViewSet(
         return drf_response.Response(
             {"status": "success"},
             status=drf_status.HTTP_200_OK,
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="promote-participant",
+        url_name="promote-participant",
+        permission_classes=[permissions.HasPrivilegesOnRoom],
+    )
+    # pylint: disable=unused-argument,too-many-return-statements
+    def promote_participant(self, request, pk=None):  # noqa: PLR0911
+        """Promote a live participant to room admin.
+
+        This endpoint is intentionally non-transactional: the DB transaction and the
+        LiveKit attribute update are two separate operations. If the participant
+        leaves the meeting between the presence check and the LiveKit update, the
+        resource access is kept — their role will be effective the next time they join.
+        """
+        room = self.get_object()
+
+        serializer = serializers.BaseParticipantsManagementSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        identity = serializer.validated_data["participant_identity"]
+        participant_management = ParticipantsManagement()
+
+        if str(identity) == str(request.user.sub):
+            return drf_response.Response(
+                {"error": "You cannot promote yourself"},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            is_in_meeting = participant_management.check_if_in_meeting(
+                room.pk, identity=str(identity)
+            )
+        except (ParticipantNotFoundException, ParticipantsManagementException):
+            logger.warning(
+                "Could not verify presence of participant %s in room %s before promotion; denying",
+                identity,
+                room.pk,
+            )
+            return drf_response.Response(
+                {"error": "Could not verify participant presence"},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
+        if not is_in_meeting:
+            logger.warning(
+                "Participant %s is not currently in room %s; denying promotion",
+                identity,
+                room.pk,
+            )
+            return drf_response.Response(
+                {"error": "Could not verify participant presence"},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            user = models.User.objects.get(sub=identity)
+        except models.User.DoesNotExist:
+            return drf_response.Response(
+                {"error": "Participant not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
+
+        if not user.is_active:
+            logger.warning(
+                "Attempted to promote inactive user %s in room %s; denying",
+                identity,
+                room.pk,
+            )
+            return drf_response.Response(
+                {
+                    "error": "This participant account is inactive and cannot be promoted"
+                },
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            ParticipantPromotionService().promote_to_admin(room=room, user=user)
+        except AlreadyAdminException:
+            return drf_response.Response(
+                {"status": "success"}, status=drf_status.HTTP_200_OK
+            )
+        except OwnerPromotionException:
+            return drf_response.Response(
+                {
+                    "error": "Owners already have the highest privileges and cannot be promoted"
+                },
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
+        # DB transaction is intentionally persisted before the LiveKit update.
+        # If the participant disconnects meanwhile, the role still applies on rejoin.
+        try:
+            participant_management.update(
+                room_name=str(room.pk),
+                identity=str(identity),
+                attributes={"room_admin": "true"},
+            )
+        except (ParticipantNotFoundException, ParticipantsManagementException):
+            logger.exception(
+                "LiveKit update failed for participant %s in room %s; ADMIN role persisted",
+                identity,
+                room.pk,
+            )
+            return drf_response.Response(
+                {
+                    "status": "success",
+                    "warning": "LiveKit update failed; role update persisted",
+                },
+                status=drf_status.HTTP_200_OK,
+            )
+
+        return drf_response.Response(
+            {"status": "success"}, status=drf_status.HTTP_200_OK
         )
 
 
