@@ -66,7 +66,7 @@ class PushToDocsSummaryConfig(PushToDocsBaseConfig):
     """Model for push to docs information for summaries."""
 
 
-class TranscribeTaskV2Request(SharedV2TaskCreation):
+class TranscribeTaskApiRequest(SharedV2TaskCreation):
     """Model for creating a transcribe and summarize task (used for API request)."""
 
     cloud_storage_url: Url = Field(
@@ -104,7 +104,7 @@ class TranscribeTaskV2Request(SharedV2TaskCreation):
         return v
 
 
-class TranscribeTaskV2Payload(TranscribeTaskV2Request):
+class TranscribeTaskJob(TranscribeTaskApiRequest):
     """Model for creating a transcribe and summarize task (used for actual task creation)."""  # noqa: E501
 
     tenant_id: str = Field(title="Tenant ID", description="The ID of the tenant.")
@@ -113,13 +113,13 @@ class TranscribeTaskV2Payload(TranscribeTaskV2Request):
     )
 
 
-class SummarizeTaskV2Request(SharedV2TaskCreation):
+class SummarizeTaskApiRequest(SharedV2TaskCreation):
     """Model for creating a summarize task (used for API request)."""
 
     content: str = Field(title="Content", description="The content to summarize.")
 
 
-class SummarizeTaskV2Payload(SummarizeTaskV2Request):
+class SummarizeTaskJob(SummarizeTaskApiRequest):
     """Model for creating a summarize task (used for actual task creation)."""
 
     tenant_id: str = Field(title="Tenant ID", description="The ID of the tenant.")

@@ -22,8 +22,8 @@ from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.locales import get_locale
 from summary.core.models import (
     RecordingMetadata,
-    SummarizeTaskV2Payload,
-    TranscribeTaskV2Payload,
+    SummarizeTaskJob,
+    TranscribeTaskJob,
 )
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
@@ -371,7 +371,7 @@ def summarize_transcription_internals(
 
 
 def _should_push_to_docs(
-    payload: TranscribeTaskV2Payload,
+    payload: TranscribeTaskJob,
 ) -> bool:
     """Determines if the transcription should be pushed to docs.
 
@@ -393,7 +393,7 @@ def _should_push_to_docs(
     return True
 
 
-def _should_auto_create_summary(payload: TranscribeTaskV2Payload) -> bool:
+def _should_auto_create_summary(payload: TranscribeTaskJob) -> bool:
     """Determines if the transcription should have an auto-created summary.
 
     Based on the payload and settings.
@@ -456,7 +456,7 @@ def process_audio_transcribe_v2_task(
         self: Celery task instance (passed on with bind=True)
         payload: Serialized dictionary of TranscribeSummarizeTaskCreationV2
     """
-    payload = TranscribeTaskV2Payload.model_validate(payload)
+    payload = TranscribeTaskJob.model_validate(payload)
     logger.info(
         "Transcribing for object received | Owner: %s",
         payload.user_sub,
@@ -551,9 +551,7 @@ def process_audio_transcribe_v2_task(
 def task_started(task_id=None, task=None, args=None, **kwargs):
     """Signal handler called before task execution begins."""
     if args:
-        metadata_manager.create(
-            task_id, TranscribeTaskV2Payload.model_validate(args[0])
-        )
+        metadata_manager.create(task_id, TranscribeTaskJob.model_validate(args[0]))
 
 
 @signals.task_retry.connect(sender=process_audio_transcribe_v2_task)
@@ -623,7 +621,7 @@ def summarize_v2_task(
     1. Run summary internals
     2. Sends the final summary via webhook.
     """
-    payload = SummarizeTaskV2Payload.model_validate(payload)
+    payload = SummarizeTaskJob.model_validate(payload)
     summary = summarize_transcription_internals(
         distinct_id=payload.user_sub,
         transcript=payload.content,

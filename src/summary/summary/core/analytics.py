@@ -11,7 +11,7 @@ from celery.utils.log import get_task_logger
 from posthog import Posthog
 
 from summary.core.config import get_settings
-from summary.core.models import TranscribeTaskV2Payload
+from summary.core.models import TranscribeTaskJob
 
 logger = get_task_logger(__name__)
 settings = get_settings()
@@ -109,7 +109,7 @@ class MetadataManager:
         """Check if task_id exists in tasks metadata cache."""
         return self._redis.exists(self._get_redis_key(task_id))
 
-    def create(self, task_id: str, task_payload: TranscribeTaskV2Payload):
+    def create(self, task_id: str, task_payload: TranscribeTaskJob):
         """Create initial metadata entry for a new task."""
         if self._is_disabled or self.has_task_id(task_id):
             return

@@ -13,7 +13,7 @@ from summary.core.celery_worker import (
     summarize_v2_task,
 )
 from summary.core.config import AuthorizedTenant, get_settings
-from summary.core.models import SummarizeTaskV2Request, TranscribeTaskV2Request
+from summary.core.models import SummarizeTaskApiRequest, TranscribeTaskApiRequest
 from summary.core.security import verify_tenant_api_key_v2
 from summary.core.shared_models import (
     SummarizeWebhookFailurePayload,
@@ -33,7 +33,7 @@ settings = get_settings()
 
 @router_tasks_v2.post("/async-jobs/transcribe")
 async def create_transcribe_task_v2(
-    request: TranscribeTaskV2Request,
+    request: TranscribeTaskApiRequest,
     request_tenant: AuthorizedTenant = Depends(verify_tenant_api_key_v2),
 ):
     """Create a transcription task."""
@@ -77,7 +77,7 @@ async def create_transcribe_task_v2(
 
 @router_tasks_v2.post("/async-jobs/summarize")
 async def create_summarize_task_v2(
-    request: SummarizeTaskV2Request,
+    request: SummarizeTaskApiRequest,
     request_tenant: AuthorizedTenant = Depends(verify_tenant_api_key_v2),
 ):
     """Create a summarization task."""
