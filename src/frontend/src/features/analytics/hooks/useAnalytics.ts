@@ -28,10 +28,16 @@ export const terminateAnalyticsSession = async () => {
 export type useAnalyticsProps = {
   id?: string
   host?: string
+  flags_api_host?: string
   isDisabled?: boolean
 }
 
-export const useAnalytics = ({ id, host, isDisabled }: useAnalyticsProps) => {
+export const useAnalytics = ({
+  id,
+  host,
+  flags_api_host,
+  isDisabled,
+}: useAnalyticsProps) => {
   const [location] = useLocation()
   const { user } = useUser()
 
@@ -39,9 +45,13 @@ export const useAnalytics = ({ id, host, isDisabled }: useAnalyticsProps) => {
     if (!id || !host || isDisabled) return
     getPosthog().then((ph) => {
       if (ph.__loaded) return
-      ph.init(id, { api_host: host, person_profiles: 'always' })
+      ph.init(id, {
+        api_host: host,
+        flags_api_host: flags_api_host,
+        person_profiles: 'always',
+      })
     })
-  }, [id, host, isDisabled])
+  }, [id, host, flags_api_host, isDisabled])
 
   useEffect(() => {
     if (!user) return
