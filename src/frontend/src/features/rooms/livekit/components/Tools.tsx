@@ -95,8 +95,13 @@ const ToolButton = ({
 
 export const Tools = () => {
   const { data } = useConfig()
-  const { openTranscript, openScreenRecording, activeSubPanelId, isToolsOpen } =
-    useSidePanel()
+  const {
+    openTranscript,
+    openScreenRecording,
+    activeSubPanelId,
+    isToolsOpen,
+    isSidePanelOpen,
+  } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
 
   // Restore focus to the element that opened the Tools panel
@@ -113,6 +118,7 @@ export const Tools = () => {
     },
     restoreFocusRaf: true,
     preventScroll: true,
+    shouldRestoreOnClose: () => !isSidePanelOpen,
   })
 
   const isTranscriptEnabled = useIsRecordingModeEnabled(
