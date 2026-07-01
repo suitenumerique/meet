@@ -17,6 +17,7 @@ class FeatureFlag:
         "addons": "ADDONS_ENABLED",
         "application": "APPLICATION_ENABLED",
         "roomkit": "ROOMKIT_ENABLED",
+        "connection_test": "CONNECTION_TEST_ENABLED",
     }
 
     @classmethod

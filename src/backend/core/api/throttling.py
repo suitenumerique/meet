@@ -85,3 +85,15 @@ class RoomKitJoinRateThrottle(MonitoredUserRateThrottle):
     """
 
     scope = "roomkit_join"
+
+
+class ConnectionTestUserRateThrottle(MonitoredUserRateThrottle):
+    """Throttle authenticated users requesting connection test tokens."""
+
+    scope = "connection_test"
+
+
+class ConnectionTestAnonRateThrottle(MonitoredAnonRateThrottle):
+    """Throttle anonymous users requesting connection test tokens."""
+
+    scope = "connection_test"

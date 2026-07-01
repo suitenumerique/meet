@@ -30,6 +30,11 @@ router.register(
     addons_viewsets.SessionViewSet,
     basename="addons_sessions",
 )
+router.register(
+    "diagnostics",
+    viewsets.DiagnosticsViewSet,
+    basename="diagnostics",
+)
 
 # - External API
 external_router = SimpleRouter()
