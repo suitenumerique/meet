@@ -12,6 +12,7 @@ import mimetypes
 import random
 import secrets
 import string
+from datetime import timedelta
 from functools import lru_cache
 from typing import List, Optional
 from uuid import uuid4
@@ -67,6 +68,7 @@ def generate_token(  # noqa: PLR0917
     sources: Optional[List[str]] = None,
     role: Optional[str] = None,
     participant_id: Optional[str] = None,
+    ttl: Optional[timedelta] = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -82,6 +84,7 @@ def generate_token(  # noqa: PLR0917
         role (Optional[str]): Room's access role if any
         participant_id (Optional[str]): Stable identifier for anonymous users;
                          used as identity when user.is_anonymous.
+        ttl (Optional[timedelta]): Token validity duration. Defaults to LiveKit SDK default.
 
     Returns:
         str: The LiveKit JWT access token.
@@ -135,6 +138,8 @@ def generate_token(  # noqa: PLR0917
             }
         )
     )
+    if ttl is not None:
+        token = token.with_ttl(ttl)
 
     return token.to_jwt()
 

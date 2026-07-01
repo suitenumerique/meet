@@ -8,6 +8,7 @@ from typing import Dict, Optional
 
 from asgiref.sync import async_to_sync
 from livekit.api import (
+    DeleteRoomRequest,
     ListRoomsRequest,
     TwirpError,
     UpdateRoomMetadataRequest,
@@ -86,5 +87,32 @@ class RoomManagement:
             )
             raise RoomManagementException("Could not update room metadata") from e
 
+        finally:
+            await lkapi.aclose()
+
+    @async_to_sync
+    async def delete_room(self, room_name: str):
+        """Delete a LiveKit room and disconnect all participants.
+
+        Raises:
+            RoomNotFoundException: the room does not exist in LiveKit.
+            RoomManagementException: the deletion otherwise fails.
+        """
+
+        lkapi = utils.create_livekit_client()
+
+        try:
+            await lkapi.room.delete_room(DeleteRoomRequest(room=room_name))
+            logger.info("Deleted LiveKit room %s", room_name)
+        except TwirpError as e:
+            if e.code == "not_found":
+                logger.warning(
+                    "Room %s not found in LiveKit, skipping deletion",
+                    room_name,
+                )
+                raise RoomNotFoundException("Room does not exist") from e
+
+            logger.exception("Unexpected error deleting room %s", room_name)
+            raise RoomManagementException("Could not delete room") from e
         finally:
             await lkapi.aclose()

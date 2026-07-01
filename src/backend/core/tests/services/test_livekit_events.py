@@ -720,6 +720,7 @@ def test_receive_unsupported_event(mock_receive, service):
 
     # Mock returned data with unsupported event type
     mock_data = mock.MagicMock()
+    mock_data.room.name = str(uuid.uuid4())
     mock_data.event = "unsupported_event"
     mock_receive.return_value = mock_data
 
@@ -823,3 +824,33 @@ def test_receive_filter_processes_matching_events(
     service.receive(mock_request)
 
     mock_handle_room_started.assert_called_once()
+
+
+@mock.patch.object(api.WebhookReceiver, "receive")
+@mock.patch.object(LiveKitEventsService, "_handle_room_finished")
+@mock.patch.object(LiveKitEventsService, "_handle_room_started")
+def test_receive_ignores_connection_test_room(
+    mock_handle_room_started,
+    mock_handle_room_finished,
+    mock_receive,
+    mock_livekit_config,
+    settings,
+):
+    """Should ignore all webhook events for connection test rooms in receive()."""
+
+    settings.CONNECTION_TEST_ROOM_PREFIX = "connection-test"
+
+    mock_request = mock.MagicMock()
+    mock_request.headers = {"Authorization": "test_token"}
+    mock_request.body = b"{}"
+
+    mock_data = mock.MagicMock()
+    mock_data.room.name = f"{settings.CONNECTION_TEST_ROOM_PREFIX}-{uuid.uuid4()}"
+    mock_data.event = "room_started"
+    mock_receive.return_value = mock_data
+
+    service = LiveKitEventsService()
+    service.receive(mock_request)
+
+    mock_handle_room_started.assert_not_called()
+    mock_handle_room_finished.assert_not_called()

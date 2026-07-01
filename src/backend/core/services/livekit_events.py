@@ -137,6 +137,13 @@ class LiveKitEventsService:
 
         room_name = data.room.name or data.egress_info.room_name
 
+        if self._is_connection_test_room(room_name):
+            logger.info(
+                "Ignoring webhook event for connection test room '%s'.",
+                room_name,
+            )
+            return
+
         if self._filter_regex and not self._filter_regex.search(room_name):
             logger.info("Filtered webhook event for room '%s'", room_name)
             return
@@ -227,6 +234,11 @@ class LiveKitEventsService:
                 )
 
         # Silently ignoring EGRESS_ABORTED, EGRESS_FAILED
+
+    @staticmethod
+    def _is_connection_test_room(room_name: str) -> bool:
+        """Return True for ephemeral rooms created by the connection test endpoint."""
+        return room_name.startswith(settings.CONNECTION_TEST_ROOM_PREFIX)
 
     def _handle_room_started(self, data):
         """Handle 'room_started' event."""

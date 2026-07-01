@@ -354,6 +354,11 @@ class Base(Configuration):
                 environ_name="ROOMKIT_JOIN_THROTTLE_RATES",
                 environ_prefix=None,
             ),
+            "connection_test": values.Value(
+                default="30/minute",
+                environ_name="CONNECTION_TEST_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
         },
     }
     MONITORED_THROTTLE_FAILURE_CALLBACK = (
@@ -659,6 +664,26 @@ class Base(Configuration):
         environ_name="LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND",
         environ_prefix=None,
         default=False,
+    )
+    CONNECTION_TEST_ENABLED = values.BooleanValue(
+        environ_name="CONNECTION_TEST_ENABLED",
+        environ_prefix=None,
+        default=False,
+    )
+    CONNECTION_TEST_TOKEN_TTL_SECONDS = values.PositiveIntegerValue(
+        300,
+        environ_name="CONNECTION_TEST_TOKEN_TTL_SECONDS",
+        environ_prefix=None,
+    )
+    CONNECTION_TEST_ROOM_MAX_AGE_SECONDS = values.PositiveIntegerValue(
+        300,
+        environ_name="CONNECTION_TEST_ROOM_MAX_AGE_SECONDS",
+        environ_prefix=None,
+    )
+    CONNECTION_TEST_ROOM_PREFIX = values.Value(
+        "connection-test",
+        environ_name="CONNECTION_TEST_ROOM_PREFIX",
+        environ_prefix=None,
     )
     LIVEKIT_VERIFY_SSL = values.BooleanValue(
         True, environ_name="LIVEKIT_VERIFY_SSL", environ_prefix=None
@@ -1269,6 +1294,8 @@ class Test(Base):
     ADDONS_ENABLED = True
     ADDONS_CSRF_SECRET = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
     ADDONS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
+
+    CONNECTION_TEST_ENABLED = True
 
     def __init__(self):
         # pylint: disable=invalid-name

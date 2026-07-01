@@ -2,8 +2,10 @@
 # pylint: disable=too-many-lines
 
 import uuid
+from datetime import timedelta
 from logging import getLogger
 from urllib.parse import unquote, urlparse
+from uuid import uuid4
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -28,6 +30,9 @@ from rest_framework import (
     exceptions as drf_exceptions,
 )
 from rest_framework import (
+    permissions as drf_permissions,
+)
+from rest_framework import (
     response as drf_response,
 )
 from rest_framework import (
@@ -36,6 +41,7 @@ from rest_framework import (
 from rest_framework.settings import api_settings
 
 from core import analytics, enums, models, utils
+from core.api import throttling
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
@@ -93,7 +99,9 @@ from core.services.room_roles import (
     RoomRoleService,
 )
 from core.services.subtitle import SubtitleException, SubtitleService
+from core.tasks.connection_test import delete_connection_test_room
 from core.tasks.file import process_file_deletion
+from core.utils import generate_token
 
 from ..authentication.livekit import LiveKitTokenAuthentication
 from ..models import RoomAccessLevel
@@ -1563,3 +1571,64 @@ class FileViewSet(
         request = utils.generate_s3_authorization_headers(f"{url_params.get('key'):s}")
 
         return drf_response.Response("authorized", headers=request.headers, status=200)
+
+
+class DiagnosticsViewSet(viewsets.ViewSet):
+    """Endpoints helping users and support diagnose connectivity issues.
+
+    Diagnostics are grouped behind a single prefix so upcoming checks
+    (rtcstats collection, ICE candidate reports, etc.) can be added as new
+    actions rather than new top-level routes.
+
+    They are open to anonymous users: someone who cannot join a room is
+    exactly who needs to run a test, and they may well not be logged in.
+    Each action therefore carries its own throttle scope.
+    """
+
+    permission_classes = [drf_permissions.AllowAny]
+
+    @decorators.action(
+        detail=False,
+        methods=["POST"],
+        url_path="connection",
+        url_name="connection",
+        throttle_classes=[
+            throttling.ConnectionTestUserRateThrottle,
+            throttling.ConnectionTestAnonRateThrottle,
+        ],
+    )
+    @FeatureFlag.require("connection_test")
+    def connection(self, request):
+        """Return a short-lived LiveKit token for an ephemeral test room.
+
+        Going through the room API is not an option here: it is tied to
+        registered meetings, lobby rules and longer-lived tokens. Each call
+        gets its own room so two people testing at the same time never meet.
+        """
+        room = f"{settings.CONNECTION_TEST_ROOM_PREFIX}-{uuid4()}"
+        expires_in = settings.CONNECTION_TEST_TOKEN_TTL_SECONDS
+
+        # LiveKit refreshes tokens for connected clients, so JWT TTL alone does not
+        # eject someone who stays connected. Schedule a hard DeleteRoom when Celery
+        # is available.
+        if settings.CELERY_ENABLED:
+            delete_connection_test_room.apply_async(
+                args=[room],
+                countdown=settings.CONNECTION_TEST_ROOM_MAX_AGE_SECONDS,
+            )
+
+        return drf_response.Response(
+            {
+                "livekit": {
+                    "url": settings.LIVEKIT_CONFIGURATION["url"],
+                    "room": room,
+                    "token": generate_token(
+                        room=room,
+                        user=request.user,
+                        username="Connection Test",
+                        ttl=timedelta(seconds=expires_in),
+                    ),
+                    "expires_in": expires_in,
+                },
+            }
+        )
