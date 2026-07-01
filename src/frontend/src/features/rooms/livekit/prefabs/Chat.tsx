@@ -37,7 +37,7 @@ export function Chat({ ...props }: ChatProps) {
   const room = useRoomContext()
   const { send, chatMessages, isSending } = useChat()
 
-  const { isChatOpen } = useSidePanel()
+  const { isChatOpen, isSidePanelOpen } = useSidePanel()
   const chatSnap = useSnapshot(chatStore)
 
   // Keep track of the element that opened the chat so we can restore focus
@@ -51,6 +51,7 @@ export function Chat({ ...props }: ChatProps) {
       })
     },
     preventScroll: true,
+    shouldRestoreOnClose: () => !isSidePanelOpen,
   })
 
   // Use useParticipants hook to trigger a re-render when the participant list changes.

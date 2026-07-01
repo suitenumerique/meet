@@ -177,17 +177,21 @@ export const SidePanel = () => {
 
   const asideRef = useRef<HTMLElement>(null)
 
-  const panelManagesFocus = activePanelId === PanelId.CHAT
-
   const focusAside = useCallback(() => {
     requestAnimationFrame(() => {
       asideRef.current?.focus({ preventScroll: true })
     })
   }, [])
 
-  useRestoreFocus(isSidePanelOpen && !panelManagesFocus, {
-    onOpened: focusAside,
+  const handlePanelOpened = useCallback(() => {
+    if (activePanelId === PanelId.CHAT) return
+    focusAside()
+  }, [activePanelId, focusAside])
+
+  useRestoreFocus(isSidePanelOpen, {
+    onOpened: handlePanelOpened,
     preventScroll: true,
+    activeKey: activePanelId,
   })
 
   return (
