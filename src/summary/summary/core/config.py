@@ -164,19 +164,21 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_docs_config(self):
         """Validate docs integration configuration."""
-        if self.is_docs_integration_enabled:
-            if not self.docs_base_url:
-                raise ValueError(
-                    "docs_base_url is required when docs integration is enabled"
-                )
-            if self.docs_server_to_server_api_key.get_secret_value() in {
-                "",
-                "NO_API_KEY",
-            }:
-                raise ValueError(
-                    "Valid docs_server_to_server_api_key is required when"
-                    " docs integration is enabled"
-                )
+        if not self.is_docs_integration_enabled:
+            return self
+
+        if not self.docs_base_url:
+            raise ValueError(
+                "docs_base_url is required when docs integration is enabled"
+            )
+        if self.docs_server_to_server_api_key.get_secret_value() in {
+            "",
+            "NO_API_KEY",
+        }:
+            raise ValueError(
+                "Valid docs_server_to_server_api_key is required when"
+                " docs integration is enabled"
+            )
         return self
 
     @cached_property
