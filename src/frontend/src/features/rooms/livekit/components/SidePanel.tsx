@@ -188,6 +188,7 @@ export const SidePanel = () => {
   useRestoreFocus(isSidePanelOpen && !panelManagesFocus, {
     onOpened: focusAside,
     preventScroll: true,
+    activeKey: activePanelId,
   })
 
   return (
