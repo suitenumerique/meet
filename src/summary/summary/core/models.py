@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import AwareDatetime, BaseModel, Field, field_validator
+from pydantic import AwareDatetime, BaseModel, EmailStr, Field, field_validator
 
 from summary.core.config import get_settings
 from summary.core.types import Url
@@ -14,7 +14,7 @@ class SharedV2TaskCreation(BaseModel):
     """Model that holds basic information for task creation."""
 
     user_sub: str = Field(title="User Sub", description="The user's sub.")
-    user_email: str | None = Field(
+    user_email: EmailStr | None = Field(
         default=None,
         title="User Email",
         description="The user's email for analytics purposes.",
@@ -35,7 +35,7 @@ class RecordingMetadata(BaseModel):
 class PushToDocsBaseConfig(BaseModel):
     """Model containing information for pushing transcript and summaries to docs."""
 
-    user_email: str = Field(
+    user_email: EmailStr = Field(
         title="User Email", description="The user's email, future owner of the docs."
     )
     title: str = Field(title="Title", description="The title for the created document.")
@@ -44,12 +44,12 @@ class PushToDocsBaseConfig(BaseModel):
 class PushToDocsTranscriptConfig(PushToDocsBaseConfig):
     """Model for push to docs information for transcripts."""
 
-    download_link: str | None = Field(
+    download_link: Url | None = Field(
         default=None,
         title="Download Link",
         description="The link to download the recording.",
     )
-    form_link: str | None = Field(
+    form_link: Url | None = Field(
         default=None,
         title="Form Link",
         description="The link to fill out a form for the recording.",
