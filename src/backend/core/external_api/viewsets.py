@@ -194,10 +194,12 @@ class RoomViewSet(
             role=models.RoleChoices.OWNER,
         )
 
+        client_id = (self.request.auth or {}).get("client_id", "unknown")
+
         # Log for auditing
         logger.info(
             "Room created via application: room_id=%s, user_id=%s, client_id=%s",
             room.id,
             self.request.user.id,
-            getattr(self.request.auth, "client_id", "unknown"),
+            client_id,
         )
