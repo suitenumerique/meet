@@ -459,18 +459,7 @@ def generate_upload_policy(file):
     return policy
 
 
-def generate_download_file_url(file, *, expires_in: int, override_domain: bool = True):
-    """
-    Generate a S3 signed download url for a given file.
-    """
-
-    key = file.file_key
-    return generate_download_s3_file_url(
-        key, expires_in=expires_in, override_domain=override_domain
-    )
-
-
-def generate_download_s3_file_url(
+def generate_download_s3_url(
     key: str, *, expires_in: int, override_domain: bool = True
 ):
     """

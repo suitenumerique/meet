@@ -20,7 +20,7 @@ from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from core import models, utils
-from core.utils import generate_download_s3_file_url
+from core.utils import generate_download_s3_url
 
 logger = logging.getLogger(__name__)
 
@@ -279,7 +279,7 @@ class NotificationService:
             # V2 params
             "user_sub": owner_access.user.sub,
             "user_email": owner_access.user.email,
-            "cloud_storage_url": generate_download_s3_file_url(
+            "cloud_storage_url": generate_download_s3_url(
                 recording.key, expires_in=60 * 60 * 24, override_domain=False
             ),
             "language": recording.options.get("language", "fr"),
@@ -302,7 +302,7 @@ class NotificationService:
             },
             "metadata": (
                 {
-                    "cloud_storage_url": generate_download_s3_file_url(
+                    "cloud_storage_url": generate_download_s3_url(
                         metadata_filename,
                         expires_in=60 * 60 * 24,
                         override_domain=False,
