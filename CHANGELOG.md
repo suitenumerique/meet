@@ -16,7 +16,7 @@ and this project adheres to
 - 🧱(helm) run clean files command as cronjob
 - ✨(backend) add fallback to save recordings without S3/MinIO webhooks
 - 🩹(frontend) enable screen share button in PiP #1458
-- ✨(visio) use compatible with summary v2 #1362
+- ✨(meet) use compatible with summary v2 #1362
 
 ### Changed
 
