@@ -16,7 +16,7 @@ from requests import exceptions
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
-from summary.core.docs_service import create_document_in_docs
+from summary.core.docs_service import create_document_in_lasuite_docs
 from summary.core.file_service import FileService, FileServiceException, TranscribeError
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.locales import get_locale
@@ -505,7 +505,7 @@ def process_audio_transcribe_v2_task(
             payload.push_to_docs_config.form_link,
         )
 
-        create_document_in_docs(
+        create_document_in_lasuite_docs(
             content=content,
             title=payload.push_to_docs_config.title,
             email=payload.push_to_docs_config.user_email,
@@ -519,7 +519,7 @@ def process_audio_transcribe_v2_task(
                 session_id=self.request.id,
             )
             locale = get_locale(payload.context_language, payload.language)
-            create_document_in_docs(
+            create_document_in_lasuite_docs(
                 content=summary,
                 title=locale.summary_title_template.format(
                     title=payload.push_to_docs_config.title

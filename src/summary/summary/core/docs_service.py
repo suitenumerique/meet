@@ -47,7 +47,9 @@ def _post_with_retries(*, url, data, api_key: str | None = None):
         session.close()
 
 
-def create_document_in_docs(*, content: str, title: str, email: str, sub: str) -> None:
+def create_document_in_lasuite_docs(
+    *, content: str, title: str, email: str, sub: str
+) -> None:
     """Call the Docs API to create a document on behalf of the user there.
 
     Builds the payload, sends it with retries, and logs the outcome.
@@ -59,7 +61,9 @@ def create_document_in_docs(*, content: str, title: str, email: str, sub: str) -
         "sub": sub,
     }
 
-    logger.debug("Submitting document to docs endpoint: %s", settings.docs_base_url)
+    logger.debug(
+        "Submitting document to docs endpoint: %s", settings.lasuite_docs_base_url
+    )
     logger.debug(
         "Docs payload metadata | title_len=%s content_len=%s has_email=%s has_sub=%s",
         len(title),
@@ -69,7 +73,9 @@ def create_document_in_docs(*, content: str, title: str, email: str, sub: str) -
     )
 
     response = _post_with_retries(
-        url=urljoin(settings.docs_base_url, "/api/v1.0/documents/create-for-owner/"),
+        url=urljoin(
+            settings.lasuite_docs_base_url, "/api/v1.0/documents/create-for-owner/"
+        ),
         api_key=settings.docs_server_to_server_api_key.get_secret_value(),
         data=data,
     )

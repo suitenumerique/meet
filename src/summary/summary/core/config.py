@@ -117,7 +117,7 @@ class Settings(BaseSettings):
 
     # Docs service configuration
     is_docs_integration_enabled: bool = False
-    docs_base_url: Url = "https://example.com"
+    lasuite_docs_base_url: Url = "https://example.com"
     docs_server_to_server_api_key: SecretStr = Field(
         title="API key for using docs server to server api", default="NO_API_KEY"
     )
@@ -167,9 +167,9 @@ class Settings(BaseSettings):
         if not self.is_docs_integration_enabled:
             return self
 
-        if not self.docs_base_url:
+        if not self.lasuite_docs_base_url:
             raise ValueError(
-                "docs_base_url is required when docs integration is enabled"
+                "lasuite_docs_base_url is required when docs integration is enabled"
             )
         if self.docs_server_to_server_api_key.get_secret_value() in {
             "",
