@@ -518,19 +518,21 @@ def process_audio_transcribe_v2_task(
             locale = get_locale(payload.context_language, payload.language)
 
             summarize_v2_task.apply_async(
-                args=SummarizeTaskJob(
-                    received_at=datetime.now(timezone.utc),
-                    tenant_id=payload.tenant_id,
-                    user_sub=payload.user_sub,
-                    user_email=payload.user_email,
-                    push_to_docs_config=PushToDocsBaseConfig(
-                        user_email=payload.push_to_docs_config.user_email,
-                        title=locale.summary_title_template.format(
-                            title=payload.push_to_docs_config.title
+                args=[
+                    SummarizeTaskJob(
+                        received_at=datetime.now(timezone.utc),
+                        tenant_id=payload.tenant_id,
+                        user_sub=payload.user_sub,
+                        user_email=payload.user_email,
+                        push_to_docs_config=PushToDocsBaseConfig(
+                            user_email=payload.push_to_docs_config.user_email,
+                            title=locale.summary_title_template.format(
+                                title=payload.push_to_docs_config.title
+                            ),
                         ),
-                    ),
-                    content=content,
-                ).model_dump(),
+                        content=content,
+                    ).model_dump()
+                ],
             )
 
     metadata_manager.capture(job_id, settings.posthog_event_success)
