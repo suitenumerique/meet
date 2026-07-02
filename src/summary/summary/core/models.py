@@ -105,7 +105,7 @@ class TranscribeTaskApiRequest(SharedV2TaskCreation):
 
 
 class TranscribeTaskJob(TranscribeTaskApiRequest):
-    """Model for creating a transcribe task (used for actual task creation)."""  # noqa: E501
+    """Model for creating a transcribe task (used for actual task creation)."""
 
     tenant_id: str = Field(title="Tenant ID", description="The ID of the tenant.")
     received_at: datetime = Field(
