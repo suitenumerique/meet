@@ -246,17 +246,18 @@ def test_notify_user_by_email_smtp_exception(mocked_current_site, caplog):
 
 
 @mock.patch("core.recording.event.notification.requests.post")
-@mock.patch("core.recording.event.notification.generate_download_s3_file_url")
+@mock.patch("core.recording.event.notification.generate_download_s3_url")
 @mock.patch.object(
     NotificationService, "_get_recording_timestamps", new_callable=mock.AsyncMock
 )
 def test_notify_summary_service_post_args_with_metadata(
     mock_get_recording_timestamps,
-    mock_generate_download_s3_file_url,
+    mock_generate_download_s3_url,
     mock_post,
     settings,
 ):
     """Test summary notification computed request args when metadata is enabled."""
+    settings.SUMMARY_SERVICE_VERSION = 2
     settings.SUMMARY_SERVICE_ENDPOINT = "https://summary.test/api/v2/tasks"
     settings.SUMMARY_SERVICE_API_TOKEN = "summary-token"
     settings.RECORDING_DOWNLOAD_BASE_URL = "https://app.test/recordings"
@@ -282,7 +283,7 @@ def test_notify_summary_service_post_args_with_metadata(
     started_at = datetime.datetime(2026, 1, 2, 10, 30, tzinfo=datetime.timezone.utc)
     ended_at = datetime.datetime(2026, 1, 2, 11, 45, tzinfo=datetime.timezone.utc)
     mock_get_recording_timestamps.return_value = (started_at, ended_at)
-    mock_generate_download_s3_file_url.side_effect = [
+    mock_generate_download_s3_url.side_effect = [
         "https://storage.test/recording.ogg",
         "https://storage.test/metadata.json",
     ]
@@ -302,16 +303,6 @@ def test_notify_summary_service_post_args_with_metadata(
         f"{settings.METADATA_COLLECTOR_OUTPUT_FOLDER}/{recording.id}-metadata.json"
     )
     expected_payload = {
-        "owner_id": str(owner.id),
-        "recording_filename": recording.key,
-        "metadata_filename": metadata_filename,
-        "email": owner.email,
-        "sub": owner.sub,
-        "room": recording.room.name,
-        "owner_timezone": str(owner.timezone),
-        "download_link": f"{settings.RECORDING_DOWNLOAD_BASE_URL}/{recording.id}",
-        "recording_start_at": started_at.isoformat(),
-        "recording_end_at": ended_at.isoformat(),
         "user_sub": owner.sub,
         "user_email": owner.email,
         "cloud_storage_url": "https://storage.test/recording.ogg",
@@ -340,7 +331,7 @@ def test_notify_summary_service_post_args_with_metadata(
         headers=expected_headers,
         timeout=30,
     )
-    assert mock_generate_download_s3_file_url.call_args_list == [
+    assert mock_generate_download_s3_url.call_args_list == [
         mock.call(recording.key, expires_in=60 * 60 * 24, override_domain=False),
         mock.call(metadata_filename, expires_in=60 * 60 * 24, override_domain=False),
     ]
@@ -348,17 +339,18 @@ def test_notify_summary_service_post_args_with_metadata(
 
 
 @mock.patch("core.recording.event.notification.requests.post")
-@mock.patch("core.recording.event.notification.generate_download_s3_file_url")
+@mock.patch("core.recording.event.notification.generate_download_s3_url")
 @mock.patch.object(
     NotificationService, "_get_recording_timestamps", new_callable=mock.AsyncMock
 )
 def test_notify_summary_service_post_args_without_metadata(
     mock_get_recording_timestamps,
-    mock_generate_download_s3_file_url,
+    mock_generate_download_s3_url,
     mock_post,
     settings,
 ):
     """Test summary notification computed request args when metadata is not available."""
+    settings.SUMMARY_SERVICE_VERSION = 2
     settings.SUMMARY_SERVICE_ENDPOINT = "https://summary.test/api/v2/tasks"
     settings.SUMMARY_SERVICE_API_TOKEN = "summary-token"
     settings.RECORDING_DOWNLOAD_BASE_URL = "https://app.test/recordings"
@@ -377,9 +369,7 @@ def test_notify_summary_service_post_args_without_metadata(
     )
 
     mock_get_recording_timestamps.return_value = (None, None)
-    mock_generate_download_s3_file_url.return_value = (
-        "https://storage.test/recording.mp4"
-    )
+    mock_generate_download_s3_url.return_value = "https://storage.test/recording.mp4"
 
     mock_response = mock.Mock()
     mock_response.raise_for_status.return_value = None
@@ -390,16 +380,6 @@ def test_notify_summary_service_post_args_without_metadata(
 
     assert result is True
     expected_payload = {
-        "owner_id": str(owner.id),
-        "recording_filename": recording.key,
-        "metadata_filename": None,
-        "email": owner.email,
-        "sub": owner.sub,
-        "room": recording.room.name,
-        "owner_timezone": str(owner.timezone),
-        "download_link": f"{settings.RECORDING_DOWNLOAD_BASE_URL}/{recording.id}",
-        "recording_start_at": None,
-        "recording_end_at": None,
         "user_sub": owner.sub,
         "user_email": owner.email,
         "cloud_storage_url": "https://storage.test/recording.mp4",
@@ -424,7 +404,7 @@ def test_notify_summary_service_post_args_without_metadata(
         headers=expected_headers,
         timeout=30,
     )
-    mock_generate_download_s3_file_url.assert_called_once_with(
+    mock_generate_download_s3_url.assert_called_once_with(
         recording.key, expires_in=60 * 60 * 24, override_domain=False
     )
     mock_get_recording_timestamps.assert_awaited_once_with(recording.worker_id)

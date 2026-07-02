@@ -1,10 +1,8 @@
 """Service to notify external services when a new recording is ready."""
 
 import asyncio
-import json
 import logging
 import smtplib
-import warnings
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -230,6 +228,92 @@ class NotificationService:
 
     @staticmethod
     def _notify_summary_service(recording: models.Recording):
+        if settings.SUMMARY_SERVICE_VERSION == 1:
+            return NotificationService._notify_summary_service_v1(recording)
+        if settings.SUMMARY_SERVICE_VERSION == 2:
+            return NotificationService._notify_summary_service_v2(recording)
+
+        raise NotImplementedError(
+            f"Unknown summary service version: {settings.SUMMARY_SERVICE_VERSION}"
+        )
+
+    @staticmethod
+    def _notify_summary_service_v1(recording: models.Recording):
+        """Notify summary service about a new recording."""
+
+        if (
+            not settings.SUMMARY_SERVICE_ENDPOINT
+            or not settings.SUMMARY_SERVICE_API_TOKEN
+        ):
+            logger.error("Summary service not configured")
+            return False
+
+        owner_access = (
+            models.RecordingAccess.objects.select_related("user")
+            .filter(
+                role=models.RoleChoices.OWNER,
+                recording_id=recording.id,
+            )
+            .first()
+        )
+
+        if settings.METADATA_COLLECTOR_ENABLED and recording.options.get(
+            "collect_metadata", False
+        ):
+            output_folder = settings.METADATA_COLLECTOR_OUTPUT_FOLDER
+            metadata_filename = f"{output_folder}/{recording.id}-metadata.json"
+        else:
+            metadata_filename = None
+
+        if not owner_access:
+            logger.error("No owner found for recording %s", recording.id)
+            return False
+
+        started_at, ended_at = async_to_sync(
+            NotificationService._get_recording_timestamps
+        )(recording.worker_id)
+
+        payload = {
+            "owner_id": str(owner_access.user.id),
+            "recording_filename": recording.key,
+            "metadata_filename": metadata_filename,
+            "email": owner_access.user.email,
+            "sub": owner_access.user.sub,
+            "room": recording.room.name,
+            "language": recording.options.get("language"),
+            "owner_timezone": str(owner_access.user.timezone),
+            "download_link": f"{get_recording_download_base_url()}/{recording.id}",
+            "context_language": owner_access.user.language,
+            "recording_start_at": (started_at.isoformat() if started_at else None),
+            "recording_end_at": (ended_at.isoformat() if ended_at else None),
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {settings.SUMMARY_SERVICE_API_TOKEN}",
+        }
+
+        try:
+            response = requests.post(
+                settings.SUMMARY_SERVICE_ENDPOINT,
+                json=payload,
+                headers=headers,
+                timeout=30,
+            )
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            logger.exception(
+                "Summary service error for recording %s. URL: %s. Exception: %s",
+                recording.id,
+                settings.SUMMARY_SERVICE_ENDPOINT,
+                exc,
+            )
+            return False
+
+        return True
+
+    @staticmethod
+    def _notify_summary_service_v2(recording: models.Recording):
         """Notify summary service about a new recording."""
 
         if (
@@ -265,18 +349,6 @@ class NotificationService:
         form_base_url = settings.TRANSCRIPTION_SATISFACTION_FORM_BASE_URL
 
         payload = {
-            # Legacy V1 params to avoid a breaking change
-            "owner_id": str(owner_access.user.id),
-            "recording_filename": recording.key,
-            "metadata_filename": metadata_filename,
-            "email": owner_access.user.email,
-            "sub": owner_access.user.sub,
-            "room": recording.room.name,
-            "owner_timezone": str(owner_access.user.timezone),
-            "download_link": f"{get_recording_download_base_url()}/{recording.id}",
-            "recording_start_at": (started_at.isoformat() if started_at else None),
-            "recording_end_at": (ended_at.isoformat() if ended_at else None),
-            # V2 params
             "user_sub": owner_access.user.sub,
             "user_email": owner_access.user.email,
             "cloud_storage_url": generate_download_s3_url(
@@ -330,34 +402,14 @@ class NotificationService:
                 timeout=30,
             )
             response.raise_for_status()
-            is_v2_implementation = False
-            try:
-                response_json = response.json()
-                # We do not require a job_id to avoid a breaking change
-                if job_id := response_json.get("job_id"):
-                    recording.external_process_id = job_id
-                    recording.save()
-                    is_v2_implementation = True
-            except json.JSONDecodeError:
-                logger.debug(
-                    "Summary service response for recording %s is not valid JSON; "
-                    "falling back to legacy handling.",
-                    recording.id,
-                )
+            response_json = response.json()
+            # We do not require a job_id to avoid a breaking change
+            job_id = response_json.get("job_id")
+            if not isinstance(job_id, str):
+                raise ValueError("job_id is not a string")
 
-            if not is_v2_implementation:
-                warnings.warn(
-                    "You are likely using your own implementation for the summary / "
-                    "transcribe service."
-                    "We have released a new version and API contract for that service, "
-                    "we recommend checking it out"
-                    # pylint: disable=line-too-long
-                    "https://github.com/suitenumerique/meet/blob/19c2a378e7e66652afbfa3e749badd697e3917ac/src/summary/summary/api/route/tasks_v2.py "
-                    "and mimicking it's behavior. We will remove the legacy "
-                    "handling in a future version.",
-                    DeprecationWarning,
-                    stacklevel=2,
-                )
+            recording.external_process_id = job_id
+            recording.save()
 
         except requests.RequestException as exc:
             logger.exception(

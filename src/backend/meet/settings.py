@@ -748,6 +748,9 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    SUMMARY_SERVICE_VERSION = values.PositiveIntegerValue(
+        1, environ_name="SUMMARY_SERVICE_VERSION", environ_prefix=None
+    )
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
