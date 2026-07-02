@@ -41,8 +41,8 @@ async def create_transcribe_task_v2(
         request.push_to_docs_config is not None
         and not request_tenant.allowed_push_to_docs
     ):
-        logger.error(
-            f"Push to docs is not allowed for this tenant ({request_tenant.id})."
+        logger.warning(
+            "Push to docs is not allowed for this tenant (%s).", request_tenant.id
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
