@@ -42,7 +42,8 @@ const LayoutContainer = styled('div', {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.25rem',
+    gap: '0.5rem',
+    boxSizing: 'border-box',
     overflow: 'hidden',
   },
 })
@@ -51,7 +52,7 @@ const CameraTilesRow = styled('div', {
   base: {
     display: 'flex',
     flexDirection: 'row',
-    gap: '0.25rem',
+    gap: '0.5rem',
     flexShrink: 0,
     height: '22%',
     minHeight: '60px',
@@ -64,7 +65,7 @@ const CameraTile = styled('div', {
     position: 'relative',
     flex: '1 1 0',
     minWidth: 0,
-    borderRadius: '4px',
+    borderRadius: '8px',
     overflow: 'hidden',
     backgroundColor: 'primaryDark.100',
     '& .lk-participant-tile': {
@@ -79,7 +80,7 @@ const ScreenShareSlot = styled('div', {
     position: 'relative',
     flex: 1,
     minHeight: 0,
-    borderRadius: '4px',
+    borderRadius: '8px',
     overflow: 'hidden',
     backgroundColor: 'primaryDark.100',
     '& .lk-participant-tile': {

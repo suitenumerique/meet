@@ -48,9 +48,10 @@ const FocusContainer = styled('div', {
     position: 'relative',
     width: '100%',
     height: '100%',
-    borderRadius: '4px',
+    borderRadius: '8px',
     overflow: 'hidden',
     backgroundColor: 'primaryDark.100',
+    boxSizing: 'border-box',
   },
 })
 
@@ -58,6 +59,8 @@ const MainSlot = styled('div', {
   base: {
     width: '100%',
     height: '100%',
+    borderRadius: '8px',
+    overflow: 'hidden',
     '& .lk-participant-media-video': {
       objectFit: 'contain',
     },
@@ -67,13 +70,13 @@ const MainSlot = styled('div', {
 const Thumbnail = styled('div', {
   base: {
     position: 'absolute',
-    right: '1rem',
-    bottom: '1rem',
+    right: '1.25rem',
+    bottom: '1.25rem',
     width: '42%',
     maxWidth: '220px',
     minWidth: '140px',
     aspectRatio: '16 / 9',
-    borderRadius: '4px',
+    borderRadius: '8px',
     overflow: 'hidden',
     boxShadow: 'md',
     zIndex: 2,
