@@ -22,13 +22,13 @@ export const PipScreenShareLayout = memo(
           <CameraTilesRow>
             {cameraTracks.map((track) => (
               <CameraTile key={getTrackKey(track)}>
-                <ParticipantTile trackRef={track} />
+                <ParticipantTile trackRef={track} disableTileControls />
               </CameraTile>
             ))}
           </CameraTilesRow>
         )}
         <ScreenShareSlot>
-          <ParticipantTile trackRef={screenShareTrack} />
+          <ParticipantTile trackRef={screenShareTrack} disableTileControls />
         </ScreenShareSlot>
       </LayoutContainer>
     )
@@ -42,7 +42,8 @@ const LayoutContainer = styled('div', {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.25rem',
+    gap: '0.5rem',
+    boxSizing: 'border-box',
     overflow: 'hidden',
   },
 })
@@ -51,7 +52,8 @@ const CameraTilesRow = styled('div', {
   base: {
     display: 'flex',
     flexDirection: 'row',
-    gap: '0.25rem',
+    justifyContent: 'center',
+    gap: '0.5rem',
     flexShrink: 0,
     height: '22%',
     minHeight: '60px',
@@ -62,9 +64,11 @@ const CameraTilesRow = styled('div', {
 const CameraTile = styled('div', {
   base: {
     position: 'relative',
-    flex: '1 1 0',
+    flex: '0 1 auto',
+    height: '100%',
+    aspectRatio: '16 / 9',
     minWidth: 0,
-    borderRadius: '4px',
+    borderRadius: '8px',
     overflow: 'hidden',
     backgroundColor: 'primaryDark.100',
     '& .lk-participant-tile': {
@@ -79,7 +83,7 @@ const ScreenShareSlot = styled('div', {
     position: 'relative',
     flex: 1,
     minHeight: 0,
-    borderRadius: '4px',
+    borderRadius: '8px',
     overflow: 'hidden',
     backgroundColor: 'primaryDark.100',
     '& .lk-participant-tile': {

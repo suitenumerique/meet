@@ -52,6 +52,7 @@ export function TrackRefContextIfNeeded(
 
 interface ParticipantTileExtendedProps extends ParticipantTileProps {
   disableMetadata?: boolean
+  disableTileControls?: boolean
 }
 
 export const ParticipantTile: (
@@ -66,6 +67,7 @@ export const ParticipantTile: (
     onParticipantClick,
     disableSpeakingIndicator,
     disableMetadata,
+    disableTileControls,
     ...htmlProps
   }: ParticipantTileExtendedProps,
   ref
@@ -231,7 +233,7 @@ export const ParticipantTile: (
               )}
             </>
           )}
-          {!disableMetadata && (
+          {!disableMetadata && !disableTileControls && (
             <ParticipantTileFocus
               trackRef={trackReference}
               hasKeyboardFocus={hasKeyboardFocus}

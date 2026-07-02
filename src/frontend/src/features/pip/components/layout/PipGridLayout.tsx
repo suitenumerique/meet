@@ -41,7 +41,7 @@ export const PipGridLayout = memo(({ tracks }: PipGridLayoutProps) => {
     <GridContainer ref={containerRef} style={gridStyle}>
       {tracks.map((track, index) => (
         <GridCell key={getTrackKey(track)} style={placements[index]}>
-          <ParticipantTile trackRef={track} />
+          <ParticipantTile trackRef={track} disableTileControls />
         </GridCell>
       ))}
     </GridContainer>
@@ -54,7 +54,8 @@ const GridContainer = styled('div', {
     width: '100%',
     height: '100%',
     display: 'grid',
-    gap: '0.25rem',
+    gap: '0.5rem',
+    boxSizing: 'border-box',
   },
 })
 
@@ -63,7 +64,7 @@ const GridCell = styled('div', {
     position: 'relative',
     minWidth: 0,
     minHeight: 0,
-    borderRadius: '4px',
+    borderRadius: '8px',
     overflow: 'hidden',
     backgroundColor: 'primaryDark.100',
     // Paint on own layer so FLIP transforms don't trigger layout thrash.
