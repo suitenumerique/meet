@@ -67,7 +67,7 @@ class PushToDocsSummaryConfig(PushToDocsBaseConfig):
 
 
 class TranscribeTaskApiRequest(SharedV2TaskCreation):
-    """Model for creating a transcribe and summarize task (used for API request)."""
+    """Model for creating a transcribe task (used for API request)."""
 
     cloud_storage_url: Url = Field(
         title="Cloud storage URL",
@@ -105,7 +105,7 @@ class TranscribeTaskApiRequest(SharedV2TaskCreation):
 
 
 class TranscribeTaskJob(TranscribeTaskApiRequest):
-    """Model for creating a transcribe and summarize task (used for actual task creation)."""  # noqa: E501
+    """Model for creating a transcribe task (used for actual task creation)."""  # noqa: E501
 
     tenant_id: str = Field(title="Tenant ID", description="The ID of the tenant.")
     received_at: datetime = Field(
@@ -125,4 +125,9 @@ class SummarizeTaskJob(SummarizeTaskApiRequest):
     tenant_id: str = Field(title="Tenant ID", description="The ID of the tenant.")
     received_at: datetime = Field(
         title="Received At", description="The time the task was received."
+    )
+    push_to_docs_config: PushToDocsBaseConfig | None = Field(
+        title="Push to Docs info",
+        description="If set, configuration for pushing to docs",
+        default=None,
     )

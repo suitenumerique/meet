@@ -4,6 +4,7 @@
 
 import json
 import time
+from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urljoin
 
@@ -21,6 +22,7 @@ from summary.core.file_service import FileService, FileServiceException, Transcr
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.locales import get_locale
 from summary.core.models import (
+    PushToDocsBaseConfig,
     RecordingMetadata,
     SummarizeTaskJob,
     TranscribeTaskJob,
@@ -371,26 +373,25 @@ def summarize_transcription_internals(
 
 
 def _should_push_to_docs(
-    payload: TranscribeTaskJob,
+    payload: TranscribeTaskJob | SummarizeTaskJob,
 ) -> bool:
     """Determines if the transcription should be pushed to docs.
 
     Based on the payload and settings.
     """
     if not payload.push_to_docs_config:
-        logger.info(
-            "Push to docs was not requested in the payload, skipping push to docs."
-        )
-        return False
-    if not settings.is_docs_integration_enabled:
-        logger.info("Docs integration is disabled, skipping push to docs.")
-        return False
-    if not settings.get_authorized_tenant(
+        reason = "Push to docs is not requested in the payload"
+    elif not settings.is_docs_integration_enabled:
+        reason = "Docs integration is disabled"
+    elif not settings.get_authorized_tenant(
         tenant_id=payload.tenant_id
     ).allowed_push_to_docs:
-        logger.info("Push to docs is not allowed for tenant, skipping push to docs.")
-        return False
-    return True
+        reason = "Tenant is not allowed to push to docs"
+    else:
+        return True
+
+    logger.info("Push to docs is not requested: %s", reason)
+    return False
 
 
 def _should_auto_create_summary(payload: TranscribeTaskJob) -> bool:
@@ -402,22 +403,19 @@ def _should_auto_create_summary(payload: TranscribeTaskJob) -> bool:
         payload.push_to_docs_config is None
         or not payload.push_to_docs_config.auto_create_summary
     ):
-        logger.info(
-            "Auto create summary is not requested in the payload, "
-            "skipping auto create summary."
-        )
-        return False
-    if not settings.is_summary_enabled:
-        logger.info("Summary is disabled, skipping auto create summary.")
-        return False
-    if not analytics.is_feature_enabled(
+        reason = "Auto create summary is not requested in the payload"
+    elif not settings.is_summary_enabled:
+        reason = "Summary feature is disabled"
+    elif not analytics.is_feature_enabled(
         "summary-enabled",
         distinct_id=payload.user_sub,
     ):
-        logger.info("Summary feature is disabled, skipping auto create summary.")
-        return False
+        reason = "Summary feature flag return false"
+    else:
+        return True
 
-    return True
+    logger.info("Auto create summary is not requested: %s", reason)
+    return False
 
 
 @celery.task(
@@ -494,8 +492,12 @@ def process_audio_transcribe_v2_task(
         except Exception as e:
             logger.error(f"Failed to resolve speaker identities, skipping: {e}")
 
+    should_push_to_docs = _should_push_to_docs(payload)
     # We do it synchronously for now
-    if _should_push_to_docs(payload):
+    if should_push_to_docs:
+        if payload.push_to_docs_config is None:
+            raise ValueError("Push to docs config is missing")
+
         # Format output
         content = format_transcript(
             transcription_res.model_dump(),
@@ -513,19 +515,22 @@ def process_audio_transcribe_v2_task(
         )
 
         if _should_auto_create_summary(payload):
-            summary = summarize_transcription_internals(
-                distinct_id=payload.user_sub,
-                transcript=content,
-                session_id=self.request.id,
-            )
             locale = get_locale(payload.context_language, payload.language)
-            create_document_in_lasuite_docs(
-                content=summary,
-                title=locale.summary_title_template.format(
-                    title=payload.push_to_docs_config.title
-                ),
-                email=payload.push_to_docs_config.user_email,
-                sub=payload.user_sub,
+
+            summarize_v2_task.apply_async(
+                args=SummarizeTaskJob(
+                    received_at=datetime.now(timezone.utc),
+                    tenant_id=payload.tenant_id,
+                    user_sub=payload.user_sub,
+                    user_email=payload.user_email,
+                    push_to_docs_config=PushToDocsBaseConfig(
+                        user_email=payload.push_to_docs_config.user_email,
+                        title=locale.summary_title_template.format(
+                            title=payload.push_to_docs_config.title
+                        ),
+                    ),
+                    content=content,
+                ).model_dump(),
             )
 
     metadata_manager.capture(job_id, settings.posthog_event_success)
@@ -629,6 +634,17 @@ def summarize_v2_task(
     )
     job_id = self.request.id
     file_service.store_summary(summary=summary, job_id=job_id)
+
+    if _should_push_to_docs(payload):
+        if payload.push_to_docs_config is None:
+            raise ValueError("Push to docs config is missing")
+
+        create_document_in_lasuite_docs(
+            content=summary,
+            title=payload.push_to_docs_config.title,
+            email=payload.push_to_docs_config.user_email,
+            sub=payload.user_sub,
+        )
 
     success_payload = SummarizeWebhookSuccessPayload(
         job_id=job_id,
