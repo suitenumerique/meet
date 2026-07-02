@@ -383,7 +383,7 @@ def test_notify_summary_service_post_args_without_metadata(
         "user_sub": owner.sub,
         "user_email": owner.email,
         "cloud_storage_url": "https://storage.test/recording.mp4",
-        "language": "fr",
+        "language": "en",
         "context_language": owner.language,
         "push_to_docs_config": {
             "user_email": owner.email,

@@ -189,29 +189,9 @@ class NotificationService:
         owner_timezone: str | None,
     ) -> str:
         """Generate title from context or return default."""
-        locale = (
-            locale
-            if locale in {"de-de", "en-us", "fr-fr", "nl-nl"}
-            else settings.LANGUAGES[0][0]
-        )
-        default_template_by_locale = {
-            "de-de": "Transkription",
-            "en-us": "Transcription",
-            "fr-fr": "Transcription",
-            "nl-nl": "Transcriptie",
-        }
         if recording_datetime is None:
-            return default_template_by_locale.get(
-                locale, default_template_by_locale["en-us"]
-            )
-
-        template_by_locale = {
-            "de-de": 'Besprechung "{room}" am {room_recording_date} um {room_recording_time}',
-            "en-us": 'Meeting "{room}" on {room_recording_date} at {room_recording_time}',
-            "fr-fr": 'Réunion "{room}" du {room_recording_date} à {room_recording_time}',
-            "nl-nl": 'Vergadering "{room}" op {room_recording_date} om {room_recording_time}',
-        }
-        template = template_by_locale.get(locale, template_by_locale["en-us"])
+            with override(locale):
+                return _("Transcription")
 
         dt = recording_datetime
         if owner_timezone:
@@ -220,11 +200,15 @@ class NotificationService:
             except (KeyError, ZoneInfoNotFoundError):
                 pass  # Keep the original UTC datetime
 
-        return template.format(
-            room=room,
-            room_recording_date=dt.strftime("%Y-%m-%d"),
-            room_recording_time=dt.strftime("%H:%M"),
-        )
+        with override(locale):
+            translated_template = _(
+                'Meeting "{room}" on {room_recording_date} at {room_recording_time}'
+            )
+            return translated_template.format(
+                room=room,
+                room_recording_date=dt.strftime("%Y-%m-%d"),
+                room_recording_time=dt.strftime("%H:%M"),
+            )
 
     @staticmethod
     def _notify_summary_service(recording: models.Recording):
@@ -356,13 +340,15 @@ class NotificationService:
                 expires_in=settings.SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS,
                 override_domain=False,
             ),
-            "language": recording.options.get("language", "fr"),
+            "language": recording.options.get(
+                "language", get_language().split("-")[0].lower()
+            ),
             "context_language": owner_access.user.language,
             "push_to_docs_config": {
                 "user_email": owner_access.user.email,
                 "title": NotificationService._generate_title(
                     locale=owner_access.user.language
-                    or recording.options.get("language", "fr-fr"),
+                    or recording.options.get("language", get_language()),
                     room=recording.room.name,
                     recording_datetime=started_at,
                     owner_timezone=str(owner_access.user.timezone),
