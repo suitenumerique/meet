@@ -33,6 +33,7 @@ import { ApiLobbyStatus, type ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
+import { useUser } from '@/features/auth/api/useUser'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
@@ -137,6 +138,21 @@ export const Join = ({
       username,
     }
   }
+
+  // Prefill the prejoin name from the authenticated user's profile when they
+  // haven't chosen one yet, so logged-in users aren't asked to type their own
+  // name on every join/refresh. Seed once so it never fights a manual edit, and
+  // write it to the store (not just the field) so the room/lobby requests use
+  // it too. The query may resolve after this screen mounts, hence the effect.
+  const { user, isLoggedIn } = useUser()
+  const hasSeededUsername = useRef(false)
+  useEffect(() => {
+    if (hasSeededUsername.current) return
+    if (isLoggedIn && !username && user?.full_name) {
+      hasSeededUsername.current = true
+      saveUsername(user.full_name)
+    }
+  }, [isLoggedIn, username, user?.full_name])
 
   const tracks = usePreviewTracks(
     {
@@ -453,7 +469,7 @@ export const Join = ({
                 onChange={saveUsername}
                 label={t('usernameLabel')}
                 id="input-name"
-                defaultValue={username}
+                value={username}
                 validate={(value) => !value && t('errors.usernameEmpty')}
                 wrapperProps={{
                   noMargin: true,

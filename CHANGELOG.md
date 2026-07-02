@@ -28,6 +28,10 @@ and this project adheres to
 
 - 🛂(backend) reject user access tokens on the API
 
+### Fixed
+
+- 🐛(frontend) prefill prejoin name from the user profile #1435
+
 ## [1.21.0] - 2026-06-15
 
 ### Added
