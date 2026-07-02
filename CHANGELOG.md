@@ -16,6 +16,7 @@ and this project adheres to
 - 🧱(helm) run clean files command as cronjob
 - ✨(backend) add fallback to save recordings without S3/MinIO webhooks
 - 🩹(frontend) enable screen share button in PiP #1458
+- ✨(frontend) prioritize screen share in picture-in-picture layout #1467
 
 ### Changed
 
