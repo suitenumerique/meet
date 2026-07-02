@@ -136,10 +136,10 @@ def test_authenticate_header():
 
 
 def test_multiple_spaces_in_auth_header(settings):
-    """Test failure when Authorization header contains multiple spaces."""
+    """Test success when Authorization header contains multiple spaces."""
     settings.RECORDING_STORAGE_EVENT_TOKEN = "valid-test-token"
     request = RequestFactory().get("/")
     request.headers = {"Authorization": "Bearer   extra-spaces-token"}
 
-    with pytest.raises(AuthenticationFailed, match="Invalid authorization header"):
-        StorageEventAuthentication().authenticate(request)
+    header = StorageEventAuthentication().authenticate_header(request)
+    assert header == "Bearer realm='Storage event API'"

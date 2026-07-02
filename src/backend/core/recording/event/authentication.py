@@ -34,33 +34,33 @@ class MachineUser:
         return self.username
 
 
-class StorageEventAuthentication(BaseAuthentication):
-    """Authenticate requests using a Bearer token for storage event integration.
-    This class validates Bearer tokens for storage events that don't map to database users.
-    It's designed for S3-compatible storage integrations and similar use cases.
-    Events are submitted when a webhook is configured on some bucket's events.
-    """
+class HeaderBasedAuthentication(BaseAuthentication):
+    """Authenticate requests using a header with a secret key."""
 
     AUTH_HEADER = "Authorization"
     TOKEN_TYPE = "Bearer"  # noqa S105
+    REALM = ""
+
+    IS_ENFORCED_SETTINGS_KEY = None
+    EXPECTED_TOKEN_SETTINGS_KEY = None
 
     def authenticate(self, request):
         """Validate the Bearer token from the Authorization header."""
 
-        if not settings.RECORDING_ENABLE_STORAGE_EVENT_AUTH:
-            return MachineUser(), None
+        if self.IS_ENFORCED_SETTINGS_KEY is not None:
+            if not getattr(settings, self.IS_ENFORCED_SETTINGS_KEY):
+                return MachineUser(), None
 
-        required_token = settings.RECORDING_STORAGE_EVENT_TOKEN
-        if not required_token:
-            if settings.RECORDING_ENABLE_STORAGE_EVENT_AUTH:
-                raise AuthenticationFailed(
-                    "Authentication is enabled but token is not configured."
-                )
-
-            return MachineUser(), None
+        if (
+            self.EXPECTED_TOKEN_SETTINGS_KEY is None
+            or (required_token := getattr(settings, self.EXPECTED_TOKEN_SETTINGS_KEY))
+            is None
+        ):
+            raise AuthenticationFailed(
+                "Authentication is enabled but token is not configured."
+            )
 
         auth_header = request.headers.get(self.AUTH_HEADER)
-
         if not auth_header:
             logger.warning(
                 "Authentication failed: Missing Authorization header (ip: %s)",
@@ -68,15 +68,10 @@ class StorageEventAuthentication(BaseAuthentication):
             )
             raise AuthenticationFailed("Authorization header is required")
 
-        auth_parts = auth_header.split(" ")
-        if len(auth_parts) != 2 or auth_parts[0] != self.TOKEN_TYPE:
-            logger.warning(
-                "Authentication failed: Invalid authorization header (ip: %s)",
-                request.META.get("REMOTE_ADDR"),
-            )
-            raise AuthenticationFailed("Invalid authorization header.")
-
-        token = auth_parts[1]
+        scheme, _, token = auth_header.partition(" ")
+        if scheme.lower() != self.TOKEN_TYPE.lower() or not token.strip():
+            raise AuthenticationFailed("Invalid authorization header format.")
+        token = token.strip()
 
         # Use constant-time comparison to prevent timing attacks
         if not secrets.compare_digest(token.encode(), required_token.encode()):
@@ -90,47 +85,26 @@ class StorageEventAuthentication(BaseAuthentication):
 
     def authenticate_header(self, request):
         """Return the WWW-Authenticate header value."""
-        return f"{self.TOKEN_TYPE} realm='Storage event API'"
+        return f"{self.TOKEN_TYPE} realm='{self.REALM}'"
 
 
-class RecordingProcessWebhookAuthentication(BaseAuthentication):
+class StorageEventAuthentication(HeaderBasedAuthentication):
+    """Authenticate requests using a Bearer token for storage event integration.
+    This class validates Bearer tokens for storage events that don't map to database users.
+    It's designed for S3-compatible storage integrations and similar use cases.
+    Events are submitted when a webhook is configured on some bucket's events.
+    """
+
+    REALM = "Storage event API"
+    IS_ENFORCED_SETTINGS_KEY = "RECORDING_ENABLE_STORAGE_EVENT_AUTH"
+    EXPECTED_TOKEN_SETTINGS_KEY = "RECORDING_STORAGE_EVENT_TOKEN"  # noqa S105
+
+
+class RecordingProcessWebhookAuthentication(HeaderBasedAuthentication):
     """
     Custom authentication class for recording process webhook requests.
     Validates the API key in the Authorization header.
     """
 
-    AUTH_HEADER = "Authorization"
-    TOKEN_TYPE = "Bearer"  # noqa S105
-
-    def authenticate(self, request):
-        """
-        Authenticate the request and return a two-tuple of (user, token).
-        """
-        required_token = settings.SUMMARY_SERVICE_WEBHOOK_API_TOKEN
-        if not required_token:
-            raise AuthenticationFailed("Webhook authentication is not configured.")
-
-        auth_header: str = request.headers.get("Authorization") or ""
-        if not auth_header.startswith("Bearer "):
-            logger.warning(
-                "Authentication failed: Invalid authorization header format (ip: %s)",
-                request.META.get("REMOTE_ADDR"),
-            )
-            raise AuthenticationFailed("Invalid authorization header format.")
-        token = auth_header[7:]  # len("Bearer ") == 7
-
-        if not secrets.compare_digest(
-            token,
-            required_token,
-        ):
-            logger.warning(
-                "Authentication failed: Bad Authorization header (ip: %s)",
-                request.META.get("REMOTE_ADDR"),
-            )
-            raise AuthenticationFailed()
-
-        return MachineUser("external_process_user"), None
-
-    def authenticate_header(self, request):
-        """Return the WWW-Authenticate header value."""
-        return f"{self.TOKEN_TYPE} realm='External process webhook API'"
+    REALM = "External process webhook API"
+    EXPECTED_TOKEN_SETTINGS_KEY = "SUMMARY_SERVICE_WEBHOOK_API_TOKEN"  # noqa S105
