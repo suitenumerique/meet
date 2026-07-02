@@ -305,7 +305,6 @@ jobs:
         working-directory: src/summary
 
     env:
-      V1_TENANT_ID: 'test-tenant'
       AUTHORIZED_TENANTS: '[{"id": "test-tenant", "api_key": "test-api-token", "webhook_url": "https://example.com/webhook", "webhook_api_key": "test-webhook-api-key"}]'
       AWS_STORAGE_BUCKET_NAME: "http://meet-media-storage"
       AWS_S3_ENDPOINT_URL: "minio:9000"

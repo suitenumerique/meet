@@ -16,12 +16,14 @@ and this project adheres to
 - 🧱(helm) run clean files command as cronjob
 - ✨(backend) add fallback to save recordings without S3/MinIO webhooks
 - 🩹(frontend) enable screen share button in PiP #1458
+- ✨(visio) use compatible with summary v2 #1362
 
 ### Changed
 
 - ✨(summary) generalized stt api call #1420
 - ♻️(env) refactor env variables handling
 - 🚸(frontend) use "Advanced" instead of "Premium" in the sidepanel
+- 💥(summary) remove v1 related code #1362
 
 ### Fixed
 

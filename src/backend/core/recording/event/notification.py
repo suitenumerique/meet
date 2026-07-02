@@ -4,6 +4,7 @@ import asyncio
 import logging
 import smtplib
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -17,6 +18,7 @@ from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from core import models, utils
+from core.utils import generate_download_s3_url
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +181,64 @@ class NotificationService:
         return _ns_to_utc(file_result.started_at), _ns_to_utc(file_result.ended_at)
 
     @staticmethod
+    def _generate_title(
+        *,
+        locale: str,
+        room: str,
+        recording_datetime: datetime | None,
+        owner_timezone: str | None,
+    ) -> str:
+        """Generate title from context or return default."""
+        locale = (
+            locale
+            if locale in {"de-de", "en-us", "fr-fr", "nl-nl"}
+            else settings.LANGUAGES[0][0]
+        )
+        default_template_by_locale = {
+            "de-de": "Transkription",
+            "en-us": "Transcription",
+            "fr-fr": "Transcription",
+            "nl-nl": "Transcriptie",
+        }
+        if recording_datetime is None:
+            return default_template_by_locale.get(
+                locale, default_template_by_locale["en-us"]
+            )
+
+        template_by_locale = {
+            "de-de": 'Besprechung "{room}" am {room_recording_date} um {room_recording_time}',
+            "en-us": 'Meeting "{room}" on {room_recording_date} at {room_recording_time}',
+            "fr-fr": 'Réunion "{room}" du {room_recording_date} à {room_recording_time}',
+            "nl-nl": 'Vergadering "{room}" op {room_recording_date} om {room_recording_time}',
+        }
+        template = template_by_locale.get(locale, template_by_locale["en-us"])
+
+        dt = recording_datetime
+        if owner_timezone:
+            try:
+                dt = recording_datetime.astimezone(ZoneInfo(owner_timezone))
+            except (KeyError, ZoneInfoNotFoundError):
+                pass  # Keep the original UTC datetime
+
+        return template.format(
+            room=room,
+            room_recording_date=dt.strftime("%Y-%m-%d"),
+            room_recording_time=dt.strftime("%H:%M"),
+        )
+
+    @staticmethod
     def _notify_summary_service(recording: models.Recording):
+        if settings.SUMMARY_SERVICE_VERSION == 1:
+            return NotificationService._notify_summary_service_v1(recording)
+        if settings.SUMMARY_SERVICE_VERSION == 2:
+            return NotificationService._notify_summary_service_v2(recording)
+
+        raise NotImplementedError(
+            f"Unknown summary service version: {settings.SUMMARY_SERVICE_VERSION}"
+        )
+
+    @staticmethod
+    def _notify_summary_service_v1(recording: models.Recording):
         """Notify summary service about a new recording."""
 
         if (
@@ -242,6 +301,116 @@ class NotificationService:
                 timeout=30,
             )
             response.raise_for_status()
+        except requests.RequestException as exc:
+            logger.exception(
+                "Summary service error for recording %s. URL: %s. Exception: %s",
+                recording.id,
+                settings.SUMMARY_SERVICE_ENDPOINT,
+                exc,
+            )
+            return False
+
+        return True
+
+    @staticmethod
+    def _notify_summary_service_v2(recording: models.Recording):
+        """Notify summary service about a new recording."""
+
+        if (
+            not settings.SUMMARY_SERVICE_ENDPOINT
+            or not settings.SUMMARY_SERVICE_API_TOKEN
+        ):
+            logger.error("Summary service not configured")
+            return False
+
+        owner_access = (
+            models.RecordingAccess.objects.select_related("user")
+            .filter(
+                role=models.RoleChoices.OWNER,
+                recording_id=recording.id,
+            )
+            .first()
+        )
+        metadata_filename: None | str = None
+        if settings.METADATA_COLLECTOR_ENABLED and recording.options.get(
+            "collect_metadata", False
+        ):
+            output_folder = settings.METADATA_COLLECTOR_OUTPUT_FOLDER
+            metadata_filename = f"{output_folder}/{recording.id}-metadata.json"
+
+        if not owner_access:
+            logger.error("No owner found for recording %s", recording.id)
+            return False
+
+        started_at, ended_at = async_to_sync(
+            NotificationService._get_recording_timestamps
+        )(recording.worker_id)
+
+        form_base_url = settings.TRANSCRIPTION_SATISFACTION_FORM_BASE_URL
+
+        payload = {
+            "user_sub": owner_access.user.sub,
+            "user_email": owner_access.user.email,
+            "cloud_storage_url": generate_download_s3_url(
+                recording.key,
+                expires_in=settings.SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS,
+                override_domain=False,
+            ),
+            "language": recording.options.get("language", "fr"),
+            "context_language": owner_access.user.language,
+            "push_to_docs_config": {
+                "user_email": owner_access.user.email,
+                "title": NotificationService._generate_title(
+                    locale=owner_access.user.language
+                    or recording.options.get("language", "fr-fr"),
+                    room=recording.room.name,
+                    recording_datetime=started_at,
+                    owner_timezone=str(owner_access.user.timezone),
+                ),
+                "download_link": f"{get_recording_download_base_url()}/{recording.id}",
+                "form_link": f"{form_base_url}?room_id={recording.room.id}"
+                if (form_base_url and metadata_filename is not None)
+                else None,
+                # For now the feature flag logic is handled on summary side
+                "auto_create_summary": True,
+            },
+            "metadata": (
+                {
+                    "cloud_storage_url": generate_download_s3_url(
+                        metadata_filename,
+                        expires_in=settings.SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS,
+                        override_domain=False,
+                    ),
+                    "started_at": started_at.isoformat(),
+                    "ended_at": ended_at.isoformat(),
+                }
+                if (started_at and ended_at and metadata_filename)
+                else None
+            ),
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {settings.SUMMARY_SERVICE_API_TOKEN}",
+        }
+
+        try:
+            response = requests.post(
+                settings.SUMMARY_SERVICE_ENDPOINT,
+                json=payload,
+                headers=headers,
+                timeout=30,
+            )
+            response.raise_for_status()
+            response_json = response.json()
+            # We do not require a job_id to avoid a breaking change
+            job_id = response_json.get("job_id")
+            if not isinstance(job_id, str):
+                raise ValueError("job_id is not a string")
+
+            recording.external_process_id = job_id
+            recording.save()
+
         except requests.RequestException as exc:
             logger.exception(
                 "Summary service error for recording %s. URL: %s. Exception: %s",
