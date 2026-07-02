@@ -28,6 +28,7 @@ and this project adheres to
 ### Fixed
 
 - 🛂(backend) reject user access tokens on the API
+- 🩹(helm) fix Helm ingress rendering when passing multiple hosts
 
 ## [1.21.0] - 2026-06-15
 
