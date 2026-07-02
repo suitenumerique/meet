@@ -123,7 +123,8 @@ class MetadataManager:
             "retries": 0,
             "filename": clean_url,
             "sub": task_payload.user_sub,
-            "email": task_payload.user_email,
+            # avoid None in redis, it shouldn't happen anyway in prod
+            "email": task_payload.user_email or "",
             "tenant_id": task_payload.tenant_id,
             "queuing_time": round(start_time - task_payload.received_at.timestamp(), 2),
         }
@@ -212,6 +213,6 @@ class MetadataManager:
         self.clear(task_id)
 
         try:
-            self._analytics.capture(event_name, metadata.get("email"), metadata)
+            self._analytics.capture(event_name, metadata.get("sub"), metadata)
         except AnalyticsException:
             logger.exception("Failed to capture analytics event")
