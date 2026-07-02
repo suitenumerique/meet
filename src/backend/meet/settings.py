@@ -761,6 +761,14 @@ class Base(Configuration):
         None, environ_name="RECORDING_DOWNLOAD_BASE_URL", environ_prefix=None
     )
 
+    # Analytics
+    ANALYTICS_BACKEND = values.Value(
+        None, environ_name="ANALYTICS_BACKEND", environ_prefix=None
+    )
+    ANALYTICS_BACKEND_SETTINGS = values.DictValue(
+        {}, environ_name="ANALYTICS_BACKEND_SETTINGS", environ_prefix=None
+    )
+
     # Marketing and communication settings
     SIGNUP_NEW_USER_TO_MARKETING_EMAIL = values.BooleanValue(
         False,  # When enabled, new users are automatically added to mailing list.

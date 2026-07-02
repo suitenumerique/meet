@@ -19,7 +19,7 @@ from rest_framework import (
     status as drf_status,
 )
 
-from core import api, models
+from core import analytics, api, models
 from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
 
@@ -194,10 +194,26 @@ class RoomViewSet(
             role=models.RoleChoices.OWNER,
         )
 
+        auth_method = type(self.request.successful_authenticator).__name__
+        client_id = (self.request.auth or {}).get("client_id", "unknown")
+
         # Log for auditing
         logger.info(
-            "Room created via application: room_id=%s, user_id=%s, client_id=%s",
+            "Room created via application: room_id=%s, user_id=%s, client_id=%s, auth_method=%s",
             room.id,
             self.request.user.id,
-            getattr(self.request.auth, "client_id", "unknown"),
+            client_id,
+            auth_method,
+        )
+
+        analytics.capture(
+            self.request.user,
+            analytics.AnalyticsEvent.ROOM_CREATED,
+            {
+                "room_id": str(room.pk),
+                "access_level": room.access_level,
+                "client_id": client_id,
+                "external_api": True,
+                "auth_method": auth_method,
+            },
         )

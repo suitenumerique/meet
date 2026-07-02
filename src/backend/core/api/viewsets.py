@@ -35,7 +35,7 @@ from rest_framework import (
 )
 from rest_framework.settings import api_settings
 
-from core import enums, models, utils
+from core import analytics, enums, models, utils
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
@@ -307,6 +307,16 @@ class RoomViewSet(
 
         if callback_id := self.request.data.get("callback_id"):
             RoomCreation().persist_callback_state(callback_id, room)
+
+        analytics.capture(
+            self.request.user,
+            analytics.AnalyticsEvent.ROOM_CREATED,
+            {
+                "room_id": str(room.pk),
+                "access_level": room.access_level,
+                "from_callback": bool(self.request.data.get("callback_id")),
+            },
+        )
 
     def perform_update(self, serializer):
         """Persist the room update, then sync metadata to LiveKit."""
