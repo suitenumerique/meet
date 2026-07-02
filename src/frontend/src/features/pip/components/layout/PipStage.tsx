@@ -53,8 +53,20 @@ export const PipStage = () => {
 
   if (tracks.length === 0) return null
 
-  // Screen share active → Google Meet-style layout
+  // Screen share active
   if (screenShareTrack) {
+    // Solo presenter: screen share fills the area, camera as small thumbnail
+    if (cameraTracks.length <= 1) {
+      return (
+        <StageFrame>
+          <PipFocusLayout
+            mainTrack={screenShareTrack}
+            thumbnailTrack={cameraTracks[0]}
+          />
+        </StageFrame>
+      )
+    }
+    // Multiple cameras: camera row at top, screen share below
     return (
       <PaginatedStage pagination={paginatedCameraTracks}>
         <PipScreenShareLayout
