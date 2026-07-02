@@ -331,6 +331,22 @@ class NotificationService:
         )(recording.worker_id)
 
         form_base_url = settings.TRANSCRIPTION_SATISFACTION_FORM_BASE_URL
+        form_link = (
+            f"{form_base_url}?room_id={recording.room.id}"
+            if (form_base_url and metadata_filename is not None)
+            else None
+        )
+        metadata_payload = None
+        if started_at and ended_at and metadata_filename:
+            metadata_payload = {
+                "cloud_storage_url": generate_download_s3_url(
+                    metadata_filename,
+                    expires_in=settings.SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS,
+                    override_domain=False,
+                ),
+                "started_at": started_at.isoformat(),
+                "ended_at": ended_at.isoformat(),
+            }
 
         payload = {
             "user_sub": owner_access.user.sub,
@@ -354,25 +370,11 @@ class NotificationService:
                     owner_timezone=str(owner_access.user.timezone),
                 ),
                 "download_link": f"{get_recording_download_base_url()}/{recording.id}",
-                "form_link": f"{form_base_url}?room_id={recording.room.id}"
-                if (form_base_url and metadata_filename is not None)
-                else None,
+                "form_link": form_link,
                 # For now the feature flag logic is handled on summary side
                 "auto_create_summary": True,
             },
-            "metadata": (
-                {
-                    "cloud_storage_url": generate_download_s3_url(
-                        metadata_filename,
-                        expires_in=settings.SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS,
-                        override_domain=False,
-                    ),
-                    "started_at": started_at.isoformat(),
-                    "ended_at": ended_at.isoformat(),
-                }
-                if (started_at and ended_at and metadata_filename)
-                else None
-            ),
+            "metadata": metadata_payload,
         }
 
         headers = {

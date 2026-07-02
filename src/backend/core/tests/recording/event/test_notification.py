@@ -284,8 +284,8 @@ def test_notify_summary_service_post_args_with_metadata(
     ended_at = datetime.datetime(2026, 1, 2, 11, 45, tzinfo=datetime.timezone.utc)
     mock_get_recording_timestamps.return_value = (started_at, ended_at)
     mock_generate_download_s3_url.side_effect = [
-        "https://storage.test/recording.ogg",
         "https://storage.test/metadata.json",
+        "https://storage.test/recording.ogg",
     ]
 
     mock_response = mock.Mock()
@@ -332,8 +332,8 @@ def test_notify_summary_service_post_args_with_metadata(
         timeout=30,
     )
     assert mock_generate_download_s3_url.call_args_list == [
-        mock.call(recording.key, expires_in=60 * 60 * 24, override_domain=False),
         mock.call(metadata_filename, expires_in=60 * 60 * 24, override_domain=False),
+        mock.call(recording.key, expires_in=60 * 60 * 24, override_domain=False),
     ]
     mock_get_recording_timestamps.assert_awaited_once_with("egress-1")
 
