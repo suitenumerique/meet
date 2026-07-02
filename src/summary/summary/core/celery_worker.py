@@ -535,8 +535,6 @@ def process_audio_transcribe_v2_task(
                 ],
             )
 
-    metadata_manager.capture(job_id, settings.posthog_event_success)
-
     file_service.store_transcript(
         transcript=transcription_res,
         job_id=job_id,
