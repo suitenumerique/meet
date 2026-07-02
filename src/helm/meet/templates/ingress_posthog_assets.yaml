@@ -72,11 +72,11 @@ spec:
             backend:
             {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "meet.posthog.fullname" . }}-assets-proxy
+                name: {{ include "meet.posthog.fullname" $ }}-assets-proxy
                 port:
                   number: {{ $.Values.posthog.assetsService.service.port }}
             {{- else }}
-              serviceName: {{ include "meet.posthog.fullname" . }}-assets-proxy
+              serviceName: {{ include "meet.posthog.fullname" $ }}-assets-proxy
               servicePort: {{ $.Values.posthog.assetsService.service.port }}
           {{- end }}
         {{- with $.Values.posthog.assetsService.customBackends }}
