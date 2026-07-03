@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+- 🚀 (front) fix frontend build failure
+
 ## [1.22.0] - 2026-07-03
 
 ### Added
