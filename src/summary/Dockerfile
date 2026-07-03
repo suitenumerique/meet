@@ -1,4 +1,4 @@
-FROM python:3.13-alpine3.23 AS base
+FROM python:3.13-alpine3.24 AS base
 
 
 # Install ffmpeg for audio/video processing (format conversion, extraction, compression)
