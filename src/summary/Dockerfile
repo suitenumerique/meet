@@ -3,7 +3,7 @@ FROM python:3.13-alpine3.24 AS base
 
 # Install ffmpeg for audio/video processing (format conversion, extraction, compression)
 # See summary/core/file_service.py for usage.
-RUN apk add --no-cache "ffmpeg=8.0.1-r1"
+RUN apk add --no-cache "ffmpeg=8.1.2-r0"
 
 FROM base AS builder
 
