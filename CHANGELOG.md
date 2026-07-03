@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.22.0] - 2026-07-03
+
 ### Added
 
 - ✨(frontend) cap and paginate tiles in picture-in-picture #1383
