@@ -26,6 +26,7 @@ and this project adheres to
 - ♻️(env) refactor env variables handling
 - 🚸(frontend) use "Advanced" instead of "Premium" in the sidepanel
 - ♿️(frontend) make fullscreen share warning keyboard accessible #1459
+- ⬆️(summary) update docker alpine to 3.24 & ffmpeg to 8.1.2 #1471
 
 ### Fixed
 
