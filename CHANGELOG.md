@@ -8,6 +8,7 @@ and this project adheres to
 
 ## [Unreleased]
 
+- ✨(frontend) pin multiple screen shares and tiles at once #1447
 - 🚀 (front) fix frontend build failure
 
 ## [1.22.0] - 2026-07-03

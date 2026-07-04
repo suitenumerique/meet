@@ -9,15 +9,13 @@ import {
   RiPushpin2Line,
   RiUnpinLine,
 } from '@remixicon/react'
-import {
-  useFocusToggle,
-  useTrackMutedIndicator,
-} from '@livekit/components-react'
+import { useTrackMutedIndicator } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
 import { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { useEffect, useRef, useState } from 'react'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { useFullScreen } from '../hooks/useFullScreen'
+import { useTogglePin } from '../hooks/useMultiPin'
 import { type Participant, Track } from 'livekit-client'
 import { MuteAlertDialog } from './MuteAlertDialog'
 import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
@@ -56,20 +54,17 @@ const FocusButton = ({
   trackRef: TrackReferenceOrPlaceholder
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
-  const { mergedProps, inFocus } = useFocusToggle({
-    trackRef,
-    props: {},
-  })
+  const { toggle, isPinned, canPin } = useTogglePin(trackRef)
   return (
     <Button
       size="sm"
       variant="primaryTextDark"
       square
-      tooltip={inFocus ? t('pin.disable') : t('pin.enable')}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onPress={(event) => mergedProps?.onClick?.(event as any)}
+      isDisabled={!canPin}
+      tooltip={isPinned ? t('pin.disable') : t('pin.enable')}
+      onPress={() => toggle()}
     >
-      {inFocus ? <RiUnpinLine /> : <RiPushpin2Line />}
+      {isPinned ? <RiUnpinLine /> : <RiPushpin2Line />}
     </Button>
   )
 }

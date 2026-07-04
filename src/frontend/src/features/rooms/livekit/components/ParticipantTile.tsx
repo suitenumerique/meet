@@ -7,7 +7,6 @@ import {
   useEnsureTrackRef,
   useFeatureContext,
   useIsEncrypted,
-  useMaybeLayoutContext,
   useMaybeTrackRefContext,
   useParticipantTile,
   VideoTrack,
@@ -34,6 +33,7 @@ import { useTranslation } from 'react-i18next'
 import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
 import { KeyboardShortcutHint } from './KeyboardShortcutHint'
+import { useMultiPinDispatch, usePinnedTracksState } from '../hooks/useMultiPin'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -79,23 +79,25 @@ export const ParticipantTile: (
     trackRef: trackReference,
   })
   const isEncrypted = useIsEncrypted(trackReference.participant)
-  const layoutContext = useMaybeLayoutContext()
+  const dispatchPin = useMultiPinDispatch()
+  const pinnedTracks = usePinnedTracksState()
 
   const autoManageSubscription = useFeatureContext()?.autoSubscription
 
   const handleSubscribe = React.useCallback(
     (subscribed: boolean) => {
+      // When a pinned tile is unsubscribed, unpin only that tile — the other
+      // pinned tiles stay in focus.
       if (
         trackReference.source &&
         !subscribed &&
-        layoutContext &&
-        layoutContext.pin.dispatch &&
-        isTrackReferencePinned(trackReference, layoutContext.pin.state)
+        dispatchPin &&
+        isTrackReferencePinned(trackReference, pinnedTracks)
       ) {
-        layoutContext.pin.dispatch({ msg: 'clear_pin' })
+        dispatchPin({ msg: 'remove_pin', trackReference })
       }
     },
-    [trackReference, layoutContext]
+    [trackReference, dispatchPin, pinnedTracks]
   )
 
   const { isHandRaised } = useRaisedHand({

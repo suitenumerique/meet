@@ -4,7 +4,7 @@ import { Button as RACButton } from 'react-aria-components'
 import { Track } from 'livekit-client'
 import Source = Track.Source
 
-import { useMaybeLayoutContext } from '@livekit/components-react'
+import { useMultiPinDispatch } from '@/features/rooms/livekit/hooks/useMultiPin'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
 import { type ToastProps } from './Toast'
 import { HStack, styled } from '@/styled-system/jsx'
@@ -28,7 +28,7 @@ export function ToastJoined({ state, ...props }: Readonly<ToastProps>) {
     state,
     ref
   )
-  const layoutContext = useMaybeLayoutContext()
+  const dispatchPin = useMultiPinDispatch()
   const participant = props.toast.content.participant
 
   if (!participant) return
@@ -39,8 +39,8 @@ export function ToastJoined({ state, ...props }: Readonly<ToastProps>) {
     source: Source.Camera,
   }
   const pinParticipant = () => {
-    layoutContext?.pin.dispatch?.({
-      msg: 'set_pin',
+    dispatchPin?.({
+      msg: 'add_pin',
       trackReference,
     })
   }
