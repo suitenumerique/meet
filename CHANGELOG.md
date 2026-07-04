@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🚀(front) fix frontend build failure
 - 🐛(makefile) fix args in make test
+- 🩹(backend) fix case-insensitive email deduplication in merge command
 
 ## [1.22.0] - 2026-07-03
 
