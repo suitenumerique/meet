@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import Count
+from django.db.models.functions import Lower
 
 from core.models import File, RecordingAccess, ResourceAccess, RoleChoices
 
@@ -20,11 +21,14 @@ ROLE_PRIORITY = {
 
 class Command(BaseCommand):
     """
-    Merge duplicate users sharing the same email into the most recently created one.
+    Merge duplicate users sharing the same email (case-insensitive) into the
+    most recently created one.
 
-    The KEPT user is the most recently created. All room memberships, recording
-    accesses and files are transferred to it. When a conflict exists, the
-    higher-privilege role wins. Stale users are then deleted.
+    Emails are compared case-insensitively, so 'John@Example.com' and
+    'john@example.com' are treated as duplicates. The KEPT user is the most
+    recently created. All room memberships, recording accesses and files are
+    transferred to it. When a conflict exists, the higher-privilege role wins.
+    Stale users are then deleted.
     Each email group is processed inside a single database transaction.
     """
 
@@ -56,13 +60,16 @@ class Command(BaseCommand):
             users_qs = users_qs.filter(email__icontains=email_filter)
             self.stdout.write(f"[INFO] Filtering emails containing '{email_filter}'.\n")
 
+        # Group emails case-insensitively so 'John@X.com' and 'john@x.com'
+        # are detected as duplicates of each other.
         duplicate_emails = (
             users_qs.exclude(email__isnull=True)
             .exclude(email="")
-            .values("email")
+            .annotate(email_lower=Lower("email"))
+            .values("email_lower")
             .annotate(cnt=Count("id"))
             .filter(cnt__gt=1)
-            .values_list("email", flat=True)
+            .values_list("email_lower", flat=True)
         )
 
         if not duplicate_emails:
@@ -78,9 +85,12 @@ class Command(BaseCommand):
         failed_emails = []
 
         for email in duplicate_emails:
+            # Case-insensitive lookup to fetch every casing variant of the email.
             # Secondary sort by id ensures a stable, deterministic order when
             # created_at timestamps are equal (common in tests and bulk imports).
-            users = list(User.objects.filter(email=email).order_by("created_at", "id"))
+            users = list(
+                User.objects.filter(email__iexact=email).order_by("created_at", "id")
+            )
             kept_user = users[-1]
             stale_users = users[:-1]
 
@@ -119,6 +129,10 @@ class Command(BaseCommand):
             except Exception as exc:  # noqa: BLE001 #pylint: disable=broad-exception-caught
                 failed_emails.append(email)
                 self.stderr.write(f"[ERROR] Failed to merge '{email}': {exc}")
+
+            if not kept_user.email.islower():
+                kept_user.email = kept_user.email.lower()
+                kept_user.save(update_fields=["email"])
 
         if failed_emails:
             raise CommandError(

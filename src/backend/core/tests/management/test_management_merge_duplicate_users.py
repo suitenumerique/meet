@@ -36,6 +36,26 @@ def test_merge_keeps_most_recently_created_user():
     assert User.objects.filter(id=user2.id).exists()
 
 
+def test_merge_user_case_insensitive():
+    """Emails differing only by case should be treated as duplicates and merged,
+    keeping the most recently created user."""
+    user1 = UserFactory(email="Dup@example.com")
+    user2 = UserFactory(email="dup@example.com")
+    call_command("merge_duplicate_users")
+
+    assert not User.objects.filter(id=user1.id).exists()
+    assert User.objects.filter(id=user2.id).exists()
+
+    user3 = UserFactory(email="joe@example.com")
+    user4 = UserFactory(email="Joe@example.com")
+    call_command("merge_duplicate_users")
+    assert not User.objects.filter(id=user3.id).exists()
+    assert User.objects.filter(id=user4.id).exists()
+
+    user4.refresh_from_db()
+    assert user4.email.islower()
+
+
 def test_merge_deletes_all_stale_users():
     """Command should delete all stale users and keep only the most recently created one."""
     email = "many@example.com"
@@ -457,4 +477,4 @@ def test_merge_email_filter_is_case_insensitive():
     UserFactory(email="user1@Example.com")
     UserFactory(email="user1@Example.com")
     call_command("merge_duplicate_users", email_filter="@example.com")
-    assert User.objects.filter(email="user1@Example.com").count() == 1
+    assert User.objects.filter(email="user1@example.com").count() == 1
