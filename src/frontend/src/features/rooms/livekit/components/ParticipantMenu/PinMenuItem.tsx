@@ -9,7 +9,7 @@ import { useFocusToggleParticipant } from '@/features/rooms/livekit/hooks/useFoc
 export const PinMenuItem = ({ participant }: { participant: Participant }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participantMenu' })
 
-  const { toggle, inFocus } = useFocusToggleParticipant(participant)
+  const { toggle, inFocus, canPin } = useFocusToggleParticipant(participant)
 
   return (
     <MenuItem
@@ -17,6 +17,7 @@ export const PinMenuItem = ({ participant }: { participant: Participant }) => {
         name: participant.name,
       })}
       className={menuRecipe({ icon: true }).item}
+      isDisabled={!canPin}
       onAction={toggle}
     >
       <HStack gap={0.25}>

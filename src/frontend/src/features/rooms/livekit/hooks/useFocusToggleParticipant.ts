@@ -1,7 +1,5 @@
-import { useFocusToggle } from '@livekit/components-react'
 import { type Participant, Track } from 'livekit-client'
-import { useCallback } from 'react'
-import type { MouseEvent } from 'react'
+import { useTogglePin } from './useMultiPin'
 import Source = Track.Source
 
 export const useFocusToggleParticipant = (participant: Participant) => {
@@ -11,22 +9,11 @@ export const useFocusToggleParticipant = (participant: Participant) => {
     source: Source.Camera,
   }
 
-  const { mergedProps, inFocus } = useFocusToggle({
-    trackRef,
-    props: {},
-  })
-
-  const toggle = useCallback(() => {
-    const syntheticEvent = {
-      preventDefault: () => {},
-      stopPropagation: () => {},
-    } as MouseEvent<HTMLButtonElement>
-
-    mergedProps?.onClick?.(syntheticEvent)
-  }, [mergedProps])
+  const { toggle, isPinned, canPin } = useTogglePin(trackRef)
 
   return {
     toggle,
-    inFocus,
+    inFocus: isPinned,
+    canPin,
   }
 }
