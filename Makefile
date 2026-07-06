@@ -211,24 +211,25 @@ lint-pylint: ## lint back-end python sources with pylint only on changed files f
 	@$(COMPOSE_RUN_APP) pylint meet demo core
 .PHONY: lint-pylint
 
-test: ## run project tests
-	@$(MAKE) test-back-parallel
-	@$(MAKE) test-summary
+test: ## run project tests; pass extra pytest args via ARGS, e.g. `make test ARGS="-vv"`
+	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
+	$(MAKE) test-back-parallel ARGS="$${args}" && \
+	$(MAKE) test-summary ARGS="$${args}"
 .PHONY: test
 
-test-back: ## run back-end tests
-	@args="$(filter-out $@,$(MAKECMDGOALS))" && \
-	bin/pytest $${args:-${1}}
+test-back: ## run back-end tests (pass extra pytest args via ARGS)
+	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
+	bin/pytest $${args}
 .PHONY: test-back
 
-test-back-parallel: ## run all back-end tests in parallel
-	@args="$(filter-out $@,$(MAKECMDGOALS))" && \
-	bin/pytest -n auto $${args:-${1}}
+test-back-parallel: ## run all back-end tests in parallel (pass extra pytest args via ARGS)
+	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
+	bin/pytest -n auto $${args}
 .PHONY: test-back-parallel
 
-test-summary: ## run summary tests
-	@args="$(filter-out $@,$(MAKECMDGOALS))" && \
-	bin/pytest-summary $${args:-${1}}
+test-summary: ## run summary tests (pass extra pytest args via ARGS)
+	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
+	bin/pytest-summary $${args}
 .PHONY: test-summary
 
 makemigrations:  ## run django makemigrations for the Meet project.
