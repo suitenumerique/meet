@@ -406,11 +406,6 @@ def _should_auto_create_summary(payload: TranscribeTaskJob) -> bool:
         reason = "Auto create summary is not requested in the payload"
     elif not settings.is_summary_enabled:
         reason = "Summary feature is disabled"
-    elif not analytics.is_feature_enabled(
-        "summary-enabled",
-        distinct_id=payload.user_sub,
-    ):
-        reason = "Summary feature flag return false"
     else:
         return True
 

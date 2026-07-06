@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) extend analytics module to support feature flags
+- ✨(backend) implement feature flags in Posthog analytics backend
+
 ### Changed
 
 - ⬆️(agents) upgrade to python 3.14 slim
@@ -15,6 +20,7 @@ and this project adheres to
 - 💥(summary) remove v1 related code #1362
 - ✨(meet) use compatible with summary v2 #1362
 - ♻️(backend) refactor analytics backend from Protocol to abstract class
+- 🔥(summary) remove call to summary enabled feature flag
 
 ### Fixed
 
