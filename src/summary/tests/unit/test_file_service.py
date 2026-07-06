@@ -1,12 +1,15 @@
 """Unit tests for the file service."""
 
+import json
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
+from summary.core import file_service
 from summary.core.file_service import (
     MediaInfo,
-    extract_audio_from_video,
+    extract_audio_from_media,
     get_media_info,
 )
 
@@ -110,12 +113,40 @@ def test_media_info_invalid_file() -> None:
     )
 
 
+def test_media_info_ignores_empty_stream_entry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test stream parsing when ffprobe returns an empty stream object."""
+    ffprobe_payload = {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+            {"codec_name": "vorbis", "codec_type": "audio"},
+            {},
+        ],
+    }
+
+    run_mock = Mock(
+        return_value=Mock(stdout=json.dumps(ffprobe_payload), stderr="", returncode=0)
+    )
+    monkeypatch.setattr(file_service.subprocess, "run", run_mock)
+    monkeypatch.setattr(
+        file_service, "get_media_duration_seconds", Mock(return_value=2.5)
+    )
+
+    media_info = get_media_info(BASE_PATH / "audio-sample-android-firefox.ogg")
+
+    assert media_info.has_audio is True
+    assert media_info.has_video is False
+    assert media_info.has_bad_stream is True
+    assert media_info.audio_codec_name == "vorbis"
+    assert media_info.audio_duration_seconds == 2.5
+
+
 def test_extract_audio_from_video():
     """Test that extract_audio_from_video can extract audio from a video file."""
     path = None
     # A bit of cleanup logic since this is not a generator
     try:
-        path = extract_audio_from_video(MEDIA_INFO_SAMPLE_VISIO)
+        path = extract_audio_from_media(MEDIA_INFO_SAMPLE_VISIO)
         assert path.name.endswith(".m4a")
     except Exception as e:
         pytest.fail(f"Failed to extract audio from video: {e}")

@@ -142,6 +142,7 @@ class MediaInfo:
     has_video: bool
     audio_duration_seconds: float | None
     audio_codec_name: str | None
+    has_bad_stream: bool = False
 
 
 def get_media_info(local_path: Path) -> MediaInfo:
@@ -174,8 +175,9 @@ def get_media_info(local_path: Path) -> MediaInfo:
     data = json.loads(result.stdout)
 
     streams = data.get("streams", [])
-    has_audio = any(el["codec_type"] == "audio" for el in streams)
-    has_video = any(el["codec_type"] == "video" for el in streams)
+    has_audio = any(el.get("codec_type") == "audio" for el in streams)
+    has_video = any(el.get("codec_type") == "video" for el in streams)
+    has_bad_stream = any(el.get("codec_type", None) is None for el in streams)
     audio_codec_name = next(
         (
             stream.get("codec_name")
@@ -193,10 +195,11 @@ def get_media_info(local_path: Path) -> MediaInfo:
         has_video=has_video,
         audio_duration_seconds=audio_duration_seconds,
         audio_codec_name=audio_codec_name,
+        has_bad_stream=has_bad_stream,
     )
 
 
-def extract_audio_from_video(media_info: MediaInfo) -> Path:
+def extract_audio_from_media(media_info: MediaInfo) -> Path:
     """Extracts the audio track from a video file and saves it as a separate audio file.
 
     Based on the provided audio codec,
@@ -451,7 +454,12 @@ class FileService:
 
             if media_info.has_video:
                 logger.info("Video file detected, extracting audio...")
-                processed_path = extract_audio_from_video(media_info)
+                processed_path = extract_audio_from_media(media_info)
+            # Bad streams may cause transcription issues on WhisperX,
+            # So we extract the audio properly
+            elif media_info.has_bad_stream:
+                logger.info("Bad stream detected, extracting audio...")
+                processed_path = extract_audio_from_media(media_info)
             else:
                 processed_path = downloaded_path
 
