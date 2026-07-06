@@ -8,7 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
-- 🚀 (front) fix frontend build failure
+### Fixed
+
+- 🚀(front) fix frontend build failure
+- 🐛(makefile) fix args in make test
 
 ## [1.22.0] - 2026-07-03
 
