@@ -1,10 +1,11 @@
 """Analytics backend protocol and default no-op implementation."""
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Mapping
 
 from ..models import User
 from .events import AnalyticsEvent
+from .user_feature_flags import UserFeatureFlag
 
 
 class AnalyticsBackend(ABC):
@@ -34,6 +35,21 @@ class AnalyticsBackend(ABC):
     @abstractmethod
     def shutdown(self) -> None:
         """Flush pending events. Called on process exit."""
+
+    def get_user_feature_flags(
+        self,
+        user: User,  # pylint: disable=unused-argument
+    ) -> Mapping[UserFeatureFlag, bool | str | None]:
+        """Return a dict of feature flags for the given user."""
+        # We return an empty dict here by default to avoid a breaking change
+        # By making this method abstract.
+        return {}
+
+    def is_user_feature_enabled(
+        self, user: User, feature_name: UserFeatureFlag
+    ) -> bool:
+        """Check if a feature is enabled at the user level."""
+        return self.get_user_feature_flags(user).get(feature_name, False) is True
 
 
 class NoOpAnalytics(AnalyticsBackend):

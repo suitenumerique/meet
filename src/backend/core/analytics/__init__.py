@@ -19,6 +19,7 @@ from django.utils.module_loading import import_string
 
 from .base import AnalyticsBackend, NoOpAnalytics
 from .events import AnalyticsEvent
+from .user_feature_flags import UserFeatureFlag
 
 __all__ = [
     "get_analytics",
@@ -26,6 +27,8 @@ __all__ = [
     "capture",
     "AnalyticsBackend",
     "AnalyticsEvent",
+    "is_user_feature_flag_enabled",
+    "UserFeatureFlag",
 ]
 
 
@@ -57,3 +60,8 @@ def capture(
 ) -> None:
     """Record an event performed by an identified user."""
     analytics_instance.capture(user, event, properties)
+
+
+def is_user_feature_flag_enabled(user, feature_name: UserFeatureFlag) -> bool:
+    """Check if a feature is enabled at the user level."""
+    return analytics_instance.is_user_feature_enabled(user, feature_name)
