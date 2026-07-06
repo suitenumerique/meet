@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ⬆️(agents) upgrade to python 3.14 slim
+- ⬆️(dependencies) update python dependencies
 
 ### Fixed
 
