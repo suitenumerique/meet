@@ -13,6 +13,7 @@ from django.contrib.sites.models import Site
 import pytest
 
 from core import factories, models
+from core.analytics import UserFeatureFlag
 from core.recording.event.notification import NotificationService, notification_service
 
 pytestmark = pytest.mark.django_db
@@ -312,7 +313,7 @@ def test_notify_summary_service_post_args_with_metadata(
             "user_email": owner.email,
             "title": 'Réunion "Engineering Sync" du 2026-01-02 à 11:30',
             "download_link": f"{settings.RECORDING_DOWNLOAD_BASE_URL}/{recording.id}",
-            "auto_create_summary": True,
+            "auto_create_summary": False,
             "form_link": None,
         },
         "metadata": {
@@ -343,10 +344,12 @@ def test_notify_summary_service_post_args_with_metadata(
 @mock.patch.object(
     NotificationService, "_get_recording_timestamps", new_callable=mock.AsyncMock
 )
+@pytest.mark.parametrize("auto_create_summary_enabled", [False, True])
 def test_notify_summary_service_post_args_without_metadata(
     mock_get_recording_timestamps,
     mock_generate_download_s3_url,
     mock_post,
+    auto_create_summary_enabled,
     settings,
 ):
     """Test summary notification computed request args when metadata is not available."""
@@ -376,7 +379,11 @@ def test_notify_summary_service_post_args_without_metadata(
     mock_response.json.return_value = {"job_id": "job-51"}
     mock_post.return_value = mock_response
 
-    result = NotificationService._notify_summary_service(recording)
+    with mock.patch(
+        "core.recording.event.notification.is_user_feature_flag_enabled",
+        return_value=auto_create_summary_enabled,
+    ) as mock_is_feature_flag_enabled:
+        result = NotificationService._notify_summary_service(recording)
 
     assert result is True
     expected_payload = {
@@ -389,7 +396,7 @@ def test_notify_summary_service_post_args_without_metadata(
             "user_email": owner.email,
             "title": "Transcription",
             "download_link": f"{settings.RECORDING_DOWNLOAD_BASE_URL}/{recording.id}",
-            "auto_create_summary": True,
+            "auto_create_summary": auto_create_summary_enabled,
             "form_link": None,
         },
         "metadata": None,
@@ -408,3 +415,6 @@ def test_notify_summary_service_post_args_without_metadata(
         recording.key, expires_in=60 * 60 * 24, override_domain=False
     )
     mock_get_recording_timestamps.assert_awaited_once_with(recording.worker_id)
+    mock_is_feature_flag_enabled.assert_called_once_with(
+        owner, UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED
+    )

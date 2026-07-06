@@ -18,6 +18,7 @@ from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from core import models, utils
+from core.analytics import UserFeatureFlag, is_user_feature_flag_enabled
 from core.utils import generate_download_s3_url
 
 logger = logging.getLogger(__name__)
@@ -371,8 +372,9 @@ class NotificationService:
                 ),
                 "download_link": f"{get_recording_download_base_url()}/{recording.id}",
                 "form_link": form_link,
-                # For now the feature flag logic is handled on summary side
-                "auto_create_summary": True,
+                "auto_create_summary": is_user_feature_flag_enabled(
+                    owner_access.user, UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED
+                ),
             },
             "metadata": metadata_payload,
         }
