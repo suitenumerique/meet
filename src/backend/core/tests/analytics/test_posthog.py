@@ -12,6 +12,7 @@ import pytest
 
 from core.analytics.events import AnalyticsEvent
 from core.analytics.posthog import PostHogAnalytics
+from core.analytics.user_feature_flags import UserFeatureFlag
 from core.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -246,6 +247,60 @@ def test_capture_logs_the_failing_event_name_on_exception(mock_posthog_cls, capl
         backend.capture(user, AnalyticsEvent.ROOM_CREATED)
 
     assert any("PostHog capture failed" in record.message for record in caplog.records)
+
+
+# ==============================
+# feature flags
+# ==============================
+
+
+@patch("core.analytics.posthog.Posthog")
+def test_compute_feature_flags_returns_all_catalog_entries(mock_posthog_cls):
+    """Should map every declared feature flag key to the SDK evaluated value."""
+    backend = PostHogAnalytics(api_key="test-api-key")
+    user = UserFactory()
+
+    mock_posthog_cls.return_value.evaluate_flags.return_value.get_flag.return_value = (
+        True
+    )
+
+    flags = backend._fetch_user_feature_flags(user)
+
+    assert flags == {UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED: True}
+    mock_posthog_cls.return_value.evaluate_flags.assert_called_once_with(str(user.pk))
+    mock_posthog_cls.return_value.evaluate_flags.return_value.get_flag.assert_called_once_with(
+        UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED.value
+    )
+
+
+@patch("core.analytics.posthog.cache.get_or_set")
+@patch("core.analytics.posthog.Posthog")
+def test_get_feature_flags_uses_cache_get_or_set(
+    mock_posthog_cls, mock_cache_get_or_set
+):
+    """Should cache feature flags by user distinct id with configured TTL."""
+    cached_flags = {UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED: False}
+    mock_cache_get_or_set.return_value = cached_flags
+    backend = PostHogAnalytics(api_key="test-api-key", feature_flags_cache_ttl=120)
+    user = UserFactory()
+
+    flags = backend.get_user_feature_flags(user)
+
+    assert flags == cached_flags
+    mock_cache_get_or_set.assert_called_once()
+    args, kwargs = mock_cache_get_or_set.call_args
+    assert kwargs["timeout"] == 120
+    assert args[0] == f"user_feature_flags:{user.pk}"
+    assert callable(kwargs["default"])
+
+
+@patch("core.analytics.posthog.Posthog")
+def test_get_feature_flags_returns_empty_dict_on_exception(mock_posthog_cls):
+    """Should swallow failures and return an empty mapping."""
+    backend = PostHogAnalytics(api_key="test-api-key")
+    user = UserFactory()
+    with patch("core.analytics.posthog.cache.get_or_set", side_effect=RuntimeError):
+        assert backend.get_user_feature_flags(user) == {}
 
 
 # ==============================

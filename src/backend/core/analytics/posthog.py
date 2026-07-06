@@ -1,13 +1,16 @@
 """PostHog implementation of the analytics backend protocol."""
 
 import logging
-from typing import Any
+from typing import Any, Mapping
+
+from django.core.cache import cache
 
 from posthog import Posthog
 
 from ..models import User
-from . import AnalyticsBackend
+from .base import AnalyticsBackend
 from .events import AnalyticsEvent
+from .user_feature_flags import UserFeatureFlag
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +23,8 @@ class PostHogAnalytics(AnalyticsBackend):
         *,
         api_key: str,
         host: str = "https://eu.i.posthog.com",
+        feature_flags_cache_ttl: int = 60,
+        feature_flags_cache_prefix: str = "user_feature_flags:",
         **kwargs: Any,
     ) -> None:
 
@@ -30,6 +35,8 @@ class PostHogAnalytics(AnalyticsBackend):
             host=host,
             **kwargs,
         )
+        self._feature_flags_cache_ttl = feature_flags_cache_ttl
+        self._feature_flags_cache_prefix = feature_flags_cache_prefix
 
     @staticmethod
     def _distinct_id(user: User) -> str | None:
@@ -73,3 +80,37 @@ class PostHogAnalytics(AnalyticsBackend):
     def shutdown(self) -> None:
         """Flush pending events. Called on process exit."""
         self._client.shutdown()
+
+    def _fetch_user_feature_flags(
+        self, user: User
+    ) -> Mapping[UserFeatureFlag, bool | str | None]:
+        """Compute feature flags for a user."""
+
+        distinct_id = self._distinct_id(user)
+        if distinct_id is None:
+            return {}
+
+        flags = self._client.evaluate_flags(distinct_id)
+        out: dict[UserFeatureFlag, bool | str | None] = {}
+        for flag_key in UserFeatureFlag:
+            out[flag_key] = flags.get_flag(flag_key.value)
+
+        return out
+
+    def get_user_feature_flags(
+        self, user: User
+    ) -> Mapping[UserFeatureFlag, bool | str | None]:
+        """Get feature flags for a user. Caches the result for a short time."""
+        distinct_id = self._distinct_id(user)
+        if distinct_id is None:
+            return {}
+
+        try:
+            return cache.get_or_set(
+                f"{self._feature_flags_cache_prefix}{distinct_id}",
+                default=lambda: self._fetch_user_feature_flags(user),
+                timeout=self._feature_flags_cache_ttl,
+            )
+        except Exception:  # pylint: disable=broad-exception-caught
+            logger.exception("Failed to get feature flags for user %s", user.pk)
+            return {}
