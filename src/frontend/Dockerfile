@@ -39,7 +39,7 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 RUN npm run build
 
 # ---- Front-end image ----
-FROM nginxinc/nginx-unprivileged:alpine3.23 AS frontend-production
+FROM nginxinc/nginx-unprivileged:1.30.3-alpine3.23 AS frontend-production
 
 USER root
 

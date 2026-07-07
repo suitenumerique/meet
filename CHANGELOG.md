@@ -27,6 +27,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade posthog-js from 1.386.5 to 1.387.0
 - ⬆️(frontend) upgrade @tanstack/react-query from 5.100.14 to 5.101.0
 - ⬆️(frontend) update the frontend build image to Node 22
+- 🔒️(frontend) update docker image to nginx-unprivileged:1.30.3-alpine3.23
 
 ### Fixed
 
