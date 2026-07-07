@@ -128,7 +128,11 @@ def generate_token(
         .with_identity(identity)
         .with_name(display_name)
         .with_attributes(
-            {"color": color, "room_role": role }
+            {
+                "color": color,
+                "room_role": role,
+                "is_authenticated": "true" if user.is_authenticated else "false",
+            }
         )
     )
 
