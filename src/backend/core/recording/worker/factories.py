@@ -78,7 +78,12 @@ class WorkerService(Protocol):
     def __init__(self, config: WorkerServiceConfig):
         """Initialize the service with the given configuration."""
 
-    def start(self, room_id: str, recording_id: str) -> str:
+    def start(
+        self,
+        room_id: str,
+        recording_id: str,
+        encoding_options: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Start a recording for a specified room."""
 
     def stop(self, worker_id: str) -> str:

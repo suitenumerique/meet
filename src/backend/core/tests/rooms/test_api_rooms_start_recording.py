@@ -470,6 +470,160 @@ def test_start_recording_options_unknown_field_rejected(settings):
     assert response.status_code == 400
 
 
+def test_start_recording_options_encoding_valid(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should accept a valid encoding configuration."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"encoding": {"resolution": "720p", "profile": "talking_heads"}},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+
+
+def test_start_recording_persists_resolved_encoding(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """The resolved encoding should be persisted in recording.options alongside
+    the requested resolution/profile for traceability."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"encoding": {"resolution": "720p", "profile": "talking_heads"}},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options["encoding"] == {
+        "resolution": "720p",
+        "profile": "talking_heads",
+        "resolved": {
+            "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
+            "width": 1280,
+            "height": 720,
+            "framerate": 15,
+            "video_bitrate": 700,
+        },
+    }
+
+
+def test_start_recording_forwards_resolved_encoding_to_worker(
+    settings, mock_worker_service, mock_worker_service_factory
+):
+    """The resolved encoding should passed on to the worker."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    mock_worker_service.start.return_value = "egress-123"
+
+    with mock.patch("core.utils.update_room_metadata"):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/start-recording/",
+            {
+                "mode": "screen_recording",
+                "options": {
+                    "encoding": {"resolution": "720p", "profile": "talking_heads"}
+                },
+            },
+            format="json",
+        )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    mock_worker_service.start.assert_called_once_with(
+        str(room.id),
+        recording.id,
+        encoding_options=recording.options["encoding"]["resolved"],
+    )
+
+
+def test_start_recording_options_encoding_invalid_resolution(settings):
+    """Should reject invalid encoding resolution values."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"encoding": {"resolution": "4K"}}},
+        format="json",
+    )
+
+    assert response.status_code == 400
+
+
+def test_start_recording_options_encoding_unknown_key_rejected(settings):
+    """Should reject unknown keys in encoding configuration."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"encoding": {"bitrate": 9000}},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+
+
+def test_start_recording_options_without_encoding_unchanged(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Requests without encoding should keep existing options behavior."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"language": "fr"}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {"language": "fr"}
+
+
 @pytest.mark.parametrize("value", ["foo", 12])
 def test_start_recording_options_invalid_transcribe_type(settings, value):
     """Should reject non-boolean transcribe values."""

@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(frontend) add participant color gradient when camera is off #1490
 - ✨(all) allow forcing SSO display name for authenticated users
 - ➕(frontend) install vite-plugin-static-copy for MediaPipe WASM assets
+- ✨(backend) add per-recording encoding quality presets to start-recording API
 
 ### Changed
 

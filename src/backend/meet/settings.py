@@ -754,9 +754,41 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Per-recording encoding presets for the start-recording API.
+    # Unlike the global RECORDING_ENCODING_* values above (a single fixed
+    # preset), these maps let a recording request pick a resolution and a
+    # quality profile. To add a resolution: add one entry to
+    # RECORDING_ENCODING_AVAILABLE_RESOLUTIONS and one bitrate per profile in
+    # RECORDING_ENCODING_AVAILABLE_PROFILES. To add a profile: add one entry to
+    # RECORDING_ENCODING_AVAILABLE_PROFILES with a bitrate per resolution. No
+    # control-flow changes needed elsewhere.
+
+    # Map resolution string -> (width, height) in pixels.
+    RECORDING_ENCODING_AVAILABLE_RESOLUTIONS = values.DictValue(
+        {
+            "540p": (960, 540),
+            "720p": (1280, 720),
+            "1080p": (1920, 1080),
+        },
+        environ_name="RECORDING_ENCODING_AVAILABLE_RESOLUTIONS",
+        environ_prefix=None,
+    )
+    # Bitrate scales with resolution so quality stays consistent across sizes.
+    RECORDING_ENCODING_AVAILABLE_PROFILES = values.DictValue(
+        {
+            # profile: (fps, kbps per resolution)
+            "talking_heads": (15, {"540p": 400, "720p": 700, "1080p": 1200}),
+            "text": (15, {"540p": 600, "720p": 1000, "1080p": 1800}),
+            "mixed": (20, {"540p": 900, "720p": 1500, "1080p": 2500}),
+        },
+        environ_name="RECORDING_ENCODING_AVAILABLE_PROFILES",
+        environ_prefix=None,
+    )
+
     SUMMARY_SERVICE_VERSION = values.PositiveIntegerValue(
         1, environ_name="SUMMARY_SERVICE_VERSION", environ_prefix=None
     )
+
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
@@ -1122,6 +1154,28 @@ class Base(Configuration):
         }
 
     @classmethod
+    def _check_recording_encoding_maps(cls):
+        """Ensure the per-recording encoding maps are mutually consistent.
+
+        Every profile in RECORDING_ENCODING_AVAILABLE_PROFILES must define a bitrate for
+        each resolution declared in RECORDING_ENCODING_AVAILABLE_RESOLUTIONS.
+        """
+        resolutions = set(cls.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS)
+        for profile, (
+            _fps,
+            kbps_by_resolution,
+            # DictValue resolves to a dict at runtime; pylint sees the descriptor.
+        ) in cls.RECORDING_ENCODING_AVAILABLE_PROFILES.items():  # pylint: disable=no-member
+            profile_resolutions = set(kbps_by_resolution)
+            if profile_resolutions != resolutions:
+                raise ValueError(
+                    f"Profile '{profile}' in RECORDING_ENCODING_AVAILABLE_PROFILES must "
+                    "define a bitrate for exactly the resolutions in "
+                    "RECORDING_ENCODING_AVAILABLE_RESOLUTIONS, mismatch on: "
+                    f"{resolutions ^ profile_resolutions}"
+                )
+
+    @classmethod
     def post_setup(cls):
         """Post setup configuration.
         This is the place where you can configure settings that require other
@@ -1133,6 +1187,8 @@ class Base(Configuration):
             raise ValueError(
                 "FILE_UPLOAD_TMP_PATH cannot be the same as FILE_UPLOAD_PATH"
             )
+
+        cls._check_recording_encoding_maps()
 
         if (
             cls.SUMMARY_SERVICE_VERSION == 1

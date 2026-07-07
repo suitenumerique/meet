@@ -13,7 +13,12 @@ from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import gettext_lazy as _
 
 from django_pydantic_field.rest_framework import SchemaField
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import (
+    BaseModel,
+    Field,
+    field_serializer,
+    field_validator,
+)
 from pydantic import ValidationError as PydanticValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -227,6 +232,49 @@ class BaseValidationOnlySerializer(serializers.Serializer):
         raise NotImplementedError(f"{self.__class__.__name__} is validation-only")
 
 
+class EncodingConfig(BaseModel):
+    """Configuration options for recording encoding.
+
+    The allowed `resolution` and `profile` values are derived at validation time
+    from ``settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`` and
+    ``settings.RECORDING_ENCODING_AVAILABLE_PROFILES``, so adding a resolution or profile
+    to those maps is enough to make it accepted here.
+
+    Attributes:
+        resolution: Target video resolution.
+        profile: Encoding profile to balance quality and CPU usage. When `None`,
+        LiveKit default framerate/bitrate are used for the resolution.
+    """
+
+    resolution: str
+    profile: str | None = None
+    model_config = {"extra": "forbid"}
+
+    @field_validator("resolution")
+    @classmethod
+    def _validate_resolution(cls, value):
+        """Reject resolutions absent from RECORDING_ENCODING_AVAILABLE_RESOLUTIONS."""
+        allowed = set(settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS)
+        if value not in allowed:
+            raise ValueError(
+                f"Invalid resolution '{value}'. Choose from {sorted(allowed)}."
+            )
+        return value
+
+    @field_validator("profile")
+    @classmethod
+    def _validate_profile(cls, value):
+        """Reject profiles absent from RECORDING_ENCODING_AVAILABLE_PROFILES."""
+        if value is None:
+            return None
+        allowed = set(settings.RECORDING_ENCODING_AVAILABLE_PROFILES)
+        if value not in allowed:
+            raise ValueError(
+                f"Invalid profile '{value}'. Choose from {sorted(allowed)}."
+            )
+        return value
+
+
 class RecordingOptions(BaseModel):
     """Configuration options for recording.
 
@@ -247,7 +295,7 @@ class RecordingOptions(BaseModel):
     transcribe: bool | None = None
     collect_metadata: bool | None = None
     original_mode: Literal["screen_recording", "transcript"] | None = None
-
+    encoding: EncodingConfig | None = None
     model_config = {"extra": "forbid"}
 
 

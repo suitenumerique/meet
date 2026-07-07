@@ -68,6 +68,7 @@ from core.recording.worker.factories import (
 from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
+from core.recording.worker.services import resolve_encoding_config
 from core.services.invitation import InvitationService
 from core.services.livekit_events import (
     LiveKitEventsService,
@@ -383,12 +384,20 @@ class RoomViewSet(
         options = serializer.validated_data.get("options")
         room = self.get_object()
 
+        options_data = options.model_dump(exclude_none=True) if options else {}
+        if options is not None and options.encoding is not None:
+            # Persist the resolved encoding (concrete width/height/framerate/
+            # bitrate) alongside the requested resolution/profile for traceability.
+            options_data["encoding"]["resolved"] = resolve_encoding_config(
+                options.encoding
+            )
+
         try:
             with transaction.atomic():
                 recording = models.Recording.objects.create(
                     room=room,
                     mode=mode,
-                    options=options.model_dump(exclude_none=True) if options else {},
+                    options=options_data,
                 )
                 models.RecordingAccess.objects.create(
                     user=self.request.user,
