@@ -28,3 +28,5 @@ export type ApiRoom = {
   livekit?: ApiLiveKit
   configuration?: RoomConfiguration
 }
+
+export type ParticipantRole = 'member' | 'administrator' | 'owner'

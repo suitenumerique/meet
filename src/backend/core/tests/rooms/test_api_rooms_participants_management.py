@@ -80,7 +80,7 @@ def test_mute_participant_with_livekit_token_for_this_room(mock_livekit_client):
     room = RoomFactory()
 
     user = AnonymousUser()
-    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+    token = utils.generate_token(str(room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
     response = client.post(
@@ -106,7 +106,7 @@ def test_mute_participant_with_livekit_token_for_another_room_forbidden(
     other_room = RoomFactory()
 
     user = AnonymousUser()
-    token = utils.generate_token(str(other_room.id), user, is_admin_or_owner=False)
+    token = utils.generate_token(str(other_room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": target_room.id})
     response = client.post(
@@ -146,7 +146,7 @@ def test_mute_participant_everyone_can_mute_disabled_blocks_non_admin(
     room = RoomFactory(configuration={"everyone_can_mute": False})
 
     user = AnonymousUser()
-    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+    token = utils.generate_token(str(room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
     response = client.post(
@@ -293,7 +293,7 @@ def test_mute_participant_admin_with_token_for_this_room(mock_livekit_client):
     )
     # Token identity matches the admin user so LiveKitTokenAuthentication
     # resolves request.user back to the admin.
-    token = utils.generate_token(str(room.id), user, is_admin_or_owner=True)
+    token = utils.generate_token(str(room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
     response = client.post(
@@ -323,7 +323,7 @@ def test_mute_participant_admin_with_token_for_another_room(mock_livekit_client)
     # Token is scoped to a DIFFERENT room, and admin status must only be
     # honored when established via session, never via a LiveKit
     # token, which can be replayed off-host.
-    token = utils.generate_token(str(other_room.id), user, is_admin_or_owner=True)
+    token = utils.generate_token(str(other_room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": target_room.id})
     response = client.post(
@@ -354,7 +354,7 @@ def test_mute_participant_admin_token_replayed_does_not_grant_admin(
         role=random.choice(["administrator", "owner"]),
     )
     # The token is the only credential.
-    token = utils.generate_token(str(room.id), admin_user, is_admin_or_owner=True)
+    token = utils.generate_token(str(room.id), admin_user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
     response = client.post(
@@ -374,7 +374,7 @@ def test_mute_participant_livekit_token_triggers_presence_check(mock_livekit_cli
     room = RoomFactory()
 
     user = AnonymousUser()
-    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+    token = utils.generate_token(str(room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
     response = client.post(
@@ -405,7 +405,7 @@ def test_mute_participant_livekit_token_presence_check_returns_participant(
     )
 
     user = AnonymousUser()
-    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+    token = utils.generate_token(str(room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
     response = client.post(
@@ -433,7 +433,7 @@ def test_mute_participant_livekit_token_presence_check_participant_not_found(
     )
 
     user = AnonymousUser()
-    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+    token = utils.generate_token(str(room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
     response = client.post(
@@ -462,7 +462,7 @@ def test_mute_participant_livekit_token_presence_check_twirp_error_forbidden(
     )
 
     user = AnonymousUser()
-    token = utils.generate_token(str(room.id), user, is_admin_or_owner=False)
+    token = utils.generate_token(str(room.id), user)
 
     url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
     response = client.post(
