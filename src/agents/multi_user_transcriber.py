@@ -25,6 +25,9 @@ from livekit.agents import (
 )
 from livekit.plugins import deepgram, silero
 
+from observability import configure_sentry, set_job_context
+from tasks import done_callback
+
 load_dotenv()
 
 logger = logging.getLogger("transcriber")
@@ -99,24 +102,29 @@ class MultiUserTranscriber:
         logger.info(f"starting session for {participant.identity}")
         task = asyncio.create_task(self._start_session(participant))
         self._tasks.add(task)
-
-        def on_task_done(task: asyncio.Task):
-            try:
-                self._sessions[participant.identity] = task.result()
-            finally:
-                self._tasks.discard(task)
-
-        task.add_done_callback(on_task_done)
+        task.add_done_callback(
+            done_callback(
+                logger,
+                self._tasks,
+                f"start transcription session for {participant.identity}",
+            )
+        )
 
     def on_participant_disconnected(self, participant: rtc.RemoteParticipant):
         """Handle participant disconnection by closing transcription session."""
-        if (session := self._sessions.pop(participant.identity)) is None:
+        if (session := self._sessions.pop(participant.identity, None)) is None:
             return
 
         logger.info(f"closing session for {participant.identity}")
         task = asyncio.create_task(self._close_session(session))
         self._tasks.add(task)
-        task.add_done_callback(lambda _: self._tasks.discard(task))
+        task.add_done_callback(
+            done_callback(
+                logger,
+                self._tasks,
+                f"close transcription session for {participant.identity}",
+            )
+        )
 
     async def _start_session(self, participant: rtc.RemoteParticipant) -> AgentSession:
         """Create and start transcription session for participant."""
@@ -139,6 +147,7 @@ class MultiUserTranscriber:
                 participant_identity=participant.identity,
             )
         )
+        self._sessions[participant.identity] = session
         return session
 
     async def _close_session(self, sess: AgentSession) -> None:
@@ -149,6 +158,8 @@ class MultiUserTranscriber:
 
 async def entrypoint(ctx: JobContext):
     """Initialize and run the multi-user transcriber."""
+    set_job_context(room=ctx.room.name, job_id=ctx.job.id)
+
     transcriber = MultiUserTranscriber(ctx)
     transcriber.start()
 
@@ -193,11 +204,15 @@ async def handle_transcriber_job_request(job_req: JobRequest) -> None:
 
 def prewarm(proc: JobProcess):
     """Preload voice activity detection model."""
+    configure_sentry(TRANSCRIBER_AGENT_NAME)
     if ENABLE_SILERO_VAD:
         proc.userdata["vad"] = silero.VAD.load()
 
 
 if __name__ == "__main__":
+    # Initialize Sentry for the worker process. Each job runs in its own
+    # (forked) process and re-initializes Sentry via prewarm().
+    configure_sentry(TRANSCRIBER_AGENT_NAME)
     cli.run_app(
         WorkerOptions(
             entrypoint_fnc=entrypoint,

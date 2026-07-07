@@ -32,6 +32,8 @@ from minio import Minio
 from minio.error import S3Error
 
 from exceptions import MissingConfigError
+from observability import configure_sentry, set_job_context
+from tasks import done_callback
 
 load_dotenv()
 
@@ -42,6 +44,7 @@ AGENT_NAME = os.getenv("METADATA_COLLECTOR_AGENT_NAME", "metadata-collector")
 
 def prewarm(proc: JobProcess):
     """Preload voice activity detection model."""
+    configure_sentry(AGENT_NAME)
     proc.userdata["vad"] = silero.VAD.load()
 
 
@@ -174,7 +177,13 @@ class MetadataCollector:
             self.on_chat_message_received(reader, participant_identity)
         )
         self._tasks.add(task)
-        task.add_done_callback(lambda _: self._tasks.remove(task))
+        task.add_done_callback(
+            done_callback(
+                logger,
+                self._tasks,
+                f"process chat stream from {participant_identity}",
+            )
+        )
 
     def save(self):
         """Serialize collected events and upload as JSON to S3."""
@@ -270,16 +279,18 @@ class MetadataCollector:
         logger.info("Participant disconnected: %s", participant.identity)
         task = asyncio.create_task(self._close_session(session))
         self._tasks.add(task)
-
-        def on_close_done(_):
-            self._tasks.discard(task)
-            logger.info(
-                "VAD session closed for %s (remaining sessions: %d)",
-                participant.identity,
-                len(self._sessions),
+        task.add_done_callback(
+            done_callback(
+                logger,
+                self._tasks,
+                f"close VAD session for {participant.identity}",
+                on_success=lambda _: logger.info(
+                    "VAD session closed for %s (remaining sessions: %d)",
+                    participant.identity,
+                    len(self._sessions),
+                ),
             )
-
-        task.add_done_callback(on_close_done)
+        )
 
     def on_participant_name_changed(self, participant: rtc.RemoteParticipant):
         """Update stored participant name when it changes."""
@@ -360,6 +371,8 @@ async def handle_job_request(job_req: JobRequest) -> None:
 @server.rtc_session(agent_name=AGENT_NAME, on_request=handle_job_request)
 async def entrypoint(ctx: JobContext):
     """Initialize and run the metadata collector."""
+    set_job_context(room=ctx.room.name, job_id=ctx.job.id)
+
     logger.info("Starting metadata agent in room: %s", ctx.room.name)
     recording_id = ctx.job.metadata
     metadata_collector = MetadataCollector(ctx, recording_id)
@@ -377,4 +390,7 @@ async def entrypoint(ctx: JobContext):
 
 
 if __name__ == "__main__":
+    # Initialize Sentry for the worker process. Each job runs in its own
+    # (forked) process and re-initializes Sentry via prewarm().
+    configure_sentry(AGENT_NAME)
     cli.run_app(server)
