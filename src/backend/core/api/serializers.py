@@ -312,6 +312,15 @@ class MuteParticipantSerializer(BaseParticipantsManagementSerializer):
     )
 
 
+class ParticipantRoleSerializer(BaseParticipantsManagementSerializer):
+    """Validate an in-meeting role change (promotion/demotion) request."""
+
+    role = serializers.ChoiceField(
+        choices=[models.RoleChoices.MEMBER, models.RoleChoices.ADMIN],
+        help_text="Target role. Ownership cannot be granted this way.",
+    )
+
+
 TrackSource = Literal["camera", "microphone", "screen_share", "screen_share_audio"]
 
 

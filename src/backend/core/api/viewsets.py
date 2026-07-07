@@ -88,6 +88,10 @@ from core.services.room_management import (
     RoomManagementException,
     RoomNotFoundException,
 )
+from core.services.room_roles import (
+    RoomRoleError,
+    RoomRoleService,
+)
 from core.services.subtitle import SubtitleException, SubtitleService
 from core.tasks.file import process_file_deletion
 
@@ -634,6 +638,53 @@ class RoomViewSet(
             {"status": "success", "message": "invitations sent"},
             status=drf_status.HTTP_200_OK,
         )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="update-participant-role",
+        permission_classes=[
+            permissions.HasPrivilegesOnRoom,
+            permissions.IsPresentInMeeting,
+        ],
+    )
+    def update_participant_role(self, request, pk=None):  # pylint: disable=unused-argument
+        """Promote or demote a participant currently connected to the meeting.
+
+        Requires the requester to be session-authenticated, have privileges
+        (admin/owner) on the room, and be connected to the meeting.
+
+        If the target participant has a user account, the role is persisted
+        (`ResourceAccess`) then mirrored to their LiveKit attributes.
+
+        If the participant is anonymous, the promotion will fail.
+        """
+
+        room = self.get_object()
+
+        serializer = serializers.ParticipantRoleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        participant_identity = serializer.validated_data["participant_identity"]
+        role = serializer.validated_data["role"]
+
+        if str(request.user.sub) == str(participant_identity):
+            return drf_response.Response(
+                {"error": "You cannot change your own role."},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            result = RoomRoleService().set_participant_role(
+                room=room,
+                participant_identity=participant_identity,
+                role=role,
+                actor=request.user,
+            )
+        except RoomRoleError as e:
+            return drf_response.Response({"error": str(e)}, status=e.status_code)
+
+        return drf_response.Response(result, status=drf_status.HTTP_200_OK)
 
     @decorators.action(
         detail=True,
