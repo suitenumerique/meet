@@ -1,4 +1,4 @@
-FROM node:20-alpine AS frontend-deps
+FROM node:22-alpine AS frontend-deps
 
 USER node
 
