@@ -9,13 +9,14 @@ import uuid
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.http import HttpResponse
 
 import pytest
 
-from core.factories import RoomFactory
-from core.models import RoomAccessLevel
+from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
+from core.models import RoleChoices, RoomAccessLevel
 from core.services.lobby import (
     LobbyParticipant,
     LobbyParticipantNotFound,
@@ -188,17 +189,17 @@ def test_prepare_response_new_cookie(lobby_service, participant_id):
 
 
 def test_can_bypass_lobby_public_room(lobby_service):
-    """Should return True for public rooms regardless of user auth."""
+    """Should return True for public rooms regardless of user auth and role."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
 
     # Anonymous user
     user = mock.Mock()
     user.is_authenticated = False
-    assert lobby_service.can_bypass_lobby(room, user) is True
+    assert lobby_service.can_bypass_lobby(room, user, role=None) is True
 
     # Authenticated user
     user.is_authenticated = True
-    assert lobby_service.can_bypass_lobby(room, user) is True
+    assert lobby_service.can_bypass_lobby(room, user, role=None) is True
 
 
 def test_can_bypass_lobby_trusted_room_authenticated(lobby_service):
@@ -208,7 +209,7 @@ def test_can_bypass_lobby_trusted_room_authenticated(lobby_service):
     # Authenticated user
     user = mock.Mock()
     user.is_authenticated = True
-    assert lobby_service.can_bypass_lobby(room, user) is True
+    assert lobby_service.can_bypass_lobby(room, user, role=None) is True
 
 
 def test_can_bypass_lobby_trusted_room_anonymous(lobby_service):
@@ -218,21 +219,34 @@ def test_can_bypass_lobby_trusted_room_anonymous(lobby_service):
     # Anonymous user
     user = mock.Mock()
     user.is_authenticated = False
-    assert lobby_service.can_bypass_lobby(room, user) is False
+    assert lobby_service.can_bypass_lobby(room, user, role=None) is False
 
 
 def test_can_bypass_lobby_private_room(lobby_service):
-    """Should return False for private rooms regardless of user auth."""
+    """Should return False for private rooms regardless of user auth if role is not."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
     # Anonymous user
     user = mock.Mock()
     user.is_authenticated = False
-    assert lobby_service.can_bypass_lobby(room, user) is False
+    assert lobby_service.can_bypass_lobby(room, user, role=None) is False
 
     # Authenticated user
     user.is_authenticated = True
-    assert lobby_service.can_bypass_lobby(room, user) is False
+    assert lobby_service.can_bypass_lobby(room, user, role=None) is False
+
+
+@pytest.mark.parametrize(
+    "role",
+    [RoleChoices.MEMBER, RoleChoices.ADMIN, RoleChoices.OWNER],
+)
+def test_can_bypass_lobby_private_room_with_any_role(role, lobby_service):
+    """Should return True for private rooms if the user is authenticated and has any role."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+
+    user = mock.Mock()
+    user.is_authenticated = True
+    assert lobby_service.can_bypass_lobby(room, user, role=role) is True
 
 
 @mock.patch("core.utils.generate_livekit_config")
@@ -241,7 +255,7 @@ def test_request_entry_public_room(
 ):
     """Test requesting entry to a public room."""
     request = mock.Mock()
-    request.user = mock.Mock()
+    request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
 
@@ -266,8 +280,8 @@ def test_request_entry_public_room(
         username=username,
         color=participant.color,
         configuration=room.configuration,
-        is_admin_or_owner=False,
         participant_id="test-participant-id",
+        role=None,
     )
 
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
@@ -279,8 +293,7 @@ def test_request_entry_trusted_room(
 ):
     """Test requesting entry to a trusted room when the user is authenticated."""
     request = mock.Mock()
-    request.user = mock.Mock()
-    request.user.is_authenticated = True
+    request.user = UserFactory()
 
     room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
 
@@ -305,8 +318,8 @@ def test_request_entry_trusted_room(
         username=username,
         color=participant.color,
         configuration=room.configuration,
-        is_admin_or_owner=False,
         participant_id="test-participant-id",
+        role=None,
     )
 
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
@@ -319,6 +332,7 @@ def test_request_entry_new_participant(
     """Test requesting entry for a new participant."""
     request = mock.Mock()
     request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
@@ -348,6 +362,7 @@ def test_request_entry_waiting_participant(
     """Test requesting entry for a waiting participant."""
     request = mock.Mock()
     request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
@@ -374,7 +389,7 @@ def test_request_entry_accepted_participant(
 ):
     """Test requesting entry for an accepted participant."""
     request = mock.Mock()
-    request.user = mock.Mock()
+    request.user = AnonymousUser()
     request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -400,8 +415,48 @@ def test_request_entry_accepted_participant(
         username=username,
         color="#123456",
         configuration=room.configuration,
-        is_admin_or_owner=False,
         participant_id="test-participant-id",
+        role=None,
+    )
+    lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
+
+
+@mock.patch("core.utils.generate_livekit_config")
+def test_request_entry_participant_with_role(
+    mock_generate_config, lobby_service, participant_id, username
+):
+    """Test requesting entry for a participant with a role on the room."""
+    request = mock.Mock()
+    request.user = UserFactory()
+    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+
+    UserResourceAccessFactory(resource=room, user=request.user, role="administrator")
+
+    mocked_participant = LobbyParticipant(
+        status=LobbyParticipantStatus.ACCEPTED,
+        username=username,
+        id=participant_id,
+        color="#123456",
+    )
+    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
+
+    mock_generate_config.return_value = {"token": "test-token"}
+
+    participant, livekit_config = lobby_service.request_entry(room, request, username)
+
+    assert participant.status == LobbyParticipantStatus.ACCEPTED
+    assert livekit_config == {"token": "test-token"}
+    mock_generate_config.assert_called_once_with(
+        room_id=str(room.id),
+        user=request.user,
+        username=username,
+        color="#123456",
+        configuration=room.configuration,
+        participant_id="test-participant-id",
+        role="administrator",
     )
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 

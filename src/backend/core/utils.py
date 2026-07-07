@@ -65,7 +65,7 @@ def generate_token(
     username: Optional[str] = None,
     color: Optional[str] = None,
     sources: Optional[List[str]] = None,
-    is_admin_or_owner: bool = False,
+    role: Optional[str] = None,
     participant_id: Optional[str] = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
@@ -79,7 +79,7 @@ def generate_token(
                          If none, a value will be generated
         sources: (Optional[List[str]]): List of media sources the user can publish
                          If none, defaults to LIVEKIT_DEFAULT_SOURCES.
-        is_admin_or_owner (bool): Whether user has admin privileges
+        role (Optional[str]): Room's access role if any
         participant_id (Optional[str]): Stable identifier for anonymous users;
                          used as identity when user.is_anonymous.
 
@@ -87,6 +87,7 @@ def generate_token(
         str: The LiveKit JWT access token.
     """
 
+    is_admin_or_owner = role in ("owner", "administrator")
     if is_admin_or_owner:
         sources = settings.LIVEKIT_DEFAULT_SOURCES
 
@@ -127,7 +128,7 @@ def generate_token(
         .with_identity(identity)
         .with_name(display_name)
         .with_attributes(
-            {"color": color, "room_admin": "true" if is_admin_or_owner else "false"}
+            {"color": color, "room_role": role }
         )
     )
 
@@ -138,7 +139,7 @@ def generate_livekit_config(
     room_id: str,
     user,
     username: str,
-    is_admin_or_owner: bool,
+    role: Optional[str] = None,
     color: Optional[str] = None,
     configuration: Optional[dict] = None,
     participant_id: Optional[str] = None,
@@ -149,7 +150,7 @@ def generate_livekit_config(
         room_id: Room identifier
         user: User instance requesting access
         username: Display name in room
-        is_admin_or_owner (bool): Whether the user has admin/owner privileges for this room.
+        role (str): Room's access role if any
         color (Optional[str]): Optional color to associate with the participant.
         configuration (Optional[dict]): Room configuration dict that can override default settings.
         participant_id (Optional[str]): Stable identifier for anonymous users;
@@ -172,7 +173,7 @@ def generate_livekit_config(
             username=username,
             color=color,
             sources=sources,
-            is_admin_or_owner=is_admin_or_owner,
+            role=role,
             participant_id=participant_id,
         ),
     }

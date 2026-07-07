@@ -8,7 +8,7 @@ import { useRemoteParticipants } from '@livekit/components-react'
 import { useUpdateParticipantsPermissions } from '@/features/rooms/api/updateParticipantsPermissions'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
-import { getParticipantIsRoomAdmin } from '@/features/rooms/utils/getParticipantIsRoomAdmin'
+import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 import Source = Track.Source
 import {
   NotificationType,
@@ -48,7 +48,7 @@ export const usePublishSourcesManager = () => {
   })
 
   const unprivilegedRemoteParticipants = remoteParticipants.filter(
-    (participant) => !getParticipantIsRoomAdmin(participant)
+    (participant) => !getParticipantIsRoomAdminOrOwner(participant)
   )
 
   const currentSources = useMemo(() => {

@@ -120,7 +120,7 @@ def test_update_participant_role_promotes_authenticated_target(
     mock_sync.assert_called_once_with(
         room_name=str(room.pk),
         participant_identity=str(target.sub),
-        is_admin=True,
+        role="administrator",
     )
 
 
