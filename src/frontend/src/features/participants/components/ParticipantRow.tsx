@@ -5,7 +5,7 @@ import { Text } from '@/primitives/Text'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/Avatar'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
-import { getParticipantIsRoomAdmin } from '@/features/rooms/utils/getParticipantIsRoomAdmin'
+import { getParticipantIsRoomOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 import { type LocalParticipant, type Participant, Track } from 'livekit-client'
 import { isLocal } from '@/utils/livekit'
 import {
@@ -146,7 +146,7 @@ export const ParticipantRow = ({ participant }: ParticipantListItemProps) => {
               </span>
             )}
           </Text>
-          {getParticipantIsRoomAdmin(participant) && (
+          {getParticipantIsRoomOwner(participant) && (
             <Text variant="xsNote">{t('participants.host')}</Text>
           )}
         </VStack>

@@ -183,7 +183,7 @@ class RoomSerializer(serializers.ModelSerializer):
                 user=request.user,
                 username=username,
                 configuration=output["configuration"],
-                is_admin_or_owner=is_admin_or_owner,
+                role=role,
             )
         else:
             del output["pin_code"]

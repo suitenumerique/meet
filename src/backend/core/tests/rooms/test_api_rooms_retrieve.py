@@ -12,7 +12,7 @@ import pytest
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory, UserResourceAccessFactory
-from ...models import RoomAccessLevel
+from ...models import RoomAccessLevel, RoleChoices
 
 pytestmark = pytest.mark.django_db
 
@@ -278,7 +278,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         username=None,
         color=None,
         sources=["camera"],
-        is_admin_or_owner=False,
+        role=None,
         participant_id=None,
     )
 
@@ -330,7 +330,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
         username=None,
         color=None,
         sources=None,
-        is_admin_or_owner=False,
+        role=None,
         participant_id=None,
     )
 
@@ -418,7 +418,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
         username=None,
         color=None,
         sources=["camera"],
-        is_admin_or_owner=False,
+        role=str(RoleChoices.MEMBER),
         participant_id=None,
     )
 
@@ -511,6 +511,6 @@ def test_api_rooms_retrieve_administrators(
         username=None,
         color=None,
         sources=None,
-        is_admin_or_owner=True,
+        role=str(user_access.role),
         participant_id=None,
     )

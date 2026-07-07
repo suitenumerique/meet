@@ -4,7 +4,7 @@ Single entry point for changing a user's role on a room, used by:
 - the in-meeting endpoint (promote/demote a connected participant)
 - (more to come soon)
 
-`ResourceAccess` is the source of truth. The LiveKit `room_admin`
+`ResourceAccess` is the source of truth. The LiveKit `room_role`
 participant attribute is only a projection of it, synced best-effort.
 """
 
@@ -138,7 +138,7 @@ class RoomRoleService:
         livekit_synced = self._sync_livekit_role(
             room_name=room_name,
             participant_identity=str(participant_identity),
-            is_admin=role == models.RoleChoices.ADMIN,
+            role=str(role),
         )
 
         return {
@@ -147,7 +147,7 @@ class RoomRoleService:
         }
 
     @staticmethod
-    def _sync_livekit_role(room_name: str, participant_identity: str, is_admin: bool):
+    def _sync_livekit_role(room_name: str, participant_identity: str, role: str):
         """Mirror the role to the participant's LiveKit attributes.
 
         Best-effort: returns False on failure instead of raising, so callers
@@ -157,7 +157,7 @@ class RoomRoleService:
             ParticipantsManagement().update(
                 room_name=room_name,
                 identity=participant_identity,
-                attributes={"room_admin": "true" if is_admin else "false"},
+                attributes={"room_role": role},
             )
         except ParticipantNotFoundException:
             # The participant left between the presence check and the update:
