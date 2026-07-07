@@ -25,6 +25,7 @@ and this project adheres to
 - ♻️(frontend) wrap MuteEveryoneButton with AdminOrOwnerOnly
 - ⬆(frontend) upgrade livekit-client from 2.19.0 to 2.19.2
 - ⬆(frontend) upgrade posthog-js from 1.386.5 to 1.387.0
+- ⬆(frontend) upgrade @tanstack/react-query from 5.100.14 to 5.101.0
 
 ### Fixed
 
