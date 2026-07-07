@@ -7,6 +7,7 @@ import {
   defineTextStyles,
   defineTokens,
 } from '@pandacss/dev'
+import { toneColor } from './src/primitives/tone'
 
 const spacing: Tokens['spacing'] = {
   0: { value: '0rem' },
@@ -35,6 +36,18 @@ const config: Config = {
   exclude: [],
   jsxFramework: 'react',
   outdir: 'src/styled-system',
+  // Tone classes are looked up at runtime (toneColor[tone]), invisible to static
+  // extraction — generate them unconditionally.
+  staticCss: {
+    css: [
+      {
+        properties: {
+          color: Object.values(toneColor),
+          backgroundColor: Object.values(toneColor),
+        },
+      },
+    ],
+  },
   globalFontface: {},
   theme: {
     ...pandaPreset.theme,
