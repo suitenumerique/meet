@@ -30,3 +30,4 @@ export type ApiRoom = {
 }
 
 export type ParticipantRole = 'member' | 'administrator' | 'owner'
+export type AssignableParticipantRole = Exclude<ParticipantRole, 'owner'>
