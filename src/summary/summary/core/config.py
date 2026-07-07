@@ -130,9 +130,12 @@ class Settings(BaseSettings):
     posthog_enabled: bool = False
     posthog_api_key: Optional[str] = None
     posthog_api_host: Optional[str] = "https://eu.i.posthog.com"
-    posthog_event_failure: str = "transcript-failure"
-    posthog_event_success: str = "transcript-success"
-    posthog_event_request: str = "transcript-request"
+    posthog_transcript_request: str = "transcript-request"
+    posthog_transcript_failure: str = "transcript-failure"
+    posthog_transcript_success: str = "transcript-success"
+    posthog_summary_request: str = "summary-request"
+    posthog_summary_failure: str = "summary-failure"
+    posthog_summary_success: str = "summary-success"
 
     # Langfuse (LLM Observability)
     langfuse_enabled: bool = False
