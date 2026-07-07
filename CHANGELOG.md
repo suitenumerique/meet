@@ -24,6 +24,7 @@ and this project adheres to
 - 🔥(summary) remove call to summary enabled feature flag
 - ♻️(frontend) wrap MuteEveryoneButton with AdminOrOwnerOnly
 - ⬆(frontend) upgrade livekit-client from 2.19.0 to 2.19.2
+- ⬆(frontend) upgrade posthog-js from 1.386.5 to 1.387.0
 
 ### Fixed
 
