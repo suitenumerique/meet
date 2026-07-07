@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(backend) extend analytics module to support feature flags
 - ✨(backend) implement feature flags in Posthog analytics backend
+- ✨(agents) report errors to Sentry for all LiveKit agents
 
 ### Changed
 

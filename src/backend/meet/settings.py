@@ -1132,7 +1132,7 @@ class Base(Configuration):
         if cls.SENTRY_DSN is not None:
             sentry_sdk.init(
                 dsn=cls.SENTRY_DSN,
-                environment=cls.__name__.lower(),
+                environment=cls.__name__.lower(),  # build, test, development, production
                 release=get_release(),
                 integrations=[DjangoIntegration()],
             )
