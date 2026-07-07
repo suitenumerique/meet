@@ -23,6 +23,7 @@ and this project adheres to
 - ♻️(backend) refactor analytics backend from Protocol to abstract class
 - 🔥(summary) remove call to summary enabled feature flag
 - ♻️(frontend) wrap MuteEveryoneButton with AdminOrOwnerOnly
+- ⬆(frontend) upgrade livekit-client from 2.19.0 to 2.19.2
 
 ### Fixed
 
