@@ -188,8 +188,6 @@ class RoomSerializer(serializers.ModelSerializer):
         else:
             del output["pin_code"]
 
-        output["is_administrable"] = is_admin_or_owner
-
         return output
 
 
