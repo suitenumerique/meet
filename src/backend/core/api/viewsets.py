@@ -669,6 +669,30 @@ class RoomViewSet(
     @decorators.action(
         detail=True,
         methods=["post"],
+        url_path="stop-subtitle",
+        permission_classes=[
+            permissions.HasLiveKitRoomAccess,
+        ],
+        authentication_classes=[LiveKitTokenAuthentication],
+    )
+    @FeatureFlag.require("subtitle")
+    def stop_subtitle(self, request, pk=None):  # pylint: disable=unused-argument
+        """Stop the room's native realtime-transcription agent.
+
+        Symmetric inverse of start-subtitle: tears down the room-wide native
+        subtitle agent. Idempotent + best-effort — no error if no agent is
+        running. Requires a valid LiveKit room token, like start-subtitle.
+        """
+
+        room = self.get_object()
+        SubtitleService().stop_subtitle(room)
+        return drf_response.Response(
+            {"status": "success"}, status=drf_status.HTTP_200_OK
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
         url_path="mute-participant",
         url_name="mute-participant",
         permission_classes=[permissions.CanMuteParticipant],

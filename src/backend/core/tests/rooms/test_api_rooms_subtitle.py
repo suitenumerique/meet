@@ -161,6 +161,43 @@ def test_start_subtitle_valid_token(
     assert call_args.room == "d2aeb774-1ecd-4d73-a3ac-3d3530cad7ff"
 
 
+def test_stop_subtitle_valid_token(
+    settings, mock_livekit_client, mock_livekit_token, mock_room_id
+):
+    """Stop-subtitle succeeds (best-effort) with a valid token + enabled feature."""
+
+    settings.ROOM_SUBTITLE_ENABLED = True
+
+    room = RoomFactory(id=mock_room_id)
+    client = APIClient()
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/stop-subtitle/",
+        {},
+        HTTP_AUTHORIZATION=f"Bearer {mock_livekit_token}",
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "success"}
+
+
+def test_stop_subtitle_disabled_by_default(mock_livekit_token):
+    """Stop-subtitle is gated on the SAME feature flag as start-subtitle."""
+
+    room = RoomFactory()
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/stop-subtitle/",
+        {},
+        HTTP_AUTHORIZATION=f"Bearer {mock_livekit_token}",
+    )
+
+    assert response.status_code == 404
+
+
 def test_start_subtitle_twirp_error(
     settings, mock_livekit_client, mock_livekit_token, mock_room_id
 ):
