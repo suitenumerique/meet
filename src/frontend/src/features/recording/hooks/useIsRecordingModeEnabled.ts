@@ -1,11 +1,17 @@
 import type { RecordingMode } from '../types'
-import { useConfig } from '@/api/useConfig'
+import { useConfig, type ApiConfig } from '@/api/useConfig'
 
-export const useIsRecordingModeEnabled = (mode: RecordingMode) => {
-  const { data } = useConfig()
-
-  return (
-    data?.recording?.is_enabled &&
-    data?.recording?.available_modes?.includes(mode)
+/** Pure predicate: is `mode` available in the deployment recording config? */
+export const isRecordingModeEnabled = (
+  config: ApiConfig | undefined,
+  mode: RecordingMode
+): boolean =>
+  !!(
+    config?.recording?.is_enabled &&
+    config?.recording?.available_modes?.includes(mode)
   )
+
+export const useIsRecordingModeEnabled = (mode: RecordingMode): boolean => {
+  const { data } = useConfig()
+  return isRecordingModeEnabled(data, mode)
 }

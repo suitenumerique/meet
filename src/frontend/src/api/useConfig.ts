@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { RecordingMode } from '@/features/recording'
 import type { Track } from 'livekit-client'
 type Source = Track.Source
+import type { KnownPluginId, PluginConfigMap } from '@/features/plugins/config'
 
 export interface ApiConfig {
   analytics?: {
@@ -58,6 +59,12 @@ export interface ApiConfig {
   transcription_destination?: string
   max_participants_for_sound: number
   auto_mute_on_join_threshold: number
+  /** Tool plugin ids force-hidden by the deployment, on top of isEnabled + replaces. */
+  hidden_tools?: string[]
+  /** Plugin config namespace, typed per-plugin via `PluginConfigMap` declaration merging. */
+  plugins?: {
+    [K in KnownPluginId]?: PluginConfigMap[K]
+  } & Record<string, { enabled?: boolean }>
 }
 
 const fetchConfig = (): Promise<ApiConfig> => {

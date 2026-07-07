@@ -9,6 +9,9 @@ import { Button } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { StyledToastContainer } from './StyledToastContainer'
+import { TRANSCRIPT_PLUGIN_ID } from '@/features/recording/transcript.plugin'
+import { SCREEN_RECORDING_PLUGIN_ID } from '@/features/recording/screenRecording.plugin'
+import { useIsToolVisible } from '@/features/plugins'
 
 export function ToastRecordingRequest({
   state,
@@ -20,36 +23,35 @@ export function ToastRecordingRequest({
   const participant = props.toast.content.participant
   const type = props.toast.content.type
 
-  const {
-    isTranscriptOpen,
-    openTranscript,
-    isScreenRecordingOpen,
-    openScreenRecording,
-  } = useSidePanel()
+  const { isSubPanelOpen, openSubPanel } = useSidePanel()
+  const isTranscriptToolVisible = useIsToolVisible(TRANSCRIPT_PLUGIN_ID)
+  const isScreenToolVisible = useIsToolVisible(SCREEN_RECORDING_PLUGIN_ID)
 
   const options = useMemo(() => {
     switch (type) {
       case NotificationType.TranscriptionRequested:
         return {
           key: 'transcript.requested',
-          isMenuOpen: isTranscriptOpen,
-          openMenu: openTranscript,
+          isMenuOpen: isSubPanelOpen(TRANSCRIPT_PLUGIN_ID),
+          canOpenMenu: isTranscriptToolVisible,
+          openMenu: () => openSubPanel(TRANSCRIPT_PLUGIN_ID),
         }
       case NotificationType.ScreenRecordingRequested:
         return {
           key: 'screenRecording.requested',
-          isMenuOpen: isScreenRecordingOpen,
-          openMenu: openScreenRecording,
+          isMenuOpen: isSubPanelOpen(SCREEN_RECORDING_PLUGIN_ID),
+          canOpenMenu: isScreenToolVisible,
+          openMenu: () => openSubPanel(SCREEN_RECORDING_PLUGIN_ID),
         }
       default:
         return
     }
   }, [
     type,
-    isTranscriptOpen,
-    isScreenRecordingOpen,
-    openTranscript,
-    openScreenRecording,
+    isSubPanelOpen,
+    openSubPanel,
+    isTranscriptToolVisible,
+    isScreenToolVisible,
   ])
 
   if (!options) return
@@ -66,7 +68,7 @@ export function ToastRecordingRequest({
         {t(options.key, {
           name: participant?.name,
         })}
-        {!options.isMenuOpen && (
+        {!options.isMenuOpen && options.canOpenMenu && (
           <div
             className={css({
               marginLeft: '0.5rem',

@@ -10,17 +10,20 @@ import {
 import { FeatureFlags } from '@/features/analytics/enums'
 import { Button as RACButton } from 'react-aria-components'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { TRANSCRIPT_PLUGIN_ID } from '../transcript.plugin'
+import { SCREEN_RECORDING_PLUGIN_ID } from '../screenRecording.plugin'
 import { useRoomMetadata } from '../hooks/useRoomMetadata'
 import { RecordingStatusIcon } from './RecordingStatusIcon'
 import { useIsRecording } from '@livekit/components-react'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { useIsToolVisible } from '@/features/plugins'
 
 export const RecordingStateToast = () => {
   const { t } = useTranslation('rooms', {
     keyPrefix: 'recordingStateToast',
   })
 
-  const { openTranscript, openScreenRecording } = useSidePanel()
+  const { openSubPanel } = useSidePanel()
 
   const lastKeyRef = useRef('')
   const announce = useScreenReaderAnnounce()
@@ -53,6 +56,9 @@ export const RecordingStateToast = () => {
   const metadata = useRoomMetadata()
   const isRecording = useIsRecording()
 
+  const isTranscriptToolVisible = useIsToolVisible(TRANSCRIPT_PLUGIN_ID)
+  const isScreenToolVisible = useIsToolVisible(SCREEN_RECORDING_PLUGIN_ID)
+
   const key = useMemo(() => {
     if (!metadata?.recording_status || !metadata?.recording_mode) {
       return undefined
@@ -83,9 +89,11 @@ export const RecordingStateToast = () => {
 
   if (!key) return null
 
+  // Without a visible target panel the label degrades to plain text.
   const hasScreenRecordingAccessAndActive =
-    isScreenRecordingActive && hasScreenRecordingAccess
-  const hasTranscriptAccessAndActive = isTranscriptActive && hasTranscriptAccess
+    isScreenRecordingActive && hasScreenRecordingAccess && isScreenToolVisible
+  const hasTranscriptAccessAndActive =
+    isTranscriptActive && hasTranscriptAccess && isTranscriptToolVisible
 
   return (
     <>
@@ -124,7 +132,7 @@ export const RecordingStateToast = () => {
           )}
         {hasScreenRecordingAccessAndActive && (
           <RACButton
-            onPress={openScreenRecording}
+            onPress={() => openSubPanel(SCREEN_RECORDING_PLUGIN_ID)}
             className={css({
               textStyle: 'sm !important',
               fontWeight: '500 !important',
@@ -136,7 +144,7 @@ export const RecordingStateToast = () => {
         )}
         {hasTranscriptAccessAndActive && (
           <RACButton
-            onPress={openTranscript}
+            onPress={() => openSubPanel(TRANSCRIPT_PLUGIN_ID)}
             className={css({
               textStyle: 'sm !important',
               fontWeight: '500 !important',

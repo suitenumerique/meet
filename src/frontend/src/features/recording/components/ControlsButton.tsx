@@ -27,7 +27,8 @@ interface ControlsButtonProps {
   handle: () => void
   isPendingToStart: boolean
   isPendingToStop: boolean
-  openSidePanel: () => void
+  /** Shortcut to the other mode's panel; omit when that tool is not visible. */
+  openSidePanel?: () => void
 }
 
 const MIN_SPINNER_DISPLAY_TIME = 2000
@@ -119,7 +120,7 @@ export const ControlsButton = ({
   // Inactive state (Start button)
   return (
     <Layout>
-      {statuses.isAnotherModeStarted && (
+      {statuses.isAnotherModeStarted && openSidePanel && (
         <RACButton
           className={css({
             backgroundColor: 'primary.50',

@@ -369,6 +369,7 @@
   },
   "moreTools": {
     "body": "Nutze weitere Tools, um deine Meetings zu verbessern.",
+    "panelError": "Dieses Tool konnte nicht geladen werden. Bitte lade die Seite neu.",
     "linkAriaLabel": "Dokumentation zu den Tools öffnen – öffnet in neuem Tab",
     "moreLink": "Dokumentation öffnen",
     "tools": {
