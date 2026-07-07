@@ -12,7 +12,7 @@ import pytest
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory, UserResourceAccessFactory
-from ...models import RoomAccessLevel, RoleChoices
+from ...models import RoleChoices, RoomAccessLevel
 
 pytestmark = pytest.mark.django_db
 
