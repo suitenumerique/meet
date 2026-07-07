@@ -12,9 +12,14 @@ export default tseslint.config(
   {
     ignores: [
       'dist/**',
+      'dist-plugins/**',
       'node_modules/**',
       'coverage/**',
       'src/styled-system/**',
+      // Built deploy-time plugin bundles (build output, not source).
+      'public/plugins/**',
+      // Deploy-time plugin bundle sources (built by vite.plugin.config.ts, not the app graph).
+      'plugin-examples/**',
     ],
   },
 
