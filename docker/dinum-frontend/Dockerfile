@@ -54,7 +54,7 @@ RUN npx webpack --mode production
 
 
 # ---- Front-end image ----
-FROM nginxinc/nginx-unprivileged:alpine3.23 AS frontend-production
+FROM nginxinc/nginx-unprivileged:1.30.3-alpine3.23 AS frontend-production
 
 USER root
 
