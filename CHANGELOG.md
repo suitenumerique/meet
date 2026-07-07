@@ -14,6 +14,7 @@ and this project adheres to
 - ⬆️(dependencies) update python dependencies
 - 💥(summary) remove v1 related code #1362
 - ✨(meet) use compatible with summary v2 #1362
+- ♻️(backend) refactor analytics backend from Protocol to abstract class
 
 ### Fixed
 
