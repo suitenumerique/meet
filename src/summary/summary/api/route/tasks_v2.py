@@ -59,16 +59,16 @@ async def create_transcribe_task_v2(
         ]
     )
 
+    properties = {}
+    if request.user_email:
+        properties["$set"] = {"email": request.user_email}
+
     # We track the request, this also properly initializes the user in the
     # analytics system, so that later feature flags work properly
     analytics.capture(
         settings.posthog_transcript_request,
         request.user_sub,
-        properties={
-            "$set": {
-                "email": request.user_email,
-            },
-        },
+        properties=properties,
     )
 
     return TranscribeWebhookPendingPayload(job_id=task.id).model_dump()
@@ -92,14 +92,15 @@ async def create_summarize_task_v2(
 
     # We track the request, this also properly initializes the user in the
     # analytics system, so that later feature flags work properly
+
+    properties = {}
+    if request.user_email:
+        properties["$set"] = {"email": request.user_email}
+
     analytics.capture(
         settings.posthog_summary_request,
         request.user_sub,
-        properties={
-            "$set": {
-                "email": request.user_email,
-            },
-        },
+        properties=properties,
     )
     return SummarizeWebhookPendingPayload(job_id=task.id).model_dump()
 
