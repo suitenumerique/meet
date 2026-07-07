@@ -6,6 +6,11 @@ from django.http import Http404
 from rest_framework import permissions
 
 from ..models import RoleChoices
+from ..services.participants_management import (
+    ParticipantNotFoundException,
+    ParticipantsManagement,
+    ParticipantsManagementException,
+)
 
 ACTION_FOR_METHOD_TO_PERMISSION = {
     "versions_detail": {"DELETE": "versions_destroy", "GET": "versions_retrieve"}
@@ -166,3 +171,30 @@ class CanMuteParticipant(permissions.BasePermission):
 
         # LiveKit token scoped to this room
         return request.auth.video.room == str(obj.id)
+
+
+class IsPresentInMeeting(permissions.BasePermission):
+    """Check that the requesting user is currently connected to the meeting.
+
+    The requester must be session-authenticated (their DB identity is needed
+    to check privileges); presence is verified against LiveKit using their
+    `sub` as participant identity. Fails closed on LiveKit errors.
+    """
+
+    message = "You must be connected to the meeting to perform this action."
+
+    def has_object_permission(self, request, view, obj):
+        """Verify the requester's identity is a participant of the room."""
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return False
+
+        try:
+            return ParticipantsManagement().check_if_in_meeting(
+                room_name=str(obj.pk), identity=str(user.sub)
+            )
+        except ParticipantNotFoundException:
+            return False
+        except ParticipantsManagementException:
+            return False
