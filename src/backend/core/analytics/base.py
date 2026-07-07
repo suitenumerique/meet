@@ -1,12 +1,13 @@
 """Analytics backend protocol and default no-op implementation."""
 
-from typing import Any, Protocol
+from abc import ABC, abstractmethod
+from typing import Any
 
 from ..models import User
 from .events import AnalyticsEvent
 
 
-class AnalyticsBackend(Protocol):
+class AnalyticsBackend(ABC):
     """
     Interface every analytics backend must implement.
 
@@ -17,11 +18,11 @@ class AnalyticsBackend(Protocol):
         ANALYTICS_BACKEND_SETTINGS = {"api_key": "...", "host": "..."}
     """
 
-    def __init__(self, **kwargs: Any) -> None: ...
-
+    @abstractmethod
     def identify(self, user: User, properties: dict[str, Any] | None = None) -> None:
         """Associate traits (email, name, ...) with an identified user."""
 
+    @abstractmethod
     def capture(
         self,
         user: User,
@@ -30,15 +31,13 @@ class AnalyticsBackend(Protocol):
     ) -> None:
         """Record an event performed by an identified user."""
 
+    @abstractmethod
     def shutdown(self) -> None:
         """Flush pending events. Called on process exit."""
 
 
-class NoOpAnalytics:
+class NoOpAnalytics(AnalyticsBackend):
     """Default backend: silently discards everything."""
-
-    def __init__(self, **kwargs: Any) -> None:
-        """No-op: accepts and ignores any backend settings kwargs."""
 
     def identify(self, user: User, properties=None) -> None:
         """No-op: discards identify calls."""

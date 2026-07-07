@@ -6,12 +6,13 @@ from typing import Any
 from posthog import Posthog
 
 from ..models import User
+from . import AnalyticsBackend
 from .events import AnalyticsEvent
 
 logger = logging.getLogger(__name__)
 
 
-class PostHogAnalytics:
+class PostHogAnalytics(AnalyticsBackend):
     """Send events to PostHog, keyed on the user's primary key (UUID)."""
 
     def __init__(
