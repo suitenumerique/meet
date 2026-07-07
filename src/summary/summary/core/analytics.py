@@ -11,7 +11,7 @@ from celery.utils.log import get_task_logger
 from posthog import Posthog
 
 from summary.core.config import get_settings
-from summary.core.models import TranscribeTaskJob
+from summary.core.models import SummarizeTaskJob, TranscribeTaskJob
 
 logger = get_task_logger(__name__)
 settings = get_settings()
@@ -109,25 +109,30 @@ class MetadataManager:
         """Check if task_id exists in tasks metadata cache."""
         return self._redis.exists(self._get_redis_key(task_id))
 
-    def create(self, task_id: str, task_payload: TranscribeTaskJob):
+    def create(self, task_id: str, task_payload: TranscribeTaskJob | SummarizeTaskJob):
         """Create initial metadata entry for a new task."""
         if self._is_disabled or self.has_task_id(task_id):
             return
 
         start_time = time.time()
-        parts = urlsplit(task_payload.cloud_storage_url)
-        clean_url = urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
         initial_metadata = {
             "start_time": start_time,
-            "asr_model": settings.whisperx_asr_model,
             "retries": 0,
-            "filename": clean_url,
             "sub": task_payload.user_sub,
             # avoid None in redis, it shouldn't happen anyway in prod
             "email": task_payload.user_email or "",
             "tenant_id": task_payload.tenant_id,
             "queuing_time": round(start_time - task_payload.received_at.timestamp(), 2),
         }
+
+        if isinstance(task_payload, TranscribeTaskJob):
+            parts = urlsplit(task_payload.cloud_storage_url)
+            clean_url = urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
+            initial_metadata["source_url"] = clean_url
+            initial_metadata["asr_model"] = settings.whisperx_asr_model
+        elif isinstance(task_payload, SummarizeTaskJob):
+            initial_metadata["content_length"] = len(task_payload.content)
+            initial_metadata["llm_model"] = settings.llm_model
 
         self._save_metadata(task_id, initial_metadata)
 

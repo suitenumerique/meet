@@ -542,28 +542,28 @@ def process_audio_transcribe_v2_task(
     call_webhook_v2_task.apply_async(
         args=[success_payload.model_dump(), payload.tenant_id]
     )
-    metadata_manager.capture(job_id, settings.posthog_event_success)
+    metadata_manager.capture(job_id, settings.posthog_transcript_success)
 
     return success_payload.model_dump()
 
 
 @signals.task_prerun.connect(sender=process_audio_transcribe_v2_task)
-def task_started(task_id=None, task=None, args=None, **kwargs):
+def task_started_transcript(task_id=None, task=None, args=None, **kwargs):
     """Signal handler called before task execution begins."""
     if args:
         metadata_manager.create(task_id, TranscribeTaskJob.model_validate(args[0]))
 
 
 @signals.task_retry.connect(sender=process_audio_transcribe_v2_task)
-def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
+def task_retry_handler_transcript(request=None, reason=None, einfo=None, **kwargs):
     """Signal handler called when task execution retries."""
     metadata_manager.retry(request.id)
 
 
 @signals.task_failure.connect(sender=process_audio_transcribe_v2_task)
-def task_failure_handler(task_id, exception=None, **kwargs):
+def task_failure_handler_transcript(task_id, exception=None, **kwargs):
     """Signal handler called when task execution fails permanently."""
-    metadata_manager.capture(task_id, settings.posthog_event_failure)
+    metadata_manager.capture(task_id, settings.posthog_transcript_failure)
 
 
 @signals.task_failure.connect(sender=process_audio_transcribe_v2_task)
@@ -648,7 +648,28 @@ def summarize_v2_task(
     call_webhook_v2_task.apply_async(
         args=[success_payload.model_dump(), payload.tenant_id]
     )
+    metadata_manager.capture(job_id, settings.posthog_summary_success)
+
     return success_payload.model_dump()
+
+
+@signals.task_prerun.connect(sender=summarize_v2_task)
+def task_started_summary(task_id=None, task=None, args=None, **kwargs):
+    """Signal handler called before task execution begins."""
+    if args:
+        metadata_manager.create(task_id, SummarizeTaskJob.model_validate(args[0]))
+
+
+@signals.task_retry.connect(sender=summarize_v2_task)
+def task_retry_handler_summary(request=None, reason=None, einfo=None, **kwargs):
+    """Signal handler called when task execution retries."""
+    metadata_manager.retry(request.id)
+
+
+@signals.task_failure.connect(sender=summarize_v2_task)
+def task_failure_handler_summary(task_id, exception=None, **kwargs):
+    """Signal handler called when task execution fails permanently."""
+    metadata_manager.capture(task_id, settings.posthog_summary_failure)
 
 
 @signals.task_failure.connect(sender=summarize_v2_task)

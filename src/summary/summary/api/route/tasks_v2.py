@@ -62,10 +62,9 @@ async def create_transcribe_task_v2(
     # We track the request, this also properly initializes the user in the
     # analytics system, so that later feature flags work properly
     analytics.capture(
-        settings.posthog_event_request,
+        settings.posthog_transcript_request,
         request.user_sub,
         properties={
-            "kind": "transcribe",
             "$set": {
                 "email": request.user_email,
             },
@@ -94,10 +93,9 @@ async def create_summarize_task_v2(
     # We track the request, this also properly initializes the user in the
     # analytics system, so that later feature flags work properly
     analytics.capture(
-        settings.posthog_event_request,
+        settings.posthog_summary_request,
         request.user_sub,
         properties={
-            "kind": "summarize",
             "$set": {
                 "email": request.user_email,
             },
