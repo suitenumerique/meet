@@ -73,6 +73,13 @@ const config: Config = {
         },
       },
       fade: { from: { opacity: 0 }, to: { opacity: 1 } },
+      // Pulsing "live" ring for a decorated caption button: an outline that
+      // expands and fades outward. Colored by the caller via `currentColor`.
+      caption_live_ring: {
+        '0%': { transform: 'scale(1)', opacity: '0.7' },
+        '70%': { transform: 'scale(1.55)', opacity: '0' },
+        '100%': { transform: 'scale(1.55)', opacity: '0' },
+      },
       pulse: {
         '0%': { boxShadow: '0 0 0 0 rgba(255, 255, 255, 0.7)' },
         '75%': { boxShadow: '0 0 0 30px rgba(255, 255, 255, 0)' },
