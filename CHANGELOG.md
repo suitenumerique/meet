@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add per-recording encoding quality presets to start-recording API
+
 ## [1.30.0] - 2026-09-01
 
 ### Changed
