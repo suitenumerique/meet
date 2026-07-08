@@ -142,6 +142,14 @@ class RoomSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(e.errors()) from e
         return value
 
+    def validate_access_level(self, access_level):
+        """Validate the access level against the instance allow-list."""
+        if access_level not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS:
+            raise serializers.ValidationError(
+                "This access level is not allowed on this instance."
+            )
+        return access_level
+
     def to_representation(self, instance):
         """
         Add users only for administrator users.
