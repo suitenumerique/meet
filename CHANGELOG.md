@@ -17,6 +17,9 @@ and this project adheres to
 
 ### Added
 
+- ✨(frontend) tool plugin framework with deploy-time external bundles
+- ✨(frontend) host-owned caption bus, banner and caption-button surfaces
+- ✨(backend) native-agent stop endpoint and plugins config surface
 - ✨(backend) extend analytics module to support feature flags
 - ✨(backend) implement feature flags in Posthog analytics backend
 - ✨(agents) report errors to Sentry for all LiveKit agents
