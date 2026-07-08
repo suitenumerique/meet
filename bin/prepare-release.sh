@@ -113,6 +113,12 @@ update_python_version "summary"
 # Update agents pyproject.toml
 update_python_version "agents"
 
+# Run uv lock in agents
+print_info "Running uv lock in agents..."
+cd "src/agents"
+uv lock
+cd -
+
 # Update CHANGELOG
 print_info "Updating CHANGELOG..."
 
