@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) allow searching the recording admin table by owner email
+
 ### Changed
 
 - 🗑️(settings) deprecate SUMMARY_SERVICE_VERSION=1

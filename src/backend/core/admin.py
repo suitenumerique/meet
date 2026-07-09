@@ -402,7 +402,14 @@ class RecordingAdmin(admin.ModelAdmin):
     """Recording admin interface declaration."""
 
     inlines = (RecordingAccessInline,)
-    search_fields = ["status", "=id", "worker_id", "room__slug", "=room__id"]
+    search_fields = [
+        "status",
+        "=id",
+        "worker_id",
+        "room__slug",
+        "=room__id",
+        "accesses__user__email",
+    ]
     list_display = (
         "id",
         "status",
