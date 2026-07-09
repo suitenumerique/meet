@@ -723,26 +723,63 @@ class Base(Configuration):
     # recordings), whose request never carries advanced EncodingOptions.
     # When disabled, LiveKit falls back to its built-in H264_720P_30 preset
     # (1280x720, 30 fps, 3000 kbps H.264 MAIN video, 128 kbps AAC audio).
-    # When enabled, the values below are passed to LiveKit as EncodingOptions
-    # (advanced) and replace the preset. Lowering framerate and bitrate reduces
-    # output file size and CPU load on the egress worker.
+    # When enabled, the encoding parameters are resolved from the default profile
+    # and resolution below and passed to LiveKit as EncodingOptions (advanced),
+    # replacing the preset. Lowering framerate and bitrate reduces output file
+    # size and CPU load on the egress worker.
     RECORDING_ENCODING_ENABLED = values.BooleanValue(
         False, environ_name="RECORDING_ENCODING_ENABLED", environ_prefix=None
     )
-    RECORDING_ENCODING_WIDTH = values.PositiveIntegerValue(
-        1280, environ_name="RECORDING_ENCODING_WIDTH", environ_prefix=None
-    )
-    RECORDING_ENCODING_HEIGHT = values.PositiveIntegerValue(
-        720, environ_name="RECORDING_ENCODING_HEIGHT", environ_prefix=None
-    )
-    RECORDING_ENCODING_FRAMERATE = values.PositiveIntegerValue(
-        30, environ_name="RECORDING_ENCODING_FRAMERATE", environ_prefix=None
-    )
-    RECORDING_ENCODING_VIDEO_BITRATE_KBPS = values.PositiveIntegerValue(
-        3000,
-        environ_name="RECORDING_ENCODING_VIDEO_BITRATE_KBPS",
+
+    # Map resolution string -> (width, height) in pixels.
+    RECORDING_ENCODING_AVAILABLE_RESOLUTIONS = values.DictValue(
+        {
+            "540p": {"width": 960, "height": 540},
+            "720p": {"width": 1280, "height": 720},
+            "1080p": {"width": 1920, "height": 1080},
+        },
+        environ_name="RECORDING_ENCODING_AVAILABLE_RESOLUTIONS",
         environ_prefix=None,
     )
+
+    # Bitrate scales with resolution so quality stays consistent across sizes.
+    RECORDING_ENCODING_AVAILABLE_PROFILES = values.DictValue(
+        {
+            "talking_heads": {
+                "fps": 15,
+                "kbps": {"540p": 400, "720p": 700, "1080p": 1200},
+            },
+            "text": {
+                "fps": 15,
+                "kbps": {"540p": 600, "720p": 1000, "1080p": 1800},
+            },
+            "mixed": {
+                "fps": 20,
+                "kbps": {"540p": 900, "720p": 1500, "1080p": 2500},
+            },
+            "full": {
+                "fps": 30,
+                "kbps": {"540p": 2000, "720p": 3000, "1080p": 4500},
+            },
+        },
+        environ_name="RECORDING_ENCODING_AVAILABLE_PROFILES",
+        environ_prefix=None,
+    )
+
+    # Defaults used when no profile/resolution is specified per recording.
+    # Must be keys of the two dicts above (validated at startup).
+    RECORDING_ENCODING_DEFAULT_PROFILE = values.Value(
+        "full",
+        environ_name="RECORDING_ENCODING_DEFAULT_PROFILE",
+        environ_prefix=None,
+    )
+    RECORDING_ENCODING_DEFAULT_RESOLUTION = values.Value(
+        "720p",
+        environ_name="RECORDING_ENCODING_DEFAULT_RESOLUTION",
+        environ_prefix=None,
+    )
+
+    # Settings independent of profile/resolution.
     RECORDING_ENCODING_AUDIO_BITRATE_KBPS = values.PositiveIntegerValue(
         128,
         environ_name="RECORDING_ENCODING_AUDIO_BITRATE_KBPS",
@@ -751,37 +788,6 @@ class Base(Configuration):
     RECORDING_ENCODING_KEY_FRAME_INTERVAL_S = values.FloatValue(
         4.0,
         environ_name="RECORDING_ENCODING_KEY_FRAME_INTERVAL_S",
-        environ_prefix=None,
-    )
-
-    # Per-recording encoding presets for the start-recording API.
-    # Unlike the global RECORDING_ENCODING_* values above (a single fixed
-    # preset), these maps let a recording request pick a resolution and a
-    # quality profile. To add a resolution: add one entry to
-    # RECORDING_ENCODING_AVAILABLE_RESOLUTIONS and one bitrate per profile in
-    # RECORDING_ENCODING_AVAILABLE_PROFILES. To add a profile: add one entry to
-    # RECORDING_ENCODING_AVAILABLE_PROFILES with a bitrate per resolution. No
-    # control-flow changes needed elsewhere.
-
-    # Map resolution string -> (width, height) in pixels.
-    RECORDING_ENCODING_AVAILABLE_RESOLUTIONS = values.DictValue(
-        {
-            "540p": (960, 540),
-            "720p": (1280, 720),
-            "1080p": (1920, 1080),
-        },
-        environ_name="RECORDING_ENCODING_AVAILABLE_RESOLUTIONS",
-        environ_prefix=None,
-    )
-    # Bitrate scales with resolution so quality stays consistent across sizes.
-    RECORDING_ENCODING_AVAILABLE_PROFILES = values.DictValue(
-        {
-            # profile: (fps, kbps per resolution)
-            "talking_heads": (15, {"540p": 400, "720p": 700, "1080p": 1200}),
-            "text": (15, {"540p": 600, "720p": 1000, "1080p": 1800}),
-            "mixed": (20, {"540p": 900, "720p": 1500, "1080p": 2500}),
-        },
-        environ_name="RECORDING_ENCODING_AVAILABLE_PROFILES",
         environ_prefix=None,
     )
 
