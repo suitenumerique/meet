@@ -7,6 +7,8 @@
     "dev": "panda codegen && vite",
     "build": "panda codegen && tsc -b && vite build",
     "build:debug": "VITE_ANALYZE=true npm run build -- --debug",
+    "build:plugin": "vite build --config vite.plugin.config.ts",
+    "build:plugin-showcase": "PLUGIN_ENTRY=plugin-examples/showcase/index.tsx PLUGIN_NAME=showcase npm run build:plugin",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
