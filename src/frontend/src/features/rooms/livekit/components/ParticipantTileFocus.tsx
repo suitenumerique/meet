@@ -2,7 +2,6 @@ import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { Button } from '@/primitives'
 import {
-  RiFullscreenLine,
   RiImageCircleAiFill,
   RiMicLine,
   RiMicOffLine,
@@ -15,40 +14,12 @@ import {
 } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
 import { TrackReferenceOrPlaceholder } from '@livekit/components-core'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSidePanel } from '../hooks/useSidePanel'
-import { useFullScreen } from '../hooks/useFullScreen'
 import { type Participant, Track } from 'livekit-client'
 import { MuteAlertDialog } from './MuteAlertDialog'
 import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
-
-const ZoomButton = ({
-  trackRef,
-}: {
-  trackRef: TrackReferenceOrPlaceholder
-}) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
-  const { toggleFullScreen, isFullscreenAvailable } = useFullScreen({
-    trackRef,
-  })
-
-  if (!isFullscreenAvailable) {
-    return
-  }
-
-  return (
-    <Button
-      size="sm"
-      variant="primaryTextDark"
-      square
-      tooltip={t('fullScreen')}
-      onPress={() => toggleFullScreen()}
-    >
-      <RiFullscreenLine />
-    </Button>
-  )
-}
 
 const FocusButton = ({
   trackRef,
@@ -127,26 +98,17 @@ const MuteButton = ({ participant }: { participant: Participant }) => {
   )
 }
 
-const MOUSE_IDLE_TIME = 3000
-
 export const ParticipantTileFocus = ({
   trackRef,
-  hasKeyboardFocus,
+  isVisible,
 }: {
   trackRef: TrackReferenceOrPlaceholder
-  hasKeyboardFocus: boolean
+  isVisible: boolean
 }) => {
-  const [hovered, setHovered] = useState(false)
   const [opacity, setOpacity] = useState(0)
-
-  const idleTimerRef = useRef<number | null>(null)
-  const [isIdleRef, setIsIdleRef] = useState(false)
-
-  const isVisible = hasKeyboardFocus || (hovered && !isIdleRef)
 
   useEffect(() => {
     if (isVisible) {
-      // Wait for next frame to ensure element is mounted
       requestAnimationFrame(() => {
         setOpacity(0.6)
       })
@@ -155,24 +117,14 @@ export const ParticipantTileFocus = ({
     }
   }, [isVisible])
 
-  const handleMouseMove = () => {
-    if (idleTimerRef.current) {
-      window.clearTimeout(idleTimerRef.current)
-    }
-    idleTimerRef.current = window.setTimeout(() => {
-      setIsIdleRef(true)
-    }, MOUSE_IDLE_TIME)
-    setIsIdleRef(false)
-  }
-
   const participant = trackRef.participant
 
   const isScreenShare = trackRef.source == Track.Source.ScreenShare
-  const isLocal = trackRef.participant.isLocal
 
   const canMute = useCanMute(participant)
 
   return (
+    // Pointer-events: none so this overlay doesn't block the zoom surface below.
     <div
       className={css({
         position: 'absolute',
@@ -183,11 +135,9 @@ export const ParticipantTileFocus = ({
         alignItems: 'center',
         width: '100%',
         height: '100%',
+        pointerEvents: 'none',
       })}
       aria-hidden={!isVisible}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onMouseMove={handleMouseMove}
     >
       {isVisible && (
         <div
@@ -197,6 +147,7 @@ export const ParticipantTileFocus = ({
             zIndex: 1,
             borderRadius: '0.25rem',
             display: 'flex',
+            pointerEvents: 'auto',
             _hover: {
               opacity: '0.95 !important',
             },
@@ -213,7 +164,7 @@ export const ParticipantTileFocus = ({
             })}
           >
             <FocusButton trackRef={trackRef} />
-            {!isScreenShare ? (
+            {!isScreenShare && (
               <>
                 {participant.isLocal ? (
                   <EffectsButton />
@@ -221,8 +172,6 @@ export const ParticipantTileFocus = ({
                   canMute && <MuteButton participant={participant} />
                 )}
               </>
-            ) : (
-              !isLocal && <ZoomButton trackRef={trackRef} />
             )}
           </HStack>
         </div>

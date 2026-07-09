@@ -8,7 +8,7 @@ import {
   RiZoomOutLine,
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 interface ScreenShareZoomControlsProps {
@@ -36,23 +36,29 @@ export const ScreenShareZoomControls = ({
   const announce = useScreenReaderAnnounce()
 
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const wasOwnFullscreen = useRef(false)
   const [isFullscreenAvailable] = useState(
     () => typeof document !== 'undefined' && document.fullscreenEnabled
   )
 
   // Covers Esc and browser UI exits, not just the toolbar button.
+  // Only this tile's instance announces to avoid duplicates with multiple shares.
   useEffect(() => {
     const onChange = () => {
       const entered = !!document.fullscreenElement
       setIsFullscreen(entered)
-      announce(
-        entered ? t('fullScreenEntered') : t('fullScreenExited'),
-        'assertive'
-      )
+
+      if (entered && document.fullscreenElement === containerRef.current) {
+        wasOwnFullscreen.current = true
+        announce(t('fullScreenEntered'), 'assertive')
+      } else if (!entered && wasOwnFullscreen.current) {
+        wasOwnFullscreen.current = false
+        announce(t('fullScreenExited'), 'assertive')
+      }
     }
     document.addEventListener('fullscreenchange', onChange)
     return () => document.removeEventListener('fullscreenchange', onChange)
-  }, [announce, t])
+  }, [announce, t, containerRef])
 
   const toggleFullScreen = useCallback(async () => {
     try {
