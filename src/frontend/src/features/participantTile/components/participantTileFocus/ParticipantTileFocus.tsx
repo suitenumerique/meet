@@ -1,44 +1,22 @@
 import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { TrackReferenceOrPlaceholder } from '@livekit/components-core'
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode } from 'react'
 import { Track } from 'livekit-client'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { FocusButton } from './FocusButton'
 import { EffectsButton } from './EffectsButton'
 import { MuteButton } from './MuteButton'
-import { ZoomButton } from './ZoomButton'
-
-const MOUSE_IDLE_TIME = 3000
 
 type FadeOverlayProps = {
   children: ReactNode
-  hasKeyboardFocus: boolean
+  isVisible: boolean
 }
 
-const FadeOverlay = ({ children, hasKeyboardFocus }: FadeOverlayProps) => {
-  const [active, setActive] = useState(false)
-  const idleTimerRef = useRef<number | null>(null)
-
-  const clearIdleTimer = () => {
-    if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current)
-  }
-
-  const armIdleTimer = () => {
-    clearIdleTimer()
-    idleTimerRef.current = window.setTimeout(() => {
-      setActive(false)
-    }, MOUSE_IDLE_TIME)
-  }
-
-  const handleActivity = () => {
-    setActive(true)
-    armIdleTimer()
-  }
-
-  useEffect(() => clearIdleTimer, [])
-
-  const isVisible = hasKeyboardFocus || active
+// Pointer-events none so this overlay doesn't block the zoom surface below.
+// Hover and idle tracking therefore lives on the tile, which still receives
+// the pointer events, and comes back in as isVisible.
+const FadeOverlay = ({ children, isVisible }: FadeOverlayProps) => {
   return (
     <div
       className={css({
@@ -50,15 +28,10 @@ const FadeOverlay = ({ children, hasKeyboardFocus }: FadeOverlayProps) => {
         alignItems: 'center',
         width: '100%',
         height: '100%',
+        pointerEvents: 'none',
       })}
       data-visible={isVisible || undefined}
       aria-hidden={!isVisible}
-      onMouseEnter={handleActivity}
-      onMouseMove={handleActivity}
-      onMouseLeave={() => {
-        clearIdleTimer()
-        setActive(false)
-      }}
     >
       {isVisible && children}
     </div>
@@ -67,10 +40,10 @@ const FadeOverlay = ({ children, hasKeyboardFocus }: FadeOverlayProps) => {
 
 export const ParticipantTileFocus = ({
   trackRef,
-  hasKeyboardFocus,
+  isVisible,
 }: {
   trackRef: TrackReferenceOrPlaceholder
-  hasKeyboardFocus: boolean
+  isVisible: boolean
 }) => {
   const participant = trackRef.participant
   const isScreenShare = trackRef.source == Track.Source.ScreenShare
@@ -78,7 +51,7 @@ export const ParticipantTileFocus = ({
   const canMute = useCanMute(participant)
 
   return (
-    <FadeOverlay hasKeyboardFocus={hasKeyboardFocus}>
+    <FadeOverlay isVisible={isVisible}>
       <div
         className={css({
           backgroundColor: 'primaryDark.50',
@@ -87,6 +60,7 @@ export const ParticipantTileFocus = ({
           display: 'flex',
           opacity: 0.6,
           animation: 'overlayIn 200ms linear 300ms backwards',
+          pointerEvents: 'auto',
           _hover: {
             opacity: 0.95,
           },
@@ -94,7 +68,7 @@ export const ParticipantTileFocus = ({
       >
         <HStack gap={0.5} padding={0.5}>
           <FocusButton trackRef={trackRef} />
-          {!isScreenShare ? (
+          {!isScreenShare && (
             <>
               {isLocal ? (
                 <EffectsButton />
@@ -102,8 +76,6 @@ export const ParticipantTileFocus = ({
                 canMute && <MuteButton participant={participant} />
               )}
             </>
-          ) : (
-            !isLocal && <ZoomButton trackRef={trackRef} />
           )}
         </HStack>
       </div>
