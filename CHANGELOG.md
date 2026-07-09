@@ -11,7 +11,7 @@ and this project adheres to
 ### Changed
 
 - 🗑️(settings) deprecate SUMMARY_SERVICE_VERSION=1
-
+- ⬆️(mail) update mjml to v5 and @html-to/text-cli
 
 ## [1.23.0] - 2026-07-08
 
