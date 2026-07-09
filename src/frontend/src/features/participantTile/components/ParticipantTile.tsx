@@ -20,6 +20,7 @@ import { Track } from 'livekit-client'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
 import { ParticipantTileFocus } from './participantTileFocus/ParticipantTileFocus'
 import { FullScreenShareWarning } from './FullScreenShareWarning'
+import { ScreenShareZoomableVideo } from '@/features/rooms/livekit/components/ScreenShareZoomableVideo'
 import { useTranslation } from 'react-i18next'
 import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
@@ -89,6 +90,8 @@ export const ParticipantTile: (
   )
 
   const isScreenShare = trackReference.source != Track.Source.Camera
+  const isRemoteScreenShare =
+    isScreenShare && !trackReference.participant.isLocal
   const [hasKeyboardFocus, setHasKeyboardFocus] = React.useState(false)
 
   const participantColor = getParticipantColor(trackReference.participant)
@@ -98,11 +101,23 @@ export const ParticipantTile: (
   })
   const participantName = name || identity || 'Unknown'
 
+  // tileRef: fullscreen target, and the node the focus overlay listens on.
+  // setRefs merges it with the forwarded ref on the same node.
+  const tileRef = React.useRef<HTMLDivElement>(null)
+  const setRefs = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      ;(tileRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+      if (typeof ref === 'function') ref(node)
+      else if (ref)
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+    },
+    [ref]
+  )
+
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
 
   const interactiveProps = {
     ...elementProps,
-    // Ensure the tile is focusable to expose contextual controls to keyboard users.
     tabIndex: 0,
     'aria-label': t('containerLabel', { name: participantName }),
     onFocus: (event: React.FocusEvent<HTMLDivElement>) => {
@@ -120,8 +135,41 @@ export const ParticipantTile: (
     },
   }
 
+  const isVideoTrack =
+    isTrackReference(trackReference) &&
+    trackReference.publication.kind === 'video'
+
+  let trackMedia: React.ReactNode = null
+  if (isVideoTrack) {
+    const videoTrack = (
+      <VideoTrack
+        trackRef={trackReference}
+        onSubscriptionStatusChanged={handleSubscribe}
+        manageSubscription={autoManageSubscription}
+      />
+    )
+    // Zoom toolbar stays out of picture-in-picture: that window has its own
+    // document and the fullscreen API is off. Follow-up PR can restore zoom
+    // there without the dead fullscreen button.
+    trackMedia =
+      isRemoteScreenShare && !disableTileControls ? (
+        <ScreenShareZoomableVideo tileRef={tileRef}>
+          {videoTrack}
+        </ScreenShareZoomableVideo>
+      ) : (
+        videoTrack
+      )
+  } else if (isTrackReference(trackReference)) {
+    trackMedia = (
+      <AudioTrack
+        trackRef={trackReference}
+        onSubscriptionStatusChanged={handleSubscribe}
+      />
+    )
+  }
+
   return (
-    <div ref={ref} style={{ position: 'relative' }} {...interactiveProps}>
+    <div ref={setRefs} style={{ position: 'relative' }} {...interactiveProps}>
       <TrackRefContextIfNeeded trackRef={trackReference}>
         <ParticipantContextIfNeeded participant={trackReference.participant}>
           {trackReference.participant.isLocal && (
@@ -129,23 +177,7 @@ export const ParticipantTile: (
           )}
           {children ?? (
             <>
-              {isTrackReference(trackReference) &&
-              (trackReference.publication?.kind === 'video' ||
-                trackReference.source === Track.Source.Camera ||
-                trackReference.source === Track.Source.ScreenShare) ? (
-                <VideoTrack
-                  trackRef={trackReference}
-                  onSubscriptionStatusChanged={handleSubscribe}
-                  manageSubscription={autoManageSubscription}
-                />
-              ) : (
-                isTrackReference(trackReference) && (
-                  <AudioTrack
-                    trackRef={trackReference}
-                    onSubscriptionStatusChanged={handleSubscribe}
-                  />
-                )
-              )}
+              {trackMedia}
               <div className="lk-participant-placeholder">
                 <ParticipantPlaceholder
                   color={participantColor}
@@ -164,6 +196,7 @@ export const ParticipantTile: (
           {!disableMetadata && !disableTileControls && (
             <ParticipantTileFocus
               trackRef={trackReference}
+              tileRef={tileRef}
               hasKeyboardFocus={hasKeyboardFocus}
             />
           )}
