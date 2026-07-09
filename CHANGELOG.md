@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) allow searching the recording admin table by owner email
+- ✨(frontend) add participant color gradient when camera is off #1490
 
 ### Changed
 
