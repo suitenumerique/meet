@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 # pylint: disable=too-many-lines
 
 import json
+import warnings
 from os import path
 from socket import gethostbyname, gethostname
 
@@ -1126,6 +1127,20 @@ class Base(Configuration):
         if cls.FILE_UPLOAD_TMP_PATH == cls.FILE_UPLOAD_PATH:
             raise ValueError(
                 "FILE_UPLOAD_TMP_PATH cannot be the same as FILE_UPLOAD_PATH"
+            )
+
+        if (
+            cls.SUMMARY_SERVICE_VERSION == 1
+            and cls.SUMMARY_SERVICE_ENDPOINT is not None
+        ):
+            warnings.warn(
+                "SUMMARY_SERVICE_VERSION=1 is deprecated. "
+                "The legacy v1 API has been removed from the experimental "
+                "Summary service. Please update your Summary service deployment to "
+                "the v2 API and set SUMMARY_SERVICE_VERSION=2.",
+                # We use UserWarning to make sure it shows up in production deployment
+                UserWarning,
+                stacklevel=2,
             )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment

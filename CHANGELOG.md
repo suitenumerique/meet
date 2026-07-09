@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- 🗑️(settings) deprecate SUMMARY_SERVICE_VERSION=1
+
+
 ## [1.23.0] - 2026-07-08
 
 ### Added
