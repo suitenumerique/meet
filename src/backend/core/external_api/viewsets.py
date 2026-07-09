@@ -215,5 +215,6 @@ class RoomViewSet(
                 "client_id": client_id,
                 "external_api": True,
                 "auth_method": auth_method,
+                "$set": {"email": self.request.user.email},
             },
         )

@@ -18,6 +18,10 @@ and this project adheres to
 - 🗑️(settings) deprecate SUMMARY_SERVICE_VERSION=1
 - ⬆️(mail) update mjml to v5 and @html-to/text-cli
 
+### Fixed
+
+- 🩹(backend) identify externally provisioned users to PostHog
+
 ## [1.23.0] - 2026-07-08
 
 ### Added
