@@ -20,7 +20,6 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { ControlBar } from './ControlBar/ControlBar'
-import { FocusLayout } from '../components/FocusLayout'
 import { ParticipantTile } from '../components/ParticipantTile'
 import { SidePanel } from '../components/SidePanel'
 import { RecordingProvider } from '@/features/recording'
@@ -39,8 +38,16 @@ import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
 import { CarouselLayout } from '@/features/layout/components/CarouselLayout'
+import { FocusArea } from '@/features/layout/components/FocusArea'
 import { GridLayout } from '@/features/layout/components/GridLayout'
 import { RoomContentArea } from '@/features/layout/components/RoomContentArea'
+import {
+  getNewScreenShareTracks,
+  getNewestScreenShareTrack,
+  getSubscribedScreenShareTracks,
+  splitTracksForFocusLayout,
+  syncKnownScreenShareSids,
+} from '@/features/layout/utils/screenShareLayout'
 import { usePictureInPicture } from '@/features/pip/hooks/usePictureInPicture'
 import { PipRoomPlaceholder } from '@/features/pip/components/PipRoomPlaceholder'
 
@@ -73,6 +80,7 @@ export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElemen
 export function VideoConference({ ...props }: VideoConferenceProps) {
   const lastAutoFocusedScreenShareTrack =
     useRef<TrackReferenceOrPlaceholder | null>(null)
+  const knownScreenShareTrackSids = useRef<Set<string>>(new Set())
   const lastPinnedParticipantIdentityRef = useRef<string | null>(null)
   const { t } = useTranslation('rooms', { keyPrefix: 'pinAnnouncements' })
   const { t: tRooms } = useTranslation('rooms')
@@ -114,14 +122,11 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
 
   useNoiseReduction()
 
-  const screenShareTracks = tracks
-    .filter(isTrackReference)
-    .filter((track) => track.publication.source === Track.Source.ScreenShare)
+  const screenShareTracks = getSubscribedScreenShareTracks(tracks)
 
   const focusTrack = usePinnedTracks(layoutContext)?.[0]
-  const carouselTracks = tracks.filter(
-    (track) => !isEqualTrackRef(track, focusTrack)
-  )
+  const { carouselTracks, secondaryScreenShareTracks } =
+    splitTracksForFocusLayout(tracks, focusTrack, screenShareTracks)
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
 
@@ -181,31 +186,48 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   /* eslint-disable react-hooks/exhaustive-deps */
   // Code duplicated from LiveKit; this warning will be addressed in the refactoring.
   useEffect(() => {
-    // If screen share tracks are published, and no pin is set explicitly, auto set the screen share.
-    if (
-      screenShareTracks.some((track) => track.publication.isSubscribed) &&
-      lastAutoFocusedScreenShareTrack.current === null
-    ) {
-      log.debug('Auto set screen share focus:', {
-        newScreenShareTrack: screenShareTracks[0],
-      })
-      layoutContext.pin.dispatch?.({
-        msg: 'set_pin',
-        trackReference: screenShareTracks[0],
-      })
-      lastAutoFocusedScreenShareTrack.current = screenShareTracks[0]
+    const newScreenShares = getNewScreenShareTracks(
+      screenShareTracks,
+      knownScreenShareTrackSids.current
+    )
+    syncKnownScreenShareSids(
+      screenShareTracks,
+      knownScreenShareTrackSids.current
+    )
+
+    if (newScreenShares.length > 0) {
+      const newestScreenShare = getNewestScreenShareTrack(newScreenShares)
+      if (newestScreenShare) {
+        log.debug('Auto set screen share focus:', {
+          newScreenShareTrack: newestScreenShare,
+        })
+        layoutContext.pin.dispatch?.({
+          msg: 'set_pin',
+          trackReference: newestScreenShare,
+        })
+        lastAutoFocusedScreenShareTrack.current = newestScreenShare
+      }
     } else if (
-      lastAutoFocusedScreenShareTrack.current &&
-      !screenShareTracks.some(
-        (track) =>
-          track.publication.trackSid ===
-          lastAutoFocusedScreenShareTrack.current?.publication?.trackSid
-      )
+      focusTrack?.source === Track.Source.ScreenShare &&
+      !screenShareTracks.some((track) => isEqualTrackRef(track, focusTrack))
     ) {
-      log.debug('Auto clearing screen share focus.')
-      layoutContext.pin.dispatch?.({ msg: 'clear_pin' })
-      lastAutoFocusedScreenShareTrack.current = null
+      const newestRemaining = getNewestScreenShareTrack(screenShareTracks)
+      if (newestRemaining) {
+        log.debug('Auto switching to remaining screen share:', {
+          screenShareTrack: newestRemaining,
+        })
+        layoutContext.pin.dispatch?.({
+          msg: 'set_pin',
+          trackReference: newestRemaining,
+        })
+        lastAutoFocusedScreenShareTrack.current = newestRemaining
+      } else {
+        log.debug('Auto clearing screen share focus.')
+        layoutContext.pin.dispatch?.({ msg: 'clear_pin' })
+        lastAutoFocusedScreenShareTrack.current = null
+      }
     }
+
     if (focusTrack && !isTrackReference(focusTrack)) {
       const updatedFocusTrack = tracks.find(
         (tr) =>
@@ -281,7 +303,14 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
                       >
                         <ParticipantTile />
                       </CarouselLayout>
-                      {focusTrack && <FocusLayout trackRef={focusTrack} />}
+                      {focusTrack && (
+                        <FocusArea
+                          focusTrack={focusTrack}
+                          secondaryScreenShareTracks={
+                            secondaryScreenShareTracks
+                          }
+                        />
+                      )}
                     </FocusLayoutContainer>
                   </div>
                 )}
