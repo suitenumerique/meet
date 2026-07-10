@@ -23,6 +23,7 @@ and this project adheres to
 ### Fixed
 
 - 🩹(backend) identify externally provisioned users to PostHog
+- 🐛(backend) fix info panel crash for unregistered rooms
 
 ## [1.23.0] - 2026-07-08
 

@@ -92,6 +92,7 @@ from core.services.subtitle import SubtitleException, SubtitleService
 from core.tasks.file import process_file_deletion
 
 from ..authentication.livekit import LiveKitTokenAuthentication
+from ..models import RoomAccessLevel
 from . import permissions, serializers, throttling
 from .feature_flag import FeatureFlag
 
@@ -267,6 +268,9 @@ class RoomViewSet(
             username = request.query_params.get("username", None)
             data = {
                 "id": None,
+                "slug": slug,
+                "is_administrable": False,
+                "access_level": RoomAccessLevel.PUBLIC,
                 "livekit": {
                     "url": settings.LIVEKIT_CONFIGURATION["url"],
                     "room": slug,

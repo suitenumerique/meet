@@ -130,6 +130,9 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
     assert response.status_code == 200
     assert response.json() == {
         "id": None,
+        "slug": "unregistered-room",
+        "access_level": "public",
+        "is_administrable": False,
         "livekit": {
             "url": "test_url_value",
             "room": "unregistered-room",
@@ -162,6 +165,9 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
     assert response.status_code == 200
     assert response.json() == {
         "id": None,
+        "slug": "reunion",
+        "access_level": "public",
+        "is_administrable": False,
         "livekit": {
             "url": "test_url_value",
             "room": "reunion",
