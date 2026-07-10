@@ -1,15 +1,12 @@
 import { proxy } from 'valtio'
-import type {
-  PanelId,
-  SubPanelId,
-} from '@/features/rooms/livekit/hooks/useSidePanel'
+import { PanelId } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 type State = {
   showHeader: boolean
   showFooter: boolean
   showSubtitles: boolean
   activePanelId: PanelId | null
-  activeSubPanelId: SubPanelId | null
+  activeSubPanelId: string | null
   showReactionsToolbar: boolean
 }
 

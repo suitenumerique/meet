@@ -7,6 +7,7 @@ import {
   defineTextStyles,
   defineTokens,
 } from '@pandacss/dev'
+import { toneColor } from './src/primitives/tone'
 
 const spacing: Tokens['spacing'] = {
   0: { value: '0rem' },
@@ -35,6 +36,18 @@ const config: Config = {
   exclude: [],
   jsxFramework: 'react',
   outdir: 'src/styled-system',
+  // Tone classes are looked up at runtime (toneColor[tone]), invisible to static
+  // extraction — generate them unconditionally.
+  staticCss: {
+    css: [
+      {
+        properties: {
+          color: Object.values(toneColor),
+          backgroundColor: Object.values(toneColor),
+        },
+      },
+    ],
+  },
   globalFontface: {},
   theme: {
     ...pandaPreset.theme,
@@ -60,6 +73,13 @@ const config: Config = {
         },
       },
       fade: { from: { opacity: 0 }, to: { opacity: 1 } },
+      // Pulsing "live" ring for a decorated caption button: an outline that
+      // expands and fades outward. Colored by the caller via `currentColor`.
+      caption_live_ring: {
+        '0%': { transform: 'scale(1)', opacity: '0.7' },
+        '70%': { transform: 'scale(1.55)', opacity: '0' },
+        '100%': { transform: 'scale(1.55)', opacity: '0' },
+      },
       pulse: {
         '0%': { boxShadow: '0 0 0 0 rgba(255, 255, 255, 0.7)' },
         '75%': { boxShadow: '0 0 0 30px rgba(255, 255, 255, 0)' },

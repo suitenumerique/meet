@@ -10,11 +10,6 @@ export enum PanelId {
   INFO = 'info',
 }
 
-export enum SubPanelId {
-  TRANSCRIPT = 'transcript',
-  SCREEN_RECORDING = 'screenRecording',
-}
-
 export const useSidePanel = () => {
   const layoutSnap = useSnapshot(layoutStore)
   const activePanelId = layoutSnap.activePanelId
@@ -26,10 +21,7 @@ export const useSidePanel = () => {
   const isToolsOpen = activePanelId == PanelId.TOOLS
   const isAdminOpen = activePanelId == PanelId.ADMIN
   const isInfoOpen = activePanelId == PanelId.INFO
-  const isTranscriptOpen = activeSubPanelId == SubPanelId.TRANSCRIPT
-  const isScreenRecordingOpen = activeSubPanelId == SubPanelId.SCREEN_RECORDING
   const isSidePanelOpen = !!activePanelId
-  const isSubPanelOpen = !!activeSubPanelId
 
   const toggleAdmin = () => {
     layoutStore.activePanelId = isAdminOpen ? null : PanelId.ADMIN
@@ -61,15 +53,14 @@ export const useSidePanel = () => {
     if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
   }
 
-  const openTranscript = () => {
-    layoutStore.activeSubPanelId = SubPanelId.TRANSCRIPT
+  /** Open a Tools sub-panel by its registered plugin id. */
+  const openSubPanel = (id: string) => {
+    layoutStore.activeSubPanelId = id
     layoutStore.activePanelId = PanelId.TOOLS
   }
 
-  const openScreenRecording = () => {
-    layoutStore.activeSubPanelId = SubPanelId.SCREEN_RECORDING
-    layoutStore.activePanelId = PanelId.TOOLS
-  }
+  /** Whether the given plugin's sub-panel is the active one. */
+  const isSubPanelOpen = (id: string) => activeSubPanelId === id
 
   return {
     activePanelId,
@@ -80,8 +71,7 @@ export const useSidePanel = () => {
     toggleTools,
     toggleAdmin,
     toggleInfo,
-    openTranscript,
-    openScreenRecording,
+    openSubPanel,
     isSubPanelOpen,
     isChatOpen,
     isParticipantsOpen,
@@ -90,7 +80,5 @@ export const useSidePanel = () => {
     isToolsOpen,
     isAdminOpen,
     isInfoOpen,
-    isTranscriptOpen,
-    isScreenRecordingOpen,
   }
 }

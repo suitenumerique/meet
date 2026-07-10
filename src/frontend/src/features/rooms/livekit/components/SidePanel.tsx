@@ -7,6 +7,8 @@ import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from './controls/Participants/ParticipantsList'
 import { useSidePanel } from '../hooks/useSidePanel'
+import { getVisibleToolPlugins, useRegistryVersion } from '@/features/plugins'
+import { useConfig } from '@/api/useConfig'
 import { ReactNode } from 'react'
 import { Chat } from '../prefabs/Chat'
 import { Effects } from './effects/Effects'
@@ -154,11 +156,28 @@ export const SidePanel = () => {
     isToolsOpen,
     isAdminOpen,
     isInfoOpen,
-    isSubPanelOpen,
     activeSubPanelId,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
-  const title = t(`heading.${activeSubPanelId || activePanelId}`)
+  // Sub-panel headings/aria resolve through the registry in the PLUGIN's own
+  // i18n namespace; top-level panels keep their 'rooms' sidePanel.* keys.
+  const { t: tPlugin } = useTranslation()
+  const { data: config } = useConfig()
+  useRegistryVersion()
+  const visibleTools = getVisibleToolPlugins(config)
+  const activePlugin = activeSubPanelId
+    ? visibleTools.find((p) => p.id === activeSubPanelId)
+    : undefined
+  const title = activePlugin
+    ? tPlugin(activePlugin.contributes.tool?.panel.headingKey ?? 'panel.heading', {
+        ns: activePlugin.i18nNamespace,
+      })
+    : t(`heading.${activePanelId}`)
+  const closeContent = activePlugin
+    ? tPlugin(activePlugin.contributes.tool?.panel.contentKey ?? 'panel.content', {
+        ns: activePlugin.i18nNamespace,
+      })
+    : t(`content.${activePanelId}`)
 
   const { isOpen: isReactionToolbarOpen } = useReactionsToolbar()
 
@@ -171,10 +190,10 @@ export const SidePanel = () => {
         layoutStore.activeSubPanelId = null
       }}
       closeButtonTooltip={t('closeButton', {
-        content: t(`content.${activeSubPanelId || activePanelId}`),
+        content: closeContent,
       })}
       isClosed={!isSidePanelOpen}
-      isSubmenu={isSubPanelOpen}
+      isSubmenu={!!activeSubPanelId}
       isReactionToolbarOpen={isReactionToolbarOpen}
       backButtonLabel={t('backToTools')}
       onBack={() => (layoutStore.activeSubPanelId = null)}

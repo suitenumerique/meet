@@ -1,23 +1,26 @@
 import { A, Div, Icon, Text } from '@/primitives'
+import { Spinner } from '@/primitives/Spinner'
 import { css } from '@/styled-system/css'
+import { Center } from '@/styled-system/jsx'
 import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
-import { ReactNode } from 'react'
-import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
+import { ReactNode, Suspense } from 'react'
+import { useSidePanel } from '../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
-import {
-  useIsRecordingModeEnabled,
-  RecordingMode,
-  TranscriptSidePanel,
-  ScreenRecordingSidePanel,
-} from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
+import {
+  PanelErrorBoundary,
+  getVisibleToolPlugins,
+  useRegistryVersion,
+  type Plugin,
+} from '@/features/plugins'
 
 export interface ToolsButtonProps {
   icon: ReactNode
   title: string
   description: string
   onPress: () => void
+  dataAttr?: string
 }
 
 const ToolButton = ({
@@ -25,9 +28,11 @@ const ToolButton = ({
   title,
   description,
   onPress,
+  dataAttr,
 }: ToolsButtonProps) => {
   return (
     <RACButton
+      data-attr={dataAttr}
       className={css({
         display: 'flex',
         flexDirection: 'row',
@@ -93,10 +98,38 @@ const ToolButton = ({
   )
 }
 
+/** Renders one registry plugin as a Tools menu entry, translated in its ns. */
+const PluginToolButton = ({
+  plugin,
+  onPress,
+}: {
+  plugin: Plugin
+  onPress: () => void
+}) => {
+  const { t } = useTranslation(plugin.i18nNamespace)
+  return (
+    <ToolButton
+      icon={plugin.contributes.tool?.icon}
+      title={t(plugin.contributes.tool?.titleKey ?? 'tool.title')}
+      description={t(plugin.contributes.tool?.descriptionKey ?? 'tool.body')}
+      onPress={onPress}
+      dataAttr={`tool-${plugin.id.replace(/\./g, '-')}`}
+    />
+  )
+}
+
+/** Suspense fallback while a lazy plugin panel is loading. */
+const PanelFallback = () => (
+  <Center flexGrow={1} padding="2rem">
+    <Spinner />
+  </Center>
+)
+
 export const Tools = () => {
   const { data } = useConfig()
-  const { openTranscript, openScreenRecording, activeSubPanelId, isToolsOpen } =
-    useSidePanel()
+  useRegistryVersion() // re-render when a late bundle registers a tool
+  const plugins = getVisibleToolPlugins(data)
+  const { activeSubPanelId, openSubPanel, isToolsOpen } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
 
   // Restore focus to the element that opened the Tools panel
@@ -115,21 +148,24 @@ export const Tools = () => {
     preventScroll: true,
   })
 
-  const isTranscriptEnabled = useIsRecordingModeEnabled(
-    RecordingMode.Transcript
-  )
-
-  const isScreenRecordingEnabled = useIsRecordingModeEnabled(
-    RecordingMode.ScreenRecording
-  )
-
-  switch (activeSubPanelId) {
-    case SubPanelId.TRANSCRIPT:
-      return <TranscriptSidePanel />
-    case SubPanelId.SCREEN_RECORDING:
-      return <ScreenRecordingSidePanel />
-    default:
-      break
+  const activePlugin = plugins.find((p) => p.id === activeSubPanelId)
+  if (activePlugin) {
+    const { Component } = activePlugin.contributes.tool!.panel
+    return (
+      // Keyed by plugin so a failure in one panel resets when switching.
+      <PanelErrorBoundary
+        key={activePlugin.id}
+        fallback={
+          <Center flexGrow={1} padding="2rem">
+            <Text variant="note">{t('panelError')}</Text>
+          </Center>
+        }
+      >
+        <Suspense fallback={<PanelFallback />}>
+          <Component />
+        </Suspense>
+      </PanelErrorBoundary>
+    )
   }
 
   return (
@@ -166,22 +202,13 @@ export const Tools = () => {
           </A>
         )}
       </Text>
-      {isTranscriptEnabled && (
-        <ToolButton
-          icon={<Icon name="speech_to_text" />}
-          title={t('tools.transcript.title')}
-          description={t('tools.transcript.body')}
-          onPress={() => openTranscript()}
+      {plugins.map((plugin) => (
+        <PluginToolButton
+          key={plugin.id}
+          plugin={plugin}
+          onPress={() => openSubPanel(plugin.id)}
         />
-      )}
-      {isScreenRecordingEnabled && (
-        <ToolButton
-          icon={<Icon name="mode_standby" />}
-          title={t('tools.screenRecording.title')}
-          description={t('tools.screenRecording.body')}
-          onPress={() => openScreenRecording()}
-        />
-      )}
+      ))}
     </Div>
   )
 }

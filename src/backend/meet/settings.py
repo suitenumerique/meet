@@ -17,6 +17,7 @@ import warnings
 from os import path
 from socket import gethostbyname, gethostname
 
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 import dj_database_url
@@ -51,6 +52,51 @@ def get_release():
             return json.load(version)["version"]
     except FileNotFoundError:
         return "NA"  # Default: not available
+
+
+class PluginsValue(values.ValidationMixin, values.DictValue):
+    """A ``DictValue`` for the frontend ``plugins`` namespace that validates the
+    config *envelope* (only) at boot.
+
+    The frontend reads ``config.plugins[<vendorId>]`` (e.g.
+    ``plugins['acme.transcription']``). The Django core knows nothing about any
+    particular plugin, so it validates only the shared envelope and leaves
+    plugin-specific extras to the frontend, per plugin:
+
+    * ``plugins`` is a dict,
+    * each entry is a dict,
+    * if present, ``enabled`` is a real ``bool`` (the truthy string ``"false"``
+      is rejected).
+
+    Golden rule: absent/empty is silently off (OK); present-but-malformed is
+    loud — the validator raises ``ValidationError`` and fails the boot fast.
+    """
+
+    @staticmethod
+    def validator(value):
+        """Validate the plugins envelope; raise ``ValidationError`` if malformed."""
+        if not isinstance(value, dict):
+            raise ValidationError("FRONTEND plugins config must be a dict.")
+        for plugin_id, plugin_config in value.items():
+            if not isinstance(plugin_config, dict):
+                raise ValidationError(
+                    f"FRONTEND plugins[{plugin_id!r}] must be a dict."
+                )
+            if "enabled" in plugin_config and not isinstance(
+                plugin_config["enabled"], bool
+            ):
+                raise ValidationError(
+                    f"FRONTEND plugins[{plugin_id!r}].enabled must be a real "
+                    f"boolean, got {plugin_config['enabled']!r}."
+                )
+
+    def to_python(self, value):
+        # ``DictValue`` runs ``ast.literal_eval`` on the env string; the default
+        # is already a dict, so only parse strings.
+        if isinstance(value, str):
+            value = values.DictValue.to_python(self, value)
+        self._validator(value)
+        return value
 
 
 class Base(Configuration):
@@ -419,7 +465,18 @@ class Base(Configuration):
         "auto_mute_on_join_threshold": values.PositiveIntegerValue(
             50, environ_name="FRONTEND_AUTO_MUTE_ON_JOIN_THRESHOLD", environ_prefix=None
         ),
+        # Plugins namespace: core validates only the envelope (``PluginsValue``);
+        # each plugin's extras are validated frontend-side.
+        "plugins": PluginsValue(
+            {}, environ_name="FRONTEND_PLUGINS", environ_prefix=None
+        ),
     }
+
+    # Kill-list of tool plugin ids the frontend must hide; surfaced at the
+    # runtime-config root as ``hidden_tools``.
+    HIDDEN_TOOLS = values.ListValue(
+        [], environ_name="FRONTEND_HIDDEN_TOOLS", environ_prefix=None
+    )
 
     # Mail
     EMAIL_BACKEND = values.Value("django.core.mail.backends.smtp.EmailBackend")

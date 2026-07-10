@@ -24,6 +24,7 @@ import { FocusLayout } from '../components/FocusLayout'
 import { ParticipantTile } from '../components/ParticipantTile'
 import { SidePanel } from '../components/SidePanel'
 import { RecordingProvider } from '@/features/recording'
+import { Banners } from '@/features/banner/Banners'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { useConnectionObserver } from '../hooks/useConnectionObserver'
 import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
@@ -306,6 +307,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       <RoomAudioRenderer />
       <ConnectionStateToast />
       <RecordingProvider />
+      <Banners />
       <SettingsDialogProvider />
       <ReactionPortals />
     </div>

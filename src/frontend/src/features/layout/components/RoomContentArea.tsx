@@ -6,6 +6,7 @@ import { cva } from '@/styled-system/css'
 import { useSubtitles } from '@/features/subtitle/hooks/useSubtitles'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { Subtitles } from '@/features/subtitle/component/Subtitles'
+import { CaptionSources } from '@/features/subtitle/CaptionSources'
 import { MainNotificationToast } from '@/features/notifications/MainNotificationToast'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 
@@ -80,6 +81,7 @@ export function RoomContentArea({ children }: RoomContentAreaProps) {
         {children}
       </TrackAreaContainer>
       <Subtitles />
+      <CaptionSources />
       <MainNotificationToast />
     </RoomViewport>
   )

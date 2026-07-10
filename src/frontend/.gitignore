@@ -26,3 +26,9 @@ styled-system-studio
 *.njsproj
 *.sln
 *.sw?
+
+# Deploy-time plugin bundles (built by vite.plugin.config.ts)
+dist-plugins
+
+# Built deploy-time plugin bundles (regenerable via the plugins/* vite build)
+/public/plugins/

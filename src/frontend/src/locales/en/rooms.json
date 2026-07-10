@@ -368,6 +368,7 @@
   },
   "moreTools": {
     "body": "Access more tools to enhance your meetings.",
+    "panelError": "This tool failed to load. Try reloading the page.",
     "linkAriaLabel": "Open documentation about tools - opens in new window",
     "moreLink": "Open documentation",
     "tools": {

@@ -7,9 +7,12 @@
     "dev": "panda codegen && vite",
     "build": "panda codegen && tsc -b && vite build",
     "build:debug": "VITE_ANALYZE=true npm run build -- --debug",
+    "build:plugin": "vite build --config vite.plugin.config.ts",
+    "build:plugin-showcase": "PLUGIN_ENTRY=plugin-examples/showcase/index.tsx PLUGIN_NAME=showcase npm run build:plugin",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
+    "test": "vitest run",
     "i18n:extract": "npx i18next -c i18next-parser.config.json",
     "format": "prettier --write ./src",
     "check": "prettier --check ./src"
@@ -70,6 +73,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.60.1",
     "vite": "8.0.14",
-    "vite-plugin-svgr": "5.2.0"
+    "vite-plugin-svgr": "5.2.0",
+    "vitest": "3.2.6"
   }
 }

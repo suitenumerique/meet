@@ -35,6 +35,8 @@ import { useIsMetadataCollectorEnabled } from '../hooks/useMetadataCollectorEnab
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { LimitDescription } from './LimitDescription'
+import { SCREEN_RECORDING_PLUGIN_ID } from '../screenRecording.plugin'
+import { useIsToolVisible } from '@/features/plugins'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -72,7 +74,8 @@ export const TranscriptSidePanel = () => {
   const statuses = useRecordingStatuses(RecordingMode.Transcript)
 
   const room = useRoomContext()
-  const { openScreenRecording } = useSidePanel()
+  const { openSubPanel } = useSidePanel()
+  const isScreenToolVisible = useIsToolVisible(SCREEN_RECORDING_PLUGIN_ID)
 
   const handleRequestTranscription = async () => {
     await notifyParticipants({
@@ -257,7 +260,11 @@ export const TranscriptSidePanel = () => {
         statuses={statuses}
         isPendingToStart={isPendingToStart}
         isPendingToStop={isPendingToStop}
-        openSidePanel={openScreenRecording}
+        openSidePanel={
+          isScreenToolVisible
+            ? () => openSubPanel(SCREEN_RECORDING_PLUGIN_ID)
+            : undefined
+        }
       />
     </Div>
   )

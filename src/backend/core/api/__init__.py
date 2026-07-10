@@ -62,6 +62,8 @@ def get_frontend_configuration(request):
         },
         "telephony": build_telephony_config(),
         "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
+        # Kill-list of tool plugin ids the frontend hides (merged at the config root).
+        "hidden_tools": settings.HIDDEN_TOOLS,
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "force_wss_protocol": settings.LIVEKIT_FORCE_WSS_PROTOCOL,

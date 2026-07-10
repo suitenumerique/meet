@@ -368,6 +368,7 @@
   },
   "moreTools": {
     "body": "Je krijgt toegang tot meer tools om je vergaderingen te verbeteren.",
+    "panelError": "Deze tool kon niet worden geladen. Probeer de pagina opnieuw te laden.",
     "linkAriaLabel": "Documentatie over tools openen - opent in nieuw venster",
     "moreLink": "Documentatie openen",
     "tools": {

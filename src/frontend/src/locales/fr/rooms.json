@@ -368,6 +368,7 @@
   },
   "moreTools": {
     "body": "Accéder à davantage d'outils pour améliorer vos réunions.",
+    "panelError": "Cet outil n'a pas pu être chargé. Essayez de recharger la page.",
     "linkAriaLabel": "Ouvrir la documentation sur les outils - ouvre dans une nouvelle fenêtre",
     "moreLink": "Ouvrir la documentation",
     "tools": {

@@ -1,14 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useSubtitles } from '../hooks/useSubtitles'
 import { css, cva } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
 import { Text } from '@/primitives'
-import { useRoomContext } from '@livekit/components-react'
-import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
-import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
-import { type Participant, RoomEvent } from 'livekit-client'
-import { useSnapshot } from 'valtio'
+import { useSnapshot, type Snapshot } from 'valtio'
+import { captionBus, type NormalizedCaption } from '../captionBus'
 import {
   accessibilityStore,
   CAPTION_TEXT_SIZE_OPTIONS,
@@ -30,87 +27,31 @@ const CAPTION_FONT_SIZES = Object.fromEntries(
   CAPTION_TEXT_SIZE_OPTIONS.map((size) => [size, FONT_SIZE_CONFIG[size]])
 ) as Record<CaptionTextSize, { fontSize: string; lineHeight: string }>
 
-export interface TranscriptionSegment {
+/** Read-only caption as seen through the bus snapshot. */
+type SnapshotCaption = Snapshot<NormalizedCaption>
+
+/** A contiguous run of captions from the same speaker, ready to render. */
+interface CaptionRow {
   id: string
-  text: string
-  language: string
-  startTime?: number
-  endTime: number
-  final: boolean
-  firstReceivedTime: number
-  lastReceivedTime: number
+  speaker: SnapshotCaption['speaker']
+  captions: SnapshotCaption[]
 }
 
-export interface TranscriptionSegmentWithParticipant extends TranscriptionSegment {
-  participant: Participant
-}
-
-export interface TranscriptionRow {
-  id: string
-  participant: Participant
-  segments: TranscriptionSegment[]
-  startTime?: number
-  lastUpdateTime: number
-  lastReceivedTime: number
-}
-
-const useTranscriptionState = () => {
-  const [transcriptionSegments, setTranscriptionSegments] = useState<
-    TranscriptionSegmentWithParticipant[]
-  >([])
-
-  const updateTranscriptionSegments = (
-    segments: TranscriptionSegment[],
-    participant?: Participant
-  ) => {
-    console.log(participant, segments)
-
-    if (!participant || segments.length === 0) return
-
-    if (segments.length > 1) {
-      console.warn('Unexpected error more segments')
-      return
-    }
-
-    const segment = segments[0]
-
-    setTranscriptionSegments((prevSegments) => {
-      const existingSegmentIds = new Set(prevSegments.map((s) => s.id))
-      if (existingSegmentIds.has(segment.id)) return prevSegments
-      return [
-        ...prevSegments,
-        {
-          participant: participant,
-          ...segment,
-        },
-      ]
-    })
-  }
-
-  return {
-    updateTranscriptionSegments,
-    transcriptionSegments,
-  }
-}
-
-const Transcription = ({ row }: { row: TranscriptionRow }) => {
+const Transcription = ({ row }: { row: CaptionRow }) => {
   const { captionTextSize, captionFontColor, captionBackgroundColor } =
     useSnapshot(accessibilityStore)
-  const participantColor = getParticipantColor(row.participant)
-  const participantName = getParticipantName(row.participant)
+  const { speaker } = row
+  const participantName = speaker.name
+  const participantColor = speaker.color
   const { fontSize, lineHeight } = CAPTION_FONT_SIZES[captionTextSize]
   const fontColor = CAPTION_FONT_COLOR_VALUES[captionFontColor]
   const backgroundColor =
     CAPTION_BACKGROUND_COLOR_VALUES[captionBackgroundColor]
 
-  const getDisplayText = (row: TranscriptionRow): string => {
-    return row.segments
-      .filter((segment) => segment.text.trim())
-      .map((segment) => segment.text.trim())
-      .join(' ')
-  }
-
-  const displayText = getDisplayText(row)
+  const displayText = row.captions
+    .map((caption) => caption.text.trim())
+    .filter((text) => text)
+    .join(' ')
 
   if (!displayText) return null
 
@@ -142,6 +83,7 @@ const Transcription = ({ row }: { row: TranscriptionRow }) => {
             {participantName}
           </Text>
           <p
+            data-attr="caption-overlay-line"
             className={css({
               fontWeight: '400',
               borderRadius: '4px',
@@ -180,54 +122,31 @@ const SubtitlesWrapper = styled(
 
 export const Subtitles = () => {
   const { areSubtitlesOpen } = useSubtitles()
-  const room = useRoomContext()
+  const { stream } = useSnapshot(captionBus)
 
-  const { transcriptionSegments, updateTranscriptionSegments } =
-    useTranscriptionState()
+  const captionRows = useMemo(() => {
+    if (stream.length === 0) return []
 
-  useEffect(() => {
-    if (!room) return
-    room.on(RoomEvent.TranscriptionReceived, updateTranscriptionSegments)
-    return () => {
-      room.off(RoomEvent.TranscriptionReceived, updateTranscriptionSegments)
-    }
-  }, [room, updateTranscriptionSegments])
+    const rows: CaptionRow[] = []
+    let currentRow: CaptionRow | null = null
 
-  const transcriptionRows = useMemo(() => {
-    if (transcriptionSegments.length === 0) return []
-
-    const rows: TranscriptionRow[] = []
-    let currentRow: TranscriptionRow | null = null
-
-    for (const segment of transcriptionSegments) {
+    for (const caption of stream) {
       const shouldStartNewRow =
-        !currentRow ||
-        currentRow.participant.identity !== segment.participant.identity
+        !currentRow || currentRow.speaker.key !== caption.speaker.key
 
       if (shouldStartNewRow) {
         currentRow = {
-          id: `${segment.participant.identity}-${segment.firstReceivedTime}`,
-          participant: segment.participant,
-          segments: [segment],
-          startTime: segment.startTime,
-          lastUpdateTime: segment.lastReceivedTime,
-          lastReceivedTime: segment.lastReceivedTime,
+          id: `${caption.speaker.key}-${caption.firstReceivedTime}`,
+          speaker: caption.speaker,
+          captions: [caption],
         }
         rows.push(currentRow)
       } else if (currentRow) {
-        currentRow.segments.push(segment)
-        currentRow.lastUpdateTime = Math.max(
-          currentRow.lastUpdateTime,
-          segment.lastReceivedTime
-        )
-        currentRow.lastReceivedTime = Math.max(
-          currentRow.lastReceivedTime,
-          segment.lastReceivedTime
-        )
+        currentRow.captions.push(caption)
       }
     }
     return rows
-  }, [transcriptionSegments])
+  }, [stream])
 
   return (
     <SubtitlesWrapper areOpen={areSubtitlesOpen}>
@@ -244,7 +163,7 @@ export const Subtitles = () => {
           alignItems: 'center',
         })}
       >
-        {transcriptionRows
+        {captionRows
           .slice()
           .reverse()
           .map((row) => (

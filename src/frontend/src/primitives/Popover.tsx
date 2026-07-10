@@ -43,6 +43,9 @@ export const Popover = ({
   children,
   variant = 'light',
   withArrow = true,
+  isOpen,
+  defaultOpen,
+  onOpenChange,
   ...dialogProps
 }: {
   children: [
@@ -53,10 +56,20 @@ export const Popover = ({
   ]
   variant?: 'dark' | 'light'
   withArrow?: boolean
+  /** Controlled open state, forwarded to the underlying `DialogTrigger`. */
+  isOpen?: boolean
+  /** Uncontrolled initial open state, forwarded to `DialogTrigger`. */
+  defaultOpen?: boolean
+  /** Notified when the popover opens/closes (press, escape, outside click). */
+  onOpenChange?: (isOpen: boolean) => void
 } & Omit<DialogProps, 'children'>) => {
   const [trigger, popoverContent] = children
   return (
-    <DialogTrigger>
+    <DialogTrigger
+      isOpen={isOpen}
+      defaultOpen={defaultOpen}
+      onOpenChange={onOpenChange}
+    >
       {trigger}
       <StyledPopover>
         {withArrow && (
