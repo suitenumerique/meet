@@ -34,6 +34,10 @@ and this project adheres to
 - 🐛(backend) fix info panel crash for unregistered rooms
 - ♿️(frontend) focus side panel container on open #1452
 
+### Added
+
+- ✨(frontend) add screen share zoom controls #1498
+
 ## [1.23.0] - 2026-07-08
 
 ### Added

@@ -668,6 +668,18 @@
     "muteParticipant": "{{name}} stummschalten",
     "fullScreen": "Vollbild"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Zoom-Steuerung für Bildschirmfreigabe",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "fitToWindow": "An Fenster anpassen",
+    "fullScreen": "Vollbild",
+    "exitFullScreen": "Vollbild beenden",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Mit der Maus ziehen oder Pfeiltasten zum Navigieren verwenden.",
+    "fullScreenEntered": "Vollbild aktiviert",
+    "fullScreenExited": "Vollbild deaktiviert"
+  },
   "shortcutsPanel": {
     "title": "Tastenkürzel",
     "categories": {
