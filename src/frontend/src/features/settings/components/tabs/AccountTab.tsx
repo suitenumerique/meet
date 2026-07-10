@@ -8,7 +8,7 @@ import { HStack } from '@/styled-system/jsx'
 import { useState } from 'react'
 import { LoginButton } from '@/components/LoginButton'
 import { useRenameParticipant } from '@/features/rooms/api/renameParticipant'
-import { saveUsername } from '@/stores/userChoices'
+import { saveUsername } from '@/stores/user'
 import { logout } from '@/features/auth/utils/logout'
 
 export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &

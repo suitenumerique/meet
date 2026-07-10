@@ -9,10 +9,11 @@ import { useState } from 'react'
 
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
-import { loadUserChoices } from '@livekit/components-core'
+import { useSnapshot } from 'valtio'
+import { userStore } from '@/stores/user'
 
 export const CreateMeetingMenu = () => {
-  const { username } = loadUserChoices()
+  const { username } = useSnapshot(userStore)
 
   const { t } = useTranslation('home')
   const { mutateAsync: createRoom } = useCreateRoom()
