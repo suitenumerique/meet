@@ -36,6 +36,7 @@ import { PictureInPictureConference } from '@/features/pip/components/PictureInP
 import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
+import { userStore } from '@/stores/user'
 
 export const Conference = ({
   roomId,
@@ -52,6 +53,8 @@ export const Conference = ({
   const { userChoices: userConfig } = usePersistentUserChoices() as {
     userChoices: LocalUserChoices
   }
+
+  const { username } = useSnapshot(userStore)
 
   useEffect(() => {
     posthog.capture('visit-room', { slug: roomId })
@@ -83,10 +86,10 @@ export const Conference = ({
     queryFn: () =>
       fetchRoom({
         roomId: roomId as string,
-        username: userConfig.username,
+        username: username,
       }).catch((error) => {
         if (error.statusCode == '404') {
-          createRoom({ slug: roomId, username: userConfig.username })
+          createRoom({ slug: roomId, username })
         }
       }),
     retry: false,

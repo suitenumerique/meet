@@ -42,11 +42,12 @@ import {
   saveAudioInputDeviceId,
   saveAudioInputEnabled,
   saveAudioOutputDeviceId,
-  saveUsername,
   saveVideoInputDeviceId,
   saveVideoInputEnabled,
   userChoicesStore,
 } from '@/stores/userChoices'
+
+import { saveUsername, userStore } from '@/stores/user'
 
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
 import { useSnapshot } from 'valtio'
@@ -121,8 +122,9 @@ export const Join = ({
     audioOutputDeviceId,
     videoDeviceId,
     processorConfig,
-    username,
   } = useSnapshot(userChoicesStore)
+
+  const { username } = useSnapshot(userStore)
 
   const initialUserChoices = useRef<LocalUserChoices | null>(null)
 
@@ -134,7 +136,6 @@ export const Join = ({
       audioOutputDeviceId,
       videoDeviceId,
       processorConfig,
-      username,
     }
   }
 

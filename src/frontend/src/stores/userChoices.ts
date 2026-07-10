@@ -12,7 +12,7 @@ import { VideoQuality } from 'livekit-client'
 
 export type VideoResolution = 'h720' | 'h360' | 'h180'
 
-export type LocalUserChoices = LocalUserChoicesLK & {
+export type LocalUserChoices = Omit<LocalUserChoicesLK, 'username'> & {
   processorConfig?: ProcessorConfig
   noiseReductionEnabled?: boolean
   audioOutputDeviceId?: string
@@ -32,7 +32,13 @@ function getUserChoicesState(): LocalUserChoices {
 
 export const userChoicesStore = proxy<LocalUserChoices>(getUserChoicesState())
 subscribe(userChoicesStore, () => {
-  saveUserChoices(userChoicesStore, false)
+  // TEMPORARY: cast needed because our store omits `username`, which we no
+  // longer persis in this store, while LiveKit's `saveUserChoices` still expects the full
+  // `LocalUserChoices` shape. `username` ends up `undefined` in the saved
+  // object, which `saveUserChoices` tolerates at runtime.
+  // We are migrating away from LiveKit's persistence logic to our own store
+  // handling for more control — this cast can be removed once that lands.
+  saveUserChoices(userChoicesStore as LocalUserChoicesLK, false)
 })
 
 // we run some logic on store loading to check if the processor config is still valid
@@ -88,10 +94,6 @@ export const saveVideoPublishResolution = (resolution: VideoResolution) => {
 
 export const saveVideoSubscribeQuality = (quality: VideoQuality) => {
   userChoicesStore.videoSubscribeQuality = quality
-}
-
-export const saveUsername = (username: string) => {
-  userChoicesStore.username = username
 }
 
 export const saveNoiseReductionEnabled = (enabled: boolean) => {
