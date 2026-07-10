@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(backend) make the LiveKit default video codec configurable
 - 🔧(dev) add support for Bureautix workstations
+- ✨(frontend) add screen share zoom controls #1498
 
 ### Changed
 
