@@ -109,7 +109,7 @@ def generate_token(
         default_username = "Anonymous"
     else:
         identity = str(user.sub)
-        default_username = str(user)
+        default_username = user.full_name or str(user)
 
     if color is None:
         color = generate_color(identity)

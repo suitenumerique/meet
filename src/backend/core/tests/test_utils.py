@@ -2,13 +2,68 @@
 Test utils functions
 """
 
+# pylint: disable=W0621
 import json
 from unittest import mock
 
+from django.conf import settings
+
+import jwt
 import pytest
 from livekit.api import TwirpError
 
-from core.utils import NotificationError, create_livekit_client, notify_participants
+from core.factories import UserFactory
+from core.utils import (
+    NotificationError,
+    create_livekit_client,
+    generate_token,
+    notify_participants,
+)
+
+pytestmark = pytest.mark.django_db
+
+
+def decode_token(token: str) -> dict:
+    """Decode a LiveKit JWT access token for inspection."""
+    return jwt.decode(
+        token,
+        settings.LIVEKIT_CONFIGURATION["api_secret"],
+        algorithms=["HS256"],
+    )
+
+
+def test_generate_token_authenticated_uses_full_name():
+    """The token's display name should default to the user's full name."""
+    user = UserFactory(full_name="Jane Doe")
+
+    token = generate_token(room="my-room", user=user)
+
+    claims = decode_token(token)
+    assert claims["name"] == "Jane Doe"
+    assert claims["sub"] == str(user.sub)
+
+
+def test_generate_token_authenticated_fallback_user_representation():
+    """
+    When the user has no full name, the token's display name should fall back
+    to the user's string representation.
+    """
+    user = UserFactory(full_name=None)
+
+    token = generate_token(room="my-room", user=user)
+
+    claims = decode_token(token)
+    assert claims["name"] == str(user)
+
+
+def test_generate_token_explicit_username_overrides_default():
+    """An explicitly provided username should take precedence over the full name."""
+    user = UserFactory(full_name="Jane Doe")
+
+    token = generate_token(room="my-room", user=user, username="Custom Name")
+
+    claims = decode_token(token)
+    assert claims["name"] == "Custom Name"
 
 
 @mock.patch("asyncio.get_running_loop")
