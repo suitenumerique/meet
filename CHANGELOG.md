@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(backend) allow searching the recording admin table by owner email
 - ✨(frontend) add participant color gradient when camera is off #1490
+- ✨(all) allow forcing SSO display name for authenticated users
 
 ### Changed
 

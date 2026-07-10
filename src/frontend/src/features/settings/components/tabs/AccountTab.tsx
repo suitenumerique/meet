@@ -10,6 +10,7 @@ import { LoginButton } from '@/components/LoginButton'
 import { useRenameParticipant } from '@/features/rooms/api/renameParticipant'
 import { saveUsername } from '@/stores/user'
 import { logout } from '@/features/auth/utils/logout'
+import { useConfig } from '@/api/useConfig'
 
 export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -17,6 +18,7 @@ export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &
 export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   const { t } = useTranslation('settings')
   const room = useRoomContext()
+  const { data } = useConfig()
   const { user, isLoggedIn } = useUser()
 
   const { renameParticipant } = useRenameParticipant()
@@ -45,15 +47,17 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
   return (
     <TabPanel padding={'md'} flex id={id}>
       <H lvl={2}>{t('account.heading')}</H>
-      <Field
-        type="text"
-        label={t('account.nameLabel')}
-        value={name}
-        onChange={setName}
-        validate={(value) => {
-          return !value ? <p>{t('account.nameError')}</p> : null
-        }}
-      />
+      {(!isLoggedIn || data?.authenticated_users_can_edit_display_name) && (
+        <Field
+          type="text"
+          label={t('account.nameLabel')}
+          value={name}
+          onChange={setName}
+          validate={(value) => {
+            return !value ? <p>{t('account.nameError')}</p> : null
+          }}
+        />
+      )}
       <H lvl={2}>{t('account.authentication')}</H>
       {isLoggedIn ? (
         <>
