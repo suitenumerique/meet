@@ -755,6 +755,24 @@
     "muteParticipant": "Silenciar el micrófono de {{name}}",
     "fullScreen": "Pantalla completa"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Controles de zoom de la pantalla compartida",
+    "zoomIn": "Acercar",
+    "zoomInWithShortcut": "Acercar ({{shortcut}})",
+    "zoomOut": "Alejar",
+    "zoomOutWithShortcut": "Alejar ({{shortcut}})",
+    "wheelShortcut": "Control más rueda del ratón",
+    "wheelShortcutMac": "⌘+rueda del ratón",
+    "wheelShortcutHint": "Atajo: Control más rueda del ratón para acercar o alejar.",
+    "wheelShortcutHintMac": "Atajo: Comando más rueda del ratón para acercar o alejar.",
+    "fitToWindow": "Ajustar a la ventana",
+    "fullScreen": "Pantalla completa",
+    "exitFullScreen": "Salir de pantalla completa",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Arrastra con el ratón, o vuelve a la pantalla compartida y usa las flechas para moverte por la imagen.",
+    "fullScreenEntered": "Pantalla completa activada",
+    "fullScreenExited": "Pantalla completa desactivada"
+  },
   "shortcutsPanel": {
     "title": "Atajos de teclado",
     "categories": {
@@ -774,7 +792,11 @@
       "raise-hand": "Levantar o bajar la mano",
       "toggle-chat": "Mostrar/Ocultar el chat",
       "toggle-participants": "Mostrar/Ocultar los participantes",
-      "open-shortcuts-settings": "Abrir los ajustes de los atajos"
+      "open-shortcuts-settings": "Abrir los ajustes de los atajos",
+      "zoom-in": "Acercar una pantalla compartida",
+      "zoom-out": "Alejar una pantalla compartida",
+      "zoom-reset": "Restablecer el zoom de la pantalla compartida",
+      "zoom-pan": "Moverse por una pantalla compartida ampliada"
     },
     "sr": {
       "control": "Control",
