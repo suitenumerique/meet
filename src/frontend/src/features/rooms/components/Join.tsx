@@ -118,7 +118,7 @@ export const Join = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
   const { data: configData } = useConfig()
-  const { isLoggedIn } = useUser()
+  const { isLoggedIn, user } = useUser()
 
   const {
     audioEnabled,
@@ -461,7 +461,7 @@ export const Join = ({
                   onChange={saveUsername}
                   label={t('usernameLabel')}
                   id="input-name"
-                  defaultValue={username}
+                  defaultValue={username || user?.full_name}
                   validate={(value) => !value && t('errors.usernameEmpty')}
                   wrapperProps={{
                     noMargin: true,
