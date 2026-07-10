@@ -191,6 +191,8 @@ backend:
     SUMMARY_SERVICE_API_TOKEN: password
     SUMMARY_SERVICE_WEBHOOK_API_TOKEN: webhook-password
     RECORDING_DOWNLOAD_BASE_URL: https://meet.127.0.0.1.nip.io/recording
+    OIDC_USERINFO_FULLNAME_FIELDS: first_name, last_name
+    OIDC_USERINFO_SHORTNAME_FIELD: first_name
 
   migrate:
     command:
