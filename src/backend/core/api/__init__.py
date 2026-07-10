@@ -68,6 +68,9 @@ def get_frontend_configuration(request):
             "enable_firefox_proxy_workaround": settings.LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND,
             "default_sources": settings.LIVEKIT_DEFAULT_SOURCES,
         },
+        "authenticated_users_can_edit_display_name": (
+            settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME
+        ),
     }
     frontend_configuration.update(settings.FRONTEND_CONFIGURATION)
     return Response(frontend_configuration)

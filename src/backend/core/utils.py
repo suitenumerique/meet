@@ -114,6 +114,11 @@ def generate_token(
     if color is None:
         color = generate_color(identity)
 
+    can_edit = (
+        settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME or user.is_anonymous
+    )
+    display_name = (username or default_username) if can_edit else default_username
+
     token = (
         AccessToken(
             api_key=settings.LIVEKIT_CONFIGURATION["api_key"],
@@ -121,7 +126,7 @@ def generate_token(
         )
         .with_grants(video_grants)
         .with_identity(identity)
-        .with_name(username or default_username)
+        .with_name(display_name)
         .with_attributes(
             {"color": color, "room_admin": "true" if is_admin_or_owner else "false"}
         )

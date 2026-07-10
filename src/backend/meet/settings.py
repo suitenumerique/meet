@@ -671,6 +671,11 @@ class Base(Configuration):
         environ_name="PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS",
         environ_prefix=None,
     )
+    AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = values.BooleanValue(
+        True,
+        environ_name="AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME",
+        environ_prefix=None,
+    )
 
     # Recording settings
     RECORDING_ENABLE = values.BooleanValue(

@@ -7,6 +7,7 @@ import json
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 
 import jwt
 import pytest
@@ -64,6 +65,46 @@ def test_generate_token_explicit_username_overrides_default():
 
     claims = decode_token(token)
     assert claims["name"] == "Custom Name"
+
+
+def test_authenticated_username_ignored_when_editing_disabled(settings):
+    """With editing disabled, an authenticated user's username is ignored."""
+    settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
+    user = UserFactory(full_name="Jane Doe")
+    token = generate_token(room="my-room", user=user, username="Custom Name")
+    claims = decode_token(token)
+    assert claims["name"] == "Jane Doe"
+
+
+def test_authenticated_default_name_unaffected_when_editing_disabled(settings):
+    """Disabling editing doesn't disturb the default full-name path."""
+    settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
+    user = UserFactory(full_name="Jane Doe")
+    token = generate_token(room="my-room", user=user)
+    claims = decode_token(token)
+    assert claims["name"] == "Jane Doe"
+
+
+def test_anonymous_uses_username_when_provided():
+    """An anonymous user's provided username is used as the display name."""
+    token = generate_token(room="my-room", user=AnonymousUser(), username="Guest42")
+    claims = decode_token(token)
+    assert claims["name"] == "Guest42"
+
+
+def test_anonymous_username_used_even_when_editing_disabled(settings):
+    """The setting governs authenticated users only; anonymous can still set a name."""
+    settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
+    token = generate_token(room="my-room", user=AnonymousUser(), username="Guest42")
+    claims = decode_token(token)
+    assert claims["name"] == "Guest42"
+
+
+def test_anonymous_falls_back_to_anonymous_label():
+    """With no username, an anonymous user is labelled 'Anonymous'."""
+    token = generate_token(room="my-room", user=AnonymousUser())
+    claims = decode_token(token)
+    assert claims["name"] == "Anonymous"
 
 
 @mock.patch("asyncio.get_running_loop")

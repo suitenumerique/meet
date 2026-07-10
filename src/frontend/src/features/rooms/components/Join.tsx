@@ -51,6 +51,8 @@ import { saveUsername, userStore } from '@/stores/user'
 
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
 import { useSnapshot } from 'valtio'
+import { useUser } from '@/features/auth/api/useUser'
+import { useConfig } from '@/api/useConfig'
 
 const onError = (e: Error) => console.error('ERROR', e)
 
@@ -114,6 +116,9 @@ export const Join = ({
   roomId: string
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
+
+  const { data: configData } = useConfig()
+  const { isLoggedIn } = useUser()
 
   const {
     audioEnabled,
@@ -449,20 +454,23 @@ export const Join = ({
               <H lvl={1} margin="sm" centered>
                 {t('heading')}
               </H>
-              <Field
-                type="text"
-                onChange={saveUsername}
-                label={t('usernameLabel')}
-                id="input-name"
-                defaultValue={username}
-                validate={(value) => !value && t('errors.usernameEmpty')}
-                wrapperProps={{
-                  noMargin: true,
-                  fullWidth: true,
-                }}
-                autoComplete="name"
-                maxLength={50}
-              />
+              {(!isLoggedIn ||
+                configData?.authenticated_users_can_edit_display_name) && (
+                <Field
+                  type="text"
+                  onChange={saveUsername}
+                  label={t('usernameLabel')}
+                  id="input-name"
+                  defaultValue={username}
+                  validate={(value) => !value && t('errors.usernameEmpty')}
+                  wrapperProps={{
+                    noMargin: true,
+                    fullWidth: true,
+                  }}
+                  autoComplete="name"
+                  maxLength={50}
+                />
+              )}
             </VStack>
           </Form>
         )
