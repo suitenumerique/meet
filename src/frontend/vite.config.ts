@@ -11,18 +11,23 @@ export default defineConfig(({ mode }) => {
       react(),
       svgr({
         svgrOptions: {
-          replaceAttrValues: { '#000': 'currentColor', '#000000': 'currentColor', '#1f1f1f': 'currentColor' },
+          replaceAttrValues: {
+            '#000': 'currentColor',
+            '#000000': 'currentColor',
+            '#1f1f1f': 'currentColor',
+          },
         },
       }),
-      env.VITE_ANALYZE === 'true' && visualizer({
-        open: true,
-        filename: 'rollup-plugin-visualizer/stats.html',
-        gzipSize: true,
-        brotliSize: true,
-      }),
+      env.VITE_ANALYZE === 'true' &&
+        visualizer({
+          open: true,
+          filename: 'rollup-plugin-visualizer/stats.html',
+          gzipSize: true,
+          brotliSize: true,
+        }),
     ],
     resolve: {
-      tsconfigPaths: true
+      tsconfigPaths: true,
     },
     build: {
       sourcemap: env.VITE_BUILD_SOURCEMAP === 'true',
