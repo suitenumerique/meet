@@ -11,7 +11,11 @@ import {
   TIMEOUT_TICK,
   timerWorkerScript,
 } from './TimerWorker'
-import { FACE_LANDMARKS_MODEL_PATH, ProcessorType } from '.'
+import {
+  FACE_LANDMARKS_MODEL_PATH,
+  ProcessorType,
+  MEDIAPIPE_PATH_WASM,
+} from '.'
 
 const PROCESSING_WIDTH = 256 * 3
 const PROCESSING_HEIGHT = 144 * 3
@@ -128,9 +132,7 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
   }
 
   async initFaceLandmarker() {
-    const vision = await FilesetResolver.forVisionTasks(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
-    )
+    const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_PATH_WASM)
     this.faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath: FACE_LANDMARKS_MODEL_PATH,
