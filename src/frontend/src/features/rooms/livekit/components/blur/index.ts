@@ -4,6 +4,12 @@ import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
 import { UnifiedBackgroundTrackProcessor } from './UnifiedBackgroundTrackProcessor'
 import { FaceLandmarksOptions } from './FaceLandmarksProcessor'
 
+export const SELFIE_SEGMENTER_MODEL_PATH =
+  '/assets/mediapipe/models/selfie_segmenter_landscape.tflite'
+
+export const FACE_LANDMARKS_MODEL_PATH =
+  '/assets/mediapipe/models/face_landmarker.task'
+
 export enum ProcessorType {
   BLUR = 'blur',
   VIRTUAL = 'virtual',

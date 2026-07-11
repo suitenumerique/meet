@@ -7,6 +7,7 @@ import {
   type ProcessorConfig,
   BackgroundProcessorInterface,
   ProcessorType,
+  SELFIE_SEGMENTER_MODEL_PATH,
 } from '.'
 
 export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInterface {
@@ -22,12 +23,18 @@ export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInter
       this.processor = BackgroundProcessor({
         mode: 'virtual-background',
         imagePath: opts.imagePath,
+        assetPaths: {
+          modelAssetPath: SELFIE_SEGMENTER_MODEL_PATH,
+        },
       })
     } else if (opts.type === 'blur') {
       this.processorType = ProcessorType.BLUR
       this.processor = BackgroundProcessor({
         mode: 'background-blur',
         blurRadius: opts.blurRadius,
+        assetPaths: {
+          modelAssetPath: SELFIE_SEGMENTER_MODEL_PATH,
+        },
       })
     } else {
       throw new Error(
