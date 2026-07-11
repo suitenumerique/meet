@@ -22,6 +22,7 @@ and this project adheres to
 - 🚸(frontend) initialize the join input name with the persisted full name
 - ♻️(frontend) refactor background processors to use the new API
 - ♻️(frontend) inline model weights to avoid loading them from remote
+- ♻️(frontend) inline MediaPipe WASM modules to avoid loading from remote
 
 ### Fixed
 

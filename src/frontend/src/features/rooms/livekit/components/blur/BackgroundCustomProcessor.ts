@@ -16,6 +16,7 @@ import {
   SELFIE_SEGMENTER_MODEL_PATH,
   type ProcessorConfig,
   type ProcessorType,
+  MEDIAPIPE_PATH_WASM,
 } from '.'
 
 const PROCESSING_WIDTH = 256
@@ -154,9 +155,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
   }
 
   async initSegmenter() {
-    const vision = await FilesetResolver.forVisionTasks(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
-    )
+    const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_PATH_WASM)
     this.imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath: SELFIE_SEGMENTER_MODEL_PATH,

@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import svgr from 'vite-plugin-svgr'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -17,6 +18,15 @@ export default defineConfig(({ mode }) => {
             '#1f1f1f': 'currentColor',
           },
         },
+      }),
+      viteStaticCopy({
+        targets: [
+          {
+            src: 'node_modules/@mediapipe/tasks-vision/wasm/*',
+            dest: 'assets/mediapipe/wasm',
+            rename: { stripBase: 4 },
+          },
+        ],
       }),
       env.VITE_ANALYZE === 'true' &&
         visualizer({

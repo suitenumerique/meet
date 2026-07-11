@@ -7,6 +7,7 @@ import {
   type ProcessorConfig,
   BackgroundProcessorInterface,
   ProcessorType,
+  MEDIAPIPE_PATH_WASM,
   SELFIE_SEGMENTER_MODEL_PATH,
 } from '.'
 
@@ -24,6 +25,7 @@ export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInter
         mode: 'virtual-background',
         imagePath: opts.imagePath,
         assetPaths: {
+          tasksVisionFileSet: MEDIAPIPE_PATH_WASM,
           modelAssetPath: SELFIE_SEGMENTER_MODEL_PATH,
         },
       })
@@ -33,6 +35,7 @@ export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInter
         mode: 'background-blur',
         blurRadius: opts.blurRadius,
         assetPaths: {
+          tasksVisionFileSet: MEDIAPIPE_PATH_WASM,
           modelAssetPath: SELFIE_SEGMENTER_MODEL_PATH,
         },
       })

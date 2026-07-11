@@ -10,6 +10,8 @@ export const SELFIE_SEGMENTER_MODEL_PATH =
 export const FACE_LANDMARKS_MODEL_PATH =
   '/assets/mediapipe/models/face_landmarker.task'
 
+export const MEDIAPIPE_PATH_WASM = '/assets/mediapipe/wasm'
+
 export enum ProcessorType {
   BLUR = 'blur',
   VIRTUAL = 'virtual',
