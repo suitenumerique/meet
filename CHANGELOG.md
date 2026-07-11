@@ -24,6 +24,9 @@ and this project adheres to
 - ♻️(frontend) inline model weights to avoid loading them from remote
 - ♻️(frontend) inline MediaPipe WASM modules to avoid loading from remote
 - ⬆️(frontend) upgrade posthog-js from 1.387.0 to 1.391.2
+- ⬆️(frontend) upgrade react-stately from 3.47.0 to 3.48.0
+- ⬆️(frontend) upgrade react-aria from 3.49.0 to 3.50.0
+- ⬆️(frontend) upgrade react-aria-components from 1.18.0 to 1.19.0
 
 ### Fixed
 
