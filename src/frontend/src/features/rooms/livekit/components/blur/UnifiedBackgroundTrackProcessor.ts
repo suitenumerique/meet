@@ -1,8 +1,7 @@
 import type { ProcessorOptions, Track } from 'livekit-client'
 import {
-  BackgroundBlur,
   ProcessorWrapper,
-  VirtualBackground,
+  BackgroundProcessor,
 } from '@livekit/track-processors'
 import {
   type ProcessorConfig,
@@ -20,10 +19,16 @@ export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInter
 
     if (opts.type === 'virtual') {
       this.processorType = ProcessorType.VIRTUAL
-      this.processor = VirtualBackground(opts.imagePath)
+      this.processor = BackgroundProcessor({
+        mode: 'virtual-background',
+        imagePath: opts.imagePath,
+      })
     } else if (opts.type === 'blur') {
       this.processorType = ProcessorType.BLUR
-      this.processor = BackgroundBlur(opts.blurRadius)
+      this.processor = BackgroundProcessor({
+        mode: 'background-blur',
+        blurRadius: opts.blurRadius,
+      })
     } else {
       throw new Error(
         'Must provide either imagePath for virtual background or blurRadius for blur'
