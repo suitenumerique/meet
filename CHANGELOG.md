@@ -20,6 +20,7 @@ and this project adheres to
 - ⬆️(mail) update mjml to v5 and @html-to/text-cli
 - 🚸(frontend) initialize the join input name with the persisted full name
 - ♻️(frontend) refactor background processors to use the new API
+- ♻️(frontend) inline model weights to avoid loading them from remote
 
 ### Fixed
 

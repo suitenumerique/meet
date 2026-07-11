@@ -13,6 +13,7 @@ import {
 } from './TimerWorker'
 import {
   BackgroundProcessorInterface,
+  SELFIE_SEGMENTER_MODEL_PATH,
   type ProcessorConfig,
   type ProcessorType,
 } from '.'
@@ -158,8 +159,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     )
     this.imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
       baseOptions: {
-        modelAssetPath:
-          'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite',
+        modelAssetPath: SELFIE_SEGMENTER_MODEL_PATH,
         delegate: 'CPU', // Use CPU for Firefox.
       },
       runningMode: 'VIDEO',

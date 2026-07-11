@@ -11,7 +11,7 @@ import {
   TIMEOUT_TICK,
   timerWorkerScript,
 } from './TimerWorker'
-import { ProcessorType } from '.'
+import { FACE_LANDMARKS_MODEL_PATH, ProcessorType } from '.'
 
 const PROCESSING_WIDTH = 256 * 3
 const PROCESSING_HEIGHT = 144 * 3
@@ -133,8 +133,7 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
     )
     this.faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
       baseOptions: {
-        modelAssetPath:
-          'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task',
+        modelAssetPath: FACE_LANDMARKS_MODEL_PATH,
         delegate: 'GPU',
       },
       runningMode: 'VIDEO',
