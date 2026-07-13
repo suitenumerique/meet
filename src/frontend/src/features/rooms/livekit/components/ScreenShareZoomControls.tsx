@@ -2,8 +2,9 @@ import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { Button } from '@/primitives'
 import {
+  RiCollapseDiagonalLine,
+  RiExpandDiagonalLine,
   RiFullscreenExitLine,
-  RiFullscreenLine,
   RiZoomInLine,
   RiZoomOutLine,
 } from '@remixicon/react'
@@ -36,7 +37,8 @@ export const ScreenShareZoomControls = ({
   const announce = useScreenReaderAnnounce()
 
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const wasOwnFullscreen = useRef(false)
+  // Tracks whether this tile's container triggered fullscreen (vs another share's).
+  const wasThisTileFullscreen = useRef(false)
   const [isFullscreenAvailable] = useState(
     () => typeof document !== 'undefined' && document.fullscreenEnabled
   )
@@ -50,10 +52,10 @@ export const ScreenShareZoomControls = ({
       setIsFullscreen(isThisTileFullscreen)
 
       if (isThisTileFullscreen) {
-        wasOwnFullscreen.current = true
+        wasThisTileFullscreen.current = true
         announce(t('fullScreenEntered'), 'assertive')
-      } else if (wasOwnFullscreen.current) {
-        wasOwnFullscreen.current = false
+      } else if (wasThisTileFullscreen.current) {
+        wasThisTileFullscreen.current = false
         announce(t('fullScreenExited'), 'assertive')
       }
     }
@@ -163,9 +165,9 @@ export const ScreenShareZoomControls = ({
             onPress={toggleFullScreen}
           >
             {isFullscreen ? (
-              <RiFullscreenExitLine size={18} />
+              <RiCollapseDiagonalLine size={18} />
             ) : (
-              <RiFullscreenLine size={18} />
+              <RiExpandDiagonalLine size={18} />
             )}
           </Button>
         )}
