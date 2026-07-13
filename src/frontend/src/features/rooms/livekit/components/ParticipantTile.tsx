@@ -7,7 +7,6 @@ import {
   useEnsureTrackRef,
   useFeatureContext,
   useIsEncrypted,
-  useMaybeLayoutContext,
   useMaybeTrackRefContext,
   useParticipantTile,
   VideoTrack,
@@ -16,8 +15,8 @@ import {
 } from '@livekit/components-react'
 import React from 'react'
 import {
+  isEqualTrackRef,
   isTrackReference,
-  isTrackReferencePinned,
   TrackReferenceOrPlaceholder,
 } from '@livekit/components-core'
 import { Track } from 'livekit-client'
@@ -34,6 +33,8 @@ import { useTranslation } from 'react-i18next'
 import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
 import { KeyboardShortcutHint } from './KeyboardShortcutHint'
+import { useSnapshot } from 'valtio'
+import { layoutStore, clearPinnedTrack } from '@/stores/layout'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -72,6 +73,8 @@ export const ParticipantTile: (
   }: ParticipantTileExtendedProps,
   ref
 ) {
+  const { pinnedTrackRef } = useSnapshot(layoutStore)
+
   const trackReference = useEnsureTrackRef(trackRef)
 
   const { elementProps } = useParticipantTile<HTMLDivElement>({
@@ -81,8 +84,6 @@ export const ParticipantTile: (
     trackRef: trackReference,
   })
   const isEncrypted = useIsEncrypted(trackReference.participant)
-  const layoutContext = useMaybeLayoutContext()
-
   const autoManageSubscription = useFeatureContext()?.autoSubscription
 
   const handleSubscribe = React.useCallback(
@@ -90,14 +91,13 @@ export const ParticipantTile: (
       if (
         trackReference.source &&
         !subscribed &&
-        layoutContext &&
-        layoutContext.pin.dispatch &&
-        isTrackReferencePinned(trackReference, layoutContext.pin.state)
+        pinnedTrackRef &&
+        isEqualTrackRef(trackReference, pinnedTrackRef)
       ) {
-        layoutContext.pin.dispatch({ msg: 'clear_pin' })
+        clearPinnedTrack()
       }
     },
-    [trackReference, layoutContext]
+    [trackReference, pinnedTrackRef]
   )
 
   const { isHandRaised } = useRaisedHand({

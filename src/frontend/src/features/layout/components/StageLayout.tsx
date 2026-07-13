@@ -1,7 +1,5 @@
 import {
   FocusLayoutContainer,
-  useMaybeLayoutContext,
-  usePinnedTracks,
   useRoomContext,
   useTracks,
 } from '@livekit/components-react'
@@ -16,20 +14,18 @@ import {
   type TrackReferenceOrPlaceholder,
 } from '@livekit/components-core'
 import { type Participant, RoomEvent, Track } from 'livekit-client'
+import { useSnapshot } from 'valtio'
+import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
 import { useCallback, useEffect, useRef } from 'react'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { useTranslation } from 'react-i18next'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 
-
 export const StageLayout = () => {
-
   const lastAutoFocusedScreenShareTrack =
     useRef<TrackReferenceOrPlaceholder | null>(null)
 
   const lastPinnedParticipantIdentityRef = useRef<string | null>(null)
-
-  const layoutContext = useMaybeLayoutContext()
 
   const { t } = useTranslation('rooms', { keyPrefix: 'pinAnnouncements' })
   const { t: tRooms } = useTranslation('rooms')
@@ -59,15 +55,15 @@ export const StageLayout = () => {
     .filter(isTrackReference)
     .filter((track) => track.publication.source === Track.Source.ScreenShare)
 
-  const focusTrack = usePinnedTracks(layoutContext)?.[0]
+  const { pinnedTrackRef } = useSnapshot(layoutStore)
+
   const carouselTracks = tracks.filter(
-    (track) => !isEqualTrackRef(track, focusTrack)
+    (track) => !isEqualTrackRef(track, pinnedTrackRef)
   )
 
-  // // handle pin announcements
-
+  // handle pin announcements
   useEffect(() => {
-    const participant = focusTrack?.participant
+    const participant = pinnedTrackRef?.participant
 
     // 1. unpin
     if (!participant) {
@@ -109,7 +105,7 @@ export const StageLayout = () => {
     )
   }, [
     announce,
-    focusTrack,
+    pinnedTrackRef,
     getAnnouncementName,
     room.localParticipant,
     room.remoteParticipants,
@@ -120,9 +116,6 @@ export const StageLayout = () => {
   /* eslint-disable react-hooks/exhaustive-deps */
   // Code duplicated from LiveKit; this warning will be addressed in the refactoring.
   useEffect(() => {
-
-    if (!layoutContext) return
-
     // If screen share tracks are published, and no pin is set explicitly, auto set the screen share.
     if (
       screenShareTracks.some((track) => track.publication.isSubscribed) &&
@@ -131,10 +124,7 @@ export const StageLayout = () => {
       log.debug('Auto set screen share focus:', {
         newScreenShareTrack: screenShareTracks[0],
       })
-      layoutContext.pin.dispatch?.({
-        msg: 'set_pin',
-        trackReference: screenShareTracks[0],
-      })
+      setPinnedTrack(screenShareTracks[0])
       lastAutoFocusedScreenShareTrack.current = screenShareTracks[0]
     } else if (
       lastAutoFocusedScreenShareTrack.current &&
@@ -145,23 +135,20 @@ export const StageLayout = () => {
       )
     ) {
       log.debug('Auto clearing screen share focus.')
-      layoutContext.pin.dispatch?.({ msg: 'clear_pin' })
+      clearPinnedTrack()
       lastAutoFocusedScreenShareTrack.current = null
     }
-    if (focusTrack && !isTrackReference(focusTrack)) {
+    if (pinnedTrackRef && !isTrackReference(pinnedTrackRef)) {
       const updatedFocusTrack = tracks.find(
         (tr) =>
-          tr.participant.identity === focusTrack.participant.identity &&
-          tr.source === focusTrack.source
+          tr.participant.identity === pinnedTrackRef.participant.identity &&
+          tr.source === pinnedTrackRef.source
       )
       if (
-        updatedFocusTrack !== focusTrack &&
+        updatedFocusTrack !== pinnedTrackRef &&
         isTrackReference(updatedFocusTrack)
       ) {
-        layoutContext.pin.dispatch?.({
-          msg: 'set_pin',
-          trackReference: updatedFocusTrack,
-        })
+        setPinnedTrack(updatedFocusTrack)
       }
     }
   }, [
@@ -170,15 +157,14 @@ export const StageLayout = () => {
         (ref) => `${ref.publication.trackSid}_${ref.publication.isSubscribed}`
       )
       .join(),
-    focusTrack?.publication?.trackSid,
+    pinnedTrackRef?.publication?.trackSid,
     tracks,
   ])
   /* eslint-enable react-hooks/exhaustive-deps */
 
-
   return (
     <>
-      {!focusTrack ? (
+      {!pinnedTrackRef ? (
         <div className="lk-grid-layout-wrapper" style={{ height: 'auto' }}>
           <GridLayout tracks={tracks} style={{ padding: 0 }}>
             <ParticipantTile />
@@ -195,7 +181,7 @@ export const StageLayout = () => {
             >
               <ParticipantTile />
             </CarouselLayout>
-            {focusTrack && <FocusLayout trackRef={focusTrack} />}
+            {pinnedTrackRef && <FocusLayout trackRef={pinnedTrackRef} />}
           </FocusLayoutContainer>
         </div>
       )}
