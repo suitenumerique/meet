@@ -216,7 +216,17 @@ class LiveKitEventsService:
                     recording.id,
                 )
 
-        # Silently ignoring EGRESS_ABORTED, EGRESS_FAILED
+        terminal_status_mapping = {
+            api.EgressStatus.EGRESS_ABORTED: models.RecordingStatusChoices.ABORTED,
+            api.EgressStatus.EGRESS_FAILED: models.RecordingStatusChoices.FAILED_TO_STOP,
+        }
+        terminal_status = terminal_status_mapping.get(data.egress_info.status)
+        if (
+            terminal_status is not None
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            recording.status = terminal_status
+            recording.save()
 
     def _handle_room_started(self, data):
         """Handle 'room_started' event."""

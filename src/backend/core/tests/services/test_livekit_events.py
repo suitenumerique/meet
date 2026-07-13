@@ -415,13 +415,34 @@ def test_handle_egress_ended_does_not_finalize_when_webhooks_enabled(  # noqa: P
 
 
 @pytest.mark.parametrize(
+    ("egress_status", "expected_status"),
+    [
+        (EgressStatus.EGRESS_ABORTED, "aborted"),
+        (EgressStatus.EGRESS_FAILED, "failed_to_stop"),
+    ],
+)
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_records_terminal_error_status(
+    mock_update_room_metadata, egress_status, expected_status, service
+):
+    """Should persist terminal error statuses reported by LiveKit."""
+    recording = RecordingFactory(worker_id="worker-1", status="active")
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = egress_status
+
+    service._handle_egress_ended(mock_data)
+
+    recording.refresh_from_db()
+    assert recording.status == expected_status
+
+
+@pytest.mark.parametrize(
     "egress_status",
     [
         EgressStatus.EGRESS_STARTING,
         EgressStatus.EGRESS_ACTIVE,
         EgressStatus.EGRESS_ENDING,
-        EgressStatus.EGRESS_FAILED,
-        EgressStatus.EGRESS_ABORTED,
     ],
 )
 @mock.patch("core.utils.update_room_metadata")

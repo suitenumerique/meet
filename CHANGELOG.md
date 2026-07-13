@@ -27,6 +27,7 @@ and this project adheres to
 
 ### Fixed
 
+- 🐛(backend) handle failed and aborted egress events
 - 🩹(backend) identify externally provisioned users to PostHog
 - 🐛(backend) fix info panel crash for unregistered rooms
 - ♿️(frontend) focus side panel container on open #1452
