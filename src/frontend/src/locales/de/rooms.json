@@ -793,7 +793,11 @@
       "raise-hand": "Hand heben oder senken",
       "toggle-chat": "Chat anzeigen/ausblenden",
       "toggle-participants": "Teilnehmende anzeigen/ausblenden",
-      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen"
+      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen",
+      "zoom-in": "In einen geteilten Bildschirm hineinzoomen",
+      "zoom-out": "Aus einem geteilten Bildschirm herauszoomen",
+      "zoom-reset": "Zoom des geteilten Bildschirms zurücksetzen",
+      "zoom-pan": "Im gezoomten geteilten Bildschirm navigieren"
     },
     "sr": {
       "control": "Steuerung",
@@ -803,10 +807,14 @@
       "shift": "Umschalt",
       "plus": "plus",
       "hold": "Halte {{key}} gedrückt",
+      "arrows": "Pfeiltasten",
+      "plusKey": "Plus-Taste",
+      "minusKey": "Minus-Taste",
       "noShortcut": "Kein Tastenkürzel"
     },
     "visual": {
-      "hold": "Halte {{key}} gedrückt"
+      "hold": "Halte {{key}} gedrückt",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {

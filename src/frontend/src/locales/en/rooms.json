@@ -793,7 +793,11 @@
       "raise-hand": "Raise or lower hand",
       "toggle-chat": "Toggle chat",
       "toggle-participants": "Toggle participants",
-      "open-shortcuts-settings": "Open shortcuts settings"
+      "open-shortcuts-settings": "Open shortcuts settings",
+      "zoom-in": "Zoom in on a shared screen",
+      "zoom-out": "Zoom out on a shared screen",
+      "zoom-reset": "Reset the shared screen zoom",
+      "zoom-pan": "Move around a zoomed shared screen"
     },
     "sr": {
       "control": "Control",
@@ -803,10 +807,14 @@
       "shift": "Shift",
       "plus": "plus",
       "hold": "Hold {{key}}",
+      "arrows": "Arrow keys",
+      "plusKey": "Plus key",
+      "minusKey": "Minus key",
       "noShortcut": "No shortcut"
     },
     "visual": {
-      "hold": "Hold {{key}}"
+      "hold": "Hold {{key}}",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {

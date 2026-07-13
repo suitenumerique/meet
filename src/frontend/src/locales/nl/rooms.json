@@ -793,7 +793,11 @@
       "raise-hand": "Hand opsteken of laten zakken",
       "toggle-chat": "Chat tonen/verbergen",
       "toggle-participants": "Deelnemers tonen/verbergen",
-      "open-shortcuts-settings": "Sneltoets-instellingen openen"
+      "open-shortcuts-settings": "Sneltoets-instellingen openen",
+      "zoom-in": "Inzoomen op een gedeeld scherm",
+      "zoom-out": "Uitzoomen op een gedeeld scherm",
+      "zoom-reset": "Zoom van het gedeelde scherm herstellen",
+      "zoom-pan": "Navigeren in een ingezoomd gedeeld scherm"
     },
     "sr": {
       "control": "Control",
@@ -803,10 +807,14 @@
       "shift": "Shift",
       "plus": "plus",
       "hold": "Houd {{key}} ingedrukt",
+      "arrows": "Pijltoetsen",
+      "plusKey": "Plus-toets",
+      "minusKey": "Min-toets",
       "noShortcut": "Geen sneltoets"
     },
     "visual": {
-      "hold": "Houd {{key}} ingedrukt"
+      "hold": "Houd {{key}} ingedrukt",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {
