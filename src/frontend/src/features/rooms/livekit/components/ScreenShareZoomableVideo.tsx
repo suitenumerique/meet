@@ -50,6 +50,16 @@ export const ScreenShareZoomableVideo = ({
     return () => el.removeEventListener('keydown', zoom.handleKeyDown)
   }, [tileRef, zoom.handleKeyDown])
 
+  // Native wheel listener so we can use { passive: false } and preventDefault.
+  // React onWheel is passive — Ctrl+scroll would zoom the whole browser page.
+  const zoomSurfaceRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = zoomSurfaceRef.current
+    if (!el) return
+    el.addEventListener('wheel', zoom.handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', zoom.handleWheel)
+  }, [zoom.handleWheel])
+
   let panCursor: React.CSSProperties['cursor'] = 'default'
   if (zoom.isZoomed) {
     panCursor = zoom.isDragging ? 'grabbing' : 'grab'
@@ -60,6 +70,7 @@ export const ScreenShareZoomableVideo = ({
       {/* Pan/zoom surface - Ctrl+wheel to zoom, drag when zoomed. */}
       {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
+        ref={zoomSurfaceRef}
         className={css({
           width: '100%',
           height: '100%',
@@ -70,7 +81,6 @@ export const ScreenShareZoomableVideo = ({
         style={{
           cursor: panCursor,
         }}
-        onWheel={zoom.handleWheel}
         onMouseDown={zoom.handlePanStart}
         onMouseMove={zoom.handlePanMove}
         onMouseUp={zoom.handlePanEnd}
