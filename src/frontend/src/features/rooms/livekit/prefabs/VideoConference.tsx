@@ -1,14 +1,9 @@
-
-import {
-  isWeb,
-} from '@livekit/components-core'
+import { isWeb } from '@livekit/components-core'
 import { Track } from 'livekit-client'
 import React, { useCallback, useState } from 'react'
 import {
   ConnectionStateToast,
-  LayoutContextProvider,
   RoomAudioRenderer,
-  useCreateLayoutContext,
 } from '@livekit/components-react'
 
 import { ControlBar } from './ControlBar/ControlBar'
@@ -58,7 +53,6 @@ export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElemen
  * @public
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
-
   const { toggleSettingsDialog } = useSettingsDialog()
 
   useConnectionObserver()
@@ -72,8 +66,6 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       toggleSettingsDialog(SettingsDialogExtendedKey.SHORTCUTS)
     }, [toggleSettingsDialog]),
   })
-
-  const layoutContext = useCreateLayoutContext()
 
   useNoiseReduction()
 
@@ -90,21 +82,14 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       }}
     >
       {isWeb() && (
-        <LayoutContextProvider
-          value={layoutContext}
-          // onPinChange={handleFocusStateChange}
-        >
+        <>
           <ScreenShareErrorModal
             isOpen={isShareErrorVisible}
             onClose={() => setIsShareErrorVisible(false)}
           />
           <IsIdleDisconnectModal />
           <RoomContentArea>
-            {isPictureInPictureOpen ? (
-              <PipRoomPlaceholder />
-            ) : (
-              <StageLayout />
-            )}
+            {isPictureInPictureOpen ? <PipRoomPlaceholder /> : <StageLayout />}
           </RoomContentArea>
           <ControlBar
             onDeviceError={(e) => {
@@ -119,7 +104,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             }}
           />
           <SidePanel />
-        </LayoutContextProvider>
+        </>
       )}
       <RoomAudioRenderer />
       <ConnectionStateToast />

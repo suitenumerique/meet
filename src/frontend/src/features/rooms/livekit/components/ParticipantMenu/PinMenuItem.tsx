@@ -1,15 +1,28 @@
-import type { Participant } from 'livekit-client'
+import { Participant, Track } from 'livekit-client'
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { HStack } from '@/styled-system/jsx'
 import { RiPushpin2Line, RiUnpinLine } from '@remixicon/react'
 import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
-import { useFocusToggleParticipant } from '@/features/rooms/livekit/hooks/useFocusToggleParticipant'
+import { useSnapshot } from 'valtio'
+import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
+import { isEqualTrackRef } from '@livekit/components-core'
+import Source = Track.Source
+import { useMemo } from 'react'
 
 export const PinMenuItem = ({ participant }: { participant: Participant }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participantMenu' })
 
-  const { toggle, inFocus } = useFocusToggleParticipant(participant)
+  const trackRef = useMemo(() => {
+    return {
+      participant: participant,
+      publication: participant.getTrackPublication(Source.Camera),
+      source: Source.Camera,
+    }
+  }, [participant])
+
+  const { pinnedTrackRef } = useSnapshot(layoutStore)
+  const inFocus = isEqualTrackRef(pinnedTrackRef, trackRef)
 
   return (
     <MenuItem
@@ -17,7 +30,7 @@ export const PinMenuItem = ({ participant }: { participant: Participant }) => {
         name: participant.name,
       })}
       className={menuRecipe({ icon: true }).item}
-      onAction={toggle}
+      onAction={() => (inFocus ? clearPinnedTrack() : setPinnedTrack(trackRef))}
     >
       <HStack gap={0.25}>
         {inFocus ? (
