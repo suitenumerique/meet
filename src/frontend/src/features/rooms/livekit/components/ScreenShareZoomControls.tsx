@@ -11,6 +11,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { isMacintosh } from '@/utils/livekit'
+import { srOnly } from '@/styles/a11y'
 
 interface ScreenShareZoomControlsProps {
   containerRef: React.RefObject<HTMLDivElement | null>
@@ -76,6 +78,11 @@ export const ScreenShareZoomControls = ({
     }
   }, [containerRef])
 
+  const wheelShortcutVisual = isMacintosh() ? '⌘+scroll' : 'Ctrl+scroll'
+  const wheelShortcutSR = t(
+    isMacintosh() ? 'wheelShortcutMac' : 'wheelShortcut'
+  )
+
   return (
     <div
       className={css({
@@ -103,6 +110,9 @@ export const ScreenShareZoomControls = ({
           },
         })}
       >
+        <span className={srOnly}>
+          {t(isMacintosh() ? 'wheelShortcutHintMac' : 'wheelShortcutHint')}
+        </span>
         {isZoomed && (
           <>
             <Button
@@ -119,8 +129,8 @@ export const ScreenShareZoomControls = ({
               size="sm"
               variant="primaryTextDark"
               square
-              tooltip={t('zoomOut')}
-              aria-label={t('zoomOut')}
+              tooltip={t('zoomOutWithShortcut', { shortcut: wheelShortcutVisual })}
+              aria-label={t('zoomOutWithShortcut', { shortcut: wheelShortcutSR })}
               isDisabled={!canZoomOut}
               onPress={onZoomOut}
             >
@@ -150,8 +160,8 @@ export const ScreenShareZoomControls = ({
           size="sm"
           variant="primaryTextDark"
           square
-          tooltip={t('zoomIn')}
-          aria-label={t('zoomIn')}
+          tooltip={t('zoomInWithShortcut', { shortcut: wheelShortcutVisual })}
+          aria-label={t('zoomInWithShortcut', { shortcut: wheelShortcutSR })}
           isDisabled={!canZoomIn}
           onPress={onZoomIn}
         >
