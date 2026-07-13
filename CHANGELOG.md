@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♿️(frontend) close side panel with Escape key #1507
+
 ### Added
 
 - ✨(agent) support Voxtral realtime as inference engine

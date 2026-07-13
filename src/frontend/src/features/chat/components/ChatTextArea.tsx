@@ -51,7 +51,7 @@ export const ChatTextArea = () => {
   const isDisabled = !textAreaValue.trim() || isSending
 
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    e.stopPropagation()
+    if (e.key !== 'Escape') e.stopPropagation()
     if (e.key !== 'Enter' || (e.key === 'Enter' && e.shiftKey) || isDisabled)
       return
     e.preventDefault()
