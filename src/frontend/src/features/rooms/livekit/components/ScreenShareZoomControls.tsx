@@ -7,6 +7,8 @@ import {
   RiZoomOutLine,
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
+import { isMacintosh } from '@/utils/livekit'
+import { srOnly } from '@/styles/a11y'
 import { ScreenShareFullscreenButton } from './ScreenShareFullscreenButton'
 
 interface ScreenShareZoomControlsProps {
@@ -31,6 +33,8 @@ export const ScreenShareZoomControls = ({
   onResetZoom,
 }: ScreenShareZoomControlsProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
+
+  const wheelShortcut = t(isMacintosh() ? 'wheelShortcutMac' : 'wheelShortcut')
 
   return (
     <div
@@ -59,6 +63,9 @@ export const ScreenShareZoomControls = ({
           },
         })}
       >
+        <span className={srOnly}>
+          {t(isMacintosh() ? 'wheelShortcutHintMac' : 'wheelShortcutHint')}
+        </span>
         {isZoomed && (
           <>
             <Button
@@ -75,7 +82,7 @@ export const ScreenShareZoomControls = ({
               size="sm"
               variant="primaryTextDark"
               square
-              tooltip={t('zoomOut')}
+              tooltip={t('zoomOutWithShortcut', { shortcut: wheelShortcut })}
               aria-label={t('zoomOut')}
               isDisabled={!canZoomOut}
               onPress={onZoomOut}
@@ -106,7 +113,7 @@ export const ScreenShareZoomControls = ({
           size="sm"
           variant="primaryTextDark"
           square
-          tooltip={t('zoomIn')}
+          tooltip={t('zoomInWithShortcut', { shortcut: wheelShortcut })}
           aria-label={t('zoomIn')}
           isDisabled={!canZoomIn}
           onPress={onZoomIn}
