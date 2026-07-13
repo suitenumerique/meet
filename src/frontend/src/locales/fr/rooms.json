@@ -670,7 +670,13 @@
   "screenShareZoom": {
     "toolbarLabel": "Contrôles de zoom du partage d'écran",
     "zoomIn": "Zoomer",
+    "zoomInWithShortcut": "Zoomer ({{shortcut}})",
     "zoomOut": "Dézoomer",
+    "zoomOutWithShortcut": "Dézoomer ({{shortcut}})",
+    "wheelShortcut": "Contrôle plus molette",
+    "wheelShortcutMac": "Commande plus molette",
+    "wheelShortcutHint": "Raccourci : Contrôle plus molette pour zoomer ou dézoomer.",
+    "wheelShortcutHintMac": "Raccourci : Commande plus molette pour zoomer ou dézoomer.",
     "fitToWindow": "Ajuster à la fenêtre",
     "fullScreen": "Plein écran",
     "exitFullScreen": "Quitter le plein écran",

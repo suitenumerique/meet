@@ -671,7 +671,13 @@
   "screenShareZoom": {
     "toolbarLabel": "Zoom-Steuerung für Bildschirmfreigabe",
     "zoomIn": "Vergrößern",
+    "zoomInWithShortcut": "Vergrößern ({{shortcut}})",
     "zoomOut": "Verkleinern",
+    "zoomOutWithShortcut": "Verkleinern ({{shortcut}})",
+    "wheelShortcut": "Steuerung plus Mausrad",
+    "wheelShortcutMac": "Befehl plus Mausrad",
+    "wheelShortcutHint": "Tastenkürzel: Steuerung plus Mausrad zum Vergrößern oder Verkleinern.",
+    "wheelShortcutHintMac": "Tastenkürzel: Befehl plus Mausrad zum Vergrößern oder Verkleinern.",
     "fitToWindow": "An Fenster anpassen",
     "fullScreen": "Vollbild",
     "exitFullScreen": "Vollbild beenden",

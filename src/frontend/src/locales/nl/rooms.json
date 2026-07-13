@@ -670,7 +670,13 @@
   "screenShareZoom": {
     "toolbarLabel": "Zoombediening voor schermdeling",
     "zoomIn": "Inzoomen",
+    "zoomInWithShortcut": "Inzoomen ({{shortcut}})",
     "zoomOut": "Uitzoomen",
+    "zoomOutWithShortcut": "Uitzoomen ({{shortcut}})",
+    "wheelShortcut": "Control plus scrollwiel",
+    "wheelShortcutMac": "Command plus scrollwiel",
+    "wheelShortcutHint": "Sneltoets: Control plus scrollwiel om in of uit te zoomen.",
+    "wheelShortcutHintMac": "Sneltoets: Command plus scrollwiel om in of uit te zoomen.",
     "fitToWindow": "Aanpassen aan venster",
     "fullScreen": "Volledig scherm",
     "exitFullScreen": "Volledig scherm verlaten",
