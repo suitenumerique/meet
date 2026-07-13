@@ -24,7 +24,8 @@ import { ReactionPortals } from '@/features/reactions/components/ReactionPortals
 import { RoomContentArea } from '@/features/layout/components/RoomContentArea'
 import { usePictureInPicture } from '@/features/pip/hooks/usePictureInPicture'
 import { PipRoomPlaceholder } from '@/features/pip/components/PipRoomPlaceholder'
-import { StageLayout } from '@/features/layout/components/StageLayout.tsx'
+import { StageLayout } from '@/features/layout/components/StageLayout'
+import { PinAnnouncer } from '@/features/layout/components/PinAnnouncer'
 
 /**
  * @public
@@ -88,6 +89,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             onClose={() => setIsShareErrorVisible(false)}
           />
           <IsIdleDisconnectModal />
+          <PinAnnouncer />
           <RoomContentArea>
             {isPictureInPictureOpen ? <PipRoomPlaceholder /> : <StageLayout />}
           </RoomContentArea>
