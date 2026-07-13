@@ -9,12 +9,12 @@ import {
   RiPushpin2Line,
   RiUnpinLine,
 } from '@remixicon/react'
-import {
-  useFocusToggle,
-  useTrackMutedIndicator,
-} from '@livekit/components-react'
+import { useTrackMutedIndicator } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
-import { TrackReferenceOrPlaceholder } from '@livekit/components-core'
+import {
+  isEqualTrackRef,
+  TrackReferenceOrPlaceholder,
+} from '@livekit/components-core'
 import { useEffect, useRef, useState } from 'react'
 import { useSidePanel } from '../hooks/useSidePanel'
 import { useFullScreen } from '../hooks/useFullScreen'
@@ -22,6 +22,8 @@ import { type Participant, Track } from 'livekit-client'
 import { MuteAlertDialog } from './MuteAlertDialog'
 import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
+import { useSnapshot } from 'valtio'
+import { layoutStore, setPinnedTrack, clearPinnedTrack } from '@/stores/layout'
 
 const ZoomButton = ({
   trackRef,
@@ -56,18 +58,17 @@ const FocusButton = ({
   trackRef: TrackReferenceOrPlaceholder
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
-  const { mergedProps, inFocus } = useFocusToggle({
-    trackRef,
-    props: {},
-  })
+
+  const { pinnedTrackRef } = useSnapshot(layoutStore)
+  const inFocus = isEqualTrackRef(trackRef, pinnedTrackRef)
+
   return (
     <Button
       size="sm"
       variant="primaryTextDark"
       square
       tooltip={inFocus ? t('pin.disable') : t('pin.enable')}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onPress={(event) => mergedProps?.onClick?.(event as any)}
+      onPress={() => (inFocus ? clearPinnedTrack() : setPinnedTrack(trackRef))}
     >
       {inFocus ? <RiUnpinLine /> : <RiPushpin2Line />}
     </Button>
