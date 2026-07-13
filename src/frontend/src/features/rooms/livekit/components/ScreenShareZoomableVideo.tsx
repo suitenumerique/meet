@@ -1,11 +1,11 @@
 import { css } from '@/styled-system/css'
-import { VideoTrack } from '@livekit/components-react'
 import { type TrackReference } from '@livekit/components-core'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useScreenShareZoom } from '../hooks/useScreenShareZoom'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ScreenShareZoomControls } from './ScreenShareZoomControls'
+import { ScreenShareVideoTrack } from './ScreenShareVideoTrack'
 
 interface ScreenShareZoomableVideoProps {
   trackRef: TrackReference
@@ -86,7 +86,7 @@ export const ScreenShareZoomableVideo = ({
             transition: zoom.isDragging ? 'none' : 'transform 150ms ease-out',
           }}
         >
-          <VideoTrack
+          <ScreenShareVideoTrack
             trackRef={trackRef}
             onSubscriptionStatusChanged={onSubscriptionStatusChanged}
             manageSubscription={manageSubscription}
