@@ -76,7 +76,13 @@ export function Chat({ ...props }: ChatProps) {
   })
 
   // Use useParticipants hook to trigger a re-render when the participant list changes.
-  const participants = useParticipants()
+  const participants = useParticipants({
+    updateOnlyOn: [
+      RoomEvent.ParticipantAttributesChanged,
+      RoomEvent.ParticipantNameChanged,
+      RoomEvent.ParticipantMetadataChanged,
+    ],
+  })
 
   const lastReadMsgAt = React.useRef<ChatMessage['timestamp']>(0)
   const previousMessageCount = React.useRef(0)
