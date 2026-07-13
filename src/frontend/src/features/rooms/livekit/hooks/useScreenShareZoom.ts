@@ -1,174 +1,219 @@
 import { useCallback, useRef, useState } from 'react'
+import { useMove } from 'react-aria'
+import type { MoveMoveEvent } from '@react-types/shared'
+import {
+  FULL_PICTURE_RATIO,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  PAN_STEP,
+  WHEEL_ZOOM_SPEED,
+  ZOOM_STEP,
+  type PanOffset,
+  clampPan,
+  clampZoom,
+  getCursorFromZoomState,
+  getCursorPercentsFromWheelEvent,
+  getPanDeltaPercentsFromMove,
+  getPictureRatio,
+  getWheelPanOffset,
+  getZoomTransform,
+} from '../utils/screenShareZoom'
 
-const MIN_ZOOM = 1
-const MAX_ZOOM = 4
-const ZOOM_STEP = 0.1
-const WHEEL_ZOOM_SPEED = 0.002
-const WHEEL_ZOOM_FOCUS_BLEND = 0.3
-const PAN_STEP = 5
-const PAN_CLAMP_HALF = 50
+/**
+ * Manages zoom and pan state for a remote screen share.
+ *
+ * Performance: zoom/pan live in refs and are applied imperatively to the DOM
+ * (via transformElRef / surfaceElRef) so dragging and panning never re-render.
+ * React state only tracks what the toolbar displays, and only updates when
+ * the zoom level actually changes.
+ *
+ * Drag/touch panning is handled by react-aria's useMove (moveProps).
+ * The wheel listener (non-passive) zooms on Ctrl/Cmd+scroll and pans on a
+ * two-finger trackpad scroll once zoomed.
+ * Arrow key panning and +/-/0 zoom are on a keydown listener attached to the
+ * tile container (which has tabIndex=0 and focus).
+ */
+export const useScreenShareZoom = () => {
+  const zoomRef = useRef(MIN_ZOOM)
+  const panRef = useRef<PanOffset>({ x: 0, y: 0 })
+  const draggingRef = useRef(false)
 
-interface PanOffset {
-  x: number
-  y: number
-}
+  // The consumer binds these to the inner transform div and the outer drag surface.
+  const transformElRef = useRef<HTMLDivElement | null>(null)
+  const surfaceElRef = useRef<HTMLDivElement | null>(null)
 
-export function useScreenShareZoom() {
+  // Mirrors zoomRef for the toolbar. Panning never publishes: the toolbar
+  // shows the zoom level, not the position.
   const [zoomLevel, setZoomLevel] = useState(MIN_ZOOM)
-  const [panOffset, setPanOffset] = useState<PanOffset>({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
 
-  // Ref for event handlers; state drives cursor re-renders during drag.
-  const isDraggingRef = useRef(false)
-  const dragStart = useRef<PanOffset>({ x: 0, y: 0 })
-  const panStart = useRef<PanOffset>({ x: 0, y: 0 })
+  const syncToolbar = useCallback(() => setZoomLevel(zoomRef.current), [])
 
-  const isZoomed = zoomLevel > MIN_ZOOM
-  const canZoomIn = zoomLevel < MAX_ZOOM
-  const canZoomOut = zoomLevel > MIN_ZOOM
+  const applyTransform = useCallback(() => {
+    const el = transformElRef.current
+    if (!el) return
+    el.style.transform = getZoomTransform(zoomRef.current, panRef.current)
+  }, [])
 
-  const clampPan = useCallback(
-    (pan: PanOffset, zoom: number): PanOffset => {
-      // Max pan in %, keeps content within the visible area at a given zoom level.
-      const maxPan = ((zoom - 1) / zoom) * PAN_CLAMP_HALF
-      return {
-        x: Math.max(-maxPan, Math.min(maxPan, pan.x)),
-        y: Math.max(-maxPan, Math.min(maxPan, pan.y)),
-      }
+  // The video is letterboxed inside the surface by object-fit: contain, so the
+  // pan bounds depend on how much of the surface the picture actually covers.
+  // Read live rather than cached: both the tile and the shared resolution can
+  // change at any time.
+  const readPictureRatio = useCallback(() => {
+    const surface = surfaceElRef.current
+    const video = transformElRef.current?.querySelector('video')
+    if (!surface || !video) return FULL_PICTURE_RATIO
+    return getPictureRatio(
+      surface.clientWidth,
+      surface.clientHeight,
+      video.videoWidth,
+      video.videoHeight
+    )
+  }, [])
+
+  const applyCursor = useCallback(() => {
+    const el = surfaceElRef.current
+    if (!el) return
+    el.style.cursor = getCursorFromZoomState(
+      zoomRef.current,
+      draggingRef.current
+    )
+  }, [])
+
+  const setZoom = useCallback(
+    (next: number) => {
+      zoomRef.current = next
+      panRef.current =
+        next <= MIN_ZOOM
+          ? { x: 0, y: 0 }
+          : clampPan(panRef.current, next, readPictureRatio())
+      applyTransform()
+      applyCursor()
+      syncToolbar()
     },
-    []
+    [applyTransform, applyCursor, syncToolbar, readPictureRatio]
   )
 
-  const clampZoom = useCallback((value: number) => {
-    return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value))
-  }, [])
+  const zoomIn = useCallback(
+    () => setZoom(clampZoom(zoomRef.current + ZOOM_STEP)),
+    [setZoom]
+  )
 
-  const zoomIn = useCallback(() => {
-    setZoomLevel((prev) => {
-      const next = clampZoom(prev + ZOOM_STEP)
-      setPanOffset((pan) => clampPan(pan, next))
-      return next
-    })
-  }, [clampZoom, clampPan])
+  const zoomOut = useCallback(
+    () => setZoom(clampZoom(zoomRef.current - ZOOM_STEP)),
+    [setZoom]
+  )
 
-  const zoomOut = useCallback(() => {
-    setZoomLevel((prev) => {
-      const next = clampZoom(prev - ZOOM_STEP)
-      if (next <= MIN_ZOOM) {
-        setPanOffset({ x: 0, y: 0 })
-        return MIN_ZOOM
-      }
-      setPanOffset((pan) => clampPan(pan, next))
-      return next
-    })
-  }, [clampZoom, clampPan])
+  const resetZoom = useCallback(() => setZoom(MIN_ZOOM), [setZoom])
 
-  const resetZoom = useCallback(() => {
-    setZoomLevel(MIN_ZOOM)
-    setPanOffset({ x: 0, y: 0 })
-  }, [])
-
-  // Arrow key panning (keyboard a11y).
+  // Cancels the scale() that multiplies translate(), so the picture follows
+  // the pointer 1:1 and keyboard steps keep the same visual size.
   const panBy = useCallback(
     (dx: number, dy: number) => {
-      setPanOffset((pan) =>
-        clampPan({ x: pan.x + dx, y: pan.y + dy }, zoomLevel)
+      const zoom = zoomRef.current
+      panRef.current = clampPan(
+        {
+          x: panRef.current.x + dx / zoom,
+          y: panRef.current.y + dy / zoom,
+        },
+        zoom,
+        readPictureRatio()
       )
+      applyTransform()
     },
-    [zoomLevel, clampPan]
+    [applyTransform, readPictureRatio]
   )
 
+  // Must be attached with { passive: false } so preventDefault() blocks
+  // the browser's native Ctrl+scroll page zoom. Trackpad pinch arrives
+  // here as a wheel event with ctrl/cmd already set.
   const handleWheel = useCallback(
     (e: WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        const target = e.currentTarget as HTMLElement
+        const prev = zoomRef.current
+        const delta = -e.deltaY * WHEEL_ZOOM_SPEED
+        const next = clampZoom(prev + delta)
+
+        if (next <= MIN_ZOOM) {
+          zoomRef.current = MIN_ZOOM
+          panRef.current = { x: 0, y: 0 }
+        } else {
+          const { cursorXPercent, cursorYPercent } =
+            getCursorPercentsFromWheelEvent(e, target)
+          zoomRef.current = next
+          panRef.current = getWheelPanOffset({
+            pan: panRef.current,
+            prevZoom: prev,
+            nextZoom: next,
+            cursorXPercent,
+            cursorYPercent,
+            ratio: readPictureRatio(),
+          })
+        }
+
+        applyTransform()
+        applyCursor()
+        syncToolbar()
+        return
+      }
+
+      // Two-finger trackpad scroll: pan only once zoomed, otherwise leave
+      // the event alone so the page can still scroll.
+      if (zoomRef.current <= MIN_ZOOM) return
+
+      const el = surfaceElRef.current
+      if (!el) return
 
       e.preventDefault()
       e.stopPropagation()
 
-      const target = e.currentTarget as HTMLElement
-      const delta = -e.deltaY * WHEEL_ZOOM_SPEED
-      const rect = target.getBoundingClientRect()
-      const cursorXPercent =
-        ((e.clientX - rect.left) / rect.width) * 100 - PAN_CLAMP_HALF
-      const cursorYPercent =
-        ((e.clientY - rect.top) / rect.height) * 100 - PAN_CLAMP_HALF
-
-      setZoomLevel((prev) => {
-        const next = clampZoom(prev + delta)
-
-        if (next <= MIN_ZOOM) {
-          setPanOffset({ x: 0, y: 0 })
-          return MIN_ZOOM
-        }
-
-        setPanOffset((pan) => {
-          const zoomRatio = next / prev
-          return clampPan(
-            {
-              x:
-                pan.x +
-                (cursorXPercent - pan.x) *
-                  (1 - 1 / zoomRatio) *
-                  WHEEL_ZOOM_FOCUS_BLEND,
-              y:
-                pan.y +
-                (cursorYPercent - pan.y) *
-                  (1 - 1 / zoomRatio) *
-                  WHEEL_ZOOM_FOCUS_BLEND,
-            },
-            next
-          )
-        })
-
-        return next
-      })
-    },
-    [clampZoom, clampPan]
-  )
-
-  const handlePanStart = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!isZoomed) return
-
-      e.preventDefault()
-      isDraggingRef.current = true
-      setIsDragging(true)
-      dragStart.current = { x: e.clientX, y: e.clientY }
-      panStart.current = { ...panOffset }
-    },
-    [isZoomed, panOffset]
-  )
-
-  const handlePanMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!isDraggingRef.current) return
-
-      const rect = e.currentTarget.getBoundingClientRect()
-      const deltaXPercent =
-        ((e.clientX - dragStart.current.x) / rect.width) * 100
-      const deltaYPercent =
-        ((e.clientY - dragStart.current.y) / rect.height) * 100
-
-      setPanOffset(
-        clampPan(
-          {
-            x: panStart.current.x + deltaXPercent,
-            y: panStart.current.y + deltaYPercent,
-          },
-          zoomLevel
-        )
+      const { deltaXPercent, deltaYPercent } = getPanDeltaPercentsFromMove(
+        -e.deltaX,
+        -e.deltaY,
+        el
       )
+      panBy(deltaXPercent, deltaYPercent)
     },
-    [zoomLevel, clampPan]
+    [applyTransform, applyCursor, syncToolbar, readPictureRatio, panBy]
   )
 
-  const handlePanEnd = useCallback(() => {
-    isDraggingRef.current = false
-    setIsDragging(false)
-  }, [])
+  // useMove handles mouse drag + touch pan. Keyboard arrows are not handled
+  // here because moveProps is on the zoom surface, while focus is on the tile
+  // container, see handleKeyDown below.
+  const { moveProps } = useMove({
+    onMoveStart() {
+      if (zoomRef.current <= MIN_ZOOM) return
+      draggingRef.current = true
+      applyCursor()
+    },
+    onMove(e: MoveMoveEvent) {
+      if (zoomRef.current <= MIN_ZOOM) return
 
+      const el = surfaceElRef.current
+      if (!el) return
+
+      const { deltaXPercent, deltaYPercent } = getPanDeltaPercentsFromMove(
+        e.deltaX,
+        e.deltaY,
+        el
+      )
+      panBy(deltaXPercent, deltaYPercent)
+    },
+    onMoveEnd() {
+      draggingRef.current = false
+      applyTransform()
+      applyCursor()
+    },
+  })
+
+  // Attached to the tile container (not the zoom surface) where keyboard
+  // focus lives. Arrows pan, +/-/0 zoom.
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      const isZoomed = zoomRef.current > MIN_ZOOM
       if (!isZoomed && e.key !== '+' && e.key !== '=') return
 
       switch (e.key) {
@@ -203,25 +248,21 @@ export function useScreenShareZoom() {
           break
       }
     },
-    [isZoomed, panBy, zoomIn, zoomOut, resetZoom]
+    [panBy, zoomIn, zoomOut, resetZoom]
   )
 
   return {
-    zoomLevel,
     zoomPercentage: Math.round(zoomLevel * 100),
-    panOffset,
-    isZoomed,
-    isDragging,
-    canZoomIn,
-    canZoomOut,
+    isZoomed: zoomLevel > MIN_ZOOM,
+    canZoomIn: zoomLevel < MAX_ZOOM,
+    canZoomOut: zoomLevel > MIN_ZOOM,
+    transformElRef,
+    surfaceElRef,
+    moveProps,
     zoomIn,
     zoomOut,
     resetZoom,
-    panBy,
     handleWheel,
-    handlePanStart,
-    handlePanMove,
-    handlePanEnd,
     handleKeyDown,
   }
 }
