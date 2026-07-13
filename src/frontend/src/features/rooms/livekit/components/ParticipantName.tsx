@@ -1,8 +1,6 @@
-import type { CSSProperties } from 'react'
+import React, { CSSProperties } from 'react'
 import { Text } from '@/primitives'
 import { useTranslation } from 'react-i18next'
-import { useParticipantInfo } from '@livekit/components-react'
-import type { Participant } from 'livekit-client'
 
 const participantNameStyles: CSSProperties = {
   paddingBottom: '0.1rem',
@@ -16,29 +14,29 @@ const participantNameScreenShareStyles: CSSProperties = {
   marginLeft: '0.4rem',
 }
 
-export const ParticipantName = ({
-  participant,
-  isScreenShare = false,
-}: {
-  participant: Participant
-  isScreenShare: boolean
-}) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'participantTile' })
+export const ParticipantName = React.memo(
+  ({
+    displayedName,
+    isScreenShare = false,
+  }: {
+    displayedName?: string
+    isScreenShare: boolean
+  }) => {
+    const { t } = useTranslation('rooms', { keyPrefix: 'participantTile' })
+    if (isScreenShare) {
+      return (
+        <Text variant="sm" style={participantNameScreenShareStyles}>
+          {t('screenShare', { name: displayedName })}
+        </Text>
+      )
+    }
 
-  const { identity, name } = useParticipantInfo({ participant })
-  const displayedName = name != '' ? name : identity
-
-  if (isScreenShare) {
     return (
-      <Text variant="sm" style={participantNameScreenShareStyles}>
-        {t('screenShare', { name: displayedName })}
+      <Text variant="sm" style={participantNameStyles} aria-hidden="true">
+        {displayedName}
       </Text>
     )
   }
+)
 
-  return (
-    <Text variant="sm" style={participantNameStyles} aria-hidden="true">
-      {displayedName}
-    </Text>
-  )
-}
+ParticipantName.displayName = 'ParticipantName'
