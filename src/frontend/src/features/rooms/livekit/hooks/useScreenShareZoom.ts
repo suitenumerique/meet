@@ -79,14 +79,20 @@ export function useScreenShareZoom() {
   )
 
   const handleWheel = useCallback(
-    (e: React.WheelEvent<HTMLDivElement>) => {
-      // Match browser zoom gesture (Ctrl/Cmd + scroll).
+    (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return
 
       e.preventDefault()
       e.stopPropagation()
 
+      const target = e.currentTarget as HTMLElement
       const delta = -e.deltaY * WHEEL_ZOOM_SPEED
+      const rect = target.getBoundingClientRect()
+      const cursorXPercent =
+        ((e.clientX - rect.left) / rect.width) * 100 - PAN_CLAMP_HALF
+      const cursorYPercent =
+        ((e.clientY - rect.top) / rect.height) * 100 - PAN_CLAMP_HALF
+
       setZoomLevel((prev) => {
         const next = clampZoom(prev + delta)
 
@@ -94,12 +100,6 @@ export function useScreenShareZoom() {
           setPanOffset({ x: 0, y: 0 })
           return MIN_ZOOM
         }
-
-        const rect = e.currentTarget.getBoundingClientRect()
-        const cursorXPercent =
-          ((e.clientX - rect.left) / rect.width) * 100 - PAN_CLAMP_HALF
-        const cursorYPercent =
-          ((e.clientY - rect.top) / rect.height) * 100 - PAN_CLAMP_HALF
 
         setPanOffset((pan) => {
           const zoomRatio = next / prev
