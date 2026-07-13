@@ -16,6 +16,7 @@ import { Info } from './Info'
 import { HStack } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { useEscapeToClose } from '@/hooks/useEscapeToClose'
 
 type StyledSidePanelProps = {
   title: string
@@ -193,6 +194,8 @@ export const SidePanel = () => {
     preventScroll: true,
     activeKey: activePanelId,
   })
+
+  useEscapeToClose(isSidePanelOpen, asideRef, closeSidePanel)
 
   return (
     <StyledSidePanel
