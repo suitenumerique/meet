@@ -12,6 +12,7 @@ import {
   VideoTrack,
   TrackRefContext,
   ParticipantContextIfNeeded,
+  useParticipantInfo,
 } from '@livekit/components-react'
 import React from 'react'
 import {
@@ -74,8 +75,11 @@ export const ParticipantTile: (
   ref
 ) {
   const { pinnedTrackRef } = useSnapshot(layoutStore)
-
   const trackReference = useEnsureTrackRef(trackRef)
+
+  const { identity, name } = useParticipantInfo({
+    participant: trackReference.participant,
+  })
 
   const { elementProps } = useParticipantTile<HTMLDivElement>({
     htmlProps,
@@ -222,8 +226,8 @@ export const ParticipantTile: (
                       )}
                       <div className="lk-participant-name-wrapper">
                         <ParticipantName
+                          displayedName={name != '' ? name : identity}
                           isScreenShare={isScreenShare}
-                          participant={trackReference.participant}
                         />
                       </div>
                     </div>
