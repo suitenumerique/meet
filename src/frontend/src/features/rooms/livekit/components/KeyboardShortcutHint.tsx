@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React from 'react'
 import { styled } from '@/styled-system/jsx'
 
 const Hint = styled('div', {
@@ -25,15 +25,17 @@ const Hint = styled('div', {
 })
 
 export interface KeyboardShortcutHintProps {
-  children: ReactNode
+  hint?: string
 }
 
 /**
  * Small reusable bubble used to display and announce keyboard shortcuts,
  * typically when an element receives keyboard focus.
  */
-export const KeyboardShortcutHint: React.FC<KeyboardShortcutHintProps> = ({
-  children,
-}) => {
-  return <Hint>{children}</Hint>
-}
+export const KeyboardShortcutHint = React.memo(
+  ({ hint }: KeyboardShortcutHintProps) => {
+    return <Hint>{hint}</Hint>
+  }
+)
+
+KeyboardShortcutHint.displayName = 'KeyboardShortcutHint'
