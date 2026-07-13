@@ -12,6 +12,9 @@ export const useShortcutFormatting = () => {
 
   const formatVisual = useCallback(
     (shortcut?: Shortcut, code?: string, kind?: string) => {
+      if (kind === 'arrows') {
+        return t('shortcutsPanel.visual.arrows')
+      }
       if (code && kind === 'longPress') {
         const label = getKeyLabelFromCode(code)
         return t('shortcutsPanel.visual.hold', { key: label || '?' })
@@ -23,6 +26,9 @@ export const useShortcutFormatting = () => {
 
   const formatForSR = useCallback(
     (shortcut?: Shortcut, code?: string, kind?: string) => {
+      if (kind === 'arrows') {
+        return t('shortcutsPanel.sr.arrows')
+      }
       if (code && kind === 'longPress') {
         const label = getKeyLabelFromCode(code)
         return t('shortcutsPanel.sr.hold', { key: label || '?' })
@@ -35,6 +41,10 @@ export const useShortcutFormatting = () => {
         shiftLabel: t('shortcutsPanel.sr.shift'),
         plusLabel: t('shortcutsPanel.sr.plus'),
         noShortcutLabel: t('shortcutsPanel.sr.noShortcut'),
+        keyLabels: {
+          '+': t('shortcutsPanel.sr.plusKey'),
+          '-': t('shortcutsPanel.sr.minusKey'),
+        },
       })
     },
     [t]

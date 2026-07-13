@@ -793,7 +793,11 @@
       "raise-hand": "Lever ou baisser la main",
       "toggle-chat": "Afficher/Masquer le chat",
       "toggle-participants": "Afficher/Masquer les participants",
-      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis"
+      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis",
+      "zoom-in": "Zoomer sur un écran partagé",
+      "zoom-out": "Dézoomer sur un écran partagé",
+      "zoom-reset": "Réinitialiser le zoom de l’écran partagé",
+      "zoom-pan": "Se déplacer dans un écran partagé zoomé"
     },
     "sr": {
       "control": "Contrôle",
@@ -803,10 +807,14 @@
       "shift": "Majuscule",
       "plus": "plus",
       "hold": "Maintenir {{key}}",
+      "arrows": "Touches fléchées",
+      "plusKey": "Touche plus",
+      "minusKey": "Touche moins",
       "noShortcut": "Aucun raccourci"
     },
     "visual": {
-      "hold": "Maintenir {{key}}"
+      "hold": "Maintenir {{key}}",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {
