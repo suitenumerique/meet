@@ -49,32 +49,29 @@ export type AvatarProps = React.HTMLAttributes<HTMLDivElement> & {
   bgColor?: string
 } & RecipeVariantProps<typeof avatar>
 
-export const Avatar = ({
-  name,
-  bgColor,
-  context,
-  notification,
-  style,
-  ...props
-}: AvatarProps) => {
-  const initial = name?.trim()?.charAt(0) ?? ''
-  return (
-    <div
-      style={{
-        backgroundColor: bgColor,
-        ...style,
-      }}
-      className={avatar({ context, notification })}
-      {...props}
-    >
-      <span
-        aria-hidden="true"
-        className={css({
-          marginTop: '-0.3rem',
-        })}
+export const Avatar = React.memo(
+  ({ name, bgColor, context, notification, style, ...props }: AvatarProps) => {
+    const initial = name?.trim()?.charAt(0) ?? ''
+    return (
+      <div
+        style={{
+          backgroundColor: bgColor,
+          ...style,
+        }}
+        className={avatar({ context, notification })}
+        {...props}
       >
-        {initial}
-      </span>
-    </div>
-  )
-}
+        <span
+          aria-hidden="true"
+          className={css({
+            marginTop: '-0.3rem',
+          })}
+        >
+          {initial}
+        </span>
+      </div>
+    )
+  }
+)
+
+Avatar.displayName = 'Avatar'
