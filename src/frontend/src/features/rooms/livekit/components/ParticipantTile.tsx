@@ -241,13 +241,13 @@ export const ParticipantTile: (
           )}
         </ParticipantContextIfNeeded>
       </TrackRefContextIfNeeded>
-      <KeyboardShortcutHint>
-        {t('toolbarHint', {
+      <KeyboardShortcutHint
+        hint={t('toolbarHint', {
           shortcut: formatShortcutLabel(
             getShortcutDescriptorById('open-shortcuts')?.shortcut
           ),
         })}
-      </KeyboardShortcutHint>
+      />
     </div>
   )
 })
