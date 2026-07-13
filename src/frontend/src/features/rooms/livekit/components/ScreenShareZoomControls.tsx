@@ -2,8 +2,9 @@ import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { Button } from '@/primitives'
 import {
+  RiCollapseDiagonalLine,
+  RiExpandDiagonalLine,
   RiFullscreenExitLine,
-  RiFullscreenLine,
   RiZoomInLine,
   RiZoomOutLine,
 } from '@remixicon/react'
@@ -162,9 +163,9 @@ export const ScreenShareZoomControls = ({
             onPress={toggleFullScreen}
           >
             {isFullscreen ? (
-              <RiFullscreenExitLine size={18} />
+              <RiCollapseDiagonalLine size={18} />
             ) : (
-              <RiFullscreenLine size={18} />
+              <RiExpandDiagonalLine size={18} />
             )}
           </Button>
         )}
