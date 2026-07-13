@@ -24,6 +24,7 @@ and this project adheres to
 - ♻️(frontend) inline model weights to avoid loading them from remote
 - ♻️(frontend) inline MediaPipe WASM modules to avoid loading from remote
 - ⬆️(frontend) upgrade posthog-js from 1.387.0 to 1.391.2
+- ♿️(frontend) close side panel with Escape key #1507
 
 ### Fixed
 
