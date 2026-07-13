@@ -6,6 +6,12 @@ import {
   useParticipants,
   useRoomContext,
 } from '@livekit/components-react'
+import {
+  ListBox,
+  ListBoxItem,
+  ListLayout,
+  Virtualizer,
+} from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { chatStore } from '@/stores/chat'
@@ -24,15 +30,30 @@ import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 export interface ChatProps
   extends React.HTMLAttributes<HTMLDivElement>, ChatOptions {}
 
+// Estimated height of a chat entry in px. ListLayout measures the real
+// rendered height of each row; this value is only used to size the
+// scrollbar before rows have been measured.
+const ESTIMATED_ROW_HEIGHT = 56
+
+interface ChatListItem {
+  id: string | number
+  msg: ChatMessage
+  hideMetadata: boolean
+}
+
 /**
- * The Chat component adds a basis chat functionality to the LiveKit room. The messages are distributed to all participants
+ * The Chat component adds a basic chat functionality to the LiveKit room. The messages are distributed to all participants
  * in the room. Only users who are in the room at the time of dispatch will receive the message.
+ *
+ * The message list is virtualized with React Aria's Virtualizer + ListLayout:
+ * only visible rows are mounted, so long chat histories stay cheap to render.
+ * The ListBox itself is the scroll container.
  */
 export function Chat({ ...props }: ChatProps) {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat' })
 
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const ulRef = React.useRef<HTMLUListElement>(null)
+  const listRef = React.useRef<HTMLDivElement>(null)
 
   const room = useRoomContext()
   const { send, chatMessages, isSending } = useChat()
@@ -80,10 +101,12 @@ export function Chat({ ...props }: ChatProps) {
   }, [chatMessages, room])
 
   React.useEffect(() => {
-    if (chatMessages.length > 0 && ulRef.current) {
-      ulRef.current?.scrollTo({ top: ulRef.current.scrollHeight })
+    if (chatMessages.length > 0 && listRef.current) {
+      requestAnimationFrame(() => {
+        listRef.current?.scrollTo({ top: listRef.current.scrollHeight })
+      })
     }
-  }, [ulRef, chatMessages])
+  }, [listRef, chatMessages])
 
   React.useEffect(() => {
     if (chatMessages.length === 0) {
@@ -110,23 +133,19 @@ export function Chat({ ...props }: ChatProps) {
     }
   }, [chatMessages, chatSnap.unreadMessages, isChatOpen])
 
-  const renderedMessages = React.useMemo(() => {
-    return chatMessages.map((msg, idx, allMsg) => {
-      const hideMetadata =
+  // The ListBox render function only receives the item, so precompute
+  // hideMetadata (metadata grouping) and a stable id for each message here.
+  const items: ChatListItem[] = React.useMemo(() => {
+    return chatMessages.map((msg, idx, allMsg) => ({
+      id: msg.id ?? `${msg.timestamp}-${idx}`,
+      msg,
+      hideMetadata:
         idx >= 1 &&
         msg.timestamp - allMsg[idx - 1].timestamp < 60_000 &&
-        allMsg[idx - 1].from === msg.from
-
-      return (
-        <ChatEntry
-          key={msg.id ?? idx}
-          hideMetadata={hideMetadata}
-          entry={msg}
-          messageFormatter={formatChatMessageLinks}
-        />
-      )
-    })
-    // This ensures that the chat message list is updated to reflect any changes in participant information.
+        allMsg[idx - 1].from === msg.from,
+    }))
+    // `participants` is included so rows re-render when participant
+    // information (name, metadata) changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatMessages, participants])
 
@@ -150,20 +169,42 @@ export function Chat({ ...props }: ChatProps) {
       >
         {t('disclaimer')}
       </Text>
-      <Div
-        flexGrow={1}
-        flexDirection={'column'}
-        minHeight={0}
-        overflowY="scroll"
-      >
-        <ul
-          className="lk-list lk-chat-messages"
-          ref={ulRef}
-          role="log"
-          aria-relevant="additions"
+      <Div flexGrow={1} minHeight={0}>
+        <Virtualizer
+          layout={ListLayout}
+          layoutOptions={{
+            estimatedRowSize: ESTIMATED_ROW_HEIGHT,
+            gap: 4,
+            padding: 4,
+          }}
         >
-          {renderedMessages}
-        </ul>
+          <ListBox
+            ref={listRef}
+            aria-label={t('messagesLabel', 'Chat messages')}
+            items={items}
+            selectionMode="none"
+            className="lk-list lk-chat-messages"
+            style={{
+              display: 'block',
+              height: '100%',
+              width: '100%',
+              overflow: 'auto',
+            }}
+          >
+            {(item: ChatListItem) => (
+              <ListBoxItem
+                textValue={item.msg.message}
+                style={{ width: '100%' }}
+              >
+                <ChatEntry
+                  hideMetadata={item.hideMetadata}
+                  entry={item.msg}
+                  messageFormatter={formatChatMessageLinks}
+                />
+              </ListBoxItem>
+            )}
+          </ListBox>
+        </Virtualizer>
       </Div>
       <ChatInput
         inputRef={inputRef}
