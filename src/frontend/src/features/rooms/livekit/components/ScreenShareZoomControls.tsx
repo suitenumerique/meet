@@ -79,9 +79,6 @@ export const ScreenShareZoomControls = ({
   }, [containerRef])
 
   const wheelShortcutVisual = isMacintosh() ? '⌘+scroll' : 'Ctrl+scroll'
-  const wheelShortcutSR = t(
-    isMacintosh() ? 'wheelShortcutMac' : 'wheelShortcut'
-  )
 
   return (
     <div
@@ -102,7 +99,6 @@ export const ScreenShareZoomControls = ({
           borderRadius: '2rem',
           padding: '0.5rem',
           alignItems: 'center',
-          overflow: 'hidden',
           opacity: 0.7,
           transition: 'opacity 200ms linear',
           _hover: {
@@ -113,55 +109,71 @@ export const ScreenShareZoomControls = ({
         <span className={srOnly}>
           {t(isMacintosh() ? 'wheelShortcutHintMac' : 'wheelShortcutHint')}
         </span>
-        {isZoomed && (
-          <>
-            <Button
-              size="sm"
-              variant="primaryTextDark"
-              square
-              tooltip={t('fitToWindow')}
-              aria-label={t('fitToWindow')}
-              onPress={onResetZoom}
-            >
-              <RiFullscreenExitLine size={20} />
-            </Button>
-            <Button
-              size="sm"
-              variant="primaryTextDark"
-              square
-              tooltip={t('zoomOutWithShortcut', { shortcut: wheelShortcutVisual })}
-              aria-label={t('zoomOutWithShortcut', { shortcut: wheelShortcutSR })}
-              isDisabled={!canZoomOut}
-              onPress={onZoomOut}
-            >
-              <RiZoomOutLine size={20} />
-            </Button>
-            {/* Visual only - zoom level is announced via useScreenReaderAnnounce. */}
-            <span
-              aria-hidden="true"
-              className={css({
-                color: 'white',
-                fontSize: '0.8125rem',
-                fontWeight: 500,
-                minWidth: '3.25rem',
-                textAlign: 'center',
-                userSelect: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0 0.25rem',
-              })}
-            >
-              {zoomPercentage} %
-            </span>
-          </>
-        )}
+        {/* Animated wrapper: collapses to 0 when not zoomed. padding/margin
+            trick keeps overflow:hidden from clipping focus rings. */}
+        <div
+          className={css({
+            display: 'flex',
+            alignItems: 'center',
+            overflow: 'hidden',
+            transition: 'max-width 200ms ease-out, opacity 200ms ease-out',
+            padding: '3px',
+            margin: '-3px',
+          })}
+          style={{
+            maxWidth: isZoomed ? '12rem' : '0',
+            opacity: isZoomed ? 1 : 0,
+          }}
+          aria-hidden={!isZoomed}
+        >
+          <Button
+            size="sm"
+            variant="primaryTextDark"
+            square
+            tooltip={t('fitToWindow')}
+            aria-label={t('fitToWindow')}
+            isDisabled={!isZoomed}
+            onPress={onResetZoom}
+          >
+            <RiFullscreenExitLine size={20} />
+          </Button>
+          <Button
+            size="sm"
+            variant="primaryTextDark"
+            square
+            tooltip={t('zoomOutWithShortcut', { shortcut: wheelShortcutVisual })}
+            aria-label={t('zoomOut')}
+            isDisabled={!isZoomed || !canZoomOut}
+            onPress={onZoomOut}
+          >
+            <RiZoomOutLine size={20} />
+          </Button>
+          {/* Visual only - zoom level is announced via useScreenReaderAnnounce. */}
+          <span
+            aria-hidden="true"
+            className={css({
+              color: 'white',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              minWidth: '3.25rem',
+              textAlign: 'center',
+              userSelect: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 0.25rem',
+              whiteSpace: 'nowrap',
+            })}
+          >
+            {zoomPercentage} %
+          </span>
+        </div>
         <Button
           size="sm"
           variant="primaryTextDark"
           square
           tooltip={t('zoomInWithShortcut', { shortcut: wheelShortcutVisual })}
-          aria-label={t('zoomInWithShortcut', { shortcut: wheelShortcutSR })}
+          aria-label={t('zoomIn')}
           isDisabled={!canZoomIn}
           onPress={onZoomIn}
         >

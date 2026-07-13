@@ -24,7 +24,8 @@ export const ScreenShareZoomableVideo = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
   const announce = useScreenReaderAnnounce()
 
-  // Single SR announcement per zoom change (buttons only expose the action label).
+  // SR announcement: announce zoom level on change, with a one-time pan hint
+  // on the first zoom above 100 % per session.
   const prevZoomRef = useRef(zoom.zoomPercentage)
   const hasAnnouncedPanHint = useRef(false)
   useEffect(() => {
@@ -50,50 +51,35 @@ export const ScreenShareZoomableVideo = ({
     return () => el.removeEventListener('keydown', zoom.handleKeyDown)
   }, [tileRef, zoom.handleKeyDown])
 
-  // Native wheel listener so we can use { passive: false } and preventDefault.
-  // React onWheel is passive — Ctrl+scroll would zoom the whole browser page.
-  const zoomSurfaceRef = useRef<HTMLDivElement>(null)
+  // Native wheel listener with { passive: false } so preventDefault works.
   useEffect(() => {
-    const el = zoomSurfaceRef.current
+    const el = zoom.surfaceElRef.current
     if (!el) return
     el.addEventListener('wheel', zoom.handleWheel, { passive: false })
     return () => el.removeEventListener('wheel', zoom.handleWheel)
-  }, [zoom.handleWheel])
-
-  let panCursor: React.CSSProperties['cursor'] = 'default'
-  if (zoom.isZoomed) {
-    panCursor = zoom.isDragging ? 'grabbing' : 'grab'
-  }
+  }, [zoom.handleWheel, zoom.surfaceElRef])
 
   return (
     <>
-      {/* Pan/zoom surface - Ctrl+wheel to zoom, drag when zoomed. */}
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
-        ref={zoomSurfaceRef}
+        ref={zoom.surfaceElRef}
         className={css({
           width: '100%',
           height: '100%',
           overflow: 'hidden',
           position: 'relative',
           userSelect: 'none',
+          touchAction: 'none',
         })}
-        style={{
-          cursor: panCursor,
-        }}
-        onMouseDown={zoom.handlePanStart}
-        onMouseMove={zoom.handlePanMove}
-        onMouseUp={zoom.handlePanEnd}
-        onMouseLeave={zoom.handlePanEnd}
+        {...zoom.moveProps}
       >
         <div
+          ref={zoom.transformElRef}
           style={{
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            transform: `scale(${zoom.zoomLevel}) translate(${zoom.panOffset.x}%, ${zoom.panOffset.y}%)`,
             transformOrigin: 'center center',
-            transition: zoom.isDragging ? 'none' : 'transform 150ms ease-out',
           }}
         >
           <ScreenShareVideoTrack
