@@ -20,7 +20,6 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { ControlBar } from './ControlBar/ControlBar'
-import { FocusLayout } from '../components/FocusLayout'
 import { ParticipantTile } from '../components/ParticipantTile'
 import { SidePanel } from '../components/SidePanel'
 import { RecordingProvider } from '@/features/recording'
@@ -41,6 +40,7 @@ import { ReactionPortals } from '@/features/reactions/components/ReactionPortals
 import { CarouselLayout } from '@/features/layout/components/CarouselLayout'
 import { GridLayout } from '@/features/layout/components/GridLayout'
 import { RoomContentArea } from '@/features/layout/components/RoomContentArea'
+import { FocusLayout } from '@/features/layout/components/FocusLayout'
 import { usePictureInPicture } from '@/features/pip/hooks/usePictureInPicture'
 import { PipRoomPlaceholder } from '@/features/pip/components/PipRoomPlaceholder'
 
