@@ -91,7 +91,9 @@ export const ScreenShareZoomControls = ({
         className={css({
           backgroundColor: 'primaryDark.50',
           borderRadius: '2rem',
-          padding: '0.25rem',
+          padding: '0.5rem',
+          alignItems: 'center',
+          overflow: 'hidden',
           opacity: 0.7,
           transition: 'opacity 200ms linear',
           _hover: {
@@ -109,7 +111,7 @@ export const ScreenShareZoomControls = ({
               aria-label={t('fitToWindow')}
               onPress={onResetZoom}
             >
-              <RiFullscreenExitLine size={18} />
+              <RiFullscreenExitLine size={20} />
             </Button>
             <Button
               size="sm"
@@ -120,16 +122,16 @@ export const ScreenShareZoomControls = ({
               isDisabled={!canZoomOut}
               onPress={onZoomOut}
             >
-              <RiZoomOutLine size={18} />
+              <RiZoomOutLine size={20} />
             </Button>
             {/* Visual only - zoom level is announced via useScreenReaderAnnounce. */}
             <span
               aria-hidden="true"
               className={css({
                 color: 'white',
-                fontSize: '0.75rem',
+                fontSize: '0.8125rem',
                 fontWeight: 500,
-                minWidth: '3rem',
+                minWidth: '3.25rem',
                 textAlign: 'center',
                 userSelect: 'none',
                 display: 'flex',
@@ -151,7 +153,7 @@ export const ScreenShareZoomControls = ({
           isDisabled={!canZoomIn}
           onPress={onZoomIn}
         >
-          <RiZoomInLine size={18} />
+          <RiZoomInLine size={20} />
         </Button>
         {isFullscreenAvailable && (
           <Button
@@ -163,9 +165,9 @@ export const ScreenShareZoomControls = ({
             onPress={toggleFullScreen}
           >
             {isFullscreen ? (
-              <RiCollapseDiagonalLine size={18} />
+              <RiCollapseDiagonalLine size={20} />
             ) : (
-              <RiExpandDiagonalLine size={18} />
+              <RiExpandDiagonalLine size={20} />
             )}
           </Button>
         )}
