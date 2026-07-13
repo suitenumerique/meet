@@ -37,7 +37,8 @@ export const ScreenShareZoomControls = ({
   const announce = useScreenReaderAnnounce()
 
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const wasOwnFullscreen = useRef(false)
+  // Tracks whether this tile's container triggered fullscreen (vs another share's).
+  const wasThisTileFullscreen = useRef(false)
   const [isFullscreenAvailable] = useState(
     () => typeof document !== 'undefined' && document.fullscreenEnabled
   )
@@ -50,10 +51,10 @@ export const ScreenShareZoomControls = ({
       setIsFullscreen(entered)
 
       if (entered && document.fullscreenElement === containerRef.current) {
-        wasOwnFullscreen.current = true
+        wasThisTileFullscreen.current = true
         announce(t('fullScreenEntered'), 'assertive')
-      } else if (!entered && wasOwnFullscreen.current) {
-        wasOwnFullscreen.current = false
+      } else if (!entered && wasThisTileFullscreen.current) {
+        wasThisTileFullscreen.current = false
         announce(t('fullScreenExited'), 'assertive')
       }
     }
