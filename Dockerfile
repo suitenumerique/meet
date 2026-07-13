@@ -37,7 +37,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --locked --no-dev
 
 # ---- mails ----
-FROM node:20 AS mail-builder
+FROM node:22 AS mail-builder
 
 COPY ./src/mail /mail/app
 
