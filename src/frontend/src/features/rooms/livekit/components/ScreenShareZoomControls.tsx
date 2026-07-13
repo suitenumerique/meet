@@ -47,13 +47,14 @@ export const ScreenShareZoomControls = ({
   // Only this tile's instance announces to avoid duplicates with multiple shares.
   useEffect(() => {
     const onChange = () => {
-      const entered = !!document.fullscreenElement
-      setIsFullscreen(entered)
+      const isThisTileFullscreen =
+        document.fullscreenElement === containerRef.current
+      setIsFullscreen(isThisTileFullscreen)
 
-      if (entered && document.fullscreenElement === containerRef.current) {
+      if (isThisTileFullscreen) {
         wasThisTileFullscreen.current = true
         announce(t('fullScreenEntered'), 'assertive')
-      } else if (!entered && wasThisTileFullscreen.current) {
+      } else if (wasThisTileFullscreen.current) {
         wasThisTileFullscreen.current = false
         announce(t('fullScreenExited'), 'assertive')
       }
@@ -64,7 +65,7 @@ export const ScreenShareZoomControls = ({
 
   const toggleFullScreen = useCallback(async () => {
     try {
-      if (document.fullscreenElement) {
+      if (document.fullscreenElement === containerRef.current) {
         await document.exitFullscreen()
       } else {
         // Tile container so zoom controls stay visible in fullscreen.
