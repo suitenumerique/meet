@@ -16,6 +16,7 @@ import { Info } from './Info'
 import { HStack } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { useEscapeToClose } from '@/hooks/useEscapeToClose'
 
 type StyledSidePanelProps = {
   title: string
@@ -188,21 +189,25 @@ export const SidePanel = () => {
     focusAside()
   }, [activePanelId, focusAside])
 
+  const closePanel = useCallback(() => {
+    layoutStore.activePanelId = null
+    layoutStore.activeSubPanelId = null
+  }, [])
+
   useRestoreFocus(isSidePanelOpen, {
     onOpened: handlePanelOpened,
     preventScroll: true,
     activeKey: activePanelId,
   })
 
+  useEscapeToClose(isSidePanelOpen, asideRef, closePanel)
+
   return (
     <StyledSidePanel
       ref={asideRef}
       title={title}
       ariaLabel={t('ariaLabel', { title })}
-      onClose={() => {
-        layoutStore.activePanelId = null
-        layoutStore.activeSubPanelId = null
-      }}
+      onClose={closePanel}
       closeButtonTooltip={t('closeButton', {
         content: t(`content.${activeSubPanelId || activePanelId}`),
       })}

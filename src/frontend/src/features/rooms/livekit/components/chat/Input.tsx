@@ -35,6 +35,11 @@ export const ChatInput = ({
     if (!isDisabled) handleSubmit()
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== 'Escape') e.stopPropagation()
+    submitOnEnter(e)
+  }
+
   useEffect(() => {
     const resize = () => {
       if (!inputRef.current) return
@@ -79,10 +84,7 @@ export const ChatInput = ({
     >
       <TextArea
         ref={inputRef}
-        onKeyDown={(e) => {
-          e.stopPropagation()
-          submitOnEnter(e)
-        }}
+        onKeyDown={handleKeyDown}
         onKeyUp={(e) => e.stopPropagation()}
         placeholder={t('textArea.placeholder')}
         value={text}
