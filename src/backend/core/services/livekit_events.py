@@ -221,10 +221,10 @@ class LiveKitEventsService:
             api.EgressStatus.EGRESS_FAILED: models.RecordingStatusChoices.FAILED_TO_STOP,
         }
         terminal_status = terminal_status_mapping.get(data.egress_info.status)
-        if (
-            terminal_status is not None
-            and recording.status == models.RecordingStatusChoices.ACTIVE
-        ):
+        if terminal_status is not None and recording.status in {
+            models.RecordingStatusChoices.ACTIVE,
+            models.RecordingStatusChoices.STOPPED,
+        }:
             recording.status = terminal_status
             recording.save()
 
