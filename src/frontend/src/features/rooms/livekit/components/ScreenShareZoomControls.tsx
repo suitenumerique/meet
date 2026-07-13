@@ -3,13 +3,11 @@ import { HStack } from '@/styled-system/jsx'
 import { Button } from '@/primitives'
 import {
   RiFullscreenExitLine,
-  RiFullscreenLine,
   RiZoomInLine,
   RiZoomOutLine,
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import { ScreenShareFullscreenButton } from './ScreenShareFullscreenButton'
 
 interface ScreenShareZoomControlsProps {
   containerRef: React.RefObject<HTMLDivElement | null>
@@ -33,46 +31,6 @@ export const ScreenShareZoomControls = ({
   onResetZoom,
 }: ScreenShareZoomControlsProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
-  const announce = useScreenReaderAnnounce()
-
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const wasOwnFullscreen = useRef(false)
-  const [isFullscreenAvailable] = useState(
-    () => typeof document !== 'undefined' && document.fullscreenEnabled
-  )
-
-  // Covers Esc and browser UI exits, not just the toolbar button.
-  // Only this tile's instance announces to avoid duplicates with multiple shares.
-  useEffect(() => {
-    const onChange = () => {
-      const isThisTileFullscreen =
-        document.fullscreenElement === containerRef.current
-      setIsFullscreen(isThisTileFullscreen)
-
-      if (isThisTileFullscreen) {
-        wasOwnFullscreen.current = true
-        announce(t('fullScreenEntered'), 'assertive')
-      } else if (wasOwnFullscreen.current) {
-        wasOwnFullscreen.current = false
-        announce(t('fullScreenExited'), 'assertive')
-      }
-    }
-    document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
-  }, [announce, t, containerRef])
-
-  const toggleFullScreen = useCallback(async () => {
-    try {
-      if (document.fullscreenElement === containerRef.current) {
-        await document.exitFullscreen()
-      } else {
-        // Tile container so zoom controls stay visible in fullscreen.
-        await containerRef.current?.requestFullscreen()
-      }
-    } catch (error) {
-      console.error('Error toggling fullscreen:', error)
-    }
-  }, [containerRef])
 
   return (
     <div
@@ -153,22 +111,7 @@ export const ScreenShareZoomControls = ({
         >
           <RiZoomInLine size={18} />
         </Button>
-        {isFullscreenAvailable && (
-          <Button
-            size="sm"
-            variant="primaryTextDark"
-            square
-            tooltip={isFullscreen ? t('exitFullScreen') : t('fullScreen')}
-            aria-label={isFullscreen ? t('exitFullScreen') : t('fullScreen')}
-            onPress={toggleFullScreen}
-          >
-            {isFullscreen ? (
-              <RiFullscreenExitLine size={18} />
-            ) : (
-              <RiFullscreenLine size={18} />
-            )}
-          </Button>
-        )}
+        <ScreenShareFullscreenButton containerRef={containerRef} />
       </HStack>
     </div>
   )
