@@ -361,7 +361,8 @@
       "tools": "Weitere Tools",
       "info": "Meeting-Informationen"
     },
-    "closeButton": "{{content}} ausblenden"
+    "closeButton": "{{content}} ausblenden (Escape)",
+    "escapeHint": "Escape drücken zum Schließen"
   },
   "chat": {
     "disclaimer": "Die Nachrichten sind nur für Teilnehmende zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Meetings gelöscht.",

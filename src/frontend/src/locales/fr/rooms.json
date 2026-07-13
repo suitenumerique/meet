@@ -360,7 +360,8 @@
       "tools": "outils de réunion",
       "info": "informations sur la réunion"
     },
-    "closeButton": "Masquer {{content}}"
+    "closeButton": "Masquer {{content}} (Échap)",
+    "escapeHint": "Appuyez sur Échap pour fermer"
   },
   "chat": {
     "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel.",

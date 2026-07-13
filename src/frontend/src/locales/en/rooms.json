@@ -360,7 +360,8 @@
       "tools": "more tools",
       "info": "meeting information"
     },
-    "closeButton": "Hide {{content}}"
+    "closeButton": "Hide {{content}} (Escape)",
+    "escapeHint": "Press Escape to close"
   },
   "chat": {
     "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call.",

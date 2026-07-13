@@ -17,6 +17,7 @@ import { HStack } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { useEscapeToClose } from '@/hooks/useEscapeToClose'
+import { srOnly } from '@/styles/a11y'
 
 type StyledSidePanelProps = {
   title: string
@@ -25,6 +26,7 @@ type StyledSidePanelProps = {
   onClose: () => void
   isClosed: boolean
   closeButtonTooltip: string
+  escapeHint: string
   isSubmenu: boolean
   onBack: () => void
   backButtonLabel: string
@@ -41,6 +43,7 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
       isClosed,
       isReactionToolbarOpen,
       closeButtonTooltip,
+      escapeHint,
       isSubmenu = false,
       onBack,
       backButtonLabel,
@@ -85,7 +88,11 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
       }}
       aria-hidden={isClosed}
       aria-label={ariaLabel}
+      aria-describedby="side-panel-escape-hint"
     >
+      <span id="side-panel-escape-hint" className={srOnly}>
+        {escapeHint}
+      </span>
       <HStack alignItems="center">
         {isSubmenu && (
           <Button
@@ -211,6 +218,7 @@ export const SidePanel = () => {
       closeButtonTooltip={t('closeButton', {
         content: t(`content.${activeSubPanelId || activePanelId}`),
       })}
+      escapeHint={t('escapeHint')}
       isClosed={!isSidePanelOpen}
       isSubmenu={isSubPanelOpen}
       isReactionToolbarOpen={isReactionToolbarOpen}
