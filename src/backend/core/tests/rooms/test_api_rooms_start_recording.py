@@ -7,6 +7,7 @@ Test rooms API endpoints in the Meet core app: start recording.
 from unittest import mock
 
 import pytest
+from livekit import api as livekit_api
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory
@@ -547,7 +548,11 @@ def test_start_recording_persists_resolved_encoding(
         "resolution": "720p",
         "profile": "talking_heads",
         "resolved": {
+            "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
             "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
+            "video_codec": livekit_api.VideoCodec.H264_MAIN,
+            "audio_codec": livekit_api.AudioCodec.AAC,
+            "audio_frequency": 48000,
             "width": 1280,
             "height": 720,
             "framerate": 15,

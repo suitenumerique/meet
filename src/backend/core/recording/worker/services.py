@@ -2,8 +2,6 @@
 
 # pylint: disable=no-member
 
-from django.conf import settings
-
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
@@ -11,43 +9,6 @@ from ... import utils
 from ..enums import FileExtension
 from .exceptions import WorkerConnectionError, WorkerResponseError
 from .factories import WorkerServiceConfig
-
-
-def resolve_encoding_config(encoding_config):
-    """Resolve a per-recording EncodingConfig to concrete encoding fields.
-
-    Returns a JSON-serializable dict of the LiveKit ``EncodingOptions`` kwargs
-    derived from the request's resolution / profile, or None when no
-    encoding_config is provided. This allows to derive width, height, fps, and
-    bitrate from (resolution, profile).
-
-    Only the fields that can actually be resolved are included: width/height
-    require a resolution, framerate/video_bitrate require both a resolution and a
-    profile.
-    """
-    if encoding_config is None:
-        return None
-
-    resolution = encoding_config.resolution
-    profile = encoding_config.profile
-
-    resolved = {
-        "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
-    }
-
-    if resolution:
-        resolution_config = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[
-            resolution
-        ]
-        resolved["width"] = resolution_config["width"]
-        resolved["height"] = resolution_config["height"]
-
-    if resolution and profile:
-        profile_config = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[profile]
-        resolved["framerate"] = profile_config["fps"]
-        resolved["video_bitrate"] = profile_config["kbps"][resolution]
-
-    return resolved
 
 
 class BaseEgressService:

@@ -63,12 +63,12 @@ from core.recording.worker.exceptions import (
     RecordingStopError,
 )
 from core.recording.worker.factories import (
+    build_encoding_options,
     get_worker_service,
 )
 from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
-from core.recording.worker.services import resolve_encoding_config
 from core.services.invitation import InvitationService
 from core.services.livekit_events import (
     LiveKitEventsService,
@@ -402,8 +402,8 @@ class RoomViewSet(
         if options is not None and options.encoding is not None:
             # Persist the resolved encoding (concrete width/height/framerate/
             # bitrate) alongside the requested resolution/profile for traceability.
-            options_data["encoding"]["resolved"] = resolve_encoding_config(
-                options.encoding
+            options_data["encoding"]["resolved"] = build_encoding_options(
+                options.encoding.resolution, options.encoding.profile
             )
 
         try:
