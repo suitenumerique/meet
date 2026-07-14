@@ -1,27 +1,35 @@
+import { useConfig } from '@/api/useConfig'
+import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import {
   useRemoteParticipants,
   useRoomContext,
 } from '@livekit/components-react'
 import { useEffect, useRef } from 'react'
-import { DisconnectReason, RoomEvent } from 'livekit-client'
-import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
-import posthog from 'posthog-js'
-import { connectionObserverStore } from '@/stores/connectionObserver'
-import { useConfig } from '@/api/useConfig'
-import { userPreferencesStore } from '@/stores/userPreferences'
 import { useSnapshot } from 'valtio'
-import { useIsAdvancedConnectionObserverEnabled } from './useIsAdvancedConnectionObserverEnabled'
+import { DisconnectReason, RoomEvent } from 'livekit-client'
+
+import { userPreferencesStore } from '@/stores/userPreferences'
+import { connectionObserverStore } from '@/stores/connectionObserver'
+
+import posthog from 'posthog-js'
+import { useFeatureFlagEnabled } from 'posthog-js/react'
+import { isMobileBrowser } from '@livekit/components-core'
+import { FeatureFlags } from '@/features/analytics/enums'
 
 const CANDIDATE_POLL_INTERVAL_MS = 5000
 
-export const useConnectionObserver = () => {
+export const ConnectionObserver = () => {
   const room = useRoomContext()
   const connectionStartTimeRef = useRef<number | null>(null)
 
   const { data } = useConfig()
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
+
+  const featureEnabled = useFeatureFlagEnabled(FeatureFlags.candidatePolling)
+  const isMobile = isMobileBrowser()
+
   const isAdvancedConnectionObserverEnabled =
-    useIsAdvancedConnectionObserverEnabled()
+    !isMobile && isAnalyticsEnabled && featureEnabled
 
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
@@ -232,4 +240,6 @@ export const useConnectionObserver = () => {
       connectionStartTimeRef.current = null
     }
   }, [])
+
+  return null
 }
