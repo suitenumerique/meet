@@ -1,6 +1,6 @@
 import { isWeb } from '@livekit/components-core'
 import { Track } from 'livekit-client'
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 import {
   ConnectionStateToast,
   RoomAudioRenderer,
@@ -13,9 +13,6 @@ import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { ConnectionObserver } from '../components/ConnectionObserver'
 import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
-import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
-import { useSettingsDialog } from '@/features/settings'
-import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { useSyncLiveKitMetadata } from '../hooks/useSyncLiveKitMetadata'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
@@ -54,19 +51,9 @@ export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElemen
  * @public
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
-  const { toggleSettingsDialog } = useSettingsDialog()
-
   useRoomPageTitle()
   useVideoResolutionSubscription()
   useSyncLiveKitMetadata()
-
-  useRegisterKeyboardShortcut({
-    id: 'open-shortcuts',
-    handler: useCallback(() => {
-      toggleSettingsDialog(SettingsDialogExtendedKey.SHORTCUTS)
-    }, [toggleSettingsDialog]),
-  })
-
   useNoiseReduction()
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
