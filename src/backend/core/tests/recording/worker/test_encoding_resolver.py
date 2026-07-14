@@ -85,13 +85,12 @@ def test_resolve_options_returns_none_when_empty(service, encoding_options):
 )
 def test_resolve_profile_resolution_combinations(service, profile, resolution):
     """Every (profile, resolution) pair should resolve to the values from settings."""
-    expected_width, expected_height = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[
-        resolution
-    ]
-    expected_fps, kbps_by_resolution = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[
-        profile
-    ]
-    expected_bitrate = kbps_by_resolution[resolution]
+    resolution_config = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[resolution]
+    expected_width = resolution_config["width"]
+    expected_height = resolution_config["height"]
+    profile_config = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[profile]
+    expected_fps = profile_config["fps"]
+    expected_bitrate = profile_config["kbps"][resolution]
 
     resolved = resolve_encoding_config(
         EncodingConfig(resolution=resolution, profile=profile)

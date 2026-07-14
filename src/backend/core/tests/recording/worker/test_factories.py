@@ -40,6 +40,16 @@ def test_settings():
         "AWS_S3_SECRET_ACCESS_KEY": "test_secret",
         "AWS_S3_REGION_NAME": "test-region",
         "AWS_STORAGE_BUCKET_NAME": "test-bucket",
+        "RECORDING_ENCODING_AVAILABLE_RESOLUTIONS": {
+            "720p": {"width": 1280, "height": 720}
+        },
+        "RECORDING_ENCODING_AVAILABLE_PROFILES": {
+            "full": {"fps": 30, "kbps": {"720p": 3000}}
+        },
+        "RECORDING_ENCODING_DEFAULT_RESOLUTION": "720p",
+        "RECORDING_ENCODING_DEFAULT_PROFILE": "full",
+        "RECORDING_ENCODING_AUDIO_BITRATE_KBPS": 128,
+        "RECORDING_ENCODING_KEY_FRAME_INTERVAL_S": 4.0,
     }
 
     # Use override_settings to properly patch Django settings
@@ -66,8 +76,18 @@ def test_config_initialization(default_config):
         "bucket": "test-bucket",
         "force_path_style": True,
     }
-    # Encoding override is opt-in; disabled by default.
-    assert default_config.encoding_options is None
+    # The default encoding is always resolved from the default profile/resolution.
+    assert default_config.encoding_options == {
+        "width": 1280,
+        "height": 720,
+        "framerate": 30,
+        "video_bitrate": 3000,
+        "audio_bitrate": 128,
+        "key_frame_interval": 4.0,
+        "video_codec": livekit_api_codec.VideoCodec.H264_MAIN,
+        "audio_codec": livekit_api_codec.AudioCodec.AAC,
+        "audio_frequency": 48000,
+    }
 
 
 def test_config_immutability(default_config):
@@ -76,6 +96,7 @@ def test_config_immutability(default_config):
         default_config.output_folder = "new/path"
 
 
+@pytest.mark.parametrize("custom_encoding_enabled", [True, False])
 @override_settings(
     RECORDING_OUTPUT_FOLDER="/test/output",
     LIVEKIT_CONFIGURATION={"server": "test.example.com"},
@@ -84,23 +105,27 @@ def test_config_immutability(default_config):
     AWS_S3_SECRET_ACCESS_KEY="test_secret",
     AWS_S3_REGION_NAME="test-region",
     AWS_STORAGE_BUCKET_NAME="test-bucket",
-    RECORDING_ENCODING_ENABLED=True,
-    RECORDING_ENCODING_WIDTH=1280,
-    RECORDING_ENCODING_HEIGHT=720,
-    RECORDING_ENCODING_FRAMERATE=15,
-    RECORDING_ENCODING_VIDEO_BITRATE_KBPS=600,
+    RECORDING_ENCODING_AVAILABLE_RESOLUTIONS={"720p": {"width": 1280, "height": 720}},
+    RECORDING_ENCODING_AVAILABLE_PROFILES={"low": {"fps": 15, "kbps": {"720p": 600}}},
+    RECORDING_ENCODING_DEFAULT_RESOLUTION="720p",
+    RECORDING_ENCODING_DEFAULT_PROFILE="low",
     RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64,
     RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=10.0,
 )
-def test_config_encoding_options_enabled():
-    """When RECORDING_ENCODING_ENABLED is True, encoding options are populated.
+def test_config_encoding_options_default(custom_encoding_enabled):
+    """The default encoding is always resolved from the default profile/resolution.
 
-    The dict mixes operator-tunable values from settings with pinned codec /
-    frequency constants, so the services layer can simply unpack it.
+    The default fallback resolves the default profile/resolution and mixes those
+    operator-tunable values with pinned codec / frequency constants. This works
+    regardless of RECORDING_CUSTOM_ENCODING_ENABLED, which only gates the
+    per-recording API, so both toggle states produce the same default.
     """
 
-    WorkerServiceConfig.from_settings.cache_clear()
-    config = WorkerServiceConfig.from_settings()
+    with override_settings(
+        RECORDING_CUSTOM_ENCODING_ENABLED=custom_encoding_enabled
+    ):
+        WorkerServiceConfig.from_settings.cache_clear()
+        config = WorkerServiceConfig.from_settings()
 
     assert config.encoding_options == {
         "width": 1280,
@@ -113,6 +138,27 @@ def test_config_encoding_options_enabled():
         "audio_codec": livekit_api_codec.AudioCodec.AAC,
         "audio_frequency": 48000,
     }
+
+
+@pytest.mark.parametrize(
+    ("default_resolution", "default_profile"),
+    [("", "full"), ("720p", ""), ("", "")],
+)
+def test_config_encoding_options_none_when_default_missing(
+    test_settings, default_resolution, default_profile
+):
+    """A missing default resolution/profile leaves encoding_options None.
+
+    The service then omits the `advanced` field so LiveKit uses its built-in preset.
+    """
+    with override_settings(
+        RECORDING_ENCODING_DEFAULT_RESOLUTION=default_resolution,
+        RECORDING_ENCODING_DEFAULT_PROFILE=default_profile,
+    ):
+        WorkerServiceConfig.from_settings.cache_clear()
+        config = WorkerServiceConfig.from_settings()
+
+    assert config.encoding_options is None
 
 
 @override_settings(

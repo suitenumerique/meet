@@ -475,6 +475,7 @@ def test_start_recording_options_encoding_valid(
 ):
     """Should accept a valid encoding configuration."""
     settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
     room = RoomFactory()
     user = UserFactory()
     room.accesses.create(user=user, role="owner")
@@ -493,12 +494,38 @@ def test_start_recording_options_encoding_valid(
     assert response.status_code == 201
 
 
+def test_start_recording_options_encoding_rejected_when_custom_encoding_disabled(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Per-recording encoding is rejected when RECORDING_CUSTOM_ENCODING_ENABLED is off."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = False
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"encoding": {"resolution": "720p", "profile": "talking_heads"}},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert not Recording.objects.filter(room=room).exists()
+
+
 def test_start_recording_persists_resolved_encoding(
     settings, mock_worker_service_factory, mock_worker_manager
 ):
     """The resolved encoding should be persisted in recording.options alongside
     the requested resolution/profile for traceability."""
     settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
     room = RoomFactory()
     user = UserFactory()
     room.accesses.create(user=user, role="owner")
@@ -534,6 +561,7 @@ def test_start_recording_forwards_resolved_encoding_to_worker(
 ):
     """The resolved encoding should passed on to the worker."""
     settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
     room = RoomFactory()
     user = UserFactory()
     room.accesses.create(user=user, role="owner")
@@ -566,6 +594,7 @@ def test_start_recording_forwards_resolved_encoding_to_worker(
 def test_start_recording_options_encoding_invalid_resolution(settings):
     """Should reject invalid encoding resolution values."""
     settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
     room = RoomFactory()
     user = UserFactory()
     room.accesses.create(user=user, role="owner")
@@ -584,6 +613,7 @@ def test_start_recording_options_encoding_invalid_resolution(settings):
 def test_start_recording_options_encoding_unknown_key_rejected(settings):
     """Should reject unknown keys in encoding configuration."""
     settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
     room = RoomFactory()
     user = UserFactory()
     room.accesses.create(user=user, role="owner")

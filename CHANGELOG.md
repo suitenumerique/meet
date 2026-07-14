@@ -18,6 +18,7 @@ and this project adheres to
 
 ### Changed
 
+- ♻️(backend) apply a default recording encoding (LiveKit preset when its defaults are unset); gate per-recording override behind RECORDING_CUSTOM_ENCODING_ENABLED
 - 🗑️(settings) deprecate SUMMARY_SERVICE_VERSION=1
 - ⬆️(mail) update mjml to v5 and @html-to/text-cli
 - 🚸(frontend) initialize the join input name with the persisted full name

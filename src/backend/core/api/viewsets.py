@@ -384,6 +384,20 @@ class RoomViewSet(
         options = serializer.validated_data.get("options")
         room = self.get_object()
 
+        if (
+            options is not None
+            and options.encoding is not None
+            and not settings.RECORDING_CUSTOM_ENCODING_ENABLED
+        ):
+            # Per-recording encoding selection is gated by
+            # RECORDING_CUSTOM_ENCODING_ENABLED. When disabled, recordings use
+            # encoding defined by RECORDING_ENCODING_DEFAULT_RESOLUTION
+            # and RECORDING_ENCODING_DEFAULT_PROFILE.
+            return drf_response.Response(
+                {"detail": "Per-recording encoding selection is disabled."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
         options_data = options.model_dump(exclude_none=True) if options else {}
         if options is not None and options.encoding is not None:
             # Persist the resolved encoding (concrete width/height/framerate/

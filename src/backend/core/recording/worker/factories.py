@@ -38,16 +38,24 @@ class WorkerServiceConfig:
 
         logger.debug("Loading WorkerServiceConfig from settings.")
 
+        # The default encoding is resolved from the default profile/resolution and
+        # applied to every recording that carries no per-recording encoding.
+        # When either default is missing, we leave this as None so LiveKit falls
+        # back to its built-in preset.
+        resolution = settings.RECORDING_ENCODING_DEFAULT_RESOLUTION
+        profile = settings.RECORDING_ENCODING_DEFAULT_PROFILE
+
         encoding_options: Optional[Dict[str, Any]] = None
-        if settings.RECORDING_ENCODING_ENABLED:
-            # Single source of truth for the EncodingOptions kwargs:
-            # operator-tunable values live in Django settings, codec / frequency
-            # are pinned constants. The services layer only unpacks this dict.
+        if resolution and profile:
+            resolution_config = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[
+                resolution
+            ]
+            profile_config = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[profile]
             encoding_options = {
-                "width": settings.RECORDING_ENCODING_WIDTH,
-                "height": settings.RECORDING_ENCODING_HEIGHT,
-                "framerate": settings.RECORDING_ENCODING_FRAMERATE,
-                "video_bitrate": settings.RECORDING_ENCODING_VIDEO_BITRATE_KBPS,
+                "width": resolution_config["width"],
+                "height": resolution_config["height"],
+                "framerate": profile_config["fps"],
+                "video_bitrate": profile_config["kbps"][resolution],
                 "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
                 "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
                 "video_codec": _RECORDING_VIDEO_CODEC,
