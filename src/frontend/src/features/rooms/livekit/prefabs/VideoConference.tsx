@@ -10,7 +10,7 @@ import { ControlBar } from './ControlBar/ControlBar'
 import { SidePanel } from '../components/SidePanel'
 import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
-import { useConnectionObserver } from '../hooks/useConnectionObserver'
+import { ConnectionObserver } from '../components/ConnectionObserver'
 import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
@@ -56,7 +56,6 @@ export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElemen
 export function VideoConference({ ...props }: VideoConferenceProps) {
   const { toggleSettingsDialog } = useSettingsDialog()
 
-  useConnectionObserver()
   useRoomPageTitle()
   useVideoResolutionSubscription()
   useSyncLiveKitMetadata()
@@ -75,44 +74,51 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
   return (
-    <div
-      className="lk-video-conference"
-      {...props}
-      style={{
-        overflowX: 'hidden',
-      }}
-    >
-      {isWeb() && (
-        <>
-          <ScreenShareErrorModal
-            isOpen={isShareErrorVisible}
-            onClose={() => setIsShareErrorVisible(false)}
-          />
-          <IsIdleDisconnectModal />
-          <PinAnnouncer />
-          <RoomContentArea>
-            {isPictureInPictureOpen ? <PipRoomPlaceholder /> : <StageLayout />}
-          </RoomContentArea>
-          <ControlBar
-            onDeviceError={(e) => {
-              console.error(e)
-              if (
-                e.source == Track.Source.ScreenShare &&
-                e.error.toString() ==
-                  'NotAllowedError: Permission denied by system'
-              ) {
-                setIsShareErrorVisible(true)
-              }
-            }}
-          />
-          <SidePanel />
-        </>
-      )}
-      <RoomAudioRenderer />
-      <ConnectionStateToast />
-      <RecordingProvider />
-      <SettingsDialogProvider />
-      <ReactionPortals />
-    </div>
+    <>
+      <ConnectionObserver />
+      <div
+        className="lk-video-conference"
+        {...props}
+        style={{
+          overflowX: 'hidden',
+        }}
+      >
+        {isWeb() && (
+          <>
+            <ScreenShareErrorModal
+              isOpen={isShareErrorVisible}
+              onClose={() => setIsShareErrorVisible(false)}
+            />
+            <IsIdleDisconnectModal />
+            <PinAnnouncer />
+            <RoomContentArea>
+              {isPictureInPictureOpen ? (
+                <PipRoomPlaceholder />
+              ) : (
+                <StageLayout />
+              )}
+            </RoomContentArea>
+            <ControlBar
+              onDeviceError={(e) => {
+                console.error(e)
+                if (
+                  e.source == Track.Source.ScreenShare &&
+                  e.error.toString() ==
+                    'NotAllowedError: Permission denied by system'
+                ) {
+                  setIsShareErrorVisible(true)
+                }
+              }}
+            />
+            <SidePanel />
+          </>
+        )}
+        <RoomAudioRenderer />
+        <ConnectionStateToast />
+        <RecordingProvider />
+        <SettingsDialogProvider />
+        <ReactionPortals />
+      </div>
+    </>
   )
 }
