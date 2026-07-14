@@ -18,7 +18,6 @@ and this project adheres to
 
 ### Changed
 
-- ♻️(backend) apply a default recording encoding (LiveKit preset when its defaults are unset); gate per-recording override behind RECORDING_CUSTOM_ENCODING_ENABLED
 - 🗑️(settings) deprecate SUMMARY_SERVICE_VERSION=1
 - ⬆️(mail) update mjml to v5 and @html-to/text-cli
 - 🚸(frontend) initialize the join input name with the persisted full name
@@ -35,6 +34,7 @@ and this project adheres to
 - 🩹(backend) identify externally provisioned users to PostHog
 - 🐛(backend) fix info panel crash for unregistered rooms
 - ♿️(frontend) focus side panel container on open #1452
+- ♻️(backend) change how encoding settings are defined
 
 ## [1.23.0] - 2026-07-08
 
