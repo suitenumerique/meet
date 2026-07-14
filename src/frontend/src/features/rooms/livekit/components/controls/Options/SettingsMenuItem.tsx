@@ -2,11 +2,10 @@ import { RiSettings3Line } from '@remixicon/react'
 import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { menuRecipe } from '@/primitives/menuRecipe'
-import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
+import { openSettingsDialog } from '@/stores/settings'
 
 export const SettingsMenuItem = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
-  const { openSettingsDialog } = useSettingsDialog()
 
   return (
     <MenuItem

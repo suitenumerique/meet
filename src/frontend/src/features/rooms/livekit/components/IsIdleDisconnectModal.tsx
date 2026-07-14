@@ -7,9 +7,9 @@ import { HStack } from '@/styled-system/jsx'
 import { useEffect, useRef, useState } from 'react'
 import { navigateTo } from '@/navigation/navigateTo'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
-import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useHumanizeDuration } from '@/hooks/useHumanizeDuration'
+import { openSettingsDialog } from '@/stores/settings'
 
 const IDLE_DISCONNECT_TIMEOUT_MS = 120000 // 2 minutes
 const COUNTDOWN_ANNOUNCEMENT_SECONDS = new Set([90, 60, 30])
@@ -94,7 +94,6 @@ const Description = () => {
 
 const Settings = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'isIdleDisconnectModal' })
-  const { openSettingsDialog } = useSettingsDialog()
   return (
     <P>
       {t('settingsPrefix')}{' '}
