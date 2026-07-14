@@ -1,6 +1,6 @@
 """Tests for the per-recording encoding resolution in BaseEgressService."""
 
-# pylint: disable=protected-access,redefined-outer-name,unused-argument
+# pylint: disable=protected-access,redefined-outer-name,unused-argument,no-member
 
 from unittest.mock import Mock
 

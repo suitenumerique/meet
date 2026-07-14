@@ -2,7 +2,7 @@
 Test rooms API endpoints in the Meet core app: start recording.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument
+# pylint: disable=redefined-outer-name,unused-argument,no-member
 
 from unittest import mock
 

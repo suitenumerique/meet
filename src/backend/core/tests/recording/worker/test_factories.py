@@ -121,9 +121,7 @@ def test_config_encoding_options_default(custom_encoding_enabled):
     per-recording API, so both toggle states produce the same default.
     """
 
-    with override_settings(
-        RECORDING_CUSTOM_ENCODING_ENABLED=custom_encoding_enabled
-    ):
+    with override_settings(RECORDING_CUSTOM_ENCODING_ENABLED=custom_encoding_enabled):
         WorkerServiceConfig.from_settings.cache_clear()
         config = WorkerServiceConfig.from_settings()
 
