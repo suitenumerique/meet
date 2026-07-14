@@ -23,7 +23,6 @@ import { VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox.tsx'
 
 import {
-  useSettingsDialog,
   SettingsDialogExtendedKey,
   useTranscriptionLanguage,
 } from '@/features/settings'
@@ -35,6 +34,7 @@ import { useIsMetadataCollectorEnabled } from '../hooks/useMetadataCollectorEnab
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { LimitDescription } from './LimitDescription'
+import { openSettingsDialog } from '@/stores/settings'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -47,8 +47,6 @@ export const TranscriptSidePanel = () => {
   const { notifyParticipants } = useNotifyParticipants()
   const { selectedLanguageKey, selectedLanguageLabel, isLanguageSetToAuto } =
     useTranscriptionLanguage()
-
-  const { openSettingsDialog } = useSettingsDialog()
 
   const hasTranscriptAccess = useHasRecordingAccess(
     RecordingMode.Transcript,
