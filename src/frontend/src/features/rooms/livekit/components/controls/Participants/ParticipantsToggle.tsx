@@ -3,10 +3,11 @@ import { RiGroupLine, RiInfinityLine } from '@remixicon/react'
 import { ToggleButton } from '@/primitives'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { css } from '@/styled-system/css'
-import { useParticipants } from '@livekit/components-react'
+import { useRemoteParticipants } from '@livekit/components-react'
 import { useSidePanel } from '../../../hooks/useSidePanel'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { RoomEvent } from 'livekit-client'
 
 export const ParticipantsToggle = ({
   onPress,
@@ -19,8 +20,13 @@ export const ParticipantsToggle = ({
    * The 'numParticipant' property on the room only updates when the room's metadata changes,
    * resulting in a delay compared to the participant list's actual refresh rate.
    */
-  const participants = useParticipants()
-  const numParticipants = participants?.length
+  const remoteParticipants = useRemoteParticipants({
+    updateOnlyOn: [
+      RoomEvent.ParticipantConnected,
+      RoomEvent.ParticipantDisconnected,
+    ],
+  })
+  const numParticipants = remoteParticipants?.length + 1 // for the local participant
   const announcedCount =
     numParticipants && numParticipants > 0 ? numParticipants : 1
 
