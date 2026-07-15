@@ -1,15 +1,8 @@
 import type { TrackSource } from '@livekit/protocol'
-import {
-  useLocalParticipant,
-  useParticipantPermissions,
-} from '@livekit/components-react'
+import { useLocalParticipantPermissions } from '@livekit/components-react'
 
 export function useCanPublishTrack(trackSource: TrackSource): boolean {
-  const { localParticipant } = useLocalParticipant()
-  const permissions = useParticipantPermissions({
-    participant: localParticipant,
-  })
-
+  const permissions = useLocalParticipantPermissions()
   return Boolean(
     permissions?.canPublish &&
     permissions?.canPublishSources?.includes(trackSource)
