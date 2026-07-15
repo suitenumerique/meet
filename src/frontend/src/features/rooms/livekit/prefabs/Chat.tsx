@@ -3,7 +3,7 @@ import React from 'react'
 import {
   formatChatMessageLinks,
   useChat,
-  useParticipants,
+  useRemoteParticipants,
   useRoomContext,
 } from '@livekit/components-react'
 import {
@@ -75,13 +75,9 @@ export function Chat({ ...props }: ChatProps) {
     shouldRestoreOnClose: () => !isSidePanelOpen,
   })
 
-  // Use useParticipants hook to trigger a re-render when the participant list changes.
-  const participants = useParticipants({
-    updateOnlyOn: [
-      RoomEvent.ParticipantAttributesChanged,
-      RoomEvent.ParticipantNameChanged,
-      RoomEvent.ParticipantMetadataChanged,
-    ],
+  // Use to trigger a re-render when the participant list changes.
+  const remoteParticipants = useRemoteParticipants({
+    updateOnlyOn: [RoomEvent.ParticipantNameChanged],
   })
 
   const lastReadMsgAt = React.useRef<ChatMessage['timestamp']>(0)
@@ -150,10 +146,10 @@ export function Chat({ ...props }: ChatProps) {
         msg.timestamp - allMsg[idx - 1].timestamp < 60_000 &&
         allMsg[idx - 1].from === msg.from,
     }))
-    // `participants` is included so rows re-render when participant
-    // information (name, metadata) changes.
+    // `remoteParticipants` is included so rows re-render when participant
+    // information (name) changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatMessages, participants])
+  }, [chatMessages, remoteParticipants])
 
   return (
     <Div
