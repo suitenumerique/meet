@@ -15,6 +15,7 @@ and this project adheres to
 ### Changed
 
 - ⬆️(frontend) upgrade @mediapipe/tasks-vision from 0.10.14 to 0.10.35
+- ⬆️(frontend) upgrade i18next from 26.3.1 to 26.3.2
 
 ## [1.24.0] - 2026-07-21
 
