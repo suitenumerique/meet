@@ -37,7 +37,6 @@ import { useTranslation } from 'react-i18next'
 import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
 import { KeyboardShortcutHint } from './KeyboardShortcutHint'
-import { useSnapshot } from 'valtio'
 import { layoutStore, clearPinnedTrack } from '@/stores/layout'
 
 export function TrackRefContextIfNeeded(
@@ -77,7 +76,6 @@ export const ParticipantTile: (
   }: ParticipantTileExtendedProps,
   ref
 ) {
-  const { pinnedTrackRef } = useSnapshot(layoutStore)
   const trackReference = useEnsureTrackRef(trackRef)
 
   const { identity, name } = useParticipantInfo({
@@ -98,13 +96,13 @@ export const ParticipantTile: (
       if (
         trackReference.source &&
         !subscribed &&
-        pinnedTrackRef &&
-        isEqualTrackRef(trackReference, pinnedTrackRef)
+        layoutStore.pinnedTrackRef &&
+        isEqualTrackRef(trackReference, layoutStore.pinnedTrackRef)
       ) {
         clearPinnedTrack()
       }
     },
-    [trackReference, pinnedTrackRef]
+    [trackReference]
   )
 
   const { isHandRaised } = useRaisedHand({
