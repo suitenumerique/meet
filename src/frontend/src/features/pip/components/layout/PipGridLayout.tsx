@@ -1,7 +1,7 @@
 import { memo, useMemo, useRef } from 'react'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { styled } from '@/styled-system/jsx'
-import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { ParticipantTile } from '@/features/participantTile/components/ParticipantTile'
 import { usePipElementSize } from '../../hooks/usePipElementSize'
 import { computePipGridLayout } from '../../utils/pipGrid'
 import { getTrackKey } from '../../utils/pipTrackSelection'

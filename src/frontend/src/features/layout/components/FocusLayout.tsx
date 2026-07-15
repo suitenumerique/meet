@@ -1,4 +1,4 @@
-import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { ParticipantTile } from '@/features/participantTile/components/ParticipantTile.tsx'
 import type { FocusLayoutProps } from '@livekit/components-react'
 
 export function FocusLayout({ trackRef, ...htmlProps }: FocusLayoutProps) {

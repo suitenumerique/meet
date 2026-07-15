@@ -22,7 +22,10 @@ import {
 } from '@livekit/components-core'
 import { Track } from 'livekit-client'
 import { RiHand } from '@remixicon/react'
-import { useRaisedHand, useRaisedHandPosition } from '../hooks/useRaisedHand'
+import {
+  useRaisedHand,
+  useRaisedHandPosition,
+} from '@/features/rooms/livekit/hooks/useRaisedHand'
 import { HStack } from '@/styled-system/jsx'
 import { MutedMicIndicator } from './MutedMicIndicator'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
