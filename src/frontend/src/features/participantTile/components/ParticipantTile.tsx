@@ -117,7 +117,9 @@ export const ParticipantTile: (
     <div ref={ref} style={{ position: 'relative' }} {...interactiveProps}>
       <TrackRefContextIfNeeded trackRef={trackReference}>
         <ParticipantContextIfNeeded participant={trackReference.participant}>
-          <FullScreenShareWarning trackReference={trackReference} />
+          {trackReference.participant.isLocal && (
+            <FullScreenShareWarning trackReference={trackReference} />
+          )}
           {children ?? (
             <>
               {isTrackReference(trackReference) &&
