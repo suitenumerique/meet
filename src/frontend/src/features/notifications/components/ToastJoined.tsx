@@ -4,7 +4,7 @@ import { Button as RACButton } from 'react-aria-components'
 import { Track } from 'livekit-client'
 import Source = Track.Source
 
-import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { ParticipantTile } from '@/features/participantTile/components/ParticipantTile.tsx'
 import { type ToastProps } from './Toast'
 import { HStack, styled } from '@/styled-system/jsx'
 import { Div } from '@/primitives'
