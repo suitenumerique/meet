@@ -1,7 +1,7 @@
 import { FocusLayoutContainer, useTracks } from '@livekit/components-react'
 import { CarouselLayout } from '@/features/layout/components/CarouselLayout'
 import { FocusLayout } from '@/features/layout/components/FocusLayout'
-import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { ParticipantTile } from '@/features/participantTile/components/ParticipantTile'
 import { GridLayout } from '@/features/layout/components/GridLayout'
 import {
   isEqualTrackRef,

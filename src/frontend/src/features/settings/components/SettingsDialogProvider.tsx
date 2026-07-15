@@ -1,9 +1,7 @@
 import { SettingsDialogExtended } from './SettingsDialogExtended'
 import { useSnapshot } from 'valtio'
 import { settingsStore, toggleSettingsDialog } from '@/stores/settings'
-import {
-  SettingsDialogExtendedKey,
-} from '@/features/settings'
+import { SettingsDialogExtendedKey } from '@/features/settings'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { useCallback } from 'react'
 

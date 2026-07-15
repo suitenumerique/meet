@@ -16,14 +16,14 @@ import {
   TrackReferenceOrPlaceholder,
 } from '@livekit/components-core'
 import { useEffect, useRef, useState } from 'react'
-import { useSidePanel } from '../hooks/useSidePanel'
-import { useFullScreen } from '../hooks/useFullScreen'
 import { type Participant, Track } from 'livekit-client'
-import { MuteAlertDialog } from './MuteAlertDialog'
 import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { useSnapshot } from 'valtio'
 import { layoutStore, setPinnedTrack, clearPinnedTrack } from '@/stores/layout'
+import { useFullScreen } from '@/features/rooms/livekit/hooks/useFullScreen'
+import { MuteAlertDialog } from '@/features/rooms/livekit/components/MuteAlertDialog'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 const ZoomButton = ({
   trackRef,

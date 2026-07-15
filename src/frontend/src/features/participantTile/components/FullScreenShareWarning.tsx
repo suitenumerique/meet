@@ -4,9 +4,9 @@ import { useCallback, useMemo, useRef } from 'react'
 import { screenSharePreferenceStore } from '@/stores/screenSharePreferences'
 import { useSnapshot } from 'valtio'
 import { useLocalParticipant } from '@livekit/components-react'
-import { useSize } from '../hooks/useResizeObserver'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
+import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
 
 export const FullScreenShareWarning = ({
   trackReference,
