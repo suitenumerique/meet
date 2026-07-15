@@ -123,7 +123,10 @@ export const ParticipantTile: (
 
   const handleTileMouseMove = React.useCallback(() => {
     if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current)
-    idleTimerRef.current = window.setTimeout(() => setIsIdle(true), MOUSE_IDLE_TIME)
+    idleTimerRef.current = window.setTimeout(
+      () => setIsIdle(true),
+      MOUSE_IDLE_TIME
+    )
     setIsIdle(false)
   }, [])
 

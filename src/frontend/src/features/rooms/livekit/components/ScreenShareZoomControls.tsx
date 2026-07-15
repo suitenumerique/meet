@@ -141,7 +141,9 @@ export const ScreenShareZoomControls = ({
             size="sm"
             variant="primaryTextDark"
             square
-            tooltip={t('zoomOutWithShortcut', { shortcut: wheelShortcutVisual })}
+            tooltip={t('zoomOutWithShortcut', {
+              shortcut: wheelShortcutVisual,
+            })}
             aria-label={t('zoomOut')}
             isDisabled={!isZoomed || !canZoomOut}
             onPress={onZoomOut}
