@@ -11,14 +11,14 @@ There are two ways to customize LaSuite Meet:
 
 ### How to Use
 
-To use this feature, simply set the `FRONTEND_CSS_URL` environment variable to the URL of your custom CSS file. For example:
+To use this feature, simply set the `FRONTEND_CUSTOM_CSS_URL` environment variable (of the **backend** service) to the URL of your custom CSS file. For example:
 
 ```javascript
-FRONTEND_CSS_URL=https://example.com/custom-style.css
+FRONTEND_CUSTOM_CSS_URL=https://example.com/custom-style.css
 ```
 
 > [!TIP]
-> If you serve your CSS file on the same domain as LaSuite Meet, paths are supported, i.e. `FRONTEND_CSS_URL=/custom/style.css` will load `https://your-domain.com/custom/style.css`.
+> If you serve your CSS file on the same domain as LaSuite Meet, paths are supported, i.e. `FRONTEND_CUSTOM_CSS_URL=/custom/style.css` will load `https://your-domain.com/custom/style.css`.
 
 Setting this variable makes the app load your CSS at runtime, adding a `<link>` to `<head>` so you can override CSS variables and customize the frontend without rebuilding.
 
@@ -37,7 +37,7 @@ Let's say you want to change the font of our application to a custom font. You c
 }
 ```
 
-Then, set the `FRONTEND_CSS_URL` environment variable to the URL of your custom CSS file. Once you've done this, our application will load your custom CSS file and apply the styles, changing the default font to the one you specified.
+Then, set the `FRONTEND_CUSTOM_CSS_URL` environment variable to the URL of your custom CSS file. Once you've done this, our application will load your custom CSS file and apply the styles, changing the default font to the one you specified.
 
 > [!IMPORTANT]
 > You can override any CSS token—semantic or palette. See [panda.config.ts](../src/frontend/panda.config.ts) for all defined semantic tokens.
