@@ -23,6 +23,7 @@ import { usePictureInPicture } from '@/features/pip/hooks/usePictureInPicture'
 import { PipRoomPlaceholder } from '@/features/pip/components/PipRoomPlaceholder'
 import { StageLayout } from '@/features/layout/components/StageLayout'
 import { PinAnnouncer } from '@/features/layout/components/PinAnnouncer'
+import { ChatProvider } from '@/features/chat/components/ChatProvider'
 
 /**
  * @public
@@ -62,6 +63,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   return (
     <>
       <ConnectionObserver />
+      <ChatProvider />
       <VideoResolutionSubscription />
       <div
         className="lk-video-conference"

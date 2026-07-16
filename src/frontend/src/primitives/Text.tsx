@@ -85,6 +85,9 @@ export const text = cva({
       pretty: {
         textWrap: 'pretty',
       },
+      no: {
+        textWrap: 'nowrap',
+      },
     },
     bold: {
       true: {
