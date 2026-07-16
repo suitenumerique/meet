@@ -13,8 +13,8 @@ import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { ConnectionObserver } from '../components/ConnectionObserver'
 import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
-import { useVideoResolutionSubscription } from '../hooks/useVideoResolutionSubscription'
 import { useSyncLiveKitMetadata } from '../hooks/useSyncLiveKitMetadata'
+import { VideoResolutionSubscription } from '../components/VideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
@@ -52,7 +52,6 @@ export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElemen
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
   useRoomPageTitle()
-  useVideoResolutionSubscription()
   useSyncLiveKitMetadata()
   useNoiseReduction()
 
@@ -63,6 +62,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   return (
     <>
       <ConnectionObserver />
+      <VideoResolutionSubscription />
       <div
         className="lk-video-conference"
         {...props}

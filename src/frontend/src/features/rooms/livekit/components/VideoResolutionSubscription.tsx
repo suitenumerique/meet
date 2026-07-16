@@ -11,16 +11,16 @@ import { useSnapshot } from 'valtio'
 import { userChoicesStore } from '@/stores/userChoices'
 
 /**
- * This hook sets initial video quality for new participants as they join.
+ * Sets initial video quality for new participants as they join.
  * LiveKit doesn't allow handling video quality preferences at the room level.
  */
-export const useVideoResolutionSubscription = () => {
+export const VideoResolutionSubscription = () => {
   const { videoSubscribeQuality } = useSnapshot(userChoicesStore)
-
   const room = useRoomContext()
 
   useEffect(() => {
     if (!room) return
+
     const handleTrackPublished = (
       publication: RemoteTrackPublication,
       _participant: RemoteParticipant
@@ -41,9 +41,10 @@ export const useVideoResolutionSubscription = () => {
     }
 
     room.on(RoomEvent.TrackPublished, handleTrackPublished)
-
     return () => {
       room.off(RoomEvent.TrackPublished, handleTrackPublished)
     }
   }, [room, videoSubscribeQuality])
+
+  return null
 }
