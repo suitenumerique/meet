@@ -16,9 +16,8 @@ import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { chatStore } from '@/stores/chat'
 import { Div, Text } from '@/primitives'
-import { ChatInput } from '../components/chat/Input'
-import { ChatEntry } from '../components/chat/Entry'
-import { useSidePanel } from '../hooks/useSidePanel'
+import { ChatInput } from './Input'
+import { ChatEntry } from './Entry'
 import {
   type LocalParticipant,
   type RemoteParticipant,
@@ -26,6 +25,7 @@ import {
 } from 'livekit-client'
 import { css } from '@/styled-system/css'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 export interface ChatProps
   extends React.HTMLAttributes<HTMLDivElement>, ChatOptions {}
