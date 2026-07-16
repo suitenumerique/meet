@@ -23,5 +23,10 @@ export const TextArea = styled(RACTextArea, {
         },
       },
     },
+    fieldSizing: {
+      content: {
+        fieldSizing: 'content',
+      },
+    },
   },
 })

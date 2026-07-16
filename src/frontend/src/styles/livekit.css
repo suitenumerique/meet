@@ -114,26 +114,6 @@
   color: white;
 }
 
-[data-lk-theme='visio-light']
-  .lk-chat-entry[data-lk-message-origin='local']
-  .lk-message-body {
-  align-self: flex-end;
-  background-color: var(--colors-primary-subtle);
-}
-[data-lk-theme='visio-light']
-  .lk-chat-entry[data-lk-message-origin='remote']
-  .lk-message-body {
-  background-color: var(--colors-blue-300);
-}
-
-[data-lk-theme] .lk-chat-header {
-  font-weight: bold;
-}
-
-[data-lk-theme] .lk-chat-messages {
-  padding: 0.5rem;
-}
-
 .lk-chat-entry .lk-meta-data {
   padding-left: 0.75rem;
   padding-right: 0.75rem;
