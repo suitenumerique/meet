@@ -3,10 +3,10 @@ import { Button, Text } from '@/primitives'
 import { useCallback, useMemo, useRef } from 'react'
 import { screenSharePreferenceStore } from '@/stores/screenSharePreferences'
 import { useSnapshot } from 'valtio'
-import { useLocalParticipant } from '@livekit/components-react'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
+import { LocalParticipant } from 'livekit-client'
 
 export const FullScreenShareWarning = ({
   trackReference,
@@ -17,7 +17,6 @@ export const FullScreenShareWarning = ({
 
   const warningContainerRef = useRef<HTMLDivElement>(null)
   const { width: containerWidth } = useSize(warningContainerRef)
-  const { localParticipant } = useLocalParticipant()
   const screenSharePreferences = useSnapshot(screenSharePreferenceStore)
 
   const isFullScreenSharing = useMemo(() => {
@@ -57,8 +56,10 @@ export const FullScreenShareWarning = ({
     screenSharePreferences.enabled && isFullScreenSharing
 
   const handleStopScreenShare = async () => {
-    if (!localParticipant.isScreenShareEnabled) return
-    await localParticipant.setScreenShareEnabled(false, {}, {})
+    const participant = trackReference.participant
+    if (!(participant instanceof LocalParticipant)) return
+    if (!participant.isScreenShareEnabled) return
+    await (participant as LocalParticipant).setScreenShareEnabled(false, {}, {})
   }
 
   const handleDismissWarning = useCallback(() => {

@@ -9,8 +9,8 @@ import useLongPress from '@/features/shortcuts/useLongPress'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import {
   useIsSpeaking,
-  useLocalParticipant,
   useMaybeRoomContext,
+  useRoomContext,
 } from '@livekit/components-react'
 import type { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
@@ -169,7 +169,7 @@ export const ToggleDevice = <T extends ToggleSource>({
 }
 
 const ActiveSpeakerWrapper = () => {
-  const { localParticipant } = useLocalParticipant()
-  const isSpeaking = useIsSpeaking(localParticipant)
+  const room = useRoomContext()
+  const isSpeaking = useIsSpeaking(room.localParticipant)
   return <ActiveSpeaker isSpeaking={isSpeaking} pushToTalk />
 }
