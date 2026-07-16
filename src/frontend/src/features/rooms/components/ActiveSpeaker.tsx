@@ -1,3 +1,4 @@
+import React from 'react'
 import { styled } from '@/styled-system/jsx'
 
 const StyledContainer = styled('div', {
@@ -67,35 +68,36 @@ export type ActiveSpeakerProps = {
   pushToTalk?: boolean
 }
 
-export const ActiveSpeaker = ({
-  isSpeaking,
-  pushToTalk,
-}: ActiveSpeakerProps) => {
-  return (
-    <StyledContainer pushToTalk={pushToTalk}>
-      <StyledChild
-        pushToTalk={pushToTalk}
-        active={isSpeaking}
-        size="small"
-        style={{
-          animationDelay: '300ms',
-        }}
-      />
-      <StyledChild
-        pushToTalk={pushToTalk}
-        active={isSpeaking}
-        style={{
-          animationDelay: '100ms',
-        }}
-      />
-      <StyledChild
-        pushToTalk={pushToTalk}
-        active={isSpeaking}
-        size="small"
-        style={{
-          animationDelay: '500ms',
-        }}
-      />
-    </StyledContainer>
-  )
-}
+export const ActiveSpeaker = React.memo(
+  ({ isSpeaking, pushToTalk }: ActiveSpeakerProps) => {
+    return (
+      <StyledContainer pushToTalk={pushToTalk}>
+        <StyledChild
+          pushToTalk={pushToTalk}
+          active={isSpeaking}
+          size="small"
+          style={{
+            animationDelay: '300ms',
+          }}
+        />
+        <StyledChild
+          pushToTalk={pushToTalk}
+          active={isSpeaking}
+          style={{
+            animationDelay: '100ms',
+          }}
+        />
+        <StyledChild
+          pushToTalk={pushToTalk}
+          active={isSpeaking}
+          size="small"
+          style={{
+            animationDelay: '500ms',
+          }}
+        />
+      </StyledContainer>
+    )
+  }
+)
+
+ActiveSpeaker.displayName = 'ActiveSpeaker'
