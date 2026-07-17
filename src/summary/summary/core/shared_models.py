@@ -96,7 +96,13 @@ class TranscribeWebhookFailurePayload(BaseWebhook):
     # we authorized any other string than the one in the literal
     # to avoid causing a breaking change on the client side
     error_code: (
-        Literal["unknown_error", "no_audio_in_file", "media_duration_too_long"] | str
+        Literal[
+            "unknown_error",
+            "no_audio_in_file",
+            "media_duration_too_long",
+            "corrupted_audio_file",
+        ]
+        | str
     ) = Field(title="Error code", description="The error code.")
 
 

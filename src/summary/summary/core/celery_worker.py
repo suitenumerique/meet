@@ -18,7 +18,12 @@ from requests import exceptions
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
 from summary.core.docs_service import create_document_in_lasuite_docs
-from summary.core.file_service import FileService, FileServiceException, TranscribeError
+from summary.core.file_service import (
+    CorruptedAudioFile,
+    FileService,
+    FileServiceException,
+    TranscribeError,
+)
 from summary.core.llm_service import LLMException, LLMObservability, LLMService
 from summary.core.locales import get_locale
 from summary.core.models import (
@@ -147,10 +152,20 @@ def transcribe_audio(
                 # Mimic OpenAI's timeout settings
                 timeout=(60, 10 * 60),
             )
+            if res.status_code == 400:
+                logger.info(
+                    "WhisperX transcription failed, "
+                    "likely due to a corrupted audio file: %s",
+                    res.text,
+                )
+                raise CorruptedAudioFile("WhisperX coudln't decode the audio file.")
+
             try:
                 res.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                raise RuntimeError("WhisperX transcription failed, %s", res.text) from e
+            except requests.exceptions.HTTPError:
+                logger.exception("WhisperX transcription failed")
+                # We reraise the error so that it can be retried by celery
+                raise
 
             transcription_json: dict[str, Any] = res.json()
             # We remove the "usage" key from the transcription_json dictionary
