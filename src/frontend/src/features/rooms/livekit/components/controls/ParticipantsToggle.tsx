@@ -1,36 +1,22 @@
+import { useCallback, useId } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RiGroupLine, RiInfinityLine } from '@remixicon/react'
-import { ToggleButton } from '@/primitives'
+import { RiGroupLine } from '@remixicon/react'
+import { ToggleButton, type ToggleButtonProps } from '@/primitives/ToggleButton'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { css } from '@/styled-system/css'
-import { useRemoteParticipants } from '@livekit/components-react'
-import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
-import { RoomEvent } from 'livekit-client'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { ParticipantsCount } from '@/features/participants/components/ParticipantsCount'
+
+const containerStyles = css({ position: 'relative', display: 'inline-block' })
 
 export const ParticipantsToggle = ({
   onPress,
   ...props
 }: ToggleButtonProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.participants' })
-
-  /**
-   * Context could not be used due to inconsistent refresh behavior.
-   * The 'numParticipant' property on the room only updates when the room's metadata changes,
-   * resulting in a delay compared to the participant list's actual refresh rate.
-   */
-  const remoteParticipants = useRemoteParticipants({
-    updateOnlyOn: [
-      RoomEvent.ParticipantConnected,
-      RoomEvent.ParticipantDisconnected,
-    ],
-  })
-  const numParticipants = remoteParticipants?.length + 1 // for the local participant
-  const announcedCount =
-    numParticipants && numParticipants > 0 ? numParticipants : 1
-
   const { isParticipantsOpen, toggleParticipants } = useSidePanel()
+  const countId = useId()
 
   const tooltipLabel = isParticipantsOpen ? 'open' : 'closed'
 
@@ -39,58 +25,32 @@ export const ParticipantsToggle = ({
     handler: toggleParticipants,
   })
 
+  const handlePress = useCallback(
+    (e: Parameters<NonNullable<ToggleButtonProps['onPress']>>[0]) => {
+      toggleParticipants()
+      onPress?.(e)
+    },
+    [toggleParticipants, onPress]
+  )
+
   return (
-    <div
-      className={css({
-        position: 'relative',
-        display: 'inline-block',
-      })}
-    >
+    <div className={containerStyles}>
       <VisualOnlyTooltip tooltip={t(tooltipLabel)}>
         <ToggleButton
           square
           variant="primaryTextDark"
-          aria-label={`${t(tooltipLabel)}. ${t('count', {
-            count: announcedCount,
-          })}.`}
+          aria-label={t(tooltipLabel)}
+          aria-describedby={countId}
           isSelected={isParticipantsOpen}
           aria-expanded={isParticipantsOpen}
-          onPress={(e) => {
-            toggleParticipants()
-            onPress?.(e)
-          }}
+          onPress={handlePress}
           data-attr={`controls-participants-${tooltipLabel}`}
           {...props}
         >
           <RiGroupLine />
         </ToggleButton>
       </VisualOnlyTooltip>
-      <div
-        className={css({
-          position: 'absolute',
-          top: '-.25rem',
-          right: '-.25rem',
-          width: '1.25rem',
-          height: '1.25rem',
-          backgroundColor: 'gray',
-          borderRadius: '50%',
-          color: 'white',
-          fontSize: '0.75rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          zIndex: 1,
-          userSelect: 'none',
-        })}
-        aria-hidden={true}
-      >
-        {numParticipants < 100 ? (
-          numParticipants || 1
-        ) : (
-          <RiInfinityLine size={10} />
-        )}
-      </div>
+      <ParticipantsCount describedById={countId} />
     </div>
   )
 }
