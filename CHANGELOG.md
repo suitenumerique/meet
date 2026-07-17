@@ -12,6 +12,10 @@ and this project adheres to
 
 - 🐛(transcription) fix silent bug in speaker assignment
 
+### Changed
+
+- ⬆️(frontend) upgrade @mediapipe/tasks-vision from 0.10.14 to 0.10.35
+
 ## [1.24.0] - 2026-07-21
 
 ### Added
