@@ -41,6 +41,12 @@ class NoAudioInFileError(TranscribeError):
     error_code = "no_audio_in_file"
 
 
+class CorruptedAudioFile(TranscribeError):
+    """Raised when a media file does not contain any audio."""
+
+    error_code = "corrupted_audio_file"
+
+
 def _get_duration_from_packets(local_path: Path) -> float:
     """Estimate duration from audio packet timestamps."""
     # Run ffprobe to inspect the first audio stream in the file.
