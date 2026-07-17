@@ -18,6 +18,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade i18next from 26.3.1 to 26.3.2
 - ⬆️(frontend) upgrade posthog-js from 1.391.2 to 1.395.0
 - ⬆️(frontend) upgrade @tanstack/react-query from 5.101.0 to 5.101.1
+- ⬆️(frontend) upgrade livekit-client from 2.19.2 to 2.20.0
 
 ## [1.24.0] - 2026-07-21
 
