@@ -15,7 +15,7 @@ import {
 } from '@remixicon/react'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { ChatToggle } from '../../components/controls/ChatToggle'
-import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
+import { ParticipantsToggle } from '../../components/controls/ParticipantsToggle'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { LinkButton } from '@/primitives'
 import { ResponsiveMenu } from './ResponsiveMenu'

@@ -1,8 +1,8 @@
 import { Menu as RACMenu } from 'react-aria-components'
 import type { Participant } from 'livekit-client'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
-import { PinMenuItem } from './PinMenuItem'
-import { RemoveMenuItem } from './RemoveMenuItem'
+import { PinMenuItem } from './items/PinMenuItem'
+import { RemoveMenuItem } from './items/RemoveMenuItem'
 
 export const ParticipantMenu = ({
   participant,

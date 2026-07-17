@@ -7,7 +7,7 @@ import { useEnterRoom } from '../api/enterRoom'
 import {
   useListWaitingParticipants,
   type WaitingParticipant,
-} from '../api/listWaitingParticipants'
+} from '../../participants/api/listWaitingParticipants'
 import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
 

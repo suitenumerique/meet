@@ -4,10 +4,10 @@ import { ToggleButton } from '@/primitives'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { css } from '@/styled-system/css'
 import { useRemoteParticipants } from '@livekit/components-react'
-import { useSidePanel } from '../../../hooks/useSidePanel'
 import { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { RoomEvent } from 'livekit-client'
+import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 
 export const ParticipantsToggle = ({
   onPress,
