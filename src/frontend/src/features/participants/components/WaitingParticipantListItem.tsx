@@ -3,7 +3,7 @@ import { HStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { Avatar } from '@/components/Avatar'
 import { useTranslation } from 'react-i18next'
-import { WaitingParticipant } from '@/features/rooms/api/listWaitingParticipants'
+import { WaitingParticipant } from '../api/listWaitingParticipants'
 import { RiCloseLine } from '@remixicon/react'
 
 export const WaitingParticipantListItem = ({

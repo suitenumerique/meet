@@ -1,6 +1,6 @@
 import { css } from '@/styled-system/css'
 import { ChatToggle } from '../../components/controls/ChatToggle'
-import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
+import { ParticipantsToggle } from '../../components/controls/ParticipantsToggle'
 import { ToolsToggle } from '../../components/controls/ToolsToggle'
 import { InfoToggle } from '../../components/controls/InfoToggle'
 import { AdminToggle } from '../../components/AdminToggle'

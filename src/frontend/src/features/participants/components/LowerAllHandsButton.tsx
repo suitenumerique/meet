@@ -1,7 +1,7 @@
 import { Button } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import type { Participant } from 'livekit-client'
-import { useLowerHandParticipants } from '@/features/rooms/api/lowerHandParticipants'
+import { useLowerHandParticipants } from '../api/lowerHandParticipants'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { css } from '@/styled-system/css'
 import { RiHand } from '@remixicon/react'

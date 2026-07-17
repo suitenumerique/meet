@@ -16,11 +16,11 @@ import Source = Track.Source
 import { RiMicFill, RiMicOffFill } from '@remixicon/react'
 import { Button } from '@/primitives'
 import { useState } from 'react'
-import { MuteAlertDialog } from '../../MuteAlertDialog'
 import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
-import { ParticipantMenuButton } from '../../ParticipantMenu/ParticipantMenuButton'
+import { ParticipantMenuButton } from './menu/ParticipantMenuButton'
 import { PinBadge } from './PinBadge'
+import { MuteAlertDialog } from '@/features/rooms/livekit/components/MuteAlertDialog'
 
 type MicIndicatorProps = {
   participant: Participant
