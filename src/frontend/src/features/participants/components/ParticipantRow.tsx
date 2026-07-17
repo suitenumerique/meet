@@ -93,9 +93,7 @@ type ParticipantListItemProps = {
   participant: Participant
 }
 
-export const ParticipantListItem = ({
-  participant,
-}: ParticipantListItemProps) => {
+export const ParticipantRow = ({ participant }: ParticipantListItemProps) => {
   const { t } = useTranslation('rooms')
   const name = participant.name || participant.identity
   return (

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { WaitingParticipant } from '../api/listWaitingParticipants'
 import { RiCloseLine } from '@remixicon/react'
 
-export const WaitingParticipantListItem = ({
+export const WaitingParticipantRow = ({
   participant,
   onAction,
 }: {
