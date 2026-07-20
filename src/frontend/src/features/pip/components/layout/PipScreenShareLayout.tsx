@@ -2,7 +2,7 @@ import { memo } from 'react'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { styled } from '@/styled-system/jsx'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
-import { getTrackKey } from '../../utils/pipTrackSelection'
+import { getTrackKey } from '@/features/layout/utils/trackSelection'
 
 type PipScreenShareLayoutProps = {
   screenShareTrack: TrackReferenceOrPlaceholder

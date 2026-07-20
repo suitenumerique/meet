@@ -4,7 +4,7 @@ import { styled } from '@/styled-system/jsx'
 import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
 import { usePipElementSize } from '../../hooks/usePipElementSize'
 import { computePipGridLayout } from '../../utils/pipGrid'
-import { getTrackKey } from '../../utils/pipTrackSelection'
+import { getTrackKey } from '@/features/layout/utils/trackSelection'
 
 type PipGridLayoutProps = {
   tracks: TrackReferenceOrPlaceholder[]
