@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(frontend) add participant color gradient when camera is off #1490
 - ✨(all) allow forcing SSO display name for authenticated users
 - ➕(frontend) install vite-plugin-static-copy for MediaPipe WASM assets
+- ✨(addon) show add-in tools when creating meetings in shared calendars
 
 ### Changed
 
