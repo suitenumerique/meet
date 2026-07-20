@@ -6,7 +6,7 @@ import {
   log,
 } from '@livekit/components-core'
 import { type Participant, RoomEvent, Track } from 'livekit-client'
-import React, { useCallback, useRef, useState, useEffect } from 'react'
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import {
   ConnectionStateToast,
   FocusLayoutContainer,
@@ -40,6 +40,7 @@ import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
 import { CarouselLayout } from '@/features/layout/components/CarouselLayout'
 import { GridLayout } from '@/features/layout/components/GridLayout'
+import { OneToOneFocusLayout } from '@/features/layout/components/OneToOneFocusLayout'
 import { RoomContentArea } from '@/features/layout/components/RoomContentArea'
 import { usePictureInPicture } from '@/features/pip/hooks/usePictureInPicture'
 import { PipRoomPlaceholder } from '@/features/pip/components/PipRoomPlaceholder'
@@ -122,6 +123,26 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   const carouselTracks = tracks.filter(
     (track) => !isEqualTrackRef(track, focusTrack)
   )
+
+  const cameraTracks = useMemo(
+    () => tracks.filter((t) => t.source === Track.Source.Camera),
+    [tracks]
+  )
+
+  const isOneToOne = !focusTrack && cameraTracks.length <= 2
+
+  const oneToOneMainTrack = useMemo(() => {
+    if (!isOneToOne) return undefined
+    const remote = cameraTracks.find((t) => !t.participant?.isLocal)
+    const local = cameraTracks.find((t) => t.participant?.isLocal)
+    return remote ?? local
+  }, [isOneToOne, cameraTracks])
+
+  const oneToOneThumbnailTrack = useMemo(() => {
+    if (!isOneToOne) return undefined
+    const local = cameraTracks.find((t) => t.participant?.isLocal)
+    return oneToOneMainTrack === local ? undefined : local
+  }, [isOneToOne, cameraTracks, oneToOneMainTrack])
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
 
@@ -258,7 +279,12 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
               <PipRoomPlaceholder />
             ) : (
               <>
-                {!focusTrack ? (
+                {isOneToOne ? (
+                  <OneToOneFocusLayout
+                    mainTrack={oneToOneMainTrack}
+                    thumbnailTrack={oneToOneThumbnailTrack}
+                  />
+                ) : !focusTrack ? (
                   <div
                     className="lk-grid-layout-wrapper"
                     style={{ height: 'auto' }}
