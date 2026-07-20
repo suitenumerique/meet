@@ -76,7 +76,7 @@ class BaseEgressService:
 
         return "FAILED_TO_STOP"
 
-    def start(self, room_name, recording_id):
+    def start(self, room_name, recording_id, encoding_options=None):
         """Start the egress process for a recording (not implemented in the base class).
         Each derived class must implement this method, providing the necessary parameters for
         its specific egress type (e.g. audio_only, streaming output).
@@ -99,13 +99,24 @@ class BaseEgressService:
 
         return livekit_api.EncodingOptions(**opts)
 
+    def _resolve_encoding_options(self, encoding_options):
+        """Build LiveKit EncodingOptions from a resolved per-recording dict, or None.
+
+        ``encoding_options`` is the dict persisted by the API in
+        ``recording.options["encoding"]["resolved"]``.
+        """
+        if not encoding_options:
+            return None
+
+        return livekit_api.EncodingOptions(**encoding_options)
+
 
 class VideoCompositeEgressService(BaseEgressService):
     """Record multiple participant video and audio tracks into a single output '.mp4' file."""
 
     hrid = "video-recording-composite-livekit-egress"
 
-    def start(self, room_name, recording_id):
+    def start(self, room_name, recording_id, encoding_options=None):
         """Start the video composite egress process for a recording."""
 
         # Save room's recording as a mp4 video file.
@@ -126,7 +137,10 @@ class VideoCompositeEgressService(BaseEgressService):
             "layout": "speaker-light",
         }
 
-        advanced = self._build_encoding_options()
+        advanced = (
+            self._resolve_encoding_options(encoding_options)
+            or self._build_encoding_options()
+        )
         if advanced is not None:
             request_kwargs["advanced"] = advanced
 
@@ -145,8 +159,13 @@ class AudioCompositeEgressService(BaseEgressService):
 
     hrid = "audio-recording-composite-livekit-egress"
 
-    def start(self, room_name, recording_id):
-        """Start the audio composite egress process for a recording."""
+    def start(self, room_name, recording_id, encoding_options=None):
+        """Start the audio composite egress process for a recording.
+
+        ``encoding_options`` is accepted for signature compatibility with the
+        WorkerService protocol but ignored: audio-only egress has no
+        encoding to configure.
+        """
 
         # Save room's recording as an ogg audio file.
         file_type = livekit_api.EncodedFileType.OGG

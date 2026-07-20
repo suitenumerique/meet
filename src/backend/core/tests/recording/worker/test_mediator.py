@@ -52,7 +52,7 @@ def test_start_recording_success(
     # Verify worker service call
     expected_room_name = str(mock_recording.room.id)
     mock_worker_service.start.assert_called_once_with(
-        expected_room_name, mock_recording.id
+        expected_room_name, mock_recording.id, encoding_options=None
     )
 
     # Verify recording updates
@@ -63,6 +63,38 @@ def test_start_recording_success(
     mock_update_room_metadata.assert_called_once_with(
         str(mock_recording.room.id),
         {"recording_mode": mock_recording.mode, "recording_status": "starting"},
+    )
+
+
+@mock.patch("core.utils.update_room_metadata")
+def test_start_recording_passes_resolved_encoding(
+    mock_update_room_metadata, mediator, mock_worker_service
+):
+    """The resolved encoding persisted in recording.options reaches the worker."""
+    mock_worker_service.start.return_value = "test-worker-123"
+
+    resolved = {
+        "key_frame_interval": 4.0,
+        "width": 1280,
+        "height": 720,
+        "framerate": 15,
+        "video_bitrate": 700,
+    }
+    mock_recording = RecordingFactory(
+        status=RecordingStatusChoices.INITIATED,
+        worker_id=None,
+        options={
+            "encoding": {
+                "resolution": "720p",
+                "profile": "talking_heads",
+                "resolved": resolved,
+            }
+        },
+    )
+    mediator.start(mock_recording)
+
+    mock_worker_service.start.assert_called_once_with(
+        str(mock_recording.room.id), mock_recording.id, encoding_options=resolved
     )
 
 

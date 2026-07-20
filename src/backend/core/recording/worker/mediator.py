@@ -47,8 +47,11 @@ class WorkerServiceMediator:
             raise RecordingStartError()
 
         room_name = str(recording.room.id)
+        encoding_options = (recording.options.get("encoding") or {}).get("resolved")
         try:
-            worker_id = self._worker_service.start(room_name, recording.id)
+            worker_id = self._worker_service.start(
+                room_name, recording.id, encoding_options=encoding_options
+            )
         except (WorkerRequestError, WorkerConnectionError, WorkerResponseError) as e:
             logger.exception(
                 "Failed to start recording for room %s: %s", recording.room.slug, e

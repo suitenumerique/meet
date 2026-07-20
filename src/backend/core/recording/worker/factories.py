@@ -22,6 +22,44 @@ _RECORDING_AUDIO_CODEC = livekit_api.AudioCodec.AAC
 _RECORDING_AUDIO_FREQUENCY_HZ = 48000
 
 
+def build_encoding_options(resolution, profile):
+    """Assemble the LiveKit ``EncodingOptions`` kwargs for a resolution/profile.
+
+    Single source of truth shared by the default encoding
+    (``WorkerServiceConfig.from_settings``) and the per-recording encoding
+    persisted by the start-recording API, so both paths always produce the
+    same shape.
+
+    The profile-independent fields (audio bitrate, keyframe interval and the
+    pinned codec / frequency constants) are always included.
+    The resolution-dependent fields are added only when they can be resolved:
+    width/height require a resolution; framerate/video_bitrate require both a
+    resolution and a profile (a resolution-only encoding leaves framerate and
+    bitrate to LiveKit's defaults).
+    """
+    options: Dict[str, Any] = {
+        "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
+        "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
+        "video_codec": _RECORDING_VIDEO_CODEC,
+        "audio_codec": _RECORDING_AUDIO_CODEC,
+        "audio_frequency": _RECORDING_AUDIO_FREQUENCY_HZ,
+    }
+
+    if resolution:
+        resolution_config = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[
+            resolution
+        ]
+        options["width"] = resolution_config["width"]
+        options["height"] = resolution_config["height"]
+
+    if resolution and profile:
+        profile_config = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[profile]
+        options["framerate"] = profile_config["fps"]
+        options["video_bitrate"] = profile_config["kbps"][resolution]
+
+    return options
+
+
 @dataclass(frozen=True)
 class WorkerServiceConfig:
     """Declare Worker Service common configurations"""
@@ -38,22 +76,16 @@ class WorkerServiceConfig:
 
         logger.debug("Loading WorkerServiceConfig from settings.")
 
+        # The default encoding is resolved from the default profile/resolution and
+        # applied to every recording that carries no per-recording encoding.
+        # When either default is missing, we leave this as None so LiveKit falls
+        # back to its built-in preset.
+        resolution = settings.RECORDING_ENCODING_DEFAULT_RESOLUTION
+        profile = settings.RECORDING_ENCODING_DEFAULT_PROFILE
+
         encoding_options: Optional[Dict[str, Any]] = None
-        if settings.RECORDING_ENCODING_ENABLED:
-            # Single source of truth for the EncodingOptions kwargs:
-            # operator-tunable values live in Django settings, codec / frequency
-            # are pinned constants. The services layer only unpacks this dict.
-            encoding_options = {
-                "width": settings.RECORDING_ENCODING_WIDTH,
-                "height": settings.RECORDING_ENCODING_HEIGHT,
-                "framerate": settings.RECORDING_ENCODING_FRAMERATE,
-                "video_bitrate": settings.RECORDING_ENCODING_VIDEO_BITRATE_KBPS,
-                "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
-                "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
-                "video_codec": _RECORDING_VIDEO_CODEC,
-                "audio_codec": _RECORDING_AUDIO_CODEC,
-                "audio_frequency": _RECORDING_AUDIO_FREQUENCY_HZ,
-            }
+        if resolution and profile:
+            encoding_options = build_encoding_options(resolution, profile)
 
         return cls(
             output_folder=settings.RECORDING_OUTPUT_FOLDER,
@@ -78,7 +110,12 @@ class WorkerService(Protocol):
     def __init__(self, config: WorkerServiceConfig):
         """Initialize the service with the given configuration."""
 
-    def start(self, room_id: str, recording_id: str) -> str:
+    def start(
+        self,
+        room_id: str,
+        recording_id: str,
+        encoding_options: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Start a recording for a specified room."""
 
     def stop(self, worker_id: str) -> str:
