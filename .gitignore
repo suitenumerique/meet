@@ -75,6 +75,7 @@ db.sqlite3
 # IDEs
 .idea/
 .vscode/
+.cursor/
 *.iml
 .devcontainer
 

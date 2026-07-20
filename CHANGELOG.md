@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) share OneToOneFocusLayout between PiP and main room
+
 ### Changed
 
 - ⚡️(backend) hash application secrets with SHA-256

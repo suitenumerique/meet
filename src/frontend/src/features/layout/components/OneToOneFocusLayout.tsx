@@ -2,7 +2,7 @@ import { memo } from 'react'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { styled } from '@/styled-system/jsx'
 import { cva } from '@/styled-system/css'
-import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { ParticipantTile } from '@/features/participantTile/components/ParticipantTile'
 import { getTrackKey } from '@/features/layout/utils/trackSelection'
 
 type OneToOneFocusLayoutProps = {
