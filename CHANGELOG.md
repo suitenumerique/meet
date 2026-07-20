@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) share OneToOneFocusLayout between PiP and main room
+
 ## [1.29.0] - 2026-08-25
 
 ### Added
