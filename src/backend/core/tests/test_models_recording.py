@@ -160,6 +160,7 @@ def test_models_recording_is_savable_normal():
         RecordingStatusChoices.FAILED_TO_STOP,
         RecordingStatusChoices.FAILED_TO_START,
         RecordingStatusChoices.ABORTED,
+        RecordingStatusChoices.FAILED,
     ],
 )
 def test_models_recording_is_savable_error(status):
@@ -282,6 +283,7 @@ def test_models_recording_is_saved_false_initiated():
         RecordingStatusChoices.FAILED_TO_STOP,
         RecordingStatusChoices.FAILED_TO_START,
         RecordingStatusChoices.ABORTED,
+        RecordingStatusChoices.FAILED,
     ],
 )
 def test_models_recording_is_saved_false_error_states(status):

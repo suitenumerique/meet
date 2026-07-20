@@ -101,7 +101,6 @@ def test_handle_egress_ended_success(
     (
         (EgressStatus.EGRESS_ACTIVE, "started"),
         (EgressStatus.EGRESS_ENDING, "saving"),
-        (EgressStatus.EGRESS_ABORTED, "aborted"),
     ),
 )
 @mock.patch("core.utils.update_room_metadata")
@@ -126,6 +125,7 @@ def test_handle_egress_updated_success(
     "egress_status",
     (
         EgressStatus.EGRESS_FAILED,
+        EgressStatus.EGRESS_ABORTED,
         EgressStatus.EGRESS_LIMIT_REACHED,
     ),
 )
@@ -420,8 +420,6 @@ def test_handle_egress_ended_does_not_finalize_when_webhooks_enabled(  # noqa: P
         EgressStatus.EGRESS_STARTING,
         EgressStatus.EGRESS_ACTIVE,
         EgressStatus.EGRESS_ENDING,
-        EgressStatus.EGRESS_FAILED,
-        EgressStatus.EGRESS_ABORTED,
     ],
 )
 @mock.patch("core.utils.update_room_metadata")
@@ -440,6 +438,47 @@ def test_handle_egress_ended_does_not_save_on_wrong_status(
 
     recording.refresh_from_db()
     assert recording.status == "active"
+
+
+@pytest.mark.parametrize(
+    ("egress_status", "expected_status"),
+    (
+        (EgressStatus.EGRESS_ABORTED, "aborted"),
+        (EgressStatus.EGRESS_FAILED, "failed"),
+    ),
+)
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
+@mock.patch("core.utils.update_room_metadata")
+def test_handle_egress_ended_marks_unsuccessful_egress(  # noqa: PLR0913
+    mock_update_room_metadata,
+    mock_notify_external_services,
+    egress_status,
+    expected_status,
+    service,
+    settings,
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """An aborted/failed egress moves an active recording to its terminal
+    unsuccessful status, and never notifies external services."""
+
+    settings.RECORDING_STORAGE_EVENT_ENABLE = False
+
+    recording = RecordingFactory(worker_id="worker-1", status="active")
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = egress_status
+
+    service._handle_egress_ended(mock_data)
+
+    mock_notify_external_services.assert_not_called()
+    mock_update_room_metadata.assert_called_once_with(
+        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    )
+
+    recording.refresh_from_db()
+    assert recording.status == expected_status
 
 
 @pytest.mark.parametrize(
