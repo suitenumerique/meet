@@ -200,7 +200,21 @@ class LiveKitEventsService:
                     f"Failed to process limit reached event for recording {recording}"
                 ) from e
 
-        # Fallback for completion when no MinIO/S3 webhooks are configured
+        if (
+            data.egress_info.status == api.EgressStatus.EGRESS_ABORTED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            return self.recording_events.handle_aborted(recording)
+
+        if (
+            data.egress_info.status == api.EgressStatus.EGRESS_FAILED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            return self.recording_events.handle_failed(recording)
+
+        # Fallback for completion when no MinIO/S3 webhooks are configured.
+        # If RECORDING_STORAGE_EVENT_ENABLE is True, completion is handled
+        # by ``on_storage_event_received``.
         if (
             not settings.RECORDING_STORAGE_EVENT_ENABLE
         ) and data.egress_info.status in [
@@ -215,8 +229,6 @@ class LiveKitEventsService:
                     "(already saved or in an error state); ignoring.",
                     recording.id,
                 )
-
-        # Silently ignoring EGRESS_ABORTED, EGRESS_FAILED
 
     def _handle_room_started(self, data):
         """Handle 'room_started' event."""

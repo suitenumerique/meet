@@ -33,6 +33,7 @@ and this project adheres to
 - 🩹(backend) identify externally provisioned users to PostHog
 - 🐛(backend) fix info panel crash for unregistered rooms
 - ♿️(frontend) focus side panel container on open #1452
+- 🩹(backend) handle failed and aborted egresses
 
 ## [1.23.0] - 2026-07-08
 
