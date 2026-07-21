@@ -9,7 +9,7 @@ resolution-markers = [
 
 [[package]]
 name = "agents"
-version = "1.23.0"
+version = "1.24.0"
 source = { virtual = "." }
 dependencies = [
     { name = "livekit-agents" },

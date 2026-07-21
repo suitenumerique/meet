@@ -7,7 +7,7 @@ build-backend = "uv_build"
 
 [project]
 name = "meet"
-version = "1.23.0"
+version = "1.24.0"
 authors = [{ "name" = "DINUM", "email" = "dev@mail.numerique.gouv.fr" }]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
