@@ -9,6 +9,7 @@ from unittest import mock
 import pytest
 
 from core.factories import RecordingFactory
+from core.models import RecordingStatusChoices
 from core.recording.services.recording_events import (
     RecordingEventsError,
     RecordingEventsService,
@@ -70,3 +71,22 @@ def test_handle_limit_reached_error(mock_notify, mode, notification_type, servic
     mock_notify.assert_called_once_with(
         room_name=str(recording.room.id), notification_data={"type": notification_type}
     )
+
+
+@pytest.mark.parametrize(
+    ("handler_name", "expected_status"),
+    (
+        ("handle_aborted", RecordingStatusChoices.ABORTED),
+        ("handle_failed", RecordingStatusChoices.FAILED),
+    ),
+)
+def test_handle_unsuccessful_egress(handler_name, expected_status, service):
+    """Test unsuccessful egress handlers persist a final, unsuccessful status."""
+
+    recording = RecordingFactory(status="active")
+    getattr(service, handler_name)(recording)
+
+    recording.refresh_from_db()
+    assert recording.status == expected_status
+    assert RecordingStatusChoices.is_final(recording.status)
+    assert RecordingStatusChoices.is_unsuccessful(recording.status)

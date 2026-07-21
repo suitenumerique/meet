@@ -26,14 +26,16 @@ class RecordingEventsService:
 
     @staticmethod
     def handle_update(recording: Recording, egress_status):
-        """Handle egress status updates and sync recording state to room metadata."""
+        """Handle egress update and sync recording state to room metadata.
+
+        Egress updates are sent for statuses EGRESS_ACTIVE and EGRESS_ENDING.
+        """
 
         room_name = str(recording.room.id)
 
         status_mapping = {
             api.EgressStatus.EGRESS_ACTIVE: "started",
             api.EgressStatus.EGRESS_ENDING: "saving",
-            api.EgressStatus.EGRESS_ABORTED: "aborted",
         }
 
         recording_status = status_mapping.get(egress_status)
@@ -59,6 +61,13 @@ class RecordingEventsService:
 
         notification_type = notification_mapping.get(recording.mode)
         if not notification_type:
+            logger.warning(
+                "Could not find notification type for: "
+                "room=%s, recording_id=%s, mode=%s",
+                recording.room.id,
+                recording.id,
+                recording.mode,
+            )
             return
 
         try:
@@ -78,6 +87,18 @@ class RecordingEventsService:
                 f"Failed to notify participants in room '{recording.room.id}' about "
                 f"recording limit reached (recording_id={recording.id})"
             ) from e
+
+    @staticmethod
+    def handle_failed(recording: Recording):
+        """Set recording status to failed, matching egress status."""
+        recording.status = models.RecordingStatusChoices.FAILED
+        recording.save()
+
+    @staticmethod
+    def handle_aborted(recording: Recording):
+        """Set recording status to aborted, matching egress status."""
+        recording.status = models.RecordingStatusChoices.ABORTED
+        recording.save()
 
     @staticmethod
     def handle_complete(recording: Recording):
