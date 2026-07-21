@@ -1,7 +1,6 @@
 """Tests for the speaker-to-user assignment service."""
 
 import math
-from dataclasses import dataclass, field
 from datetime import datetime
 
 from summary.core import user_assign
@@ -17,11 +16,9 @@ from summary.core.user_assign import (
 )
 
 
-@dataclass
-class FakeTranscription:
-    """Mimics the OpenAI Transcription pydantic model for testing."""
-
-    segments: list = field(default_factory=list)
+def make_transcription(segments: list | None = None) -> dict:
+    """Build a WhisperX transcription dict, matching WhisperXResponse.model_dump()."""
+    return {"segments": segments or []}
 
 
 RECORDING_START = datetime.fromisoformat("2026-03-17T15:30:33.000001")
@@ -68,7 +65,7 @@ METADATA_SINGLE_USER = {
     ],
 }
 
-DIARIZATION_SINGLE_SPEAKER = FakeTranscription(
+DIARIZATION_SINGLE_SPEAKER = make_transcription(
     segments=[
         {
             "start": 1.363,
@@ -182,7 +179,7 @@ class TestBuildSpeakerTimelines:
 
     def test_segment_without_words_falls_back_to_segment_bounds(self):
         """Segments missing a `words` key use the segment start/end as one interval."""
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[{"start": 1.5, "end": 3.5, "speaker": "SPEAKER_00"}],
         )
         result = _build_speaker_timelines(transcription)
@@ -190,7 +187,7 @@ class TestBuildSpeakerTimelines:
 
     def test_segment_with_only_none_word_timestamps_falls_back(self):
         """If every word has None start/end, fall back to segment bounds."""
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {
                     "start": 1.0,
@@ -208,7 +205,7 @@ class TestBuildSpeakerTimelines:
 
     def test_short_words_only_uses_segment_start_and_last_word_end(self):
         """With no overly long words, the interval runs segment start to end."""
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {
                     "start": 1.0,
@@ -231,7 +228,7 @@ class TestBuildSpeakerTimelines:
         max_word_duration = (
             user_assign.settings.resolve_speaker_identities_max_word_duration
         )
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {
                     "start": 0.0,
@@ -252,7 +249,7 @@ class TestBuildSpeakerTimelines:
 
     def test_long_word_in_middle_splits_segment(self):
         """Short words around a long word produce two intervals (before-cap + after)."""
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {
                     "start": 0.0,
@@ -275,7 +272,7 @@ class TestBuildSpeakerTimelines:
 
     def test_tail_word_is_capped_at_max_duration(self):
         """The trailing word's end is capped at word.start + max_word_duration."""
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {
                     "start": 0.0,
@@ -302,7 +299,7 @@ class TestBuildSpeakerTimelines:
                 update={"resolve_speaker_identities_enable_split_on_words": False},
             ),
         )
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {
                     "start": 0.0,
@@ -322,7 +319,7 @@ class TestBuildSpeakerTimelines:
 
     def test_multiple_speakers_keep_separate_timelines(self):
         """Segments from different speakers populate independent timeline entries."""
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {
                     "start": 0.0,
@@ -402,7 +399,7 @@ class TestResolveSpeakerIdentities:
             ],
             "participants": [{"participantId": "user-a", "name": "Shared Mic"}],
         }
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {"start": 1.0, "end": 3.0, "speaker": "SPEAKER_00"},
                 {"start": 5.0, "end": 7.0, "speaker": "SPEAKER_01"},
@@ -445,7 +442,7 @@ class TestResolveSpeakerIdentities:
                 {"participantId": "user-b", "name": "Bob"},
             ],
         }
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {"start": 1.5, "end": 3.5, "speaker": "SPEAKER_00"},
                 {"start": 5.5, "end": 7.5, "speaker": "SPEAKER_01"},
@@ -493,7 +490,7 @@ class TestResolveSpeakerIdentities:
                 {"participantId": "user-b", "name": "Bob"},
             ],
         }
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {"start": 1.5, "end": 5.5, "speaker": "SPEAKER_00"},
                 {"start": 4.0, "end": 7.5, "speaker": "SPEAKER_01"},
@@ -529,7 +526,7 @@ class TestResolveSpeakerIdentities:
             ],
             "participants": [{"participantId": "user-a", "name": "Brief User"}],
         }
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {"start": 1.0, "end": 10.0, "speaker": "SPEAKER_00"},
             ],
@@ -561,7 +558,7 @@ class TestResolveSpeakerIdentities:
             ],
             "participants": [{"participantId": "user-a", "name": "Early User"}],
         }
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {"start": 0.0, "end": 3.0, "speaker": "SPEAKER_00"},
             ],
@@ -576,7 +573,7 @@ class TestResolveSpeakerIdentities:
         """No segments produces empty result."""
         result = resolve_speaker_identities(
             METADATA_SINGLE_USER,
-            FakeTranscription(segments=[]),
+            make_transcription(segments=[]),
             RECORDING_START,
             RECORDING_END,
         )
@@ -584,7 +581,7 @@ class TestResolveSpeakerIdentities:
 
     def test_segment_without_speaker_ignored(self):
         """Segments missing speaker key are skipped."""
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {"start": 1.0, "end": 3.0, "text": "no speaker"},
             ],
@@ -608,7 +605,7 @@ class TestResolveSpeakerIdentities:
             ],
             "participants": [{"participantId": "user-a", "name": "Still Talking"}],
         }
-        transcription = FakeTranscription(
+        transcription = make_transcription(
             segments=[
                 {"start": 2.0, "end": 9.0, "speaker": "SPEAKER_00"},
             ],
