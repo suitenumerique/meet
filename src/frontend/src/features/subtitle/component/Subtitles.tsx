@@ -74,16 +74,16 @@ const useTranscriptionState = () => {
 
     const segment = segments[0]
 
-    setTranscriptionSegments((prevSegments) => {
-      const existingSegmentIds = new Set(prevSegments.map((s) => s.id))
-      if (existingSegmentIds.has(segment.id)) return prevSegments
-      return [
-        ...prevSegments,
-        {
-          participant: participant,
-          ...segment,
-        },
-      ]
+    setTranscriptionSegments((prevSegments: TranscriptionSegmentWithParticipant[]) => {
+      const existingIndex = prevSegments.findIndex(
+        (s: TranscriptionSegmentWithParticipant) => s.id === segment.id
+      )
+      if (existingIndex === -1) {
+        return [...prevSegments, { participant, ...segment }]
+      }
+      const next = prevSegments.slice()
+      next[existingIndex] = { ...next[existingIndex], ...segment }
+      return next
     })
   }
 
