@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.24.0] - 2026-07-21
+
 ### Added
 
 - ✨(backend) allow searching the recording admin table by owner email
