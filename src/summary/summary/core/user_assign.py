@@ -275,7 +275,7 @@ def _build_participant_timelines(
 def _build_speaker_timelines(transcription: Any) -> dict[str, list[Interval]]:
     """Build interval timelines from WhisperX transcription segments."""
     intervals: dict[str, list[Interval]] = {}
-    segments = transcription.segments if hasattr(transcription, "segments") else []
+    segments = transcription.get("segments") or []
     max_word_duration = settings.resolve_speaker_identities_max_word_duration
 
     for segment in segments:

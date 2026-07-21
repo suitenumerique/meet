@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## Fixed
+
+- 🐛(transcription) fix silent bug in speaker assignment
+
 ## [1.24.0] - 2026-07-21
 
 ### Added
