@@ -10,6 +10,35 @@ import { mergeProps } from '@/utils/mergeProps'
 import { PaginationIndicator } from './PaginationIndicator'
 import { useGridLayout } from '../hooks/useGridLayout'
 import { PaginationControl } from './PaginationControl'
+import { useEffect, useRef, useState } from 'react'
+
+interface GridLayoutObserverProps {
+  gridEl: React.RefObject<HTMLDivElement>
+  trackCount: number
+  onMaxTilesChange: (maxTiles: number) => void
+}
+
+/**
+ * Headless component that runs the layout calculation in isolation and
+ * reports the resulting tile capacity upward.
+ *
+ * `useGridLayout` re-renders its host on every layout recalculation
+ * (e.g. container resizes). Rendering it in a null child means only this
+ * component churns; the parent `GridLayout` re-renders solely when
+ * `maxTiles` actually changes, since `setState` bails out on equal values.
+ */
+const GridLayoutObserver = ({
+  gridEl,
+  trackCount,
+  onMaxTilesChange,
+}: GridLayoutObserverProps) => {
+  const { layout } = useGridLayout(gridEl, trackCount)
+  useEffect(() => {
+    onMaxTilesChange(layout.maxTiles)
+  }, [onMaxTilesChange, layout.maxTiles])
+
+  return null
+}
 
 /** @public */
 export interface GridLayoutProps
@@ -37,14 +66,14 @@ export interface GridLayoutProps
  * @public
  */
 export function GridLayout({ tracks, ...props }: GridLayoutProps) {
-  const gridEl = React.createRef<HTMLDivElement>()
+  const gridEl = useRef<HTMLDivElement>(null)
+  const [maxTiles, setMaxTiles] = useState(1)
 
   const elementProps = React.useMemo(
     () => mergeProps(props, { className: 'lk-grid-layout' }),
     [props]
   )
-  const { layout } = useGridLayout(gridEl, tracks.length)
-  const pagination = usePagination(layout.maxTiles, tracks)
+  const pagination = usePagination(maxTiles, tracks)
 
   useSwipe(gridEl, {
     onLeftSwipe: pagination.nextPage,
@@ -57,8 +86,13 @@ export function GridLayout({ tracks, ...props }: GridLayoutProps) {
       data-lk-pagination={pagination.totalPageCount > 1}
       {...elementProps}
     >
+      <GridLayoutObserver
+        gridEl={gridEl}
+        trackCount={tracks.length}
+        onMaxTilesChange={setMaxTiles}
+      />
       <TrackLoop tracks={pagination.tracks}>{props.children}</TrackLoop>
-      {tracks.length > layout.maxTiles && (
+      {tracks.length > maxTiles && (
         <>
           <PaginationIndicator
             totalPageCount={pagination.totalPageCount}
