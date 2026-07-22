@@ -8,10 +8,6 @@ and this project adheres to
 
 ## [Unreleased]
 
-## Fixed
-
-- 🐛(transcription) fix silent bug in speaker assignment
-
 ### Changed
 
 - ⬆️(frontend) upgrade @mediapipe/tasks-vision from 0.10.14 to 0.10.35
@@ -19,6 +15,11 @@ and this project adheres to
 - ⬆️(frontend) upgrade posthog-js from 1.391.2 to 1.395.0
 - ⬆️(frontend) upgrade @tanstack/react-query from 5.101.0 to 5.101.1
 - ⬆️(frontend) upgrade livekit-client from 2.19.2 to 2.20.0
+
+## Fixed
+
+- 🐛(transcription) fix silent bug in speaker assignment
+- 🐛(backend) fix bug linked to recording state inconsistency
 
 ## [1.24.0] - 2026-07-21
 

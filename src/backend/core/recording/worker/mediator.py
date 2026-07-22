@@ -2,8 +2,12 @@
 
 import logging
 
-from core import utils
 from core.models import Recording, RecordingStatusChoices
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
 
 from .exceptions import (
     RecordingStartError,
@@ -64,10 +68,15 @@ class WorkerServiceMediator:
         mode = recording.options.get("original_mode", None) or recording.mode
 
         try:
-            utils.update_room_metadata(
+            RoomManagement().update_metadata(
                 room_name, {"recording_mode": mode, "recording_status": "starting"}
             )
-        except utils.MetadataUpdateException as e:
+        except RoomNotFoundException:
+            logger.info(
+                "LiveKit room %s no longer exists, skipping metadata update",
+                room_name,
+            )
+        except RoomManagementException as e:
             logger.exception("Failed to update room's metadata: %s", e)
 
         logger.info(
