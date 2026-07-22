@@ -20,8 +20,9 @@ from core.services.livekit_events import (
     api,
 )
 from core.services.lobby import LobbyService
+from core.services.room_management import RoomManagementException
 from core.services.telephony import TelephonyException, TelephonyService
-from core.utils import MetadataUpdateException, NotificationError
+from core.utils import NotificationError
 
 pytestmark = pytest.mark.django_db
 
@@ -70,9 +71,9 @@ def test_initialization(
     ),
 )
 @mock.patch("core.utils.notify_participants")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_success(
-    mock_update_room_metadata, mock_notify, mode, notification_type, service
+    mock_update_metadata, mock_notify, mode, notification_type, service
 ):
     """Should successfully stop recording and notifies all participant."""
 
@@ -86,8 +87,8 @@ def test_handle_egress_ended_success(
     mock_notify.assert_called_once_with(
         room_name=str(recording.room.id), notification_data={"type": notification_type}
     )
-    mock_update_room_metadata.assert_called_once_with(
-        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    mock_update_metadata.assert_called_once_with(
+        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
     )
 
     recording.refresh_from_db()
@@ -104,9 +105,9 @@ def test_handle_egress_ended_success(
         (EgressStatus.EGRESS_ABORTED, "aborted"),
     ),
 )
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_updated_success(
-    mock_update_room_metadata, egress_status, status, service
+    mock_update_metadata, egress_status, status, service
 ):
     """Should successfully update room's metadata."""
 
@@ -117,7 +118,7 @@ def test_handle_egress_updated_success(
 
     service._handle_egress_updated(mock_data)
 
-    mock_update_room_metadata.assert_called_once_with(
+    mock_update_metadata.assert_called_once_with(
         str(recording.room.id), {"recording_status": status}
     )
 
@@ -129,9 +130,9 @@ def test_handle_egress_updated_success(
         EgressStatus.EGRESS_LIMIT_REACHED,
     ),
 )
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_updated_non_handled(
-    mock_update_room_metadata, egress_status, service
+    mock_update_metadata, egress_status, service
 ):
     """Should ignore certain egress status and don't trigger metadata updates."""
 
@@ -142,7 +143,7 @@ def test_handle_egress_updated_non_handled(
 
     service._handle_egress_updated(mock_data)
 
-    mock_update_room_metadata.assert_not_called()
+    mock_update_metadata.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -153,9 +154,9 @@ def test_handle_egress_updated_non_handled(
     ),
 )
 @mock.patch("core.utils.notify_participants")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_metadata_update_fails(
-    mock_update_room_metadata, mock_notify, mode, notification_type, service
+    mock_update_metadata, mock_notify, mode, notification_type, service
 ):
     """Should successfully stop and save recording when metadata's update fails."""
 
@@ -164,7 +165,7 @@ def test_handle_egress_ended_metadata_update_fails(
     mock_data.egress_info.egress_id = recording.worker_id
     mock_data.egress_info.status = EgressStatus.EGRESS_LIMIT_REACHED
 
-    mock_update_room_metadata.side_effect = MetadataUpdateException("Error notifying")
+    mock_update_metadata.side_effect = RoomManagementException("Error notifying")
 
     service._handle_egress_ended(mock_data)
 
@@ -178,9 +179,9 @@ def test_handle_egress_ended_metadata_update_fails(
 
 
 @mock.patch("core.utils.notify_participants")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_notification_fails(
-    mock_update_room_metadata, mock_notify, service
+    mock_update_metadata, mock_notify, service
 ):
     """Should raise ActionFailedError when notification fails but still stop recording."""
 
@@ -200,15 +201,15 @@ def test_handle_egress_ended_notification_fails(
     recording.refresh_from_db()
     assert recording.status == "stopped"
 
-    mock_update_room_metadata.assert_called_once_with(
-        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    mock_update_metadata.assert_called_once_with(
+        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
     )
 
 
 @mock.patch("core.utils.notify_participants")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_recording_not_found(
-    mock_update_room_metadata, mock_notify, service
+    mock_update_metadata, mock_notify, service
 ):
     """Should raise ActionFailedError when recording doesn't exist."""
 
@@ -223,16 +224,16 @@ def test_handle_egress_ended_recording_not_found(
         service._handle_egress_ended(mock_data)
 
     mock_notify.assert_not_called()
-    mock_update_room_metadata.assert_not_called()
+    mock_update_metadata.assert_not_called()
 
     recording.refresh_from_db()
     assert recording.status == "active"
 
 
 @mock.patch("core.utils.notify_participants")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_recording_not_active(
-    mock_update_room_metadata, mock_notify, service
+    mock_update_metadata, mock_notify, service
 ):
     """Should ignore non-active recordings."""
 
@@ -244,8 +245,8 @@ def test_handle_egress_ended_recording_not_active(
     service._handle_egress_ended(mock_data)
 
     mock_notify.assert_not_called()
-    mock_update_room_metadata.assert_called_once_with(
-        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    mock_update_metadata.assert_called_once_with(
+        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
     )
 
     recording.refresh_from_db()
@@ -253,9 +254,9 @@ def test_handle_egress_ended_recording_not_active(
 
 
 @mock.patch("core.utils.notify_participants")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_recording_not_limit_reached(
-    mock_update_room_metadata, mock_notify, service
+    mock_update_metadata, mock_notify, service
 ):
     """Should ignore egress non-limit-reached statuses."""
 
@@ -267,16 +268,16 @@ def test_handle_egress_ended_recording_not_limit_reached(
     service._handle_egress_ended(mock_data)
 
     mock_notify.assert_not_called()
-    mock_update_room_metadata.assert_called_once_with(
-        str(recording.room.id), {}, ["recording_mode", "recording_status"]
+    mock_update_metadata.assert_called_once_with(
+        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
     )
     assert recording.status == "stopped"
 
 
 @mock.patch("core.services.livekit_events.MetadataCollectorService")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_calls_metadata_collector_stop_when_conditions_are_met(
-    mock_update_room_metadata, mock_collector_class, service, settings
+    mock_update_metadata, mock_collector_class, service, settings
 ):
     """Should call MetadataCollectorService.stop when it exists."""
     settings.METADATA_COLLECTOR_ENABLED = True
@@ -306,7 +307,7 @@ def test_handle_egress_ended_calls_metadata_collector_stop_when_conditions_are_m
     ],
 )
 @mock.patch("core.services.livekit_events.MetadataCollectorService")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditions_not_met(
     _, mock_collector_class, metadata_enabled, options, service, settings
 ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -335,7 +336,7 @@ def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditio
     "notify_external_services"
 )
 @mock.patch("core.utils.notify_participants")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 @pytest.mark.parametrize(
     "egress_status",
     [EgressStatus.EGRESS_COMPLETE, EgressStatus.EGRESS_LIMIT_REACHED],
@@ -345,7 +346,7 @@ def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditio
     [(True, "notification_succeeded"), (False, "saved")],
 )
 def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913
-    mock_update_room_metadata,
+    mock_update_metadata,
     mock_notify,
     mock_notify_external_services,
     notify_return_value,
@@ -378,7 +379,7 @@ def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913
     "notify_external_services"
 )
 @mock.patch("core.utils.notify_participants")
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 @pytest.mark.parametrize(
     "egress_status, expected_status",
     [
@@ -387,7 +388,7 @@ def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913
     ],
 )
 def test_handle_egress_ended_does_not_finalize_when_webhooks_enabled(  # noqa: PLR0913
-    mock_update_room_metadata,
+    mock_update_metadata,
     mock_notify,
     mock_notify_external_services,
     egress_status,
@@ -424,9 +425,9 @@ def test_handle_egress_ended_does_not_finalize_when_webhooks_enabled(  # noqa: P
         EgressStatus.EGRESS_ABORTED,
     ],
 )
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_does_not_save_on_wrong_status(
-    mock_update_room_metadata, egress_status, service, settings
+    mock_update_metadata, egress_status, service, settings
 ):
     """Shouldn't save on invalid status."""
     settings.RECORDING_STORAGE_EVENT_ENABLE = False
@@ -445,9 +446,9 @@ def test_handle_egress_ended_does_not_save_on_wrong_status(
 @pytest.mark.parametrize(
     "status", ["failed_to_start", "aborted", "failed_to_stop", "saved", "initiated"]
 )
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_ignores_non_savable_recording(
-    mock_update_room_metadata, status, service, settings
+    mock_update_metadata, status, service, settings
 ):
     """Should handle non-savable recordings idempotently without raising.
 

@@ -11,7 +11,7 @@ from django.conf import settings
 
 from livekit import api
 
-from core import models, utils
+from core import models
 from core.recording.services.metadata_collector import (
     MetadataCollectorException,
     MetadataCollectorService,
@@ -23,6 +23,11 @@ from core.recording.services.recording_events import (
 )
 
 from .lobby import LobbyService
+from .room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
 from .telephony import TelephonyException, TelephonyService
 
 logger = getLogger(__name__)
@@ -177,10 +182,15 @@ class LiveKitEventsService:
 
         try:
             room_name = str(recording.room.id)
-            utils.update_room_metadata(
-                room_name, {}, ["recording_mode", "recording_status"]
+            RoomManagement().update_metadata(
+                room_name, remove_keys=["recording_mode", "recording_status"]
             )
-        except utils.MetadataUpdateException as e:
+        except RoomNotFoundException:
+            logger.info(
+                "LiveKit room %s no longer exists, skipping metadata update",
+                room_name,
+            )
+        except RoomManagementException as e:
             logger.exception("Failed to update room's metadata: %s", e)
 
         if recording.options.get("metadata_collector_dispatch_id", None) is not None:
