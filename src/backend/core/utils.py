@@ -423,6 +423,31 @@ def detect_mimetype(file_buffer: bytes, filename: str | None = None) -> str:
     return mimetype_from_content or "application/octet-stream"
 
 
+def _get_s3_client(*, override_domain: bool = True):
+    """Return an S3 client, honoring the AWS_S3_DOMAIN_REPLACE endpoint override.
+
+    AWS_S3_DOMAIN_REPLACE is used when the backend and frontend reach object
+    storage under different domains (this is the case in the docker compose stack
+    used in development: the frontend connects to the object storage on localhost
+    while the backend uses the object storage service name declared in the stack).
+    The domain name is used to compute the signature, so it can't be changed
+    dynamically by the frontend; we build a dedicated boto3 client pointed at that
+    endpoint. Otherwise we reuse the default storage client.
+    """
+    if settings.AWS_S3_DOMAIN_REPLACE and override_domain:
+        return boto3.client(
+            "s3",
+            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
+            endpoint_url=settings.AWS_S3_DOMAIN_REPLACE,
+            config=botocore.client.Config(
+                region_name=settings.AWS_S3_REGION_NAME,
+                signature_version=settings.AWS_S3_SIGNATURE_VERSION,
+            ),
+        )
+    return default_storage.connection.meta.client
+
+
 def generate_upload_policy(file):
     """
     Generate a S3 upload policy for a given file.
@@ -433,26 +458,7 @@ def generate_upload_policy(file):
 
     key = file.temporary_file_key
 
-    # This settings should be used if the backend application and the frontend application
-    # can't connect to the object storage with the same domain. This is the case in the
-    # docker compose stack used in development. The frontend application will use localhost
-    # to connect to the object storage while the backend application will use the object storage
-    # service name declared in the docker compose stack.
-    # This is needed because the domain name is used to compute the signature. So it can't be
-    # changed dynamically by the frontend application.
-    if settings.AWS_S3_DOMAIN_REPLACE:
-        s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
-            endpoint_url=settings.AWS_S3_DOMAIN_REPLACE,
-            config=botocore.client.Config(
-                region_name=settings.AWS_S3_REGION_NAME,
-                signature_version=settings.AWS_S3_SIGNATURE_VERSION,
-            ),
-        )
-    else:
-        s3_client = default_storage.connection.meta.client
+    s3_client = _get_s3_client()
 
     # Generate the policy
     policy = s3_client.generate_presigned_url(
@@ -473,26 +479,7 @@ def generate_download_s3_url(
     if not key:
         raise ValueError("key cannot be empty")
 
-    # This setting should be used if the backend application and the frontend application
-    # can't connect to the object storage with the same domain. This is the case in the
-    # docker compose stack used in development. The frontend application will use localhost
-    # to connect to the object storage while the backend application will use the object storage
-    # service name declared in the docker compose stack.
-    # This is needed because the domain name is used to compute the signature. So it can't be
-    # changed dynamically by the frontend application.
-    if settings.AWS_S3_DOMAIN_REPLACE and override_domain:
-        s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
-            endpoint_url=settings.AWS_S3_DOMAIN_REPLACE,
-            config=botocore.client.Config(
-                region_name=settings.AWS_S3_REGION_NAME,
-                signature_version=settings.AWS_S3_SIGNATURE_VERSION,
-            ),
-        )
-    else:
-        s3_client = default_storage.connection.meta.client
+    s3_client = _get_s3_client(override_domain=override_domain)
 
     return s3_client.generate_presigned_url(
         ClientMethod="get_object",
