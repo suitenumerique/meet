@@ -18,7 +18,7 @@ import {
 } from '@livekit/components-core'
 import { Track } from 'livekit-client'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
-import { ParticipantTileFocus } from './ParticipantTileFocus'
+import { ParticipantTileFocus } from './participantTileFocus/ParticipantTileFocus'
 import { FullScreenShareWarning } from './FullScreenShareWarning'
 import { useTranslation } from 'react-i18next'
 import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
