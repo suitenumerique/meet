@@ -3,7 +3,6 @@ import {
   LockLockedIcon,
   ScreenShareIcon,
   useIsEncrypted,
-  useParticipantInfo,
 } from '@livekit/components-react'
 import { HStack } from '@/styled-system/jsx'
 import { Participant } from 'livekit-client'
@@ -12,13 +11,14 @@ import { ParticipantName } from './ParticipantName'
 import { RaisedHandMetadataWrapper } from './RaisedHandMetadataWrapper'
 
 export const ParticipantMetadata = ({
+  displayedName,
   participant,
   isScreenShare,
 }: {
+  displayedName: string
   participant: Participant
   isScreenShare: boolean
 }) => {
-  const { identity, name } = useParticipantInfo({ participant })
   const isEncrypted = useIsEncrypted(participant)
 
   return (
@@ -42,7 +42,7 @@ export const ParticipantMetadata = ({
           )}
           <div className="lk-participant-name-wrapper">
             <ParticipantName
-              displayedName={name != '' ? name : identity}
+              displayedName={displayedName}
               isScreenShare={isScreenShare}
             />
           </div>
