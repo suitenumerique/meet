@@ -4,8 +4,7 @@ import { Avatar } from '@/components/Avatar'
 import { useIsSpeaking } from '@livekit/components-react'
 import { getParticipantBackgroundGradient } from '@/features/rooms/utils/getParticipantBackgroundGradient'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
-import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 
 const StyledParticipantPlaceHolder = styled('div', {
   base: {
@@ -14,6 +13,16 @@ const StyledParticipantPlaceHolder = styled('div', {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    containerType: 'size',
+  },
+})
+
+const StyledAvatarWrapper = styled('div', {
+  base: {
+    borderRadius: '50%',
+    aspectRatio: '1 / 1',
+    width: 'min(90cqmin, 160px)',
+    fontSize: 'min(27cqmin, 48px)',
   },
 })
 
@@ -31,43 +40,22 @@ export const ParticipantPlaceholder = ({
     [participantColor]
   )
 
-  const placeholderEl = useRef<HTMLDivElement>(null)
-  const { width, height } = useSize(placeholderEl)
-
-  const minDimension = Math.min(width, height)
-  const avatarSize = useMemo(
-    () => Math.min(Math.round(minDimension * 0.9), 160),
-    [minDimension]
-  )
-
-  const initialSize = useMemo(() => Math.round(avatarSize * 0.3), [avatarSize])
-
   return (
     <StyledParticipantPlaceHolder
-      ref={placeholderEl}
       style={{
         backgroundColor: participantColor,
         backgroundImage: backgroundGradient,
       }}
     >
-      <div
-        style={{
-          borderRadius: '50%',
-          animation: isSpeaking ? 'pulse 1s infinite' : undefined,
-          height: 'auto',
-          aspectRatio: '1/1',
-          width: '80%',
-          maxWidth: `${avatarSize}px`,
-          fontSize: `${initialSize}px`,
-        }}
+      <StyledAvatarWrapper
+        style={{ animation: isSpeaking ? 'pulse 1s infinite' : undefined }}
       >
-        {/*fixme - participant doesn't update on ParticipantNameChanged event */}
         <Avatar
           name={participant.name}
           bgColor={participantColor}
           context="placeholder"
         />
-      </div>
+      </StyledAvatarWrapper>
     </StyledParticipantPlaceHolder>
   )
 }
