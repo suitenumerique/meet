@@ -1,10 +1,7 @@
-import type { Participant } from 'livekit-client'
 import { styled } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
-import { useIsSpeaking } from '@livekit/components-react'
 import { getParticipantBackgroundGradient } from '@/features/rooms/utils/getParticipantBackgroundGradient'
-import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 
 const StyledParticipantPlaceHolder = styled('div', {
   base: {
@@ -23,39 +20,36 @@ const StyledAvatarWrapper = styled('div', {
     aspectRatio: '1 / 1',
     width: 'min(90cqmin, 160px)',
     fontSize: 'min(27cqmin, 48px)',
+    '[data-lk-speaking="true"] &': {
+      animation: 'pulse 1s infinite',
+    },
   },
 })
 
 type ParticipantPlaceholderProps = {
-  participant: Participant
+  color: string
+  displayedNamed: string
 }
 
-export const ParticipantPlaceholder = ({
-  participant,
-}: ParticipantPlaceholderProps) => {
-  const isSpeaking = useIsSpeaking(participant)
-  const participantColor = getParticipantColor(participant)
-  const backgroundGradient = useMemo(
-    () => getParticipantBackgroundGradient(participantColor),
-    [participantColor]
-  )
-
-  return (
-    <StyledParticipantPlaceHolder
-      style={{
-        backgroundColor: participantColor,
-        backgroundImage: backgroundGradient,
-      }}
-    >
-      <StyledAvatarWrapper
-        style={{ animation: isSpeaking ? 'pulse 1s infinite' : undefined }}
+export const ParticipantPlaceholder = React.memo(
+  ({ color, displayedNamed }: ParticipantPlaceholderProps) => {
+    const backgroundGradient = useMemo(
+      () => getParticipantBackgroundGradient(color),
+      [color]
+    )
+    return (
+      <StyledParticipantPlaceHolder
+        style={{
+          backgroundColor: color,
+          backgroundImage: backgroundGradient,
+        }}
       >
-        <Avatar
-          name={participant.name}
-          bgColor={participantColor}
-          context="placeholder"
-        />
-      </StyledAvatarWrapper>
-    </StyledParticipantPlaceHolder>
-  )
-}
+        <StyledAvatarWrapper>
+          <Avatar name={displayedNamed} bgColor={color} context="placeholder" />
+        </StyledAvatarWrapper>
+      </StyledParticipantPlaceHolder>
+    )
+  }
+)
+
+ParticipantPlaceholder.displayName = 'ParticipantPlaceholder'
