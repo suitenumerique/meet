@@ -114,6 +114,10 @@ const config: Config = {
           clipPath: 'polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0)',
         },
       },
+      overlayIn: {
+        from: { opacity: 0 },
+        to: { opacity: 0.6 },
+      },
     },
     tokens: defineTokens({
       /* we take a few things from the panda preset but for now we clear out some stuff.
