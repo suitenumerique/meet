@@ -9,6 +9,7 @@ import {
   VideoTrack,
   TrackRefContext,
   ParticipantContextIfNeeded,
+  useParticipantInfo,
 } from '@livekit/components-react'
 import {
   isEqualTrackRef,
@@ -19,7 +20,6 @@ import { Track } from 'livekit-client'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
 import { ParticipantTileFocus } from './ParticipantTileFocus'
 import { FullScreenShareWarning } from './FullScreenShareWarning'
-import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useTranslation } from 'react-i18next'
 import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
@@ -93,7 +93,11 @@ export const ParticipantTile: (
 
   const participantColor = getParticipantColor(trackReference.participant)
 
-  const participantName = getParticipantName(trackReference.participant)
+  const { identity, name } = useParticipantInfo({
+    participant: trackReference.participant,
+  })
+  const participantName = name || identity || 'Unknown'
+
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
 
   const interactiveProps = {
@@ -145,14 +149,12 @@ export const ParticipantTile: (
               <div className="lk-participant-placeholder">
                 <ParticipantPlaceholder
                   color={participantColor}
-                  displayedNamed={
-                    trackReference.participant.name ||
-                    trackReference.participant.identity
-                  }
+                  displayedNamed={participantName}
                 />
               </div>
               {!disableMetadata && (
                 <ParticipantMetadata
+                  displayedName={participantName}
                   isScreenShare={isScreenShare}
                   participant={trackReference.participant}
                 />
