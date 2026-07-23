@@ -11,9 +11,9 @@ import { SidePanel } from '../components/SidePanel'
 import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { ConnectionObserver } from '../components/ConnectionObserver'
+import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer'
 import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
-import { useSyncLiveKitMetadata } from '../hooks/useSyncLiveKitMetadata'
 import { VideoResolutionSubscription } from '../components/VideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
@@ -53,7 +53,6 @@ export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElemen
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
   useRoomPageTitle()
-  useSyncLiveKitMetadata()
   useNoiseReduction()
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
@@ -62,6 +61,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
 
   return (
     <>
+      <RoomMetadataSynchronizer />
       <ConnectionObserver />
       <ChatProvider />
       <VideoResolutionSubscription />
