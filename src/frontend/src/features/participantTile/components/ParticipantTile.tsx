@@ -1,3 +1,4 @@
+import React from 'react'
 import {
   AudioTrack,
   ParticipantTileProps,
@@ -9,7 +10,6 @@ import {
   TrackRefContext,
   ParticipantContextIfNeeded,
 } from '@livekit/components-react'
-import React from 'react'
 import {
   isEqualTrackRef,
   isTrackReference,
@@ -26,6 +26,7 @@ import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
 import { KeyboardShortcutHint } from './KeyboardShortcutHint'
 import { layoutStore, clearPinnedTrack } from '@/stores/layout'
 import { ParticipantMetadata } from './ParticipantMetadata'
+import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -90,6 +91,8 @@ export const ParticipantTile: (
   const isScreenShare = trackReference.source != Track.Source.Camera
   const [hasKeyboardFocus, setHasKeyboardFocus] = React.useState(false)
 
+  const participantColor = getParticipantColor(trackReference.participant)
+
   const participantName = getParticipantName(trackReference.participant)
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
 
@@ -141,7 +144,11 @@ export const ParticipantTile: (
               )}
               <div className="lk-participant-placeholder">
                 <ParticipantPlaceholder
-                  participant={trackReference.participant}
+                  color={participantColor}
+                  displayedNamed={
+                    trackReference.participant.name ||
+                    trackReference.participant.identity
+                  }
                 />
               </div>
               {!disableMetadata && (
