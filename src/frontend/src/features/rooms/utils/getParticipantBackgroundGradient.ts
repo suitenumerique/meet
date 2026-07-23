@@ -4,7 +4,7 @@
  * Mixed in oklch so the color stays vivid as it darkens instead of greying out.
  */
 export const getParticipantBackgroundGradient = (color: string): string =>
-  `radial-gradient(circle at 50% 45%,
+  `radial-gradient(circle at 50% 50%,
     color-mix(in oklch, ${color} 82%, white) 0%,
     color-mix(in oklch, ${color} 90%, white) 8%,
     ${color} 35%,
