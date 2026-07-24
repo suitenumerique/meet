@@ -2,7 +2,7 @@ import { RoomEvent } from 'livekit-client'
 import type { Participant } from 'livekit-client'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { useRoomContext } from '@livekit/components-react'
-import * as React from 'react'
+import { useEffect, useReducer, useRef } from 'react'
 
 /**
  * Tripwire for speaker promotion.
@@ -22,14 +22,14 @@ export function useSpeakerPromotionTrigger(
   sortedTiles: TrackReferenceOrPlaceholder[],
 ) {
   const room = useRoomContext()
-  const [, forceRender] = React.useReducer((n: number) => n + 1, 0)
+  const [, forceRender] = useReducer((n: number) => n + 1, 0)
 
   // Refs so the listener reads current values without re-subscribing
   // and without itself being a render dependency.
-  const tilesRef = React.useRef(sortedTiles)
+  const tilesRef = useRef(sortedTiles)
   tilesRef.current = sortedTiles
 
-  React.useEffect(() => {
+  useEffect(() => {
     const onActiveSpeakersChanged = (speakers: Participant[]) => {
       const tiles = tilesRef.current
       const hiddenSpeakerExists = speakers.some(
