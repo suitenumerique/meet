@@ -1,0 +1,52 @@
+publiccodeYmlVersion: 0.5.0
+name: LaSuite Meet
+applicationSuite: LaSuite
+url: https://github.com/suitenumerique/meet
+releaseDate: 2026-07-22
+platforms:
+  - web
+organisation:
+  name: DINUM
+  uri: https://numerique.gouv.fr
+fundedBy:
+  - name: Direction interministérielle du numérique (DINUM)
+    uri: https://www.numerique.gouv.fr
+developmentStatus: stable
+softwareType: standalone/web
+intendedAudience:
+  countries:
+    - FR
+description:
+  en:
+    localisedName: LaSuite Meet
+    shortDescription: "Open Source video conference solution, based on LiveKit"
+    longDescription: "Open Source video conference application, based on LiveKit,
+      Django and React. It is the official web video conference application of
+      French Ministries."
+    features:
+      - Optimized for stability in large meetings (+100 p.)
+      - Support for multiple screen sharing streams
+      - Non-persistent, secure chat
+      - Meeting recording
+      - Meeting transcription & Summary
+      - Telephony integration
+      - Secure participation with robust authentication and access control
+      - Customizable frontend style
+legal:
+  license: MIT
+maintenance:
+  type: internal
+  contacts:
+    - name: "Samuel Paccoud"
+      email: samuel.paccoud@numerique.gouv.fr
+      affiliation: DINUM
+    - name: "Antoine Lebaud"
+      email: antoine.lebaud.ext@numerique.gouv.fr
+      affiliation: DINUM
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - fr
+    - de
+    - en
+    - nl
