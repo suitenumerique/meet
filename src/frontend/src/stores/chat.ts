@@ -64,7 +64,6 @@ export const clearTextAreaValue = () => {
 }
 
 export function resetChatStore() {
-  console.count('resetChatStore')
   Object.assign(chatStore, {
     ...initialState,
     rows: [],
