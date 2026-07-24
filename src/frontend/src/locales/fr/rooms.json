@@ -667,6 +667,24 @@
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Contrôles de zoom du partage d'écran",
+    "zoomIn": "Zoomer",
+    "zoomInWithShortcut": "Zoomer ({{shortcut}})",
+    "zoomOut": "Dézoomer",
+    "zoomOutWithShortcut": "Dézoomer ({{shortcut}})",
+    "wheelShortcut": "Contrôle plus molette",
+    "wheelShortcutMac": "Commande plus molette",
+    "wheelShortcutHint": "Raccourci : Contrôle plus molette pour zoomer ou dézoomer.",
+    "wheelShortcutHintMac": "Raccourci : Commande plus molette pour zoomer ou dézoomer.",
+    "fitToWindow": "Ajuster à la fenêtre",
+    "fullScreen": "Plein écran",
+    "exitFullScreen": "Quitter le plein écran",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Glissez avec la souris ou utilisez les touches fléchées pour naviguer.",
+    "fullScreenEntered": "Plein écran activé",
+    "fullScreenExited": "Plein écran désactivé"
+  },
   "shortcutsPanel": {
     "title": "Raccourcis clavier",
     "categories": {

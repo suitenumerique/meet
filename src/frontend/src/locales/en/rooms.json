@@ -667,6 +667,24 @@
     "muteParticipant": "Mute {{name}}",
     "fullScreen": "Full screen"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Screen share zoom controls",
+    "zoomIn": "Zoom in",
+    "zoomInWithShortcut": "Zoom in ({{shortcut}})",
+    "zoomOut": "Zoom out",
+    "zoomOutWithShortcut": "Zoom out ({{shortcut}})",
+    "wheelShortcut": "Control plus scroll wheel",
+    "wheelShortcutMac": "Command plus scroll wheel",
+    "wheelShortcutHint": "Shortcut: Control plus scroll wheel to zoom in or out.",
+    "wheelShortcutHintMac": "Shortcut: Command plus scroll wheel to zoom in or out.",
+    "fitToWindow": "Fit to window",
+    "fullScreen": "Full screen",
+    "exitFullScreen": "Exit full screen",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Drag with mouse or use arrow keys to navigate.",
+    "fullScreenEntered": "Full screen enabled",
+    "fullScreenExited": "Full screen disabled"
+  },
   "shortcutsPanel": {
     "title": "Keyboard shortcuts",
     "categories": {

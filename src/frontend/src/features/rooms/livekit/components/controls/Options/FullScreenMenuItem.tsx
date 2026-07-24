@@ -1,4 +1,4 @@
-import { RiFullscreenExitLine, RiFullscreenLine } from '@remixicon/react'
+import { RiCollapseDiagonalLine, RiExpandDiagonalLine } from '@remixicon/react'
 import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { menuRecipe } from '@/primitives/menuRecipe'
@@ -20,12 +20,12 @@ export const FullScreenMenuItem = () => {
     >
       {isCurrentlyFullscreen ? (
         <>
-          <RiFullscreenExitLine size={20} />
+          <RiCollapseDiagonalLine size={20} />
           {t('fullscreen.exit')}
         </>
       ) : (
         <>
-          <RiFullscreenLine size={20} />
+          <RiExpandDiagonalLine size={20} />
           {t('fullscreen.enter')}
         </>
       )}

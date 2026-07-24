@@ -668,6 +668,24 @@
     "muteParticipant": "{{name}} stummschalten",
     "fullScreen": "Vollbild"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Zoom-Steuerung für Bildschirmfreigabe",
+    "zoomIn": "Vergrößern",
+    "zoomInWithShortcut": "Vergrößern ({{shortcut}})",
+    "zoomOut": "Verkleinern",
+    "zoomOutWithShortcut": "Verkleinern ({{shortcut}})",
+    "wheelShortcut": "Steuerung plus Mausrad",
+    "wheelShortcutMac": "Befehl plus Mausrad",
+    "wheelShortcutHint": "Tastenkürzel: Steuerung plus Mausrad zum Vergrößern oder Verkleinern.",
+    "wheelShortcutHintMac": "Tastenkürzel: Befehl plus Mausrad zum Vergrößern oder Verkleinern.",
+    "fitToWindow": "An Fenster anpassen",
+    "fullScreen": "Vollbild",
+    "exitFullScreen": "Vollbild beenden",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Mit der Maus ziehen oder Pfeiltasten zum Navigieren verwenden.",
+    "fullScreenEntered": "Vollbild aktiviert",
+    "fullScreenExited": "Vollbild deaktiviert"
+  },
   "shortcutsPanel": {
     "title": "Tastenkürzel",
     "categories": {
