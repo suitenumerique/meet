@@ -11,6 +11,7 @@ import { PaginationIndicator } from './PaginationIndicator'
 import { useGridLayout } from '../hooks/useGridLayout'
 import { PaginationControl } from './PaginationControl'
 import { useEffect, useRef, useState } from 'react'
+import { useSpeakerPromotionTrigger } from '../hooks/useSpeakerPromotionTrigger'
 
 interface GridLayoutObserverProps {
   gridEl: React.RefObject<HTMLDivElement>
@@ -74,6 +75,7 @@ export function GridLayout({ tracks, ...props }: GridLayoutProps) {
     [props]
   )
   const pagination = usePagination(maxTiles, tracks)
+  useSpeakerPromotionTrigger(pagination.tracks, maxTiles)
 
   useSwipe(gridEl, {
     onLeftSwipe: pagination.nextPage,
