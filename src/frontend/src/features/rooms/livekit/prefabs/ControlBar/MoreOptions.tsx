@@ -1,11 +1,11 @@
 import { css } from '@/styled-system/css'
 import { ChatToggle } from '../../components/controls/ChatToggle'
-import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
+import { ParticipantsToggle } from '../../components/controls/ParticipantsToggle'
 import { ToolsToggle } from '../../components/controls/ToolsToggle'
 import { InfoToggle } from '../../components/controls/InfoToggle'
 import { AdminToggle } from '../../components/AdminToggle'
 import { useSize } from '../../hooks/useResizeObserver'
-import { useState, RefObject } from 'react'
+import { useState, RefObject, useEffect } from 'react'
 import { Dialog, DialogTrigger, Popover } from 'react-aria-components'
 import { Button } from '@/primitives'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
@@ -66,12 +66,32 @@ export const LateralMenu = () => {
   )
 }
 
+interface BreakpointObserverProps {
+  containerRef: RefObject<HTMLDivElement>
+  onWideChange: (isWide: boolean) => void
+}
+
+const BreakpointObserver = ({
+  containerRef,
+  onWideChange,
+}: BreakpointObserverProps) => {
+  const { width } = useSize(containerRef)
+  const isWide = width > CONTROL_BAR_BREAKPOINT
+
+  useEffect(() => {
+    onWideChange(isWide)
+  }, [isWide, onWideChange])
+
+  return null
+}
+
 export const MoreOptions = ({
   parentElement,
 }: {
   parentElement: RefObject<HTMLDivElement>
 }) => {
-  const { width: parentWidth } = useSize(parentElement)
+  const [isWide, setIsWide] = useState(false)
+
   return (
     <nav
       className={css({
@@ -83,11 +103,11 @@ export const MoreOptions = ({
         paddingRight: '0.25rem',
       })}
     >
-      {parentWidth > CONTROL_BAR_BREAKPOINT ? (
-        <NavigationControls />
-      ) : (
-        <LateralMenu />
-      )}
+      <BreakpointObserver
+        containerRef={parentElement}
+        onWideChange={setIsWide}
+      />
+      {isWide ? <NavigationControls /> : <LateralMenu />}
     </nav>
   )
 }

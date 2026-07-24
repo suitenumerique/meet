@@ -4,13 +4,13 @@ import { Button as RACButton } from 'react-aria-components'
 import { Track } from 'livekit-client'
 import Source = Track.Source
 
-import { useMaybeLayoutContext } from '@livekit/components-react'
-import { ParticipantTile } from '@/features/rooms/livekit/components/ParticipantTile'
+import { ParticipantTile } from '@/features/participantTile/components/ParticipantTile.tsx'
 import { type ToastProps } from './Toast'
 import { HStack, styled } from '@/styled-system/jsx'
 import { Div } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { StyledToastContainer } from './StyledToastContainer'
+import { setPinnedTrack } from '@/stores/layout'
 
 const ClickableToast = styled(RACButton, {
   base: {
@@ -28,7 +28,6 @@ export function ToastJoined({ state, ...props }: Readonly<ToastProps>) {
     state,
     ref
   )
-  const layoutContext = useMaybeLayoutContext()
   const participant = props.toast.content.participant
 
   if (!participant) return
@@ -38,18 +37,13 @@ export function ToastJoined({ state, ...props }: Readonly<ToastProps>) {
     publication: participant.getTrackPublication(Source.Camera),
     source: Source.Camera,
   }
-  const pinParticipant = () => {
-    layoutContext?.pin.dispatch?.({
-      msg: 'set_pin',
-      trackReference,
-    })
-  }
+
   return (
     <StyledToastContainer {...toastProps} ref={ref}>
       <ClickableToast
         ref={ref}
         onPress={(e) => {
-          pinParticipant()
+          setPinnedTrack(trackReference)
           closeButtonProps.onPress?.(e)
         }}
       >

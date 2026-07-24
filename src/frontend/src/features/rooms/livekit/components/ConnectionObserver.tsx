@@ -1,0 +1,245 @@
+import { useConfig } from '@/api/useConfig'
+import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
+import {
+  useRemoteParticipants,
+  useRoomContext,
+} from '@livekit/components-react'
+import { useEffect, useRef } from 'react'
+import { useSnapshot } from 'valtio'
+import { DisconnectReason, RoomEvent } from 'livekit-client'
+
+import { userPreferencesStore } from '@/stores/userPreferences'
+import { connectionObserverStore } from '@/stores/connectionObserver'
+
+import posthog from 'posthog-js'
+import { useFeatureFlagEnabled } from 'posthog-js/react'
+import { isMobileBrowser } from '@livekit/components-core'
+import { FeatureFlags } from '@/features/analytics/enums'
+
+const CANDIDATE_POLL_INTERVAL_MS = 5000
+
+export const ConnectionObserver = () => {
+  const room = useRoomContext()
+  const connectionStartTimeRef = useRef<number | null>(null)
+
+  const { data } = useConfig()
+  const isAnalyticsEnabled = useIsAnalyticsEnabled()
+
+  const featureEnabled = useFeatureFlagEnabled(FeatureFlags.candidatePolling)
+  const isMobile = isMobileBrowser()
+
+  const isAdvancedConnectionObserverEnabled =
+    !isMobile && isAnalyticsEnabled && featureEnabled
+
+  const userPreferencesSnap = useSnapshot(userPreferencesStore)
+
+  const idleDisconnectModalTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null)
+
+  const remoteParticipants = useRemoteParticipants({
+    updateOnlyOn: [
+      RoomEvent.ParticipantConnected,
+      RoomEvent.ParticipantDisconnected,
+    ],
+  })
+
+  useEffect(() => {
+    // Always clear existing timer on dependency change
+    if (idleDisconnectModalTimeoutRef.current) {
+      clearTimeout(idleDisconnectModalTimeoutRef.current)
+      idleDisconnectModalTimeoutRef.current = null
+    }
+
+    const isEnabled = userPreferencesSnap.is_idle_disconnect_modal_enabled
+    const delay = data?.idle_disconnect_warning_delay
+
+    // Disabled or invalid delay: ensure modal is closed
+    if (!isEnabled || !delay) {
+      connectionObserverStore.isIdleDisconnectModalOpen = false
+      return
+    }
+
+    if (remoteParticipants.length === 0) {
+      idleDisconnectModalTimeoutRef.current = setTimeout(() => {
+        connectionObserverStore.isIdleDisconnectModalOpen = true
+      }, delay)
+    } else {
+      connectionObserverStore.isIdleDisconnectModalOpen = false
+    }
+
+    return () => {
+      if (idleDisconnectModalTimeoutRef.current) {
+        clearTimeout(idleDisconnectModalTimeoutRef.current)
+        idleDisconnectModalTimeoutRef.current = null
+      }
+    }
+  }, [
+    remoteParticipants.length,
+    data?.idle_disconnect_warning_delay,
+    userPreferencesSnap.is_idle_disconnect_modal_enabled,
+  ])
+
+  useEffect(() => {
+    if (!isAdvancedConnectionObserverEnabled) return
+    if (!room) return
+
+    let interval: ReturnType<typeof setInterval> | null = null
+
+    const pollCandidate = async (
+      label: 'publisher' | 'subscriber',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      pc?: any
+    ) => {
+      if (!pc) return
+
+      let stats: RTCStatsReport
+      try {
+        stats = await pc.getStats()
+      } catch {
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      stats.forEach((report: any) => {
+        if (
+          report.type === 'candidate-pair' &&
+          report.state === 'succeeded' &&
+          report.nominated
+        ) {
+          const remoteCandidate = stats.get(report.remoteCandidateId)
+          if (!remoteCandidate) return
+
+          const next = {
+            type: remoteCandidate.candidateType,
+            address: remoteCandidate.address,
+            protocol: remoteCandidate.protocol,
+          }
+
+          const current = connectionObserverStore[label]
+
+          const hasChanged =
+            current?.type !== next.type ||
+            current?.address !== next.address ||
+            current?.protocol !== next.protocol
+
+          if (hasChanged) {
+            connectionObserverStore[label] = next
+            const key = `${label}ChangesCount` as const
+            connectionObserverStore[key] =
+              (connectionObserverStore[key] || 0) + 1
+          }
+        }
+      })
+    }
+
+    const poll = async () => {
+      const publisher = room.engine?.pcManager?.publisher
+      const subscriber = room.engine?.pcManager?.subscriber
+
+      await Promise.all([
+        pollCandidate('publisher', publisher),
+        pollCandidate('subscriber', subscriber),
+      ])
+    }
+
+    const startPolling = async () => {
+      if (interval) return // prevent duplicates
+
+      // Initial snapshot
+      await poll()
+
+      interval = setInterval(poll, CANDIDATE_POLL_INTERVAL_MS)
+    }
+
+    const stopPolling = () => {
+      if (!interval) return
+      clearInterval(interval)
+      interval = null
+    }
+
+    room.on(RoomEvent.Connected, startPolling)
+    room.on(RoomEvent.Reconnected, startPolling)
+
+    room.on(RoomEvent.Reconnecting, stopPolling)
+    room.on(RoomEvent.Disconnected, stopPolling)
+
+    return () => {
+      stopPolling()
+
+      room.off(RoomEvent.Connected, startPolling)
+      room.off(RoomEvent.Reconnected, startPolling)
+      room.off(RoomEvent.Reconnecting, stopPolling)
+      room.off(RoomEvent.Disconnected, stopPolling)
+    }
+  }, [room, isAdvancedConnectionObserverEnabled])
+
+  useEffect(() => {
+    if (!isAnalyticsEnabled) return
+
+    const handleConnection = () => {
+      // Preserve original connection timestamp across reconnections to measure
+      // total session duration from first connect to final disconnect.
+      if (connectionStartTimeRef.current != null) return
+      connectionStartTimeRef.current = Date.now()
+      posthog.capture('connection-event')
+    }
+
+    const handleReconnect = () => {
+      posthog.capture('reconnect-event')
+    }
+
+    const handleReconnected = () => {
+      posthog.capture('reconnected-event')
+    }
+
+    const handleSignalingConnect = () => {
+      posthog.capture('signaling-connect-event')
+    }
+
+    const handleSignalingReconnect = () => {
+      posthog.capture('signaling-reconnect-event')
+    }
+
+    const handleDisconnect = (
+      disconnectReason: DisconnectReason | undefined
+    ) => {
+      const connectionEndTime = Date.now()
+
+      posthog.capture('disconnect-event', {
+        // Calculate total session duration from first connection to final disconnect
+        // This duration is sensitive to refreshing the page.
+        sessionDuration: connectionStartTimeRef.current
+          ? connectionEndTime - connectionStartTimeRef.current
+          : -1,
+        reason: disconnectReason
+          ? DisconnectReason[disconnectReason]
+          : 'UNKNOWN',
+      })
+    }
+
+    room.on(RoomEvent.Connected, handleConnection)
+    room.on(RoomEvent.SignalConnected, handleSignalingConnect)
+    room.on(RoomEvent.Disconnected, handleDisconnect)
+    room.on(RoomEvent.Reconnecting, handleReconnect)
+    room.on(RoomEvent.Reconnected, handleReconnected)
+    room.on(RoomEvent.SignalReconnecting, handleSignalingReconnect)
+
+    return () => {
+      room.off(RoomEvent.Connected, handleConnection)
+      room.off(RoomEvent.SignalConnected, handleSignalingConnect)
+      room.off(RoomEvent.Disconnected, handleDisconnect)
+      room.off(RoomEvent.Reconnecting, handleReconnect)
+      room.off(RoomEvent.Reconnected, handleReconnected)
+      room.off(RoomEvent.SignalReconnecting, handleSignalingReconnect)
+    }
+  }, [room, isAnalyticsEnabled])
+
+  useEffect(() => {
+    return () => {
+      connectionStartTimeRef.current = null
+    }
+  }, [])
+
+  return null
+}

@@ -15,7 +15,7 @@ import {
 } from '@remixicon/react'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { ChatToggle } from '../../components/controls/ChatToggle'
-import { ParticipantsToggle } from '../../components/controls/Participants/ParticipantsToggle'
+import { ParticipantsToggle } from '../../components/controls/ParticipantsToggle'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { LinkButton } from '@/primitives'
 import { ResponsiveMenu } from './ResponsiveMenu'
@@ -24,7 +24,7 @@ import { CameraSwitchButton } from '../../components/controls/CameraSwitchButton
 import { useConfig } from '@/api/useConfig'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
-import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
+import { openSettingsDialog } from '@/stores/settings'
 import { ControlBarRegion } from '@/features/layout/components/ControlBarRegion'
 import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 
@@ -35,7 +35,6 @@ export function MobileControlBar({
   const [isMenuOpened, setIsMenuOpened] = React.useState(false)
   const browserSupportsScreenSharing = supportsScreenSharing()
   const { toggleEffects } = useSidePanel()
-  const { openSettingsDialog } = useSettingsDialog()
 
   const { data } = useConfig()
 

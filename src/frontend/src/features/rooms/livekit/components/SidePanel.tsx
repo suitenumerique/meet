@@ -5,10 +5,10 @@ import { text } from '@/primitives/Text'
 import { Button, Div } from '@/primitives'
 import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
-import { ParticipantsList } from './controls/Participants/ParticipantsList'
+import { ParticipantsList } from '@/features/participants/components/ParticipantsList'
 import { PanelId, useSidePanel } from '../hooks/useSidePanel'
 import React, { ReactNode, useCallback, useRef } from 'react'
-import { Chat } from '../prefabs/Chat'
+import { Chat } from '@/features/chat/components/Chat'
 import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
@@ -218,7 +218,7 @@ export const SidePanel = () => {
       <Panel isOpen={isEffectsOpen}>
         <Effects />
       </Panel>
-      <Panel isOpen={isChatOpen} keepAlive={true}>
+      <Panel isOpen={isChatOpen}>
         <Chat />
       </Panel>
       <Panel isOpen={isToolsOpen} keepAlive={true}>

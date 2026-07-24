@@ -170,7 +170,6 @@ export const Conference = ({
     prepareConnection()
   }, [room, apiConfig, isConnectionWarmedUp])
 
-  const [showInviteDialog, setShowInviteDialog] = useState(mode === 'create')
   const [mediaDeviceError, setMediaDeviceError] = useState<{
     error: MediaDeviceFailure | null
     kind: MediaDeviceKind | null
@@ -303,13 +302,7 @@ export const Conference = ({
           }}
         >
           <VideoConference />
-          {showInviteDialog && !isMobile && (
-            <InviteDialog
-              isOpen={showInviteDialog}
-              onOpenChange={setShowInviteDialog}
-              onClose={() => setShowInviteDialog(false)}
-            />
-          )}
+          {!isMobile && <InviteDialog mode={mode} />}
           <MediaDeviceErrorAlert
             {...mediaDeviceError}
             onClose={() => setMediaDeviceError({ error: null, kind: null })}

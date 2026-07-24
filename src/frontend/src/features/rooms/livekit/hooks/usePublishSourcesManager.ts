@@ -1,4 +1,4 @@
-import { Track } from 'livekit-client'
+import { RoomEvent, Track } from 'livekit-client'
 import { useCallback, useMemo } from 'react'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
@@ -43,7 +43,9 @@ export const usePublishSourcesManager = () => {
   const roomId = data?.slug
 
   const { updateParticipantsPermissions } = useUpdateParticipantsPermissions()
-  const remoteParticipants = useRemoteParticipants()
+  const remoteParticipants = useRemoteParticipants({
+    updateOnlyOn: [RoomEvent.ParticipantAttributesChanged],
+  })
 
   const unprivilegedRemoteParticipants = remoteParticipants.filter(
     (participant) => !getParticipantIsRoomAdmin(participant)

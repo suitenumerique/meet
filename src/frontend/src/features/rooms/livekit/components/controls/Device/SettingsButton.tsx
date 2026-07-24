@@ -2,7 +2,7 @@ import { Button } from '@/primitives'
 import { RiSettings3Line } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
-import { useSettingsDialog } from '@/features/settings/hook/useSettingsDialog'
+import { openSettingsDialog } from '@/stores/settings'
 
 export const SettingsButton = ({
   settingTab,
@@ -12,7 +12,6 @@ export const SettingsButton = ({
   onPress?: () => void
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
-  const { openSettingsDialog } = useSettingsDialog()
 
   return (
     <Button
