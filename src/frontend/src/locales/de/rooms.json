@@ -260,7 +260,8 @@
         "enter": "Vollbild",
         "exit": "Vollbildmodus verlassen"
       },
-      "support": "Support kontaktieren"
+      "support": "Support kontaktieren",
+      "documentation": "Dokumentation"
     }
   },
   "effects": {

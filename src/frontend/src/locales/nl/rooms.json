@@ -260,7 +260,8 @@
         "enter": "Volledig scherm",
         "exit": "Stop volledig scherm stand"
       },
-      "support": "Contact ondersteuning"
+      "support": "Contact ondersteuning",
+      "documentation": "Documentatie"
     }
   },
   "effects": {

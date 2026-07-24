@@ -20,6 +20,7 @@ export interface ApiConfig {
   feedback: {
     url: string
   }
+  documentation_url?: string
   external_home_url?: string
   silence_livekit_debug_logs?: boolean
   is_silent_login_enabled?: boolean

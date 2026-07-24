@@ -260,7 +260,8 @@
         "enter": "Fullscreen",
         "exit": "Exit fullscreen mode"
       },
-      "support": "Contact support"
+      "support": "Contact support",
+      "documentation": "Documentation"
     }
   },
   "effects": {
