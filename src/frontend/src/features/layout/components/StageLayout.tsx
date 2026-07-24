@@ -104,7 +104,7 @@ export const StageLayout = () => {
             >
               <ParticipantTile />
             </CarouselLayout>
-            {pinnedTrackRef && <FocusLayout trackRef={pinnedTrackRef} />}
+            <FocusLayout trackRef={pinnedTrackRef} />
           </FocusLayoutContainer>
         </div>
       )}
