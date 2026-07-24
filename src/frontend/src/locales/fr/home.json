@@ -13,6 +13,7 @@
   "moreLinkLabel": "En savoir plus sur {{appTitle}} - nouvelle fenêtre",
   "moreLink": "En savoir plus",
   "moreAbout": "sur {{appTitle}}",
+  "connectionTestLink": "Tester votre configuration",
   "createMenu": {
     "laterOption": "Créer une réunion pour une date ultérieure",
     "instantOption": "Démarrer une réunion instantanée"

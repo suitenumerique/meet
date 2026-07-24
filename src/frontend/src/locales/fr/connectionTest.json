@@ -1,0 +1,55 @@
+{
+  "title": "Tester votre configuration",
+  "runTest": "Lancer le test",
+  "runAgain": "Relancer",
+  "cancel": "Annuler",
+  "detailsFor": "Détails de l'étape {{step}}",
+  "downloadReport": "Télécharger le rapport",
+  "homeLink": "Tester votre configuration",
+  "progress": "{{done}}/{{total}}",
+  "progressLabel": "Progression du test de connexion",
+  "groups": {
+    "local": "Navigateur et périphériques",
+    "network": "Connexion au serveur"
+  },
+  "steps": {
+    "browser": "Navigateur",
+    "microphone": "Microphone",
+    "camera": "Caméra",
+    "devices": "Périphériques médias",
+    "websocket": "WebSocket",
+    "webrtc": "WebRTC",
+    "turn": "TURN",
+    "reconnect": "Reconnexion",
+    "publishAudio": "Publication audio",
+    "publishVideo": "Publication vidéo"
+  },
+  "status": {
+    "pending": "En attente",
+    "running": "En cours…",
+    "success": "Réussi",
+    "failed": "Échec",
+    "skipped": "Ignoré"
+  },
+  "counts": {
+    "passed": "réussis",
+    "failed": "en échec",
+    "skipped": "ignorés"
+  },
+  "summary": {
+    "idle": "Prêt à tester",
+    "idleHint": "Le test dure environ une minute. Votre caméra et votre microphone ne sont utilisés que pendant le test.",
+    "running": "Test en cours…",
+    "runningHint": "Gardez cette page ouverte jusqu'à la fin des vérifications.",
+    "passed": "Tout fonctionne",
+    "passedHint": "Votre navigateur, vos périphériques et votre réseau sont prêts pour une réunion.",
+    "partial": "Test partiel",
+    "partialHint": "Certaines vérifications ont été ignorées. Autorisez l'accès à votre caméra et à votre microphone pour les tester.",
+    "failed_one": "{{count}} vérification en échec",
+    "failed_other": "{{count}} vérifications en échec",
+    "failedHint": "Ouvrez les vérifications en échec pour voir le détail, puis transmettez le rapport à votre service informatique."
+  },
+  "help": {
+    "firewall": "En cas d'échec des tests réseau, vérifiez vos permissions navigateur et les règles de filtrage réseau (WebRTC, WebSocket, TURN) auprès de votre service informatique."
+  }
+}

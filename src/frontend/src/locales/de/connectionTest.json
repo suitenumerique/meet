@@ -1,0 +1,56 @@
+{
+  "title": "Ihre Konfiguration testen",
+  "runTest": "Test starten",
+  "runAgain": "Erneut testen",
+  "cancel": "Abbrechen",
+  "detailsFor": "Details zu Schritt {{step}}",
+  "downloadReport": "Bericht herunterladen",
+  "homeLink": "Ihre Konfiguration testen",
+  "progress": "{{done}}/{{total}}",
+  "progressLabel": "Fortschritt des Verbindungstests",
+  "groups": {
+    "local": "Browser und Geräte",
+    "network": "Verbindung zum Server"
+  },
+  "steps": {
+    "browser": "Browser",
+    "microphone": "Mikrofon",
+    "camera": "Kamera",
+    "devices": "Mediengeräte",
+    "websocket": "WebSocket",
+    "webrtc": "WebRTC",
+    "turn": "TURN",
+    "reconnect": "Erneut verbinden",
+    "selectedCandidate": "Ausgewählte Route",
+    "publishAudio": "Audio veröffentlichen",
+    "publishVideo": "Video veröffentlichen"
+  },
+  "status": {
+    "pending": "Ausstehend",
+    "running": "Läuft…",
+    "success": "Erfolgreich",
+    "failed": "Fehlgeschlagen",
+    "skipped": "Übersprungen"
+  },
+  "counts": {
+    "passed": "erfolgreich",
+    "failed": "fehlgeschlagen",
+    "skipped": "übersprungen"
+  },
+  "summary": {
+    "idle": "Bereit zum Testen",
+    "idleHint": "Der Test dauert ungefähr eine Minute. Ihre Kamera und Ihr Mikrofon werden nur während des Tests verwendet.",
+    "running": "Test wird durchgeführt…",
+    "runningHint": "Lassen Sie diese Seite geöffnet, bis alle Prüfungen abgeschlossen sind.",
+    "passed": "Alles funktioniert",
+    "passedHint": "Ihr Browser, Ihre Geräte und Ihr Netzwerk sind für eine Besprechung bereit.",
+    "partial": "Teilweiser Test",
+    "partialHint": "Einige Prüfungen wurden übersprungen. Erlauben Sie den Zugriff auf Ihre Kamera und Ihr Mikrofon, um diese zu testen.",
+    "failed_one": "{{count}} Prüfung fehlgeschlagen",
+    "failed_other": "{{count}} Prüfungen fehlgeschlagen",
+    "failedHint": "Öffnen Sie die fehlgeschlagenen Prüfungen für weitere Details und senden Sie den Bericht an Ihre IT-Abteilung."
+  },
+  "help": {
+    "firewall": "Wenn Netzwerktests fehlschlagen, überprüfen Sie Ihre Browserberechtigungen und die Netzwerkfilterregeln (WebRTC, WebSocket, TURN) mit Ihrer IT-Abteilung."
+  }
+}

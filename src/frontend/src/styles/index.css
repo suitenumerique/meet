@@ -31,6 +31,19 @@ html.font-opendyslexic {
   border: 0;
 }
 
+/* LiveKit ConnectionCheck appends a temporary <video> to body during publishVideo.
+   Keep it decodable (not display:none) but invisible. */
+body.connection-test-hide-livekit-video > video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
 * {
   outline: 2px solid transparent;
 }

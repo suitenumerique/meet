@@ -1,0 +1,55 @@
+{
+  "title": "Test your configuration",
+  "runTest": "Run test",
+  "runAgain": "Run again",
+  "cancel": "Cancel",
+  "detailsFor": "Details for {{step}}",
+  "downloadReport": "Download report",
+  "homeLink": "Test your configuration",
+  "progress": "{{done}}/{{total}}",
+  "progressLabel": "Connection test progress",
+  "groups": {
+    "local": "Browser and devices",
+    "network": "Server connectivity"
+  },
+  "steps": {
+    "browser": "Browser",
+    "microphone": "Microphone",
+    "camera": "Camera",
+    "devices": "Media devices",
+    "websocket": "WebSocket",
+    "webrtc": "WebRTC",
+    "turn": "TURN",
+    "reconnect": "Reconnect",
+    "publishAudio": "Audio publishing",
+    "publishVideo": "Video publishing"
+  },
+  "status": {
+    "pending": "Pending",
+    "running": "Running…",
+    "success": "Passed",
+    "failed": "Failed",
+    "skipped": "Skipped"
+  },
+  "counts": {
+    "passed": "passed",
+    "failed": "failed",
+    "skipped": "skipped"
+  },
+  "summary": {
+    "idle": "Ready to test",
+    "idleHint": "The test takes about a minute. Your camera and microphone are only used while it runs.",
+    "running": "Testing…",
+    "runningHint": "Keep this page open until every check has finished.",
+    "passed": "Everything works",
+    "passedHint": "Your browser, your devices and your network are ready for a meeting.",
+    "partial": "Partially tested",
+    "partialHint": "Some checks were skipped. Allow access to your camera and microphone to test them.",
+    "failed_one": "{{count}} check failed",
+    "failed_other": "{{count}} checks failed",
+    "failedHint": "Open the failed checks below for details, then send the report to your IT department."
+  },
+  "help": {
+    "firewall": "If network tests fail, check your browser permissions and network filtering rules (WebRTC, WebSocket, TURN) with your IT department."
+  }
+}
