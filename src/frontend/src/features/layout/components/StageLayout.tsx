@@ -9,7 +9,7 @@ import {
   log,
   type TrackReferenceOrPlaceholder,
 } from '@livekit/components-core'
-import { RoomEvent, Track } from 'livekit-client'
+import { Track } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
 import { useEffect, useRef } from 'react'
@@ -23,7 +23,7 @@ export const StageLayout = () => {
       { source: Track.Source.Camera, withPlaceholder: true },
       { source: Track.Source.ScreenShare, withPlaceholder: false },
     ],
-    { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false }
+    { updateOnlyOn: [], onlySubscribed: false }
   )
 
   const screenShareTracks = tracks
