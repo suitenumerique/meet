@@ -20,9 +20,7 @@ import * as React from 'react'
  */
 export function useSpeakerPromotionTrigger(
   sortedTiles: TrackReferenceOrPlaceholder[],
-  maxVisibleTiles: number
 ) {
-  console.count('useSpeakerPromotionTrigger')
   const room = useRoomContext()
   const [, forceRender] = React.useReducer((n: number) => n + 1, 0)
 
@@ -30,8 +28,6 @@ export function useSpeakerPromotionTrigger(
   // and without itself being a render dependency.
   const tilesRef = React.useRef(sortedTiles)
   tilesRef.current = sortedTiles
-  const maxRef = React.useRef(maxVisibleTiles)
-  maxRef.current = maxVisibleTiles
 
   React.useEffect(() => {
     const onActiveSpeakersChanged = (speakers: Participant[]) => {
