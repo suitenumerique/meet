@@ -22,14 +22,16 @@ type State = {
   textAreaValue: string
 }
 
-export const chatStore = proxy<State>({
+const initialState: State = {
   unreadMessages: 0,
   isSending: false,
   rows: [],
   names: {},
   send: undefined,
   textAreaValue: '',
-})
+}
+
+export const chatStore = proxy<State>({ ...initialState })
 
 const GROUPING_WINDOW_MS = 60_000
 
@@ -59,4 +61,13 @@ export const persistTextAreaValue = (value: string) => {
 
 export const clearTextAreaValue = () => {
   chatStore.textAreaValue = ''
+}
+
+export function resetChatStore() {
+  console.count('resetChatStore')
+  Object.assign(chatStore, {
+    ...initialState,
+    rows: [],
+    names: {},
+  })
 }

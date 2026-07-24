@@ -3,7 +3,7 @@ import { ref } from 'valtio'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import React, { useEffect } from 'react'
 import { useChat, useRoomContext } from '@livekit/components-react'
-import { appendRow, chatStore } from '@/stores/chat'
+import { appendRow, chatStore, resetChatStore } from '@/stores/chat'
 import type { ChatMessage } from '@livekit/components-core'
 import {
   LocalParticipant,
@@ -18,6 +18,10 @@ export const ChatProvider = () => {
   const { isChatOpen } = useSidePanel()
 
   const room = useRoomContext()
+
+  useEffect(() => {
+    resetChatStore()
+  }, [])
 
   // Tigger the message notification (temporary)
   useEffect(() => {
