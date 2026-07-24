@@ -19,7 +19,7 @@ import { useEffect, useReducer, useRef } from 'react'
  * `useTracks(..., { updateOnlyOn: [] })` upstream.
  */
 export function useSpeakerPromotionTrigger(
-  sortedTiles: TrackReferenceOrPlaceholder[],
+  sortedTiles: TrackReferenceOrPlaceholder[]
 ) {
   const room = useRoomContext()
   const [, forceRender] = useReducer((n: number) => n + 1, 0)
