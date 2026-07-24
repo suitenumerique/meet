@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(summary) report exception type in failure analytics
+- ✨(frontend) add configurable documentation menu item
 
 ## Fixed
 

@@ -5,6 +5,7 @@ import { SettingsMenuItem } from './SettingsMenuItem'
 import { FeedbackMenuItem } from './FeedbackMenuItem'
 import { EffectsMenuItem } from './EffectsMenuItem'
 import { SupportMenuItem } from './SupportMenuItem'
+import { DocumentationMenuItem } from './DocumentationMenuItem'
 import { TranscriptMenuItem } from './TranscriptMenuItem'
 import { ScreenRecordingMenuItem } from './ScreenRecordingMenuItem'
 import { PictureInPictureMenuItem } from '@/features/rooms/livekit/components/controls/Options/PictureInPictureMenuItem'
@@ -28,6 +29,7 @@ export const OptionsMenuItems = () => {
       <Separator />
       <MenuSection>
         <SupportMenuItem />
+        <DocumentationMenuItem />
         <FeedbackMenuItem />
         <SettingsMenuItem />
       </MenuSection>

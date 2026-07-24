@@ -398,6 +398,9 @@ class Base(Configuration):
         "feedback": values.DictValue(
             {}, environ_name="FRONTEND_FEEDBACK", environ_prefix=None
         ),
+        "documentation_url": values.Value(
+            None, environ_name="FRONTEND_DOCUMENTATION_URL", environ_prefix=None
+        ),
         "external_home_url": values.Value(
             None, environ_name="FRONTEND_EXTERNAL_HOME_URL", environ_prefix=None
         ),
