@@ -8,9 +8,15 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(summary) report exception type in failure analytics
+
 ## Fixed
 
 - 🐛(transcription) fix silent bug in speaker assignment
+- 🐛(summary) extend tasks auto retry logic
+- 🐛(summary) properly detect when failure webhook should be sent
 
 ### Changed
 

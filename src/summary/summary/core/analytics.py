@@ -202,12 +202,15 @@ class MetadataManager:
             },
         )
 
-    def capture(self, task_id, event_name):
+    def capture(self, task_id, event_name, extra_properties=None):
         """Capture analytics event with task metadata and clean up."""
         if self._is_disabled or not self.has_task_id(task_id):
             return
 
         metadata = self._get_metadata(task_id)
+
+        if extra_properties:
+            metadata = {**metadata, **extra_properties}
 
         if "start_time" in metadata:
             metadata["execution_time"] = round(time.time() - metadata["start_time"], 2)

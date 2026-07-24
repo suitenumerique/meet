@@ -612,6 +612,7 @@ def handle_transcribe_v2_failed(
         metadata_manager.capture(
             task_id,
             settings.posthog_transcript_failure,
+            {"exception_type": type(exception).__name__},
         )
         call_webhook_v2_task.apply_async(
             args=[
@@ -720,6 +721,7 @@ def handle_summarize_v2_failed(
         metadata_manager.capture(
             task_id,
             settings.posthog_summary_failure,
+            {"exception_type": type(exception).__name__},
         )
         call_webhook_v2_task.apply_async(
             args=[
