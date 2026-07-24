@@ -431,7 +431,7 @@ def _should_auto_create_summary(payload: TranscribeTaskJob) -> bool:
 @celery.task(
     max_retries=3,
     queue=settings.call_webhook_queue_v2,
-    autoretry_for=[exceptions.HTTPError],
+    autoretry_for=[exceptions.RequestException],
 )
 def call_webhook_v2_task(
     payload: dict,
@@ -445,7 +445,9 @@ def call_webhook_v2_task(
 
 @celery.task(
     bind=True,
-    autoretry_for=[exceptions.HTTPError],
+    autoretry_for=[
+        exceptions.RequestException,
+    ],
     max_retries=settings.celery_max_retries,
     queue=settings.transcribe_queue_v2,
 )
