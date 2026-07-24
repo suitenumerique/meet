@@ -266,6 +266,18 @@ export const Footer = () => {
               {t('links.accessibility')}
             </Link>
           </StyledLi>
+          {data?.diagnostics?.connection_test_enabled && (
+            <StyledLi divider>
+              <Link
+                underline={false}
+                footer="minor"
+                to="/test-connection"
+                aria-label={t('links.connectionTest')}
+              >
+                {t('links.connectionTest')}
+              </Link>
+            </StyledLi>
+          )}
           <StyledLi>
             <A
               externalIcon

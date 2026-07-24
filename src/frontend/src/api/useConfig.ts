@@ -45,6 +45,9 @@ export interface ApiConfig {
   subtitle: {
     enabled: boolean
   }
+  diagnostics: {
+    connection_test_enabled?: boolean
+  }
   telephony: {
     enabled: boolean
     international_phone_number?: string

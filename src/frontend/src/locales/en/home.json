@@ -13,6 +13,7 @@
   "moreLinkLabel": "Learn more about {{appTitle}} - new tab",
   "moreLink": "Learn more",
   "moreAbout": "about {{appTitle}}",
+  "connectionTestLink": "Test your configuration",
   "createMenu": {
     "laterOption": "Create a meeting for a later date",
     "instantOption": "Start an instant meeting"

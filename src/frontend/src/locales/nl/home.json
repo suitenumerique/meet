@@ -13,6 +13,7 @@
   "moreLinkLabel": "Meer informatie over {{appTitle}} - nieuw tabblad",
   "moreLink": "Meer informatie",
   "moreAbout": "over {{appTitle}}",
+  "connectionTestLink": "Test je configuratie",
   "createMenu": {
     "laterOption": "Maak een vergadering voor een latere datum",
     "instantOption": "Begin direct een vergadering"

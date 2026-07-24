@@ -36,6 +36,7 @@
       "legalsTerms": "Mentions légales",
       "data": "Données personnelles et cookie",
       "accessibility": "Accessibilité : non conforme",
+      "connectionTest": "Tester votre configuration",
       "ariaLabel": "nouvelle fenêtre",
       "codeAnnotation": "Notre code est ouvert et disponible sur ce",
       "code": "dépôt de code Open Source",
