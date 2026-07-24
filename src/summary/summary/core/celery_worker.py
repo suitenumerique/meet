@@ -590,39 +590,26 @@ def handle_transcribe_v2_failed(
 ):
     """Handle the failure of transcribe_v2_task.
 
-    Tracks the failure event in analytics and, if the task
-    will not be retried, sends a failure webhook to the client.
+    Tracks the failure event in analytics and sends a failure webhook to the client.
     """
-    autoretry_for = sender.autoretry_for
-    retries_remaining = sender.max_retries - sender.request.retries - 1
-
-    will_retry = retries_remaining > 0 and isinstance(exception, tuple(autoretry_for))
-
-    if will_retry:
-        logger.info(
-            "Transcribe task %s failed, %s retries left.",
-            task_id,
-            retries_remaining,
-        )
-    else:
-        logger.error(
-            "Transcribe task %s failed, no more retries left, sending failure webhook.",
-            task_id,
-        )
-        metadata_manager.capture(
-            task_id,
-            settings.posthog_transcript_failure,
-            {"exception_type": type(exception).__name__},
-        )
-        call_webhook_v2_task.apply_async(
-            args=[
-                TranscribeWebhookFailurePayload(
-                    job_id=task_id,
-                    error_code="unknown_error",
-                ).model_dump(),
-                args[0]["tenant_id"],
-            ]
-        )
+    logger.error(
+        "Transcribe task %s failed, no more retries left, sending failure webhook.",
+        task_id,
+    )
+    metadata_manager.capture(
+        task_id,
+        settings.posthog_transcript_failure,
+        {"exception_type": type(exception).__name__},
+    )
+    call_webhook_v2_task.apply_async(
+        args=[
+            TranscribeWebhookFailurePayload(
+                job_id=task_id,
+                error_code="unknown_error",
+            ).model_dump(),
+            args[0]["tenant_id"],
+        ]
+    )
 
 
 @celery.task(
@@ -699,36 +686,23 @@ def handle_summarize_v2_failed(
 ):
     """Handle the failure of summarize_v2_task.
 
-    Tracks the failure event in analytics and, if the task
-    will not be retried, sends a failure webhook to the client.
+    Tracks the failure event in analytics and sends a failure webhook to the client.
     """
-    autoretry_for = sender.autoretry_for
-    retries_remaining = sender.max_retries - sender.request.retries - 1
-
-    will_retry = retries_remaining > 0 and isinstance(exception, tuple(autoretry_for))
-
-    if will_retry:
-        logger.info(
-            "Summary task %s failed, %s retries left.",
-            task_id,
-            retries_remaining,
-        )
-    else:
-        logger.warn(
-            "Summary task %s failed, no more retries left, sending failure webhook.",
-            task_id,
-        )
-        metadata_manager.capture(
-            task_id,
-            settings.posthog_summary_failure,
-            {"exception_type": type(exception).__name__},
-        )
-        call_webhook_v2_task.apply_async(
-            args=[
-                SummarizeWebhookFailurePayload(
-                    job_id=task_id,
-                    error_code="unknown_error",
-                ).model_dump(),
-                args[0]["tenant_id"],
-            ]
-        )
+    logger.warn(
+        "Summary task %s failed, no more retries left, sending failure webhook.",
+        task_id,
+    )
+    metadata_manager.capture(
+        task_id,
+        settings.posthog_summary_failure,
+        {"exception_type": type(exception).__name__},
+    )
+    call_webhook_v2_task.apply_async(
+        args=[
+            SummarizeWebhookFailurePayload(
+                job_id=task_id,
+                error_code="unknown_error",
+            ).model_dump(),
+            args[0]["tenant_id"],
+        ]
+    )
