@@ -578,12 +578,6 @@ def task_retry_handler_transcript(request=None, reason=None, einfo=None, **kwarg
 
 
 @signals.task_failure.connect(sender=process_audio_transcribe_v2_task)
-def task_failure_handler_transcript(task_id, exception=None, **kwargs):
-    """Signal handler called when task execution fails permanently."""
-    metadata_manager.capture(task_id, settings.posthog_transcript_failure)
-
-
-@signals.task_failure.connect(sender=process_audio_transcribe_v2_task)
 def handle_transcribe_v2_failed(
     sender,
     task_id=None,
@@ -596,20 +590,28 @@ def handle_transcribe_v2_failed(
 ):
     """Handle the failure of transcribe_v2_task.
 
-    This function is triggered when the transcribe_v2_task fails.
-    It sends a webhook failure payload to notify the client of the failure.
+    Tracks the failure event in analytics and, if the task
+    will not be retried, sends a failure webhook to the client.
     """
-    n_retries_left = sender.max_retries - sender.request.retries - 1
-    if n_retries_left > 0:
+    autoretry_for = sender.autoretry_for
+    retries_remaining = sender.max_retries - sender.request.retries - 1
+
+    will_retry = retries_remaining > 0 and isinstance(exception, tuple(autoretry_for))
+
+    if will_retry:
         logger.info(
             "Transcribe task %s failed, %s retries left.",
             task_id,
-            n_retries_left,
+            retries_remaining,
         )
     else:
-        logger.warn(
+        logger.error(
             "Transcribe task %s failed, no more retries left, sending failure webhook.",
             task_id,
+        )
+        metadata_manager.capture(
+            task_id,
+            settings.posthog_transcript_failure,
         )
         call_webhook_v2_task.apply_async(
             args=[
@@ -684,12 +686,6 @@ def task_retry_handler_summary(request=None, reason=None, einfo=None, **kwargs):
 
 
 @signals.task_failure.connect(sender=summarize_v2_task)
-def task_failure_handler_summary(task_id, exception=None, **kwargs):
-    """Signal handler called when task execution fails permanently."""
-    metadata_manager.capture(task_id, settings.posthog_summary_failure)
-
-
-@signals.task_failure.connect(sender=summarize_v2_task)
 def handle_summarize_v2_failed(
     sender,
     task_id=None,
@@ -702,20 +698,28 @@ def handle_summarize_v2_failed(
 ):
     """Handle the failure of summarize_v2_task.
 
-    This function is triggered when the summarize_v2_task fails.
-    It sends a webhook failure payload to notify the client of the failure.
+    Tracks the failure event in analytics and, if the task
+    will not be retried, sends a failure webhook to the client.
     """
-    n_retries_left = sender.max_retries - sender.request.retries - 1
-    if n_retries_left > 0:
+    autoretry_for = sender.autoretry_for
+    retries_remaining = sender.max_retries - sender.request.retries - 1
+
+    will_retry = retries_remaining > 0 and isinstance(exception, tuple(autoretry_for))
+
+    if will_retry:
         logger.info(
             "Summary task %s failed, %s retries left.",
             task_id,
-            n_retries_left,
+            retries_remaining,
         )
     else:
         logger.warn(
             "Summary task %s failed, no more retries left, sending failure webhook.",
             task_id,
+        )
+        metadata_manager.capture(
+            task_id,
+            settings.posthog_summary_failure,
         )
         call_webhook_v2_task.apply_async(
             args=[
