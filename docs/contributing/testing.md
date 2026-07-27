@@ -102,80 +102,15 @@ def test_room_access_requires_membership(self):
     assert response.status_code == 403
 ```
 
-
-## Frontend tests
-
-### Running tests
-
-```bash
-make test-front
-
-# Directly
-cd src/frontend
-npm test
-npm run test:watch
-npm run test:coverage
-```
-
-### Test structure
-
-```
-src/frontend/src/
-└── features/
-    └── conference/
-        └── controls/
-            ├── MicButton.tsx
-            └── __tests__/
-                └── MicButton.test.tsx
-```
-
-### Writing frontend tests
-
-```typescript
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MicButton } from '../MicButton';
-
-describe('MicButton', () => {
-  it('shows correct label when muted', () => {
-    render(<MicButton isMuted={true} onToggle={vi.fn()} />);
-    expect(screen.getByRole('button', { name: /unmute/i })).toBeInTheDocument();
-  });
-
-  it('calls onToggle when clicked', async () => {
-    const onToggle = vi.fn();
-    render(<MicButton isMuted={false} onToggle={onToggle} />);
-    await userEvent.click(screen.getByRole('button'));
-    expect(onToggle).toHaveBeenCalledOnce();
-  });
-});
-```
-
-### Accessibility testing
-
-```typescript
-import { axe, toHaveNoViolations } from 'jest-axe';
-expect.extend(toHaveNoViolations);
-
-it('has no accessibility violations', async () => {
-  const { container } = render(<ControlBar />);
-  const results = await axe(container);
-  expect(results).toHaveNoViolations();
-});
-```
-
-
 ## CI/CD
 
 All tests run automatically on every pull request via GitHub Actions:
 
 - Backend: pytest with coverage
-- Frontend: Vitest with coverage
 - Linting: Ruff (Python) + ESLint (TypeScript)
 - Docker: Build verification
 
 All checks must pass before a PR can be merged.
-
 
 ## Testing philosophy
 
