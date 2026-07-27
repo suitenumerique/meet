@@ -91,7 +91,7 @@ The frontend dev server runs at http://localhost:5173.
 docker compose exec app-dev python manage.py shell
 
 # Create superuser
-docker compose exec app-dev python manage.py createsuperuser
+make superuser 
 
 # Run backend tests
 make test-back
