@@ -9,7 +9,7 @@ Complete reference for all environment variables accepted by LaSuite Meet's comp
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `DJANGO_SETTINGS_MODULE` | **Yes** | -- | Must be `meet.settings`. App will not start without it. |
-| `DJANGO_CONFIGURATION` | **Yes** | -- | `Production`, `Demo`, or `Development` |
+| `DJANGO_CONFIGURATION` | **Yes** | -- | `Production`, `Demo`, `Development`, `Test` |
 | `DJANGO_SECRET_KEY` | **Yes** | -- | 50+ character random string for cryptographic signing |
 | `DJANGO_ALLOWED_HOSTS` | **Yes** | -- | Comma-separated list of allowed hostnames |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | **Yes** | -- | Comma-separated list of trusted HTTPS origins |
