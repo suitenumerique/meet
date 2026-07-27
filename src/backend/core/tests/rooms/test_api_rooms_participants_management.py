@@ -719,13 +719,13 @@ def test_update_participant_invalid_payload():
     )
     client.force_authenticate(user=user)
 
-    payload = {"participant_identity": "invalid-uuid"}
+    payload = {"participant_identity": ["test"]}
 
     url = reverse("rooms-update-participant", kwargs={"pk": room.id})
     response = client.post(url, payload, format="json")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "Must be a valid UUID." in str(response.data)
+    assert "Not a valid string." in str(response.data)
 
 
 def test_update_participant_no_update_fields():
@@ -918,7 +918,7 @@ def test_remove_participant_invalid_payload():
     )
     client.force_authenticate(user=user)
 
-    payload = {"participant_identity": "invalid-uuid"}
+    payload = {"participant_identity": ["invalid-uuid"]}
 
     url = reverse("rooms-remove-participant", kwargs={"pk": room.id})
     response = client.post(url, payload, format="json")
