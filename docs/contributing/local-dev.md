@@ -82,7 +82,7 @@ npm install
 npm run dev
 ```
 
-The frontend dev server runs at http://localhost:5173.
+The frontend dev server runs at http://localhost:3000.
 
 ## Backend development
 

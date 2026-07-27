@@ -32,7 +32,7 @@ npm install
 npm run dev
 ```
 
-Dev server runs at http://localhost:5173 with hot module replacement.
+Dev server runs at http://localhost:3000 with hot module replacement.
 
 ## Project structure
 
