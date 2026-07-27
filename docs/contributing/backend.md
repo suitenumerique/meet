@@ -19,16 +19,16 @@ The Meet backend is a Django 5.x application written in Python 3.13+.
 
 ```bash
 # Start the backend container (dev mode with hot reload)
-docker compose up -d app-dev
+make run-backend
 
 # Django shell
-docker compose exec app-dev python manage.py shell
+docker compose exec app-dev python manage.py shell (we might add a command for this one if missing)
 
 # Apply migrations
-docker compose exec app-dev python manage.py migrate
+make migrate
 
 # Create superuser
-docker compose exec app-dev python manage.py createsuperuser
+make superuser
 ```
 
 ## Settings
@@ -65,8 +65,7 @@ class Recording(models.Model):
 After model changes, create and apply migrations:
 
 ```bash
-docker compose exec app-dev python manage.py makemigrations
-docker compose exec app-dev python manage.py migrate
+make migrate
 ```
 
 ## API views
