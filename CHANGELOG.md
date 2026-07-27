@@ -30,6 +30,7 @@ and this project adheres to
 - 🐛(summary) extend tasks auto retry logic
 - 🐛(summary) properly detect when failure webhook should be sent
 - 🐛(backend) preserve recording metadata when updating room access
+- 🐛(backend) allow any string as sub in the API serializer
 
 
 ## [1.24.0] - 2026-07-21
