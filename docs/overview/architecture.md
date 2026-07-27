@@ -114,7 +114,7 @@ sequenceDiagram
     BE->>BE: Create / update user record
     BE-->>B: Session cookie, redirect → Meet
     B->>F: Load Meet (authenticated)
-    F->>BE: POST /api/v1.0/rooms/{id}/token/
+    F->>BE: POST /api/v1.0/rooms/{id}
     BE-->>F: LiveKit JWT
     F->>LK: Connect via WebRTC
 ```
