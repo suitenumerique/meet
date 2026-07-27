@@ -56,7 +56,7 @@ export const Avatar = React.memo(
             fontWeight="500"
             fill="currentColor"
           >
-            {initial}
+            {initial.toUpperCase()}
           </text>
         </svg>
       </div>
