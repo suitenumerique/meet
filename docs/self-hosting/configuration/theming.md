@@ -14,7 +14,7 @@ You can customize the look and feel of LaSuite Meet to match your brand. Two app
 Set the `FRONTEND_CUSTOM_CSS_URL` environment variable on the **backend** container:
 
 ```bash
-FRONTEND_CUSTOM_CSS_URL=https://visio6.bebopo.eu/custom.css
+FRONTEND_CUSTOM_CSS_URL=https://visio.example.com/custom.css
 ```
 
 !!!info 

@@ -14,7 +14,7 @@
 #   https://github.com/suitenumerique/meet/blob/main/docs/self-hosting/compose/deployment-guide.md
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/suitenumerique/meet/main/docs/docs/install.sh -o install.sh
+#   curl -fsSL https://raw.githubusercontent.com/suitenumerique/meet/main/docs/install.sh -o install.sh
 #   cat install.sh        # review before running
 #   bash install.sh
 
