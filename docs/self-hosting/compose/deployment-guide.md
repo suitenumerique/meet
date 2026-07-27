@@ -23,7 +23,7 @@ Each stack is independent: you manage, upgrade, and restart them separately. The
 All three stacks share the same domain names. Download the hosts file once and edit it - each stack will copy it in later.
 
 ```bash
-RAW="https://raw.githubusercontent.com/suitenumerique/meet/main"
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
 mkdir -p ~/docker && cd ~/docker
 curl -fsSL -o hosts ${RAW}/env.d/production.dist/hosts
@@ -66,10 +66,10 @@ Skip this section if you already have an OIDC provider. If you do, note down you
 ```bash
 mkdir -p ~/docker/keycloak/env.d && cd ~/docker/keycloak
 
-RAW="https://raw.githubusercontent.com/suitenumerique/meet/main"
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-curl -fsSL -o compose.yml           ${RAW}/docs/docs/examples/keycloak/compose.yml
-curl -fsSL -o keycloak-realm.json   ${RAW}/docs/docs/examples/keycloak/keycloak-realm.json
+curl -fsSL -o compose.yml           ${RAW}/docs/examples/keycloak/compose.yml
+curl -fsSL -o keycloak-realm.json   ${RAW}/docs/examples/keycloak/keycloak-realm.json
 
 curl -fsSL -o env.d/keycloak        ${RAW}/env.d/production.dist/keycloak
 curl -fsSL -o env.d/kc_postgresql   ${RAW}/env.d/production.dist/kc_postgresql
@@ -139,12 +139,12 @@ docker compose ps   # keycloak should show 'healthy'
 ```bash
 mkdir -p ~/docker/meet/env.d && cd ~/docker/meet
 
-RAW="https://raw.githubusercontent.com/suitenumerique/meet/main"
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-curl -fsSL -o compose.yml         ${RAW}/docs/docs/examples/meet/compose.yml
-curl -fsSL -o livekit-server.yaml ${RAW}/docs/docs/examples/meet/livekit-server.yaml
-curl -fsSL -o nginx-routing.conf  ${RAW}/docs/docs/examples/meet/nginx-routing.conf
-curl -fsSL -o generate-secrets.sh ${RAW}/docs/docs/generate-secrets.sh
+curl -fsSL -o compose.yml         ${RAW}/docs/examples/meet/compose.yml
+curl -fsSL -o livekit-server.yaml ${RAW}/docs/examples/meet/livekit-server.yaml
+curl -fsSL -o nginx-routing.conf  ${RAW}/docs/examples/meet/nginx-routing.conf
+curl -fsSL -o generate-secrets.sh ${RAW}/docs/generate-secrets.sh
 chmod +x generate-secrets.sh
 
 curl -fsSL -o env.d/common     ${RAW}/env.d/production.dist/common

@@ -59,10 +59,10 @@ docker network create proxy
 ```bash
 mkdir -p ~/docker/nginx-proxy && cd ~/docker/nginx-proxy
 
-RAW="https://raw.githubusercontent.com/suitenumerique/meet/main"
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-curl -fsSL -o compose.yml  ${RAW}/docs/docs/examples/nginx-proxy/compose.yml
-curl -fsSL -o .env         ${RAW}/docs/docs/examples/nginx-proxy/.env.example
+curl -fsSL -o compose.yml  ${RAW}/docs/examples/nginx-proxy/compose.yml
+curl -fsSL -o .env         ${RAW}/docs/examples/nginx-proxy/.env.example
 ```
 
 Edit `.env` - set your email for Let's Encrypt expiry notifications:

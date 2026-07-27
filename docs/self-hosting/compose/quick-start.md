@@ -14,8 +14,8 @@ a reverse proxy, Keycloak (identity provider), and Meet itself.
 ## One-liner
  
 ```bash
-RAW="https://raw.githubusercontent.com/suitenumerique/meet/main"
-curl -fsSL $RAW/docs/docs/install.sh -o install.sh
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
+curl -fsSL $RAW/docs/install.sh -o install.sh
 ```
  
 Review it, then run:
