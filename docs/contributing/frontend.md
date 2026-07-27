@@ -121,17 +121,6 @@ const { t } = useTranslation();
 
 Other languages are managed via Crowdin.
 
-## Running tests
-
-```bash
-make test-front
-
-# Or directly
-cd src/frontend
-npm test
-npm run test:coverage
-```
-
 ## Linting and formatting
 
 ```bash

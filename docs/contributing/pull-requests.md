@@ -12,7 +12,7 @@
 1. Fork the repository
 2. Create a branch: `git checkout -b feat/my-feature` or `fix/my-bug`
 3. Make your changes with tests
-4. Run `make test-back test-front` and `make lint-back lint-front`
+4. Run `make test-back` and `make lint-back lint-front`
 5. Commit using the format below
 6. Push and open a pull request against `main`
 
@@ -71,7 +71,7 @@ Commit messages are validated by `gitlint` on push. Rules are in `gitlint/`.
 ## PR checklist
 
 - [ ] Tests added for new functionality or the bug fix
-- [ ] All tests pass (`make test-back test-front`)
+- [ ] All tests pass (`make test-back`)
 - [ ] Linters pass (`make lint-back lint-front`)
 - [ ] If UI changed: keyboard navigation and screen reader labels work
 - [ ] If new strings added: translations in `en.json` and `fr.json` at minimum
