@@ -10,7 +10,7 @@
 | Speaker detection | ✅ Available | Automatic focus on active speaker |
 | Simulcast (VP8/VP9/AV1) | ✅ Available | Automatic quality adaptation per receiver |
 | SVC codecs (VP9, AV1) | ✅ Available | Better quality at lower bitrate |
-| Large meetings (100+ participants) | ✅ Available | Tested in production at national scale |
+| Large meetings (150+ participants) | ✅ Available | Tested in production at national scale |
 | Participant pinning | ✅ Available | Pin any participant to the primary view |
 | Picture-in-picture | ✅ Available (v1.17.0+) | Detach the meeting into a floating mini-window while using other browser tabs |
 | Push-to-talk | ✅ Available | Hold `V` to unmute |
