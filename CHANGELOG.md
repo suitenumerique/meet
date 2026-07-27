@@ -22,6 +22,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade livekit-client from 2.19.2 to 2.20.0
 - ⚡️(frontend) limit unnecessary re-renders #1510
 - 📝(legal) update terms of service
+- 💄(frontend) render Avatar initials in uppercase
 
 ## Fixed
 
@@ -29,6 +30,7 @@ and this project adheres to
 - 🐛(summary) extend tasks auto retry logic
 - 🐛(summary) properly detect when failure webhook should be sent
 - 🐛(backend) preserve recording metadata when updating room access
+
 
 ## [1.24.0] - 2026-07-21
 
