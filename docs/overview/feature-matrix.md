@@ -22,7 +22,6 @@
 | In-meeting chat | ✅ Available | Non-persistent; clears when meeting ends |
 | Emoji reactions | ✅ Available | Configurable, screen-reader friendly, available on mobile (v1.17.0+) |
 | Hand raise / queue | ✅ Available | Visible to all participants |
-| File sharing | ✅ Available | Upload files during a meeting; disabled by default |
 
 ## Security & access control
 

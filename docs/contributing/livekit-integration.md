@@ -11,14 +11,6 @@ LiveKit integration has two sides:
 
 ## Backend integration
 
-### Python SDK
-
-```toml
-# pyproject.toml
-[project.dependencies]
-livekit-api = ">=0.7"
-```
-
 ### Configuration
 
 ```python
