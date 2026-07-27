@@ -270,7 +270,7 @@ POST /api/v1.0/rooms/{id}/rename/
 ```
 
 
-## Files (in-meeting file sharing)
+## Files (custom virtual background)
 
 Requires `FILE_UPLOAD_ENABLED=True`.
 

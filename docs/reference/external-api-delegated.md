@@ -23,7 +23,7 @@ Compare with the [Resource Server mode](external-api-resource-server.md), where 
 ## Authentication flow
 
 ```
-1. Your app sends its client_id + client_secret to:
+1. Your app sends its client_id, client_secret and a scope containing user's email to:
    POST /external-api/v1.0/application/token/
 
 2. Meet returns a short-lived Bearer JWT scoped to the target user's email.

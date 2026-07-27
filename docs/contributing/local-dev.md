@@ -34,7 +34,7 @@ The Docker Compose stack starts all services with a single command.
 make bootstrap FLUSH_ARGS='--no-input'
 ```
 
-This builds the backend image, installs dependencies, runs migrations, creates a default user (`meet` / `meet`), and compiles translations.
+This builds the backend image, installs dependencies, runs migrations, creates a default user (`meet` / `meet`), compiles translations, adds demo data, and starts the stack.
 
 ### Start the stack
 

@@ -50,7 +50,7 @@ The method used by DINUM in production for Visio. For large organisations, high-
 | Component | Purpose |
 |---|---|
 | LiveKit Egress | Room recording |
-| MinIO / S3 storage | Recording file storage |
+| ObjectStore / S3 storage | Recording file storage and custom background |
 | Summary service | AI transcription & summary |
 | Celery workers | Async task processing |
 

@@ -55,7 +55,7 @@ Complete reference for all environment variables accepted by LaSuite Meet's comp
 | `OIDC_OP_USER_ENDPOINT_FORMAT` | No | `AUTO` | Format of the userinfo response: `AUTO` (detect), `JWT`, or `JSON` |
 | `OIDC_OP_LOGOUT_ENDPOINT` | No | -- | OIDC logout URL |
 | `OIDC_CREATE_USER` | No | `True` | Automatically create a local user if none exists on first login |
-| `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` | No | `False` | Fall back to matching users by email if `sub` claim doesn't match. Enable only if emails are unique across your provider. |
+| `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` | No | `False` | Fallback to matching users by email if `sub` claim doesn't match. Enable only if emails are unique across your provider. |
 | `OIDC_REDIRECT_ALLOWED_HOSTS` | No | `[]` | Allowed hosts for OIDC redirects |
 | `OIDC_REDIRECT_REQUIRE_HTTPS` | No | `False` | Require HTTPS for OIDC redirect URIs. **Recommended in production.** |
 | `OIDC_AUTH_REQUEST_EXTRA_PARAMS` | No | `{}` | Extra parameters included in OIDC authentication requests (e.g. `{"acr_values": "eidas1"}`) |
@@ -116,7 +116,7 @@ Complete reference for all environment variables accepted by LaSuite Meet's comp
 
 ### Object Storage (S3 / MinIO)
 
-Required for recording functionality.
+Required for recording and custom virtual backgrounds functionalities.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -144,13 +144,13 @@ Required for recording functionality.
 | `DJANGO_EMAIL_DOMAIN` | No | -- | Domain shown in email templates |
 | `DJANGO_EMAIL_APP_BASE_URL` | No | -- | Base URL of the Meet frontend (used in email links) |
 
-### Frontend feature flags
+### Frontend Configurations
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `FRONTEND_CUSTOM_CSS_URL` | No | -- | URL (or path) to a custom CSS file loaded at runtime. Use this to override CSS variables for colors, fonts, and spacing without rebuilding the image. Example: `https://your-domain.com/custom.css` or `/custom.css` (relative to the Meet domain). |
 | `FRONTEND_SILENCE_LIVEKIT_DEBUG` | No | `False` | Suppress LiveKit debug logs |
-| `FRONTEND_IS_SILENT_LOGIN_ENABLED` | No | `True` | Enable silent OIDC token refresh. Requires your provider to support `prompt=none`. |
+| `FRONTEND_IS_SILENT_LOGIN_ENABLED` | No | `True` | Enable silent OIDC authentication. Requires your provider to support `prompt=none`. |
 | `FRONTEND_IDLE_DISCONNECT_WARNING_DELAY` | No | -- | Seconds before idle disconnect warning is shown. When unset, idle disconnect is disabled. |
 | `FRONTEND_EXTERNAL_HOME_URL` | No | -- | Custom URL for the home button |
 | `FRONTEND_USE_PROCONNECT_BUTTON` | No | `False` | Show ProConnect login button (French gov) |

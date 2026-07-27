@@ -9,11 +9,10 @@ The Meet frontend is a TypeScript/React SPA built with Vite.
 | Framework | React 18 |
 | Language | TypeScript |
 | Build tool | Vite |
-| WebRTC | `@livekit/components-react` |
-| Accessible UI | React Aria (Adobe) |
+| WebRTC | livekit-client |
+| Headless UI components | React Aria (Adobe) |
 | State management | Zustand |
 | i18n | i18next |
-| Testing | Vitest + React Testing Library |
 | Linting | ESLint + Prettier |
 
 ## Running in dev mode
@@ -118,8 +117,6 @@ import { Button } from 'react-aria-components';
 const { t } = useTranslation();
 <span>{t('controls.mute')}</span>
 ```
-
-Other languages are managed via Crowdin.
 
 ## Linting and formatting
 
