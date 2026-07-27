@@ -81,14 +81,21 @@ export const useConferenceStore = create<ConferenceStore>((set) => ({
 }));
 ```
 
-## Accessibility
+## Accessibility & React Aria
 
-Meet uses React Aria for accessible component primitives. Rules:
+Meet builds on [React Aria Components](https://react-spectrum.adobe.com/react-aria/) via styled primitives in `src/frontend/src/primitives/`. Prefer these over raw HTML or direct RAC imports.
 
-- All interactive elements must have an accessible name (`aria-label` or visible text)
-- State changes (mute/unmute, recording) must be announced via ARIA live regions
-- Focus management: opening dialogs moves focus in; closing returns focus to the trigger
-- Test every new interactive element with keyboard navigation
+### Rules
+
+1. **Accessible names** : Every interactive element needs a name via `aria-label`, `aria-labelledby`, or visible text. Use i18n (`t(...)`) for all strings. Icon-only buttons must have `aria-label`; tooltips are supplementary, not a substitute.
+
+2. **State announcements** : Use `useScreenReaderAnnounce()` for programmatic screen reader feedback (e.g. recording state, effects). Use the toast system (`@react-aria/toast`) for room events. Do not add `aria-live` to visual-only UI :  announce separately to avoid duplication.
+
+3. **Focus management** :  RAC `Dialog` handles focus trap and return-to-trigger. Side panels and custom toolbars may need explicit focus (`autoFocus`, `ref.focus()`, or `FocusScope` from `@react-aria/focus`).
+
+4. **Keyboard & screen reader testing** : Test Tab navigation, arrow keys in menus/toolbars, and verify with a screen reader before merging.
+
+5. **PiP / cross-document contexts** : Use `VisualOnlyTooltip` instead of `TooltipWrapper` to prevent duplicate SR announcements.
 
 ```typescript
 import { Button } from 'react-aria-components';
