@@ -36,6 +36,7 @@ make superuser
 The backend uses `django-configurations`. The settings class is selected via `DJANGO_CONFIGURATION`:
 
 - `Development` - debug mode, relaxed security
+- `Test` - test environment
 - `Demo` - production-like with demo data
 - `Production` - full production settings
 
