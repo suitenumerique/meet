@@ -40,19 +40,14 @@ Dev server runs at http://localhost:3000 with hot module replacement.
 src/frontend/src/
 ├── api/              # Typed fetch wrappers for backend endpoints
 ├── components/       # Shared/reusable components
-├── features/
-│   ├── conference/   # In-meeting UI
-│   │   ├── controls/ # Mic, camera, screen share, reactions
-│   │   ├── layout/   # Video grid, speaker view
-│   │   ├── chat/     # Chat panel
-│   │   └── recording/# Recording / transcription panels
-│   ├── home/         # Home page, room creation
-│   └── settings/     # Settings panels
+├── features/         # One directory per feature (rooms, chat, recording, participants, …)
 ├── hooks/            # Custom React hooks
-├── stores/           # Zustand state stores
-├── i18n/             # Translation files (en.json, fr.json, …)
+├── stores/           # Valtio state stores
+├── i18n/ | locales/  # Translation setup and JSON files
 └── App.tsx           # Root component + routing
 ```
+
+See `src/frontend/src/features/` for the current list of features — this is not duplicated here as it changes frequently.
 
 ## LiveKit connection
 
@@ -111,7 +106,7 @@ import { Button } from 'react-aria-components';
 
 ## Internationalization
 
-1. Add the key to `en.json` and `fr.json` (minimum)
+1. Add the key to the relevant namespace file under `locales/en/` and `locales/fr/` (minimum) — see `src/frontend/src/locales/` for the current namespaces (e.g. `rooms.json`, `settings.json`, `global.json`)
 2. Use in components:
 
 ```typescript
