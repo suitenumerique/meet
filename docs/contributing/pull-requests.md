@@ -35,7 +35,6 @@ Meet uses [Conventional Commits](https://www.conventionalcommits.org/) with gitm
 | `agents` | LiveKit agents |
 | `summary` | Transcription/summary service |
 | `docker` | Docker configuration |
-| `deps` | Dependency updates |
 
 ### Common emojis
 
