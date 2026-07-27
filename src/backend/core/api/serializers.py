@@ -297,8 +297,8 @@ class RoomInviteSerializer(serializers.Serializer):
 class BaseParticipantsManagementSerializer(BaseValidationOnlySerializer):
     """Base serializer for participant management operations."""
 
-    participant_identity = serializers.UUIDField(
-        help_text="LiveKit participant identity (UUID format)"
+    participant_identity = serializers.CharField(
+        help_text="LiveKit participant identity (matching the user's sub format)"
     )
 
 
