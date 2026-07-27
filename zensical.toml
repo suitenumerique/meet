@@ -1,5 +1,5 @@
 [project]
-site_name = "Visio Documentation"
+site_name = "LaSuite Meet Documentation"
 site_url = "https://meet-doc.bebopo.eu"
 
 nav = [
