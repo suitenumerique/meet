@@ -24,6 +24,7 @@ import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { ParticipantMenuButton } from './menu/ParticipantMenuButton'
 import { PinBadge } from './PinBadge'
+import { UnauthenticatedBadge } from './UnauthenticatedBadge'
 import { MuteAlertDialog } from '@/features/rooms/livekit/components/MuteAlertDialog'
 
 type MicIndicatorProps = {
@@ -118,6 +119,7 @@ export const ParticipantRow = ({ participant }: ParticipantListItemProps) => {
         >
           <Avatar name={name} bgColor={getParticipantColor(participant)} />
           <PinBadge participant={participant} />
+          <UnauthenticatedBadge participant={participant} />
         </div>
         <VStack gap={0} alignItems="start">
           <Text

@@ -589,6 +589,9 @@
       "open": "Open {{name}} list",
       "close": "Close {{name}} list"
     },
+    "unauthenticated": {
+      "badge": "User is not authenticated"
+    },
     "muteYourself": "Close your mic",
     "muteParticipant": "Close the mic of {{name}}",
     "muteParticipantAlert": {

@@ -13,6 +13,7 @@ and this project adheres to
 - ✨(summary) report exception type in failure analytics
 - ✨(frontend) add configurable documentation menu item
 - ✨(frontend) allow promoting authenticated participants
+- ✨(frontend) introduce an "unauthenticated" participant badge
 
 ### Changed
 

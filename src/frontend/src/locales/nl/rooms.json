@@ -589,6 +589,9 @@
       "open": "Open {{name}} lijst",
       "close": "Sluit {{name}} lijst"
     },
+    "unauthenticated": {
+      "badge": "Niet authentifizierter Benutzer"
+    },
     "muteYourself": "Uw microfoon dempen",
     "muteParticipant": "Demp de microfoon van {{name}}",
     "muteParticipantAlert": {
