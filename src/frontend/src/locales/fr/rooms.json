@@ -589,6 +589,9 @@
       "open": "Ouvrir la liste {{name}}",
       "close": "Fermer la liste {{name}}"
     },
+    "unauthenticated": {
+      "badge": "Utilisateur non authentifié"
+    },
     "muteYourself": "Couper votre micro",
     "muteParticipant": "Couper le micro de {{name}}",
     "muteParticipantAlert": {
