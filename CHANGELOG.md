@@ -32,6 +32,7 @@ and this project adheres to
 - 🐛(summary) properly detect when failure webhook should be sent
 - 🐛(backend) preserve recording metadata when updating room access
 - 🐛(backend) allow any string as sub in the API serializer
+- 🐛(frontend) fall back to user.full_name on request-entry
 
 
 ## [1.24.0] - 2026-07-21
