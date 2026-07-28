@@ -35,6 +35,7 @@ and this project adheres to
 - 🐛(backend) preserve recording metadata when updating room access
 - 🐛(backend) allow any string as sub in the API serializer
 - 🐛(frontend) fall back to user.full_name on request-entry
+- 🚸(frontend) show two initials in the Avatar when possible
 
 ## [1.24.0] - 2026-07-21
 
