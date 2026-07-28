@@ -19,11 +19,12 @@
       "paragraphs": [
         "Visio est le produit dont l’utilisation est décrite dans les présentes modalités et présenté sur la page suivante : https://visio.numerique.gouv.fr.",
         "Les utilisateurs et utilisatrices de Visio sont toute personne utilisant Visio à des fins de communication en visioconférence, qu’elles soient des agents, des partenaires ou des prestataires des administrations de rattachement. L’administration de rattachement est l’administration de l’Etat et des organismes sous sa tutelle qui met à disposition Visio à ses agents, partenaires ou prestataires.",
-        "Les organisateurs et organisatrices de salon sont des utilisateurs et utilisatrices qui sont responsables d’un salon de visioconférence après s’être connecté par ProConnect."
+        "Les organisateurs et organisatrices de salon sont des utilisateurs et utilisatrices qui sont responsables d’un salon de visioconférence après s’être connecté par ProConnect.",
+        "L’administration de rattachement est l’administration relevant du système d’information et de communication de l’Etat qui met à disposition Visio à ses agents, partenaires ou prestataires."
       ]
     },
     "article4": {
-      "title": "4. Accès à l’application",
+      "title": "4. Accès au service",
       "definition": "Visio est mis à disposition des utilisateurs et utilisatrices par leur administration de rattachement. Les organisateurs et organisatrices peuvent ensuite transmettre un lien permettant d’accéder au salon à toute personne, sous leur responsabilité."
     },
     "article5": {
@@ -32,7 +33,7 @@
         "section1": {
           "title": "5.1. Fonctionnalités ouvertes aux organisateurs et organisatrices",
           "content": "Visio offre aux agents des administrations de l’Etat et des organismes sous sa tutelle la possibilité de créer un salon de visioconférence depuis un poste de travail standard, lié à leur compte ProConnect.",
-          "paragraph1": "Tout agent de l’État ou d’un organisme sous sa tutelle, dont les activités sont compatibles avec l’utilisation de Visio ou qui n’est pas soumis à des obligations particulières de confidentialité ou de secret professionnel, peut créer et organiser une visioconférence. Il ou elle peut ensuite partager le lien de la réunion avec d’autres personnes, utilisateurs et utilisatrices, qu’elles fassent partie de l’administration ou non.",
+          "paragraph1": "Il ou elle peut ensuite partager le lien de la réunion avec d’autres personnes, utilisateurs et utilisatrices, qu’elles fassent partie de l’administration ou non.",
           "paragraph2": "A cet effet, chaque organisateur ou organisatrice de salon peut :",
           "capabilities": [
             "Protéger l’accès au salon par une salle d’attente ;",
@@ -41,7 +42,7 @@
             "Exclure un utilisateur ou utilisatrice du salon ;",
             "Utiliser l’outil de transcription de la réunion après avoir obtenu l’aval des utilisateurs et des utilisatrices, sous sa responsabilité."
           ],
-          "paragraph3": "Seuls les agents, dont le compte ProConnect relève d’un domaine autorisé à organiser des salons sur Visio ou qui <u>ne sont pas soumis à une obligation de confidentialité particulière ou de secret professionnel</u>, peuvent utiliser ou avoir la maîtrise de l’application et de ses fonctionnalités.",
+          "paragraph3": "Les agents doivent se rapprocher de leur administration de rattachement pour s'assurer du cadre d'utilisation en sein de Visio, notamment en ce qui concerne des réunions soumises à des obligations renforcées de confidentialité.",
           "paragraph4": "L’outil de transcription automatique peut être utilisé par les organisateurs et organisatrices depuis le menu des paramètres du salon. Il appartient aux organisateurs et organisatrices de s’assurer de l’aval des utilisateurs et utilisatrices participants à la réunion transcrite. La langue de transcription peut être modifiée depuis le même menu. À la fin de la réunion, un lien est transmis à l’organisateur ou l’organisatrice pour accéder à la transcription conservée sur l’outil intitulé Docs opéré par la DINUM."
         },
         "section2": {

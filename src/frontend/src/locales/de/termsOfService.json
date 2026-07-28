@@ -19,11 +19,12 @@
       "paragraphs": [
         "Visio ist das Produkt, dessen Nutzung in diesen Bedingungen beschrieben wird und das auf der folgenden Seite vorgestellt ist: https://visio.numerique.gouv.fr.",
         "Nutzerinnen und Nutzer von Visio sind alle Personen, die Visio zu Zwecken der Videokommunikation verwenden, unabhängig davon, ob sie Mitarbeitende, Partner oder Dienstleister der zuständigen Verwaltungen sind. Die zuständige Verwaltung ist die staatliche Verwaltung oder ihr unterstellte Einrichtung, die Visio ihren Mitarbeitenden, Partnern oder Dienstleistern zur Verfügung stellt.",
-        "Raumorganisatorinnen und -organisatoren sind Nutzerinnen und Nutzer, die nach Anmeldung über ProConnect für einen Videokonferenzraum verantwortlich sind."
+        "Raumorganisatorinnen und -organisatoren sind Nutzerinnen und Nutzer, die nach Anmeldung über ProConnect für einen Videokonferenzraum verantwortlich sind.",
+        "Die zuständige Verwaltung ist die Verwaltung, die dem staatlichen Informations- und Kommunikationssystem unterliegt und Visio ihren Mitarbeitenden, Partnern oder Dienstleistern zur Verfügung stellt."
       ]
     },
     "article4": {
-      "title": "4. Zugang zur Anwendung",
+      "title": "4. Zugang zum Dienst",
       "definition": "Visio wird den Nutzerinnen und Nutzern von ihrer zuständigen Verwaltung zur Verfügung gestellt. Organisatorinnen und Organisatoren können anschließend unter eigener Verantwortung einen Zugangslink zum Raum an beliebige Personen weitergeben."
     },
     "article5": {
@@ -32,7 +33,7 @@
         "section1": {
           "title": "5.1. Funktionen für Organisatorinnen und Organisatoren",
           "content": "Visio ermöglicht Mitarbeitenden staatlicher Verwaltungen und ihnen unterstellter Einrichtungen, von einem Standardarbeitsplatz aus einen Videokonferenzraum zu erstellen, der mit ihrem ProConnect-Konto verknüpft ist.",
-          "paragraph1": "Jede Mitarbeiterin und jeder Mitarbeiter des Staates oder einer ihm unterstellten Einrichtung, deren Tätigkeiten mit der Nutzung von Visio vereinbar sind oder die keinen besonderen Vertraulichkeits- oder Berufsgeheimnispflichten unterliegen, kann eine Videokonferenz erstellen und organisieren. Der Einladungslink kann anschließend mit anderen Personen, Nutzerinnen und Nutzern, innerhalb oder außerhalb der Verwaltung geteilt werden.",
+          "paragraph1": "Sie oder er kann anschließend den Besprechungslink mit anderen Personen, Nutzerinnen und Nutzern, teilen, unabhängig davon, ob diese zur Verwaltung gehören oder nicht.",
           "paragraph2": "Zu diesem Zweck kann jede Raumorganisatorin bzw. jeder Raumorganisator:",
           "capabilities": [
             "den Zugang zum Raum durch einen Warteraum schützen;",
@@ -41,7 +42,7 @@
             "eine Nutzerin oder einen Nutzer aus dem Raum entfernen;",
             "das Transkriptionstool der Sitzung nach Einholung der Zustimmung der Nutzerinnen und Nutzer unter eigener Verantwortung verwenden."
           ],
-          "paragraph3": "Nur Mitarbeitende, deren ProConnect-Konto zu einer zur Raumorganisation in Visio berechtigten Domäne gehört oder die keiner besonderen Vertraulichkeits- oder Berufsgeheimnispflicht unterliegen, dürfen die Anwendung und ihre Funktionen nutzen oder kontrollieren.",
+          "paragraph3": "Mitarbeitende sollten sich an ihre zuständige Verwaltung wenden, um den Rahmen der Nutzung von Visio sicherzustellen, insbesondere bei Besprechungen mit erhöhten Vertraulichkeitsanforderungen.",
           "paragraph4": "Das automatische Transkriptionstool kann von Organisatorinnen und Organisatoren über das Einstellungsmenü des Raums genutzt werden. Es liegt in ihrer Verantwortung, die Zustimmung der an der transkribierten Sitzung teilnehmenden Nutzerinnen und Nutzer sicherzustellen. Die Transkriptionssprache kann im selben Menü geändert werden. Am Ende der Sitzung erhält die Organisatorin bzw. der Organisator einen Link zum Zugriff auf die im von der DINUM betriebenen Tool „Docs“ gespeicherte Transkription."
         },
         "section2": {

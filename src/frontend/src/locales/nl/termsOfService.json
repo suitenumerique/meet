@@ -19,11 +19,12 @@
       "paragraphs": [
         "Visio is het product waarvan het gebruik in deze voorwaarden wordt beschreven en dat wordt gepresenteerd op de volgende pagina: https://visio.numerique.gouv.fr.",
         "Gebruikers van Visio zijn alle personen die Visio gebruiken voor videocommunicatiedoeleinden, ongeacht of zij medewerkers, partners of dienstverleners zijn van de betrokken administraties. De bevoegde administratie is de overheidsadministratie of de onder haar toezicht staande instantie die Visio ter beschikking stelt aan haar medewerkers, partners of dienstverleners.",
-        "Ruimteorganisatoren zijn gebruikers die verantwoordelijk zijn voor een videoconferentieruimte na inloggen via ProConnect."
+        "Ruimteorganisatoren zijn gebruikers die verantwoordelijk zijn voor een videoconferentieruimte na inloggen via ProConnect.",
+        "De bevoegde administratie is de administratie die onder het informatie- en communicatiesysteem van de Staat valt en Visio ter beschikking stelt aan haar medewerkers, partners of dienstverleners."
       ]
     },
     "article4": {
-      "title": "4. Toegang tot de applicatie",
+      "title": "4. Toegang tot de dienst",
       "definition": "Visio wordt aan gebruikers ter beschikking gesteld door hun bevoegde administratie. Organisatoren kunnen vervolgens, onder hun verantwoordelijkheid, een toegangslink tot de ruimte delen met elke persoon."
     },
     "article5": {
@@ -32,7 +33,7 @@
         "section1": {
           "title": "5.1. Functionaliteiten voor organisatoren",
           "content": "Visio biedt medewerkers van overheidsadministraties en onder hun toezicht staande instanties de mogelijkheid om vanaf een standaardwerkstation een videoconferentieruimte aan te maken, gekoppeld aan hun ProConnect-account.",
-          "paragraph1": "Elke medewerker van de Staat of van een onder zijn toezicht staande instantie, van wie de activiteiten verenigbaar zijn met het gebruik van Visio of die niet onder specifieke vertrouwelijkheids- of beroepsgeheimverplichtingen valt, kan een videoconferentie aanmaken en organiseren. De vergaderlink kan vervolgens worden gedeeld met andere personen, gebruikers, binnen of buiten de administratie.",
+          "paragraph1": "Hij of zij kan vervolgens de vergaderlink delen met andere personen, gebruikers, of zij nu wel of niet deel uitmaken van de administratie.",
           "paragraph2": "Daartoe kan elke ruimteorganisator:",
           "capabilities": [
             "de toegang tot de ruimte beveiligen met een wachtruimte;",
@@ -41,7 +42,7 @@
             "een gebruiker uit de ruimte verwijderen;",
             "de transcriptietool van de vergadering gebruiken na toestemming van de gebruikers, onder eigen verantwoordelijkheid."
           ],
-          "paragraph3": "Alleen medewerkers van wie het ProConnect-account behoort tot een domein dat gemachtigd is om ruimtes op Visio te organiseren, of die niet onder specifieke vertrouwelijkheids- of beroepsgeheimverplichtingen vallen, mogen de applicatie en haar functionaliteiten gebruiken of beheren.",
+          "paragraph3": "Medewerkers moeten contact opnemen met hun bevoegde administratie om zeker te zijn van het gebruikskader binnen Visio, met name voor vergaderingen waarvoor strengere vertrouwelijkheidsverplichtingen gelden.",
           "paragraph4": "De automatische transcriptietool kan door organisatoren worden gebruikt via het instellingenmenu van de ruimte. Het is de verantwoordelijkheid van de organisatoren om de toestemming te verkrijgen van de gebruikers die deelnemen aan de getranscribeerde vergadering. De transcriptietaal kan in hetzelfde menu worden gewijzigd. Aan het einde van de vergadering ontvangt de organisator een link om de transcriptie te raadplegen die wordt bewaard in de door DINUM beheerde tool “Docs”."
         },
         "section2": {
