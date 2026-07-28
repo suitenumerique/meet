@@ -9,6 +9,11 @@ from livekit import api
 from core import models, utils
 from core.models import Recording
 from core.recording.event.notification import notification_service
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
 
 logger = getLogger(__name__)
 
@@ -39,10 +44,15 @@ class RecordingEventsService:
         recording_status = status_mapping.get(egress_status)
         if recording_status:
             try:
-                utils.update_room_metadata(
+                RoomManagement().update_metadata(
                     room_name, {"recording_status": recording_status}
                 )
-            except utils.MetadataUpdateException as e:
+            except RoomNotFoundException:
+                logger.info(
+                    "LiveKit room %s no longer exists, skipping metadata update",
+                    room_name,
+                )
+            except RoomManagementException as e:
                 logger.exception("Failed to update room's metadata: %s", e)
 
     @staticmethod

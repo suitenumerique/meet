@@ -34,10 +34,8 @@ def mediator(mock_worker_service):
     return WorkerServiceMediator(mock_worker_service)
 
 
-@mock.patch("core.utils.update_room_metadata")
-def test_start_recording_success(
-    mock_update_room_metadata, mediator, mock_worker_service
-):
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_start_recording_success(mock_update_metadata, mediator, mock_worker_service):
     """Test successful recording start"""
     # Setup
     worker_id = "test-worker-123"
@@ -60,7 +58,7 @@ def test_start_recording_success(
     assert mock_recording.worker_id == worker_id
     assert mock_recording.status == RecordingStatusChoices.ACTIVE
 
-    mock_update_room_metadata.assert_called_once_with(
+    mock_update_metadata.assert_called_once_with(
         str(mock_recording.room.id),
         {"recording_mode": mock_recording.mode, "recording_status": "starting"},
     )
@@ -69,9 +67,9 @@ def test_start_recording_success(
 @pytest.mark.parametrize(
     "error_class", [WorkerRequestError, WorkerConnectionError, WorkerResponseError]
 )
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_mediator_start_recording_worker_errors(
-    mock_update_room_metadata, mediator, mock_worker_service, error_class
+    mock_update_metadata, mediator, mock_worker_service, error_class
 ):
     """Test handling of various worker errors during start"""
     # Setup
@@ -89,7 +87,7 @@ def test_mediator_start_recording_worker_errors(
     assert mock_recording.status == RecordingStatusChoices.FAILED_TO_START
     assert mock_recording.worker_id is None
 
-    mock_update_room_metadata.assert_not_called()
+    mock_update_metadata.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -103,9 +101,9 @@ def test_mediator_start_recording_worker_errors(
         RecordingStatusChoices.ABORTED,
     ],
 )
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_mediator_start_recording_from_forbidden_status(
-    mock_update_room_metadata, mediator, mock_worker_service, status
+    mock_update_metadata, mediator, mock_worker_service, status
 ):
     """Test handling of various worker errors during start"""
     # Setup
@@ -119,7 +117,7 @@ def test_mediator_start_recording_from_forbidden_status(
     mock_recording.refresh_from_db()
     assert mock_recording.status == status
 
-    mock_update_room_metadata.assert_not_called()
+    mock_update_metadata.assert_not_called()
 
 
 def test_mediator_stop_recording_success(mediator, mock_worker_service):
