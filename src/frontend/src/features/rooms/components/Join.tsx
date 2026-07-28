@@ -316,7 +316,7 @@ export const Join = ({
     refetch: refetchRoom,
   } = useQuery({
     queryKey: [keys.room, roomId],
-    queryFn: () => fetchRoom({ roomId, username }),
+    queryFn: () => fetchRoom({ roomId, username: username || user?.full_name }),
     staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
     retry: false,
     enabled: false,
@@ -339,7 +339,7 @@ export const Join = ({
 
   const { status, startWaiting } = useLobby({
     roomId,
-    username,
+    username: username || user?.full_name || 'anonymous',
     onAccepted: handleAccepted,
   })
 
