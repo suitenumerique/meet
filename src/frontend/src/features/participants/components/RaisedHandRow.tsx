@@ -1,7 +1,6 @@
 import { css } from '@/styled-system/css'
 
 import { HStack } from '@/styled-system/jsx'
-import { Text } from '@/primitives/Text'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/Avatar'
 import { useLowerHandParticipant } from '../api/lowerHandParticipant'
@@ -11,6 +10,7 @@ import { isLocal } from '@/utils/livekit'
 import { RiHand } from '@remixicon/react'
 import { Button } from '@/primitives'
 import { AdminOrOwnerOnly } from '@/features/rooms/components/AdminOrOwnerOnly'
+import { ParticipantName } from './ParticipantName'
 
 const ActionButton = ({
   participant,
@@ -42,9 +42,7 @@ type HandRaisedListItemProps = {
 }
 
 export const RaisedHandRow = ({ participant }: HandRaisedListItemProps) => {
-  const { t } = useTranslation('rooms')
   const name = participant.name || participant.identity
-
   return (
     <HStack
       role="listitem"
@@ -56,42 +54,15 @@ export const RaisedHandRow = ({ participant }: HandRaisedListItemProps) => {
         width: 'full',
       })}
     >
-      <HStack>
+      <HStack flex="1" minW="0" overflow="hidden">
         <Avatar name={name} bgColor={getParticipantColor(participant)} />
-        <Text
-          variant={'sm'}
-          className={css({
-            userSelect: 'none',
-            cursor: 'default',
-            display: 'flex',
-          })}
-        >
-          <span
-            className={css({
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '120px',
-              display: 'block',
-            })}
-          >
-            {name}
-          </span>
-          {isLocal(participant) && (
-            <span
-              className={css({
-                marginLeft: '.25rem',
-                whiteSpace: 'nowrap',
-              })}
-            >
-              ({t('participants.you')})
-            </span>
-          )}
-        </Text>
+        <ParticipantName displayedName={name} isLocal={isLocal(participant)} />
       </HStack>
-      <AdminOrOwnerOnly>
-        <ActionButton participant={participant} name={name} />
-      </AdminOrOwnerOnly>
+      <HStack flexShrink={0}>
+        <AdminOrOwnerOnly>
+          <ActionButton participant={participant} name={name} />
+        </AdminOrOwnerOnly>
+      </HStack>
     </HStack>
   )
 }

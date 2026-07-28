@@ -1,10 +1,11 @@
-import { Button, Text } from '@/primitives'
+import { Button } from '@/primitives'
 import { HStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { Avatar } from '@/components/Avatar'
 import { useTranslation } from 'react-i18next'
 import { WaitingParticipant } from '../api/listWaitingParticipants'
 import { RiCloseLine } from '@remixicon/react'
+import { ParticipantName } from './ParticipantName'
 
 export const WaitingParticipantRow = ({
   participant,
@@ -26,42 +27,11 @@ export const WaitingParticipantRow = ({
         width: 'full',
       })}
     >
-      <HStack
-        className={css({
-          flex: '1',
-          minWidth: '0',
-        })}
-      >
+      <HStack flex="1" minW="0">
         <Avatar name={participant.username} bgColor={participant.color} />
-        <Text
-          variant={'sm'}
-          className={css({
-            userSelect: 'none',
-            cursor: 'default',
-            display: 'flex',
-            flex: '1',
-            minWidth: '0',
-          })}
-        >
-          <span
-            className={css({
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              width: '100%',
-              display: 'block',
-            })}
-          >
-            {participant.username}
-          </span>
-        </Text>
+        <ParticipantName displayedName={participant.username} isLocal={false} />
       </HStack>
-      <HStack
-        gap="0.25rem"
-        className={css({
-          flexShrink: '0',
-        })}
-      >
+      <HStack gap="0.25rem" flexShrink={0}>
         <Button
           size="sm"
           variant="tertiary"
