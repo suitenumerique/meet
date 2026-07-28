@@ -54,5 +54,13 @@
       "default": "Deine Aufzeichnung wird gespeichert! Du erhältst eine E-Mail, sobald sie bereit ist."
     }
   },
+  "roleChanged": {
+    "body": "Deine Rolle wurde geändert. Du bist jetzt {{role}}.",
+    "roles": {
+      "owner": "Host",
+      "administrator": "Co-host",
+      "member": "Mitglied"
+    }
+  },
   "openMenu": "Menü öffnen"
 }

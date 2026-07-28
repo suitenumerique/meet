@@ -54,5 +54,13 @@
       "default": "We zijn uw opname aan het voltooien! U ontvangt een e-mail zodra deze klaar is."
     }
   },
+  "roleChanged": {
+    "body": "Je rol is gewijzigd. Je bent nu {{role}}.",
+    "roles": {
+      "owner": "Host",
+      "administrator": "Co-host",
+      "member": "Lid"
+    }
+  },
   "openMenu": "Menu openen"
 }

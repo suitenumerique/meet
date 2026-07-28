@@ -54,5 +54,13 @@
       "default": "Your recording is being saved! We’ll send a notification to your email as soon as it’s ready."
     }
   },
+  "roleChanged": {
+    "body": "Your role has changed. You are now {{role}}.",
+    "roles": {
+      "owner": "Host",
+      "administrator": "Co-host",
+      "member": "Member"
+    }
+  },
   "openMenu": "Open menu"
 }
