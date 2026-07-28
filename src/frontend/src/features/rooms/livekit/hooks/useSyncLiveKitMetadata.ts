@@ -13,8 +13,7 @@ import { useRoomContext } from '@livekit/components-react'
 import { useRoomData } from './useRoomData'
 
 /**
- * Shape of the LiveKit room metadata blob pushed by the backend.
- * Matches RoomManagement.update_metadata → {"configuration": room.configuration}
+ * The subset of LiveKit's room metadata this hook actually uses.
  */
 type RoomLiveKitMetadata = {
   configuration?: RoomConfiguration

@@ -13,12 +13,6 @@ and this project adheres to
 - ✨(summary) report exception type in failure analytics
 - ✨(frontend) add configurable documentation menu item
 
-## Fixed
-
-- 🐛(transcription) fix silent bug in speaker assignment
-- 🐛(summary) extend tasks auto retry logic
-- 🐛(summary) properly detect when failure webhook should be sent
-
 ### Changed
 
 - ⬆️(frontend) upgrade @mediapipe/tasks-vision from 0.10.14 to 0.10.35
@@ -27,6 +21,13 @@ and this project adheres to
 - ⬆️(frontend) upgrade @tanstack/react-query from 5.101.0 to 5.101.1
 - ⬆️(frontend) upgrade livekit-client from 2.19.2 to 2.20.0
 - ⚡️(frontend) limit unnecessary re-renders #1510
+
+## Fixed
+
+- 🐛(transcription) fix silent bug in speaker assignment
+- 🐛(summary) extend tasks auto retry logic
+- 🐛(summary) properly detect when failure webhook should be sent
+- 🐛(backend) preserve recording metadata when updating room access
 
 ## [1.24.0] - 2026-07-21
 
