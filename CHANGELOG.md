@@ -21,6 +21,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade @tanstack/react-query from 5.101.0 to 5.101.1
 - ⬆️(frontend) upgrade livekit-client from 2.19.2 to 2.20.0
 - ⚡️(frontend) limit unnecessary re-renders #1510
+- 📝(legal) update terms of service
 
 ## Fixed
 

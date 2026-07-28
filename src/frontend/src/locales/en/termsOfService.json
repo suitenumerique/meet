@@ -19,11 +19,12 @@
       "paragraphs": [
         "Visio is the product whose use is described in these terms and presented on the following page: https://visio.numerique.gouv.fr.",
         "Users of Visio are any persons using Visio for videoconferencing communication purposes, whether they are staff members, partners, or service providers of the relevant administrations. The supervising administration is the State administration or body under its supervision that makes Visio available to its staff members, partners, or service providers.",
-        "Room organizers are users who are responsible for a videoconference room after logging in via ProConnect."
+        "Room organizers are users who are responsible for a videoconference room after logging in via ProConnect.",
+        "The supervising administration is the administration that falls under the State information and communication system and makes Visio available to its staff members, partners, or service providers."
       ]
     },
     "article4": {
-      "title": "4. Access to the application",
+      "title": "4. Access to the service",
       "definition": "Visio is made available to users by their supervising administration. Organizers may then share a link granting access to the room with any person, under their responsibility."
     },
     "article5": {
@@ -32,7 +33,7 @@
         "section1": {
           "title": "5.1. Features available to organizers",
           "content": "Visio allows staff of State administrations and bodies under their supervision to create a videoconference room from a standard workstation, linked to their ProConnect account.",
-          "paragraph1": "Any State staff member or staff member of a body under State supervision, whose activities are compatible with the use of Visio or who is not subject to specific confidentiality or professional secrecy obligations, may create and organize a videoconference. They may then share the meeting link with other persons, users, whether or not they belong to the administration.",
+          "paragraph1": "They may then share the meeting link with other persons, users, whether or not they belong to the administration.",
           "paragraph2": "For this purpose, each room organizer may:",
           "capabilities": [
             "Protect access to the room with a waiting room;",
@@ -41,7 +42,7 @@
             "Remove a user from the room;",
             "Use the meeting transcription tool after obtaining the consent of users, under their responsibility."
           ],
-          "paragraph3": "Only staff members whose ProConnect account belongs to a domain authorized to organize rooms on Visio or who are not subject to specific confidentiality or professional secrecy obligations may use or have control over the application and its features.",
+          "paragraph3": "Staff members must contact their supervising administration to ensure the proper framework for using Visio, particularly for meetings subject to heightened confidentiality requirements.",
           "paragraph4": "The automatic transcription tool can be used by organizers from the room settings menu. Organizers are responsible for ensuring the consent of users participating in the transcribed meeting. The transcription language can be changed from the same menu. At the end of the meeting, a link is sent to the organizer to access the transcription stored in the tool called Docs operated by DINUM."
         },
         "section2": {
