@@ -583,6 +583,8 @@
     "unknown": "Participant inconnu",
     "contributors": "Contributeurs",
     "host": "Organisateur de la réunion",
+    "cohost": "Co-organisateur",
+    "member": "Membre",
     "collapsable": {
       "open": "Ouvrir la liste {{name}}",
       "close": "Fermer la liste {{name}}"
@@ -626,6 +628,14 @@
     "pin": {
       "label": "Épingler",
       "ariaLabel": "Épingler {{name}}"
+    },
+    "promote": {
+      "label": "Nommer co-organisateur",
+      "ariaLabel": "Nommer {{name}} co-organisateur"
+    },
+    "demote": {
+      "label": "Retirer le rôle de co-organisateur",
+      "ariaLabel": "Retirer le rôle de co-organisateur à {{name}}"
     }
   },
   "pinAnnouncements": {

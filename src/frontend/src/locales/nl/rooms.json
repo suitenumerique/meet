@@ -582,6 +582,8 @@
     "you": "U",
     "unknown": "Onbekende deelnemer",
     "host": "Host",
+    "cohost": "Co-host",
+    "member": "Lid",
     "contributors": "Deelnemers",
     "collapsable": {
       "open": "Open {{name}} lijst",
@@ -626,6 +628,14 @@
     "pin": {
       "label": "Pinnen",
       "ariaLabel": "Maak {{name}} vast"
+    },
+    "promote": {
+      "label": "Co-host maken",
+      "ariaLabel": "{{name}} co-host maken"
+    },
+    "demote": {
+      "label": "Co-hostrol verwijderen",
+      "ariaLabel": "De co-hostrol van {{name}} verwijderen"
     }
   },
   "pinAnnouncements": {

@@ -583,6 +583,8 @@
     "you": "Du",
     "unknown": "Unbekannte Person",
     "host": "Host",
+    "cohost": "Co-host",
+    "member": "Mitglied",
     "contributors": "Teilnehmende",
     "collapsable": {
       "open": "{{name}}-Liste öffnen",
@@ -627,6 +629,14 @@
     "pin": {
       "label": "Anheften",
       "ariaLabel": "Hefte {{name}} an"
+    },
+    "promote": {
+      "label": "Zum Co-Host machen",
+      "ariaLabel": "{{name}} zum Co-Host machen"
+    },
+    "demote": {
+      "label": "Co-Host-Rolle entfernen",
+      "ariaLabel": "Die Co-Host-Rolle von {{name}} entfernen"
     }
   },
   "pinAnnouncements": {
