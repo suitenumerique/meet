@@ -1,4 +1,4 @@
-import { layoutStore } from '@/stores/layout'
+import { closeSidePanel, layoutStore } from '@/stores/layout'
 import { css } from '@/styled-system/css'
 import { Heading } from 'react-aria-components'
 import { text } from '@/primitives/Text'
@@ -199,10 +199,7 @@ export const SidePanel = () => {
       ref={asideRef}
       title={title}
       ariaLabel={t('ariaLabel', { title })}
-      onClose={() => {
-        layoutStore.activePanelId = null
-        layoutStore.activeSubPanelId = null
-      }}
+      onClose={closeSidePanel}
       closeButtonTooltip={t('closeButton', {
         content: t(`content.${activeSubPanelId || activePanelId}`),
       })}

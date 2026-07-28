@@ -34,3 +34,8 @@ export const setPinnedTrack = (trackRef: TrackReferenceOrPlaceholder): void => {
 export const clearPinnedTrack = (): void => {
   layoutStore.pinnedTrackRef = undefined
 }
+
+export const closeSidePanel = (): void => {
+  layoutStore.activePanelId = null
+  layoutStore.activeSubPanelId = null
+}
