@@ -15,6 +15,9 @@ export const getParticipantIsRoomAdmin = (participant: Participant): boolean =>
 export const getParticipantIsRoomOwner = (participant: Participant): boolean =>
   participantHasRoomRole(participant, ['owner'])
 
+export const getParticipantIsRoomMember = (participant: Participant): boolean =>
+  participantHasRoomRole(participant, ['member'])
+
 export const getParticipantIsRoomAdminOrOwner = (
   participant: Participant
 ): boolean => participantHasRoomRole(participant, ['administrator', 'owner'])
