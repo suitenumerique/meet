@@ -590,6 +590,9 @@
       "open": "{{name}}-Liste öffnen",
       "close": "{{name}}-Liste schließen"
     },
+    "unauthenticated": {
+      "badge": "Nicht authentifizierter Benutzer"
+    },
     "muteYourself": "Mikrofon ausschalten",
     "muteParticipant": "{{name}}’s Mikrofon ausschalten",
     "muteParticipantAlert": {
