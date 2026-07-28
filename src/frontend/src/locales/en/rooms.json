@@ -582,6 +582,8 @@
     "you": "You",
     "unknown": "Unknown participant",
     "host": "Host",
+    "cohost": "Co-host",
+    "member": "Member",
     "contributors": "Contributors",
     "collapsable": {
       "open": "Open {{name}} list",
@@ -626,6 +628,14 @@
     "pin": {
       "label": "Pin",
       "ariaLabel": "Pin {{name}}"
+    },
+    "promote": {
+      "label": "Make co-host",
+      "ariaLabel": "Make {{name}} a co-host"
+    },
+    "demote": {
+      "label": "Remove co-host role",
+      "ariaLabel": "Remove {{name}}'s co-host role"
     }
   },
   "pinAnnouncements": {

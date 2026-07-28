@@ -1,11 +1,10 @@
-import type { Participant } from 'livekit-client'
 import { useRoomData } from '../livekit/hooks/useRoomData'
 import { fetchApi } from '@/api/fetchApi'
 
 export const useRemoveParticipant = () => {
   const data = useRoomData()
 
-  const removeParticipant = async (participant: Participant) => {
+  const removeParticipant = async (identity: string) => {
     if (!data?.id) {
       throw new Error('Room id is not available')
     }
@@ -13,7 +12,7 @@ export const useRemoveParticipant = () => {
     return fetchApi(`rooms/${data.id}/remove-participant/`, {
       method: 'POST',
       body: JSON.stringify({
-        participant_identity: participant.identity,
+        participant_identity: identity,
       }),
     })
   }
