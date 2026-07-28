@@ -11,6 +11,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '../hooks/usePublishSourcesManager'
 import { usePermissionsManager } from '../hooks/usePermissionsManager'
+import { useEffect } from 'react'
+import { closeSidePanel } from '@/stores/layout'
+import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -22,6 +25,14 @@ export const Admin = () => {
   }
 
   const { mutateAsync: patchRoom } = usePatchRoom()
+
+  const isAdminOrOwner = useIsAdminOrOwner()
+
+  useEffect(() => {
+    if (!isAdminOrOwner) {
+      closeSidePanel()
+    }
+  }, [isAdminOrOwner])
 
   const { data: readOnlyData } = useQuery({
     queryKey: [keys.room, roomId],
