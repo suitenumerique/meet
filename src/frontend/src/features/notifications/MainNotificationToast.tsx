@@ -169,6 +169,31 @@ export const MainNotificationToast = () => {
   }, [room, triggerNotificationSoundIfRoomIsSmall])
 
   useEffect(() => {
+    const handleAttributeChanged = (
+      changedAttributes: Record<string, string>,
+      participant: Participant
+    ) => {
+      if (!participant.isLocal || !('room_role' in changedAttributes)) return
+      const newRole = changedAttributes['room_role']
+      toastQueue.add(
+        {
+          participant,
+          type: NotificationType.RoleChanged,
+          newRole: newRole,
+        },
+        {
+          timeout: NotificationDuration.ROLE_CHANGED,
+        }
+      )
+    }
+    room.on(RoomEvent.ParticipantAttributesChanged, handleAttributeChanged)
+
+    return () => {
+      room.off(RoomEvent.ParticipantAttributesChanged, handleAttributeChanged)
+    }
+  }, [room])
+
+  useEffect(() => {
     const removeParticipantNotifications = (participant: Participant) => {
       toastQueue.visibleToasts.forEach((toast) => {
         if (toast.content.participant === participant) {

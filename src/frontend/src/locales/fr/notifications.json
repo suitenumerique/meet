@@ -54,5 +54,13 @@
       "default": "Nous finalisons votre enregistrement ! Vous recevrez un e-mail dès qu’il sera prêt."
     }
   },
+  "roleChanged": {
+    "body": "Votre rôle a changé, vous êtes maitenant {{role}}.",
+    "roles": {
+      "owner": "Organisateur",
+      "administrator": "Co-organisateur",
+      "member": "Membre"
+    }
+  },
   "openMenu": "Ouvrir le menu"
 }
