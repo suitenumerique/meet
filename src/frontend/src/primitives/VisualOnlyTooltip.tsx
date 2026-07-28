@@ -16,24 +16,19 @@ export type VisualOnlyTooltipProps = {
   tooltip: string
   ariaLabel?: string
   tooltipPosition?: 'top' | 'bottom'
+  disabled?: boolean
+  className?: string
 }
 
-/**
- * Wrapper component that displays a tooltip visually only (not announced by screen readers).
- *
- * This is necessary because TooltipTrigger from react-aria-components automatically adds
- * aria-describedby on the button, which links the tooltip for accessibility.
- * Even with aria-hidden="true" on the tooltip, screen readers still announce its content → duplication.
- * This CSS wrapper avoids TooltipTrigger → no automatic aria-describedby → no duplication.
- *
- * Uses a portal to avoid being clipped by parent containers with overflow: hidden.
- */
-export const VisualOnlyTooltip = ({
+type VisualOnlyTooltipInnerProps = Omit<VisualOnlyTooltipProps, 'disabled'>
+
+const VisualOnlyTooltipInner = ({
   children,
   tooltip,
   ariaLabel,
+  className,
   tooltipPosition = 'top',
-}: VisualOnlyTooltipProps) => {
+}: VisualOnlyTooltipInnerProps) => {
   const [isVisible, setIsVisible] = useState(false)
   const { getContainer } = useUNSAFE_PortalContext()
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -135,6 +130,7 @@ export const VisualOnlyTooltip = ({
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}
         onBlur={hideTooltip}
+        className={className}
       >
         {wrappedChild}
       </div>
@@ -182,4 +178,26 @@ export const VisualOnlyTooltip = ({
         )}
     </>
   )
+}
+
+/**
+ * Wrapper component that displays a tooltip visually only (not announced by screen readers).
+ *
+ * This is necessary because TooltipTrigger from react-aria-components automatically adds
+ * aria-describedby on the button, which links the tooltip for accessibility.
+ * Even with aria-hidden="true" on the tooltip, screen readers still announce its content → duplication.
+ * This CSS wrapper avoids TooltipTrigger → no automatic aria-describedby → no duplication.
+ *
+ * Uses a portal to avoid being clipped by parent containers with overflow: hidden.
+ */
+export const VisualOnlyTooltip = ({
+  children,
+  disabled,
+  ...props
+}: VisualOnlyTooltipProps) => {
+  if (disabled) {
+    return children
+  }
+
+  return <VisualOnlyTooltipInner {...props}>{children}</VisualOnlyTooltipInner>
 }

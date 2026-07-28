@@ -26,6 +26,7 @@ import { ParticipantMenuButton } from './menu/ParticipantMenuButton'
 import { PinBadge } from './PinBadge'
 import { UnauthenticatedBadge } from './UnauthenticatedBadge'
 import { MuteAlertDialog } from '@/features/rooms/livekit/components/MuteAlertDialog'
+import { ParticipantName } from './ParticipantName'
 
 type MicIndicatorProps = {
   participant: Participant
@@ -111,59 +112,26 @@ export const ParticipantRow = ({ participant }: ParticipantListItemProps) => {
         width: 'full',
       })}
     >
-      <HStack>
-        <div
-          className={css({
-            position: 'relative',
-          })}
-        >
+      <HStack flex="1" minW="0">
+        <div className={css({ position: 'relative', flexShrink: 0 })}>
           <Avatar name={name} bgColor={getParticipantColor(participant)} />
           <PinBadge participant={participant} />
           <UnauthenticatedBadge participant={participant} />
         </div>
-        <VStack gap={0} alignItems="start">
-          <Text
-            variant="sm"
-            className={css({
-              userSelect: 'none',
-              cursor: 'default',
-              display: 'flex',
-            })}
-          >
-            <span
-              className={css({
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '120px',
-                display: 'block',
-              })}
-            >
-              {name}
-            </span>
-            {isLocal(participant) && (
-              <span
-                className={css({
-                  marginLeft: '.25rem',
-                  whiteSpace: 'nowrap',
-                })}
-              >
-                ({t('participants.you')})
-              </span>
-            )}
+        <VStack gap={0} alignItems="start" minW="0" flex="1">
+          <ParticipantName
+            displayedName={name}
+            isLocal={isLocal(participant)}
+          />
+          <Text variant="xsNote">
+            {getParticipantIsRoomOwner(participant) && t('participants.host')}
+            {getParticipantIsRoomAdmin(participant) && t('participants.cohost')}
+            {getParticipantIsRoomMember(participant) &&
+              t('participants.member')}
           </Text>
-          {getParticipantIsRoomOwner(participant) && (
-            <Text variant="xsNote">{t('participants.host')}</Text>
-          )}
-          {getParticipantIsRoomAdmin(participant) && (
-            <Text variant="xsNote">{t('participants.cohost')}</Text>
-          )}
-          {getParticipantIsRoomMember(participant) && (
-            <Text variant="xsNote">{t('participants.member')}</Text>
-          )}
         </VStack>
       </HStack>
-      <HStack>
+      <HStack flexShrink={0}>
         <MicIndicator participant={participant} />
         <ParticipantMenuButton participant={participant} />
       </HStack>
