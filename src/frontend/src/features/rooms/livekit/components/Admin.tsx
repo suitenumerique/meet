@@ -49,7 +49,12 @@ export const Admin = () => {
     isScreenShareEnabled,
   } = usePublishSourcesManager()
 
-  const { toggleMuting, isMutingEnabled } = usePermissionsManager()
+  const {
+    toggleMuting,
+    isMutingEnabled,
+    isAuthenticatedCanRecordEnabled,
+    toggleAuthenticatedCanRecord,
+  } = usePermissionsManager()
 
   return (
     <Div
@@ -149,6 +154,17 @@ export const Admin = () => {
             description={t('moderation.mute.description')}
             isSelected={isMutingEnabled}
             onChange={toggleMuting}
+            wrapperProps={{
+              noMargin: true,
+              fullWidth: true,
+            }}
+          />
+          <Field
+            type="switch"
+            label={'Authenticated can record'}
+            description={'Authenticated can record'}
+            isSelected={isAuthenticatedCanRecordEnabled}
+            onChange={toggleAuthenticatedCanRecord}
             wrapperProps={{
               noMargin: true,
               fullWidth: true,

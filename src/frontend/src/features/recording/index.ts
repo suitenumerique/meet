@@ -1,7 +1,7 @@
 // hooks
 export { useIsRecordingModeEnabled } from './hooks/useIsRecordingModeEnabled'
 export { useHasRecordingAccess } from './hooks/useHasRecordingAccess'
-export { useHasFeatureWithoutAdminRights } from './hooks/useHasFeatureWithoutAdminRights'
+export { useHasFeatureWithoutRecordingRights } from './hooks/useHasFeatureWithoutRecordingRights.ts'
 export { useRecordingStatuses } from './hooks/useRecordingStatuses'
 
 // api
