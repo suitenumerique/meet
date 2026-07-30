@@ -1,5 +1,11 @@
 load('ext://uibutton', 'cmd_button', 'bool_input', 'location')
 load('ext://namespace', 'namespace_create', 'namespace_inject')
+
+# OrbStack's built-in cluster (macOS) is a supported alternative to kind.
+# Recent Tilt versions (>= 0.33) detect it as a local dev cluster; this is
+# a no-op for kind and a safety net for older Tilt versions.
+allow_k8s_contexts('orbstack')
+
 namespace_create('meet')
 
 DEV_ENV = os.getenv('DEV_ENV', 'dev-keycloak')
