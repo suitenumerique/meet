@@ -16,7 +16,7 @@ from rest_framework import (
 from core import analytics, models
 from core.api import permissions, throttling
 from core.api.feature_flag import FeatureFlag
-from core.services.telephony import TelephonyException, TelephonyService
+from core.services.sip_management import SIPException, SIPManagement
 
 from . import authentication, serializers
 
@@ -50,7 +50,7 @@ class RoomKitViewSet(viewsets.ViewSet):
         without waiting for a WebRTC user.
 
         The webhook-based creation path is kept: both converge on the same rule
-        through the shared TelephonyService.
+        through the shared SIPManagement.
         """
 
         serializer = serializers.RoomKitJoinSerializer(data=request.data)
@@ -64,8 +64,8 @@ class RoomKitViewSet(viewsets.ViewSet):
             raise drf_exceptions.NotFound("No room found for this PIN code.") from e
 
         try:
-            created = TelephonyService().ensure_dispatch_rule(room)
-        except TelephonyException as e:
+            created = SIPManagement().ensure_dispatch_rule(room)
+        except SIPException as e:
             raise drf_exceptions.APIException("Could not create dispatch rule.") from e
 
         analytics.capture(

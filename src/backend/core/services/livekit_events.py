@@ -28,7 +28,7 @@ from .room_management import (
     RoomManagementException,
     RoomNotFoundException,
 )
-from .telephony import TelephonyException, TelephonyService
+from .sip_management import SIPException, SIPManagement
 
 logger = getLogger(__name__)
 
@@ -107,7 +107,7 @@ class LiveKitEventsService:
         )
         self.webhook_receiver = api.WebhookReceiver(token_verifier)
         self.lobby_service = LobbyService()
-        self.telephony_service = TelephonyService()
+        self.sip_management = SIPManagement()
         self.recording_events = RecordingEventsService()
 
         self._filter_regex = None
@@ -247,10 +247,10 @@ class LiveKitEventsService:
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:
-                self.telephony_service.create_dispatch_rule(room)
-            except TelephonyException as e:
+                self.sip_management.create_dispatch_rule(room)
+            except SIPException as e:
                 raise ActionFailedError(
-                    f"Failed to create telephony dispatch rule for room {room_id}"
+                    f"Failed to create sip dispatch rule for room {room_id}"
                 ) from e
 
     def _handle_room_finished(self, data):
@@ -267,10 +267,10 @@ class LiveKitEventsService:
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:
-                self.telephony_service.delete_dispatch_rule(room_id)
-            except TelephonyException as e:
+                self.sip_management.delete_dispatch_rule(room_id)
+            except SIPException as e:
                 raise ActionFailedError(
-                    f"Failed to delete telephony dispatch rule for room {room_id}"
+                    f"Failed to delete sip dispatch rule for room {room_id}"
                 ) from e
 
         try:

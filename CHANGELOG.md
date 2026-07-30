@@ -27,6 +27,7 @@ and this project adheres to
 - 📝(legal) update terms of service
 - 💄(frontend) render Avatar initials in uppercase
 - 💄(frontend) improve participant name rendering in the list
+- 🚚(backend) rename TelephonyService to SIPManagement
 
 ## Fixed
 
