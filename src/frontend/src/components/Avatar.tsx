@@ -59,9 +59,10 @@ export const Avatar = React.memo(
           <text
             x="50"
             y="50"
+            dy="-0.08em"
             textAnchor="middle"
             dominantBaseline="central"
-            fontSize={initials.length > 1 ? 48 : 52}
+            fontSize="52"
             fontWeight="500"
             fill="currentColor"
           >
