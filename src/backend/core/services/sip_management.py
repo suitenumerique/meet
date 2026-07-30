@@ -1,4 +1,4 @@
-"""Telephony service for managing SIP dispatch rules for room access."""
+"""SIP management service for managing SIP dispatch rules for room access."""
 
 from logging import getLogger
 
@@ -17,16 +17,16 @@ from core import utils
 logger = getLogger(__name__)
 
 
-class TelephonyException(Exception):
-    """Exception raised when telephony operations fail."""
+class SIPException(Exception):
+    """Exception raised when SIP operations fail."""
 
 
-class DispatchRuleConflictError(TelephonyException):
+class DispatchRuleConflictError(SIPException):
     """Raised when a dispatch rule already exists for the same routing criteria."""
 
 
-class TelephonyService:
-    """Service for managing participant access through the telephony system (SIP)."""
+class SIPManagement:
+    """Service for managing SIP access through the telephony or roomkit system (SIP)."""
 
     def _rule_name(self, room_id):
         """Generate the rule name for a room based on its ID."""
@@ -36,7 +36,7 @@ class TelephonyService:
     async def create_dispatch_rule(self, room):
         """Create a SIP inbound dispatch rule for direct room routing.
 
-        Configures telephony to route incoming SIP calls directly to the specified room
+        Configures livekit-sip to route incoming SIP calls directly to the specified room
         using the room's ID and PIN code for authentication.
         """
 
@@ -60,7 +60,7 @@ class TelephonyService:
             logger.exception(
                 "Unexpected error creating dispatch rule for room %s", room.id
             )
-            raise TelephonyException("Could not create dispatch rule") from e
+            raise SIPException("Could not create dispatch rule") from e
 
         finally:
             await lkapi.aclose()
@@ -85,7 +85,7 @@ class TelephonyService:
             )
         except TwirpError as e:
             logger.exception("Failed to list dispatch rules for room %s", room_id)
-            raise TelephonyException("Could not list dispatch rules") from e
+            raise SIPException("Could not list dispatch rules") from e
         finally:
             await lkapi.aclose()
 
@@ -146,7 +146,7 @@ class TelephonyService:
 
         except TwirpError as e:
             logger.exception("Failed to delete dispatch rules for room %s", room_id)
-            raise TelephonyException("Could not delete dispatch rules") from e
+            raise SIPException("Could not delete dispatch rules") from e
 
         finally:
             await lkapi.aclose()
