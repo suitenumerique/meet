@@ -16,6 +16,7 @@ class FeatureFlag:
         "file_upload": "FILE_UPLOAD_ENABLED",
         "addons": "ADDONS_ENABLED",
         "application": "APPLICATION_ENABLED",
+        "roomkit": "ROOMKIT_ENABLED",
     }
 
     @classmethod
