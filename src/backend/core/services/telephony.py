@@ -3,7 +3,7 @@
 from logging import getLogger
 
 from asgiref.sync import async_to_sync
-from livekit.api import TwirpError
+from livekit.api import TwirpError, TwirpErrorCode
 from livekit.protocol.sip import (
     CreateSIPDispatchRuleRequest,
     DeleteSIPDispatchRuleRequest,
@@ -19,6 +19,10 @@ logger = getLogger(__name__)
 
 class TelephonyException(Exception):
     """Exception raised when telephony operations fail."""
+
+
+class DispatchRuleConflictError(TelephonyException):
+    """Raised when a dispatch rule already exists for the same routing criteria."""
 
 
 class TelephonyService:
@@ -51,6 +55,8 @@ class TelephonyService:
         try:
             await lkapi.sip.create_sip_dispatch_rule(create=request)
         except TwirpError as e:
+            if e.code == TwirpErrorCode.ALREADY_EXISTS:
+                raise DispatchRuleConflictError("Dispatch rule already exists") from e
             logger.exception(
                 "Unexpected error creating dispatch rule for room %s", room.id
             )
@@ -93,6 +99,28 @@ class TelephonyService:
             for existing_rule in existing_rules.items
             if existing_rule.name == rule_name
         ]
+
+    @async_to_sync
+    async def has_dispatch_rule(self, room_id):
+        """Check whether at least one dispatch rule exists for a specific room."""
+        return bool(await self._list_dispatch_rules_ids(room_id))
+
+    def ensure_dispatch_rule(self, room):
+        """Create the SIP dispatch rule for a room if it does not already exist.
+
+        Returns:
+            bool: True if a rule was created, False if it already existed.
+        """
+
+        if self.has_dispatch_rule(room.pk):
+            return False
+
+        try:
+            self.create_dispatch_rule(room)
+        except DispatchRuleConflictError:
+            return False
+
+        return True
 
     @async_to_sync
     async def delete_dispatch_rule(self, room_id):

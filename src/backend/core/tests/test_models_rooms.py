@@ -184,17 +184,30 @@ def test_models_rooms_is_public_property():
 
 
 @mock.patch.object(Room, "generate_unique_pin_code")
-def test_telephony_disabled_skips_pin_generation(
+def test_telephony_and_roomkit_disabled_skips_pin_generation(
     mock_generate_unique_pin_code, settings
 ):
-    """Telephony disabled should not generate pin codes."""
+    """Telephony and roomkit both disabled should not generate pin codes."""
 
     settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
 
     room = RoomFactory()
 
     mock_generate_unique_pin_code.assert_not_called()
     assert room.pin_code is None
+
+
+def test_roomkit_enabled_generates_pin_code(settings):
+    """Roomkit enabled alone should generate pin codes, even without telephony."""
+
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = True
+
+    room = RoomFactory()
+
+    assert room.pin_code is not None
+    assert len(room.pin_code) == settings.ROOM_TELEPHONY_PIN_LENGTH
 
 
 def test_default_and_custom_pin_length(settings):

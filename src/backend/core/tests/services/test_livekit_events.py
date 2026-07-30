@@ -489,11 +489,30 @@ def test_handle_room_finished_clears_cache_and_deletes_dispatch_rule(
 
 @mock.patch.object(LobbyService, "clear_room_cache")
 @mock.patch.object(TelephonyService, "delete_dispatch_rule")
+def test_handle_room_finished_deletes_dispatch_rule_when_only_roomkit_enabled(
+    mock_delete_dispatch_rule, mock_clear_cache, service, settings
+):
+    """Should delete dispatch rule when only roomkit is enabled when room finishes."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = True
+    mock_room_name = uuid.uuid4()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(mock_room_name)
+
+    service._handle_room_finished(mock_data)
+
+    mock_delete_dispatch_rule.assert_called_once_with(mock_room_name)
+    mock_clear_cache.assert_called_once_with(mock_room_name)
+
+
+@mock.patch.object(LobbyService, "clear_room_cache")
+@mock.patch.object(TelephonyService, "delete_dispatch_rule")
 def test_handle_room_finished_skips_telephony_when_disabled(
     mock_delete_dispatch_rule, mock_clear_cache, service, settings
 ):
     """Should clear lobby cache but skip dispatch rule deletion when telephony is disabled."""
     settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
     mock_room_name = uuid.uuid4()
     mock_data = mock.MagicMock()
     mock_data.room.name = str(mock_room_name)
@@ -543,7 +562,7 @@ def test_handle_room_finished_raises_error_when_telephony_deletion_fails(
     mock_data.room.name = "00000000-0000-0000-0000-000000000000"
 
     expected_error = (
-        "Failed to delete telephony dispatch rule for room "
+        "Failed to delete sip dispatch rule for room "
         "00000000-0000-0000-0000-000000000000"
     )
 
@@ -580,11 +599,28 @@ def test_handle_room_started_creates_dispatch_rule_successfully(
 
 
 @mock.patch.object(TelephonyService, "create_dispatch_rule")
+def test_handle_room_started_creates_dispatch_rule_when_only_roomkit_enabled(
+    mock_create_dispatch_rule, service, settings
+):
+    """Should create dispatch rule when only roomkit is enabled during room start."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = True
+    room = RoomFactory()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    service._handle_room_started(mock_data)
+
+    mock_create_dispatch_rule.assert_called_once_with(room)
+
+
+@mock.patch.object(TelephonyService, "create_dispatch_rule")
 def test_handle_room_started_skips_dispatch_rule_when_telephony_disabled(
     mock_create_dispatch_rule, service, settings
 ):
     """Should skip creating telephony dispatch rule when telephony is disabled during room start."""
     settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
     room = RoomFactory()
     mock_data = mock.MagicMock()
     mock_data.room.name = str(room.id)

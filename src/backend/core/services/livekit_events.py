@@ -245,7 +245,7 @@ class LiveKitEventsService:
         except models.Room.DoesNotExist as err:
             raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
 
-        if settings.ROOM_TELEPHONY_ENABLED:
+        if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:
                 self.telephony_service.create_dispatch_rule(room)
             except TelephonyException as e:
@@ -265,7 +265,7 @@ class LiveKitEventsService:
             )
             raise ActionFailedError("Failed to process room finished event") from e
 
-        if settings.ROOM_TELEPHONY_ENABLED:
+        if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:
                 self.telephony_service.delete_dispatch_rule(room_id)
             except TelephonyException as e:

@@ -429,7 +429,14 @@ class Room(Resource):
 
     def save(self, *args, **kwargs):
         """Generate a unique n-digit pin code for new rooms."""
-        if settings.ROOM_TELEPHONY_ENABLED and not self.pk and not self.pin_code:
+
+        # Roomkit devices also join by PIN, so a PIN is needed as soon as
+        # either integration is enabled.
+        if (
+            (settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED)
+            and not self.pk
+            and not self.pin_code
+        ):
             self.pin_code = self.generate_unique_pin_code(
                 length=settings.ROOM_TELEPHONY_PIN_LENGTH
             )

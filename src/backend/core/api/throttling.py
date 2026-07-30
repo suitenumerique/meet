@@ -73,3 +73,15 @@ class CreationCallbackAnonRateThrottle(MonitoredAnonRateThrottle):
     """Throttle Anonymous user requesting room generation callback"""
 
     scope = "creation_callback"
+
+
+class RoomKitJoinRateThrottle(MonitoredUserRateThrottle):
+    """Throttle the LiveKit SIP module requesting roomkit joins.
+
+    The roomkit endpoints are authenticated as a machine user, so all requests
+    share a single throttle bucket. This is not a security measure against
+    brute-force attacks but a guard against accidental hammering from a buggy
+    SIP module.
+    """
+
+    scope = "roomkit_join"
