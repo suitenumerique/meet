@@ -8,3 +8,6 @@ class AnalyticsEvent(StrEnum):
 
     # Rooms
     ROOM_CREATED = "room_created"
+
+    # Roomkit (meeting-room SIP devices)
+    ROOMKIT_JOINED = "roomkit_joined"

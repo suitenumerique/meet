@@ -349,6 +349,11 @@ class Base(Configuration):
                 environ_name="CREATION_CALLBACK_THROTTLE_RATES",
                 environ_prefix=None,
             ),
+            "roomkit_join": values.Value(
+                default="300/minute",
+                environ_name="ROOMKIT_JOIN_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
         },
     }
     MONITORED_THROTTLE_FAILURE_CALLBACK = (
@@ -878,6 +883,21 @@ class Base(Configuration):
     ROOM_TELEPHONY_DEFAULT_COUNTRY = values.Value(
         "US",
         environ_name="ROOM_TELEPHONY_DEFAULT_COUNTRY",
+        environ_prefix=None,
+    )
+
+    # Roomkit (meeting-room SIP devices) integration
+    ROOMKIT_ENABLED = values.BooleanValue(
+        False,
+        environ_name="ROOMKIT_ENABLED",
+        environ_prefix=None,
+    )
+    # Server-to-server API token allowing the LiveKit SIP module to call the
+    # roomkit endpoints (e.g. join a room on behalf of a meeting-room device
+    # dialing in before any WebRTC participant).
+    ROOMKIT_SERVER_TO_SERVER_API_TOKEN = SecretFileValue(
+        None,
+        environ_name="ROOMKIT_SERVER_TO_SERVER_API_TOKEN",
         environ_prefix=None,
     )
 
