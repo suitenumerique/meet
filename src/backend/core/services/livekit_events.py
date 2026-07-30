@@ -247,7 +247,7 @@ class LiveKitEventsService:
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:
-                self.sip_management.create_dispatch_rule(room)
+                self.sip_management.ensure_dispatch_rule(room)
             except SIPException as e:
                 raise ActionFailedError(
                     f"Failed to create sip dispatch rule for room {room_id}"

@@ -21,7 +21,10 @@ from core.services.livekit_events import (
 )
 from core.services.lobby import LobbyService
 from core.services.room_management import RoomManagementException
-from core.services.sip_management import SIPException, SIPManagement
+from core.services.sip_management import (
+    SIPException,
+    SIPManagement,
+)
 from core.utils import NotificationError
 
 pytestmark = pytest.mark.django_db
@@ -583,11 +586,11 @@ def test_handle_room_finished_raises_error_for_invalid_room_name(service):
         service._handle_room_finished(mock_data)
 
 
-@mock.patch.object(SIPManagement, "create_dispatch_rule")
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
 def test_handle_room_started_creates_dispatch_rule_successfully(
-    mock_create_dispatch_rule, service, settings
+    mock_ensure_dispatch_rule, service, settings
 ):
-    """Should create SIP dispatch rule when room starts successfully."""
+    """Should ensure the SIP dispatch rule exists when room starts successfully."""
     settings.ROOM_TELEPHONY_ENABLED = True
     room = RoomFactory()
     mock_data = mock.MagicMock()
@@ -595,14 +598,14 @@ def test_handle_room_started_creates_dispatch_rule_successfully(
 
     service._handle_room_started(mock_data)
 
-    mock_create_dispatch_rule.assert_called_once_with(room)
+    mock_ensure_dispatch_rule.assert_called_once_with(room)
 
 
-@mock.patch.object(SIPManagement, "create_dispatch_rule")
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
 def test_handle_room_started_creates_dispatch_rule_when_only_roomkit_enabled(
-    mock_create_dispatch_rule, service, settings
+    mock_ensure_dispatch_rule, service, settings
 ):
-    """Should create dispatch rule when only roomkit is enabled during room start."""
+    """Should ensure the dispatch rule exists when only roomkit is enabled during room start."""
     settings.ROOM_TELEPHONY_ENABLED = False
     settings.ROOMKIT_ENABLED = True
     room = RoomFactory()
@@ -611,14 +614,50 @@ def test_handle_room_started_creates_dispatch_rule_when_only_roomkit_enabled(
 
     service._handle_room_started(mock_data)
 
-    mock_create_dispatch_rule.assert_called_once_with(room)
+    mock_ensure_dispatch_rule.assert_called_once_with(room)
 
 
-@mock.patch.object(SIPManagement, "create_dispatch_rule")
-def test_handle_room_started_skips_dispatch_rule_when_telephony_disabled(
-    mock_create_dispatch_rule, service, settings
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule", return_value=False)
+def test_handle_room_started_ignores_existing_dispatch_rule(
+    mock_ensure_dispatch_rule, service, settings
 ):
-    """Should skip creating SIP dispatch rule when telephony is disabled during room start."""
+    """Should proceed silently when the dispatch rule already exists when room starts."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    # ensure_dispatch_rule reports the rule as pre-existing: nothing to raise
+    service._handle_room_started(mock_data)
+
+    mock_ensure_dispatch_rule.assert_called_once_with(room)
+
+
+@mock.patch.object(
+    SIPManagement,
+    "ensure_dispatch_rule",
+    side_effect=SIPException("Test error"),
+)
+def test_handle_room_started_raises_error_when_dispatch_rule_creation_fails(
+    mock_ensure_dispatch_rule, service, settings
+):
+    """Should raise ActionFailedError when ensuring the dispatch rule fails when room starts."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    expected_error = f"Failed to create sip dispatch rule for room {room.id}"
+
+    with pytest.raises(ActionFailedError, match=expected_error):
+        service._handle_room_started(mock_data)
+
+
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+def test_handle_room_started_skips_dispatch_rule_when_telephony_disabled(
+    mock_ensure_dispatch_rule, service, settings
+):
+    """Should skip ensuring the SIP dispatch rule when telephony is disabled during room start."""
     settings.ROOM_TELEPHONY_ENABLED = False
     settings.ROOMKIT_ENABLED = False
     room = RoomFactory()
@@ -627,7 +666,7 @@ def test_handle_room_started_skips_dispatch_rule_when_telephony_disabled(
 
     service._handle_room_started(mock_data)
 
-    mock_create_dispatch_rule.assert_not_called()
+    mock_ensure_dispatch_rule.assert_not_called()
 
 
 def test_handle_room_started_raises_error_for_invalid_room_name(service):
