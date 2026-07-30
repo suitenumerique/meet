@@ -9,19 +9,19 @@ from unittest import mock
 import pytest
 
 from ...factories import RoomFactory
-from ...services.telephony import TelephonyException
+from ...services.sip_management import SIPException
 
 pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def mock_telephony_service():
-    """Mock the TelephonyService used by the roomkit viewset."""
-    with mock.patch("core.roomkit.viewsets.TelephonyService") as mock_service_class:
+def mock_sip_management():
+    """Mock the SIPManagement used by the roomkit viewset."""
+    with mock.patch("core.roomkit.viewsets.SIPManagement") as mock_service_class:
         yield mock_service_class.return_value
 
 
-def test_join_anonymous(settings, mock_telephony_service, client):
+def test_join_anonymous(settings, mock_sip_management, client):
     """Requests without an Authorization header should be rejected."""
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
@@ -32,10 +32,10 @@ def test_join_anonymous(settings, mock_telephony_service, client):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Authorization header is missing."}
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_malformed_authorization_header(settings, mock_telephony_service, client):
+def test_join_malformed_authorization_header(settings, mock_sip_management, client):
     """Requests with a malformed Authorization header should be rejected."""
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
@@ -50,10 +50,10 @@ def test_join_malformed_authorization_header(settings, mock_telephony_service, c
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid authorization header."}
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_wrong_bearer(settings, mock_telephony_service, client):
+def test_join_wrong_bearer(settings, mock_sip_management, client):
     """Requests with an incorrect bearer token should be rejected."""
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
@@ -68,10 +68,10 @@ def test_join_wrong_bearer(settings, mock_telephony_service, client):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid server-to-server token."}
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_token_not_configured(settings, mock_telephony_service, client):
+def test_join_token_not_configured(settings, mock_sip_management, client):
     """Requests should be rejected when no server-to-server token is configured."""
 
     settings.ROOMKIT_ENABLED = True
@@ -86,10 +86,10 @@ def test_join_token_not_configured(settings, mock_telephony_service, client):
     )
 
     assert response.status_code == 401
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_roomkit_disabled(settings, mock_telephony_service, client):
+def test_join_roomkit_disabled(settings, mock_sip_management, client):
     """The endpoint should not be exposed when the roomkit integration is disabled."""
 
     settings.ROOMKIT_ENABLED = False
@@ -104,10 +104,10 @@ def test_join_roomkit_disabled(settings, mock_telephony_service, client):
     )
 
     assert response.status_code == 404
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_missing_pin(settings, mock_telephony_service, client):
+def test_join_missing_pin(settings, mock_sip_management, client):
     """Requests without a PIN code should be rejected."""
 
     settings.ROOMKIT_ENABLED = True
@@ -121,10 +121,10 @@ def test_join_missing_pin(settings, mock_telephony_service, client):
 
     assert response.status_code == 400
     assert response.json() == {"pin_code": ["This field is required."]}
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_blank_pin(settings, mock_telephony_service, client):
+def test_join_blank_pin(settings, mock_sip_management, client):
     """Requests with a blank PIN code should be rejected."""
 
     settings.ROOMKIT_ENABLED = True
@@ -138,10 +138,10 @@ def test_join_blank_pin(settings, mock_telephony_service, client):
 
     assert response.status_code == 400
     assert response.json() == {"pin_code": ["This field may not be blank."]}
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_wrong_pin_length(settings, mock_telephony_service, client):
+def test_join_wrong_pin_length(settings, mock_sip_management, client):
     """Requests with a PIN code of unexpected length should be rejected."""
 
     settings.ROOMKIT_ENABLED = True
@@ -156,10 +156,10 @@ def test_join_wrong_pin_length(settings, mock_telephony_service, client):
 
     assert response.status_code == 400
     assert response.json() == {"pin_code": ["PIN code length is invalid."]}
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_unknown_pin(settings, mock_telephony_service, client):
+def test_join_unknown_pin(settings, mock_sip_management, client):
     """Requests with a PIN matching no room should return 404 and create no rule."""
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
@@ -174,16 +174,16 @@ def test_join_unknown_pin(settings, mock_telephony_service, client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "No room found for this PIN code."}
-    mock_telephony_service.ensure_dispatch_rule.assert_not_called()
+    mock_sip_management.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_success(settings, mock_telephony_service, client):
+def test_join_success(settings, mock_sip_management, client):
     """Requests with a valid PIN should create the dispatch rule."""
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
-    mock_telephony_service.ensure_dispatch_rule.return_value = True
+    mock_sip_management.ensure_dispatch_rule.return_value = True
 
     response = client.post(
         "/api/v1.0/roomkit/join/",
@@ -193,17 +193,17 @@ def test_join_success(settings, mock_telephony_service, client):
 
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
-    mock_telephony_service.ensure_dispatch_rule.assert_called_once_with(room)
+    mock_sip_management.ensure_dispatch_rule.assert_called_once_with(room)
 
 
-def test_join_dispatch_rule_already_exists(settings, mock_telephony_service, client):
+def test_join_dispatch_rule_already_exists(settings, mock_sip_management, client):
     """Requests should succeed when the dispatch rule already exists (idempotency)."""
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
-    mock_telephony_service.ensure_dispatch_rule.return_value = False
+    mock_sip_management.ensure_dispatch_rule.return_value = False
 
     response = client.post(
         "/api/v1.0/roomkit/join/",
@@ -213,17 +213,17 @@ def test_join_dispatch_rule_already_exists(settings, mock_telephony_service, cli
 
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
-    mock_telephony_service.ensure_dispatch_rule.assert_called_once_with(room)
+    mock_sip_management.ensure_dispatch_rule.assert_called_once_with(room)
 
 
-def test_join_tracks_analytics_event(settings, mock_telephony_service, client):
+def test_join_tracks_analytics_event(settings, mock_sip_management, client):
     """Successful joins should be tracked with an analytics event."""
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
-    mock_telephony_service.ensure_dispatch_rule.return_value = True
+    mock_sip_management.ensure_dispatch_rule.return_value = True
 
     with mock.patch("core.roomkit.viewsets.analytics.capture") as mock_capture:
         response = client.post(
@@ -242,14 +242,14 @@ def test_join_tracks_analytics_event(settings, mock_telephony_service, client):
     }
 
 
-def test_join_telephony_failure(settings, mock_telephony_service, client):
-    """Requests should fail with a server error when the telephony service fails."""
+def test_join_sip_failure(settings, mock_sip_management, client):
+    """Requests should fail with a server error when the sip management service fails."""
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
-    mock_telephony_service.ensure_dispatch_rule.side_effect = TelephonyException(
+    mock_sip_management.ensure_dispatch_rule.side_effect = SIPException(
         "Could not create dispatch rule"
     )
 
@@ -262,5 +262,5 @@ def test_join_telephony_failure(settings, mock_telephony_service, client):
         )
 
     assert response.status_code == 500
-    mock_telephony_service.ensure_dispatch_rule.assert_called_once_with(room)
+    mock_sip_management.ensure_dispatch_rule.assert_called_once_with(room)
     mock_capture.assert_not_called()

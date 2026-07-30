@@ -1,5 +1,5 @@
 """
-Test telephony service.
+Test SIP mamagement service.
 """
 
 # pylint: disable=W0212
@@ -20,10 +20,10 @@ from livekit.protocol.sip import (
 
 from core.factories import RoomFactory
 from core.models import RoomAccessLevel
-from core.services.telephony import (
+from core.services.sip_management import (
     DispatchRuleConflictError,
-    TelephonyException,
-    TelephonyService,
+    SIPException,
+    SIPManagement,
 )
 
 pytestmark = pytest.mark.django_db
@@ -39,9 +39,9 @@ def create_mock_livekit_client():
 
 def test_rule_name():
     """Test rule name generation."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
-    rule_name = telephony_service._rule_name(room.id)
+    rule_name = sip_management._rule_name(room.id)
 
     assert rule_name == f"SIP_{str(room.id)}"
 
@@ -49,14 +49,14 @@ def test_rule_name():
 @mock.patch("core.utils.create_livekit_client")
 def test_create_dispatch_rule_success(mock_client_factory):
     """Test successful dispatch rule creation."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_api = create_mock_livekit_client()
     mock_api.sip.create_sip_dispatch_rule = mock.AsyncMock()
     mock_client_factory.return_value = mock_api
 
-    telephony_service.create_dispatch_rule(room)
+    sip_management.create_dispatch_rule(room)
 
     mock_api.sip.create_sip_dispatch_rule.assert_called_once()
     create_request = mock_api.sip.create_sip_dispatch_rule.call_args[1]["create"]
@@ -71,7 +71,7 @@ def test_create_dispatch_rule_success(mock_client_factory):
 @mock.patch("core.utils.create_livekit_client")
 def test_create_dispatch_rule_api_failure(mock_client_factory):
     """Test dispatch rule creation when API fails."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_api = create_mock_livekit_client()
@@ -80,8 +80,8 @@ def test_create_dispatch_rule_api_failure(mock_client_factory):
     )
     mock_client_factory.return_value = mock_api
 
-    with pytest.raises(TelephonyException, match="Could not create dispatch rule"):
-        telephony_service.create_dispatch_rule(room)
+    with pytest.raises(SIPException, match="Could not create dispatch rule"):
+        sip_management.create_dispatch_rule(room)
 
     mock_api.sip.create_sip_dispatch_rule.assert_called_once()
     mock_api.aclose.assert_called_once()
@@ -90,7 +90,7 @@ def test_create_dispatch_rule_api_failure(mock_client_factory):
 @mock.patch("core.utils.create_livekit_client")
 def test_list_dispatch_rules_ids_success(mock_client_factory):
     """Test successful listing of dispatch rule IDs."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_rules = [
@@ -115,7 +115,7 @@ def test_list_dispatch_rules_ids_success(mock_client_factory):
     )
     mock_client_factory.return_value = mock_api
 
-    result = async_to_sync(telephony_service._list_dispatch_rules_ids)(room.id)
+    result = async_to_sync(sip_management._list_dispatch_rules_ids)(room.id)
 
     assert len(result) == 2
     assert "rule-1" in result
@@ -131,7 +131,7 @@ def test_list_dispatch_rules_ids_success(mock_client_factory):
 @mock.patch("core.utils.create_livekit_client")
 def test_list_dispatch_rules_ids_empty_response(mock_client_factory):
     """Test listing dispatch rule IDs when no rules exist."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_api = create_mock_livekit_client()
@@ -140,7 +140,7 @@ def test_list_dispatch_rules_ids_empty_response(mock_client_factory):
     )
     mock_client_factory.return_value = mock_api
 
-    result = async_to_sync(telephony_service._list_dispatch_rules_ids)(room.id)
+    result = async_to_sync(sip_management._list_dispatch_rules_ids)(room.id)
 
     assert result == []
     mock_api.aclose.assert_called_once()
@@ -149,7 +149,7 @@ def test_list_dispatch_rules_ids_empty_response(mock_client_factory):
 @mock.patch("core.utils.create_livekit_client")
 def test_list_dispatch_rules_ids_no_matching_rules(mock_client_factory):
     """Test listing dispatch rule IDs when no rules match the room."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_rules = [
@@ -167,7 +167,7 @@ def test_list_dispatch_rules_ids_no_matching_rules(mock_client_factory):
     )
     mock_client_factory.return_value = mock_api
 
-    result = async_to_sync(telephony_service._list_dispatch_rules_ids)(room.id)
+    result = async_to_sync(sip_management._list_dispatch_rules_ids)(room.id)
 
     assert result == []
     mock_api.aclose.assert_called_once()
@@ -176,7 +176,7 @@ def test_list_dispatch_rules_ids_no_matching_rules(mock_client_factory):
 @mock.patch("core.utils.create_livekit_client")
 def test_list_dispatch_rules_ids_api_failure(mock_client_factory):
     """Test listing dispatch rule IDs when API fails."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_api = create_mock_livekit_client()
@@ -185,34 +185,34 @@ def test_list_dispatch_rules_ids_api_failure(mock_client_factory):
     )
     mock_client_factory.return_value = mock_api
 
-    with pytest.raises(TelephonyException, match="Could not list dispatch rules"):
-        async_to_sync(telephony_service._list_dispatch_rules_ids)(room.id)
+    with pytest.raises(SIPException, match="Could not list dispatch rules"):
+        async_to_sync(sip_management._list_dispatch_rules_ids)(room.id)
 
     mock_api.sip.list_sip_dispatch_rule.assert_called_once()
     mock_api.aclose.assert_called_once()
 
 
-@mock.patch("core.services.telephony.TelephonyService._list_dispatch_rules_ids")
+@mock.patch("core.services.sip_management.SIPManagement._list_dispatch_rules_ids")
 @mock.patch("core.utils.create_livekit_client")
 def test_delete_dispatch_rule_no_rules(mock_client_factory, mock_list_rules):
     """Test deleting dispatch rules when no rules exist."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_list_rules.return_value = []
 
-    result = telephony_service.delete_dispatch_rule(room.id)
+    result = sip_management.delete_dispatch_rule(room.id)
 
     assert result is False
     mock_list_rules.assert_called_once_with(room.id)
     mock_client_factory.assert_not_called()
 
 
-@mock.patch("core.services.telephony.TelephonyService._list_dispatch_rules_ids")
+@mock.patch("core.services.sip_management.SIPManagement._list_dispatch_rules_ids")
 @mock.patch("core.utils.create_livekit_client")
 def test_delete_dispatch_rule_single_rule(mock_client_factory, mock_list_rules):
     """Test deleting a single dispatch rule."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_list_rules.return_value = ["rule-1"]
@@ -220,7 +220,7 @@ def test_delete_dispatch_rule_single_rule(mock_client_factory, mock_list_rules):
     mock_api.sip.delete_sip_dispatch_rule = mock.AsyncMock()
     mock_client_factory.return_value = mock_api
 
-    result = telephony_service.delete_dispatch_rule(room.id)
+    result = sip_management.delete_dispatch_rule(room.id)
 
     assert result is True
     mock_api.sip.delete_sip_dispatch_rule.assert_called_once()
@@ -230,11 +230,11 @@ def test_delete_dispatch_rule_single_rule(mock_client_factory, mock_list_rules):
     mock_api.aclose.assert_called_once()
 
 
-@mock.patch("core.services.telephony.TelephonyService._list_dispatch_rules_ids")
+@mock.patch("core.services.sip_management.SIPManagement._list_dispatch_rules_ids")
 @mock.patch("core.utils.create_livekit_client")
 def test_delete_dispatch_rule_multiple_rules(mock_client_factory, mock_list_rules):
     """Test deleting multiple dispatch rules."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_list_rules.return_value = ["rule-1", "rule-2", "rule-3"]
@@ -242,7 +242,7 @@ def test_delete_dispatch_rule_multiple_rules(mock_client_factory, mock_list_rule
     mock_api.sip.delete_sip_dispatch_rule = mock.AsyncMock()
     mock_client_factory.return_value = mock_api
 
-    result = telephony_service.delete_dispatch_rule(room.id)
+    result = sip_management.delete_dispatch_rule(room.id)
 
     assert result is True
     assert mock_api.sip.delete_sip_dispatch_rule.call_count == 3
@@ -257,11 +257,11 @@ def test_delete_dispatch_rule_multiple_rules(mock_client_factory, mock_list_rule
     mock_api.aclose.assert_called_once()
 
 
-@mock.patch("core.services.telephony.TelephonyService._list_dispatch_rules_ids")
+@mock.patch("core.services.sip_management.SIPManagement._list_dispatch_rules_ids")
 @mock.patch("core.utils.create_livekit_client")
 def test_delete_dispatch_rule_partial_failure(mock_client_factory, mock_list_rules):
     """Test deleting multiple dispatch rules when one deletion fails."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_list_rules.return_value = ["rule-1", "rule-2", "rule-3"]
@@ -281,18 +281,18 @@ def test_delete_dispatch_rule_partial_failure(mock_client_factory, mock_list_rul
     )
     mock_client_factory.return_value = mock_api
 
-    with pytest.raises(TelephonyException, match="Could not delete dispatch rules"):
-        telephony_service.delete_dispatch_rule(room.id)
+    with pytest.raises(SIPException, match="Could not delete dispatch rules"):
+        sip_management.delete_dispatch_rule(room.id)
 
     assert mock_api.sip.delete_sip_dispatch_rule.call_count == 2
     mock_api.aclose.assert_called_once()
 
 
-@mock.patch("core.services.telephony.TelephonyService._list_dispatch_rules_ids")
+@mock.patch("core.services.sip_management.SIPManagement._list_dispatch_rules_ids")
 @mock.patch("core.utils.create_livekit_client")
 def test_delete_dispatch_rule_api_failure(mock_client_factory, mock_list_rules):
     """Test deleting dispatch rules when API fails immediately."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_list_rules.return_value = ["rule-1"]
@@ -302,8 +302,8 @@ def test_delete_dispatch_rule_api_failure(mock_client_factory, mock_list_rules):
     )
     mock_client_factory.return_value = mock_api
 
-    with pytest.raises(TelephonyException, match="Could not delete dispatch rules"):
-        telephony_service.delete_dispatch_rule(room.id)
+    with pytest.raises(SIPException, match="Could not delete dispatch rules"):
+        sip_management.delete_dispatch_rule(room.id)
 
     mock_api.sip.delete_sip_dispatch_rule.assert_called_once()
     mock_api.aclose.assert_called_once()
@@ -312,7 +312,7 @@ def test_delete_dispatch_rule_api_failure(mock_client_factory, mock_list_rules):
 @mock.patch("core.utils.create_livekit_client")
 def test_create_dispatch_rule_conflict_raises_dedicated_error(mock_client_factory):
     """Test that a LiveKit conflict error raises DispatchRuleConflictError."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_api = create_mock_livekit_client()
@@ -329,7 +329,7 @@ def test_create_dispatch_rule_conflict_raises_dedicated_error(mock_client_factor
     mock_client_factory.return_value = mock_api
 
     with pytest.raises(DispatchRuleConflictError):
-        telephony_service.create_dispatch_rule(room)
+        sip_management.create_dispatch_rule(room)
 
     mock_api.aclose.assert_called_once()
 
@@ -337,7 +337,7 @@ def test_create_dispatch_rule_conflict_raises_dedicated_error(mock_client_factor
 @mock.patch("core.utils.create_livekit_client")
 def test_ensure_dispatch_rule_creates_when_missing(mock_client_factory):
     """Test that ensure_dispatch_rule creates the rule when none exists."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_api = create_mock_livekit_client()
@@ -347,7 +347,7 @@ def test_ensure_dispatch_rule_creates_when_missing(mock_client_factory):
     mock_api.sip.create_sip_dispatch_rule = mock.AsyncMock()
     mock_client_factory.return_value = mock_api
 
-    created = telephony_service.ensure_dispatch_rule(room)
+    created = sip_management.ensure_dispatch_rule(room)
 
     assert created is True
     mock_api.sip.create_sip_dispatch_rule.assert_called_once()
@@ -362,7 +362,7 @@ def test_ensure_dispatch_rule_creates_when_missing(mock_client_factory):
 @mock.patch("core.utils.create_livekit_client")
 def test_ensure_dispatch_rule_skips_when_existing(mock_client_factory):
     """Test that ensure_dispatch_rule is idempotent when the rule already exists."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     existing_rule = SIPDispatchRuleInfo(
@@ -375,7 +375,7 @@ def test_ensure_dispatch_rule_skips_when_existing(mock_client_factory):
     mock_api.sip.create_sip_dispatch_rule = mock.AsyncMock()
     mock_client_factory.return_value = mock_api
 
-    created = telephony_service.ensure_dispatch_rule(room)
+    created = sip_management.ensure_dispatch_rule(room)
 
     assert created is False
     mock_api.sip.create_sip_dispatch_rule.assert_not_called()
@@ -389,7 +389,7 @@ def test_ensure_dispatch_rule_returns_false_on_conflict(mock_client_factory):
     between the existence check and the creation, LiveKit rejects the
     duplicate and ensure_dispatch_rule reports the rule as already existing.
     """
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_api = create_mock_livekit_client()
@@ -408,7 +408,7 @@ def test_ensure_dispatch_rule_returns_false_on_conflict(mock_client_factory):
     )
     mock_client_factory.return_value = mock_api
 
-    created = telephony_service.ensure_dispatch_rule(room)
+    created = sip_management.ensure_dispatch_rule(room)
 
     assert created is False
 
@@ -416,7 +416,7 @@ def test_ensure_dispatch_rule_returns_false_on_conflict(mock_client_factory):
 @mock.patch("core.utils.create_livekit_client")
 def test_ensure_dispatch_rule_raises_on_other_failures(mock_client_factory):
     """Test that ensure_dispatch_rule propagates unexpected LiveKit failures."""
-    telephony_service = TelephonyService()
+    sip_management = SIPManagement()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
 
     mock_api = create_mock_livekit_client()
@@ -428,5 +428,5 @@ def test_ensure_dispatch_rule_raises_on_other_failures(mock_client_factory):
     )
     mock_client_factory.return_value = mock_api
 
-    with pytest.raises(TelephonyException, match="Could not create dispatch rule"):
-        telephony_service.ensure_dispatch_rule(room)
+    with pytest.raises(SIPException, match="Could not create dispatch rule"):
+        sip_management.ensure_dispatch_rule(room)
