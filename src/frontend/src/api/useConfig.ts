@@ -42,6 +42,12 @@ export interface ApiConfig {
     allowed_extensions: string[]
     allowed_mimetypes: string[]
   }
+  chat_media?: {
+    enabled: boolean
+    max_size: number
+    allowed_mimetypes: string[]
+    allowed_extensions: string[]
+  }
   subtitle: {
     enabled: boolean
   }
