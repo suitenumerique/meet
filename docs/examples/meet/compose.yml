@@ -1,0 +1,115 @@
+# Meet core stack
+#
+# Runs: backend, frontend, celery, livekit, postgresql, redis
+#
+# This file is proxy-agnostic. Before running, copy your proxy override:
+#   cp docker-compose.override.yml.nginx   docker-compose.override.yml   # nginx-proxy
+#   cp docker-compose.override.yml.traefik docker-compose.override.yml   # Traefik
+#
+# Then: docker compose up -d
+#
+# External networks expected:
+#   proxy    - shared with your reverse proxy (nginx-proxy or Traefik)
+#   internal - created automatically by this stack
+
+services:
+
+  backend:
+    image: lasuite/meet-backend:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    user: ${DOCKER_USER:-1000}
+    env_file:
+      - env.d/hosts
+      - env.d/common
+      - env.d/postgresql
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check"]
+      interval: 15s
+      timeout: 30s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      livekit:
+        condition: service_started
+    networks:
+      - proxy
+      - internal
+
+  frontend:
+    image: lasuite/meet-frontend:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    entrypoint: [/docker-entrypoint.sh]
+    command: ["nginx", "-g", "daemon off;"]
+    env_file:
+      - env.d/hosts
+      - env.d/common
+    volumes:
+      - ./nginx-routing.conf:/etc/nginx/conf.d/routing.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - proxy
+      - internal
+
+  celery:
+    image: lasuite/meet-backend:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    user: ${DOCKER_USER:-1000}
+    command: ["celery", "-A", "meet.celery_app", "worker", "-l", "INFO"]
+    env_file:
+      - env.d/hosts
+      - env.d/common
+      - env.d/postgresql
+    depends_on:
+      - backend
+    networks:
+      - internal
+
+  postgresql:
+    image: postgres:16
+    restart: unless-stopped
+    env_file:
+      - env.d/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d meet -U meet"]
+      interval: 1s
+      timeout: 2s
+      retries: 300
+    volumes:
+      - meet_db:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - internal
+
+  livekit:
+    image: livekit/livekit-server:${LIVEKIT_VERSION:-latest}
+    restart: unless-stopped
+    command: --config /config.yaml
+    ports:
+      - "7881:7881/tcp"
+      - "7882:7882/udp"
+    volumes:
+      - ./livekit-server.yaml:/config.yaml:ro
+    depends_on:
+      - redis
+    networks:
+      - proxy
+      - internal
+
+volumes:
+  meet_db:
+
+networks:
+  proxy:
+    external: true
+  internal:

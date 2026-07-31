@@ -1,0 +1,12 @@
+# nginx-proxy override for Keycloak
+#
+# Usage:
+#   cp docker-compose.override.yml.nginx docker-compose.override.yml
+
+services:
+  keycloak:
+    environment:
+      VIRTUAL_HOST: ${IDP_HOST}
+      VIRTUAL_PORT: "8080"
+      LETSENCRYPT_HOST: ${IDP_HOST}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
