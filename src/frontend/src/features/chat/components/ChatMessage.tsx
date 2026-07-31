@@ -28,7 +28,7 @@ export const ChatMessage = ({ item }: ChatMessageProps) => {
           identity={item.identity}
         />
       )}
-      <ChatMessageBody message={item.message} />
+      {item.kind === 'text' && <ChatMessageBody message={item.message} />}
     </StyledContainer>
   )
 }
