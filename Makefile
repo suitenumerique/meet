@@ -389,6 +389,12 @@ build-k8s-cluster: \
     ./bin/start-kind.sh
 .PHONY: build-k8s-cluster
 
+build-k8s-cluster-orbstack: ## setup the kubernetes environment on OrbStack's built-in cluster (macOS)
+build-k8s-cluster-orbstack: \
+    env.d/development/kube-secret
+	./bin/start-orbstack.sh
+.PHONY: build-k8s-cluster-orbstack
+
 start-tilt-keycloak: ## start the kubernetes cluster using kind, without Pro Connect for authentication, use keycloak
 	DEV_ENV=dev-keycloak tilt up --namespace=meet -f ./bin/Tiltfile
 .PHONY: build-k8s-cluster

@@ -143,3 +143,24 @@ $ make start-tilt-keycloak
 ```
 
 Monitor Tilt’s progress at [http://localhost:10350/](http://localhost:10350/). After Tilt actions finish, you can access the app at [https://meet.127.0.0.1.nip.io/](https://meet.127.0.0.1.nip.io/).
+
+### Alternative: OrbStack's built-in Kubernetes (macOS)
+
+If you use [OrbStack](https://orbstack.dev/) on macOS, you can run the stack on its built-in Kubernetes cluster instead of kind. It uses noticeably less RAM (no nested kubeadm node container) and no local registry is needed: OrbStack's cluster shares the Docker image store, so Tilt uses images directly without pushing.
+
+Enable Kubernetes in OrbStack (Settings > Kubernetes), then:
+
+```shellscript
+$ make build-k8s-cluster-orbstack
+```
+
+This installs ingress-nginx (exposed by OrbStack on `127.0.0.1:80/443`), the mkcert TLS certificates, and the CoreDNS rewrite for `*.127.0.0.1.nip.io`, then you start Tilt as usual:
+
+```shellscript
+$ make start-tilt-keycloak
+```
+
+Notes:
+- Ports 80/443 must be free: delete the kind cluster first if you used it (`kind delete cluster --name suite`).
+- If you "Reset Kubernetes" in OrbStack, re-run `make build-k8s-cluster-orbstack`.
+- kind remains the reference setup (matches CI and lets you pin the Kubernetes version).
