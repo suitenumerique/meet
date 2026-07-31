@@ -11,6 +11,7 @@ import { SidePanel } from '../components/SidePanel'
 import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { ConnectionObserver } from '../components/ConnectionObserver'
+import { MediaStateObserver } from '../components/MediaStateObserver'
 import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer'
 import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
@@ -63,6 +64,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
     <>
       <RoomMetadataSynchronizer />
       <ConnectionObserver />
+      <MediaStateObserver />
       <ChatProvider />
       <VideoResolutionSubscription />
       <div
