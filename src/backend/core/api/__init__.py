@@ -60,6 +60,12 @@ def get_frontend_configuration(request):
                 "allowed_mimetypes"
             ],
         },
+        "chat_media": {
+            "enabled": settings.CHAT_MEDIA_ENABLED,
+            "max_size": settings.CHAT_MEDIA_MAX_SIZE,
+            "allowed_mimetypes": settings.CHAT_MEDIA_ALLOWED_MIMETYPES,
+            "allowed_extensions": settings.CHAT_MEDIA_ALLOWED_EXTENSIONS,
+        },
         "telephony": build_telephony_config(),
         "resource": {
             "default_access_level": settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
