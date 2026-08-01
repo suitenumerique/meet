@@ -43,6 +43,7 @@ from rest_framework.settings import api_settings
 from core import analytics, enums, models, utils
 from core.api import throttling
 from core.api.filters import ListFileFilter
+from core.authentication.user_token import USER_ACCESS_TOKEN_TYPE_CLAIM
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import (
@@ -75,6 +76,7 @@ from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
 from core.services.invitation import InvitationService
+from core.services.jwt_token import JwtTokenService
 from core.services.livekit_events import (
     LiveKitEventsService,
     LiveKitWebhookError,
@@ -99,6 +101,7 @@ from core.services.room_roles import (
     RoomRoleService,
 )
 from core.services.subtitle import SubtitleException, SubtitleService
+from core.services.transit_code import TransitCodeService
 from core.tasks.connection_test import delete_connection_test_room
 from core.tasks.file import process_file_deletion
 from core.utils import generate_token
@@ -236,6 +239,96 @@ class UserViewSet(
         return drf_response.Response(
             self.serializer_class(request.user, context=context).data
         )
+
+    @decorators.action(
+        detail=False,
+        methods=["post"],
+        url_path="exchange-access-token",
+        permission_classes=[],
+        throttle_classes=[throttling.ExchangeAccessTokenAnonRateThrottle],
+    )
+    @FeatureFlag.require("user_access_token")
+    def exchange_access_token(self, request):
+        """Exchange a single-use transit code for a user access token.
+
+        The endpoint is unauthenticated: the transit code itself, an opaque
+        random string obtained through the external API and delivered to
+        the embedded frontend via a URL fragment, is the credential. Each
+        code can be exchanged exactly once (consuming it deletes it from
+        the cache); replaying a consumed code is denied and logged.
+
+        The issued JWT authenticates the user the code was minted for on
+        the whole core API, exactly like a session cookie would (similar
+        to lib-jitsi-meet's token authentication), and never appears in
+        any URL. Role-based permissions apply unchanged.
+        """
+        if request.user and request.user.is_authenticated:
+            logger.warning(
+                "Transit code exchange refused: request is already "
+                "session-authenticated (user_id=%s)",
+                request.user.id,
+            )
+            raise drf_exceptions.PermissionDenied("Already authenticated.")
+
+        serializer = serializers.TransitCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        code_data = TransitCodeService().consume_code(serializer.validated_data["code"])
+
+        if code_data is None:
+            logger.warning("Invalid, expired or already used transit code")
+            raise drf_exceptions.PermissionDenied(
+                "Invalid, expired or already used transit code."
+            )
+
+        # Re-check the user at exchange time so that a deactivation after
+        # the transit code was minted is taken into account.
+        try:
+            user = models.User.objects.get(id=code_data["user_id"], is_active=True)
+        except models.User.DoesNotExist as excpt:
+            raise drf_exceptions.PermissionDenied(
+                "This account can no longer access the application."
+            ) from excpt
+
+        if not models.Application.has_active_scope(
+            code_data.get("client_id"), models.ApplicationScope.USERS_SESSION
+        ):
+            logger.warning(
+                "Transit code exchange refused: application '%s' no longer "
+                "holds the '%s' grant",
+                code_data.get("client_id"),
+                models.ApplicationScope.USERS_SESSION,
+            )
+            raise drf_exceptions.PermissionDenied(
+                "This application can no longer create user sessions."
+            )
+
+        token_service = JwtTokenService(
+            secret_key=settings.USER_ACCESS_TOKEN_SECRET_KEY,
+            algorithm=settings.USER_ACCESS_TOKEN_ALG,
+            issuer=settings.USER_ACCESS_TOKEN_ISSUER,
+            audience=settings.USER_ACCESS_TOKEN_AUDIENCE,
+            expiration_seconds=settings.USER_ACCESS_TOKEN_TTL,
+            token_type=settings.USER_ACCESS_TOKEN_TYPE,
+        )
+
+        data = token_service.generate_jwt(
+            user,
+            "user:access",
+            {
+                "client_id": code_data.get("client_id", "unknown"),
+                "token_type": USER_ACCESS_TOKEN_TYPE_CLAIM,
+            },
+        )
+
+        # Log for auditing
+        logger.info(
+            "User access token issued from transit code: user_id=%s, client_id=%s",
+            user.id,
+            code_data.get("client_id", "unknown"),
+        )
+
+        return drf_response.Response(data)
 
 
 class RoomViewSet(

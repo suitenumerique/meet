@@ -97,3 +97,14 @@ class ConnectionTestAnonRateThrottle(MonitoredAnonRateThrottle):
     """Throttle anonymous users requesting connection test tokens."""
 
     scope = "connection_test"
+
+
+class ExchangeAccessTokenAnonRateThrottle(MonitoredAnonRateThrottle):
+    """Throttle anonymous transit code exchange attempts.
+
+    Abuse mitigation only, not a security boundary: DRF throttling is
+    best-effort. The security of the exchange rests on the codes'
+    entropy and single use.
+    """
+
+    scope = "exchange_access_token"

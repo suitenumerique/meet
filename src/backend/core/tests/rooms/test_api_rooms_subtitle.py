@@ -12,7 +12,8 @@ import pytest
 from livekit.api import AccessToken, TwirpError, VideoGrants
 from rest_framework.test import APIClient
 
-from ...factories import RoomFactory, UserFactory
+from ...factories import ApplicationFactory, RoomFactory, UserFactory
+from ...models import ApplicationScope
 
 pytestmark = pytest.mark.django_db
 

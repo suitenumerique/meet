@@ -19,8 +19,23 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core import utils
+<<<<<<< HEAD
 from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
 from core.services.lobby import LobbyService
+=======
+from core.factories import (
+    ApplicationFactory,
+    RoomFactory,
+    UserFactory,
+    UserResourceAccessFactory,
+)
+from core.models import ApplicationScope
+from core.services.lobby import (
+    LobbyParticipant,
+    LobbyParticipantStatus,
+    LobbyService,
+)
+>>>>>>> 32a253e08 (fixup! ✨(backend) introduce a token exchange endpoint for iframe embeds)
 
 pytestmark = pytest.mark.django_db
 
