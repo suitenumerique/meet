@@ -580,3 +580,25 @@ class ExternalProcessEventSerializer(BaseValidationOnlySerializer):
     # useless bad requests
     type = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     status = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+
+class TransitCodeSerializer(BaseValidationOnlySerializer):
+    """Validate the single-use transit code sent to the exchange endpoint."""
+
+    # todo if I can pass the max length directly to the char field
+    code = serializers.CharField(max_length=255, trim_whitespace=True)
+
+    def validate_code(self, value):
+        """Reject codes whose length cannot match a generated one.
+
+        `secrets.token_urlsafe(nbytes)` produces (4 * nbytes + 2) // 3
+        url-safe characters. Checking the length against the configured
+        TRANSIT_CODE_NBYTES makes malformed codes fail fast with a 400,
+        before any cache lookup.
+        """
+        expected_length = (4 * settings.TRANSIT_CODE_NBYTES + 2) // 3
+
+        if len(value) != expected_length:
+            raise serializers.ValidationError("Invalid transit code format.")
+
+        return value

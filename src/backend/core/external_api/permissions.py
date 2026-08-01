@@ -86,6 +86,14 @@ class HasRequiredRoomScope(BaseScopePermission):
     }
 
 
+class HasRequiredUserScope(BaseScopePermission):
+    """Scope-based permissions for the external user endpoints."""
+
+    scope_map = {
+        "generate_transit_code": models.ApplicationScope.USERS_SESSION,
+    }
+
+
 class RoomPermissions(permissions.BasePermission):
     """Permissions applying to the room API endpoint."""
 

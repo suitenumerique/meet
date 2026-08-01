@@ -73,3 +73,14 @@ class CreationCallbackAnonRateThrottle(MonitoredAnonRateThrottle):
     """Throttle Anonymous user requesting room generation callback"""
 
     scope = "creation_callback"
+
+
+class ExchangeAccessTokenAnonRateThrottle(MonitoredAnonRateThrottle):
+    """Throttle anonymous transit code exchange attempts.
+
+    Abuse mitigation only, not a security boundary: DRF throttling is
+    best-effort. The security of the exchange rests on the codes'
+    entropy and single use.
+    """
+
+    scope = "exchange_access_token"

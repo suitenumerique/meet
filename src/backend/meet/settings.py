@@ -324,6 +324,7 @@ class Base(Configuration):
 
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": (
+            "core.authentication.user_token.UserAccessJWTAuthentication",
             "core.authentication.backends.SessionAuthenticationWith401",
         ),
         "DEFAULT_PARSER_CLASSES": [
@@ -342,6 +343,11 @@ class Base(Configuration):
             "request_entry": values.Value(
                 default="150/minute",
                 environ_name="REQUEST_ENTRY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "exchange_access_token": values.Value(
+                default="30/minute",
+                environ_name="EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES",
                 environ_prefix=None,
             ),
             "creation_callback": values.Value(
@@ -953,6 +959,61 @@ class Base(Configuration):
         environ_name="APPLICATION_BASE_URL",
         environ_prefix=None,
     )
+
+    # User access tokens (embedded frontend / iframe support)
+    USER_ACCESS_TOKEN_ENABLED = values.BooleanValue(
+        False, environ_name="USER_ACCESS_TOKEN_ENABLED", environ_prefix=None
+    )
+    USER_ACCESS_TOKEN_SECRET_KEY = SecretFileValue(
+        None, environ_name="USER_ACCESS_TOKEN_SECRET_KEY", environ_prefix=None
+    )
+    USER_ACCESS_TOKEN_ALG = values.Value(
+        "HS256",
+        environ_name="USER_ACCESS_TOKEN_ALG",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_ISSUER = values.Value(
+        "lasuite-meet",
+        environ_name="USER_ACCESS_TOKEN_ISSUER",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_AUDIENCE = values.Value(
+        None,
+        environ_name="USER_ACCESS_TOKEN_AUDIENCE",
+        environ_prefix=None,
+    )
+    # Lifetime of the user access token obtained through the exchange
+    # endpoint. It never transits through a URL, so it can cover a full
+    # meeting (default: 2 hours).
+    USER_ACCESS_TOKEN_TTL = values.PositiveIntegerValue(
+        7200,
+        environ_name="USER_ACCESS_TOKEN_TTL",
+        environ_prefix=None,
+    )
+    # Lifetime of the single-use transit code handed to the frontend
+    # through a URL fragment. Kept very short by design: it must only
+    # survive the redirect and the exchange call.
+    TRANSIT_CODE_TTL = values.PositiveIntegerValue(
+        60,
+        environ_name="TRANSIT_CODE_TTL",
+        environ_prefix=None,
+    )
+    TRANSIT_CODE_CACHE_PREFIX = values.Value(
+        "transit-code",
+        environ_name="TRANSIT_CODE_CACHE_PREFIX",
+        environ_prefix=None,
+    )
+    # Number of random bytes per code (48 bytes -> 64 url-safe characters)
+    TRANSIT_CODE_NBYTES = values.PositiveIntegerValue(
+        48,
+        environ_name="TRANSIT_CODE_NBYTES",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_TYPE = values.Value(
+        "Bearer",
+        environ_name="USER_ACCESS_TOKEN_TYPE",
+        environ_prefix=None,
+    )
     # Warning: EXTERNAL_API_ALLOW_PUBLIC_ACCESS is ignored when
     # EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public.
     EXTERNAL_API_ALLOW_PUBLIC_ACCESS = values.BooleanValue(
@@ -1249,6 +1310,10 @@ class Test(Base):
     ADDONS_ENABLED = True
     ADDONS_CSRF_SECRET = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
     ADDONS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
+
+    USER_ACCESS_TOKEN_ENABLED = True
+    USER_ACCESS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-room"  # noqa:S105
+    USER_ACCESS_TOKEN_AUDIENCE = "Test inc."  # noqa:S105
 
     def __init__(self):
         # pylint: disable=invalid-name

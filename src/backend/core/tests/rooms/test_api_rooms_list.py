@@ -2,8 +2,12 @@
 Test rooms API endpoints in the Meet core app: list.
 """
 
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 
+from django.conf import settings as django_settings
+
+import jwt
 import pytest
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
@@ -156,3 +160,40 @@ def test_api_rooms_list_pagination_page_size():
     assert len(content["results"]) == 3
     assert content["next"] == "http://testserver/api/v1.0/rooms/?page=2&page_size=3"
     assert content["previous"] is None
+
+
+def generate_user_access_token(user):
+    """Generate a valid user access JWT signed with the token secret."""
+    now = datetime.now(timezone.utc)
+
+    payload = {
+        "iss": django_settings.USER_ACCESS_TOKEN_ISSUER,
+        "aud": django_settings.USER_ACCESS_TOKEN_AUDIENCE,
+        "iat": now,
+        "exp": now + timedelta(seconds=django_settings.USER_ACCESS_TOKEN_TTL),
+        "user_id": str(user.id),
+        "token_type": "user_access",
+        "client_id": "test-app",
+        "scope": "user:access",
+    }
+
+    return jwt.encode(
+        payload,
+        django_settings.USER_ACCESS_TOKEN_SECRET_KEY,
+        algorithm=django_settings.USER_ACCESS_TOKEN_ALG,
+    )
+
+
+def test_api_rooms_list_authenticated_with_user_access_token():
+    """A user access token should list rooms exactly like a session would."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    RoomFactory()  # another user's room, not listed
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+    response = client.get("/api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    assert response.data["count"] == 1
+    assert response.data["results"][0]["id"] == str(room.id)
