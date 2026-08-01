@@ -19,8 +19,18 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core import utils
-from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
-from core.services.lobby import LobbyService
+from core.factories import (
+    ApplicationFactory,
+    RoomFactory,
+    UserFactory,
+    UserResourceAccessFactory,
+)
+from core.models import ApplicationScope
+from core.services.lobby import (
+    LobbyParticipant,
+    LobbyParticipantStatus,
+    LobbyService,
+)
 
 pytestmark = pytest.mark.django_db
 

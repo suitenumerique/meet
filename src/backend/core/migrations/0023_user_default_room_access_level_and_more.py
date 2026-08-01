@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0021_recording_external_process_id_alter_recording_status'),
+        ('core', '0022_alter_application_scopes'),
     ]
 
     operations = [

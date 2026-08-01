@@ -17,7 +17,13 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core import utils
-from core.factories import RoomFactory, UserFactory
+from core.factories import (
+    ApplicationFactory,
+    RoomFactory,
+    UserFactory,
+    UserResourceAccessFactory,
+)
+from core.models import ApplicationScope
 
 pytestmark = pytest.mark.django_db
 
