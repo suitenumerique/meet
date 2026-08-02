@@ -269,12 +269,18 @@ export function updateMediaProgress(id: string, progress: number | undefined) {
   if (row) row.progress = progress
 }
 
-export function resolveMediaRow(id: string, objectUrl: string) {
+export function resolveMediaRow(
+  id: string,
+  objectUrl: string,
+  mimeType: string
+) {
   const row = findMediaRow(id)
   if (!row) {
     URL.revokeObjectURL(objectUrl)
     return
   }
+  // Written from the sniffed bytes, not from what the sender declared.
+  row.mimeType = mimeType
   row.objectUrl = objectUrl
   row.status = 'ready'
   row.progress = 1
