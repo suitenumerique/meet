@@ -5,13 +5,16 @@ Test rooms API endpoints in the Meet core app: participants management.
 # pylint: disable=redefined-outer-name,unused-argument,protected-access,no-name-in-module,too-many-lines
 
 import random
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 from uuid import uuid4
 
+from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import SuspiciousOperation
 from django.urls import reverse
 
+import jwt
 import pytest
 from livekit.api import TwirpError, UpdateParticipantRequest
 from livekit.protocol.models import ParticipantInfo
@@ -102,7 +105,7 @@ def test_mute_participant_with_livekit_token_for_this_room(mock_livekit_client):
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -128,7 +131,7 @@ def test_mute_participant_with_livekit_token_for_another_room_forbidden(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -168,7 +171,7 @@ def test_mute_participant_everyone_can_mute_disabled_blocks_non_admin(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -315,7 +318,7 @@ def test_mute_participant_admin_with_token_for_this_room(mock_livekit_client):
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -345,7 +348,7 @@ def test_mute_participant_admin_with_token_for_another_room(mock_livekit_client)
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -376,7 +379,7 @@ def test_mute_participant_admin_token_replayed_does_not_grant_admin(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -396,7 +399,7 @@ def test_mute_participant_livekit_token_triggers_presence_check(mock_livekit_cli
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -427,7 +430,7 @@ def test_mute_participant_livekit_token_presence_check_returns_participant(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -455,7 +458,7 @@ def test_mute_participant_livekit_token_presence_check_participant_not_found(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -484,7 +487,7 @@ def test_mute_participant_livekit_token_presence_check_twirp_error_forbidden(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -1035,3 +1038,142 @@ def test_remove_participant_not_found(mock_livekit_client):
     assert response.data == {"error": "Participant not found"}
 
     mock_livekit_client.aclose.assert_called_once()
+
+
+def generate_user_access_token(user):
+    """Generate a valid user access JWT signed with the token secret."""
+    now = datetime.now(timezone.utc)
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+
+    payload = {
+        "iss": django_settings.USER_ACCESS_TOKEN_ISSUER,
+        "aud": django_settings.USER_ACCESS_TOKEN_AUDIENCE,
+        "iat": now,
+        "exp": now + timedelta(seconds=django_settings.USER_ACCESS_TOKEN_TTL),
+        "user_id": str(user.id),
+        "token_type": "user_access",
+        "client_id": application.client_id,
+        "scope": "user:access",
+    }
+
+    return jwt.encode(
+        payload,
+        django_settings.USER_ACCESS_TOKEN_SECRET_KEY,
+        algorithm=django_settings.USER_ACCESS_TOKEN_ALG,
+    )
+
+
+def test_mute_participant_bearer_scheme_defers_to_next_authentication(
+    mock_livekit_client,
+):
+    """Should defer a "Bearer" header to the next authentication backend.
+
+    The LiveKit backend only claims the "X-LiveKit-Token" scheme. Any other
+    scheme must be left untouched so the backends declared after it get a
+    chance to authenticate the request.
+    """
+    client = APIClient()
+    room = RoomFactory()
+    user = UserFactory()
+    UserResourceAccessFactory(
+        resource=room, user=user, role=random.choice(["administrator", "owner"])
+    )
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {"status": "success"}
+
+    mock_livekit_client.room.get_participant.assert_not_called()
+    mock_livekit_client.room.mute_published_track.assert_called_once()
+
+
+def test_mute_participant_bearer_scheme_defers_role_permissions_still_apply(
+    mock_livekit_client,
+):
+    """Should still enforce room privileges once another backend authenticated."""
+    client = APIClient()
+    room = RoomFactory(configuration={"everyone_can_mute": False})
+    user = UserFactory()  # no UserResourceAccess for this room
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_unknown_scheme_defers_and_stays_anonymous(
+    mock_livekit_client,
+):
+    """Should leave the request unauthenticated when no backend claims the scheme."""
+    client = APIClient()
+    room = RoomFactory()
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION="Basic dXNlcjpwYXNzd29yZA==",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    mock_livekit_client.room.mute_published_track.assert_not_called()
+
+
+def test_mute_participant_livekit_scheme_is_case_insensitive(mock_livekit_client):
+    """Should claim the LiveKit scheme whatever its casing, and not defer it."""
+    client = APIClient()
+    room = RoomFactory()
+
+    token = utils.generate_token(str(room.id), AnonymousUser())
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"x-livekit-token {token}",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {"status": "success"}
+
+    mock_livekit_client.room.get_participant.assert_called_once()
+    mock_livekit_client.room.mute_published_track.assert_called_once()
+
+
+def test_mute_participant_livekit_scheme_malformed_header_is_rejected(
+    mock_livekit_client,
+):
+    """Should reject a malformed header once the LiveKit scheme is claimed."""
+    client = APIClient()
+    room = RoomFactory()
+
+    token = utils.generate_token(str(room.id), AnonymousUser())
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token} extra-part",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.data == {
+        "detail": "Authorization header must be: X-LiveKit-Token <token>"
+    }
+    mock_livekit_client.room.mute_published_track.assert_not_called()
