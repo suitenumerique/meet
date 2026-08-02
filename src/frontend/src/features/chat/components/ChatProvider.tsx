@@ -9,6 +9,7 @@ import {
   resetChatStore,
   setChatVisibility,
 } from '@/stores/chat'
+import { useReceiveChatMedia } from '../media/useReceiveChatMedia'
 import {
   LocalParticipant,
   Participant,
@@ -21,6 +22,8 @@ export const ChatProvider = () => {
   const { isChatOpen } = useSidePanel()
 
   const room = useRoomContext()
+
+  useReceiveChatMedia()
 
   useEffect(() => {
     resetChatStore()

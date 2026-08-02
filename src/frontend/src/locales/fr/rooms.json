@@ -365,6 +365,15 @@
   },
   "chat": {
     "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel.",
+    "media": {
+      "receiving": "Réception d’une image",
+      "alt": "Image partagée",
+      "error": {
+        "transfer_failed": "Cette image n’a pas pu être reçue.",
+        "decode_failed": "Cette image n’a pas pu être affichée.",
+        "expired": "Cette image n’est plus disponible."
+      }
+    },
     "messagesLog": "Messages du chat"
   },
   "moreTools": {

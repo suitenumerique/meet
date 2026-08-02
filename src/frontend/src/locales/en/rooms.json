@@ -365,6 +365,15 @@
   },
   "chat": {
     "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call.",
+    "media": {
+      "receiving": "Receiving an image",
+      "alt": "Shared image",
+      "error": {
+        "transfer_failed": "This image could not be received.",
+        "decode_failed": "This image could not be displayed.",
+        "expired": "This image is no longer available."
+      }
+    },
     "messagesLog": "Chat messages"
   },
   "moreTools": {
