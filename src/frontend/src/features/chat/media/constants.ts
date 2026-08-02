@@ -24,6 +24,12 @@ export const DOWNSCALE_LONG_EDGE = 2048
 /** Quality passed to `toBlob` when re-encoding an over-cap image. */
 export const DOWNSCALE_QUALITY = 0.85
 
+/**
+ * Bytes written per chunk. LiveKit splits its own writes near this size, so
+ * matching it avoids a second split.
+ */
+export const CHUNK_SIZE = 15_000
+
 /** A caption longer than this is truncated before it is sent or rendered. */
 export const MAX_CAPTION_LENGTH = 2000
 
