@@ -1,4 +1,11 @@
+"""
+Celery task decorator that degrades to a synchronous call when Celery is off.
+"""
+
+# The Celery app is imported lazily so that importing this module does not pull
+# in Celery when CELERY_ENABLED is false.
 # ruff: noqa: PLC0415
+# pylint: disable=import-outside-toplevel
 
 from django.conf import settings
 
