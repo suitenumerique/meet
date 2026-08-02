@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
 import { Text } from '@/primitives'
 import type { ChatMediaRow } from '@/stores/chat'
+import { ChatImageLightbox } from './ChatImageLightbox'
 
 const StyledFigure = styled('figure', {
   base: {
@@ -77,6 +79,7 @@ const TransferProgress = ({ item }: { item: ChatMediaRow }) => {
 
 export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
+  const [isOpen, setIsOpen] = useState(false)
 
   if (item.status === 'failed') {
     return (
@@ -103,18 +106,37 @@ export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
   return (
     <StyledFigure>
       <StyledFrame style={{ maxWidth: '16rem' }}>
-        <img
-          src={item.objectUrl}
-          alt={item.caption || t('alt')}
-          style={{ aspectRatio: aspectRatio(item) }}
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          aria-label={t('enlarge')}
           className={css({
             display: 'block',
             width: '100%',
-            height: 'auto',
-            objectFit: 'contain',
+            padding: 0,
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            '&:focus-visible': {
+              outline: '2px solid token(colors.primary.500)',
+            },
           })}
-        />
+          data-attr="chat-open-image"
+        >
+          <img
+            src={item.objectUrl}
+            alt={item.caption || t('alt')}
+            style={{ aspectRatio: aspectRatio(item) }}
+            className={css({
+              display: 'block',
+              width: '100%',
+              height: 'auto',
+              objectFit: 'contain',
+            })}
+          />
+        </button>
       </StyledFrame>
+      <ChatImageLightbox item={item} isOpen={isOpen} onOpenChange={setIsOpen} />
       {!!item.caption && (
         <Text
           variant="sm"

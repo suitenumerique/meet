@@ -369,8 +369,10 @@
     "media": {
       "alt": "Shared image",
       "attach": "Add an image",
+      "download": "Download",
       "dropHint": "Drop the image to add it",
       "dropZone": "Drop an image into the chat",
+      "enlarge": "Open the image",
       "error": {
         "animation_too_large": "This animation is too large to send, and reducing it would drop its frames.",
         "decode_failed": "This image could not be displayed.",

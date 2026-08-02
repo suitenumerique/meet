@@ -369,8 +369,10 @@
     "media": {
       "alt": "Image partagée",
       "attach": "Ajouter une image",
+      "download": "Télécharger",
       "dropHint": "Déposez l’image pour l’ajouter",
       "dropZone": "Déposer une image dans la conversation",
+      "enlarge": "Ouvrir l’image",
       "error": {
         "animation_too_large": "Cette animation est trop volumineuse, et la réduire supprimerait ses images.",
         "decode_failed": "Cette image n’a pas pu être affichée.",
