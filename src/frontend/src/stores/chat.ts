@@ -45,14 +45,23 @@ export type ChatRow = ChatTextRow | ChatMediaRow
 
 export type PendingAttachment = {
   /**
-   * Wrapped in valtio's `ref`. A File keeps its bytes in an internal slot that
+   * Wrapped in valtio's `ref`. A Blob keeps its bytes in an internal slot that
    * a proxy cannot forward, so proxying one breaks its methods.
    */
-  file: File
+  blob: Blob
+  /** Sniffed from the bytes, never taken from the file extension. */
+  mimeType: string
   previewUrl: string
   width: number
   height: number
 }
+
+export type ChatMediaFailure =
+  | 'type_not_allowed'
+  | 'too_large'
+  | 'animation_too_large'
+  | 'unreadable'
+  | 'send_failed'
 
 type State = {
   unreadMessages: number
@@ -63,6 +72,7 @@ type State = {
   send?: ChatApi['send']
   textAreaValue: string
   pendingAttachment?: PendingAttachment
+  mediaFailure?: ChatMediaFailure
 }
 
 const initialState: State = {
@@ -74,6 +84,7 @@ const initialState: State = {
   send: undefined,
   textAreaValue: '',
   pendingAttachment: undefined,
+  mediaFailure: undefined,
 }
 
 export const chatStore = proxy<State>({ ...initialState })
@@ -118,9 +129,19 @@ export function setChatVisibility(visible: boolean) {
   chatStore.unreadMessages = 0
 }
 
+/**
+ * Rows carry an identity; the header shows a display name. Every path that
+ * appends a row has to register the name, because a participant whose first
+ * act is sending an image would otherwise be labelled with their raw identity
+ * until they also sent text.
+ */
+function rememberName(identity?: string, name?: string) {
+  if (identity) chatStore.names[identity] = name || identity
+}
+
 export function appendRow(msg: ReceivedChatMessage) {
   const p = msg.from
-  if (p) chatStore.names[p.identity] = p.name || p.identity
+  if (p) rememberName(p.identity, p.name)
 
   const identity = p?.identity
   const timestamp = msg.timestamp
@@ -160,6 +181,114 @@ export function enforceMediaRetention() {
   }
 }
 
+export function stageAttachment(attachment: PendingAttachment) {
+  clearPendingAttachment()
+  chatStore.pendingAttachment = attachment
+  chatStore.mediaFailure = undefined
+}
+
+export function clearPendingAttachment() {
+  const pending = chatStore.pendingAttachment
+  if (pending) URL.revokeObjectURL(pending.previewUrl)
+  chatStore.pendingAttachment = undefined
+}
+
+/**
+ * Hands the staged preview URL to the row rather than revoking it, so the
+ * sender's own copy renders from bytes already in memory. Byte streams do not
+ * echo to their sender, so without this the sender alone would not see it.
+ */
+export function appendLocalMediaRow({
+  name,
+  ...row
+}: {
+  id: string
+  identity?: string
+  name?: string
+  caption: string
+  mimeType: string
+  size: number
+  width?: number
+  height?: number
+  objectUrl: string
+}) {
+  const timestamp = Date.now()
+  rememberName(row.identity, name)
+  chatStore.rows.push({
+    kind: 'media',
+    isLocal: true,
+    status: 'ready',
+    timestamp,
+    hideMetadata: shouldHideMetadata(row.identity, timestamp),
+    ...row,
+  })
+  chatStore.pendingAttachment = undefined
+  enforceMediaRetention()
+}
+
+/**
+ * Inserted when the stream opens, before any bytes arrive, so a participant
+ * sees an image being sent rather than a silence.
+ */
+export function appendReceivingMediaRow({
+  name,
+  ...row
+}: {
+  id: string
+  identity?: string
+  name?: string
+  caption: string
+  mimeType: string
+  size: number
+  width?: number
+  height?: number
+}) {
+  const timestamp = Date.now()
+  rememberName(row.identity, name)
+  chatStore.rows.push({
+    kind: 'media',
+    isLocal: false,
+    status: 'receiving',
+    progress: 0,
+    timestamp,
+    hideMetadata: shouldHideMetadata(row.identity, timestamp),
+    ...row,
+  })
+  const inserted = chatStore.rows[chatStore.rows.length - 1]
+  countAsUnread(inserted)
+}
+
+function findMediaRow(id: string) {
+  return chatStore.rows.find(
+    (row): row is ChatMediaRow => row.kind === 'media' && row.id === id
+  )
+}
+
+export function updateMediaProgress(id: string, progress: number | undefined) {
+  const row = findMediaRow(id)
+  if (row) row.progress = progress
+}
+
+export function resolveMediaRow(id: string, objectUrl: string) {
+  const row = findMediaRow(id)
+  if (!row) {
+    URL.revokeObjectURL(objectUrl)
+    return
+  }
+  row.objectUrl = objectUrl
+  row.status = 'ready'
+  row.progress = 1
+  enforceMediaRetention()
+}
+
+export function failMediaRow(id: string, error: ChatMediaError) {
+  const row = findMediaRow(id)
+  if (!row) return
+  row.status = 'failed'
+  row.error = error
+  row.progress = undefined
+}
+
 export const persistTextAreaValue = (value: string) => {
   chatStore.textAreaValue = value
 }
@@ -176,6 +305,7 @@ export function resetChatStore() {
   if (chatStore.pendingAttachment) {
     URL.revokeObjectURL(chatStore.pendingAttachment.previewUrl)
   }
+
   lastReadTimestamp = 0
   isChatVisible = false
   Object.assign(chatStore, {
