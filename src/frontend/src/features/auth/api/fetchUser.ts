@@ -2,6 +2,7 @@ import { ApiError } from '@/api/ApiError'
 import { fetchApi } from '@/api/fetchApi'
 import { type ApiUser } from './ApiUser'
 import { attemptSilentLogin, canAttemptSilentLogin } from '../utils/silentLogin'
+import { getAccessToken } from '@/stores/accessToken'
 
 /**
  * fetch the logged-in user from the api.
@@ -25,7 +26,13 @@ export const fetchUser = (
         if (error instanceof ApiError && error.statusCode === 401) {
           // make sure to not resolve the promise while trying to silent login
           // so that consumers of fetchUser don't think the work already ended
-          if (opts.attemptSilent && canAttemptSilentLogin()) {
+          // Never attempt a silent login in embedded (token) mode: an OIDC
+          // redirect inside the iframe would break the embed.
+          if (
+            opts.attemptSilent &&
+            !getAccessToken() &&
+            canAttemptSilentLogin()
+          ) {
             attemptSilentLogin(30)
           } else {
             resolve(false)
