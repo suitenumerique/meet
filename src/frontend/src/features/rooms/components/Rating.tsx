@@ -176,7 +176,7 @@ const RateQuality = ({
     <Card>
       <H lvl={3}>{t('question')}</H>
       <Bar>
-        {[...Array(maxRating)].map((_, index) => (
+        {[...new Array(maxRating)].map((_, index) => (
           <RACButton
             key={index}
             onPress={() => handleRatingClick(index + 1)}

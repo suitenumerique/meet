@@ -4,7 +4,7 @@ export function formatDate(
 ): string {
   const dateObj = date instanceof Date ? date : new Date(date)
 
-  if (isNaN(dateObj.getTime())) {
+  if (Number.isNaN(dateObj.getTime())) {
     return 'Invalid Date'
   }
 
@@ -18,12 +18,12 @@ export function formatDate(
   const pad = (num: number): string => String(num).padStart(2, '0')
 
   let result = format
-  result = result.replace(/YYYY/g, year.toString())
-  result = result.replace(/MM/g, pad(month))
-  result = result.replace(/DD/g, pad(day))
-  result = result.replace(/HH/g, pad(hours))
-  result = result.replace(/mm/g, pad(minutes))
-  result = result.replace(/ss/g, pad(seconds))
+  result = result.replaceAll('YYYY', year.toString())
+  result = result.replaceAll('MM', pad(month))
+  result = result.replaceAll('DD', pad(day))
+  result = result.replaceAll('HH', pad(hours))
+  result = result.replaceAll('mm', pad(minutes))
+  result = result.replaceAll('ss', pad(seconds))
 
   return result
 }

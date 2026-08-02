@@ -44,7 +44,7 @@ export const StartMediaButton: (
   style.display = canPlayAudio && canPlayVideo ? 'none' : 'block'
 
   return (
-    <button ref={ref} style={style} {...restProps}>
+    <button ref={ref} type="button" style={style} {...restProps}>
       {label ?? `Start ${!canPlayAudio ? 'Audio' : 'Video'}`}
     </button>
   )

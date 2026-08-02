@@ -37,7 +37,7 @@ update_python_version() {
     print_info "Updating $component version..."
     cd "src/$component"
 
-    if [ ! -f "pyproject.toml" ]; then
+    if [[ ! -f "pyproject.toml" ]]; then
         print_error "pyproject.toml not found in src/$component!"
         exit 1
     fi
@@ -122,7 +122,7 @@ cd -
 # Update CHANGELOG
 print_info "Updating CHANGELOG..."
 
-if [ ! -f "CHANGELOG.md" ]; then
+if [[ ! -f "CHANGELOG.md" ]]; then
     print_error "CHANGELOG.md not found in project root!"
     exit 1
 fi

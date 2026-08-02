@@ -17,7 +17,7 @@ const getRandomChar = () => {
 }
 
 const generateSegment = (length: number): string =>
-  Array.from(Array(length), getRandomChar).join('')
+  Array.from(new Array(length), getRandomChar).join('')
 
 // Generates a unique room identifier following the Google Meet format
 export const generateRoomId = () =>

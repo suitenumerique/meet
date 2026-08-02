@@ -10,7 +10,7 @@ mkdir -p build/
 mv src/frontend/dist build/frontend-out
 
 ASSETS_DIR=build/frontend-out/assets
-if [ -n "$CUSTOM_LOGO_URL" ]; then
+if [[ -n "$CUSTOM_LOGO_URL" ]]; then
     # Ensure https
     [[ ! "$CUSTOM_LOGO_URL" =~ ^https:// ]] && echo "[custom-logo] ERROR: URL must use HTTPS" >&2 && exit 1
 

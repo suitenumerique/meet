@@ -20,7 +20,7 @@ COMPOSE_PROJECT="meet"
 # $UNSET_USER environment variable to 1.
 function _set_user() {
 
-    if [ $UNSET_USER -eq 1 ]; then
+    if [[ $UNSET_USER -eq 1 ]]; then
         USER_ID=""
         return
     fi
@@ -57,7 +57,7 @@ function _dc_run() {
     _set_user
 
     user_args="--user=$USER_ID"
-    if [ -z $USER_ID ]; then
+    if [[ -z $USER_ID ]]; then
         user_args=""
     fi
 
@@ -76,7 +76,7 @@ function _dc_exec() {
     echo "🐳(compose) exec command: '\$@'"
 
     user_args="--user=$USER_ID"
-    if [ -z $USER_ID ]; then
+    if [[ -z $USER_ID ]]; then
         user_args=""
     fi
 

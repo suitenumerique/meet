@@ -438,7 +438,7 @@ export const EffectsConfiguration = ({
           config,
         }
       }),
-      virtualBackgrounds: [...Array(8).keys()].map((index) => {
+      virtualBackgrounds: [...new Array(8).keys()].map((index) => {
         const imagePath = `/assets/backgrounds/${index + 1}.jpg`
         const thumbnailPath = `/assets/backgrounds/thumbnails/${index + 1}.jpg`
         const config: ProcessorConfig = {

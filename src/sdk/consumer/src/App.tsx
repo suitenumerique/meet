@@ -12,12 +12,12 @@ function App() {
         <span>Visio demo app</span>
       </div>
       <div className="group">
-        <label>Subject</label>
-        <input type="text" />
+        <label htmlFor="subject">Subject</label>
+        <input id="subject" type="text" />
       </div>
       <div className="group">
-        <label>Place</label>
-        <input type="text" />
+        <label htmlFor="place">Place</label>
+        <input id="place" type="text" />
       </div>
       <div className="group">
         <label>Visioconference</label>
@@ -27,8 +27,8 @@ function App() {
         />
       </div>
       <div className="group">
-        <label>Description</label>
-        <textarea />
+        <label htmlFor="description">Description</label>
+        <textarea id="description" />
       </div>
       <button
         type="button"

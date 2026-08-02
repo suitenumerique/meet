@@ -11,7 +11,7 @@ export const isRoomValid = (roomIdOrUrl: string) =>
   new RegExp(`^${window.location.origin}/${roomIdPattern}$`).test(roomIdOrUrl)
 
 export const normalizeRoomId = (roomId: string) => {
-  const cleanId = roomId.toLowerCase().replace(/-/g, '')
+  const cleanId = roomId.toLowerCase().replaceAll('-', '')
   if (cleanId.length === 10) {
     return `${cleanId.slice(0, 3)}-${cleanId.slice(3, 7)}-${cleanId.slice(7, 10)}`
   }

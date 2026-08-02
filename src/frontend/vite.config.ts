@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: env.VITE_BUILD_SOURCEMAP === 'true',
     },
     server: {
-      port: parseInt(env.VITE_PORT) || 3000,
+      port: Number.parseInt(env.VITE_PORT) || 3000,
       host: env.VITE_HOST ?? 'localhost',
       allowedHosts: ['.nip.io'],
       // In a local dev setup, we proxy the media server ourselves to avoid CORS issues
