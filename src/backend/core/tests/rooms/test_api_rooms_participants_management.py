@@ -87,7 +87,7 @@ def test_mute_participant_with_livekit_token_for_this_room(mock_livekit_client):
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -113,7 +113,7 @@ def test_mute_participant_with_livekit_token_for_another_room_forbidden(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -153,7 +153,7 @@ def test_mute_participant_everyone_can_mute_disabled_blocks_non_admin(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -300,7 +300,7 @@ def test_mute_participant_admin_with_token_for_this_room(mock_livekit_client):
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -330,7 +330,7 @@ def test_mute_participant_admin_with_token_for_another_room(mock_livekit_client)
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -361,7 +361,7 @@ def test_mute_participant_admin_token_replayed_does_not_grant_admin(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -381,7 +381,7 @@ def test_mute_participant_livekit_token_triggers_presence_check(mock_livekit_cli
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -412,7 +412,7 @@ def test_mute_participant_livekit_token_presence_check_returns_participant(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -440,7 +440,7 @@ def test_mute_participant_livekit_token_presence_check_participant_not_found(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -469,7 +469,7 @@ def test_mute_participant_livekit_token_presence_check_twirp_error_forbidden(
         url,
         {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
         format="json",
-        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -1020,3 +1020,5 @@ def test_remove_participant_not_found(mock_livekit_client):
     assert response.data == {"error": "Participant not found"}
 
     mock_livekit_client.aclose.assert_called_once()
+
+# todo - try to pass another scheme to make sure it defers to the next auth
