@@ -1,4 +1,6 @@
 import { proxy, subscribe } from 'valtio'
+import { initializeAccessTokenFromFragment } from '@/features/auth/api/exchangeAccessToken'
+import { getAccessToken } from '@/stores/accessToken'
 import {
   ProcessorConfig,
   ProcessorType,
@@ -48,10 +50,19 @@ if (userChoicesStore.processorConfig?.type === ProcessorType.VIRTUAL) {
     // we restore clear the processor config to avoid displaying a black screen.
     userChoicesStore.processorConfig = undefined
   } else if (userChoicesStore.processorConfig.fileId) {
+    // Embedded (token) mode: this module loads before the transit code
+    // exchange has settled - wait for it, and carry the Bearer header,
+    // otherwise the check below would wrongly clear the config.
+    await initializeAccessTokenFromFragment()
+    const accessToken = getAccessToken()
+
     // Checking if the image is still available / accessible
     await fetch(userChoicesStore.processorConfig.imagePath, {
       // We bypass the cache to ensure we have access
       cache: 'reload',
+      ...(accessToken && {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }),
     })
       .then((response) => {
         // if we cannot fetch the image (likely a 401 from the backend because
