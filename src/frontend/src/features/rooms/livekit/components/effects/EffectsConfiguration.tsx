@@ -8,6 +8,7 @@ import {
   ProcessorType,
 } from '../blur'
 import { css } from '@/styled-system/css'
+import { useResolvedMediaUrls } from '@/features/files/hooks/useResolvedMediaUrls'
 import { Button, Dialog, H, P, Text, ToggleButton } from '@/primitives'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { HStack, styled } from '@/styled-system/jsx'
@@ -279,6 +280,14 @@ export const EffectsConfiguration = ({
       filesQ.data &&
       filesQ.data.count >= appConfig.background_image.max_count_by_user) ??
     false
+
+  // Thumbnails are browser-native loads (CSS url()) which cannot carry
+  // the Authorization header in embedded (token) mode: resolve them. The
+  // processor configs keep the stable raw URLs - they are persisted in
+  // the user choices - and the processors resolve them internally.
+  const resolveMediaUrl = useResolvedMediaUrls(
+    (filesQ.data?.results ?? []).map((file) => file.url)
+  )
 
   const getHandleSelectChangeFile = useCallback(
     (file: ApiFileItem) => {
@@ -757,7 +766,7 @@ export const EffectsConfiguration = ({
                                   bgSize: 'cover',
                                 })}
                                 style={{
-                                  backgroundImage: `url(${option.file.url!})`,
+                                  backgroundImage: `url(${resolveMediaUrl(option.file.url!)})`,
                                 }}
                                 data-attr={`toggle-virtual-${option.file.id}`}
                               />
