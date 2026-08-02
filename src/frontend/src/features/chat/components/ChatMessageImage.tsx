@@ -116,7 +116,11 @@ export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
         />
       </StyledFrame>
       {!!item.caption && (
-        <Text variant="sm" margin={false} className={css({ whiteSpace: 'pre-wrap' })}>
+        <Text
+          variant="sm"
+          margin={false}
+          className={css({ whiteSpace: 'pre-wrap' })}
+        >
           {item.caption}
         </Text>
       )}
