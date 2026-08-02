@@ -8,11 +8,7 @@ import {
   clearTextAreaValue,
   stageAttachment,
 } from '@/stores/chat'
-import {
-  CHAT_MEDIA_TOPIC,
-  CHUNK_SIZE,
-  MAX_CAPTION_LENGTH,
-} from './constants'
+import { CHAT_MEDIA_TOPIC, CHUNK_SIZE, MAX_CAPTION_LENGTH } from './constants'
 import { downscaleImage } from './downscaleImage'
 import { measureImage, probeImage } from './probeImage'
 import { useChatMediaLimits } from './useChatMediaLimits'
