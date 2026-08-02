@@ -29,7 +29,7 @@ and this project adheres to
 - 💄(frontend) improve participant name rendering in the list
 - 🚚(backend) rename TelephonyService to SIPManagement
 
-## Fixed
+### Fixed
 
 - 🐛(transcription) fix silent bug in speaker assignment
 - 🐛(summary) extend tasks auto retry logic
@@ -38,6 +38,7 @@ and this project adheres to
 - 🐛(backend) allow any string as sub in the API serializer
 - 🐛(frontend) fall back to user.full_name on request-entry
 - 🚸(frontend) show two initials in the Avatar when possible
+- 🩹(all) clear the SonarCloud reliability finding and the lint debt
 
 ## [1.24.0] - 2026-07-21
 
