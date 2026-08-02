@@ -1,4 +1,5 @@
 import type { ProcessorOptions, Track } from 'livekit-client'
+import { resolveMediaUrl } from '@/features/files/utils/resolveMediaUrl'
 import {
   FilesetResolver,
   ImageSegmenter,
@@ -85,7 +86,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     this.sourceSettings = this.source!.getSettings()
     this.videoElement = opts.element as HTMLVideoElement
 
-    this._initVirtualBackgroundImage()
+    await this._initVirtualBackgroundImage()
     this._createMainCanvas()
     this._createMaskCanvas()
 
@@ -103,7 +104,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     captureEvent('firefox-blurring-init', {})
   }
 
-  _initVirtualBackgroundImage() {
+  async _initVirtualBackgroundImage() {
     if (this.options.type !== 'virtual') {
       throw new Error(
         'Virtual background is only supported for virtual background'
@@ -115,15 +116,19 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
       this.virtualBackgroundImage &&
       this.virtualBackgroundImage.src !== this.options.imagePath
     if (this.options.imagePath || needsUpdate) {
+      // Embedded (token) mode: img.src cannot carry the Authorization
+      // header, resolve the media to a blob object URL first. Identity
+      // in regular mode.
+      const imagePath = await resolveMediaUrl(this.options.imagePath!)
       this.virtualBackgroundImage = document.createElement('img')
       this.virtualBackgroundImage.crossOrigin = 'anonymous'
-      this.virtualBackgroundImage.src = this.options.imagePath!
+      this.virtualBackgroundImage.src = imagePath
     }
   }
 
   async update(opts: ProcessorConfig): Promise<void> {
     this.options = opts
-    this._initVirtualBackgroundImage()
+    await this._initVirtualBackgroundImage()
   }
 
   _initWorker() {
