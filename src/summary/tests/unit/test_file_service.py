@@ -143,13 +143,9 @@ def test_media_info_ignores_empty_stream_entry(monkeypatch: pytest.MonkeyPatch) 
 
 def test_extract_audio_from_video():
     """Test that extract_audio_from_video can extract audio from a video file."""
-    path = None
+    path = extract_audio_from_media(MEDIA_INFO_SAMPLE_VISIO)
     # A bit of cleanup logic since this is not a generator
     try:
-        path = extract_audio_from_media(MEDIA_INFO_SAMPLE_VISIO)
         assert path.name.endswith(".m4a")
-    except Exception as e:
-        pytest.fail(f"Failed to extract audio from video: {e}")
     finally:
-        if path and path.exists():
-            path.unlink()
+        path.unlink(missing_ok=True)

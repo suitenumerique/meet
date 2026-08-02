@@ -2,9 +2,12 @@ export class CallbackIdHandler {
   private readonly storageKey = 'popup_callback_id'
 
   private generateId(): string {
-    return (
-      Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15)
+    // The id is the only thing guarding /rooms/creation-callback/, which is
+    // unauthenticated, so it comes from the CSPRNG rather than Math.random.
+    const bytes = new Uint8Array(16)
+    crypto.getRandomValues(bytes)
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join(
+      ''
     )
   }
 
