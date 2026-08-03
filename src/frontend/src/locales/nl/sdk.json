@@ -5,6 +5,14 @@
     "copyLinkTooltip": "Link kopiëren",
     "resetLabel": "Resetten",
     "participantLimit": "Tot 150 deelnemers.",
-    "popupBlocked": "Pop-up werd geblokkeerd. Sta pop-ups toe voor deze site."
+    "popupBlocked": "Pop-up werd geblokkeerd. Sta pop-ups toe voor deze site.",
+    "settingsTooltip": "Vergaderinstellingen"
+  },
+  "roomSettings": {
+    "title": "Vergaderinstellingen",
+    "description": "Configureer de vergadering {{roomSlug}}.",
+    "notAllowed": "Je hebt geen toestemming om de instellingen van deze vergadering te wijzigen.",
+    "error": "De vergaderinstellingen konden niet worden geladen.",
+    "closeButton": "Sluiten"
   }
 }

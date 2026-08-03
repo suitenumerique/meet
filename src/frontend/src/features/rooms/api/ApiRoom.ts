@@ -18,6 +18,14 @@ export type RoomConfiguration = {
   everyone_can_mute?: boolean | null
 }
 
+export type ParticipantRole = 'member' | 'administrator' | 'owner'
+export type AssignableParticipantRole = Exclude<ParticipantRole, 'owner'>
+
+export type ApiResourceAccess = {
+  id: string
+  role: ParticipantRole
+}
+
 export type ApiRoom = {
   id: string
   name: string
@@ -27,7 +35,12 @@ export type ApiRoom = {
   access_level: ApiAccessLevel
   livekit?: ApiLiveKit
   configuration?: RoomConfiguration
+  /**
+   * Only present in the API response when the requesting user is an
+   * administrator or owner of the room (see RoomSerializer.to_representation
+   * in the backend). Its presence can therefore be used to detect
+   * administrability outside of a LiveKit session, where the room_role
+   * participant attribute is not available.
+   */
+  accesses?: ApiResourceAccess[]
 }
-
-export type ParticipantRole = 'member' | 'administrator' | 'owner'
-export type AssignableParticipantRole = Exclude<ParticipantRole, 'owner'>

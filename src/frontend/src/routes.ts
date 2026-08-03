@@ -9,6 +9,7 @@ const CreatePopup = lazy(() => import('@/features/sdk/routes/CreatePopup'))
 const CreateMeetingButton = lazy(
   () => import('@/features/sdk/routes/CreateMeetingButton')
 )
+const SettingsPopup = lazy(() => import('@/features/sdk/routes/SettingsPopup'))
 const LegalTermsRoute = lazy(
   () => import('@/features/legalsTerms/LegalTermsRoute')
 )
@@ -36,6 +37,7 @@ export const routes: Record<
   | 'termsOfService'
   | 'sdkCreatePopup'
   | 'sdkCreateButton'
+  | 'sdkSettingsPopup'
   | 'recordingDownload',
   {
     name: RouteName
@@ -90,6 +92,11 @@ export const routes: Record<
     name: 'sdkCreateButton',
     path: '/sdk/create-button',
     Component: CreateMeetingButton,
+  },
+  sdkSettingsPopup: {
+    name: 'sdkSettingsPopup',
+    path: '/sdk/settings-popup',
+    Component: SettingsPopup,
   },
   recordingDownload: {
     name: 'recordingDownload',

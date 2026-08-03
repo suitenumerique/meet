@@ -19,6 +19,7 @@ and this project adheres to
 - ✨(frontend) expose media state to external gateways
 - ✨(frontend) add connection test feature
 - ✨(sdk) allow passing a background color to the calendar iframe
+- ✨(sdk) add a room configuration popup from CreateMeetingButton
 
 ### Changed
 

@@ -24,6 +24,20 @@ export class PopupManager {
     }
   }
 
+  public createSettingsPopupWindow(roomSlug: string, onFailure: () => void) {
+    const popupWindow = window.open(
+      `${window.location.origin}/sdk/settings-popup?slug=${encodeURIComponent(roomSlug)}`,
+      'SettingsPopupWindow',
+      `status=no,location=no,toolbar=no,menubar=no,width=600,height=800,left=100,top=100, resizable=yes,scrollbars=yes`
+    )
+
+    if (popupWindow) {
+      popupWindow.focus()
+    } else {
+      onFailure()
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private messageParent(type: ClientMessageType, data: any) {
     window?.parent.postMessage(
