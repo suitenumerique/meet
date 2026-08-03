@@ -44,12 +44,21 @@ COMPOSE_EXEC        = $(COMPOSE) exec
 COMPOSE_EXEC_APP    = $(COMPOSE_EXEC) app-dev
 COMPOSE_RUN         = $(COMPOSE) run --rm
 COMPOSE_RUN_APP     = $(COMPOSE_RUN) app-dev
+COMPOSE_RUN_LINT    = $(COMPOSE_RUN) --no-deps app-dev
 COMPOSE_RUN_CROWDIN = $(COMPOSE_RUN) crowdin crowdin
 WAIT_DB             = @$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
 
 # -- Backend
 MANAGE              = $(COMPOSE_RUN_APP) python manage.py
 MAIL_NPM            = $(COMPOSE_RUN) -w /app/src/mail node npm
+
+# -- Linters
+LINT_RUFF_FORMAT    = ruff format .
+LINT_RUFF_CHECK     = ruff check . --fix
+LINT_PYLINT         = pylint meet demo core
+LINT_BACK           = echo 'lint:ruff-format started…' && $(LINT_RUFF_FORMAT) \
+  && echo 'lint:ruff-check started…' && $(LINT_RUFF_CHECK) \
+  && echo 'lint:pylint started…' && $(LINT_PYLINT)
 
 # -- Frontend
 PATH_FRONT          = ./src/frontend
@@ -188,27 +197,23 @@ demo: ## flush db then create a demo for load testing purpose
 	@$(MANAGE) create_demo
 .PHONY: demo
 
-# Nota bene: Black should come after isort just in case they don't agree...
 lint: ## lint back-end python sources
-lint: \
-  lint-ruff-format \
-  lint-ruff-check \
-  lint-pylint
+	@$(COMPOSE_RUN_LINT) sh -c "$(LINT_BACK)"
 .PHONY: lint
 
 lint-ruff-format: ## format back-end python sources with ruff
 	@echo 'lint:ruff-format started…'
-	@$(COMPOSE_RUN_APP) ruff format .
+	@$(COMPOSE_RUN_LINT) $(LINT_RUFF_FORMAT)
 .PHONY: lint-ruff-format
 
 lint-ruff-check: ## lint back-end python sources with ruff
 	@echo 'lint:ruff-check started…'
-	@$(COMPOSE_RUN_APP) ruff check . --fix
+	@$(COMPOSE_RUN_LINT) $(LINT_RUFF_CHECK)
 .PHONY: lint-ruff-check
 
 lint-pylint: ## lint back-end python sources with pylint only on changed files from main
 	@echo 'lint:pylint started…'
-	@$(COMPOSE_RUN_APP) pylint meet demo core
+	@$(COMPOSE_RUN_LINT) $(LINT_PYLINT)
 .PHONY: lint-pylint
 
 test: ## run project tests; pass extra pytest args via ARGS, e.g. `make test ARGS="-vv"`
