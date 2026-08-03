@@ -308,8 +308,27 @@ class RoomViewSet(
         return drf_response.Response(serializer.data)
 
     def perform_create(self, serializer):
-        """Set the current user as owner of the newly created room."""
-        room = serializer.save()
+        """Set the current user as owner of the newly created room.
+
+        Apply the user's default room preferences (access level and configuration)
+        unless the request explicitly provides its own values.
+        """
+        user = self.request.user
+        save_kwargs = {}
+
+        if (
+            "access_level" not in serializer.validated_data
+            and user.default_room_access_level not in (None, "")
+        ):
+            save_kwargs["access_level"] = user.default_room_access_level
+
+        user_default_configuration = user.default_room_configuration
+        if not serializer.validated_data.get(
+            "configuration"
+        ) and user_default_configuration not in (None, {}):
+            save_kwargs["configuration"] = user.default_room_configuration
+
+        room = serializer.save(**save_kwargs)
         models.ResourceAccess.objects.create(
             resource=room,
             user=self.request.user,
