@@ -85,7 +85,6 @@ services:
         - postgresql
         - mailcatcher
         - redis
-        - livekit
         - createbuckets
         - createwebhook
     extra_hosts:
