@@ -85,6 +85,10 @@ RECORDING_DOWNLOAD_BASE_URL=http://localhost:3000/recording
 # Telephony
 ROOM_TELEPHONY_ENABLED=True
 
+# RoomKit
+# ROOMKIT_ENABLED = True
+# ROOMKIT_SERVER_TO_SERVER_API_TOKEN = ThisIsAnExampleKeyForDevPurposeOnly
+
 # Metadata
 METADATA_COLLECTOR_ENABLED=True
 
