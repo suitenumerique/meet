@@ -37,6 +37,11 @@ external_router.register(
     external_viewsets.RoomViewSet,
     basename="external_room",
 )
+external_router.register(
+    "users",
+    external_viewsets.UserViewSet,
+    basename="external_user",
+)
 
 urlpatterns = [
     path(

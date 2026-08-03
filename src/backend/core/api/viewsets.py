@@ -69,6 +69,7 @@ from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
 from core.services.invitation import InvitationService
+from core.services.jwt_token import JwtTokenService
 from core.services.livekit_events import (
     LiveKitEventsService,
     LiveKitWebhookError,
@@ -93,6 +94,7 @@ from core.services.room_roles import (
     RoomRoleService,
 )
 from core.services.subtitle import SubtitleException, SubtitleService
+from core.services.transit_code import TransitCodeService
 from core.tasks.file import process_file_deletion
 
 from ..authentication.livekit import LiveKitTokenAuthentication
@@ -228,6 +230,76 @@ class UserViewSet(
         return drf_response.Response(
             self.serializer_class(request.user, context=context).data
         )
+
+    @decorators.action(
+        detail=False,
+        methods=["post"],
+        url_path="exchange-access-token",
+        permission_classes=[],
+        throttle_classes=[throttling.ExchangeAccessTokenAnonRateThrottle],
+    )
+    @FeatureFlag.require("user_access_token")
+    def exchange_access_token(self, request):
+        """Exchange a single-use transit code for a user access token.
+
+        The endpoint is unauthenticated: the transit code itself, an opaque
+        random string obtained through the external API and delivered to
+        the embedded frontend via a URL fragment, is the credential. Each
+        code can be exchanged exactly once (consuming it deletes it from
+        the cache); replaying a consumed code is denied and logged.
+
+        The issued JWT authenticates the user the code was minted for on
+        the whole core API, exactly like a session cookie would (similar
+        to lib-jitsi-meet's token authentication), and never appears in
+        any URL. Role-based permissions apply unchanged.
+        """
+        serializer = serializers.TransitCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        code_data = TransitCodeService().consume_code(serializer.validated_data["code"])
+
+        if code_data is None:
+            logger.warning("Invalid, expired or already used transit code")
+            raise drf_exceptions.PermissionDenied(
+                "Invalid, expired or already used transit code."
+            )
+
+        # Re-check the user at exchange time so that a deactivation after
+        # the transit code was minted is taken into account.
+        try:
+            user = models.User.objects.get(id=code_data["user_id"], is_active=True)
+        except models.User.DoesNotExist as excpt:
+            raise drf_exceptions.PermissionDenied(
+                "This account can no longer access the application."
+            ) from excpt
+
+        token_service = JwtTokenService(
+            secret_key=settings.USER_ACCESS_TOKEN_SECRET_KEY,
+            algorithm=settings.USER_ACCESS_TOKEN_ALG,
+            issuer=settings.USER_ACCESS_TOKEN_ISSUER,
+            audience=settings.USER_ACCESS_TOKEN_AUDIENCE,
+            expiration_seconds=settings.USER_ACCESS_TOKEN_TTL,
+            token_type=settings.USER_ACCESS_TOKEN_TYPE,
+        )
+
+        # todo - discuss wether it's the relevant scope
+        data = token_service.generate_jwt(
+            user,
+            "user:access",
+            {
+                "token_type": "user_access",
+                "client_id": code_data.get("client_id", "unknown"),
+            },
+        )
+
+        # Log for auditing
+        logger.info(
+            "User access token issued from transit code: user_id=%s, client_id=%s",
+            user.id,
+            code_data.get("client_id", "unknown"),
+        )
+
+        return drf_response.Response(data)
 
 
 class RoomViewSet(
@@ -499,10 +571,7 @@ class RoomViewSet(
             request=request,
             **serializer.validated_data,
         )
-        response = drf_response.Response({**participant.to_dict(), "livekit": livekit})
-        lobby_service.prepare_response(response, participant.id)
-
-        return response
+        return drf_response.Response({**participant.to_dict(), "livekit": livekit})
 
     @decorators.action(
         detail=True,

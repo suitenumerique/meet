@@ -769,6 +769,7 @@ class ApplicationScope(models.TextChoices):
     ROOMS_RETRIEVE = "rooms:retrieve", _("Retrieve room details")
     ROOMS_UPDATE = "rooms:update", _("Update rooms")
     ROOMS_DELETE = "rooms:delete", _("Delete rooms")
+    USERS_SESSION = "users:session", _("Create user session tokens")
 
 
 class Application(BaseModel):

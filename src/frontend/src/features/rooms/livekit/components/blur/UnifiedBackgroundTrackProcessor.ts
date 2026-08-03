@@ -1,4 +1,5 @@
 import type { ProcessorOptions, Track } from 'livekit-client'
+import { resolveMediaUrl } from '@/features/files/utils/resolveMediaUrl'
 import {
   ProcessorWrapper,
   BackgroundProcessor,
@@ -47,7 +48,16 @@ export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInter
   }
 
   async init(opts: ProcessorOptions<Track.Kind>) {
-    return this.processor.init(opts)
+    await this.processor.init(opts)
+    // Embedded (token) mode: the constructor passed the raw imagePath,
+    // whose native load cannot carry the Authorization header. Swap it
+    // for a resolved blob object URL. No-op in regular mode.
+    if (this.opts.type === 'virtual') {
+      const imagePath = await resolveMediaUrl(this.opts.imagePath)
+      if (imagePath !== this.opts.imagePath) {
+        await this.processor.updateTransformerOptions({ imagePath })
+      }
+    }
   }
 
   async restart(opts: ProcessorOptions<Track.Kind>) {
@@ -59,6 +69,9 @@ export class UnifiedBackgroundTrackProcessor implements BackgroundProcessorInter
   }
 
   async update(opts: ProcessorConfig): Promise<void> {
+    if (opts.type === 'virtual') {
+      opts = { ...opts, imagePath: await resolveMediaUrl(opts.imagePath) }
+    }
     this.opts = opts
 
     const newProcessorType =

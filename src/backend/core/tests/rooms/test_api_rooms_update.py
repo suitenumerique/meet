@@ -3,8 +3,12 @@ Test rooms API endpoints in the Meet core app: update.
 """
 
 import random
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
+from django.conf import settings as django_settings
+
+import jwt
 import pytest
 from rest_framework.test import APIClient
 
@@ -437,3 +441,45 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata):
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
+
+
+def generate_user_access_token(user):
+    """Generate a valid user access JWT signed with the token secret."""
+    now = datetime.now(timezone.utc)
+
+    payload = {
+        "iss": django_settings.USER_ACCESS_TOKEN_ISSUER,
+        "aud": django_settings.USER_ACCESS_TOKEN_AUDIENCE,
+        "iat": now,
+        "exp": now + timedelta(seconds=django_settings.USER_ACCESS_TOKEN_TTL),
+        "user_id": str(user.id),
+        "token_type": "user_access",
+        "client_id": "test-app",
+        "scope": "user:access",
+    }
+
+    return jwt.encode(
+        payload,
+        django_settings.USER_ACCESS_TOKEN_SECRET_KEY,
+        algorithm=django_settings.USER_ACCESS_TOKEN_ALG,
+    )
+
+
+def test_api_rooms_update_authenticated_with_user_access_token():
+    """Role-based permissions apply unchanged with a user access token."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "member")])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+
+    # A simple member cannot update the room
+    response = client.patch(f"/api/v1.0/rooms/{room.id!s}/", {"name": "new name"})
+    assert response.status_code == 403
+
+    # An administrator can
+    room.accesses.filter(user=user).update(role="administrator")
+    response = client.patch(f"/api/v1.0/rooms/{room.id!s}/", {"name": "new name"})
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.name == "new name"

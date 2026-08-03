@@ -87,23 +87,6 @@ class LobbyService:
         return f"{settings.LOBBY_KEY_PREFIX}_{room_id!s}_{participant_id}"
 
     @staticmethod
-    def _get_or_create_participant_id(request) -> str:
-        """Extract unique participant identifier from the request."""
-        return request.COOKIES.get(settings.LOBBY_COOKIE_NAME, str(uuid.uuid4()))
-
-    @staticmethod
-    def prepare_response(response, participant_id):
-        """Set participant cookie if needed."""
-        if not response.cookies.get(settings.LOBBY_COOKIE_NAME):
-            response.set_cookie(
-                key=settings.LOBBY_COOKIE_NAME,
-                value=participant_id,
-                httponly=True,
-                secure=True,
-                samesite="Lax",
-            )
-
-    @staticmethod
     def can_bypass_lobby(room, user, role) -> bool:
         """Determines if a user can bypass the waiting lobby and join a room directly.
 
@@ -135,6 +118,7 @@ class LobbyService:
         room: models.Room,
         request,
         username: str,
+        participant_id: Optional[uuid.UUID] = None,
     ) -> Tuple[LobbyParticipant, Optional[Dict]]:
         """Request entry to a room for a participant.
 
@@ -149,22 +133,20 @@ class LobbyService:
         5. If denied, do nothing.
         """
 
-        participant_id = self._get_or_create_participant_id(request)
-        participant = self._get_participant(room.id, participant_id)
+        participant = None
+        if participant_id:
+            participant = self._get_participant(room.id, participant_id)
+
+        is_new_participant = participant is None
+        if is_new_participant:
+            participant = self._create_participant(room.id, username)
 
         room_id = str(room.id)
         user_role = room.get_role(request.user)
 
         if self.can_bypass_lobby(room=room, user=request.user, role=user_role):
-            if participant is None:
-                participant = LobbyParticipant(
-                    status=LobbyParticipantStatus.ACCEPTED,
-                    username=username,
-                    id=participant_id,
-                    color=utils.generate_color(participant_id),
-                )
-            else:
-                participant.status = LobbyParticipantStatus.ACCEPTED
+            participant.status = LobbyParticipantStatus.ACCEPTED
+            self._save_participant(room.id, participant)
 
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
@@ -172,18 +154,18 @@ class LobbyService:
                 username=username,
                 color=participant.color,
                 configuration=room.configuration,
-                participant_id=participant_id,
+                participant_id=participant.id,
                 role=user_role,
             )
             return participant, livekit_config
 
         livekit_config = None
 
-        if participant is None:
-            participant = self.enter(room.id, participant_id, username)
+        if is_new_participant:
+            self._notify_entry_request(room_id)
 
         elif participant.status == LobbyParticipantStatus.WAITING:
-            self.refresh_waiting_status(room.id, participant_id)
+            self.refresh_waiting_status(room.id, participant.id)
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
             # wrongly named, contains access token to join a room
@@ -193,7 +175,7 @@ class LobbyService:
                 username=username,
                 color=participant.color,
                 configuration=room.configuration,
-                participant_id=participant_id,
+                participant_id=participant.id,
                 role=user_role,
             )
 
@@ -210,27 +192,36 @@ class LobbyService:
             self._get_cache_key(room_id, participant_id), settings.LOBBY_WAITING_TIMEOUT
         )
 
-    def enter(
-        self, room_id: UUID, participant_id: str, username: str
-    ) -> LobbyParticipant:
-        """Add participant to waiting lobby.
+    def _create_participant(self, room_id: UUID, username: str) -> LobbyParticipant:
+        """Create and persist a new waiting participant.
 
-        Create a new participant entry in waiting status and notify room
-        participants of the new entry request.
+        Participant identifiers are minted here, server-side, exclusively.
         """
-
-        color = utils.generate_color(participant_id)
-
+        participant_id = str(uuid.uuid4())
         participant = LobbyParticipant(
             status=LobbyParticipantStatus.WAITING,
             username=username,
             id=participant_id,
-            color=color,
+            color=utils.generate_color(participant_id),
+        )
+        self._save_participant(room_id, participant)
+
+        return participant
+
+    def _save_participant(self, room_id: UUID, participant: LobbyParticipant):
+        """Persist a participant in the room's lobby."""
+        cache.set(
+            self._get_cache_key(room_id, participant.id),
+            participant.to_dict(),
+            timeout=settings.LOBBY_WAITING_TIMEOUT,
         )
 
+    @staticmethod
+    def _notify_entry_request(room_id: str):
+        """Notify room participants of a new entry request."""
         try:
             utils.notify_participants(
-                room_name=str(room_id),
+                room_name=room_id,
                 notification_data={
                     "type": settings.LOBBY_NOTIFICATION_TYPE,
                 },
@@ -238,15 +229,6 @@ class LobbyService:
         except utils.NotificationError:
             # If room not created yet, there is no participants to notify
             logger.exception("Failed to notify room participants")
-
-        cache_key = self._get_cache_key(room_id, participant_id)
-        cache.set(
-            cache_key,
-            participant.to_dict(),
-            timeout=settings.LOBBY_WAITING_TIMEOUT,
-        )
-
-        return participant
 
     def _get_participant(
         self, room_id: UUID, participant_id: str
