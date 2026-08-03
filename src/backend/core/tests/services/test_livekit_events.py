@@ -72,11 +72,12 @@ def test_initialization(
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_success(
-    mock_update_metadata, mock_notify, mode, notification_type, service
+def test_handle_egress_ended_success(  # noqa: PLR0913 # pylint: disable=too-many-arguments, too-many-positional-arguments
+    mock_update_metadata, mock_notify, mode, notification_type, service, settings
 ):
     """Should successfully stop recording and notifies all participant."""
 
+    settings.RECORDING_STORAGE_EVENT_ENABLE = False
     recording = RecordingFactory(worker_id="worker-1", mode=mode, status="active")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
@@ -155,11 +156,12 @@ def test_handle_egress_updated_non_handled(
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_metadata_update_fails(
-    mock_update_metadata, mock_notify, mode, notification_type, service
+def test_handle_egress_ended_metadata_update_fails(  # noqa: PLR0913 # pylint: disable=too-many-arguments, too-many-positional-arguments
+    mock_update_metadata, mock_notify, mode, notification_type, service, settings
 ):
     """Should successfully stop and save recording when metadata's update fails."""
 
+    settings.RECORDING_STORAGE_EVENT_ENABLE = False
     recording = RecordingFactory(worker_id="worker-1", mode=mode, status="active")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
