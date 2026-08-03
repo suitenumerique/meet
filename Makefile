@@ -133,6 +133,7 @@ logs: ## display app-dev logs (follow mode)
 run-backend: ## start only the backend application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-dev --remove-orphans
 	@$(COMPOSE) up --force-recreate -d nginx
+	@$(COMPOSE) up -d livekit
 	@echo "Wait for postgresql to be up..."
 	@$(WAIT_DB)
 .PHONY: run-backend
