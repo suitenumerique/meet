@@ -5,6 +5,14 @@
     "copyLinkTooltip": "Copier le lien",
     "resetLabel": "Réinitialiser",
     "participantLimit": "Jusqu'à 150 participants.",
-    "popupBlocked": "La fenêtre pop-up a été bloquée. Veuillez autoriser les pop-ups pour ce site."
+    "popupBlocked": "La fenêtre pop-up a été bloquée. Veuillez autoriser les pop-ups pour ce site.",
+    "settingsTooltip": "Paramètres de la réunion"
+  },
+  "roomSettings": {
+    "title": "Paramètres de la réunion",
+    "description": "Configurez la réunion {{roomSlug}}.",
+    "notAllowed": "Vous n'avez pas les droits pour modifier les paramètres de cette réunion.",
+    "error": "Impossible de charger les paramètres de la réunion.",
+    "closeButton": "Fermer"
   }
 }

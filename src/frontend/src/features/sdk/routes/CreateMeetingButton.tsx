@@ -4,7 +4,7 @@ import { Link } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { HStack, VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
-import { RiCloseLine, RiFileCopyLine } from '@remixicon/react'
+import { RiCloseLine, RiFileCopyLine, RiSettings3Line } from '@remixicon/react'
 import { Text } from '@/primitives'
 import { Spinner } from '@/primitives/Spinner'
 import { buttonRecipe } from '@/primitives/buttonRecipe'
@@ -36,6 +36,11 @@ const CreateMeetingButton = () => {
   const [room, setRoom] = useState<CallbackCreationRoomData | undefined>(
     initialRoom
   )
+
+  const [isRoomCreatedInSession, setIsRoomCreatedInSession] = useState(false)
+
+  const showSettingsButton =
+    isRoomCreatedInSession || searchParams.get('settings') === 'true'
 
   const { data } = useRoomCreationCallback({ callbackId })
 
@@ -74,6 +79,7 @@ const CreateMeetingButton = () => {
   useEffect(() => {
     if (!data?.room?.slug) return
     setRoom(data.room)
+    setIsRoomCreatedInSession(true)
     setCallbackId(undefined)
     setIsPending(false)
     popupManager.sendRoomData({
@@ -89,6 +95,7 @@ const CreateMeetingButton = () => {
       (id) => setCallbackId(id),
       (data) => {
         setRoom(data)
+        setIsRoomCreatedInSession(true)
         setIsPending(false)
       }
     )
@@ -98,6 +105,7 @@ const CreateMeetingButton = () => {
 
   const resetState = () => {
     setRoom(undefined)
+    setIsRoomCreatedInSession(false)
     setCallbackId(undefined)
     setIsPending(false)
     popupManager.clearState()
@@ -158,14 +166,25 @@ const CreateMeetingButton = () => {
               {t('joinButton')}
             </Link>
             <HStack gap={0}>
+              {showSettingsButton && (
+                <Button
+                  variant="quaternaryText"
+                  square
+                  icon={<RiSettings3Line />}
+                  aria-label={t('settingsTooltip')}
+                  onPress={() => {
+                    popupManager.createSettingsPopupWindow(room.slug, () => {})
+                  }}
+                />
+              )}
               <Button
                 variant="quaternaryText"
                 square
                 icon={<RiFileCopyLine />}
-                tooltip={t('copyLinkTooltip')}
                 onPress={() => {
                   navigator.clipboard.writeText(roomUrl)
                 }}
+                aria-label={t('copyLinkTooltip')}
               />
               {searchParams.get('readOnly') === 'false' && (
                 <Button

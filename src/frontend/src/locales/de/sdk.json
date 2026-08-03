@@ -5,6 +5,14 @@
     "copyLinkTooltip": "Link kopieren",
     "resetLabel": "Zurücksetzen",
     "participantLimit": "Bis zu 150 Teilnehmende.",
-    "popupBlocked": "Popup wurde blockiert. Bitte erlaube Popups für diese Website."
+    "popupBlocked": "Popup wurde blockiert. Bitte erlaube Popups für diese Website.",
+    "settingsTooltip": "Besprechungseinstellungen"
+  },
+  "roomSettings": {
+    "title": "Besprechungseinstellungen",
+    "description": "Konfiguriere die Besprechung {{roomSlug}}.",
+    "notAllowed": "Du hast keine Berechtigung, die Einstellungen dieser Besprechung zu ändern.",
+    "error": "Die Besprechungseinstellungen konnten nicht geladen werden.",
+    "closeButton": "Schließen"
   }
 }

@@ -5,6 +5,14 @@
     "copyLinkTooltip": "Copy link",
     "resetLabel": "Reset",
     "participantLimit": "Up to 150 participants.",
-    "popupBlocked": "Popup was blocked. Please allow popups for this site."
+    "popupBlocked": "Popup was blocked. Please allow popups for this site.",
+    "settingsTooltip": "Meeting settings"
+  },
+  "roomSettings": {
+    "title": "Meeting settings",
+    "description": "Configure the meeting {{roomSlug}}.",
+    "notAllowed": "You don't have permission to modify this meeting's settings.",
+    "error": "Unable to load meeting settings.",
+    "closeButton": "Close"
   }
 }
