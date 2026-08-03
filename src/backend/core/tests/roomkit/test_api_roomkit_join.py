@@ -14,15 +14,12 @@ from ...services.sip_management import SIPException
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture
-def mock_sip_management():
-    """Mock the SIPManagement used by the roomkit viewset."""
-    with mock.patch("core.roomkit.viewsets.SIPManagement") as mock_service_class:
-        yield mock_service_class.return_value
-
-
-def test_join_anonymous(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_anonymous(mock_sip_management, settings, client):
     """Requests without an Authorization header should be rejected."""
+
+    mock_sip_instance = mock_sip_management.return_value
+
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
@@ -32,11 +29,15 @@ def test_join_anonymous(settings, mock_sip_management, client):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Authorization header is missing."}
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_malformed_authorization_header(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_malformed_authorization_header(mock_sip_management, settings, client):
     """Requests with a malformed Authorization header should be rejected."""
+
+    mock_sip_instance = mock_sip_management.return_value
+
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
@@ -50,11 +51,15 @@ def test_join_malformed_authorization_header(settings, mock_sip_management, clie
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid authorization header."}
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_wrong_bearer(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_wrong_bearer(mock_sip_management, settings, client):
     """Requests with an incorrect bearer token should be rejected."""
+
+    mock_sip_instance = mock_sip_management.return_value
+
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
@@ -68,11 +73,14 @@ def test_join_wrong_bearer(settings, mock_sip_management, client):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid server-to-server token."}
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_token_not_configured(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_token_not_configured(mock_sip_management, settings, client):
     """Requests should be rejected when no server-to-server token is configured."""
+
+    mock_sip_instance = mock_sip_management.return_value
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = None
@@ -86,11 +94,14 @@ def test_join_token_not_configured(settings, mock_sip_management, client):
     )
 
     assert response.status_code == 401
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_roomkit_disabled(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_roomkit_disabled(mock_sip_management, settings, client):
     """The endpoint should not be exposed when the roomkit integration is disabled."""
+
+    mock_sip_instance = mock_sip_management.return_value
 
     settings.ROOMKIT_ENABLED = False
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
@@ -104,11 +115,14 @@ def test_join_roomkit_disabled(settings, mock_sip_management, client):
     )
 
     assert response.status_code == 404
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_missing_pin(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_missing_pin(mock_sip_management, settings, client):
     """Requests without a PIN code should be rejected."""
+
+    mock_sip_instance = mock_sip_management.return_value
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
@@ -121,11 +135,14 @@ def test_join_missing_pin(settings, mock_sip_management, client):
 
     assert response.status_code == 400
     assert response.json() == {"pin_code": ["This field is required."]}
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_blank_pin(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_blank_pin(mock_sip_management, settings, client):
     """Requests with a blank PIN code should be rejected."""
+
+    mock_sip_instance = mock_sip_management.return_value
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
@@ -138,11 +155,14 @@ def test_join_blank_pin(settings, mock_sip_management, client):
 
     assert response.status_code == 400
     assert response.json() == {"pin_code": ["This field may not be blank."]}
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_wrong_pin_length(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_wrong_pin_length(mock_sip_management, settings, client):
     """Requests with a PIN code of unexpected length should be rejected."""
+
+    mock_sip_instance = mock_sip_management.return_value
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
@@ -156,11 +176,15 @@ def test_join_wrong_pin_length(settings, mock_sip_management, client):
 
     assert response.status_code == 400
     assert response.json() == {"pin_code": ["PIN code length is invalid."]}
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_unknown_pin(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_unknown_pin(mock_sip_management, settings, client):
     """Requests with a PIN matching no room should return 404 and create no rule."""
+
+    mock_sip_instance = mock_sip_management.return_value
+
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
@@ -174,16 +198,20 @@ def test_join_unknown_pin(settings, mock_sip_management, client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "No room found for this PIN code."}
-    mock_sip_management.ensure_dispatch_rule.assert_not_called()
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
-def test_join_success(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_success(mock_sip_management, settings, client):
     """Requests with a valid PIN should create the dispatch rule."""
+
+    mock_sip_instance = mock_sip_management.return_value
+
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
-    mock_sip_management.ensure_dispatch_rule.return_value = True
+    mock_sip_instance.ensure_dispatch_rule.return_value = True
 
     response = client.post(
         "/api/v1.0/roomkit/join/",
@@ -193,17 +221,20 @@ def test_join_success(settings, mock_sip_management, client):
 
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
-    mock_sip_management.ensure_dispatch_rule.assert_called_once_with(room)
+    mock_sip_instance.ensure_dispatch_rule.assert_called_once_with(room)
 
 
-def test_join_dispatch_rule_already_exists(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_dispatch_rule_already_exists(mock_sip_management, settings, client):
     """Requests should succeed when the dispatch rule already exists (idempotency)."""
 
+    mock_sip_instance = mock_sip_management.return_value
+
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
-    mock_sip_management.ensure_dispatch_rule.return_value = False
+    mock_sip_instance.ensure_dispatch_rule.return_value = False
 
     response = client.post(
         "/api/v1.0/roomkit/join/",
@@ -213,24 +244,29 @@ def test_join_dispatch_rule_already_exists(settings, mock_sip_management, client
 
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
-    mock_sip_management.ensure_dispatch_rule.assert_called_once_with(room)
+    mock_sip_instance.ensure_dispatch_rule.assert_called_once_with(room)
 
 
-def test_join_tracks_analytics_event(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.analytics.capture")
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_tracks_analytics_event(
+    mock_sip_management, mock_capture, settings, client
+):
     """Successful joins should be tracked with an analytics event."""
+
+    mock_sip_instance = mock_sip_management.return_value
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
-    mock_sip_management.ensure_dispatch_rule.return_value = True
+    mock_sip_instance.ensure_dispatch_rule.return_value = True
 
-    with mock.patch("core.roomkit.viewsets.analytics.capture") as mock_capture:
-        response = client.post(
-            "/api/v1.0/roomkit/join/",
-            {"pin_code": room.pin_code},
-            HTTP_AUTHORIZATION="Bearer testAuthToken",
-        )
+    response = client.post(
+        "/api/v1.0/roomkit/join/",
+        {"pin_code": room.pin_code},
+        HTTP_AUTHORIZATION="Bearer testAuthToken",
+    )
 
     assert response.status_code == 200
     mock_capture.assert_called_once()
@@ -242,25 +278,28 @@ def test_join_tracks_analytics_event(settings, mock_sip_management, client):
     }
 
 
-def test_join_sip_failure(settings, mock_sip_management, client):
+@mock.patch("core.roomkit.viewsets.analytics.capture")
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_sip_failure(mock_sip_management, mock_capture, settings, client):
     """Requests should fail with a server error when the sip management service fails."""
+
+    mock_sip_instance = mock_sip_management.return_value
 
     settings.ROOMKIT_ENABLED = True
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
-    mock_sip_management.ensure_dispatch_rule.side_effect = SIPException(
+    mock_sip_instance.ensure_dispatch_rule.side_effect = SIPException(
         "Could not create dispatch rule"
     )
 
-    with mock.patch("core.roomkit.viewsets.analytics.capture") as mock_capture:
-        response = client.post(
-            "/api/v1.0/roomkit/join/",
-            {"pin_code": room.pin_code},
-            HTTP_AUTHORIZATION="Bearer testAuthToken",
-            raise_request_exception=False,
-        )
+    response = client.post(
+        "/api/v1.0/roomkit/join/",
+        {"pin_code": room.pin_code},
+        HTTP_AUTHORIZATION="Bearer testAuthToken",
+        raise_request_exception=False,
+    )
 
     assert response.status_code == 500
-    mock_sip_management.ensure_dispatch_rule.assert_called_once_with(room)
+    mock_sip_instance.ensure_dispatch_rule.assert_called_once_with(room)
     mock_capture.assert_not_called()
