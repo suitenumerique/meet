@@ -15,6 +15,7 @@ and this project adheres to
 - ✨(frontend) allow promoting authenticated participants
 - ✨(frontend) introduce an "unauthenticated" participant badge
 - ✨(backend) add roomkit viewset to start a room without WebRTC join
+- ✨(frontend) let users set default configuration for generated links
 
 ### Changed
 
