@@ -862,7 +862,16 @@ def test_remove_participant_success_lobby_cache(mock_livekit_client):
     participant_identity = str(uuid4())
 
     # Create participant in lobby cache first
-    LobbyService().enter(room.id, participant_identity, "John doe")
+    LobbyService()._save_participant(
+        room.id,
+        LobbyParticipant(
+            id=participant_identity,
+            username="John doe",
+            status=LobbyParticipantStatus.WAITING,
+            color="#123456",
+            entered_at="2025-01-01T10:00:00+00:00",
+        ),
+    )
 
     # Accept participant
     LobbyService().handle_participant_entry(room.id, participant_identity, True)

@@ -292,6 +292,11 @@ class RequestEntrySerializer(BaseValidationOnlySerializer):
     """Validate request entry data."""
 
     username = serializers.CharField(required=True)
+    participant_id = serializers.UUIDField(required=False, allow_null=True)
+
+    def validate_participant_id(self, value):
+        """The id is a bearer credential: never trusted, only looked up."""
+        return str(value) if value else None
 
 
 class ParticipantEntrySerializer(BaseValidationOnlySerializer):
