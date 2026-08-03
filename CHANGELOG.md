@@ -18,6 +18,7 @@ and this project adheres to
 - ✨(frontend) let users set default configuration for generated links
 - ✨(frontend) expose media state to external gateways
 - ✨(frontend) add connection test feature
+- ✨(sdk) allow passing a background color to the calendar iframe
 
 ### Changed
 

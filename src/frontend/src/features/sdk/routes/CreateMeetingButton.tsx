@@ -43,6 +43,34 @@ const CreateMeetingButton = () => {
     if (room?.slug) return getRouteUrl('room', room.slug)
   }, [room])
 
+  const backgroundColor = useMemo(() => {
+    const param = searchParams.get('backgroundColor')
+    if (!param) return 'transparent'
+
+    const value = param.trim()
+
+    // Allow raw hex passed without '#' (e.g. ?backgroundColor=ff0000)
+    if (
+      /^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{4}$|^[0-9a-fA-F]{6}$|^[0-9a-fA-F]{8}$/.test(
+        value
+      )
+    ) {
+      return `#${value}`
+    }
+
+    // Already-valid hex (e.g. URL-encoded %23ff0000 → '#ff0000')
+    if (/^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value)) {
+      return value
+    }
+
+    // Fallback: only allow simple named colors, block anything injectable
+    if (/^[a-zA-Z]+$/.test(value)) {
+      return value
+    }
+
+    return 'transparent'
+  }, [searchParams])
+
   useEffect(() => {
     if (!data?.room?.slug) return
     setRoom(data.room)
@@ -78,20 +106,27 @@ const CreateMeetingButton = () => {
   if (isPending) {
     return (
       <div
-        className={css({
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        })}
+        style={{
+          backgroundColor: backgroundColor,
+          height: '100%',
+        }}
       >
-        <Spinner size={34} />
-        <Button
-          variant="quaternaryText"
-          square
-          icon={<RiCloseLine />}
-          onPress={resetState}
-          aria-label={t('resetLabel')}
-        />
+        <div
+          className={css({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          })}
+        >
+          <Spinner size={34} />
+          <Button
+            variant="quaternaryText"
+            square
+            icon={<RiCloseLine />}
+            onPress={resetState}
+            aria-label={t('resetLabel')}
+          />
+        </div>
       </div>
     )
   }
@@ -104,6 +139,8 @@ const CreateMeetingButton = () => {
         justifyContent: 'start',
         alignItems: 'start',
         border: 'none',
+        backgroundColor: backgroundColor,
+        height: '100%',
       }}
     >
       {roomUrl && room?.slug ? (
