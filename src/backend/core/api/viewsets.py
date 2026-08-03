@@ -571,10 +571,7 @@ class RoomViewSet(
             request=request,
             **serializer.validated_data,
         )
-        response = drf_response.Response({**participant.to_dict(), "livekit": livekit})
-        lobby_service.prepare_response(response, participant.id)
-
-        return response
+        return drf_response.Response({**participant.to_dict(), "livekit": livekit})
 
     @decorators.action(
         detail=True,

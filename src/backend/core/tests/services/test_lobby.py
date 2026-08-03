@@ -3,7 +3,6 @@ Test lobby service.
 """
 
 # pylint: disable=W0621,W0613, W0212, R0913
-# ruff: noqa: PLR0913
 
 import uuid
 from unittest import mock
@@ -11,7 +10,6 @@ from unittest import mock
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
-from django.http import HttpResponse
 
 import pytest
 
@@ -135,59 +133,6 @@ def test_get_cache_key(lobby_service, participant_id):
     assert cache_key == expected_key
 
 
-def test_get_or_create_participant_id_from_cookie(lobby_service):
-    """Test extracting participant ID from cookie."""
-    request = mock.Mock()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: "existing-id"}
-
-    participant_id = lobby_service._get_or_create_participant_id(request)
-
-    assert participant_id == "existing-id"
-
-
-@mock.patch.object(uuid, "uuid4", return_value="generated-id")
-def test_get_or_create_participant_id_new(mock_uuid4, lobby_service):
-    """Test creating new participant ID when cookie is missing."""
-    request = mock.Mock()
-    request.COOKIES = {}
-
-    participant_id = lobby_service._get_or_create_participant_id(request)
-
-    assert participant_id == "generated-id"
-    mock_uuid4.assert_called_once()
-
-
-def test_prepare_response_existing_cookie(lobby_service, participant_id):
-    """Test response preparation with existing cookie."""
-    response = HttpResponse()
-    response.cookies[settings.LOBBY_COOKIE_NAME] = "existing-cookie"
-
-    lobby_service.prepare_response(response, participant_id)
-
-    # Verify cookie wasn't set again
-    cookie = response.cookies.get(settings.LOBBY_COOKIE_NAME)
-    assert cookie.value == "existing-cookie"
-    assert cookie.value != participant_id
-
-
-def test_prepare_response_new_cookie(lobby_service, participant_id):
-    """Test response preparation with new cookie."""
-    response = HttpResponse()
-
-    lobby_service.prepare_response(response, participant_id)
-
-    # Verify cookie was set
-    cookie = response.cookies.get(settings.LOBBY_COOKIE_NAME)
-    assert cookie is not None
-    assert cookie.value == participant_id
-    assert cookie["httponly"] is True
-    assert cookie["secure"] is True
-    assert cookie["samesite"] == "Lax"
-
-    # It's a session cookies (no max_age specified):
-    assert not cookie["max-age"]
-
-
 def test_can_bypass_lobby_public_room(lobby_service):
     """Should return True for public rooms regardless of user auth and role."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
@@ -266,11 +211,12 @@ def test_request_entry_public_room(
         color="#123456",
     )
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
     mock_generate_config.return_value = {"token": "test-token"}
 
-    participant, livekit_config = lobby_service.request_entry(room, request, username)
+    participant, livekit_config = lobby_service.request_entry(
+        room, request, username, participant_id=participant_id
+    )
 
     assert participant.status == LobbyParticipantStatus.ACCEPTED
     assert livekit_config == {"token": "test-token"}
@@ -304,11 +250,12 @@ def test_request_entry_trusted_room(
         color="#123456",
     )
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
     mock_generate_config.return_value = {"token": "test-token"}
 
-    participant, livekit_config = lobby_service.request_entry(room, request, username)
+    participant, livekit_config = lobby_service.request_entry(
+        room, request, username, participant_id=participant_id
+    )
 
     assert participant.status == LobbyParticipantStatus.ACCEPTED
     assert livekit_config == {"token": "test-token"}
@@ -325,18 +272,19 @@ def test_request_entry_trusted_room(
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.services.lobby.LobbyService.enter")
+@mock.patch("core.services.lobby.LobbyService._notify_entry_request")
+@mock.patch("core.services.lobby.LobbyService._create_participant")
 def test_request_entry_new_participant(
-    mock_enter, lobby_service, participant_id, username
+    mock_create, mock_notify, lobby_service, participant_id, username
 ):
-    """Test requesting entry for a new participant."""
+    """A new participant gets a server-minted identifier - any provided
+    one is unknown to the lobby and therefore discarded - and the room is
+    notified of the entry request."""
     request = mock.Mock()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
     request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=None)
 
     participant_data = LobbyParticipant(
@@ -345,14 +293,20 @@ def test_request_entry_new_participant(
         id=participant_id,
         color="#123456",
     )
-    mock_enter.return_value = participant_data
+    mock_create.return_value = participant_data
 
-    participant, livekit_config = lobby_service.request_entry(room, request, username)
+    forged_id = str(uuid.uuid4())
+    participant, livekit_config = lobby_service.request_entry(
+        room, request, username, participant_id=forged_id
+    )
 
     assert participant == participant_data
     assert livekit_config is None
-    mock_enter.assert_called_once_with(room.id, participant_id, username)
-    lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
+    # The provided identifier was looked up, found unknown, and replaced
+    # by a freshly minted participant
+    lobby_service._get_participant.assert_called_once_with(room.id, forged_id)
+    mock_create.assert_called_once_with(room.id, username)
+    mock_notify.assert_called_once_with(str(room.id))
 
 
 @mock.patch("core.services.lobby.LobbyService.refresh_waiting_status")
@@ -361,7 +315,6 @@ def test_request_entry_waiting_participant(
 ):
     """Test requesting entry for a waiting participant."""
     request = mock.Mock()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
     request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -372,10 +325,11 @@ def test_request_entry_waiting_participant(
         id=participant_id,
         color="#123456",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
-    participant, livekit_config = lobby_service.request_entry(room, request, username)
+    participant, livekit_config = lobby_service.request_entry(
+        room, request, username, participant_id=participant_id
+    )
 
     assert participant.status == LobbyParticipantStatus.WAITING
     assert livekit_config is None
@@ -390,7 +344,6 @@ def test_request_entry_accepted_participant(
     """Test requesting entry for an accepted participant."""
     request = mock.Mock()
     request.user = AnonymousUser()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
@@ -400,12 +353,13 @@ def test_request_entry_accepted_participant(
         id=participant_id,
         color="#123456",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
     mock_generate_config.return_value = {"token": "test-token"}
 
-    participant, livekit_config = lobby_service.request_entry(room, request, username)
+    participant, livekit_config = lobby_service.request_entry(
+        room, request, username, participant_id=participant_id
+    )
 
     assert participant.status == LobbyParticipantStatus.ACCEPTED
     assert livekit_config == {"token": "test-token"}
@@ -428,7 +382,6 @@ def test_request_entry_participant_with_role(
     """Test requesting entry for a participant with a role on the room."""
     request = mock.Mock()
     request.user = UserFactory()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
@@ -440,12 +393,13 @@ def test_request_entry_participant_with_role(
         id=participant_id,
         color="#123456",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
     mock_generate_config.return_value = {"token": "test-token"}
 
-    participant, livekit_config = lobby_service.request_entry(room, request, username)
+    participant, livekit_config = lobby_service.request_entry(
+        room, request, username, participant_id=participant_id
+    )
 
     assert participant.status == LobbyParticipantStatus.ACCEPTED
     assert livekit_config == {"token": "test-token"}
@@ -472,73 +426,47 @@ def test_refresh_waiting_status(mock_cache, lobby_service, participant_id):
     )
 
 
-# pylint: disable=R0917
 @mock.patch("core.services.lobby.cache")
 @mock.patch("core.utils.generate_color")
-@mock.patch("core.utils.notify_participants")
-def test_enter_success(
-    mock_notify,
+def test_create_participant(
     mock_generate_color,
     mock_cache,
     lobby_service,
-    participant_id,
     username,
+    settings,
 ):
-    """Test successful participant entry."""
+    """A created participant is waiting, colored, and persisted."""
     mock_generate_color.return_value = "#123456"
     lobby_service._get_cache_key = mock.Mock(return_value="mocked_cache_key")
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
-    participant = lobby_service.enter(room.id, participant_id, username)
+    participant = lobby_service._create_participant(room.id, username)
 
-    mock_generate_color.assert_called_once_with(participant_id)
+    # The identifier is minted server-side
+    uuid.UUID(participant.id)
+    mock_generate_color.assert_called_once_with(participant.id)
     assert participant.status == LobbyParticipantStatus.WAITING
     assert participant.username == username
-    assert participant.id == participant_id
     assert participant.color == "#123456"
 
-    lobby_service._get_cache_key.assert_called_once_with(room.id, participant_id)
+    lobby_service._get_cache_key.assert_called_once_with(room.id, participant.id)
 
     mock_cache.set.assert_called_once_with(
         "mocked_cache_key",
         participant.to_dict(),
         timeout=settings.LOBBY_WAITING_TIMEOUT,
     )
-    mock_notify.assert_called_once_with(
-        room_name=str(room.pk), notification_data={"type": "participantWaiting"}
-    )
 
 
-# pylint: disable=R0917
-@mock.patch("core.services.lobby.cache")
-@mock.patch("core.utils.generate_color")
 @mock.patch("core.utils.notify_participants")
-def test_enter_with_notification_error(
-    mock_notify,
-    mock_generate_color,
-    mock_cache,
-    lobby_service,
-    participant_id,
-    username,
-):
-    """Test participant entry with notification error."""
-    mock_generate_color.return_value = "#123456"
+def test_notify_entry_request_with_notification_error(mock_notify, lobby_service):
+    """A notification error must not break the entry request flow."""
     mock_notify.side_effect = NotificationError("Error notifying")
-    lobby_service._get_cache_key = mock.Mock(return_value="mocked_cache_key")
 
-    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
-    participant = lobby_service.enter(room.id, participant_id, username)
+    lobby_service._notify_entry_request("room-id")
 
-    mock_generate_color.assert_called_once_with(participant_id)
-    assert participant.status == LobbyParticipantStatus.WAITING
-    assert participant.username == username
-
-    lobby_service._get_cache_key.assert_called_once_with(room.id, participant_id)
-
-    mock_cache.set.assert_called_once_with(
-        "mocked_cache_key",
-        participant.to_dict(),
-        timeout=settings.LOBBY_WAITING_TIMEOUT,
+    mock_notify.assert_called_once_with(
+        room_name="room-id", notification_data={"type": "participantWaiting"}
     )
 
 
