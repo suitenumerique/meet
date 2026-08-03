@@ -36,6 +36,9 @@ WORKDIR /home/frontend
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
+ARG VITE_APP_TITLE
+ENV VITE_APP_TITLE=${VITE_APP_TITLE}
+
 RUN npm run build
 
 # ---- Front-end image ----
