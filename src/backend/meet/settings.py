@@ -890,11 +890,6 @@ class Base(Configuration):
         environ_name="LOBBY_NOTIFICATION_TYPE",
         environ_prefix=None,
     )
-    LOBBY_COOKIE_NAME = values.Value(
-        "lobbyParticipantId",
-        environ_name="LOBBY_COOKIE_NAME",
-        environ_prefix=None,
-    )
 
     # Calendar integrations
     ROOM_CREATION_CALLBACK_CACHE_TIMEOUT = values.PositiveIntegerValue(

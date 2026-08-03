@@ -230,6 +230,7 @@ def test_start_subtitle_wrong_signature(settings, mock_livekit_token):
         "detail": "Invalid LiveKit token: Signature verification failed"
     }
 
+
 @pytest.fixture
 def user_access_token():
     """Generate a valid user access JWT, sent with the "Bearer" scheme."""

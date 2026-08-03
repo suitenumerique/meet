@@ -22,10 +22,6 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core import utils
-<<<<<<< HEAD
-from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
-from core.services.lobby import LobbyService
-=======
 from core.factories import (
     ApplicationFactory,
     RoomFactory,
@@ -38,7 +34,6 @@ from core.services.lobby import (
     LobbyParticipantStatus,
     LobbyService,
 )
->>>>>>> 32a253e08 (fixup! ✨(backend) introduce a token exchange endpoint for iframe embeds)
 
 pytestmark = pytest.mark.django_db
 
@@ -867,7 +862,15 @@ def test_remove_participant_success_lobby_cache(mock_livekit_client):
     participant_identity = str(uuid4())
 
     # Create participant in lobby cache first
-    LobbyService().enter(room.id, participant_identity, "John doe")
+    LobbyService()._save_participant(
+        room.id,
+        LobbyParticipant(
+            id=participant_identity,
+            username="John doe",
+            status=LobbyParticipantStatus.WAITING,
+            color="#123456",
+        ),
+    )
 
     # Accept participant
     LobbyService().handle_participant_entry(room.id, participant_identity, True)
