@@ -179,6 +179,11 @@
     "notifications": "Notifications",
     "accessibility": "Accessibility",
     "transcription": "Transcription",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "rooms": "Rooms"
+  },
+  "roomDefaults": {
+    "heading": "Default room settings",
+    "description": "Choose the settings applied by default to the new rooms you create. You can still change them for each meeting from the host settings."
   }
 }

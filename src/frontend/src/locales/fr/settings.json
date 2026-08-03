@@ -179,6 +179,11 @@
     "notifications": "Notifications",
     "accessibility": "Accessibilité",
     "transcription": "Transcription",
-    "shortcuts": "Raccourcis"
+    "shortcuts": "Raccourcis",
+    "rooms": "Réunions"
+  },
+  "roomDefaults": {
+    "heading": "Paramètres par défaut des réunions",
+    "description": "Choisissez les paramètres appliqués par défaut aux nouvelles réunions que vous créez. Vous pourrez toujours les modifier pour chaque réunion depuis les paramètres d’administration."
   }
 }

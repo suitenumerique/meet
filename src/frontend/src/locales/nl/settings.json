@@ -179,6 +179,11 @@
     "notifications": "Meldingen",
     "accessibility": "Toegankelijkheid",
     "transcription": "Transcriptie",
-    "shortcuts": "Sneltoetsen"
+    "shortcuts": "Sneltoetsen",
+    "rooms": "Vergaderingen"
+  },
+  "roomDefaults": {
+    "heading": "Standaardinstellingen voor vergaderingen",
+    "description": "Kies de instellingen die standaard worden toegepast op nieuwe vergaderingen die u aanmaakt. U kunt ze voor elke vergadering nog steeds wijzigen via de hostinstellingen."
   }
 }
