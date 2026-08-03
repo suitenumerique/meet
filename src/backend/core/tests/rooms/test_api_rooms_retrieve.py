@@ -453,6 +453,8 @@ def test_api_rooms_retrieve_administrators(
             {
                 "id": str(other_user_access.id),
                 "user": {
+                    "default_room_access_level": None,
+                    "default_room_configuration": {},
                     "id": str(other_user_access.user.id),
                     "email": other_user_access.user.email,
                     "full_name": other_user_access.user.full_name,
@@ -466,6 +468,8 @@ def test_api_rooms_retrieve_administrators(
             {
                 "id": str(user_access.id),
                 "user": {
+                    "default_room_access_level": None,
+                    "default_room_configuration": {},
                     "id": str(user_access.user.id),
                     "email": user_access.user.email,
                     "full_name": user_access.user.full_name,
