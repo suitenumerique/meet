@@ -179,6 +179,11 @@
     "notifications": "Benachrichtigungen",
     "accessibility": "Barrierefreiheit",
     "transcription": "Transkription",
-    "shortcuts": "Tastenkürzel"
+    "shortcuts": "Tastenkürzel",
+    "rooms": "Räume"
+  },
+  "roomDefaults": {
+    "heading": "Standardeinstellungen für Räume",
+    "description": "Wählen Sie die Einstellungen, die standardmäßig auf neue von Ihnen erstellte Räume angewendet werden. Sie können sie für jedes Meeting weiterhin in den Moderationseinstellungen ändern."
   }
 }
