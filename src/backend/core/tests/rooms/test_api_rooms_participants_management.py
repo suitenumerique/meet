@@ -1021,4 +1021,5 @@ def test_remove_participant_not_found(mock_livekit_client):
 
     mock_livekit_client.aclose.assert_called_once()
 
+
 # todo - try to pass another scheme to make sure it defers to the next auth

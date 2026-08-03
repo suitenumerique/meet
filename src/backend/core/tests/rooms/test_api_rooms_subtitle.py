@@ -227,4 +227,5 @@ def test_start_subtitle_wrong_signature(settings, mock_livekit_token):
         "detail": "Invalid LiveKit token: Signature verification failed"
     }
 
+
 # todo - try to pass another scheme to make sure it defers to the next auth

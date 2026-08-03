@@ -622,4 +622,5 @@ def test_rename_participant_not_found(mock_livekit_client, room, token):
 
     mock_livekit_client.aclose.assert_called_once()
 
+
 # todo - try to pass another scheme to make sure it defers to the next auth
