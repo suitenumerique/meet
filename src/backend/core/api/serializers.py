@@ -31,8 +31,27 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.User
-        fields = ["id", "email", "full_name", "short_name", "timezone", "language"]
+        fields = [
+            "id",
+            "email",
+            "full_name",
+            "short_name",
+            "timezone",
+            "language",
+            "default_room_access_level",
+            "default_room_configuration",
+        ]
         read_only_fields = ["id", "email", "full_name", "short_name"]
+
+    def validate_default_room_configuration(self, value):
+        """Validate the default room configuration against the RoomConfiguration schema."""
+        if value is None or value == {}:
+            return value
+        try:
+            RoomConfiguration.model_validate(value)
+        except PydanticValidationError as e:
+            raise serializers.ValidationError(e.errors()) from e
+        return value
 
 
 class UserLightSerializer(serializers.ModelSerializer):

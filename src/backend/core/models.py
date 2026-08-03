@@ -189,6 +189,25 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
         default=settings.TIME_ZONE,
         help_text=_("The timezone in which the user wants to see times."),
     )
+    default_room_access_level = models.CharField(
+        max_length=50,
+        choices=RoomAccessLevel.choices,
+        blank=True,
+        null=True,
+        verbose_name=_("default room access level"),
+        help_text=_(
+            "Access level applied by default to new rooms created by this user. "
+            "When empty, the instance default is used."
+        ),
+    )
+    default_room_configuration = models.JSONField(
+        blank=True,
+        default=dict,
+        verbose_name=_("default room configuration"),
+        help_text=_(
+            "Configurations applied by default to new rooms created by this user."
+        ),
+    )
     is_device = models.BooleanField(
         _("device"),
         default=False,
