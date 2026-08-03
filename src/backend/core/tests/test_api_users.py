@@ -119,6 +119,8 @@ def test_api_users_retrieve_me_authenticated(settings):
 
     assert response.status_code == 200
     assert response.json() == {
+        "default_room_access_level": None,
+        "default_room_configuration": {},
         "id": str(user.id),
         "email": user.email,
         "full_name": user.full_name,
