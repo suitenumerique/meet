@@ -41,6 +41,7 @@ and this project adheres to
 - 🐛(frontend) fall back to user.full_name on request-entry
 - 🚸(frontend) show two initials in the Avatar when possible
 - 🩹(all) clear the SonarCloud reliability finding and the lint debt
+- 🐛(frontend) stop the installed app reopening the room it came from
 
 ## [1.24.0] - 2026-07-21
 

@@ -26,6 +26,20 @@ export default defineConfig(({ mode }) => {
             dest: 'assets/mediapipe/wasm',
             rename: { stripBase: 4 },
           },
+          {
+            // Kept out of public/ so the instance title reaches the manifest,
+            // the way index.html gets it through %VITE_APP_TITLE%.
+            src: 'site.webmanifest',
+            dest: '.',
+            transform: (content) => {
+              const title = env.VITE_APP_TITLE
+              return JSON.stringify({
+                ...JSON.parse(content),
+                name: title,
+                short_name: title,
+              })
+            },
+          },
         ],
       }),
       env.VITE_ANALYZE === 'true' &&
