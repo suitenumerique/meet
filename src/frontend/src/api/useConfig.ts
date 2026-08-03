@@ -2,6 +2,7 @@ import { fetchApi } from './fetchApi'
 import { keys } from './queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { RecordingMode } from '@/features/recording'
+import type { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import type { Track } from 'livekit-client'
 type Source = Track.Source
 
@@ -48,6 +49,9 @@ export interface ApiConfig {
     enabled: boolean
     international_phone_number?: string
     default_country?: string
+  }
+  resource?: {
+    default_access_level?: ApiAccessLevel
   }
   manifest_link?: string
   livekit: {
