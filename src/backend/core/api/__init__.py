@@ -61,6 +61,9 @@ def get_frontend_configuration(request):
             ],
         },
         "telephony": build_telephony_config(),
+        "resource": {
+            "default_access_level": settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
+        },
         "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
