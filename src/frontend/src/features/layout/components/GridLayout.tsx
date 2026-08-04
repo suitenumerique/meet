@@ -12,7 +12,6 @@ import { useGridLayout } from '../hooks/useGridLayout'
 import { PaginationControl } from './PaginationControl'
 import { useSpeakerPromotionTrigger } from '../hooks/useSpeakerPromotionTrigger'
 
-
 /** @public */
 export interface GridLayoutProps
   extends
