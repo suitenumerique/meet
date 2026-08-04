@@ -10,16 +10,16 @@ dependencies = [
     "celery==5.6.3",
     "redis==5.2.1",
     "minio==7.2.20",
-    "openai==2.44.0",
-    "posthog==7.20.5",
+    "openai==2.48.0",
+    "posthog==7.29.0",
     "requests==2.34.2",
-    "sentry-sdk[fastapi, celery]==2.63.0",
-    "langfuse==4.11.0"
+    "sentry-sdk[fastapi, celery]==2.66.1",
+    "langfuse==4.14.1"
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff==0.15.19",
+    "ruff==0.16.0",
     "pytest==9.1.1",
     "responses>=0.25.8",
 ]

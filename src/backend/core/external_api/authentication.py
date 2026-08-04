@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class BaseJWTAuthentication(authentication.BaseAuthentication):
     """Base JWT authentication class."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0917
         self,
         secret_key,
         algorithm,

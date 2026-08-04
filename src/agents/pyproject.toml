@@ -4,19 +4,19 @@ name = "agents"
 version = "1.24.0"
 requires-python = ">=3.12"
 dependencies = [
-    "livekit-agents==1.6.4",
-    "livekit-plugins-deepgram==1.6.4",
-    "livekit-plugins-silero==1.6.4",
+    "livekit-agents==1.6.7",
+    "livekit-plugins-deepgram==1.6.7",
+    "livekit-plugins-silero==1.6.7",
     "livekit-plugins-kyutai-lasuite==0.0.6",
     "python-dotenv==1.2.2",
     "protobuf==6.33.6",
     "minio==7.2.20",
-    "sentry-sdk==2.60.0",
+    "sentry-sdk==2.66.1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff==0.15.19",
+    "ruff==0.16.0",
 ]
 
 [tool.uv]

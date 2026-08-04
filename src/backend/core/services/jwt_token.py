@@ -30,7 +30,7 @@ class TokenDecodeError(JWTError):
 class JwtTokenService:
     """Generic JWT token service with configurable settings."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0917
         self,
         secret_key: str,
         algorithm: str,
