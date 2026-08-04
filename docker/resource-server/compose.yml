@@ -1,12 +1,13 @@
 version: '3'
 
 # You can add any necessary service here that will join the same docker network
-# sharing keycloak. Services added to the 'meet_resource-server' network will be
-# able to communicate with keycloak and the backend on that network.
+# sharing the OIDC provider. Services added to the 'meet_resource-server'
+# network will be able to communicate with dex (through nginx) and the backend
+# on that network.
 services:
   # busybox service is only used for testing purposes. It provides curl to test
-  # connectivity to the backend and keycloak services. Replace this with your
-  # relevant application services that need to communicate with keycloak.
+  # connectivity to the backend and the OIDC provider. Replace this with your
+  # relevant application services that need to communicate with them.
   busybox:
     image: alpine:latest
     privileged: true

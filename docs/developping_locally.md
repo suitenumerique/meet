@@ -71,8 +71,12 @@ $ make bootstrap FLUSH_ARGS='--no-input'
 
 2. Access the project:
 - The frontend is available at [http://localhost:3000](http://localhost:3000) with the default credentials:
-    - username: meet
+    - email: meet@meet.world
     - password: meet
+
+  Authentication is handled by [dex](https://dexidp.io/), configured in
+  `docker/auth/dex.yaml`. It logs you in by email address, and its storage is
+  in-memory: restarting the `dex` container logs everyone out.
 - The Django backend is available at [http://localhost:8071](http://localhost:8071)
 
 ---

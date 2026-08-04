@@ -147,7 +147,7 @@ services:
     volumes:
       - ./docker/files/etc/nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
-      - keycloak
+      - dex
       - app-dev
     networks:
       - resource-server
@@ -187,40 +187,16 @@ services:
     volumes:
       - ".:/app"
 
-  kc_postgresql:
-    image: postgres:14.3
-    ports:
-      - "5433:5432"
-    env_file:
-      - env.d/development/kc_postgresql
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:20.0.1
+  # OIDC provider for the development stack. Dex uses in-memory storage, so it
+  # needs no database and no volume: restarting it rotates the signing keys and
+  # drops every active session, which is fine locally.
+  dex:
+    image: dexidp/dex:v2.45.1
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
     volumes:
-      - ./docker/auth/realm.json:/opt/keycloak/data/import/realm.json
-    command:
-      - start-dev
-      - --features=preview
-      - --import-realm
-      - --proxy=edge
-      - --hostname-url=http://localhost:8083
-      - --hostname-admin-url=http://localhost:8083/
-      - --hostname-strict=false
-      - --hostname-strict-https=false
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB: postgres
-      KC_DB_URL_HOST: kc_postgresql
-      KC_DB_URL_DATABASE: keycloak
-      KC_DB_PASSWORD: pass
-      KC_DB_USERNAME: meet
-      KC_DB_SCHEMA: public
-      PROXY_ADDRESS_FORWARDING: 'true'
-    ports:
-      - "8080:8080"
-    depends_on:
-      - kc_postgresql
+      - ./docker/auth/dex.yaml:/etc/dex/config.yaml:ro
+    expose:
+      - "5556"
 
   livekit:
     image: livekit/livekit-server

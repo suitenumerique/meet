@@ -1,0 +1,93 @@
+# Dex configuration for the local development stack.
+#
+# This file replaces the former Keycloak "meet" realm (docker/auth/realm.json).
+# The client and the users below are a one-to-one port of that realm.
+#
+# Storage is in-memory on purpose: no database container, no volume, ~30 MB of
+# RAM instead of the Keycloak + PostgreSQL pair. The trade-off is that
+# restarting the `dex` service rotates the signing keys and drops every active
+# session, so you have to log in again.
+
+# Must match OIDC_OP_URL in env.d/development/common. Dex serves all of its
+# endpoints under the path component of the issuer, i.e. /dex/auth, /dex/token,
+# /dex/keys, /dex/userinfo and /dex/.well-known/openid-configuration.
+issuer: http://localhost:8083/dex
+
+storage:
+  type: memory
+
+web:
+  http: 0.0.0.0:5556
+  allowedOrigins:
+    - http://localhost:3000
+    - http://localhost:8071
+
+logger:
+  level: info
+  format: text
+
+oauth2:
+  # Logging in implies authorization: no consent screen, as with the realm.
+  skipApprovalScreen: true
+
+expiry:
+  idTokens: 24h
+  signingKeys: 6h
+
+staticClients:
+  - id: meet
+    name: Meet
+    secret: ThisIsAnExampleKeyForDevPurposeOnly
+    # Dex does not support wildcards: every callback URL must be listed
+    # explicitly. The path is the one exposed by mozilla-django-oidc through
+    # lasuite.oidc_login, mounted under api/<version>/ by core.urls.
+    redirectURIs:
+      - http://localhost:3000/api/v1.0/callback/
+      - http://localhost:3200/api/v1.0/callback/
+      - http://localhost:8070/api/v1.0/callback/
+      - http://localhost:8071/api/v1.0/callback/
+      - http://localhost:8088/api/v1.0/callback/
+
+enablePasswordDB: true
+
+# Dex's local password database authenticates on the *email address*, not on
+# the username, so the login is now "meet@meet.world" (password unchanged).
+#
+# Hashes are bcrypt with cost 10, the minimum dex accepts. To add a user:
+#   htpasswd -bnBC 10 "" <password> | tr -d ':\n'
+staticPasswords:
+  - email: meet@meet.world
+    hash: "$2b$10$qVCVTnaF67S/7a.pQM4djOgpj61FxD/yz6LoiQdtX0TKISelAfZxC"
+    username: meet
+    name: John Doe
+    preferredUsername: John
+    userID: 4ad6106f-a64f-43eb-ad0e-380d2cad9a9d
+    groups:
+      - user
+
+  - email: user@chromium.e2e
+    hash: "$2b$10$4Rs3Jd/Q23RM09g7c1Z/yeGmEjoAYlMKXDBkkjERaRDlz0Doiwl2q"
+    username: user-e2e-chromium
+    name: E2E Chromium
+    preferredUsername: E2E
+    userID: 1cd83dfc-153f-4987-b8a6-a2ac72d39122
+    groups:
+      - user
+
+  - email: user@webkit.e2e
+    hash: "$2b$10$D50UlVVMA7qWlB.Pw8P02eMJpo8qfwWuGiA63IeTqq/3mAE7RyH3m"
+    username: user-e2e-webkit
+    name: E2E Webkit
+    preferredUsername: E2E
+    userID: 9b9bd390-a6e5-42f8-a06d-9a11ede7bb8c
+    groups:
+      - user
+
+  - email: user@firefox.e2e
+    hash: "$2b$10$0D8WW7.KXMkzSY2b9JhwYeIM3WkTPQCwGd36/G3TZ/HHh4ObCVRga"
+    username: user-e2e-firefox
+    name: E2E Firefox
+    preferredUsername: E2E
+    userID: ec3e8750-7629-42f1-a0c3-6e23968a2fba
+    groups:
+      - user

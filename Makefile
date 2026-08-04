@@ -81,7 +81,6 @@ create-env-files: \
 	env.d/development/common \
 	env.d/development/crowdin \
 	env.d/development/postgresql \
-	env.d/development/kc_postgresql \
 	env.d/development/summary \
 	env.d/development/kube-secret \
 	env.d/development/multi_user_transcriber \
@@ -287,9 +286,6 @@ env.d/development/common:
 
 env.d/development/postgresql:
 	cp -n env.d/development/postgresql.dist env.d/development/postgresql
-
-env.d/development/kc_postgresql:
-	cp -n env.d/development/kc_postgresql.dist env.d/development/kc_postgresql
 
 env.d/development/summary:
 	cp -n env.d/development/summary.dist env.d/development/summary

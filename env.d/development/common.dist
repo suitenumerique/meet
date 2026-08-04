@@ -31,24 +31,35 @@ MEDIA_BASE_URL=http://localhost:3000
 FILE_UPLOAD_ENABLED=True
 
 # OIDC
-OIDC_OP_JWKS_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/certs
-OIDC_OP_AUTHORIZATION_ENDPOINT=http://localhost:8083/realms/meet/protocol/openid-connect/auth
-OIDC_OP_TOKEN_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/token
-OIDC_OP_USER_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/userinfo
-OIDC_OP_INTROSPECTION_ENDPOINT=http://nginx:8083/realms/meet/protocol/openid-connect/token/introspect
-OIDC_OP_URL=http://localhost:8083/realms/meet
+# Provider is dex (docker/auth/dex.yaml), served behind nginx on port 8083.
+# Endpoints reached by the browser use localhost, the ones called server-side
+# by the backend use the nginx service name.
+OIDC_OP_JWKS_ENDPOINT=http://nginx:8083/dex/keys
+OIDC_OP_AUTHORIZATION_ENDPOINT=http://localhost:8083/dex/auth
+OIDC_OP_TOKEN_ENDPOINT=http://nginx:8083/dex/token
+OIDC_OP_USER_ENDPOINT=http://nginx:8083/dex/userinfo
+OIDC_OP_INTROSPECTION_ENDPOINT=http://nginx:8083/dex/token/introspect
+OIDC_OP_URL=http://localhost:8083/dex
 
 OIDC_RP_CLIENT_ID=meet
 OIDC_RP_CLIENT_SECRET=ThisIsAnExampleKeyForDevPurposeOnly
 OIDC_RP_SIGN_ALGO=RS256
-OIDC_RP_SCOPES="openid email"
+# "profile" is required: dex only emits the name claims under that scope.
+OIDC_RP_SCOPES="openid email profile"
+
+# Dex exposes the display name through the standard "name" and
+# "preferred_username" claims and never emits given_name/family_name.
+OIDC_USERINFO_FULLNAME_FIELDS=name
+OIDC_USERINFO_SHORTNAME_FIELD=preferred_username
 
 LOGIN_REDIRECT_URL=http://localhost:3000
 LOGIN_REDIRECT_URL_FAILURE=http://localhost:3000
 LOGOUT_REDIRECT_URL=http://localhost:3000
 
 OIDC_REDIRECT_ALLOWED_HOSTS=localhost:8083,localhost:3000
-OIDC_AUTH_REQUEST_EXTRA_PARAMS={"acr_values": "eidas1"}
+# Dex has no notion of ACR, the eIDAS level requested from ProConnect in
+# production is meaningless here and would just be ignored.
+OIDC_AUTH_REQUEST_EXTRA_PARAMS={}
 
 OIDC_RS_CLIENT_ID=meet
 OIDC_RS_CLIENT_SECRET=ThisIsAnExampleKeyForDevPurposeOnly
