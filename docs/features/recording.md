@@ -126,6 +126,61 @@ RECORDING_STORAGE_EVENT_TOKEN = <token>
 > Questions? Open an issue on [GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) or join our [Matrix community](https://matrix.to/#/#meet-official:matrix.org).
 
 
+## Push recordings to Drive
+
+Once a recording is over, it can be pushed (streamed) to the user's [Drive](https://github.com/suitenumerique/drive), in addition to staying in the object storage.
+
+Drive is called as a resource server, following its
+[resource server documentation](https://github.com/suitenumerique/drive/blob/main/docs/resource_server.md):
+
+
+### Special requirements
+
+- Drive configured as an OIDC resource server, accepting Meet's audience
+  (`OIDC_RS_ALLOWED_AUDIENCES` must contain Meet's client id), with the `items`
+  endpoint allowing the `list`, `children` and `upload_ended` actions.
+- `OIDC_STORE_ACCESS_TOKEN` enabled on Meet, along with
+  `OIDC_STORE_REFRESH_TOKEN_KEY`, the Fernet key encrypting the stored token.
+
+> [!CAUTION]
+> This is a proof of concept: the access token is captured when the recording
+> starts and assumed to still be valid when the recording ends. Long recordings
+> may therefore fail to be pushed. Exchanging it for a long-lived, narrowly
+> scoped token is the intended follow-up.
+
+### Configuration options
+
+| Option                                                | Type        | Default | Description                                                                                                                                        |
+| ----------------------------------------------------- | ----------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RECORDING_PUSH_TO_DRIVE_ENABLED**                   | Boolean     | `False` | Enable pushing recordings to the owner's Drive.                                                                                                     |
+| **DRIVE_API_BASE_URL**                                | String      | `None`  | Base URL of Drive's external API, e.g. `https://fichiers.numerique.gouv.fr/external_api/v1.0`.                                                                |
+| **RECORDING_PUSH_TO_DRIVE_SIGNED_URL_EXPIRY_SECONDS** | Integer     | `3600`  | Lifetime of the signed URL the worker downloads the recording from.                                                                                 |
+| **OIDC_STORE_ACCESS_TOKEN**                           | Boolean     | `False` | Keep the user's access token in the session, required to call Drive on their behalf.                                                                 |
+| **OIDC_STORE_REFRESH_TOKEN_KEY**                      | Secret/File | `None`  | Fernet key encrypting OIDC tokens at rest. Generate one with `Fernet.generate_key()`.                                                                |
+| **DRIVE_UPLOAD_STORAGE_NETLOC**                       | String      | `None`  | Development only: `host:port` to reach Drive's object storage at, when the domain Drive signs its upload URLs with only resolves from a browser.     |
+
+### Local development
+
+Meet and Drive run as two separate compose projects, joined by the external
+`lasuite-network` (`make create-docker-network`). Meet's backend containers reach
+Drive's nginx at `drive-nginx:8083` and its object storage at `drive-minio:9000`.
+
+On the Drive side:
+
+```bash
+OIDC_RESOURCE_SERVER_ENABLED=True
+OIDC_RS_CLIENT_ID=drive
+OIDC_RS_CLIENT_SECRET=ThisIsAnExampleKeyForDevPurposeOnly
+OIDC_RS_AUDIENCE_CLAIM=client_id
+OIDC_RS_ALLOWED_AUDIENCES=meet
+```
+
+`DRIVE_UPLOAD_STORAGE_NETLOC` is needed because Drive signs its upload URLs
+with `localhost:9100`, which does not resolve from Meet's containers. The
+presigned signature covers the `Host` header, so the backend keeps announcing the
+signed host and only swaps the address it connects to.
+
+
 ## LiveKit Egress
 
 La Suite Meet uses LiveKit Egress to record room sessions. For reference, see the [LiveKit Egress repository](https://github.com/livekit/egress) and the [official documentation](https://docs.livekit.io/home/egress/overview/).

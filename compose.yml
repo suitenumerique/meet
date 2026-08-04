@@ -14,6 +14,9 @@ services:
     image: sj26/mailcatcher:latest
     ports:
       - "1081:1080"
+    networks:
+      - default
+      - lasuite
 
   minio:
     user: ${DOCKER_USER:-1000}
@@ -33,6 +36,10 @@ services:
     command: minio server --console-address :9001 /data
     volumes:
       - ./data/media:/data
+    networks:
+      default:
+        aliases:
+          - meet-minio
 
   createbuckets:
     image: minio/mc
@@ -92,6 +99,7 @@ services:
     networks:
       - resource-server
       - default
+      - lasuite
 
   celery-dev:
     user: ${DOCKER_USER:-1000}
@@ -108,6 +116,9 @@ services:
       - /app/.venv
     depends_on:
       - app-dev
+    networks:
+      - default
+      - lasuite
 
   app:
     build:
@@ -195,32 +206,32 @@ services:
       - env.d/development/kc_postgresql
 
   keycloak:
-    image: quay.io/keycloak/keycloak:20.0.1
+    image: quay.io/keycloak/keycloak:26.3.2
     volumes:
       - ./docker/auth/realm.json:/opt/keycloak/data/import/realm.json
     command:
       - start-dev
       - --features=preview
       - --import-realm
-      - --proxy=edge
-      - --hostname-url=http://localhost:8083
-      - --hostname-admin-url=http://localhost:8083/
+      - --proxy-headers=xforwarded
+      - --hostname=http://localhost:8083
       - --hostname-strict=false
-      - --hostname-strict-https=false
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_DB: postgres
       KC_DB_URL_HOST: kc_postgresql
       KC_DB_URL_DATABASE: keycloak
       KC_DB_PASSWORD: pass
       KC_DB_USERNAME: meet
       KC_DB_SCHEMA: public
-      PROXY_ADDRESS_FORWARDING: 'true'
     ports:
       - "8080:8080"
     depends_on:
       - kc_postgresql
+    networks:
+      - default
+      - lasuite
 
   livekit:
     image: livekit/livekit-server
@@ -337,3 +348,6 @@ services:
 networks:
   default:
   resource-server:
+  lasuite:
+    name: lasuite-network
+    external: true

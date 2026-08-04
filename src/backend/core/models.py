@@ -639,6 +639,17 @@ class Recording(BaseModel):
         verbose_name=_("External Process ID"),
         help_text=_("ID of the external process associated with the recording."),
     )
+    owner_access_token = models.TextField(
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name=_("Owner access token"),
+        help_text=_(
+            "Encrypted OIDC access token of the user who started the recording, "
+            "used to push the recording to their Drive on their behalf. "
+            "Dropped as soon as the push has been attempted."
+        ),
+    )
 
     class Meta:
         db_table = "meet_recording"
@@ -740,6 +751,39 @@ class Recording(BaseModel):
             return False
 
         return self.expired_at < timezone.now()
+
+    def set_owner_access_token(self, access_token: str) -> None:
+        """Store the OIDC access token of the user who started the recording.
+
+        It is stored encrypted, and only long enough for the worker to push the
+        recording to that user's Drive once the recording is over.
+        """
+
+        self.owner_access_token = utils.encrypt_secret(access_token)
+        self.save(update_fields=["owner_access_token", "updated_at"])
+
+    def get_owner_access_token(self) -> Optional[str]:
+        """Return the stored OIDC access token, or None if there is none left."""
+
+        if not self.owner_access_token:
+            return None
+
+        try:
+            return utils.decrypt_secret(self.owner_access_token)
+        except utils.SecretDecryptionError:
+            logger.exception(
+                "Could not decrypt the access token of recording %s", self.id
+            )
+            return None
+
+    def clear_owner_access_token(self) -> None:
+        """Drop the stored access token, it is a user credential."""
+
+        if self.owner_access_token is None:
+            return
+
+        self.owner_access_token = None
+        self.save(update_fields=["owner_access_token", "updated_at"])
 
 
 class RecordingAccess(BaseAccess):

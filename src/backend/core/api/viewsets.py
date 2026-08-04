@@ -383,6 +383,37 @@ class RoomViewSet(
                 room.id,
             )
 
+    @staticmethod
+    def _store_drive_credentials(request, recording):
+        """Keep the OIDC access token needed to push the recording to Drive later.
+
+        Pushing happens long after this request, when the egress is over and the
+        user may be gone, so the token has to be stored.
+
+        POC limitation: we assume the token is still valid by then. The target
+        design is a token exchange performed here, to get a long-lived
+        token narrowly scoped to that upload.
+        """
+
+        if not settings.RECORDING_PUSH_TO_DRIVE_ENABLED:
+            return
+
+        if recording.mode != models.RecordingModeChoices.SCREEN_RECORDING:
+            # Only videos are pushed to Drive, no need for a token otherwise.
+            return
+
+        access_token = request.session.get("oidc_access_token")
+
+        if not access_token:
+            logger.warning(
+                "No OIDC access token in session, recording %s will not be pushed "
+                "to Drive. Is OIDC_STORE_ACCESS_TOKEN enabled?",
+                recording.id,
+            )
+            return
+
+        recording.set_owner_access_token(access_token)
+
     @decorators.action(
         detail=True,
         methods=["post"],
@@ -418,6 +449,7 @@ class RoomViewSet(
                     role=models.RoleChoices.OWNER,
                     recording=recording,
                 )
+                self._store_drive_credentials(request, recording)
 
         except (DjangoValidationError, IntegrityError):
             # DjangoValidationError covers the Python-level check (full_clean);

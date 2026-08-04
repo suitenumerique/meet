@@ -17,6 +17,7 @@ from typing import List, Optional
 from uuid import uuid4
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import default_storage
 
 import aiohttp
@@ -25,6 +26,7 @@ import botocore
 import magic
 import phonenumbers
 from asgiref.sync import async_to_sync
+from cryptography.fernet import Fernet, InvalidToken
 from livekit.api import (  # pylint: disable=E0611
     AccessToken,
     ListRoomsRequest,
@@ -415,6 +417,42 @@ def generate_upload_policy(file):
     )
 
     return policy
+
+
+class SecretDecryptionError(Exception):
+    """Raised when a stored secret cannot be decrypted."""
+
+
+@lru_cache(maxsize=1)
+def get_cipher_suite():
+    """Return the Fernet key used to encrypt secrets at rest.
+
+    The same key as django-lasuite's OIDC token storage.
+    """
+
+    key = settings.OIDC_STORE_REFRESH_TOKEN_KEY
+
+    if not key:
+        raise ImproperlyConfigured("OIDC_STORE_REFRESH_TOKEN_KEY setting is required.")
+
+    return Fernet(key)
+
+
+def encrypt_secret(value: str) -> str:
+    """Encrypt a secret meant to be stored at rest."""
+
+    return get_cipher_suite().encrypt(value.encode()).decode()
+
+
+def decrypt_secret(value: str) -> str:
+    """Decrypt a secret stored by `encrypt_secret`."""
+
+    try:
+        return get_cipher_suite().decrypt(value.encode()).decode()
+    except InvalidToken as exc:
+        raise SecretDecryptionError(
+            "The stored secret could not be decrypted."
+        ) from exc
 
 
 def generate_download_s3_url(
