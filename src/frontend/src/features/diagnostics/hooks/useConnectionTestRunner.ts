@@ -8,6 +8,7 @@ import {
   type CheckInfo,
 } from 'livekit-client'
 import { fetchConnectionTestDetails } from '../api/fetchConnectionTestDetails'
+import { SelectedCandidateCheck } from '../checks/selectedCandidate'
 import {
   createInitialSteps,
   type ConnectionTestLog,
@@ -22,6 +23,7 @@ const LIVEKIT_STEP_IDS: ConnectionTestStepId[] = [
   'webrtc',
   'turn',
   'reconnect',
+  'selectedCandidate',
   'publishAudio',
   'publishVideo',
 ]
@@ -245,6 +247,9 @@ export const useConnectionTestRunner = () => {
       )
       await runStep('reconnect', signal, async () =>
         fromCheckInfo(await checker.checkReconnect())
+      )
+      await runStep('selectedCandidate', signal, async () =>
+        fromCheckInfo(await checker.createAndRunCheck(SelectedCandidateCheck))
       )
 
       if (microphone.state !== 'success') {

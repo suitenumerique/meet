@@ -21,6 +21,7 @@
     "webrtc": "WebRTC",
     "turn": "TURN",
     "reconnect": "Reconnect",
+    "selectedCandidate": "Selected route",
     "publishAudio": "Audio publishing",
     "publishVideo": "Video publishing"
   },

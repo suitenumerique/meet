@@ -7,6 +7,7 @@ export type ConnectionTestStepId =
   | 'webrtc'
   | 'turn'
   | 'reconnect'
+  | 'selectedCandidate'
   | 'publishAudio'
   | 'publishVideo'
 
@@ -45,6 +46,7 @@ export const CONNECTION_TEST_GROUPS: ReadonlyArray<{
       'webrtc',
       'turn',
       'reconnect',
+      'selectedCandidate',
       'publishAudio',
       'publishVideo',
     ],
