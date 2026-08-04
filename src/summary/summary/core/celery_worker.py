@@ -578,7 +578,7 @@ def task_retry_handler_transcript(request=None, reason=None, einfo=None, **kwarg
 
 
 @signals.task_failure.connect(sender=process_audio_transcribe_v2_task)
-def handle_transcribe_v2_failed(
+def handle_transcribe_v2_failed(  # noqa: PLR0917
     sender,
     task_id=None,
     exception=None,
@@ -674,7 +674,7 @@ def task_retry_handler_summary(request=None, reason=None, einfo=None, **kwargs):
 
 
 @signals.task_failure.connect(sender=summarize_v2_task)
-def handle_summarize_v2_failed(
+def handle_summarize_v2_failed(  # noqa: PLR0917
     sender,
     task_id=None,
     exception=None,

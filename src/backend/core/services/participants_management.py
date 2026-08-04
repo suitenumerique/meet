@@ -112,7 +112,7 @@ class ParticipantsManagement:
             await lkapi.aclose()
 
     @async_to_sync
-    async def update(
+    async def update(  # noqa: PLR0917
         self,
         room_name: str,
         identity: str,

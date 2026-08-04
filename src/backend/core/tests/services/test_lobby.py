@@ -3,7 +3,7 @@ Test lobby service.
 """
 
 # pylint: disable=W0621,W0613, W0212, R0913
-# ruff: noqa: PLR0913
+# ruff: noqa: PLR0913, PLR0917
 
 import uuid
 from unittest import mock

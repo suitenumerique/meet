@@ -59,7 +59,7 @@ def generate_color(identity: str) -> str:
     return f"hsl({hue}, {saturation}%, {lightness}%)"
 
 
-def generate_token(
+def generate_token(  # noqa: PLR0917
     room: str,
     user,
     username: Optional[str] = None,
@@ -139,7 +139,7 @@ def generate_token(
     return token.to_jwt()
 
 
-def generate_livekit_config(
+def generate_livekit_config(  # noqa: PLR0917
     room_id: str,
     user,
     username: str,
