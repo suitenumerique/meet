@@ -92,8 +92,6 @@ def test_initialization(
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-# Without storage events, completion falls back to the egress event itself.
-@override_settings(RECORDING_STORAGE_EVENT_ENABLE=False)
 def test_handle_egress_ended_success(
     mock_update_metadata, mock_notify, mode, notification_type, service
 ):
@@ -153,8 +151,6 @@ def test_handle_egress_updated_success(
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-# Without storage events, completion falls back to the egress event itself.
-@override_settings(RECORDING_STORAGE_EVENT_ENABLE=False)
 def test_handle_egress_ended_metadata_update_fails(
     mock_update_metadata, mock_notify, mode, notification_type, service
 ):
