@@ -47,6 +47,7 @@ and this project adheres to
 - 🐛(backend) serialize lazy title in summary payload
 - 💄(frontend) show pointer cursor on interactive switches
 - 🐛(frontend) fix icon centering in the Switch primitive
+- 🐛(frontend) keep Unicode initials intact in avatar
 
 ## [1.24.0] - 2026-07-21
 
