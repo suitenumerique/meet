@@ -13,7 +13,8 @@ and this project adheres to
 - 📝(doc) create complete documentation website for Meet
 - 🌐(i18n) add Portuguese language support
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections
-- ✨(frontend) tell participants when a recording is interrupted
+- ✨(frontend) tell participants when a recording is interrupte
+- ✨(backend) add mechanism to push recordings to the LaSuite drive
 
 ### Changed
 

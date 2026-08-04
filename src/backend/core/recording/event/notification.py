@@ -18,6 +18,7 @@ from livekit import api as livekit_api
 from core import audit, auditing, models, utils
 from core.analytics import UserFeatureFlag, is_user_feature_flag_enabled
 from core.tasks.mail import send_email
+from core.tasks.push_recording import push_recording
 from core.utils import generate_download_s3_url
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,15 @@ class NotificationService:
     """Service for processing recordings and notifying external services."""
 
     def notify_external_services(self, recording):
-        """Process a recording based on its mode."""
+        """Process a recording, then push the video to the owner's Drive."""
+
+        try:
+            return self._notify_by_mode(recording)
+        finally:
+            self._push_recording_to_drive(recording)
+
+    def _notify_by_mode(self, recording):
+        """Route a recording to the services its mode calls for."""
 
         if recording.mode == models.RecordingModeChoices.TRANSCRIPT:
             return self._notify_summary_service(recording)
@@ -238,6 +247,31 @@ class NotificationService:
             .first()
         )
         return oldest_access.user if oldest_access else None
+
+    @staticmethod
+    def _push_recording_to_drive(recording: models.Recording):
+        """Hand the recording over to the task pushing it to the owner's Drive."""
+
+        if not settings.RECORDING_PUSH_TO_DRIVE_ENABLED:
+            return
+
+        if recording.mode != models.RecordingModeChoices.SCREEN_RECORDING:
+            recording.clear_owner_access_token()
+            return
+
+        if not recording.owner_access_token:
+            logger.warning(
+                "No access token stored for recording %s, skipping the Drive push",
+                recording.id,
+            )
+            return
+
+        try:
+            push_recording.delay(str(recording.id))
+        except Exception:  # pylint: disable=broad-except
+            logger.exception(
+                "Could not schedule the Drive push of recording %s", recording.id
+            )
 
     @staticmethod
     def _notify_summary_service_v1(recording: models.Recording):

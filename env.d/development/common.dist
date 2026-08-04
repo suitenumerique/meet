@@ -24,10 +24,16 @@ MEET_BASE_URL="http://localhost:8072"
 # Media
 STORAGES_STATICFILES_BACKEND=django.contrib.staticfiles.storage.StaticFilesStorage
 AWS_S3_DOMAIN_REPLACE=http://localhost:9000
+<<<<<<< HEAD
 AWS_S3_ENDPOINT_URL=http://garage:9000
 AWS_S3_ACCESS_KEY_ID=meet-access-key
 AWS_S3_SECRET_ACCESS_KEY=meet-secret-access-key
 AWS_S3_REGION_NAME=local
+=======
+AWS_S3_ENDPOINT_URL=http://meet-minio:9000
+AWS_S3_ACCESS_KEY_ID=meet
+AWS_S3_SECRET_ACCESS_KEY=password
+>>>>>>> 9bfb46f2 (wip)
 MEDIA_BASE_URL=http://localhost:3000
 FILE_UPLOAD_ENABLED=True
 
@@ -51,6 +57,10 @@ LOGOUT_REDIRECT_URL=http://localhost:3000
 OIDC_REDIRECT_ALLOWED_HOSTS=localhost:8083,localhost:3000
 OIDC_AUTH_REQUEST_EXTRA_PARAMS={"acr_values": "eidas1"}
 
+# The key below encrypts OIDC tokens at rest.
+OIDC_STORE_ACCESS_TOKEN=True
+OIDC_STORE_REFRESH_TOKEN_KEY=
+
 OIDC_RS_CLIENT_ID=meet
 OIDC_RS_CLIENT_SECRET=ThisIsAnExampleKeyForDevPurposeOnly
 
@@ -70,6 +80,14 @@ SUMMARY_SERVICE_API_TOKEN=password
 SUMMARY_SERVICE_WEBHOOK_API_TOKEN=webhook-password
 RECORDING_DOWNLOAD_BASE_URL=http://localhost:3000/recording
 
+<<<<<<< HEAD
+=======
+# Push recordings to Drive
+# DRIVE_UPLOAD_STORAGE_NETLOC is a development-only workaround.
+RECORDING_PUSH_TO_DRIVE_ENABLED=True
+DRIVE_API_BASE_URL=http://drive-app-dev:8000/external_api/v1.0
+DRIVE_UPLOAD_STORAGE_NETLOC=drive-minio:9000
+>>>>>>> 9bfb46f2 (wip)
 
 # Recording encoding (LiveKit Egress advanced options).
 # Every video recording is encoded with parameters (height, width, fps, kbps) derived
