@@ -233,6 +233,7 @@ services:
     build:
       context: ./src/agents
       target: development
+    user: ${DOCKER_USER:-1000}
     command: ["python", "metadata_collector.py", "dev"]
     env_file:
       - env.d/development/metadata_collector
@@ -251,6 +252,7 @@ services:
     build:
       context: ./src/agents
       target: development
+    user: ${DOCKER_USER:-1000}
     command: ["python", "multi_user_transcriber.py", "dev"]
     env_file:
       - env.d/development/multi_user_transcriber
