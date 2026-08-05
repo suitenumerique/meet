@@ -1612,9 +1612,13 @@ class DiagnosticsViewSet(viewsets.ViewSet):
         # eject someone who stays connected. Schedule a hard DeleteRoom when Celery
         # is available.
         if settings.CELERY_ENABLED:
+            max_age = (
+                settings.CONNECTION_TEST_TOKEN_TTL_SECONDS
+                + settings.CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS
+            )
             delete_connection_test_room.apply_async(
                 args=[room],
-                countdown=settings.CONNECTION_TEST_ROOM_MAX_AGE_SECONDS,
+                countdown=max_age,
             )
 
         return drf_response.Response(
