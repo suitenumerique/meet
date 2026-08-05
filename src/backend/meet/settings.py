@@ -675,9 +675,13 @@ class Base(Configuration):
         environ_name="CONNECTION_TEST_TOKEN_TTL_SECONDS",
         environ_prefix=None,
     )
-    CONNECTION_TEST_ROOM_MAX_AGE_SECONDS = values.PositiveIntegerValue(
-        300,
-        environ_name="CONNECTION_TEST_ROOM_MAX_AGE_SECONDS",
+    # The effective room max age is always computed as
+    # CONNECTION_TEST_TOKEN_TTL_SECONDS + this value. Token expiration does
+    # not automatically delete rooms, so once that age is reached, the
+    # cleanup worker will explicitly delete the room if it still exists.
+    CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS = values.PositiveIntegerValue(
+        10,
+        environ_name="CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS",
         environ_prefix=None,
     )
     CONNECTION_TEST_ROOM_PREFIX = values.Value(

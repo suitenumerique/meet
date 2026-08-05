@@ -118,14 +118,15 @@ def test_api_diagnostics_connection_schedules_room_deletion(
     """When Celery is enabled, schedule a hard room delete after max age."""
 
     settings.CELERY_ENABLED = True
-    settings.CONNECTION_TEST_ROOM_MAX_AGE_SECONDS = 300
+    settings.CONNECTION_TEST_TOKEN_TTL_SECONDS = 300
+    settings.CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS = 10
     settings.CONNECTION_TEST_ROOM_PREFIX = "connection-test"
 
     response = client.post("/api/v1.0/diagnostics/connection/")
 
     assert response.status_code == 200
     room = response.json()["livekit"]["room"]
-    mock_apply_async.assert_called_once_with(args=[room], countdown=300)
+    mock_apply_async.assert_called_once_with(args=[room], countdown=310)
 
 
 @mock.patch("core.api.viewsets.delete_connection_test_room.apply_async")
