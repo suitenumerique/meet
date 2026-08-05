@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.25.0] - 2026-08-05
+
 ### Added
 
 - ✨(summary) report exception type in failure analytics
