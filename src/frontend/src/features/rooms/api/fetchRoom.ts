@@ -10,5 +10,5 @@ export const fetchRoom = ({
 }) => {
   const query = username ? `?username=${encodeURIComponent(username)}` : ''
 
-  return fetchApi<ApiRoom>(`/rooms/${roomId}${query}`)
+  return fetchApi<ApiRoom>(`/rooms/${roomId}/${query}`)
 }
