@@ -3,12 +3,12 @@ import { fetchApi } from '@/api/fetchApi'
 
 export const fetchRoom = ({
   roomId,
-  username = '',
+  username,
 }: {
   roomId: string
   username?: string
 }) => {
-  return fetchApi<ApiRoom>(
-    `/rooms/${roomId}?username=${encodeURIComponent(username)}`
-  )
+  const query = username ? `?username=${encodeURIComponent(username)}` : ''
+
+  return fetchApi<ApiRoom>(`/rooms/${roomId}${query}`)
 }
