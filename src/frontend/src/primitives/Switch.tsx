@@ -35,30 +35,29 @@ const StyledSwitch = styled(RACSwitch, {
         transitionDelay: '0ms',
       },
     },
-    '& .checkmark': {
+    '& .checkmark, & .cross': {
       position: 'absolute',
-      display: 'block',
-      top: '50%',
-      right: '0.1rem',
-      transform: 'translateY(-50%)',
-      color: 'primary.800',
-      fontSize: '0.75rem',
-      fontWeight: 'bold',
+      top: 0,
+      bottom: 0,
+      width: '1.313rem', // knob width + 2 × knob margin
+      display: 'grid',
+      placeItems: 'center',
       pointerEvents: 'none',
       zIndex: 1,
+      '& svg': {
+        display: 'block',
+        width: '0.875rem',
+        height: '0.875rem',
+      },
+    },
+    '& .checkmark': {
+      right: 0,
+      color: 'primary.800',
       opacity: 0,
     },
     '& .cross': {
-      position: 'absolute',
-      display: 'block',
-      top: '50%',
-      left: '0.13rem',
-      transform: 'translateY(-50%)',
+      left: 0,
       color: 'white',
-      fontSize: '0.70rem',
-      fontWeight: 'bold',
-      pointerEvents: 'none',
-      zIndex: 1,
       opacity: 1,
       transition: 'opacity 200ms',
       transitionDelay: '0ms',
@@ -115,10 +114,10 @@ export const Switch = ({ children, ...props }: SwitchProps) => (
       <>
         <div className="indicator">
           <span className="checkmark" aria-hidden="true">
-            <RiCheckLine size={16} />
+            <RiCheckLine />
           </span>
           <span className="cross" aria-hidden="true">
-            <RiCloseFill size={16} />
+            <RiCloseFill />
           </span>
         </div>
         {typeof children === 'function' ? children(renderProps) : children}

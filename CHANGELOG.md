@@ -46,6 +46,7 @@ and this project adheres to
 - 🐛(frontend) stop the installed app reopening the room it came from
 - 🐛(backend) serialize lazy title in summary payload
 - 💄(frontend) show pointer cursor on interactive switches
+- 🐛(frontend) fix icon centering in the Switch primitive
 
 ## [1.24.0] - 2026-07-21
 
