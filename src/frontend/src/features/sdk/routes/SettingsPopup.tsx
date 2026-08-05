@@ -7,7 +7,6 @@ import { css } from '@/styled-system/css'
 import { Button, Field, H, Text } from '@/primitives'
 import { Spinner } from '@/primitives/Spinner'
 import { keys } from '@/api/queryKeys'
-import { queryClient } from '@/api/queryClient'
 import { useConfig } from '@/api/useConfig'
 import { useUser } from '@/features/auth/api/useUser'
 import { authUrl } from '@/features/auth/utils/authUrl'
@@ -109,11 +108,7 @@ const SettingsPopup = () => {
     patchRoom({
       roomId: roomSlug,
       room: { configuration: newConfiguration },
-    })
-      .then((updatedRoom) => {
-        queryClient.setQueryData([keys.room, roomSlug], updatedRoom)
-      })
-      .catch((e) => console.error(e))
+    }).catch((e) => console.error(e))
   }
 
   const updateSource = (sources: Source[], enabled: boolean) => {
@@ -334,11 +329,7 @@ const SettingsPopup = () => {
               patchRoom({
                 roomId: roomSlug,
                 room: { access_level: value as ApiAccessLevel },
-              })
-                .then((updatedRoom) => {
-                  queryClient.setQueryData([keys.room, roomSlug], updatedRoom)
-                })
-                .catch((e) => console.error(e))
+              }).catch((e) => console.error(e))
             }
             items={[
               {
