@@ -5,6 +5,7 @@ Test event notification.
 # pylint: disable=assignment-from-no-return,redefined-outer-name,unused-argument,protected-access
 
 import datetime
+import json
 import smtplib
 from unittest import mock
 
@@ -418,3 +419,63 @@ def test_notify_summary_service_post_args_without_metadata(
     mock_is_feature_flag_enabled.assert_called_once_with(
         owner, UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED
     )
+
+
+@mock.patch("core.recording.event.notification.requests.post")
+@mock.patch("core.recording.event.notification.generate_download_s3_url")
+@mock.patch.object(
+    NotificationService, "_get_recording_timestamps", new_callable=mock.AsyncMock
+)
+def test_notify_summary_service_v2_payload_json_serializable_without_timestamps(
+    mock_get_recording_timestamps,
+    mock_generate_download_s3_url,
+    mock_post,
+    settings,
+):
+    """Regression test for a non-JSON-serializable payload when timestamps are missing.
+
+    When the LiveKit egress can no longer be found, ``_get_recording_timestamps``
+    returns ``(None, None)`` and ``_generate_title`` falls back to its default
+    title. That default must be a real ``str``: it used to return a lazy
+    ``gettext_lazy`` proxy, which ``json.dumps`` cannot serialize, so the real
+    ``requests.post(json=payload)`` call crashed in production with
+    ``TypeError: Object of type __proxy__ is not JSON serializable``.
+    """
+    settings.SUMMARY_SERVICE_VERSION = 2
+    settings.SUMMARY_SERVICE_ENDPOINT = "https://summary.test/api/v2/tasks"
+    settings.SUMMARY_SERVICE_API_TOKEN = "summary-token"
+    settings.RECORDING_DOWNLOAD_BASE_URL = "https://app.test/recordings"
+    settings.SCREEN_RECORDING_BASE_URL = None
+    settings.METADATA_COLLECTOR_ENABLED = False
+
+    recording = factories.RecordingFactory(room__name="Daily")
+    owner = factories.UserFactory(
+        email="owner@test.com",
+        sub="owner-sub",
+        language="fr-fr",
+        timezone="Europe/Paris",
+    )
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER, user=owner
+    )
+
+    # Egress timestamps unavailable -> default-title branch in _generate_title.
+    mock_get_recording_timestamps.return_value = (None, None)
+    mock_generate_download_s3_url.return_value = "https://storage.test/recording.mp4"
+
+    mock_response = mock.Mock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.return_value = {"job_id": "job-77"}
+    mock_post.return_value = mock_response
+
+    result = NotificationService._notify_summary_service(recording)
+
+    assert result is True
+
+    payload = mock_post.call_args.kwargs["json"]
+    title = payload["push_to_docs_config"]["title"]
+
+    # The title must be a plain ``str``, not a lazy translation proxy...
+    assert isinstance(title, str)
+    # ...so the payload serializes exactly the way ``requests`` serializes it.
+    json.dumps(payload)
