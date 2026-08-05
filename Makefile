@@ -93,6 +93,7 @@ bootstrap: \
 	data/media \
 	data/static \
 	create-env-files \
+	create-docker-network \
 	build \
 	migrate \
 	demo \
@@ -126,11 +127,16 @@ down: ## stop and remove containers, networks, images, and volumes
 	@$(COMPOSE) down
 .PHONY: down
 
+create-docker-network: ## create the shared lasuite-network if it doesn't exist
+	@docker network create lasuite-network || true
+.PHONY: create-docker-network
+
 logs: ## display app-dev logs (follow mode)
 	@$(COMPOSE) logs -f app-dev
 .PHONY: logs
 
 run-backend: ## start only the backend application and all needed services
+	@$(MAKE) create-docker-network
 	@$(COMPOSE) up --force-recreate -d celery-dev --remove-orphans
 	@$(COMPOSE) up --force-recreate -d nginx
 	@$(COMPOSE) up -d livekit

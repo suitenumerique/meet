@@ -17,6 +17,7 @@ and this project adheres to
 - ✨(backend) add roomkit viewset to start a room without WebRTC join
 - ✨(frontend) let users set default configuration for generated links
 - ✨(frontend) expose media state to external gateways
+- ✨(backend) push recordings to the owner's Drive (POC)
 
 ### Changed
 

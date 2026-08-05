@@ -107,4 +107,4 @@ class RecordingEventsService:
             if notification_succeeded
             else models.RecordingStatusChoices.SAVED
         )
-        recording.save()
+        recording.save(update_fields=["status", "updated_at"])

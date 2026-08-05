@@ -573,6 +573,20 @@ class Base(Configuration):
     OIDC_STORE_ID_TOKEN = values.BooleanValue(
         default=True, environ_name="OIDC_STORE_ID_TOKEN", environ_prefix=None
     )
+    # Required to call other La Suite applications on behalf of the user, e.g.
+    # to push a recording to their Drive.
+    OIDC_STORE_ACCESS_TOKEN = values.BooleanValue(
+        default=False, environ_name="OIDC_STORE_ACCESS_TOKEN", environ_prefix=None
+    )
+    OIDC_STORE_REFRESH_TOKEN = values.BooleanValue(
+        default=False, environ_name="OIDC_STORE_REFRESH_TOKEN", environ_prefix=None
+    )
+    # Fernet key used to encrypt OIDC tokens at rest, both the refresh token
+    # django-lasuite stores in the session and the access token stored on a
+    # recording. Generate one with `Fernet.generate_key()`.
+    OIDC_STORE_REFRESH_TOKEN_KEY = SecretFileValue(
+        None, environ_name="OIDC_STORE_REFRESH_TOKEN_KEY", environ_prefix=None
+    )
     ALLOW_LOGOUT_GET_METHOD = values.BooleanValue(
         default=True, environ_name="ALLOW_LOGOUT_GET_METHOD", environ_prefix=None
     )
@@ -723,6 +737,29 @@ class Base(Configuration):
     # Set to None for no max duration
     RECORDING_MAX_DURATION = values.IntegerValue(
         None, environ_name="RECORDING_MAX_DURATION", environ_prefix=None
+    )
+
+    # Push recordings to Drive
+    # Once a recording is over, it is pushed to the user's
+    # started it, using their OIDC access token. It requires OIDC_STORE_ACCESS_TOKEN,
+    # and Drive to be configured as an OIDC resource server accepting Meet's audience.
+    RECORDING_PUSH_TO_DRIVE_ENABLED = values.BooleanValue(
+        False, environ_name="RECORDING_PUSH_TO_DRIVE_ENABLED", environ_prefix=None
+    )
+    # Base URL of Drive's external API, e.g. https://fichiers.numerique.gouv.fr/external_api/v1.0
+    DRIVE_API_BASE_URL = values.Value(
+        None, environ_name="DRIVE_API_BASE_URL", environ_prefix=None
+    )
+    # Lifetime of the signed URL the worker downloads the recording from.
+    RECORDING_PUSH_TO_DRIVE_SIGNED_URL_EXPIRY_SECONDS = values.PositiveIntegerValue(
+        60 * 60,
+        environ_name="RECORDING_PUSH_TO_DRIVE_SIGNED_URL_EXPIRY_SECONDS",
+        environ_prefix=None,
+    )
+    # Development only: host:port to reach Drive's object storage at, when the
+    # domain Drive signs its upload URLs with is only resolvable from a browser.
+    DRIVE_UPLOAD_STORAGE_NETLOC = values.Value(
+        None, environ_name="DRIVE_UPLOAD_STORAGE_NETLOC", environ_prefix=None
     )
 
     # Recording encoding options for LiveKit Egress (video composite egress only).
