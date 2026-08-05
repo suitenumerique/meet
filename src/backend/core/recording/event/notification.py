@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.utils.translation import get_language, override
+from django.utils.translation import get_language, gettext, override
 from django.utils.translation import gettext_lazy as _
 
 import aiohttp
@@ -121,7 +121,7 @@ class NotificationService:
                 msg_plain = render_to_string(
                     "mail/text/screen_recording.txt", personalized_context
                 )
-                subject = str(_("Your recording is ready"))  # Force translation
+                subject = gettext("Your recording is ready")  # Force translation
 
                 try:
                     send_mail(
@@ -192,7 +192,7 @@ class NotificationService:
         """Generate title from context or return default."""
         if recording_datetime is None:
             with override(locale):
-                return _("Transcription")
+                return gettext("Transcription")
 
         dt = recording_datetime
         if owner_timezone:

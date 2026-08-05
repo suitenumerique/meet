@@ -44,6 +44,7 @@ and this project adheres to
 - 🚸(frontend) show two initials in the Avatar when possible
 - 🩹(all) clear the SonarCloud reliability finding and the lint debt
 - 🐛(frontend) stop the installed app reopening the room it came from
+- 🐛(backend) serialize lazy title in summary payload
 
 ## [1.24.0] - 2026-07-21
 
