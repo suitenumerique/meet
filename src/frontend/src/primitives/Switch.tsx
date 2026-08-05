@@ -12,6 +12,7 @@ const StyledSwitch = styled(RACSwitch, {
     alignItems: 'center',
     gap: '0.571rem',
     color: 'black',
+    cursor: 'pointer',
     forcedColorAdjust: 'none',
     '& .indicator': {
       position: 'relative',
@@ -79,6 +80,9 @@ const StyledSwitch = styled(RACSwitch, {
       opacity: 0,
       transition: 'opacity 10ms',
       transitionDelay: '0ms',
+    },
+    '&[data-disabled]': {
+      cursor: 'not-allowed',
     },
     '&[data-disabled] .indicator': {
       borderColor: 'primary.200',
