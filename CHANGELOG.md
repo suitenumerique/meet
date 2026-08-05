@@ -50,6 +50,7 @@ and this project adheres to
 - 💄(frontend) show pointer cursor on interactive switches
 - 🐛(frontend) fix icon centering in the Switch primitive
 - 🐛(frontend) keep Unicode initials intact in avatar
+- 🐛(frontend) prevent concurrent settings updates from overwriting each other
 
 ## [1.24.0] - 2026-07-21
 

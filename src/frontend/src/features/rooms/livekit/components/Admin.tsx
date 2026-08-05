@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
-import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
@@ -206,11 +205,7 @@ export const Admin = () => {
             patchRoom({
               roomId,
               room: { access_level: value as ApiAccessLevel },
-            })
-              .then((room) => {
-                queryClient.setQueryData([keys.room, roomId], room)
-              })
-              .catch((e) => console.error(e))
+            }).catch((e) => console.error(e))
           }
           items={[
             {

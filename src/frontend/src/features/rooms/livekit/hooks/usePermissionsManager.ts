@@ -1,8 +1,6 @@
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { useCallback } from 'react'
-import { queryClient } from '@/api/queryClient'
-import { keys } from '@/api/queryKeys'
 
 export const usePermissionsManager = () => {
   const { mutateAsync: patchRoom } = usePatchRoom()
@@ -23,12 +21,10 @@ export const usePermissionsManager = () => {
           everyone_can_mute: enabled,
         }
 
-        const room = await patchRoom({
+        await patchRoom({
           roomId,
           room: { configuration: newConfiguration },
         })
-
-        queryClient.setQueryData([keys.room, roomId], room)
 
         return { configuration: newConfiguration }
       } catch (error) {
