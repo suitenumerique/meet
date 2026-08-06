@@ -39,14 +39,16 @@ DB_PORT            = 5432
 DOCKER_UID          = $(shell id -u)
 DOCKER_GID          = $(shell id -g)
 DOCKER_USER         = $(DOCKER_UID):$(DOCKER_GID)
-COMPOSE             = DOCKER_USER=$(DOCKER_USER) docker compose
-COMPOSE_EXEC        = $(COMPOSE) exec
-COMPOSE_EXEC_APP    = $(COMPOSE_EXEC) app-dev
-COMPOSE_RUN         = $(COMPOSE) run --rm
-COMPOSE_RUN_APP     = $(COMPOSE_RUN) app-dev
-COMPOSE_RUN_LINT    = $(COMPOSE_RUN) --no-deps app-dev
-COMPOSE_RUN_CROWDIN = $(COMPOSE_RUN) crowdin crowdin
-WAIT_DB             = @$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
+COMPOSE                  = DOCKER_USER=$(DOCKER_USER) docker compose
+COMPOSE_EXEC             = $(COMPOSE) exec
+COMPOSE_EXEC_APP         = $(COMPOSE_EXEC) app-dev
+COMPOSE_RUN              = $(COMPOSE) run --rm
+COMPOSE_RUN_APP          = $(COMPOSE_RUN) app-dev
+COMPOSE_RUN_LINT_BACK    = $(COMPOSE_RUN) --no-deps app-dev
+COMPOSE_RUN_LINT_AGENTS  = $(COMPOSE_RUN) --no-deps multi-user-transcriber-dev
+COMPOSE_RUN_LINT_SUMMARY = $(COMPOSE_RUN) --no-deps app-summary-dev
+COMPOSE_RUN_CROWDIN      = $(COMPOSE_RUN) crowdin crowdin
+WAIT_DB                  = @$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
 
 # -- Backend
 MANAGE              = $(COMPOSE_RUN_APP) python manage.py
@@ -59,6 +61,10 @@ LINT_PYLINT         = pylint meet demo core
 LINT_BACK           = echo 'lint:ruff-format started…' && $(LINT_RUFF_FORMAT) \
   && echo 'lint:ruff-check started…' && $(LINT_RUFF_CHECK) \
   && echo 'lint:pylint started…' && $(LINT_PYLINT)
+LINT_AGENTS         = echo 'lint:ruff-format started…' && $(LINT_RUFF_FORMAT) \
+  && echo 'lint:ruff-check started…' && $(LINT_RUFF_CHECK)
+LINT_SUMMARY        = echo 'lint:ruff-format started…' && $(LINT_RUFF_FORMAT) \
+  && echo 'lint:ruff-check started…' && $(LINT_RUFF_CHECK)
 
 # -- Frontend
 PATH_FRONT          = ./src/frontend
@@ -198,23 +204,37 @@ demo: ## flush db then create a demo for load testing purpose
 	@$(MANAGE) create_demo
 .PHONY: demo
 
-lint: ## lint back-end python sources
-	@$(COMPOSE_RUN_LINT) sh -c "$(LINT_BACK)"
+lint: ## lint all python sources (back-end, agents, summary)
+	@$(MAKE) lint-back
+	@$(MAKE) lint-agents
+	@$(MAKE) lint-summary
 .PHONY: lint
+
+lint-back: ## lint back-end python sources
+	@$(COMPOSE_RUN_LINT_BACK) sh -c "$(LINT_BACK)"
+.PHONY: lint-back
+
+lint-agents: ## lint agents python sources
+	@$(COMPOSE_RUN_LINT_AGENTS) sh -c "$(LINT_AGENTS)"
+.PHONY: lint-agents
+
+lint-summary: ## lint summary python sources
+	@$(COMPOSE_RUN_LINT_SUMMARY) sh -c "$(LINT_SUMMARY)"
+.PHONY: lint-summary
 
 lint-ruff-format: ## format back-end python sources with ruff
 	@echo 'lint:ruff-format started…'
-	@$(COMPOSE_RUN_LINT) $(LINT_RUFF_FORMAT)
+	@$(COMPOSE_RUN_LINT_BACK) $(LINT_RUFF_FORMAT)
 .PHONY: lint-ruff-format
 
 lint-ruff-check: ## lint back-end python sources with ruff
 	@echo 'lint:ruff-check started…'
-	@$(COMPOSE_RUN_LINT) $(LINT_RUFF_CHECK)
+	@$(COMPOSE_RUN_LINT_BACK) $(LINT_RUFF_CHECK)
 .PHONY: lint-ruff-check
 
 lint-pylint: ## lint back-end python sources with pylint only on changed files from main
 	@echo 'lint:pylint started…'
-	@$(COMPOSE_RUN_LINT) $(LINT_PYLINT)
+	@$(COMPOSE_RUN_LINT_BACK) $(LINT_PYLINT)
 .PHONY: lint-pylint
 
 test: ## run project tests; pass extra pytest args via ARGS, e.g. `make test ARGS="-vv"`
