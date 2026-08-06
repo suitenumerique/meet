@@ -7,7 +7,9 @@ import { useEffect, useMemo } from 'react'
 import { CrossDocumentOverlaysContext } from '@/primitives/CrossDocumentOverlaysContext'
 
 const InternalPortal = ({ children }: { children: React.ReactNode }) => {
-  const pipStoreSnap = useSnapshot(documentPictureInPictureStore)
+  const pipStoreSnap = useSnapshot(documentPictureInPictureStore, {
+    sync: true,
+  })
 
   const container = useMemo(() => {
     return pipStoreSnap?.window?.document.getElementById('root')
@@ -19,7 +21,7 @@ const InternalPortal = ({ children }: { children: React.ReactNode }) => {
     }
   }, [])
 
-  if (!container) return null
+  if (!container || !container.isConnected) return null
 
   return createPortal(
     /**
