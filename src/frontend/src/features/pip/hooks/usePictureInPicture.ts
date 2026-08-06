@@ -1,5 +1,6 @@
 import { ref, useSnapshot } from 'valtio'
 import { useCallback, useMemo } from 'react'
+import { flushSync } from 'react-dom'
 import { documentPictureInPictureStore } from '@/stores/documentPictureInPicture'
 import { useTranslation } from 'react-i18next'
 
@@ -73,7 +74,9 @@ export const usePictureInPicture = () => {
 
         const cleanUp = () => {
           if (documentPictureInPictureStore.window === pipWindow) {
-            documentPictureInPictureStore.window = null
+            flushSync(() => {
+              documentPictureInPictureStore.window = null
+            })
           }
         }
         pipWindow.addEventListener('pagehide', () => cleanUp(), { once: true })
