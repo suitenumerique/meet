@@ -37,6 +37,7 @@ import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
+import { asError } from '../utils/error'
 
 export const Conference = ({
   roomId,
@@ -235,7 +236,7 @@ export const Conference = ({
             backgroundColor: 'primaryDark.50 !important',
           })}
           onError={(e) => {
-            posthog.captureException(e)
+            posthog.captureException(asError(e))
           }}
           onConnected={async () => {
             if (!apiConfig) return
