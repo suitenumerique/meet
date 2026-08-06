@@ -11,6 +11,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(frontend) serve MediaPipe assets under a versioned path
+- 🐛(frontend) harmonize cache configuration for MediaPipe assets
 
 ## [1.25.1] - 2026-08-06
 

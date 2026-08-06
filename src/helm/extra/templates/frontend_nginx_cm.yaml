@@ -73,6 +73,11 @@ data:
             sub_filter_once off;
         }
 
+        location ^~ /assets/mediapipe/wasm/ {
+            expires 30d;
+            add_header Cache-Control "public, max-age=2592000";
+        }
+
         # Serve static files with caching
         location ~* ^/assets/.*\.(css|js|json|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
             expires 30d;
