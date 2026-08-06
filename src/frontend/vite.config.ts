@@ -1,13 +1,27 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import svgr from 'vite-plugin-svgr'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
+const mediapipeVersion: string = JSON.parse(
+  readFileSync(
+    new URL(
+      './node_modules/@mediapipe/tasks-vision/package.json',
+      import.meta.url
+    ),
+    'utf-8'
+  )
+).version
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
   return {
+    define: {
+      __MEDIAPIPE_VERSION__: JSON.stringify(mediapipeVersion),
+    },
     plugins: [
       react(),
       svgr({
@@ -23,7 +37,7 @@ export default defineConfig(({ mode }) => {
         targets: [
           {
             src: 'node_modules/@mediapipe/tasks-vision/wasm/*',
-            dest: 'assets/mediapipe/wasm',
+            dest: `assets/mediapipe/wasm/${mediapipeVersion}`,
             rename: { stripBase: 4 },
           },
           {

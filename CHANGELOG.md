@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛(frontend) serve MediaPipe assets under a versioned path
+
 ## [1.25.1] - 2026-08-06
 
 ### Fixed
