@@ -1,4 +1,7 @@
-import { ProcessorWrapper } from '@livekit/track-processors'
+import {
+  ProcessorWrapper,
+  supportsBackgroundProcessors,
+} from '@livekit/track-processors'
 import type { Track, TrackProcessor } from 'livekit-client'
 import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
 import { UnifiedBackgroundTrackProcessor } from './UnifiedBackgroundTrackProcessor'
@@ -34,7 +37,9 @@ export class BackgroundProcessorFactory {
   }
 
   static isSupported() {
-    return ProcessorWrapper.isSupported || BackgroundCustomProcessor.isSupported
+    return (
+      supportsBackgroundProcessors() || BackgroundCustomProcessor.isSupported
+    )
   }
 
   static getProcessor(
@@ -45,7 +50,7 @@ export class BackgroundProcessorFactory {
 
     if (!isBlur && !isVirtual) return undefined
 
-    if (ProcessorWrapper.isSupported) {
+    if (supportsBackgroundProcessors()) {
       return new UnifiedBackgroundTrackProcessor(config)
     }
 
