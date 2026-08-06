@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.25.1] - 2026-08-06
+
 ### Fixed
 
 - 🚑️(frontend) fix background crash from MediaPipe WASM version mismatch
