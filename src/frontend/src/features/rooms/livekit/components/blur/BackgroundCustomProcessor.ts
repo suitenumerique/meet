@@ -1,5 +1,4 @@
 import type { ProcessorOptions, Track } from 'livekit-client'
-import posthog from 'posthog-js'
 import {
   FilesetResolver,
   ImageSegmenter,
@@ -18,6 +17,7 @@ import {
   type ProcessorType,
   MEDIAPIPE_PATH_WASM,
 } from '.'
+import { captureEvent } from '@/features/analytics/telemetry.ts'
 
 const PROCESSING_WIDTH = 256
 const PROCESSING_HEIGHT = 144
@@ -100,7 +100,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     await this.initSegmenter()
     this._initWorker()
 
-    posthog.capture('firefox-blurring-init')
+    captureEvent('firefox-blurring-init', {})
   }
 
   _initVirtualBackgroundImage() {
