@@ -16,6 +16,7 @@ and this project adheres to
 
 - ♻️(frontend) encapsulate error tracking behind a telemetry module
 - ♻️(frontend) encapsulate PostHog capture calls in the telemetry module
+- 🔧(frontend) sync persisted device ids with the actual selected devices
 
 ### Fixed
 
