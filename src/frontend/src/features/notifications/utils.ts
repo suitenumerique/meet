@@ -4,6 +4,7 @@ import { NotificationDuration } from './NotificationDuration'
 import type { Participant } from 'livekit-client'
 import type { NotificationPayload } from './NotificationPayload'
 import type { RecordingMode } from '@/features/recording'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const notifyAutoMutedOnJoin = () => {
   toastQueue.add(
@@ -55,7 +56,9 @@ export const decodeNotificationDataReceived = (
     return parsed as NotificationPayload
   } catch (error) {
     // Handle errors appropriately for your application
-    console.error('Failed to decode notification payload:', error)
+    reportError('generic_failure', error, {
+      context: 'Failed to decode notification payload:',
+    })
     return
   }
 }

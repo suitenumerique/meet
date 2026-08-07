@@ -10,6 +10,7 @@ import {
 } from '../../participants/api/listWaitingParticipants'
 import { decodeNotificationDataReceived } from '@/features/notifications/utils'
 import { NotificationType } from '@/features/notifications/NotificationType'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const POLL_INTERVAL_MS = 1000
 
@@ -87,7 +88,7 @@ export const useWaitingParticipants = () => {
 
       await refetchWaiting()
     } catch (e) {
-      console.error(e)
+      reportError('generic_failure', e)
       setListEnabled(true)
     }
   }

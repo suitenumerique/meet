@@ -1,15 +1,8 @@
 import { useEffect } from 'react'
 import { useLocation } from 'wouter'
-import { type PostHog } from 'posthog-js'
 import { type ApiUser } from '@/features/auth/api/ApiUser'
 import { useUser } from '@/features/auth/api/useUser'
-
-let posthog: PostHog | null = null
-
-const getPosthog = async () => {
-  if (!posthog) posthog = (await import('posthog-js')).default
-  return posthog
-}
+import { getPosthog } from '../utils'
 
 export const startAnalyticsSession = (data: ApiUser) => {
   getPosthog().then((ph) => {

@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from 'react'
 import { type TrackReferenceOrPlaceholder } from '@livekit/components-core'
+import { reportError } from '@/features/analytics/telemetry'
 
 export function useFullScreen({
   trackRef,
@@ -56,7 +57,9 @@ export function useFullScreen({
         await docEl.msRequestFullscreen()
       }
     } catch (error) {
-      console.error('Error entering fullscreen:', error)
+      reportError('fullscreen_failure', error, {
+        context: 'Error entering fullscreen:',
+      })
     }
   }
 
@@ -70,7 +73,9 @@ export function useFullScreen({
         await document.msExitFullscreen()
       }
     } catch (error) {
-      console.error('Error exiting fullscreen:', error)
+      reportError('fullscreen_failure', error, {
+        context: 'Error exiting fullscreen:',
+      })
     }
   }
 

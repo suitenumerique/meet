@@ -1,5 +1,6 @@
 import type { Participant, Track } from 'livekit-client'
 import { useParticipantPermissions } from './updateParticipantPermissions'
+import { reportError } from '@/features/analytics/telemetry'
 type Source = Track.Source
 
 export const useUpdateParticipantsPermissions = () => {
@@ -15,7 +16,9 @@ export const useUpdateParticipantsPermissions = () => {
       )
       return Promise.all(promises)
     } catch (error) {
-      console.error('An error occurred while updating permissions :', error)
+      reportError('permissions_api_failure', error, {
+        context: 'An error occurred while updating permissions :',
+      })
       throw new Error('An error occurred while updating permissions.', {
         cause: error,
       })

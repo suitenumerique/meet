@@ -13,6 +13,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import clsx from 'clsx'
+import { reportError } from '@/features/analytics/telemetry'
 
 /**
  * Calls all functions in the order they were chained with the same arguments.
@@ -25,7 +26,7 @@ export function chain(...callbacks: any[]): (...args: any[]) => void {
         try {
           callback(...args)
         } catch (e) {
-          console.error(e)
+          reportError('generic_failure', e)
         }
       }
     }

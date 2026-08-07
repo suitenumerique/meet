@@ -1,6 +1,7 @@
 import { proxy, subscribe } from 'valtio'
 import { STORAGE_KEYS } from '@/utils/storageKeys'
 import { deserializeToProxyMap } from '@/utils/valtio'
+import { reportError } from '@/features/analytics/telemetry'
 
 export type UiFont =
   | 'default'
@@ -154,10 +155,9 @@ function getAccessibilityState(): AccessibilityState {
 
     return DEFAULT_STATE
   } catch (error: unknown) {
-    console.error(
-      '[AccessibilityStore] Failed to parse stored settings:',
-      error
-    )
+    reportError('generic_failure', error, {
+      context: '[AccessibilityStore] Failed to parse stored settings:',
+    })
     return DEFAULT_STATE
   }
 }

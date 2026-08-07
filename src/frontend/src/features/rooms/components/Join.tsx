@@ -36,6 +36,7 @@ import { useLoginHint } from '@/hooks/useLoginHint'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
+import { reportError } from "@/features/analytics/telemetry"
 
 import {
   type LocalUserChoices,
@@ -54,7 +55,8 @@ import { useSnapshot } from 'valtio'
 import { useUser } from '@/features/auth/api/useUser'
 import { useConfig } from '@/api/useConfig'
 
-const onError = (e: Error) => console.error('ERROR', e)
+const onError = (e: Error) =>
+  reportError('join_preview_failure', e, { path: 'join_preview' })
 
 const Effects = ({
   videoTrack,

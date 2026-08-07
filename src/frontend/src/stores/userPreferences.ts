@@ -1,5 +1,6 @@
 import { proxy, subscribe } from 'valtio'
 import { STORAGE_KEYS } from '@/utils/storageKeys'
+import { reportError } from '@/features/analytics/telemetry'
 
 type State = {
   is_idle_disconnect_modal_enabled: boolean
@@ -21,10 +22,9 @@ function getUserPreferencesState(): State {
       ...parsed,
     }
   } catch (error: unknown) {
-    console.error(
-      '[UserPreferencesStore] Failed to parse stored settings:',
-      error
-    )
+    reportError('generic_failure', error, {
+      context: '[UserPreferencesStore] Failed to parse stored settings:',
+    })
     return DEFAULT_STATE
   }
 }
