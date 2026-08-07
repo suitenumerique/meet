@@ -17,7 +17,6 @@ import {
   useNotifyParticipants,
   notifyRecordingSaveInProgress,
 } from '@/features/notifications'
-import posthog from 'posthog-js'
 import { useConfig } from '@/api/useConfig'
 import { VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox.tsx'
@@ -35,7 +34,7 @@ import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { LimitDescription } from './LimitDescription'
 import { openSettingsDialog } from '@/stores/settings'
-import { reportError } from '@/features/analytics/telemetry'
+import { captureEvent, reportError } from '@/features/analytics/telemetry'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -77,7 +76,7 @@ export const TranscriptSidePanel = () => {
     await notifyParticipants({
       type: NotificationType.TranscriptionRequested,
     })
-    posthog.capture('transcript-requested', {})
+    captureEvent('transcript-requested', {})
   }
 
   const handleTranscript = async () => {
@@ -122,7 +121,7 @@ export const TranscriptSidePanel = () => {
         await notifyParticipants({
           type: NotificationType.TranscriptionStarted,
         })
-        posthog.capture('transcript-started', {
+        captureEvent('transcript-started', {
           includeScreenRecording: includeScreenRecording,
           language: selectedLanguageKey,
         })

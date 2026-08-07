@@ -1,5 +1,4 @@
 import type { ProcessorOptions, Track, TrackProcessor } from 'livekit-client'
-import posthog from 'posthog-js'
 import {
   FilesetResolver,
   FaceLandmarker,
@@ -16,6 +15,7 @@ import {
   ProcessorType,
   MEDIAPIPE_PATH_WASM,
 } from '.'
+import { captureEvent } from '@/features/analytics/telemetry'
 
 const PROCESSING_WIDTH = 256 * 3
 const PROCESSING_HEIGHT = 144 * 3
@@ -101,7 +101,7 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
     await this.initFaceLandmarker()
     this._initWorker()
 
-    posthog.capture('face-landmarks-init')
+    captureEvent('face-landmarks-init', {})
   }
 
   _initWorker() {
