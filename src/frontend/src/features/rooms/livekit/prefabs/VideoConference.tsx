@@ -26,6 +26,7 @@ import { PipRoomPlaceholder } from '@/features/pip/components/PipRoomPlaceholder
 import { StageLayout } from '@/features/layout/components/StageLayout'
 import { PinAnnouncer } from '@/features/layout/components/PinAnnouncer'
 import { ChatProvider } from '@/features/chat/components/ChatProvider'
+import { SyncDevicePreferences } from '@/features/rooms/livekit/components/SyncDevicePreferences'
 
 /**
  * @public
@@ -65,6 +66,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
     <>
       <RoomMetadataSynchronizer />
       <ConnectionObserver />
+      <SyncDevicePreferences />
       <MediaStateObserver />
       <ChatProvider />
       <VideoResolutionSubscription />
