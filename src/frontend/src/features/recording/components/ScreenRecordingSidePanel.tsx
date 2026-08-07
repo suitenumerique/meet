@@ -29,6 +29,7 @@ import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { LimitDescription } from './LimitDescription'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -106,7 +107,9 @@ export const ScreenRecordingSidePanel = () => {
         })
       }
     } catch (error) {
-      console.error('Failed to handle recording:', error)
+      reportError('generic_failure', error, {
+        context: 'Failed to handle recording:',
+      })
     }
   }
 

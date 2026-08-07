@@ -3,6 +3,7 @@ import { Button } from '@/primitives'
 import { RiPhoneFill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ConnectionState } from 'livekit-client'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const LeaveButton = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls' })
@@ -15,11 +16,11 @@ export const LeaveButton = () => {
       tooltip={t('leave')}
       aria-label={t('leave')}
       onPress={() => {
-        room
-          .disconnect(true)
-          .catch((e) =>
-            console.error('An error occurred while disconnecting:', e)
-          )
+        room.disconnect(true).catch((e) =>
+          reportError('disconnect_failure', e, {
+            context: 'An error occurred while disconnecting:',
+          })
+        )
       }}
       data-attr="controls-leave"
     >

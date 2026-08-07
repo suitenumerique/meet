@@ -1,5 +1,6 @@
 import type { Participant } from 'livekit-client'
 import { useLowerHandParticipant } from './lowerHandParticipant'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const useLowerHandParticipants = () => {
   const { lowerHandParticipant } = useLowerHandParticipant()
@@ -11,7 +12,9 @@ export const useLowerHandParticipants = () => {
       )
       return Promise.all(promises)
     } catch (error) {
-      console.error('An error occurred while lowering hands :', error)
+      reportError('generic_failure', error, {
+        context: 'An error occurred while lowering hands :',
+      })
       throw new Error('An error occurred while lowering hands.', {
         cause: error,
       })

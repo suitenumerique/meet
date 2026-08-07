@@ -15,6 +15,7 @@ import { css } from '@/styled-system/css'
 import { useConfig } from '@/api/useConfig'
 import { LoginButton } from '@/components/LoginButton'
 import { LoadingScreen } from '@/components/LoadingScreen'
+import { reportError } from '@/features/analytics/telemetry'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -160,7 +161,9 @@ const Home = () => {
           window.location.replace(data.external_home_url)
         } catch (error) {
           setRedirectFailed(true)
-          console.error('Site is not reachable:', error)
+          reportError('generic_failure', error, {
+            context: 'Site is not reachable:',
+          })
         }
       }
     }

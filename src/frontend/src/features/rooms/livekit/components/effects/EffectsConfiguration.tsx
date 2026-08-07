@@ -33,6 +33,7 @@ import { useConfig } from '@/api/useConfig.ts'
 import { proxy, useSnapshot } from 'valtio'
 import { Spinner } from '@/primitives/Spinner.tsx'
 import { userChoicesStore, saveProcessorConfig } from '@/stores/userChoices'
+import { reportError } from '@/features/analytics/telemetry'
 
 enum BlurRadius {
   NONE = 0,
@@ -238,7 +239,9 @@ export const EffectsConfiguration = ({
 
         updateEffectStatusMessage(config, wasSelectedBeforeToggle)
       } catch (error) {
-        console.error('Error applying effect:', error)
+        reportError('effects_processor_failure', error, {
+          context: 'Error applying effect:',
+        })
       } finally {
         // Without setTimeout the DOM is not refreshing when updating the options.
         setTimeout(() => setProcessorPending(false))

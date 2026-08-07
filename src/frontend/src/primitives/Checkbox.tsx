@@ -8,6 +8,7 @@ import { type StyledVariantProps } from '@/styled-system/types'
 import { styled } from '@/styled-system/jsx'
 import { FieldErrors } from './FieldErrors'
 import { FieldDescription } from './FieldDescription'
+import { reportError } from '@/features/analytics/telemetry'
 
 // styled taken from example at https://react-spectrum.adobe.com/react-aria/Checkbox.html
 const StyledCheckbox = styled(RACCheckbox, {
@@ -112,8 +113,11 @@ export const Checkbox = ({
   const descriptionId = useId()
 
   if (isInvalid !== undefined) {
-    console.error(
-      'Checkbox: passing isInvalid is not supported, use the validate prop instead'
+    reportError(
+      'generic_failure',
+      new Error(
+        'Checkbox: passing isInvalid is not supported, use the validate prop instead'
+      )
     )
     return null
   }
