@@ -29,6 +29,8 @@
     },
     "audioinput": {
       "choose": "Mikrofon auswählen",
+      "level": "Mikrofon-Eingangspegel",
+      "muteTest": "Aktivieren Sie Ihr Mikrofon, um es zu testen",
       "permissionsNeeded": "Mikrofon auswählen – Berechtigung erforderlich",
       "disable": "Mikrofon deaktivieren",
       "enable": "Mikrofon aktivieren",

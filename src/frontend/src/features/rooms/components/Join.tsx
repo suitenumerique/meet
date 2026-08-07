@@ -729,6 +729,7 @@ export const Join = ({
                 <SelectDevice
                   kind="audioinput"
                   id={audioDeviceId}
+                  track={audioTrack}
                   onSubmit={async (id) => {
                     try {
                       saveAudioInputDeviceId(id)
