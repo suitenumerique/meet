@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- 📈(frontend) capture media diagnostics on media errors
+
 ### Changed
 
 - ♻️(frontend) encapsulate error tracking behind a telemetry module
