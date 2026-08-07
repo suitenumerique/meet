@@ -29,6 +29,8 @@
     },
     "audioinput": {
       "choose": "Selecteer microfoon",
+      "level": "Microfoon-ingangsniveau",
+      "muteTest": "Zet je microfoon aan om deze te testen",
       "permissionsNeeded": "Selecteer microfoon - Toestemming vereist",
       "disable": "Microfoon dempen",
       "enable": "Microfoon dempen opheffen",
