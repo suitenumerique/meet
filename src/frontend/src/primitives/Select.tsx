@@ -99,6 +99,7 @@ export type SelectProps<T> = Omit<
   errors?: ReactNode
   placement?: Placement
   variant?: 'light' | 'dark'
+  menuFooter?: ReactNode
 }
 
 export const Select = <T extends string | number>({
@@ -108,6 +109,7 @@ export const Select = <T extends string | number>({
   errors,
   placement,
   variant = 'light',
+  menuFooter,
   ...props
 }: SelectProps<T>) => {
   const IconComponent = iconComponent
@@ -155,6 +157,7 @@ export const Select = <T extends string | number>({
               </ListBoxItem>
             ))}
           </ListBox>
+          {menuFooter}
         </Box>
       </StyledPopover>
       {errors}
