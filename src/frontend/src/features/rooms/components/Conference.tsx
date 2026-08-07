@@ -41,6 +41,10 @@ import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
+import {
+  PERMISSION_BY_DEVICE_KIND,
+  notePermissionDeniedFromGum,
+} from '@/stores/permissions'
 
 export const Conference = ({
   roomId,
@@ -312,6 +316,9 @@ export const Conference = ({
             switch (e) {
               case MediaDeviceFailure.DeviceInUse:
                 setMediaDeviceError({ error: e, kind })
+                break
+              case MediaDeviceFailure.PermissionDenied:
+                notePermissionDeniedFromGum(PERMISSION_BY_DEVICE_KIND[kind])
                 break
               default:
                 break

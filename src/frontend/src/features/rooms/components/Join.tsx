@@ -8,6 +8,7 @@ import {
   createLocalVideoTrack,
   type LocalAudioTrack,
   type LocalVideoTrack,
+  MediaDeviceFailure,
   Track,
 } from 'livekit-client'
 import { H } from '@/primitives/H'
@@ -33,7 +34,11 @@ import { ApiLobbyStatus, type ApiRequestEntry } from '../api/requestEntry'
 import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
-import { openPermissionsDialog } from '@/stores/permissions'
+import {
+  notePermissionDeniedFromGum,
+  openPermissionsDialog,
+  PermissionKind,
+} from '@/stores/permissions'
 import { isSafari } from '@/utils/livekit'
 import { reportError } from '@/features/analytics/telemetry'
 
@@ -54,8 +59,14 @@ import { useSnapshot } from 'valtio'
 import { useUser } from '@/features/auth/api/useUser'
 import { useConfig } from '@/api/useConfig'
 
-const onError = (e: Error) =>
+const onError = (e: Error, kind?: PermissionKind) => {
   reportError('join_preview_failure', e, { path: 'join_preview' })
+  if (
+    MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.PermissionDenied
+  ) {
+    notePermissionDeniedFromGum(kind)
+  }
+}
 
 const Effects = ({
   videoTrack,
@@ -198,7 +209,7 @@ export const Join = ({
         })
         setDynamicVideoTrack(track)
       } catch (error) {
-        onError(error as Error)
+        onError(error as Error, 'camera')
       }
     }
 
@@ -234,7 +245,7 @@ export const Join = ({
         })
         setDynamicAudioTrack(track)
       } catch (error) {
-        onError(error as Error)
+        onError(error as Error, 'microphone')
       }
     }
     if (
