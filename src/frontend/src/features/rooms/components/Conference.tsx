@@ -26,6 +26,7 @@ import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
+import { reportError } from '@/features/analytics/telemetry'
 import { usePostHog } from 'posthog-js/react'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
@@ -37,7 +38,6 @@ import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
-import { asError } from '../utils/error'
 
 export const Conference = ({
   roomId,
@@ -236,7 +236,9 @@ export const Conference = ({
             backgroundColor: 'primaryDark.50 !important',
           })}
           onError={(e) => {
-            posthog.captureException(asError(e))
+            reportError('livekit_room_error', e, {
+              failure: MediaDeviceFailure.getFailure(e) ?? 'not-a-device-error',
+            })
           }}
           onConnected={async () => {
             if (!apiConfig) return

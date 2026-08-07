@@ -11,6 +11,7 @@ import { useRenameParticipant } from '@/features/rooms/api/renameParticipant'
 import { saveUsername } from '@/stores/user'
 import { logout } from '@/features/auth/utils/logout'
 import { useConfig } from '@/api/useConfig'
+import { reportError } from '@/features/analytics/telemetry'
 
 export type AccountTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -35,9 +36,9 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
       saveUsername(name)
       onOpenChange?.(false) // only close on success
     } catch (error) {
-      console.error(
-        `Failed to rename participant: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      reportError('generic_failure', error, {
+        context: 'rename_participant',
+      })
     }
   }
   const handleOnCancel = () => {

@@ -5,6 +5,7 @@ import { useUser } from '@/features/auth/api/useUser'
 import { Spinner } from '@/primitives/Spinner'
 import { CallbackIdHandler } from '../utils/CallbackIdHandler'
 import { PopupWindow } from '../utils/PopupWindow'
+import { reportError } from '@/features/analytics/telemetry'
 
 const callbackIdHandler = new CallbackIdHandler()
 const popupWindow = new PopupWindow()
@@ -52,7 +53,9 @@ const CreatePopup = () => {
           popupWindow.close()
         })
       } catch (error) {
-        console.error('Failed to create meeting room:', error)
+        reportError('generic_failure', error, {
+          context: 'Failed to create meeting room:',
+        })
       }
     }
     if (isLoggedIn && callbackId) {

@@ -3,6 +3,7 @@ import { proxyMap } from 'valtio/utils'
 import { deserializeToProxyMap, serializeProxyMap } from '@/utils/valtio'
 import { STORAGE_KEYS } from '@/utils/storageKeys'
 import { NotificationType } from '@/features/notifications/NotificationType'
+import { reportError } from '@/features/analytics/telemetry'
 
 type State = {
   soundNotifications: Map<NotificationType, boolean>
@@ -41,10 +42,9 @@ function getNotificationsState(): State {
       ),
     }
   } catch (error: unknown) {
-    console.error(
-      '[NotificationsStore] Failed to parse stored settings:',
-      error
-    )
+    reportError('generic_failure', error, {
+      context: '[NotificationsStore] Failed to parse stored settings:',
+    })
     return DEFAULT_STATE
   }
 }

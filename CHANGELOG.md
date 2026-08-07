@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ♻️(frontend) encapsulate error tracking behind a telemetry module
+
 ## [1.25.2] - 2026-08-06
 
 ### Fixed

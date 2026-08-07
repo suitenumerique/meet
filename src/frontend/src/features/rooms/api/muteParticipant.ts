@@ -9,6 +9,7 @@ import { fetchApi } from '@/api/fetchApi'
 import { useIsAdminOrOwner } from '../livekit/hooks/useIsAdminOrOwner'
 
 import { useCallback } from 'react'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const useMuteParticipant = () => {
   const apiRoomData = useRoomData()
@@ -31,7 +32,10 @@ export const useMuteParticipant = () => {
 
       // Guard against undefined token for non-admin users
       if (!isAdminOrOwner && !apiRoomData.livekit.token) {
-        console.error('Cannot mute participant: missing auth token')
+        reportError(
+          'participant_mute_api_failure',
+          new Error('Cannot mute participant: missing auth token')
+        )
         return
       }
 
@@ -53,8 +57,11 @@ export const useMuteParticipant = () => {
           }
         )
       } catch (error) {
-        console.error(
-          `Failed to mute participant ${participant.identity}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        reportError(
+          'participant_mute_api_failure',
+          new Error(
+            `Failed to mute participant ${participant.identity}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          )
         )
         return
       }
@@ -65,8 +72,11 @@ export const useMuteParticipant = () => {
           destinationIdentities: [participant.identity],
         })
       } catch (e) {
-        console.error(
-          `Failed to notify muted participant ${participant.identity}: ${e}`
+        reportError(
+          'participant_mute_api_failure',
+          new Error(
+            `Failed to notify muted participant ${participant.identity}: ${e}`
+          )
         )
       }
 

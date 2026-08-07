@@ -1,5 +1,6 @@
 import { proxy, subscribe } from 'valtio'
 import { STORAGE_KEYS } from '@/utils/storageKeys'
+import { reportError } from '@/features/analytics/telemetry'
 
 type State = {
   username: string
@@ -18,10 +19,9 @@ function getUserState(): State {
       ...parsed,
     }
   } catch (error: unknown) {
-    console.error(
-      '[UserPreferencesStore] Failed to parse stored settings:',
-      error
-    )
+    reportError('generic_failure', error, {
+      context: '[UserStore] Failed to parse stored settings:',
+    })
     return DEFAULT_STATE
   }
 }

@@ -13,6 +13,7 @@ import { usePermissionsManager } from '../hooks/usePermissionsManager'
 import { useEffect } from 'react'
 import { closeSidePanel } from '@/stores/layout'
 import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -205,7 +206,7 @@ export const Admin = () => {
             patchRoom({
               roomId,
               room: { access_level: value as ApiAccessLevel },
-            }).catch((e) => console.error(e))
+            }).catch((e) => reportError('generic_failure', e))
           }
           items={[
             {

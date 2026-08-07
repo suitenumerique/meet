@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
+import { reportError } from '@/features/analytics/telemetry'
 
 const COPY_SUCCESS_TIMEOUT = 3000
 
@@ -58,7 +59,9 @@ export const useCopyRoomToClipboard = (room: ApiRoom | undefined) => {
       await navigator.clipboard.writeText(content)
       setIsCopied(true)
     } catch (error) {
-      console.error(error)
+      reportError('clipboard_failure', error, {
+        context: 'copy_room_content',
+      })
     }
   }
 
@@ -67,7 +70,9 @@ export const useCopyRoomToClipboard = (room: ApiRoom | undefined) => {
       await navigator.clipboard.writeText(roomUrl)
       setIsRoomUrlCopied(true)
     } catch (error) {
-      console.error(error)
+      reportError('clipboard_failure', error, {
+        context: 'copy_room_url',
+      })
     }
   }
 
