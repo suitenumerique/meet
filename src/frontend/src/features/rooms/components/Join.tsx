@@ -55,6 +55,7 @@ import {
 import { saveUsername, userStore } from '@/stores/user'
 
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
+import { useSyncTrackDeviceId } from '../livekit/hooks/useSyncTrackDeviceId'
 import { useSnapshot } from 'valtio'
 import { useUser } from '@/features/auth/api/useUser'
 import { useConfig } from '@/api/useConfig'
@@ -274,6 +275,8 @@ export const Join = ({
   const videoTrack = dynamicVideoTrack || previewVideoTrack
   const audioTrack = dynamicAudioTrack || previewAudioTrack
 
+  useSyncTrackDeviceId(audioTrack, saveAudioInputDeviceId)
+  useSyncTrackDeviceId(videoTrack, saveVideoInputDeviceId)
 
   const videoEl = useRef(null)
   const isVideoInitiated = useRef(false)
