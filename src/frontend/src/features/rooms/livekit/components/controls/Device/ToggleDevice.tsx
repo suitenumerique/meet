@@ -150,8 +150,9 @@ export const ToggleDevice = <T extends ToggleSource>({
         onPress={() => {
           if (cannotUseDevice) {
             openPermissionsDialog(kind)
+          } else {
+            toggle()
           }
-          toggle()
         }}
         aria-label={toggleLabel}
         tooltip={
