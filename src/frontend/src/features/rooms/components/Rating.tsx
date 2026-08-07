@@ -1,13 +1,12 @@
-import { Button, H, Input, Text, TextArea } from '@/primitives'
+import { Button, H, Text, TextArea } from '@/primitives'
 import { useEffect, useMemo, useState } from 'react'
 import { cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { styled, VStack } from '@/styled-system/jsx'
-import { usePostHog } from 'posthog-js/react'
-import type { PostHog } from 'posthog-js'
 import { Button as RACButton } from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import type { CandidateInfo } from '@/stores/connectionObserver'
+import { captureEvent } from '@/features/analytics/telemetry'
 
 const Card = styled('div', {
   base: {
@@ -72,11 +71,9 @@ const labelRecipe = cva({
 })
 
 const OpenFeedback = ({
-  posthog,
   onNext,
   metadata,
 }: {
-  posthog: PostHog
   onNext: () => void
   metadata?: Record<string, unknown>
 }) => {
@@ -90,7 +87,7 @@ const OpenFeedback = ({
 
   const onSubmit = () => {
     try {
-      posthog.capture('open-feedback', {
+      captureEvent('open-feedback', {
         feedback,
         ...metadata,
       })
@@ -141,12 +138,10 @@ const OpenFeedback = ({
 }
 
 const RateQuality = ({
-  posthog,
   onNext,
   metadata,
   maxRating = 5,
 }: {
-  posthog: PostHog
   onNext: () => void
   metadata?: Record<string, unknown>
   maxRating?: number
@@ -160,7 +155,7 @@ const RateQuality = ({
 
   const onSubmit = () => {
     try {
-      posthog.capture('quality-rating', {
+      captureEvent('quality-rating', {
         rating: selectedRating,
         ...metadata,
       })
@@ -243,67 +238,6 @@ const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
   )
 }
 
-const AuthenticationMessage = ({
-  onNext,
-  posthog,
-}: {
-  onNext: () => void
-  posthog: PostHog
-}) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'authenticationMessage' })
-
-  const [email, setEmail] = useState('')
-
-  const onSubmit = () => {
-    posthog.people.set({ unsafe_email: email })
-    onNext()
-  }
-
-  return (
-    <Card
-      style={{
-        maxWidth: '380px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-      }}
-    >
-      <H lvl={3}>{t('heading')}</H>
-      <Input
-        id="emailInput"
-        name="email"
-        placeholder={t('placeholder')}
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{
-          marginBottom: '1rem',
-        }}
-      />
-      <VStack gap="0.5">
-        <Button
-          variant="primary"
-          size="sm"
-          fullWidth
-          isDisabled={!email}
-          onPress={onSubmit}
-        >
-          {t('submit')}
-        </Button>
-        <Button
-          invisible
-          variant="secondary"
-          size="sm"
-          fullWidth
-          onPress={onNext}
-        >
-          {t('ignore')}
-        </Button>
-      </VStack>
-    </Card>
-  )
-}
-
 type RatingMetadata = {
   room_id?: string
   pc_publisher?: CandidateInfo
@@ -318,12 +252,6 @@ export const Rating = ({
   metadata: RatingMetadata
 }) => {
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
-  const posthog = usePostHog()
-
-  const isUserAnonymous = useMemo(() => {
-    return posthog.get_property('$user_state') == 'anonymous'
-  }, [posthog])
-
   const [step, setStep] = useState(0)
 
   const sessionId = useMemo(() => crypto.randomUUID(), [])
@@ -339,37 +267,14 @@ export const Rating = ({
   if (!isAnalyticsEnabled) return
 
   if (step == 0) {
-    return (
-      <RateQuality
-        posthog={posthog}
-        onNext={() => setStep(step + 1)}
-        metadata={metadata}
-      />
-    )
+    return <RateQuality onNext={() => setStep(step + 1)} metadata={metadata} />
   }
 
   if (step == 1) {
-    return (
-      <OpenFeedback
-        posthog={posthog}
-        onNext={() => setStep(step + 1)}
-        metadata={metadata}
-      />
-    )
+    return <OpenFeedback onNext={() => setStep(step + 1)} metadata={metadata} />
   }
 
   if (step == 2) {
-    return isUserAnonymous ? (
-      <AuthenticationMessage
-        posthog={posthog}
-        onNext={() => setStep(step + 1)}
-      />
-    ) : (
-      <ConfirmationMessage onNext={() => setStep(0)} />
-    )
-  }
-
-  if (step == 3) {
     return <ConfirmationMessage onNext={() => setStep(0)} />
   }
 }

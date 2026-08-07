@@ -11,10 +11,10 @@ import { DisconnectReason, RoomEvent } from 'livekit-client'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { connectionObserverStore } from '@/stores/connectionObserver'
 
-import posthog from 'posthog-js'
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { isMobileBrowser } from '@livekit/components-core'
 import { FeatureFlags } from '@/features/analytics/enums'
+import { captureEvent } from '@/features/analytics/telemetry'
 
 const CANDIDATE_POLL_INTERVAL_MS = 5000
 
@@ -182,23 +182,23 @@ export const ConnectionObserver = () => {
       // total session duration from first connect to final disconnect.
       if (connectionStartTimeRef.current != null) return
       connectionStartTimeRef.current = Date.now()
-      posthog.capture('connection-event')
+      captureEvent('connection-event')
     }
 
     const handleReconnect = () => {
-      posthog.capture('reconnect-event')
+      captureEvent('reconnect-event')
     }
 
     const handleReconnected = () => {
-      posthog.capture('reconnected-event')
+      captureEvent('reconnected-event')
     }
 
     const handleSignalingConnect = () => {
-      posthog.capture('signaling-connect-event')
+      captureEvent('signaling-connect-event')
     }
 
     const handleSignalingReconnect = () => {
-      posthog.capture('signaling-reconnect-event')
+      captureEvent('signaling-reconnect-event')
     }
 
     const handleDisconnect = (
@@ -206,7 +206,7 @@ export const ConnectionObserver = () => {
     ) => {
       const connectionEndTime = Date.now()
 
-      posthog.capture('disconnect-event', {
+      captureEvent('disconnect-event', {
         // Calculate total session duration from first connection to final disconnect
         // This duration is sensitive to refreshing the page.
         sessionDuration: connectionStartTimeRef.current

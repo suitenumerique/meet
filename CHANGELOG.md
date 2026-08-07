@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ♻️(frontend) encapsulate error tracking behind a telemetry module
+- ♻️(frontend) encapsulate PostHog capture calls in the telemetry module
 
 ## [1.25.2] - 2026-08-06
 

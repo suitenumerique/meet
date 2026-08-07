@@ -1,5 +1,21 @@
 import { getPosthog } from './utils'
 
+export const captureEvent = (
+  event: string,
+  props?: Record<string, unknown>
+) => {
+  void getPosthog()
+    .then((ph) => {
+      ph.capture(event, props)
+    })
+    .catch(() => {
+      /* telemetry must never break the app */
+    })
+  if (import.meta.env.DEV) {
+    console.warn(`[telemetry] ${event}`, props)
+  }
+}
+
 export type LogCode =
   // media
   | 'join_preview_failure'
