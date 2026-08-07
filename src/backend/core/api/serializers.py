@@ -349,6 +349,7 @@ class RoomConfiguration(BaseModel):
 
     can_publish_sources: list[TrackSource] | None = None
     everyone_can_mute: bool | None = None
+    authenticated_can_record: bool | None = None
 
     model_config = {"extra": "forbid"}
 

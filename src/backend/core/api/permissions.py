@@ -198,3 +198,37 @@ class IsPresentInMeeting(permissions.BasePermission):
             return False
         except ParticipantsManagementException:
             return False
+
+
+class RoomCapabilityPermission(permissions.BasePermission):
+    """Wip."""
+
+    capability = None
+
+    def has_object_permission(self, request, view, obj):
+        """Wip."""
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return False
+
+        if obj.is_administrator_or_owner(user):
+            return True
+
+        if not obj.configuration.get(self.capability, True):
+            return False
+
+        try:
+            return ParticipantsManagement().check_if_in_meeting(
+                room_name=str(obj.pk), identity=str(user.sub)
+            )
+        except ParticipantNotFoundException:
+            return False
+        except ParticipantsManagementException:
+            return False
+
+
+class CanRecord(RoomCapabilityPermission):
+    """Wip."""
+
+    capability = "authenticated_can_record"

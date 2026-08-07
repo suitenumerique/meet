@@ -6,7 +6,7 @@ import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
   useHasRecordingAccess,
-  useHasFeatureWithoutAdminRights,
+  useHasFeatureWithoutRecordingRights,
   useRecordingStatuses,
 } from '../index'
 import { useState } from 'react'
@@ -53,7 +53,7 @@ export const TranscriptSidePanel = () => {
     FeatureFlags.Transcript
   )
 
-  const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
+  const hasFeatureWithoutAdminRights = useHasFeatureWithoutRecordingRights(
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )

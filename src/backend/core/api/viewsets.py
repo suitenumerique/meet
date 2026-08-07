@@ -396,7 +396,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="start-recording",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanRecord,
         ],
     )
     @FeatureFlag.require("recording")
@@ -421,11 +421,30 @@ class RoomViewSet(
                     mode=mode,
                     options=options.model_dump(exclude_none=True) if options else {},
                 )
-                models.RecordingAccess.objects.create(
-                    user=self.request.user,
-                    role=models.RoleChoices.OWNER,
-                    recording=recording,
-                )
+
+                if room.is_administrator_or_owner(request.user):
+                    models.RecordingAccess.objects.create(
+                        user=self.request.user,
+                        role=models.RoleChoices.OWNER,
+                        recording=recording,
+                    )
+                else:
+                    # todo - encapsulate it in a clear method which replicate privileges role on obj
+                    accesses = models.ResourceAccess.objects.filter(
+                        resource=room,
+                        role__in=[models.RoleChoices.OWNER, models.RoleChoices.ADMIN],
+                    ).values_list("user_id", "role")
+
+                    models.RecordingAccess.objects.bulk_create(
+                        [
+                            models.RecordingAccess(
+                                user_id=user_id,
+                                role=role,
+                                recording=recording,
+                            )
+                            for user_id, role in accesses
+                        ]
+                    )
 
         except (DjangoValidationError, IntegrityError):
             # DjangoValidationError covers the Python-level check (full_clean);
@@ -469,7 +488,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="stop-recording",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanRecord,
         ],
     )
     @FeatureFlag.require("recording")

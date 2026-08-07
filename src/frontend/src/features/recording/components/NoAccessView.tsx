@@ -98,6 +98,7 @@ export const NoAccessView = ({
           )}
         </Text>
       </VStack>
+      {/*todo - update the message here to adapt to room configuration */}
       {!isLoggedIn && (
         <LoginPrompt
           heading={t(`${i18nKey}.login.heading`)}
