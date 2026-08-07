@@ -1,22 +1,13 @@
 import { proxy } from 'valtio'
-import { derive } from 'derive-valtio'
 
-type PermissionState =
-  | undefined
-  | 'granted'
-  | 'prompt'
-  | 'denied'
-  | 'unavailable'
+type PermissionState = undefined | 'granted' | 'prompt' | 'denied'
 
-type BaseState = {
+type State = {
   cameraPermission: PermissionState
   microphonePermission: PermissionState
   isLoading: boolean
   isPermissionDialogOpen: boolean
   requestOrigin?: 'audioinput' | 'videoinput'
-}
-
-type DerivedState = {
   isCameraGranted: boolean
   isMicrophoneGranted: boolean
   isCameraDenied: boolean
@@ -25,34 +16,31 @@ type DerivedState = {
   isMicrophonePrompted: boolean
 }
 
-type State = BaseState & DerivedState
-
-export const permissionsStore = proxy<BaseState>({
+export const permissionsStore = proxy<State>({
   cameraPermission: undefined,
   microphonePermission: undefined,
   isLoading: true,
   isPermissionDialogOpen: false,
   requestOrigin: undefined,
-}) as State
-
-derive(
-  {
-    isCameraGranted: (get) =>
-      get(permissionsStore).cameraPermission == 'granted',
-    isMicrophoneGranted: (get) =>
-      get(permissionsStore).microphonePermission == 'granted',
-    isCameraDenied: (get) => get(permissionsStore).cameraPermission == 'denied',
-    isMicrophoneDenied: (get) =>
-      get(permissionsStore).microphonePermission == 'denied',
-    isCameraPrompted: (get) =>
-      get(permissionsStore).cameraPermission == 'prompt',
-    isMicrophonePrompted: (get) =>
-      get(permissionsStore).microphonePermission == 'prompt',
+  get isCameraGranted() {
+    return this.cameraPermission === 'granted'
   },
-  {
-    proxy: permissionsStore,
-  }
-)
+  get isMicrophoneGranted() {
+    return this.microphonePermission === 'granted'
+  },
+  get isCameraDenied() {
+    return this.cameraPermission === 'denied'
+  },
+  get isMicrophoneDenied() {
+    return this.microphonePermission === 'denied'
+  },
+  get isCameraPrompted() {
+    return this.cameraPermission === 'prompt'
+  },
+  get isMicrophonePrompted() {
+    return this.microphonePermission === 'prompt'
+  },
+})
 
 export const openPermissionsDialog = (
   requestOrigin?: 'audioinput' | 'videoinput'
@@ -63,4 +51,85 @@ export const openPermissionsDialog = (
 
 export const closePermissionsDialog = () => {
   permissionsStore.isPermissionDialogOpen = false
+}
+
+export type PermissionKind = 'camera' | 'microphone'
+
+const KIND_MAP = {
+  camera: 'videoinput',
+  microphone: 'audioinput',
+} as const
+
+export const PERMISSION_BY_DEVICE_KIND: Partial<
+  Record<MediaDeviceKind, PermissionKind>
+> = {
+  videoinput: 'camera',
+  audioinput: 'microphone',
+}
+
+export const setPermissions = (
+  p: Partial<Record<PermissionKind, PermissionState>>
+) => {
+  if (p.camera && p.camera !== permissionsStore.cameraPermission) {
+    permissionsStore.cameraPermission = p.camera
+  }
+  if (p.microphone && p.microphone !== permissionsStore.microphonePermission) {
+    permissionsStore.microphonePermission = p.microphone
+  }
+  permissionsStore.isLoading = false
+}
+
+const queryPermission = async (name: PermissionKind) => {
+  try {
+    const status = await navigator.permissions.query({
+      name: name as PermissionName,
+    })
+    return status.state
+  } catch {
+    return undefined
+  }
+}
+
+const labelsVisible = async () => {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    return (kind: PermissionKind) =>
+      devices.some((d) => d.kind === KIND_MAP[kind] && !!d.label)
+  } catch {
+    return (_kind: PermissionKind) => false
+  }
+}
+
+export const syncPermissions = async () => {
+  const [camera, microphone] = await Promise.all([
+    queryPermission('camera'),
+    queryPermission('microphone'),
+  ])
+  if (camera && microphone) {
+    setPermissions({ camera, microphone })
+    return
+  }
+  const granted = await labelsVisible()
+  const resolve = (kind: PermissionKind, queried?: PermissionState) => {
+    if (queried) return queried
+    const current =
+      kind === 'camera'
+        ? permissionsStore.cameraPermission
+        : permissionsStore.microphonePermission
+    if (current === 'denied') return 'denied'
+    return granted(kind) ? 'granted' : 'prompt'
+  }
+  setPermissions({
+    camera: resolve('camera', camera),
+    microphone: resolve('microphone', microphone),
+  })
+}
+
+export const notePermissionDeniedFromGum = (kind?: PermissionKind) => {
+  if (kind) {
+    setPermissions({ [kind]: 'denied' })
+    void syncPermissions()
+    return
+  }
+  void syncPermissions()
 }
