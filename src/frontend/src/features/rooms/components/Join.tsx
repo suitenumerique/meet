@@ -193,7 +193,7 @@ export const Join = ({
     const createVideoTrack = async () => {
       try {
         const track = await createLocalVideoTrack({
-          deviceId: { exact: videoDeviceId },
+          deviceId: videoDeviceId,
           processor:
             BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
         })
@@ -223,7 +223,7 @@ export const Join = ({
     const createAudioTrack = async () => {
       try {
         const track = await createLocalAudioTrack({
-          deviceId: { exact: audioDeviceId },
+          deviceId: audioDeviceId,
           noiseSuppression: true,
           echoCancellation: true,
           autoGainControl: true,
