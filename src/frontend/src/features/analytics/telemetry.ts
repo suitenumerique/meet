@@ -52,3 +52,89 @@ export const reportError = (
     console.warn(`[${logCode}]`, e, extraInfo)
   }
 }
+
+export interface DeviceSnapshot {
+  cam_count: number
+  mic_count: number
+  out_count: number
+  labels_visible: boolean
+  saved_cam_present: boolean | null
+  saved_mic_present: boolean | null
+  saved_video_device_id_set: boolean
+  saved_audio_device_id_set: boolean
+  audio_enabled: boolean | null
+  video_enabled: boolean | null
+  cam_permission: PermissionState | 'unknown'
+  mic_permission: PermissionState | 'unknown'
+}
+
+/** Reads the persisted LiveKit user choices without importing the store. */
+const readPersistedChoices = (): {
+  videoDeviceId?: string
+  audioDeviceId?: string
+  videoEnabled?: boolean
+  audioEnabled?: boolean
+} => {
+  try {
+    return JSON.parse(localStorage.getItem('lk-user-choices') ?? '{}')
+  } catch {
+    return {}
+  }
+}
+
+const queryPermission = async (
+  name: 'camera' | 'microphone'
+): Promise<PermissionState | 'unknown'> => {
+  try {
+    const status = await navigator.permissions.query({
+      name: name as PermissionName,
+    })
+    return status.state
+  } catch {
+    return 'unknown'
+  }
+}
+
+export const deviceSnapshot = async (): Promise<DeviceSnapshot> => {
+  const choices = readPersistedChoices()
+  let devices: MediaDeviceInfo[] = []
+  try {
+    devices = await navigator.mediaDevices.enumerateDevices()
+  } catch {
+    /* snapshot stays partial */
+  }
+  const ofKind = (k: MediaDeviceKind) => devices.filter((d) => d.kind === k)
+  const present = (k: MediaDeviceKind, id?: string) =>
+    id ? ofKind(k).some((d) => d.deviceId === id) : null
+
+  const [cam_permission, mic_permission] = await Promise.all([
+    queryPermission('camera'),
+    queryPermission('microphone'),
+  ])
+
+  return {
+    cam_count: ofKind('videoinput').length,
+    mic_count: ofKind('audioinput').length,
+    out_count: ofKind('audiooutput').length,
+    labels_visible: devices.some((d) => !!d.label),
+    saved_cam_present: present('videoinput', choices.videoDeviceId),
+    saved_mic_present: present('audioinput', choices.audioDeviceId),
+    saved_video_device_id_set: !!choices.videoDeviceId,
+    saved_audio_device_id_set: !!choices.audioDeviceId,
+    audio_enabled: choices.audioEnabled ?? null,
+    video_enabled: choices.videoEnabled ?? null,
+    cam_permission,
+    mic_permission,
+  }
+}
+
+export const captureMediaEvent = async (
+  event:
+    | 'media-device-error'
+    | 'media-acquisition'
+    | 'media-device-topology'
+    | 'media-device-success',
+  props: Record<string, unknown>
+) => {
+  captureEvent(event, { ...props, ...(await deviceSnapshot()) })
+}
