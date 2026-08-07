@@ -11,7 +11,6 @@ import { useTranslation } from 'react-i18next'
 import { SoundTester } from '@/components/SoundTester'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import { useNoiseReductionAvailable } from '@/features/rooms/livekit/hooks/useNoiseReductionAvailable'
-import posthog from 'posthog-js'
 import { RowWrapper } from './layout/RowWrapper'
 import { useSnapshot } from 'valtio'
 import {
@@ -20,6 +19,7 @@ import {
   saveNoiseReductionEnabled,
   userChoicesStore,
 } from '@/stores/userChoices'
+import { captureEvent } from '@/features/analytics/telemetry'
 
 export type AudioTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -128,7 +128,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
             isSelected={noiseReductionEnabled}
             onChange={(v) => {
               saveNoiseReductionEnabled(v)
-              if (v) posthog.capture('noise-reduction-init')
+              if (v) captureEvent('noise-reduction-init')
             }}
           >
             {t('audio.noiseReduction.label')}

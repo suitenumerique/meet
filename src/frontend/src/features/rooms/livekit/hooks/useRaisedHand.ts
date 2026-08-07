@@ -8,6 +8,7 @@ import {
 import { isLocal } from '@/utils/livekit'
 import { useMemo } from 'react'
 import { useRaiseHand } from '@/features/rooms/api/updateRaiseHand'
+import { reportError } from '@/features/analytics/telemetry'
 
 type useRaisedHandProps = {
   participant: Participant
@@ -79,8 +80,11 @@ export function useRaisedHand({ participant }: useRaisedHandProps) {
     try {
       await raiseHand(!isHandRaised)
     } catch (e) {
-      console.error(
-        `Failed to toggle hand: ${e instanceof Error ? e.message : 'Unknown error'}`
+      reportError(
+        'generic_failure',
+        new Error(
+          `Failed to toggle hand: ${e instanceof Error ? e.message : 'Unknown error'}`
+        )
       )
     }
   }

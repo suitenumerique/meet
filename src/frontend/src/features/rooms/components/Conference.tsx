@@ -26,7 +26,11 @@ import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
-import { usePostHog } from 'posthog-js/react'
+import {
+  captureEvent,
+  reportError,
+  captureMediaEvent,
+} from '@/features/analytics/telemetry'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
@@ -37,6 +41,7 @@ import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
+import { notePermissionDeniedFromGum } from '@/stores/permissions'
 
 export const Conference = ({
   roomId,
@@ -47,7 +52,6 @@ export const Conference = ({
   mode?: 'join' | 'create'
   initialRoomData?: ApiRoom
 }) => {
-  const posthog = usePostHog()
   const { data: apiConfig } = useConfig()
 
   const { userChoices: userConfig } = usePersistentUserChoices() as {
@@ -57,8 +61,8 @@ export const Conference = ({
   const { username } = useSnapshot(userStore)
 
   useEffect(() => {
-    posthog.capture('visit-room', { slug: roomId })
-  }, [roomId, posthog])
+    captureEvent('visit-room', { slug: roomId })
+  }, [roomId])
   const fetchKey = [keys.room, roomId]
 
   const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
@@ -235,7 +239,10 @@ export const Conference = ({
             backgroundColor: 'primaryDark.50 !important',
           })}
           onError={(e) => {
-            posthog.captureException(e)
+            reportError('livekit_room_error', e, {
+              path: 'connect_publish',
+              failure: MediaDeviceFailure.getFailure(e) ?? 'not-a-device-error',
+            })
           }}
           onConnected={async () => {
             if (!apiConfig) return
@@ -296,8 +303,22 @@ export const Conference = ({
             }
           }}
           onMediaDeviceFailure={(e, kind) => {
-            if (e == MediaDeviceFailure.DeviceInUse && !!kind) {
-              setMediaDeviceError({ error: e, kind })
+            if (!e || !kind) return
+            void captureMediaEvent('media-device-error', {
+              log_code: 'media_devices_error_event',
+              path: 'connect_publish',
+              failure: e,
+              kind,
+            })
+            switch (e) {
+              case MediaDeviceFailure.DeviceInUse:
+                setMediaDeviceError({ error: e, kind })
+                break
+              case MediaDeviceFailure.PermissionDenied:
+                notePermissionDeniedFromGum()
+                break
+              default:
+                break
             }
           }}
         >

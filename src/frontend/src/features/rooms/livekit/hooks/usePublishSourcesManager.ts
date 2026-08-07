@@ -12,6 +12,7 @@ import {
   NotificationType,
   useNotifyParticipants,
 } from '@/features/notifications'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const updatePublishSources = (
   currentSources: Source[],
@@ -108,7 +109,9 @@ export const usePublishSourcesManager = () => {
 
         return { configuration: newConfiguration }
       } catch (error) {
-        console.error(`Failed to update ${sources}:`, error)
+        reportError('publish_sources_failure', error, {
+          context: `Failed to update ${sources}:`,
+        })
         return { success: false, error }
       }
     },

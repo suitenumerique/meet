@@ -45,7 +45,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'shareDialog' })
 
   const roomData = useRoomData()
-  const roomUrl = getRouteUrl('room', roomData?.slug)
+  const roomUrl = roomData?.slug ? getRouteUrl('room', roomData.slug) : ''
 
   const telephony = useTelephony()
 

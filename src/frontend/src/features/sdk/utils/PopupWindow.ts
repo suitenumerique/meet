@@ -1,5 +1,6 @@
 import { authUrl } from '@/features/auth/utils/authUrl'
 import { PopupMessageType, CallbackCreationRoomData } from './types'
+import { reportError } from '@/features/analytics/telemetry'
 
 export class PopupWindow {
   private sendMessageToManager(
@@ -9,7 +10,7 @@ export class PopupWindow {
     callback?: () => void
   ) {
     if (!window.opener) {
-      console.error('No manager window found')
+      reportError('generic_failure', new Error('No manager window found'))
       window.close()
       return
     }

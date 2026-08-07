@@ -11,6 +11,7 @@ import { SidePanel } from '../components/SidePanel'
 import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { ConnectionObserver } from '../components/ConnectionObserver'
+import { reportError } from '@/features/analytics/telemetry'
 import { MediaStateObserver } from '../components/MediaStateObserver'
 import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer'
 import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
@@ -25,6 +26,7 @@ import { PipRoomPlaceholder } from '@/features/pip/components/PipRoomPlaceholder
 import { StageLayout } from '@/features/layout/components/StageLayout'
 import { PinAnnouncer } from '@/features/layout/components/PinAnnouncer'
 import { ChatProvider } from '@/features/chat/components/ChatProvider'
+import { SyncDevicePreferences } from '@/features/rooms/livekit/components/SyncDevicePreferences'
 
 /**
  * @public
@@ -64,6 +66,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
     <>
       <RoomMetadataSynchronizer />
       <ConnectionObserver />
+      <SyncDevicePreferences />
       <MediaStateObserver />
       <ChatProvider />
       <VideoResolutionSubscription />
@@ -91,7 +94,10 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
             </RoomContentArea>
             <ControlBar
               onDeviceError={(e) => {
-                console.error(e)
+                reportError('device_switch_failure', e.error, {
+                  at: 'ControlBar.onDeviceError',
+                  source: e.source,
+                })
                 if (
                   e.source == Track.Source.ScreenShare &&
                   e.error.toString() ==

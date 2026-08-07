@@ -1,6 +1,7 @@
 import { fetchApi } from '@/api/fetchApi'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { AssignableParticipantRole } from '@/features/rooms/api/ApiRoom'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const useParticipantRole = () => {
   const data = useRoomData()
@@ -22,8 +23,11 @@ export const useParticipantRole = () => {
         }),
       })
     } catch (error) {
-      console.error(
-        `Failed to update participant's role ${identity}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      reportError(
+        'generic_failure',
+        new Error(
+          `Failed to update participant's role ${identity}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
       )
     }
   }

@@ -1,7 +1,9 @@
 import { ref, useSnapshot } from 'valtio'
 import { useCallback, useMemo } from 'react'
+import { flushSync } from 'react-dom'
 import { documentPictureInPictureStore } from '@/stores/documentPictureInPicture'
 import { useTranslation } from 'react-i18next'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const IS_PIP_SUPPORTED =
   typeof globalThis !== 'undefined' && 'documentPictureInPicture' in globalThis
@@ -73,7 +75,9 @@ export const usePictureInPicture = () => {
 
         const cleanUp = () => {
           if (documentPictureInPictureStore.window === pipWindow) {
-            documentPictureInPictureStore.window = null
+            flushSync(() => {
+              documentPictureInPictureStore.window = null
+            })
           }
         }
         pipWindow.addEventListener('pagehide', () => cleanUp(), { once: true })
@@ -83,7 +87,9 @@ export const usePictureInPicture = () => {
         documentPictureInPictureStore.window = ref(pipWindow)
       } catch (error) {
         // Avoid unhandled rejections if the user blocks or closes the request.
-        console.error('Failed to open Picture-in-Picture window', error)
+        reportError('generic_failure', error, {
+          context: 'Failed to open Picture-in-Picture window',
+        })
         return null
       }
     },

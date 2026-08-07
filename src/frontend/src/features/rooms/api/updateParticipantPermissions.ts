@@ -1,6 +1,7 @@
 import type { Participant, Track } from 'livekit-client'
 import { fetchApi } from '@/api/fetchApi'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { reportError } from '@/features/analytics/telemetry'
 type Source = Track.Source
 
 export const useParticipantPermissions = () => {
@@ -32,8 +33,11 @@ export const useParticipantPermissions = () => {
         }),
       })
     } catch (error) {
-      console.error(
-        `Failed to update participant's permissions ${participant.identity}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      reportError(
+        'permissions_api_failure',
+        new Error(
+          `Failed to update participant's permissions ${participant.identity}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
       )
     }
   }

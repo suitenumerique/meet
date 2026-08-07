@@ -16,7 +16,6 @@ import {
   notifyRecordingSaveInProgress,
   useNotifyParticipants,
 } from '@/features/notifications'
-import posthog from 'posthog-js'
 import { useConfig } from '@/api/useConfig'
 import { NoAccessView } from './NoAccessView'
 import { ControlsButton } from './ControlsButton'
@@ -29,6 +28,7 @@ import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { LimitDescription } from './LimitDescription'
+import { captureEvent, reportError } from '@/features/analytics/telemetry'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -63,7 +63,7 @@ export const ScreenRecordingSidePanel = () => {
     await notifyParticipants({
       type: NotificationType.ScreenRecordingRequested,
     })
-    posthog.capture('screen-recording-requested', {})
+    captureEvent('screen-recording-requested', {})
   }
 
   const handleScreenRecording = async () => {
@@ -100,13 +100,15 @@ export const ScreenRecordingSidePanel = () => {
         await notifyParticipants({
           type: NotificationType.ScreenRecordingStarted,
         })
-        posthog.capture('screen-recording-started', {
+        captureEvent('screen-recording-started', {
           includeTranscript: includeTranscript,
           language: selectedLanguageKey,
         })
       }
     } catch (error) {
-      console.error('Failed to handle recording:', error)
+      reportError('generic_failure', error, {
+        context: 'Failed to handle recording:',
+      })
     }
   }
 

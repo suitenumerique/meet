@@ -29,6 +29,8 @@
     },
     "audioinput": {
       "choose": "Choisir le micro",
+      "level": "Niveau d'entrée du micro",
+      "muteTest": "Activez votre micro pour le tester",
       "permissionsNeeded": "Choisir le micro - autorisations nécessaires",
       "disable": "Désactiver le micro",
       "enable": "Activer le micro",

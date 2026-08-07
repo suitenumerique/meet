@@ -15,6 +15,7 @@ import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { updatePublishSources } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
+import { reportError } from '@/features/analytics/telemetry'
 
 type Source = Track.Source
 
@@ -108,7 +109,7 @@ const SettingsPopup = () => {
     patchRoom({
       roomId: roomSlug,
       room: { configuration: newConfiguration },
-    }).catch((e) => console.error(e))
+    }).catch((e) => reportError('generic_failure', e))
   }
 
   const updateSource = (sources: Source[], enabled: boolean) => {
@@ -329,7 +330,7 @@ const SettingsPopup = () => {
               patchRoom({
                 roomId: roomSlug,
                 room: { access_level: value as ApiAccessLevel },
-              }).catch((e) => console.error(e))
+              }).catch((e) => reportError('generic_failure', e))
             }
             items={[
               {

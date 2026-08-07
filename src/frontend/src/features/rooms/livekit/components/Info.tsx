@@ -14,7 +14,7 @@ export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
 
   const data = useRoomData()
-  const roomUrl = getRouteUrl('room', data?.slug)
+  const roomUrl = data?.slug ? getRouteUrl('room', data.slug) : ''
 
   const telephony = useTelephony()
 
