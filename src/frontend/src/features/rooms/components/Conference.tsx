@@ -41,7 +41,7 @@ import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
-import { notePermissionDeniedFromGum } from "@/stores/permissions";
+import { notePermissionDeniedFromGum } from '@/stores/permissions'
 
 export const Conference = ({
   roomId,
