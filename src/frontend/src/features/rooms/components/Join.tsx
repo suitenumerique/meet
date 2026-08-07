@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { usePreviewTracks } from '@livekit/components-react'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createLocalAudioTrack,
   createLocalVideoTrack,
@@ -10,6 +10,7 @@ import {
   type LocalVideoTrack,
   MediaDeviceFailure,
   Track,
+  TrackEvent,
 } from 'livekit-client'
 import { H } from '@/primitives/H'
 import { Field } from '@/primitives/Field'
@@ -38,6 +39,7 @@ import {
   notePermissionDeniedFromGum,
   openPermissionsDialog,
   PermissionKind,
+  permissionsStore,
 } from '@/stores/permissions'
 import { isSafari } from '@/utils/livekit'
 import { reportError } from '@/features/analytics/telemetry'
@@ -59,15 +61,6 @@ import { useSyncTrackDeviceId } from '../livekit/hooks/useSyncTrackDeviceId'
 import { useSnapshot } from 'valtio'
 import { useUser } from '@/features/auth/api/useUser'
 import { useConfig } from '@/api/useConfig'
-
-const onError = (e: Error, kind?: PermissionKind) => {
-  reportError('join_preview_failure', e, { path: 'join_preview' })
-  if (
-    MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.PermissionDenied
-  ) {
-    notePermissionDeniedFromGum(kind)
-  }
-}
 
 const Effects = ({
   videoTrack,
@@ -157,6 +150,21 @@ export const Join = ({
     }
   }
 
+  const [previewBroken, setPreviewBroken] = useState(false)
+
+  const onError = useCallback((e: Error, kind?: PermissionKind) => {
+    reportError('join_preview_failure', e, { path: 'join_preview', kind })
+    if (
+      MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.PermissionDenied
+    ) {
+      notePermissionDeniedFromGum(kind)
+    }
+    // Combined createLocalTracks is atomic: one bad kind fails both.
+    if (!kind) setPreviewBroken(true)
+  }, [])
+
+  const { isCameraGranted, isMicrophoneGranted } = useSnapshot(permissionsStore)
+
   const tracks = usePreviewTracks(
     {
       audio: !!initialUserChoices.current &&
@@ -195,11 +203,22 @@ export const Join = ({
     [tracks]
   )
 
-  /*
-   * Dynamic track creation strategy: Only create a dynamic track if the user initially disabled audio/video
-   * but now wants to enable it. This is a "just-in-time" acquisition pattern where we create the track
-   * on-demand. We avoid creating tracks when the user explicitly requested them to be disabled.
-   */
+  useEffect(() => {
+    const raw = [previewAudioTrack, previewVideoTrack].filter(
+      (t): t is LocalAudioTrack | LocalVideoTrack => !!t
+    )
+    if (!raw.length || previewBroken) return
+    const onEnded = () => {
+      raw.forEach((t) => t.stop())
+      setPreviewBroken(true)
+    }
+    raw.forEach((t) => t.on(TrackEvent.Ended, onEnded))
+    return () => raw.forEach((t) => t.off(TrackEvent.Ended, onEnded))
+  }, [previewAudioTrack, previewVideoTrack, previewBroken])
+
+  const livePreviewVideoTrack = previewBroken ? null : previewVideoTrack
+  const livePreviewAudioTrack = previewBroken ? null : previewAudioTrack
+
   useEffect(() => {
     const createVideoTrack = async () => {
       try {
@@ -216,8 +235,8 @@ export const Join = ({
 
     if (
       videoEnabled &&
-      !initialUserChoices.current?.videoEnabled &&
-      !previewVideoTrack &&
+      (!initialUserChoices.current?.videoEnabled || previewBroken) &&
+      !livePreviewVideoTrack &&
       !dynamicVideoTrack
     ) {
       createVideoTrack()
@@ -226,8 +245,11 @@ export const Join = ({
     videoEnabled,
     videoDeviceId,
     processorConfig,
-    previewVideoTrack,
+    livePreviewVideoTrack,
     dynamicVideoTrack,
+    previewBroken,
+    isCameraGranted,
+    onError,
   ])
 
   useEffect(() => {
@@ -251,13 +273,21 @@ export const Join = ({
     }
     if (
       audioEnabled &&
-      !initialUserChoices.current?.audioEnabled &&
-      !previewAudioTrack &&
+      (!initialUserChoices.current?.audioEnabled || previewBroken) &&
+      !livePreviewAudioTrack &&
       !dynamicAudioTrack
     ) {
       createAudioTrack()
     }
-  }, [audioEnabled, audioDeviceId, previewAudioTrack, dynamicAudioTrack])
+  }, [
+    audioEnabled,
+    audioDeviceId,
+    livePreviewAudioTrack,
+    dynamicAudioTrack,
+    previewBroken,
+    isMicrophoneGranted,
+    onError,
+  ])
 
   // Cleanup dynamic tracks
   useEffect(() => {
@@ -271,9 +301,42 @@ export const Join = ({
     }
   }, [dynamicAudioTrack])
 
-  // Final tracks (dynamic takes precedence over preview)
-  const videoTrack = dynamicVideoTrack || previewVideoTrack
-  const audioTrack = dynamicAudioTrack || previewAudioTrack
+  useEffect(() => {
+    if (!dynamicVideoTrack) return
+    const onEnded = async () => {
+      try {
+        await dynamicVideoTrack.restartTrack()
+      } catch (e) {
+        onError(e as Error, 'camera')
+        dynamicVideoTrack.stop()
+        setDynamicVideoTrack(null)
+      }
+    }
+    dynamicVideoTrack.on(TrackEvent.Ended, onEnded)
+    return () => {
+      dynamicVideoTrack.off(TrackEvent.Ended, onEnded)
+    }
+  }, [dynamicVideoTrack, onError])
+
+  useEffect(() => {
+    if (!dynamicAudioTrack) return
+    const onEnded = async () => {
+      try {
+        await dynamicAudioTrack.restartTrack()
+      } catch (e) {
+        onError(e as Error, 'microphone')
+        dynamicAudioTrack.stop()
+        setDynamicAudioTrack(null)
+      }
+    }
+    dynamicAudioTrack.on(TrackEvent.Ended, onEnded)
+    return () => {
+      dynamicAudioTrack.off(TrackEvent.Ended, onEnded)
+    }
+  }, [dynamicAudioTrack, onError])
+
+  const videoTrack = dynamicVideoTrack || livePreviewVideoTrack
+  const audioTrack = dynamicAudioTrack || livePreviewAudioTrack
 
   useSyncTrackDeviceId(audioTrack, saveAudioInputDeviceId)
   useSyncTrackDeviceId(videoTrack, saveVideoInputDeviceId)
