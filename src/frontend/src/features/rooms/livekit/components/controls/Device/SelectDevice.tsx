@@ -5,6 +5,8 @@ import { Select, SelectProps } from '@/primitives/Select'
 import type { Placement } from '@react-types/overlays'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '@/features/rooms/livekit/hooks/useDeviceIcons'
+import type { LocalAudioTrack } from 'livekit-client'
+import { AudioLevelGauge } from './AudioLevelGauge'
 
 type DeviceItems = Array<{ value: string; label: string }>
 
@@ -18,6 +20,7 @@ type SelectDeviceProps = {
   onSubmit?: (id: string) => void
   kind: MediaDeviceKind
   context?: 'join' | 'room'
+  track?: LocalAudioTrack
 }
 
 type SelectDevicePermissionsProps<T> = SelectDeviceProps &
@@ -28,6 +31,7 @@ const SelectDevicePermissions = <T extends string | number>({
   kind,
   onSubmit,
   iconComponent,
+  track,
   ...props
 }: SelectDevicePermissionsProps<T>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
@@ -74,6 +78,11 @@ const SelectDevicePermissions = <T extends string | number>({
         await setActiveMediaDevice(key as string)
         onSubmit?.(key as string)
       }}
+      menuFooter={
+        kind === 'audioinput' ? (
+          <AudioLevelGauge track={track} variant={props.variant} />
+        ) : undefined
+      }
       {...props}
     />
   )
@@ -84,6 +93,7 @@ export const SelectDevice = ({
   onSubmit,
   kind,
   context = 'join',
+  track,
 }: SelectDeviceProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
@@ -116,6 +126,7 @@ export const SelectDevice = ({
       id={id}
       onSubmit={onSubmit}
       kind={kind}
+      track={track}
       iconComponent={deviceIcons.select}
       {...contextProps}
     />

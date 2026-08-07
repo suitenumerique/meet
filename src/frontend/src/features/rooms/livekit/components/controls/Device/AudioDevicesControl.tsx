@@ -1,8 +1,12 @@
 import { useTranslation } from 'react-i18next'
-import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
+import {
+  useLocalParticipant,
+  useTrackToggle,
+  UseTrackToggleProps,
+} from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine } from '@remixicon/react'
-import { Track } from 'livekit-client'
+import { LocalAudioTrack, Track } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
@@ -50,6 +54,12 @@ export const AudioDevicesControl = ({
     onChange,
     ...props,
   })
+
+  const { microphoneTrack } = useLocalParticipant()
+  const localAudioTrack =
+    microphoneTrack?.track instanceof LocalAudioTrack
+      ? microphoneTrack.track
+      : undefined
 
   const kind = 'audioinput'
   const cannotUseDevice = useCannotUseDevice(kind)
@@ -111,6 +121,7 @@ export const AudioDevicesControl = ({
                   context="room"
                   kind={kind}
                   id={audioDeviceId}
+                  track={localAudioTrack}
                   onSubmit={saveAudioInputDeviceId}
                 />
               </div>

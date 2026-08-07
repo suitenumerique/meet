@@ -29,6 +29,8 @@
     },
     "audioinput": {
       "choose": "Select microphone",
+      "level": "Microphone input level",
+      "muteTest": "Turn on your microphone to test it",
       "permissionsNeeded": "Select microphone - permission needed",
       "disable": "Disable microphone",
       "enable": "Enable microphone",

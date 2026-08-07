@@ -99,6 +99,7 @@ export type SelectProps<T> = Omit<
   errors?: ReactNode
   placement?: Placement
   variant?: 'light' | 'dark'
+  menuFooter?: ReactNode
 }
 
 export const Select = <T extends string | number>({
@@ -108,56 +109,62 @@ export const Select = <T extends string | number>({
   errors,
   placement,
   variant = 'light',
+  menuFooter,
   ...props
 }: SelectProps<T>) => {
   const IconComponent = iconComponent
   const { t } = useTranslation('global')
   return (
     <RACSelect {...props}>
-      {label}
-      <StyledButton variant={variant}>
-        {!!IconComponent && (
-          <StyledIcon>
-            <IconComponent size={18} />
-          </StyledIcon>
-        )}
-        <StyledSelectValue />
-        <RiArrowDropDownLine
-          aria-hidden="true"
-          className={css({ flexShrink: 0 })}
-        />
-      </StyledButton>
-      <StyledPopover placement={placement}>
-        <Box size="sm" type="popover" variant={variant}>
-          <ListBox>
-            {items.map((item) => (
-              <ListBoxItem
-                className={
-                  menuRecipe({
-                    extraPadding: true,
-                    variant: variant,
-                  }).item
-                }
-                id={item.value}
-                key={item.value}
-                textValue={
-                  typeof item.label === 'string' ? item.label : undefined
-                }
-              >
-                {({ isSelected }) => (
-                  <>
-                    {item.label}
-                    {isSelected && (
-                      <VisuallyHidden>, {t('selected')}</VisuallyHidden>
+      {({ isOpen }) => (
+        <>
+          {label}
+          <StyledButton variant={variant}>
+            {!!IconComponent && (
+              <StyledIcon>
+                <IconComponent size={18} />
+              </StyledIcon>
+            )}
+            <StyledSelectValue />
+            <RiArrowDropDownLine
+              aria-hidden="true"
+              className={css({ flexShrink: 0 })}
+            />
+          </StyledButton>
+          <StyledPopover placement={placement}>
+            <Box size="sm" type="popover" variant={variant}>
+              <ListBox>
+                {items.map((item) => (
+                  <ListBoxItem
+                    className={
+                      menuRecipe({
+                        extraPadding: true,
+                        variant: variant,
+                      }).item
+                    }
+                    id={item.value}
+                    key={item.value}
+                    textValue={
+                      typeof item.label === 'string' ? item.label : undefined
+                    }
+                  >
+                    {({ isSelected }) => (
+                      <>
+                        {item.label}
+                        {isSelected && (
+                          <VisuallyHidden>, {t('selected')}</VisuallyHidden>
+                        )}
+                      </>
                     )}
-                  </>
-                )}
-              </ListBoxItem>
-            ))}
-          </ListBox>
-        </Box>
-      </StyledPopover>
-      {errors}
+                  </ListBoxItem>
+                ))}
+              </ListBox>
+              {isOpen && menuFooter}
+            </Box>
+          </StyledPopover>
+          {errors}
+        </>
+      )}
     </RACSelect>
   )
 }
