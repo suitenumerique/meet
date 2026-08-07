@@ -26,7 +26,7 @@ import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
-import { captureEvent, reportError } from '@/features/analytics/telemetry'
+import { captureEvent, reportError, captureMediaEvent } from '@/features/analytics/telemetry'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
@@ -235,6 +235,7 @@ export const Conference = ({
           })}
           onError={(e) => {
             reportError('livekit_room_error', e, {
+              path: 'connect_publish',
               failure: MediaDeviceFailure.getFailure(e) ?? 'not-a-device-error',
             })
           }}
@@ -297,8 +298,19 @@ export const Conference = ({
             }
           }}
           onMediaDeviceFailure={(e, kind) => {
-            if (e == MediaDeviceFailure.DeviceInUse && !!kind) {
-              setMediaDeviceError({ error: e, kind })
+            if (!e || !kind) return
+            void captureMediaEvent('media-device-error', {
+              log_code: 'media_devices_error_event',
+              path: 'connect_publish',
+              failure: e,
+              kind,
+            })
+            switch (e) {
+              case MediaDeviceFailure.DeviceInUse:
+                setMediaDeviceError({ error: e, kind })
+                break
+              default:
+                break
             }
           }}
         >
