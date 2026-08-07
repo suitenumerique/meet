@@ -20,6 +20,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(frontend) drop exact deviceId constraint on dynamic track creation
+- 🐛(frontend) fix permission store regression
 
 ## [1.25.2] - 2026-08-06
 
