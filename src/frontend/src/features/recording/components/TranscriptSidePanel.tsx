@@ -35,6 +35,7 @@ import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { LimitDescription } from './LimitDescription'
 import { openSettingsDialog } from '@/stores/settings'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -127,7 +128,9 @@ export const TranscriptSidePanel = () => {
         })
       }
     } catch (error) {
-      console.error('Failed to handle transcript:', error)
+      reportError('generic_failure', error, {
+        context: 'Failed to handle transcript:',
+      })
     }
   }
 

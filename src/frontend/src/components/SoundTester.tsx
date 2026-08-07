@@ -2,6 +2,7 @@ import { Button } from '@/primitives'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMediaDeviceSelect } from '@livekit/components-react'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const SoundTester = () => {
   const { t } = useTranslation('settings')
@@ -15,7 +16,10 @@ export const SoundTester = () => {
       try {
         await audioRef?.current?.setSinkId(deviceId)
       } catch (error) {
-        console.error(`Error setting sinkId: ${error}`)
+        reportError(
+          'device_switch_failure',
+          new Error(`Error setting sinkId: ${error}`)
+        )
       }
     }
     updateActiveId(activeDeviceId)

@@ -1,6 +1,7 @@
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { useCallback } from 'react'
+import { reportError } from '@/features/analytics/telemetry'
 
 export const usePermissionsManager = () => {
   const { mutateAsync: patchRoom } = usePatchRoom()
@@ -28,7 +29,9 @@ export const usePermissionsManager = () => {
 
         return { configuration: newConfiguration }
       } catch (error) {
-        console.error('Failed to update muting permission:', error)
+        reportError('permissions_api_failure', error, {
+          context: 'Failed to update muting permission:',
+        })
         return { success: false, error }
       }
     },

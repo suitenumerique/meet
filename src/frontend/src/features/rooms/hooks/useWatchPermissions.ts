@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { permissionsStore } from '@/stores/permissions'
 import { isSafari } from '@/utils/livekit'
+import { reportError } from '@/features/analytics/telemetry'
 
 const POLLING_TIME = 500
 
@@ -88,7 +89,9 @@ export const useWatchPermissions = () => {
                 }
               } catch (error) {
                 if (!isCancelled) {
-                  console.error('Error polling permissions:', error)
+                  reportError('permission_poll_failure', error, {
+                    context: 'Error polling permissions:',
+                  })
                 }
               }
             }, POLLING_TIME)
@@ -142,7 +145,9 @@ export const useWatchPermissions = () => {
         }
       } catch (error) {
         if (!isCancelled) {
-          console.error('Error checking permissions:', error)
+          reportError('permission_poll_failure', error, {
+            context: 'Error checking permissions:',
+          })
         }
       } finally {
         if (!isCancelled) {

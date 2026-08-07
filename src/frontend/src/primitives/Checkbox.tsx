@@ -112,9 +112,6 @@ export const Checkbox = ({
   const descriptionId = useId()
 
   if (isInvalid !== undefined) {
-    console.error(
-      'Checkbox: passing isInvalid is not supported, use the validate prop instead'
-    )
     return null
   }
 

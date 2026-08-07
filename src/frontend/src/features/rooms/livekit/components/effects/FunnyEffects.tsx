@@ -5,6 +5,7 @@ import { RiGlassesLine, RiGoblet2Fill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { FaceLandmarksProcessor } from '../blur/FaceLandmarksProcessor'
 import type { LocalVideoTrack } from 'livekit-client'
+import { reportError } from '@/features/analytics/telemetry'
 
 export type FunnyEffectsProps = {
   videoTrack: LocalVideoTrack
@@ -55,7 +56,9 @@ export const FunnyEffects = ({
         await videoTrack.setProcessor(newProcessor)
       }
     } catch (e) {
-      console.error('could not update processor', e)
+      reportError('effects_processor_failure', e, {
+        context: 'could not update processor',
+      })
     } finally {
       onPending(false)
     }

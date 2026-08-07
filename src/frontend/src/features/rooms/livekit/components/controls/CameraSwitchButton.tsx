@@ -4,6 +4,7 @@ import { RiCameraSwitchLine } from '@remixicon/react'
 import { useEffect, useState } from 'react'
 import type { ButtonProps } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
+import { reportError } from '@/features/analytics/telemetry'
 
 enum FacingMode {
   USER = 'user',
@@ -103,7 +104,11 @@ export const CameraSwitchButton = (props: Partial<ButtonProps>) => {
       setActiveMediaDevice(device.deviceId)
       setFacingMode(target)
     } else {
-      console.error('Cannot get user device with facingMode ' + target)
+      reportError(
+        'device_switch_failure',
+        new Error('Cannot get user device with facingMode ' + target),
+        { path: 'switch_device', kind: 'videoinput', facing_mode: target }
+      )
     }
   }
   return (
