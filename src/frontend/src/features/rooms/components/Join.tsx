@@ -40,7 +40,7 @@ import {
   PermissionKind,
 } from '@/stores/permissions'
 import { isSafari } from '@/utils/livekit'
-import { reportError } from "@/features/analytics/telemetry"
+import { reportError } from '@/features/analytics/telemetry'
 
 import {
   type LocalUserChoices,
