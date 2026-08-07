@@ -34,7 +34,6 @@ import { Spinner } from '@/primitives/Spinner'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { openPermissionsDialog } from '@/stores/permissions'
-import { useResolveInitiallyDefaultDeviceId } from '../livekit/hooks/useResolveInitiallyDefaultDeviceId'
 import { isSafari } from '@/utils/livekit'
 import { reportError } from '@/features/analytics/telemetry'
 
@@ -264,18 +263,6 @@ export const Join = ({
   const videoTrack = dynamicVideoTrack || previewVideoTrack
   const audioTrack = dynamicAudioTrack || previewAudioTrack
 
-  // LiveKit by default populates device choices with "default" value.
-  // Instead, use the current device id used by the preview track as a default
-  useResolveInitiallyDefaultDeviceId(
-    audioDeviceId,
-    audioTrack,
-    saveAudioInputDeviceId
-  )
-  useResolveInitiallyDefaultDeviceId(
-    videoDeviceId,
-    videoTrack,
-    saveVideoInputDeviceId
-  )
 
   const videoEl = useRef(null)
   const isVideoInitiated = useRef(false)
