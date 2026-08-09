@@ -483,6 +483,18 @@ frontend:
     feedbackForm: ""
     id: ""
 
+  ## @param frontend.thunderbirdAddon.enabled Enable the Thunderbird add-on's static pages ConfigMap (config.js for transit.html/success.html)
+  ## @param frontend.thunderbirdAddon.appName Display name used by the Thunderbird add-on's auth pages
+  ## @param frontend.thunderbirdAddon.baseUrl Public base URL of this deployment (no trailing slash) — must match the origin the installed .xpi was built against (THUNDERBIRD_BASE_URL)
+  ## @param frontend.thunderbirdAddon.enableSourceTracking Enable appending ?from=thunderbird-addon to the URL
+  ## @param frontend.thunderbirdAddon.feedbackForm Add a link to the footer opening a feedback form
+  thunderbirdAddon:
+    enabled: false
+    appName: ""
+    baseUrl: ""
+    enableSourceTracking: false
+    feedbackForm: ""
+
 
 ## @section posthog
 

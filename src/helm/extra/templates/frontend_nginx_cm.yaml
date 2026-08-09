@@ -73,6 +73,51 @@ data:
             sub_filter_once off;
         }
 
+        # LaSuite Meet Thunderbird add-on: only transit.html / success.html and
+        # their assets are served here — manifest.json, background.js and the
+        # privileged experiment scripts ship inside the installed .xpi and are
+        # never fetched over HTTP.
+        location ~* ^/addons/thunderbird/assets/(.+\.(?:css|js|json|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))/?$ {
+            root /usr/share/nginx/html;
+            expires 30d;
+            add_header Cache-Control "public, max-age=2592000, immutable" always;
+        }
+
+        location ~ ^/addons/thunderbird/(transit|success)\.html$ {
+            alias /usr/share/nginx/html/addons/thunderbird/$1.html;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+            add_header Pragma "no-cache" always;
+            add_header Expires 0 always;
+
+            set $nonce $request_id;
+
+            set $csp "default-src 'self'; upgrade-insecure-requests; ";
+            set $csp "${csp}frame-ancestors 'none'; ";
+            set $csp "${csp}script-src 'nonce-${nonce}' 'strict-dynamic'; ";
+            set $csp "${csp}style-src 'self' 'unsafe-inline'; ";
+            set $csp "${csp}img-src 'self' data:; ";
+            set $csp "${csp}font-src 'self' data:; ";
+            set $csp "${csp}connect-src 'self'; ";
+            set $csp "${csp}frame-src 'none'; ";
+            set $csp "${csp}object-src 'none'; ";
+            set $csp "${csp}base-uri 'none'; ";
+
+            add_header Content-Security-Policy $csp;
+            add_header X-Frame-Options "DENY";
+
+            sub_filter 'NONCE_PLACEHOLDER' $nonce;
+            sub_filter_once off;
+        }
+
+        # Regex locations are checked in the order they're declared and the
+        # first match wins, so this catch-all only applies once the two
+        # specific blocks above have had a chance to match — it rejects
+        # everything else under this path (background.js, manifest.json,
+        # experiments/), none of which are meant to be fetched over HTTP.
+        location ~ ^/addons/thunderbird/ {
+            return 404;
+        }
+
         location ^~ /assets/mediapipe/wasm/ {
             expires 30d;
             add_header Cache-Control "public, max-age=2592000";
