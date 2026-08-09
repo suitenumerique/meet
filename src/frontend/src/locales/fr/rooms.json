@@ -40,7 +40,9 @@
     },
     "audiooutput": {
       "choose": "Choisir le haut-parleur",
-      "permissionsNeeded": "Choisir le haut-parleur - autorisations nécessaires"
+      "permissionsNeeded": "Choisir le haut-parleur - autorisations nécessaires",
+      "test": "Tester les haut-parleurs",
+      "testing": "Lecture du son de test…"
     }
   },
   "join": {

@@ -40,7 +40,9 @@
     },
     "audiooutput": {
       "choose": "Audioausgabe auswählen",
-      "permissionsNeeded": "Audioausgabe auswählen – Berechtigung erforderlich"
+      "permissionsNeeded": "Audioausgabe auswählen – Berechtigung erforderlich",
+      "test": "Lautsprecher testen",
+      "testing": "Testton wird abgespielt…"
     }
   },
   "join": {
@@ -328,7 +330,6 @@
         }
       }
     },
-
     "faceLandmarks": {
       "title": "Visuelle Effekte",
       "glasses": {
