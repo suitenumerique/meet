@@ -1,0 +1,17 @@
+{
+  "app": {
+    "loading": "Loading..."
+  },
+  "success": {
+    "close_window": "If this window does not close automatically, please close it manually."
+  },
+  "meeting": {
+    "add_link": "Add a {{app_name}} link",
+    "generating": "Adding…",
+    "join": "Join",
+    "error": {
+      "auth": "Your session has expired. Please try again.",
+      "retry": "An error occurred. Please try again."
+    }
+  }
+}

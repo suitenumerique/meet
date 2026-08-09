@@ -1,0 +1,62 @@
+[
+  {
+    "namespace": "meetingLink",
+    "description": "Chrome-privileged bridge that injects an Add-link/Join control next to the Location field in Thunderbird's calendar event dialogs. Carries no auth/network logic itself — see background.js for that.",
+    "functions": [
+      {
+        "name": "configure",
+        "type": "function",
+        "description": "Sets the backend origin used to detect existing meeting links, and the (already-localized) button labels to display.",
+        "parameters": [
+          {
+            "name": "options",
+            "type": "object",
+            "properties": {
+              "baseUrl": { "type": "string" },
+              "labels": {
+                "type": "object",
+                "properties": {
+                  "add": { "type": "string" },
+                  "adding": { "type": "string" },
+                  "join": { "type": "string" },
+                  "error": { "type": "string" }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "applyResult",
+        "type": "function",
+        "description": "Delivers the outcome of a previously requested meeting link back to the dialog control that asked for it.",
+        "parameters": [
+          { "name": "requestId", "type": "string" },
+          {
+            "name": "result",
+            "type": "object",
+            "properties": {
+              "ok": { "type": "boolean" },
+              "url": { "type": "string", "optional": true },
+              "error": { "type": "string", "optional": true }
+            }
+          }
+        ]
+      }
+    ],
+    "events": [
+      {
+        "name": "onAddRequested",
+        "type": "function",
+        "description": "Fired when the user clicks \"Add a meeting link\" in an event dialog.",
+        "parameters": [{ "name": "requestId", "type": "string" }]
+      },
+      {
+        "name": "onJoinRequested",
+        "type": "function",
+        "description": "Fired when the user clicks \"Join\" on an event whose Location already holds a meeting link.",
+        "parameters": [{ "name": "url", "type": "string" }]
+      }
+    ]
+  }
+]

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-app-name></title>
+    <link rel="stylesheet" href="../styles/spinner.css" />
+    <script
+      nonce="NONCE_PLACEHOLDER"
+      src="/addons/thunderbird/config.js"
+    ></script>
+  </head>
+  <body>
+    <div
+      class="spinner-container"
+      role="progressbar"
+      data-i18n-aria="app.loading"
+    >
+      <svg
+        class="spinner-svg"
+        viewBox="0 0 28 28"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle class="spinner-track" cx="14" cy="14" r="11" />
+        <circle class="spinner-arc" cx="14" cy="14" r="11" />
+      </svg>
+      <span class="spinner-fallback" aria-hidden="true">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          style="display: block; transform: translateY(1px)"
+        >
+          <path
+            d="M6 2H18V4L13 12L18 20V22H6V20L11 12L6 4V2ZM8.535 4L13 11.143L17.465 4H8.535Z"
+          />
+        </svg>
+      </span>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "name": "thunderbird-meeting-link",
+  "version": "0.1.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/suitenumerique/meet.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prebuild": "node scripts/build-manifest.js",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "lint": "eslint src && web-ext lint --source-dir=. --privileged --self-hosted --ignore-files='src/**' --ignore-files='scripts/**' --ignore-files='manifest.template.json'",
+    "start": "web-ext run --source-dir=. --target=thunderbird-desktop",
+    "prettier": "prettier --check \"src/**/*.{js,html,css}\""
+  },
+  "dependencies": {
+    "i18next": "26.3.6"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.0",
+    "@babel/preset-env": "7.29.0",
+    "babel-loader": "9.2.1",
+    "copy-webpack-plugin": "14.0.0",
+    "eslint": "8.57.1",
+    "html-loader": "5.1.0",
+    "html-webpack-inject-attributes-plugin": "1.0.6",
+    "html-webpack-plugin": "5.6.6",
+    "prettier": "3.4.2",
+    "web-ext": "8.5.0",
+    "webpack": "5.105.4",
+    "webpack-cli": "5.1.4"
+  },
+  "browserslist": [
+    "last 2 firefox versions"
+  ]
+}

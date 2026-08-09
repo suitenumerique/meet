@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "LaSuite Meet",
+  "version": "0.1.0",
+  "description": "Add a LaSuite Meet link to your Thunderbird calendar events.",
+  "author": "LaSuite",
+  "homepage_url": "https://lasuite.numerique.gouv.fr/",
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "64": "assets/icon-64.png",
+    "128": "assets/icon-128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "meeting-link@meet.lasuite.numerique.gouv.fr",
+      "strict_min_version": "128.0"
+    }
+  },
+  "background": {
+    "scripts": ["dist/background.js"]
+  },
+  "permissions": ["storage", "tabs", "mozillaAddons"],
+  "host_permissions": ["__BASE_URL__/*"],
+  "experiment_apis": {
+    "meetingLink": {
+      "schema": "experiments/meeting-link/schema/meeting-link.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["meetingLink"]],
+        "script": "experiments/meeting-link/parent/ext-meeting-link.js",
+        "events": ["startup"]
+      }
+    }
+  }
+}

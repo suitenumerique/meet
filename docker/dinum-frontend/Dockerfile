@@ -53,6 +53,25 @@ COPY ./src/addons/outlook/ .
 RUN npx webpack --mode production
 
 
+# ---- Thunderbird addon builder image ----
+FROM node:20-alpine AS thunderbird-addon-builder
+
+WORKDIR /home/addons/thunderbird
+
+COPY ./src/addons/thunderbird/package.json ./package.json
+COPY ./src/addons/thunderbird/package-lock.json ./package-lock.json
+
+RUN npm ci
+
+COPY ./src/addons/thunderbird/ .
+
+# Only transit.html/success.html/assets get served by nginx (see
+# frontend_nginx_cm.yaml) — background.js, manifest.json and the privileged
+# experiment scripts ship inside the installed .xpi instead, so this build
+# doesn't need THUNDERBIRD_BASE_URL: their values are never used.
+RUN npx webpack --mode production
+
+
 # ---- Front-end image ----
 FROM nginxinc/nginx-unprivileged:1.30.3-alpine3.23 AS frontend-production
 
@@ -80,6 +99,13 @@ COPY --from=meet-builder \
 COPY --from=addons-builder \
     /home/addons/outlook/dist \
     /usr/share/nginx/html/addons/outlook
+
+# The nginx config only routes transit.html/success.html/assets/ out of this
+# directory (see frontend_nginx_cm.yaml) — background.js and the other build
+# artifacts that come along for the ride are inert static files, not secrets.
+COPY --from=thunderbird-addon-builder \
+    /home/addons/thunderbird/dist \
+    /usr/share/nginx/html/addons/thunderbird
 
 COPY ./docker/dinum-frontend/nginx/default.conf /etc/nginx/conf.d
 COPY ./docker/files/usr/local/bin/entrypoint /usr/local/bin/entrypoint

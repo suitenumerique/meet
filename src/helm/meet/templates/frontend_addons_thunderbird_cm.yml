@@ -1,0 +1,15 @@
+{{- if .Values.frontend.thunderbirdAddon.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: thunderbird-addon-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.js: |
+    window.__APP_CONFIG__ = {
+      BASE_URL: {{ .Values.frontend.thunderbirdAddon.baseUrl | quote }},
+      APP_NAME: {{ .Values.frontend.thunderbirdAddon.appName | quote }},
+      ENABLE_SOURCE_TRACKING: {{ .Values.frontend.thunderbirdAddon.enableSourceTracking | quote }},
+      FEEDBACK_FORM: {{ .Values.frontend.thunderbirdAddon.feedbackForm | quote }}
+    };
+{{- end }}
