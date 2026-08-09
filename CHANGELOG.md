@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(thunderbird) add a Thunderbird add-on to insert meeting links into events
+
 ## [1.25.2] - 2026-08-06
 
 ### Fixed
