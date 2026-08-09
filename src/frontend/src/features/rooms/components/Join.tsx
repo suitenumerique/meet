@@ -11,10 +11,7 @@ import {
   MediaDeviceFailure,
   Track,
 } from 'livekit-client'
-import { H } from '@/primitives/H'
-import { Field } from '@/primitives/Field'
-import { Button, Dialog, Form, Text } from '@/primitives'
-import { VStack } from '@/styled-system/jsx'
+import { Button, Dialog, Text } from '@/primitives'
 import { Heading } from 'react-aria-components'
 import { RiImageCircleAiFill } from '@remixicon/react'
 import {
@@ -22,18 +19,10 @@ import {
   EffectsConfigurationProps,
 } from '../livekit/components/effects/EffectsConfiguration'
 import { SelectDevice } from '../livekit/components/controls/Device/SelectDevice'
+import { Lobby } from './Lobby'
 import { ToggleDevice } from '../livekit/components/controls/Device/ToggleDevice'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { isMobileBrowser } from '@livekit/components-core'
-import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { keys } from '@/api/queryKeys'
-import { useLobby } from '../hooks/useLobby'
-import { useQuery } from '@tanstack/react-query'
-import { queryClient } from '@/api/queryClient'
-import { ApiLobbyStatus, type ApiRequestEntry } from '../api/requestEntry'
-import { Spinner } from '@/primitives/Spinner'
-import { ApiAccessLevel } from '../api/ApiRoom'
-import { useLoginHint } from '@/hooks/useLoginHint'
 import {
   notePermissionDeniedFromGum,
   openPermissionsDialog,
@@ -52,13 +41,9 @@ import {
   userChoicesStore,
 } from '@/stores/userChoices'
 
-import { saveUsername, userStore } from '@/stores/user'
-
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
 import { useSyncTrackDeviceId } from '../livekit/hooks/useSyncTrackDeviceId'
 import { useSnapshot } from 'valtio'
-import { useUser } from '@/features/auth/api/useUser'
-import { useConfig } from '@/api/useConfig'
 
 const onError = (e: Error, kind?: PermissionKind) => {
   reportError('join_preview_failure', e, { path: 'join_preview' })
@@ -130,9 +115,6 @@ export const Join = ({
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
 
-  const { data: configData } = useConfig()
-  const { isLoggedIn, user } = useUser()
-
   const {
     audioEnabled,
     videoEnabled,
@@ -141,8 +123,6 @@ export const Join = ({
     videoDeviceId,
     processorConfig,
   } = useSnapshot(userChoicesStore)
-
-  const { username } = useSnapshot(userStore)
 
   const initialUserChoices = useRef<LocalUserChoices | null>(null)
 
@@ -306,63 +286,6 @@ export const Join = ({
     }
   }, [videoTrack, videoEnabled])
 
-  // Room data strategy:
-  // 1. Initial fetch is performed to check access and get LiveKit configuration
-  // 2. Data remains valid for 6 hours to avoid unnecessary refetches
-  // 3. State is manually updated via queryClient when a waiting participant is accepted
-  // 4. No automatic refetching or revalidation occurs during this period
-  // todo - refactor in a hook
-  const {
-    data: roomData,
-    error,
-    isError,
-    refetch: refetchRoom,
-  } = useQuery({
-    queryKey: [keys.room, roomId],
-    queryFn: () => fetchRoom({ roomId, username: username || user?.full_name }),
-    staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
-    retry: false,
-    enabled: false,
-  })
-
-  useEffect(() => {
-    if (isError && error?.statusCode == 404) {
-      // The room component will handle the room creation if the user is authenticated
-      enterRoom()
-    }
-  }, [isError, error, enterRoom])
-
-  const handleAccepted = (response: ApiRequestEntry) => {
-    queryClient.setQueryData([keys.room, roomId], {
-      ...roomData,
-      livekit: response.livekit,
-    })
-    enterRoom()
-  }
-
-  const { status, startWaiting } = useLobby({
-    roomId,
-    username: username || user?.full_name || 'anonymous',
-    onAccepted: handleAccepted,
-  })
-
-  const { openLoginHint } = useLoginHint()
-
-  const handleSubmit = async () => {
-    const { data } = await refetchRoom()
-
-    if (!data?.livekit) {
-      // Display a message to inform the user that by logging in, they won't have to wait for room entry approval.
-      if (data?.access_level == ApiAccessLevel.TRUSTED) {
-        openLoginHint()
-      }
-      startWaiting()
-      return
-    }
-
-    enterRoom()
-  }
-
   const isCameraDeniedOrPrompted = useCannotUseDevice('videoinput')
   const isMicrophoneDeniedOrPrompted = useCannotUseDevice('audioinput')
 
@@ -400,85 +323,6 @@ export const Join = ({
     }
     return null
   }, [isMicrophoneDeniedOrPrompted, isCameraDeniedOrPrompted])
-
-  const renderWaitingState = () => {
-    switch (status) {
-      case ApiLobbyStatus.TIMEOUT:
-        return (
-          <VStack alignItems="center" textAlign="center">
-            <H lvl={1} margin={false} centered>
-              {t('timeoutInvite.title')}
-            </H>
-            <Text as="p" variant="note">
-              {t('timeoutInvite.body')}
-            </Text>
-          </VStack>
-        )
-
-      case ApiLobbyStatus.DENIED:
-        return (
-          <VStack alignItems="center" textAlign="center">
-            <H lvl={1} margin={false} centered>
-              {t('denied.title')}
-            </H>
-            <Text as="p" variant="note">
-              {t('denied.body')}
-            </Text>
-          </VStack>
-        )
-
-      case ApiLobbyStatus.WAITING:
-        return (
-          <VStack alignItems="center" textAlign="center">
-            <H lvl={1} margin={false} centered>
-              {t('waiting.title')}
-            </H>
-            <Text
-              as="p"
-              variant="note"
-              className={css({ marginBottom: '1.5rem' })}
-            >
-              {t('waiting.body')}
-            </Text>
-            <Spinner />
-          </VStack>
-        )
-
-      default:
-        return (
-          <Form
-            onSubmit={handleSubmit}
-            submitLabel={t('joinLabel')}
-            submitButtonProps={{
-              fullWidth: true,
-            }}
-          >
-            <VStack marginBottom={1}>
-              <H lvl={1} margin="sm" centered>
-                {t('heading')}
-              </H>
-              {(!isLoggedIn ||
-                configData?.authenticated_users_can_edit_display_name) && (
-                <Field
-                  type="text"
-                  onChange={saveUsername}
-                  label={t('usernameLabel')}
-                  id="input-name"
-                  defaultValue={username || user?.full_name}
-                  validate={(value) => !value && t('errors.usernameEmpty')}
-                  wrapperProps={{
-                    noMargin: true,
-                    fullWidth: true,
-                  }}
-                  autoComplete="name"
-                  maxLength={50}
-                />
-              )}
-            </VStack>
-          </Form>
-        )
-    }
-  }
 
   return (
     <Screen footer={false}>
@@ -788,7 +632,7 @@ export const Join = ({
             margin: '1rem 1rem 1rem 0.5rem',
           })}
         >
-          {renderWaitingState()}
+          <Lobby roomId={roomId} enterRoom={enterRoom} />
         </div>
       </div>
     </Screen>
