@@ -40,7 +40,9 @@
     },
     "audiooutput": {
       "choose": "Select speaker",
-      "permissionsNeeded": "Select speaker - permission needed"
+      "permissionsNeeded": "Select speaker - permission needed",
+      "test": "Test speakers",
+      "testing": "Playing test sound…"
     }
   },
   "join": {

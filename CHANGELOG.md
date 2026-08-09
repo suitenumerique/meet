@@ -12,6 +12,7 @@ and this project adheres to
 
 - 📈(frontend) capture media diagnostics on media errors
 - ✨(frontend) add an audio gauge to the microphone select menu
+- ✨(frontend) add a sound tester to the output select menu
 
 ### Changed
 

@@ -40,7 +40,9 @@
     },
     "audiooutput": {
       "choose": "Selecteer luidspreker",
-      "permissionsNeeded": "Selecteer luidspreker - Toestemming vereist"
+      "permissionsNeeded": "Selecteer luidspreker - Toestemming vereist",
+      "test": "Luidsprekers testen",
+      "testing": "Testgeluid wordt afgespeeld…"
     }
   },
   "join": {
