@@ -1,10 +1,6 @@
 import { proxy } from 'valtio'
 
-type PermissionState =
-  | undefined
-  | 'granted'
-  | 'prompt'
-  | 'denied'
+type PermissionState = undefined | 'granted' | 'prompt' | 'denied'
 
 type State = {
   cameraPermission: PermissionState
