@@ -1,0 +1,17 @@
+{
+  "app": {
+    "loading": "Chargement..."
+  },
+  "success": {
+    "close_window": "Si cette fenêtre ne se ferme pas automatiquement, veuillez la fermer manuellement."
+  },
+  "meeting": {
+    "add_link": "Ajouter un lien {{app_name}}",
+    "generating": "Ajout en cours…",
+    "join": "Rejoindre",
+    "error": {
+      "auth": "Votre session a expiré. Veuillez réessayer.",
+      "retry": "Une erreur est survenue. Veuillez réessayer."
+    }
+  }
+}

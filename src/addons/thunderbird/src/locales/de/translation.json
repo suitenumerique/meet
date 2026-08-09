@@ -1,0 +1,17 @@
+{
+  "app": {
+    "loading": "Wird geladen..."
+  },
+  "success": {
+    "close_window": "Wenn sich dieses Fenster nicht automatisch schließt, schließen Sie es bitte manuell."
+  },
+  "meeting": {
+    "add_link": "{{app_name}}-Link hinzufügen",
+    "generating": "Wird hinzugefügt…",
+    "join": "Beitreten",
+    "error": {
+      "auth": "Ihre Sitzung ist abgelaufen. Bitte versuchen Sie es erneut.",
+      "retry": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    }
+  }
+}
