@@ -7,6 +7,8 @@ import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceIcons } from '@/features/rooms/livekit/hooks/useDeviceIcons'
 import type { LocalAudioTrack } from 'livekit-client'
 import { AudioLevelGauge } from './AudioLevelGauge'
+import { OutputSoundTester } from './OutputSoundTester'
+import { canTestAudioOutput } from '@/features/rooms/utils/canTestAudioOutput'
 
 type DeviceItems = Array<{ value: string; label: string }>
 
@@ -81,6 +83,11 @@ const SelectDevicePermissions = <T extends string | number>({
       menuFooter={
         kind === 'audioinput' ? (
           <AudioLevelGauge track={track} variant={props.variant} />
+        ) : kind === 'audiooutput' && canTestAudioOutput() ? (
+          <OutputSoundTester
+            sinkId={selectedKey as string}
+            variant={props.variant}
+          />
         ) : undefined
       }
       {...props}
