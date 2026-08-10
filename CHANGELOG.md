@@ -22,6 +22,7 @@ and this project adheres to
 - ♻️(frontend) encapsulate PostHog capture calls in the telemetry module
 - 🔧(frontend) sync persisted device ids with the actual selected devices
 - 💄(frontend) hide the ProConnect button on narrow viewports
+- ♻️(frontend) prefer captureMediaEvent over reportError when no-op
 
 ### Fixed
 

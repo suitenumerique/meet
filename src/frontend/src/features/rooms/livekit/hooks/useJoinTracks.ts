@@ -13,7 +13,7 @@ import {
   notePermissionDeniedFromGum,
   type PermissionKind,
 } from '@/stores/permissions'
-import { reportError } from '@/features/analytics/telemetry'
+import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
 import {
   saveAudioInputDeviceId,
   saveAudioInputEnabled,
@@ -39,12 +39,21 @@ const PERMISSION_KIND: Record<'audioinput' | 'videoinput', PermissionKind> = {
 }
 
 export const onJoinPreviewError = (e: Error, kind?: PermissionKind) => {
-  reportError('join_preview_failure', e, { path: 'join_preview', kind })
   if (
     MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.PermissionDenied
   ) {
     notePermissionDeniedFromGum(kind)
+    captureMediaEvent('permissions-denied', { path: 'join_preview', kind })
+    return
   }
+
+  if (MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.NotFound) {
+    captureMediaEvent('device-not-found', { path: 'join_preview', kind })
+    return
+  }
+
+  // "Other" and "Device in use" are still reported as errors, as they are not handled on the join screen.
+  reportError('join_preview_failure', e, { path: 'join_preview', kind })
 }
 
 // Module-level: effect dependencies, must be referentially stable.
