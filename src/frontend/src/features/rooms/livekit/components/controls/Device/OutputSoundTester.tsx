@@ -1,26 +1,46 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiVolumeUpLine } from '@remixicon/react'
-import { css } from '@/styled-system/css'
+import { styled } from '@/styled-system/jsx'
+import { Button } from '@/primitives'
 import { reportError } from '@/features/analytics/telemetry'
 import { canTestAudioOutput } from '@/features/rooms/utils/canTestAudioOutput'
 
-/**
- * Speaker test rendered as the audiooutput menu footer — sibling of
- * AudioLevelGauge for audioinput (Google Meet UX: the test lives inside
- * the device dropdown, the popover stays open while it plays).
- *
- * No track exists for outputs: the test IS playing a bundled file through
- * the selected sink via setSinkId (same mechanism as the settings
- * SoundTester). Needs no permission, so the never-auto-prompt policy
- * holds. Following `sinkId` mid-playback re-routes the sound live, which
- * makes A/B-ing speakers work.
- */
+// Speaker test in the audiooutput menu footer (Meet-style UX). Outputs have
+// no track: the test plays a bundled file through the selected sink, and
+// following `sinkId` mid-playback re-routes it live. No permission involved.
+
+type Theme = 'light' | 'dark'
+
+const BUTTON_VARIANT = {
+  light: 'quaternaryText',
+  dark: 'primaryTextDark',
+} as const
+
+const StyledContainer = styled('div', {
+  base: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    paddingTop: '0.5rem',
+    borderTop: '1px solid',
+  },
+  variants: {
+    theme: {
+      light: {
+        borderColor: 'gray.200',
+      },
+      dark: {
+        borderColor: 'primaryDark.300',
+      },
+    },
+  },
+})
 
 type OutputSoundTesterProps = {
   /** The device the test should play through (the select's current key). */
   sinkId?: string
-  variant?: 'light' | 'dark'
+  variant?: Theme
 }
 
 export const OutputSoundTester = ({
@@ -42,49 +62,28 @@ export const OutputSoundTester = ({
   }, [sinkId])
 
   return (
-    <div
-      className={css({
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        paddingX: '0.75rem',
-        paddingY: '0.5rem',
-        borderTop: '1px solid',
-        borderColor: variant === 'dark' ? 'primaryDark.300' : 'gray.200',
-      })}
-    >
-      <button
-        type="button"
-        onClick={() => {
+    <StyledContainer theme={variant}>
+      <Button
+        variant={BUTTON_VARIANT[variant]}
+        size="sm"
+        fullWidth
+        isDisabled={isPlaying}
+        onPress={() => {
           audioRef.current
             ?.play()
             .then(() => setIsPlaying(true))
             .catch(() => {})
         }}
-        disabled={isPlaying}
-        className={css({
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          width: 'full',
-          cursor: 'pointer',
-          fontSize: '0.875rem',
-          color: variant === 'dark' ? 'white' : 'control.text',
-          _disabled: {
-            cursor: 'default',
-            color: variant === 'dark' ? 'primaryDark.100' : 'primary',
-          },
-        })}
       >
         <RiVolumeUpLine size={18} aria-hidden />
         {isPlaying ? t('audiooutput.testing') : t('audiooutput.test')}
-      </button>
+      </Button>
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <audio
         ref={audioRef}
         src="sounds/uprise.mp3"
         onEnded={() => setIsPlaying(false)}
       />
-    </div>
+    </StyledContainer>
   )
 }
