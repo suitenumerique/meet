@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
-import { usePreviewTracks } from '@livekit/components-react'
 import {
   createLocalAudioTrack,
   createLocalVideoTrack,
   type LocalAudioTrack,
   type LocalVideoTrack,
   MediaDeviceFailure,
-  Track,
+  TrackEvent,
 } from 'livekit-client'
 import { BackgroundProcessorFactory } from '../components/blur'
 import {
@@ -16,17 +15,14 @@ import {
 } from '@/stores/permissions'
 import { reportError } from '@/features/analytics/telemetry'
 import {
-  type LocalUserChoices,
   saveAudioInputDeviceId,
+  saveAudioInputEnabled,
   saveVideoInputDeviceId,
+  saveVideoInputEnabled,
   userChoicesStore,
 } from '@/stores/userChoices'
 import { useSyncTrackDeviceId } from './useSyncTrackDeviceId'
 
-/**
- * Audio capture constraints tuned for voice calls:
- * 48 kHz / 16-bit is plenty for speech, mono halves the bandwidth.
- */
 const VOICE_AUDIO_CONSTRAINTS = {
   noiseSuppression: true,
   echoCancellation: true,
@@ -46,49 +42,131 @@ export const onJoinPreviewError = (e: Error, kind?: PermissionKind) => {
   }
 }
 
+// Module-level: effect dependencies, must be referentially stable.
+const disableAudio = () => saveAudioInputEnabled(false)
+const disableVideo = () => saveVideoInputEnabled(false)
+
+const stopAll = (stream: MediaStream) =>
+  stream.getTracks().forEach((track) => track.stop())
+
 /**
- * Just-in-time track acquisition: creates a local track only when the user
- * enables a device that was disabled on mount (so no preview track exists
- * for it). Handles the async race on unmount/deps-change and stops the
- * track when it is replaced or the owner unmounts.
+ * Requests camera and microphone once on mount (one combined call → at
+ * most one browser dialog) and releases them immediately. Returns true
+ * once settled; track acquisition must wait for it to avoid a second
+ * dialog.
  */
-function useDynamicTrack<T extends LocalAudioTrack | LocalVideoTrack>({
+function useWarmupPermissions(): boolean {
+  const [done, setDone] = useState(false)
+  const started = useRef(false)
+
+  useEffect(() => {
+    if (started.current) {
+      return
+    }
+    started.current = true
+
+    const warmup = async () => {
+      try {
+        stopAll(
+          await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true,
+          })
+        )
+      } catch (error) {
+        if (
+          MediaDeviceFailure.getFailure(error as Error) ===
+          MediaDeviceFailure.PermissionDenied
+        ) {
+          // Retrying after a dismissal would show a second dialog.
+          onJoinPreviewError(error as Error)
+          return
+        }
+        // Combined requests fail atomically (e.g. missing webcam fails the
+        // mic too) — retry per kind; permission is settled, no dialog risk.
+        try {
+          stopAll(await navigator.mediaDevices.getUserMedia({ audio: true }))
+        } catch (e) {
+          onJoinPreviewError(e as Error, 'microphone')
+        }
+        try {
+          stopAll(await navigator.mediaDevices.getUserMedia({ video: true }))
+        } catch (e) {
+          onJoinPreviewError(e as Error, 'camera')
+        }
+      } finally {
+        setDone(true)
+      }
+    }
+    warmup()
+  }, [])
+
+  return done
+}
+
+function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
+  ready,
   enabled,
-  initiallyEnabled,
-  previewTrack,
   create,
   permissionKind,
+  onFailure,
 }: {
+  ready: boolean
   enabled: boolean
-  initiallyEnabled: boolean
-  previewTrack: T | undefined
   create: () => Promise<T>
   permissionKind: PermissionKind
+  onFailure: () => void
 }): T | null {
   const [track, setTrack] = useState<T | null>(null)
 
+  // Acquire.
   useEffect(() => {
-    if (!enabled || initiallyEnabled || previewTrack || track) {
+    if (!ready || !enabled || track) {
       return
     }
     let cancelled = false
     create()
       .then((newTrack) => {
         if (cancelled) {
-          // Resolved after unmount or after deps changed: release the device
-          // instead of leaking an orphaned track.
           newTrack.stop()
           return
         }
         setTrack(newTrack)
       })
-      .catch((error) => onJoinPreviewError(error as Error, permissionKind))
+      .catch((error) => {
+        onJoinPreviewError(error as Error, permissionKind)
+        onFailure()
+      })
     return () => {
       cancelled = true
     }
-  }, [enabled, initiallyEnabled, previewTrack, track, create, permissionKind])
+  }, [ready, enabled, track, create, permissionKind, onFailure])
 
-  // Stop the track when it is replaced or on unmount.
+  // Release on toggle-off so the LED turns off.
+  useEffect(() => {
+    if (!enabled && track) {
+      track.stop()
+      setTrack(null)
+    }
+  }, [enabled, track])
+
+  // Track ended externally (permission revoked, device unplugged):
+  // disable instead of re-acquiring, so no unsolicited dialog.
+  useEffect(() => {
+    if (!track) {
+      return
+    }
+    const handleEnded = () => {
+      setTrack(null)
+      onFailure()
+    }
+    track.on(TrackEvent.Ended, handleEnded)
+    return () => {
+      track.off(TrackEvent.Ended, handleEnded)
+    }
+  }, [track, onFailure])
+
+  // Release on unmount or replacement.
   useEffect(() => {
     return () => {
       track?.stop()
@@ -98,18 +176,6 @@ function useDynamicTrack<T extends LocalAudioTrack | LocalVideoTrack>({
   return track
 }
 
-/**
- * Owns every track concern of the Join screen:
- *
- * - requests preview tracks for the devices enabled when the screen mounted
- * - lazily acquires a track when the user enables a device afterwards
- *   (dynamic tracks take precedence over preview tracks)
- * - reports acquisition failures and permission denials
- * - keeps the persisted device ids in sync with the active tracks
- *
- * Returns the tracks to render/toggle. Either can be undefined while
- * acquisition is pending or when the device is disabled.
- */
 export function useJoinTracks(): {
   audioTrack: LocalAudioTrack | undefined
   videoTrack: LocalVideoTrack | undefined
@@ -122,48 +188,15 @@ export function useJoinTracks(): {
     processorConfig,
   } = useSnapshot(userChoicesStore)
 
-  // Snapshot of the user's choices at mount time. Preview tracks are only
-  // requested for devices enabled at that point; anything enabled later
-  // goes through the dynamic path. useState's lazy initializer captures
-  // this exactly once, with no ref-mutation-during-render.
-  const [initialChoices] = useState<LocalUserChoices>(() => ({
-    audioEnabled: userChoicesStore.audioEnabled,
-    videoEnabled: userChoicesStore.videoEnabled,
-    audioDeviceId: userChoicesStore.audioDeviceId,
-    audioOutputDeviceId: userChoicesStore.audioOutputDeviceId,
-    videoDeviceId: userChoicesStore.videoDeviceId,
-    processorConfig: userChoicesStore.processorConfig,
-  }))
+  const ready = useWarmupPermissions()
 
-  const tracks = usePreviewTracks(
-    {
-      audio: initialChoices.audioEnabled && {
-        deviceId: initialChoices.audioDeviceId,
-      },
-      video: initialChoices.videoEnabled && {
-        deviceId: initialChoices.videoDeviceId,
-        processor: BackgroundProcessorFactory.fromProcessorConfig(
-          initialChoices.processorConfig
-        ),
-      },
-    },
-    onJoinPreviewError
-  )
-
-  const previewVideoTrack = useMemo(
+  const createAudio = useCallback(
     () =>
-      tracks?.find(
-        (track): track is LocalVideoTrack => track.kind === Track.Kind.Video
-      ),
-    [tracks]
-  )
-
-  const previewAudioTrack = useMemo(
-    () =>
-      tracks?.find(
-        (track): track is LocalAudioTrack => track.kind === Track.Kind.Audio
-      ),
-    [tracks]
+      createLocalAudioTrack({
+        deviceId: audioDeviceId,
+        ...VOICE_AUDIO_CONSTRAINTS,
+      }),
+    [audioDeviceId]
   )
 
   const createVideo = useCallback(
@@ -176,38 +209,27 @@ export function useJoinTracks(): {
     [videoDeviceId, processorConfig]
   )
 
-  const createAudio = useCallback(
-    () =>
-      createLocalAudioTrack({
-        deviceId: audioDeviceId,
-        ...VOICE_AUDIO_CONSTRAINTS,
-      }),
-    [audioDeviceId]
-  )
-
-  const dynamicVideoTrack = useDynamicTrack({
-    enabled: videoEnabled,
-    initiallyEnabled: initialChoices.videoEnabled,
-    previewTrack: previewVideoTrack,
-    create: createVideo,
-    permissionKind: 'camera',
-  })
-
-  const dynamicAudioTrack = useDynamicTrack({
+  const audioTrack = useLocalTrack({
+    ready,
     enabled: audioEnabled,
-    initiallyEnabled: initialChoices.audioEnabled,
-    previewTrack: previewAudioTrack,
     create: createAudio,
     permissionKind: 'microphone',
+    onFailure: disableAudio,
   })
 
-  // Dynamic tracks take precedence over preview tracks.
-  const videoTrack = dynamicVideoTrack ?? previewVideoTrack
-  const audioTrack = dynamicAudioTrack ?? previewAudioTrack
+  const videoTrack = useLocalTrack({
+    ready,
+    enabled: videoEnabled,
+    create: createVideo,
+    permissionKind: 'camera',
+    onFailure: disableVideo,
+  })
 
-  // Keep persisted device ids in sync with what the tracks actually use.
-  useSyncTrackDeviceId(audioTrack, saveAudioInputDeviceId)
-  useSyncTrackDeviceId(videoTrack, saveVideoInputDeviceId)
+  useSyncTrackDeviceId(audioTrack ?? undefined, saveAudioInputDeviceId)
+  useSyncTrackDeviceId(videoTrack ?? undefined, saveVideoInputDeviceId)
 
-  return { audioTrack, videoTrack }
+  return {
+    audioTrack: audioTrack ?? undefined,
+    videoTrack: videoTrack ?? undefined,
+  }
 }
