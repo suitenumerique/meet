@@ -1,7 +1,7 @@
 import { ToggleButton } from '@/primitives'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { appendShortcutLabel } from '@/features/shortcuts/utils'
 import { useTranslation } from 'react-i18next'
 import { PermissionNeededButton } from './PermissionNeededButton'
@@ -16,6 +16,7 @@ import type { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
+import { requestDevicePermission } from '../../../hooks/useJoinTracks'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
 import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
 import type {
@@ -93,6 +94,27 @@ export const ToggleDevice = <T extends ToggleSource>({
   const deviceShortcut = useDeviceShortcut(kind)
   const announce = useScreenReaderAnnounce()
 
+  const isRequestingPermission = useRef(false)
+
+  const onPress = async () => {
+    if (!cannotUseDevice) {
+      toggle()
+      return
+    }
+    if (isRequestingPermission.current) return
+    isRequestingPermission.current = true
+    try {
+      const granted = await requestDevicePermission(kind)
+      if (granted) {
+        toggle()
+      } else {
+        openPermissionsDialog(kind)
+      }
+    } finally {
+      isRequestingPermission.current = false
+    }
+  }
+
   useRegisterKeyboardShortcut({
     id: deviceShortcut?.id,
     handler: async () => {
@@ -147,13 +169,7 @@ export const ToggleDevice = <T extends ToggleSource>({
           isDisabled || cannotUseDevice || !enabled ? errorVariant : variant
         }
         shySelected
-        onPress={() => {
-          if (cannotUseDevice) {
-            openPermissionsDialog(kind)
-          } else {
-            toggle()
-          }
-        }}
+        onPress={onPress}
         aria-label={toggleLabel}
         tooltip={
           cannotUseDevice

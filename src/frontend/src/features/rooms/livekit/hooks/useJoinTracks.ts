@@ -33,6 +33,11 @@ const VOICE_AUDIO_CONSTRAINTS = {
   sampleSize: 16,
 } as const
 
+const PERMISSION_KIND: Record<'audioinput' | 'videoinput', PermissionKind> = {
+  audioinput: 'microphone',
+  videoinput: 'camera',
+}
+
 export const onJoinPreviewError = (e: Error, kind?: PermissionKind) => {
   reportError('join_preview_failure', e, { path: 'join_preview' })
   if (
@@ -48,6 +53,22 @@ const disableVideo = () => saveVideoInputEnabled(false)
 
 const stopAll = (stream: MediaStream) =>
   stream.getTracks().forEach((track) => track.stop())
+
+export const requestDevicePermission = async (
+  kind: 'audioinput' | 'videoinput'
+): Promise<boolean> => {
+  try {
+    const track =
+      kind === 'audioinput'
+        ? await createLocalAudioTrack()
+        : await createLocalVideoTrack()
+    track.stop()
+    return true
+  } catch (error) {
+    onJoinPreviewError(error as Error, PERMISSION_KIND[kind])
+    return false
+  }
+}
 
 /**
  * Requests camera and microphone once on mount (one combined call → at
