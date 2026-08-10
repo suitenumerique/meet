@@ -1,16 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
-import {
-  createAudioAnalyser,
-  LocalAudioTrack,
-  TrackEvent,
-} from 'livekit-client'
+import { useEffect, useState } from 'react'
+import { LocalAudioTrack, TrackEvent } from 'livekit-client'
+import { useTrackVolume } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
 import { RiMicLine, RiMicOffLine } from '@remixicon/react'
-import { Text } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
-
-const LEVEL_BOOST = 0.8
-const DECAY_PER_FRAME = 0.04
+import { Text } from '@/primitives'
 
 const StyledContainer = styled('div', {
   base: {
@@ -25,8 +19,8 @@ const StyledContainer = styled('div', {
   variants: {
     theme: {
       light: {
-        borderColor: 'colors.greyscale.250',
-        color: 'colors.greyscale.600',
+        borderColor: 'greyscale.250',
+        color: 'greyscale.600',
       },
       dark: {
         borderColor: 'rgba(255 255 255 / 0.2)',
@@ -46,10 +40,10 @@ const StyledGaugeContainer = styled('div', {
   variants: {
     theme: {
       light: {
-        backgroundColor: 'rgba(255 255 255 / 0.25)',
+        backgroundColor: 'greyscale.250',
       },
       dark: {
-        backgroundColor: 'colors.greyscale.250',
+        backgroundColor: 'rgba(255 255 255 / 0.25)',
       },
     },
   },
@@ -76,18 +70,14 @@ const StyledGauge = styled('div', {
   },
 })
 
+type Theme = 'light' | 'dark'
+
 type AudioLevelGaugeProps = {
   track?: LocalAudioTrack
-  variant?: 'light' | 'dark'
+  variant?: Theme
 }
 
-export const AudioLevelGauge = ({
-  track,
-  variant = 'light',
-}: AudioLevelGaugeProps) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
-  const fillRef = useRef<HTMLDivElement>(null)
-
+const useIsTrackMuted = (track?: LocalAudioTrack) => {
   const [isMuted, setIsMuted] = useState(() => track?.isMuted ?? true)
 
   useEffect(() => {
@@ -106,52 +96,43 @@ export const AudioLevelGauge = ({
     }
   }, [track])
 
-  useEffect(() => {
-    if (!track || isMuted || !track.mediaStreamTrack) return
+  return isMuted
+}
 
-    let rafId: number
-    let smoothed = 0
-    let calculateVolume: (() => number) | undefined
-    let cleanupAnalyser: (() => Promise<void>) | undefined
+const LevelBar = ({
+  track,
+  theme,
+}: {
+  track: LocalAudioTrack
+  theme: Theme
+}) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
+  const volume = useTrackVolume(track, {
+    fftSize: 256,
+    smoothingTimeConstant: 0.7,
+  })
+  const level = Math.min(1, volume)
 
-    const setupAnalyser = () => {
-      cleanupAnalyser?.()
-      try {
-        const analyser = createAudioAnalyser(track, {
-          fftSize: 256,
-          smoothingTimeConstant: 0.7,
-        })
-        calculateVolume = analyser.calculateVolume
-        cleanupAnalyser = analyser.cleanup
-      } catch (e) {
-        console.error('Failed to create audio analyser', e)
-      }
-    }
+  return (
+    <>
+      <RiMicLine size={18} aria-hidden="true" />
+      <StyledGaugeContainer
+        theme={theme}
+        role="img"
+        aria-label={t('audioinput.level')}
+      >
+        <StyledGauge theme={theme} style={{ transform: `scaleX(${level})` }} />
+      </StyledGaugeContainer>
+    </>
+  )
+}
 
-    setupAnalyser()
-
-    track.on(TrackEvent.Restarted, setupAnalyser)
-
-    const update = () => {
-      const volume = calculateVolume?.() ?? 0
-      // Fast attack, slow release, like Google Meet.
-      smoothed =
-        volume > smoothed ? volume : Math.max(0, smoothed - DECAY_PER_FRAME)
-      const level = Math.min(1, smoothed * LEVEL_BOOST)
-      if (fillRef.current) {
-        fillRef.current.style.transform = `scaleX(${level})`
-      }
-      rafId = requestAnimationFrame(update)
-    }
-    rafId = requestAnimationFrame(update)
-
-    return () => {
-      cancelAnimationFrame(rafId)
-      track.off(TrackEvent.Restarted, setupAnalyser)
-      cleanupAnalyser?.()
-    }
-  }, [track, isMuted])
-
+export const AudioLevelGauge = ({
+  track,
+  variant = 'light',
+}: AudioLevelGaugeProps) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
+  const isMuted = useIsTrackMuted(track)
   const showMutedHint = !track || isMuted
 
   return (
@@ -162,16 +143,11 @@ export const AudioLevelGauge = ({
           <Text variant="sm">{t('audioinput.muteTest')}</Text>
         </>
       ) : (
-        <>
-          <RiMicLine size={18} aria-hidden="true" />
-          <StyledGaugeContainer
-            role="img"
-            aria-label={t('audioinput.level')}
-            theme={variant}
-          >
-            <StyledGauge ref={fillRef} theme={variant} />
-          </StyledGaugeContainer>
-        </>
+        <LevelBar
+          key={track.mediaStreamTrack?.id}
+          track={track}
+          theme={variant}
+        />
       )}
     </StyledContainer>
   )
