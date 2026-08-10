@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { useLocation } from 'wouter'
 import { type ApiUser } from '@/features/auth/api/ApiUser'
 import { useUser } from '@/features/auth/api/useUser'
 import { getPosthog } from '../utils'
@@ -31,7 +30,6 @@ export const useAnalytics = ({
   flags_api_host,
   isDisabled,
 }: useAnalyticsProps) => {
-  const [location] = useLocation()
   const { user } = useUser()
 
   useEffect(() => {
@@ -42,6 +40,8 @@ export const useAnalytics = ({
         api_host: host,
         flags_api_host: flags_api_host,
         person_profiles: 'always',
+        capture_pageview: 'history_change',
+        capture_pageleave: true,
       })
     })
   }, [id, host, flags_api_host, isDisabled])
@@ -50,13 +50,6 @@ export const useAnalytics = ({
     if (!user) return
     startAnalyticsSession(user)
   }, [user])
-
-  // From PostHog tutorial on PageView tracking in a Single Page Application (SPA) context.
-  useEffect(() => {
-    getPosthog().then((ph) => {
-      ph.capture('$pageview')
-    })
-  }, [location])
 
   return null
 }
