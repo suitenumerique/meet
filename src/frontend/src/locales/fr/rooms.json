@@ -154,6 +154,38 @@
       }
     }
   },
+  "systemPermissionDialog": {
+    "heading": {
+      "camera": "Autorisez votre navigateur à utiliser votre caméra",
+      "microphone": "Autorisez votre navigateur à utiliser votre micro",
+      "cameraAndMicrophone": "Autorisez votre navigateur à utiliser votre caméra et votre micro"
+    },
+    "device": {
+      "camera": "caméra",
+      "microphone": "micro",
+      "cameraAndMicrophone": "caméra et votre micro"
+    },
+    "intro": "Votre navigateur a déjà l'autorisation, mais les réglages de votre ordinateur bloquent l'accès à votre {{device}}.",
+    "steps": {
+      "macos": {
+        "1": "Dans les réglages Système, ouvrez « Confidentialité et sécurité ».",
+        "2": "Autorisez votre navigateur à accéder à votre {{device}}."
+      },
+      "windows": {
+        "1": "Dans les paramètres Windows, ouvrez « Confidentialité et sécurité ».",
+        "2": "Activez l'accès à votre {{device}} et autorisez les applications de bureau à l'utiliser."
+      },
+      "android": {
+        "1": "Dans les paramètres Android, ouvrez « Applications » puis sélectionnez votre navigateur.",
+        "2": "Dans « Autorisations », autorisez l'accès à votre {{device}}, puis rechargez la page."
+      },
+      "other": {
+        "1": "Dans les paramètres de confidentialité de votre système, autorisez votre navigateur à accéder à votre {{device}}.",
+        "2": "Puis réessayez."
+      }
+    },
+    "openSettings": "Ouvrir les réglages système"
+  },
   "permissionsButton": {
     "tooltip": "Plus d'infos",
     "ariaLabel": "Problème de permissions. Afficher plus d'infos"

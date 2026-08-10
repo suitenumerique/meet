@@ -154,6 +154,38 @@
       }
     }
   },
+  "systemPermissionDialog": {
+    "heading": {
+      "camera": "Erlauben Sie Ihrem Browser, Ihre Kamera zu verwenden",
+      "microphone": "Erlauben Sie Ihrem Browser, Ihr Mikrofon zu verwenden",
+      "cameraAndMicrophone": "Erlauben Sie Ihrem Browser, Ihre Kamera und Ihr Mikrofon zu verwenden"
+    },
+    "device": {
+      "camera": "Kamera",
+      "microphone": "Mikrofon",
+      "cameraAndMicrophone": "Kamera und Ihr Mikrofon"
+    },
+    "intro": "Ihr Browser hat bereits die Berechtigung, aber die Systemeinstellungen Ihres Computers blockieren den Zugriff auf Ihr(e) {{device}}.",
+    "steps": {
+      "macos": {
+        "1": "Öffnen Sie in den Systemeinstellungen „Datenschutz & Sicherheit“.",
+        "2": "Erlauben Sie Ihrem Browser den Zugriff auf Ihr(e) {{device}}."
+      },
+      "windows": {
+        "1": "Öffnen Sie in den Windows-Einstellungen „Datenschutz und Sicherheit“.",
+        "2": "Aktivieren Sie den Zugriff auf {{device}} und erlauben Sie Desktop-Apps die Nutzung."
+      },
+      "android": {
+        "1": "Öffnen Sie in den Android-Einstellungen „Apps“ und wählen Sie Ihren Browser aus.",
+        "2": "Erlauben Sie unter „Berechtigungen“ den Zugriff auf Ihr(e) {{device}} und laden Sie die Seite anschließend neu."
+      },
+      "other": {
+        "1": "Erlauben Sie Ihrem Browser in den Datenschutzeinstellungen Ihres Systems den Zugriff auf Ihr(e) {{device}}.",
+        "2": "Versuchen Sie es anschließend erneut."
+      }
+    },
+    "openSettings": "Systemeinstellungen öffnen"
+  },
   "permissionsButton": {
     "tooltip": "Mehr Infos",
     "ariaLabel": "Problem mit Berechtigungen. Mehr Infos anzeigen"

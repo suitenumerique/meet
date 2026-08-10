@@ -9,6 +9,8 @@ export const useCannotUseDevice = (kind: MediaDeviceKind) => {
     isMicrophonePrompted,
     isCameraDenied,
     isCameraPrompted,
+    microphoneSystemDenied,
+    cameraSystemDenied,
   } = useSnapshot(permissionsStore)
 
   return useMemo(() => {
@@ -17,9 +19,11 @@ export const useCannotUseDevice = (kind: MediaDeviceKind) => {
     switch (kind) {
       case 'audioinput':
       case 'audiooutput': // audiooutput uses microphone permissions
-        return isMicrophoneDenied || isMicrophonePrompted
+        return (
+          isMicrophoneDenied || isMicrophonePrompted || microphoneSystemDenied
+        )
       case 'videoinput':
-        return isCameraDenied || isCameraPrompted
+        return isCameraDenied || isCameraPrompted || cameraSystemDenied
 
       default:
         return false
@@ -31,5 +35,7 @@ export const useCannotUseDevice = (kind: MediaDeviceKind) => {
     isMicrophonePrompted,
     isCameraDenied,
     isCameraPrompted,
+    microphoneSystemDenied,
+    cameraSystemDenied,
   ])
 }

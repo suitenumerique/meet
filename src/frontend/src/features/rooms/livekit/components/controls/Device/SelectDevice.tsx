@@ -4,8 +4,7 @@ import { useEffect, useMemo } from 'react'
 import { Select, SelectProps } from '@/primitives/Select'
 import type { Placement } from '@react-types/overlays'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
-import { useSnapshot } from 'valtio'
-import { deviceAvailabilityStore } from '@/stores/deviceAvailability'
+import { useDeviceMissing } from '../../../hooks/useDeviceMissing'
 import { useDeviceIcons } from '@/features/rooms/livekit/hooks/useDeviceIcons'
 import type { LocalAudioTrack } from 'livekit-client'
 import { AudioLevelGauge } from './AudioLevelGauge'
@@ -115,13 +114,7 @@ export const SelectDevice = ({
 
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
-  const { hasCamera, hasMicrophone } = useSnapshot(deviceAvailabilityStore)
-  const deviceMissing =
-    kind === 'videoinput'
-      ? !hasCamera
-      : kind === 'audioinput'
-        ? !hasMicrophone
-        : false
+  const deviceMissing = useDeviceMissing(kind)
 
   if (deviceMissing) {
     return (

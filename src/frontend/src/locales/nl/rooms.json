@@ -154,6 +154,38 @@
       }
     }
   },
+  "systemPermissionDialog": {
+    "heading": {
+      "camera": "Geef je browser toestemming om je camera te gebruiken",
+      "microphone": "Geef je browser toestemming om je microfoon te gebruiken",
+      "cameraAndMicrophone": "Geef je browser toestemming om je camera en microfoon te gebruiken"
+    },
+    "device": {
+      "camera": "camera",
+      "microphone": "microfoon",
+      "cameraAndMicrophone": "camera en microfoon"
+    },
+    "intro": "Je browser heeft al toestemming, maar de systeeminstellingen van je computer blokkeren de toegang tot je {{device}}.",
+    "steps": {
+      "macos": {
+        "1": "Open in Systeeminstellingen “Privacy en beveiliging”.",
+        "2": "Geef je browser toegang tot je {{device}}."
+      },
+      "windows": {
+        "1": "Open in de Windows-instellingen “Privacy en beveiliging”.",
+        "2": "Zet {{device}}-toegang aan en sta desktop-apps toe deze te gebruiken."
+      },
+      "android": {
+        "1": "Open in de Android-instellingen “Apps” en kies je browser.",
+        "2": "Sta bij “Machtigingen” toegang tot je {{device}} toe en herlaad daarna de pagina."
+      },
+      "other": {
+        "1": "Geef je browser in de privacy-instellingen van je systeem toegang tot je {{device}}.",
+        "2": "Probeer het daarna opnieuw."
+      }
+    },
+    "openSettings": "Systeeminstellingen openen"
+  },
   "permissionsButton": {
     "tooltip": "Meer info",
     "ariaLabel": "Probleem met machtigingen. Meer info weergeven"
