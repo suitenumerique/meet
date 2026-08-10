@@ -16,6 +16,7 @@ and this project adheres to
 - ✨(frontend) prompt for permissions when toggling a denied device
 - ⚗️(frontend) capture console.error in PostHog
 - 📈(frontend) snapshot media devices on the happy path
+- 🚸(frontend) guide users when the OS blocks browser media access
 
 ### Changed
 

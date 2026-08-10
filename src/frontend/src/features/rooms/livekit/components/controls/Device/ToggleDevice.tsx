@@ -17,9 +17,8 @@ import { MediaDeviceErrorAlert } from '@/features/rooms/components/MediaDeviceEr
 import type { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
-import { useSnapshot } from 'valtio'
-import { deviceAvailabilityStore } from '@/stores/deviceAvailability'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
+import { useDeviceMissing } from '../../../hooks/useDeviceMissing'
 import { requestDevicePermission } from '../../../hooks/useJoinTracks'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
 import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
@@ -95,8 +94,7 @@ export const ToggleDevice = <T extends ToggleSource>({
 
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
-  const { hasCamera, hasMicrophone } = useSnapshot(deviceAvailabilityStore)
-  const deviceMissing = kind === 'videoinput' ? !hasCamera : !hasMicrophone
+  const deviceMissing = useDeviceMissing(kind)
   const deviceShortcut = useDeviceShortcut(kind)
   const announce = useScreenReaderAnnounce()
 

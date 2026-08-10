@@ -10,9 +10,15 @@ import {
 } from 'livekit-client'
 import { BackgroundProcessorFactory } from '../components/blur'
 import {
+  classifyPermissionError,
+  isLikelySystemNotFound,
+  isSystemPermissionError,
+  noteGumSuccess,
   notePermissionDeniedFromGum,
+  noteSystemPermissionDenied,
   type PermissionKind,
 } from '@/stores/permissions'
+import { getOS } from '@/utils/os'
 import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
 import {
   saveAudioInputDeviceId,
@@ -42,13 +48,38 @@ export const onJoinPreviewError = (e: Error, kind?: PermissionKind) => {
   if (
     MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.PermissionDenied
   ) {
-    notePermissionDeniedFromGum(kind)
-    captureMediaEvent('permissions-denied', { path: 'join_preview', kind })
+    void classifyPermissionError(e, kind).then((scope) => {
+      if (scope === 'system') {
+        noteSystemPermissionDenied(kind)
+      } else {
+        notePermissionDeniedFromGum(kind)
+      }
+      captureMediaEvent('permissions-denied', {
+        path: 'join_preview',
+        kind,
+        denied_scope: scope,
+        os: getOS(),
+      })
+    })
     return
   }
 
   if (MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.NotFound) {
-    captureMediaEvent('device-not-found', { path: 'join_preview', kind })
+    // Firefox reports OS-level blocks as NotFoundError (macOS privacy
+    // settings, missing Android app permissions).
+    void isLikelySystemNotFound(e, kind).then((system) => {
+      if (system) {
+        noteSystemPermissionDenied(kind)
+        captureMediaEvent('permissions-denied', {
+          path: 'join_preview',
+          kind,
+          denied_scope: 'system',
+          os: getOS(),
+        })
+        return
+      }
+      captureMediaEvent('device-not-found', { path: 'join_preview', kind })
+    })
     return
   }
 
@@ -72,6 +103,7 @@ export const requestDevicePermission = async (
         ? await createLocalAudioTrack()
         : await createLocalVideoTrack()
     track.stop()
+    noteGumSuccess(PERMISSION_KIND[kind])
     return true
   } catch (error) {
     onJoinPreviewError(error as Error, PERMISSION_KIND[kind])
@@ -79,14 +111,24 @@ export const requestDevicePermission = async (
   }
 }
 
+type WarmupState = {
+  audioReady: boolean
+  videoReady: boolean
+}
+
 /**
  * Requests camera and microphone once on mount (one combined call → at
- * most one browser dialog) and releases them immediately. Returns true
- * once settled; track acquisition must wait for it to avoid a second
- * dialog.
+ * most one browser dialog) and releases them immediately. Readiness is
+ * per kind: track acquisition must wait for its own kind to be settled
+ * to avoid a second dialog, but a microphone that stalls or fails (e.g.
+ * OS-level block on Firefox) must not hold the camera hostage — that is
+ * how LiveKit behaves in-room (independent per-kind acquisitions).
  */
-function useWarmupPermissions(): boolean {
-  const [done, setDone] = useState(false)
+function useWarmupPermissions(): WarmupState {
+  const [state, setState] = useState<WarmupState>({
+    audioReady: false,
+    videoReady: false,
+  })
   const started = useRef(false)
 
   useEffect(() => {
@@ -94,6 +136,8 @@ function useWarmupPermissions(): boolean {
       return
     }
     started.current = true
+
+    const bothReady = () => setState({ audioReady: true, videoReady: true })
 
     const warmup = async () => {
       try {
@@ -103,35 +147,50 @@ function useWarmupPermissions(): boolean {
             video: true,
           })
         )
+        noteGumSuccess()
+        bothReady()
       } catch (error) {
         if (
           MediaDeviceFailure.getFailure(error as Error) ===
-          MediaDeviceFailure.PermissionDenied
+            MediaDeviceFailure.PermissionDenied &&
+          !isSystemPermissionError(error)
         ) {
           // Retrying after a dismissal would show a second dialog.
           onJoinPreviewError(error as Error)
+          bothReady()
           return
         }
         // Combined requests fail atomically (e.g. missing webcam fails the
-        // mic too) — retry per kind; permission is settled, no dialog risk.
-        try {
-          stopAll(await navigator.mediaDevices.getUserMedia({ audio: true }))
-        } catch (e) {
-          onJoinPreviewError(e as Error, 'microphone')
-        }
-        try {
-          stopAll(await navigator.mediaDevices.getUserMedia({ video: true }))
-        } catch (e) {
-          onJoinPreviewError(e as Error, 'camera')
-        }
-      } finally {
-        setDone(true)
+        // mic too, and an OS-level block on one device fails both) — retry
+        // per kind to know which device is affected; permission is settled
+        // at the browser level, no dialog risk. The retries run in parallel
+        // and settle readiness independently.
+        void navigator.mediaDevices
+          .getUserMedia({ audio: true })
+          .then((stream) => {
+            stopAll(stream)
+            noteGumSuccess('microphone')
+          })
+          .catch((e) => onJoinPreviewError(e as Error, 'microphone'))
+          .finally(() =>
+            setState((current) => ({ ...current, audioReady: true }))
+          )
+        void navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then((stream) => {
+            stopAll(stream)
+            noteGumSuccess('camera')
+          })
+          .catch((e) => onJoinPreviewError(e as Error, 'camera'))
+          .finally(() =>
+            setState((current) => ({ ...current, videoReady: true }))
+          )
       }
     }
     warmup()
   }, [])
 
-  return done
+  return state
 }
 
 function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
@@ -157,6 +216,7 @@ function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
     let cancelled = false
     create()
       .then((newTrack) => {
+        noteGumSuccess(permissionKind)
         if (cancelled) {
           newTrack.stop()
           return
@@ -218,7 +278,7 @@ export function useJoinTracks(): {
     processorConfig,
   } = useSnapshot(userChoicesStore)
 
-  const ready = useWarmupPermissions()
+  const { audioReady, videoReady } = useWarmupPermissions()
 
   const createAudio = useCallback(
     () =>
@@ -240,7 +300,7 @@ export function useJoinTracks(): {
   )
 
   const audioTrack = useLocalTrack({
-    ready,
+    ready: audioReady,
     enabled: audioEnabled,
     create: createAudio,
     permissionKind: 'microphone',
@@ -248,7 +308,7 @@ export function useJoinTracks(): {
   })
 
   const videoTrack = useLocalTrack({
-    ready,
+    ready: videoReady,
     enabled: videoEnabled,
     create: createVideo,
     permissionKind: 'camera',

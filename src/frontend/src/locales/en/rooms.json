@@ -154,6 +154,38 @@
       }
     }
   },
+  "systemPermissionDialog": {
+    "heading": {
+      "camera": "Allow your browser to use your camera",
+      "microphone": "Allow your browser to use your microphone",
+      "cameraAndMicrophone": "Allow your browser to use your camera and microphone"
+    },
+    "device": {
+      "camera": "camera",
+      "microphone": "microphone",
+      "cameraAndMicrophone": "camera and microphone"
+    },
+    "intro": "Your browser already has permission, but your computer's system settings are blocking access to your {{device}}.",
+    "steps": {
+      "macos": {
+        "1": "In System Settings, open “Privacy & Security”.",
+        "2": "Allow your browser to access your {{device}}."
+      },
+      "windows": {
+        "1": "In Windows Settings, open “Privacy & security”.",
+        "2": "Turn on {{device}} access and allow desktop apps to use it."
+      },
+      "android": {
+        "1": "In Android Settings, open “Apps” and select your browser.",
+        "2": "In “Permissions”, allow access to the {{device}}, then reload this page."
+      },
+      "other": {
+        "1": "In your system's privacy settings, allow your browser to access your {{device}}.",
+        "2": "Then try again."
+      }
+    },
+    "openSettings": "Open system settings"
+  },
   "permissionsButton": {
     "tooltip": "More info",
     "ariaLabel": "Permissions issue. Show more info"

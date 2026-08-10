@@ -25,7 +25,6 @@ import { VideoConference } from '../livekit/prefabs/VideoConference'
 import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
-import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
 import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
@@ -37,11 +36,7 @@ import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
-import {
-  PERMISSION_BY_DEVICE_KIND,
-  notePermissionDeniedFromGum,
-} from '@/stores/permissions'
-import { syncDeviceAvailability } from '@/stores/deviceAvailability'
+import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 
 export const Conference = ({
   roomId,
@@ -174,14 +169,6 @@ export const Conference = ({
     prepareConnection()
   }, [room, apiConfig, isConnectionWarmedUp])
 
-  const [mediaDeviceError, setMediaDeviceError] = useState<{
-    error: MediaDeviceFailure | null
-    kind: MediaDeviceKind | null
-  }>({
-    error: null,
-    kind: null,
-  })
-
   const isMobile = useIsMobile()
 
   const hasAutoMutedRef = useRef(false)
@@ -302,36 +289,10 @@ export const Conference = ({
                 return
             }
           }}
-          onMediaDeviceFailure={(e, kind) => {
-            if (!e || !kind) return
-            void captureMediaEvent('media-device-error', {
-              log_code: 'media_devices_error_event',
-              path: 'connect_publish',
-              failure: e,
-              kind,
-            })
-            switch (e) {
-              case MediaDeviceFailure.DeviceInUse:
-                setMediaDeviceError({ error: e, kind })
-                break
-              case MediaDeviceFailure.NotFound:
-                setMediaDeviceError({ error: e, kind })
-                void syncDeviceAvailability()
-                break
-              case MediaDeviceFailure.PermissionDenied:
-                notePermissionDeniedFromGum(PERMISSION_BY_DEVICE_KIND[kind])
-                break
-              default:
-                break
-            }
-          }}
         >
+          <WatchMediaDeviceErrors />
           <VideoConference />
           {!isMobile && <InviteDialog mode={mode} />}
-          <MediaDeviceErrorAlert
-            {...mediaDeviceError}
-            onClose={() => setMediaDeviceError({ error: null, kind: null })}
-          />
           <PictureInPictureConference />
         </LiveKitRoom>
       </Screen>

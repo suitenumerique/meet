@@ -28,8 +28,8 @@ import {
   userChoicesStore,
 } from '@/stores/userChoices'
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
+import { useDeviceMissing } from '../livekit/hooks/useDeviceMissing'
 import { useJoinTracks } from '../livekit/hooks/useJoinTracks'
-import { deviceAvailabilityStore } from '@/stores/deviceAvailability'
 
 const styles = {
   page: css({
@@ -326,12 +326,12 @@ const VideoPreview = ({
 
   const cameraDenied = useCannotUseDevice('videoinput')
   const micDenied = useCannotUseDevice('audioinput')
-  const { hasCamera } = useSnapshot(deviceAvailabilityStore)
+  const cameraMissing = useDeviceMissing('videoinput')
 
   const { videoEl, videoStarted } = useAttachedVideo(videoTrack, videoEnabled)
 
   const { hint, permissionsButtonLabel } = getPreviewMessages({
-    cameraFound: hasCamera,
+    cameraFound: !cameraMissing,
     cameraDenied,
     micDenied,
     videoEnabled,
