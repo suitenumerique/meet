@@ -15,6 +15,7 @@ and this project adheres to
 - ✨(frontend) add a sound tester to the output select menu
 - ✨(frontend) prompt for permissions when toggling a denied device
 - ⚗️(frontend) capture console.error in PostHog
+- 📈(frontend) snapshot media devices on the happy path
 
 ### Changed
 

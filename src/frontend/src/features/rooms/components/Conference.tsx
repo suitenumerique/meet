@@ -26,11 +26,7 @@ import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
 import { MediaDeviceErrorAlert } from './MediaDeviceErrorAlert'
-import {
-  captureEvent,
-  reportError,
-  captureMediaEvent,
-} from '@/features/analytics/telemetry'
+import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
@@ -65,7 +61,7 @@ export const Conference = ({
   const { username } = useSnapshot(userStore)
 
   useEffect(() => {
-    captureEvent('visit-room', { slug: roomId })
+    void captureMediaEvent('visit-room', { slug: roomId })
   }, [roomId])
   const fetchKey = [keys.room, roomId]
 

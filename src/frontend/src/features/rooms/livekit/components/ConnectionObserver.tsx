@@ -14,7 +14,7 @@ import { connectionObserverStore } from '@/stores/connectionObserver'
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { isMobileBrowser } from '@livekit/components-core'
 import { FeatureFlags } from '@/features/analytics/enums'
-import { captureEvent } from '@/features/analytics/telemetry'
+import { captureEvent, captureMediaEvent } from '@/features/analytics/telemetry'
 
 const CANDIDATE_POLL_INTERVAL_MS = 5000
 
@@ -182,7 +182,7 @@ export const ConnectionObserver = () => {
       // total session duration from first connect to final disconnect.
       if (connectionStartTimeRef.current != null) return
       connectionStartTimeRef.current = Date.now()
-      captureEvent('connection-event')
+      void captureMediaEvent('connection-event', {})
     }
 
     const handleReconnect = () => {
