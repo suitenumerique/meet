@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(frontend) add an audio gauge to the microphone select menu
 - ✨(frontend) add a sound tester to the output select menu
 - ✨(frontend) prompt for permissions when toggling a denied device
+- ⚗️(frontend) capture console.error in PostHog
 
 ### Changed
 
