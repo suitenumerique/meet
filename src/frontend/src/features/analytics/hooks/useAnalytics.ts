@@ -42,6 +42,11 @@ export const useAnalytics = ({
         person_profiles: 'always',
         capture_pageview: 'history_change',
         capture_pageleave: true,
+        capture_exceptions: {
+          capture_unhandled_errors: true,
+          capture_unhandled_rejections: true,
+          capture_console_errors: true,
+        },
       })
     })
   }, [id, host, flags_api_host, isDisabled])
