@@ -169,7 +169,13 @@ export const Header = () => {
                 !isTermsOfService &&
                 !loginButtonDisabledByUrl && (
                   <>
-                    <LoginButton proConnectHint={false} />
+                    <div
+                      className={css({
+                        display: { base: 'none', xsm: 'block' },
+                      })}
+                    >
+                      <LoginButton proConnectHint={false} />
+                    </div>
                     <LoginHint />
                   </>
                 )}
