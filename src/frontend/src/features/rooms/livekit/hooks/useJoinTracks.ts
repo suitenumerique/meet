@@ -39,7 +39,7 @@ const PERMISSION_KIND: Record<'audioinput' | 'videoinput', PermissionKind> = {
 }
 
 export const onJoinPreviewError = (e: Error, kind?: PermissionKind) => {
-  reportError('join_preview_failure', e, { path: 'join_preview' })
+  reportError('join_preview_failure', e, { path: 'join_preview', kind })
   if (
     MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.PermissionDenied
   ) {
