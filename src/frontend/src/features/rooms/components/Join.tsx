@@ -392,7 +392,7 @@ const VideoPreview = ({
           />
         </div>
         <div className={styles.effectsOverlay}>
-          <Effects videoTrack={videoTrack} />
+          {videoTrack && <Effects videoTrack={videoTrack} />}
         </div>
       </div>
     </div>
