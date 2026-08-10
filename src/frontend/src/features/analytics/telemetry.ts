@@ -134,7 +134,8 @@ export const captureMediaEvent = async (
     | 'media-acquisition'
     | 'media-device-topology'
     | 'media-device-success'
-    | 'device-not-found',
+    | 'device-not-found'
+    | 'permissions-denied',
   props: Record<string, unknown>
 ) => {
   captureEvent(event, { ...props, ...(await deviceSnapshot()) })
