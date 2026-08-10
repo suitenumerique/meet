@@ -12,6 +12,10 @@
     "loading": "Loading…",
     "select": "Select a value",
     "permissionsNeeded": "Permission needed",
+    "deviceNotFound": {
+      "videoinput": "No camera detected. Check that it is properly wired.",
+      "audioinput": "No microphone detected. Check that it is properly wired."
+    },
     "settings": {
       "audio": "Audio settings",
       "video": "Video settings"
@@ -62,6 +66,7 @@
       "usernameEmpty": "Your name cannot be empty"
     },
     "cameraDisabled": "Camera is disabled.",
+    "cameraNotFound": "No camera detected. Check that it is properly plugged in.",
     "cameraStarting": "Camera is starting…",
     "cameraNotGranted": "Would you like others to be able to see you during the meeting?",
     "cameraAndMicNotGranted": "Would you like others to be able to see and hear you during the meeting?",
@@ -115,6 +120,16 @@
       "body": {
         "audioinput": "Your microphone is already in use by another tab or application, which prevents it from being activated in this video call. If you wish, close the other tab or application to use it here.",
         "videoinput": "Your camera is already in use by another tab or application, which prevents it from being activated in this video call. If you wish, close the other tab or application to use it here."
+      }
+    },
+    "NotFound": {
+      "title": {
+        "audioinput": "No microphone detected",
+        "videoinput": "No camera detected"
+      },
+      "body": {
+        "audioinput": "No microphone was detected on your device. Check that it is properly plugged in and not disabled by a mute switch, then try again.",
+        "videoinput": "No camera was detected on your device. Check that it is properly plugged in and not blocked by a cover or switch, then try again."
       }
     },
     "close": "OK"

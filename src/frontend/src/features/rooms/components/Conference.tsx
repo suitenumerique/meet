@@ -45,6 +45,7 @@ import {
   PERMISSION_BY_DEVICE_KIND,
   notePermissionDeniedFromGum,
 } from '@/stores/permissions'
+import { syncDeviceAvailability } from '@/stores/deviceAvailability'
 
 export const Conference = ({
   roomId,
@@ -316,6 +317,10 @@ export const Conference = ({
             switch (e) {
               case MediaDeviceFailure.DeviceInUse:
                 setMediaDeviceError({ error: e, kind })
+                break
+              case MediaDeviceFailure.NotFound:
+                setMediaDeviceError({ error: e, kind })
+                void syncDeviceAvailability()
                 break
               case MediaDeviceFailure.PermissionDenied:
                 notePermissionDeniedFromGum(PERMISSION_BY_DEVICE_KIND[kind])

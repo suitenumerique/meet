@@ -12,6 +12,10 @@
     "loading": "Bezig met laden…",
     "select": "Selecteer een waarde",
     "permissionsNeeded": "Toestemming vereist",
+    "deviceNotFound": {
+      "videoinput": "Geen camera gedetecteerd. Controleer of deze goed is aangesloten.",
+      "audioinput": "Geen microfoon gedetecteerd. Controleer of deze goed is aangesloten."
+    },
     "settings": {
       "audio": "Audio-instellingen",
       "video": "Video-instellingen"
@@ -62,6 +66,7 @@
       "usernameEmpty": "Uw naam kan niet leeg zijn"
     },
     "cameraDisabled": "Camera is uitgeschakeld.",
+    "cameraNotFound": "Geen camera gedetecteerd. Controleer of deze goed is aangesloten.",
     "cameraStarting": "Camera wordt ingeschakeld…",
     "cameraNotGranted": "Wilt u dat anderen u tijdens de vergadering kunnen zien?",
     "cameraAndMicNotGranted": "Wilt u dat anderen u tijdens de vergadering kunnen zien en horen?",
@@ -115,6 +120,16 @@
       "body": {
         "audioinput": "Je microfoon wordt al gebruikt door een ander tabblad of een andere toepassing, waardoor deze niet geactiveerd kan worden in dit videogesprek. Sluit indien gewenst het andere tabblad of de toepassing om je microfoon hier te gebruiken.",
         "videoinput": "Je camera wordt al gebruikt door een ander tabblad of een andere toepassing, waardoor deze niet geactiveerd kan worden in dit videogesprek. Sluit indien gewenst het andere tabblad of de toepassing om je camera hier te gebruiken."
+      }
+    },
+    "NotFound": {
+      "title": {
+        "audioinput": "Geen microfoon gedetecteerd",
+        "videoinput": "Geen camera gedetecteerd"
+      },
+      "body": {
+        "audioinput": "Er is geen microfoon gedetecteerd op je apparaat. Controleer of deze goed is aangesloten en niet door een schakelaar is gedempt, en probeer het opnieuw.",
+        "videoinput": "Er is geen camera gedetecteerd op je apparaat. Controleer of deze goed is aangesloten en niet door een afdekking of schakelaar wordt geblokkeerd, en probeer het opnieuw."
       }
     },
     "close": "OK"

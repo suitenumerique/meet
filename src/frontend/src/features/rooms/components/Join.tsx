@@ -29,6 +29,7 @@ import {
 } from '@/stores/userChoices'
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
 import { useJoinTracks } from '../livekit/hooks/useJoinTracks'
+import { deviceAvailabilityStore } from '@/stores/deviceAvailability'
 
 const styles = {
   page: css({
@@ -214,16 +215,21 @@ const switchTrackDevice =
   }
 
 function getPreviewMessages({
+  cameraFound,
   cameraDenied,
   micDenied,
   videoEnabled,
   videoStarted,
 }: {
+  cameraFound: boolean
   cameraDenied: boolean
   micDenied: boolean
   videoEnabled: boolean
   videoStarted: boolean
 }): { hint: string | null; permissionsButtonLabel: string | null } {
+  if (!cameraFound) {
+    return { hint: 'cameraNotFound', permissionsButtonLabel: null }
+  }
   if (cameraDenied) {
     const key = micDenied ? 'cameraAndMicNotGranted' : 'cameraNotGranted'
     return { hint: key, permissionsButtonLabel: key }
@@ -320,10 +326,12 @@ const VideoPreview = ({
 
   const cameraDenied = useCannotUseDevice('videoinput')
   const micDenied = useCannotUseDevice('audioinput')
+  const { hasCamera } = useSnapshot(deviceAvailabilityStore)
 
   const { videoEl, videoStarted } = useAttachedVideo(videoTrack, videoEnabled)
 
   const { hint, permissionsButtonLabel } = getPreviewMessages({
+    cameraFound: hasCamera,
     cameraDenied,
     micDenied,
     videoEnabled,

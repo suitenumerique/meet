@@ -12,9 +12,13 @@ import {
   useMaybeRoomContext,
   useRoomContext,
 } from '@livekit/components-react'
+import { MediaDeviceFailure } from 'livekit-client'
+import { MediaDeviceErrorAlert } from '@/features/rooms/components/MediaDeviceErrorAlert'
 import type { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
+import { useSnapshot } from 'valtio'
+import { deviceAvailabilityStore } from '@/stores/deviceAvailability'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { requestDevicePermission } from '../../../hooks/useJoinTracks'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
@@ -91,12 +95,19 @@ export const ToggleDevice = <T extends ToggleSource>({
 
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
+  const { hasCamera, hasMicrophone } = useSnapshot(deviceAvailabilityStore)
+  const deviceMissing = kind === 'videoinput' ? !hasCamera : !hasMicrophone
   const deviceShortcut = useDeviceShortcut(kind)
   const announce = useScreenReaderAnnounce()
 
   const isRequestingPermission = useRef(false)
+  const [showDeviceNotFound, setShowDeviceNotFound] = useState(false)
 
   const onPress = async () => {
+    if (!enabled && deviceMissing) {
+      setShowDeviceNotFound(true)
+      return
+    }
     if (!cannotUseDevice) {
       toggle()
       return
@@ -161,7 +172,14 @@ export const ToggleDevice = <T extends ToggleSource>({
 
   return (
     <div style={{ position: 'relative' }}>
-      {cannotUseDevice && <PermissionNeededButton />}
+      {(cannotUseDevice || deviceMissing) && (
+        <PermissionNeededButton
+          tooltip={deviceMissing ? t(`deviceNotFound.${kind}`) : undefined}
+          onPress={
+            deviceMissing ? () => setShowDeviceNotFound(true) : undefined
+          }
+        />
+      )}
       <ToggleButton
         isSelected={!enabled}
         isDisabled={isDisabled}
@@ -172,15 +190,22 @@ export const ToggleDevice = <T extends ToggleSource>({
         onPress={onPress}
         aria-label={toggleLabel}
         tooltip={
-          cannotUseDevice
-            ? t('tooltip', { keyPrefix: 'permissionsButton' })
-            : toggleLabel
+          deviceMissing
+            ? t(`deviceNotFound.${kind}`)
+            : cannotUseDevice
+              ? t('tooltip', { keyPrefix: 'permissionsButton' })
+              : toggleLabel
         }
         {...computedToggleButtonProps}
         {...overrideToggleButtonProps}
       >
         <Icon />
       </ToggleButton>
+      <MediaDeviceErrorAlert
+        error={showDeviceNotFound ? MediaDeviceFailure.NotFound : null}
+        kind={kind}
+        onClose={() => setShowDeviceNotFound(false)}
+      />
     </div>
   )
 }

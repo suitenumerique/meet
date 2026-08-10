@@ -4,8 +4,17 @@ import { openPermissionsDialog } from '@/stores/permissions'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 
-export const PermissionNeededButton = () => {
+type PermissionNeededButtonProps = {
+  tooltip?: string
+  onPress?: () => void
+}
+
+export const PermissionNeededButton = ({
+  tooltip,
+  onPress,
+}: PermissionNeededButtonProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'permissionsButton' })
+  const label = tooltip ?? t('tooltip')
   return (
     <div
       className={css({
@@ -17,9 +26,9 @@ export const PermissionNeededButton = () => {
       })}
     >
       <Button
-        aria-label={t('ariaLabel')}
-        tooltip={t('tooltip')}
-        onPress={() => openPermissionsDialog()}
+        aria-label={tooltip ? label : t('ariaLabel')}
+        tooltip={label}
+        onPress={onPress ?? (() => openPermissionsDialog())}
         variant="permission"
       >
         <div

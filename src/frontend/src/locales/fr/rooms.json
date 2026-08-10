@@ -12,6 +12,10 @@
     "loading": "Chargement…",
     "select": "Sélectionnez une valeur",
     "permissionsNeeded": "Autorisations nécessaires",
+    "deviceNotFound": {
+      "videoinput": "Aucune caméra détectée. Vérifiez qu'elle est bien branchée.",
+      "audioinput": "Aucun microphone détecté. Vérifiez qu'il est bien branché."
+    },
     "settings": {
       "audio": "Paramètres audio",
       "video": "Paramètres video"
@@ -62,6 +66,7 @@
       "usernameEmpty": "Votre nom ne peut pas être vide"
     },
     "cameraDisabled": "La caméra est désactivée.",
+    "cameraNotFound": "Aucune caméra détectée. Vérifiez qu'elle est bien branchée.",
     "cameraStarting": "La caméra va démarrer…",
     "cameraNotGranted": "Souhaitez-vous que les autres puissent vous voir pendant la réunion ?",
     "cameraAndMicNotGranted": "Souhaitez-vous que les autres puissent vous voir et vous entendre pendant la réunion ?",
@@ -115,6 +120,16 @@
       "body": {
         "audioinput": "Votre microphone est déjà utilisé dans un autre onglet ou une autre application, ce qui empêche son activation dans cette visioconférence. Si vous le souhaitez, fermez l'autre onglet ou application pour l'utiliser ici.",
         "videoinput": "Votre caméra est déjà utilisée dans un autre onglet ou une autre application, ce qui empêche son activation dans cette visioconférence. Si vous le souhaitez, fermez l'autre onglet ou application pour l'utiliser ici."
+      }
+    },
+    "NotFound": {
+      "title": {
+        "audioinput": "Aucun microphone détecté",
+        "videoinput": "Aucune caméra détectée"
+      },
+      "body": {
+        "audioinput": "Aucun microphone n'a été détecté sur votre appareil. Vérifiez qu'il est bien branché et qu'aucun bouton ne le coupe, puis réessayez.",
+        "videoinput": "Aucune caméra n'a été détectée sur votre appareil. Vérifiez qu'elle est bien branchée et qu'aucun cache ou bouton ne la bloque, puis réessayez."
       }
     },
     "close": "OK"
