@@ -6,16 +6,75 @@ import {
 } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { RiMicLine, RiMicOffLine } from '@remixicon/react'
-import { css } from '@/styled-system/css'
+import { Text } from '@/primitives'
+import { styled } from '@/styled-system/jsx'
 
-/**
- * Boost factor applied to the raw analyser volume so that normal speech
- * animates the indicator visibly (Google Meet style sensitivity).
- */
-const LEVEL_BOOST = 1.2
-
-/** How fast the gauge falls back down between words (per frame). */
+const LEVEL_BOOST = 0.8
 const DECAY_PER_FRAME = 0.04
+
+const StyledContainer = styled('div', {
+  base: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.625rem 0.75rem',
+    marginTop: '0.25rem',
+    borderTop: '1px solid',
+    minHeight: '2.5rem',
+  },
+  variants: {
+    theme: {
+      light: {
+        borderColor: 'colors.greyscale.250',
+        color: 'colors.greyscale.600',
+      },
+      dark: {
+        borderColor: 'rgba(255 255 255 / 0.2)',
+        color: 'rgba(255 255 255 / 0.7)',
+      },
+    },
+  },
+})
+
+const StyledGaugeContainer = styled('div', {
+  base: {
+    flexGrow: 1,
+    height: '0.375rem',
+    borderRadius: '0.1875rem',
+    overflow: 'hidden',
+  },
+  variants: {
+    theme: {
+      light: {
+        backgroundColor: 'rgba(255 255 255 / 0.25)',
+      },
+      dark: {
+        backgroundColor: 'colors.greyscale.250',
+      },
+    },
+  },
+})
+
+const StyledGauge = styled('div', {
+  base: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 'inherit',
+    transformOrigin: 'left center',
+    transform: 'scaleX(0)',
+    transition: 'transform 0.06s linear',
+  },
+  variants: {
+    theme: {
+      light: {
+        backgroundColor: 'primary.500',
+      },
+      dark: {
+        backgroundColor: 'primaryDark.800',
+      },
+    },
+  },
+})
 
 type AudioLevelGaugeProps = {
   track?: LocalAudioTrack
@@ -71,8 +130,6 @@ export const AudioLevelGauge = ({
 
     setupAnalyser()
 
-    // Re-bind the analyser when the underlying MediaStreamTrack is replaced
-    // (e.g. after switching to another input device).
     track.on(TrackEvent.Restarted, setupAnalyser)
 
     const update = () => {
@@ -98,66 +155,24 @@ export const AudioLevelGauge = ({
   const showMutedHint = !track || isMuted
 
   return (
-    <div
-      className={css({
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        padding: '0.625rem 0.75rem',
-        marginTop: '0.25rem',
-        borderTop: '1px solid',
-        minHeight: '2.5rem',
-      })}
-      style={{
-        borderColor: variant === 'dark' ? 'rgba(255 255 255 / 0.2)' : '#e0e0e0',
-        color: variant === 'dark' ? 'rgba(255 255 255 / 0.7)' : '#5f6368',
-      }}
-    >
+    <StyledContainer theme={variant}>
       {showMutedHint ? (
         <>
           <RiMicOffLine size={18} aria-hidden="true" />
-          <span
-            className={css({
-              fontSize: '0.875rem',
-            })}
-          >
-            {t('audioinput.muteTest')}
-          </span>
+          <Text variant="sm">{t('audioinput.muteTest')}</Text>
         </>
       ) : (
         <>
           <RiMicLine size={18} aria-hidden="true" />
-          <div
+          <StyledGaugeContainer
             role="img"
             aria-label={t('audioinput.level')}
-            className={css({
-              flexGrow: 1,
-              height: '0.375rem',
-              borderRadius: '0.1875rem',
-              overflow: 'hidden',
-            })}
-            style={{
-              backgroundColor:
-                variant === 'dark' ? 'rgba(255 255 255 / 0.25)' : '#e0e0e0',
-            }}
+            theme={variant}
           >
-            <div
-              ref={fillRef}
-              className={css({
-                width: '100%',
-                height: '100%',
-                borderRadius: 'inherit',
-                transformOrigin: 'left center',
-                transform: 'scaleX(0)',
-                transition: 'transform 0.06s linear',
-              })}
-              style={{
-                backgroundColor: variant === 'dark' ? '#CACAFB' : '#6A6AF4',
-              }}
-            />
-          </div>
+            <StyledGauge ref={fillRef} theme={variant} />
+          </StyledGaugeContainer>
         </>
       )}
-    </div>
+    </StyledContainer>
   )
 }
