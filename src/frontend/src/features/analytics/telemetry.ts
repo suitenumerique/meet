@@ -19,6 +19,7 @@ export const captureEvent = (
 export type LogCode =
   // media
   | 'join_preview_failure'
+  | 'room_media_failure'
   | 'livekit_room_error'
   | 'device_switch_failure'
   | 'permission_poll_failure'
