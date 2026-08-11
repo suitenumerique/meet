@@ -186,6 +186,21 @@
     },
     "openSettings": "Open system settings"
   },
+  "silentMic": {
+    "tooltip": "Your microphone is on, but no sound is being detected. Click to learn more.",
+    "dialog": {
+      "title": "No sound detected",
+      "intro": "Your microphone is on, but we haven't detected any sound for a while. Check the following:",
+      "causes": {
+        "system": "Your system's privacy settings may be blocking microphone access.",
+        "hardware": "A mute switch may be turned on, or your microphone may be disconnected or faulty.",
+        "wrongDevice": "The wrong microphone may be selected. Try choosing another one from the microphone menu."
+      },
+      "hint": "Speak again after checking these settings. This warning will disappear as soon as sound is detected.",
+      "close": "Got it",
+      "discard": "Turn off silent microphone detection"
+    }
+  },
   "permissionsButton": {
     "tooltip": "More info",
     "ariaLabel": "Permissions issue. Show more info"

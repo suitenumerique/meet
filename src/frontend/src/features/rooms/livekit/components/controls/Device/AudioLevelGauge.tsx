@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
-import { LocalAudioTrack, TrackEvent } from 'livekit-client'
+import { LocalAudioTrack } from 'livekit-client'
 import { useTrackVolume } from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
 import { RiMicLine, RiMicOffLine } from '@remixicon/react'
 import { styled } from '@/styled-system/jsx'
 import { Text } from '@/primitives'
+import { useIsTrackMuted } from '../../../hooks/useIsTrackMuted'
 
 const StyledContainer = styled('div', {
   base: {
@@ -75,28 +75,6 @@ type Theme = 'light' | 'dark'
 type AudioLevelGaugeProps = {
   track?: LocalAudioTrack
   variant?: Theme
-}
-
-const useIsTrackMuted = (track?: LocalAudioTrack) => {
-  const [isMuted, setIsMuted] = useState(() => track?.isMuted ?? true)
-
-  useEffect(() => {
-    if (!track) {
-      setIsMuted(true)
-      return
-    }
-    setIsMuted(track.isMuted)
-    const onMuted = () => setIsMuted(true)
-    const onUnmuted = () => setIsMuted(false)
-    track.on(TrackEvent.Muted, onMuted)
-    track.on(TrackEvent.Unmuted, onUnmuted)
-    return () => {
-      track.off(TrackEvent.Muted, onMuted)
-      track.off(TrackEvent.Unmuted, onUnmuted)
-    }
-  }, [track])
-
-  return isMuted
 }
 
 const LevelBar = ({

@@ -7,6 +7,7 @@ import { useUser } from '@/features/auth/api/useUser'
 import { Conference } from '../components/Conference'
 import { Join } from '../components/Join'
 import { Permissions } from '../components/Permissions'
+import { SilentMicDialog } from '../components/SilentMicDialog'
 import { useKeyboardShortcuts } from '@/features/shortcuts/useKeyboardShortcuts'
 import {
   isRoomValid,
@@ -21,6 +22,7 @@ const BaseRoom = ({ children }: { children: ReactNode }) => {
   return (
     <UserAware>
       <Permissions />
+      <SilentMicDialog />
       {children}
     </UserAware>
   )

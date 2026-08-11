@@ -17,6 +17,8 @@ import { MediaDeviceErrorAlert } from '@/features/rooms/components/MediaDeviceEr
 import type { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { openPermissionsDialog } from '@/stores/permissions'
+import { openSilentMicDialog, silentMicStore } from '@/stores/silentMic'
+import { useSnapshot } from 'valtio'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceMissing } from '../../../hooks/useDeviceMissing'
 import { requestDevicePermission } from '../../../hooks/useJoinTracks'
@@ -95,6 +97,12 @@ export const ToggleDevice = <T extends ToggleSource>({
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
   const deviceMissing = useDeviceMissing(kind)
+  const { status: silentMicStatus } = useSnapshot(silentMicStore)
+  const silentMicWarning =
+    kind === 'audioinput' &&
+    silentMicStatus === 'silent' &&
+    !cannotUseDevice &&
+    !deviceMissing
   const deviceShortcut = useDeviceShortcut(kind)
   const announce = useScreenReaderAnnounce()
 
@@ -176,6 +184,12 @@ export const ToggleDevice = <T extends ToggleSource>({
           onPress={
             deviceMissing ? () => setShowDeviceNotFound(true) : undefined
           }
+        />
+      )}
+      {silentMicWarning && (
+        <PermissionNeededButton
+          tooltip={t('tooltip', { keyPrefix: 'silentMic' })}
+          onPress={openSilentMicDialog}
         />
       )}
       <ToggleButton
