@@ -15,6 +15,7 @@ import {
 import { useConfig } from '@/api/useConfig.ts'
 import { LogLevel, setLogLevel } from 'livekit-client'
 import { useWatchDeviceAvailability } from '@/features/rooms/hooks/useWatchDeviceAvailability'
+import { useRoomPageTitle } from '@/features/rooms/livekit/hooks/useRoomPageTitle'
 
 const BaseRoom = ({ children }: { children: ReactNode }) => {
   return (
@@ -36,6 +37,8 @@ const Room = () => {
   const skipJoinScreen = isLoggedIn && mode === 'create'
 
   const { data } = useConfig()
+
+  useRoomPageTitle(roomId)
 
   useEffect(() => {
     const shouldSilenceLogs = data?.silence_livekit_debug_logs || false

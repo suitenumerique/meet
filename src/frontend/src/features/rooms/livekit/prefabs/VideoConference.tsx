@@ -14,7 +14,6 @@ import { ConnectionObserver } from '../components/ConnectionObserver'
 import { reportError } from '@/features/analytics/telemetry'
 import { MediaStateObserver } from '../components/MediaStateObserver'
 import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer'
-import { useRoomPageTitle } from '../hooks/useRoomPageTitle'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { VideoResolutionSubscription } from '../components/VideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
@@ -55,7 +54,6 @@ export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElemen
  * @public
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
-  useRoomPageTitle()
   useNoiseReduction()
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
