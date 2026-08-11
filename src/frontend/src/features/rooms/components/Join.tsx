@@ -339,6 +339,8 @@ const VideoPreview = ({
     videoStarted,
   })
 
+  const isError = cameraMissing || cameraDenied
+
   return (
     <div className={styles.previewFrame}>
       <div className={styles.gradientTop} />
@@ -367,8 +369,13 @@ const VideoPreview = ({
               />
             </div>
           </div>
-          <div role="alert" className={styles.hintOverlay}>
-            <p className={styles.hintText}>{hint && t(hint)}</p>
+          <div className={styles.hintOverlay}>
+            <p role="alert" className={styles.hintText}>
+              {isError && hint ? t(hint) : null}
+            </p>
+            <p role="status" className={styles.hintText}>
+              {!isError && hint ? t(hint) : null}
+            </p>
             {permissionsButtonLabel && (
               <Button
                 size="sm"
