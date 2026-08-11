@@ -61,14 +61,20 @@ export const usePictureInPicture = () => {
       if (!IS_PIP_SUPPORTED) return null
       if (isOpen) return null
 
+      let pipWindow: Window
       try {
-        const pipWindow =
+        pipWindow =
           await // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (window as any).documentPictureInPicture.requestWindow({
             width,
             height,
           })
+      } catch {
+        // Avoid unhandled rejections if the user blocks or closes the request.
+        return null
+      }
 
+      try {
         initializeTitleAndLanguage(pipWindow, t('title'))
         initializePortalContainer(pipWindow)
         syncStyles(pipWindow)
@@ -86,10 +92,10 @@ export const usePictureInPicture = () => {
         })
         documentPictureInPictureStore.window = ref(pipWindow)
       } catch (error) {
-        // Avoid unhandled rejections if the user blocks or closes the request.
         reportError('generic_failure', error, {
-          context: 'Failed to open Picture-in-Picture window',
+          context: 'pip_init_failure',
         })
+        pipWindow.close()
         return null
       }
     },
