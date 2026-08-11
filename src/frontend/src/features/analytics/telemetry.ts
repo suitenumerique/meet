@@ -136,6 +136,9 @@ export const captureMediaEvent = async (
     | 'media-device-success'
     | 'device-not-found'
     | 'permissions-denied'
+    | 'silent-mic-detected'
+    | 'silent-mic-analyser-unavailable'
+    | 'silent-mic-recovered'
     | 'visit-room'
     | 'connection-event',
   props: Record<string, unknown>

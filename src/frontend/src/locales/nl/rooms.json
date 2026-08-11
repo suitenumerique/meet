@@ -186,6 +186,21 @@
     },
     "openSettings": "Systeeminstellingen openen"
   },
+  "silentMic": {
+    "tooltip": "Je microfoon staat aan, maar er wordt geen geluid gedetecteerd. Klik voor meer informatie.",
+    "dialog": {
+      "title": "Geen geluid gedetecteerd",
+      "intro": "Je microfoon staat aan, maar er is al een tijdje geen geluid gedetecteerd. Controleer het volgende:",
+      "causes": {
+        "system": "De privacyinstellingen van je systeem blokkeren mogelijk de toegang tot je microfoon.",
+        "hardware": "Mogelijk staat er een mute-schakelaar aan, of is je microfoon niet aangesloten of defect.",
+        "wrongDevice": "Mogelijk is de verkeerde microfoon geselecteerd. Kies een andere microfoon in het microfoonmenu."
+      },
+      "hint": "Spreek opnieuw nadat je dit hebt gecontroleerd. De waarschuwing verdwijnt zodra er geluid wordt gedetecteerd.",
+      "close": "Begrepen",
+      "discard": "Detectie van een stille microfoon uitschakelen"
+    }
+  },
   "permissionsButton": {
     "tooltip": "Meer info",
     "ariaLabel": "Probleem met machtigingen. Meer info weergeven"

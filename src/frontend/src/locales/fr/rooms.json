@@ -186,6 +186,21 @@
     },
     "openSettings": "Ouvrir les réglages système"
   },
+  "silentMic": {
+    "tooltip": "Votre micro est activé, mais aucun son n'est détecté. Cliquez pour en savoir plus.",
+    "dialog": {
+      "title": "Aucun son détecté",
+      "intro": "Votre micro est activé, mais aucun son n'est détecté depuis un moment. Vérifiez les points suivants :",
+      "causes": {
+        "system": "L'accès au micro est peut-être bloqué dans les réglages de confidentialité de votre système.",
+        "hardware": "Un bouton ou interrupteur coupe peut-être le micro, ou celui-ci est débranché ou défectueux.",
+        "wrongDevice": "Un autre micro est peut-être sélectionné. Essayez d'en choisir un autre dans le menu du micro."
+      },
+      "hint": "Parlez à nouveau après avoir vérifié ces points. L'avertissement disparaîtra dès qu'un son sera détecté.",
+      "close": "Compris",
+      "discard": "Désactiver cette détection"
+    }
+  },
   "permissionsButton": {
     "tooltip": "Plus d'infos",
     "ariaLabel": "Problème de permissions. Afficher plus d'infos"

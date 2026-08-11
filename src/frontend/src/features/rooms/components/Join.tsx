@@ -30,6 +30,7 @@ import {
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
 import { useDeviceMissing } from '../livekit/hooks/useDeviceMissing'
 import { useJoinTracks } from '../livekit/hooks/useJoinTracks'
+import { SilentMicDetector } from './SilentMicDetector'
 
 const styles = {
   page: css({
@@ -460,6 +461,7 @@ export const Join = ({
 
   return (
     <Screen footer={false}>
+      <SilentMicDetector track={audioTrack} context="join" />
       <div className={styles.page}>
         <div className={styles.previewColumn}>
           <div className={styles.previewStack}>

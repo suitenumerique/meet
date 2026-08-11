@@ -186,6 +186,21 @@
     },
     "openSettings": "Systemeinstellungen öffnen"
   },
+  "silentMic": {
+    "tooltip": "Ihr Mikrofon ist aktiviert, aber es wird kein Ton erkannt. Klicken Sie für weitere Informationen.",
+    "dialog": {
+      "title": "Kein Ton erkannt",
+      "intro": "Ihr Mikrofon ist aktiviert, aber seit einiger Zeit wird kein Ton erkannt. Überprüfen Sie Folgendes:",
+      "causes": {
+        "system": "Der Zugriff auf das Mikrofon wird möglicherweise durch die Datenschutzeinstellungen Ihres Systems blockiert.",
+        "hardware": "Möglicherweise ist ein Stummschalter aktiviert oder das Mikrofon ist nicht angeschlossen oder defekt.",
+        "wrongDevice": "Möglicherweise ist das falsche Mikrofon ausgewählt. Wählen Sie im Mikrofonmenü ein anderes aus."
+      },
+      "hint": "Sprechen Sie erneut, nachdem Sie diese Punkte überprüft haben. Die Warnung verschwindet, sobald ein Ton erkannt wird.",
+      "close": "Verstanden",
+      "discard": "Erkennung eines stummen Mikrofons deaktivieren"
+    }
+  },
   "permissionsButton": {
     "tooltip": "Mehr Infos",
     "ariaLabel": "Problem mit Berechtigungen. Mehr Infos anzeigen"

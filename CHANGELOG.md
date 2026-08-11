@@ -17,6 +17,7 @@ and this project adheres to
 - ⚗️(frontend) capture console.error in PostHog
 - 📈(frontend) snapshot media devices on the happy path
 - 🚸(frontend) guide users when the OS blocks browser media access
+- ✨(frontend) add a silent-microphone watcher on join and room screens
 
 ### Changed
 
