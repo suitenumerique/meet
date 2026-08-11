@@ -44,7 +44,13 @@ const PERMISSION_KIND: Record<'audioinput' | 'videoinput', PermissionKind> = {
   videoinput: 'camera',
 }
 
-export const onJoinPreviewError = (e: Error, kind?: PermissionKind) => {
+type MediaPath = 'join_preview' | 'room'
+
+const onMediaPermissionError = (
+  e: Error,
+  kind?: PermissionKind,
+  path: MediaPath = 'join_preview'
+) => {
   if (
     MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.PermissionDenied
   ) {
@@ -55,7 +61,7 @@ export const onJoinPreviewError = (e: Error, kind?: PermissionKind) => {
         notePermissionDeniedFromGum(kind)
       }
       captureMediaEvent('permissions-denied', {
-        path: 'join_preview',
+        path,
         kind,
         denied_scope: scope,
         os: getOS(),
@@ -71,20 +77,24 @@ export const onJoinPreviewError = (e: Error, kind?: PermissionKind) => {
       if (system) {
         noteSystemPermissionDenied(kind)
         captureMediaEvent('permissions-denied', {
-          path: 'join_preview',
+          path,
           kind,
           denied_scope: 'system',
           os: getOS(),
         })
         return
       }
-      captureMediaEvent('device-not-found', { path: 'join_preview', kind })
+      captureMediaEvent('device-not-found', { path, kind })
     })
     return
   }
 
   // "Other" and "Device in use" are still reported as errors, as they are not handled on the join screen.
-  reportError('join_preview_failure', e, { path: 'join_preview', kind })
+  reportError(
+    path === 'room' ? 'room_media_failure' : 'join_preview_failure',
+    e,
+    { path, kind }
+  )
 }
 
 // Module-level: effect dependencies, must be referentially stable.
@@ -95,7 +105,8 @@ const stopAll = (stream: MediaStream) =>
   stream.getTracks().forEach((track) => track.stop())
 
 export const requestDevicePermission = async (
-  kind: 'audioinput' | 'videoinput'
+  kind: 'audioinput' | 'videoinput',
+  path: MediaPath = 'join_preview'
 ): Promise<boolean> => {
   try {
     const track =
@@ -106,7 +117,7 @@ export const requestDevicePermission = async (
     noteGumSuccess(PERMISSION_KIND[kind])
     return true
   } catch (error) {
-    onJoinPreviewError(error as Error, PERMISSION_KIND[kind])
+    onMediaPermissionError(error as Error, PERMISSION_KIND[kind], path)
     return false
   }
 }
@@ -156,7 +167,7 @@ function useWarmupPermissions(): WarmupState {
           !isSystemPermissionError(error)
         ) {
           // Retrying after a dismissal would show a second dialog.
-          onJoinPreviewError(error as Error)
+          onMediaPermissionError(error as Error)
           bothReady()
           return
         }
@@ -171,7 +182,7 @@ function useWarmupPermissions(): WarmupState {
             stopAll(stream)
             noteGumSuccess('microphone')
           })
-          .catch((e) => onJoinPreviewError(e as Error, 'microphone'))
+          .catch((e) => onMediaPermissionError(e as Error, 'microphone'))
           .finally(() =>
             setState((current) => ({ ...current, audioReady: true }))
           )
@@ -181,7 +192,7 @@ function useWarmupPermissions(): WarmupState {
             stopAll(stream)
             noteGumSuccess('camera')
           })
-          .catch((e) => onJoinPreviewError(e as Error, 'camera'))
+          .catch((e) => onMediaPermissionError(e as Error, 'camera'))
           .finally(() =>
             setState((current) => ({ ...current, videoReady: true }))
           )
@@ -224,7 +235,7 @@ function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
         setTrack(newTrack)
       })
       .catch((error) => {
-        onJoinPreviewError(error as Error, permissionKind)
+        onMediaPermissionError(error as Error, permissionKind)
         onFailure()
       })
     return () => {

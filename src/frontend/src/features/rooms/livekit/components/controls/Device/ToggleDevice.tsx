@@ -121,7 +121,10 @@ export const ToggleDevice = <T extends ToggleSource>({
     if (isRequestingPermission.current) return
     isRequestingPermission.current = true
     try {
-      const granted = await requestDevicePermission(kind)
+      const granted = await requestDevicePermission(
+        kind,
+        context === 'join' ? 'join_preview' : 'room'
+      )
       if (granted) {
         toggle()
       } else {
