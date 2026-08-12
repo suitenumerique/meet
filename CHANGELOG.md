@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 📈(frontend) downgrade unreachable external home URL from error to event
+
 ## [1.26.0] - 2026-08-12
 
 ### Added
