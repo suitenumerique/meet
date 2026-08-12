@@ -15,7 +15,7 @@ import { css } from '@/styled-system/css'
 import { useConfig } from '@/api/useConfig'
 import { LoginButton } from '@/components/LoginButton'
 import { LoadingScreen } from '@/components/LoadingScreen'
-import { reportError } from '@/features/analytics/telemetry'
+import { captureEvent } from '@/features/analytics/telemetry'
 
 const Columns = ({ children }: { children?: ReactNode }) => {
   return (
@@ -161,8 +161,10 @@ const Home = () => {
           window.location.replace(data.external_home_url)
         } catch (error) {
           setRedirectFailed(true)
-          reportError('generic_failure', error, {
-            context: 'Site is not reachable:',
+          captureEvent('external-home-unreachable', {
+            error_name: error instanceof Error ? error.name : 'Unknown',
+            error_message:
+              error instanceof Error ? error.message : String(error),
           })
         }
       }
