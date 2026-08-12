@@ -6,6 +6,8 @@ import { queryClient } from '@/api/queryClient'
 import { updateUserPreferences } from './updateUserPreferences'
 import { convertToBackendLanguage } from '@/utils/languages'
 import { useUser } from './useUser'
+import { ApiError } from '@/api/ApiError.ts'
+import { reportError } from '@/features/analytics/telemetry'
 
 /**
  * Hook that synchronizes user browser preferences (language, timezone) with backend user settings.
@@ -42,6 +44,11 @@ export const useSyncUserPreferencesWithBackend = () => {
       }
     }
 
-    syncBrowserPreferencesToBackend()
+    syncBrowserPreferencesToBackend().catch((error) => {
+      if (error instanceof ApiError && error.statusCode === 401) return
+      reportError('generic_failure', error, {
+        context: '[useSyncUserPreferencesWithBackend] Failed to sync:',
+      })
+    })
   }, [i18n.language, isLoggedIn, user, mutateAsync])
 }
