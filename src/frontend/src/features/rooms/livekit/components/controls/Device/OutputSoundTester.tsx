@@ -126,7 +126,7 @@ export const OutputSoundTester = ({
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <audio
         ref={audioRef}
-        src="sounds/uprise.mp3"
+        src="/sounds/uprise.mp3"
         onEnded={() => setIsPlaying(false)}
       />
     </StyledContainer>

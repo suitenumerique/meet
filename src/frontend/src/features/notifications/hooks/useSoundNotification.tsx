@@ -6,7 +6,7 @@ import type { NotificationType } from '@/features/notifications/NotificationType
 // fixme - handle dynamic audio output changes
 export const useNotificationSound = () => {
   const notificationsSnap = useSnapshot(notificationsStore)
-  const [play] = useSound('./sounds/notifications.mp3', {
+  const [play] = useSound('/sounds/notifications.mp3', {
     sprite: {
       participantJoined: [0, 1150],
       handRaised: [1400, 180],
