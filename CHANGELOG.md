@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- ✨(frontend) recover from stale lazy-loaded chunks after a deploy
+
 ## [1.26.0] - 2026-08-12
 
 ### Added
