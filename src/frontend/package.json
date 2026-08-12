@@ -1,7 +1,7 @@
 {
   "name": "meet",
   "private": true,
-  "version": "1.25.2",
+  "version": "1.26.0",
   "type": "module",
   "scripts": {
     "dev": "panda codegen && vite",

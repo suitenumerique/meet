@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.26.0] - 2026-08-12
+
 ### Added
 
 - 📈(frontend) capture media diagnostics on media errors
