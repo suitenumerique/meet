@@ -11,6 +11,7 @@ and this project adheres to
 ### Fixed
 
 - 📈(frontend) downgrade unreachable external home URL from error to event
+- 🐛(frontend) handle 401 responses when syncing user preferences
 
 ## [1.26.0] - 2026-08-12
 
