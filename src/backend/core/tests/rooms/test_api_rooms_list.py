@@ -62,6 +62,22 @@ def test_api_rooms_list_authenticated():
     assert expected_ids == results_id
 
 
+def test_api_rooms_list_reads_no_livekit_roster(mock_list_participant_names):
+    """Listing rooms costs no LiveKit call: nobody is joining from this page."""
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED, users=[user])
+    RoomFactory(access_level=RoomAccessLevel.RESTRICTED, users=[user])
+
+    response = client.get("/api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    assert len(response.json()["results"]) == 2
+    mock_list_participant_names.assert_not_called()
+
+
 @mock.patch.object(PageNumberPagination, "get_page_size", return_value=2)
 def test_api_rooms_list_pagination(_mock_page_size):
     """Pagination should work as expected."""

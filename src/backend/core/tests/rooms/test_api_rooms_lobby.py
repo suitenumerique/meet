@@ -207,10 +207,10 @@ def test_request_entry_public_room(settings):
     with (
         mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(
-            LobbyService, "_get_or_create_participant_id", return_value="123"
+            LobbyService, "get_or_create_participant_id", return_value="123"
         ),
         mock.patch.object(
-            utils, "generate_livekit_config", return_value={"token": "test-token"}
+            utils, "generate_join_config", return_value={"token": "test-token"}
         ),
         mock.patch.object(utils, "generate_color", return_value="mocked-color"),
     ):
@@ -258,11 +258,11 @@ def test_request_entry_authenticated_user_public_room(settings):
         mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(
             LobbyService,
-            "_get_or_create_participant_id",
+            "get_or_create_participant_id",
             return_value="2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         ),
         mock.patch.object(
-            utils, "generate_livekit_config", return_value={"token": "test-token"}
+            utils, "generate_join_config", return_value={"token": "test-token"}
         ),
         mock.patch.object(utils, "generate_color", return_value="mocked-color"),
     ):
@@ -317,7 +317,7 @@ def test_request_entry_waiting_participant_public_room(settings):
     with (
         mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(
-            utils, "generate_livekit_config", return_value={"token": "test-token"}
+            utils, "generate_join_config", return_value={"token": "test-token"}
         ),
     ):
         response = client.post(
@@ -634,11 +634,9 @@ def test_list_waiting_participants_empty(settings):
 
 
 @mock.patch.object(utils, "notify_participants", return_value=None)
-@mock.patch.object(
-    utils, "generate_livekit_config", return_value={"token": "test-token"}
-)
+@mock.patch.object(utils, "generate_join_config", return_value={"token": "test-token"})
 def test_request_entry_throttling_anonymous_without_cookie(
-    mock_notify_participants, mock_generate_livekit_config, settings
+    mock_notify_participants, mock_generate_join_config, settings
 ):
     """Anonymous users without a cookie should not be throttled."""
 
@@ -667,11 +665,9 @@ def test_request_entry_throttling_anonymous_without_cookie(
 
 
 @mock.patch.object(utils, "notify_participants", return_value=None)
-@mock.patch.object(
-    utils, "generate_livekit_config", return_value={"token": "test-token"}
-)
+@mock.patch.object(utils, "generate_join_config", return_value={"token": "test-token"})
 def test_request_entry_throttling_anonymous_with_cookie(
-    mock_notify_participants, mock_generate_livekit_config, settings
+    mock_notify_participants, mock_generate_join_config, settings
 ):
     """Anonymous users with a cookie should be throttled after exceeding the rate limit."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -704,11 +700,9 @@ def test_request_entry_throttling_anonymous_with_cookie(
 
 
 @mock.patch.object(utils, "notify_participants", return_value=None)
-@mock.patch.object(
-    utils, "generate_livekit_config", return_value={"token": "test-token"}
-)
+@mock.patch.object(utils, "generate_join_config", return_value={"token": "test-token"})
 def test_request_entry_throttling_authenticated_user(
-    mock_notify_participants, mock_generate_livekit_config, settings
+    mock_notify_participants, mock_generate_join_config, settings
 ):
     """Authenticated users should be throttled."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)

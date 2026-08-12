@@ -5,9 +5,11 @@ Test rooms API endpoints in the Meet core app: retrieve.
 import random
 from unittest import mock
 
+from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
 from django.test.utils import override_settings
 
+import jwt
 import pytest
 from rest_framework.test import APIClient
 
@@ -136,7 +138,13 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
     }
 
     mock_token.assert_called_once_with(
-        room="unregistered-room", user=AnonymousUser(), username=None
+        room="unregistered-room",
+        user=AnonymousUser(),
+        display_name="Anonymous",
+        color=None,
+        sources=None,
+        role=None,
+        participant_id=mock.ANY,
     )
 
 
@@ -171,7 +179,13 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
     }
 
     mock_token.assert_called_once_with(
-        room="reunion", user=AnonymousUser(), username=None
+        room="reunion",
+        user=AnonymousUser(),
+        display_name="Anonymous",
+        color=None,
+        sources=None,
+        role=None,
+        participant_id=mock.ANY,
     )
 
 
@@ -268,11 +282,11 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     mock_token.assert_called_once_with(
         room=expected_name,
         user=user,
-        username=None,
+        display_name=user.full_name,
         color=None,
         sources=["camera"],
         role=None,
-        participant_id=None,
+        participant_id=str(user.sub),
     )
 
 
@@ -319,11 +333,11 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
     mock_token.assert_called_once_with(
         room=expected_name,
         user=user,
-        username=None,
+        display_name=user.full_name,
         color=None,
         sources=None,
         role=None,
-        participant_id=None,
+        participant_id=str(user.sub),
     )
 
 
@@ -405,11 +419,11 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
     mock_token.assert_called_once_with(
         room=expected_name,
         user=user,
-        username=None,
+        display_name=user.full_name,
         color=None,
         sources=["camera"],
         role=str(RoleChoices.MEMBER),
-        participant_id=None,
+        participant_id=str(user.sub),
     )
 
 
@@ -501,9 +515,52 @@ def test_api_rooms_retrieve_administrators(
     mock_token.assert_called_once_with(
         room=expected_name,
         user=user,
-        username=None,
+        display_name=user.full_name,
         color=None,
         sources=None,
         role=str(user_access.role),
-        participant_id=None,
+        participant_id=str(user.sub),
     )
+
+
+def test_api_rooms_retrieve_numbers_a_name_held_in_the_room(
+    mock_list_participant_names,
+):
+    """Fetching one room issues a token numbered against who is already there."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    mock_list_participant_names.return_value = {"someone-else": "Jane Doe"}
+
+    response = APIClient().get(f"/api/v1.0/rooms/{room.id!s}/?username=Jane%20Doe")
+
+    assert response.status_code == 200
+    token = response.json()["livekit"]["token"]
+    claims = jwt.decode(
+        token, django_settings.LIVEKIT_CONFIGURATION["api_secret"], algorithms=["HS256"]
+    )
+    assert claims["name"] == "Jane Doe (2)"
+
+
+def test_api_rooms_retrieve_keeps_one_identity_across_fetches(
+    mock_list_participant_names,
+):
+    """A guest reloading is the same participant, not a second one."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+
+    first = client.get(f"/api/v1.0/rooms/{room.id!s}/?username=Jane%20Doe")
+    identity = jwt.decode(
+        first.json()["livekit"]["token"],
+        django_settings.LIVEKIT_CONFIGURATION["api_secret"],
+        algorithms=["HS256"],
+    )["sub"]
+
+    mock_list_participant_names.return_value = {identity: "Jane Doe"}
+    second = client.get(f"/api/v1.0/rooms/{room.id!s}/?username=Jane%20Doe")
+    claims = jwt.decode(
+        second.json()["livekit"]["token"],
+        django_settings.LIVEKIT_CONFIGURATION["api_secret"],
+        algorithms=["HS256"],
+    )
+
+    assert claims["sub"] == identity
+    assert claims["name"] == "Jane Doe"

@@ -140,7 +140,7 @@ def test_get_or_create_participant_id_from_cookie(lobby_service):
     request = mock.Mock()
     request.COOKIES = {settings.LOBBY_COOKIE_NAME: "existing-id"}
 
-    participant_id = lobby_service._get_or_create_participant_id(request)
+    participant_id = lobby_service.get_or_create_participant_id(request)
 
     assert participant_id == "existing-id"
 
@@ -151,7 +151,7 @@ def test_get_or_create_participant_id_new(mock_uuid4, lobby_service):
     request = mock.Mock()
     request.COOKIES = {}
 
-    participant_id = lobby_service._get_or_create_participant_id(request)
+    participant_id = lobby_service.get_or_create_participant_id(request)
 
     assert participant_id == "generated-id"
     mock_uuid4.assert_called_once()
@@ -249,7 +249,7 @@ def test_can_bypass_lobby_private_room_with_any_role(role, lobby_service):
     assert lobby_service.can_bypass_lobby(room, user, role=role) is True
 
 
-@mock.patch("core.utils.generate_livekit_config")
+@mock.patch("core.utils.generate_join_config")
 def test_request_entry_public_room(
     mock_generate_config, lobby_service, participant_id, username
 ):
@@ -266,7 +266,7 @@ def test_request_entry_public_room(
         color="#123456",
     )
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
     mock_generate_config.return_value = {"token": "test-token"}
 
@@ -287,7 +287,7 @@ def test_request_entry_public_room(
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.utils.generate_livekit_config")
+@mock.patch("core.utils.generate_join_config")
 def test_request_entry_trusted_room(
     mock_generate_config, lobby_service, participant_id, username
 ):
@@ -304,7 +304,7 @@ def test_request_entry_trusted_room(
         color="#123456",
     )
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
     mock_generate_config.return_value = {"token": "test-token"}
 
@@ -336,7 +336,7 @@ def test_request_entry_new_participant(
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=None)
 
     participant_data = LobbyParticipant(
@@ -372,7 +372,7 @@ def test_request_entry_waiting_participant(
         id=participant_id,
         color="#123456",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
     participant, livekit_config = lobby_service.request_entry(room, request, username)
@@ -383,7 +383,7 @@ def test_request_entry_waiting_participant(
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.utils.generate_livekit_config")
+@mock.patch("core.utils.generate_join_config")
 def test_request_entry_accepted_participant(
     mock_generate_config, lobby_service, participant_id, username
 ):
@@ -400,7 +400,7 @@ def test_request_entry_accepted_participant(
         id=participant_id,
         color="#123456",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
     mock_generate_config.return_value = {"token": "test-token"}
@@ -421,7 +421,7 @@ def test_request_entry_accepted_participant(
     lobby_service._get_participant.assert_called_once_with(room.id, participant_id)
 
 
-@mock.patch("core.utils.generate_livekit_config")
+@mock.patch("core.utils.generate_join_config")
 def test_request_entry_participant_with_role(
     mock_generate_config, lobby_service, participant_id, username
 ):
@@ -440,7 +440,7 @@ def test_request_entry_participant_with_role(
         id=participant_id,
         color="#123456",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
     mock_generate_config.return_value = {"token": "test-token"}

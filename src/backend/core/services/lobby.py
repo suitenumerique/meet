@@ -87,7 +87,7 @@ class LobbyService:
         return f"{settings.LOBBY_KEY_PREFIX}_{room_id!s}_{participant_id}"
 
     @staticmethod
-    def _get_or_create_participant_id(request) -> str:
+    def get_or_create_participant_id(request) -> str:
         """Extract unique participant identifier from the request."""
         return request.COOKIES.get(settings.LOBBY_COOKIE_NAME, str(uuid.uuid4()))
 
@@ -149,7 +149,7 @@ class LobbyService:
         5. If denied, do nothing.
         """
 
-        participant_id = self._get_or_create_participant_id(request)
+        participant_id = self.get_or_create_participant_id(request)
         participant = self._get_participant(room.id, participant_id)
 
         room_id = str(room.id)
@@ -166,7 +166,7 @@ class LobbyService:
             else:
                 participant.status = LobbyParticipantStatus.ACCEPTED
 
-            livekit_config = utils.generate_livekit_config(
+            livekit_config = utils.generate_join_config(
                 room_id=room_id,
                 user=request.user,
                 username=username,
@@ -187,7 +187,7 @@ class LobbyService:
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
             # wrongly named, contains access token to join a room
-            livekit_config = utils.generate_livekit_config(
+            livekit_config = utils.generate_join_config(
                 room_id=room_id,
                 user=request.user,
                 username=username,

@@ -111,8 +111,7 @@ class ParticipantsManagement:
         finally:
             await lkapi.aclose()
 
-    @async_to_sync
-    async def update(  # noqa: PLR0917
+    def update(  # noqa: PLR0917
         self,
         room_name: str,
         identity: str,
@@ -120,36 +119,53 @@ class ParticipantsManagement:
         attributes: Optional[Dict] = None,
         permission: Optional[Dict] = None,
         name: Optional[str] = None,
-    ):
-        """Update participant properties such as metadata, attributes, permissions, or name."""
+    ) -> Optional[str]:
+        """Update participant properties such as metadata, attributes, permissions, or name.
+
+        A name already held by someone else in the room is numbered first, so
+        renaming cannot recreate the collision joining is protected against.
+        Returns the name the participant now carries, which is not always the
+        one asked for.
+        """
+
+        if name:
+            name = utils.unique_display_name_in_room(room_name, identity, name)
+
+        self._send(
+            UpdateParticipantRequest(
+                room=room_name,
+                identity=identity,
+                metadata=json.dumps(metadata),
+                permission=permission,
+                attributes=attributes,
+                name=name,
+            )
+        )
+
+        return name
+
+    @async_to_sync
+    async def _send(self, request: UpdateParticipantRequest):
+        """Send a participant update to LiveKit."""
 
         lkapi = utils.create_livekit_client()
 
         try:
-            await lkapi.room.update_participant(
-                UpdateParticipantRequest(
-                    room=room_name,
-                    identity=identity,
-                    metadata=json.dumps(metadata),
-                    permission=permission,
-                    attributes=attributes,
-                    name=name,
-                )
-            )
+            await lkapi.room.update_participant(request)
 
         except TwirpError as e:
             if e.code == "not_found":
                 logger.warning(
                     "Participant %s not found in room %s, skipping update",
-                    identity,
-                    room_name,
+                    request.identity,
+                    request.room,
                 )
                 raise ParticipantNotFoundException("Participant does not exist") from e
 
             logger.exception(
                 "Unexpected error updating participant %s for room %s",
-                identity,
-                room_name,
+                request.identity,
+                request.room,
             )
             raise ParticipantsManagementException("Could not update participant") from e
 

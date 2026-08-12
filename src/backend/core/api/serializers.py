@@ -197,13 +197,24 @@ class RoomSerializer(serializers.ModelSerializer):
         if should_access_room:
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
-            output["livekit"] = utils.generate_livekit_config(
-                room_id=room_id,
-                user=request.user,
-                username=username,
-                configuration=output["configuration"],
-                role=role,
-            )
+
+            if self.context.get("joining"):
+                output["livekit"] = utils.generate_join_config(
+                    room_id=room_id,
+                    user=request.user,
+                    username=username,
+                    configuration=output["configuration"],
+                    role=role,
+                    participant_id=self.context.get("participant_id"),
+                )
+            else:
+                output["livekit"] = utils.generate_livekit_config(
+                    room_id=room_id,
+                    user=request.user,
+                    display_name=utils.resolve_display_name(request.user, username),
+                    configuration=output["configuration"],
+                    role=role,
+                )
         else:
             del output["pin_code"]
 

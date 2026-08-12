@@ -12,13 +12,20 @@ from django.contrib.auth.models import AnonymousUser
 import jwt
 import pytest
 from livekit.api import TwirpError
+from livekit.protocol.models import ParticipantInfo
 
 from core.factories import UserFactory
 from core.utils import (
+    MAX_DISPLAY_NAME_BYTES,
+    MAX_DISPLAY_NAME_CHARACTERS,
     NotificationError,
     create_livekit_client,
+    generate_join_config,
     generate_token,
+    list_participant_names,
     notify_participants,
+    resolve_display_name,
+    unique_display_name,
 )
 
 pytestmark = pytest.mark.django_db
@@ -33,78 +40,74 @@ def decode_token(token: str) -> dict:
     )
 
 
-def test_generate_token_authenticated_uses_full_name():
-    """The token's display name should default to the user's full name."""
+def test_generate_token_signs_the_name_it_is_given():
+    """The token carries the display name resolved by its caller."""
     user = UserFactory(full_name="Jane Doe")
 
-    token = generate_token(room="my-room", user=user)
+    token = generate_token(room="my-room", user=user, display_name="Jane Doe")
 
     claims = decode_token(token)
     assert claims["name"] == "Jane Doe"
     assert claims["sub"] == str(user.sub)
 
 
-def test_generate_token_authenticated_fallback_user_representation():
+def test_resolve_display_name_authenticated_uses_full_name():
+    """An authenticated user with no requested name is shown their full name."""
+    user = UserFactory(full_name="Jane Doe")
+
+    assert resolve_display_name(user, None) == "Jane Doe"
+
+
+def test_resolve_display_name_authenticated_fallback_user_representation():
     """
-    When the user has no full name, the token's display name should fall back
-    to the user's string representation.
+    When the user has no full name, the display name falls back to the user's
+    string representation.
     """
     user = UserFactory(full_name=None)
 
-    token = generate_token(room="my-room", user=user)
-
-    claims = decode_token(token)
-    assert claims["name"] == str(user)
+    assert resolve_display_name(user, None) == str(user)
 
 
-def test_generate_token_explicit_username_overrides_default():
-    """An explicitly provided username should take precedence over the full name."""
+def test_resolve_display_name_explicit_username_overrides_default():
+    """An explicitly provided username takes precedence over the full name."""
     user = UserFactory(full_name="Jane Doe")
 
-    token = generate_token(room="my-room", user=user, username="Custom Name")
-
-    claims = decode_token(token)
-    assert claims["name"] == "Custom Name"
+    assert resolve_display_name(user, "Custom Name") == "Custom Name"
 
 
-def test_authenticated_username_ignored_when_editing_disabled(settings):
+def test_resolve_display_name_authenticated_username_ignored_when_editing_disabled(
+    settings,
+):
     """With editing disabled, an authenticated user's username is ignored."""
     settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
     user = UserFactory(full_name="Jane Doe")
-    token = generate_token(room="my-room", user=user, username="Custom Name")
-    claims = decode_token(token)
-    assert claims["name"] == "Jane Doe"
+
+    assert resolve_display_name(user, "Custom Name") == "Jane Doe"
 
 
-def test_authenticated_default_name_unaffected_when_editing_disabled(settings):
+def test_resolve_display_name_default_unaffected_when_editing_disabled(settings):
     """Disabling editing doesn't disturb the default full-name path."""
     settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
     user = UserFactory(full_name="Jane Doe")
-    token = generate_token(room="my-room", user=user)
-    claims = decode_token(token)
-    assert claims["name"] == "Jane Doe"
+
+    assert resolve_display_name(user, None) == "Jane Doe"
 
 
-def test_anonymous_uses_username_when_provided():
+def test_resolve_display_name_anonymous_uses_username_when_provided():
     """An anonymous user's provided username is used as the display name."""
-    token = generate_token(room="my-room", user=AnonymousUser(), username="Guest42")
-    claims = decode_token(token)
-    assert claims["name"] == "Guest42"
+    assert resolve_display_name(AnonymousUser(), "Guest42") == "Guest42"
 
 
-def test_anonymous_username_used_even_when_editing_disabled(settings):
+def test_resolve_display_name_anonymous_username_kept_when_editing_disabled(settings):
     """The setting governs authenticated users only; anonymous can still set a name."""
     settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
-    token = generate_token(room="my-room", user=AnonymousUser(), username="Guest42")
-    claims = decode_token(token)
-    assert claims["name"] == "Guest42"
+
+    assert resolve_display_name(AnonymousUser(), "Guest42") == "Guest42"
 
 
-def test_anonymous_falls_back_to_anonymous_label():
+def test_resolve_display_name_anonymous_falls_back_to_anonymous_label():
     """With no username, an anonymous user is labelled 'Anonymous'."""
-    token = generate_token(room="my-room", user=AnonymousUser())
-    claims = decode_token(token)
-    assert claims["name"] == "Anonymous"
+    assert resolve_display_name(AnonymousUser(), None) == "Anonymous"
 
 
 @mock.patch("asyncio.get_running_loop")
@@ -262,3 +265,122 @@ def test_notify_participants_success(mock_create_livekit_client):
 
     # Verify aclose was called
     mock_api_instance.aclose.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "taken,expected",
+    [
+        ([], "Jane Doe"),
+        (["John Doe"], "Jane Doe"),
+        (["Jane Doe"], "Jane Doe (2)"),
+        (["Jane Doe", "Jane Doe (2)"], "Jane Doe (3)"),
+        (["Jane Doe", "Jane Doe (3)"], "Jane Doe (2)"),
+    ],
+)
+def test_unique_display_name(taken, expected):
+    """A taken name is numbered from two, taking the lowest free number."""
+    assert unique_display_name("Jane Doe", set(taken)) == expected
+
+
+@pytest.mark.parametrize(
+    "name,taken,expected",
+    [
+        (
+            "X" * (MAX_DISPLAY_NAME_BYTES + 50),
+            set(),
+            "X" * MAX_DISPLAY_NAME_CHARACTERS,
+        ),
+        (
+            "X" * MAX_DISPLAY_NAME_CHARACTERS,
+            {"X" * MAX_DISPLAY_NAME_CHARACTERS},
+            "X" * (MAX_DISPLAY_NAME_CHARACTERS - 4) + " (2)",
+        ),
+        ("A", {"A"}, "A (2)"),
+        # 85 CJK characters are 255 bytes, so the number does not fit beside them
+        ("\u540d" * 85, {"\u540d" * 85}, "\u540d" * 84 + " (2)"),
+    ],
+)
+def test_unique_display_name_stays_within_livekits_limit(name, taken, expected):
+    """A name too long for LiveKit loses its tail, never its number."""
+    numbered = unique_display_name(name, taken)
+
+    assert numbered == expected
+    assert len(numbered.encode("utf-8")) <= MAX_DISPLAY_NAME_BYTES
+    assert len(numbered) <= MAX_DISPLAY_NAME_CHARACTERS
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_list_participant_names_maps_identity_to_name(mock_create_livekit_client):
+    """Participants are returned as a name per identity, the disconnected left out."""
+
+    class MockResponse:
+        """LiveKit ListParticipants response mock."""
+
+        participants = [
+            ParticipantInfo(identity="id-1", name="Jane Doe"),
+            ParticipantInfo(identity="id-2", name="John Doe"),
+            ParticipantInfo(
+                identity="id-3", name="Gone", state=ParticipantInfo.State.DISCONNECTED
+            ),
+        ]
+
+    mock_api_instance = mock.Mock()
+    mock_api_instance.room = mock.Mock()
+    mock_api_instance.room.list_participants = mock.AsyncMock(
+        return_value=MockResponse()
+    )
+    mock_api_instance.aclose = mock.AsyncMock()
+    mock_create_livekit_client.return_value = mock_api_instance
+
+    assert list_participant_names("my-room") == {"id-1": "Jane Doe", "id-2": "John Doe"}
+    mock_api_instance.aclose.assert_called_once()
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_list_participant_names_empty_when_livekit_fails(mock_create_livekit_client):
+    """A room LiveKit cannot answer for reads as an empty room."""
+
+    mock_api_instance = mock.Mock()
+    mock_api_instance.room = mock.Mock()
+    mock_api_instance.room.list_participants = mock.AsyncMock(
+        side_effect=TwirpError(msg="room not found", code=404, status=404)
+    )
+    mock_api_instance.aclose = mock.AsyncMock()
+    mock_create_livekit_client.return_value = mock_api_instance
+
+    assert list_participant_names("my-room") == {}
+    mock_api_instance.aclose.assert_called_once()
+
+
+def test_generate_join_config_marks_a_taken_name(mock_list_participant_names):
+    """Joining under a name already in the room adds a number."""
+    mock_list_participant_names.return_value = {"someone-else": "Jane Doe"}
+
+    config = generate_join_config(
+        room_id="my-room", user=AnonymousUser(), username="Jane Doe"
+    )
+
+    assert decode_token(config["token"])["name"] == "Jane Doe (2)"
+
+
+def test_generate_join_config_ignores_own_identity(mock_list_participant_names):
+    """A participant rejoining keeps their name, their own entry aside."""
+    user = UserFactory(full_name="Jane Doe")
+    mock_list_participant_names.return_value = {str(user.sub): "Jane Doe"}
+
+    config = generate_join_config(room_id="my-room", user=user)
+
+    assert decode_token(config["token"])["name"] == "Jane Doe"
+
+
+def test_generate_join_config_marks_a_forced_name(
+    mock_list_participant_names, settings
+):
+    """Two people sharing one SSO name are still told apart."""
+    settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
+    mock_list_participant_names.return_value = {"someone-else": "Jane Doe"}
+    user = UserFactory(full_name="Jane Doe")
+
+    config = generate_join_config(room_id="my-room", user=user, username="Another Name")
+
+    assert decode_token(config["token"])["name"] == "Jane Doe (2)"

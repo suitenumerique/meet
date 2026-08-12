@@ -14,7 +14,7 @@ import secrets
 import string
 from datetime import timedelta
 from functools import lru_cache
-from typing import List, Optional
+from typing import AbstractSet, Dict, List, Optional
 from uuid import uuid4
 
 from django.conf import settings
@@ -28,14 +28,24 @@ import phonenumbers
 from asgiref.sync import async_to_sync
 from livekit.api import (  # pylint: disable=E0611
     AccessToken,
+    ListParticipantsRequest,
     ListRoomsRequest,
     LiveKitAPI,
     SendDataRequest,
     TwirpError,
     VideoGrants,
 )
+from livekit.protocol.models import ParticipantInfo  # pylint: disable=E0611
 
 logger = logging.getLogger(__name__)
+
+# LiveKit rejects an update carrying a longer participant name, counted in
+# bytes: livekit-server checks len() over the UTF-8 string. Measured against
+# it, 256 bytes are accepted and 257 are refused, so 85 CJK characters pass
+# and 86 do not. The rename endpoints validate characters instead, so a name
+# assigned here stays within both and a participant can always send it back.
+MAX_DISPLAY_NAME_BYTES = 256
+MAX_DISPLAY_NAME_CHARACTERS = 255
 
 
 def generate_color(identity: str) -> str:
@@ -60,10 +70,150 @@ def generate_color(identity: str) -> str:
     return f"hsl({hue}, {saturation}%, {lightness}%)"
 
 
+def participant_identity(user, participant_id: Optional[str]) -> str:
+    """Return the LiveKit identity of a user, stable across their reconnections.
+
+    An authenticated user is their `sub`; anyone else is the identifier they
+    carry between requests, or a fresh one when they carry none.
+    """
+
+    if user.is_anonymous:
+        return participant_id or str(uuid4())
+
+    return str(user.sub)
+
+
+def fit_display_name(
+    display_name: str,
+    byte_limit: int = MAX_DISPLAY_NAME_BYTES,
+    character_limit: int = MAX_DISPLAY_NAME_CHARACTERS,
+) -> str:
+    """Return a name within `limit` bytes and `MAX_DISPLAY_NAME_CHARACTERS`.
+
+    LiveKit counts bytes, so a name of few characters can still be too long,
+    and the rename endpoints count characters, so a long name has to clear
+    both to be one a participant can send back.
+    """
+
+    if byte_limit <= 0 or character_limit <= 0:
+        return ""
+
+    display_name = display_name[:character_limit]
+    encoded = display_name.encode("utf-8")
+
+    if len(encoded) <= byte_limit:
+        return display_name
+
+    return encoded[:byte_limit].decode("utf-8", "ignore")
+
+
+def resolve_display_name(user, username: Optional[str]) -> str:
+    """Return the name a user is displayed under, before any deduplication.
+
+    The requested name, or the user's own representation when they requested
+    none or when the deployment does not let them choose one, bounded to what
+    LiveKit accepts.
+    """
+
+    default_username = "Anonymous" if user.is_anonymous else user.full_name or str(user)
+
+    can_edit = (
+        settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME or user.is_anonymous
+    )
+
+    display_name = (username or default_username) if can_edit else default_username
+
+    return fit_display_name(display_name)
+
+
+@async_to_sync
+async def list_participant_names(room_name: str) -> Dict[str, str]:
+    """Return the display name of every participant present in a room.
+
+    Disconnected participants are left out: LiveKit reports them for a while
+    after they leave, and their names are free to take. An unreachable LiveKit,
+    or a room with no session, reads as an empty room, so a participant keeps
+    the name they asked for rather than failing to join.
+
+    Args:
+        room_name (str): The name of the room.
+
+    Returns:
+        Dict[str, str]: Display name per participant identity.
+    """
+
+    lkapi = create_livekit_client()
+
+    try:
+        response = await lkapi.room.list_participants(
+            ListParticipantsRequest(room=room_name)
+        )
+    except TwirpError as e:
+        # A room with no session is the normal case for the first participant
+        if e.code == "not_found":
+            logger.debug("Room %s has no session yet", room_name)
+        else:
+            logger.warning("Failed to list participants of room %s: %s", room_name, e)
+        return {}
+    except (aiohttp.ClientError, TimeoutError) as e:
+        logger.warning("Failed to reach LiveKit for room %s: %s", room_name, e)
+        return {}
+    finally:
+        await lkapi.aclose()
+
+    return {
+        participant.identity: participant.name
+        for participant in response.participants
+        if participant.state != ParticipantInfo.State.DISCONNECTED
+    }
+
+
+def unique_display_name(display_name: str, taken: AbstractSet[str]) -> str:
+    """Return a display name held by nobody else.
+
+    Counts the way a reader does: a second "Camille Martin" reads
+    "Camille Martin (2)" and a third "Camille Martin (3)", so the first one
+    keeps the name they typed. A name long enough to leave no room for the
+    number loses its last characters instead, since LiveKit refuses to set a
+    name past `MAX_DISPLAY_NAME_BYTES`.
+    """
+
+    candidate, number = fit_display_name(display_name), 1
+
+    while candidate in taken:
+        number += 1
+        suffix = f" ({number})"
+        candidate = (
+            fit_display_name(
+                display_name,
+                MAX_DISPLAY_NAME_BYTES - len(suffix),
+                MAX_DISPLAY_NAME_CHARACTERS - len(suffix),
+            )
+            + suffix
+        )
+
+    return candidate
+
+
+def unique_display_name_in_room(
+    room_name: str, identity: str, display_name: str
+) -> str:
+    """Return a display name held by nobody else in a LiveKit room.
+
+    The participant's own entry never counts against them, so reconnecting or
+    renaming to the same name gives back the same name.
+    """
+
+    names = list_participant_names(room_name)
+    names.pop(identity, None)
+
+    return unique_display_name(display_name, set(names.values()))
+
+
 def generate_token(  # noqa: PLR0917
     room: str,
     user,
-    username: Optional[str] = None,
+    display_name: Optional[str] = None,
     color: Optional[str] = None,
     sources: Optional[List[str]] = None,
     role: Optional[str] = None,
@@ -75,8 +225,9 @@ def generate_token(  # noqa: PLR0917
     Args:
         room (str): The name of the room.
         user (User): The user which request the access token.
-        username (Optional[str]): The username to be displayed in the room.
-                         If none, a default value will be used.
+        display_name (Optional[str]): The name to display in the room, resolved by
+                         `resolve_display_name` and deduplicated against the room.
+                         If none, the user's own representation is used.
         color (Optional[str]): The color to be displayed in the room.
                          If none, a value will be generated
         sources: (Optional[List[str]]): List of media sources the user can publish
@@ -107,20 +258,13 @@ def generate_token(  # noqa: PLR0917
         can_subscribe=True,
     )
 
-    if user.is_anonymous:
-        identity = participant_id or str(uuid4())
-        default_username = "Anonymous"
-    else:
-        identity = str(user.sub)
-        default_username = user.full_name or str(user)
+    identity = participant_identity(user, participant_id)
 
     if color is None:
         color = generate_color(identity)
 
-    can_edit = (
-        settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME or user.is_anonymous
-    )
-    display_name = (username or default_username) if can_edit else default_username
+    if display_name is None:
+        display_name = resolve_display_name(user, None)
 
     token = (
         AccessToken(
@@ -147,7 +291,7 @@ def generate_token(  # noqa: PLR0917
 def generate_livekit_config(  # noqa: PLR0917
     room_id: str,
     user,
-    username: str,
+    display_name: str,
     role: Optional[str] = None,
     color: Optional[str] = None,
     configuration: Optional[dict] = None,
@@ -158,7 +302,7 @@ def generate_livekit_config(  # noqa: PLR0917
     Args:
         room_id: Room identifier
         user: User instance requesting access
-        username: Display name in room
+        display_name: Name to display in room, resolved by `resolve_display_name`
         role (str): Room's access role if any
         color (Optional[str]): Optional color to associate with the participant.
         configuration (Optional[dict]): Room configuration dict that can override default settings.
@@ -179,13 +323,59 @@ def generate_livekit_config(  # noqa: PLR0917
         "token": generate_token(
             room=room_id,
             user=user,
-            username=username,
+            display_name=display_name,
             color=color,
             sources=sources,
             role=role,
             participant_id=participant_id,
         ),
     }
+
+
+def generate_join_config(  # noqa: PLR0917
+    room_id: str,
+    user,
+    username: Optional[str] = None,
+    role: Optional[str] = None,
+    color: Optional[str] = None,
+    configuration: Optional[dict] = None,
+    participant_id: Optional[str] = None,
+) -> dict:
+    """Generate LiveKit configuration for a participant about to join.
+
+    Same as `generate_livekit_config`, and the requested name is resolved and
+    numbered against the room first, so no two participants of one room carry
+    the same display name. Costs one LiveKit round trip, so it is for the paths
+    that hand a token to someone joining, not for serializing a room.
+
+    Args:
+        room_id: Room identifier
+        user: User instance requesting access
+        username (Optional[str]): The name requested by the participant, if any
+        role (str): Room's access role if any
+        color (Optional[str]): Optional color to associate with the participant.
+        configuration (Optional[dict]): Room configuration dict that can override default settings.
+        participant_id (Optional[str]): Stable identifier for anonymous users;
+                         used as identity when user.is_anonymous.
+
+    Returns:
+        dict: LiveKit configuration with URL, room and access token
+    """
+
+    identity = participant_identity(user, participant_id)
+    display_name = unique_display_name_in_room(
+        room_id, identity, resolve_display_name(user, username)
+    )
+
+    return generate_livekit_config(
+        room_id=room_id,
+        user=user,
+        display_name=display_name,
+        role=role,
+        color=color,
+        configuration=configuration,
+        participant_id=identity,
+    )
 
 
 def generate_s3_authorization_headers(key):

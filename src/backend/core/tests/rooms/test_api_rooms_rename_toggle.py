@@ -261,7 +261,7 @@ def test_rename_participant_success(mock_livekit_client, room, token):
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == {"status": "success"}
+    assert response.data == {"status": "success", "name": "John Doe"}
 
     mock_livekit_client.room.update_participant.assert_called_once()
     mock_livekit_client.aclose.assert_called_once()
@@ -277,6 +277,23 @@ def test_rename_participant_sets_correct_name(mock_livekit_client, room, token):
 
     call_kwargs = mock_livekit_client.room.update_participant.call_args
     assert call_kwargs[0][0].name == "Jane Doe"
+
+
+def test_rename_participant_numbers_a_taken_name(
+    mock_livekit_client, mock_list_participant_names, room, token
+):
+    """Renaming to a name someone else holds numbers it, and says so."""
+    mock_list_participant_names.return_value = {"someone-else": "Jane Doe"}
+
+    client = APIClient()
+    url = reverse("rooms-rename", kwargs={"pk": room.id})
+    response = client.post(
+        url, {"name": "Jane Doe"}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
+
+    call_kwargs = mock_livekit_client.room.update_participant.call_args
+    assert call_kwargs[0][0].name == "Jane Doe (2)"
+    assert response.data == {"status": "success", "name": "Jane Doe (2)"}
 
 
 def test_rename_participant_uses_identity_from_token(
@@ -386,7 +403,7 @@ def test_rename_participant_success_anonymous(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == {"status": "success"}
+    assert response.data == {"status": "success", "name": "Guest User"}
 
     mock_livekit_client.room.update_participant.assert_called_once()
     mock_livekit_client.aclose.assert_called_once()
