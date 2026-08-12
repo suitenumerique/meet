@@ -6,7 +6,6 @@ import { Rating } from '@/features/rooms/components/Rating.tsx'
 import { useLocation } from 'wouter'
 import { useMemo } from 'react'
 import { DisconnectReason } from 'livekit-client'
-import type { CandidateInfo } from '@/stores/connectionObserver'
 
 // fixme - duplicated with home, refactor in a proper style
 const Heading = styled('h1', {
@@ -48,10 +47,6 @@ const FeedbackRoute = () => {
     const state = window.history.state
     return {
       room_id: state?.room_id as string,
-      pc_publisher: state?.pc_publisher as CandidateInfo,
-      pc_publisher_changes_count: state?.pc_publisher_changes_count as number,
-      pc_subscriber: state?.pc_subscriber as CandidateInfo,
-      pc_subscriber_changes_count: state?.pc_subscriber_changes_count as number,
     }
   }, [])
 

@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- 🔥(frontend) drop unused vendored ConnectionObserver
+
 ### Fixed
 
 - 📈(frontend) downgrade unreachable external home URL from error to event

@@ -30,7 +30,6 @@ import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { navigateTo } from '@/navigation/navigateTo'
-import { connectionObserverStore } from '@/stores/connectionObserver'
 import { PictureInPictureConference } from '@/features/pip/components/PictureInPictureConference'
 import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
@@ -247,22 +246,7 @@ export const Conference = ({
           onDisconnected={(e) => {
             const metadata = {
               room_id: roomId,
-              pc_publisher: connectionObserverStore.publisher && {
-                ...connectionObserverStore.publisher,
-              },
-              pc_subscriber: connectionObserverStore.subscriber && {
-                ...connectionObserverStore.subscriber,
-              },
-              pc_publisher_changes_count:
-                connectionObserverStore.publisherChangesCount,
-              pc_subscriber_changes_count:
-                connectionObserverStore.subscriberChangesCount,
             }
-
-            connectionObserverStore.publisher = null
-            connectionObserverStore.publisherChangesCount = 0
-            connectionObserverStore.subscriber = null
-            connectionObserverStore.subscriberChangesCount = 0
 
             switch (e) {
               case DisconnectReason.CLIENT_INITIATED:
