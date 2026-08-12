@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { styled, VStack } from '@/styled-system/jsx'
 import { Button as RACButton } from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
-import type { CandidateInfo } from '@/stores/connectionObserver'
 import { captureEvent } from '@/features/analytics/telemetry'
 
 const Card = styled('div', {
@@ -240,10 +239,6 @@ const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
 
 type RatingMetadata = {
   room_id?: string
-  pc_publisher?: CandidateInfo
-  pc_subscriber?: CandidateInfo
-  pc_publisher_changes_count?: number
-  pc_subscriber_changes_count?: number
 }
 
 export const Rating = ({
