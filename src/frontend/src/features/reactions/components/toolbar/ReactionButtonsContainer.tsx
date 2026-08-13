@@ -26,8 +26,8 @@ const StyledContainer = styled('div', {
     backgroundColor: 'primaryDark.100',
     maxWidth: '100%',
     opacity: 0,
-    transform: 'translateY(3.25rem)',
-    transition: 'opacity, transform',
+    translate: '0 3.25rem',
+    transition: 'opacity, translate',
     transitionDuration: '0.5s',
     transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
     pointerEvents: 'none',
@@ -36,7 +36,7 @@ const StyledContainer = styled('div', {
     isVisible: {
       true: {
         opacity: 1,
-        transform: 'translateY(0)',
+        translate: '0 0',
         pointerEvents: 'auto',
       },
     },
@@ -84,7 +84,7 @@ export const ReactionButtonsContainer = ({
     shouldBeCenteredWithToggleButton,
     setShouldBeCenteredWithToggleButton,
   ] = useState(false)
-  const [rightOffset, setRightOffset] = useState(0)
+  const [offsetX, setOffsetX] = useState(0)
 
   const updateArrows = useCallback(() => {
     const el = scrollRef.current
@@ -115,7 +115,7 @@ export const ReactionButtonsContainer = ({
 
   useLayoutEffect(() => {
     if (!shouldBeCenteredWithToggleButton || isMobile) {
-      setRightOffset(0)
+      setOffsetX(0)
       return
     }
 
@@ -133,7 +133,7 @@ export const ReactionButtonsContainer = ({
       const containerCenterX = containerRect.left + containerRect.width / 2
       const shift = toggleCenterX - containerCenterX
       if (Math.abs(shift) < 0.5) return
-      setRightOffset((prev) => prev - shift * 2)
+      setOffsetX((prev) => prev + shift)
     }
 
     const schedule = () => {
@@ -182,7 +182,7 @@ export const ReactionButtonsContainer = ({
       isVisible={isVisible}
       style={
         shouldBeCenteredWithToggleButton && !isMobile && adjustedCentering
-          ? { marginRight: `${rightOffset}px` }
+          ? { transform: `translateX(${offsetX}px)` }
           : { margin: '0 15px' }
       }
     >
