@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - 🔥(frontend) drop unused vendored ConnectionObserver
+- 🐛(frontend) vendor formatChatMessageLinks and trim surrounding newlines
 
 ### Fixed
 
