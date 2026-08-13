@@ -1,10 +1,12 @@
-name: outside checks
+name: static checks
 
-# For a pull request whose own run waits for a maintainer to approve it.
+# The checks that read a branch rather than execute it. They live here, and not
+# in meet.yml, so that they report on a pull request from a first-time
+# contributor, whose pull_request run waits for a maintainer to approve it.
 #
-# Runs with this repository's token, so nothing the branch controls may be
-# installed, imported or executed here. Do not add a step that builds or tests
-# it: that needs pull_request, and the approval wait that comes with it.
+# pull_request_target runs with this repository's token, so nothing the branch
+# controls may be installed, imported or executed here. Do not add a step that
+# builds or tests it: that needs pull_request, and the wait that comes with it.
 # https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
 
 on:
@@ -13,6 +15,8 @@ on:
       - opened
       - reopened
       - synchronize
+      - labeled
+      - unlabeled
 
 permissions:
   contents: read
@@ -25,9 +29,7 @@ env:
   HEAD_REF: refs/pull/${{ github.event.pull_request.number }}/head
 
 jobs:
-  format:
-    # a branch in this repository is not held, so meet.yml already reports it
-    if: github.event.pull_request.head.repo.full_name != github.repository
+  check-format:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -46,8 +48,7 @@ jobs:
       - name: Check format
         run: cd src/frontend/ && npm run check -- --config .prettierrc
 
-  changelog-length:
-    if: github.event.pull_request.head.repo.full_name != github.repository
+  lint-changelog:
     runs-on: ubuntu-latest
     steps:
       - name: Read the branch's changelog as data
@@ -65,10 +66,8 @@ jobs:
             exit 1
           fi
 
-  changelog-entry:
-    if: |
-      github.event.pull_request.head.repo.full_name != github.repository &&
-      contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
+  check-changelog:
+    if: contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
     runs-on: ubuntu-latest
     steps:
       # the same unanchored match check-changelog makes, over the same file list
@@ -80,8 +79,7 @@ jobs:
             "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
             --jq '.[].filename' | grep 'CHANGELOG.md'
 
-  commits:
-    if: github.event.pull_request.head.repo.full_name != github.repository
+  lint-git:
     runs-on: ubuntu-latest
     env:
       BASE_REF: ${{ github.event.pull_request.base.ref }}

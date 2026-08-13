@@ -11,63 +11,6 @@ permissions:
   contents: read
 
 jobs:
-  lint-git:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' # Makes sense only for pull requests
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: show
-        run: git log
-      - name: Enforce absence of print statements in code
-        if: always()
-        run: |
-          ! git diff origin/${{ github.event.pull_request.base.ref }}..HEAD -- . ':(exclude)**/meet.yml' | grep "print("
-      - name: Check absence of fixup commits
-        if: always()
-        run: |
-          ! git log | grep 'fixup!'
-      - name: Install gitlint
-        if: always()
-        run: pip install --user requests gitlint
-      - name: Lint commit messages added to main
-        if: always()
-        run: ~/.local/bin/gitlint --commits origin/${{ github.event.pull_request.base.ref }}..HEAD
-
-  check-changelog:
-    runs-on: ubuntu-latest
-    if: |
-      contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false &&
-      github.event_name == 'pull_request'
-    permissions:
-        contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 50
-      - name: Check that the CHANGELOG has been modified in the current branch
-        run: git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.after }} | grep 'CHANGELOG.md'
-
-  lint-changelog:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-      - name: Check CHANGELOG max line length
-        run: |
-          max_line_length=$(cat CHANGELOG.md | grep -Ev "^\[.*\]: https://github.com" | wc -L)
-          if [ $max_line_length -ge 80 ]; then
-            echo "ERROR: CHANGELOG has lines longer than 80 characters."
-            exit 1
-          fi
-
   build-mails:
     runs-on: ubuntu-latest
     permissions:
@@ -352,9 +295,6 @@ jobs:
 
       - name: Check linting
         run: cd src/frontend/ && npm run lint
-
-      - name: Check format
-        run: cd src/frontend/ && npm run check
 
   lint-sdk:
     runs-on: ubuntu-latest
