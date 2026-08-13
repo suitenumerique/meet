@@ -1,13 +1,10 @@
 name: outside checks
 
-# Reports the checks that need nothing from the branch to be executed, for a
-# pull request whose own run is held until a maintainer approves it.
+# For a pull request whose own run waits for a maintainer to approve it.
 #
-# pull_request_target runs with this repository's token, so nothing the branch
-# controls may be installed, imported or executed here. Every tool comes from
-# this repository's own checkout and the branch's files are read as data.
-# Do not add a step that builds or tests the branch. That needs the pull_request
-# trigger, and the wait for approval that comes with it.
+# Runs with this repository's token, so nothing the branch controls may be
+# installed, imported or executed here. Do not add a step that builds or tests
+# it: that needs pull_request, and the approval wait that comes with it.
 # https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
 
 on:
@@ -29,25 +26,27 @@ env:
 
 jobs:
   format:
+    # a pull request from this repository is not held, so meet.yml reports it
+    if: github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout this repository, never the branch
+      - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Install from this repository's lockfile
+      - name: Install dependencies
         run: cd src/frontend/ && npm ci
       - name: Read the branch's sources as data
         run: |
           git fetch --no-tags --depth 1 origin "$HEAD_REF"
           git checkout FETCH_HEAD -- src/frontend/src
-      # --config is load-bearing: without it prettier searches upward from every
-      # file it formats and loads a prettier.config.js the branch dropped there.
-      - name: Check format with this repository's configuration
-        run: cd src/frontend/ && npx prettier --check --config .prettierrc ./src
+      # without --config, prettier loads one the branch left among its own files
+      - name: Check format
+        run: cd src/frontend/ && npm run check -- --config .prettierrc
 
   changelog-length:
+    if: github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout this repository, never the branch
+      - name: Checkout repository
         uses: actions/checkout@v6
       - name: Read the branch's changelog as data
         run: |
@@ -62,28 +61,44 @@ jobs:
           fi
 
   changelog-entry:
-    if: contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
+    if: |
+      github.event.pull_request.head.repo.fork &&
+      contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
     runs-on: ubuntu-latest
     steps:
-      - name: Check that the branch touches the CHANGELOG
+      # the same unanchored match check-changelog makes, over the same file list
+      - name: Check that the CHANGELOG has been modified in the current branch
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh api --paginate \
             "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
-            --jq '.[].filename' | grep -qx 'CHANGELOG.md'
+            --jq '.[].filename' | grep 'CHANGELOG.md'
 
   commits:
+    if: github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
+    env:
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
     steps:
-      - name: Checkout this repository, never the branch
+      - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Read the branch's commits as data
         run: git fetch --no-tags origin "$HEAD_REF"
+      - name: Enforce absence of print statements in code
+        if: always()
+        run: |
+          ! git diff origin/$BASE_REF...FETCH_HEAD -- . ':(exclude).github/workflows/**' | grep "print("
+      - name: Check absence of fixup commits
+        if: always()
+        run: |
+          ! git log origin/$BASE_REF..FETCH_HEAD | grep 'fixup!'
       - name: Install gitlint
+        if: always()
         run: pip install --user requests gitlint
-      # the rules in gitlint/ come from this repository, never from the branch
-      - name: Lint the commit messages the branch adds
-        run: ~/.local/bin/gitlint --commits origin/${{ github.event.pull_request.base.ref }}..FETCH_HEAD
+      # gitlint imports gitlint/, so those rules must come from this checkout
+      - name: Lint commit messages added to main
+        if: always()
+        run: ~/.local/bin/gitlint --commits origin/$BASE_REF..FETCH_HEAD
