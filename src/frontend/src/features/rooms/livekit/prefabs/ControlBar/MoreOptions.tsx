@@ -12,7 +12,8 @@ import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { RiArrowDownSLine, RiArrowUpSLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 
-const CONTROL_BAR_BREAKPOINT = 1100
+const CONTROL_BAR_BREAKPOINT_WIDE = 1100
+const CONTROL_BAR_BREAKPOINT_NARROW = 1050
 
 const NavigationControls = ({
   onPress,
@@ -65,10 +66,9 @@ export const LateralMenu = () => {
     </DialogTrigger>
   )
 }
-
 interface BreakpointObserverProps {
   containerRef: RefObject<HTMLDivElement>
-  onWideChange: (isWide: boolean) => void
+  onWideChange: (isWide: boolean | null) => void
 }
 
 const BreakpointObserver = ({
@@ -76,7 +76,20 @@ const BreakpointObserver = ({
   onWideChange,
 }: BreakpointObserverProps) => {
   const { width } = useSize(containerRef)
-  const isWide = width > CONTROL_BAR_BREAKPOINT
+  const [isWide, setIsWide] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!width) {
+      return
+    }
+    if (width > CONTROL_BAR_BREAKPOINT_WIDE) {
+      setIsWide(true)
+    } else if (width <= CONTROL_BAR_BREAKPOINT_NARROW) {
+      setIsWide(false)
+    } else {
+      setIsWide((prev) => (prev === null ? false : prev))
+    }
+  }, [width])
 
   useEffect(() => {
     onWideChange(isWide)
@@ -90,7 +103,7 @@ export const MoreOptions = ({
 }: {
   parentElement: RefObject<HTMLDivElement>
 }) => {
-  const [isWide, setIsWide] = useState(false)
+  const [isWide, setIsWide] = useState<boolean | null>(null)
 
   return (
     <nav
@@ -107,7 +120,7 @@ export const MoreOptions = ({
         containerRef={parentElement}
         onWideChange={setIsWide}
       />
-      {isWide ? <NavigationControls /> : <LateralMenu />}
+      {isWide !== null && (isWide ? <NavigationControls /> : <LateralMenu />)}
     </nav>
   )
 }
