@@ -1,0 +1,89 @@
+name: outside checks
+
+# Reports the checks that need nothing from the branch to be executed, for a
+# pull request whose own run is held until a maintainer approves it.
+#
+# pull_request_target runs with this repository's token, so nothing the branch
+# controls may be installed, imported or executed here. Every tool comes from
+# this repository's own checkout and the branch's files are read as data.
+# Do not add a step that builds or tests the branch. That needs the pull_request
+# trigger, and the wait for approval that comes with it.
+# https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  HEAD_REF: refs/pull/${{ github.event.pull_request.number }}/head
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository, never the branch
+        uses: actions/checkout@v6
+      - name: Install from this repository's lockfile
+        run: cd src/frontend/ && npm ci
+      - name: Read the branch's sources as data
+        run: |
+          git fetch --no-tags --depth 1 origin "$HEAD_REF"
+          git checkout FETCH_HEAD -- src/frontend/src
+      # --config is load-bearing: without it prettier searches upward from every
+      # file it formats and loads a prettier.config.js the branch dropped there.
+      - name: Check format with this repository's configuration
+        run: cd src/frontend/ && npx prettier --check --config .prettierrc ./src
+
+  changelog-length:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository, never the branch
+        uses: actions/checkout@v6
+      - name: Read the branch's changelog as data
+        run: |
+          git fetch --no-tags --depth 1 origin "$HEAD_REF"
+          git checkout FETCH_HEAD -- CHANGELOG.md
+      - name: Check CHANGELOG max line length
+        run: |
+          max_line_length=$(cat CHANGELOG.md | grep -Ev "^\[.*\]: https://github.com" | wc -L)
+          if [ $max_line_length -ge 80 ]; then
+            echo "ERROR: CHANGELOG has lines longer than 80 characters."
+            exit 1
+          fi
+
+  changelog-entry:
+    if: contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that the branch touches the CHANGELOG
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate \
+            "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
+            --jq '.[].filename' | grep -qx 'CHANGELOG.md'
+
+  commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository, never the branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Read the branch's commits as data
+        run: git fetch --no-tags origin "$HEAD_REF"
+      - name: Install gitlint
+        run: pip install --user requests gitlint
+      # the rules in gitlint/ come from this repository, never from the branch
+      - name: Lint the commit messages the branch adds
+        run: ~/.local/bin/gitlint --commits origin/${{ github.event.pull_request.base.ref }}..FETCH_HEAD
