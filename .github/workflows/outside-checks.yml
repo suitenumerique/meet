@@ -32,6 +32,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
       - name: Install dependencies
         run: cd src/frontend/ && npm ci
       - name: Read the branch's sources as data
@@ -46,12 +50,13 @@ jobs:
     if: github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
       - name: Read the branch's changelog as data
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git fetch --no-tags --depth 1 origin "$HEAD_REF"
-          git checkout FETCH_HEAD -- CHANGELOG.md
+          gh api -H 'Accept: application/vnd.github.raw' \
+            "repos/${{ github.repository }}/contents/CHANGELOG.md?ref=${{ github.event.pull_request.head.sha }}" \
+            > CHANGELOG.md
       - name: Check CHANGELOG max line length
         run: |
           max_line_length=$(cat CHANGELOG.md | grep -Ev "^\[.*\]: https://github.com" | wc -L)
@@ -85,6 +90,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          filter: blob:none
       - name: Read the branch's commits as data
         run: git fetch --no-tags origin "$HEAD_REF"
       - name: Enforce absence of print statements in code
