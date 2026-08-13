@@ -26,8 +26,8 @@ env:
 
 jobs:
   format:
-    # a pull request from this repository is not held, so meet.yml reports it
-    if: github.event.pull_request.head.repo.fork
+    # a branch in this repository is not held, so meet.yml already reports it
+    if: github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -43,7 +43,7 @@ jobs:
         run: cd src/frontend/ && npm run check -- --config .prettierrc
 
   changelog-length:
-    if: github.event.pull_request.head.repo.fork
+    if: github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -62,7 +62,7 @@ jobs:
 
   changelog-entry:
     if: |
-      github.event.pull_request.head.repo.fork &&
+      github.event.pull_request.head.repo.full_name != github.repository &&
       contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
     runs-on: ubuntu-latest
     steps:
@@ -76,7 +76,7 @@ jobs:
             --jq '.[].filename' | grep 'CHANGELOG.md'
 
   commits:
-    if: github.event.pull_request.head.repo.fork
+    if: github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     env:
       BASE_REF: ${{ github.event.pull_request.base.ref }}
