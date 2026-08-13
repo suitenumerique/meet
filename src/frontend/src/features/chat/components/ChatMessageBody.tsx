@@ -1,6 +1,6 @@
 import { ChatRow } from '@/stores/chat'
 import React, { useMemo } from 'react'
-import { formatChatMessageLinks } from '@livekit/components-react'
+import { formatChatMessageLinks } from '../utils'
 import { css } from '@/styled-system/css'
 import { Text } from '@/primitives'
 
