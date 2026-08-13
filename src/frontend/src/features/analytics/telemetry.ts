@@ -30,6 +30,7 @@ export type LogCode =
   | 'clipboard_failure'
   | 'fullscreen_failure'
   | 'publish_sources_failure'
+  | 'performance_mode_failure'
   | 'disconnect_failure'
   | 'generic_failure'
 

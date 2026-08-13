@@ -27,6 +27,8 @@ import { PinAnnouncer } from '@/features/layout/components/PinAnnouncer'
 import { ChatProvider } from '@/features/chat/components/ChatProvider'
 import { SyncDevicePreferences } from '@/features/rooms/livekit/components/SyncDevicePreferences'
 import { RoomSilentMicDetector } from '@/features/rooms/components/SilentMicDetector'
+import { CpuConstrainedObserver } from '@/features/performance/components/CpuConstrainedObserver'
+import { PerformanceModeController } from '@/features/performance/components/PerformanceModeController'
 
 /**
  * @public
@@ -70,6 +72,8 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       <MediaStateObserver />
       <ChatProvider />
       <VideoResolutionSubscription />
+      <PerformanceModeController />
+      <CpuConstrainedObserver />
       <div
         className="lk-video-conference"
         {...props}

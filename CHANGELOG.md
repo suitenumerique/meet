@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) introduce performance mode with auto-detection and telemetry
+
 ### Changed
 
 - 🔥(frontend) drop unused vendored ConnectionObserver

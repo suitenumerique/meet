@@ -18,6 +18,10 @@
     "auto": "You have joined a large meeting. Your microphone has been automatically muted.",
     "dismiss": "Unmute"
   },
+  "cpuConstrained": {
+    "message": "Your device is running low on processing power. Video quality has been reduced to keep the call smooth.",
+    "keepQuality": "Keep original quality"
+  },
   "reaction": {
     "description": "{{name}} reacted with {{emoji}}"
   },
