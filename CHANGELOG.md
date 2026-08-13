@@ -19,6 +19,7 @@ and this project adheres to
 - 🐛(frontend) handle 401 responses when syncing user preferences
 - 🐛(frontend) harden speaker test against missing sinks and play errors
 - 🐛(frontend) implement hysteresis band for the control bar layout
+- 🐛(frontend) fix toolbar ResizeObserver loop and alignment drift
 
 ## [1.26.0] - 2026-08-12
 
