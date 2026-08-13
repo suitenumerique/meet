@@ -17,6 +17,7 @@ and this project adheres to
 - 📈(frontend) downgrade unreachable external home URL from error to event
 - 🐛(frontend) handle 401 responses when syncing user preferences
 - 🐛(frontend) harden speaker test against missing sinks and play errors
+- 🐛(frontend) implement hysteresis band for the control bar layout
 
 ## [1.26.0] - 2026-08-12
 
