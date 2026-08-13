@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { type ApiUser } from '@/features/auth/api/ApiUser'
 import { useUser } from '@/features/auth/api/useUser'
 import { getPosthog } from '../utils'
+import { filterExceptions } from '../exceptionFilters'
 
 export const startAnalyticsSession = (data: ApiUser) => {
   getPosthog().then((ph) => {
@@ -47,6 +48,7 @@ export const useAnalytics = ({
           capture_unhandled_rejections: true,
           capture_console_errors: true,
         },
+        before_send: filterExceptions,
       })
     })
   }, [id, host, flags_api_host, isDisabled])
