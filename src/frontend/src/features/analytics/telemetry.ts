@@ -23,6 +23,7 @@ export type LogCode =
   | 'livekit_room_error'
   | 'device_switch_failure'
   | 'permission_poll_failure'
+  | 'media_devices_error_event'
   // non-media families
   | 'participant_mute_api_failure'
   | 'permissions_api_failure'
