@@ -1,7 +1,7 @@
 name: static checks
 
 # The checks that read a branch rather than execute it. They live here, and not
-# in meet.yml, so they report on a pull request from a first-time
+# in build-and-test.yml, so they report on a pull request from a first-time
 # contributor, whose pull_request run waits for a maintainer to approve it.
 #
 # pull_request_target runs with this repository's token, so nothing the branch

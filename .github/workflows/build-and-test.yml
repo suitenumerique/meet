@@ -1,4 +1,4 @@
-name: meet Workflow
+name: build and test
 
 on:
   push:
