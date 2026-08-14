@@ -1,9 +1,10 @@
 """Analytics classes."""
 
 import json
+import socket
 import time
 from collections import Counter
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from urllib.parse import urlsplit, urlunsplit
 
 import redis
@@ -33,6 +34,10 @@ class Analytics:
             logger.info("Initialize analytics client")
             self._client = Posthog(settings.posthog_api_key, settings.posthog_api_host)
 
+    @cached_property
+    def _hostname(self):
+        return socket.gethostname()
+
     @property
     def is_disabled(self):
         """Check if analytics client is disabled or not configured."""
@@ -42,6 +47,8 @@ class Analytics:
         """Track an event if analytics is enabled."""
         if self.is_disabled:
             return
+
+        properties = {**(properties or {}), "_hostname": self._hostname}
 
         try:
             self._client.capture(
