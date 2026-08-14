@@ -11,7 +11,9 @@ import { SidePanel } from '../components/SidePanel'
 import { RecordingProvider } from '@/features/recording'
 import { ScreenShareErrorModal } from '../components/ScreenShareErrorModal'
 import { ConnectionObserver } from '../components/ConnectionObserver'
-import { reportError } from '@/features/analytics/telemetry'
+import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
+import { getOS } from '@/utils/os'
+import { isFireFox } from '@/utils/livekit'
 import { MediaStateObserver } from '../components/MediaStateObserver'
 import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
@@ -34,6 +36,20 @@ import { RoomSilentMicDetector } from '@/features/rooms/components/SilentMicDete
 export interface VideoConferenceProps extends React.HTMLAttributes<HTMLDivElement> {
   /** @alpha */
   SettingsComponent?: React.ComponentType
+}
+
+const getScreenSharePermissionDeniedScope = (
+  error: Error
+): 'system' | 'user' | 'browser' | null => {
+  if (error.name === 'NotAllowedError') {
+    if (/by system/i.test(error.message)) return 'system'
+    if (/by user/i.test(error.message)) return 'user'
+    return 'browser'
+  }
+  if (error.name === 'NotFoundError' && isFireFox() && getOS() === 'macos') {
+    return 'system'
+  }
+  return null
 }
 
 /**
@@ -60,6 +76,34 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
 
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
+
+  const handleDeviceError = ({
+    source,
+    error,
+  }: {
+    source: Track.Source
+    error: Error
+  }) => {
+    if (source === Track.Source.ScreenShare) {
+      const scope = getScreenSharePermissionDeniedScope(error)
+      if (scope) {
+        if (scope === 'system') setIsShareErrorVisible(true)
+        void captureMediaEvent('screen-share-permission-denied', {
+          at: 'ControlBar.onDeviceError',
+          source,
+          error_name: error.name,
+          error_message: error.message,
+          denied_scope: scope,
+          os: getOS(),
+        })
+        return
+      }
+    }
+    reportError('device_switch_failure', error, {
+      at: 'ControlBar.onDeviceError',
+      source,
+    })
+  }
 
   return (
     <>
@@ -92,21 +136,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
                 <StageLayout />
               )}
             </RoomContentArea>
-            <ControlBar
-              onDeviceError={(e) => {
-                reportError('device_switch_failure', e.error, {
-                  at: 'ControlBar.onDeviceError',
-                  source: e.source,
-                })
-                if (
-                  e.source == Track.Source.ScreenShare &&
-                  e.error.toString() ==
-                    'NotAllowedError: Permission denied by system'
-                ) {
-                  setIsShareErrorVisible(true)
-                }
-              }}
-            />
+            <ControlBar onDeviceError={handleDeviceError} />
             <SidePanel />
           </>
         )}
