@@ -214,8 +214,11 @@
       "title": "Impossible de partager votre écran",
       "ariaLabel": "Impossible de partager votre écran",
       "message": "Il se peut que votre navigateur ne soit pas autorisé à enregistrer l'écran sur votre ordinateur.",
-      "macInstructions": "Accèdez à vos",
-      "macSystemPreferences": "Préférences système",
+      "settingsInstructions": "Accédez à vos",
+      "settingsLabel": {
+        "macos": "Préférences système",
+        "windows": "paramètres de confidentialité Windows"
+      },
       "helpLinkText": "Pour en savoir plus, consulter",
       "helpLinkLabel": "Problème de présentation",
       "closeButton": "Ignorer",

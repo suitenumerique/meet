@@ -22,6 +22,7 @@ and this project adheres to
 - 🐛(frontend) fix toolbar ResizeObserver loop and alignment drift
 - 🐛(analytics) filter benign ResizeObserver loop error in Sentry/PostHog
 - 🐛(frontend) stop reporting screen-share denials as errors
+- 🐛(frontend) generalize screen-share error modal beyond macOS
 
 ## [1.26.0] - 2026-08-12
 
