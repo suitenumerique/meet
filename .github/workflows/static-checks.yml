@@ -114,18 +114,21 @@ jobs:
           persist-credentials: false
       - name: Read the branch's commits as data
         run: git fetch --no-tags origin "$HEAD_REF"
+      # added lines only, since deleting a print is not a violation, and the
+      # pattern is spelled so that this line does not match itself: between them
+      # they replace the excluded path, which the rename left pointing nowhere
       - name: Enforce absence of print statements in code
         if: always()
         run: |
-          ! git diff origin/$BASE_REF...FETCH_HEAD -- . ':(exclude).github/workflows/**' | grep "print("
+          ! git diff "origin/$BASE_REF...FETCH_HEAD" | grep '^+.*print[(]'
       - name: Check absence of fixup commits
         if: always()
         run: |
-          ! git log origin/$BASE_REF..FETCH_HEAD | grep 'fixup!'
+          ! git log "origin/$BASE_REF..FETCH_HEAD" | grep 'fixup!'
       - name: Install gitlint
         if: always()
         run: "pip install --user --only-binary=:all: requests==2.34.2 gitlint==0.18.0"
       # gitlint imports gitlint/, so those rules must come from this checkout
       - name: Lint commit messages added to main
         if: always()
-        run: ~/.local/bin/gitlint --commits origin/$BASE_REF..FETCH_HEAD
+        run: ~/.local/bin/gitlint --commits "origin/$BASE_REF..FETCH_HEAD"
