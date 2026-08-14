@@ -225,9 +225,10 @@ export const Conference = ({
             backgroundColor: 'primaryDark.50 !important',
           })}
           onError={(e) => {
+            const failure = MediaDeviceFailure.getFailure(e)
+            if (failure && failure !== MediaDeviceFailure.Other) return
             reportError('livekit_room_error', e, {
               path: 'connect_publish',
-              failure: MediaDeviceFailure.getFailure(e) ?? 'not-a-device-error',
             })
           }}
           onConnected={async () => {

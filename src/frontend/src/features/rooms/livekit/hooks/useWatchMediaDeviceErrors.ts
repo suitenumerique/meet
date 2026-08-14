@@ -50,15 +50,16 @@ export const useWatchMediaDeviceErrors = (): MediaDeviceAlert & {
   useEffect(() => {
     const onDeviceError = (error: Error, kind?: MediaDeviceKind) => {
       const failure = MediaDeviceFailure.getFailure(error)
-      if (!failure || !kind) return
-
-      void captureMediaEvent('media-device-error', {
-        log_code: 'media_devices_error_event',
-        path: 'connect_publish',
-        failure,
-        kind,
-      })
-
+      if (!failure) return
+      if (failure != MediaDeviceFailure.Other) {
+        void captureMediaEvent('media-device-error', {
+          log_code: 'media_devices_error_event',
+          path: 'connect_publish',
+          failure,
+          kind: kind ?? 'unknown',
+        })
+      }
+      if (!kind) return
       const permissionKind = PERMISSION_BY_DEVICE_KIND[kind]
       switch (failure) {
         case MediaDeviceFailure.DeviceInUse:
