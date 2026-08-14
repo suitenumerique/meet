@@ -54,8 +54,8 @@ jobs:
           rm -rf src/frontend/src
           git checkout FETCH_HEAD -- src/frontend/src
       # without --config prettier loads one the branch left among its own files,
-      # and without --no-editorconfig an .editorconfig left there still moves the
-      # rules: printWidth and tabWidth are not among the three .prettierrc sets
+      # and without --no-editorconfig an .editorconfig left there moves printWidth
+      # and tabWidth, which .prettierrc does not set and so cannot override
       - name: Check format
         run: cd src/frontend/ && npm run check -- --config .prettierrc --no-editorconfig
 
@@ -89,7 +89,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      # the same unanchored match check-changelog makes, over the same file list
+      # unanchored, so a path ending in CHANGELOG.md anywhere counts
       - name: Check that the CHANGELOG has been modified in the current branch
         env:
           GH_TOKEN: ${{ github.token }}
@@ -115,8 +115,7 @@ jobs:
       - name: Read the branch's commits as data
         run: git fetch --no-tags origin "$HEAD_REF"
       # added lines only, since deleting a print is not a violation, and the
-      # pattern is spelled so that this line does not match itself: between them
-      # they replace the excluded path, which the rename left pointing nowhere
+      # pattern is spelled so that this line does not match itself
       - name: Enforce absence of print statements in code
         if: always()
         run: |
