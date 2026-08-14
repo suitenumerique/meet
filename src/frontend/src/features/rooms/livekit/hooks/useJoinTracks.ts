@@ -18,6 +18,7 @@ import {
   noteSystemPermissionDenied,
   type PermissionKind,
 } from '@/stores/permissions'
+import { clearDeviceInUse, noteDeviceInUse } from '@/stores/deviceInUse'
 import { getOS } from '@/utils/os'
 import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
 import {
@@ -89,12 +90,25 @@ const onMediaPermissionError = (
     return
   }
 
-  // "Other" and "Device in use" are still reported as errors, as they are not handled on the join screen.
+  if (
+    MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.DeviceInUse &&
+    path === 'join_preview'
+  ) {
+    noteDeviceInUse(kind)
+    void captureMediaEvent('device-in-use', { path, kind, os: getOS() })
+    return
+  }
+
   reportError(
     path === 'room' ? 'room_media_failure' : 'join_preview_failure',
     e,
     { path, kind }
   )
+}
+
+const noteDeviceReady = (kind?: PermissionKind) => {
+  noteGumSuccess(kind)
+  clearDeviceInUse(kind)
 }
 
 // Module-level: effect dependencies, must be referentially stable.
@@ -114,7 +128,7 @@ export const requestDevicePermission = async (
         ? await createLocalAudioTrack()
         : await createLocalVideoTrack()
     track.stop()
-    noteGumSuccess(PERMISSION_KIND[kind])
+    noteDeviceReady(PERMISSION_KIND[kind])
     return true
   } catch (error) {
     onMediaPermissionError(error as Error, PERMISSION_KIND[kind], path)
@@ -158,7 +172,7 @@ function useWarmupPermissions(): WarmupState {
             video: true,
           })
         )
-        noteGumSuccess()
+        noteDeviceReady()
         bothReady()
       } catch (error) {
         if (
@@ -180,7 +194,7 @@ function useWarmupPermissions(): WarmupState {
           .getUserMedia({ audio: true })
           .then((stream) => {
             stopAll(stream)
-            noteGumSuccess('microphone')
+            noteDeviceReady('microphone')
           })
           .catch((e) => onMediaPermissionError(e as Error, 'microphone'))
           .finally(() =>
@@ -190,7 +204,7 @@ function useWarmupPermissions(): WarmupState {
           .getUserMedia({ video: true })
           .then((stream) => {
             stopAll(stream)
-            noteGumSuccess('camera')
+            noteDeviceReady('camera')
           })
           .catch((e) => onMediaPermissionError(e as Error, 'camera'))
           .finally(() =>
@@ -227,7 +241,7 @@ function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
     let cancelled = false
     create()
       .then((newTrack) => {
-        noteGumSuccess(permissionKind)
+        noteDeviceReady(permissionKind)
         if (cancelled) {
           newTrack.stop()
           return
@@ -290,6 +304,8 @@ export function useJoinTracks(): {
   } = useSnapshot(userChoicesStore)
 
   const { audioReady, videoReady } = useWarmupPermissions()
+
+  useEffect(() => () => clearDeviceInUse(), [])
 
   const createAudio = useCallback(
     () =>

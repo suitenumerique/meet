@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- 🚸(frontend) explain camera-in-use failures on the join screen
+
 ## [1.27.0] - 2026-08-14
 
 ### Changed

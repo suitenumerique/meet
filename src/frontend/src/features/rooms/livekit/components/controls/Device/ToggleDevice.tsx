@@ -20,6 +20,7 @@ import { openPermissionsDialog } from '@/stores/permissions'
 import { openSilentMicDialog, silentMicStore } from '@/stores/silentMic'
 import { useSnapshot } from 'valtio'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
+import { useDeviceInUse } from '../../../hooks/useDeviceInUse'
 import { useDeviceMissing } from '../../../hooks/useDeviceMissing'
 import { requestDevicePermission } from '../../../hooks/useJoinTracks'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
@@ -97,21 +98,23 @@ export const ToggleDevice = <T extends ToggleSource>({
   const deviceIcons = useDeviceIcons(kind)
   const cannotUseDevice = useCannotUseDevice(kind)
   const deviceMissing = useDeviceMissing(kind)
+  const deviceInUse = useDeviceInUse(kind)
   const { status: silentMicStatus } = useSnapshot(silentMicStore)
   const silentMicWarning =
     kind === 'audioinput' &&
     silentMicStatus === 'silent' &&
     !cannotUseDevice &&
-    !deviceMissing
+    !deviceMissing &&
+    !deviceInUse
   const deviceShortcut = useDeviceShortcut(kind)
   const announce = useScreenReaderAnnounce()
 
   const isRequestingPermission = useRef(false)
-  const [showDeviceNotFound, setShowDeviceNotFound] = useState(false)
+  const [alertError, setAlertError] = useState<MediaDeviceFailure | null>(null)
 
   const onPress = async () => {
     if (!enabled && deviceMissing) {
-      setShowDeviceNotFound(true)
+      setAlertError(MediaDeviceFailure.NotFound)
       return
     }
     if (!cannotUseDevice) {
@@ -185,8 +188,16 @@ export const ToggleDevice = <T extends ToggleSource>({
         <PermissionNeededButton
           tooltip={deviceMissing ? t(`deviceNotFound.${kind}`) : undefined}
           onPress={
-            deviceMissing ? () => setShowDeviceNotFound(true) : undefined
+            deviceMissing
+              ? () => setAlertError(MediaDeviceFailure.NotFound)
+              : undefined
           }
+        />
+      )}
+      {deviceInUse && (
+        <PermissionNeededButton
+          tooltip={t(`deviceInUse.${kind}`)}
+          onPress={() => setAlertError(MediaDeviceFailure.DeviceInUse)}
         />
       )}
       {silentMicWarning && (
@@ -207,9 +218,11 @@ export const ToggleDevice = <T extends ToggleSource>({
         tooltip={
           deviceMissing
             ? t(`deviceNotFound.${kind}`)
-            : cannotUseDevice
-              ? t('tooltip', { keyPrefix: 'permissionsButton' })
-              : toggleLabel
+            : deviceInUse
+              ? t(`deviceInUse.${kind}`)
+              : cannotUseDevice
+                ? t('tooltip', { keyPrefix: 'permissionsButton' })
+                : toggleLabel
         }
         {...computedToggleButtonProps}
         {...overrideToggleButtonProps}
@@ -217,9 +230,9 @@ export const ToggleDevice = <T extends ToggleSource>({
         <Icon />
       </ToggleButton>
       <MediaDeviceErrorAlert
-        error={showDeviceNotFound ? MediaDeviceFailure.NotFound : null}
+        error={alertError}
         kind={kind}
-        onClose={() => setShowDeviceNotFound(false)}
+        onClose={() => setAlertError(null)}
       />
     </div>
   )
