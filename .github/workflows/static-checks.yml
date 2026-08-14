@@ -10,6 +10,9 @@ name: static checks
 # https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
 
 on:
+  push:
+    branches:
+      - main
   pull_request_target:
     types:
       - opened
@@ -19,7 +22,7 @@ on:
       - unlabeled
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -44,6 +47,7 @@ jobs:
       - name: Install dependencies
         run: cd src/frontend/ && npm ci --ignore-scripts
       - name: Read the branch's sources as data
+        if: github.event_name == 'pull_request_target'
         run: |
           git fetch --no-tags --depth 1 origin "$HEAD_REF"
           rm -rf src/frontend/src
@@ -62,9 +66,10 @@ jobs:
       - name: Read the branch's changelog as data
         env:
           GH_TOKEN: ${{ github.token }}
+          REF: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           gh api -H 'Accept: application/vnd.github.raw' \
-            "repos/${{ github.repository }}/contents/CHANGELOG.md?ref=${{ github.event.pull_request.head.sha }}" \
+            "repos/${{ github.repository }}/contents/CHANGELOG.md?ref=$REF" \
             > CHANGELOG.md
       - name: Check CHANGELOG max line length
         run: |
@@ -75,7 +80,9 @@ jobs:
           fi
 
   check-changelog:
-    if: contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
+    if: |
+      github.event_name == 'pull_request_target' &&
+      contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -91,6 +98,7 @@ jobs:
             --jq '.[].filename' | grep 'CHANGELOG.md'
 
   lint-git:
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
       contents: read
