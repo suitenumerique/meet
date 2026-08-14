@@ -1,7 +1,7 @@
 name: static checks
 
 # The checks that read a branch rather than execute it. They live here, and not
-# in build-and-test.yml, so they report on a pull request from a first-time
+# in meet.yml, so they report on a pull request from a first-time
 # contributor, whose pull_request run waits for a maintainer to approve it.
 #
 # pull_request_target runs with this repository's token, so nothing the branch
@@ -18,9 +18,6 @@ on:
       - labeled
       - unlabeled
 
-permissions:
-  contents: read
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -31,6 +28,8 @@ env:
 jobs:
   check-format:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -39,7 +38,7 @@ jobs:
           cache: npm
           cache-dependency-path: src/frontend/package-lock.json
       - name: Install dependencies
-        run: cd src/frontend/ && npm ci
+        run: cd src/frontend/ && npm ci --ignore-scripts
       - name: Read the branch's sources as data
         run: |
           git fetch --no-tags --depth 1 origin "$HEAD_REF"
@@ -50,6 +49,8 @@ jobs:
 
   lint-changelog:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Read the branch's changelog as data
         env:
@@ -69,6 +70,9 @@ jobs:
   check-changelog:
     if: contains(github.event.pull_request.labels.*.name, 'noChangeLog') == false
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       # the same unanchored match check-changelog makes, over the same file list
       - name: Check that the CHANGELOG has been modified in the current branch
@@ -81,6 +85,8 @@ jobs:
 
   lint-git:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       BASE_REF: ${{ github.event.pull_request.base.ref }}
     steps:
@@ -101,7 +107,7 @@ jobs:
           ! git log origin/$BASE_REF..FETCH_HEAD | grep 'fixup!'
       - name: Install gitlint
         if: always()
-        run: pip install --user requests gitlint
+        run: "pip install --user --only-binary=:all: requests==2.34.2 gitlint==0.18.0"
       # gitlint imports gitlint/, so those rules must come from this checkout
       - name: Lint commit messages added to main
         if: always()
