@@ -1,6 +1,7 @@
 """Analytics classes."""
 
 import json
+import socket
 import time
 from collections import Counter
 from functools import lru_cache
@@ -42,6 +43,11 @@ class Analytics:
         """Track an event if analytics is enabled."""
         if self.is_disabled:
             return
+
+        # We add hostname to help track down the source of events
+        properties = properties or {}
+        if not properties.get("hostname"):
+            properties = {**properties, "hostname": socket.gethostname()}
 
         try:
             self._client.capture(
