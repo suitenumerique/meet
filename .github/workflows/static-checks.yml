@@ -31,8 +31,12 @@ jobs:
     permissions:
       contents: read
     steps:
+      # persist-credentials keeps this repository's token out of .git/config,
+      # which the branch's own files land beside
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           cache: npm
@@ -42,10 +46,13 @@ jobs:
       - name: Read the branch's sources as data
         run: |
           git fetch --no-tags --depth 1 origin "$HEAD_REF"
+          rm -rf src/frontend/src
           git checkout FETCH_HEAD -- src/frontend/src
-      # without --config, prettier loads one the branch left among its own files
+      # without --config prettier loads one the branch left among its own files,
+      # and without --no-editorconfig an .editorconfig left there still moves the
+      # rules: printWidth and tabWidth are not among the three .prettierrc sets
       - name: Check format
-        run: cd src/frontend/ && npm run check -- --config .prettierrc
+        run: cd src/frontend/ && npm run check -- --config .prettierrc --no-editorconfig
 
   lint-changelog:
     runs-on: ubuntu-latest
@@ -95,6 +102,7 @@ jobs:
         with:
           fetch-depth: 0
           filter: blob:none
+          persist-credentials: false
       - name: Read the branch's commits as data
         run: git fetch --no-tags origin "$HEAD_REF"
       - name: Enforce absence of print statements in code
