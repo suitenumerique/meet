@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.27.0] - 2026-08-14
+
 ### Changed
 
 - 🔥(frontend) drop unused vendored ConnectionObserver
