@@ -49,12 +49,15 @@ export const collectHardwareSnapshot = async (): Promise<HardwareSnapshot> => {
 
     if (typeof nav.getBattery === 'function') {
       // getBattery can hang on some platforms — don't let it delay the event.
+      let timeoutId: ReturnType<typeof setTimeout> | undefined
       const battery = await Promise.race([
         nav.getBattery(),
-        new Promise<null>((resolve) =>
-          setTimeout(() => resolve(null), BATTERY_TIMEOUT_MS)
-        ),
-      ]).catch(() => null)
+        new Promise<null>((resolve) => {
+          timeoutId = setTimeout(() => resolve(null), BATTERY_TIMEOUT_MS)
+        }),
+      ])
+        .catch(() => null)
+        .finally(() => clearTimeout(timeoutId))
       if (battery) {
         snapshot.battery_level = battery.level
         snapshot.battery_charging = battery.charging
