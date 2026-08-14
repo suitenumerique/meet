@@ -214,8 +214,11 @@
       "title": "Bildschirmfreigabe nicht möglich",
       "ariaLabel": "Bildschirmfreigabe nicht möglich",
       "message": "Deinem Browser fehlt möglicherweise die Berechtigung, den Bildschirm deines Geräts abzugreifen.",
-      "macInstructions": "Gehe zu den",
-      "macSystemPreferences": "Systemeinstellungen",
+      "settingsInstructions": "Gehe zu den",
+      "settingsLabel": {
+        "macos": "Systemeinstellungen",
+        "windows": "Windows-Datenschutzeinstellungen"
+      },
       "helpLinkText": "Weitere Informationen findest du unter",
       "helpLinkLabel": "Bildschirmfreigabeproblem",
       "closeButton": "Schließen",

@@ -1,6 +1,13 @@
 import { A, Button, Dialog, P } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
+import { getOS, type OS } from '@/utils/os'
+
+const SCREEN_CAPTURE_SETTINGS_LINKS: Partial<Record<OS, string>> = {
+  macos:
+    'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture',
+  windows: 'ms-settings:privacy-graphicscaptureprogrammatic',
+}
 
 // todo - refactor it into a generic system
 export const ScreenShareErrorModal = ({
@@ -11,7 +18,8 @@ export const ScreenShareErrorModal = ({
   onClose: () => void
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'error.screenShare' })
-  const isMac = navigator.userAgent.toLowerCase().indexOf('mac') !== -1
+  const os = getOS()
+  const settingsHref = SCREEN_CAPTURE_SETTINGS_LINKS[os]
 
   return (
     <Dialog
@@ -26,15 +34,16 @@ export const ScreenShareErrorModal = ({
           <>
             <P>
               {t('message')}{' '}
-              {isMac && (
+              {settingsHref && (
                 <>
-                  {t('macInstructions')}{' '}
+                  {t('settingsInstructions')}{' '}
                   <A
-                    href="x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+                    href={settingsHref}
+                    target="_blank"
                     color="primary"
-                    aria-label={t('macSystemPreferences') + '-' + t('newTab')}
+                    aria-label={t(`settingsLabel.${os}`) + '-' + t('newTab')}
                   >
-                    {t('macSystemPreferences')}
+                    {t(`settingsLabel.${os}`)}
                   </A>
                   .{' '}
                 </>
