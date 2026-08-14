@@ -42,6 +42,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v6
         with:
+          node-version: "22"
           cache: npm
           cache-dependency-path: src/frontend/package-lock.json
       - name: Install dependencies
