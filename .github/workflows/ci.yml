@@ -130,11 +130,11 @@ jobs:
         run: uv sync --locked --all-extras
 
       - name: Check code formatting with ruff
-        run: uv run --no-sync ruff format . --diff
+        run: uv run --no-sync --no-build ruff format . --diff
       - name: Lint code with ruff
-        run: uv run --no-sync ruff check .
+        run: uv run --no-sync --no-build ruff check .
       - name: Lint code with pylint
-        run: uv run --no-sync pylint meet demo core
+        run: uv run --no-sync --no-build pylint meet demo core
 
   lint-agents:
     runs-on: ubuntu-latest
@@ -155,9 +155,9 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras
       - name: Check code formatting with ruff
-        run: uv run --no-sync ruff format . --diff
+        run: uv run --no-sync --no-build ruff format . --diff
       - name: Lint code with ruff
-        run: uv run --no-sync ruff check .
+        run: uv run --no-sync --no-build ruff check .
 
   lint-summary:
     runs-on: ubuntu-latest
@@ -293,10 +293,10 @@ jobs:
           sudo apt-get install -y gettext
 
       - name: Generate a MO file from strings extracted from the project
-        run: uv run --no-sync python manage.py compilemessages
+        run: uv run --no-sync --no-build python manage.py compilemessages
 
       - name: Run tests
-        run: uv run --no-sync pytest -n 2
+        run: uv run --no-sync --no-build pytest -n 2
 
   test-summary:
     runs-on: ubuntu-latest
