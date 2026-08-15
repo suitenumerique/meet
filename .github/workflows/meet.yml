@@ -33,7 +33,7 @@ jobs:
           ! git log | grep 'fixup!'
       - name: Install gitlint
         if: always()
-        run: "pip install --user --only-binary=:all: requests==2.34.2 gitlint==0.18.0"
+        run: "pip install --user --only-binary=:all: requests==2.34.2 gitlint-core==0.19.1"
       - name: Lint commit messages added to main
         if: always()
         run: ~/.local/bin/gitlint --commits origin/${{ github.event.pull_request.base.ref }}..HEAD
@@ -93,11 +93,11 @@ jobs:
 
       - name: Install yarn
         if: steps.mail-templates.outputs.cache-hit != 'true'
-        run: npm install -g yarn
+        run: npm install -g --ignore-scripts yarn@1.22.22
 
       - name: Install node dependencies
         if: steps.mail-templates.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-scripts
 
       - name: Build mails
         if: steps.mail-templates.outputs.cache-hit != 'true'
@@ -262,7 +262,9 @@ jobs:
       # Tool to wait for a service to be ready
       - name: Install Dockerize
         run: |
-          curl -sSL https://github.com/jwilder/dockerize/releases/download/v0.8.0/dockerize-linux-amd64-v0.8.0.tar.gz | sudo tar -C /usr/local/bin -xzv
+          curl --proto "=https" --proto-redir "=https" --tlsv1.2 -sSLf \
+            https://github.com/jwilder/dockerize/releases/download/v0.8.0/dockerize-linux-amd64-v0.8.0.tar.gz |
+            sudo tar -C /usr/local/bin -xzv
 
       - name: Wait for MinIO to be ready
         run: |
@@ -348,7 +350,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install dependencies
-        run: cd src/frontend/ && npm ci
+        run: cd src/frontend/ && npm ci --ignore-scripts
 
       - name: Check linting
         run: cd src/frontend/ && npm run lint
@@ -368,7 +370,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Check linting
         run: npm run lint
@@ -389,7 +391,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build SDK
         run: npm run build
