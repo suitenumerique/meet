@@ -23,6 +23,10 @@ on:
       - labeled
       - unlabeled
 
+# every job below grants itself what it needs, so a job added without a block
+# gets nothing rather than the repository default
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
