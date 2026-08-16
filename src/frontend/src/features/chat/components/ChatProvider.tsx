@@ -23,7 +23,7 @@ export const ChatProvider = () => {
     resetChatStore()
   }, [])
 
-  // Tigger the message notification (temporary)
+  // Trigger the message notification (temporary)
   useEffect(() => {
     // TEMPORARY: This is a brittle workaround that relies on message count tracking
     // due to recent LiveKit useChat changes breaking the previous implementation

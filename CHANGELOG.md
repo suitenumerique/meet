@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 📝(docs) fix minor typos in comments and docstrings
+
 ## [1.27.0] - 2026-08-14
 
 ### Changed

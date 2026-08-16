@@ -4,7 +4,7 @@
 
 Security is very important to us.
 
-If you have any issue regarding security, please disclose the information responsibly submiting [this form](https://vdp.numerique.gouv.fr/p/Send-a-report?lang=en) and not by creating an issue on the repository. You can also email us at visio@numerique.gouv.fr
+If you have any issue regarding security, please disclose the information responsibly by submitting [this form](https://vdp.numerique.gouv.fr/p/Send-a-report?lang=en) and not by creating an issue on the repository. You can also email us at visio@numerique.gouv.fr
 
 We appreciate your effort to make Visio more secure.
 

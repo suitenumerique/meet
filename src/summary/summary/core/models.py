@@ -26,7 +26,7 @@ class RecordingMetadata(BaseModel):
 
     cloud_storage_url: Url = Field(
         title="Cloud Storage URL",
-        description="The URL of the metadata file for speaker assignement.",
+        description="The URL of the metadata file for speaker assignment.",
     )
     started_at: AwareDatetime = Field(title="Start time of the recording to transcribe")
     ended_at: AwareDatetime = Field(title="End time of the recording to transcribe")
