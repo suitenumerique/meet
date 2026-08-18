@@ -23,9 +23,13 @@ export const TransitCodeGate = ({
 }) => {
   const hash = useHash()
 
-  // Latch the decision on the initial hash: the bootstrap scrubs the
-  // fragment as soon as it starts, and the gate must not flip back to the
-  // fast path while the exchange is still in flight.
+  // Note: the exchange only happens in an embedding context. This check lives
+  // in initializeAccessTokenFromFragment, the single funnel for all bootstrap paths.
+  // The gate still mounts top-level to scrub the fragment, but bootstrap then resolves
+  // immediately without exchanging.
+  //
+  // Latch the decision on the initial hash: bootstrap scrubs it immediately, and the
+  // gate must not switch back to the fast path while the exchange is in flight.
   const [needsExchange] = useState(() => hasTransitCodeInFragment(hash))
 
   if (!needsExchange) {
