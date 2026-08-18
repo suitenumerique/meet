@@ -1,6 +1,9 @@
 import { fetchApi } from '@/api/fetchApi'
 import { setAccessToken } from '@/stores/accessToken'
-import { consumeTransitCodeFromFragment } from '../utils/transitCode'
+import {
+  consumeTransitCodeFromFragment,
+  isEmbedded,
+} from '../utils/transitCode'
 
 type ApiAccessToken = {
   access_token: string
@@ -25,6 +28,11 @@ const runInitialization = async (): Promise<void> => {
   const code = consumeTransitCodeFromFragment()
 
   if (!code) {
+    return
+  }
+
+  if (!isEmbedded()) {
+    console.warn('Transit code ignored outside an embedded context')
     return
   }
 
