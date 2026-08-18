@@ -1,6 +1,19 @@
 const TRANSIT_CODE_FRAGMENT_PARAM = 'transit_code'
 
 /**
+ * Whether the app is rendered inside an embedding context (iframe).
+ *
+ * Comparing window references never throws, even when the parent is
+ * cross-origin. Defaults to false outside a browser environment.
+ */
+export const isEmbedded = (): boolean => {
+  if (typeof window === 'undefined') {
+    return false
+  }
+  return window.self !== window.top
+}
+
+/**
  * Whether a URL fragment carries a transit code. Pure check, does not
  * consume anything.
  */
