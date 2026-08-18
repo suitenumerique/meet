@@ -379,6 +379,42 @@ def test_request_entry_accepted_participant(
 
 
 @mock.patch("core.utils.generate_livekit_config")
+def test_request_entry_accepted_participant_username_is_bound(
+    mock_generate_config, lobby_service, participant_id, settings
+):
+    """An accepted identifier must join under the username the host accepted.
+
+    The participant identifier is a bearer value: a stolen or replayed
+    identifier must not be able to enter the room under a different
+    display name than the one the acceptance decision was made on.
+    """
+    settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
+    user = AnonymousUser()
+
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+
+    cache.set(
+        f"mocked-cache-prefix_{room.id}_{participant_id}",
+        {
+            "id": participant_id,
+            "username": "accepted-name",
+            "status": "accepted",
+            "color": "#123456",
+        },
+    )
+
+    mock_generate_config.return_value = {"token": "test-token"}
+
+    participant, livekit_config = lobby_service.request_entry(
+        room, user, "spoofed-name", participant_id=participant_id
+    )
+
+    assert participant.status == LobbyParticipantStatus.ACCEPTED
+    assert livekit_config == {"token": "test-token"}
+    assert mock_generate_config.call_args.kwargs["username"] == "accepted-name"
+
+
+@mock.patch("core.utils.generate_livekit_config")
 def test_request_entry_participant_with_role(
     mock_generate_config, lobby_service, participant_id, username, settings
 ):

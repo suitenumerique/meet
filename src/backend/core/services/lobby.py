@@ -150,7 +150,7 @@ class LobbyService:
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
                 user=user,
-                username=username,
+                username=participant.username,
                 color=participant.color,
                 configuration=room.configuration,
                 participant_id=participant.id,
@@ -171,7 +171,7 @@ class LobbyService:
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
                 user=user,
-                username=username,
+                username=participant.username,
                 color=participant.color,
                 configuration=room.configuration,
                 participant_id=participant.id,
