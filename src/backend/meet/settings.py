@@ -1058,6 +1058,11 @@ class Base(Configuration):
         environ_name="USER_ACCESS_TOKEN_TYPE",
         environ_prefix=None,
     )
+    USER_ACCESS_TOKEN_TYPE_CLAIM = values.Value(
+        "user_token",
+        environ_name="USER_ACCESS_TOKEN_TYPE_CLAIM",
+        environ_prefix=None,
+    )
     # Warning: EXTERNAL_API_ALLOW_PUBLIC_ACCESS is ignored when
     # EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public.
     EXTERNAL_API_ALLOW_PUBLIC_ACCESS = values.BooleanValue(
