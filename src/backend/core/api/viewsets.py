@@ -248,6 +248,8 @@ class RoomViewSet(
     API endpoints to access and perform actions on rooms.
     """
 
+    # pylint: disable=too-many-public-methods
+
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
@@ -390,6 +392,49 @@ class RoomViewSet(
                 "Failed to sync metadata to LiveKit for room %s",
                 room.id,
             )
+
+    @decorators.action(
+        detail=True,
+        methods=["get"],
+        url_path="participants-count",
+        url_name="participants-count",
+        permission_classes=[],
+        throttle_classes=[
+            throttling.ParticipantsCountUserRateThrottle,
+            throttling.ParticipantsCountAnonRateThrottle,
+        ],
+    )
+    def participants_count(self, request, pk=None):  # pylint: disable=unused-argument
+        """Return how many people are currently in the room's meeting.
+
+        Open to anonymous users, and only to the ones the room would let in
+        without approval: someone the retrieve endpoint already hands a token to
+        learns nothing here they could not learn by joining, which is the point.
+        Everyone else gets the same answer as a room that does not exist.
+        """
+
+        try:
+            room = self.get_object()
+        except Http404:
+            if not settings.ALLOW_UNREGISTERED_ROOMS:
+                raise
+            # An unregistered room is public and named after its slug in
+            # LiveKit, exactly as the token the retrieve endpoint mints for it.
+            livekit_room = slugify(self.kwargs["pk"])
+        else:
+            if not room.is_joinable_by(request.user):
+                raise Http404
+            livekit_room = str(room.id)
+
+        try:
+            count = RoomManagement().get_participants_count(livekit_room)
+        except RoomManagementException:
+            return drf_response.Response(
+                {"detail": "Could not reach the meeting."},
+                status=drf_status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return drf_response.Response({"count": count})
 
     @decorators.action(
         detail=True,

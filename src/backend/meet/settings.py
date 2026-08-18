@@ -359,6 +359,11 @@ class Base(Configuration):
                 environ_name="CONNECTION_TEST_THROTTLE_RATES",
                 environ_prefix=None,
             ),
+            "participants_count": values.Value(
+                default="60/minute",
+                environ_name="PARTICIPANTS_COUNT_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
         },
     }
     MONITORED_THROTTLE_FAILURE_CALLBACK = (

@@ -87,6 +87,18 @@ class RoomKitJoinRateThrottle(MonitoredUserRateThrottle):
     scope = "roomkit_join"
 
 
+class ParticipantsCountUserRateThrottle(MonitoredUserRateThrottle):
+    """Throttle authenticated users polling a room's participants count."""
+
+    scope = "participants_count"
+
+
+class ParticipantsCountAnonRateThrottle(MonitoredAnonRateThrottle):
+    """Throttle anonymous users polling a room's participants count."""
+
+    scope = "participants_count"
+
+
 class ConnectionTestUserRateThrottle(MonitoredUserRateThrottle):
     """Throttle authenticated users requesting connection test tokens."""
 

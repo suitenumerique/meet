@@ -6,6 +6,7 @@ import json
 from logging import getLogger
 from typing import Dict, Optional
 
+import aiohttp
 from asgiref.sync import async_to_sync
 from livekit.api import (
     DeleteRoomRequest,
@@ -89,6 +90,41 @@ class RoomManagement:
 
         finally:
             await lkapi.aclose()
+
+    @async_to_sync
+    async def get_participants_count(self, room_name: str) -> int:
+        """Count the people currently in a LiveKit room.
+
+        LiveKit creates a room when its first participant joins, so a name it
+        does not know has nobody in it. Its count leaves out agents and
+        recorders, which is what makes it the number to show a human.
+
+        Raises:
+            RoomManagementException: the count could not be read.
+        """
+
+        lkapi = utils.create_livekit_client()
+
+        try:
+            response = await lkapi.room.list_rooms(ListRoomsRequest(names=[room_name]))
+
+        # A LiveKit outage would otherwise surface as a 500 on every poll of the
+        # join screen, so the connection error is turned into the same failure
+        # as a refusal.
+        except (TwirpError, aiohttp.ClientError) as e:
+            logger.exception(
+                "Unexpected error counting participants in room %s",
+                room_name,
+            )
+            raise RoomManagementException("Could not count participants") from e
+
+        finally:
+            await lkapi.aclose()
+
+        if not response.rooms:
+            return 0
+
+        return response.rooms[0].num_participants
 
     @async_to_sync
     async def delete_room(self, room_name: str):

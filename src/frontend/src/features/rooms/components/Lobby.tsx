@@ -18,6 +18,7 @@ import { fetchRoom } from '../api/fetchRoom'
 import { ApiAccessLevel } from '../api/ApiRoom'
 import { ApiLobbyStatus, type ApiRequestEntry } from '../api/requestEntry'
 import { useLobby } from '../hooks/useLobby'
+import { JoinParticipantsCount } from './JoinParticipantsCount'
 
 export const Lobby = ({
   roomId,
@@ -143,6 +144,7 @@ export const Lobby = ({
             <H lvl={1} margin="sm" centered>
               {t('heading')}
             </H>
+            <JoinParticipantsCount roomId={roomId} />
             {(!isLoggedIn ||
               configData?.authenticated_users_can_edit_display_name) && (
               <Field

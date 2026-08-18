@@ -3,6 +3,7 @@ export const keys = {
   room: 'room',
   config: 'config',
   requestEntry: 'requestEntry',
+  participantsCount: 'participantsCount',
   waitingParticipants: 'waitingParticipants',
   roomCreationCallback: 'roomCreationCallback',
   files: 'files',

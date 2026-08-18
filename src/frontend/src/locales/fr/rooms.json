@@ -62,6 +62,11 @@
     "toggleOn": "Cliquez pour activer",
     "usernameHint": "Affiché aux autres participants",
     "usernameLabel": "Votre nom",
+    "participants": {
+      "empty": "Personne n'a encore rejoint",
+      "count_one": "{{count}} personne est déjà là",
+      "count_other": "{{count}} personnes sont déjà là"
+    },
     "errors": {
       "usernameEmpty": "Votre nom ne peut pas être vide"
     },
