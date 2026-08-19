@@ -24,7 +24,10 @@ export function useRaisedHandPosition({ participant }: useRaisedHandProps) {
   })
 
   const remoteParticipants = useRemoteParticipants({
-    updateOnlyOn: [RoomEvent.ParticipantAttributesChanged],
+    updateOnlyOn: [
+      RoomEvent.ParticipantAttributesChanged,
+      RoomEvent.ParticipantDisconnected,
+    ],
   })
 
   const raisedHands = useMemo(() => {

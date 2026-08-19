@@ -14,6 +14,7 @@ and this project adheres to
 
 ### Fixed
 
+- 🐛(frontend) clear raised hand position when participant disconnects
 - 📝(docs) fix minor typos in comments and docstrings
 - ⬆️(backend) bump sqlparse from 0.5.5 to 0.6.0
 
