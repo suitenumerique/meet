@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ✨(backend) accept form-urlencoded on the user token endpoint
+- ⬆️(frontend) upgrade i18next and react-i18next patch versions
 
 ### Fixed
 
