@@ -5,6 +5,7 @@ Tests for external API /token endpoint
 # pylint: disable=W0621
 
 from unittest import mock
+from urllib.parse import urlencode
 
 import jwt
 import pytest
@@ -86,6 +87,155 @@ def test_api_applications_generate_token_success(settings):
         "expires_in": settings.APPLICATION_JWT_EXPIRATION_SECONDS,
         "scope": "rooms:list rooms:create",
     }
+
+
+def test_api_applications_generate_token_form_urlencoded(settings):
+    """The token endpoint should accept "application/x-www-form-urlencoded"
+    requests, as mandated by RFC 6749 (sections 3.2 and 4.4.2) for OAuth 2.0
+    token endpoints, so that standard OAuth 2.0 client libraries work
+    out of the box."""
+    UserFactory(email="user@example.com")
+    application = ApplicationFactory(
+        is_active=True,
+        scopes=[ApplicationScope.ROOMS_LIST, ApplicationScope.ROOMS_CREATE],
+    )
+
+    plain_secret = "test-secret-123"
+    application.client_secret = plain_secret
+    application.save()
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        (
+            f"client_id={application.client_id}"
+            f"&client_secret={plain_secret}"
+            "&grant_type=client_credentials"
+            "&scope=user%40example.com"
+        ),
+        content_type="application/x-www-form-urlencoded",
+    )
+
+    assert response.status_code == 200
+    assert "access_token" in response.data
+
+    response.data.pop("access_token")
+
+    assert response.data == {
+        "token_type": "Bearer",
+        "expires_in": settings.APPLICATION_JWT_EXPIRATION_SECONDS,
+        "scope": "rooms:list rooms:create",
+    }
+
+
+def test_api_applications_generate_token_form_urlencoded_invalid_credentials():
+    """Invalid credentials sent as form-urlencoded should be parsed and
+    rejected with 401, proving the request body is properly decoded."""
+    user = UserFactory(email="user@example.com")
+    application = ApplicationFactory(is_active=True)
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        urlencode(
+            {
+                "client_id": application.client_id,
+                "client_secret": "wrong-secret",
+                "grant_type": "client_credentials",
+                "scope": user.email,
+            }
+        ),
+        content_type="application/x-www-form-urlencoded",
+    )
+
+    assert response.status_code == 401
+    assert "Invalid credentials" in str(response.data)
+
+
+def test_api_applications_generate_token_form_urlencoded_missing_fields():
+    """Missing required fields in a form-urlencoded request should return
+    a 400 validation error, like for JSON requests."""
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        urlencode({"grant_type": "client_credentials"}),
+        content_type="application/x-www-form-urlencoded",
+    )
+
+    assert response.status_code == 400
+    for field in ("client_id", "client_secret", "scope"):
+        assert field in response.data
+
+
+def test_api_applications_generate_token_form_urlencoded_invalid_grant_type():
+    """An unsupported grant_type sent as form-urlencoded should return 400."""
+    user = UserFactory(email="user@example.com")
+    application = ApplicationFactory(is_active=True)
+
+    plain_secret = "test-secret-123"
+    application.client_secret = plain_secret
+    application.save()
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        urlencode(
+            {
+                "client_id": application.client_id,
+                "client_secret": plain_secret,
+                "grant_type": "authorization_code",
+                "scope": user.email,
+            }
+        ),
+        content_type="application/x-www-form-urlencoded",
+    )
+
+    assert response.status_code == 400
+    assert "grant_type" in response.data
+
+
+def test_api_applications_generate_token_form_urlencoded_special_characters():
+    """Percent-encoded reserved characters ("&", "=", "+", "%") in the
+    client_secret should survive form-urlencoded decoding."""
+    UserFactory(email="user@example.com")
+    application = ApplicationFactory(
+        is_active=True,
+        scopes=[ApplicationScope.ROOMS_LIST],
+    )
+
+    plain_secret = "s3cr3t&with=special+chars%42"
+    application.client_secret = plain_secret
+    application.save()
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        urlencode(
+            {
+                "client_id": application.client_id,
+                "client_secret": plain_secret,
+                "grant_type": "client_credentials",
+                "scope": "user@example.com",
+            }
+        ),
+        content_type="application/x-www-form-urlencoded",
+    )
+
+    assert response.status_code == 200
+    assert "access_token" in response.data
+
+
+def test_api_applications_generate_token_unsupported_media_type():
+    """Content types other than JSON and form-urlencoded should still be
+    rejected with 415 Unsupported Media Type."""
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        "client_id=x&client_secret=y&grant_type=client_credentials&scope=a@b.co",
+        content_type="text/plain",
+    )
+
+    assert response.status_code == 415
 
 
 def test_api_applications_generate_token_invalid_client_id():

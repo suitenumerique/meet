@@ -13,6 +13,9 @@ from rest_framework import (
     exceptions as drf_exceptions,
 )
 from rest_framework import (
+    parsers as drf_parsers,
+)
+from rest_framework import (
     response as drf_response,
 )
 from rest_framework import (
@@ -41,6 +44,7 @@ class ApplicationViewSet(viewsets.ViewSet):
         methods=["post"],
         url_path="token",
         url_name="token",
+        parser_classes=[drf_parsers.FormParser, drf_parsers.JSONParser],
     )
     @FeatureFlag.require("application")
     def generate_jwt_access_token(self, request, *args, **kwargs):
