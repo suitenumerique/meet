@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ✨(backend) accept form-urlencoded on the user token endpoint
+
 ### Fixed
 
 - 📝(docs) fix minor typos in comments and docstrings
