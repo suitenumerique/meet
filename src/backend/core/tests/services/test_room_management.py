@@ -113,8 +113,9 @@ def test_get_participants_count_raises_management_exception(
     mock_api.room.list_rooms = mock.AsyncMock(side_effect=error)
     mock_api.aclose = mock.AsyncMock()
     mock_create_livekit_client.return_value = mock_api
+    service = RoomManagement()
 
     with pytest.raises(RoomManagementException):
-        RoomManagement().get_participants_count("room-abc")
+        service.get_participants_count("room-abc")
 
     mock_api.aclose.assert_awaited_once()
