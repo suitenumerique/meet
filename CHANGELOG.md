@@ -20,6 +20,7 @@ and this project adheres to
 
 - 📝(docs) fix minor typos in comments and docstrings
 - ⬆️(backend) bump sqlparse from 0.5.5 to 0.6.0
+- 🩹(frontend) stop declaring @mediapipe as a direct dependency
 
 ## [1.27.0] - 2026-08-14
 
