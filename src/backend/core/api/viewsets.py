@@ -1,7 +1,6 @@
 """API endpoints"""
 # pylint: disable=too-many-lines
 
-import uuid
 from datetime import timedelta
 from logging import getLogger
 from urllib.parse import unquote, urlparse
@@ -115,25 +114,18 @@ from .feature_flag import FeatureFlag
 logger = getLogger(__name__)
 
 
-def is_room_id(value):
-    """Whether this string is the id of a room rather than a name for one."""
-    try:
-        uuid.UUID(value)
-    except ValueError:
-        return False
-    return True
-
-
 def unregistered_room_name(pk):
-    """The LiveKit room an unregistered room meets in, named after its slug.
+    """The name a meeting gets when the database knows no room by it.
 
-    A registered room meets under its id, so a slug reading like one is refused:
-    "_<id>" is not a UUID and matches no slug, and would otherwise land the
-    caller in that room's meeting without ever meeting its access level.
+    Anyone may type a name and meet under it, so this path lets everyone in and
+    has nothing to check: the meeting has no owner and no access level. That
+    holds for a name nobody owns, and breaks for one reading like a room id,
+    since a room in the database meets under its id. Room.clean_fields holds
+    room names to the same rule when they are created.
     """
     slug = slugify(pk)
 
-    if not slug or is_room_id(slug):
+    if not slug or utils.is_room_id(slug):
         raise Http404
 
     return slug
@@ -285,9 +277,14 @@ class RoomViewSet(
     serializer_class = serializers.RoomSerializer
 
     def get_object(self):
-        """Allow getting a room by its slug."""
+        """Allow getting a room by its slug.
+
+        The same predicate decides here and on the unregistered path what reads
+        as an id, so a name cannot miss this lookup and then be handed to
+        LiveKit as one.
+        """
         pk = self.kwargs["pk"]
-        filter_kwargs = {"pk": pk} if is_room_id(pk) else {"slug": slugify(pk)}
+        filter_kwargs = {"pk": pk} if utils.is_room_id(pk) else {"slug": slugify(pk)}
         queryset = self.filter_queryset(self.get_queryset())
         obj = get_object_or_404(queryset, **filter_kwargs)
         # May raise a permission denied
@@ -445,7 +442,7 @@ class RoomViewSet(
             # LiveKit, exactly as the token the retrieve endpoint mints for it.
             livekit_room = unregistered_room_name(self.kwargs["pk"])
         else:
-            if not room.is_joinable_by(request.user, room.get_role(request.user)):
+            if not room.is_joinable_by(request.user):
                 raise Http404
             livekit_room = str(room.id)
 

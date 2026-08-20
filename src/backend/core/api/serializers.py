@@ -185,9 +185,7 @@ class RoomSerializer(serializers.ModelSerializer):
             )
             output["accesses"] = access_serializer.data
 
-        should_access_room = instance.is_joinable_by(request.user, role)
-
-        if should_access_room:
+        if instance.is_joinable_by(request.user, role):
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
             output["livekit"] = utils.generate_livekit_config(

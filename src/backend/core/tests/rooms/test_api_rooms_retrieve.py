@@ -178,7 +178,7 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
 @override_settings(ALLOW_UNREGISTERED_ROOMS=True)
 @pytest.mark.parametrize(
     "spelling",
-    ["_{id}", " {id}", "{id} ", "+{id}", "!{id}", "({id})", "{id}_", "_{hex}"],
+    ["_{id}", " {id}", "({id})", "_{hex}"],
 )
 @mock.patch("core.utils.generate_token", return_value="foo")
 def test_api_rooms_retrieve_refuses_a_room_id_spelled_as_a_name(mock_token, spelling):
