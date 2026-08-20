@@ -15,6 +15,7 @@ and this project adheres to
 ### Fixed
 
 - 📝(docs) fix minor typos in comments and docstrings
+- 🔒️(backend) refuse an unregistered room named after a registered one
 
 ## [1.27.0] - 2026-08-14
 

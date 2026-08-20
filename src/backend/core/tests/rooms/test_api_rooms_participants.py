@@ -159,6 +159,35 @@ def test_participants_unregistered_room(mock_livekit_client):
     assert request.room == "tst-room-dev"
 
 
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+@pytest.mark.parametrize(
+    "spelling",
+    ["_{id}", " {id}", "{id} ", "+{id}", "!{id}", "({id})", "{id}_", "_{hex}"],
+)
+def test_participants_refuses_a_room_id_spelled_as_a_name(mock_livekit_client, spelling):
+    """A room meets in LiveKit under its id, and no spelling of that id gets in.
+
+    Each of these misses the id lookup and the slug lookup, so it lands on the
+    unregistered path, where the name it carries would be the private room's own.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    pk = spelling.format(id=str(room.id), hex=room.id.hex)
+
+    response = APIClient().get(f"/api/v1.0/rooms/{pk}/participants/")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+def test_participants_refuses_a_name_that_slugifies_to_nothing(mock_livekit_client):
+    """A name with nothing url-safe in it is no room, rather than every room."""
+    response = APIClient().get(reverse("rooms-participants", kwargs={"pk": "___"}))
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
 @override_settings(ALLOW_UNREGISTERED_ROOMS=False)
 def test_participants_unregistered_room_disabled(mock_livekit_client):
     """With unregistered rooms off, an unknown room stays unknown."""

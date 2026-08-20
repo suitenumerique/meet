@@ -115,6 +115,30 @@ from .feature_flag import FeatureFlag
 logger = getLogger(__name__)
 
 
+def is_room_id(value):
+    """Whether this string is the id of a room rather than a name for one."""
+    try:
+        uuid.UUID(value)
+    except ValueError:
+        return False
+    return True
+
+
+def unregistered_room_name(pk):
+    """The LiveKit room an unregistered room meets in, named after its slug.
+
+    A registered room meets under its id, so a slug reading like one is refused:
+    "_<id>" is not a UUID and matches no slug, and would otherwise land the
+    caller in that room's meeting without ever meeting its access level.
+    """
+    slug = slugify(pk)
+
+    if not slug or is_room_id(slug):
+        raise Http404
+
+    return slug
+
+
 class NestedGenericViewSet(viewsets.GenericViewSet):
     """
     A generic Viewset aims to be used in a nested route context.
@@ -262,11 +286,8 @@ class RoomViewSet(
 
     def get_object(self):
         """Allow getting a room by its slug."""
-        try:
-            uuid.UUID(self.kwargs["pk"])
-            filter_kwargs = {"pk": self.kwargs["pk"]}
-        except ValueError:
-            filter_kwargs = {"slug": slugify(self.kwargs["pk"])}
+        pk = self.kwargs["pk"]
+        filter_kwargs = {"pk": pk} if is_room_id(pk) else {"slug": slugify(pk)}
         queryset = self.filter_queryset(self.get_queryset())
         obj = get_object_or_404(queryset, **filter_kwargs)
         # May raise a permission denied
@@ -283,7 +304,7 @@ class RoomViewSet(
         except Http404:
             if not settings.ALLOW_UNREGISTERED_ROOMS:
                 raise
-            slug = slugify(self.kwargs["pk"])
+            slug = unregistered_room_name(self.kwargs["pk"])
             username = request.query_params.get("username", None)
             data = {
                 "id": None,
@@ -422,7 +443,7 @@ class RoomViewSet(
                 raise
             # An unregistered room is public and named after its slug in
             # LiveKit, exactly as the token the retrieve endpoint mints for it.
-            livekit_room = slugify(self.kwargs["pk"])
+            livekit_room = unregistered_room_name(self.kwargs["pk"])
         else:
             if not room.is_joinable_by(request.user, room.get_role(request.user)):
                 raise Http404

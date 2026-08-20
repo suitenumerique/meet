@@ -175,6 +175,26 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
     )
 
 
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+@pytest.mark.parametrize(
+    "spelling",
+    ["_{id}", " {id}", "{id} ", "+{id}", "!{id}", "({id})", "{id}_", "_{hex}"],
+)
+@mock.patch("core.utils.generate_token", return_value="foo")
+def test_api_rooms_retrieve_refuses_a_room_id_spelled_as_a_name(mock_token, spelling):
+    """
+    Retrieving a room under a name that reads as a registered room's id should
+    return a 404, and never a token for that room's meeting.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    pk = spelling.format(id=str(room.id), hex=room.id.hex)
+
+    response = APIClient().get(f"/api/v1.0/rooms/{pk}/")
+
+    assert response.status_code == 404
+    mock_token.assert_not_called()
+
+
 @override_settings(ALLOW_UNREGISTERED_ROOMS=False)
 def test_api_rooms_retrieve_anonymous_unregistered_not_allowed():
     """
