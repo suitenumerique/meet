@@ -21,6 +21,7 @@ and this project adheres to
 - 📝(docs) fix minor typos in comments and docstrings
 - ⬆️(backend) bump sqlparse from 0.5.5 to 0.6.0
 - ⬆️(mail) bump @html-to/text-cli from 0.6.0 to 0.6.1
+- 🐛(frontend) treat client-initiated connect aborts as events
 
 ## [1.27.0] - 2026-08-14
 
