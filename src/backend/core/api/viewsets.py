@@ -252,8 +252,9 @@ class RoomViewSet(
 
     # pylint: disable=too-many-public-methods
 
-    # DRF refuses an @action keyword the class does not declare, and the
-    # participants action sets its own scope through the decorator.
+    # Every extra keyword on @action is handed to as_view(), which rejects any
+    # the class does not already carry. The participants action passes
+    # throttle_scope, so it is declared here and set there.
     throttle_scope = None
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]

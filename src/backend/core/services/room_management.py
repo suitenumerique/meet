@@ -26,12 +26,11 @@ logger = getLogger(__name__)
 
 
 def _is_machine(participant: ParticipantInfo) -> bool:
-    """Check whether a participant is a recorder or an agent rather than a person.
+    """Whether this participant is a bot or a recorder rather than a person.
 
-    The three clauses mirror LiveKit's own IsDependent, which is what decides
-    whether a participant counts toward the total it reports for a room. The
-    grants are checked as well as the kind because an egress worker can carry
-    the grant without the kind.
+    A recorder connects to the room the way a browser does, so LiveKit lists it
+    beside the people and the join screen would count it as one. The three fields
+    below are the ones LiveKit's own IsDependent reads for the same decision.
     """
     return (
         participant.kind in (ParticipantInfo.Kind.AGENT, ParticipantInfo.Kind.EGRESS)

@@ -107,11 +107,6 @@ class LobbyService:
     def can_bypass_lobby(room, user, role) -> bool:
         """Determines if a user can bypass the waiting lobby and join a room directly.
 
-        A user can bypass the lobby if:
-        1. The room is public (open to everyone)
-        2. The room has TRUSTED access level and the user is authenticated
-        2. The room has RESTRICTED access level and the user has any role
-
         The rule itself is Room.is_joinable_by, so the room API and the lobby
         cannot answer it differently.
 
