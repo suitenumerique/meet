@@ -41,9 +41,9 @@ export const JoinParticipants = memo(({ roomId }: { roomId: string }) => {
         <Text as="span" variant="note" centered margin="sm">
           {/* Intl joins the names in the reader's own language, so the word
             before the last one is never translated here. */}
-        {new Intl.ListFormat(i18n.language, { type: 'conjunction' }).format(
-          notShown > 0 ? [...names, t('more', { count: notShown })] : names
-        )}
+          {new Intl.ListFormat(i18n.language, { type: 'conjunction' }).format(
+            notShown > 0 ? [...names, t('more', { count: notShown })] : names
+          )}
         </Text>
       )}
     </output>
