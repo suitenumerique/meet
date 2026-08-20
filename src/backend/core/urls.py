@@ -60,6 +60,13 @@ urlpatterns = [
             ]
         ),
     ),
+    # The request is handled by RecordingViewSet.media_download which validates
+    # access rights and streams the recording file directly from MinIO to the browser.
+    path(
+        "media/recordings/<uuid:recording_id>.<slug:extension>",
+        viewsets.RecordingViewSet.as_view({"get": "media_download"}),
+        name="recording_media_download",
+    ),
 ]
 
 if settings.EXTERNAL_API_ENABLED:
