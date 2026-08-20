@@ -83,6 +83,7 @@ class Settings(BaseSettings):
     aws_s3_access_key_id: str
     aws_s3_secret_access_key: SecretStr
     aws_s3_secure_access: bool = True
+    aws_S3_region_name: str | None = None
     aws_transcript_path: str = "transcripts"
     aws_summary_path: str = "summaries"
 
