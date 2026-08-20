@@ -211,7 +211,7 @@ export const Admin = () => {
               paddingBottom: '1rem',
             }),
           }}
-          value={accessLevel}
+          value={accessLevelEnforced ? null : accessLevel}
           onChange={(value) =>
             patchRoom({
               roomId,
@@ -230,7 +230,9 @@ export const Admin = () => {
             })}
             margin={'md'}
           >
-            {t('access.enforced')}
+            {t('access.enforced', {
+              level: t(`access.levels.${accessLevel}.label`),
+            })}
           </Text>
         )}
       </div>

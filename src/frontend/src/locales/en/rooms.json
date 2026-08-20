@@ -586,7 +586,7 @@
       "title": "Room access",
       "description": "These settings will also apply to future occurrences of this meeting.",
       "type": "Meeting access types",
-      "enforced": "The access type saved for this meeting is no longer allowed on this instance. It runs at the one selected here until you choose a new one.",
+      "enforced": "This access type is no longer allowed. The meeting runs as {{level}} until you choose a new one.",
       "levels": {
         "public": {
           "label": "Open",
