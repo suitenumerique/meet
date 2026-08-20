@@ -18,6 +18,10 @@
     "auto": "Sie haben an einer großen Besprechung teilgenommen. Ihr Mikrofon wurde automatisch stummgeschaltet.",
     "dismiss": "Stummschaltung aufheben"
   },
+  "cpuConstrained": {
+    "message": "Ihr Gerät ist stark ausgelastet. Die Videoqualität wurde reduziert, um das Gespräch flüssig zu halten.",
+    "keepQuality": "Ursprüngliche Qualität beibehalten"
+  },
   "reaction": {
     "description": "{{name}} hat mit {{emoji}} reagiert"
   },

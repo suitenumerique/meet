@@ -15,6 +15,15 @@ export const notifyAutoMutedOnJoin = () => {
   )
 }
 
+export const notifyCpuConstrained = () => {
+  toastQueue.add(
+    {
+      type: NotificationType.CpuConstrained,
+    },
+    { timeout: NotificationDuration.CPU_CONSTRAINED }
+  )
+}
+
 export const showLowerHandToast = (
   participant: Participant,
   onClose: () => void

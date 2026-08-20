@@ -70,6 +70,11 @@
         }
       }
     },
+    "performance": {
+      "heading": "Performances",
+      "label": "Privilégier les performances",
+      "description": "Réduit la qualité de vos vidéos pour soulager votre appareil. S’active automatiquement en cas de surcharge. Désactivez-la pour retrouver la qualité maximale."
+    },
     "permissionsRequired": "Autorisations nécessaires"
   },
   "transcription": {

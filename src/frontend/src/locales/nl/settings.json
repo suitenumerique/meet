@@ -70,6 +70,11 @@
         }
       }
     },
+    "performance": {
+      "heading": "Prestaties",
+      "label": "Prestaties prioriteren",
+      "description": "Vermindert de kwaliteit van je video's om je apparaat te ontlasten. Wordt automatisch geactiveerd bij overbelasting. Schakel het uit om de maximale kwaliteit te herstellen."
+    },
     "permissionsRequired": "Machtigingen vereist"
   },
   "transcription": {

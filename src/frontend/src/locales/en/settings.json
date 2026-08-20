@@ -70,6 +70,11 @@
         }
       }
     },
+    "performance": {
+      "heading": "Performance",
+      "label": "Prioritize performance",
+      "description": "Reduces the quality of your videos to take the strain off your device. Automatically activates in case of overload. Disable it to restore maximum quality."
+    },
     "permissionsRequired": "Permissions required"
   },
   "transcription": {

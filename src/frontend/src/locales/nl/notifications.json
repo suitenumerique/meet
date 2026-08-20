@@ -18,6 +18,10 @@
     "auto": "U bent zojuist lid geworden van een grote vergadering. Uw microfoon is automatisch gedempt.",
     "dismiss": "Microfoon inschakelen"
   },
+  "cpuConstrained": {
+    "message": "Uw apparaat is zwaar belast. De videokwaliteit is verlaagd om het gesprek soepel te laten verlopen.",
+    "keepQuality": "Oorspronkelijke kwaliteit behouden"
+  },
   "reaction": {
     "description": "{{name}} reageerde met {{emoji}}"
   },
