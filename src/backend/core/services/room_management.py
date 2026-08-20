@@ -115,8 +115,8 @@ class RoomManagement:
     async def get_participants(self, room_name: str) -> dict:
         """Count the people in a LiveKit room and name the ones who gave a name.
 
-        The count and the names can differ: someone who joined without a display
-        name is one of the people in the room and is named by nobody.
+        The two can differ: someone who joined without a display name is
+        counted but not named.
 
         Raises:
             RoomManagementException: the room could not be read.
@@ -125,12 +125,9 @@ class RoomManagement:
         lkapi = utils.create_livekit_client()
 
         try:
-            # The join screen reaches this without anyone clicking anything, and
-            # the deployment runs three synchronous workers, so a LiveKit that
-            # accepts the connection and then says nothing must not hold one.
-            # The clock has to be here: the SDK passes timeout=None to aiohttp
-            # on every call, which overrides whatever the session was given and
-            # leaves the request with no timeout at all.
+            # The timeout has to wrap the call: the SDK passes timeout=None to
+            # aiohttp, so the client's own is ignored and a LiveKit that goes
+            # quiet holds one of the three workers until it answers.
             async with asyncio.timeout(settings.ROOM_PARTICIPANTS_TIMEOUT_SECONDS):
                 response = await lkapi.room.list_participants(
                     ListParticipantsRequest(room=room_name)
