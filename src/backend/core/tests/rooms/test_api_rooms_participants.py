@@ -12,13 +12,13 @@ from django.test.utils import override_settings
 from django.urls import reverse
 
 import pytest
+from lasuite.drf.throttling import MonitoredScopedRateThrottle
 from livekit.api import TwirpError
 from livekit.protocol.models import ParticipantInfo
 from livekit.protocol.room import ListParticipantsResponse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.api.throttling import ParticipantsUserRateThrottle
 from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
 from core.models import RoomAccessLevel
 
@@ -187,14 +187,20 @@ def test_participants_livekit_unreachable(mock_livekit_client):
     assert mock_livekit_client.room.list_participants.call_count == 1
 
 
-def test_participants_anonymous_request_is_counted_once():
-    """An anonymous poll must not spend two of its own allowance.
+def test_participants_is_throttled_under_its_own_scope(mock_livekit_client):
+    """A scoped throttle whose scope never reaches the view allows everything.
 
-    Both throttles share a scope, and UserRateThrottle falls back to the IP
-    address, so without the guard it builds the very key the anonymous throttle
-    uses and every request counts twice.
+    One class rather than an authenticated and an anonymous pair, so a request
+    cannot build the same key twice and spend two of its own allowance.
     """
-    request = mock.Mock()
-    request.user.is_authenticated = False
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    url = reverse("rooms-participants", kwargs={"pk": room.id})
 
-    assert ParticipantsUserRateThrottle().get_cache_key(request, view=None) is None
+    with mock.patch.object(
+        MonitoredScopedRateThrottle, "get_rate", return_value="1/minute"
+    ):
+        first = APIClient().get(url)
+        second = APIClient().get(url)
+
+    assert first.status_code == status.HTTP_200_OK
+    assert second.status_code == status.HTTP_429_TOO_MANY_REQUESTS

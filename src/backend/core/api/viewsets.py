@@ -20,6 +20,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from django_filters import rest_framework as django_filters
+from lasuite.drf.throttling import MonitoredScopedRateThrottle
 from rest_framework import (
     decorators,
     filters,
@@ -251,6 +252,9 @@ class RoomViewSet(
 
     # pylint: disable=too-many-public-methods
 
+    # DRF refuses an @action keyword the class does not declare, and the
+    # participants action sets its own scope through the decorator.
+    throttle_scope = None
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
@@ -399,18 +403,16 @@ class RoomViewSet(
         methods=["get"],
         url_path="participants",
         url_name="participants",
-        throttle_classes=[
-            throttling.ParticipantsUserRateThrottle,
-            throttling.ParticipantsAnonRateThrottle,
-        ],
+        throttle_classes=[MonitoredScopedRateThrottle],
+        # ScopedRateThrottle reads this off the view. Drop it and every request
+        # is allowed, with nothing to say the endpoint went unthrottled.
+        throttle_scope="participants",
     )
     def participants(self, request, pk=None):  # pylint: disable=unused-argument
         """Return how many people are in the room's meeting, and who they are.
 
-        Open to anonymous users, and only to the ones the room would let in
-        without approval: someone the retrieve endpoint already hands a token to
-        learns nothing here they could not learn by joining, which is the point.
-        Everyone else gets the same answer as a room that does not exist.
+        Only available to users with access to the room, anonymous included.
+        Anyone else gets the same answer as a room that does not exist.
         """
 
         try:
