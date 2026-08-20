@@ -283,6 +283,7 @@ class RoomViewSet(
                 "slug": slug,
                 "is_administrable": False,
                 "access_level": RoomAccessLevel.PUBLIC,
+                "effective_access_level": RoomAccessLevel.PUBLIC,
                 "livekit": {
                     "url": settings.LIVEKIT_CONFIGURATION["url"],
                     "room": slug,
@@ -324,9 +325,12 @@ class RoomViewSet(
         user = self.request.user
         save_kwargs = {}
 
+        # The default is read from the database, so an allow-list narrowed after
+        # it was saved has to drop it here rather than at the serializer.
         if (
             "access_level" not in serializer.validated_data
-            and user.default_room_access_level not in (None, "")
+            and user.default_room_access_level
+            in settings.RESOURCE_ALLOWED_ACCESS_LEVELS
         ):
             save_kwargs["access_level"] = user.default_room_access_level
 
@@ -372,7 +376,7 @@ class RoomViewSet(
 
         metadata = {
             "configuration": room.configuration,
-            "access_level": room.access_level,
+            "access_level": room.effective_access_level,
         }
 
         try:

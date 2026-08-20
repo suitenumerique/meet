@@ -24,6 +24,17 @@ from core import models, utils
 logger = logging.getLogger(__name__)
 
 
+def check_access_level_allowed(access_level):
+    """Raise when the instance does not allow this access level.
+
+    Empty is a user clearing their default, which falls back to the instance one.
+    """
+    if access_level and access_level not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS:
+        raise serializers.ValidationError(
+            _("This access level is not allowed on this instance.")
+        )
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Serialize users."""
 
@@ -42,6 +53,9 @@ class UserSerializer(serializers.ModelSerializer):
             "default_room_configuration",
         ]
         read_only_fields = ["id", "email", "full_name", "short_name"]
+        extra_kwargs = {
+            "default_room_access_level": {"validators": [check_access_level_allowed]}
+        }
 
     def validate_default_room_configuration(self, value):
         """Validate the default room configuration against the RoomConfiguration schema."""
@@ -148,8 +162,17 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
-        read_only_fields = ["id", "slug", "pin_code"]
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "configuration",
+            "access_level",
+            "effective_access_level",
+            "pin_code",
+        ]
+        read_only_fields = ["id", "slug", "effective_access_level", "pin_code"]
+        extra_kwargs = {"access_level": {"validators": [check_access_level_allowed]}}
 
     def validate_configuration(self, value):
         """Validate room configuration against the RoomConfiguration schema."""
@@ -160,14 +183,6 @@ class RoomSerializer(serializers.ModelSerializer):
         except PydanticValidationError as e:
             raise serializers.ValidationError(e.errors()) from e
         return value
-
-    def validate_access_level(self, access_level):
-        """Validate the access level against the instance allow-list."""
-        if access_level not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS:
-            raise serializers.ValidationError(
-                "This access level is not allowed on this instance."
-            )
-        return access_level
 
     def to_representation(self, instance):
         """
@@ -195,7 +210,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
         should_access_room = (
             (
-                instance.access_level == models.RoomAccessLevel.TRUSTED
+                instance.effective_access_level == models.RoomAccessLevel.TRUSTED
                 and request.user.is_authenticated
             )
             or role is not None

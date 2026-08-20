@@ -34,6 +34,20 @@ MB = 1024 * KB
 GB = 1024 * MB
 
 
+def validate_access_level_settings(*, allowed_levels, default_level, external_default):
+    """Check the room access level settings against each other."""
+    if default_level not in allowed_levels:
+        raise ValueError(
+            "RESOURCE_DEFAULT_ACCESS_LEVEL must be one of RESOURCE_ALLOWED_ACCESS_LEVELS"
+        )
+
+    if external_default not in allowed_levels:
+        raise ValueError(
+            "EXTERNAL_API_DEFAULT_ACCESS_LEVEL must be one of "
+            "RESOURCE_ALLOWED_ACCESS_LEVELS"
+        )
+
+
 def get_release():
     """
     Get the current release of the application
@@ -1205,10 +1219,11 @@ class Base(Configuration):
                 stacklevel=2,
             )
 
-        if cls.RESOURCE_DEFAULT_ACCESS_LEVEL not in cls.RESOURCE_ALLOWED_ACCESS_LEVELS:
-            raise ValueError(
-                "RESOURCE_DEFAULT_ACCESS_LEVEL must be one of RESOURCE_ALLOWED_ACCESS_LEVELS"
-            )
+        validate_access_level_settings(
+            allowed_levels=cls.RESOURCE_ALLOWED_ACCESS_LEVELS,
+            default_level=cls.RESOURCE_DEFAULT_ACCESS_LEVEL,
+            external_default=cls.EXTERNAL_API_DEFAULT_ACCESS_LEVEL,
+        )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:

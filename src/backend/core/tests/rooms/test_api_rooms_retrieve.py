@@ -30,6 +30,7 @@ def test_api_rooms_retrieve_anonymous_private_pk():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -49,6 +50,7 @@ def test_api_rooms_retrieve_anonymous_trusted_pk():
     assert response.json() == {
         "configuration": {},
         "access_level": "trusted",
+        "effective_access_level": "trusted",
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -67,6 +69,7 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -83,6 +86,7 @@ def test_api_rooms_retrieve_anonymous_private_slug():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -99,6 +103,7 @@ def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -127,6 +132,7 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
         "id": None,
         "slug": "unregistered-room",
         "access_level": "public",
+        "effective_access_level": "public",
         "is_administrable": False,
         "livekit": {
             "url": "test_url_value",
@@ -162,6 +168,7 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
         "id": None,
         "slug": "reunion",
         "access_level": "public",
+        "effective_access_level": "public",
         "is_administrable": False,
         "livekit": {
             "url": "test_url_value",
@@ -208,6 +215,7 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
     assert response.json() == {
         "configuration": {},
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -254,6 +262,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     assert response.json() == {
         "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -305,6 +314,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
     assert response.json() == {
         "configuration": {},
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -346,6 +356,7 @@ def test_api_rooms_retrieve_authenticated():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -391,6 +402,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
     assert content_dict == {
         "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -486,6 +498,7 @@ def test_api_rooms_retrieve_administrators(
     expected_name = str(room.id)
     assert content_dict == {
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
         "id": str(room.id),
         "configuration": {},
         "livekit": {

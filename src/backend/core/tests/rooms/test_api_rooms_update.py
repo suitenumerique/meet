@@ -465,6 +465,31 @@ def test_api_rooms_update_access_level_not_allowed(mock_update_metadata, setting
     mock_update_metadata.assert_not_called()
 
 
+def test_api_rooms_update_access_level_dropped_is_enforced(settings):
+    """A room the list no longer holds keeps its value and is entered one level stricter."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [RoomAccessLevel.RESTRICTED]
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC,
+        users=[(user, "owner")],
+        configuration={},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"name": "my room"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.json()["access_level"] == RoomAccessLevel.PUBLIC
+    assert response.json()["effective_access_level"] == RoomAccessLevel.RESTRICTED
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
+
+
 @patch.object(RoomManagement, "update_metadata")
 def test_api_rooms_update_access_level_allowed(mock_update_metadata, settings):
     """An access level within RESOURCE_ALLOWED_ACCESS_LEVELS should be accepted."""

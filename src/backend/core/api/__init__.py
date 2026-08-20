@@ -63,12 +63,10 @@ def get_frontend_configuration(request):
         "telephony": build_telephony_config(),
         "resource": {
             "default_access_level": settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
+            "allowed_access_levels": settings.RESOURCE_ALLOWED_ACCESS_LEVELS,
         },
         "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
         "diagnostics": {"connection_test_enabled": settings.CONNECTION_TEST_ENABLED},
-        "room": {
-            "allowed_access_levels": settings.RESOURCE_ALLOWED_ACCESS_LEVELS,
-        },
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "force_wss_protocol": settings.LIVEKIT_FORCE_WSS_PROTOCOL,
