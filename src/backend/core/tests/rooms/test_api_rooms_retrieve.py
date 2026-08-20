@@ -31,6 +31,7 @@ def test_api_rooms_retrieve_anonymous_private_pk():
         "configuration": {},
         "access_level": "restricted",
         "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -51,6 +52,7 @@ def test_api_rooms_retrieve_anonymous_trusted_pk():
         "configuration": {},
         "access_level": "trusted",
         "effective_access_level": "trusted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -70,6 +72,7 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
         "configuration": {},
         "access_level": "restricted",
         "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -87,6 +90,7 @@ def test_api_rooms_retrieve_anonymous_private_slug():
         "configuration": {},
         "access_level": "restricted",
         "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -104,6 +108,7 @@ def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
         "configuration": {},
         "access_level": "restricted",
         "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -133,6 +138,7 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
         "slug": "unregistered-room",
         "access_level": "public",
         "effective_access_level": "public",
+        "access_level_needs_choice": False,
         "is_administrable": False,
         "livekit": {
             "url": "test_url_value",
@@ -169,6 +175,7 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
         "slug": "reunion",
         "access_level": "public",
         "effective_access_level": "public",
+        "access_level_needs_choice": False,
         "is_administrable": False,
         "livekit": {
             "url": "test_url_value",
@@ -216,6 +223,7 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
         "configuration": {},
         "access_level": str(room.access_level),
         "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -263,6 +271,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
         "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -315,6 +324,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
         "configuration": {},
         "access_level": str(room.access_level),
         "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -357,6 +367,7 @@ def test_api_rooms_retrieve_authenticated():
         "configuration": {},
         "access_level": "restricted",
         "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -403,6 +414,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
         "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
         "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -499,6 +511,7 @@ def test_api_rooms_retrieve_administrators(
     assert content_dict == {
         "access_level": str(room.access_level),
         "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "configuration": {},
         "livekit": {

@@ -487,23 +487,36 @@ class Room(Resource):
         super().clean_fields(exclude=exclude)
 
     @property
-    def effective_access_level(self):
-        """The level this room is entered at, which is never looser than the one it holds.
+    def access_level_needs_choice(self):
+        """Whether the instance has stopped allowing the level this room holds.
 
-        An operator narrowing RESOURCE_ALLOWED_ACCESS_LEVELS moves a room the list
-        no longer holds to the next stricter level it does. A room already stricter
-        than every allowed level keeps its own, since nobody gains entry by it.
+        Its owner has to pick a new one: until they do, the room is entered at
+        `effective_access_level`, which is never looser than what it holds.
         """
+        return self.access_level not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS
+
+    @property
+    def effective_access_level(self):
+        """The level this room is entered at, which is never looser than the one it holds."""
         allowed = settings.RESOURCE_ALLOWED_ACCESS_LEVELS
         if self.access_level in allowed:
             return self.access_level
 
-        stricter = ROOM_ACCESS_LEVELS_BY_STRICTNESS[
-            ROOM_ACCESS_LEVELS_BY_STRICTNESS.index(self.access_level) + 1 :
-        ]
-        return next(
-            (level for level in stricter if level in allowed), self.access_level
-        )
+        known = ROOM_ACCESS_LEVELS_BY_STRICTNESS
+        if self.access_level in known:
+            # Ordered least to most strict, so the levels after this room's are
+            # the stricter ones.
+            candidates = known[known.index(self.access_level) + 1 :]
+        else:
+            candidates = list(reversed(known))
+
+        for level in candidates:
+            if level in allowed:
+                return level
+
+        # Nothing stricter is allowed either, so the room keeps what it holds and
+        # `access_level_needs_choice` is what asks its owner to move it.
+        return self.access_level
 
     @property
     def is_public(self):

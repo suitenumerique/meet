@@ -57,10 +57,11 @@ export const Admin = () => {
   // drops the saved one, so the panel shows what the meeting actually runs at.
   const accessLevel =
     readOnlyData?.effective_access_level ?? readOnlyData?.access_level
-  const accessLevelEnforced =
-    !!readOnlyData?.access_level && accessLevel !== readOnlyData.access_level
+  const accessLevelEnforced = readOnlyData?.access_level_needs_choice === true
 
-  const accessLevelItems = useAccessLevelItems(accessLevel)
+  const accessLevelItems = useAccessLevelItems(
+    accessLevelEnforced ? undefined : accessLevel
+  )
 
   return (
     <Div

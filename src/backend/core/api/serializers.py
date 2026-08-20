@@ -169,9 +169,16 @@ class RoomSerializer(serializers.ModelSerializer):
             "configuration",
             "access_level",
             "effective_access_level",
+            "access_level_needs_choice",
             "pin_code",
         ]
-        read_only_fields = ["id", "slug", "effective_access_level", "pin_code"]
+        read_only_fields = [
+            "id",
+            "slug",
+            "effective_access_level",
+            "access_level_needs_choice",
+            "pin_code",
+        ]
         extra_kwargs = {"access_level": {"validators": [check_access_level_allowed]}}
 
     def validate_configuration(self, value):

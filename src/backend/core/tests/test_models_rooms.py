@@ -401,3 +401,33 @@ def test_models_rooms_effective_access_level_never_loosens(settings):
 
     assert room.effective_access_level == RoomAccessLevel.RESTRICTED
     assert room.is_public is False
+    assert room.access_level_needs_choice is True
+
+
+def test_models_rooms_access_level_needs_choice(settings):
+    """The owner is asked to move a room off a level the instance dropped."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [RoomAccessLevel.RESTRICTED]
+
+    assert (
+        RoomFactory(access_level=RoomAccessLevel.RESTRICTED).access_level_needs_choice
+        is False
+    )
+    assert (
+        RoomFactory(access_level=RoomAccessLevel.PUBLIC).access_level_needs_choice
+        is True
+    )
+
+
+def test_models_rooms_effective_access_level_unknown_level(settings):
+    """A level this version does not know falls to the strictest one allowed."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.PUBLIC,
+        RoomAccessLevel.TRUSTED,
+    ]
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    # Straight to the row: save() runs full_clean, which refuses an unknown level.
+    Room.objects.filter(pk=room.pk).update(access_level="legacy")
+    room.refresh_from_db()
+
+    assert room.effective_access_level == RoomAccessLevel.TRUSTED
+    assert room.is_public is False

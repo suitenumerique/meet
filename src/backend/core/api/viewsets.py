@@ -284,6 +284,7 @@ class RoomViewSet(
                 "is_administrable": False,
                 "access_level": RoomAccessLevel.PUBLIC,
                 "effective_access_level": RoomAccessLevel.PUBLIC,
+                "access_level_needs_choice": False,
                 "livekit": {
                     "url": settings.LIVEKIT_CONFIGURATION["url"],
                     "room": slug,
