@@ -25,6 +25,7 @@ from rest_framework import (
 from core import analytics, api, models
 from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
+from core.services.transit_code import TransitCodeService
 
 from ..services.provisional_user_service import (
     ProvisionalUserCreationDisabledError,
@@ -221,4 +222,60 @@ class RoomViewSet(
                 "auth_method": auth_method,
                 "$set": {"email": self.request.user.email},
             },
+        )
+
+
+class UserViewSet(viewsets.GenericViewSet):
+    """Application-delegated API for user operations.
+
+    Provides JWT-authenticated access to user operations for external
+    applications acting on behalf of users. All operations are
+    scope-based. Meant to grow with the other user actions exposed to
+    third parties.
+
+    Supported operations:
+    - transit-code: Mint a single-use transit code for the delegated user
+      (requires 'users:session' scope)
+    """
+
+    authentication_classes = [
+        authentication.ApplicationJWTAuthentication,
+    ]
+    permission_classes = [
+        api.permissions.IsAuthenticated & permissions.HasRequiredUserScope
+    ]
+
+    @decorators.action(
+        detail=False,
+        methods=["post"],
+        url_path="transit-code",
+        url_name="transit-code",
+    )
+    @FeatureFlag.require("user_access_token")
+    def generate_transit_code(self, request):
+        """Mint a transit code for the delegated user.
+
+        Returns a short-lived, single-use opaque code to pass to an embedded
+        frontend (e.g. via a URL fragment when cookies are unavailable). The
+        frontend exchanges it once on
+        POST /api/v1.0/users/exchange-access-token/ for a JWT access token,
+        equivalent to session-cookie authentication and never exposed in a URL.
+        """
+        client_id = (request.auth or {}).get("client_id", "unknown")
+
+        code = TransitCodeService().create_code(request.user, client_id=client_id)
+
+        # Log for auditing
+        logger.info(
+            "Transit code issued: user_id=%s, client_id=%s",
+            request.user.id,
+            client_id,
+        )
+
+        return drf_response.Response(
+            {
+                "transit_code": code,
+                "expires_in": settings.TRANSIT_CODE_TTL,
+            },
+            status=drf_status.HTTP_200_OK,
         )

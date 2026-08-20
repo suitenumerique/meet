@@ -14,9 +14,6 @@ from rest_framework.test import APIClient
 from ... import utils
 from ...factories import RoomFactory, UserFactory
 from ...models import RoomAccessLevel
-from ...services.lobby import (
-    LobbyService,
-)
 
 pytestmark = pytest.mark.django_db
 
@@ -29,7 +26,6 @@ def test_request_entry_anonymous(settings):
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Lobby cache should be empty before the request
@@ -47,11 +43,10 @@ def test_request_entry_anonymous(settings):
 
     assert response.status_code == 200
 
-    # Verify the lobby cookie was properly set
-    cookie = response.cookies.get("mocked-cookie")
-    assert cookie is not None
-
-    participant_id = cookie.value
+    # The participant identifier is returned in the response body; no
+    # cookie is involved anymore
+    assert not response.cookies
+    participant_id = response.json()["id"]
 
     # Verify response content matches expected structure and values
     assert response.json() == {
@@ -78,7 +73,6 @@ def test_request_entry_authenticated_user(settings):
     client = APIClient()
     client.force_login(user)
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Lobby cache should be empty before the request
@@ -96,11 +90,10 @@ def test_request_entry_authenticated_user(settings):
 
     assert response.status_code == 200
 
-    # Verify the lobby cookie was properly set
-    cookie = response.cookies.get("mocked-cookie")
-    assert cookie is not None
-
-    participant_id = cookie.value
+    # The participant identifier is returned in the response body; no
+    # cookie is involved anymore
+    assert not response.cookies
+    participant_id = response.json()["id"]
 
     # Verify response content matches expected structure and values
     assert response.json() == {
@@ -127,7 +120,6 @@ def test_request_entry_with_existing_participants(settings):
     client = APIClient()
 
     # Configure test settings for cookies and cache
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Add two participants already waiting in the lobby
@@ -168,11 +160,10 @@ def test_request_entry_with_existing_participants(settings):
     # Verify successful response
     assert response.status_code == 200
 
-    # Verify the lobby cookie was properly set for the new participant
-    cookie = response.cookies.get("mocked-cookie")
-    assert cookie is not None
-
-    participant_id = cookie.value
+    # The participant identifier is returned in the response body; no
+    # cookie is involved anymore
+    assert not response.cookies
+    participant_id = response.json()["id"]
 
     # Verify response content matches expected structure and values
     assert response.json() == {
@@ -197,7 +188,6 @@ def test_request_entry_public_room(settings):
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Lobby cache should be empty before the request
@@ -206,9 +196,7 @@ def test_request_entry_public_room(settings):
 
     with (
         mock.patch.object(utils, "notify_participants", return_value=None),
-        mock.patch.object(
-            LobbyService, "_get_or_create_participant_id", return_value="123"
-        ),
+        mock.patch("core.services.lobby.uuid.uuid4", return_value="123"),
         mock.patch.object(
             utils, "generate_livekit_config", return_value={"token": "test-token"}
         ),
@@ -221,11 +209,6 @@ def test_request_entry_public_room(settings):
 
     assert response.status_code == 200
 
-    # Verify the lobby cookie was set
-    cookie = response.cookies.get("mocked-cookie")
-    assert cookie is not None
-    assert cookie.value == "123"
-
     # Verify response content matches expected structure and values
     assert response.json() == {
         "id": "123",
@@ -235,9 +218,14 @@ def test_request_entry_public_room(settings):
         "livekit": {"token": "test-token"},
     }
 
-    # Verify lobby cache is still empty after the request
+    # The accepted participant is persisted, out of the waiting list
     lobby_keys = cache.keys(f"mocked-cache-prefix_{room.id}_*")
-    assert not lobby_keys
+    assert len(lobby_keys) == 1
+
+    ttl = cache.ttl(lobby_keys[0])
+    assert ttl is not None
+    assert ttl == pytest.approx(settings.LOBBY_ACCEPTED_TIMEOUT, abs=2000)
+    assert cache.get(lobby_keys[0])["status"] == "accepted"
 
 
 def test_request_entry_authenticated_user_public_room(settings):
@@ -247,7 +235,6 @@ def test_request_entry_authenticated_user_public_room(settings):
     client = APIClient()
     client.force_login(user)
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Lobby cache should be empty before the request
@@ -256,9 +243,8 @@ def test_request_entry_authenticated_user_public_room(settings):
 
     with (
         mock.patch.object(utils, "notify_participants", return_value=None),
-        mock.patch.object(
-            LobbyService,
-            "_get_or_create_participant_id",
+        mock.patch(
+            "core.services.lobby.uuid.uuid4",
             return_value="2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         ),
         mock.patch.object(
@@ -273,11 +259,6 @@ def test_request_entry_authenticated_user_public_room(settings):
 
     assert response.status_code == 200
 
-    # Verify the lobby cookie was set
-    cookie = response.cookies.get("mocked-cookie")
-    assert cookie is not None
-    assert cookie.value == "2f7f162f-e7d1-421b-90e7-02bfbfbf8def"
-
     # Verify response content matches expected structure and values
     assert response.json() == {
         "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
@@ -287,9 +268,13 @@ def test_request_entry_authenticated_user_public_room(settings):
         "livekit": {"token": "test-token"},
     }
 
-    # Verify lobby cache is still empty after the request
+    # The accepted participant is persisted, out of the waiting list
     lobby_keys = cache.keys(f"mocked-cache-prefix_{room.id}_*")
-    assert not lobby_keys
+    assert len(lobby_keys) == 1
+    assert cache.get(lobby_keys[0])["status"] == "accepted"
+    ttl = cache.ttl(lobby_keys[0])
+    assert ttl is not None
+    assert ttl == pytest.approx(settings.LOBBY_ACCEPTED_TIMEOUT, abs=2000)
 
 
 def test_request_entry_waiting_participant_public_room(settings):
@@ -297,7 +282,6 @@ def test_request_entry_waiting_participant_public_room(settings):
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Add a waiting participant to the room's lobby cache
@@ -311,9 +295,7 @@ def test_request_entry_waiting_participant_public_room(settings):
         },
     )
 
-    # Simulate a browser with existing participant cookie
-    client.cookies.load({"mocked-cookie": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def"})
-
+    # Simulate a returning participant echoing its identifier
     with (
         mock.patch.object(utils, "notify_participants", return_value=None),
         mock.patch.object(
@@ -322,15 +304,13 @@ def test_request_entry_waiting_participant_public_room(settings):
     ):
         response = client.post(
             f"/api/v1.0/rooms/{room.id}/request-entry/",
-            {"username": "user1"},
+            {
+                "username": "user1",
+                "participant_id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
+            },
         )
 
     assert response.status_code == 200
-
-    # Verify the lobby cookie was set
-    cookie = response.cookies.get("mocked-cookie")
-    assert cookie is not None
-    assert cookie.value == "2f7f162f-e7d1-421b-90e7-02bfbfbf8def"
 
     # Verify response content matches expected structure and values
     assert response.json() == {
@@ -344,6 +324,11 @@ def test_request_entry_waiting_participant_public_room(settings):
     # Verify participant remains in the lobby cache after acceptance
     lobby_keys = cache.keys(f"mocked-cache-prefix_{room.id}_*")
     assert len(lobby_keys) == 1
+
+    ttl = cache.ttl(lobby_keys[0])
+    assert ttl is not None
+    assert ttl == pytest.approx(settings.LOBBY_ACCEPTED_TIMEOUT, abs=2000)
+    assert cache.get(lobby_keys[0])["status"] == "accepted"
 
 
 def test_request_entry_invalid_data():
@@ -637,15 +622,14 @@ def test_list_waiting_participants_empty(settings):
 @mock.patch.object(
     utils, "generate_livekit_config", return_value={"token": "test-token"}
 )
-def test_request_entry_throttling_anonymous_without_cookie(
+def test_request_entry_throttling_anonymous_unidentified(
     mock_notify_participants, mock_generate_livekit_config, settings
 ):
-    """Anonymous users without a cookie should not be throttled."""
+    """Requests without a participant identifier should not be throttled."""
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "1/minute"
 
     response = client.post(
@@ -654,9 +638,6 @@ def test_request_entry_throttling_anonymous_without_cookie(
     )
 
     assert response.status_code == 200
-    assert response.cookies.get("mocked-cookie") is not None
-
-    client.cookies.clear()  # Simulate a new cookieless request
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/request-entry/",
@@ -670,34 +651,32 @@ def test_request_entry_throttling_anonymous_without_cookie(
 @mock.patch.object(
     utils, "generate_livekit_config", return_value={"token": "test-token"}
 )
-def test_request_entry_throttling_anonymous_with_cookie(
+def test_request_entry_throttling_anonymous_identified(
     mock_notify_participants, mock_generate_livekit_config, settings
 ):
-    """Anonymous users with a cookie should be throttled after exceeding the rate limit."""
+    """Identified requests should be throttled after exceeding the rate limit."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "2/minute"
 
     participant_id = str(uuid.uuid4())
-    client.cookies.load({"mocked-cookie": participant_id})
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/request-entry/",
-        {"username": "test_user"},
+        {"username": "test_user", "participant_id": participant_id},
     )
     assert response.status_code == 200
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/request-entry/",
-        {"username": "test_user"},
+        {"username": "test_user", "participant_id": participant_id},
     )
     assert response.status_code == 200
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/request-entry/",
-        {"username": "test_user"},
+        {"username": "test_user", "participant_id": participant_id},
     )
 
     assert response.status_code == 429
@@ -716,7 +695,6 @@ def test_request_entry_throttling_authenticated_user(
     client = APIClient()
     client.force_login(user)
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "2/minute"
 
     response = client.post(
@@ -737,3 +715,124 @@ def test_request_entry_throttling_authenticated_user(
     )
 
     assert response.status_code == 429
+
+
+def test_request_entry_with_participant_id(settings):
+    """Echoing the previously issued identifier preserves the lobby identity across requests."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
+
+    with (
+        mock.patch.object(utils, "notify_participants", return_value=None),
+        mock.patch.object(utils, "generate_color", return_value="mocked-color"),
+    ):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/",
+            {"username": "test_user"},
+        )
+
+        assert response.status_code == 200
+        participant_id = response.json()["id"]
+
+        # Echoing the identifier must be recognized as the same
+        # participant: no duplicate in the lobby
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/",
+            {"username": "test_user", "participant_id": participant_id},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == participant_id
+    assert response.json()["status"] == "waiting"
+
+    lobby_keys = cache.keys(f"mocked-cache-prefix_{room.id}_*")
+    assert len(lobby_keys) == 1
+
+
+def test_request_entry_unknown_participant_id_not_seeded(settings):
+    """An identifier unknown to the room's lobby must not be honored."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
+
+    forged_id = str(uuid.uuid4())
+
+    with (
+        mock.patch.object(utils, "notify_participants", return_value=None),
+        mock.patch.object(utils, "generate_color", return_value="mocked-color"),
+    ):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/",
+            {"username": "test_user", "participant_id": forged_id},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["id"] != forged_id
+
+    # Nothing was stored under the forged identifier
+    assert cache.get(f"mocked-cache-prefix_{room.id}_{forged_id}") is None
+
+
+def test_request_entry_participant_id_bound_to_room(settings):
+    """An identifier minted for one room must not be honored in another."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    other_room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    with (
+        mock.patch.object(utils, "notify_participants", return_value=None),
+        mock.patch.object(utils, "generate_color", return_value="mocked-color"),
+    ):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/",
+            {"username": "test_user"},
+        )
+        participant_id = response.json()["id"]
+
+        response = client.post(
+            f"/api/v1.0/rooms/{other_room.id}/request-entry/",
+            {"username": "test_user", "participant_id": participant_id},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["id"] != participant_id
+
+
+def test_request_entry_legacy_cookie_ignored():
+    """The retired cookie channel must not be honored anymore."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    legacy_participant_id = str(uuid.uuid4())
+    client.cookies["lobbyParticipantId"] = legacy_participant_id
+
+    with (
+        mock.patch.object(utils, "notify_participants", return_value=None),
+        mock.patch.object(utils, "generate_color", return_value="mocked-color"),
+    ):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/",
+            {"username": "test_user"},
+        )
+
+    assert response.status_code == 200
+    returned_id = response.json()["id"]
+    assert returned_id != legacy_participant_id
+    uuid.UUID(returned_id)
+
+
+def test_request_entry_malformed_participant_id(settings):
+    """A non-UUID identifier is rejected by the serializer with a 400."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user", "participant_id": "../../../evil-key"},
+    )
+
+    assert response.status_code == 400
+    assert "participant_id" in response.json()
