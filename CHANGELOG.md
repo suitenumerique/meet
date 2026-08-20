@@ -28,6 +28,7 @@ and this project adheres to
 
 - 🔥(frontend) drop unused vendored ConnectionObserver
 - 🐛(frontend) vendor formatChatMessageLinks and trim surrounding newlines
+- ✨(summary) add hostname to analytics properties
 
 ### Fixed
 
