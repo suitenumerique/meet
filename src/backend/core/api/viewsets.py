@@ -8,6 +8,7 @@ from urllib.parse import unquote, urlparse
 from uuid import uuid4
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.storage import default_storage
 from django.db import IntegrityError, transaction
@@ -248,6 +249,8 @@ class RoomViewSet(
     API endpoints to access and perform actions on rooms.
     """
 
+    # pylint: disable=too-many-public-methods
+
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
@@ -390,6 +393,65 @@ class RoomViewSet(
                 "Failed to sync metadata to LiveKit for room %s",
                 room.id,
             )
+
+    @decorators.action(
+        detail=True,
+        methods=["get"],
+        url_path="participants",
+        url_name="participants",
+        throttle_classes=[
+            throttling.ParticipantsUserRateThrottle,
+            throttling.ParticipantsAnonRateThrottle,
+        ],
+    )
+    def participants(self, request, pk=None):  # pylint: disable=unused-argument
+        """Return how many people are in the room's meeting, and who they are.
+
+        Open to anonymous users, and only to the ones the room would let in
+        without approval: someone the retrieve endpoint already hands a token to
+        learns nothing here they could not learn by joining, which is the point.
+        Everyone else gets the same answer as a room that does not exist.
+        """
+
+        try:
+            room = self.get_object()
+        except Http404:
+            if not settings.ALLOW_UNREGISTERED_ROOMS:
+                raise
+            # An unregistered room is public and named after its slug in
+            # LiveKit, exactly as the token the retrieve endpoint mints for it.
+            livekit_room = slugify(self.kwargs["pk"])
+        else:
+            if not room.is_joinable_by(request.user, room.get_role(request.user)):
+                raise Http404
+            livekit_room = str(room.id)
+
+        # The join screen polls this, so everyone waiting on one meeting asks the
+        # same question at once. Holding the answer for less than one poll turns
+        # them into a single call to LiveKit however many they are.
+        cache_key = f"room_participants_{livekit_room:s}"
+        answer = cache.get(cache_key)
+
+        if answer is None:
+            try:
+                answer = (
+                    RoomManagement().get_participants(livekit_room),
+                    drf_status.HTTP_200_OK,
+                )
+            except RoomManagementException:
+                # The failure is held as well as the answer. A LiveKit that
+                # cannot be reached is exactly when it can least afford one call
+                # per browser waiting on it.
+                answer = (
+                    {"error": "Could not reach the meeting."},
+                    drf_status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+
+            cache.set(cache_key, answer, settings.ROOM_PARTICIPANTS_CACHE_SECONDS)
+
+        body, status_code = answer
+
+        return drf_response.Response(body, status=status_code)
 
     @decorators.action(
         detail=True,

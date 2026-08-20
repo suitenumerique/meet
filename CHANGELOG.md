@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(fullstack) show who is already in the meeting on the join screen
+
 ### Fixed
 
 - 📝(docs) fix minor typos in comments and docstrings

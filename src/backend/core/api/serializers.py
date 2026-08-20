@@ -185,14 +185,7 @@ class RoomSerializer(serializers.ModelSerializer):
             )
             output["accesses"] = access_serializer.data
 
-        should_access_room = (
-            (
-                instance.access_level == models.RoomAccessLevel.TRUSTED
-                and request.user.is_authenticated
-            )
-            or role is not None
-            or instance.is_public
-        )
+        should_access_room = instance.is_joinable_by(request.user, role)
 
         if should_access_room:
             room_id = f"{instance.id!s}"
