@@ -53,8 +53,8 @@ export const Admin = () => {
 
   const { toggleMuting, isMutingEnabled } = usePermissionsManager()
 
-  // The instance enforces a stricter level than the room holds when the operator
-  // drops the saved one, so the panel shows what the meeting actually runs at.
+  // The panel shows the level in force, which is stricter than the saved one
+  // once the instance stops allowing it.
   const accessLevel =
     readOnlyData?.effective_access_level ?? readOnlyData?.access_level
   const accessLevelEnforced = readOnlyData?.access_level_needs_choice === true

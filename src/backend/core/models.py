@@ -504,8 +504,6 @@ class Room(Resource):
 
         known = ROOM_ACCESS_LEVELS_BY_STRICTNESS
         if self.access_level in known:
-            # Ordered least to most strict, so the levels after this room's are
-            # the stricter ones.
             candidates = known[known.index(self.access_level) + 1 :]
         else:
             candidates = list(reversed(known))
@@ -514,8 +512,7 @@ class Room(Resource):
             if level in allowed:
                 return level
 
-        # Nothing stricter is allowed either, so the room keeps what it holds and
-        # `access_level_needs_choice` is what asks its owner to move it.
+        # Nothing stricter is allowed either, so the room keeps what it holds.
         return self.access_level
 
     @property
