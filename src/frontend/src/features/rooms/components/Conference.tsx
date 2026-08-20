@@ -6,6 +6,8 @@ import {
   usePersistentUserChoices,
 } from '@livekit/components-react'
 import {
+  ConnectionError,
+  ConnectionErrorReason,
   DisconnectReason,
   MediaDeviceFailure,
   Room,
@@ -25,7 +27,11 @@ import { VideoConference } from '../livekit/prefabs/VideoConference'
 import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
-import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
+import {
+  captureEvent,
+  captureMediaEvent,
+  reportError,
+} from '@/features/analytics/telemetry'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
@@ -227,6 +233,16 @@ export const Conference = ({
           onError={(e) => {
             const failure = MediaDeviceFailure.getFailure(e)
             if (failure && failure !== MediaDeviceFailure.Other) return
+
+            // connect() was aborted by a disconnect() before the join completed
+            if (
+              e instanceof ConnectionError &&
+              e.reason === ConnectionErrorReason.Cancelled
+            ) {
+              void captureEvent('connection-cancelled')
+              return
+            }
+
             reportError('livekit_room_error', e, {
               path: 'connect_publish',
             })
