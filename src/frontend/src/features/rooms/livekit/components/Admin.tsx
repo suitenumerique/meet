@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
 import { keys } from '@/api/queryKeys'
-import { useConfig } from '@/api/useConfig'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '../hooks/usePublishSourcesManager'
@@ -53,34 +53,14 @@ export const Admin = () => {
 
   const { toggleMuting, isMutingEnabled } = usePermissionsManager()
 
-  const { data: config } = useConfig()
+  // The instance enforces a stricter level than the room holds when the operator
+  // drops the saved one, so the panel shows what the meeting actually runs at.
+  const accessLevel =
+    readOnlyData?.effective_access_level ?? readOnlyData?.access_level
+  const accessLevelEnforced =
+    !!readOnlyData?.access_level && accessLevel !== readOnlyData.access_level
 
-  const accessLevelItems = [
-    {
-      value: ApiAccessLevel.PUBLIC,
-      label: t('access.levels.public.label'),
-      description: t('access.levels.public.description'),
-    },
-    {
-      value: ApiAccessLevel.TRUSTED,
-      label: t('access.levels.trusted.label'),
-      description: t('access.levels.trusted.description'),
-    },
-    {
-      value: ApiAccessLevel.RESTRICTED,
-      label: t('access.levels.restricted.label'),
-      description: t('access.levels.restricted.description'),
-    },
-  ]
-
-  const allowedAccessLevels = config?.room?.allowed_access_levels
-  const visibleAccessLevelItems = allowedAccessLevels
-    ? accessLevelItems.filter(
-        (item) =>
-          allowedAccessLevels.includes(item.value) ||
-          item.value === readOnlyData?.access_level
-      )
-    : accessLevelItems
+  const accessLevelItems = useAccessLevelItems(accessLevel)
 
   return (
     <Div
@@ -231,15 +211,28 @@ export const Admin = () => {
               paddingBottom: '1rem',
             }),
           }}
-          value={readOnlyData?.access_level}
+          value={accessLevel}
           onChange={(value) =>
             patchRoom({
               roomId,
               room: { access_level: value as ApiAccessLevel },
             }).catch((e) => reportError('generic_failure', e))
           }
-          items={visibleAccessLevelItems}
+          items={accessLevelItems}
         />
+        {accessLevelEnforced && (
+          <Text
+            role="status"
+            variant="warning"
+            wrap="pretty"
+            className={css({
+              textStyle: 'sm',
+            })}
+            margin={'md'}
+          >
+            {t('access.enforced')}
+          </Text>
+        )}
       </div>
     </Div>
   )

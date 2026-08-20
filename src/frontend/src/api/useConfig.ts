@@ -48,9 +48,6 @@ export interface ApiConfig {
   diagnostics: {
     connection_test_enabled?: boolean
   }
-  room?: {
-    allowed_access_levels: ApiAccessLevel[]
-  }
   telephony: {
     enabled: boolean
     international_phone_number?: string
@@ -58,6 +55,7 @@ export interface ApiConfig {
   }
   resource?: {
     default_access_level?: ApiAccessLevel
+    allowed_access_levels?: ApiAccessLevel[]
   }
   manifest_link?: string
   livekit: {

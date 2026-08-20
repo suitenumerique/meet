@@ -13,6 +13,7 @@ import { authUrl } from '@/features/auth/utils/authUrl'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
 import { updatePublishSources } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
 import { reportError } from '@/features/analytics/telemetry'
@@ -89,6 +90,8 @@ const SettingsPopup = () => {
   const { data: configData } = useConfig()
 
   const configuration = room?.configuration
+
+  const accessLevelItems = useAccessLevelItems(room?.access_level)
 
   const currentSources = useMemo(() => {
     const defaultSources = configData?.livekit?.default_sources ?? []
@@ -332,23 +335,7 @@ const SettingsPopup = () => {
                 room: { access_level: value as ApiAccessLevel },
               }).catch((e) => reportError('generic_failure', e))
             }
-            items={[
-              {
-                value: ApiAccessLevel.PUBLIC,
-                label: tRooms('access.levels.public.label'),
-                description: tRooms('access.levels.public.description'),
-              },
-              {
-                value: ApiAccessLevel.TRUSTED,
-                label: tRooms('access.levels.trusted.label'),
-                description: tRooms('access.levels.trusted.description'),
-              },
-              {
-                value: ApiAccessLevel.RESTRICTED,
-                label: tRooms('access.levels.restricted.label'),
-                description: tRooms('access.levels.restricted.description'),
-              },
-            ]}
+            items={accessLevelItems}
           />
         </SectionBody>
       </div>
