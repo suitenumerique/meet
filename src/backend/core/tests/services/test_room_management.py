@@ -107,6 +107,22 @@ def test_get_participants_counts_and_names_them(mock_create_livekit_client):
 
 
 @mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_get_participants_names_at_most_the_cap(mock_create_livekit_client):
+    """A big meeting is counted whole and named up to the cap."""
+    livekit_client(
+        mock_create_livekit_client,
+        list_participants=ListParticipantsResponse(
+            participants=[ParticipantInfo(name=f"P{i:d}") for i in range(9)]
+        ),
+    )
+
+    answer = RoomManagement().get_participants("room-abc")
+
+    assert answer["count"] == 9
+    assert answer["names"] == ["P0", "P1", "P2", "P3", "P4"]
+
+
+@mock.patch("core.services.room_management.utils.create_livekit_client")
 def test_get_participants_leaves_out_machines(mock_create_livekit_client):
     """A recorder and an agent are in the room and are not people."""
     livekit_client(
