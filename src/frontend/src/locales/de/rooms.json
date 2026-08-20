@@ -64,9 +64,9 @@
     "usernameLabel": "Dein Name",
     "participants": {
       "empty": "Es ist noch niemand beigetreten",
-      "count_one": "{{count}} Person ist bereits da",
+      "count_one": "1 Person ist bereits da",
       "count_other": "{{count}} Personen sind bereits da",
-      "more_one": "{{count}} weitere Person",
+      "more_one": "1 weitere Person",
       "more_other": "{{count}} weitere Personen"
     },
     "errors": {

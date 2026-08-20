@@ -64,9 +64,9 @@
     "usernameLabel": "Uw naam",
     "participants": {
       "empty": "Er heeft nog niemand deelgenomen",
-      "count_one": "{{count}} deelnemer is er al",
+      "count_one": "1 deelnemer is er al",
       "count_other": "{{count}} deelnemers zijn er al",
-      "more_one": "{{count}} ander",
+      "more_one": "1 ander",
       "more_other": "{{count}} anderen"
     },
     "errors": {
