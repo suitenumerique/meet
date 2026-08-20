@@ -30,9 +30,6 @@ from .recording.enums import FileExtension
 
 logger = getLogger(__name__)
 
-# A role of None is a real answer, so the default cannot be None.
-UNRESOLVED_ROLE = object()
-
 
 class RoleChoices(models.TextChoices):
     """Role choices."""
@@ -482,7 +479,7 @@ class Room(Resource):
         """Check if a room is public"""
         return self.access_level == RoomAccessLevel.PUBLIC
 
-    def is_joinable_by(self, user, role=UNRESOLVED_ROLE):
+    def is_joinable_by(self, user, role):
         """Check if a user can enter the room without waiting for approval.
 
         A user can enter directly if:
@@ -490,16 +487,14 @@ class Room(Resource):
         2. The room has TRUSTED access level and the user is authenticated
         3. The user has any role on the room
 
-        Pass `role` where the caller already holds it. Left out, the room reads
-        it, and only in the case that needs it.
+        `role` is the user's role on this room, which every caller has already
+        resolved.
         """
-        if self.is_public:
-            return True
-
-        if self.access_level == RoomAccessLevel.TRUSTED and user.is_authenticated:
-            return True
-
-        return (self.get_role(user) if role is UNRESOLVED_ROLE else role) is not None
+        return (
+            self.is_public
+            or (self.access_level == RoomAccessLevel.TRUSTED and user.is_authenticated)
+            or role is not None
+        )
 
     @staticmethod
     def generate_unique_pin_code(length):

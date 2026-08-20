@@ -24,9 +24,6 @@ from core import utils
 
 logger = getLogger(__name__)
 
-# How many names one answer carries, matching the join screen's own cap.
-MAX_NAMES = 5
-
 
 def _is_machine(participant: ParticipantInfo) -> bool:
     """Whether this participant is a bot or a recorder rather than a person.
@@ -157,11 +154,11 @@ class RoomManagement:
             await lkapi.aclose()
 
         people = [p for p in response.participants if not _is_machine(p)]
-        names = [p.name for p in people if p.name]
 
-        # The join screen names a handful and counts the rest, so the rest is
-        # bytes on every poll that nobody reads.
-        return {"count": len(people), "names": names[:MAX_NAMES]}
+        return {
+            "count": len(people),
+            "names": [p.name for p in people if p.name],
+        }
 
     @async_to_sync
     async def delete_room(self, room_name: str):

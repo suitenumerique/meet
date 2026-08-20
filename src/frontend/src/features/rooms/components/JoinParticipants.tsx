@@ -19,7 +19,7 @@ export const JoinParticipants = memo(({ roomId }: { roomId: string }) => {
   }
 
   const { count, names } = participants
-  // Everyone the line leaves out: those the endpoint capped, and those who
+  // Everyone the line leaves out: those the endpoint left out, and those who
   // gave no name to show.
   const notShown = count - names.length
 

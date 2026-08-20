@@ -145,6 +145,41 @@ def test_participants_of_two_rooms_are_held_apart(mock_livekit_client):
     assert mock_livekit_client.room.list_participants.call_count == 2
 
 
+def test_participants_names_at_most_what_was_asked_for(mock_livekit_client):
+    """`names` cuts the roster, and the count stays the whole meeting."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    url = reverse("rooms-participants", kwargs={"pk": room.id})
+
+    response = APIClient().get(url, {"names": 1})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"count": 2, "names": ["Zora"]}
+
+
+def test_participants_asking_for_fewer_names_shares_one_answer(mock_livekit_client):
+    """The cut happens after the cache, so a number is not a second meeting."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    url = reverse("rooms-participants", kwargs={"pk": room.id})
+
+    first = APIClient().get(url, {"names": 1})
+    second = APIClient().get(url)
+
+    assert first.json() == {"count": 2, "names": ["Zora"]}
+    assert second.json() == INSIDE
+    assert mock_livekit_client.room.list_participants.call_count == 1
+
+
+def test_participants_refuses_a_names_value_that_is_not_a_number(mock_livekit_client):
+    """A caller who mistypes the number is told, rather than served everyone."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    url = reverse("rooms-participants", kwargs={"pk": room.id})
+
+    response = APIClient().get(url, {"names": "five"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
 @override_settings(ALLOW_UNREGISTERED_ROOMS=True)
 def test_participants_unregistered_room(mock_livekit_client):
     """An unregistered room is read under the slug it is named by."""

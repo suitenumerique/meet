@@ -115,13 +115,11 @@ logger = getLogger(__name__)
 
 
 def unregistered_room_name(pk):
-    """The name a meeting gets when the database knows no room by it.
+    """The name to meet under when the database has no room for this address.
 
-    Anyone may type a name and meet under it, so this path lets everyone in and
-    has nothing to check: the meeting has no owner and no access level. That
-    holds for a name nobody owns, and breaks for one reading like a room id,
-    since a room in the database meets under its id. Room.clean_fields holds
-    room names to the same rule when they are created.
+    Anyone can type a name and meet under it, so nobody is checked here. A name
+    that looks like a room id is refused: rooms in the database meet under their
+    id, so such a name would open one of them to anyone.
     """
     slug = slugify(pk)
 
@@ -277,12 +275,7 @@ class RoomViewSet(
     serializer_class = serializers.RoomSerializer
 
     def get_object(self):
-        """Allow getting a room by its slug.
-
-        The same predicate decides here and on the unregistered path what reads
-        as an id, so a name cannot miss this lookup and then be handed to
-        LiveKit as one.
-        """
+        """Allow getting a room by its id or by its slug."""
         pk = self.kwargs["pk"]
         filter_kwargs = {"pk": pk} if utils.is_room_id(pk) else {"slug": slugify(pk)}
         queryset = self.filter_queryset(self.get_queryset())
@@ -431,7 +424,17 @@ class RoomViewSet(
 
         Only available to users with access to the room, anonymous included.
         Anyone else gets the same answer as a room that does not exist.
+
+        `?names=<n>` asks for at most n names. Without it the answer names
+        everyone, and `count` is the whole meeting either way.
         """
+
+        try:
+            limit = int(request.query_params.get("names", 0))
+        except ValueError as e:
+            raise drf_exceptions.ValidationError(
+                {"names": "Give a number of names, or leave it out for all."}
+            ) from e
 
         try:
             room = self.get_object()
@@ -442,7 +445,7 @@ class RoomViewSet(
             # LiveKit, exactly as the token the retrieve endpoint mints for it.
             livekit_room = unregistered_room_name(self.kwargs["pk"])
         else:
-            if not room.is_joinable_by(request.user):
+            if not room.is_joinable_by(request.user, room.get_role(request.user)):
                 raise Http404
             livekit_room = str(room.id)
 
@@ -470,6 +473,11 @@ class RoomViewSet(
             cache.set(cache_key, answer, settings.ROOM_PARTICIPANTS_CACHE_SECONDS)
 
         body, status_code = answer
+
+        # Cut after the cache, never before, or one meeting is held once per
+        # number a caller asks for.
+        if limit > 0 and status_code == drf_status.HTTP_200_OK:
+            body = {**body, "names": body["names"][:limit]}
 
         return drf_response.Response(body, status=status_code)
 

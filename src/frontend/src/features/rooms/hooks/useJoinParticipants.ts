@@ -5,6 +5,10 @@ import { fetchParticipants } from '../api/fetchParticipants'
 
 export const POLL_INTERVAL_MS = 5000
 
+// Past this many, the roster stops being a sentence and becomes a wall. The
+// endpoint answers with everyone unless asked for fewer.
+const MAX_NAMES = 5
+
 /**
  * Who is in the meeting, refreshed while the join screen is open. Named apart
  * from livekit's own useParticipants, which answers the same question from
@@ -16,7 +20,7 @@ export const POLL_INTERVAL_MS = 5000
 export const useJoinParticipants = (roomId: string) => {
   const { data } = useQuery({
     queryKey: [keys.participants, roomId],
-    queryFn: () => fetchParticipants({ roomId }),
+    queryFn: () => fetchParticipants({ roomId, names: MAX_NAMES }),
     refetchInterval: (query) => {
       const error = query.state.error
       // A room that will not report never starts, so asking again is waste. A

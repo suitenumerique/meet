@@ -5,5 +5,10 @@ export type ApiParticipants = {
   names: string[]
 }
 
-export const fetchParticipants = ({ roomId }: { roomId: string }) =>
-  fetchApi<ApiParticipants>(`/rooms/${roomId}/participants/`)
+export const fetchParticipants = ({
+  roomId,
+  names,
+}: {
+  roomId: string
+  names: number
+}) => fetchApi<ApiParticipants>(`/rooms/${roomId}/participants/?names=${names}`)

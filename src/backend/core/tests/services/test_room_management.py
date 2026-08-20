@@ -107,8 +107,8 @@ def test_get_participants_counts_and_names_them(mock_create_livekit_client):
 
 
 @mock.patch("core.services.room_management.utils.create_livekit_client")
-def test_get_participants_names_at_most_the_cap(mock_create_livekit_client):
-    """A big meeting is counted whole and named up to the cap."""
+def test_get_participants_names_everyone_who_gave_a_name(mock_create_livekit_client):
+    """A big meeting is answered whole: the caller decides how many to show."""
     livekit_client(
         mock_create_livekit_client,
         list_participants=ListParticipantsResponse(
@@ -119,7 +119,7 @@ def test_get_participants_names_at_most_the_cap(mock_create_livekit_client):
     answer = RoomManagement().get_participants("room-abc")
 
     assert answer["count"] == 9
-    assert answer["names"] == ["P0", "P1", "P2", "P3", "P4"]
+    assert answer["names"] == [f"P{i:d}" for i in range(9)]
 
 
 @mock.patch("core.services.room_management.utils.create_livekit_client")
