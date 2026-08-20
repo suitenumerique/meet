@@ -282,6 +282,7 @@ class FileService:
             access_key=settings.aws_s3_access_key_id,
             secret_key=settings.aws_s3_secret_access_key.get_secret_value(),
             secure=settings.aws_s3_secure_access,
+            region=settings.aws_s3_region_name,
         )
 
         self._bucket_name = settings.aws_storage_bucket_name

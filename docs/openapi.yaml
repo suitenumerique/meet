@@ -50,10 +50,24 @@ paths:
         
         The application must be authorized for the user's email domain.
         The returned token expires after a configured duration and must be refreshed by calling this endpoint again.
+
+        Request parameters may be sent either as "application/x-www-form-urlencoded"
+        (as specified by RFC 6749 for OAuth 2.0 token endpoints) or as "application/json".
       operationId: generateToken
       requestBody:
         required: true
         content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+            examples:
+              tokenRequest:
+                summary: Request token for user delegation
+                value:
+                  client_id: "550e8400-e29b-41d4-a716-446655440000"
+                  client_secret: "1234567890abcdefghijklmnopqrstuvwxyz"
+                  grant_type: "client_credentials"
+                  scope: "user@example.com"
           application/json:
             schema:
               $ref: '#/components/schemas/TokenRequest'
@@ -117,6 +131,19 @@ paths:
                   summary: Domain not authorized
                   value:
                     error: "This application is not authorized for this email domain."
+        '415':
+          description: |
+            Unsupported media type. The request body must be sent as
+            "application/x-www-form-urlencoded" or "application/json".
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                unsupportedMediaType:
+                  summary: Unsupported request content type
+                  value:
+                    detail: 'Unsupported media type "text/plain" in request.'
 
   /rooms:
     get:
