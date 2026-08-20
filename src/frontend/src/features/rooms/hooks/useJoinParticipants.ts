@@ -10,9 +10,8 @@ export const POLL_INTERVAL_MS = 5000
  * from livekit's own useParticipants, which answers the same question from
  * inside the meeting.
  *
- * The answer is `undefined` until it arrives, and stays `undefined` for a room
- * the API will not report on, which is every room the caller cannot enter
- * without approval.
+ * Returns undefined while the first answer is in flight, and for a room the
+ * caller may not enter, where the API answers 404.
  */
 export const useJoinParticipants = (roomId: string) => {
   const { data } = useQuery({
