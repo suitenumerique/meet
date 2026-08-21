@@ -371,6 +371,7 @@ def test_models_rooms_effective_access_level_allowed(settings):
     room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
 
     assert room.effective_access_level == RoomAccessLevel.TRUSTED
+    assert room.access_level_needs_choice is False
 
 
 def test_models_rooms_effective_access_level_moves_to_the_next_stricter(settings):
@@ -384,6 +385,7 @@ def test_models_rooms_effective_access_level_moves_to_the_next_stricter(settings
     assert room.effective_access_level == RoomAccessLevel.TRUSTED
     assert room.is_public is False
     assert room.access_level == RoomAccessLevel.PUBLIC
+    assert room.access_level_needs_choice is True
 
 
 def test_models_rooms_effective_access_level_skips_a_dropped_middle(settings):
@@ -402,20 +404,6 @@ def test_models_rooms_effective_access_level_never_loosens(settings):
     assert room.effective_access_level == RoomAccessLevel.RESTRICTED
     assert room.is_public is False
     assert room.access_level_needs_choice is True
-
-
-def test_models_rooms_access_level_needs_choice(settings):
-    """The owner is asked to move a room off a level the instance dropped."""
-    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [RoomAccessLevel.RESTRICTED]
-
-    assert (
-        RoomFactory(access_level=RoomAccessLevel.RESTRICTED).access_level_needs_choice
-        is False
-    )
-    assert (
-        RoomFactory(access_level=RoomAccessLevel.PUBLIC).access_level_needs_choice
-        is True
-    )
 
 
 def test_models_rooms_effective_access_level_unknown_level(settings):
