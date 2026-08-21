@@ -41,8 +41,8 @@
     },
     "participantAudioLeveling": {
       "heading": "Participant audio leveling",
-      "label": "Automatically balance participant audio levels",
-      "description": "Adjusts remote participant volume gradually during the call so voices sound more consistent."
+      "label": "Automatically reduce loud participant audio",
+      "description": "Gradually lowers loud participants during the call for a more consistent listening level."
     },
     "permissionsRequired": "Permissions required"
   },
