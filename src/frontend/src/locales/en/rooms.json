@@ -16,6 +16,10 @@
       "videoinput": "No camera detected. Check that it is properly wired.",
       "audioinput": "No microphone detected. Check that it is properly wired."
     },
+    "deviceInUse": {
+      "videoinput": "Camera unavailable: it is probably in use by another application or browser tab.",
+      "audioinput": "Microphone unavailable: it is probably in use by another application or browser tab."
+    },
     "settings": {
       "audio": "Audio settings",
       "video": "Video settings"
@@ -67,6 +71,7 @@
     },
     "cameraDisabled": "Camera is disabled.",
     "cameraNotFound": "No camera detected. Check that it is properly plugged in.",
+    "cameraInUse": "Your camera is unavailable. It is probably being used by another application or browser tab.",
     "cameraStarting": "Camera is starting…",
     "cameraNotGranted": "Would you like others to be able to see you during the meeting?",
     "cameraAndMicNotGranted": "Would you like others to be able to see and hear you during the meeting?",

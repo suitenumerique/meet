@@ -28,6 +28,7 @@ import {
   userChoicesStore,
 } from '@/stores/userChoices'
 import { useCannotUseDevice } from '../livekit/hooks/useCannotUseDevice'
+import { useDeviceInUse } from '../livekit/hooks/useDeviceInUse'
 import { useDeviceMissing } from '../livekit/hooks/useDeviceMissing'
 import { useJoinTracks } from '../livekit/hooks/useJoinTracks'
 import { SilentMicDetector } from './SilentMicDetector'
@@ -218,12 +219,14 @@ const switchTrackDevice =
 function getPreviewMessages({
   cameraFound,
   cameraDenied,
+  cameraInUse,
   micDenied,
   videoEnabled,
   videoStarted,
 }: {
   cameraFound: boolean
   cameraDenied: boolean
+  cameraInUse: boolean
   micDenied: boolean
   videoEnabled: boolean
   videoStarted: boolean
@@ -234,6 +237,9 @@ function getPreviewMessages({
   if (cameraDenied) {
     const key = micDenied ? 'cameraAndMicNotGranted' : 'cameraNotGranted'
     return { hint: key, permissionsButtonLabel: key }
+  }
+  if (cameraInUse) {
+    return { hint: 'cameraInUse', permissionsButtonLabel: null }
   }
   if (!videoEnabled) {
     return { hint: 'cameraDisabled', permissionsButtonLabel: null }
@@ -328,18 +334,20 @@ const VideoPreview = ({
   const cameraDenied = useCannotUseDevice('videoinput')
   const micDenied = useCannotUseDevice('audioinput')
   const cameraMissing = useDeviceMissing('videoinput')
+  const cameraInUse = useDeviceInUse('videoinput')
 
   const { videoEl, videoStarted } = useAttachedVideo(videoTrack, videoEnabled)
 
   const { hint, permissionsButtonLabel } = getPreviewMessages({
     cameraFound: !cameraMissing,
     cameraDenied,
+    cameraInUse,
     micDenied,
     videoEnabled,
     videoStarted,
   })
 
-  const isError = cameraMissing || cameraDenied
+  const isError = cameraMissing || cameraDenied || cameraInUse
 
   return (
     <div className={styles.previewFrame}>
