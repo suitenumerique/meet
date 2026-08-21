@@ -57,8 +57,6 @@ export const useSyncLiveKitMetadata = () => {
         if (!prev) return prev
         const nextConfiguration = parsed.configuration ?? prev.configuration
         const nextAccessLevel = parsed.access_level ?? prev.access_level
-        // The level the room holds and the one it runs at are two values, and
-        // an instance forbidding the held one is what pulls them apart.
         const nextEffective =
           parsed.effective_access_level ?? prev.effective_access_level
         if (

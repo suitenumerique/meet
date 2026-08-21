@@ -490,8 +490,8 @@ class Room(Resource):
     def access_level_needs_choice(self):
         """Whether the instance has stopped allowing the level this room holds.
 
-        Its owner has to pick a new one: until they do, the room is entered at
-        `effective_access_level`, which is never looser than what it holds.
+        Its owner has to pick a new one, and the room is entered at
+        `effective_access_level` until they do.
         """
         return self.access_level not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS
 

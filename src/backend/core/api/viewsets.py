@@ -274,9 +274,8 @@ class RoomViewSet(
         try:
             instance = self.get_object()
         except Http404:
-            # An unregistered room is an open meeting by construction: no row
-            # holds a level for it and no lobby stands in front of it. An
-            # instance that forbids open meetings therefore has none to offer.
+            # An unregistered room has no row to hold a level and no lobby in
+            # front of it, so a forbidden level cannot be enforced on one.
             if (
                 not settings.ALLOW_UNREGISTERED_ROOMS
                 or RoomAccessLevel.PUBLIC not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS

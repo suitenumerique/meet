@@ -336,8 +336,6 @@ const SettingsPopup = () => {
                 paddingBottom: '1rem',
               }),
             }}
-            // Nothing is selected while the instance forbids the level the room
-            // holds, because the choice is the owner's to make.
             value={accessLevelEnforced ? null : accessLevel}
             onChange={(value) =>
               patchRoom({
