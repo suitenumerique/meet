@@ -74,7 +74,7 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
     configData?.resource?.default_access_level ??
     ApiAccessLevel.PUBLIC
 
-  const accessLevelItems = useAccessLevelItems(accessLevel)
+  const accessLevelItems = useAccessLevelItems()
 
   // Every change saves immediately; the optimistic onMutate above keeps the
   // cached user (and therefore `configuration`) in sync right away.

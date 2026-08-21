@@ -56,12 +56,7 @@ export const Admin = () => {
 
   const { toggleMuting, isMutingEnabled } = usePermissionsManager()
 
-  const accessLevel = effectiveAccessLevel(readOnlyData)
-  const accessLevelEnforced = readOnlyData?.access_level_needs_choice === true
-
-  const accessLevelItems = useAccessLevelItems(
-    accessLevelEnforced ? undefined : accessLevel
-  )
+  const accessLevelItems = useAccessLevelItems()
 
   return (
     <Div
@@ -212,7 +207,7 @@ export const Admin = () => {
               paddingBottom: '1rem',
             }),
           }}
-          value={accessLevelEnforced ? null : accessLevel}
+          value={readOnlyData?.access_level ?? null}
           onChange={(value) =>
             patchRoom({
               roomId,
@@ -221,7 +216,7 @@ export const Admin = () => {
           }
           items={accessLevelItems}
         />
-        {accessLevelEnforced && (
+        {readOnlyData?.access_level_needs_choice && (
           <Text
             role="status"
             variant="warning"
@@ -232,7 +227,9 @@ export const Admin = () => {
             margin={'md'}
           >
             {t('access.enforced', {
-              level: t(`access.levels.${accessLevel}.label`),
+              level: t(
+                `access.levels.${effectiveAccessLevel(readOnlyData)}.label`
+              ),
             })}
           </Text>
         )}

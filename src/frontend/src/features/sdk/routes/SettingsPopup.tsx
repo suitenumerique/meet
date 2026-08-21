@@ -94,12 +94,7 @@ const SettingsPopup = () => {
 
   const configuration = room?.configuration
 
-  const accessLevel = effectiveAccessLevel(room)
-  const accessLevelEnforced = room?.access_level_needs_choice === true
-
-  const accessLevelItems = useAccessLevelItems(
-    accessLevelEnforced ? undefined : accessLevel
-  )
+  const accessLevelItems = useAccessLevelItems()
 
   const currentSources = useMemo(() => {
     const defaultSources = configData?.livekit?.default_sources ?? []
@@ -336,7 +331,7 @@ const SettingsPopup = () => {
                 paddingBottom: '1rem',
               }),
             }}
-            value={accessLevelEnforced ? null : accessLevel}
+            value={room.access_level ?? null}
             onChange={(value) =>
               patchRoom({
                 roomId: roomSlug,
@@ -345,7 +340,7 @@ const SettingsPopup = () => {
             }
             items={accessLevelItems}
           />
-          {accessLevelEnforced && (
+          {room.access_level_needs_choice && (
             <Text
               role="status"
               variant="warning"
@@ -356,7 +351,9 @@ const SettingsPopup = () => {
               margin={'md'}
             >
               {tRooms('access.enforced', {
-                level: tRooms(`access.levels.${accessLevel}.label`),
+                level: tRooms(
+                  `access.levels.${effectiveAccessLevel(room)}.label`
+                ),
               })}
             </Text>
           )}
