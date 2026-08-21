@@ -14,6 +14,7 @@ and this project adheres to
 - 📱(frontend) stack idle modal buttons in a column on mobile
 - 📱(frontend) improve feedback screen responsiveness on mobile
 - ⬆️(frontend) upgrade @fontsource-variable/atkinson-hyperlegible-next
+- ⬆️(frontend) upgrade i18next-resources-to-backend from 1.2.1 to 1.2.3
 
 ## [1.28.0] - 2026-08-24
 
