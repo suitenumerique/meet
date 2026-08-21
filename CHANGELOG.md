@@ -29,6 +29,7 @@ and this project adheres to
 - 🐛(frontend) treat client-initiated connect aborts as events
 - 🐛(frontend) use state instead of a ref for MoreControls container
 - 🐛(frontend) stop init_virtual_background from firing on blur updates
+- 🐛(frontend) hoist mute confirmation dialog to VideoConference level
 
 ## [1.27.0] - 2026-08-14
 
