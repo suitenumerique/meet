@@ -99,6 +99,7 @@ export const ToggleDevice = <T extends ToggleSource>({
   const cannotUseDevice = useCannotUseDevice(kind)
   const deviceMissing = useDeviceMissing(kind)
   const deviceInUse = useDeviceInUse(kind)
+  const explainDeviceInUse = deviceInUse && context === 'room'
   const { status: silentMicStatus } = useSnapshot(silentMicStore)
   const silentMicWarning =
     kind === 'audioinput' &&
@@ -112,26 +113,27 @@ export const ToggleDevice = <T extends ToggleSource>({
   const isRequestingPermission = useRef(false)
   const [alertError, setAlertError] = useState<MediaDeviceFailure | null>(null)
 
+  const mediaPath = context === 'join' ? 'join_preview' : 'room'
+
   const onPress = async () => {
     if (!enabled && deviceMissing) {
       setAlertError(MediaDeviceFailure.NotFound)
       return
     }
-    if (!cannotUseDevice) {
+    if (!cannotUseDevice && !deviceInUse) {
       toggle()
       return
     }
     if (isRequestingPermission.current) return
     isRequestingPermission.current = true
     try {
-      const granted = await requestDevicePermission(
-        kind,
-        context === 'join' ? 'join_preview' : 'room'
-      )
-      if (granted) {
+      const acquired = await requestDevicePermission(kind, mediaPath)
+      if (acquired) {
         toggle()
-      } else {
+      } else if (cannotUseDevice) {
         openPermissionsDialog(kind)
+      } else if (explainDeviceInUse) {
+        setAlertError(MediaDeviceFailure.DeviceInUse)
       }
     } finally {
       isRequestingPermission.current = false
@@ -184,7 +186,7 @@ export const ToggleDevice = <T extends ToggleSource>({
 
   const getToggleTooltip = () => {
     if (deviceMissing) return t(`deviceNotFound.${kind}`)
-    if (deviceInUse) return t(`deviceInUse.${kind}`)
+    if (explainDeviceInUse) return t(`deviceInUse.${kind}`)
     if (cannotUseDevice) return t('tooltip', { keyPrefix: 'permissionsButton' })
     return toggleLabel
   }
@@ -204,8 +206,12 @@ export const ToggleDevice = <T extends ToggleSource>({
       )}
       {deviceInUse && (
         <PermissionNeededButton
-          tooltip={t(`deviceInUse.${kind}`)}
-          onPress={() => setAlertError(MediaDeviceFailure.DeviceInUse)}
+          tooltip={explainDeviceInUse ? t(`deviceInUse.${kind}`) : undefined}
+          onPress={
+            explainDeviceInUse
+              ? () => setAlertError(MediaDeviceFailure.DeviceInUse)
+              : undefined
+          }
         />
       )}
       {silentMicWarning && (

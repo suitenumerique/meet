@@ -16,6 +16,7 @@ import {
 import { useConfig } from '@/api/useConfig.ts'
 import { LogLevel, setLogLevel } from 'livekit-client'
 import { useWatchDeviceAvailability } from '@/features/rooms/hooks/useWatchDeviceAvailability'
+import { useWatchDeviceReleased } from '@/features/rooms/hooks/useWatchDeviceReleased'
 import { useRoomPageTitle } from '@/features/rooms/livekit/hooks/useRoomPageTitle'
 
 const BaseRoom = ({ children }: { children: ReactNode }) => {
@@ -49,6 +50,7 @@ const Room = () => {
 
   useKeyboardShortcuts()
   useWatchDeviceAvailability()
+  useWatchDeviceReleased()
 
   const clearRouterState = () => {
     if (window?.history?.state) {

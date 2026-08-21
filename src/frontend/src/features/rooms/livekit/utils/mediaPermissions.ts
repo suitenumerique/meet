@@ -93,6 +93,26 @@ export const onMediaPermissionError = (
 }
 
 /**
+ * Silent availability check for a device that was reported "in use":
+ * acquires and releases it without any error reporting, so it can be
+ * polled. Clears the in-use flag on success.
+ */
+export const probeDeviceReleased = async (
+  kind: PermissionKind
+): Promise<boolean> => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(
+      kind === 'camera' ? { video: true } : { audio: true }
+    )
+    stream.getTracks().forEach((track) => track.stop())
+    noteDeviceReady(kind)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
  * Triggers the browser permission prompt for one device kind by acquiring
  * and immediately releasing a track. Resolves to whether access was granted.
  */
