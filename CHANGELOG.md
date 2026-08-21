@@ -16,6 +16,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade @fontsource-variable/atkinson-hyperlegible-next
 - ⬆️(frontend) upgrade i18next-resources-to-backend from 1.2.1 to 1.2.3
 - ⬆️(frontend) upgrade @tanstack/react-query from 5.101.1 to 5.101.4
+- ⬆️(frontend) upgrade @pandacss/preset-panda from 1.11.3 to 1.12.0
 
 ## [1.28.0] - 2026-08-24
 
