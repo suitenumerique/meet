@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - 📈(frontend) track errors when starting or stopping a recording
+- 🚸(frontend) explain camera-in-use failures on the join screen
 
 ### Changed
 
@@ -31,6 +32,7 @@ and this project adheres to
 - 🐛(frontend) stop init_virtual_background from firing on blur updates
 - 🐛(frontend) hoist mute confirmation dialog to VideoConference level
 - 🐛(frontend) fix joined notification tile no longer rendering properly
+- 🐛(frontend) handle device-in-use errors on Chrome / Windows 10
 
 ## [1.27.0] - 2026-08-14
 

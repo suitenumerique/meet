@@ -137,6 +137,7 @@ export const captureMediaEvent = async (
     | 'media-device-topology'
     | 'media-device-success'
     | 'device-not-found'
+    | 'device-in-use'
     | 'permissions-denied'
     | 'screen-share-permission-denied'
     | 'silent-mic-detected'
