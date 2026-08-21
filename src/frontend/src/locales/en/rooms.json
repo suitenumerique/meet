@@ -245,7 +245,8 @@
       "input": {
         "textArea": {
           "label": "Enter a message",
-          "placeholder": "Enter a message"
+          "placeholder": "Enter a message",
+          "captionPlaceholder": "Add a caption"
         },
         "button": {
           "label": "Send message"
@@ -434,6 +435,29 @@
   },
   "chat": {
     "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call.",
+    "media": {
+      "alt": "Shared image",
+      "attach": "Add an image",
+      "download": "Download",
+      "dropHint": "Drop the image to add it",
+      "dropZone": "Drop an image into the chat",
+      "enlarge": "Open the image",
+      "error": {
+        "animation_too_large": "This animation is too large to send, and reducing it would drop its frames.",
+        "decode_failed": "This image could not be displayed.",
+        "expired": "This image is no longer available.",
+        "send_failed": "This image could not be sent.",
+        "too_large": "This image is too large to send.",
+        "transfer_failed": "This image could not be received.",
+        "type_not_allowed": "Only JPEG, PNG, WebP and GIF images can be sent.",
+        "unreadable": "This file could not be read as an image."
+      },
+      "preparing": "Preparing the image…",
+      "receiving": "Receiving an image",
+      "remove": "Remove the image",
+      "staged": "Image ready to send",
+      "stagedAlt": "Image about to be sent"
+    },
     "messagesLog": "Chat messages"
   },
   "moreTools": {

@@ -86,6 +86,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(all) share images in the meeting chat #1547
 - ✨(summary) report exception type in failure analytics
 - ✨(frontend) add configurable documentation menu item
 - ✨(frontend) allow promoting authenticated participants
