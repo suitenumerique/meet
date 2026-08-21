@@ -27,6 +27,7 @@ and this project adheres to
 - ⬆️(mail) bump @html-to/text-cli from 0.6.0 to 0.6.1
 - 🐛(frontend) treat client-initiated connect aborts as events
 - 🐛(frontend) use state instead of a ref for MoreControls container
+- 🐛(frontend) stop init_virtual_background from firing on blur updates
 
 ## [1.27.0] - 2026-08-14
 

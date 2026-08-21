@@ -105,9 +105,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
 
   _initVirtualBackgroundImage() {
     if (this.options.type !== 'virtual') {
-      throw new Error(
-        'Virtual background is only supported for virtual background'
-      )
+      return
     }
 
     const needsUpdate =
