@@ -15,7 +15,7 @@ import string
 from datetime import timedelta
 from functools import lru_cache
 from typing import List, Optional
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -36,6 +36,15 @@ from livekit.api import (  # pylint: disable=E0611
 )
 
 logger = logging.getLogger(__name__)
+
+
+def is_room_id(value):
+    """Whether this string is the id of a room rather than a name for one."""
+    try:
+        UUID(value)
+    except ValueError:
+        return False
+    return True
 
 
 def generate_color(identity: str) -> str:

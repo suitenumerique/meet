@@ -15,12 +15,14 @@ and this project adheres to
 - ⬆️(frontend) upgrade i18next and react-i18next patch versions
 - ⬆️(frontend) upgrade posthog-js from 1.395.0 to 1.404.1
 - ⬆️(frontend) upgrade livekit-client and @livekit/components-react
+- ✨(fullstack) show who is already in the meeting on the join screen
 
 ### Fixed
 
 - 📝(docs) fix minor typos in comments and docstrings
 - ⬆️(backend) bump sqlparse from 0.5.5 to 0.6.0
 - ⬆️(mail) bump @html-to/text-cli from 0.6.0 to 0.6.1
+- 🔒️(backend) refuse an unregistered room named after a registered one
 
 ## [1.27.0] - 2026-08-14
 
