@@ -13,6 +13,7 @@ and this project adheres to
 - 📱(frontend) collapse mobile control bar items on narrow viewports
 - 📱(frontend) stack idle modal buttons in a column on mobile
 - 📱(frontend) improve feedback screen responsiveness on mobile
+- ⬆️(frontend) upgrade @fontsource-variable/atkinson-hyperlegible-next
 
 ## [1.28.0] - 2026-08-24
 
