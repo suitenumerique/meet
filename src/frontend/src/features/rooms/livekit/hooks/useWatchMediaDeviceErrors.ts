@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRoomContext } from '@livekit/components-react'
-import { MediaDeviceFailure, RoomEvent } from 'livekit-client'
+import {
+  type LocalTrackPublication,
+  MediaDeviceFailure,
+  RoomEvent,
+  Track,
+} from 'livekit-client'
 import {
   PERMISSION_BY_DEVICE_KIND,
   type PermissionDeniedScope,
@@ -10,7 +15,11 @@ import {
   notePermissionDeniedFromGum,
   noteSystemPermissionDenied,
 } from '@/stores/permissions'
-import { syncDeviceAvailability } from '@/stores/deviceAvailability'
+import {
+  clearDeviceInUse,
+  noteDeviceInUse,
+  syncDeviceAvailability,
+} from '@/stores/deviceAvailability'
 import { captureMediaEvent } from '@/features/analytics/telemetry'
 import { getOS } from '@/utils/os'
 
@@ -20,6 +29,11 @@ type MediaDeviceAlert = {
 }
 
 const NO_ALERT: MediaDeviceAlert = { error: null, kind: null }
+
+const PERMISSION_BY_SOURCE: Partial<Record<Track.Source, PermissionKind>> = {
+  [Track.Source.Camera]: 'camera',
+  [Track.Source.Microphone]: 'microphone',
+}
 
 const capturePermissionsDenied = (
   scope: PermissionDeniedScope,
@@ -63,6 +77,7 @@ export const useWatchMediaDeviceErrors = (): MediaDeviceAlert & {
       const permissionKind = PERMISSION_BY_DEVICE_KIND[kind]
       switch (failure) {
         case MediaDeviceFailure.DeviceInUse:
+          if (permissionKind) noteDeviceInUse(permissionKind)
           setAlert({ error: failure, kind })
           break
         case MediaDeviceFailure.NotFound:
@@ -92,9 +107,16 @@ export const useWatchMediaDeviceErrors = (): MediaDeviceAlert & {
           break
       }
     }
+    const onTrackPublished = (publication: LocalTrackPublication) => {
+      const permissionKind = PERMISSION_BY_SOURCE[publication.source]
+      if (permissionKind) clearDeviceInUse(permissionKind)
+    }
     room.on(RoomEvent.MediaDevicesError, onDeviceError)
+    room.on(RoomEvent.LocalTrackPublished, onTrackPublished)
     return () => {
       room.off(RoomEvent.MediaDevicesError, onDeviceError)
+      room.off(RoomEvent.LocalTrackPublished, onTrackPublished)
+      clearDeviceInUse()
     }
   }, [room])
 

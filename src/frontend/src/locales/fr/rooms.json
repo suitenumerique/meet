@@ -16,6 +16,10 @@
       "videoinput": "Aucune caméra détectée. Vérifiez qu'elle est bien branchée.",
       "audioinput": "Aucun microphone détecté. Vérifiez qu'il est bien branché."
     },
+    "deviceInUse": {
+      "videoinput": "Caméra indisponible : elle est probablement utilisée par une autre application ou un autre onglet.",
+      "audioinput": "Microphone indisponible : il est probablement utilisé par une autre application ou un autre onglet."
+    },
     "settings": {
       "audio": "Paramètres audio",
       "video": "Paramètres video"
@@ -67,6 +71,7 @@
     },
     "cameraDisabled": "La caméra est désactivée.",
     "cameraNotFound": "Aucune caméra détectée. Vérifiez qu'elle est bien branchée.",
+    "cameraInUse": "Votre caméra n'est pas disponible. Elle est probablement utilisée par une autre application ou un autre onglet.",
     "cameraStarting": "La caméra va démarrer…",
     "cameraNotGranted": "Souhaitez-vous que les autres puissent vous voir pendant la réunion ?",
     "cameraAndMicNotGranted": "Souhaitez-vous que les autres puissent vous voir et vous entendre pendant la réunion ?",
