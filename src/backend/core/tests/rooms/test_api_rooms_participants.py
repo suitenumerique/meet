@@ -145,6 +145,19 @@ def test_participants_of_two_rooms_are_held_apart(mock_livekit_client):
     assert mock_livekit_client.room.list_participants.call_count == 2
 
 
+def test_participants_one_caller_refreshes_an_expired_answer(mock_livekit_client):
+    """The window falls open once, so the herd behind it reads the last answer."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    url = reverse("rooms-participants", kwargs={"pk": room.id})
+    APIClient().get(url)
+    cache.delete(f"room_participants_{room.id!s}_window")
+
+    answers = [APIClient().get(url) for _ in range(4)]
+
+    assert [a.json() for a in answers] == [INSIDE] * 4
+    assert mock_livekit_client.room.list_participants.call_count == 2
+
+
 def test_participants_names_at_most_what_was_asked_for(mock_livekit_client):
     """`names` cuts the roster, and the count stays the whole meeting."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)

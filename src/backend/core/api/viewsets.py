@@ -114,6 +114,47 @@ from .feature_flag import FeatureFlag
 logger = getLogger(__name__)
 
 
+def held_participants(livekit_room):
+    """The meeting's roster, held briefly, refreshed by one caller at a time.
+
+    The window is what `cache.add` wins: whoever takes it calls the media
+    server, and everyone arriving meanwhile keeps the answer it is replacing
+    rather than asking the same question at the same moment. A hold of zero
+    stores neither key, so the media server is asked every time.
+    """
+    hold = settings.ROOM_PARTICIPANTS_CACHE_SECONDS
+    answer_key = f"room_participants_{livekit_room:s}"
+    window_key = f"{answer_key:s}_window"
+
+    answer = cache.get(answer_key)
+    # Claimed before the answer is judged: a cold cache has no answer to keep,
+    # and the window still belongs to whoever asked first.
+    window = cache.add(window_key, True, hold)
+
+    if answer is not None and not window:
+        return answer
+
+    try:
+        answer = (
+            RoomManagement().get_participants(livekit_room),
+            drf_status.HTTP_200_OK,
+        )
+    except RoomManagementException:
+        # The failure is held as well as the answer. A media server that cannot
+        # be reached is exactly when it can least afford one call per browser
+        # waiting on it.
+        answer = (
+            {"error": "Could not reach the meeting."},
+            drf_status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    # Longer than the window, so the copy a refresh replaces is still there for
+    # everyone who arrives during that call.
+    cache.set(answer_key, answer, hold * 3)
+
+    return answer
+
+
 def unregistered_room_name(pk):
     """The name to meet under when the database has no room for this address.
 
@@ -450,29 +491,8 @@ class RoomViewSet(
             livekit_room = str(room.id)
 
         # The join screen polls this, so everyone waiting on one meeting asks the
-        # same question at once. Holding the answer for less than one poll turns
-        # them into a single call to LiveKit however many they are.
-        cache_key = f"room_participants_{livekit_room:s}"
-        answer = cache.get(cache_key)
-
-        if answer is None:
-            try:
-                answer = (
-                    RoomManagement().get_participants(livekit_room),
-                    drf_status.HTTP_200_OK,
-                )
-            except RoomManagementException:
-                # The failure is held as well as the answer. A LiveKit that
-                # cannot be reached is exactly when it can least afford one call
-                # per browser waiting on it.
-                answer = (
-                    {"error": "Could not reach the meeting."},
-                    drf_status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
-
-            cache.set(cache_key, answer, settings.ROOM_PARTICIPANTS_CACHE_SECONDS)
-
-        body, status_code = answer
+        # same question at once, and one call answers all of them.
+        body, status_code = held_participants(livekit_room)
 
         # Cut after the cache, never before, or one meeting is held once per
         # number a caller asks for.
