@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add OpenShift-compatible recording download endpoint
+
 ### Changed
 
 - ✨(backend) accept form-urlencoded on the user token endpoint
