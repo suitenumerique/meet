@@ -19,6 +19,7 @@ import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { VideoResolutionSubscription } from '../components/VideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
+import { MuteAlertDialogProvider } from '@/features/rooms/livekit/components/MuteAlertDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
 import { RoomContentArea } from '@/features/layout/components/RoomContentArea'
@@ -144,6 +145,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
         <ConnectionStateToast />
         <RecordingProvider />
         <SettingsDialogProvider />
+        <MuteAlertDialogProvider />
         <ReactionPortals />
       </div>
     </>
