@@ -19,6 +19,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade i18next and react-i18next patch versions
 - ⬆️(frontend) upgrade posthog-js from 1.395.0 to 1.404.1
 - ⬆️(frontend) upgrade livekit-client and @livekit/components-react
+- 💄(frontend) increase the blur intensity
 
 ### Fixed
 
