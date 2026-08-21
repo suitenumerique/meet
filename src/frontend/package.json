@@ -23,7 +23,7 @@
     "@livekit/components-styles": "1.2.0",
     "@livekit/track-processors": "0.7.2",
     "@mediapipe/tasks-vision": "0.10.14",
-    "@pandacss/preset-panda": "1.11.3",
+    "@pandacss/preset-panda": "1.12.0",
     "@react-types/overlays": "3.10.0",
     "@remixicon/react": "4.9.0",
     "@tanstack/react-query": "5.101.1",
