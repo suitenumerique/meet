@@ -18,7 +18,6 @@ import { useRoomData } from './useRoomData'
 type RoomLiveKitMetadata = {
   configuration?: RoomConfiguration
   access_level?: ApiAccessLevel
-  effective_access_level?: ApiAccessLevel
 }
 
 const parseMetadata = (raw: string | undefined): RoomLiveKitMetadata | null => {
@@ -57,8 +56,13 @@ export const useSyncLiveKitMetadata = () => {
         if (!prev) return prev
         const nextConfiguration = parsed.configuration ?? prev.configuration
         const nextAccessLevel = parsed.access_level ?? prev.access_level
+        // The level in force is read off the instance settings, so it cannot
+        // travel in metadata without going stale. A level that just changed
+        // passed the allow-list on its way in, which makes it the one in force.
         const nextEffective =
-          parsed.effective_access_level ?? prev.effective_access_level
+          nextAccessLevel === prev.access_level
+            ? prev.effective_access_level
+            : undefined
         if (
           nextConfiguration === prev.configuration &&
           nextAccessLevel === prev.access_level &&

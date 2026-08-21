@@ -118,7 +118,6 @@ def test_api_rooms_update_administrators(mock_update_metadata):
         room_name=str(room.id),
         metadata={
             "access_level": "public",
-            "effective_access_level": "public",
             "configuration": {"can_publish_sources": ["camera", "microphone"]},
         },
     )
@@ -156,7 +155,6 @@ def test_api_rooms_update_administrators_configuration_only(mock_update_metadata
         room_name=str(room.id),
         metadata={
             "access_level": "restricted",
-            "effective_access_level": "restricted",
             "configuration": {"can_publish_sources": ["camera", "microphone"]},
         },
     )
@@ -193,7 +191,6 @@ def test_api_rooms_update_administrators_access_level_only(mock_update_metadata)
         room_name=str(room.id),
         metadata={
             "access_level": "public",
-            "effective_access_level": "public",
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
@@ -408,7 +405,6 @@ def test_api_rooms_update_livekit_room_not_found(mock_update_metadata):
         room_name=str(room.id),
         metadata={
             "access_level": room.access_level,
-            "effective_access_level": room.access_level,
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
@@ -438,7 +434,6 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata):
         room_name=str(room.id),
         metadata={
             "access_level": room.access_level,
-            "effective_access_level": room.access_level,
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
@@ -496,8 +491,10 @@ def test_api_rooms_update_access_level_dropped_is_enforced(settings):
 
 
 @patch.object(RoomManagement, "update_metadata")
-def test_api_rooms_update_metadata_carries_both_levels(mock_update_metadata, settings):
-    """LiveKit is told the level the room holds and the one it is entered at."""
+def test_api_rooms_update_metadata_carries_the_saved_level(
+    mock_update_metadata, settings
+):
+    """LiveKit is told the level the room holds, never the one settings derive."""
     settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
         RoomAccessLevel.TRUSTED,
         RoomAccessLevel.RESTRICTED,
@@ -522,7 +519,6 @@ def test_api_rooms_update_metadata_carries_both_levels(mock_update_metadata, set
         room_name=str(room.id),
         metadata={
             "access_level": "public",
-            "effective_access_level": "trusted",
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
@@ -557,7 +553,6 @@ def test_api_rooms_update_access_level_allowed(mock_update_metadata, settings):
         room_name=str(room.id),
         metadata={
             "access_level": "restricted",
-            "effective_access_level": "restricted",
             "configuration": {},
         },
     )
