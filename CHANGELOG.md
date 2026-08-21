@@ -30,6 +30,7 @@ and this project adheres to
 - 🐛(frontend) use state instead of a ref for MoreControls container
 - 🐛(frontend) stop init_virtual_background from firing on blur updates
 - 🐛(frontend) hoist mute confirmation dialog to VideoConference level
+- 🐛(frontend) fix joined notification tile no longer rendering properly
 
 ## [1.27.0] - 2026-08-14
 
