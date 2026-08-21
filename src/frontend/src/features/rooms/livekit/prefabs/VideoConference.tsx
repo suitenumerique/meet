@@ -18,6 +18,7 @@ import { MediaStateObserver } from '../components/MediaStateObserver'
 import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { VideoResolutionSubscription } from '../components/VideoResolutionSubscription'
+import { useParticipantAudioLeveling } from '../hooks/useParticipantAudioLeveling'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
@@ -71,6 +72,7 @@ const getScreenSharePermissionDeniedScope = (
  * @public
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
+  useParticipantAudioLeveling()
   useNoiseReduction()
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
