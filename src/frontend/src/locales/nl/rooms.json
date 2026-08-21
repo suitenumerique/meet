@@ -586,6 +586,7 @@
       "title": "Toegang tot vergadering",
       "description": "Deze instellingen zijn ook van toepassing op toekomstige sessies van deze vergadering.",
       "type": "Vergaderings toegangstypen",
+      "enforced": "Dit toegangstype is niet meer toegestaan. De vergadering draait als {{level}} totdat u een nieuw type kiest.",
       "levels": {
         "public": {
           "label": "Open",

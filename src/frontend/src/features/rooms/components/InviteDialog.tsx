@@ -13,7 +13,10 @@ import {
 import { useMemo, useState } from 'react'
 import { css } from '@/styled-system/css'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
-import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import {
+  ApiAccessLevel,
+  effectiveAccessLevel,
+} from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
@@ -192,7 +195,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
             )}
           </Button>
         )}
-        {roomData?.access_level === ApiAccessLevel.PUBLIC && (
+        {effectiveAccessLevel(roomData) === ApiAccessLevel.PUBLIC && (
           <HStack>
             <div
               className={css({

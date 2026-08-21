@@ -8,7 +8,11 @@ from pydantic import ValidationError
 from rest_framework import serializers
 
 from core import models, utils
-from core.api.serializers import BaseValidationOnlySerializer, RoomConfiguration
+from core.api.serializers import (
+    BaseValidationOnlySerializer,
+    RoomConfiguration,
+    check_access_level_allowed,
+)
 
 OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials"
 
@@ -41,6 +45,7 @@ class RoomSerializer(serializers.ModelSerializer):
         model = models.Room
         fields = ["id", "name", "slug", "pin_code", "access_level", "configuration"]
         read_only_fields = ["id", "name", "slug", "pin_code"]
+        extra_kwargs = {"access_level": {"validators": [check_access_level_allowed]}}
 
     def validate_configuration(self, value):
         """Validate room configuration against the RoomConfiguration schema."""

@@ -437,3 +437,122 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata):
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_access_level_not_allowed(mock_update_metadata, settings):
+    """An access level outside RESOURCE_ALLOWED_ACCESS_LEVELS should be rejected."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.TRUSTED,
+        RoomAccessLevel.RESTRICTED,
+    ]
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED,
+        users=[(user, random.choice(["administrator", "owner"]))],
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"access_level": RoomAccessLevel.PUBLIC},
+        format="json",
+    )
+    assert response.status_code == 400
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+    mock_update_metadata.assert_not_called()
+
+
+def test_api_rooms_update_access_level_dropped_is_enforced(settings):
+    """A room the list no longer holds keeps its value and is entered one level stricter."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [RoomAccessLevel.RESTRICTED]
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC,
+        users=[(user, "owner")],
+        configuration={},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"name": "my room"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.json()["access_level"] == RoomAccessLevel.PUBLIC
+    assert response.json()["effective_access_level"] == RoomAccessLevel.RESTRICTED
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_metadata_carries_the_saved_level(
+    mock_update_metadata, settings
+):
+    """LiveKit is told the level the room holds, never the one settings derive."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.TRUSTED,
+        RoomAccessLevel.RESTRICTED,
+    ]
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC,
+        users=[(user, "owner")],
+        configuration={},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": {"can_publish_sources": ["camera"]}},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={
+            "access_level": "public",
+            "configuration": {"can_publish_sources": ["camera"]},
+        },
+    )
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_access_level_allowed(mock_update_metadata, settings):
+    """An access level within RESOURCE_ALLOWED_ACCESS_LEVELS should be accepted."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.TRUSTED,
+        RoomAccessLevel.RESTRICTED,
+    ]
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.TRUSTED,
+        users=[(user, random.choice(["administrator", "owner"]))],
+        configuration={},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={
+            "access_level": "restricted",
+            "configuration": {},
+        },
+    )

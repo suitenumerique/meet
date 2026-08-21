@@ -274,7 +274,12 @@ class RoomViewSet(
         try:
             instance = self.get_object()
         except Http404:
-            if not settings.ALLOW_UNREGISTERED_ROOMS:
+            # An unregistered room has no row to hold a level and no lobby in
+            # front of it, so a forbidden level cannot be enforced on one.
+            if (
+                not settings.ALLOW_UNREGISTERED_ROOMS
+                or RoomAccessLevel.PUBLIC not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS
+            ):
                 raise
             slug = slugify(self.kwargs["pk"])
             username = request.query_params.get("username", None)
@@ -283,6 +288,8 @@ class RoomViewSet(
                 "slug": slug,
                 "is_administrable": False,
                 "access_level": RoomAccessLevel.PUBLIC,
+                "effective_access_level": RoomAccessLevel.PUBLIC,
+                "access_level_needs_choice": False,
                 "livekit": {
                     "url": settings.LIVEKIT_CONFIGURATION["url"],
                     "room": slug,
@@ -324,9 +331,12 @@ class RoomViewSet(
         user = self.request.user
         save_kwargs = {}
 
+        # The default is read from the database, so an allow-list narrowed after
+        # it was saved has to drop it here rather than at the serializer.
         if (
             "access_level" not in serializer.validated_data
-            and user.default_room_access_level not in (None, "")
+            and user.default_room_access_level
+            in settings.RESOURCE_ALLOWED_ACCESS_LEVELS
         ):
             save_kwargs["access_level"] = user.default_room_access_level
 

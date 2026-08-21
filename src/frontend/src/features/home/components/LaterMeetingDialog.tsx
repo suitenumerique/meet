@@ -5,7 +5,11 @@ import { Bold, Button, Dialog, type DialogProps, P, Text } from '@/primitives'
 import { HStack } from '@/styled-system/jsx'
 import { RiCheckLine, RiFileCopyLine, RiSpam2Fill } from '@remixicon/react'
 import { css } from '@/styled-system/css'
-import { ApiAccessLevel, ApiRoom } from '@/features/rooms/api/ApiRoom'
+import {
+  ApiAccessLevel,
+  ApiRoom,
+  effectiveAccessLevel,
+} from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
@@ -172,7 +176,7 @@ export const LaterMeetingDialog = ({
               )}
             </Button>
           )}
-          {room?.access_level == ApiAccessLevel.PUBLIC && (
+          {effectiveAccessLevel(room) == ApiAccessLevel.PUBLIC && (
             <HStack>
               <div
                 className={css({

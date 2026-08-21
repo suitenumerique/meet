@@ -8,6 +8,15 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) restrict settable room access levels
+- ✨(frontend) hide disallowed access levels in room settings
+- ✨(backend) apply the room access allow-list wherever a room gets a level
+- 🚸(frontend) show the access levels allowed, and the one in force
+- ✨(backend) refuse unregistered rooms where open meetings are forbidden
+- ✨(backend) stop the boot on an unknown level in the access allow-list
+
 ### Changed
 
 - ✨(backend) accept form-urlencoded on the user token endpoint

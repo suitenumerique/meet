@@ -56,9 +56,17 @@ export const useSyncLiveKitMetadata = () => {
         if (!prev) return prev
         const nextConfiguration = parsed.configuration ?? prev.configuration
         const nextAccessLevel = parsed.access_level ?? prev.access_level
+        // The level in force is read off the instance settings, so it cannot
+        // travel in metadata without going stale. A level that just changed
+        // passed the allow-list on its way in, which makes it the one in force.
+        const nextEffective =
+          nextAccessLevel === prev.access_level
+            ? prev.effective_access_level
+            : undefined
         if (
           nextConfiguration === prev.configuration &&
-          nextAccessLevel === prev.access_level
+          nextAccessLevel === prev.access_level &&
+          nextEffective === prev.effective_access_level
         ) {
           return prev
         }
@@ -67,6 +75,7 @@ export const useSyncLiveKitMetadata = () => {
           ...prev,
           configuration: nextConfiguration,
           access_level: nextAccessLevel,
+          effective_access_level: nextEffective,
         }
       })
     }
