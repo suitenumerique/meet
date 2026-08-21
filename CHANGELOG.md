@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(frontend) hide disallowed access levels in room settings
 - ✨(backend) apply the room access allow-list wherever a room gets a level
 - 🚸(frontend) show the access levels allowed, and the one in force
+- ✨(backend) refuse unregistered rooms where open meetings are forbidden
 
 ### Changed
 

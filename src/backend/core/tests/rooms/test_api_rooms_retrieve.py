@@ -189,6 +189,22 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
     )
 
 
+@override_settings(
+    ALLOW_UNREGISTERED_ROOMS=True,
+    RESOURCE_ALLOWED_ACCESS_LEVELS=["trusted", "restricted"],
+)
+def test_api_rooms_retrieve_unregistered_gone_when_public_is_forbidden():
+    """
+    An unregistered room is an open meeting, so an instance forbidding open
+    meetings should answer 404 rather than mint one.
+    """
+    client = APIClient()
+    response = client.get("/api/v1.0/rooms/unregistered-room/")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No Room matches the given query."}
+
+
 @override_settings(ALLOW_UNREGISTERED_ROOMS=False)
 def test_api_rooms_retrieve_anonymous_unregistered_not_allowed():
     """

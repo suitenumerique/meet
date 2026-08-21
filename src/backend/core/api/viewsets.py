@@ -274,7 +274,13 @@ class RoomViewSet(
         try:
             instance = self.get_object()
         except Http404:
-            if not settings.ALLOW_UNREGISTERED_ROOMS:
+            # An unregistered room is an open meeting by construction: no row
+            # holds a level for it and no lobby stands in front of it. An
+            # instance that forbids open meetings therefore has none to offer.
+            if (
+                not settings.ALLOW_UNREGISTERED_ROOMS
+                or RoomAccessLevel.PUBLIC not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS
+            ):
                 raise
             slug = slugify(self.kwargs["pk"])
             username = request.query_params.get("username", None)
