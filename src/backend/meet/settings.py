@@ -35,17 +35,14 @@ GB = 1024 * MB
 
 
 def validate_access_level_settings(*, allowed_levels, default_level, external_default):
-    """Check the room access level settings against each other."""
-    if default_level not in allowed_levels:
-        raise ValueError(
-            "RESOURCE_DEFAULT_ACCESS_LEVEL must be one of RESOURCE_ALLOWED_ACCESS_LEVELS"
-        )
-
-    if external_default not in allowed_levels:
-        raise ValueError(
-            "EXTERNAL_API_DEFAULT_ACCESS_LEVEL must be one of "
-            "RESOURCE_ALLOWED_ACCESS_LEVELS"
-        )
+    """Check that both defaults creating rooms sit inside the allowed levels."""
+    defaults = {
+        "RESOURCE_DEFAULT_ACCESS_LEVEL": default_level,
+        "EXTERNAL_API_DEFAULT_ACCESS_LEVEL": external_default,
+    }
+    for name, level in defaults.items():
+        if level not in allowed_levels:
+            raise ValueError(f"{name} must be one of RESOURCE_ALLOWED_ACCESS_LEVELS")
 
 
 def get_release():
