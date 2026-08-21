@@ -36,7 +36,7 @@
     "i18next-parser": "9.4.0",
     "i18next-resources-to-backend": "1.2.3",
     "livekit-client": "2.21.0",
-    "posthog-js": "1.404.1",
+    "posthog-js": "1.409.5",
     "react": "18.3.1",
     "react-aria": "3.50.0",
     "react-aria-components": "1.19.0",
