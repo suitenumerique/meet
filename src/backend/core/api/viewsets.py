@@ -377,7 +377,8 @@ class RoomViewSet(
 
         metadata = {
             "configuration": room.configuration,
-            "access_level": room.effective_access_level,
+            "access_level": room.access_level,
+            "effective_access_level": room.effective_access_level,
         }
 
         try:

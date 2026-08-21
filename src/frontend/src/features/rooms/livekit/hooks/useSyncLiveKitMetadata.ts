@@ -18,6 +18,7 @@ import { useRoomData } from './useRoomData'
 type RoomLiveKitMetadata = {
   configuration?: RoomConfiguration
   access_level?: ApiAccessLevel
+  effective_access_level?: ApiAccessLevel
 }
 
 const parseMetadata = (raw: string | undefined): RoomLiveKitMetadata | null => {
@@ -56,9 +57,14 @@ export const useSyncLiveKitMetadata = () => {
         if (!prev) return prev
         const nextConfiguration = parsed.configuration ?? prev.configuration
         const nextAccessLevel = parsed.access_level ?? prev.access_level
+        // The level the room holds and the one it runs at are two values, and
+        // an instance forbidding the held one is what pulls them apart.
+        const nextEffective =
+          parsed.effective_access_level ?? prev.effective_access_level
         if (
           nextConfiguration === prev.configuration &&
-          nextAccessLevel === prev.access_level
+          nextAccessLevel === prev.access_level &&
+          nextEffective === prev.effective_access_level
         ) {
           return prev
         }
@@ -67,6 +73,7 @@ export const useSyncLiveKitMetadata = () => {
           ...prev,
           configuration: nextConfiguration,
           access_level: nextAccessLevel,
+          effective_access_level: nextEffective,
         }
       })
     }
