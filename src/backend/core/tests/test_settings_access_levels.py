@@ -2,7 +2,9 @@
 
 import pytest
 
-from meet.settings import validate_access_level_settings
+from core.models import RoomAccessLevel
+
+from meet.settings import ROOM_ACCESS_LEVELS, validate_access_level_settings
 
 pytestmark = pytest.mark.django_db
 
@@ -23,5 +25,20 @@ def test_settings_access_levels_reject_an_external_default_outside_the_list():
         validate_access_level_settings(
             allowed_levels=["restricted"],
             default_level="restricted",
+            external_default="trusted",
+        )
+
+
+def test_settings_access_levels_mirror_the_model():
+    """The list settings validate against has to be the model's own."""
+    assert ROOM_ACCESS_LEVELS == RoomAccessLevel.values
+
+
+def test_settings_access_levels_reject_an_unknown_level():
+    """A typo removes a level, so it stops the boot rather than the picker."""
+    with pytest.raises(ValueError, match="restrcited"):
+        validate_access_level_settings(
+            allowed_levels=["trusted", "restrcited"],
+            default_level="trusted",
             external_default="trusted",
         )

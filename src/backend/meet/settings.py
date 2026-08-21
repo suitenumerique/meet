@@ -34,8 +34,19 @@ MB = 1024 * KB
 GB = 1024 * MB
 
 
+# core.models.RoomAccessLevel, which settings cannot import: they are read before
+# the app registry loads. test_settings_access_levels_mirror_the_model holds it.
+ROOM_ACCESS_LEVELS = ["public", "trusted", "restricted"]
+
+
 def validate_access_level_settings(*, allowed_levels, default_level, external_default):
     """Check that both defaults creating rooms sit inside the allowed levels."""
+    unknown = sorted(set(allowed_levels) - set(ROOM_ACCESS_LEVELS))
+    if unknown:
+        raise ValueError(
+            f"RESOURCE_ALLOWED_ACCESS_LEVELS holds unknown levels: {unknown}"
+        )
+
     defaults = {
         "RESOURCE_DEFAULT_ACCESS_LEVEL": default_level,
         "EXTERNAL_API_DEFAULT_ACCESS_LEVEL": external_default,
