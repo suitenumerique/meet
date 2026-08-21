@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - 📈(frontend) track errors when starting or stopping a recording
+- 🚸(frontend) explain camera-in-use failures on the join screen
 
 ### Changed
 

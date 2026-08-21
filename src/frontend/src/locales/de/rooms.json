@@ -16,6 +16,10 @@
       "videoinput": "Keine Kamera erkannt. Prüfe, ob sie richtig angeschlossen ist.",
       "audioinput": "Kein Mikrofon erkannt. Prüfe, ob es richtig angeschlossen ist."
     },
+    "deviceInUse": {
+      "videoinput": "Kamera nicht verfügbar: Sie wird wahrscheinlich von einer anderen App oder einem anderen Tab verwendet.",
+      "audioinput": "Mikrofon nicht verfügbar: Es wird wahrscheinlich von einer anderen App oder einem anderen Tab verwendet."
+    },
     "settings": {
       "audio": "Audioeinstellungen",
       "video": "Videoeinstellungen"
@@ -67,6 +71,7 @@
     },
     "cameraDisabled": "Kamera ist deaktiviert.",
     "cameraNotFound": "Keine Kamera erkannt. Prüfe, ob sie richtig angeschlossen ist.",
+    "cameraInUse": "Deine Kamera ist nicht verfügbar. Sie wird wahrscheinlich von einer anderen App oder einem anderen Tab verwendet.",
     "cameraStarting": "Kamera wird gestartet…",
     "cameraNotGranted": "Möchtest du, dass andere dich während des Meetings sehen können?",
     "cameraAndMicNotGranted": "Möchtest du, dass andere dich während des Meetings sehen und hören können?",

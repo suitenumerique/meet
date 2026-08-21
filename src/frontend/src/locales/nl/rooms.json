@@ -16,6 +16,10 @@
       "videoinput": "Geen camera gedetecteerd. Controleer of deze goed is aangesloten.",
       "audioinput": "Geen microfoon gedetecteerd. Controleer of deze goed is aangesloten."
     },
+    "deviceInUse": {
+      "videoinput": "Camera niet beschikbaar: deze wordt waarschijnlijk gebruikt door een andere toepassing of een ander tabblad.",
+      "audioinput": "Microfoon niet beschikbaar: deze wordt waarschijnlijk gebruikt door een andere toepassing of een ander tabblad."
+    },
     "settings": {
       "audio": "Audio-instellingen",
       "video": "Video-instellingen"
@@ -67,6 +71,7 @@
     },
     "cameraDisabled": "Camera is uitgeschakeld.",
     "cameraNotFound": "Geen camera gedetecteerd. Controleer of deze goed is aangesloten.",
+    "cameraInUse": "Je camera is niet beschikbaar. Deze wordt waarschijnlijk gebruikt door een andere toepassing of een ander tabblad.",
     "cameraStarting": "Camera wordt ingeschakeld…",
     "cameraNotGranted": "Wilt u dat anderen u tijdens de vergadering kunnen zien?",
     "cameraAndMicNotGranted": "Wilt u dat anderen u tijdens de vergadering kunnen zien en horen?",
