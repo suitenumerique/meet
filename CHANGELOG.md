@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- 📈(frontend) track errors when starting or stopping a recording
+
 ### Changed
 
 - ✨(backend) accept form-urlencoded on the user token endpoint
