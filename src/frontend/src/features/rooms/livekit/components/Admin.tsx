@@ -4,7 +4,10 @@ import { Separator as RACSeparator } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import {
+  ApiAccessLevel,
+  effectiveAccessLevel,
+} from '@/features/rooms/api/ApiRoom'
 import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
@@ -53,10 +56,7 @@ export const Admin = () => {
 
   const { toggleMuting, isMutingEnabled } = usePermissionsManager()
 
-  // The panel shows the level in force, which is stricter than the saved one
-  // once the instance stops allowing it.
-  const accessLevel =
-    readOnlyData?.effective_access_level ?? readOnlyData?.access_level
+  const accessLevel = effectiveAccessLevel(readOnlyData)
   const accessLevelEnforced = readOnlyData?.access_level_needs_choice === true
 
   const accessLevelItems = useAccessLevelItems(
@@ -212,6 +212,8 @@ export const Admin = () => {
               paddingBottom: '1rem',
             }),
           }}
+          // Nothing is selected while the instance forbids the level the room
+          // holds, because the choice is the owner's to make.
           value={accessLevelEnforced ? null : accessLevel}
           onChange={(value) =>
             patchRoom({

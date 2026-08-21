@@ -46,3 +46,12 @@ export type ApiRoom = {
    */
   accesses?: ApiResourceAccess[]
 }
+
+/**
+ * The access level a meeting runs at, which the instance can have made stricter
+ * than the one the room holds. Falls back to the held level, for a payload
+ * written before the backend carried both.
+ */
+export const effectiveAccessLevel = (
+  room?: Pick<ApiRoom, 'access_level' | 'effective_access_level'> | null
+) => room?.effective_access_level ?? room?.access_level

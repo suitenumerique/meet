@@ -12,7 +12,10 @@ import { useUser } from '@/features/auth/api/useUser'
 import { authUrl } from '@/features/auth/utils/authUrl'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
-import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import {
+  ApiAccessLevel,
+  effectiveAccessLevel,
+} from '@/features/rooms/api/ApiRoom'
 import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
 import { updatePublishSources } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
@@ -91,7 +94,12 @@ const SettingsPopup = () => {
 
   const configuration = room?.configuration
 
-  const accessLevelItems = useAccessLevelItems(room?.access_level)
+  const accessLevel = effectiveAccessLevel(room)
+  const accessLevelEnforced = room?.access_level_needs_choice === true
+
+  const accessLevelItems = useAccessLevelItems(
+    accessLevelEnforced ? undefined : accessLevel
+  )
 
   const currentSources = useMemo(() => {
     const defaultSources = configData?.livekit?.default_sources ?? []
@@ -328,7 +336,9 @@ const SettingsPopup = () => {
                 paddingBottom: '1rem',
               }),
             }}
-            value={room.access_level}
+            // Nothing is selected while the instance forbids the level the room
+            // holds, because the choice is the owner's to make.
+            value={accessLevelEnforced ? null : accessLevel}
             onChange={(value) =>
               patchRoom({
                 roomId: roomSlug,
@@ -337,6 +347,21 @@ const SettingsPopup = () => {
             }
             items={accessLevelItems}
           />
+          {accessLevelEnforced && (
+            <Text
+              role="status"
+              variant="warning"
+              wrap="pretty"
+              className={css({
+                textStyle: 'sm',
+              })}
+              margin={'md'}
+            >
+              {tRooms('access.enforced', {
+                level: tRooms(`access.levels.${accessLevel}.label`),
+              })}
+            </Text>
+          )}
         </SectionBody>
       </div>
       <footer
