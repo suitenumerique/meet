@@ -14,6 +14,7 @@ import {
   type PermissionKind,
 } from '@/stores/permissions'
 import {
+  getMediaDeviceFailure,
   noteDeviceReady,
   onMediaPermissionError,
 } from '../utils/mediaPermissions'
@@ -83,7 +84,7 @@ function useWarmupPermissions(): WarmupState {
         bothReady()
       } catch (error) {
         if (
-          MediaDeviceFailure.getFailure(error as Error) ===
+          getMediaDeviceFailure(error as Error) ===
             MediaDeviceFailure.PermissionDenied &&
           !isSystemPermissionError(error)
         ) {

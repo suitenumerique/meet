@@ -1,5 +1,6 @@
 import { isWeb } from '@livekit/components-core'
 import { MediaDeviceFailure, Track } from 'livekit-client'
+import { getMediaDeviceFailure } from '../utils/mediaPermissions'
 import React, { useState } from 'react'
 import {
   ConnectionStateToast,
@@ -101,7 +102,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       }
     }
 
-    if (MediaDeviceFailure.getFailure(error) != MediaDeviceFailure.Other) {
+    if (getMediaDeviceFailure(error) !== MediaDeviceFailure.Other) {
       return
     }
 

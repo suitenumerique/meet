@@ -22,6 +22,27 @@ import { getOS } from '@/utils/os'
  */
 export type MediaPath = 'join_preview' | 'room'
 
+/**
+ * LiveKit only maps NotReadableError/TrackStartError to DeviceInUse.
+ * Firefox reports a device held by another app as
+ * `AbortError: Starting videoinput failed` (or audioinput), which LiveKit
+ * classifies as Other. Normalise it here; every classification in the app
+ * should go through this instead of MediaDeviceFailure.getFailure.
+ */
+export const getMediaDeviceFailure = (
+  error: Error
+): MediaDeviceFailure | undefined => {
+  const failure = MediaDeviceFailure.getFailure(error)
+  if (
+    failure === MediaDeviceFailure.Other &&
+    error.name === 'AbortError' &&
+    /^Starting (video|audio)input failed/i.test(error.message)
+  ) {
+    return MediaDeviceFailure.DeviceInUse
+  }
+  return failure
+}
+
 export const PERMISSION_KIND: Record<
   'audioinput' | 'videoinput',
   PermissionKind
@@ -40,7 +61,7 @@ export const onMediaPermissionError = (
   kind?: PermissionKind,
   path: MediaPath = 'join_preview'
 ) => {
-  const failure = MediaDeviceFailure.getFailure(e)
+  const failure = getMediaDeviceFailure(e)
 
   if (failure === MediaDeviceFailure.PermissionDenied) {
     void classifyPermissionError(e, kind).then((scope) => {

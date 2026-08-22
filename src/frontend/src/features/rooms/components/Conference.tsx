@@ -14,6 +14,7 @@ import {
   type RoomOptions,
   VideoPresets,
 } from 'livekit-client'
+import { getMediaDeviceFailure } from '@/features/rooms/livekit/utils/mediaPermissions'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -231,7 +232,7 @@ export const Conference = ({
             backgroundColor: 'primaryDark.50 !important',
           })}
           onError={(e) => {
-            const failure = MediaDeviceFailure.getFailure(e)
+            const failure = getMediaDeviceFailure(e)
             if (failure && failure !== MediaDeviceFailure.Other) return
 
             // connect() was aborted by a disconnect() before the join completed
