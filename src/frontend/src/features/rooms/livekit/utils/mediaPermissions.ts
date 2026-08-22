@@ -22,6 +22,9 @@ import { getOS } from '@/utils/os'
  */
 export type MediaPath = 'join_preview' | 'room'
 
+const DEVICE_START_FAILURE =
+  /^(Starting (video|audio)input failed|Timeout starting (video|audio) source)/i
+
 /**
  * LiveKit only maps NotReadableError/TrackStartError to DeviceInUse.
  * Firefox reports a device held by another app as
@@ -36,7 +39,7 @@ export const getMediaDeviceFailure = (
   if (
     failure === MediaDeviceFailure.Other &&
     error.name === 'AbortError' &&
-    /^Starting (video|audio)input failed/i.test(error.message)
+    DEVICE_START_FAILURE.test(error.message)
   ) {
     return MediaDeviceFailure.DeviceInUse
   }
