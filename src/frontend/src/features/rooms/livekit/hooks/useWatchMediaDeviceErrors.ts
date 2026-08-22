@@ -21,6 +21,7 @@ import {
   syncDeviceAvailability,
 } from '@/stores/deviceAvailability'
 import { captureMediaEvent } from '@/features/analytics/telemetry'
+import { getMediaDeviceFailure } from '../utils/mediaPermissions'
 import { getOS } from '@/utils/os'
 
 type MediaDeviceAlert = {
@@ -63,7 +64,7 @@ export const useWatchMediaDeviceErrors = (): MediaDeviceAlert & {
 
   useEffect(() => {
     const onDeviceError = (error: Error, kind?: MediaDeviceKind) => {
-      const failure = MediaDeviceFailure.getFailure(error)
+      const failure = getMediaDeviceFailure(error)
       if (!failure) return
       if (failure != MediaDeviceFailure.Other) {
         void captureMediaEvent('media-device-error', {
