@@ -34,6 +34,7 @@ and this project adheres to
 - 🐛(frontend) fix joined notification tile no longer rendering properly
 - 🐛(frontend) handle device-in-use errors on Chrome / Windows 10
 - 🐛(frontend) handle Firefox/Windows AbortError on device start
+- 🐛(frontend) treat "Timeout starting source" AbortError as device-in-use
 
 ## [1.27.0] - 2026-08-14
 
