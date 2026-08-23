@@ -131,12 +131,14 @@ function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
   enabled,
   create,
   permissionKind,
+  deviceId,
   onFailure,
 }: {
   ready: boolean
   enabled: boolean
   create: () => Promise<T>
   permissionKind: PermissionKind
+  deviceId?: string
   onFailure: () => void
 }): T | null {
   const [track, setTrack] = useState<T | null>(null)
@@ -157,13 +159,18 @@ function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
         setTrack(newTrack)
       })
       .catch((error) => {
-        onMediaPermissionError(error as Error, permissionKind)
+        onMediaPermissionError(
+          error as Error,
+          permissionKind,
+          'join_preview',
+          deviceId
+        )
         onFailure()
       })
     return () => {
       cancelled = true
     }
-  }, [ready, enabled, track, create, permissionKind, onFailure])
+  }, [ready, enabled, track, create, permissionKind, deviceId, onFailure])
 
   // Release on toggle-off so the LED turns off.
   useEffect(() => {
@@ -237,6 +244,7 @@ export function useJoinTracks(): {
     enabled: audioEnabled,
     create: createAudio,
     permissionKind: 'microphone',
+    deviceId: audioDeviceId,
     onFailure: disableAudio,
   })
 
@@ -245,6 +253,7 @@ export function useJoinTracks(): {
     enabled: videoEnabled,
     create: createVideo,
     permissionKind: 'camera',
+    deviceId: videoDeviceId,
     onFailure: disableVideo,
   })
 

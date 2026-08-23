@@ -62,7 +62,8 @@ export const noteDeviceReady = (kind?: PermissionKind) => {
 export const onMediaPermissionError = (
   e: Error,
   kind?: PermissionKind,
-  path: MediaPath = 'join_preview'
+  path: MediaPath = 'join_preview',
+  deviceId?: string
 ) => {
   const failure = getMediaDeviceFailure(e)
 
@@ -103,7 +104,7 @@ export const onMediaPermissionError = (
   }
 
   if (failure === MediaDeviceFailure.DeviceInUse) {
-    noteDeviceInUse(kind)
+    noteDeviceInUse(kind, deviceId)
     void captureMediaEvent('device-in-use', { path, kind, os: getOS() })
     return
   }
@@ -122,11 +123,13 @@ export const onMediaPermissionError = (
  * polled. Clears the in-use flag on success.
  */
 export const probeDeviceReleased = async (
-  kind: PermissionKind
+  kind: PermissionKind,
+  deviceId?: string
 ): Promise<boolean> => {
   try {
+    const constraint = deviceId ? { deviceId: { exact: deviceId } } : true
     const stream = await navigator.mediaDevices.getUserMedia(
-      kind === 'camera' ? { video: true } : { audio: true }
+      kind === 'camera' ? { video: constraint } : { audio: constraint }
     )
     stream.getTracks().forEach((track) => track.stop())
     noteDeviceReady(kind)
@@ -142,18 +145,24 @@ export const probeDeviceReleased = async (
  */
 export const requestDevicePermission = async (
   kind: 'audioinput' | 'videoinput',
-  path: MediaPath = 'join_preview'
+  path: MediaPath = 'join_preview',
+  deviceId?: string
 ): Promise<boolean> => {
   try {
     const track =
       kind === 'audioinput'
-        ? await createLocalAudioTrack()
-        : await createLocalVideoTrack()
+        ? await createLocalAudioTrack({ deviceId })
+        : await createLocalVideoTrack({ deviceId })
     track.stop()
     noteDeviceReady(PERMISSION_KIND[kind])
     return true
   } catch (error) {
-    onMediaPermissionError(error as Error, PERMISSION_KIND[kind], path)
+    onMediaPermissionError(
+      error as Error,
+      PERMISSION_KIND[kind],
+      path,
+      deviceId
+    )
     return false
   }
 }
