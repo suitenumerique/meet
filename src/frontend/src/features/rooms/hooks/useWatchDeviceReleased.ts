@@ -36,10 +36,18 @@ function useWatchKind(
 
   useEffect(() => {
     if (!inUse) return
-    const id = setInterval(
-      () => void probeDeviceReleased(kind, selectedDeviceId || undefined),
-      RETRY_INTERVAL_MS
-    )
-    return () => clearInterval(id)
+    let stopped = false
+    let timer: number | undefined
+    const tick = async () => {
+      await probeDeviceReleased(kind, selectedDeviceId || undefined)
+      if (!stopped) {
+        timer = window.setTimeout(tick, RETRY_INTERVAL_MS)
+      }
+    }
+    timer = window.setTimeout(tick, RETRY_INTERVAL_MS)
+    return () => {
+      stopped = true
+      window.clearTimeout(timer)
+    }
   }, [kind, inUse, selectedDeviceId])
 }

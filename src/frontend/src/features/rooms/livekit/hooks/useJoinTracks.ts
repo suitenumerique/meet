@@ -151,14 +151,15 @@ function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
     let cancelled = false
     create()
       .then((newTrack) => {
-        noteDeviceReady(permissionKind)
         if (cancelled) {
           newTrack.stop()
           return
         }
+        noteDeviceReady(permissionKind)
         setTrack(newTrack)
       })
       .catch((error) => {
+        if (cancelled) return
         onMediaPermissionError(
           error as Error,
           permissionKind,
