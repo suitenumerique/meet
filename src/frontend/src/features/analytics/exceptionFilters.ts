@@ -2,6 +2,12 @@ import type { CaptureResult } from 'posthog-js'
 
 const IGNORED_EXCEPTION_PATTERNS = [
   /ResizeObserver loop (completed with undelivered notifications|limit exceeded)/,
+  // livekit-client leaks the raw WebSocket error Event as an unhandled
+  // rejection when the signal ws errors after connect (Firefox-heavy,
+  // coincides with signal reconnects). Carries zero diagnostic content —
+  // the close reason is already logged by the SDK.
+  // See: https://github.com/livekit/client-sdk-js/issues/2062
+  /^Event captured as exception with keys: isTrusted$/,
 ]
 
 const shouldIgnoreException = (value: unknown): boolean =>

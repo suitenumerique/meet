@@ -35,6 +35,7 @@ and this project adheres to
 - 🐛(frontend) handle device-in-use errors on Chrome / Windows 10
 - 🐛(frontend) handle Firefox/Windows AbortError on device start
 - 🐛(frontend) treat "Timeout starting source" AbortError as device-in-use
+- 🔇(frontend) suppress leaked WebSocket error events from livekit-client
 
 ## [1.27.0] - 2026-08-14
 
