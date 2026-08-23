@@ -23,6 +23,7 @@ import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useDeviceInUse } from '../../../hooks/useDeviceInUse'
 import { useDeviceMissing } from '../../../hooks/useDeviceMissing'
 import { requestDevicePermission } from '../../../utils/mediaPermissions'
+import { userChoicesStore } from '@/stores/userChoices'
 import { useDeviceIcons } from '../../../hooks/useDeviceIcons'
 import { useDeviceShortcut } from '../../../hooks/useDeviceShortcut'
 import type {
@@ -127,7 +128,16 @@ export const ToggleDevice = <T extends ToggleSource>({
     if (isRequestingPermission.current) return
     isRequestingPermission.current = true
     try {
-      const acquired = await requestDevicePermission(kind, mediaPath)
+      const selectedDeviceId = cannotUseDevice
+        ? undefined
+        : kind === 'videoinput'
+          ? userChoicesStore.videoDeviceId
+          : userChoicesStore.audioDeviceId
+      const acquired = await requestDevicePermission(
+        kind,
+        mediaPath,
+        selectedDeviceId || undefined
+      )
       if (acquired) {
         toggle()
       } else if (cannotUseDevice) {
