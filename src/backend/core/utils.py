@@ -512,3 +512,6 @@ def build_telephony_config():
         "default_country": country,
         "international_phone_number": international,
     }
+
+
+CACHE_SCAN_ITERSIZE = 500

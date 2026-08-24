@@ -270,7 +270,7 @@ class LobbyService:
         """List all waiting participants for a room."""
 
         pattern = self._get_cache_key(room_id, "*")
-        keys = cache.keys(pattern)
+        keys = list(cache.iter_keys(pattern, itersize=utils.CACHE_SCAN_ITERSIZE))
 
         if not keys:
             return []
@@ -345,13 +345,9 @@ class LobbyService:
     def clear_room_cache(self, room_id: UUID) -> None:
         """Clear all participant entries from the cache for a specific room."""
 
-        pattern = self._get_cache_key(room_id, "*")
-        keys = cache.keys(pattern)
-
-        if not keys:
-            return
-
-        cache.delete_many(keys)
+        cache.delete_pattern(
+            self._get_cache_key(room_id, "*"), itersize=utils.CACHE_SCAN_ITERSIZE
+        )
 
     def clear_participant_cache(self, room_id: UUID, participant_id: str) -> None:
         """Clear a given participant entry from the cache for a specific room."""

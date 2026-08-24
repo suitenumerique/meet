@@ -24,6 +24,7 @@ from core.services.lobby import (
     LobbyParticipantStatus,
     LobbyService,
 )
+from core.services.presence import CACHE_SCAN_ITERSIZE
 from core.utils import NotificationError
 
 pytestmark = pytest.mark.django_db
@@ -578,14 +579,14 @@ def test_get_participant_parsing_error(
 @mock.patch("core.services.lobby.cache")
 def test_list_waiting_participants_empty(mock_cache, lobby_service):
     """Test listing waiting participants when none exist."""
-    mock_cache.keys.return_value = []
+    mock_cache.iter_keys.return_value = []
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     result = lobby_service.list_waiting_participants(room.id)
 
     assert result == []
     pattern = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_*"
-    mock_cache.keys.assert_called_once_with(pattern)
+    mock_cache.iter_keys.assert_called_once_with(pattern, itersize=CACHE_SCAN_ITERSIZE)
     mock_cache.get_many.assert_not_called()
 
 
@@ -594,7 +595,7 @@ def test_list_waiting_participants(mock_cache, lobby_service, participant_dict):
     """Test listing waiting participants with valid data."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     cache_key = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_participant1"
-    mock_cache.keys.return_value = [cache_key]
+    mock_cache.iter_keys.return_value = [cache_key]
     mock_cache.get_many.return_value = {cache_key: participant_dict}
 
     result = lobby_service.list_waiting_participants(room.id)
@@ -603,7 +604,7 @@ def test_list_waiting_participants(mock_cache, lobby_service, participant_dict):
     assert result[0]["status"] == "waiting"
     assert result[0]["username"] == "test-username"
     pattern = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_*"
-    mock_cache.keys.assert_called_once_with(pattern)
+    mock_cache.iter_keys.assert_called_once_with(pattern, itersize=CACHE_SCAN_ITERSIZE)
     mock_cache.get_many.assert_called_once_with([cache_key])
 
 
@@ -628,7 +629,7 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
         "color": "#654321",
     }
 
-    mock_cache.keys.return_value = [cache_key1, cache_key2]
+    mock_cache.iter_keys.return_value = [cache_key1, cache_key2]
     mock_cache.get_many.return_value = {
         cache_key1: participant1,
         cache_key2: participant2,
@@ -646,7 +647,7 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
     assert all(p["status"] == "waiting" for p in result)
 
     pattern = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_*"
-    mock_cache.keys.assert_called_once_with(pattern)
+    mock_cache.iter_keys.assert_called_once_with(pattern, itersize=CACHE_SCAN_ITERSIZE)
     mock_cache.get_many.assert_called_once_with([cache_key1, cache_key2])
 
 
@@ -655,7 +656,7 @@ def test_list_waiting_participants_corrupted_data(mock_cache, lobby_service):
     """Test listing waiting participants with corrupted data."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     cache_key = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_participant1"
-    mock_cache.keys.return_value = [cache_key]
+    mock_cache.iter_keys.return_value = [cache_key]
     mock_cache.get_many.return_value = {cache_key: {"invalid": "data"}}
 
     result = lobby_service.list_waiting_participants(room.id)
@@ -680,7 +681,7 @@ def test_list_waiting_participants_partially_corrupted(mock_cache, lobby_service
 
     corrupted_participant = {"invalid": "data"}
 
-    mock_cache.keys.return_value = [cache_key1, cache_key2]
+    mock_cache.iter_keys.return_value = [cache_key1, cache_key2]
     mock_cache.get_many.return_value = {
         cache_key1: corrupted_participant,
         cache_key2: valid_participant,
@@ -699,7 +700,7 @@ def test_list_waiting_participants_partially_corrupted(mock_cache, lobby_service
 
     # Verify both cache keys were queried
     pattern = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_*"
-    mock_cache.keys.assert_called_once_with(pattern)
+    mock_cache.iter_keys.assert_called_once_with(pattern, itersize=CACHE_SCAN_ITERSIZE)
     mock_cache.get_many.assert_called_once_with([cache_key1, cache_key2])
 
 
@@ -723,7 +724,7 @@ def test_list_waiting_participants_non_waiting(mock_cache, lobby_service):
         "color": "#654321",
     }
 
-    mock_cache.keys.return_value = [cache_key1, cache_key2]
+    mock_cache.iter_keys.return_value = [cache_key1, cache_key2]
     mock_cache.get_many.return_value = {
         cache_key1: participant1,
         cache_key2: participant2,
