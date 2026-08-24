@@ -18,6 +18,8 @@ from uuid import UUID
 from django.conf import settings
 from django.core.cache import cache
 
+from core.utils import CACHE_SCAN_ITERSIZE
+
 
 class PresenceCache:
     """Store and invalidate (room, identity) presence entries."""
@@ -45,6 +47,6 @@ class PresenceCache:
 
     def clear_room(self, room_id: UUID | str) -> None:
         """Forget presence for every participant of a room (on room_finished)."""
-        keys = cache.keys(self._get_cache_key(room_id, "*"))
-        if keys:
-            cache.delete_many(keys)
+        cache.delete_pattern(
+            self._get_cache_key(room_id, "*"), itersize=CACHE_SCAN_ITERSIZE
+        )

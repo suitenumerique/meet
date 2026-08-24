@@ -23,6 +23,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade @pandacss/preset-panda from 1.11.3 to 1.12.0
 - ⬆️(frontend) upgrade posthog-js from 1.404.1 to 1.409.5
 - ⚡️(frontend) apply frugal constraint to the active meeting audio track
+- ⚡️(backend) replace blocking Redis KEYS with cursor-based SCAN
 
 ## [1.28.0] - 2026-08-24
 
