@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-08-24
+
 ### Added
 
 - 📈(frontend) track errors when starting or stopping a recording
