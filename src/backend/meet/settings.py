@@ -856,6 +856,15 @@ class Base(Configuration):
     )
 
     # Lobby configurations
+    PRESENCE_KEY_PREFIX = values.Value(
+        "room_presence", environ_name="PRESENCE_KEY_PREFIX", environ_prefix=None
+    )
+    PRESENCE_CACHE_TIMEOUT = values.PositiveIntegerValue(
+        3600, environ_name="PRESENCE_CACHE_TIMEOUT", environ_prefix=None
+    )
+    PRESENCE_CLEAR_ON_PARTICIPANT_LEFT = values.BooleanValue(
+        True, environ_name="PRESENCE_CLEAR_ON_PARTICIPANT_LEFT", environ_prefix=None
+    )
     LOBBY_KEY_PREFIX = values.Value(
         "room_lobby", environ_name="LOBBY_KEY_PREFIX", environ_prefix=None
     )

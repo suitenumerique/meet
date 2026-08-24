@@ -536,7 +536,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="enter",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanManageLobby,
         ],
     )
     def allow_participant_to_enter(self, request, pk=None):  # pylint: disable=unused-argument
@@ -574,7 +574,7 @@ class RoomViewSet(
         methods=["GET"],
         url_path="waiting-participants",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanManageLobby,
         ],
     )
     def list_waiting_participants(self, request, pk=None):  # pylint: disable=unused-argument

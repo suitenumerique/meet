@@ -5,7 +5,7 @@ from django.http import Http404
 
 from rest_framework import permissions
 
-from ..models import RoleChoices
+from ..models import RoleChoices, RoomAccessLevel
 from ..services.participants_management import (
     ParticipantNotFoundException,
     ParticipantsManagement,
@@ -192,6 +192,51 @@ class IsPresentInMeeting(permissions.BasePermission):
 
         try:
             return ParticipantsManagement().check_if_in_meeting(
+                room_name=str(obj.pk), identity=str(user.sub)
+            )
+        except ParticipantNotFoundException:
+            return False
+        except ParticipantsManagementException:
+            return False
+
+
+class CanManageLobby(permissions.BasePermission):
+    """Grant lobby management (list/accept/deny waiting participants).
+
+    - Room admins/owners can always manage the lobby.
+    - When the room access level is TRUSTED, any authenticated user who is
+      currently connected to the meeting can manage the lobby. Presence is
+      verified cache-first (Redis), falling back to the LiveKit API.
+
+    Access level is always read fresh from the DB; only presence is cached,
+    so changing the room to RESTRICTED takes effect immediately.
+    """
+
+    message = "You are not allowed to manage this room's lobby."
+
+    # pylint: disable=too-many-return-statements
+    def has_object_permission(self, request, view, obj):  # noqa: PLR0911
+        """Check privileges first, then the trusted-room presence path."""
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return False
+
+        # Product choice: lobby management is reserved for session-authenticated
+        # users with a real account, not holders of a LiveKit room token.
+        if request.auth and hasattr(request.auth, "video"):
+            return False
+
+        if obj.is_administrator_or_owner(user):
+            return True
+
+        if obj.access_level != RoomAccessLevel.TRUSTED:
+            return False
+
+        self.message = "You must be connected to the meeting to manage its lobby."
+
+        try:
+            return ParticipantsManagement().check_if_in_meeting_cached(
                 room_name=str(obj.pk), identity=str(user.sub)
             )
         except ParticipantNotFoundException:
