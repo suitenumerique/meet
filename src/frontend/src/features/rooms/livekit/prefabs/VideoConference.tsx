@@ -31,6 +31,7 @@ import { PinAnnouncer } from '@/features/layout/components/PinAnnouncer'
 import { ChatProvider } from '@/features/chat/components/ChatProvider'
 import { SyncDevicePreferences } from '@/features/rooms/livekit/components/SyncDevicePreferences'
 import { RoomSilentMicDetector } from '@/features/rooms/components/SilentMicDetector'
+import { LobbyProvider } from '@/features/rooms/components/LobbyProvider'
 
 /**
  * @public
@@ -120,6 +121,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       <RoomSilentMicDetector />
       <MediaStateObserver />
       <ChatProvider />
+      <LobbyProvider />
       <VideoResolutionSubscription />
       <div
         className="lk-video-conference"
