@@ -1,60 +1,30 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRoomContext } from '@livekit/components-react'
-import { RoomEvent } from 'livekit-client'
+import { useMemo } from 'react'
+
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
-import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
+import { useCanManageLobby } from '@/features/rooms/livekit/hooks/useCanManageLobby'
 import { useEnterRoom } from '../api/enterRoom'
 import {
   useListWaitingParticipants,
   type WaitingParticipant,
 } from '../../participants/api/listWaitingParticipants'
-import { decodeNotificationDataReceived } from '@/features/notifications/utils'
-import { NotificationType } from '@/features/notifications/NotificationType'
 import { reportError } from '@/features/analytics/telemetry'
 
-export const POLL_INTERVAL_MS = 1000
-
 export const useWaitingParticipants = () => {
-  const [listEnabled, setListEnabled] = useState(true)
-
   const roomData = useRoomData()
   const roomId = roomData?.id || '' // FIXME - bad practice
 
-  const room = useRoomContext()
-  const isAdminOrOwner = useIsAdminOrOwner()
-
-  const handleDataReceived = useCallback((payload: Uint8Array) => {
-    const notification = decodeNotificationDataReceived(payload)
-    if (notification?.type === NotificationType.ParticipantWaiting) {
-      setListEnabled(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (isAdminOrOwner) {
-      room.on(RoomEvent.DataReceived, handleDataReceived)
-    }
-    return () => {
-      room.off(RoomEvent.DataReceived, handleDataReceived)
-    }
-  }, [isAdminOrOwner, room, handleDataReceived])
+  const canManageLobby = useCanManageLobby()
 
   const { data: waitingData, refetch: refetchWaiting } =
     useListWaitingParticipants(roomId, {
       retry: false,
-      enabled: listEnabled && isAdminOrOwner,
-      refetchInterval: POLL_INTERVAL_MS,
-      refetchIntervalInBackground: true,
+      enabled: false,
     })
 
   const waitingParticipants = useMemo(
-    () => waitingData?.participants || [],
-    [waitingData]
+    () => (canManageLobby ? waitingData?.participants || [] : []),
+    [waitingData, canManageLobby]
   )
-
-  useEffect(() => {
-    if (!waitingParticipants.length) setListEnabled(false)
-  }, [waitingParticipants])
 
   const { mutateAsync: enterRoom } = useEnterRoom()
 
@@ -74,8 +44,6 @@ export const useWaitingParticipants = () => {
     allowEntry: boolean
   ): Promise<void> => {
     try {
-      setListEnabled(false)
-
       await Promise.all(
         waitingParticipants.map((participant) =>
           enterRoom({
@@ -89,7 +57,6 @@ export const useWaitingParticipants = () => {
       await refetchWaiting()
     } catch (e) {
       reportError('generic_failure', e)
-      setListEnabled(true)
     }
   }
 
