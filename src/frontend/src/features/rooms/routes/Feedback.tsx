@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/primitives'
 import { Screen } from '@/layout/Screen'
-import { Center, HStack, styled, VStack } from '@/styled-system/jsx'
+import { Center, Stack, styled, VStack } from '@/styled-system/jsx'
+import { css } from '@/styled-system/css'
 import { Rating } from '@/features/rooms/components/Rating.tsx'
 import { useLocation } from 'wouter'
 import { useMemo } from 'react'
@@ -14,12 +15,16 @@ const Heading = styled('h1', {
     fontStyle: 'normal',
     fontStretch: 'normal',
     fontOpticalSizing: 'auto',
-    fontSize: '2.3rem',
-    lineHeight: '2.5rem',
+    fontSize: { base: '1.75rem', xsm: '2.3rem' },
+    lineHeight: { base: '2.125rem', xsm: '2.5rem' },
     letterSpacing: '0',
-    paddingBottom: '2rem',
+    paddingBottom: { base: '1.5rem', xsm: '2rem' },
     textAlign: 'center',
   },
+})
+
+const buttonClass = css({
+  width: { base: '100%', xsm: 'auto' },
 })
 
 enum DisconnectReasonKey {
@@ -54,19 +59,31 @@ const FeedbackRoute = () => {
 
   return (
     <Screen layout="centered" footer={false}>
-      <Center>
-        <VStack>
+      <Center width="100%">
+        <VStack width="100%" paddingX="1rem">
           <Heading>{t(`feedback.heading.${reasonKey || 'normal'}`)}</Heading>
-          <HStack>
+          <Stack
+            direction={{ base: 'column', xsm: 'row' }}
+            width={{ base: '100%', xsm: 'auto' }}
+            maxWidth="380px"
+          >
             {showBackButton && (
-              <Button variant="secondary" onPress={() => window.history.back()}>
+              <Button
+                variant="secondary"
+                className={buttonClass}
+                onPress={() => window.history.back()}
+              >
                 {t('feedback.back')}
               </Button>
             )}
-            <Button variant="primary" onPress={() => setLocation('/')}>
+            <Button
+              variant="primary"
+              className={buttonClass}
+              onPress={() => setLocation('/')}
+            >
               {t('feedback.home')}
             </Button>
-          </HStack>
+          </Stack>
           <Rating metadata={metadata} />
         </VStack>
       </Center>

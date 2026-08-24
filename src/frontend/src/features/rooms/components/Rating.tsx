@@ -15,7 +15,8 @@ const Card = styled('div', {
     marginTop: '1.5rem',
     borderRadius: '0.25rem',
     boxShadow: '',
-    minWidth: '380px',
+    width: '100%',
+    maxWidth: '380px',
     minHeight: '196px',
   },
 })
@@ -37,8 +38,11 @@ const ratingButtonRecipe = cva({
     color: 'initial',
     border: 'none',
     borderRadius: 0,
-    padding: '0.5rem 0.85rem',
+    padding: { base: '0.5rem 0.25rem', xsm: '0.5rem 0.85rem' },
     flexGrow: '1',
+    flexBasis: 0,
+    minWidth: 0,
+    textAlign: 'center',
     cursor: 'pointer',
   },
   variants: {
@@ -99,7 +103,9 @@ const OpenFeedback = ({
 
   return (
     <Card>
-      <H lvl={3}>{t('question')}</H>
+      <H lvl={3} centered>
+        {t('question')}
+      </H>
       <TextArea
         id="feedbackInput"
         name="feedback"
@@ -168,7 +174,9 @@ const RateQuality = ({
 
   return (
     <Card>
-      <H lvl={3}>{t('question')}</H>
+      <H lvl={3} centered>
+        {t('question')}
+      </H>
       <Bar>
         {[...Array(maxRating)].map((_, index) => (
           <RACButton
@@ -228,7 +236,9 @@ const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
       }}
     >
       <VStack gap={0}>
-        <H lvl={3}>{t('heading')}</H>
+        <H lvl={3} centered>
+          {t('heading')}
+        </H>
         <Text as="p" variant="paragraph" centered>
           {t('body')}
         </Text>
