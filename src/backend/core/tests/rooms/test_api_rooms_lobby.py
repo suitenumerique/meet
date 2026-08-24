@@ -389,7 +389,7 @@ def test_allow_participant_to_enter_anonymous():
 
 def test_allow_participant_to_enter_non_owner():
     """Non-privileged users should not be allowed to manage entry requests."""
-    room = RoomFactory()
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     user = UserFactory()
     client = APIClient()
     client.force_login(user)
@@ -522,7 +522,7 @@ def test_list_waiting_participants_anonymous():
 
 def test_list_waiting_participants_non_owner():
     """Non-privileged users should not be allowed to list waiting participants."""
-    room = RoomFactory()
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     user = UserFactory()
     client = APIClient()
     client.force_login(user)

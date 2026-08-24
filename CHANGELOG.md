@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(any) let any authenticated user manage the lobby on trusted rooms
+
 ### Changed
 
 - 📱(frontend) collapse mobile control bar items on narrow viewports

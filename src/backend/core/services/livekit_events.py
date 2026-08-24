@@ -23,6 +23,7 @@ from core.recording.services.recording_events import (
 )
 
 from .lobby import LobbyService
+from .presence import PresenceCache
 from .room_management import (
     RoomManagement,
     RoomManagementException,
@@ -99,6 +100,7 @@ class LiveKitEventsService:
             "egress_ended": self._handle_egress_ended,
             "room_started": self._handle_room_started,
             "room_finished": self._handle_room_finished,
+            "participant_left": self._handle_participant_left,
         }
 
         token_verifier = api.TokenVerifier(
@@ -107,6 +109,7 @@ class LiveKitEventsService:
         )
         self.webhook_receiver = api.WebhookReceiver(token_verifier)
         self.lobby_service = LobbyService()
+        self.presence_cache = PresenceCache()
         self.sip_management = SIPManagement()
         self.recording_events = RecordingEventsService()
 
@@ -285,9 +288,31 @@ class LiveKitEventsService:
                     f"Failed to delete sip dispatch rule for room {room_id}"
                 ) from e
 
+        self.presence_cache.clear_room(room_id)
+
         try:
             self.lobby_service.clear_room_cache(room_id)
         except Exception as e:
             raise ActionFailedError(
                 f"Failed to clear room cache for room {room_id}"
             ) from e
+
+    def _handle_participant_left(self, data):
+        """Handle 'participant_left': invalidate the presence cache.
+
+        Presence entries are created lazily (only for users who administrate
+        the lobby of a trusted room), so for most participants this delete is
+        a no-op DEL on a key that never existed. Eager invalidation shrinks
+        the window during which a departed participant could still act on a
+        trusted room's lobby (cache hit until TTL expiry). It is gated behind
+        `PRESENCE_CLEAR_ON_PARTICIPANT_LEFT` so its production impact can be
+        measured and the behaviour reverted independently of the feature.
+        When disabled, invalidation relies on `room_finished` and the TTL.
+        """
+        if not settings.PRESENCE_CLEAR_ON_PARTICIPANT_LEFT:
+            return
+
+        identity = data.participant.identity
+        if not identity:
+            return
+        self.presence_cache.clear(data.room.name, identity)

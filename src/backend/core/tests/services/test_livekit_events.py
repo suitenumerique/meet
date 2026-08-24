@@ -854,3 +854,31 @@ def test_receive_ignores_connection_test_room(
 
     mock_handle_room_started.assert_not_called()
     mock_handle_room_finished.assert_not_called()
+
+
+@mock.patch("core.services.presence.cache.delete")
+def test_participant_left_clearing_gated_by_setting(mock_delete, service, settings):
+    """PRESENCE_CLEAR_ON_PARTICIPANT_LEFT toggles eager presence invalidation."""
+    data = mock.Mock()
+    data.room.name = "room-name"
+    data.participant.identity = "user-sub"
+
+    settings.PRESENCE_CLEAR_ON_PARTICIPANT_LEFT = False
+    service._handle_participant_left(data)  # pylint: disable=protected-access
+    mock_delete.assert_not_called()
+
+    settings.PRESENCE_CLEAR_ON_PARTICIPANT_LEFT = True
+    service._handle_participant_left(data)  # pylint: disable=protected-access
+    mock_delete.assert_called_once()
+
+
+@mock.patch("core.services.presence.cache.delete")
+def test_participant_left_without_identity_is_ignored(mock_delete, service, settings):
+    """No cache operation when the webhook carries no identity."""
+    settings.PRESENCE_CLEAR_ON_PARTICIPANT_LEFT = True
+    data = mock.Mock()
+    data.room.name = "room-name"
+    data.participant.identity = ""
+
+    service._handle_participant_left(data)  # pylint: disable=protected-access
+    mock_delete.assert_not_called()
