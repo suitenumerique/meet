@@ -10,10 +10,18 @@ import {
   showLowerHandToast,
 } from '@/features/notifications/utils'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { type ButtonRecipeProps } from '@/primitives/buttonRecipe'
+import { ToggleButtonProps } from '@/primitives/ToggleButton'
 
 const SPEAKING_DETECTION_DELAY = 3000
 
-export const HandToggle = () => {
+type Props = Pick<NonNullable<ButtonRecipeProps>, 'variant'> & ToggleButtonProps
+
+export const HandToggle = ({
+  variant = 'primaryDark',
+  onPress,
+  ...props
+}: Props) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.hand' })
 
   const room = useRoomContext()
@@ -74,12 +82,16 @@ export const HandToggle = () => {
       })}
     >
       <ToggleButton
+        {...props}
         square
-        variant="primaryDark"
+        variant={variant}
         aria-label={t(tooltipLabel)}
         tooltip={t(tooltipLabel)}
         isSelected={isHandRaised}
-        onPress={handleToggle}
+        onPress={(e) => {
+          handleToggle()
+          onPress?.(e)
+        }}
         data-attr={`controls-hand-${tooltipLabel}`}
       >
         <RiHand />

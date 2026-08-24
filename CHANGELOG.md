@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- 📱(frontend) collapse mobile control bar items on narrow viewports
+
 ## [1.28.0] - 2026-08-24
 
 ### Added
