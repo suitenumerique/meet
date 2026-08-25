@@ -1,0 +1,37 @@
+{
+  "title": "Aviso legal",
+  "creator": {
+    "title": "Editor",
+    "body": "El servicio Visio está editado por la Dirección Interministerial de lo Digital del Estado (DINUM), con domicilio en:",
+    "contact": {
+      "title": "Datos de contacto",
+      "address": "20 avenue de Ségur",
+      "city": "75007 París",
+      "phone": "Tel. Recepción: 01.71.21.01.70",
+      "siret": "SIRET: 12000101100010 (secretaría general del gobierno)",
+      "siren": "SIREN: 120 001 011"
+    }
+  },
+  "director": {
+    "title": "Director de la publicación",
+    "body": "La directora de la publicación es la señora Stéphanie Schaer, directora interministerial de lo digital."
+  },
+  "hosting": {
+    "title": "Alojamiento",
+    "body": "El servicio está alojado por Outscale West-1 CloudGouv SecNumCloud, situado en Francia."
+  },
+  "accessibility": {
+    "title": "Accesibilidad",
+    "body": "La conformidad con las normas de accesibilidad digital es un objetivo posterior. El sitio todavía no ha sido auditado. No obstante, el equipo trabaja para crear un sitio accesible para todo el mundo siguiendo las recomendaciones del RGAA.",
+    "more": "Para saber más: ",
+    "link": "enlace a la página de accesibilidad",
+    "status": "Estado de accesibilidad: no conforme"
+  },
+  "reuse": {
+    "title": "Reutilización de los contenidos y enlaces",
+    "body1": "Salvo mención explícita de propiedad intelectual perteneciente a terceros, los contenidos de este sitio se ofrecen bajo ",
+    "license": "licencia abierta Etalab 2.0",
+    "body2": "En particular, eres libre de reproducirlos, copiarlos, modificarlos, extraerlos, transformarlos, comunicarlos, difundirlos, redistribuirlos, publicarlos, transmitirlos y explotarlos siempre que menciones su fuente y su fecha de última actualización, y no induzcas a error a terceros sobre la información que contienen.",
+    "body3": "Todo sitio público o privado está autorizado a establecer, sin autorización previa, un enlace (incluido un enlace profundo) hacia la información difundida en este sitio."
+  }
+}
