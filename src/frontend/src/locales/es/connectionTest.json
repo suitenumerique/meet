@@ -29,11 +29,13 @@
     "pending": "En espera",
     "running": "En curso…",
     "success": "Correcto",
+    "warning": "No óptimo",
     "failed": "Error",
     "skipped": "Omitido"
   },
   "counts": {
     "passed": "correctas",
+    "warnings": "no óptimas",
     "failed": "con errores",
     "skipped": "omitidas"
   },
@@ -46,6 +48,10 @@
     "passedHint": "Tu navegador, tus dispositivos y tu red están listos para una reunión.",
     "partial": "Prueba parcial",
     "partialHint": "Se han omitido algunas comprobaciones. Autoriza el acceso a tu cámara y a tu micrófono para probarlos.",
+    "warning": "Conexión no óptima",
+    "warningHint": "Puedes participar en tus reuniones, pero la calidad de la imagen y del sonido puede verse reducida por la configuración de tu red. Tu servicio informático puede mejorar la situación.",
+    "warningDocLink": "Requisitos de red para tu servicio informático",
+    "warningDocLinkAriaLabel": "Abrir los requisitos de red para tu servicio informático - se abre en una nueva ventana",
     "failed_one": "{{count}} verificación en error",
     "failed_other": "{{count}} verificaciones en error",
     "failedHint": "Abre las verificaciones en error para ver el detalle y transmite después el informe a tu servicio informático."

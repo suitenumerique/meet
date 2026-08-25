@@ -466,6 +466,11 @@ class Base(Configuration):
         "documentation_url": values.Value(
             None, environ_name="FRONTEND_DOCUMENTATION_URL", environ_prefix=None
         ),
+        "technical_documentation_url": values.Value(
+            None,
+            environ_name="FRONTEND_TECHNICAL_DOCUMENTATION_URL",
+            environ_prefix=None,
+        ),
         "external_home_url": values.Value(
             None, environ_name="FRONTEND_EXTERNAL_HOME_URL", environ_prefix=None
         ),

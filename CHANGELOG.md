@@ -16,6 +16,11 @@ and this project adheres to
 - ✨(frontend) let signed-out visitors start a meeting
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 
+### Changed
+
+- ✨(frontend) warn users when the connection falls back to TURN
+- 🔧(backend) configure the technical documentation url
+
 ### Fixed
 
 - 🐛(frontend) enforce recording-mode permissions on the checkboxes
@@ -156,7 +161,6 @@ and this project adheres to
 ### Added
 
 - ✨(any) let any authenticated user manage the lobby on trusted rooms
-
 ### Changed
 
 - 📱(frontend) collapse mobile control bar items on narrow viewports

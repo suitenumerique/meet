@@ -2,18 +2,44 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ProgressBar } from 'react-aria-components'
 import { css, cx } from '@/styled-system/css'
+import { A } from '@/primitives'
+import { useConfig } from '@/api/useConfig'
 import type { ConnectionTestStats } from '../types'
 import { statusSquareClass } from './stepAppearance'
 
-type SummaryState = 'idle' | 'running' | 'passed' | 'partial' | 'failed'
+type SummaryState =
+  | 'idle'
+  | 'running'
+  | 'passed'
+  | 'partial'
+  | 'failed'
+  | 'warning'
 
-/** Only a failure earns a colour: everything else stays near-black. */
+/** Only a failure or a degraded route earns a colour: everything else stays near-black. */
 const stateColorClass: Record<SummaryState, string> = {
   idle: css({ color: 'greyscale.1000' }),
   running: css({ color: 'greyscale.1000' }),
   passed: css({ color: 'greyscale.1000' }),
   partial: css({ color: 'greyscale.1000' }),
   failed: css({ color: 'danger.600' }),
+  warning: css({ color: 'warning' }),
+}
+
+/**
+ * A hard failure still outranks a warning step; a warning outranks 'partial'
+ * because a measured degraded route matters more than skipped camera or
+ * microphone checks.
+ */
+const getSummaryState = (
+  stats: ConnectionTestStats,
+  isRunning: boolean
+): SummaryState => {
+  if (isRunning) return 'running'
+  if (!stats.hasStarted) return 'idle'
+  if (stats.failed > 0) return 'failed'
+  if (stats.warnings > 0) return 'warning'
+  if (stats.skipped > 0) return 'partial'
+  return 'passed'
 }
 
 const cardClass = css({
@@ -183,16 +209,15 @@ export const ConnectionTestSummary = ({
   children?: ReactNode
 }) => {
   const { t } = useTranslation('connectionTest')
+  const { data: config } = useConfig()
 
-  const state: SummaryState = isRunning
-    ? 'running'
-    : !stats.hasStarted
-      ? 'idle'
-      : stats.failed > 0
-        ? 'failed'
-        : stats.skipped > 0
-          ? 'partial'
-          : 'passed'
+  // Network prerequisites for the reader's IT department. Instance specific,
+  // so it comes from the backend; without it the warning shows no link.
+  const networkDocUrl = config?.technical_documentation_url
+
+  const state = getSummaryState(stats, isRunning)
+  // Skipped device checks still deserve their hint under a route warning.
+  const showPartialHint = state === 'warning' && stats.skipped > 0
 
   return (
     <section className={cardClass}>
@@ -206,7 +231,27 @@ export const ConnectionTestSummary = ({
             : t(`summary.${state}`)}
         </p>
 
-        <p className={hintClass}>{t(`summary.${state}Hint`)}</p>
+        <p className={hintClass}>
+          {t(`summary.${state}Hint`)}
+          {state === 'warning' && networkDocUrl && (
+            <>
+              {' '}
+              <A
+                href={networkDocUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                size="sm"
+                externalIcon
+                aria-label={t('summary.warningDocLinkAriaLabel')}
+              >
+                {t('summary.warningDocLink')}
+              </A>
+            </>
+          )}
+        </p>
+        {showPartialHint && (
+          <p className={hintClass}>{t('summary.partialHint')}</p>
+        )}
       </div>
 
       {stats.hasStarted && (
@@ -237,6 +282,13 @@ export const ConnectionTestSummary = ({
               value={stats.passed}
               label={t('counts.passed')}
             />
+            {stats.warnings > 0 && (
+              <Counter
+                squareClass={statusSquareClass.warning}
+                value={stats.warnings}
+                label={t('counts.warnings')}
+              />
+            )}
             <Counter
               squareClass={statusSquareClass.skipped}
               value={stats.skipped}

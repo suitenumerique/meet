@@ -15,6 +15,7 @@ export type ConnectionTestStepStatus =
   | 'pending'
   | 'running'
   | 'success'
+  | 'warning'
   | 'failed'
   | 'skipped'
 
@@ -63,6 +64,7 @@ export type ConnectionTestStats = {
   total: number
   settled: number
   passed: number
+  warnings: number
   failed: number
   skipped: number
   hasStarted: boolean
@@ -77,24 +79,27 @@ export const summarizeSteps = (
   steps: ConnectionTestStepResult[]
 ): ConnectionTestStats => {
   let passed = 0
+  let warnings = 0
   let failed = 0
   let skipped = 0
   let pending = 0
 
   for (const step of steps) {
     if (step.status === 'success') passed += 1
+    else if (step.status === 'warning') warnings += 1
     else if (step.status === 'failed') failed += 1
     else if (step.status === 'skipped') skipped += 1
     else if (step.status === 'pending') pending += 1
   }
 
   const total = steps.length
-  const settled = passed + failed + skipped
+  const settled = passed + warnings + failed + skipped
 
   return {
     total,
     settled,
     passed,
+    warnings,
     failed,
     skipped,
     hasStarted: pending < total,

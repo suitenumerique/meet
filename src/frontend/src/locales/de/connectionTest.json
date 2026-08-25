@@ -29,11 +29,13 @@
     "pending": "Ausstehend",
     "running": "Läuft…",
     "success": "Erfolgreich",
+    "warning": "Nicht optimal",
     "failed": "Fehlgeschlagen",
     "skipped": "Übersprungen"
   },
   "counts": {
     "passed": "erfolgreich",
+    "warnings": "nicht optimal",
     "failed": "fehlgeschlagen",
     "skipped": "übersprungen"
   },
@@ -46,6 +48,10 @@
     "passedHint": "Ihr Browser, Ihre Geräte und Ihr Netzwerk sind für eine Besprechung bereit.",
     "partial": "Teilweiser Test",
     "partialHint": "Einige Prüfungen wurden übersprungen. Erlauben Sie den Zugriff auf Ihre Kamera und Ihr Mikrofon, um diese zu testen.",
+    "warning": "Verbindung nicht optimal",
+    "warningHint": "Sie können an Ihren Besprechungen teilnehmen, aber die Bild- und Tonqualität kann aufgrund Ihrer Netzwerkeinstellungen beeinträchtigt sein. Ihre IT-Abteilung kann hier Abhilfe schaffen.",
+    "warningDocLink": "Netzwerkanforderungen für Ihre IT-Abteilung",
+    "warningDocLinkAriaLabel": "Netzwerkanforderungen für Ihre IT-Abteilung öffnen – öffnet in neuem Tab",
     "failed_one": "{{count}} Prüfung fehlgeschlagen",
     "failed_other": "{{count}} Prüfungen fehlgeschlagen",
     "failedHint": "Öffnen Sie die fehlgeschlagenen Prüfungen für weitere Details und senden Sie den Bericht an Ihre IT-Abteilung."

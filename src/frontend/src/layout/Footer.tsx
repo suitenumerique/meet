@@ -126,6 +126,9 @@ export const Footer = () => {
     return null
   }
 
+  const isConnectionTestEnabled = !!data.diagnostics?.connection_test_enabled
+  const technicalDocumentationUrl = data.technical_documentation_url
+
   return (
     <footer
       className={css({
@@ -256,7 +259,9 @@ export const Footer = () => {
               {t('links.data')}
             </A>
           </StyledLi>
-          <StyledLi divider>
+          <StyledLi
+            divider={isConnectionTestEnabled || !!technicalDocumentationUrl}
+          >
             <Link
               underline={false}
               footer="minor"
@@ -266,8 +271,8 @@ export const Footer = () => {
               {t('links.accessibility')}
             </Link>
           </StyledLi>
-          {data?.diagnostics?.connection_test_enabled && (
-            <StyledLi divider>
+          {isConnectionTestEnabled && (
+            <StyledLi divider={!!technicalDocumentationUrl}>
               <Link
                 underline={false}
                 footer="minor"
@@ -278,19 +283,21 @@ export const Footer = () => {
               </Link>
             </StyledLi>
           )}
-          <StyledLi>
-            <A
-              externalIcon
-              underline={false}
-              footer="minor"
-              href="https://docs.numerique.gouv.fr/docs/f2baa1b9-f29e-4d58-959d-65d4376fc6b8/"
-              aria-label={
-                t('links.technicalDetails') + ' - ' + t('links.ariaLabel')
-              }
-            >
-              {t('links.technicalDetails')}
-            </A>
-          </StyledLi>
+          {technicalDocumentationUrl && (
+            <StyledLi>
+              <A
+                externalIcon
+                underline={false}
+                footer="minor"
+                href={technicalDocumentationUrl}
+                aria-label={
+                  t('links.technicalDetails') + ' - ' + t('links.ariaLabel')
+                }
+              >
+                {t('links.technicalDetails')}
+              </A>
+            </StyledLi>
+          )}
         </SecondRow>
         <ThirdRow>
           {t('mentions')}{' '}
