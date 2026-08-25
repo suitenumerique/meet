@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.29.0] - 2026-08-25
+
 ### Added
 
 - ✨(any) let any authenticated user manage the lobby on trusted rooms
