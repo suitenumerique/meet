@@ -42,6 +42,23 @@ export type IceCandidateReport = {
   working: IceCandidatePair[]
 }
 
+/**
+ * True when the selected pair does not carry media over plain UDP: the browser
+ * fell back to a TURN relay over TCP or TLS, or even the direct route is not
+ * UDP. Media still flows, but quality usually degrades under load.
+ *
+ * Accepts the loosely typed `data` stored on the step result; anything that is
+ * not an IceCandidateReport simply yields false.
+ */
+export const isSuboptimalRoute = (data: unknown): boolean => {
+  const selected = (data as IceCandidateReport | null | undefined)?.selected
+  if (!selected) return false
+  const transport = selected.local.relayProtocol ?? selected.local.protocol
+  // An unreported transport is not evidence of a bad route.
+  if (!transport) return false
+  return transport.toLowerCase() !== 'udp'
+}
+
 const PROBE_WIDTH = 320
 const PROBE_HEIGHT = 180
 const PROBE_FPS = 15
