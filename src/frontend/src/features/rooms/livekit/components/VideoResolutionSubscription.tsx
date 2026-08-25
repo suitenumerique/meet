@@ -9,14 +9,17 @@ import {
 } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { userChoicesStore } from '@/stores/userChoices'
+import { performanceModeStore } from '@/stores/performanceMode'
 
-/**
- * Sets initial video quality for new participants as they join.
- * LiveKit doesn't allow handling video quality preferences at the room level.
- */
 export const VideoResolutionSubscription = () => {
   const { videoSubscribeQuality } = useSnapshot(userChoicesStore)
+  const { enabled: isPerformanceModeEnabled } =
+    useSnapshot(performanceModeStore)
   const room = useRoomContext()
+
+  const effectiveQuality = isPerformanceModeEnabled
+    ? VideoQuality.LOW
+    : (videoSubscribeQuality ?? VideoQuality.HIGH)
 
   useEffect(() => {
     if (!room) return
@@ -25,18 +28,12 @@ export const VideoResolutionSubscription = () => {
       publication: RemoteTrackPublication,
       _participant: RemoteParticipant
     ) => {
-      // By default, the maximum quality is set to high
-      if (
-        videoSubscribeQuality === undefined ||
-        videoSubscribeQuality === VideoQuality.HIGH
-      )
-        return
-
+      if (effectiveQuality === VideoQuality.HIGH) return
       if (
         publication.kind === Track.Kind.Video &&
         publication.source !== Track.Source.ScreenShare
       ) {
-        publication.setVideoQuality(videoSubscribeQuality)
+        publication.setVideoQuality(effectiveQuality)
       }
     }
 
@@ -44,7 +41,20 @@ export const VideoResolutionSubscription = () => {
     return () => {
       room.off(RoomEvent.TrackPublished, handleTrackPublished)
     }
-  }, [room, videoSubscribeQuality])
+  }, [room, effectiveQuality])
+
+  useEffect(() => {
+    if (!room) return
+
+    room.remoteParticipants.forEach((participant) => {
+      participant.videoTrackPublications.forEach((publication) => {
+        if (publication.source === Track.Source.ScreenShare) return
+        if (publication.videoQuality !== effectiveQuality) {
+          publication.setVideoQuality(effectiveQuality)
+        }
+      })
+    })
+  }, [room, effectiveQuality])
 
   return null
 }

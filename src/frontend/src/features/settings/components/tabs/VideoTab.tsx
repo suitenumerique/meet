@@ -22,6 +22,11 @@ import {
 } from '@/stores/userChoices'
 import { RowWrapper } from './layout/RowWrapper'
 import { useSnapshot } from 'valtio'
+import {
+  disablePerformanceMode,
+  enablePerformanceMode,
+  performanceModeStore,
+} from '@/stores/performanceMode'
 
 export type VideoTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -32,7 +37,7 @@ const EMPTY_PROPS = {}
 
 export const VideoTab = ({ id }: VideoTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'video' })
-  const { localParticipant, remoteParticipants } = useRoomContext()
+  const { localParticipant } = useRoomContext()
 
   const {
     videoDeviceId,
@@ -40,6 +45,9 @@ export const VideoTab = ({ id }: VideoTabProps) => {
     videoPublishResolution,
     videoSubscribeQuality,
   } = useSnapshot(userChoicesStore)
+
+  const { enabled: isPerformanceModeEnabled } =
+    useSnapshot(performanceModeStore)
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null
@@ -83,22 +91,6 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
       })
     }
-  }
-
-  /**
-   * Updates video quality for all existing remote video tracks when user preference changes.
-   * LiveKit doesn't support setting video quality preferences at the room level for remote participants,
-   * so this function applies the selected quality to all existing remote video tracks.
-   * Hook useVideoResolutionSubscription updates quality preferences of new participants joining.
-   */
-  const updateExistingRemoteVideoQuality = (selectedQuality: VideoQuality) => {
-    remoteParticipants.forEach((participant) => {
-      participant.videoTrackPublications.forEach((publication) => {
-        if (publication.videoQuality !== selectedQuality) {
-          publication.setVideoQuality(selectedQuality)
-        }
-      })
-    })
   }
 
   useEffect(() => {
@@ -217,10 +209,13 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           type="select"
           label={t('resolution.publish.label')}
           items={resolutionItems}
-          selectedKey={videoPublishResolution}
+          selectedKey={
+            isPerformanceModeEnabled ? 'h360' : videoPublishResolution
+          }
           onSelectionChange={async (key) => {
             await handleVideoResolutionChange(key as VideoResolution)
           }}
+          isDisabled={isPerformanceModeEnabled}
           style={{
             width: '100%',
           }}
@@ -232,15 +227,39 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           type="select"
           label={t('resolution.subscribe.label')}
           items={videoQualityItems}
-          selectedKey={videoSubscribeQuality?.toString()}
+          selectedKey={
+            isPerformanceModeEnabled
+              ? VideoQuality.LOW.toString()
+              : videoSubscribeQuality?.toString()
+          }
           onSelectionChange={(key) => {
             if (key == undefined) return
             const selectedQuality = Number(String(key))
             saveVideoSubscribeQuality(selectedQuality)
-            updateExistingRemoteVideoQuality(selectedQuality)
           }}
+          isDisabled={isPerformanceModeEnabled}
           style={{
             width: '100%',
+          }}
+        />
+        <></>
+      </RowWrapper>
+      <RowWrapper heading={t('performance.heading')}>
+        <Field
+          type="switch"
+          label={t('performance.label')}
+          description={t('performance.description')}
+          isSelected={isPerformanceModeEnabled}
+          onChange={(value) => {
+            if (value) {
+              enablePerformanceMode('manual')
+            } else {
+              disablePerformanceMode()
+            }
+          }}
+          wrapperProps={{
+            noMargin: true,
+            fullWidth: true,
           }}
         />
         <></>

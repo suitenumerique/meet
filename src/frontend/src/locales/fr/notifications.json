@@ -18,6 +18,10 @@
     "auto": "Vous venez de rejoindre une grande réunion. Votre micro a été automatiquement coupé.",
     "dismiss": "Rétablir le micro"
   },
+  "cpuConstrained": {
+    "message": "Votre appareil manque de puissance. La qualité vidéo a été réduite pour préserver la fluidité de l'appel.",
+    "keepQuality": "Conserver la qualité d'origine"
+  },
   "reaction": {
     "description": "{{name}} a reagi avec {{emoji}}"
   },

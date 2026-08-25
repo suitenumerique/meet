@@ -3,6 +3,7 @@ export enum ToastDuration {
   MEDIUM = 4000,
   LONG = 5000,
   EXTRA_LONG = 7000,
+  UNDO_WINDOW = 30000,
 }
 
 export const NotificationDuration = {
@@ -15,4 +16,5 @@ export const NotificationDuration = {
   REACTION_RECEIVED: ToastDuration.SHORT,
   RECORDING_REQUESTED: ToastDuration.LONG,
   ROLE_CHANGED: ToastDuration.LONG,
+  CPU_CONSTRAINED: ToastDuration.UNDO_WINDOW,
 } as const
