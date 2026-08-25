@@ -24,6 +24,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade posthog-js from 1.404.1 to 1.409.5
 - ⚡️(frontend) apply frugal constraint to the active meeting audio track
 - ⚡️(backend) replace blocking Redis KEYS with cursor-based SCAN
+- ✨(summary) add hostname to analytics properties
 
 ## [1.28.0] - 2026-08-24
 
@@ -62,7 +63,6 @@ and this project adheres to
 
 - 🔥(frontend) drop unused vendored ConnectionObserver
 - 🐛(frontend) vendor formatChatMessageLinks and trim surrounding newlines
-- ✨(summary) add hostname to analytics properties
 
 ### Fixed
 
