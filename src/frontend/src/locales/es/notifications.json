@@ -1,0 +1,66 @@
+{
+  "defaultName": "Un colaborador",
+  "joined": {
+    "description": "{{name}} participa en la llamada"
+  },
+  "raised": {
+    "description": "{{name}} ha levantado la mano.",
+    "cta": "Abrir la lista de espera"
+  },
+  "muted": "{{name}} ha silenciado tu micrófono. Ningún participante puede oírte.",
+  "openChat": "Abrir el chat",
+  "chatMessageReceived": "{{name}} dice: {{message}}",
+  "lowerHand": {
+    "auto": "Parece que has tomado la palabra, así que se va a bajar la mano.",
+    "dismiss": "Dejar la mano levantada"
+  },
+  "autoMuteLargeRoom": {
+    "auto": "Acabas de unirte a una reunión numerosa. Tu micrófono se ha silenciado automáticamente.",
+    "dismiss": "Reactivar el micrófono"
+  },
+  "reaction": {
+    "description": "{{name}} ha reaccionado con {{emoji}}"
+  },
+  "permissionsRemoved": {
+    "camera": "El organizador ha desactivado el vídeo de todos los participantes.",
+    "microphone": "El organizador ha desactivado el micrófono de todos los participantes.",
+    "screen_share": "El organizador ha desactivado la pantalla compartida de todos los participantes."
+  },
+  "waitingParticipants": {
+    "one": "Una persona quiere participar en esta llamada.",
+    "several": "Varias personas quieren participar en esta llamada.",
+    "open": "Mostrar",
+    "accept": "Aceptar"
+  },
+  "transcript": {
+    "started": "{{name}} ha iniciado la transcripción de la reunión.",
+    "stopped": "{{name}} ha detenido la transcripción de la reunión.",
+    "limitReached": "La transcripción ha superado la duración máxima permitida, se va a guardar automáticamente.",
+    "requested": "{{name}} ha solicitado iniciar la transcripción."
+  },
+  "screenRecording": {
+    "started": "{{name}} ha iniciado la grabación de la reunión.",
+    "stopped": "{{name}} ha detenido la grabación de la reunión.",
+    "limitReached": "La grabación ha superado la duración máxima permitida, se va a guardar automáticamente.",
+    "requested": "{{name}} ha solicitado iniciar la grabación."
+  },
+  "recordingSave": {
+    "transcript": {
+      "message": "¡Estamos finalizando tu grabación! Recibirás un correo electrónico en <strong>{{email}}</strong> en cuanto la transcripción esté lista.",
+      "default": "¡Estamos finalizando tu grabación! Recibirás un correo electrónico en cuanto la transcripción esté lista."
+    },
+    "screenRecording": {
+      "message": "¡Estamos finalizando tu grabación! Recibirás un correo electrónico en <strong>{{email}}</strong> en cuanto esté lista.",
+      "default": "¡Estamos finalizando tu grabación! Recibirás un correo electrónico en cuanto esté lista."
+    }
+  },
+  "roleChanged": {
+    "body": "Tu rol ha cambiado, ahora eres {{role}}.",
+    "roles": {
+      "owner": "Organizador",
+      "administrator": "Coorganizador",
+      "member": "Miembro"
+    }
+  },
+  "openMenu": "Abrir el menú"
+}

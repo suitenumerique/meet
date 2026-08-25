@@ -1,0 +1,189 @@
+{
+  "account": {
+    "currentlyLoggedAs": "Actualmente has iniciado sesión como <0>{{user}}</0>",
+    "heading": "Cuenta",
+    "youAreNotLoggedIn": "No has iniciado sesión.",
+    "nameLabel": "Tu nombre",
+    "authentication": "Autenticación",
+    "nameError": "Tu nombre no puede estar vacío"
+  },
+  "preferences": {
+    "title": "Preferencias",
+    "idleDisconnectModal": {
+      "label": "Salir de las llamadas sin ningún otro participante",
+      "description": "Te saca de una llamada al cabo de unos minutos si ningún otro participante se une"
+    },
+    "autoMuteLargeRoom": {
+      "label": "Silenciar automáticamente mi micrófono",
+      "description": "Silencia automáticamente tu micrófono cuando te unes a una reunión numerosa."
+    }
+  },
+  "audio": {
+    "microphone": {
+      "heading": "Micrófono",
+      "label": "Selecciona tu entrada de audio",
+      "disabled": "Micrófono desactivado"
+    },
+    "noiseReduction": {
+      "label": "Reducción de ruido",
+      "heading": "Reducción de ruido",
+      "ariaLabel": {
+        "enable": "Activar la reducción de ruido",
+        "disable": "Desactivar la reducción de ruido"
+      }
+    },
+    "speakers": {
+      "heading": "Altavoces",
+      "label": "Selecciona tu salida de audio",
+      "test": "Probar",
+      "ongoingTest": "Probando el sonido…",
+      "safariWarning": "La selección del altavoz todavía no está disponible en Safari debido a limitaciones del navegador."
+    },
+    "permissionsRequired": "Permisos necesarios"
+  },
+  "video": {
+    "camera": {
+      "heading": "Cámara",
+      "label": "Selecciona tu entrada de vídeo",
+      "disabled": "Cámara desactivada",
+      "previewAriaLabel": {
+        "enabled": "Vista previa de vídeo activada",
+        "disabled": "Vista previa de vídeo desactivada"
+      }
+    },
+    "resolution": {
+      "heading": "Resolución",
+      "publish": {
+        "label": "Selecciona tu resolución de envío (máx.)",
+        "items": {
+          "high": "Alta definición",
+          "medium": "Definición estándar",
+          "low": "Baja definición"
+        }
+      },
+      "subscribe": {
+        "label": "Selecciona tu resolución de recepción (máx.)",
+        "items": {
+          "high": "Alta definición (automática)",
+          "medium": "Definición estándar",
+          "low": "Baja definición"
+        }
+      }
+    },
+    "permissionsRequired": "Permisos necesarios"
+  },
+  "transcription": {
+    "heading": "Transcripción",
+    "language": {
+      "label": "Idioma de la reunión",
+      "options": {
+        "french": "Francés (fr)",
+        "english": "Inglés (en)",
+        "dutch": "Neerlandés (nl)",
+        "german": "Alemán (de)",
+        "auto": "Automático"
+      }
+    }
+  },
+  "notifications": {
+    "heading": "Notificaciones sonoras",
+    "label": "la notificación sonora para",
+    "actions": {
+      "disable": "Desactivar",
+      "enable": "Activar"
+    },
+    "items": {
+      "participantJoined": {
+        "label": "Un nuevo participante"
+      },
+      "handRaised": {
+        "label": "Una mano levantada"
+      },
+      "messageReceived": {
+        "label": "Un mensaje recibido"
+      }
+    }
+  },
+  "shortcuts": {
+    "listLabel": "Lista de atajos de teclado",
+    "columnAction": "Acción",
+    "columnShortcut": "Atajo"
+  },
+  "dialog": {
+    "heading": "Configuración"
+  },
+  "language": {
+    "heading": "Idioma",
+    "label": "Idioma de la aplicación"
+  },
+  "settingsButtonLabel": "Configuración",
+  "accessibility": {
+    "announceReactions": {
+      "label": "Vocalizar las reacciones"
+    },
+    "font": {
+      "label": "Fuente de la interfaz",
+      "description": "Personaliza la fuente utilizada en la interfaz para mejorar tu comodidad de lectura.",
+      "options": {
+        "default": "Predeterminada",
+        "lexend": "Lexend (legibilidad mejorada)",
+        "atkinson-hyperlegible": "Atkinson Hyperlegible (baja visión)",
+        "opendyslexic": "OpenDyslexic (dislexia)"
+      }
+    },
+    "captions": {
+      "heading": "Subtítulos",
+      "textSize": {
+        "label": "Tamaño del texto de los subtítulos",
+        "options": {
+          "small": "Pequeño",
+          "medium": "Mediano",
+          "large": "Grande"
+        }
+      },
+      "fontColor": {
+        "label": "Color del texto",
+        "options": {
+          "default": "Predeterminado",
+          "white": "Blanco",
+          "black": "Negro",
+          "blue": "Azul",
+          "green": "Verde",
+          "red": "Rojo",
+          "yellow": "Amarillo",
+          "cyan": "Cian",
+          "magenta": "Magenta"
+        }
+      },
+      "backgroundColor": {
+        "label": "Color de fondo",
+        "options": {
+          "default": "Predeterminado",
+          "white": "Blanco",
+          "black": "Negro",
+          "blue": "Azul",
+          "green": "Verde",
+          "red": "Rojo",
+          "yellow": "Amarillo",
+          "cyan": "Cian",
+          "magenta": "Magenta"
+        }
+      }
+    }
+  },
+  "tabs": {
+    "account": "Perfil",
+    "audio": "Audio",
+    "video": "Vídeo",
+    "general": "General",
+    "notifications": "Notificaciones",
+    "accessibility": "Accesibilidad",
+    "transcription": "Transcripción",
+    "shortcuts": "Atajos",
+    "rooms": "Reuniones"
+  },
+  "roomDefaults": {
+    "heading": "Configuración predeterminada de las reuniones",
+    "description": "Elige la configuración que se aplica de forma predeterminada a las nuevas reuniones que crees. Siempre podrás modificarla para cada reunión desde la configuración de administración."
+  }
+}

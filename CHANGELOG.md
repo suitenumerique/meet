@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(agent) support Voxtral realtime as inference engine
+- 🌐(i18n) add Spanish language support
 
 ### Changed
 

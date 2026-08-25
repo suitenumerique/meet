@@ -230,6 +230,7 @@ class Base(Configuration):
             ("fr-fr", _("French")),
             ("nl-nl", _("Dutch")),
             ("de-de", _("German")),
+            ("es-es", _("Spanish")),
         )
     )
 
