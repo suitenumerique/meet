@@ -30,7 +30,7 @@ class GitmojiTitle(LineRule):
         """
         with urllib.request.urlopen(GITMOJIS_URL, timeout=10) as response:
             gitmojis = json.load(response)["gitmojis"]
-        emojis = [item["emoji"] for item in gitmojis]
+        emojis = [re.escape(item["emoji"]) for item in gitmojis]
         pattern = r"^({:s})\(.*\)\s[a-z].*$".format("|".join(emojis))
         if not re.search(pattern, title):
             violation_msg = 'Title does not match regex "<gitmoji>(<scope>) <subject>"'
