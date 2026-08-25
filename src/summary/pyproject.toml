@@ -2,6 +2,7 @@
 [project]
 name = "summary"
 version = "1.29.0"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.105.0",
     "uvicorn>=0.24.0",

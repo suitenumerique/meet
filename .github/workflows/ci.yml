@@ -31,12 +31,12 @@ jobs:
         if: always()
         run: |
           ! git log | grep 'fixup!'
-      - name: Install gitlint
+      - name: Install uv
         if: always()
-        run: "pip install --user --only-binary=:all: requests==2.34.2 gitlint-core==0.19.1"
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Lint commit messages added to main
         if: always()
-        run: ~/.local/bin/gitlint --commits origin/${{ github.event.pull_request.base.ref }}..HEAD
+        run: uvx --no-build --from gitlint-core==0.19.1 gitlint --commits origin/${{ github.event.pull_request.base.ref }}..HEAD
 
   check-changelog:
     runs-on: ubuntu-latest
@@ -153,7 +153,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Install the project
-        run: uv sync --locked --all-extras
+        run: uv sync --locked --all-extras --no-build
       - name: Check code formatting with ruff
         run: uv run --no-sync --no-build ruff format . --diff
       - name: Lint code with ruff
@@ -173,13 +173,14 @@ jobs:
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.13"
-          cache: "pip"
-      - name: Install development dependencies
-        run: "pip install --user --only-binary=:all: .[dev]"
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+      - name: Install the project
+        run: uv sync --locked --all-extras
       - name: Check code formatting with ruff
-        run: ~/.local/bin/ruff format . --diff
+        run: uv run --no-sync --no-build ruff format . --diff
       - name: Lint code with ruff
-        run: ~/.local/bin/ruff check .
+        run: uv run --no-sync --no-build ruff check .
 
   test-back:
     runs-on: ubuntu-latest
@@ -333,13 +334,15 @@ jobs:
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.13"
-          cache: "pip"
 
-      - name: Install development dependencies
-        run: "pip install --user --only-binary=:all: .[dev]"
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+
+      - name: Install the project
+        run: uv sync --locked --all-extras
 
       - name: Run summary tests
-        run: ~/.local/bin/pytest
+        run: uv run --no-sync --no-build pytest
 
   lint-front:
     runs-on: ubuntu-latest
