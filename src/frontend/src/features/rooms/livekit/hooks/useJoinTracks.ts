@@ -18,6 +18,7 @@ import {
   noteDeviceReady,
   onMediaPermissionError,
 } from '../utils/mediaPermissions'
+import { VOICE_AUDIO_CONSTRAINTS } from '../utils/constants'
 import {
   saveAudioInputDeviceId,
   saveAudioInputEnabled,
@@ -26,16 +27,6 @@ import {
   userChoicesStore,
 } from '@/stores/userChoices'
 import { useSyncTrackDeviceId } from './useSyncTrackDeviceId'
-
-const VOICE_AUDIO_CONSTRAINTS = {
-  noiseSuppression: true,
-  echoCancellation: true,
-  autoGainControl: true,
-  voiceIsolation: false,
-  sampleRate: 48000,
-  channelCount: 1,
-  sampleSize: 16,
-} as const
 
 // Module-level: effect dependencies, must be referentially stable.
 const disableAudio = () => saveAudioInputEnabled(false)
