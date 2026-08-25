@@ -43,6 +43,7 @@ import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
+import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 
 export const Conference = ({
   roomId,
@@ -115,6 +116,7 @@ export const Conference = ({
       },
       audioCaptureDefaults: {
         deviceId: userConfig.audioDeviceId ?? undefined,
+        ...VOICE_AUDIO_CONSTRAINTS,
       },
       audioOutput: {
         deviceId: userConfig.audioOutputDeviceId ?? undefined,
