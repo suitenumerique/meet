@@ -721,28 +721,74 @@ class Base(Configuration):
     # These settings affect screen recordings handled by VideoCompositeEgressService;
     # they are silently ignored by AudioCompositeEgressService (audio-only transcript
     # recordings), whose request never carries advanced EncodingOptions.
-    # When disabled, LiveKit falls back to its built-in H264_720P_30 preset
-    # (1280x720, 30 fps, 3000 kbps H.264 MAIN video, 128 kbps AAC audio).
-    # When enabled, the values below are passed to LiveKit as EncodingOptions
-    # (advanced) and replace the preset. Lowering framerate and bitrate reduces
-    # output file size and CPU load on the egress worker.
-    RECORDING_ENCODING_ENABLED = values.BooleanValue(
-        False, environ_name="RECORDING_ENCODING_ENABLED", environ_prefix=None
+    #
+    # A default encoding is applied to every recording: it is resolved from the default
+    # profile and resolution below and passed to LiveKit as EncodingOptions (advanced),
+    # replacing LiveKit's built-in H264_720P_30 preset. Lowering framerate and bitrate
+    # reduces output file size and CPU load on the egress worker. If either
+    # RECORDING_ENCODING_DEFAULT_RESOLUTION or RECORDING_ENCODING_DEFAULT_PROFILE is
+    # unset, no default encoding is built (a startup warning is emitted) and LiveKit's
+    # built-in preset is used instead.
+    #
+    # RECORDING_CUSTOM_ENCODING_ENABLED gates whether the start-recording API lets a
+    # client override that default per recording (via an `encoding` object selecting a
+    # resolution/profile). When False, the API rejects per-recording `encoding` and
+    # every recording uses the default; when True, clients may pick from the
+    # available resolutions/profiles below.
+    RECORDING_CUSTOM_ENCODING_ENABLED = values.BooleanValue(
+        False, environ_name="RECORDING_CUSTOM_ENCODING_ENABLED", environ_prefix=None
     )
-    RECORDING_ENCODING_WIDTH = values.PositiveIntegerValue(
-        1280, environ_name="RECORDING_ENCODING_WIDTH", environ_prefix=None
-    )
-    RECORDING_ENCODING_HEIGHT = values.PositiveIntegerValue(
-        720, environ_name="RECORDING_ENCODING_HEIGHT", environ_prefix=None
-    )
-    RECORDING_ENCODING_FRAMERATE = values.PositiveIntegerValue(
-        30, environ_name="RECORDING_ENCODING_FRAMERATE", environ_prefix=None
-    )
-    RECORDING_ENCODING_VIDEO_BITRATE_KBPS = values.PositiveIntegerValue(
-        3000,
-        environ_name="RECORDING_ENCODING_VIDEO_BITRATE_KBPS",
+
+    # Map resolution string -> {"width", "height"} in pixels.
+    RECORDING_ENCODING_AVAILABLE_RESOLUTIONS = values.DictValue(
+        {
+            "540p": {"width": 960, "height": 540},
+            "720p": {"width": 1280, "height": 720},
+            "1080p": {"width": 1920, "height": 1080},
+        },
+        environ_name="RECORDING_ENCODING_AVAILABLE_RESOLUTIONS",
         environ_prefix=None,
     )
+
+    # Map profile string -> {"fps", "kbps": {resolution: video_bitrate_kbps}}.
+    # Bitrate scales with resolution so quality stays consistent across sizes.
+    RECORDING_ENCODING_AVAILABLE_PROFILES = values.DictValue(
+        {
+            "talking_heads": {
+                "fps": 15,
+                "kbps": {"540p": 400, "720p": 700, "1080p": 1200},
+            },
+            "text": {
+                "fps": 15,
+                "kbps": {"540p": 600, "720p": 1000, "1080p": 1800},
+            },
+            "mixed": {
+                "fps": 20,
+                "kbps": {"540p": 900, "720p": 1500, "1080p": 2500},
+            },
+            "full": {
+                "fps": 30,
+                "kbps": {"540p": 2000, "720p": 3000, "1080p": 4500},
+            },
+        },
+        environ_name="RECORDING_ENCODING_AVAILABLE_PROFILES",
+        environ_prefix=None,
+    )
+
+    # Defaults used when no profile/resolution is specified per recording.
+    # Must be keys of the two dicts above (validated at startup).
+    RECORDING_ENCODING_DEFAULT_PROFILE = values.Value(
+        "full",
+        environ_name="RECORDING_ENCODING_DEFAULT_PROFILE",
+        environ_prefix=None,
+    )
+    RECORDING_ENCODING_DEFAULT_RESOLUTION = values.Value(
+        "720p",
+        environ_name="RECORDING_ENCODING_DEFAULT_RESOLUTION",
+        environ_prefix=None,
+    )
+
+    # Settings independent of profile/resolution.
     RECORDING_ENCODING_AUDIO_BITRATE_KBPS = values.PositiveIntegerValue(
         128,
         environ_name="RECORDING_ENCODING_AUDIO_BITRATE_KBPS",
@@ -757,6 +803,7 @@ class Base(Configuration):
     SUMMARY_SERVICE_VERSION = values.PositiveIntegerValue(
         1, environ_name="SUMMARY_SERVICE_VERSION", environ_prefix=None
     )
+
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
@@ -1122,6 +1169,70 @@ class Base(Configuration):
         }
 
     @classmethod
+    def _check_recording_encoding_maps(cls):
+        """Ensure the per-recording encoding maps are mutually consistent.
+
+        Every profile in RECORDING_ENCODING_AVAILABLE_PROFILES must define a bitrate for
+        each resolution declared in RECORDING_ENCODING_AVAILABLE_RESOLUTIONS.
+
+        The default profile / resolution feed the default encoding. When either is
+        missing, no custom default encoding can be built: a warning is emitted and
+        recordings fall back to LiveKit's built-in preset. When both are set, they
+        must reference keys that actually exist in the maps above.
+        """
+        resolutions = set(cls.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS)
+        profiles = set(cls.RECORDING_ENCODING_AVAILABLE_PROFILES)
+        # DictValue resolves to a dict at runtime; pylint sees the descriptor.
+        for (
+            profile,
+            profile_config,
+        ) in cls.RECORDING_ENCODING_AVAILABLE_PROFILES.items():  # pylint: disable=no-member
+            profile_resolutions = set(profile_config["kbps"])
+            if profile_resolutions != resolutions:
+                raise ValueError(
+                    f"Profile '{profile}' in RECORDING_ENCODING_AVAILABLE_PROFILES must "
+                    "define a bitrate for exactly the resolutions in "
+                    "RECORDING_ENCODING_AVAILABLE_RESOLUTIONS, mismatch on: "
+                    f"{resolutions ^ profile_resolutions}"
+                )
+
+        missing = [
+            name
+            for name, value in (
+                (
+                    "RECORDING_ENCODING_DEFAULT_RESOLUTION",
+                    cls.RECORDING_ENCODING_DEFAULT_RESOLUTION,
+                ),
+                (
+                    "RECORDING_ENCODING_DEFAULT_PROFILE",
+                    cls.RECORDING_ENCODING_DEFAULT_PROFILE,
+                ),
+            )
+            if not value
+        ]
+        if missing:
+            warnings.warn(
+                f"{' and '.join(missing)} not set; recordings will use LiveKit's "
+                "built-in encoding preset instead of a custom default encoding.",
+                UserWarning,
+                stacklevel=2,
+            )
+            return
+
+        if cls.RECORDING_ENCODING_DEFAULT_RESOLUTION not in resolutions:
+            raise ValueError(
+                "RECORDING_ENCODING_DEFAULT_RESOLUTION "
+                f"'{cls.RECORDING_ENCODING_DEFAULT_RESOLUTION}' is not a key of "
+                f"RECORDING_ENCODING_AVAILABLE_RESOLUTIONS ({sorted(resolutions)})."
+            )
+        if cls.RECORDING_ENCODING_DEFAULT_PROFILE not in profiles:
+            raise ValueError(
+                "RECORDING_ENCODING_DEFAULT_PROFILE "
+                f"'{cls.RECORDING_ENCODING_DEFAULT_PROFILE}' is not a key of "
+                f"RECORDING_ENCODING_AVAILABLE_PROFILES ({sorted(profiles)})."
+            )
+
+    @classmethod
     def post_setup(cls):
         """Post setup configuration.
         This is the place where you can configure settings that require other
@@ -1133,6 +1244,8 @@ class Base(Configuration):
             raise ValueError(
                 "FILE_UPLOAD_TMP_PATH cannot be the same as FILE_UPLOAD_PATH"
             )
+
+        cls._check_recording_encoding_maps()
 
         if (
             cls.SUMMARY_SERVICE_VERSION == 1
