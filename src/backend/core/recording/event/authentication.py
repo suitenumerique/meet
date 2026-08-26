@@ -1,4 +1,4 @@
-"""Authentication class for storage event token validation."""
+"""Authentication classes for server-to-server webhook token validation."""
 
 import logging
 import secrets
@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class MachineUser:
-    """Represent a non-interactive system user for automated storage operations."""
+    """Represent a non-interactive system user for automated operations."""
 
-    def __init__(self, username: str = "storage_event_user") -> None:
+    def __init__(self, username: str = "machine_user") -> None:
         self.pk = None
         self.username = username
         self.is_active = True
@@ -41,24 +41,17 @@ class HeaderBasedAuthentication(BaseAuthentication):
     TOKEN_TYPE = "Bearer"  # noqa S105
     REALM = ""
 
-    IS_ENFORCED_SETTINGS_KEY = None
     EXPECTED_TOKEN_SETTINGS_KEY = None
 
     def authenticate(self, request):
         """Validate the Bearer token from the Authorization header."""
-
-        if self.IS_ENFORCED_SETTINGS_KEY is not None:
-            if not getattr(settings, self.IS_ENFORCED_SETTINGS_KEY):
-                return MachineUser(), None
 
         if (
             self.EXPECTED_TOKEN_SETTINGS_KEY is None
             or (required_token := getattr(settings, self.EXPECTED_TOKEN_SETTINGS_KEY))
             is None
         ):
-            raise AuthenticationFailed(
-                "Authentication is enabled but token is not configured."
-            )
+            raise AuthenticationFailed("Authentication token is not configured.")
 
         auth_header = request.headers.get(self.AUTH_HEADER)
         if not auth_header:
@@ -86,18 +79,6 @@ class HeaderBasedAuthentication(BaseAuthentication):
     def authenticate_header(self, request):
         """Return the WWW-Authenticate header value."""
         return f"{self.TOKEN_TYPE} realm='{self.REALM}'"
-
-
-class StorageEventAuthentication(HeaderBasedAuthentication):
-    """Authenticate requests using a Bearer token for storage event integration.
-    This class validates Bearer tokens for storage events that don't map to database users.
-    It's designed for S3-compatible storage integrations and similar use cases.
-    Events are submitted when a webhook is configured on some bucket's events.
-    """
-
-    REALM = "Storage event API"
-    IS_ENFORCED_SETTINGS_KEY = "RECORDING_ENABLE_STORAGE_EVENT_AUTH"
-    EXPECTED_TOKEN_SETTINGS_KEY = "RECORDING_STORAGE_EVENT_TOKEN"  # noqa S105
 
 
 class RecordingProcessWebhookAuthentication(HeaderBasedAuthentication):

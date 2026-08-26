@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- 🔥(backend) remove the S3 storage-event webhook for recordings
+- ♻️(backend) always finalize recordings using the LiveKit egress_ended webhook
+
 ## [1.29.0] - 2026-08-25
 
 ### Added
