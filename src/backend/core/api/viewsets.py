@@ -45,24 +45,10 @@ from core.api import throttling
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
-from core.recording.event.authentication import (
-    RecordingProcessWebhookAuthentication,
-    StorageEventAuthentication,
-)
-from core.recording.event.exceptions import (
-    InvalidBucketError,
-    InvalidFilepathError,
-    InvalidFileTypeError,
-    ParsingEventDataError,
-)
-from core.recording.event.parsers import get_parser
+from core.recording.event.authentication import RecordingProcessWebhookAuthentication
 from core.recording.services.metadata_collector import (
     MetadataCollectorException,
     MetadataCollectorService,
-)
-from core.recording.services.recording_events import (
-    RecordingEventsService,
-    RecordingNotSavableError,
 )
 from core.recording.worker.exceptions import (
     RecordingStartError,
@@ -1032,56 +1018,6 @@ class RecordingViewSet(
             super()
             .get_queryset()
             .filter(Q(accesses__user=user) | Q(accesses__team__in=user.get_teams()))
-        )
-
-    @decorators.action(
-        detail=False,
-        methods=["post"],
-        url_path="storage-hook",
-        authentication_classes=[StorageEventAuthentication],
-    )
-    @FeatureFlag.require("storage_event")
-    def on_storage_event_received(self, request, pk=None):  # pylint: disable=unused-argument
-        """Handle incoming storage hook events for recordings."""
-
-        parser = get_parser()
-
-        try:
-            recording_id = parser.get_recording_id(request.data)
-
-        except ParsingEventDataError as e:
-            raise drf_exceptions.PermissionDenied("Invalid request data.") from e
-
-        except InvalidBucketError as e:
-            raise drf_exceptions.PermissionDenied("Invalid bucket specified.") from e
-
-        except InvalidFilepathError:
-            return drf_response.Response(
-                {"message": "Notification ignored."},
-            )
-
-        except InvalidFileTypeError:
-            return drf_response.Response(
-                {"message": "Notification ignored."},
-            )
-
-        try:
-            recording = models.Recording.objects.get(id=recording_id)
-        except models.Recording.DoesNotExist as e:
-            raise drf_exceptions.NotFound("No recording found for this event.") from e
-
-        # Save recording
-        recording_events_service = RecordingEventsService()
-        try:
-            recording_events_service.handle_complete(recording)
-        except RecordingNotSavableError:
-            raise drf_exceptions.PermissionDenied(
-                f"Recording with ID {recording_id} cannot be saved because it is either,"
-                " in an error state or has already been saved."
-            ) from None
-
-        return drf_response.Response(
-            {"message": "Event processed."},
         )
 
     @decorators.action(
