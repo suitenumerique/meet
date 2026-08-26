@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { usePagination, useTracks } from '@livekit/components-react'
 import { RoomEvent, Track } from 'livekit-client'
 import { styled } from '@/styled-system/jsx'
-import { PipFocusLayout } from './PipFocusLayout'
+import { OneToOneFocusLayout } from '@/features/layout/components/OneToOneFocusLayout'
 import { PipGridLayout } from './PipGridLayout'
 import { PipPagination } from './PipPagination'
 import { PipScreenShareLayout } from './PipScreenShareLayout'
@@ -59,9 +59,11 @@ export const PipStage = () => {
     if (cameraTracks.length <= 1) {
       return (
         <StageFrame>
-          <PipFocusLayout
+          <OneToOneFocusLayout
             mainTrack={screenShareTrack}
             thumbnailTrack={cameraTracks[0]}
+            disableTileControls
+            context="pip"
           />
         </StageFrame>
       )
@@ -99,7 +101,12 @@ export const PipStage = () => {
 
   return (
     <StageFrame>
-      <PipFocusLayout mainTrack={mainTrack} thumbnailTrack={thumbnailTrack} />
+      <OneToOneFocusLayout
+        mainTrack={mainTrack}
+        thumbnailTrack={thumbnailTrack}
+        disableTileControls
+        context="pip"
+      />
     </StageFrame>
   )
 }

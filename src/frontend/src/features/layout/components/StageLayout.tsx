@@ -12,7 +12,8 @@ import {
 import { Track } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { OneToOneFocusLayout } from '@/features/layout/components/OneToOneFocusLayout'
 
 export const StageLayout = () => {
   const lastAutoFocusedScreenShareTrack =
@@ -35,6 +36,29 @@ export const StageLayout = () => {
   const carouselTracks = tracks.filter(
     (track) => !isEqualTrackRef(track, pinnedTrackRef)
   )
+
+  const cameraTracks = useMemo(
+    () => tracks.filter((t) => t.source === Track.Source.Camera),
+    [tracks]
+  )
+
+  const isOneToOne =
+    !pinnedTrackRef &&
+    screenShareTracks.length === 0 &&
+    cameraTracks.length <= 2
+
+  const oneToOneMainTrack = useMemo(() => {
+    if (!isOneToOne) return undefined
+    const remote = cameraTracks.find((t) => !t.participant?.isLocal)
+    const local = cameraTracks.find((t) => t.participant?.isLocal)
+    return remote ?? local
+  }, [isOneToOne, cameraTracks])
+
+  const oneToOneThumbnailTrack = useMemo(() => {
+    if (!isOneToOne) return undefined
+    const local = cameraTracks.find((t) => t.participant?.isLocal)
+    return oneToOneMainTrack === local ? undefined : local
+  }, [isOneToOne, cameraTracks, oneToOneMainTrack])
 
   /* eslint-disable react-hooks/exhaustive-deps */
   // Code duplicated from LiveKit; this warning will be addressed in the refactoring.
@@ -87,7 +111,12 @@ export const StageLayout = () => {
 
   return (
     <>
-      {!pinnedTrackRef ? (
+      {isOneToOne ? (
+        <OneToOneFocusLayout
+          mainTrack={oneToOneMainTrack}
+          thumbnailTrack={oneToOneThumbnailTrack}
+        />
+      ) : !pinnedTrackRef ? (
         <div className="lk-grid-layout-wrapper" style={{ height: 'auto' }}>
           <GridLayout tracks={tracks} style={{ padding: 0 }}>
             <ParticipantTile />
