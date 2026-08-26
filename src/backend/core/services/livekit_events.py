@@ -220,10 +220,8 @@ class LiveKitEventsService:
                     f"Failed to process limit reached event for recording {recording}"
                 ) from e
 
-        # Fallback for completion when no MinIO/S3 webhooks are configured
-        if (
-            not settings.RECORDING_STORAGE_EVENT_ENABLE
-        ) and data.egress_info.status in [
+        # Finalize the recording, the egress has uploaded the file to the storage
+        if data.egress_info.status in [
             api.EgressStatus.EGRESS_COMPLETE,
             api.EgressStatus.EGRESS_LIMIT_REACHED,
         ]:

@@ -22,13 +22,6 @@ Configure your env values in `env.d/summary` to properly set up WhisperX and the
 make run
 ```
 
-When the stack is up, configure the MinIO webhook
-*(TODO: add this step to `make bootstrap`)*
-
-```sh
-make minio-webhook-setup
-```
-
 If you want to develop on the Celery workers with hot reloading, run:
 
 ```sh
