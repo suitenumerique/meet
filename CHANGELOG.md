@@ -20,6 +20,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade posthog-js from 1.409.5 to 1.414.0
 - ⬆️(frontend) upgrade @fontsource-variable/lexend from 5.2.11 to 5.3.0
 - ⬆️(frontend) upgrade @fontsource/opendyslexic from 5.2.5 to 5.3.0
+- ⬆️(addons) upgrade core-js from 3.49.0 to 3.50.0
 - ♻️(backend) factorize s3 client creation in utils
 
 ### Fixed
