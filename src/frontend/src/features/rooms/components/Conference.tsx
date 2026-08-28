@@ -43,6 +43,7 @@ import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
+import { MeetDevtools } from '@/features/devtools'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 
 export const Conference = ({
@@ -298,6 +299,7 @@ export const Conference = ({
           <VideoConference />
           {!isMobile && <InviteDialog mode={mode} />}
           <PictureInPictureConference />
+          <MeetDevtools />
         </LiveKitRoom>
       </Screen>
     </QueryAware>
