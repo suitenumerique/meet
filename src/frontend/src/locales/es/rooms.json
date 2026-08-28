@@ -102,7 +102,7 @@
     "copyUrl": "Copiar el enlace",
     "copied": "Copiados en el portapapeles",
     "heading": "Tu reunión está lista",
-    "description": "Comparte estos datos con las personas que quieras invitar a la reunión.",
+    "description": "Comparte este enlace con las personas que quieras invitar a la reunión.",
     "permissions": "Las personas que dispongan de este enlace no necesitan tu autorización para unirse a esta reunión.",
     "closeDialog": "Cerrar la ventana modal",
     "phone": {
@@ -594,7 +594,7 @@
       "levels": {
         "public": {
           "label": "Abierta",
-          "description": "Todo el mundo puede unirse a la reunión sin autorización."
+          "description": "Cualquier persona puede unirse a la reunión sin autorización."
         },
         "trusted": {
           "label": "Abierta a personas de confianza",
