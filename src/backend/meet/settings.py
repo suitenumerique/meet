@@ -935,6 +935,27 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Chat media settings
+    # Images are relayed between participants over LiveKit byte streams and are
+    # never stored, so there is nothing for an operator to provision.
+    CHAT_MEDIA_ENABLED = values.BooleanValue(
+        True, environ_name="CHAT_MEDIA_ENABLED", environ_prefix=None
+    )
+    CHAT_MEDIA_MAX_SIZE = values.PositiveIntegerValue(
+        5 * MB, environ_name="CHAT_MEDIA_MAX_SIZE", environ_prefix=None
+    )
+    CHAT_MEDIA_ALLOWED_MIMETYPES = values.ListValue(
+        # SVG is deliberately excluded, it can execute script.
+        ["image/jpeg", "image/png", "image/webp", "image/gif"],
+        environ_name="CHAT_MEDIA_ALLOWED_MIMETYPES",
+        environ_prefix=None,
+    )
+    CHAT_MEDIA_ALLOWED_EXTENSIONS = values.ListValue(
+        [".jpg", ".jpeg", ".png", ".webp", ".gif"],
+        environ_name="CHAT_MEDIA_ALLOWED_EXTENSIONS",
+        environ_prefix=None,
+    )
+
     # Metadata collector settings
     METADATA_COLLECTOR_ENABLED = values.BooleanValue(
         False, environ_name="METADATA_COLLECTOR_ENABLED", environ_prefix=None

@@ -250,7 +250,8 @@
       "input": {
         "textArea": {
           "label": "Ecrire un message",
-          "placeholder": "Ecrire un message"
+          "placeholder": "Ecrire un message",
+          "captionPlaceholder": "Ajouter une légende"
         },
         "button": {
           "label": "Envoyer un message"
@@ -439,6 +440,29 @@
   },
   "chat": {
     "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel.",
+    "media": {
+      "alt": "Image partagée",
+      "attach": "Ajouter une image",
+      "download": "Télécharger",
+      "dropHint": "Déposez l’image pour l’ajouter",
+      "dropZone": "Déposer une image dans la conversation",
+      "enlarge": "Ouvrir l’image",
+      "error": {
+        "animation_too_large": "Cette animation est trop volumineuse, et la réduire supprimerait ses images.",
+        "decode_failed": "Cette image n’a pas pu être affichée.",
+        "expired": "Cette image n’est plus disponible.",
+        "send_failed": "Cette image n’a pas pu être envoyée.",
+        "too_large": "Cette image est trop volumineuse pour être envoyée.",
+        "transfer_failed": "Cette image n’a pas pu être reçue.",
+        "type_not_allowed": "Seules les images JPEG, PNG, WebP et GIF peuvent être envoyées.",
+        "unreadable": "Ce fichier n’a pas pu être lu comme une image."
+      },
+      "preparing": "Préparation de l’image…",
+      "receiving": "Réception d’une image",
+      "remove": "Retirer l’image",
+      "staged": "Image prête à envoyer",
+      "stagedAlt": "Image sur le point d’être envoyée"
+    },
     "messagesLog": "Messages du chat"
   },
   "moreTools": {
