@@ -46,9 +46,9 @@
     "passedHint": "Tu navegador, tus dispositivos y tu red están listos para una reunión.",
     "partial": "Prueba parcial",
     "partialHint": "Se han omitido algunas comprobaciones. Autoriza el acceso a tu cámara y a tu micrófono para probarlos.",
-    "failed_one": "{{count}} comprobación con errores",
-    "failed_other": "{{count}} comprobaciones con errores",
-    "failedHint": "Abre las comprobaciones con errores para ver el detalle y transmite después el informe a tu servicio informático."
+    "failed_one": "{{count}} verificación en error",
+    "failed_other": "{{count}} verificaciones en error",
+    "failedHint": "Abre las verificaciones en error para ver el detalle y transmite después el informe a tu servicio informático."
   },
   "help": {
     "firewall": "Si las pruebas de red fallan, comprueba los permisos de tu navegador y las reglas de filtrado de red (WebRTC, WebSocket, TURN) con tu servicio informático."

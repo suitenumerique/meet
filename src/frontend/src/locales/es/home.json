@@ -1,7 +1,7 @@
 {
   "createMeeting": "Crear una reunión",
   "heading": "Videoconferencias sencillas y seguras",
-  "intro": "Comunícate y trabaja con total sencillez, sin renunciar a tu soberanía",
+  "intro": "Comunícate y trabaja con facilidad, manteniendo siempre el control de tus datos",
   "joinInputError": "Introduce un enlace o un código de reunión. Ejemplos:",
   "joinInputExample": "Un código de reunión tiene este aspecto: abc-defg-hij",
   "joinInputLabel": "Enlace completo o código de la reunión",
@@ -15,8 +15,8 @@
   "moreAbout": "sobre {{appTitle}}",
   "connectionTestLink": "Prueba tu configuración",
   "createMenu": {
-    "laterOption": "Crear una reunión para una fecha posterior",
-    "instantOption": "Iniciar una reunión instantánea"
+    "laterOption": "Crear una reunión para más tarde",
+    "instantOption": "Iniciar una reunión ahora"
   },
   "laterMeetingDialog": {
     "heading": "Tus datos de conexión",
@@ -49,7 +49,7 @@
     },
     "slide1": {
       "title": "Pásate a la sencillez. ¡Pruébanos ahora mismo!",
-      "body": "Descubre una solución intuitiva y accesible, diseñada para todos los empleados públicos y sus colaboradores, y mucho más."
+      "body": "Descubre una solución intuitiva y accesible, pensada para el sector público y todos sus colaboradores."
     },
     "slide2": {
       "title": "Organiza llamadas de grupo sin límite",
@@ -57,7 +57,7 @@
     },
     "slide3": {
       "title": "Transforma tus reuniones con la IA",
-      "body": "Obtén transcripciones precisas y accionables para impulsar tu productividad. Función en beta, ¡pruébala ahora!"
+      "body": "Obtén transcripciones precisas y accionables para impulsar tu productividad. Función experimental, ¡pruébala ahora!"
     }
   }
 }

@@ -21,7 +21,7 @@
   "audio": {
     "microphone": {
       "heading": "Micrófono",
-      "label": "Selecciona tu entrada de audio",
+      "label": "Dispositivo de entrada de audio",
       "disabled": "Micrófono desactivado"
     },
     "noiseReduction": {
@@ -34,7 +34,7 @@
     },
     "speakers": {
       "heading": "Altavoces",
-      "label": "Selecciona tu salida de audio",
+      "label": "Dispositivo de salida de audio",
       "test": "Probar",
       "ongoingTest": "Probando el sonido…",
       "safariWarning": "La selección del altavoz todavía no está disponible en Safari debido a limitaciones del navegador."
@@ -44,7 +44,7 @@
   "video": {
     "camera": {
       "heading": "Cámara",
-      "label": "Selecciona tu entrada de vídeo",
+      "label": "Dispositivo de entrada de vídeo",
       "disabled": "Cámara desactivada",
       "previewAriaLabel": {
         "enabled": "Vista previa de vídeo activada",
@@ -183,7 +183,7 @@
     "rooms": "Reuniones"
   },
   "roomDefaults": {
-    "heading": "Configuración predeterminada de las reuniones",
-    "description": "Elige la configuración que se aplica de forma predeterminada a las nuevas reuniones que crees. Siempre podrás modificarla para cada reunión desde la configuración de administración."
+    "heading": "Ajustes predeterminados de las reuniones",
+    "description": "Elige la configuración que se aplica de forma predeterminada a las nuevas reuniones que crees. Siempre podrás modificarla para cada reunión desde el menu de configuración."
   }
 }
