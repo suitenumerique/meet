@@ -18,6 +18,7 @@ and this project adheres to
 - 🔥(backend) remove the S3 storage-event webhook for recordings
 - ♻️(backend) always finalize recordings using the LiveKit egress_ended webhook
 - ⬆️(frontend) upgrade posthog-js from 1.409.5 to 1.414.0
+- ⬆️(frontend) upgrade @fontsource-variable/lexend from 5.2.11 to 5.3.0
 
 ### Fixed
 
