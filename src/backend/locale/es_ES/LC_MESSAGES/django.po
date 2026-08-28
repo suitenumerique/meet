@@ -19,7 +19,7 @@ msgstr ""
 
 #: core/admin.py:67
 msgid "Personal info"
-msgstr "Información personal"
+msgstr "Datos Personales"
 
 #: core/admin.py:80
 msgid "Permissions"
@@ -35,19 +35,20 @@ msgstr "Contenido"
 
 #: core/admin.py:217
 msgid "Deletion"
-msgstr "Eliminación"
+msgstr "Eliminar Salas"
 
 #: core/admin.py:226
 msgid "Derived info"
-msgstr "Información derivada"
+msgstr ""
 
 #: core/admin.py:237
+# 'Marcas de tiempo' is a bad translation for spanish
 msgid "Timestamps"
-msgstr "Marcas de tiempo"
+msgstr "" 
 
 #: core/admin.py:240
 msgid "File preview"
-msgstr "Vista previa del archivo"
+msgstr "Vista previa"
 
 #: core/admin.py:300 core/admin.py:443
 msgid "No owner"
@@ -97,7 +98,7 @@ msgstr "Se han omitido %(count)s grabación(es) con un estado no elegible."
 
 #: core/admin.py:510
 msgid "No scopes"
-msgstr "Sin ámbitos"
+msgstr ""
 
 #: core/admin.py:512
 msgid "Scopes"
@@ -109,7 +110,7 @@ msgstr "Yo soy el creador"
 
 #: core/api/serializers.py:89
 msgid "You must be administrator or owner of a room to add accesses to it."
-msgstr "Debes ser administrador o propietario de una sala para añadirle accesos."
+msgstr "Debes ser administrador o propietario de una reunión para añadirle accesos."
 
 #: core/api/serializers.py:534
 msgid "This file extension is not allowed."
@@ -132,6 +133,7 @@ msgid "Owner"
 msgstr "Propietario"
 
 #: core/models.py:55
+# To check here and following lines for gender agreement (Masculine/Feminine)
 msgid "Initiated"
 msgstr "Iniciada"
 
@@ -161,15 +163,15 @@ msgstr "Error al detener"
 
 #: core/models.py:62
 msgid "Notification succeeded"
-msgstr "Notificación correcta"
+msgstr "Notificado correctamente"
 
 #: core/models.py:65
 msgid "External process successful"
-msgstr "Proceso externo: correcto"
+msgstr "Proceso externo finalizado correctamente"
 
 #: core/models.py:67
 msgid "External process failed"
-msgstr "Proceso externo: error"
+msgstr "Error en el Proceso externo"
 
 #: core/models.py:96
 msgid "SCREEN_RECORDING"
@@ -185,7 +187,7 @@ msgstr "Acceso público"
 
 #: core/models.py:104
 msgid "Trusted Access"
-msgstr "Acceso de confianza"
+msgstr "Acceso usuarios autorizados"
 
 #: core/models.py:105
 msgid "Restricted Access"
@@ -233,7 +235,7 @@ msgstr "Opcional para los usuarios pendientes; obligatorio al activar la cuenta.
 
 #: core/models.py:168
 msgid "identity email address"
-msgstr "dirección de correo electrónico de identidad"
+msgstr "dirección de correo electrónico"
 
 #: core/models.py:173
 msgid "admin email address"
@@ -253,7 +255,7 @@ msgstr "idioma"
 
 #: core/models.py:184
 msgid "The language in which the user wants to see the interface."
-msgstr "El idioma en el que el usuario quiere ver la interfaz."
+msgstr "El idioma preferido de interfaz."
 
 #: core/models.py:190
 msgid "The timezone in which the user wants to see times."
@@ -269,7 +271,7 @@ msgstr "Si el usuario es un dispositivo o un usuario real."
 
 #: core/models.py:198
 msgid "staff status"
-msgstr "estado de miembro del personal"
+msgstr "estado del personal"
 
 #: core/models.py:200
 msgid "Whether the user can log into this admin site."
@@ -303,11 +305,11 @@ msgstr "Recursos"
 
 #: core/models.py:345
 msgid "Resource access"
-msgstr "Acceso al recurso"
+msgstr "Acceso a recursos"
 
 #: core/models.py:346
 msgid "Resource accesses"
-msgstr "Accesos a los recursos"
+msgstr "Accesos a recursos"
 
 #: core/models.py:352
 msgid "Resource access with this User and Resource already exists."
@@ -315,27 +317,27 @@ msgstr "Ya existe un acceso al recurso con este usuario y este recurso."
 
 #: core/models.py:409
 msgid "Visio room configuration"
-msgstr "Configuración de la sala de videoconferencia"
+msgstr "Configuración de la videoconferencia"
 
 #: core/models.py:410
 msgid "Values for Visio parameters to configure the room."
-msgstr "Valores de los parámetros de videoconferencia para configurar la sala."
+msgstr "Valores de los parámetros de videoconferencia para configurar la reunión."
 
 #: core/models.py:417
 msgid "Room PIN code"
-msgstr "Código PIN de la sala"
+msgstr "Código PIN de la reunión"
 
 #: core/models.py:418
 msgid "Unique n-digit code that identifies this room in telephony mode."
-msgstr "Código único de n dígitos que identifica esta sala en modo telefónico."
+msgstr "Código único de n dígitos que identifica esta reunión en modo telefónico."
 
 #: core/models.py:424 core/models.py:578
 msgid "Room"
-msgstr "Sala"
+msgstr "Reunión"
 
 #: core/models.py:425
 msgid "Rooms"
-msgstr "Salas"
+msgstr "Reuniones"
 
 #: core/models.py:589
 msgid "Worker ID"
@@ -353,7 +355,7 @@ msgstr "Modo de grabación"
 
 #: core/models.py:600
 msgid "Defines the mode of recording being called."
-msgstr "Define el modo de grabación invocado."
+msgstr "Define el modo de grabación a utilizar."
 
 #: core/models.py:605 core/models.py:606
 msgid "Recording options"
@@ -397,23 +399,23 @@ msgstr "Debe definirse el usuario o el equipo, pero no ambos."
 
 #: core/models.py:767
 msgid "Create rooms"
-msgstr "Crear salas"
+msgstr "Crear reunión"
 
 #: core/models.py:768
 msgid "List rooms"
-msgstr "Listar salas"
+msgstr "Listar reuniones"
 
 #: core/models.py:769
 msgid "Retrieve room details"
-msgstr "Ver los detalles de una sala"
+msgstr "Ver los detalles de una reunión"
 
 #: core/models.py:770
 msgid "Update rooms"
-msgstr "Actualizar las salas"
+msgstr "Actualizar las reuniones"
 
 #: core/models.py:771
 msgid "Delete rooms"
-msgstr "Eliminar las salas"
+msgstr "Eliminar las reuniones"
 
 #: core/models.py:784
 msgid "Application name"
