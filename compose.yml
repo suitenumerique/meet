@@ -213,6 +213,8 @@ services:
       - "7880:7880"
       - "7881:7881"
       - "7882:7882/udp"
+      - "3478:3478/udp"
+      - "30000-30100:30000-30100/udp"
     volumes:
       - ./docker/livekit/config/livekit-server.yaml:/config.yaml
     depends_on:
