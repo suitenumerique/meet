@@ -17,6 +17,10 @@ and this project adheres to
 - 🔥(backend) remove the S3 storage-event webhook for recordings
 - ♻️(backend) always finalize recordings using the LiveKit egress_ended webhook
 
+### Fixed
+
+- 🐛(frontend) fix chat text-area bug
+
 ## [1.29.0] - 2026-08-25
 
 ### Added

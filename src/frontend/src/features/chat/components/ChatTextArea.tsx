@@ -21,7 +21,9 @@ const StyledContainer = styled('div', {
 })
 
 export const ChatTextArea = () => {
-  const { isSending, send, textAreaValue } = useSnapshot(chatStore)
+  const { isSending, send, textAreaValue } = useSnapshot(chatStore, {
+    sync: true,
+  })
 
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.chat.input' })
 
