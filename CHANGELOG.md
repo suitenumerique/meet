@@ -19,6 +19,10 @@ and this project adheres to
 - ♻️(backend) always finalize recordings using the LiveKit egress_ended webhook
 - ⬆️(frontend) upgrade posthog-js from 1.409.5 to 1.414.0
 
+### Fixed
+
+- 🐛(frontend) fix chat text-area bug
+
 ## [1.29.0] - 2026-08-25
 
 ### Added
