@@ -12,12 +12,13 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.storage import default_storage
 from django.db import IntegrityError, transaction
 from django.db.models import Q
-from django.http import Http404
+from django.http import Http404, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from botocore.exceptions import BotoCoreError, ClientError
 from django_filters import rest_framework as django_filters
 from rest_framework import (
     decorators,
@@ -97,6 +98,14 @@ from .feature_flag import FeatureFlag
 # pylint: disable=too-many-ancestors
 
 logger = getLogger(__name__)
+
+
+class StorageUnavailable(drf_exceptions.APIException):
+    """Exception raised when recording storage cannot be reached."""
+
+    status_code = drf_status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = "The recording storage is temporarily unavailable."
+    default_code = "storage_unavailable"
 
 
 class NestedGenericViewSet(viewsets.GenericViewSet):
@@ -1155,6 +1164,87 @@ class RecordingViewSet(
         request = utils.generate_s3_authorization_headers(recording.key)
 
         return drf_response.Response("authorized", headers=request.headers, status=200)
+
+    @decorators.action(detail=False, methods=["get"], url_path="download")
+    def media_download(self, request, *args, **kwargs):
+        """
+        Stream a recording file directly from S3 to the browser.
+
+        This endpoint is registered at /media/recordings/<uuid>.<ext> in core/urls.py
+        and handles the download flow on OpenShift where the Nginx auth_request
+        mechanism is not available.
+
+        Django acts as a streaming proxy: bytes flow from S3 (internal cluster URL)
+        directly to the client response. This avoids any page navigation or redirect,
+        so the browser triggers a native download without leaving the current page.
+
+        Access control mirrors media_auth: the user must have the "retrieve" ability
+        on the recording and the recording must be in a saved state.
+        """
+        recording_id = self.kwargs.get("recording_id")
+        extension = self.kwargs.get("extension")
+
+        if extension not in [file.value for file in FileExtension]:
+            raise drf_exceptions.ValidationError({"detail": "Unsupported extension."})
+
+        try:
+            recording = models.Recording.objects.get(id=recording_id)
+        except models.Recording.DoesNotExist as e:
+            raise drf_exceptions.NotFound("No recording found for this id.") from e
+
+        if extension != recording.extension:
+            raise drf_exceptions.NotFound("No recording found with this extension.")
+
+        abilities = recording.get_abilities(request.user)
+
+        if not abilities["retrieve"]:
+            logger.debug(
+                "User '%s' lacks permission for recording download", request.user.id
+            )
+            raise drf_exceptions.PermissionDenied()
+
+        if not recording.is_saved:
+            logger.debug("Recording '%s' has not been saved", recording)
+            raise drf_exceptions.PermissionDenied()
+
+        s3_client = default_storage.connection.meta.client
+        try:
+            s3_object = s3_client.get_object(
+                Bucket=default_storage.bucket_name,
+                Key=recording.key,
+            )
+        except ClientError as error:
+            error_code = error.response.get("Error", {}).get("Code")
+            if error_code in {"404", "NoSuchKey", "NoSuchObject"}:
+                raise drf_exceptions.NotFound(
+                    "No recording file found in storage."
+                ) from error
+            logger.exception("Unable to retrieve recording from storage")
+            raise StorageUnavailable() from error
+        except BotoCoreError as error:
+            logger.exception("Unable to retrieve recording from storage")
+            raise StorageUnavailable() from error
+
+        content_type = s3_object.get("ContentType") or "video/mp4"
+        content_length = s3_object.get("ContentLength")
+        filename = f"{recording_id}.{extension}"
+        body = s3_object["Body"]
+
+        def stream():
+            try:
+                yield from body.iter_chunks(chunk_size=65536)
+            finally:
+                body.close()
+
+        streaming_response = StreamingHttpResponse(
+            stream(),
+            content_type=content_type,
+        )
+        streaming_response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        if content_length:
+            streaming_response["Content-Length"] = content_length
+
+        return streaming_response
 
 
 # pylint: disable=too-many-public-methods

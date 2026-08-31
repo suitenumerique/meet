@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add OpenShift-compatible recording download endpoint
+
 ### Changed
 
 - ♿️(frontend) close side panel with Escape key #1507
