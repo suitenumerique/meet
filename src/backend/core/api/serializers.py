@@ -142,7 +142,20 @@ class NestedResourceAccessSerializer(ResourceAccessSerializer):
     user = UserSerializer(read_only=True)
 
 
-class ListRoomSerializer(serializers.ModelSerializer):
+class EffectiveAccessLevelMixin:
+    """Answer with the level a meeting runs at, not the one stored for it.
+
+    The two differ where the instance has stopped allowing the stored level.
+    """
+
+    def to_representation(self, instance):
+        """Report the effective level under the key every reader already reads."""
+        output = super().to_representation(instance)
+        output["access_level"] = instance.effective_access_level
+        return output
+
+
+class ListRoomSerializer(EffectiveAccessLevelMixin, serializers.ModelSerializer):
     """Serialize Room model for a list API endpoint."""
 
     class Meta:
@@ -151,7 +164,7 @@ class ListRoomSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "slug"]
 
 
-class RoomSerializer(serializers.ModelSerializer):
+class RoomSerializer(EffectiveAccessLevelMixin, serializers.ModelSerializer):
     """Serialize Room model for the API."""
 
     class Meta:
@@ -176,7 +189,6 @@ class RoomSerializer(serializers.ModelSerializer):
         Add LiveKit credentials for public instance or related users/groups
         """
         output = super().to_representation(instance)
-        output["access_level"] = instance.effective_access_level
         request = self.context.get("request")
 
         if not request:

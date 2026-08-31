@@ -10,6 +10,7 @@ from rest_framework import serializers
 from core import models, utils
 from core.api.serializers import (
     BaseValidationOnlySerializer,
+    EffectiveAccessLevelMixin,
     RoomConfiguration,
     check_access_level_allowed,
 )
@@ -26,7 +27,7 @@ class ApplicationJwtSerializer(BaseValidationOnlySerializer):
     scope = serializers.CharField(write_only=True)
 
 
-class RoomSerializer(serializers.ModelSerializer):
+class RoomSerializer(EffectiveAccessLevelMixin, serializers.ModelSerializer):
     """External API serializer for room data exposed to applications.
 
     Provides limited, safe room information for third-party integrations:

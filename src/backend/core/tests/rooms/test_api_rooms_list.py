@@ -156,3 +156,17 @@ def test_api_rooms_list_pagination_page_size():
     assert len(content["results"]) == 3
     assert content["next"] == "http://testserver/api/v1.0/rooms/?page=2&page_size=3"
     assert content["previous"] is None
+
+
+def test_api_rooms_list_reads_the_level_a_room_runs_at(settings):
+    """The list answers with the level in force, as the detail endpoint does."""
+    settings.ALLOW_PUBLIC_ROOMS = False
+    user = UserFactory()
+    RoomFactory(access_level=RoomAccessLevel.PUBLIC, users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get("/api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    assert response.json()["results"][0]["access_level"] == RoomAccessLevel.TRUSTED

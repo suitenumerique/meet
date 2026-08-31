@@ -104,3 +104,22 @@ def test_trusted_room_present_user_can_accept_entry(mock_check):
     # Permission passed; 404 because that participant isn't actually waiting.
     assert response.status_code == 404
     assert response.json() == {"message": "Participant not found."}
+
+
+@mock.patch(
+    "core.services.participants_management.ParticipantsManagement.check_if_in_meeting"
+)
+def test_public_room_running_as_trusted_present_user_can_list_waiting(
+    mock_check, settings
+):
+    """A public room runs as trusted where the instance forbids public ones, lobby included."""
+    mock_check.return_value = True
+    settings.ALLOW_PUBLIC_ROOMS = False
+    user = UserFactory()
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id}/waiting-participants/")
+
+    assert response.status_code == 200
