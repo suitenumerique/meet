@@ -175,6 +175,25 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
     )
 
 
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_api_rooms_retrieve_anonymous_public_forbidden_by_the_instance():
+    """
+    A room set to public before the instance forbade public rooms runs as
+    trusted, so an anonymous visitor is answered the level in force and no
+    credentials to join with.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert response.json()["access_level"] == RoomAccessLevel.TRUSTED
+    assert "livekit" not in response.json()
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
+
+
 @override_settings(ALLOW_UNREGISTERED_ROOMS=True, ALLOW_PUBLIC_ROOMS=False)
 def test_api_rooms_retrieve_unregistered_gone_when_public_is_forbidden():
     """

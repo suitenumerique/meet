@@ -483,3 +483,34 @@ def test_api_rooms_update_public_room_reads_as_trusted(settings):
     assert response.json()["access_level"] == RoomAccessLevel.TRUSTED
     room.refresh_from_db()
     assert room.access_level == RoomAccessLevel.PUBLIC
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_metadata_carries_the_level_in_force(
+    mock_update_metadata, settings
+):
+    """The media server is told what the meeting runs as, as the API answers it."""
+    settings.ALLOW_PUBLIC_ROOMS = False
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC,
+        users=[(user, "owner")],
+        configuration={},
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"configuration": {"can_publish_sources": ["camera"]}},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={
+            "access_level": "trusted",
+            "configuration": {"can_publish_sources": ["camera"]},
+        },
+    )
