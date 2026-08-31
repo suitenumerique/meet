@@ -56,6 +56,7 @@
       "publish": {
         "label": "Selecciona tu resolución de envío (máx.)",
         "items": {
+          "veryHigh": "Muy alta definición",
           "high": "Alta definición",
           "medium": "Definición estándar",
           "low": "Baja definición"

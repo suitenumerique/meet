@@ -18,6 +18,7 @@ import {
   saveVideoPublishResolution,
   saveVideoSubscribeQuality,
   userChoicesStore,
+  VIDEO_RESOLUTIONS,
   VideoResolution,
 } from '@/stores/userChoices'
 import { RowWrapper } from './layout/RowWrapper'
@@ -70,7 +71,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         isDisabled: true,
       }
 
-  const handleVideoResolutionChange = async (key: 'h720' | 'h360' | 'h180') => {
+  const handleVideoResolutionChange = async (key: VideoResolution) => {
     saveVideoPublishResolution(key)
     const videoTrack = localParticipant.getTrackPublication(
       Track.Source.Camera
@@ -124,20 +125,13 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   }, [videoDeviceId, videoElement])
 
   const resolutionItems = useMemo(() => {
-    return [
-      {
-        value: 'h720',
-        label: `${t('resolution.publish.items.high')} (720p)`,
-      },
-      {
-        value: 'h360',
-        label: `${t('resolution.publish.items.medium')} (360p)`,
-      },
-      {
-        value: 'h180',
-        label: `${t('resolution.publish.items.low')} (180p)`,
-      },
-    ]
+    const labels: Record<VideoResolution, string> = {
+      h1080: `${t('resolution.publish.items.veryHigh')} (1080p)`,
+      h720: `${t('resolution.publish.items.high')} (720p)`,
+      h360: `${t('resolution.publish.items.medium')} (360p)`,
+      h180: `${t('resolution.publish.items.low')} (180p)`,
+    }
+    return VIDEO_RESOLUTIONS.map((value) => ({ value, label: labels[value] }))
   }, [t])
 
   const videoQualityItems = useMemo(() => {
