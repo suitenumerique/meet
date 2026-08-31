@@ -795,6 +795,7 @@ class ApplicationScope(models.TextChoices):
     ROOMS_RETRIEVE = "rooms:retrieve", _("Retrieve room details")
     ROOMS_UPDATE = "rooms:update", _("Update rooms")
     ROOMS_DELETE = "rooms:delete", _("Delete rooms")
+    USERS_SESSION = "users:session", _("Create user session tokens")
 
 
 class Application(BaseModel):
@@ -843,6 +844,18 @@ class Application(BaseModel):
 
         domain = get_domain_from_email(email)
         return self.allowed_domains.filter(domain__iexact=domain).exists()
+
+    @classmethod
+    def has_active_scope(cls, client_id, scope) -> bool:
+        """Check that an active application holds a scope."""
+        if not client_id or not scope:
+            return False
+
+        return cls.objects.filter(
+            client_id=client_id,
+            is_active=True,
+            scopes__contains=[scope],
+        ).exists()
 
 
 class ApplicationDomain(BaseModel):

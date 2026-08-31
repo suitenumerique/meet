@@ -2,15 +2,18 @@
 Test rooms API endpoints in the Meet core app: create.
 """
 
+from datetime import datetime, timedelta, timezone
+
 # pylint: disable=redefined-outer-name,unused-argument
 from django.conf import settings
 from django.core.cache import cache
 
+import jwt
 import pytest
 from rest_framework.test import APIClient
 
-from ...factories import RoomFactory, UserFactory
-from ...models import Room, RoomAccessLevel
+from ...factories import ApplicationFactory, RoomFactory, UserFactory
+from ...models import ApplicationScope, Room, RoomAccessLevel
 
 pytestmark = pytest.mark.django_db
 
@@ -312,3 +315,39 @@ def test_api_rooms_create_authenticated_blank_user_default_access_level():
     assert response.status_code == 201
     room = Room.objects.get()
     assert room.access_level == settings.RESOURCE_DEFAULT_ACCESS_LEVEL
+
+
+def generate_user_access_token(user):
+    """Generate a valid user access JWT signed with the token secret."""
+    now = datetime.now(timezone.utc)
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+
+    payload = {
+        "iss": settings.USER_ACCESS_TOKEN_ISSUER,
+        "aud": settings.USER_ACCESS_TOKEN_AUDIENCE,
+        "iat": now,
+        "exp": now + timedelta(seconds=settings.USER_ACCESS_TOKEN_TTL),
+        "user_id": str(user.id),
+        "token_type": "user_access",
+        "client_id": application.client_id,
+        "scope": "user:access",
+    }
+
+    return jwt.encode(
+        payload,
+        settings.USER_ACCESS_TOKEN_SECRET_KEY,
+        algorithm=settings.USER_ACCESS_TOKEN_ALG,
+    )
+
+
+def test_api_rooms_create_authenticated_with_user_access_token():
+    """A user access token should create a room exactly like a session would."""
+    user = UserFactory()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+    response = client.post("/api/v1.0/rooms/", {"name": "my room"})
+
+    assert response.status_code == 201
+    room = Room.objects.get()
+    assert room.accesses.filter(role="owner", user=user).exists()

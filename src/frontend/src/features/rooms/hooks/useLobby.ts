@@ -6,6 +6,7 @@ import {
   ApiLobbyStatus,
   type ApiRequestEntry,
 } from '../api/requestEntry'
+import { setLobbyParticipantId } from '@/stores/lobby'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
 export const POLL_INTERVAL_MS = 1000
@@ -43,6 +44,11 @@ export const useLobby = ({
         roomId,
         username,
       })
+
+      if (response.id) {
+        setLobbyParticipantId(roomId, response.id)
+      }
+
       if (response.status === ApiLobbyStatus.ACCEPTED) {
         clearWaitingTimeout()
         setStatus(ApiLobbyStatus.ACCEPTED)
