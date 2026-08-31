@@ -120,7 +120,7 @@ class LobbyService:
         access_level = room.effective_access_level
 
         return (
-            room.is_public
+            access_level == models.RoomAccessLevel.PUBLIC
             or (
                 access_level == models.RoomAccessLevel.TRUSTED and user.is_authenticated
             )
