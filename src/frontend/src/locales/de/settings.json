@@ -56,6 +56,7 @@
       "publish": {
         "label": "Wähle die maximale Auflösung beim Senden",
         "items": {
+          "veryHigh": "Sehr hohe Auflösung",
           "high": "Hohe Auflösung",
           "medium": "Mittlere Auflösung",
           "low": "Niedrige Auflösung"

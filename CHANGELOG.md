@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) add 1080p sending resolution option #1660
+
 ### Fixed
 
 - 🐛(frontend) keep the sending resolution picked while the camera is off #1667
