@@ -7,6 +7,7 @@ import {
 } from '@/features/auth/api/patchUser'
 import { type ApiUser } from '@/features/auth/api/ApiUser'
 import { ApiAccessLevel, RoomConfiguration } from '@/features/rooms/api/ApiRoom'
+import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
 import { useMemo } from 'react'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
@@ -29,6 +30,7 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
     keyPrefix: 'admin',
     useSuspense: false,
   })
+  const accessLevelItems = useAccessLevelItems()
 
   const { user } = useUser()
   const { data: configData } = useConfig()
@@ -203,23 +205,7 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
           }),
         }}
         onChange={(value) => saveAccessLevel(value as ApiAccessLevel)}
-        items={[
-          {
-            value: ApiAccessLevel.PUBLIC,
-            label: tAdmin('access.levels.public.label'),
-            description: tAdmin('access.levels.public.description'),
-          },
-          {
-            value: ApiAccessLevel.TRUSTED,
-            label: tAdmin('access.levels.trusted.label'),
-            description: tAdmin('access.levels.trusted.description'),
-          },
-          {
-            value: ApiAccessLevel.RESTRICTED,
-            label: tAdmin('access.levels.restricted.label'),
-            description: tAdmin('access.levels.restricted.description'),
-          },
-        ]}
+        items={accessLevelItems}
       />
     </TabPanel>
   )

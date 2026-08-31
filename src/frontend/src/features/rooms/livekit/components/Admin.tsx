@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
@@ -17,6 +18,7 @@ import { reportError } from '@/features/analytics/telemetry'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
+  const accessLevelItems = useAccessLevelItems()
 
   const { roomId } = useParams()
 
@@ -208,23 +210,7 @@ export const Admin = () => {
               room: { access_level: value as ApiAccessLevel },
             }).catch((e) => reportError('generic_failure', e))
           }
-          items={[
-            {
-              value: ApiAccessLevel.PUBLIC,
-              label: t('access.levels.public.label'),
-              description: t('access.levels.public.description'),
-            },
-            {
-              value: ApiAccessLevel.TRUSTED,
-              label: t('access.levels.trusted.label'),
-              description: t('access.levels.trusted.description'),
-            },
-            {
-              value: ApiAccessLevel.RESTRICTED,
-              label: t('access.levels.restricted.label'),
-              description: t('access.levels.restricted.description'),
-            },
-          ]}
+          items={accessLevelItems}
         />
       </div>
     </Div>

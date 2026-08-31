@@ -24,6 +24,14 @@ from core import models, utils
 logger = logging.getLogger(__name__)
 
 
+def check_access_level_allowed(access_level):
+    """Raise where the instance forbids public rooms and this is one."""
+    if not models.is_access_level_allowed(access_level):
+        raise serializers.ValidationError(
+            _("Public rooms are not allowed on this instance.")
+        )
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Serialize users."""
 
@@ -150,6 +158,7 @@ class RoomSerializer(serializers.ModelSerializer):
         model = models.Room
         fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
         read_only_fields = ["id", "slug", "pin_code"]
+        extra_kwargs = {"access_level": {"validators": [check_access_level_allowed]}}
 
     def validate_configuration(self, value):
         """Validate room configuration against the RoomConfiguration schema."""
@@ -167,6 +176,7 @@ class RoomSerializer(serializers.ModelSerializer):
         Add LiveKit credentials for public instance or related users/groups
         """
         output = super().to_representation(instance)
+        output["access_level"] = instance.effective_access_level
         request = self.context.get("request")
 
         if not request:
@@ -187,7 +197,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
         should_access_room = (
             (
-                instance.access_level == models.RoomAccessLevel.TRUSTED
+                instance.effective_access_level == models.RoomAccessLevel.TRUSTED
                 and request.user.is_authenticated
             )
             or role is not None

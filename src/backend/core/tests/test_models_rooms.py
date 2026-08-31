@@ -360,3 +360,13 @@ def test_pin_generation_upper_bound(mock_randbelow, settings):
 
     # Assert called with the right exclusive upper bound, 10^5
     mock_randbelow.assert_called_with(100000)
+
+
+def test_models_rooms_public_room_runs_as_trusted(settings):
+    """A public room on an instance forbidding them is entered as trusted."""
+    settings.ALLOW_PUBLIC_ROOMS = False
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    assert room.effective_access_level == RoomAccessLevel.TRUSTED
+    assert room.is_public is False
+    assert room.access_level == RoomAccessLevel.PUBLIC

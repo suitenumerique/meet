@@ -34,6 +34,22 @@ MB = 1024 * KB
 GB = 1024 * MB
 
 
+def validate_public_rooms_settings(
+    *, allow_public_rooms, default_level, external_default
+):
+    """Refuse a public default on an instance that forbids public rooms."""
+    if allow_public_rooms:
+        return
+
+    defaults = {
+        "RESOURCE_DEFAULT_ACCESS_LEVEL": default_level,
+        "EXTERNAL_API_DEFAULT_ACCESS_LEVEL": external_default,
+    }
+    for name, level in defaults.items():
+        if level == "public":
+            raise ValueError(f"{name} cannot be public while ALLOW_PUBLIC_ROOMS is off")
+
+
 def get_release():
     """
     Get the current release of the application
@@ -700,6 +716,9 @@ class Base(Configuration):
     RESOURCE_DEFAULT_ACCESS_LEVEL = values.Value(
         "public", environ_name="RESOURCE_DEFAULT_ACCESS_LEVEL", environ_prefix=None
     )
+    ALLOW_PUBLIC_ROOMS = values.BooleanValue(
+        True, environ_name="ALLOW_PUBLIC_ROOMS", environ_prefix=None
+    )
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
@@ -1195,6 +1214,12 @@ class Base(Configuration):
                 UserWarning,
                 stacklevel=2,
             )
+
+        validate_public_rooms_settings(
+            allow_public_rooms=cls.ALLOW_PUBLIC_ROOMS,
+            default_level=cls.RESOURCE_DEFAULT_ACCESS_LEVEL,
+            external_default=cls.EXTERNAL_API_DEFAULT_ACCESS_LEVEL,
+        )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:

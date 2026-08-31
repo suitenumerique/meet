@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(agent) support Voxtral realtime as inference engine
 - 🌐(i18n) add Spanish language support
+- ✨(fullstack) let an operator forbid public rooms
 
 ### Changed
 

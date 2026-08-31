@@ -105,6 +105,11 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
+def is_access_level_allowed(access_level):
+    """Whether this instance lets a room be set to this access level."""
+    return settings.ALLOW_PUBLIC_ROOMS or access_level != RoomAccessLevel.PUBLIC
+
+
 class BaseModel(models.Model):
     """
     Serves as an abstract base model for other models, ensuring that records are validated
@@ -479,9 +484,21 @@ class Room(Resource):
         super().clean_fields(exclude=exclude)
 
     @property
+    def effective_access_level(self):
+        """The level this room is entered at.
+
+        A room set to public before the instance forbade public rooms runs as
+        trusted, and keeps its own value, so allowing them again restores it.
+        """
+        if is_access_level_allowed(self.access_level):
+            return self.access_level
+
+        return RoomAccessLevel.TRUSTED
+
+    @property
     def is_public(self):
         """Check if a room is public"""
-        return self.access_level == RoomAccessLevel.PUBLIC
+        return self.effective_access_level == RoomAccessLevel.PUBLIC
 
     @staticmethod
     def generate_unique_pin_code(length):

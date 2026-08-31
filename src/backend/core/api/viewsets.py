@@ -260,7 +260,9 @@ class RoomViewSet(
         try:
             instance = self.get_object()
         except Http404:
-            if not settings.ALLOW_UNREGISTERED_ROOMS:
+            # An unregistered room has no row to hold a level and no lobby in
+            # front of it, so it is a public room or it is nothing.
+            if not settings.ALLOW_UNREGISTERED_ROOMS or not settings.ALLOW_PUBLIC_ROOMS:
                 raise
             slug = slugify(self.kwargs["pk"])
             username = request.query_params.get("username", None)
@@ -310,9 +312,12 @@ class RoomViewSet(
         user = self.request.user
         save_kwargs = {}
 
+        # The default is read from the database, so a level forbidden after it
+        # was saved has to be dropped here rather than at the serializer.
         if (
             "access_level" not in serializer.validated_data
             and user.default_room_access_level not in (None, "")
+            and models.is_access_level_allowed(user.default_room_access_level)
         ):
             save_kwargs["access_level"] = user.default_room_access_level
 
@@ -358,7 +363,7 @@ class RoomViewSet(
 
         metadata = {
             "configuration": room.configuration,
-            "access_level": room.access_level,
+            "access_level": room.effective_access_level,
         }
 
         try:
