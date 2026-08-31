@@ -1,5 +1,7 @@
 import { useLocalParticipant } from '@livekit/components-react'
+import { TrackSource } from '@livekit/protocol'
 import { useEffect } from 'react'
+import { useCanPublishTrack } from '@/features/rooms/livekit/hooks/useCanPublishTrack'
 
 export const MEDIA_STATE_ELEMENT_ID = 'media-state'
 export const MEDIA_STATE_CHANGED_EVENT = 'media-state-changed'
@@ -7,6 +9,8 @@ export const MEDIA_STATE_CHANGED_EVENT = 'media-state-changed'
 export type MediaStateChangedDetail = {
   microphoneEnabled: boolean
   cameraEnabled: boolean
+  canPublishMicrophone: boolean
+  canPublishCamera: boolean
 }
 
 /**
@@ -16,9 +20,15 @@ export type MediaStateChangedDetail = {
  *
  * const el = document.getElementById('media-state')
  * new MutationObserver(...).observe(el, { attributes: true })
+ *
+ * The publish permissions are exposed alongside the state: an external tool
+ * cannot tell a muted microphone from one it is not allowed to unmute, and
+ * would otherwise offer a control that silently does nothing.
  */
 export const MediaStateObserver = () => {
   const { isMicrophoneEnabled, isCameraEnabled } = useLocalParticipant()
+  const canPublishMicrophone = useCanPublishTrack(TrackSource.MICROPHONE)
+  const canPublishCamera = useCanPublishTrack(TrackSource.CAMERA)
 
   useEffect(() => {
     window.dispatchEvent(
@@ -26,10 +36,17 @@ export const MediaStateObserver = () => {
         detail: {
           microphoneEnabled: isMicrophoneEnabled,
           cameraEnabled: isCameraEnabled,
+          canPublishMicrophone,
+          canPublishCamera,
         },
       })
     )
-  }, [isMicrophoneEnabled, isCameraEnabled])
+  }, [
+    isMicrophoneEnabled,
+    isCameraEnabled,
+    canPublishMicrophone,
+    canPublishCamera,
+  ])
 
   return (
     <div
@@ -37,6 +54,8 @@ export const MediaStateObserver = () => {
       style={{ display: 'none' }}
       data-microphone-enabled={isMicrophoneEnabled ? 'true' : 'false'}
       data-camera-enabled={isCameraEnabled ? 'true' : 'false'}
+      data-can-publish-microphone={canPublishMicrophone ? 'true' : 'false'}
+      data-can-publish-camera={canPublishCamera ? 'true' : 'false'}
     />
   )
 }
