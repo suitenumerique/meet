@@ -73,6 +73,7 @@ export interface ApiConfig {
     enable_firefox_proxy_workaround: boolean
     default_sources: Source[]
     default_video_codec: VideoCodec
+    max_pixel_density: number | null
   }
   transcription_destination?: string
   max_participants_for_sound: number
