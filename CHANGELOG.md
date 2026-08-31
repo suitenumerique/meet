@@ -20,6 +20,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(frontend) keep the sending resolution picked while the camera is off #1667
+- 🐛(frontend) sharpen remote video on high density screens #1659
 
 ## [1.30.0] - 2026-09-01
 
