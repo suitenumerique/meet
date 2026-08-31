@@ -104,7 +104,13 @@ export const Conference = ({
 
   const roomOptions = useMemo((): RoomOptions => {
     return {
-      adaptiveStream: true,
+      // Left unset, livekit-client uses `devicePixelRatio > 2 ? 2 : 1`, so a
+      // dpr of exactly 2 yields 1 and remote video is requested in CSS pixels.
+      // Clamped to [1, 2]: same ceiling as the SDK on dense mobile screens, and
+      // never below the tile's CSS size when the page is zoomed out.
+      adaptiveStream: {
+        pixelDensity: Math.min(Math.max(window.devicePixelRatio || 1, 1), 2),
+      },
       dynacast: true,
       publishDefaults: {
         videoCodec: apiConfig?.livekit.default_video_codec ?? 'vp9',
