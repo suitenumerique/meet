@@ -829,6 +829,31 @@ def test_api_rooms_create_public_access_enabled_with_settings(settings):
     assert response.data["access_level"] == RoomAccessLevel.PUBLIC
 
 
+def test_api_rooms_create_access_level_outside_the_instance_allow_list(settings):
+    """The instance allow-list reaches the external API, whatever its own settings say."""
+
+    settings.EXTERNAL_API_ALLOW_PUBLIC_ACCESS = True
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.TRUSTED,
+        RoomAccessLevel.RESTRICTED,
+    ]
+
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_CREATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        "/external-api/v1.0/rooms/",
+        {"access_level": RoomAccessLevel.PUBLIC},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "not allowed on this instance" in str(response.data).lower()
+    assert not Room.objects.exists()
+
+
 def test_api_rooms_create_default_access_level_respects_settings(settings):
     """Room creation should reflect the EXTERNAL_API_DEFAULT_ACCESS_LEVEL setting."""
 

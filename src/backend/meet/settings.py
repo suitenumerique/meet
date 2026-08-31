@@ -34,6 +34,28 @@ MB = 1024 * KB
 GB = 1024 * MB
 
 
+# core.models.RoomAccessLevel, which settings cannot import: they are read before
+# the app registry loads. test_settings_access_levels_mirror_the_model holds it.
+ROOM_ACCESS_LEVELS = ["public", "trusted", "restricted"]
+
+
+def validate_access_level_settings(*, allowed_levels, default_level, external_default):
+    """Check that both defaults creating rooms sit inside the allowed levels."""
+    unknown = sorted(set(allowed_levels) - set(ROOM_ACCESS_LEVELS))
+    if unknown:
+        raise ValueError(
+            f"RESOURCE_ALLOWED_ACCESS_LEVELS holds unknown levels: {unknown}"
+        )
+
+    defaults = {
+        "RESOURCE_DEFAULT_ACCESS_LEVEL": default_level,
+        "EXTERNAL_API_DEFAULT_ACCESS_LEVEL": external_default,
+    }
+    for name, level in defaults.items():
+        if level not in allowed_levels:
+            raise ValueError(f"{name} must be one of RESOURCE_ALLOWED_ACCESS_LEVELS")
+
+
 def get_release():
     """
     Get the current release of the application
@@ -700,6 +722,11 @@ class Base(Configuration):
     RESOURCE_DEFAULT_ACCESS_LEVEL = values.Value(
         "public", environ_name="RESOURCE_DEFAULT_ACCESS_LEVEL", environ_prefix=None
     )
+    RESOURCE_ALLOWED_ACCESS_LEVELS = values.ListValue(
+        ["public", "trusted", "restricted"],
+        environ_name="RESOURCE_ALLOWED_ACCESS_LEVELS",
+        environ_prefix=None,
+    )
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
@@ -1195,6 +1222,12 @@ class Base(Configuration):
                 UserWarning,
                 stacklevel=2,
             )
+
+        validate_access_level_settings(
+            allowed_levels=cls.RESOURCE_ALLOWED_ACCESS_LEVELS,
+            default_level=cls.RESOURCE_DEFAULT_ACCESS_LEVEL,
+            external_default=cls.EXTERNAL_API_DEFAULT_ACCESS_LEVEL,
+        )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:

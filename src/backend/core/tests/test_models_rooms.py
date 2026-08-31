@@ -360,3 +360,62 @@ def test_pin_generation_upper_bound(mock_randbelow, settings):
 
     # Assert called with the right exclusive upper bound, 10^5
     mock_randbelow.assert_called_with(100000)
+
+
+def test_models_rooms_effective_access_level_allowed(settings):
+    """A level the instance still allows is the one the room is entered at."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.TRUSTED,
+        RoomAccessLevel.RESTRICTED,
+    ]
+    room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
+
+    assert room.effective_access_level == RoomAccessLevel.TRUSTED
+    assert room.access_level_needs_choice is False
+
+
+def test_models_rooms_effective_access_level_moves_to_the_next_stricter(settings):
+    """A dropped level moves to the next stricter one the instance allows."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.TRUSTED,
+        RoomAccessLevel.RESTRICTED,
+    ]
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    assert room.effective_access_level == RoomAccessLevel.TRUSTED
+    assert room.is_public is False
+    assert room.access_level == RoomAccessLevel.PUBLIC
+    assert room.access_level_needs_choice is True
+
+
+def test_models_rooms_effective_access_level_skips_a_dropped_middle(settings):
+    """The next stricter allowed level is taken, not the next one in the list."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [RoomAccessLevel.RESTRICTED]
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    assert room.effective_access_level == RoomAccessLevel.RESTRICTED
+
+
+def test_models_rooms_effective_access_level_never_loosens(settings):
+    """A room stricter than everything allowed keeps its own level."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [RoomAccessLevel.PUBLIC]
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+
+    assert room.effective_access_level == RoomAccessLevel.RESTRICTED
+    assert room.is_public is False
+    assert room.access_level_needs_choice is True
+
+
+def test_models_rooms_effective_access_level_unknown_level(settings):
+    """A level this version does not know falls to the strictest one allowed."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.PUBLIC,
+        RoomAccessLevel.TRUSTED,
+    ]
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    # Straight to the row: save() runs full_clean, which refuses an unknown level.
+    Room.objects.filter(pk=room.pk).update(access_level="legacy")
+    room.refresh_from_db()
+
+    assert room.effective_access_level == RoomAccessLevel.TRUSTED
+    assert room.is_public is False

@@ -66,6 +66,67 @@ def test_api_rooms_create_authenticated(reset_cache):
     assert not rooms_data
 
 
+def test_api_rooms_create_access_level_not_allowed(settings):
+    """Creating a room with a disallowed access level should be rejected."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.TRUSTED,
+        RoomAccessLevel.RESTRICTED,
+    ]
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {
+            "name": "my room",
+            "access_level": RoomAccessLevel.PUBLIC,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert not Room.objects.exists()
+
+
+def test_api_rooms_create_access_level_allowed(settings):
+    """Creating a room with an allowed access level should succeed."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.TRUSTED,
+        RoomAccessLevel.RESTRICTED,
+    ]
+    client = APIClient()
+    client.force_login(UserFactory())
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {
+            "name": "my room",
+            "access_level": RoomAccessLevel.TRUSTED,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert Room.objects.get().access_level == RoomAccessLevel.TRUSTED
+
+
+def test_api_rooms_create_user_default_not_allowed(settings):
+    """A user default saved before the allow-list narrowed should not create rooms."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = [
+        RoomAccessLevel.PUBLIC,
+        RoomAccessLevel.RESTRICTED,
+    ]
+    client = APIClient()
+    client.force_login(UserFactory(default_room_access_level=RoomAccessLevel.TRUSTED))
+
+    response = client.post("/api/v1.0/rooms/", {"name": "my room"}, format="json")
+
+    assert response.status_code == 201
+    assert Room.objects.get().access_level == settings.RESOURCE_DEFAULT_ACCESS_LEVEL
+
+
 def test_api_rooms_create_generation_cache(reset_cache):
     """
     Authenticated users creating a room with a callback ID should have room data stored in cache.

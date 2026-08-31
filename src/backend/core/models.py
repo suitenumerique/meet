@@ -105,6 +105,14 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
+# Least to most strict, by how many people walk in without asking.
+ROOM_ACCESS_LEVELS_BY_STRICTNESS = [
+    RoomAccessLevel.PUBLIC,
+    RoomAccessLevel.TRUSTED,
+    RoomAccessLevel.RESTRICTED,
+]
+
+
 class BaseModel(models.Model):
     """
     Serves as an abstract base model for other models, ensuring that records are validated
@@ -479,9 +487,38 @@ class Room(Resource):
         super().clean_fields(exclude=exclude)
 
     @property
+    def access_level_needs_choice(self):
+        """Whether the instance has stopped allowing the level this room holds.
+
+        Its owner has to pick a new one, and the room is entered at
+        `effective_access_level` until they do.
+        """
+        return self.access_level not in settings.RESOURCE_ALLOWED_ACCESS_LEVELS
+
+    @property
+    def effective_access_level(self):
+        """The level this room is entered at, which is never looser than the one it holds."""
+        allowed = settings.RESOURCE_ALLOWED_ACCESS_LEVELS
+        if self.access_level in allowed:
+            return self.access_level
+
+        known = ROOM_ACCESS_LEVELS_BY_STRICTNESS
+        if self.access_level in known:
+            candidates = known[known.index(self.access_level) + 1 :]
+        else:
+            candidates = list(reversed(known))
+
+        for level in candidates:
+            if level in allowed:
+                return level
+
+        # Nothing stricter is allowed either, so the room keeps what it holds.
+        return self.access_level
+
+    @property
     def is_public(self):
         """Check if a room is public"""
-        return self.access_level == RoomAccessLevel.PUBLIC
+        return self.effective_access_level == RoomAccessLevel.PUBLIC
 
     @staticmethod
     def generate_unique_pin_code(length):
