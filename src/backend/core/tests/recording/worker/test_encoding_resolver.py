@@ -85,23 +85,18 @@ def test_resolve_options_returns_none_when_empty(service, encoding_options):
 )
 def test_resolve_profile_resolution_combinations(service, profile, resolution):
     """Every (profile, resolution) pair should resolve to the values from settings."""
-    expected_width, expected_height = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[
-        resolution
-    ]
-    expected_fps, kbps_by_resolution = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[
-        profile
-    ]
-    expected_bitrate = kbps_by_resolution[resolution]
+    dimensions = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[resolution]
+    profile_spec = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[profile]
 
     resolved = resolve_encoding_config(
         EncodingConfig(resolution=resolution, profile=profile)
     )
     result = service._resolve_encoding_options(resolved)
 
-    assert result.width == expected_width
-    assert result.height == expected_height
-    assert result.framerate == expected_fps
-    assert result.video_bitrate == expected_bitrate
+    assert result.width == dimensions["width"]
+    assert result.height == dimensions["height"]
+    assert result.framerate == profile_spec["fps"]
+    assert result.video_bitrate == profile_spec["kbps"][resolution]
 
 
 def test_resolve_options_none_profile_uses_livekit_defaults(service):

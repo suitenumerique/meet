@@ -36,16 +36,14 @@ def resolve_encoding_config(encoding_config):
     }
 
     if resolution:
-        width, height = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[resolution]
-        resolved["width"] = width
-        resolved["height"] = height
+        dimensions = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[resolution]
+        resolved["width"] = dimensions["width"]
+        resolved["height"] = dimensions["height"]
 
     if resolution and profile:
-        fps, kbps_by_resolution = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[
-            profile
-        ]
-        resolved["framerate"] = fps
-        resolved["video_bitrate"] = kbps_by_resolution[resolution]
+        profile_spec = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[profile]
+        resolved["framerate"] = profile_spec["fps"]
+        resolved["video_bitrate"] = profile_spec["kbps"][resolution]
 
     return resolved
 

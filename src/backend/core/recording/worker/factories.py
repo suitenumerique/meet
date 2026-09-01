@@ -22,6 +22,37 @@ _RECORDING_AUDIO_CODEC = livekit_api.AudioCodec.AAC
 _RECORDING_AUDIO_FREQUENCY_HZ = 48000
 
 
+def _build_default_encoding_options() -> Optional[Dict[str, Any]]:
+    """Build the server-wide EncodingOptions kwargs, or None to keep LiveKit's preset.
+
+    Operator-tunable values live in Django settings; the default resolution gives
+    width / height, the default profile gives framerate and video bitrate, while
+    codec and frequency are pinned constants. Either default left empty means we
+    use the livekit defaults.
+    """
+
+    resolution = settings.RECORDING_ENCODING_DEFAULT_RESOLUTION
+    profile = settings.RECORDING_ENCODING_DEFAULT_PROFILE
+
+    if not resolution or not profile:
+        return None
+
+    dimensions = settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS[resolution]
+    profile_spec = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[profile]
+
+    return {
+        "width": dimensions["width"],
+        "height": dimensions["height"],
+        "framerate": profile_spec["fps"],
+        "video_bitrate": profile_spec["kbps"][resolution],
+        "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
+        "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
+        "video_codec": _RECORDING_VIDEO_CODEC,
+        "audio_codec": _RECORDING_AUDIO_CODEC,
+        "audio_frequency": _RECORDING_AUDIO_FREQUENCY_HZ,
+    }
+
+
 @dataclass(frozen=True)
 class WorkerServiceConfig:
     """Declare Worker Service common configurations"""
@@ -38,22 +69,14 @@ class WorkerServiceConfig:
 
         logger.debug("Loading WorkerServiceConfig from settings.")
 
-        encoding_options: Optional[Dict[str, Any]] = None
-        if settings.RECORDING_ENCODING_ENABLED:
-            # Single source of truth for the EncodingOptions kwargs:
-            # operator-tunable values live in Django settings, codec / frequency
-            # are pinned constants. The services layer only unpacks this dict.
-            encoding_options = {
-                "width": settings.RECORDING_ENCODING_WIDTH,
-                "height": settings.RECORDING_ENCODING_HEIGHT,
-                "framerate": settings.RECORDING_ENCODING_FRAMERATE,
-                "video_bitrate": settings.RECORDING_ENCODING_VIDEO_BITRATE_KBPS,
-                "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
-                "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
-                "video_codec": _RECORDING_VIDEO_CODEC,
-                "audio_codec": _RECORDING_AUDIO_CODEC,
-                "audio_frequency": _RECORDING_AUDIO_FREQUENCY_HZ,
-            }
+        # Single source of truth for the EncodingOptions kwargs; the services
+        # layer only unpacks this dict. Recordings carrying their own encoding
+        # resolve it per request and bypass this default.
+        encoding_options: Optional[Dict[str, Any]] = (
+            _build_default_encoding_options()
+            if settings.RECORDING_ENCODING_ENABLED
+            else None
+        )
 
         return cls(
             output_folder=settings.RECORDING_OUTPUT_FOLDER,

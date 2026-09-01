@@ -755,7 +755,7 @@ class Base(Configuration):
         False, environ_name="RECORDING_ENCODING_ENABLED", environ_prefix=None
     )
 
-    # Map resolution string -> (width, height) in pixels.
+    # Map resolution name -> {"width": ..., "height": ...} in pixels.
     RECORDING_ENCODING_AVAILABLE_RESOLUTIONS = values.DictValue(
         {
             "540p": {"width": 960, "height": 540},
@@ -1211,16 +1211,21 @@ class Base(Configuration):
     def _check_recording_encoding_maps(cls):
         """Ensure the per-recording encoding maps are mutually consistent.
 
-        Every profile in RECORDING_ENCODING_AVAILABLE_PROFILES must define a bitrate for
-        each resolution declared in RECORDING_ENCODING_AVAILABLE_RESOLUTIONS.
+        Every profile in RECORDING_ENCODING_AVAILABLE_PROFILES must declare an fps and
+        a bitrate for each resolution declared in RECORDING_ENCODING_AVAILABLE_RESOLUTIONS,
+        and each non-empty default must name an entry of its map.
         """
+        # DictValue resolves to a dict at runtime; pylint sees the descriptor.
+        # pylint: disable=no-member
         resolutions = set(cls.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS)
-        for profile, (
-            _fps,
-            kbps_by_resolution,
-            # DictValue resolves to a dict at runtime; pylint sees the descriptor.
-        ) in cls.RECORDING_ENCODING_AVAILABLE_PROFILES.items():  # pylint: disable=no-member
-            profile_resolutions = set(kbps_by_resolution)
+        for profile, spec in cls.RECORDING_ENCODING_AVAILABLE_PROFILES.items():
+            if "fps" not in spec or "kbps" not in spec:
+                raise ValueError(
+                    f"Profile '{profile}' in RECORDING_ENCODING_AVAILABLE_PROFILES must "
+                    "define both 'fps' and 'kbps'."
+                )
+
+            profile_resolutions = set(spec["kbps"])
             if profile_resolutions != resolutions:
                 raise ValueError(
                     f"Profile '{profile}' in RECORDING_ENCODING_AVAILABLE_PROFILES must "
@@ -1228,6 +1233,22 @@ class Base(Configuration):
                     "RECORDING_ENCODING_AVAILABLE_RESOLUTIONS, mismatch on: "
                     f"{resolutions ^ profile_resolutions}"
                 )
+
+        default_resolution = cls.RECORDING_ENCODING_DEFAULT_RESOLUTION
+        if default_resolution and default_resolution not in resolutions:
+            raise ValueError(
+                f"RECORDING_ENCODING_DEFAULT_RESOLUTION '{default_resolution}' is not a "
+                "key of RECORDING_ENCODING_AVAILABLE_RESOLUTIONS, choose from "
+                f"{sorted(resolutions)}."
+            )
+
+        profiles = set(cls.RECORDING_ENCODING_AVAILABLE_PROFILES)
+        default_profile = cls.RECORDING_ENCODING_DEFAULT_PROFILE
+        if default_profile and default_profile not in profiles:
+            raise ValueError(
+                f"RECORDING_ENCODING_DEFAULT_PROFILE '{default_profile}' is not a key of "
+                f"RECORDING_ENCODING_AVAILABLE_PROFILES, choose from {sorted(profiles)}."
+            )
 
     @classmethod
     def post_setup(cls):

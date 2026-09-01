@@ -69,16 +69,30 @@ SUMMARY_SERVICE_WEBHOOK_API_TOKEN=webhook-password
 RECORDING_DOWNLOAD_BASE_URL=http://localhost:3000/recording
 
 # Recording encoding (LiveKit Egress advanced options).
-# When RECORDING_ENCODING_ENABLED is False (default), LiveKit uses its built-in
-# H264_720P_30 preset (1280x720, 30fps, 3000 kbps). Enable and tune to reduce
-# file size and CPU load on the egress worker.
-# RECORDING_ENCODING_ENABLED=False
-# RECORDING_ENCODING_WIDTH=1280
-# RECORDING_ENCODING_HEIGHT=720
-# RECORDING_ENCODING_FRAMERATE=30
-# RECORDING_ENCODING_VIDEO_BITRATE_KBPS=3000
+# Encoding is described by a named resolution (width/height) and a named profile
+# (framerate + video bitrate per resolution) instead of raw encoder values. The
+# start-recording API accepts a pair per recording, e.g.
+# options.encoding={"resolution": "720p", "profile": "talking_heads"}; only keys
+# declared in the two maps below are accepted, "profile" is optional.
+# Both maps are read as a one-line Python dict literal (ast.literal_eval): double
+# quoted keys, no outer quotes, no trailing comma. Every profile must define a
+# kbps entry for exactly the resolutions of the resolutions map, or startup fails.
+# RECORDING_ENCODING_AVAILABLE_RESOLUTIONS={"540p": {"width": 960, "height": 540}, "720p": {"width": 1280, "height": 720}, "1080p": {"width": 1920, "height": 1080}}
+# RECORDING_ENCODING_AVAILABLE_PROFILES={"talking_heads": {"fps": 15, "kbps": {"540p": 400, "720p": 700, "1080p": 1200}}, "text": {"fps": 15, "kbps": {"540p": 600, "720p": 1000, "1080p": 1800}}, "mixed": {"fps": 20, "kbps": {"540p": 900, "720p": 1500, "1080p": 2500}}, "full": {"fps": 30, "kbps": {"540p": 2000, "720p": 3000, "1080p": 4500}}}
+
+# Defaults for recordings that don't carry an encoding. Must be keys of the maps
+# above. Declared but not yet read by the recording code at this commit.
+# RECORDING_ENCODING_DEFAULT_RESOLUTION=720p
+# RECORDING_ENCODING_DEFAULT_PROFILE=full
+
+# Applied to every resolved encoding, independent of resolution and profile.
 # RECORDING_ENCODING_AUDIO_BITRATE_KBPS=128
 # RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
+
+# Server-wide encoding used when a recording carries no encoding of its own.
+# Keep False: when True, the worker factory still reads RECORDING_ENCODING_WIDTH,
+# _HEIGHT, _FRAMERATE and _VIDEO_BITRATE_KBPS, which no longer exist.
+# RECORDING_ENCODING_ENABLED=False
 
 # Telephony
 ROOM_TELEPHONY_ENABLED=True

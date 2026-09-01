@@ -85,18 +85,22 @@ def test_config_immutability(default_config):
     AWS_S3_REGION_NAME="test-region",
     AWS_STORAGE_BUCKET_NAME="test-bucket",
     RECORDING_ENCODING_ENABLED=True,
-    RECORDING_ENCODING_WIDTH=1280,
-    RECORDING_ENCODING_HEIGHT=720,
-    RECORDING_ENCODING_FRAMERATE=15,
-    RECORDING_ENCODING_VIDEO_BITRATE_KBPS=600,
+    RECORDING_ENCODING_AVAILABLE_RESOLUTIONS={
+        "720p": {"width": 1280, "height": 720},
+    },
+    RECORDING_ENCODING_AVAILABLE_PROFILES={
+        "talking_heads": {"fps": 15, "kbps": {"720p": 600}},
+    },
+    RECORDING_ENCODING_DEFAULT_RESOLUTION="720p",
+    RECORDING_ENCODING_DEFAULT_PROFILE="talking_heads",
     RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64,
     RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=10.0,
 )
 def test_config_encoding_options_enabled():
     """When RECORDING_ENCODING_ENABLED is True, encoding options are populated.
 
-    The dict mixes operator-tunable values from settings with pinned codec /
-    frequency constants, so the services layer can simply unpack it.
+    The dict mixes values resolved from the default resolution / profile with
+    pinned codec / frequency constants, so the services layer can simply unpack it.
     """
 
     WorkerServiceConfig.from_settings.cache_clear()
@@ -113,6 +117,27 @@ def test_config_encoding_options_enabled():
         "audio_codec": livekit_api_codec.AudioCodec.AAC,
         "audio_frequency": 48000,
     }
+
+
+@override_settings(
+    RECORDING_OUTPUT_FOLDER="/test/output",
+    LIVEKIT_CONFIGURATION={"server": "test.example.com"},
+    AWS_S3_ENDPOINT_URL="https://s3.test.com",
+    AWS_S3_ACCESS_KEY_ID="test_key",
+    AWS_S3_SECRET_ACCESS_KEY="test_secret",
+    AWS_S3_REGION_NAME="test-region",
+    AWS_STORAGE_BUCKET_NAME="test-bucket",
+    RECORDING_ENCODING_ENABLED=True,
+    RECORDING_ENCODING_DEFAULT_RESOLUTION="",
+    RECORDING_ENCODING_DEFAULT_PROFILE="",
+)
+def test_config_encoding_options_without_defaults():
+    """An empty default resolution or profile leaves the encoding to LiveKit."""
+
+    WorkerServiceConfig.from_settings.cache_clear()
+    config = WorkerServiceConfig.from_settings()
+
+    assert config.encoding_options is None
 
 
 @override_settings(
