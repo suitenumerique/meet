@@ -38,6 +38,9 @@ export const ScreenShareZoomControls = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
   const announce = useScreenReaderAnnounce()
 
+  const zoomInButtonRef = useRef<HTMLButtonElement>(null)
+  const hadFocusInCollapsibleRef = useRef(false)
+
   const [isFullscreen, setIsFullscreen] = useState(false)
   // Tracks whether this tile's container triggered fullscreen (vs another share's).
   const wasThisTileFullscreen = useRef(false)
@@ -62,6 +65,15 @@ export const ScreenShareZoomControls = ({
     document.addEventListener('fullscreenchange', onChange)
     return () => document.removeEventListener('fullscreenchange', onChange)
   }, [announce, t, containerRef])
+
+  // Back at 100 % the collapsible controls are disabled and hidden, which drops
+  // keyboard focus on the body. Hand it to the zoom in button instead, the only
+  // control of that group still reachable.
+  useEffect(() => {
+    if (isZoomed || !hadFocusInCollapsibleRef.current) return
+    hadFocusInCollapsibleRef.current = false
+    zoomInButtonRef.current?.focus()
+  }, [isZoomed])
 
   const toggleFullScreen = useCallback(async () => {
     try {
@@ -123,6 +135,14 @@ export const ScreenShareZoomControls = ({
             opacity: isZoomed ? 1 : 0,
           }}
           aria-hidden={!isZoomed}
+          onFocus={() => {
+            hadFocusInCollapsibleRef.current = true
+          }}
+          onBlur={(e) => {
+            // Disabling a focused button blurs it with no relatedTarget, so the
+            // flag must survive that case for the effect above to rescue focus.
+            if (e.relatedTarget) hadFocusInCollapsibleRef.current = false
+          }}
         >
           <Button
             size="sm"
@@ -169,6 +189,7 @@ export const ScreenShareZoomControls = ({
           </span>
         </div>
         <Button
+          ref={zoomInButtonRef}
           size="sm"
           variant="primaryTextDark"
           square
