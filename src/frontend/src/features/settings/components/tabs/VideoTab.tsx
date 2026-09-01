@@ -32,7 +32,8 @@ const EMPTY_PROPS = {}
 
 export const VideoTab = ({ id }: VideoTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'video' })
-  const { localParticipant, remoteParticipants } = useRoomContext()
+  const room = useRoomContext()
+  const { localParticipant, remoteParticipants } = room
 
   const {
     videoDeviceId,
@@ -70,19 +71,20 @@ export const VideoTab = ({ id }: VideoTabProps) => {
       }
 
   const handleVideoResolutionChange = async (key: 'h720' | 'h360' | 'h180') => {
-    const videoPublication = localParticipant.getTrackPublication(
+    saveVideoPublishResolution(key)
+    const videoTrack = localParticipant.getTrackPublication(
       Track.Source.Camera
-    )
-    const videoTrack = videoPublication?.track
-    if (videoTrack) {
-      saveVideoPublishResolution(key)
-      await videoTrack.restartTrack({
-        resolution: VideoPresets[key].resolution,
-        deviceId: { exact: videoDeviceId },
-        processor:
-          BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
-      })
+    )?.track
+    if (!videoTrack) {
+      return
     }
+
+    await videoTrack.restartTrack({
+      resolution: VideoPresets[key].resolution,
+      deviceId: { exact: videoDeviceId },
+      processor:
+        BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
+    })
   }
 
   /**

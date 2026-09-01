@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛(frontend) keep the sending resolution picked while the camera is off #1667
+
 ## [1.30.0] - 2026-09-01
 
 ### Added
