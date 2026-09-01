@@ -67,11 +67,10 @@ export const useScreenShareZoom = () => {
     listenersRef.current.forEach((cb) => cb())
   }, [])
 
-  const applyTransform = useCallback((transition: boolean) => {
+  const applyTransform = useCallback(() => {
     const el = transformElRef.current
     if (!el) return
     el.style.transform = getZoomTransform(zoomRef.current, panRef.current)
-    el.style.transition = transition ? 'transform 150ms ease-out' : 'none'
   }, [])
 
   const applyCursor = useCallback(() => {
@@ -87,7 +86,7 @@ export const useScreenShareZoom = () => {
     const next = clampZoom(zoomRef.current + ZOOM_STEP)
     zoomRef.current = next
     panRef.current = clampPan(panRef.current, next)
-    applyTransform(true)
+    applyTransform()
     applyCursor()
     flush()
   }, [applyTransform, applyCursor, flush])
@@ -97,7 +96,7 @@ export const useScreenShareZoom = () => {
     zoomRef.current = next
     panRef.current =
       next <= MIN_ZOOM ? { x: 0, y: 0 } : clampPan(panRef.current, next)
-    applyTransform(true)
+    applyTransform()
     applyCursor()
     flush()
   }, [applyTransform, applyCursor, flush])
@@ -105,7 +104,7 @@ export const useScreenShareZoom = () => {
   const resetZoom = useCallback(() => {
     zoomRef.current = MIN_ZOOM
     panRef.current = { x: 0, y: 0 }
-    applyTransform(true)
+    applyTransform()
     applyCursor()
     flush()
   }, [applyTransform, applyCursor, flush])
@@ -140,7 +139,7 @@ export const useScreenShareZoom = () => {
         })
       }
 
-      applyTransform(false)
+      applyTransform()
       applyCursor()
       flush()
     },
@@ -177,7 +176,7 @@ export const useScreenShareZoom = () => {
         zoomRef.current
       )
 
-      applyTransform(false)
+      applyTransform()
       // Mouse drag: skip flush (imperative-only) to avoid re-renders per frame.
       // Keyboard: flush so the toolbar reflects the updated position.
       if (e.pointerType === 'keyboard') {
@@ -186,7 +185,7 @@ export const useScreenShareZoom = () => {
     },
     onMoveEnd() {
       draggingRef.current = false
-      applyTransform(true)
+      applyTransform()
       applyCursor()
       flush()
     },
@@ -198,7 +197,7 @@ export const useScreenShareZoom = () => {
         { x: panRef.current.x + dx, y: panRef.current.y + dy },
         zoomRef.current
       )
-      applyTransform(true)
+      applyTransform()
       flush()
     },
     [applyTransform, flush]
