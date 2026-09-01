@@ -41,9 +41,7 @@ export const ScreenShareZoomControls = ({
   const [isFullscreen, setIsFullscreen] = useState(false)
   // Tracks whether this tile's container triggered fullscreen (vs another share's).
   const wasThisTileFullscreen = useRef(false)
-  const [isFullscreenAvailable] = useState(
-    () => typeof document !== 'undefined' && document.fullscreenEnabled
-  )
+  const isFullscreenAvailable = document.fullscreenEnabled
 
   // Covers Esc and browser UI exits, not just the toolbar button.
   // Only this tile's instance announces to avoid duplicates with multiple shares.
