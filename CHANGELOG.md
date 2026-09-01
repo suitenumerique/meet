@@ -17,6 +17,9 @@ and this project adheres to
 ### Changed
 
 - ⬆️(dev) pin LiveKit server to v1.13.6
+- ⬆️(backend) update python dependencies
+- ⬆️(summary) update python dependencies
+- ⬆️(agent) update python dependencies
 
 ### Fixed
 
