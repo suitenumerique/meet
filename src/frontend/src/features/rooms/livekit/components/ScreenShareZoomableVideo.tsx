@@ -69,7 +69,9 @@ export const ScreenShareZoomableVideo = ({
           overflow: 'hidden',
           position: 'relative',
           userSelect: 'none',
-          touchAction: 'none',
+          // Leaves the browser's native pinch-zoom available on touch devices
+          // while still routing single-pointer drags to useMove for panning.
+          touchAction: 'pinch-zoom',
         })}
         {...zoom.moveProps}
       >
