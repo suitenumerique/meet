@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine, RiImageCircleAiFill } from '@remixicon/react'
-import { Track, type VideoCaptureOptions } from 'livekit-client'
+import { Track, type VideoCaptureOptions, VideoPresets } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
 import { css } from '@/styled-system/css'
@@ -57,7 +57,8 @@ export const VideoDeviceControl = ({
 }: VideoDeviceControlProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
-  const { videoDeviceId, processorConfig } = useSnapshot(userChoicesStore)
+  const { videoDeviceId, processorConfig, videoPublishResolution } =
+    useSnapshot(userChoicesStore)
 
   const onChange = React.useCallback(
     (enabled: boolean, isUserInitiated: boolean) =>
@@ -97,6 +98,9 @@ export const VideoDeviceControl = ({
 
     await toggle(!trackProps.enabled, {
       processor: processor,
+      ...(videoPublishResolution && {
+        resolution: VideoPresets[videoPublishResolution].resolution,
+      }),
     } as VideoCaptureOptions)
   }
 
