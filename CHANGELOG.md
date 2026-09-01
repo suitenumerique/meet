@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.30.0] - 2026-09-01
+
 ### Changed
 
 - ♿️(frontend) close side panel with Escape key #1507
