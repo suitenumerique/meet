@@ -10,10 +10,6 @@ and this project adheres to
 
 ## [1.30.0] - 2026-09-01
 
-### Changed
-
-- ♿️(frontend) close side panel with Escape key #1507
-
 ### Added
 
 - ✨(agent) support Voxtral realtime as inference engine
@@ -29,6 +25,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade @fontsource/opendyslexic from 5.2.5 to 5.3.0
 - ⬆️(addons) upgrade core-js from 3.49.0 to 3.50.0
 - ♻️(backend) factorize s3 client creation in utils
+- ♿️(frontend) close side panel with Escape key #1507
 
 ### Fixed
 
