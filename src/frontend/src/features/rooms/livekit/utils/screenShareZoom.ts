@@ -2,7 +2,6 @@ export const MIN_ZOOM = 1
 export const MAX_ZOOM = 4
 export const ZOOM_STEP = 0.1
 export const WHEEL_ZOOM_SPEED = 0.002
-export const WHEEL_ZOOM_FOCUS_BLEND = 0.3
 export const PAN_STEP = 5
 export const PAN_CLAMP_HALF = 50
 
@@ -59,7 +58,10 @@ export const getCursorFromZoomState = (zoom: number, dragging: boolean) => {
   return dragging ? 'grabbing' : 'grab'
 }
 
-// Blend the current pan toward the cursor position so the zoom "tracks" the pointer.
+// Keep the content point under the cursor anchored while zooming. With
+// `scale(z) translate(pan%)`, a point at `offset` from the center renders at
+// `z * (offset + pan)`, so holding it still gives:
+// pan' = pan + cursor * (1 / zoom' - 1 / zoom).
 export const getWheelPanOffset = ({
   pan,
   prevZoom,
@@ -73,15 +75,11 @@ export const getWheelPanOffset = ({
   cursorXPercent: number
   cursorYPercent: number
 }): PanOffset => {
-  const zoomRatio = nextZoom / prevZoom
+  const panShift = 1 / nextZoom - 1 / prevZoom
   return clampPan(
     {
-      x:
-        pan.x +
-        (cursorXPercent - pan.x) * (1 - 1 / zoomRatio) * WHEEL_ZOOM_FOCUS_BLEND,
-      y:
-        pan.y +
-        (cursorYPercent - pan.y) * (1 - 1 / zoomRatio) * WHEEL_ZOOM_FOCUS_BLEND,
+      x: pan.x + cursorXPercent * panShift,
+      y: pan.y + cursorYPercent * panShift,
     },
     nextZoom
   )
