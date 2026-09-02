@@ -437,7 +437,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
         this.degraded = true
         reportError('effects_processor_failure', error, {
           context:
-            'Background processing failed repeatedly, falling back to unprocessed video',
+            'Background processing failed repeatedly, falling back to fully blurred video',
           consecutive_errors: this.consecutiveErrors,
         })
         this.imageSegmenter?.close()
