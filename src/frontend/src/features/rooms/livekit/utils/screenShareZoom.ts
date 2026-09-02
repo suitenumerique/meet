@@ -10,6 +10,14 @@ export interface PanOffset {
   y: number
 }
 
+// Fraction of the surface each axis of the picture covers, in [0, 1].
+export interface PictureRatio {
+  x: number
+  y: number
+}
+
+export const FULL_PICTURE_RATIO: PictureRatio = { x: 1, y: 1 }
+
 export interface ZoomSnapshot {
   zoomLevel: number
   zoomPercentage: number
@@ -24,13 +32,39 @@ export const clampZoom = (value: number) => {
   return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value))
 }
 
-// Restrict pan so the picture always covers the view.
-export const clampPan = (pan: PanOffset, zoom: number): PanOffset => {
-  const maxPan = ((zoom - 1) / zoom) * PAN_CLAMP_HALF
+// Restrict pan so the picture always covers the view. Pan is a % of the
+// surface, in which object-fit: contain letterboxes the picture: its half
+// extent is `ratio * 50` against a view half extent of 50, and scaling by
+// `zoom` must keep `zoom * (ratio * 50 - |pan|) >= 50`. An axis whose picture
+// is still smaller than the view is pinned to 0, keeping the bars symmetric.
+export const clampPan = (
+  pan: PanOffset,
+  zoom: number,
+  ratio: PictureRatio
+): PanOffset => {
+  const maxPanX = Math.max(0, (ratio.x - 1 / zoom) * PAN_CLAMP_HALF)
+  const maxPanY = Math.max(0, (ratio.y - 1 / zoom) * PAN_CLAMP_HALF)
   return {
-    x: Math.max(-maxPan, Math.min(maxPan, pan.x)),
-    y: Math.max(-maxPan, Math.min(maxPan, pan.y)),
+    x: Math.max(-maxPanX, Math.min(maxPanX, pan.x)),
+    y: Math.max(-maxPanY, Math.min(maxPanY, pan.y)),
   }
+}
+
+// Per-axis fraction of the surface covered by an object-fit: contain picture.
+export const getPictureRatio = (
+  surfaceWidth: number,
+  surfaceHeight: number,
+  videoWidth: number,
+  videoHeight: number
+): PictureRatio => {
+  if (!surfaceWidth || !surfaceHeight || !videoWidth || !videoHeight) {
+    return FULL_PICTURE_RATIO
+  }
+  const surfaceRatio = surfaceWidth / surfaceHeight
+  const videoRatio = videoWidth / videoHeight
+  return surfaceRatio > videoRatio
+    ? { x: videoRatio / surfaceRatio, y: 1 }
+    : { x: 1, y: surfaceRatio / videoRatio }
 }
 
 export const buildZoomSnapshot = (
@@ -68,12 +102,14 @@ export const getWheelPanOffset = ({
   nextZoom,
   cursorXPercent,
   cursorYPercent,
+  ratio,
 }: {
   pan: PanOffset
   prevZoom: number
   nextZoom: number
   cursorXPercent: number
   cursorYPercent: number
+  ratio: PictureRatio
 }): PanOffset => {
   const panShift = 1 / nextZoom - 1 / prevZoom
   return clampPan(
@@ -81,7 +117,8 @@ export const getWheelPanOffset = ({
       x: pan.x + cursorXPercent * panShift,
       y: pan.y + cursorYPercent * panShift,
     },
-    nextZoom
+    nextZoom,
+    ratio
   )
 }
 

@@ -2,6 +2,7 @@ import { useCallback, useRef, useSyncExternalStore } from 'react'
 import { useMove } from 'react-aria'
 import type { MoveMoveEvent } from '@react-types/shared'
 import {
+  FULL_PICTURE_RATIO,
   MIN_ZOOM,
   PAN_STEP,
   WHEEL_ZOOM_SPEED,
@@ -14,6 +15,7 @@ import {
   getCursorFromZoomState,
   getCursorPercentsFromWheelEvent,
   getPanDeltaPercentsFromMove,
+  getPictureRatio,
   getWheelPanOffset,
   getZoomTransform,
 } from '../utils/screenShareZoom'
@@ -73,6 +75,22 @@ export const useScreenShareZoom = () => {
     el.style.transform = getZoomTransform(zoomRef.current, panRef.current)
   }, [])
 
+  // The video is letterboxed inside the surface by object-fit: contain, so the
+  // pan bounds depend on how much of the surface the picture actually covers.
+  // Read live rather than cached: both the tile and the shared resolution can
+  // change at any time.
+  const readPictureRatio = useCallback(() => {
+    const surface = surfaceElRef.current
+    const video = transformElRef.current?.querySelector('video')
+    if (!surface || !video) return FULL_PICTURE_RATIO
+    return getPictureRatio(
+      surface.clientWidth,
+      surface.clientHeight,
+      video.videoWidth,
+      video.videoHeight
+    )
+  }, [])
+
   const applyCursor = useCallback(() => {
     const el = surfaceElRef.current
     if (!el) return
@@ -85,21 +103,23 @@ export const useScreenShareZoom = () => {
   const zoomIn = useCallback(() => {
     const next = clampZoom(zoomRef.current + ZOOM_STEP)
     zoomRef.current = next
-    panRef.current = clampPan(panRef.current, next)
+    panRef.current = clampPan(panRef.current, next, readPictureRatio())
     applyTransform()
     applyCursor()
     flush()
-  }, [applyTransform, applyCursor, flush])
+  }, [applyTransform, applyCursor, flush, readPictureRatio])
 
   const zoomOut = useCallback(() => {
     const next = clampZoom(zoomRef.current - ZOOM_STEP)
     zoomRef.current = next
     panRef.current =
-      next <= MIN_ZOOM ? { x: 0, y: 0 } : clampPan(panRef.current, next)
+      next <= MIN_ZOOM
+        ? { x: 0, y: 0 }
+        : clampPan(panRef.current, next, readPictureRatio())
     applyTransform()
     applyCursor()
     flush()
-  }, [applyTransform, applyCursor, flush])
+  }, [applyTransform, applyCursor, flush, readPictureRatio])
 
   const resetZoom = useCallback(() => {
     zoomRef.current = MIN_ZOOM
@@ -136,6 +156,7 @@ export const useScreenShareZoom = () => {
           nextZoom: next,
           cursorXPercent,
           cursorYPercent,
+          ratio: readPictureRatio(),
         })
       }
 
@@ -143,7 +164,7 @@ export const useScreenShareZoom = () => {
       applyCursor()
       flush()
     },
-    [applyTransform, applyCursor, flush]
+    [applyTransform, applyCursor, flush, readPictureRatio]
   )
 
   // useMove handles mouse drag + touch pan. Keyboard arrows are not handled
@@ -173,7 +194,8 @@ export const useScreenShareZoom = () => {
           x: panRef.current.x + deltaXPercent,
           y: panRef.current.y + deltaYPercent,
         },
-        zoomRef.current
+        zoomRef.current,
+        readPictureRatio()
       )
 
       applyTransform()
@@ -195,12 +217,13 @@ export const useScreenShareZoom = () => {
     (dx: number, dy: number) => {
       panRef.current = clampPan(
         { x: panRef.current.x + dx, y: panRef.current.y + dy },
-        zoomRef.current
+        zoomRef.current,
+        readPictureRatio()
       )
       applyTransform()
       flush()
     },
-    [applyTransform, flush]
+    [applyTransform, flush, readPictureRatio]
   )
 
   // Attached to the tile container (not the zoom surface) where keyboard
