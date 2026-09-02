@@ -238,7 +238,8 @@ export function useJoinTracks(): {
       // A camera problem (permission, device missing/busy) is not the
       // effect's fault: let the normal media error handling deal with it
       // without touching the user's saved effect.
-      if (getMediaDeviceFailure(error as Error)) {
+      const e = getMediaDeviceFailure(error as Error)
+      if (e !== MediaDeviceFailure.Other && !!e) {
         throw error
       }
       reportError('effects_processor_failure', error, {
