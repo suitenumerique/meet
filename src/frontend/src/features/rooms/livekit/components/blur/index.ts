@@ -6,6 +6,7 @@ import type { Track, TrackProcessor } from 'livekit-client'
 import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
 import { UnifiedBackgroundTrackProcessor } from './UnifiedBackgroundTrackProcessor'
 import { FaceLandmarksOptions } from './FaceLandmarksProcessor'
+import { captureEvent } from '@/features/analytics/telemetry'
 
 export const SELFIE_SEGMENTER_MODEL_PATH =
   '/assets/mediapipe/models/selfie_segmenter_landscape.tflite'
@@ -43,6 +44,13 @@ export class BackgroundProcessorFactory {
       this._isSupported =
         supportsBackgroundProcessors() || BackgroundCustomProcessor.isSupported
     }
+
+    if (!this._isSupported) {
+      captureEvent('background-processor-unsupported', {
+        path: 'isSupported',
+      })
+    }
+
     return this._isSupported
   }
 
@@ -61,6 +69,10 @@ export class BackgroundProcessorFactory {
     if (BackgroundCustomProcessor.isSupported) {
       return new BackgroundCustomProcessor(config)
     }
+
+    captureEvent('background-processor-unsupported', {
+      path: 'getProcessor',
+    })
 
     return undefined
   }

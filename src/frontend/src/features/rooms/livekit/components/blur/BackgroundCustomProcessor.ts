@@ -142,10 +142,20 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     this.processedTrack = tracks[0]
 
     this.segmentationMask = new ImageData(PROCESSING_WIDTH, PROCESSING_HEIGHT)
+
+    const t0 = performance.now()
     await this.initSegmenter()
+    const segmenterInitMs = Math.round(performance.now() - t0)
+
     this._initWorker()
 
-    captureEvent('firefox-blurring-init', {})
+    captureEvent('legacy-background-processor', {
+      effect_type: this.options.type,
+      hw_concurrency: navigator.hardwareConcurrency,
+      video_width: this.videoElement?.videoWidth,
+      video_height: this.videoElement?.videoHeight,
+      segmenter_init_ms: segmenterInitMs,
+    })
   }
 
   _initVirtualBackgroundImage() {
