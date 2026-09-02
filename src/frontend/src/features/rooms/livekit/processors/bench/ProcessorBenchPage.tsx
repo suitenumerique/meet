@@ -199,11 +199,11 @@ const or = (value: string | number | null | undefined): string =>
   value === null || value === undefined || value === '' ? '—' : String(value)
 
 const SpecsPanel = ({ specs }: { specs: SystemSpecs }) => {
-  let power = '—';
+  let power = '—'
 
   if (specs.battery) {
-    const status = specs.battery.charging ? 'charging' : 'on battery';
-    power = `${status} (${specs.battery.levelPct}%)`;
+    const status = specs.battery.charging ? 'charging' : 'on battery'
+    power = `${status} (${specs.battery.levelPct}%)`
   }
 
   return (
@@ -256,8 +256,8 @@ const SpecsPanel = ({ specs }: { specs: SystemSpecs }) => {
 
       <SpecRow label="Timezone" value={or(specs.timezone)} />
     </div>
-  );
-};
+  )
+}
 
 const ProcessorBenchPage = () => {
   const sourceContainerRef = useRef<HTMLDivElement>(null)

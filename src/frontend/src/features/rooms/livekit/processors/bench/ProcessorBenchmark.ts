@@ -276,7 +276,7 @@ function aggregate(
 function mergeGpuUsage(runs: RunMetrics[]): GpuUsage {
   const contextTypes = [
     ...new Set(runs.flatMap((run) => run.gpu.contextTypes)),
-  ].sort((a, b) => a.localeCompare(b));
+  ].sort((a, b) => a.localeCompare(b))
   return { contextTypes, rendersOnGpu: rendersOnGpu(contextTypes) }
 }
 

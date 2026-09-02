@@ -15,7 +15,7 @@ export const SUPPORTS_LONG_TASKS =
   typeof PerformanceObserver !== 'undefined' &&
   (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask')
 
-const GPU_CONTEXT_TYPES = new Set(['webgl', 'webgl2', 'webgpu']);
+const GPU_CONTEXT_TYPES = new Set(['webgl', 'webgl2', 'webgpu'])
 
 /** Single definition of what counts as GPU rendering, shared by every caller. */
 export function rendersOnGpu(contextTypes: string[]): boolean | null {
@@ -263,7 +263,7 @@ export class CanvasContextRecorder {
   }
 
   summarize(): string[] {
-    return [...this.types].sort((a, b) => a.localeCompare(b));
+    return [...this.types].sort((a, b) => a.localeCompare(b))
   }
 }
 
