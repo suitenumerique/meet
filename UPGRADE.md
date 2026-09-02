@@ -16,6 +16,92 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Recording encoding settings replaced by a resolution/profile model
+
+The `RECORDING_ENCODING_*` settings introduced in v1.16.0 exposed raw encoder
+values (width, height, framerate, bitrate). They are replaced by two named and configurable sets of
+dimensions, a **resolution** (default: `540p`, `720p`, `1080p`) and a **profile**
+(default: `talking_heads`, `text`, `mixed`, `full`), which are resolved to the width, height,
+fps and video bitrate.
+
+**The following environment variables are no longer read. If they are still set in
+your deployment they are silently ignored, and your recordings will be encoded with
+the new defaults instead of your tuned values.**
+
+| Removed variable                        | Replaced by                                                                                                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `RECORDING_ENCODING_ENABLED`            | Nothing. A default encoding is now always built (see below). **Not** `RECORDING_CUSTOM_ENCODING_ENABLED`, which gates a different feature. |
+| `RECORDING_ENCODING_WIDTH`              | The `width` of the entry selected by `RECORDING_ENCODING_DEFAULT_RESOLUTION` in `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`. |
+| `RECORDING_ENCODING_HEIGHT`             | The `height` of that same entry.                                                                              |
+| `RECORDING_ENCODING_FRAMERATE`          | The `fps` of the profile selected by `RECORDING_ENCODING_DEFAULT_PROFILE` in `RECORDING_ENCODING_AVAILABLE_PROFILES`. |
+| `RECORDING_ENCODING_VIDEO_BITRATE_KBPS` | That profile's `kbps`.                                                                  |
+
+`RECORDING_ENCODING_AUDIO_BITRATE_KBPS` and `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S`
+are unchanged and keep their values.
+
+#### If you never set `RECORDING_ENCODING_ENABLED=True`
+
+No action is required. The shipped defaults (`RECORDING_ENCODING_DEFAULT_PROFILE=full`,
+`RECORDING_ENCODING_DEFAULT_RESOLUTION=720p`) match LiveKit's built-in
+`H264_720P_30` preset: 1280×720, 30 fps, 3000 kbps H.264 MAIN, 128 kbps AAC.
+
+Note that these values are now sent explicitly as advanced `EncodingOptions`
+rather than relying on LiveKit's preset, so `RECORDING_ENCODING_AUDIO_BITRATE_KBPS`
+and `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S` now apply to every recording. They
+previously applied only when `RECORDING_ENCODING_ENABLED` was `True`.
+
+To keep letting LiveKit pick the encoding instead, set either default to an empty
+value:
+
+```
+RECORDING_ENCODING_DEFAULT_RESOLUTION=
+RECORDING_ENCODING_DEFAULT_PROFILE=
+```
+
+#### If you had tuned `RECORDING_ENCODING_*` values
+
+Translate your old values into a default resolution and a default profile. Declare your own resolution and/or profile. Both maps are read from the
+environment as a single-line Python/JSON dict literal (parsed with
+`ast.literal_eval`, so use double-quoted keys and no trailing commas, and do not
+add outer quotes in `.env`-style files):
+
+```bash
+RECORDING_ENCODING_AVAILABLE_RESOLUTIONS={"540p": {"width": 960, "height": 540}, "720p": {"width": 1280, "height": 720}, "1080p": {"width": 1920, "height": 1080}}
+RECORDING_ENCODING_AVAILABLE_PROFILES={"my_old_profile": {"fps": 15, "kbps": {"540p": 350, "720p": 600, "1080p": 1100}}}
+RECORDING_ENCODING_DEFAULT_RESOLUTION=720p
+RECORDING_ENCODING_DEFAULT_PROFILE=my_old_profile
+```
+
+Two constraints are validated at startup and may raise a `ValueError`:
+
+- every profile in `RECORDING_ENCODING_AVAILABLE_PROFILES` must define a `kbps`
+  entry for **exactly** the keys of `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`;
+  overriding one of the two maps usually means overriding both;
+- `RECORDING_ENCODING_DEFAULT_RESOLUTION` and `RECORDING_ENCODING_DEFAULT_PROFILE`,
+  when non-empty, must be keys of their respective map.
+
+#### Optional: per-recording encoding
+
+`RECORDING_CUSTOM_ENCODING_ENABLED` (default `False`) toggles whether the
+start-recording API accepts an `encoding` object
+(`{"resolution": "720p", "profile": "talking_heads"}`, `profile` optional) that
+overrides the default for a single recording. It does not enable or disable the
+default encoding, which is built from the two `RECORDING_ENCODING_DEFAULT_*`
+settings either way. Leaving it at `False` preserves the previous behaviour, where
+every recording uses the server-side encoding: requests carrying
+`options.encoding` are rejected with a `400` before the recording is created, so
+nothing is persisted and no egress is started.
+
+Before enabling it:
+
+- clients can only pick keys you declared; there is no way to send a raw width or bitrate
+- as of this implementation, the frontend never sends `encoding` 
+- `encoding` is accepted but ignored for `transcript` recordings, whose audio-only
+  egress has no video encoding to configure.
+
+See [docs/features/recording.md](docs/features/recording.md#tuning-recording-encoding)
+for the full setting reference, the shipped profile table and the tuning caveats.
+
 ## v1.30.0
 
 ### Removing S3 storage-event webhooks for recordings

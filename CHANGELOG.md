@@ -160,6 +160,7 @@ and this project adheres to
 - ✨(frontend) add connection test feature
 - ✨(sdk) allow passing a background color to the calendar iframe
 - ✨(sdk) add a room configuration popup from CreateMeetingButton
+- ✨(backend) add per-recording encoding quality presets to start-recording API
 
 ### Changed
 
@@ -174,6 +175,7 @@ and this project adheres to
 - 💄(frontend) improve participant name rendering in the list
 - 🚚(backend) rename TelephonyService to SIPManagement
 - ⬆️(dependencies) update python dependencies
+- 💥(backend) replace recording encoding options with a profile model
 
 ### Fixed
 
