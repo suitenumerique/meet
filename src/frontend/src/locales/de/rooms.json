@@ -770,7 +770,7 @@
     "fullScreen": "Vollbild",
     "exitFullScreen": "Vollbild beenden",
     "currentZoomLevel": "Zoom {{level}} %",
-    "panHint": "Zoom {{level}} %. Mit der Maus ziehen oder Pfeiltasten zum Navigieren verwenden.",
+    "panHint": "Zoom {{level}} %. Mit der Maus ziehen oder den Fokus zurück auf die Bildschirmfreigabe setzen und mit den Pfeiltasten im Bild navigieren.",
     "fullScreenEntered": "Vollbild aktiviert",
     "fullScreenExited": "Vollbild deaktiviert"
   },
