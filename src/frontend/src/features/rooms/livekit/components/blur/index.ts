@@ -32,6 +32,8 @@ export interface BackgroundProcessorInterface extends TrackProcessor<Track.Kind>
   options: ProcessorConfig
 }
 
+let unsupportedReported = false
+
 export class BackgroundProcessorFactory {
   private static _isSupported?: boolean
 
@@ -45,7 +47,8 @@ export class BackgroundProcessorFactory {
         supportsBackgroundProcessors() || BackgroundCustomProcessor.isSupported
     }
 
-    if (!this._isSupported) {
+    if (!this._isSupported && !unsupportedReported) {
+      unsupportedReported = true
       captureEvent('background-processor-unsupported', {
         path: 'isSupported',
       })
@@ -60,6 +63,8 @@ export class BackgroundProcessorFactory {
     const isBlur = config.type === ProcessorType.BLUR
     const isVirtual = config.type === ProcessorType.VIRTUAL
 
+    return new BackgroundCustomProcessor(config)
+
     if (!isBlur && !isVirtual) return undefined
 
     if (supportsBackgroundProcessors()) {
@@ -70,9 +75,11 @@ export class BackgroundProcessorFactory {
       return new BackgroundCustomProcessor(config)
     }
 
-    captureEvent('background-processor-unsupported', {
-      path: 'getProcessor',
-    })
+    if (!unsupportedReported) {
+      captureEvent('background-processor-unsupported', {
+        path: 'getProcessor',
+      })
+    }
 
     return undefined
   }
