@@ -259,8 +259,8 @@ class EncodingConfig(BaseModel):
 
     Attributes:
         resolution: Target video resolution.
-        profile: Encoding profile to balance quality and CPU usage. When `None`,
-        LiveKit default framerate/bitrate are used for the resolution.
+        profile: Encoding profile to fps and kbps. When `None`,
+        `settings.RECORDING_ENCODING_DEFAULT_PROFILE` applies.
     """
 
     resolution: str

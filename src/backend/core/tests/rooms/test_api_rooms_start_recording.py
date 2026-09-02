@@ -561,6 +561,36 @@ def test_start_recording_persists_resolved_encoding(
     }
 
 
+def test_start_recording_resolution_only_uses_default_profile(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """An encoding without a profile should resolve the default profile."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
+    settings.RECORDING_ENCODING_DEFAULT_PROFILE = "talking_heads"
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"encoding": {"resolution": "540p"}}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    resolved = recording.options["encoding"]["resolved"]
+    assert resolved["width"] == 960
+    assert resolved["height"] == 540
+    assert resolved["framerate"] == 15
+    assert resolved["video_bitrate"] == 400
+    # The requested payload is persisted as sent: no profile was asked for.
+    assert "profile" not in recording.options["encoding"]
+
+
 def test_start_recording_forwards_resolved_encoding_to_worker(
     settings, mock_worker_service, mock_worker_service_factory
 ):

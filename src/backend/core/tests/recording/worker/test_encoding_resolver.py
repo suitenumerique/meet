@@ -5,6 +5,7 @@
 from unittest.mock import Mock
 
 from django.conf import settings
+from django.test import override_settings
 
 import pytest
 from livekit import api as livekit_api
@@ -41,12 +42,35 @@ def service():
 # --- build_encoding_options ---
 
 
-def test_build_options_without_profile_omits_profile_fields():
-    """A resolution-only config should resolve dimensions but no framerate/bitrate.
+def test_build_options_without_profile_uses_default_profile():
+    """A resolution-only config should fall back to the default profile.
 
-    The profile-independent fields (audio bitrate, keyframe interval, codec /
-    frequency pins) are always present, matching the default encoding.
+    Left unset, framerate and video_bitrate take LiveKit's own EncodingOptions
+    defaults. The profile-independent fields (audio bitrate, keyframe interval,
+    codec/frequency pins) are always present, matching the default encoding.
     """
+    default_profile = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[
+        settings.RECORDING_ENCODING_DEFAULT_PROFILE
+    ]
+
+    resolved = build_encoding_options("540p")
+
+    assert resolved == {
+        "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
+        "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
+        "video_codec": livekit_api.VideoCodec.H264_MAIN,
+        "audio_codec": livekit_api.AudioCodec.AAC,
+        "audio_frequency": 48000,
+        "width": 960,
+        "height": 540,
+        "framerate": default_profile["fps"],
+        "video_bitrate": default_profile["kbps"]["540p"],
+    }
+
+
+@override_settings(RECORDING_ENCODING_DEFAULT_PROFILE="")
+def test_build_options_omits_profile_fields_without_default_profile():
+    """With no default profile declared, framerate/bitrate are left to LiveKit."""
     resolved = build_encoding_options("720p", None)
 
     assert resolved == {
@@ -110,13 +134,32 @@ def test_resolve_profile_resolution_combinations(service, profile, resolution):
     assert result.audio_frequency == 48000
 
 
-def test_resolve_options_none_profile_uses_livekit_defaults(service):
-    """Missing profile should pass 0 fps/bitrate (LiveKit protobuf default).
+def test_resolve_options_none_profile_uses_default_profile(service):
+    """A missing profile should resolve to the default profile's fps/bitrate."""
+    default_profile = settings.RECORDING_ENCODING_AVAILABLE_PROFILES[
+        settings.RECORDING_ENCODING_DEFAULT_PROFILE
+    ]
 
-    The pinned codec / audio fields are still applied even without a profile.
+    resolved = build_encoding_options("720p", None)
+    result = service._resolve_encoding_options(resolved)
+
+    assert result.width == 1280
+    assert result.height == 720
+    assert result.framerate == default_profile["fps"]
+    assert result.video_bitrate == default_profile["kbps"]["720p"]
+    assert result.audio_bitrate == settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS
+    assert result.video_codec == livekit_api.VideoCodec.H264_MAIN
+
+
+@override_settings(RECORDING_ENCODING_DEFAULT_PROFILE="")
+def test_resolve_options_passes_zero_when_no_default_profile(service):
+    """With no default profile, fps/bitrate reach LiveKit unset (protobuf 0).
+
+    The pinned codec / audio fields are still applied.
     """
     resolved = build_encoding_options("720p", None)
     result = service._resolve_encoding_options(resolved)
+
     assert result.width == 1280
     assert result.height == 720
     assert result.framerate == 0

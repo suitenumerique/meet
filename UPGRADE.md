@@ -37,18 +37,28 @@ the new defaults instead of your tuned values.**
 | `RECORDING_ENCODING_VIDEO_BITRATE_KBPS` | That profile's `kbps`.                                                                  |
 
 `RECORDING_ENCODING_AUDIO_BITRATE_KBPS` and `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S`
-are unchanged and keep their values.
+keep their names and meaning. The keyframe interval now defaults to `0` (unset,
+encoder's choice) instead of `4.0`.
 
 #### If you never set `RECORDING_ENCODING_ENABLED=True`
 
-No action is required. The shipped defaults (`RECORDING_ENCODING_DEFAULT_PROFILE=full`,
+The shipped defaults (`RECORDING_ENCODING_DEFAULT_PROFILE=full`,
 `RECORDING_ENCODING_DEFAULT_RESOLUTION=720p`) match LiveKit's built-in
 `H264_720P_30` preset: 1280×720, 30 fps, 3000 kbps H.264 MAIN, 128 kbps AAC.
+Video output is therefore unchanged.
 
-Note that these values are now sent explicitly as advanced `EncodingOptions`
-rather than relying on LiveKit's preset, so `RECORDING_ENCODING_AUDIO_BITRATE_KBPS`
-and `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S` now apply to every recording. They
-previously applied only when `RECORDING_ENCODING_ENABLED` was `True`.
+Audio and keyframing may not be. These values are now sent explicitly as advanced
+`EncodingOptions` rather than relying on LiveKit's preset, so
+`RECORDING_ENCODING_AUDIO_BITRATE_KBPS` and `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S`
+now apply to every recording. They previously applied only when
+`RECORDING_ENCODING_ENABLED` was `True`. **If you set either of them while the
+feature was disabled, they had no effect and now do**; check them before upgrading.
+
+If you never set them, no action is required: 128 kbps AAC is what the preset used,
+and the keyframe interval now defaults to `0`, which leaves the field unset so the
+encoder keeps picking it as before. Set `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0`
+if you want fixed 4-second keyframes (the value the setting defaulted to while it
+was gated behind `RECORDING_ENCODING_ENABLED`).
 
 To keep letting LiveKit pick the encoding instead, set either default to an empty
 value:
@@ -72,11 +82,14 @@ RECORDING_ENCODING_DEFAULT_RESOLUTION=720p
 RECORDING_ENCODING_DEFAULT_PROFILE=my_old_profile
 ```
 
-Two constraints are validated at startup and may raise a `ValueError`:
+Both maps are validated at startup and a malformed one raises a `ValueError`:
 
-- every profile in `RECORDING_ENCODING_AVAILABLE_PROFILES` must define a `kbps`
-  entry for **exactly** the keys of `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`;
-  overriding one of the two maps usually means overriding both;
+- every entry of `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS` must declare `width` and
+  `height`, and every entry of `RECORDING_ENCODING_AVAILABLE_PROFILES` an `fps` and a
+  `kbps` map;
+- every profile must define a `kbps` entry for **exactly** the keys of
+  `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`; overriding one of the two maps usually
+  means overriding both;
 - `RECORDING_ENCODING_DEFAULT_RESOLUTION` and `RECORDING_ENCODING_DEFAULT_PROFILE`,
   when non-empty, must be keys of their respective map.
 
@@ -84,8 +97,9 @@ Two constraints are validated at startup and may raise a `ValueError`:
 
 `RECORDING_CUSTOM_ENCODING_ENABLED` (default `False`) toggles whether the
 start-recording API accepts an `encoding` object
-(`{"resolution": "720p", "profile": "talking_heads"}`, `profile` optional) that
-overrides the default for a single recording. It does not enable or disable the
+(`{"resolution": "720p", "profile": "talking_heads"}`, `profile` optional. It
+falls back to `RECORDING_ENCODING_DEFAULT_PROFILE`) that overrides the default for
+a single recording. It does not enable or disable the
 default encoding, which is built from the two `RECORDING_ENCODING_DEFAULT_*`
 settings either way. Leaving it at `False` preserves the previous behaviour, where
 every recording uses the server-side encoding: requests carrying

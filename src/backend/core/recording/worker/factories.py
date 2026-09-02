@@ -22,7 +22,7 @@ _RECORDING_AUDIO_CODEC = livekit_api.AudioCodec.AAC
 _RECORDING_AUDIO_FREQUENCY_HZ = 48000
 
 
-def build_encoding_options(resolution, profile):
+def build_encoding_options(resolution, profile=None):
     """Assemble the LiveKit ``EncodingOptions`` kwargs for a resolution/profile.
 
     Single source of truth shared by the default encoding
@@ -32,11 +32,13 @@ def build_encoding_options(resolution, profile):
 
     The profile-independent fields (audio bitrate, keyframe interval and the
     pinned codec / frequency constants) are always included.
-    The resolution-dependent fields are added only when they can be resolved:
-    width/height require a resolution; framerate/video_bitrate require both a
-    resolution and a profile (a resolution-only encoding leaves framerate and
-    bitrate to LiveKit's defaults).
+
+    An omitted profile falls back to RECORDING_ENCODING_DEFAULT_PROFILE.
+    Framerate and bitrate are left to LiveKit only when the operator
+    declared no default profile at all.
     """
+    profile = profile or settings.RECORDING_ENCODING_DEFAULT_PROFILE
+
     options: Dict[str, Any] = {
         "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
         "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,

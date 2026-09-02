@@ -819,7 +819,7 @@ class Base(Configuration):
         environ_prefix=None,
     )
     RECORDING_ENCODING_KEY_FRAME_INTERVAL_S = values.FloatValue(
-        4.0,
+        0.0,
         environ_name="RECORDING_ENCODING_KEY_FRAME_INTERVAL_S",
         environ_prefix=None,
     )
@@ -1218,10 +1218,11 @@ class Base(Configuration):
 
     @classmethod
     def _check_recording_encoding_maps(cls):
-        """Ensure the per-recording encoding maps are mutually consistent.
+        """Ensure the per-recording encoding maps are well-formed and consistent.
 
-        Every profile in RECORDING_ENCODING_AVAILABLE_PROFILES must define a bitrate for
-        each resolution declared in RECORDING_ENCODING_AVAILABLE_RESOLUTIONS.
+        Each entry of RECORDING_ENCODING_AVAILABLE_RESOLUTIONS must declare a width and
+        a height, each entry of RECORDING_ENCODING_AVAILABLE_PROFILES an fps and a kbps
+        map, and every profile must define a bitrate for each declared resolution.
 
         The default profile / resolution feed the default encoding. When either is
         missing, no custom default encoding can be built: a warning is emitted and
@@ -1232,9 +1233,28 @@ class Base(Configuration):
         profiles = set(cls.RECORDING_ENCODING_AVAILABLE_PROFILES)
         # DictValue resolves to a dict at runtime; pylint sees the descriptor.
         for (
+            resolution,
+            resolution_config,
+        ) in cls.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS.items():  # pylint: disable=no-member
+            missing_keys = {"width", "height"} - set(resolution_config)
+            if missing_keys:
+                raise ValueError(
+                    f"Resolution '{resolution}' in "
+                    "RECORDING_ENCODING_AVAILABLE_RESOLUTIONS is missing the key(s): "
+                    f"{sorted(missing_keys)}."
+                )
+
+        for (
             profile,
             profile_config,
         ) in cls.RECORDING_ENCODING_AVAILABLE_PROFILES.items():  # pylint: disable=no-member
+            missing_keys = {"fps", "kbps"} - set(profile_config)
+            if missing_keys:
+                raise ValueError(
+                    f"Profile '{profile}' in RECORDING_ENCODING_AVAILABLE_PROFILES is "
+                    f"missing the key(s): {sorted(missing_keys)}."
+                )
+
             profile_resolutions = set(profile_config["kbps"])
             if profile_resolutions != resolutions:
                 raise ValueError(

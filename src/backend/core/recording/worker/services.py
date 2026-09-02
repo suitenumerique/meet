@@ -83,28 +83,17 @@ class BaseEgressService:
         """
         raise NotImplementedError("Subclass must implement this method.")
 
-    def _build_encoding_options(self):
-        """Build a LiveKit EncodingOptions from the service config, or None.
+    def _resolve_encoding_options(self, encoding_options):
+        """Build a LiveKit EncodingOptions from a resolved kwargs dict, or None.
+
+        ``encoding_options`` is the per-recording dict persisted by the API in
+        ``recording.options["encoding"]["resolved"]``; it falls back to the
+        default encoding carried by the service config.
 
         When None is returned, the caller should omit the `advanced` field so
         LiveKit Egress falls back to its built-in preset (H264_720P_30).
-
-        The full EncodingOptions kwargs (operator-tunable values + pinned
-        codec / frequency constants) are assembled in `WorkerServiceConfig`,
-        so this method is a thin protobuf adapter.
         """
-        opts = self._config.encoding_options
-        if not opts:
-            return None
-
-        return livekit_api.EncodingOptions(**opts)
-
-    def _resolve_encoding_options(self, encoding_options):
-        """Build LiveKit EncodingOptions from a resolved per-recording dict, or None.
-
-        ``encoding_options`` is the dict persisted by the API in
-        ``recording.options["encoding"]["resolved"]``.
-        """
+        encoding_options = encoding_options or self._config.encoding_options
         if not encoding_options:
             return None
 
@@ -137,10 +126,7 @@ class VideoCompositeEgressService(BaseEgressService):
             "layout": "speaker-light",
         }
 
-        advanced = (
-            self._resolve_encoding_options(encoding_options)
-            or self._build_encoding_options()
-        )
+        advanced = self._resolve_encoding_options(encoding_options)
         if advanced is not None:
             request_kwargs["advanced"] = advanced
 
