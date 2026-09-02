@@ -16,7 +16,6 @@ import json
 import warnings
 from os import path
 from socket import gethostbyname, gethostname
-from typing import Annotated
 
 from django.utils.translation import gettext_lazy as _
 
@@ -24,7 +23,7 @@ import dj_database_url
 import sentry_sdk
 from configurations import Configuration, values
 from lasuite.configuration.values import SecretFileValue
-from pydantic import BaseModel, Field, PositiveInt, TypeAdapter
+from pydantic import BaseModel, PositiveInt, TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
