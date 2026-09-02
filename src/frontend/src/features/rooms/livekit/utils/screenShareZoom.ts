@@ -24,7 +24,7 @@ export const clampZoom = (value: number) => {
   return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value))
 }
 
-// Restrict pan so the content edge never passes the viewport center.
+// Restrict pan so the picture always covers the view.
 export const clampPan = (pan: PanOffset, zoom: number): PanOffset => {
   const maxPan = ((zoom - 1) / zoom) * PAN_CLAMP_HALF
   return {
