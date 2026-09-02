@@ -168,7 +168,8 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     image.decode().catch((error) => {
       reportError('effects_processor_failure', error, {
         context: 'Failed to load virtual background image',
-        image_path: this.options.type === 'virtual' ? this.options.imagePath : undefined,
+        image_path:
+          this.options.type === 'virtual' ? this.options.imagePath : undefined,
       })
     })
     this.virtualBackgroundImage = image
