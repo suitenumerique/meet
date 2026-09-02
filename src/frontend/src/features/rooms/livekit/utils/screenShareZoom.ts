@@ -3,7 +3,11 @@ export const MAX_ZOOM = 4
 export const ZOOM_STEP = 0.1
 export const WHEEL_ZOOM_SPEED = 0.002
 export const PAN_STEP = 5
-export const PAN_CLAMP_HALF = 50
+
+// Half of a 100 % axis. Geometry, not a tunable: it is both the centre the
+// cursor offset is measured from and the half extent the pan is clamped
+// against, so the two stay consistent by construction.
+export const HALF_EXTENT_PERCENT = 50
 
 export interface PanOffset {
   x: number
@@ -42,8 +46,8 @@ export const clampPan = (
   zoom: number,
   ratio: PictureRatio
 ): PanOffset => {
-  const maxPanX = Math.max(0, (ratio.x - 1 / zoom) * PAN_CLAMP_HALF)
-  const maxPanY = Math.max(0, (ratio.y - 1 / zoom) * PAN_CLAMP_HALF)
+  const maxPanX = Math.max(0, (ratio.x - 1 / zoom) * HALF_EXTENT_PERCENT)
+  const maxPanY = Math.max(0, (ratio.y - 1 / zoom) * HALF_EXTENT_PERCENT)
   return {
     x: Math.max(-maxPanX, Math.min(maxPanX, pan.x)),
     y: Math.max(-maxPanY, Math.min(maxPanY, pan.y)),
@@ -130,9 +134,9 @@ export const getCursorPercentsFromWheelEvent = (
   const rect = target.getBoundingClientRect()
   return {
     cursorXPercent:
-      ((e.clientX - rect.left) / rect.width) * 100 - PAN_CLAMP_HALF,
+      ((e.clientX - rect.left) / rect.width) * 100 - HALF_EXTENT_PERCENT,
     cursorYPercent:
-      ((e.clientY - rect.top) / rect.height) * 100 - PAN_CLAMP_HALF,
+      ((e.clientY - rect.top) / rect.height) * 100 - HALF_EXTENT_PERCENT,
   }
 }
 
