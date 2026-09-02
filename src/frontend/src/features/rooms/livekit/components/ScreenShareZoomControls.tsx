@@ -1,5 +1,4 @@
 import { css } from '@/styled-system/css'
-import { HStack } from '@/styled-system/jsx'
 import { Button } from '@/primitives'
 import {
   RiCollapseDiagonalLine,
@@ -9,6 +8,7 @@ import {
   RiZoomOutLine,
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
+import { Toolbar } from 'react-aria-components'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { isMacintosh } from '@/utils/livekit'
@@ -100,15 +100,16 @@ export const ScreenShareZoomControls = ({
         pointerEvents: 'auto',
       })}
     >
-      <HStack
-        gap={0}
-        role="toolbar"
+      {/* react-aria Toolbar: left/right arrows move between the controls and
+          Tab leaves the group as a whole, as the toolbar role implies. */}
+      <Toolbar
         aria-label={t('toolbarLabel')}
         className={css({
+          display: 'flex',
+          alignItems: 'center',
           backgroundColor: 'primaryDark.50',
           borderRadius: '2rem',
           padding: '0.5rem',
-          alignItems: 'center',
           opacity: 0.7,
           transition: 'opacity 200ms linear',
           _hover: {
@@ -216,7 +217,7 @@ export const ScreenShareZoomControls = ({
             )}
           </Button>
         )}
-      </HStack>
+      </Toolbar>
     </div>
   )
 }
