@@ -3,13 +3,25 @@ import type { HeapMetrics, LongTaskMetrics } from './types'
 
 const LONG_TASK_THRESHOLD_MS = 50
 
-export const supportsRvfc = (): boolean =>
+/**
+ * Constant for the page's lifetime, so they are resolved once at import
+ * rather than on every render and inside every summarize().
+ */
+export const SUPPORTS_RVFC =
   typeof HTMLVideoElement !== 'undefined' &&
   'requestVideoFrameCallback' in HTMLVideoElement.prototype
 
-export const supportsLongTasks = (): boolean =>
+export const SUPPORTS_LONG_TASKS =
   typeof PerformanceObserver !== 'undefined' &&
   (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask')
+
+const GPU_CONTEXT_TYPES = new Set(['webgl', 'webgl2', 'webgpu']);
+
+/** Single definition of what counts as GPU rendering, shared by every caller. */
+export function rendersOnGpu(contextTypes: string[]): boolean | null {
+  if (contextTypes.length === 0) return null
+  return contextTypes.some((type) => GPU_CONTEXT_TYPES.has(type))
+}
 
 /**
  * Counts frames actually delivered on a processor's output track, by
@@ -32,25 +44,28 @@ export class FrameRateCollector {
   start() {
     if (this.active) return
     this.active = true
-    if (supportsRvfc()) this.scheduleRvfc()
+    if (SUPPORTS_RVFC) this.scheduleRvfc()
+  }
+
+  /** Allocated once, not per frame: this runs inside the measured window. */
+  private readonly onFrame = (now: number) => {
+    if (!this.active) return
+    if (this.firstFrameAt === null) {
+      this.firstFrameAt = now
+      this.firstFrameWaiters.splice(0).forEach((resolve) => resolve(now))
+    }
+    if (this.recording) this.timestamps.push(now)
+    this.scheduleRvfc()
   }
 
   private scheduleRvfc() {
-    this.handle = this.video.requestVideoFrameCallback((now) => {
-      if (!this.active) return
-      if (this.firstFrameAt === null) {
-        this.firstFrameAt = now
-        this.firstFrameWaiters.splice(0).forEach((resolve) => resolve(now))
-      }
-      if (this.recording) this.timestamps.push(now)
-      this.scheduleRvfc()
-    })
+    this.handle = this.video.requestVideoFrameCallback(this.onFrame)
   }
 
   /** Resolves with the timestamp of the first frame, or null if none arrives in time. */
   waitForFirstFrame(timeoutMs: number): Promise<number | null> {
     if (this.firstFrameAt !== null) return Promise.resolve(this.firstFrameAt)
-    if (!supportsRvfc()) return this.pollForFirstFrame(timeoutMs)
+    if (!SUPPORTS_RVFC) return this.pollForFirstFrame(timeoutMs)
 
     return new Promise((resolve) => {
       const timer = setTimeout(() => resolve(null), timeoutMs)
@@ -111,7 +126,7 @@ export class FrameRateCollector {
     fps: number
     frameIntervals: SampleSummary | null
   } {
-    if (supportsRvfc()) {
+    if (SUPPORTS_RVFC) {
       return {
         framesDelivered: this.timestamps.length,
         fps: computeFps(this.timestamps.length, measuredMs),
@@ -170,7 +185,7 @@ export class LongTaskCollector {
   private readonly durations: number[] = []
 
   start() {
-    if (!supportsLongTasks()) return
+    if (!SUPPORTS_LONG_TASKS) return
     this.observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) this.durations.push(entry.duration)
     })
@@ -183,23 +198,15 @@ export class LongTaskCollector {
   }
 
   summarize(measuredMs: number): LongTaskMetrics {
-    if (!supportsLongTasks()) {
-      return {
-        supported: false,
-        count: 0,
-        totalMs: 0,
-        blockingMs: 0,
-        sharePct: 0,
-      }
-    }
-
+    // With no observer the durations are empty, so the arithmetic below
+    // already yields zeroes; only `supported` needs stating.
     const totalMs = this.durations.reduce((sum, d) => sum + d, 0)
     const blockingMs = this.durations.reduce(
       (sum, d) => sum + Math.max(0, d - LONG_TASK_THRESHOLD_MS),
       0
     )
     return {
-      supported: true,
+      supported: SUPPORTS_LONG_TASKS,
       count: this.durations.length,
       totalMs,
       blockingMs,
@@ -207,8 +214,6 @@ export class LongTaskCollector {
     }
   }
 }
-
-const GPU_CONTEXT_TYPES = ['webgl', 'webgl2', 'webgpu']
 
 type GetContextHost = {
   prototype: { getContext: unknown }
@@ -257,17 +262,8 @@ export class CanvasContextRecorder {
     this.restorers.splice(0).forEach((restore) => restore())
   }
 
-  summarize(): { contextTypes: string[]; rendersOnGpu: boolean | null } {
-    const contextTypes = [...this.types].sort()
-    if (contextTypes.length === 0) {
-      return { contextTypes, rendersOnGpu: null }
-    }
-    return {
-      contextTypes,
-      rendersOnGpu: contextTypes.some((type) =>
-        GPU_CONTEXT_TYPES.includes(type)
-      ),
-    }
+  summarize(): string[] {
+    return [...this.types].sort((a, b) => a.localeCompare(b));
   }
 }
 

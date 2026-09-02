@@ -1,4 +1,8 @@
-import type { Track, TrackProcessor } from 'livekit-client'
+import type {
+  Track,
+  TrackProcessor,
+  VideoProcessorOptions,
+} from 'livekit-client'
 import type { SampleSummary } from './stats'
 import type { SystemSpecs } from './systemSpecs'
 
@@ -14,15 +18,21 @@ export type InferenceDelegate = 'CPU' | 'GPU' | 'unknown'
  * livekit-client interface: the harness must stay usable for background
  * blur, face filters, or anything else that transforms a video track.
  */
-export type VideoTrackProcessor = TrackProcessor<Track.Kind>
+export type VideoTrackProcessor = TrackProcessor<
+  Track.Kind.Video,
+  VideoProcessorOptions
+>
 
 export type BenchContender = {
   id: string
   label: string
   description?: string
   create: () => VideoTrackProcessor
-  /** The MediaPipe delegate this processor requests, where it is known. */
-  inferenceDelegate: InferenceDelegate
+  /**
+   * The MediaPipe delegate this processor requests, where it is known.
+   * Optional: a contender that does no MediaPipe inference has no answer.
+   */
+  inferenceDelegate?: InferenceDelegate
   /**
    * Optional note read after init, for whatever the processor decided at
    * runtime (model picked, GPU vs CPU path). Surfaced next to the numbers
@@ -31,13 +41,12 @@ export type BenchContender = {
   describe?: (processor: VideoTrackProcessor) => string | undefined
 }
 
+/** Purely observed. Anything a contender merely declares belongs elsewhere. */
 export type GpuUsage = {
-  /** Canvas context types the processor created — observed, not declared. */
+  /** Canvas context types the processor created during the run. */
   contextTypes: string[]
   /** True when a webgl/webgl2/webgpu context was created; null if none were. */
   rendersOnGpu: boolean | null
-  /** What the processor asked MediaPipe for; never what it actually used. */
-  requestedInferenceDelegate: InferenceDelegate
 }
 
 export type BenchOptions = {
@@ -50,7 +59,6 @@ export type BenchOptions = {
   cooldownMs: number
   /** Passes over the contender list; pass 2+ runs in reverse order. */
   passes: number
-  deviceId?: string
 }
 
 export const DEFAULT_BENCH_OPTIONS: BenchOptions = {
@@ -118,6 +126,8 @@ export type ContenderResult = {
   notes: string[]
   errors: string[]
   gpu: GpuUsage
+  /** Declared by the contender, not measured. Absent when it does not apply. */
+  inferenceDelegate?: InferenceDelegate
 }
 
 export type BenchReport = {
@@ -129,10 +139,16 @@ export type BenchReport = {
   results: ContenderResult[]
 }
 
+export type BenchPhase =
+  | 'idle'
+  | 'starting'
+  | 'warmup'
+  | 'measuring'
+  | 'cooldown'
+  | 'done'
+
 export type BenchProgress = {
-  phase: 'idle' | 'starting' | 'warmup' | 'measuring' | 'cooldown' | 'done'
+  phase: BenchPhase
   contenderLabel?: string
   pass?: number
-  totalPasses?: number
-  message?: string
 }

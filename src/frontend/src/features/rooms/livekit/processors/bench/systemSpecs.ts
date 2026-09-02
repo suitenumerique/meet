@@ -1,3 +1,5 @@
+import { SUPPORTS_LONG_TASKS, SUPPORTS_RVFC } from './collectors'
+
 /**
  * Machine description captured alongside a report, so a pasted result says
  * which machine produced it. Everything here is best-effort: browsers vary
@@ -15,6 +17,13 @@ export type GpuInfo = {
   webgpuArchitecture: string | null
   webgpuDevice: string | null
   webgpuDescription: string | null
+}
+
+/** What this browser is able to tell the harness, recorded in the report. */
+export type MeasurementCapabilities = {
+  requestVideoFrameCallback: boolean
+  longTasks: boolean
+  jsHeap: boolean
 }
 
 export type SystemSpecs = {
@@ -36,6 +45,7 @@ export type SystemSpecs = {
     colorDepth: number
   }
   battery: { charging: boolean; levelPct: number } | null
+  capabilities: MeasurementCapabilities
   timezone: string | null
   language: string | null
 }
@@ -87,7 +97,8 @@ function readWebglInfo(): Pick<
   }
   try {
     const canvas = document.createElement('canvas')
-    const gl = (canvas.getContext('webgl2') ??
+    const gl2 = canvas.getContext('webgl2')
+    const gl = (gl2 ??
       canvas.getContext('webgl')) as WebGLRenderingContext | null
     if (!gl) return empty
 
@@ -99,8 +110,12 @@ function readWebglInfo(): Pick<
       ? (gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) as string)
       : gl.getParameter(gl.RENDERER)
 
+    // Browsers cap live contexts (~16) and this probe runs more than once
+    // per session, so hand it back rather than waiting for GC.
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+
     return {
-      webgl2Available: !!canvas.getContext('webgl2'),
+      webgl2Available: !!gl2,
       webglVendor: vendor ?? null,
       webglRenderer: renderer ?? null,
       softwareRendered: SOFTWARE_RENDERER_PATTERN.test(String(renderer ?? '')),
@@ -134,7 +149,7 @@ async function readWebgpuInfo(): Promise<
     if (!gpu?.requestAdapter) return empty
 
     const adapter = await gpu.requestAdapter()
-    if (!adapter) return { ...empty, webgpuAvailable: false }
+    if (!adapter) return empty
 
     const info = adapter.info ?? (await adapter.requestAdapterInfo?.())
     return {
@@ -226,6 +241,11 @@ export async function collectSystemSpecs(): Promise<SystemSpecs> {
       colorDepth: window.screen.colorDepth,
     },
     battery,
+    capabilities: {
+      requestVideoFrameCallback: SUPPORTS_RVFC,
+      longTasks: SUPPORTS_LONG_TASKS,
+      jsHeap: 'memory' in performance,
+    },
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? null,
     language: navigator.language ?? null,
   }

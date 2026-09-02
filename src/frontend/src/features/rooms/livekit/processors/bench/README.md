@@ -25,7 +25,7 @@ One `getUserMedia` track is acquired and shared by every run, then per processor
 3. `init()` the processor against that bare element
 4. only now attach the cloned track to the element and play it
 5. wait for the first frame on `processedTrack`
-6. wait for `waitForReady()` if the processor exposes it, then warm up
+6. warm up
 7. measure for the configured window
 8. `destroy()`, stop the clone, discard the elements, cool down
 
@@ -115,7 +115,7 @@ One entry in `contenders.ts`:
   label: 'My filter',
   description: 'What it does',
   create: () => new MyFilterProcessor({ ... }),
-  // what it asks MediaPipe for, or 'unknown'
+  // optional: what it asks MediaPipe for, omitted if it does no inference
   inferenceDelegate: 'GPU',
   // optional, for anything decided at runtime (model picked, GPU vs CPU path)
   describe: (processor) => `...`,

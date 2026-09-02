@@ -1,5 +1,7 @@
-import { ProcessorWrapper } from '@livekit/track-processors'
-import { ProcessorType } from '@/features/rooms/livekit/components/blur'
+import {
+  BackgroundProcessorFactory,
+  ProcessorType,
+} from '@/features/rooms/livekit/components/blur'
 import { BackgroundCustomProcessor } from '@/features/rooms/livekit/components/blur/BackgroundCustomProcessor'
 import { FaceLandmarksProcessor } from '@/features/rooms/livekit/components/blur/FaceLandmarksProcessor'
 import { UnifiedBackgroundTrackProcessor } from '@/features/rooms/livekit/components/blur/UnifiedBackgroundTrackProcessor'
@@ -8,8 +10,10 @@ import type { BenchContender } from './types'
 const BLUR_RADIUS = 10
 const VIRTUAL_BACKGROUND_PATH = '/assets/backgrounds/1.jpg'
 
+// Via the factory rather than ProcessorWrapper directly, so @livekit/track-processors
+// stays behind the components/blur boundary.
 const describeWrapperPath = (): string =>
-  ProcessorWrapper.hasModernApiSupport
+  BackgroundProcessorFactory.hasModernApiSupport()
     ? 'MediaStreamTrackProcessor path'
     : 'canvas.captureStream fallback path'
 

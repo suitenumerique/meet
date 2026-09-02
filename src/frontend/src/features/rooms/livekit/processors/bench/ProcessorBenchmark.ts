@@ -5,6 +5,7 @@ import {
   HeapSampler,
   LongTaskCollector,
   RafCollector,
+  rendersOnGpu,
 } from './collectors'
 import {
   BenchAbortError,
@@ -28,37 +29,14 @@ import type {
 export { BenchAbortError } from './sequencing'
 
 const FIRST_FRAME_TIMEOUT_MS = 20_000
-const READY_TIMEOUT_MS = 20_000
 
+/** Abortable sleep; the abort plumbing itself lives in raceAbort. */
 function delay(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) return reject(new BenchAbortError())
-    const onAbort = () => {
-      clearTimeout(timer)
-      reject(new BenchAbortError())
-    }
-    const timer = setTimeout(() => {
-      signal?.removeEventListener('abort', onAbort)
-      resolve()
-    }, ms)
-    signal?.addEventListener('abort', onAbort, { once: true })
+  let timer: ReturnType<typeof setTimeout>
+  const sleep = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, ms)
   })
-}
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
-  return Promise.race([
-    promise,
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
-  ])
-}
-
-/** Processors may expose readiness; the interface does not require it. */
-function waitForReadyIfSupported(
-  processor: VideoTrackProcessor
-): Promise<unknown> {
-  const maybe = processor as { waitForReady?: () => Promise<void> }
-  if (typeof maybe.waitForReady !== 'function') return Promise.resolve(null)
-  return withTimeout(maybe.waitForReady(), READY_TIMEOUT_MS)
+  return raceAbort(sleep, signal).finally(() => clearTimeout(timer))
 }
 
 async function playSilently(video: HTMLVideoElement) {
@@ -127,10 +105,10 @@ async function runSingle(
   const heap = new HeapSampler()
   const contexts = new CanvasContextRecorder()
 
-  const gpuUsage = (): GpuUsage => ({
-    ...contexts.summarize(),
-    requestedInferenceDelegate: contender.inferenceDelegate,
-  })
+  const gpuUsage = (): GpuUsage => {
+    const contextTypes = contexts.summarize()
+    return { contextTypes, rendersOnGpu: rendersOnGpu(contextTypes) }
+  }
 
   const failed = (error: string): RunMetrics => ({
     pass,
@@ -192,10 +170,14 @@ async function runSingle(
     const startupMs = firstFrameAt - initStartedAt
 
     onProgress({ phase: 'warmup', contenderLabel: label, pass })
-    await raceAbort(waitForReadyIfSupported(processor), signal)
     await delay(options.warmupMs, signal)
 
+    // Emitted, then yielded to, so React commits this render *before* the
+    // collectors are armed. Otherwise the harness's own re-render is the
+    // first thing the long-task and rAF collectors observe.
     onProgress({ phase: 'measuring', contenderLabel: label, pass })
+    await delay(0, signal)
+
     raf.start()
     longTasks.start()
     heap.start()
@@ -285,27 +267,17 @@ function aggregate(
     errors: [
       ...new Set(runs.map((run) => run.error).filter((e): e is string => !!e)),
     ],
-    gpu: mergeGpuUsage(contender, runs),
+    gpu: mergeGpuUsage(runs),
+    inferenceDelegate: contender.inferenceDelegate,
   }
 }
 
 /** Union across passes: a context seen in any run was genuinely created. */
-function mergeGpuUsage(
-  contender: BenchContender,
-  runs: RunMetrics[]
-): GpuUsage {
+function mergeGpuUsage(runs: RunMetrics[]): GpuUsage {
   const contextTypes = [
     ...new Set(runs.flatMap((run) => run.gpu.contextTypes)),
-  ].sort()
-  const observed = runs
-    .map((run) => run.gpu.rendersOnGpu)
-    .filter((value): value is boolean => value !== null)
-
-  return {
-    contextTypes,
-    rendersOnGpu: observed.length === 0 ? null : observed.some(Boolean),
-    requestedInferenceDelegate: contender.inferenceDelegate,
-  }
+  ].sort((a, b) => a.localeCompare(b));
+  return { contextTypes, rendersOnGpu: rendersOnGpu(contextTypes) }
 }
 
 export async function acquireSourceTrack(
@@ -316,7 +288,6 @@ export async function acquireSourceTrack(
       width: { ideal: options.width },
       height: { ideal: options.height },
       frameRate: { ideal: options.frameRate },
-      ...(options.deviceId ? { deviceId: { exact: options.deviceId } } : {}),
     },
   })
   const [track] = stream.getVideoTracks()
@@ -340,8 +311,12 @@ export async function runBenchmark(
   if (contenders.length === 0)
     throw new Error('Select at least one processor to benchmark')
 
-  const specs = await collectSystemSpecs()
-  const sourceTrack = await acquireSourceTrack(options)
+  // Independent: a WebGPU adapter request should not sit in front of the
+  // camera warm-up.
+  const [specs, sourceTrack] = await Promise.all([
+    collectSystemSpecs(),
+    acquireSourceTrack(options),
+  ])
   const sourceSettings = sourceTrack.getSettings()
   const runsByContender = new Map<string, RunMetrics[]>(
     contenders.map((contender) => [contender.id, []])

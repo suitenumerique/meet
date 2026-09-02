@@ -75,8 +75,10 @@ PATH_FRONT          = ./src/frontend
 CHROME_MACOS        = /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
 CHROME              = $(shell test -x "$(CHROME_MACOS)" && echo "$(CHROME_MACOS)" \
   || command -v google-chrome || command -v chromium || command -v chromium-browser)
-BENCH_PORT          = 3000
-BENCH_URL           = http://localhost:$(BENCH_PORT)/processor-bench
+# Overridable, because VITE_PORT is not always 3000 (see compose.yml and the
+# helm values): `make run-frontend-nogpu BENCH_PORT=8080`.
+BENCH_PORT         ?= 3000
+BENCH_URL          ?= http://localhost:$(BENCH_PORT)/processor-bench
 # A throwaway profile is mandatory, not cosmetic: if Chrome is already running
 # with the default profile, a second launch just opens a tab in the existing
 # process and --disable-gpu is silently ignored.
@@ -204,6 +206,10 @@ frontend-lint: ## run the frontend linter
 frontend-format: ## run the frontend format
 	cd $(PATH_FRONT) && npm run format
 .PHONY: frontend-format
+
+frontend-test: ## run the frontend unit tests
+	cd $(PATH_FRONT) && npm run test
+.PHONY: frontend-test
 
 run-frontend-development: ## run the frontend in development mode
 	@$(COMPOSE) stop frontend

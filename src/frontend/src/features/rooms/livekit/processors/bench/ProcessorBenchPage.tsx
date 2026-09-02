@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { VideoPresets } from 'livekit-client'
 import { css } from '@/styled-system/css'
 import { BENCH_CONTENDERS } from './contenders'
 import { BenchAbortError, runBenchmark } from './ProcessorBenchmark'
-import { supportsLongTasks, supportsRvfc } from './collectors'
+import { SUPPORTS_LONG_TASKS, SUPPORTS_RVFC } from './collectors'
 import {
   collectSystemSpecs,
   describeGpu,
@@ -10,16 +11,21 @@ import {
 } from './systemSpecs'
 import {
   DEFAULT_BENCH_OPTIONS,
+  type BenchPhase,
   type BenchProgress,
   type BenchReport,
+  type ContenderResult,
   type GpuUsage,
 } from './types'
 
-const RESOLUTIONS = [
-  { label: '640x360', width: 640, height: 360 },
-  { label: '1280x720', width: 1280, height: 720 },
-  { label: '1920x1080', width: 1920, height: 1080 },
-]
+// The same ladder the product publishes (see VideoTab / VideoDeviceControl),
+// rather than a second hardcoded copy of it.
+const RESOLUTION_KEYS = ['h360', 'h720', 'h1080'] as const
+type ResolutionKey = (typeof RESOLUTION_KEYS)[number]
+
+const resolutionOf = (key: ResolutionKey) => VideoPresets[key]
+const resolutionLabel = (key: ResolutionKey) =>
+  `${VideoPresets[key].width}x${VideoPresets[key].height}`
 
 const styles = {
   page: css({
@@ -137,21 +143,21 @@ const fmt = (value: number | null | undefined, digits = 1): string =>
 const fmtMb = (bytes: number | null | undefined): string =>
   typeof bytes === 'number' ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : '—'
 
+const PHASE_VERBS: Partial<Record<BenchPhase, string>> = {
+  starting: 'Initialising',
+  warmup: 'Warming up',
+  measuring: 'Measuring',
+}
+
 const describeProgress = (progress: BenchProgress): string => {
-  switch (progress.phase) {
-    case 'idle':
-      return 'Idle'
-    case 'starting':
-      return `Initialising ${progress.contenderLabel} (pass ${(progress.pass ?? 0) + 1})`
-    case 'warmup':
-      return `Warming up ${progress.contenderLabel} (pass ${(progress.pass ?? 0) + 1})`
-    case 'measuring':
-      return `Measuring ${progress.contenderLabel} (pass ${(progress.pass ?? 0) + 1})`
-    case 'cooldown':
-      return `Cooling down after ${progress.contenderLabel}`
-    case 'done':
-      return 'Done'
+  const verb = PHASE_VERBS[progress.phase]
+  if (verb) {
+    return `${verb} ${progress.contenderLabel} (pass ${(progress.pass ?? 0) + 1})`
   }
+  if (progress.phase === 'cooldown') {
+    return `Cooling down after ${progress.contenderLabel}`
+  }
+  return progress.phase === 'done' ? 'Done' : 'Idle'
 }
 
 const describeGpuUsage = (gpu: GpuUsage): string => {
@@ -159,6 +165,28 @@ const describeGpuUsage = (gpu: GpuUsage): string => {
   const contexts = gpu.contextTypes.join(', ')
   return gpu.rendersOnGpu ? `GPU (${contexts})` : `CPU (${contexts})`
 }
+
+const RESULT_COLUMNS: Array<{
+  header: string
+  cell: (result: ContenderResult) => string
+}> = [
+  { header: 'Processor', cell: (r) => r.label },
+  { header: 'Rendering', cell: (r) => describeGpuUsage(r.gpu) },
+  {
+    header: 'Inference (requested)',
+    cell: (r) => r.inferenceDelegate ?? 'n/a',
+  },
+  { header: 'FPS', cell: (r) => fmt(r.averaged.fps) },
+  { header: 'Frame p95 (ms)', cell: (r) => fmt(r.averaged.frameP95Ms) },
+  { header: 'rAF p50 (ms)', cell: (r) => fmt(r.averaged.rafP50Ms) },
+  { header: 'rAF p95 (ms)', cell: (r) => fmt(r.averaged.rafP95Ms) },
+  { header: 'Blocking (ms)', cell: (r) => fmt(r.averaged.blockingMs, 0) },
+  { header: 'Long tasks', cell: (r) => fmt(r.averaged.longTaskCount, 0) },
+  { header: 'Busy %', cell: (r) => fmt(r.averaged.longTaskSharePct) },
+  { header: 'Startup cold (ms)', cell: (r) => fmt(r.coldStartupMs, 0) },
+  { header: 'Startup warm (ms)', cell: (r) => fmt(r.warmStartupMs, 0) },
+  { header: 'Heap peak', cell: (r) => fmtMb(r.runs[0]?.heap.peakBytes) },
+]
 
 const SpecRow = ({ label, value }: { label: string; value: string }) => (
   <div className={styles.specRow}>
@@ -170,55 +198,66 @@ const SpecRow = ({ label, value }: { label: string; value: string }) => (
 const or = (value: string | number | null | undefined): string =>
   value === null || value === undefined || value === '' ? '—' : String(value)
 
-const SpecsPanel = ({ specs }: { specs: SystemSpecs }) => (
-  <div className={styles.specs}>
-    <SpecRow
-      label="Platform"
-      value={`${or(specs.platform)} ${or(specs.platformVersion)}`}
-    />
-    <SpecRow
-      label="Architecture"
-      value={`${or(specs.architecture)} ${or(specs.bitness)}`}
-    />
-    <SpecRow label="Browser" value={or(specs.browserVersion)} />
-    <SpecRow label="Logical cores" value={or(specs.logicalCores)} />
-    <SpecRow
-      label="Device memory"
-      value={specs.deviceMemoryGb ? `${specs.deviceMemoryGb} GB` : '—'}
-    />
-    <SpecRow label="GPU" value={describeGpu(specs.gpu)} />
-    <SpecRow label="GPU vendor" value={or(specs.gpu.webglVendor)} />
-    <SpecRow
-      label="WebGL2"
-      value={specs.gpu.webgl2Available ? 'available' : 'unavailable'}
-    />
-    <SpecRow
-      label="WebGPU"
-      value={
-        specs.gpu.webgpuAvailable
-          ? or(
-              specs.gpu.webgpuDescription ||
-                specs.gpu.webgpuDevice ||
-                specs.gpu.webgpuVendor
-            )
-          : 'unavailable'
-      }
-    />
-    <SpecRow
-      label="Screen"
-      value={`${specs.screen.width}x${specs.screen.height} @${specs.screen.devicePixelRatio}x`}
-    />
-    <SpecRow
-      label="Power"
-      value={
-        specs.battery
-          ? `${specs.battery.charging ? 'charging' : 'on battery'} (${specs.battery.levelPct}%)`
-          : '—'
-      }
-    />
-    <SpecRow label="Timezone" value={or(specs.timezone)} />
-  </div>
-)
+const SpecsPanel = ({ specs }: { specs: SystemSpecs }) => {
+  let power = '—';
+
+  if (specs.battery) {
+    const status = specs.battery.charging ? 'charging' : 'on battery';
+    power = `${status} (${specs.battery.levelPct}%)`;
+  }
+
+  return (
+    <div className={styles.specs}>
+      <SpecRow
+        label="Platform"
+        value={`${or(specs.platform)} ${or(specs.platformVersion)}`}
+      />
+
+      <SpecRow
+        label="Architecture"
+        value={`${or(specs.architecture)} ${or(specs.bitness)}`}
+      />
+
+      <SpecRow label="Browser" value={or(specs.browserVersion)} />
+      <SpecRow label="Logical cores" value={or(specs.logicalCores)} />
+
+      <SpecRow
+        label="Device memory"
+        value={specs.deviceMemoryGb ? `${specs.deviceMemoryGb} GB` : '—'}
+      />
+
+      <SpecRow label="GPU" value={describeGpu(specs.gpu)} />
+      <SpecRow label="GPU vendor" value={or(specs.gpu.webglVendor)} />
+
+      <SpecRow
+        label="WebGL2"
+        value={specs.gpu.webgl2Available ? 'available' : 'unavailable'}
+      />
+
+      <SpecRow
+        label="WebGPU"
+        value={
+          specs.gpu.webgpuAvailable
+            ? or(
+                specs.gpu.webgpuDescription ||
+                  specs.gpu.webgpuDevice ||
+                  specs.gpu.webgpuVendor
+              )
+            : 'unavailable'
+        }
+      />
+
+      <SpecRow
+        label="Screen"
+        value={`${specs.screen.width}x${specs.screen.height} @${specs.screen.devicePixelRatio}x`}
+      />
+
+      <SpecRow label="Power" value={power} />
+
+      <SpecRow label="Timezone" value={or(specs.timezone)} />
+    </div>
+  );
+};
 
 const ProcessorBenchPage = () => {
   const sourceContainerRef = useRef<HTMLDivElement>(null)
@@ -228,7 +267,7 @@ const ProcessorBenchPage = () => {
   const [selected, setSelected] = useState<string[]>(
     BENCH_CONTENDERS.slice(0, 2).map((contender) => contender.id)
   )
-  const [resolution, setResolution] = useState(RESOLUTIONS[1].label)
+  const [resolution, setResolution] = useState<ResolutionKey>('h720')
   const [measureSeconds, setMeasureSeconds] = useState(15)
   const [passes, setPasses] = useState(2)
 
@@ -271,8 +310,7 @@ const ProcessorBenchPage = () => {
     const chosen = BENCH_CONTENDERS.filter((contender) =>
       selected.includes(contender.id)
     )
-    const size =
-      RESOLUTIONS.find((item) => item.label === resolution) ?? RESOLUTIONS[1]
+    const size = resolutionOf(resolution)
 
     const controller = new AbortController()
     abortRef.current = controller
@@ -338,14 +376,14 @@ const ProcessorBenchPage = () => {
         </>
       )}
 
-      {!supportsRvfc() && (
+      {!SUPPORTS_RVFC && (
         <p className={styles.error}>
           This browser has no requestVideoFrameCallback, so frame pacing cannot
           be measured. FPS falls back to decoded-frame counts and jitter is
           unavailable.
         </p>
       )}
-      {!supportsLongTasks() && (
+      {!SUPPORTS_LONG_TASKS && (
         <p className={styles.error}>
           This browser does not report long tasks, so main-thread blocking
           columns will be empty. Chromium reports them.
@@ -370,22 +408,24 @@ const ProcessorBenchPage = () => {
 
       <div className={styles.row}>
         <label className={styles.field}>
-          Resolution
+          <span>Resolution</span>
           <select
             value={resolution}
             disabled={running}
-            onChange={(event) => setResolution(event.target.value)}
+            onChange={(event) =>
+              setResolution(event.target.value as ResolutionKey)
+            }
           >
-            {RESOLUTIONS.map((item) => (
-              <option key={item.label} value={item.label}>
-                {item.label}
+            {RESOLUTION_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {resolutionLabel(key)}
               </option>
             ))}
           </select>
         </label>
 
         <label className={styles.field}>
-          Measure seconds
+          <span>Measure seconds</span>
           <input
             type="number"
             min={3}
@@ -397,7 +437,7 @@ const ProcessorBenchPage = () => {
         </label>
 
         <label className={styles.field}>
-          Passes
+          <span>Passes</span>
           <input
             type="number"
             min={1}
@@ -455,37 +495,17 @@ const ProcessorBenchPage = () => {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Processor</th>
-                  <th>Rendering</th>
-                  <th>Inference (requested)</th>
-                  <th>FPS</th>
-                  <th>Frame p95 (ms)</th>
-                  <th>rAF p50 (ms)</th>
-                  <th>rAF p95 (ms)</th>
-                  <th>Blocking (ms)</th>
-                  <th>Long tasks</th>
-                  <th>Busy %</th>
-                  <th>Startup cold (ms)</th>
-                  <th>Startup warm (ms)</th>
-                  <th>Heap peak</th>
+                  {RESULT_COLUMNS.map((column) => (
+                    <th key={column.header}>{column.header}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {report.results.map((result) => (
                   <tr key={result.contenderId}>
-                    <td>{result.label}</td>
-                    <td>{describeGpuUsage(result.gpu)}</td>
-                    <td>{result.gpu.requestedInferenceDelegate}</td>
-                    <td>{fmt(result.averaged.fps)}</td>
-                    <td>{fmt(result.averaged.frameP95Ms)}</td>
-                    <td>{fmt(result.averaged.rafP50Ms)}</td>
-                    <td>{fmt(result.averaged.rafP95Ms)}</td>
-                    <td>{fmt(result.averaged.blockingMs, 0)}</td>
-                    <td>{fmt(result.averaged.longTaskCount, 0)}</td>
-                    <td>{fmt(result.averaged.longTaskSharePct)}</td>
-                    <td>{fmt(result.coldStartupMs, 0)}</td>
-                    <td>{fmt(result.warmStartupMs, 0)}</td>
-                    <td>{fmtMb(result.runs[0]?.heap.peakBytes)}</td>
+                    {RESULT_COLUMNS.map((column) => (
+                      <td key={column.header}>{column.cell(result)}</td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
