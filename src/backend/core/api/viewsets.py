@@ -75,11 +75,7 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
-from core.services.room_management import (
-    RoomManagement,
-    RoomManagementException,
-    RoomNotFoundException,
-)
+from core.services.room_management import RoomManagement
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
@@ -356,26 +352,7 @@ class RoomViewSet(
         ):
             return
 
-        metadata = {
-            "configuration": room.configuration,
-            "access_level": room.access_level,
-        }
-
-        try:
-            RoomManagement().update_metadata(
-                room_name=str(room.id),
-                metadata=metadata,
-            )
-        except RoomNotFoundException:
-            logger.info(
-                "LiveKit room %s does not exist yet, skipping metadata sync",
-                room.id,
-            )
-        except RoomManagementException:
-            logger.warning(
-                "Failed to sync metadata to LiveKit for room %s",
-                room.id,
-            )
+        RoomManagement.sync_room_metadata(room)
 
     @decorators.action(
         detail=True,

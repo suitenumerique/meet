@@ -44,7 +44,7 @@ class RecordingEventsService:
         recording_status = status_mapping.get(egress_status)
         if recording_status:
             try:
-                RoomManagement().update_metadata(
+                RoomManagement.update_metadata(
                     room_name, {"recording_status": recording_status}
                 )
             except RoomNotFoundException:
