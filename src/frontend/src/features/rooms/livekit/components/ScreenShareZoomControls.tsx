@@ -1,5 +1,4 @@
 import { css } from '@/styled-system/css'
-import { HStack } from '@/styled-system/jsx'
 import { Button } from '@/primitives'
 import {
   RiFullscreenExitLine,
@@ -7,6 +6,7 @@ import {
   RiZoomOutLine,
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
+import { Toolbar } from 'react-aria-components'
 import { useEffect, useRef } from 'react'
 import { isMacintosh } from '@/utils/livekit'
 import { srOnly } from '@/styles/a11y'
@@ -59,15 +59,14 @@ export const ScreenShareZoomControls = ({
         pointerEvents: 'auto',
       })}
     >
-      <HStack
-        gap={0}
-        role="toolbar"
+      <Toolbar
         aria-label={t('toolbarLabel')}
         className={css({
+          display: 'flex',
+          alignItems: 'center',
           backgroundColor: 'primaryDark.50',
           borderRadius: '2rem',
           padding: '0.5rem',
-          alignItems: 'center',
           opacity: 0.7,
           transition: 'opacity 200ms linear',
           _hover: {
@@ -160,7 +159,7 @@ export const ScreenShareZoomControls = ({
           <RiZoomInLine size={20} />
         </Button>
         <ScreenShareFullscreenButton containerRef={containerRef} />
-      </HStack>
+      </Toolbar>
     </div>
   )
 }

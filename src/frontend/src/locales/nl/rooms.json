@@ -770,7 +770,7 @@
     "fullScreen": "Volledig scherm",
     "exitFullScreen": "Volledig scherm verlaten",
     "currentZoomLevel": "Zoom {{level}} %",
-    "panHint": "Zoom {{level}} %. Sleep met de muis of gebruik de pijltjestoetsen om te navigeren.",
+    "panHint": "Zoom {{level}} %. Sleep met de muis, of zet de focus terug op de schermdeling en gebruik de pijltjestoetsen om door het beeld te navigeren.",
     "fullScreenEntered": "Volledig scherm ingeschakeld",
     "fullScreenExited": "Volledig scherm uitgeschakeld"
   },
