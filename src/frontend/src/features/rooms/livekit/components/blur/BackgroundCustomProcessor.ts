@@ -210,10 +210,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
       this._syncOutputCanvasSize()
       this._scheduleNextFrame()
     }
-
-    // When re-initializing with an element that already has data (e.g. after
-    // hiding then showing the camera), 'loadeddata' will not fire again, so
-    // rely on readyState instead of a stale boolean flag.
+    
     if (this.videoElement!.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
       startLoop()
     } else {
