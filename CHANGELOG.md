@@ -13,6 +13,10 @@ and this project adheres to
 - ✨(frontend) add 1080p sending resolution option #1660
 - ✨(backend) add Traefik support via configurable media-auth url header #1649
 
+### Changed
+
+- ⬆️(dev) pin LiveKit server to v1.13.6
+
 ### Fixed
 
 - 🐛(frontend) keep the sending resolution picked while the camera is off #1667
