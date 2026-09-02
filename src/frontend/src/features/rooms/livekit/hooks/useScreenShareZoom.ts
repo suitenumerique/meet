@@ -233,6 +233,8 @@ export const useScreenShareZoom = () => {
       const isZoomed = zoomRef.current > MIN_ZOOM
       if (!isZoomed && e.key !== '+' && e.key !== '=') return
 
+      if (e.key.startsWith('Arrow') && e.target !== e.currentTarget) return
+
       switch (e.key) {
         case 'ArrowLeft':
           e.preventDefault()

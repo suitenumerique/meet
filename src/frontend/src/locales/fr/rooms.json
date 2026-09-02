@@ -770,7 +770,7 @@
     "fullScreen": "Plein écran",
     "exitFullScreen": "Quitter le plein écran",
     "currentZoomLevel": "Zoom {{level}} %",
-    "panHint": "Zoom {{level}} %. Glissez avec la souris ou utilisez les touches fléchées pour naviguer.",
+    "panHint": "Zoom {{level}} %. Glissez avec la souris, ou revenez sur le partage d'écran et utilisez les touches fléchées pour naviguer dans l'image.",
     "fullScreenEntered": "Plein écran activé",
     "fullScreenExited": "Plein écran désactivé"
   },

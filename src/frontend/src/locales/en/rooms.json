@@ -770,7 +770,7 @@
     "fullScreen": "Full screen",
     "exitFullScreen": "Exit full screen",
     "currentZoomLevel": "Zoom {{level}} %",
-    "panHint": "Zoom {{level}} %. Drag with mouse or use arrow keys to navigate.",
+    "panHint": "Zoom {{level}} %. Drag with mouse, or move focus back to the screen share and use arrow keys to navigate the picture.",
     "fullScreenEntered": "Full screen enabled",
     "fullScreenExited": "Full screen disabled"
   },
