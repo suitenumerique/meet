@@ -208,6 +208,69 @@ export class LongTaskCollector {
   }
 }
 
+const GPU_CONTEXT_TYPES = ['webgl', 'webgl2', 'webgpu']
+
+type GetContextHost = {
+  prototype: { getContext: unknown }
+}
+
+/**
+ * Records which canvas context types a processor creates while it runs, which
+ * is the one piece of per-processor GPU evidence that is actually observable:
+ * `webgl`/`webgl2` means it rendered on the GPU, `2d` means it did not.
+ *
+ * MediaPipe offers nothing equivalent — it never reports the delegate it
+ * settled on — so inference is declared by the contender, not measured here.
+ *
+ * Caveat: this is a global patch for the duration of one run, so a canvas
+ * created by anything else in that window is attributed to the processor.
+ * Nothing else on the bench page creates canvases while a run is in flight.
+ */
+export class CanvasContextRecorder {
+  private readonly types = new Set<string>()
+  private readonly restorers: Array<() => void> = []
+
+  start() {
+    this.patch(HTMLCanvasElement as unknown as GetContextHost)
+    if (typeof OffscreenCanvas !== 'undefined') {
+      this.patch(OffscreenCanvas as unknown as GetContextHost)
+    }
+  }
+
+  private patch(host: GetContextHost) {
+    const original = host.prototype.getContext as (
+      ...args: unknown[]
+    ) => unknown
+    const types = this.types
+
+    host.prototype.getContext = function (this: unknown, ...args: unknown[]) {
+      if (typeof args[0] === 'string') types.add(args[0])
+      return original.apply(this, args)
+    }
+
+    this.restorers.push(() => {
+      host.prototype.getContext = original
+    })
+  }
+
+  stop() {
+    this.restorers.splice(0).forEach((restore) => restore())
+  }
+
+  summarize(): { contextTypes: string[]; rendersOnGpu: boolean | null } {
+    const contextTypes = [...this.types].sort()
+    if (contextTypes.length === 0) {
+      return { contextTypes, rendersOnGpu: null }
+    }
+    return {
+      contextTypes,
+      rendersOnGpu: contextTypes.some((type) =>
+        GPU_CONTEXT_TYPES.includes(type)
+      ),
+    }
+  }
+}
+
 type MemoryCapablePerformance = Performance & {
   memory?: { usedJSHeapSize: number }
 }

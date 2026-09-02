@@ -1,5 +1,6 @@
 import { Track } from 'livekit-client'
 import {
+  CanvasContextRecorder,
   FrameRateCollector,
   HeapSampler,
   LongTaskCollector,
@@ -12,12 +13,14 @@ import {
   throwIfAborted,
 } from './sequencing'
 import { mean } from './stats'
+import { collectSystemSpecs } from './systemSpecs'
 import type {
   BenchContender,
   BenchOptions,
   BenchProgress,
   BenchReport,
   ContenderResult,
+  GpuUsage,
   RunMetrics,
   VideoTrackProcessor,
 } from './types'
@@ -122,6 +125,12 @@ async function runSingle(
   const raf = new RafCollector()
   const longTasks = new LongTaskCollector()
   const heap = new HeapSampler()
+  const contexts = new CanvasContextRecorder()
+
+  const gpuUsage = (): GpuUsage => ({
+    ...contexts.summarize(),
+    requestedInferenceDelegate: contender.inferenceDelegate,
+  })
 
   const failed = (error: string): RunMetrics => ({
     pass,
@@ -132,6 +141,7 @@ async function runSingle(
     rafIntervals: null,
     longTasks: longTasks.summarize(0),
     heap: heap.summarize(),
+    gpu: gpuUsage(),
     startupMs: null,
     error,
   })
@@ -140,6 +150,9 @@ async function runSingle(
     onProgress({ phase: 'starting', contenderLabel: label, pass })
     throwIfAborted(signal)
 
+    // Started before construction: processors create their canvases in the
+    // constructor or in init(), and both count as evidence.
+    contexts.start()
     processor = contender.create()
     const initStartedAt = performance.now()
 
@@ -208,6 +221,7 @@ async function runSingle(
       rafIntervals: raf.summarize(),
       longTasks: longTasks.summarize(measuredMs),
       heap: heap.summarize(),
+      gpu: gpuUsage(),
       startupMs,
       note: contender.describe?.(processor),
     }
@@ -221,6 +235,7 @@ async function runSingle(
     raf.stop()
     longTasks.stop()
     heap.stop()
+    contexts.stop()
     try {
       await processor?.destroy()
     } catch {
@@ -270,6 +285,26 @@ function aggregate(
     errors: [
       ...new Set(runs.map((run) => run.error).filter((e): e is string => !!e)),
     ],
+    gpu: mergeGpuUsage(contender, runs),
+  }
+}
+
+/** Union across passes: a context seen in any run was genuinely created. */
+function mergeGpuUsage(
+  contender: BenchContender,
+  runs: RunMetrics[]
+): GpuUsage {
+  const contextTypes = [
+    ...new Set(runs.flatMap((run) => run.gpu.contextTypes)),
+  ].sort()
+  const observed = runs
+    .map((run) => run.gpu.rendersOnGpu)
+    .filter((value): value is boolean => value !== null)
+
+  return {
+    contextTypes,
+    rendersOnGpu: observed.length === 0 ? null : observed.some(Boolean),
+    requestedInferenceDelegate: contender.inferenceDelegate,
   }
 }
 
@@ -305,6 +340,7 @@ export async function runBenchmark(
   if (contenders.length === 0)
     throw new Error('Select at least one processor to benchmark')
 
+  const specs = await collectSystemSpecs()
   const sourceTrack = await acquireSourceTrack(options)
   const sourceSettings = sourceTrack.getSettings()
   const runsByContender = new Map<string, RunMetrics[]>(
@@ -338,6 +374,7 @@ export async function runBenchmark(
   return {
     startedAt: new Date().toISOString(),
     userAgent: navigator.userAgent,
+    specs,
     options,
     sourceSettings,
     results: contenders.map((contender) =>

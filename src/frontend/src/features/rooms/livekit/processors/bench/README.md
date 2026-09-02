@@ -65,6 +65,46 @@ GPU time is not measured — there is no portable API for it — and neither are
 of any processor. Compare rows only when their notes agree: a processor that self-tunes at
 startup reports what it settled on via `describe()`.
 
+## Machine specs
+
+Every report captures the machine that produced it, shown in a panel on the page and
+embedded in the JSON: CPU cores, device memory, OS and architecture, browser version,
+GPU vendor and renderer (WebGPU `adapter.info` when available, else the WebGL
+`WEBGL_debug_renderer_info` strings), WebGL2 and WebGPU availability, screen size and
+pixel ratio, timezone, and battery charging state — a laptop on battery throttles hard
+enough to invalidate a comparison against one on mains.
+
+## Did a processor use the GPU?
+
+Two columns, and they are not equally strong:
+
+- **Rendering** is _observed_. `CanvasContextRecorder` patches
+  `HTMLCanvasElement.prototype.getContext` for the duration of each run and records the
+  context types the processor actually created: `webgl`/`webgl2` means it rendered on the
+  GPU, `2d` means it did not. This is real per-run evidence.
+- **Inference (requested)** is _declared_. It is what the contender asks MediaPipe for —
+  `@livekit/track-processors` defaults to `delegate: 'GPU'`, `BackgroundCustomProcessor`
+  hardcodes `'CPU'`, `FaceLandmarksProcessor` hardcodes `'GPU'`. MediaPipe never reports
+  the delegate it settled on and can fall back to CPU silently, so this is a request and
+  is labelled as one. Never read it as proof.
+
+### Running without a GPU at all
+
+Neither column can be changed from inside the page: forcing a delegate would only move
+MediaPipe inference, while WebGL rendering and browser compositing stay hardware
+accelerated. For a genuinely GPU-less run:
+
+```bash
+make run-frontend-development   # in one shell
+make run-frontend-nogpu         # in another
+```
+
+That launches Chrome with `--disable-gpu` against a throwaway profile. The profile is
+mandatory: with the default profile, if Chrome is already running the second launch just
+opens a tab in the existing process and the flag is **silently ignored** — you would get
+an ordinary GPU run that looks like a GPU-less one. The specs panel closes that loop, so
+check it says _software rendering_ before trusting the numbers.
+
 ## Adding a processor
 
 One entry in `contenders.ts`:
@@ -75,6 +115,8 @@ One entry in `contenders.ts`:
   label: 'My filter',
   description: 'What it does',
   create: () => new MyFilterProcessor({ ... }),
+  // what it asks MediaPipe for, or 'unknown'
+  inferenceDelegate: 'GPU',
   // optional, for anything decided at runtime (model picked, GPU vs CPU path)
   describe: (processor) => `...`,
 }

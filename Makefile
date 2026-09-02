@@ -69,6 +69,19 @@ LINT_SUMMARY        = echo 'lint:ruff-format started…' && $(LINT_RUFF_FORMAT) 
 # -- Frontend
 PATH_FRONT          = ./src/frontend
 
+# -- Frontend / processor benchmark
+# Chrome launched with the GPU off, for the dev-only processor benchmark.
+# Override the binary with e.g. `make run-frontend-nogpu CHROME=chromium`.
+CHROME_MACOS        = /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+CHROME              = $(shell test -x "$(CHROME_MACOS)" && echo "$(CHROME_MACOS)" \
+  || command -v google-chrome || command -v chromium || command -v chromium-browser)
+BENCH_PORT          = 3000
+BENCH_URL           = http://localhost:$(BENCH_PORT)/processor-bench
+# A throwaway profile is mandatory, not cosmetic: if Chrome is already running
+# with the default profile, a second launch just opens a tab in the existing
+# process and --disable-gpu is silently ignored.
+BENCH_NOGPU_PROFILE = $(shell printf '%s' "$${TMPDIR:-/tmp}")/meet-bench-nogpu
+
 # ==============================================================================
 # RULES
 
@@ -196,6 +209,26 @@ run-frontend-development: ## run the frontend in development mode
 	@$(COMPOSE) stop frontend
 	cd $(PATH_FRONT) && npm run dev
 .PHONY: run-frontend-development
+
+run-frontend-nogpu: ## open the processor benchmark in Chrome with the GPU disabled
+	@test -n "$(CHROME)" || { \
+		echo "$(BOLD)Chrome not found.$(RESET) Pass one, e.g. make run-frontend-nogpu CHROME=chromium"; \
+		exit 1; \
+	}
+	@curl -sSf -o /dev/null http://localhost:$(BENCH_PORT)/ || { \
+		echo "$(BOLD)No dev server on port $(BENCH_PORT).$(RESET) Start it first: make run-frontend-development"; \
+		exit 1; \
+	}
+	@echo "$(GREEN)Launching Chrome with --disable-gpu$(RESET)"
+	@echo "Throwaway profile at $(BENCH_NOGPU_PROFILE) — you will be asked for camera access again."
+	@echo "The benchmark's specs panel should report software rendering; if it does not, the flag did not take."
+	@"$(CHROME)" \
+		--disable-gpu \
+		--user-data-dir="$(BENCH_NOGPU_PROFILE)" \
+		--no-first-run \
+		--no-default-browser-check \
+		"$(BENCH_URL)"
+.PHONY: run-frontend-nogpu
 
 # -- Backend
 

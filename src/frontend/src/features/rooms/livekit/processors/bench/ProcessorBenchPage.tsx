@@ -1,12 +1,18 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { css } from '@/styled-system/css'
 import { BENCH_CONTENDERS } from './contenders'
 import { BenchAbortError, runBenchmark } from './ProcessorBenchmark'
 import { supportsLongTasks, supportsRvfc } from './collectors'
 import {
+  collectSystemSpecs,
+  describeGpu,
+  type SystemSpecs,
+} from './systemSpecs'
+import {
   DEFAULT_BENCH_OPTIONS,
   type BenchProgress,
   type BenchReport,
+  type GpuUsage,
 } from './types'
 
 const RESOLUTIONS = [
@@ -81,6 +87,35 @@ const styles = {
     fontSize: '0.8125rem',
     color: '#666',
   }),
+  specs: css({
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: '0.25rem 1.5rem',
+    fontSize: '0.8125rem',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    padding: '0.75rem 1rem',
+  }),
+  specRow: css({
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '1rem',
+  }),
+  specKey: css({
+    color: '#666',
+  }),
+  specValue: css({
+    fontFamily: 'monospace',
+    textAlign: 'right',
+    wordBreak: 'break-word',
+  }),
+  badge: css({
+    display: 'inline-block',
+    padding: '0.125rem 0.5rem',
+    borderRadius: '999px',
+    fontSize: '0.75rem',
+    border: '1px solid currentColor',
+  }),
   error: css({
     fontSize: '0.8125rem',
     color: '#b3261e',
@@ -119,6 +154,72 @@ const describeProgress = (progress: BenchProgress): string => {
   }
 }
 
+const describeGpuUsage = (gpu: GpuUsage): string => {
+  if (gpu.rendersOnGpu === null) return 'no canvas observed'
+  const contexts = gpu.contextTypes.join(', ')
+  return gpu.rendersOnGpu ? `GPU (${contexts})` : `CPU (${contexts})`
+}
+
+const SpecRow = ({ label, value }: { label: string; value: string }) => (
+  <div className={styles.specRow}>
+    <span className={styles.specKey}>{label}</span>
+    <span className={styles.specValue}>{value}</span>
+  </div>
+)
+
+const or = (value: string | number | null | undefined): string =>
+  value === null || value === undefined || value === '' ? '—' : String(value)
+
+const SpecsPanel = ({ specs }: { specs: SystemSpecs }) => (
+  <div className={styles.specs}>
+    <SpecRow
+      label="Platform"
+      value={`${or(specs.platform)} ${or(specs.platformVersion)}`}
+    />
+    <SpecRow
+      label="Architecture"
+      value={`${or(specs.architecture)} ${or(specs.bitness)}`}
+    />
+    <SpecRow label="Browser" value={or(specs.browserVersion)} />
+    <SpecRow label="Logical cores" value={or(specs.logicalCores)} />
+    <SpecRow
+      label="Device memory"
+      value={specs.deviceMemoryGb ? `${specs.deviceMemoryGb} GB` : '—'}
+    />
+    <SpecRow label="GPU" value={describeGpu(specs.gpu)} />
+    <SpecRow label="GPU vendor" value={or(specs.gpu.webglVendor)} />
+    <SpecRow
+      label="WebGL2"
+      value={specs.gpu.webgl2Available ? 'available' : 'unavailable'}
+    />
+    <SpecRow
+      label="WebGPU"
+      value={
+        specs.gpu.webgpuAvailable
+          ? or(
+              specs.gpu.webgpuDescription ||
+                specs.gpu.webgpuDevice ||
+                specs.gpu.webgpuVendor
+            )
+          : 'unavailable'
+      }
+    />
+    <SpecRow
+      label="Screen"
+      value={`${specs.screen.width}x${specs.screen.height} @${specs.screen.devicePixelRatio}x`}
+    />
+    <SpecRow
+      label="Power"
+      value={
+        specs.battery
+          ? `${specs.battery.charging ? 'charging' : 'on battery'} (${specs.battery.levelPct}%)`
+          : '—'
+      }
+    />
+    <SpecRow label="Timezone" value={or(specs.timezone)} />
+  </div>
+)
+
 const ProcessorBenchPage = () => {
   const sourceContainerRef = useRef<HTMLDivElement>(null)
   const outputContainerRef = useRef<HTMLDivElement>(null)
@@ -135,6 +236,17 @@ const ProcessorBenchPage = () => {
   const [progress, setProgress] = useState<BenchProgress>({ phase: 'idle' })
   const [report, setReport] = useState<BenchReport | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
+  const [specs, setSpecs] = useState<SystemSpecs | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    collectSystemSpecs().then((collected) => {
+      if (!cancelled) setSpecs(collected)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const estimatedSeconds = useMemo(() => {
     const perRun =
@@ -211,6 +323,20 @@ const ProcessorBenchPage = () => {
           the running order reversed. Dev-only page.
         </p>
       </div>
+
+      {specs && (
+        <>
+          <div className={styles.row}>
+            <strong>This machine</strong>
+            {specs.gpu.softwareRendered && (
+              <span className={styles.badge}>
+                GPU disabled — software rendering
+              </span>
+            )}
+          </div>
+          <SpecsPanel specs={specs} />
+        </>
+      )}
 
       {!supportsRvfc() && (
         <p className={styles.error}>
@@ -330,6 +456,8 @@ const ProcessorBenchPage = () => {
               <thead>
                 <tr>
                   <th>Processor</th>
+                  <th>Rendering</th>
+                  <th>Inference (requested)</th>
                   <th>FPS</th>
                   <th>Frame p95 (ms)</th>
                   <th>rAF p50 (ms)</th>
@@ -346,6 +474,8 @@ const ProcessorBenchPage = () => {
                 {report.results.map((result) => (
                   <tr key={result.contenderId}>
                     <td>{result.label}</td>
+                    <td>{describeGpuUsage(result.gpu)}</td>
+                    <td>{result.gpu.requestedInferenceDelegate}</td>
                     <td>{fmt(result.averaged.fps)}</td>
                     <td>{fmt(result.averaged.frameP95Ms)}</td>
                     <td>{fmt(result.averaged.rafP50Ms)}</td>
@@ -361,6 +491,17 @@ const ProcessorBenchPage = () => {
               </tbody>
             </table>
           </div>
+
+          <p className={styles.note}>
+            <strong>Rendering</strong> is observed: the canvas context types
+            each processor actually created during its run.{' '}
+            <strong>Inference</strong> is only what the processor asks MediaPipe
+            for — MediaPipe never reports the delegate it settled on and can
+            fall back to CPU silently, so it is not proof. To take the GPU out
+            of the picture entirely, including compositing, run{' '}
+            <code>make run-frontend-nogpu</code>; the panel above will then
+            report software rendering.
+          </p>
 
           {report.results.map((result) => (
             <div key={result.contenderId}>

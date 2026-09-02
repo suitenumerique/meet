@@ -1,5 +1,13 @@
 import type { Track, TrackProcessor } from 'livekit-client'
 import type { SampleSummary } from './stats'
+import type { SystemSpecs } from './systemSpecs'
+
+/**
+ * What a processor asks MediaPipe for. It is a *request*, not a measurement:
+ * MediaPipe never reports the delegate it settled on and can silently fall
+ * back to CPU, so this is only ever labelled as requested.
+ */
+export type InferenceDelegate = 'CPU' | 'GPU' | 'unknown'
 
 /**
  * Everything the harness needs from a processor. Deliberately the plain
@@ -13,12 +21,23 @@ export type BenchContender = {
   label: string
   description?: string
   create: () => VideoTrackProcessor
+  /** The MediaPipe delegate this processor requests, where it is known. */
+  inferenceDelegate: InferenceDelegate
   /**
    * Optional note read after init, for whatever the processor decided at
    * runtime (model picked, GPU vs CPU path). Surfaced next to the numbers
    * so two rows are only compared when they are comparable.
    */
   describe?: (processor: VideoTrackProcessor) => string | undefined
+}
+
+export type GpuUsage = {
+  /** Canvas context types the processor created — observed, not declared. */
+  contextTypes: string[]
+  /** True when a webgl/webgl2/webgpu context was created; null if none were. */
+  rendersOnGpu: boolean | null
+  /** What the processor asked MediaPipe for; never what it actually used. */
+  requestedInferenceDelegate: InferenceDelegate
 }
 
 export type BenchOptions = {
@@ -72,6 +91,7 @@ export type RunMetrics = {
   rafIntervals: SampleSummary | null
   longTasks: LongTaskMetrics
   heap: HeapMetrics
+  gpu: GpuUsage
   /** init() until the first frame leaves the processor. */
   startupMs: number | null
   note?: string
@@ -97,11 +117,13 @@ export type ContenderResult = {
   }
   notes: string[]
   errors: string[]
+  gpu: GpuUsage
 }
 
 export type BenchReport = {
   startedAt: string
   userAgent: string
+  specs: SystemSpecs
   options: BenchOptions
   sourceSettings: MediaTrackSettings | null
   results: ContenderResult[]

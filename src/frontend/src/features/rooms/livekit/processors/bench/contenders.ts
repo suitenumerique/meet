@@ -30,6 +30,9 @@ export const BENCH_CONTENDERS: BenchContender[] = [
         type: ProcessorType.BLUR,
         blurRadius: BLUR_RADIUS,
       }),
+    // track-processors defaults its ImageSegmenter to delegate: 'GPU' and
+    // spreads any segmenterOptions after it; we pass none.
+    inferenceDelegate: 'GPU',
     describe: describeWrapperPath,
   },
   {
@@ -41,6 +44,7 @@ export const BENCH_CONTENDERS: BenchContender[] = [
         type: ProcessorType.VIRTUAL,
         imagePath: VIRTUAL_BACKGROUND_PATH,
       }),
+    inferenceDelegate: 'GPU',
     describe: describeWrapperPath,
   },
   {
@@ -53,6 +57,8 @@ export const BENCH_CONTENDERS: BenchContender[] = [
         type: ProcessorType.BLUR,
         blurRadius: BLUR_RADIUS,
       }),
+    // Hardcoded to CPU: it exists for browsers without track-processors.
+    inferenceDelegate: 'CPU',
   },
   {
     id: 'face-landmarks',
@@ -63,5 +69,7 @@ export const BENCH_CONTENDERS: BenchContender[] = [
         showGlasses: true,
         showFrench: false,
       }),
+    // Hardcoded to GPU in FaceLandmarksProcessor.initFaceLandmarker.
+    inferenceDelegate: 'GPU',
   },
 ]
