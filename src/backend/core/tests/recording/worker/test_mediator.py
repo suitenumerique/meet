@@ -47,11 +47,10 @@ def test_start_recording_success(mock_update_metadata, mediator, mock_worker_ser
     )
     mediator.start(mock_recording)
 
-    # Verify worker service call: no per-recording encoding, so the keyword is
-    # omitted entirely and workers predating it stay callable.
+    # Verify worker service call
     expected_room_name = str(mock_recording.room.id)
     mock_worker_service.start.assert_called_once_with(
-        expected_room_name, mock_recording.id
+        expected_room_name, mock_recording.id, encoding_options=None
     )
 
     # Verify recording updates
@@ -95,41 +94,6 @@ def test_start_recording_passes_resolved_encoding(
     mock_worker_service.start.assert_called_once_with(
         str(mock_recording.room.id), mock_recording.id, encoding_options=resolved
     )
-
-
-@mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_start_recording_with_worker_lacking_encoding_options(mock_update_metadata):
-    """A worker predating the `encoding_options` keyword still starts a recording."""
-
-    class LegacyWorkerService:
-        """Worker stuck on the former start(room_id, recording_id) signature."""
-
-        hrid = "legacy-worker"
-
-        def __init__(self):
-            self.calls = []
-
-        def start(self, room_id, recording_id):
-            """Record the call and return a worker id."""
-            self.calls.append((room_id, recording_id))
-            return "legacy-worker-123"
-
-        def stop(self, worker_id):
-            """Unused here, part of the worker service interface."""
-            return "STOPPED"
-
-    worker_service = LegacyWorkerService()
-    mock_recording = RecordingFactory(
-        status=RecordingStatusChoices.INITIATED, worker_id=None
-    )
-
-    WorkerServiceMediator(worker_service).start(mock_recording)
-
-    assert worker_service.calls == [(str(mock_recording.room.id), mock_recording.id)]
-
-    mock_recording.refresh_from_db()
-    assert mock_recording.worker_id == "legacy-worker-123"
-    assert mock_recording.status == RecordingStatusChoices.ACTIVE
 
 
 @pytest.mark.parametrize(

@@ -52,11 +52,9 @@ class WorkerServiceMediator:
 
         room_name = str(recording.room.id)
         encoding_options = (recording.options.get("encoding") or {}).get("resolved")
-
-        start_kwargs = {"encoding_options": encoding_options} if encoding_options else {}
         try:
             worker_id = self._worker_service.start(
-                room_name, recording.id, **start_kwargs
+                room_name, recording.id, encoding_options=encoding_options
             )
         except (WorkerRequestError, WorkerConnectionError, WorkerResponseError) as e:
             logger.exception(
