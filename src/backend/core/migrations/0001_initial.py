@@ -8,6 +8,8 @@ import uuid
 from django.conf import settings
 from django.db import migrations, models
 
+import core.validators
+
 
 class Migration(migrations.Migration):
 
@@ -41,7 +43,7 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, help_text='primary key for the record as UUID', primary_key=True, serialize=False, verbose_name='id')),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='date and time at which a record was created', verbose_name='created on')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='date and time at which a record was last updated', verbose_name='updated on')),
-                ('sub', models.CharField(blank=True, help_text='Optional for pending users; required upon account activation. 255 characters or fewer. Letters, numbers, and @/./+/-/_ characters only.', max_length=255, null=True, unique=True, validators=[django.core.validators.RegexValidator(message='Enter a valid sub. This value may contain only letters, numbers, and @/./+/-/_ characters.', regex='^[\\w.@+-]+\\Z')], verbose_name='sub')),
+                ('sub', models.CharField(blank=True, help_text='Optional for pending users; required upon account activation. 255 characters or fewer. Printable ASCII characters only.', max_length=255, null=True, unique=True, validators=[core.validators.sub_validator], verbose_name='sub')),
                 ('email', models.EmailField(blank=True, max_length=254, null=True, verbose_name='identity email address')),
                 ('admin_email', models.EmailField(blank=True, max_length=254, null=True, unique=True, verbose_name='admin email address')),
                 ('language', models.CharField(choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, help_text='The language in which the user wants to see the interface.', max_length=10, verbose_name='language')),

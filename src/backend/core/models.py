@@ -27,6 +27,7 @@ from timezone_field import TimeZoneField
 
 from . import fields, utils
 from .recording.enums import FileExtension
+from .validators import sub_validator
 
 logger = getLogger(__name__)
 
@@ -145,19 +146,11 @@ class BaseModel(models.Model):
 class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
     """User model to work with OIDC only authentication."""
 
-    sub_validator = validators.RegexValidator(
-        regex=r"^[\w.@+-]+\Z",
-        message=_(
-            "Enter a valid sub. This value may contain only letters, "
-            "numbers, and @/./+/-/_ characters."
-        ),
-    )
-
     sub = models.CharField(
         _("sub"),
         help_text=_(
             "Optional for pending users; required upon account activation. "
-            "255 characters or fewer. Letters, numbers, and @/./+/-/_ characters only."
+            "255 characters or fewer. Printable ASCII characters only."
         ),
         max_length=255,
         unique=True,

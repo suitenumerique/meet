@@ -40,6 +40,111 @@ def test_authentication_getter_existing_user(monkeypatch):
     assert user == db_user
 
 
+@pytest.mark.parametrize(
+    "sub",
+    [
+        # NUL (U+0000) passes str.isascii() but PostgreSQL text fields
+        # cannot store or compare it (DataError)
+        "auth0|abc\x00def",
+        # lone surrogates cannot be encoded to UTF-8 for the DB lookup
+        # (UnicodeEncodeError), which runs before any model validation
+        "bad\ud800sub",
+        # plainly invalid subs would otherwise escape as ValidationError
+        # on user creation, which mozilla-django-oidc does not catch
+        "\u00e9milie",
+        "a" * 256,
+        # ASCII control characters are rejected by policy
+        "tab\tsub",
+        "del\x7fsub",
+    ],
+)
+def test_authentication_getter_invalid_sub_rejected_cleanly(monkeypatch, sub):
+    """
+    Subs that can never be persisted should be rejected with
+    SuspiciousOperation (turned into a clean authentication failure by
+    mozilla-django-oidc) instead of leaking DataError, UnicodeEncodeError
+    or ValidationError as a server error.
+    """
+    klass = OIDCAuthenticationBackend()
+
+    def get_userinfo_mocked(*args):
+        return {"sub": sub, "email": "john@example.com"}
+
+    monkeypatch.setattr(OIDCAuthenticationBackend, "get_userinfo", get_userinfo_mocked)
+
+    with pytest.raises(
+        SuspiciousOperation,
+        match="User info contained an invalid sub claim",
+    ):
+        klass.get_or_create_user(access_token="test-token", id_token=None, payload=None)
+
+    assert models.User.objects.exists() is False
+
+
+def test_authentication_getter_numeric_sub(monkeypatch):
+    """
+    Some providers serialize the sub as a JSON number. It should keep working
+    (CharField coerces it to a string on save) and must not crash the early
+    sub checks in get_existing_user.
+    """
+    klass = OIDCAuthenticationBackend()
+
+    def get_userinfo_mocked(*args):
+        return {"sub": 12345, "email": "john@example.com"}
+
+    monkeypatch.setattr(OIDCAuthenticationBackend, "get_userinfo", get_userinfo_mocked)
+
+    user = klass.get_or_create_user(
+        access_token="test-token", id_token=None, payload=None
+    )
+
+    assert user.sub == "12345"
+    assert models.User.objects.count() == 1
+
+
+def test_authentication_getter_new_user_auth0_pipe_sub(monkeypatch):
+    """
+    A first login with an Auth0-style sub containing a pipe ("provider|user-id")
+    should create the user instead of raising a ValidationError.
+    Regression test for https://github.com/suitenumerique/meet/issues/[XXX].
+    """
+    klass = OIDCAuthenticationBackend()
+
+    def get_userinfo_mocked(*args):
+        return {"sub": "auth0|644c0bc8f1874ef6d339fb34", "email": "john@example.com"}
+
+    monkeypatch.setattr(OIDCAuthenticationBackend, "get_userinfo", get_userinfo_mocked)
+
+    user = klass.get_or_create_user(
+        access_token="test-token", id_token=None, payload=None
+    )
+
+    assert user.sub == "auth0|644c0bc8f1874ef6d339fb34"
+    assert user.email == "john@example.com"
+    assert models.User.objects.count() == 1
+
+
+def test_authentication_getter_existing_user_auth0_pipe_sub(monkeypatch):
+    """
+    A returning user with an Auth0-style pipe sub should be matched by sub,
+    not duplicated or rejected.
+    """
+    klass = OIDCAuthenticationBackend()
+    db_user = UserFactory(sub="auth0|644c0bc8f1874ef6d339fb34")
+
+    def get_userinfo_mocked(*args):
+        return {"sub": db_user.sub}
+
+    monkeypatch.setattr(OIDCAuthenticationBackend, "get_userinfo", get_userinfo_mocked)
+
+    user = klass.get_or_create_user(
+        access_token="test-token", id_token=None, payload=None
+    )
+
+    assert user == db_user
+    assert models.User.objects.count() == 1
+
+
 def test_authentication_getter_new_user_no_email(monkeypatch):
     """
     If no user matches, a user should be created.
