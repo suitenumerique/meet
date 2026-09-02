@@ -201,10 +201,23 @@ export const EffectsConfiguration = ({
          *
          * We arrive in this condition when we enter the room with the camera already off.
          */
-        const newProcessorTmp = BackgroundProcessorFactory.getProcessor(config)!
-        await toggle(true, {
-          processor: newProcessorTmp,
-        })
+        try {
+          const newProcessorTmp =
+            BackgroundProcessorFactory.getProcessor(config)!
+          await toggle(true, {
+            processor: newProcessorTmp,
+          })
+        } catch (error) {
+          reportError('effects_processor_failure', error, {
+            context: 'Error applying effect while enabling camera:',
+          })
+          saveProcessorConfig(undefined)
+          try {
+            await toggle(true)
+          } catch {
+            // Camera errors are handled by the toggle's own error path.
+          }
+        }
         setTimeout(() => setProcessorPending(false))
         return
       }
@@ -246,6 +259,14 @@ export const EffectsConfiguration = ({
         reportError('effects_processor_failure', error, {
           context: 'Error applying effect:',
         })
+        try {
+          if (videoTrack.getProcessor()) {
+            await videoTrack.stopProcessor()
+          }
+        } catch {
+          // Best effort: the processor may already be broken.
+        }
+        saveProcessorConfig(undefined)
       } finally {
         // Without setTimeout the DOM is not refreshing when updating the options.
         setTimeout(() => setProcessorPending(false))
