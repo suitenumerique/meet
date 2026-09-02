@@ -31,7 +31,7 @@ def delete_connection_test_room(room_name: str):
         return
 
     try:
-        RoomManagement().delete_room(room_name)
+        RoomManagement.delete_room(room_name)
     except RoomNotFoundException:
         # Room may already be gone after empty/departure timeout.
         logger.info("Connection test room '%s' already gone.", room_name)

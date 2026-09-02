@@ -1,5 +1,6 @@
 """External API endpoints"""
 
+import copy
 from logging import getLogger
 
 from django.conf import settings
@@ -25,6 +26,7 @@ from rest_framework import (
 from core import analytics, api, models
 from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
+from core.services.room_management import RoomManagement
 
 from ..services.provisional_user_service import (
     ProvisionalUserCreationDisabledError,
@@ -142,6 +144,7 @@ class RoomViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
     """Application-delegated API for room management.
@@ -154,7 +157,11 @@ class RoomViewSet(
     - list: List rooms the user has access to (requires 'rooms:list' scope)
     - retrieve: Get room details (requires 'rooms:retrieve' scope)
     - create: Create a new room owned by the user (requires 'rooms:create' scope)
+    - partial_update: Update a room's access level and configuration, for
+      administrators and owners only (requires 'rooms:update' scope)
     """
+
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
     authentication_classes = [
         authentication.ApplicationJWTAuthentication,
@@ -189,7 +196,39 @@ class RoomViewSet(
         serializer = self.get_serializer(queryset, many=True)
         return drf_response.Response(serializer.data)
 
-    def perform_create(self, serializer):
+    def _track_room_event(self, room, event, **extra_properties):
+        """Log a room operation for auditing and forward it to analytics."""
+
+        auth_method = type(self.request.successful_authenticator).__name__
+        client_id = (self.request.auth or {}).get("client_id", "unknown")
+
+        # Log for auditing
+        details = "".join(f", {key}={value}" for key, value in extra_properties.items())
+        logger.info(
+            "Room %s via application: room_id=%s, user_id=%s, client_id=%s, auth_method=%s%s",
+            event.removeprefix("room_"),
+            room.id,
+            self.request.user.id,
+            client_id,
+            auth_method,
+            details,
+        )
+
+        analytics.capture(
+            self.request.user,
+            event,
+            {
+                "room_id": str(room.pk),
+                "access_level": room.access_level,
+                "client_id": client_id,
+                "external_api": True,
+                "auth_method": auth_method,
+                **extra_properties,
+                "$set": {"email": self.request.user.email},
+            },
+        )
+
+    def perform_create(self, serializer: serializers.RoomSerializer):
         """Set the current user as owner of the newly created room."""
         room = serializer.save()
         models.ResourceAccess.objects.create(
@@ -198,27 +237,31 @@ class RoomViewSet(
             role=models.RoleChoices.OWNER,
         )
 
-        auth_method = type(self.request.successful_authenticator).__name__
-        client_id = (self.request.auth or {}).get("client_id", "unknown")
+        self._track_room_event(room, analytics.AnalyticsEvent.ROOM_CREATED)
 
-        # Log for auditing
-        logger.info(
-            "Room created via application: room_id=%s, user_id=%s, client_id=%s, auth_method=%s",
-            room.id,
-            self.request.user.id,
-            client_id,
-            auth_method,
+    def perform_update(self, serializer: serializers.RoomSerializer):
+        """Persist the room update, sync it to LiveKit, then log and track it."""
+
+        previous_values = {
+            "access_level": serializer.instance.access_level,
+            "configuration": copy.deepcopy(serializer.instance.configuration),
+        }
+
+        room = serializer.save()
+
+        # Report the fields that actually changed, not the ones that were submitted.
+        updated_fields = sorted(
+            field
+            for field, previous_value in previous_values.items()
+            if getattr(room, field) != previous_value
         )
 
-        analytics.capture(
-            self.request.user,
-            analytics.AnalyticsEvent.ROOM_CREATED,
-            {
-                "room_id": str(room.pk),
-                "access_level": room.access_level,
-                "client_id": client_id,
-                "external_api": True,
-                "auth_method": auth_method,
-                "$set": {"email": self.request.user.email},
-            },
+        if updated_fields:
+            RoomManagement.sync_room_metadata(room)
+
+        self._track_room_event(
+            room,
+            analytics.AnalyticsEvent.ROOM_UPDATED,
+            updated_fields=updated_fields,
+            previous_access_level=previous_values["access_level"],
         )
