@@ -16,6 +16,7 @@ import json
 import warnings
 from os import path
 from socket import gethostbyname, gethostname
+from typing import Annotated
 
 from django.utils.translation import gettext_lazy as _
 
@@ -23,6 +24,8 @@ import dj_database_url
 import sentry_sdk
 from configurations import Configuration, values
 from lasuite.configuration.values import SecretFileValue
+from pydantic import BaseModel, Field, PositiveInt, TypeAdapter
+from pydantic import ValidationError as PydanticValidationError
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
@@ -51,6 +54,28 @@ def get_release():
             return json.load(version)["version"]
     except FileNotFoundError:
         return "NA"  # Default: not available
+
+
+class Resolution(BaseModel):
+    """Shape of a RECORDING_ENCODING_AVAILABLE_RESOLUTIONS entry."""
+
+    model_config = {"extra": "forbid"}
+
+    width: PositiveInt
+    height: PositiveInt
+
+
+class Profile(BaseModel):
+    """Shape of a RECORDING_ENCODING_AVAILABLE_PROFILES entry."""
+
+    model_config = {"extra": "forbid"}
+
+    fps: PositiveInt
+    kbps: dict[str, PositiveInt]
+
+
+RESOLUTION_MAP_ADAPTER = TypeAdapter(dict[str, Resolution])
+PROFILE_MAP_ADAPTER = TypeAdapter(dict[str, Profile])
 
 
 class Base(Configuration):
@@ -1231,30 +1256,20 @@ class Base(Configuration):
         """
         resolutions = set(cls.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS)
         profiles = set(cls.RECORDING_ENCODING_AVAILABLE_PROFILES)
-        # DictValue resolves to a dict at runtime; pylint sees the descriptor.
-        for (
-            resolution,
-            resolution_config,
-        ) in cls.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS.items():  # pylint: disable=no-member
-            missing_keys = {"width", "height"} - set(resolution_config)
-            if missing_keys:
-                raise ValueError(
-                    f"Resolution '{resolution}' in "
-                    "RECORDING_ENCODING_AVAILABLE_RESOLUTIONS is missing the key(s): "
-                    f"{sorted(missing_keys)}."
-                )
+
+        for name, adapter in (
+            ("RECORDING_ENCODING_AVAILABLE_RESOLUTIONS", RESOLUTION_MAP_ADAPTER),
+            ("RECORDING_ENCODING_AVAILABLE_PROFILES", PROFILE_MAP_ADAPTER),
+        ):
+            try:
+                adapter.validate_python(getattr(cls, name))
+            except PydanticValidationError as exc:
+                raise ValueError(f"{name} is malformed: {exc}") from exc
 
         for (
             profile,
             profile_config,
         ) in cls.RECORDING_ENCODING_AVAILABLE_PROFILES.items():  # pylint: disable=no-member
-            missing_keys = {"fps", "kbps"} - set(profile_config)
-            if missing_keys:
-                raise ValueError(
-                    f"Profile '{profile}' in RECORDING_ENCODING_AVAILABLE_PROFILES is "
-                    f"missing the key(s): {sorted(missing_keys)}."
-                )
-
             profile_resolutions = set(profile_config["kbps"])
             if profile_resolutions != resolutions:
                 raise ValueError(
@@ -1263,6 +1278,26 @@ class Base(Configuration):
                     "RECORDING_ENCODING_AVAILABLE_RESOLUTIONS, mismatch on: "
                     f"{resolutions ^ profile_resolutions}"
                 )
+
+        # Check that default resolutions and profiles are actually defined
+        if (
+            cls.RECORDING_ENCODING_DEFAULT_RESOLUTION
+            and cls.RECORDING_ENCODING_DEFAULT_RESOLUTION not in resolutions
+        ):
+            raise ValueError(
+                "RECORDING_ENCODING_DEFAULT_RESOLUTION "
+                f"'{cls.RECORDING_ENCODING_DEFAULT_RESOLUTION}' is not a key of "
+                f"RECORDING_ENCODING_AVAILABLE_RESOLUTIONS ({sorted(resolutions)})."
+            )
+        if (
+            cls.RECORDING_ENCODING_DEFAULT_PROFILE
+            and cls.RECORDING_ENCODING_DEFAULT_PROFILE not in profiles
+        ):
+            raise ValueError(
+                "RECORDING_ENCODING_DEFAULT_PROFILE "
+                f"'{cls.RECORDING_ENCODING_DEFAULT_PROFILE}' is not a key of "
+                f"RECORDING_ENCODING_AVAILABLE_PROFILES ({sorted(profiles)})."
+            )
 
         missing = [
             name
@@ -1284,20 +1319,6 @@ class Base(Configuration):
                 "built-in encoding preset instead of a custom default encoding.",
                 UserWarning,
                 stacklevel=2,
-            )
-            return
-
-        if cls.RECORDING_ENCODING_DEFAULT_RESOLUTION not in resolutions:
-            raise ValueError(
-                "RECORDING_ENCODING_DEFAULT_RESOLUTION "
-                f"'{cls.RECORDING_ENCODING_DEFAULT_RESOLUTION}' is not a key of "
-                f"RECORDING_ENCODING_AVAILABLE_RESOLUTIONS ({sorted(resolutions)})."
-            )
-        if cls.RECORDING_ENCODING_DEFAULT_PROFILE not in profiles:
-            raise ValueError(
-                "RECORDING_ENCODING_DEFAULT_PROFILE "
-                f"'{cls.RECORDING_ENCODING_DEFAULT_PROFILE}' is not a key of "
-                f"RECORDING_ENCODING_AVAILABLE_PROFILES ({sorted(profiles)})."
             )
 
     @classmethod
