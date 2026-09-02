@@ -32,14 +32,18 @@ export interface BackgroundProcessorInterface extends TrackProcessor<Track.Kind>
 }
 
 export class BackgroundProcessorFactory {
+  private static _isSupported?: boolean
+
   static hasModernApiSupport() {
     return ProcessorWrapper.hasModernApiSupport
   }
 
   static isSupported() {
-    return (
-      supportsBackgroundProcessors() || BackgroundCustomProcessor.isSupported
-    )
+    if (this._isSupported === undefined) {
+      this._isSupported =
+        supportsBackgroundProcessors() || BackgroundCustomProcessor.isSupported
+    }
+    return this._isSupported
   }
 
   static getProcessor(
