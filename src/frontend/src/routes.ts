@@ -27,6 +27,26 @@ const ConnectionTestRoute = lazy(
 
 const roomIdRegex = new RegExp(`^[/](?<roomId>${flexibleRoomIdPattern})$`)
 
+/**
+ * Routes that only exist while developing. `import.meta.env.DEV` is inlined
+ * as `false` at build time, so the branch — and the chunk it imports — are
+ * dropped from production bundles entirely.
+ */
+export const devRoutes: Array<{
+  path: string
+  Component: LazyExoticComponent<ComponentType>
+}> = import.meta.env.DEV
+  ? [
+      {
+        path: '/processor-bench',
+        Component: lazy(
+          () =>
+            import('@/features/rooms/livekit/processors/bench/ProcessorBenchPage')
+        ),
+      },
+    ]
+  : []
+
 export const routes: Record<
   | 'home'
   | 'room'

@@ -212,6 +212,10 @@ frontend-format: ## run the frontend format
 	cd $(PATH_FRONT) && npm run format
 .PHONY: frontend-format
 
+frontend-test: ## run the frontend unit tests
+	cd $(PATH_FRONT) && npm run test
+.PHONY: frontend-test
+
 run-frontend-development: ## run the frontend in development mode
 	@$(COMPOSE) stop frontend
 	cd $(PATH_FRONT) && npm run dev
