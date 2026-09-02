@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(frontend) add 1080p sending resolution option #1660
 - ✨(backend) add Traefik support via configurable media-auth url header #1649
+- ✨(frontend) add a dev-only benchmark harness for livekit track processors
 
 ### Fixed
 
