@@ -93,6 +93,28 @@ Both maps are validated at startup and a malformed one raises a `ValueError`:
 - `RECORDING_ENCODING_DEFAULT_RESOLUTION` and `RECORDING_ENCODING_DEFAULT_PROFILE`,
   when non-empty, must be keys of their respective map.
 
+#### Breaking: custom worker services must accept `encoding_options`
+
+Only concerns deployments pointing `RECORDING_WORKER_CLASSES` at their own worker
+class. The shipped `VideoCompositeEgressService` and `AudioCompositeEgressService`
+are already updated.
+
+The `WorkerService` protocol's `start()` takes a third argument, and the mediator
+now always passes it as a keyword when the recording carries no per-recording encoding:
+
+```python
+# before
+def start(self, room_id: str, recording_id: str) -> str: ...
+
+# now
+def start(
+    self,
+    room_id: str,
+    recording_id: str,
+    encoding_options: Optional[Dict[str, Any]] = None,
+) -> str: ...
+```
+
 #### Optional: per-recording encoding
 
 `RECORDING_CUSTOM_ENCODING_ENABLED` (default `False`) toggles whether the
