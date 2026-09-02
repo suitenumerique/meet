@@ -26,11 +26,12 @@ const SEGMENTATION_MASK_CANVAS_ID = 'background-blur-local-segmentation'
 const BLUR_CANVAS_ID = 'background-blur-local'
 
 const DEFAULT_BLUR = '10'
+const CONCEALING_BLUR = '25'
 const FRAME_INTERVAL_MS = 1000 / 30
 
 // After this many consecutive failed frames, stop segmenting and fall back to
-// passing the raw video through, so the user keeps a live camera instead of a
-// frozen frame.
+// publishing a fully blurred frame: the user keeps a live camera instead of a
+// frozen one, without ever exposing the surroundings they chose to conceal.
 const MAX_CONSECUTIVE_ERRORS = 5
 
 let webgl2Supported: boolean | undefined
@@ -99,7 +100,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
 
   private virtualBackgroundImagePath?: string
   private destroyed = false
-  private passthrough = false
+  private degraded = false
   private consecutiveErrors = 0
   private processing?: Promise<void>
   private onVideoLoaded?: () => void
@@ -123,7 +124,7 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     }
 
     this.destroyed = false
-    this.passthrough = false
+    this.degraded = false
     this.consecutiveErrors = 0
 
     this.source = opts.track as MediaStreamTrack
@@ -367,20 +368,26 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
         this.outputCanvas!.height
       )
     } else {
-      // Image not decoded (yet, or failed to load): fall back to the raw
-      // video so the participant never appears over a black background.
+      // Image not decoded (yet, or failed to load): fill the background with
+      // a heavy blur instead. Never fall back to the raw video here — the
+      // user selected this effect to conceal their surroundings, so the
+      // fallback must keep concealing them.
+      this.outputCanvasCtx!.filter = `blur(${CONCEALING_BLUR}px)`
       this.outputCanvasCtx!.drawImage(this.videoElement!, 0, 0)
     }
   }
 
   /**
-   * Draw the raw video without any effect. Used when segmentation is broken,
-   * so the outgoing video keeps flowing instead of freezing on a stale frame.
+   * Draw the whole frame heavily blurred (person included). Used when
+   * segmentation is broken: the outgoing video keeps flowing instead of
+   * freezing on a stale frame, while the surroundings the user chose to
+   * conceal stay concealed. Requires no segmenter, only one filtered draw.
    */
-  _drawPassthroughFrame() {
+  _drawDegradedFrame() {
     this.outputCanvasCtx!.globalCompositeOperation = 'copy'
-    this.outputCanvasCtx!.filter = 'none'
+    this.outputCanvasCtx!.filter = `blur(${CONCEALING_BLUR}px)`
     this.outputCanvasCtx!.drawImage(this.videoElement!, 0, 0)
+    this.outputCanvasCtx!.filter = 'none'
   }
 
   async process() {
@@ -400,8 +407,8 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
         return
       }
 
-      if (this.passthrough) {
-        this._drawPassthroughFrame()
+      if (this.degraded) {
+        this._drawDegradedFrame()
         this._scheduleNextFrame()
         return
       }
@@ -425,7 +432,9 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
       }
       this.consecutiveErrors += 1
       if (this.consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-        this.passthrough = true
+        // Degrade to a fully blurred frame: a live camera beats a frozen
+        // one, and concealment must survive the failure.
+        this.degraded = true
         reportError('effects_processor_failure', error, {
           context:
             'Background processing failed repeatedly, falling back to unprocessed video',
