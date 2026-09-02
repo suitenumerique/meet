@@ -64,9 +64,9 @@ def test_start_recording_success(mock_update_metadata, mediator, mock_worker_ser
     )
 
 
-@mock.patch("core.utils.update_room_metadata")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_start_recording_passes_resolved_encoding(
-    mock_update_room_metadata, mediator, mock_worker_service
+    mock_update_metadata, mediator, mock_worker_service
 ):
     """The resolved encoding persisted in recording.options reaches the worker."""
     mock_worker_service.start.return_value = "test-worker-123"

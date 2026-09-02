@@ -605,7 +605,7 @@ def test_start_recording_forwards_resolved_encoding_to_worker(
 
     mock_worker_service.start.return_value = "egress-123"
 
-    with mock.patch("core.utils.update_room_metadata"):
+    with mock.patch("core.services.room_management.RoomManagement.update_metadata"):
         response = client.post(
             f"/api/v1.0/rooms/{room.id}/start-recording/",
             {
