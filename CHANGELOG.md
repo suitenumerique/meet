@@ -13,7 +13,7 @@ and this project adheres to
 - ✨(backend) add per-recording encoding quality presets to start-recording API
 
 ### Changed
-
+git
 - 💥(backend) replace recording encoding options with a profile model
 
 ### Fixed
