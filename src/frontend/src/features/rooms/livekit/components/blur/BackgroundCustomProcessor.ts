@@ -392,7 +392,6 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
     }
     try {
       this._syncOutputCanvasSize()
-
       // No decoded frame available (e.g. right after a device switch): skip
       // this tick rather than processing a 0x0 source.
       if (
@@ -429,8 +428,6 @@ export class BackgroundCustomProcessor implements BackgroundProcessorInterface {
       }
       this.consecutiveErrors += 1
       if (this.consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-        // Degrade to passthrough: a working camera without the effect is
-        // better than a permanently frozen frame.
         this.passthrough = true
         reportError('effects_processor_failure', error, {
           context:
