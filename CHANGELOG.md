@@ -22,6 +22,7 @@ and this project adheres to
 
 - 🐛(backend) allow any printable ASCII characters in user sub field #1673
 - 🐛(frontend) keep the sending resolution picked while the camera is off #1667
+- 🐛(frontend) restore automatic lower-hand on speaking
 
 ## [1.30.0] - 2026-09-01
 

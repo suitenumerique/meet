@@ -86,5 +86,16 @@ export function useRaisedHand({ participant }: useRaisedHandProps) {
     }
   }
 
-  return { isHandRaised, toggleRaisedHand }
+  const lowerHand = async () => {
+    if (!isLocal(participant)) return
+    try {
+      await raiseHand(false)
+    } catch (e) {
+      reportError('generic_failure', e, {
+        context: 'lower_raised_hand',
+      })
+    }
+  }
+
+  return { isHandRaised, toggleRaisedHand, lowerHand }
 }
