@@ -500,6 +500,27 @@ def test_api_rooms_retrieve_success(settings):
     }
 
 
+def test_api_rooms_retrieve_public_forbidden_by_the_instance(settings):
+    """The external API answers the level a room runs at, as the room API does."""
+
+    settings.ALLOW_PUBLIC_ROOMS = False
+
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC, users=[(user, RoleChoices.OWNER)]
+    )
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 200
+    assert response.data["access_level"] == RoomAccessLevel.TRUSTED
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
+
+
 def test_api_rooms_retrieve_success_by_user():
     """Retrieve should only return rooms accessible to the authenticated user."""
 

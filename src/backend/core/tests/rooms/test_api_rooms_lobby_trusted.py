@@ -5,6 +5,7 @@ from unittest import mock
 import pytest
 from rest_framework.test import APIClient
 
+from core import utils
 from core.factories import RoomFactory, UserFactory
 from core.models import RoomAccessLevel
 from core.services.presence import PresenceCache
@@ -115,11 +116,17 @@ def test_public_room_running_as_trusted_present_user_can_list_waiting(
     """A public room runs as trusted where the instance forbids public ones, lobby included."""
     mock_check.return_value = True
     settings.ALLOW_PUBLIC_ROOMS = False
-    user = UserFactory()
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    with mock.patch.object(utils, "notify_participants", return_value=None):
+        APIClient().post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/", {"username": "someone"}
+        )
+
     client = APIClient()
-    client.force_login(user)
+    client.force_login(UserFactory())
 
     response = client.get(f"/api/v1.0/rooms/{room.id}/waiting-participants/")
 
     assert response.status_code == 200
+    assert [p["username"] for p in response.json()["participants"]] == ["someone"]

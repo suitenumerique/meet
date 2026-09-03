@@ -370,3 +370,15 @@ def test_models_rooms_public_room_runs_as_trusted(settings):
     assert room.effective_access_level == RoomAccessLevel.TRUSTED
     assert room.is_public is False
     assert room.access_level == RoomAccessLevel.PUBLIC
+
+
+def test_models_rooms_public_room_restored_when_allowed_again(settings):
+    """The row keeps its own level, so allowing public rooms again restores the room."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    settings.ALLOW_PUBLIC_ROOMS = False
+    assert room.effective_access_level == RoomAccessLevel.TRUSTED
+
+    settings.ALLOW_PUBLIC_ROOMS = True
+    assert room.effective_access_level == RoomAccessLevel.PUBLIC
+    assert room.is_public is True
