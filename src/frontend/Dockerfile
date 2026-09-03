@@ -53,6 +53,7 @@ RUN apk update && apk upgrade  \
     musl \
     musl-utils \
     zlib>=1.3.2-r0 \
+    libexpat>=2.8.4-r0 \
     && apk del curl
 
 USER nginx

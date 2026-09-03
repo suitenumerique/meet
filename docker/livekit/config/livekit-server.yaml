@@ -8,3 +8,16 @@ webhook:
   api_key: devkey
   urls:
       - http://app-dev:8000/api/v1.0/rooms/webhooks-livekit/
+
+turn:
+  enabled: true
+  domain: turn.127.0.0.1.nip.io
+  udp_port: 3478
+  tls_port: 0
+  external_tls: false
+  relay_range_start: 30000
+  relay_range_end: 30100
+  allow_restricted_peer_cidrs:
+    - 192.168.0.0/16
+    - 172.16.0.0/12
+

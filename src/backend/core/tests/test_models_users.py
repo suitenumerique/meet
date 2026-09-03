@@ -26,6 +26,64 @@ def test_models_users_id_unique():
         factories.UserFactory(id=user.id)
 
 
+@pytest.mark.parametrize(
+    "sub,is_valid",
+    [
+        # cases from suitenumerique/docs PR #1295 (same validator)
+        ("valid_sub.@+-:=/", True),
+        ("invalid süb", False),
+        (12345, True),
+        # Auth0 emits "provider|user-id" subject identifiers
+        ("auth0|644c0bc8f1874ef6d339fb34", True),
+        ("google-oauth2|103547991597142817347", True),
+        # Keycloak-style UUID
+        ("f:550e8400-e29b-41d4-a716-446655440000:jdoe", True),
+        # base64/URN-style identifiers
+        ("dGVzdC1zdWItdmFsdWU=", True),
+        ("urn:example:user/42", True),
+        # legacy format still accepted
+        ("user@example.com", True),
+        # space (U+0020) is printable ASCII and remains allowed
+        ("sub with space", True),
+        # non-ASCII values are rejected
+        ("émilie", False),
+        # ASCII control characters (U+0000-U+001F, U+007F) are rejected:
+        # NUL passes isascii() but cannot be stored in PostgreSQL text
+        # fields, and the others invite log injection and interop issues
+        ("nul\x00sub", False),
+        ("\x00", False),
+        ("tab\tsub", False),
+        ("newline\nsub", False),
+        ("del\x7fsub", False),
+    ],
+)
+def test_models_users_sub_validator(sub, is_valid):
+    """
+    The "sub" field should accept any ASCII string as required by
+    OpenID Connect Core 1.0 §2 and RFC 7519 §4.1.2, and reject non-ASCII values.
+    """
+    user = factories.UserFactory()
+    user.sub = sub
+    if is_valid:
+        user.full_clean()
+    else:
+        with pytest.raises(
+            ValidationError,
+            match="Enter a valid sub. This value should be printable ASCII only.",
+        ):
+            user.full_clean()
+
+
+def test_models_users_sub_max_length():
+    """The "sub" field should enforce the 255 ASCII characters limit of OIDC Core 1.0 §2."""
+    user = factories.UserFactory(sub="a" * 255)
+    assert user.sub == "a" * 255
+
+    user.sub = "a" * 256
+    with pytest.raises(ValidationError, match="at most 255 characters"):
+        user.full_clean()
+
+
 def test_models_users_send_mail_main_existing():
     """The "email_user' method should send mail to the user's email address."""
     user = factories.UserFactory()

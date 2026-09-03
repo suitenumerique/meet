@@ -110,6 +110,12 @@ cd -
 # Update summary pyproject.toml
 update_python_version "summary"
 
+# Run uv lock in summary
+print_info "Running uv lock in summary..."
+cd "src/summary"
+uv lock
+cd -
+
 # Update agents pyproject.toml
 update_python_version "agents"
 
@@ -163,6 +169,7 @@ echo "      - src/mail/package.json"
 echo "      - src/backend/pyproject.toml"
 echo "      - src/backend/uv.lock"
 echo "      - src/summary/pyproject.toml"
+echo "      - src/summary/uv.lock"
 echo "      - src/agents/pyproject.toml"
 echo "      - src/agents/uv.lock"
 echo "      - CHANGELOG.md"

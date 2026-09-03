@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.test import override_settings
 from django.utils import timezone
 
 import pytest
@@ -282,3 +283,63 @@ def test_api_recordings_media_auth_success_administrator(mode):
         timeout=1,
     )
     assert response.content.decode("utf-8") == "my prose"
+
+
+def test_api_recordings_media_auth_missing_header():
+    """
+    Test that a subrequest without the configured original-url header is rejected.
+    """
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get("/api/v1.0/recordings/media-auth/")
+
+    assert response.status_code == 403
+
+
+@override_settings(MEDIA_AUTH_ORIGINAL_URL_HEADER="HTTP_X_FORWARDED_URI")
+def test_api_recordings_media_auth_custom_original_url_header():
+    """
+    Test that the header carrying the original URL can be configured.
+
+    Reverse proxies other than nginx-ingress use different headers: Traefik's
+    ForwardAuth sends X-Forwarded-Uri and cannot emit X-Original-URL at all.
+    """
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    original_url = f"http://localhost/media/recordings/{uuid4()!s}.mp4"
+
+    response = client.get(
+        "/api/v1.0/recordings/media-auth/", HTTP_X_FORWARDED_URI=original_url
+    )
+
+    # The header was read and parsed: we get as far as looking the recording up,
+    # rather than being rejected for a missing header.
+    assert response.status_code == 404
+
+
+@override_settings(MEDIA_AUTH_ORIGINAL_URL_HEADER="HTTP_X_FORWARDED_URI")
+def test_api_recordings_media_auth_default_header_ignored_when_reconfigured():
+    """
+    Test that only the configured header is honoured.
+
+    Guards against the header being read from a hardcoded name in parallel with
+    the setting.
+    """
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    original_url = f"http://localhost/media/recordings/{uuid4()!s}.mp4"
+
+    response = client.get(
+        "/api/v1.0/recordings/media-auth/", HTTP_X_ORIGINAL_URL=original_url
+    )
+
+    assert response.status_code == 403

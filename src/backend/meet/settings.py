@@ -139,6 +139,15 @@ class Base(Configuration):
     MEDIA_BASE_URL = values.Value(
         "", environ_name="MEDIA_BASE_URL", environ_prefix=None
     )
+    # Header the reverse proxy uses to pass the original request URL to the
+    # media-auth subrequest views. nginx-ingress sends X-Original-URL, which is
+    # the default. Other proxies use different headers -- Traefik's ForwardAuth,
+    # for instance, sends X-Forwarded-Uri and cannot emit X-Original-URL at all.
+    MEDIA_AUTH_ORIGINAL_URL_HEADER = values.Value(
+        default="HTTP_X_ORIGINAL_URL",
+        environ_name="MEDIA_AUTH_ORIGINAL_URL_HEADER",
+        environ_prefix=None,
+    )
 
     SITE_ID = 1
 

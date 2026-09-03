@@ -56,6 +56,7 @@
       "publish": {
         "label": "Selecteer uw verzendresolutie (max.)",
         "items": {
+          "veryHigh": "Zeer hoge definitie",
           "high": "Hoge definitie",
           "medium": "Standaarddefinitie",
           "low": "Lage definitie"

@@ -75,11 +75,7 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
-from core.services.room_management import (
-    RoomManagement,
-    RoomManagementException,
-    RoomNotFoundException,
-)
+from core.services.room_management import RoomManagement
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
@@ -361,26 +357,7 @@ class RoomViewSet(
         ):
             return
 
-        metadata = {
-            "configuration": room.configuration,
-            "access_level": room.effective_access_level,
-        }
-
-        try:
-            RoomManagement().update_metadata(
-                room_name=str(room.id),
-                metadata=metadata,
-            )
-        except RoomNotFoundException:
-            logger.info(
-                "LiveKit room %s does not exist yet, skipping metadata sync",
-                room.id,
-            )
-        except RoomManagementException:
-            logger.warning(
-                "Failed to sync metadata to LiveKit for room %s",
-                room.id,
-            )
+        RoomManagement.sync_room_metadata(room)
 
     @decorators.action(
         detail=True,
@@ -1081,9 +1058,10 @@ class RecordingViewSet(
 
     def _auth_get_original_url(self, request):
         """
-        Extracts and parses the original URL from the "HTTP_X_ORIGINAL_URL" header.
+        Extracts and parses the original URL from the configured header.
         Raises PermissionDenied if the header is missing.
-        The original url is passed by nginx in the "HTTP_X_ORIGINAL_URL" header.
+        The original url is passed by the reverse proxy in the header named by the
+        MEDIA_AUTH_ORIGINAL_URL_HEADER setting, which defaults to "HTTP_X_ORIGINAL_URL".
         See corresponding ingress configuration in Helm chart and read about the
         nginx.ingress.kubernetes.io/auth-url annotation to understand how the Nginx ingress
         is configured to do this.
@@ -1093,9 +1071,13 @@ class RecordingViewSet(
         reasons.
         """
         # Extract the original URL from the request header
-        original_url = request.META.get("HTTP_X_ORIGINAL_URL")
+        original_url = request.META.get(settings.MEDIA_AUTH_ORIGINAL_URL_HEADER)
         if not original_url:
-            logger.warning("Missing HTTP_X_ORIGINAL_URL header in subrequest")
+            logger.warning(
+                "Missing %s header in subrequest. Set MEDIA_AUTH_ORIGINAL_URL_HEADER "
+                "to the header your reverse proxy sends.",
+                settings.MEDIA_AUTH_ORIGINAL_URL_HEADER,
+            )
             raise drf_exceptions.PermissionDenied()
 
         logger.debug("Original url: '%s'", original_url)
@@ -1420,7 +1402,8 @@ class FileViewSet(
         Authorize access based on the original URL of an Nginx subrequest
         and user permissions. Returns a dictionary of URL parameters if authorized.
 
-        The original url is passed by nginx in the "HTTP_X_ORIGINAL_URL" header.
+        The original url is passed by the reverse proxy in the header named by the
+        MEDIA_AUTH_ORIGINAL_URL_HEADER setting, which defaults to "HTTP_X_ORIGINAL_URL".
         See corresponding ingress configuration in Helm chart and read about the
         nginx.ingress.kubernetes.io/auth-url annotation to understand how the Nginx ingress
         is configured to do this.
@@ -1439,9 +1422,13 @@ class FileViewSet(
         - PermissionDenied if authorization fails.
         """
         # Extract the original URL from the request header
-        original_url = request.META.get("HTTP_X_ORIGINAL_URL")
+        original_url = request.META.get(settings.MEDIA_AUTH_ORIGINAL_URL_HEADER)
         if not original_url:
-            logger.warning("Missing HTTP_X_ORIGINAL_URL header in subrequest")
+            logger.warning(
+                "Missing %s header in subrequest. Set MEDIA_AUTH_ORIGINAL_URL_HEADER "
+                "to the header your reverse proxy sends.",
+                settings.MEDIA_AUTH_ORIGINAL_URL_HEADER,
+            )
             raise drf_exceptions.PermissionDenied()
 
         parsed_url = urlparse(original_url)

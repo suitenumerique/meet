@@ -10,7 +10,12 @@ import {
 } from '@livekit/components-core'
 import { VideoQuality } from 'livekit-client'
 
-export type VideoResolution = 'h720' | 'h360' | 'h180'
+export const VIDEO_RESOLUTIONS = ['h1080', 'h720', 'h360', 'h180'] as const
+
+export type VideoResolution = (typeof VIDEO_RESOLUTIONS)[number]
+
+const isVideoResolution = (value: unknown): value is VideoResolution =>
+  VIDEO_RESOLUTIONS.includes(value as VideoResolution)
 
 export type LocalUserChoices = Omit<LocalUserChoicesLK, 'username'> & {
   processorConfig?: ProcessorConfig
@@ -21,13 +26,17 @@ export type LocalUserChoices = Omit<LocalUserChoicesLK, 'username'> & {
 }
 
 function getUserChoicesState(): LocalUserChoices {
-  return {
+  const stored: LocalUserChoices = {
     noiseReductionEnabled: false,
     audioOutputDeviceId: 'default', // Use 'default' to match LiveKit's standard device selection behavior
     videoPublishResolution: 'h720',
     videoSubscribeQuality: VideoQuality.HIGH,
     ...loadUserChoices(),
   }
+  if (!isVideoResolution(stored.videoPublishResolution)) {
+    stored.videoPublishResolution = 'h720'
+  }
+  return stored
 }
 
 export const userChoicesStore = proxy<LocalUserChoices>(getUserChoicesState())
