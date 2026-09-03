@@ -104,7 +104,16 @@ export const Conference = ({
 
   const roomOptions = useMemo((): RoomOptions => {
     return {
-      adaptiveStream: true,
+      // Left unset, livekit-client picks the pixel density with
+      // `devicePixelRatio > 2 ? 2 : 1`, so a dpr of exactly 2 — the common
+      // high-density laptop — yields 1 and we ask the SFU for CSS pixels:
+      // remote video looks soft. `min(dpr, 2)` costs more bandwidth up to
+      // dpr 2 and nothing above it, where it returns the SDK's own ceiling.
+      // Not `'screen'`, which drops that ceiling. Read once, when the Room is
+      // built, so it does not follow a window moved between screens.
+      adaptiveStream: {
+        pixelDensity: Math.min(window.devicePixelRatio || 1, 2),
+      },
       dynacast: true,
       publishDefaults: {
         videoCodec: 'vp9',
