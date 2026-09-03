@@ -51,6 +51,13 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "email", "full_name", "short_name"]
 
+    def to_representation(self, instance):
+        """Report no default where the instance forbids the level the user saved."""
+        output = super().to_representation(instance)
+        if not models.is_access_level_allowed(output["default_room_access_level"]):
+            output["default_room_access_level"] = None
+        return output
+
     def validate_default_room_configuration(self, value):
         """Validate the default room configuration against the RoomConfiguration schema."""
         if value is None or value == {}:
