@@ -34,7 +34,7 @@ MB = 1024 * KB
 GB = 1024 * MB
 
 
-def validate_public_rooms_settings(*, allow_public_rooms, defaults):
+def validate_public_rooms_settings(allow_public_rooms, **defaults):
     """Refuse a public default on an instance that forbids public rooms."""
     if allow_public_rooms:
         return
@@ -1210,11 +1210,9 @@ class Base(Configuration):
             )
 
         validate_public_rooms_settings(
-            allow_public_rooms=cls.ALLOW_PUBLIC_ROOMS,
-            defaults={
-                "RESOURCE_DEFAULT_ACCESS_LEVEL": cls.RESOURCE_DEFAULT_ACCESS_LEVEL,
-                "EXTERNAL_API_DEFAULT_ACCESS_LEVEL": cls.EXTERNAL_API_DEFAULT_ACCESS_LEVEL,
-            },
+            cls.ALLOW_PUBLIC_ROOMS,
+            RESOURCE_DEFAULT_ACCESS_LEVEL=cls.RESOURCE_DEFAULT_ACCESS_LEVEL,
+            EXTERNAL_API_DEFAULT_ACCESS_LEVEL=cls.EXTERNAL_API_DEFAULT_ACCESS_LEVEL,
         )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment

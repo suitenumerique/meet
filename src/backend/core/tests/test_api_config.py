@@ -1,9 +1,6 @@
 """Test the frontend configuration endpoint of the Meet core app."""
 
-import pytest
 from rest_framework.test import APIClient
-
-pytestmark = pytest.mark.django_db
 
 
 def test_api_config_publishes_the_public_rooms_setting(settings):

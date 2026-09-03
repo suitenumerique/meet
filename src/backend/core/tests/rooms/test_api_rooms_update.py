@@ -463,39 +463,13 @@ def test_api_rooms_update_public_not_allowed(mock_update_metadata, settings):
     mock_update_metadata.assert_not_called()
 
 
-def test_api_rooms_update_public_room_reads_as_trusted(settings):
-    """A room already public keeps its value and is reported as what it runs as."""
-    settings.ALLOW_PUBLIC_ROOMS = False
-    user = UserFactory()
-    room = RoomFactory(
-        access_level=RoomAccessLevel.PUBLIC,
-        users=[(user, "owner")],
-        configuration={},
-    )
-    client = APIClient()
-    client.force_login(user)
-
-    response = client.patch(
-        f"/api/v1.0/rooms/{room.id!s}/", {"name": "my room"}, format="json"
-    )
-
-    assert response.status_code == 200
-    assert response.json()["access_level"] == RoomAccessLevel.TRUSTED
-    room.refresh_from_db()
-    assert room.access_level == RoomAccessLevel.PUBLIC
-
-
 @patch.object(RoomManagement, "update_metadata")
-def test_api_rooms_update_metadata_carries_the_level_in_force(
-    mock_update_metadata, settings
-):
-    """The media server is told what the meeting runs as, as the API answers it."""
+def test_api_rooms_update_public_room_runs_as_trusted(mock_update_metadata, settings):
+    """A public room keeps its value, and the API and the media server report what it runs at."""
     settings.ALLOW_PUBLIC_ROOMS = False
     user = UserFactory()
     room = RoomFactory(
-        access_level=RoomAccessLevel.PUBLIC,
-        users=[(user, "owner")],
-        configuration={},
+        access_level=RoomAccessLevel.PUBLIC, users=[(user, "owner")], configuration={}
     )
     client = APIClient()
     client.force_login(user)
@@ -507,6 +481,9 @@ def test_api_rooms_update_metadata_carries_the_level_in_force(
     )
 
     assert response.status_code == 200
+    assert response.json()["access_level"] == RoomAccessLevel.TRUSTED
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
     mock_update_metadata.assert_called_once_with(
         room_name=str(room.id),
         metadata={

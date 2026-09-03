@@ -335,9 +335,8 @@ def test_api_rooms_create_public_user_default_not_allowed(settings, monkeypatch)
     settings.ALLOW_PUBLIC_ROOMS = False
     # The column default is read out of RESOURCE_DEFAULT_ACCESS_LEVEL at import,
     # and the boot guard holds that setting to a level the instance allows.
-    monkeypatch.setattr(
-        Room._meta.get_field("access_level"), "default", RoomAccessLevel.TRUSTED
-    )
+    column = Room._meta.get_field("access_level")
+    monkeypatch.setattr(column, "default", RoomAccessLevel.TRUSTED)
     client = APIClient()
     client.force_login(UserFactory(default_room_access_level=RoomAccessLevel.PUBLIC))
 

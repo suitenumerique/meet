@@ -9,10 +9,9 @@ from rest_framework import serializers
 
 from core import models, utils
 from core.api.serializers import (
+    AccessLevelField,
     BaseValidationOnlySerializer,
-    EffectiveAccessLevelMixin,
     RoomConfiguration,
-    check_access_level_allowed,
 )
 
 OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials"
@@ -27,7 +26,7 @@ class ApplicationJwtSerializer(BaseValidationOnlySerializer):
     scope = serializers.CharField(write_only=True)
 
 
-class RoomSerializer(EffectiveAccessLevelMixin, serializers.ModelSerializer):
+class RoomSerializer(serializers.ModelSerializer):
     """External API serializer for room data exposed to applications.
 
     Provides limited, safe room information for third-party integrations:
@@ -40,13 +39,13 @@ class RoomSerializer(EffectiveAccessLevelMixin, serializers.ModelSerializer):
     following the principle of least privilege.
     """
 
+    access_level = AccessLevelField(required=False)
     configuration = serializers.JSONField(required=False)
 
     class Meta:
         model = models.Room
         fields = ["id", "name", "slug", "pin_code", "access_level", "configuration"]
         read_only_fields = ["id", "name", "slug", "pin_code"]
-        extra_kwargs = {"access_level": {"validators": [check_access_level_allowed]}}
 
     def validate_configuration(self, value):
         """Validate room configuration against the RoomConfiguration schema."""

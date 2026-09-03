@@ -24,12 +24,25 @@ from core import models, utils
 logger = logging.getLogger(__name__)
 
 
-def check_access_level_allowed(access_level):
-    """Raise where the instance forbids public rooms and this is one."""
-    if not models.is_access_level_allowed(access_level):
-        raise serializers.ValidationError(
-            _("Public rooms are not allowed on this instance.")
-        )
+class AccessLevelField(serializers.ChoiceField):
+    """A room's access level, under the one key every reader already reads."""
+
+    def __init__(self, **kwargs):
+        """Take the model's own choices, as the generated field would."""
+        super().__init__(choices=models.RoomAccessLevel.choices, **kwargs)
+
+    def get_attribute(self, instance):
+        """Answer the level the meeting runs at, not the one stored for it."""
+        return instance.effective_access_level
+
+    def to_internal_value(self, data):
+        """Refuse a level this instance forbids."""
+        access_level = super().to_internal_value(data)
+        if not models.is_access_level_allowed(access_level):
+            raise serializers.ValidationError(
+                _("Public rooms are not allowed on this instance.")
+            )
+        return access_level
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -149,21 +162,10 @@ class NestedResourceAccessSerializer(ResourceAccessSerializer):
     user = UserSerializer(read_only=True)
 
 
-class EffectiveAccessLevelMixin:
-    """Answer with the level a meeting runs at, not the one stored for it.
-
-    The two differ where the instance has stopped allowing the stored level.
-    """
-
-    def to_representation(self, instance):
-        """Report the effective level under the key every reader already reads."""
-        output = super().to_representation(instance)
-        output["access_level"] = instance.effective_access_level
-        return output
-
-
-class ListRoomSerializer(EffectiveAccessLevelMixin, serializers.ModelSerializer):
+class ListRoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for a list API endpoint."""
+
+    access_level = AccessLevelField(required=False)
 
     class Meta:
         model = models.Room
@@ -171,14 +173,15 @@ class ListRoomSerializer(EffectiveAccessLevelMixin, serializers.ModelSerializer)
         read_only_fields = ["id", "slug"]
 
 
-class RoomSerializer(EffectiveAccessLevelMixin, serializers.ModelSerializer):
+class RoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for the API."""
+
+    access_level = AccessLevelField(required=False)
 
     class Meta:
         model = models.Room
         fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
         read_only_fields = ["id", "slug", "pin_code"]
-        extra_kwargs = {"access_level": {"validators": [check_access_level_allowed]}}
 
     def validate_configuration(self, value):
         """Validate room configuration against the RoomConfiguration schema."""
