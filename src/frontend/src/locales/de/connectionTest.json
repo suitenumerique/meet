@@ -46,6 +46,9 @@
     "passedHint": "Ihr Browser, Ihre Geräte und Ihr Netzwerk sind für eine Besprechung bereit.",
     "partial": "Teilweiser Test",
     "partialHint": "Einige Prüfungen wurden übersprungen. Erlauben Sie den Zugriff auf Ihre Kamera und Ihr Mikrofon, um diese zu testen.",
+    "warning": "Verbindung nicht optimal",
+    "warningHint": "Achtung: Sie befinden sich nicht in optimalen Bedingungen für die Nutzung des Tools. Ihre Medien werden nicht über UDP übertragen (Rückgriff auf ein TURN-Relay über TCP oder TLS), was die Audio- und Videoqualität beeinträchtigen kann.",
+    "warningDocLink": "Technische Dokumentation für Ihre IT-Abteilung",
     "failed_one": "{{count}} Prüfung fehlgeschlagen",
     "failed_other": "{{count}} Prüfungen fehlgeschlagen",
     "failedHint": "Öffnen Sie die fehlgeschlagenen Prüfungen für weitere Details und senden Sie den Bericht an Ihre IT-Abteilung."
