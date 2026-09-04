@@ -12,7 +12,7 @@ import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { ApiError } from '@/api/ApiError'
 
-export const POLL_INTERVAL_MS = 1000
+export const POLL_INTERVAL_MS = 3000
 export const LAZY_POLL_INTERVAL_MS = 10_000
 
 export const LobbyProvider = () => {
