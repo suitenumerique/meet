@@ -505,6 +505,8 @@ class Room(Resource):
         return (
             access_level == RoomAccessLevel.PUBLIC
             or (access_level == RoomAccessLevel.TRUSTED and user.is_authenticated)
+            # get_role answers None for anyone not signed in, so a role is
+            # already proof of that and the last branch needs no second check.
             or (access_level == RoomAccessLevel.RESTRICTED and role is not None)
         )
 
