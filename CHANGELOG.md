@@ -29,6 +29,7 @@ and this project adheres to
 - ⚡️(frontend) increase lobby polling interval on both sides
 - ⚡️(frontend) add trailing slash on the /me endpoint call
 - ⚡️(backend) refactor lobby storage to bound key lookups per room
+- ⚡️(backend) refactor presence cache to bound key lookups per room
 
 ## [1.30.0] - 2026-09-01
 
