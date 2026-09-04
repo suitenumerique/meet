@@ -34,9 +34,8 @@ export const LobbyProvider = () => {
       refetchOnReconnect: false,
       refetchInterval: (query) => {
         if (!query.state.data?.participants?.length) return false
-        if (isParticipantsOpen) return (
-          query.state.error ? POLL_INTERVAL_MS * 3 : POLL_INTERVAL_MS
-        )
+        if (isParticipantsOpen)
+          return query.state.error ? POLL_INTERVAL_MS * 3 : POLL_INTERVAL_MS
         return LAZY_POLL_INTERVAL_MS
       },
       refetchIntervalInBackground: false,
