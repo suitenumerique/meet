@@ -27,6 +27,7 @@ and this project adheres to
 - 🐛(frontend) center Avatar initials with a font-aware cap-height ratio
 - 🐛(frontend) keep feedback buttons on one line for fr/es/en
 - ⚡️(frontend) increase lobby polling interval on both sides
+- ⚡️(frontend) add trailing slash on the /me endpoint call
 
 ## [1.30.0] - 2026-09-01
 
