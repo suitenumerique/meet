@@ -90,19 +90,18 @@ def test_presence_clear_and_clear_room():
     assert presence.is_marked_present(other_room, "a") is True
 
 
-def test_presence_clear_room_scans_in_pages():
-    """clear_room removes every match, even across several SCAN pages,
-    and only within the room."""
+def test_presence_clear_room_removes_many_entries_and_the_index():
+    """clear_room removes every entry of the room through the index — never
+    a keyspace scan — and leaves other rooms untouched."""
     room_id, other_room = str(uuid4()), str(uuid4())
     presence = PresenceCache()
     for i in range(7):
         presence.mark_present(room_id, f"user-{i}")
     presence.mark_present(other_room, "user-0")
 
-    # An itersize smaller than the match count forces delete_pattern to
-    # page through several SCAN cursors rather than finish in one pass.
-    with mock.patch("core.utils.CACHE_SCAN_ITERSIZE", 3):
-        presence.clear_room(room_id)
+    presence.clear_room(room_id)
 
     assert all(not presence.is_marked_present(room_id, f"user-{i}") for i in range(7))
     assert presence.is_marked_present(other_room, "user-0") is True
+    assert presence._index_members(room_id) == []
+    assert presence._index_members(other_room) == ["user-0"]
