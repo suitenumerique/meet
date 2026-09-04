@@ -37,7 +37,7 @@ export const LobbyProvider = () => {
         if (isParticipantsOpen) return POLL_INTERVAL_MS
         return LAZY_POLL_INTERVAL_MS
       },
-      refetchIntervalInBackground: true,
+      refetchIntervalInBackground: false,
     })
 
   // Triggers: each one-shot, idempotent, deduped by React Query if
