@@ -14,3 +14,4 @@ accesslog = "-"
 # Using '-' for the error log file makes gunicorn log errors to stderr
 errorlog = "-"
 loglevel = "info"
+access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(M)s'
