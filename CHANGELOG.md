@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(backend) add Traefik support via configurable media-auth url header #1649
 - ✨(backend) update a room's attributes from the external API
 - 🔊(backend) log request duration in Gunicorn workers
+- 📈(frontend) track missing lobby participant on accept/reject
 
 ### Changed
 
