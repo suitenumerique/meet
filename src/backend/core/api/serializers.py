@@ -67,8 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Report no default where the instance forbids the level the user saved."""
         output = super().to_representation(instance)
-        if not models.is_access_level_allowed(output["default_room_access_level"]):
-            output["default_room_access_level"] = None
+        output["default_room_access_level"] = instance.effective_default_room_access_level
         return output
 
     def validate_default_room_configuration(self, value):
@@ -217,13 +216,14 @@ class RoomSerializer(serializers.ModelSerializer):
             )
             output["accesses"] = access_serializer.data
 
+        access_level = instance.effective_access_level
         should_access_room = (
-            (
-                instance.effective_access_level == models.RoomAccessLevel.TRUSTED
+            access_level == models.RoomAccessLevel.PUBLIC
+            or (
+                access_level == models.RoomAccessLevel.TRUSTED
                 and request.user.is_authenticated
             )
             or role is not None
-            or instance.is_public
         )
 
         if should_access_room:

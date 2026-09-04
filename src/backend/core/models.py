@@ -243,6 +243,16 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
             )
         ]
 
+    @property
+    def effective_default_room_access_level(self):
+        """The level a new room of this user starts at, or None for the instance default."""
+        if not self.default_room_access_level or not is_access_level_allowed(
+            self.default_room_access_level
+        ):
+            return None
+
+        return self.default_room_access_level
+
     def __str__(self):
         return self.email or self.admin_email or str(self.id)
 

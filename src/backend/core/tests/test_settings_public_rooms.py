@@ -9,11 +9,8 @@ from meet.settings import validate_public_rooms_settings
     "name", ["RESOURCE_DEFAULT_ACCESS_LEVEL", "EXTERNAL_API_DEFAULT_ACCESS_LEVEL"]
 )
 def test_settings_public_rooms_reject_a_public_default(name):
-    """Either default that creates rooms is refused where the instance forbids them."""
+    """Either default that creates rooms is refused, and only where public rooms are off."""
+    validate_public_rooms_settings(True, **{name: "public"})
+
     with pytest.raises(ValueError, match=name):
         validate_public_rooms_settings(False, **{name: "public"})
-
-
-def test_settings_public_rooms_allow_a_public_default_while_public_rooms_are_on():
-    """The defaults are only checked against a setting that forbids something."""
-    validate_public_rooms_settings(True, RESOURCE_DEFAULT_ACCESS_LEVEL="public")

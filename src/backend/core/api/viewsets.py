@@ -308,14 +308,9 @@ class RoomViewSet(
         user = self.request.user
         save_kwargs = {}
 
-        # The default is read from the database, so a level forbidden after it
-        # was saved has to be dropped here rather than at the serializer.
-        if (
-            "access_level" not in serializer.validated_data
-            and user.default_room_access_level not in (None, "")
-            and models.is_access_level_allowed(user.default_room_access_level)
-        ):
-            save_kwargs["access_level"] = user.default_room_access_level
+        default_access_level = user.effective_default_room_access_level
+        if "access_level" not in serializer.validated_data and default_access_level:
+            save_kwargs["access_level"] = default_access_level
 
         user_default_configuration = user.default_room_configuration
         if not serializer.validated_data.get(

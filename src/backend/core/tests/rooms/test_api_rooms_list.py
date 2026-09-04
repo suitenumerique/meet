@@ -159,7 +159,7 @@ def test_api_rooms_list_pagination_page_size():
 
 
 def test_api_rooms_list_reads_the_level_a_room_runs_at(settings):
-    """The list answers with the level in force, as the detail endpoint does."""
+    """Listing rooms answers with the level in force, as the detail route does."""
     settings.ALLOW_PUBLIC_ROOMS = False
     user = UserFactory()
     RoomFactory(access_level=RoomAccessLevel.PUBLIC, users=[(user, "owner")])
