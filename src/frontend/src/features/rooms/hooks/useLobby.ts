@@ -8,7 +8,7 @@ import {
 } from '../api/requestEntry'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
-export const POLL_INTERVAL_MS = 1000
+export const POLL_INTERVAL_MS = 3_000
 
 export const useLobby = ({
   roomId,
@@ -53,7 +53,9 @@ export const useLobby = ({
       }
       return response
     },
-    refetchInterval: POLL_INTERVAL_MS,
+    retry: false,
+    refetchInterval: (query) =>
+      query.state.error ? POLL_INTERVAL_MS * 3 : POLL_INTERVAL_MS,
     refetchOnWindowFocus: false,
     refetchIntervalInBackground: true,
     enabled: status === ApiLobbyStatus.WAITING,

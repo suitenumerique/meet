@@ -12,8 +12,8 @@ import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { ApiError } from '@/api/ApiError'
 
-export const POLL_INTERVAL_MS = 1000
-export const LAZY_POLL_INTERVAL_MS = 10_000
+export const POLL_INTERVAL_MS = 4_000
+export const LAZY_POLL_INTERVAL_MS = 15_000
 
 export const LobbyProvider = () => {
   const room = useRoomContext()
@@ -34,10 +34,11 @@ export const LobbyProvider = () => {
       refetchOnReconnect: false,
       refetchInterval: (query) => {
         if (!query.state.data?.participants?.length) return false
-        if (isParticipantsOpen) return POLL_INTERVAL_MS
+        if (isParticipantsOpen)
+          return query.state.error ? POLL_INTERVAL_MS * 3 : POLL_INTERVAL_MS
         return LAZY_POLL_INTERVAL_MS
       },
-      refetchIntervalInBackground: true,
+      refetchIntervalInBackground: false,
     })
 
   // Triggers: each one-shot, idempotent, deduped by React Query if
