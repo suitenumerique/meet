@@ -20,6 +20,7 @@ import { Track } from 'livekit-client'
 import { ParticipantPlaceholder } from './ParticipantPlaceholder'
 import { ParticipantTileFocus } from './participantTileFocus/ParticipantTileFocus'
 import { FullScreenShareWarning } from './FullScreenShareWarning'
+import { ScreenShareZoomableVideo } from '@/features/rooms/livekit/components/ScreenShareZoomableVideo'
 import { useTranslation } from 'react-i18next'
 import { getShortcutDescriptorById } from '@/features/shortcuts/catalog'
 import { formatShortcutLabel } from '@/features/shortcuts/formatLabels'
@@ -47,6 +48,8 @@ interface ParticipantTileExtendedProps extends ParticipantTileProps {
   disableMetadata?: boolean
   disableTileControls?: boolean
 }
+
+const MOUSE_IDLE_TIME = 3000
 
 export const ParticipantTile: (
   props: ParticipantTileExtendedProps & React.RefAttributes<HTMLDivElement>
@@ -89,6 +92,8 @@ export const ParticipantTile: (
   )
 
   const isScreenShare = trackReference.source != Track.Source.Camera
+  const isRemoteScreenShare =
+    isScreenShare && !trackReference.participant.isLocal
   const [hasKeyboardFocus, setHasKeyboardFocus] = React.useState(false)
 
   const participantColor = getParticipantColor(trackReference.participant)
@@ -98,11 +103,38 @@ export const ParticipantTile: (
   })
   const participantName = name || identity || 'Unknown'
 
+  // Hover + idle tracking for the focus overlay (pin, effects, mute buttons).
+  const [isTileHovered, setIsTileHovered] = React.useState(false)
+  const [isIdle, setIsIdle] = React.useState(false)
+  const idleTimerRef = React.useRef<number | null>(null)
+
+  const handleTileMouseMove = React.useCallback(() => {
+    if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current)
+    idleTimerRef.current = window.setTimeout(
+      () => setIsIdle(true),
+      MOUSE_IDLE_TIME
+    )
+    setIsIdle(false)
+  }, [])
+
+  const isOverlayVisible = hasKeyboardFocus || (isTileHovered && !isIdle)
+
+  // tileRef: fullscreen target. setRefs merges it with the forwarded ref on the same node.
+  const tileRef = React.useRef<HTMLDivElement>(null)
+  const setRefs = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      ;(tileRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+      if (typeof ref === 'function') ref(node)
+      else if (ref)
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+    },
+    [ref]
+  )
+
   const { t } = useTranslation('rooms', { keyPrefix: 'participantTileFocus' })
 
   const interactiveProps = {
     ...elementProps,
-    // Ensure the tile is focusable to expose contextual controls to keyboard users.
     tabIndex: 0,
     'aria-label': t('containerLabel', { name: participantName }),
     onFocus: (event: React.FocusEvent<HTMLDivElement>) => {
@@ -120,8 +152,57 @@ export const ParticipantTile: (
     },
   }
 
+  const isVideoTrack =
+    isTrackReference(trackReference) &&
+    (trackReference.publication?.kind === 'video' ||
+      trackReference.source === Track.Source.Camera ||
+      trackReference.source === Track.Source.ScreenShare)
+
+  let trackMedia: React.ReactNode = null
+  if (isVideoTrack) {
+    if (isRemoteScreenShare) {
+      trackMedia = (
+        <ScreenShareZoomableVideo
+          trackRef={trackReference}
+          tileRef={tileRef}
+          onSubscriptionStatusChanged={handleSubscribe}
+          manageSubscription={autoManageSubscription}
+        />
+      )
+    } else {
+      trackMedia = (
+        <VideoTrack
+          trackRef={trackReference}
+          onSubscriptionStatusChanged={handleSubscribe}
+          manageSubscription={autoManageSubscription}
+        />
+      )
+    }
+  } else if (isTrackReference(trackReference)) {
+    trackMedia = (
+      <AudioTrack
+        trackRef={trackReference}
+        onSubscriptionStatusChanged={handleSubscribe}
+      />
+    )
+  }
+
   return (
-    <div ref={ref} style={{ position: 'relative' }} {...interactiveProps}>
+    <div
+      ref={setRefs}
+      style={{ position: 'relative' }}
+      {...interactiveProps}
+      onMouseEnter={() => setIsTileHovered(true)}
+      onMouseLeave={() => {
+        setIsTileHovered(false)
+        setIsIdle(false)
+        if (idleTimerRef.current) {
+          window.clearTimeout(idleTimerRef.current)
+          idleTimerRef.current = null
+        }
+      }}
+      onMouseMove={handleTileMouseMove}
+    >
       <TrackRefContextIfNeeded trackRef={trackReference}>
         <ParticipantContextIfNeeded participant={trackReference.participant}>
           {trackReference.participant.isLocal && (
@@ -129,23 +210,7 @@ export const ParticipantTile: (
           )}
           {children ?? (
             <>
-              {isTrackReference(trackReference) &&
-              (trackReference.publication?.kind === 'video' ||
-                trackReference.source === Track.Source.Camera ||
-                trackReference.source === Track.Source.ScreenShare) ? (
-                <VideoTrack
-                  trackRef={trackReference}
-                  onSubscriptionStatusChanged={handleSubscribe}
-                  manageSubscription={autoManageSubscription}
-                />
-              ) : (
-                isTrackReference(trackReference) && (
-                  <AudioTrack
-                    trackRef={trackReference}
-                    onSubscriptionStatusChanged={handleSubscribe}
-                  />
-                )
-              )}
+              {trackMedia}
               <div className="lk-participant-placeholder">
                 <ParticipantPlaceholder
                   color={participantColor}
@@ -164,7 +229,7 @@ export const ParticipantTile: (
           {!disableMetadata && !disableTileControls && (
             <ParticipantTileFocus
               trackRef={trackReference}
-              hasKeyboardFocus={hasKeyboardFocus}
+              isVisible={isOverlayVisible}
             />
           )}
         </ParticipantContextIfNeeded>

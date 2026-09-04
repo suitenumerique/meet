@@ -756,6 +756,24 @@
     "muteParticipant": "Demp {{name}}",
     "fullScreen": "Volledig scherm"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Zoombediening voor schermdeling",
+    "zoomIn": "Inzoomen",
+    "zoomInWithShortcut": "Inzoomen ({{shortcut}})",
+    "zoomOut": "Uitzoomen",
+    "zoomOutWithShortcut": "Uitzoomen ({{shortcut}})",
+    "wheelShortcut": "Control plus scrollwiel",
+    "wheelShortcutMac": "Command plus scrollwiel",
+    "wheelShortcutHint": "Sneltoets: Control plus scrollwiel om in of uit te zoomen.",
+    "wheelShortcutHintMac": "Sneltoets: Command plus scrollwiel om in of uit te zoomen.",
+    "fitToWindow": "Aanpassen aan venster",
+    "fullScreen": "Volledig scherm",
+    "exitFullScreen": "Volledig scherm verlaten",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Sleep met de muis, of zet de focus terug op de schermdeling en gebruik de pijltjestoetsen om door het beeld te navigeren.",
+    "fullScreenEntered": "Volledig scherm ingeschakeld",
+    "fullScreenExited": "Volledig scherm uitgeschakeld"
+  },
   "shortcutsPanel": {
     "title": "Sneltoetsen",
     "categories": {
@@ -775,7 +793,11 @@
       "raise-hand": "Hand opsteken of laten zakken",
       "toggle-chat": "Chat tonen/verbergen",
       "toggle-participants": "Deelnemers tonen/verbergen",
-      "open-shortcuts-settings": "Sneltoets-instellingen openen"
+      "open-shortcuts-settings": "Sneltoets-instellingen openen",
+      "zoom-in": "Inzoomen op een gedeeld scherm",
+      "zoom-out": "Uitzoomen op een gedeeld scherm",
+      "zoom-reset": "Zoom van het gedeelde scherm herstellen",
+      "zoom-pan": "Navigeren in een ingezoomd gedeeld scherm"
     },
     "sr": {
       "control": "Control",
@@ -785,10 +807,14 @@
       "shift": "Shift",
       "plus": "plus",
       "hold": "Houd {{key}} ingedrukt",
+      "arrows": "Pijltoetsen",
+      "plusKey": "Plus-toets",
+      "minusKey": "Min-toets",
       "noShortcut": "Geen sneltoets"
     },
     "visual": {
-      "hold": "Houd {{key}} ingedrukt"
+      "hold": "Houd {{key}} ingedrukt",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {

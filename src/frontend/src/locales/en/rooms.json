@@ -756,6 +756,24 @@
     "muteParticipant": "Mute {{name}}",
     "fullScreen": "Full screen"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Screen share zoom controls",
+    "zoomIn": "Zoom in",
+    "zoomInWithShortcut": "Zoom in ({{shortcut}})",
+    "zoomOut": "Zoom out",
+    "zoomOutWithShortcut": "Zoom out ({{shortcut}})",
+    "wheelShortcut": "Control plus scroll wheel",
+    "wheelShortcutMac": "Command plus scroll wheel",
+    "wheelShortcutHint": "Shortcut: Control plus scroll wheel to zoom in or out.",
+    "wheelShortcutHintMac": "Shortcut: Command plus scroll wheel to zoom in or out.",
+    "fitToWindow": "Fit to window",
+    "fullScreen": "Full screen",
+    "exitFullScreen": "Exit full screen",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Drag with mouse, or move focus back to the screen share and use arrow keys to navigate the picture.",
+    "fullScreenEntered": "Full screen enabled",
+    "fullScreenExited": "Full screen disabled"
+  },
   "shortcutsPanel": {
     "title": "Keyboard shortcuts",
     "categories": {
@@ -775,7 +793,11 @@
       "raise-hand": "Raise or lower hand",
       "toggle-chat": "Toggle chat",
       "toggle-participants": "Toggle participants",
-      "open-shortcuts-settings": "Open shortcuts settings"
+      "open-shortcuts-settings": "Open shortcuts settings",
+      "zoom-in": "Zoom in on a shared screen",
+      "zoom-out": "Zoom out on a shared screen",
+      "zoom-reset": "Reset the shared screen zoom",
+      "zoom-pan": "Move around a zoomed shared screen"
     },
     "sr": {
       "control": "Control",
@@ -785,10 +807,14 @@
       "shift": "Shift",
       "plus": "plus",
       "hold": "Hold {{key}}",
+      "arrows": "Arrow keys",
+      "plusKey": "Plus key",
+      "minusKey": "Minus key",
       "noShortcut": "No shortcut"
     },
     "visual": {
-      "hold": "Hold {{key}}"
+      "hold": "Hold {{key}}",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {
