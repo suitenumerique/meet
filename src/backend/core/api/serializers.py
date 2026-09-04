@@ -38,7 +38,7 @@ class AccessLevelField(serializers.ChoiceField):
     def to_internal_value(self, data):
         """Refuse a level this instance forbids."""
         access_level = super().to_internal_value(data)
-        if not models.is_access_level_allowed(access_level):
+        if models.is_access_level_forbidden(access_level):
             raise serializers.ValidationError(
                 _("Public rooms are not allowed on this instance.")
             )

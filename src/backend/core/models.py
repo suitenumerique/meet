@@ -106,9 +106,9 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
-def is_access_level_allowed(access_level):
-    """Whether this instance lets a room be set to this access level."""
-    return settings.ALLOW_PUBLIC_ROOMS or access_level != RoomAccessLevel.PUBLIC
+def is_access_level_forbidden(access_level):
+    """Whether this instance has stopped letting a room be set to this access level."""
+    return not settings.ALLOW_PUBLIC_ROOMS and access_level == RoomAccessLevel.PUBLIC
 
 
 class BaseModel(models.Model):
@@ -249,7 +249,7 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
     @property
     def effective_default_room_access_level(self):
         """The level a new room of this user starts at, or None for the instance default."""
-        if not self.default_room_access_level or not is_access_level_allowed(
+        if not self.default_room_access_level or is_access_level_forbidden(
             self.default_room_access_level
         ):
             return None
@@ -493,10 +493,10 @@ class Room(Resource):
         A room set to public before the instance forbade public rooms runs as
         trusted, and keeps its own value, so allowing them again restores it.
         """
-        if is_access_level_allowed(self.access_level):
-            return self.access_level
+        if is_access_level_forbidden(self.access_level):
+            return RoomAccessLevel.TRUSTED
 
-        return RoomAccessLevel.TRUSTED
+        return self.access_level
 
     def is_joinable_by(self, user, role=None):
         """Whether this user enters the meeting rather than waiting in its lobby."""
