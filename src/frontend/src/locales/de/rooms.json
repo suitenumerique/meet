@@ -592,6 +592,7 @@
       "title": "Raumzugang",
       "description": "Diese Einstellungen gelten auch für zukünftige Meetings in diesem Raum.",
       "type": "Zugangsarten für Meetings",
+      "enforced": "Offener Zugang ist hier nicht mehr erlaubt, daher läuft dieses Meeting als {{level}}.",
       "levels": {
         "public": {
           "label": "Offen",

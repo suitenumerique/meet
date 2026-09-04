@@ -33,6 +33,7 @@ export type ApiRoom = {
   pin_code?: string
   is_administrable: boolean
   access_level: ApiAccessLevel
+  access_level_needs_choice?: boolean
   livekit?: ApiLiveKit
   configuration?: RoomConfiguration
   /**

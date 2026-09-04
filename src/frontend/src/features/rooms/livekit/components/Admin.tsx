@@ -212,6 +212,19 @@ export const Admin = () => {
           }
           items={accessLevelItems}
         />
+        {readOnlyData?.access_level_needs_choice && (
+          <Text
+            role="status"
+            variant="warning"
+            wrap="pretty"
+            className={css({ textStyle: 'sm' })}
+            margin={'md'}
+          >
+            {t('access.enforced', {
+              level: t(`access.levels.${readOnlyData.access_level}.label`),
+            })}
+          </Text>
+        )}
       </div>
     </Div>
   )

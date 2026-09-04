@@ -592,6 +592,7 @@
       "title": "Accès à la réunion",
       "description": "Ces paramètres s'appliqueront également aux futures occurrences de cette réunion.",
       "type": "Type d'accès à la réunion",
+      "enforced": "L'accès ouvert n'est plus autorisé ici, cette réunion fonctionne donc en {{level}}.",
       "levels": {
         "public": {
           "label": "Ouvrir",

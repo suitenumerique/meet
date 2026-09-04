@@ -336,6 +336,19 @@ const SettingsPopup = () => {
             }
             items={accessLevelItems}
           />
+          {room.access_level_needs_choice && (
+            <Text
+              role="status"
+              variant="warning"
+              wrap="pretty"
+              className={css({ textStyle: 'sm' })}
+              margin={'md'}
+            >
+              {tRooms('access.enforced', {
+                level: tRooms(`access.levels.${room.access_level}.label`),
+              })}
+            </Text>
+          )}
         </SectionBody>
       </div>
       <footer

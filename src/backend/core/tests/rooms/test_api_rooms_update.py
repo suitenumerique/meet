@@ -455,6 +455,7 @@ def test_api_rooms_update_public_room_runs_as_trusted(mock_update_metadata, sett
 
     assert response.status_code == 200
     assert response.json()["access_level"] == RoomAccessLevel.TRUSTED
+    assert response.json()["access_level_needs_choice"] is True
     room.refresh_from_db()
     assert room.access_level == RoomAccessLevel.PUBLIC
     mock_update_metadata.assert_called_once_with(
