@@ -12,8 +12,8 @@ import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { ApiError } from '@/api/ApiError'
 
-export const POLL_INTERVAL_MS = 3000
-export const LAZY_POLL_INTERVAL_MS = 10_000
+export const POLL_INTERVAL_MS = 4_000
+export const LAZY_POLL_INTERVAL_MS = 15_000
 
 export const LobbyProvider = () => {
   const room = useRoomContext()
