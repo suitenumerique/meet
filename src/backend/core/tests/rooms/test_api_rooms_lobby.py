@@ -589,6 +589,9 @@ def test_list_waiting_participants_success(settings):
             "color": "#654321",
         },
     )
+    lobby_service = LobbyService()
+    lobby_service._index_add(room.id, "2f7f162f-e7d1-421b-90e7-02bfbfbf8def")
+    lobby_service._index_add(room.id, "f4ca3ab8a6c04ad88097b8da33f60f10")
 
     response = client.get(f"/api/v1.0/rooms/{room.id}/waiting-participants/")
 

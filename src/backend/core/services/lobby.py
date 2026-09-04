@@ -4,7 +4,7 @@ import logging
 import uuid
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, FrozenSet, Optional, Sequence, Tuple
 from uuid import UUID
 
 from django.conf import settings
@@ -85,6 +85,47 @@ class LobbyService:
     def _get_cache_key(room_id: UUID, participant_id: str) -> str:
         """Generate cache key for participant(s) data."""
         return f"{settings.LOBBY_KEY_PREFIX}_{room_id!s}_{participant_id}"
+
+    @staticmethod
+    def _get_index_key(room_id: UUID) -> str:
+        """Raw Redis key of the per-room participant index (a native SET)."""
+        return cache.client.make_key(f"{settings.LOBBY_KEY_PREFIX}-index_{room_id!s}")
+
+    @staticmethod
+    def _redis(write: bool = True):
+        """Raw redis-py client.
+
+        SADD/SREM/SMEMBERS are not exposed by the Django cache API; this is
+        the documented django-redis escape hatch.
+        """
+        return cache.client.get_client(write=write)
+
+    def _index_add(self, room_id: UUID, participant_id: str) -> None:
+        """Record a participant id in the room index."""
+        index_key = self._get_index_key(room_id)
+        pipe = self._redis().pipeline(transaction=False)
+        pipe.sadd(index_key, participant_id)
+        pipe.expire(index_key, settings.LOBBY_ACCEPTED_TIMEOUT)
+        pipe.execute()
+
+    def _index_members(self, room_id: UUID) -> FrozenSet[str]:
+        """All participant ids currently indexed for the room."""
+        members = self._redis(write=False).smembers(self._get_index_key(room_id))
+        return frozenset(
+            member.decode() if isinstance(member, bytes) else member
+            for member in members
+        )
+
+    def _index_touch(self, room_id: UUID) -> None:
+        """Re-arm the room index backstop TTL."""
+        self._redis().expire(
+            self._get_index_key(room_id), settings.LOBBY_ACCEPTED_TIMEOUT
+        )
+
+    def _index_remove(self, room_id: UUID, *participant_ids: str) -> None:
+        """Drop participant ids from the room index."""
+        if participant_ids:
+            self._redis().srem(self._get_index_key(room_id), *participant_ids)
 
     @staticmethod
     def _get_or_create_participant_id(request) -> str:
@@ -209,15 +250,12 @@ class LobbyService:
         cache.touch(
             self._get_cache_key(room_id, participant_id), settings.LOBBY_WAITING_TIMEOUT
         )
+        self._index_touch(room_id)
 
     def enter(
         self, room_id: UUID, participant_id: str, username: str
     ) -> LobbyParticipant:
-        """Add participant to waiting lobby.
-
-        Create a new participant entry in waiting status and notify room
-        participants of the new entry request.
-        """
+        """Add participant to waiting lobby."""
 
         color = utils.generate_color(participant_id)
 
@@ -245,6 +283,7 @@ class LobbyService:
             participant.to_dict(),
             timeout=settings.LOBBY_WAITING_TIMEOUT,
         )
+        self._index_add(room_id, participant_id)
 
         return participant
 
@@ -266,28 +305,40 @@ class LobbyService:
             cache.delete(cache_key)
             return None
 
-    def list_waiting_participants(self, room_id: UUID) -> List[dict]:
+    def list_waiting_participants(self, room_id: UUID) -> Sequence[dict]:
         """List all waiting participants for a room."""
 
-        pattern = self._get_cache_key(room_id, "*")
-        keys = list(cache.iter_keys(pattern, itersize=utils.CACHE_SCAN_ITERSIZE))
+        member_ids = self._index_members(room_id)
 
-        if not keys:
-            return []
+        if not member_ids:
+            return ()
 
-        data = cache.get_many(keys)
+        keys_by_id = {
+            participant_id: self._get_cache_key(room_id, participant_id)
+            for participant_id in member_ids
+        }
+        data = cache.get_many(list(keys_by_id.values()))
 
+        dead_ids = []
         waiting_participants = []
-        for cache_key, raw_participant in data.items():
+
+        for participant_id, cache_key in keys_by_id.items():
+            raw_participant = data.get(cache_key)
+            if raw_participant is None:
+                dead_ids.append(participant_id)
+                continue
             try:
                 participant = LobbyParticipant.from_dict(raw_participant)
             except LobbyParticipantParsingError:
                 cache.delete(cache_key)
+                dead_ids.append(participant_id)
                 continue
             if participant.status == LobbyParticipantStatus.WAITING:
                 waiting_participants.append(participant.to_dict())
 
-        return waiting_participants
+        self._index_remove(room_id, *dead_ids)
+
+        return tuple(waiting_participants)
 
     def handle_participant_entry(
         self,
@@ -341,16 +392,24 @@ class LobbyService:
 
         participant.status = status
         cache.set(cache_key, participant.to_dict(), timeout=timeout)
+        self._index_touch(room_id)
 
     def clear_room_cache(self, room_id: UUID) -> None:
         """Clear all participant entries from the cache for a specific room."""
 
-        cache.delete_pattern(
-            self._get_cache_key(room_id, "*"), itersize=utils.CACHE_SCAN_ITERSIZE
-        )
+        member_ids = self._index_members(room_id)
+        if member_ids:
+            cache.delete_many(
+                [
+                    self._get_cache_key(room_id, participant_id)
+                    for participant_id in member_ids
+                ]
+            )
+        self._redis().delete(self._get_index_key(room_id))
 
     def clear_participant_cache(self, room_id: UUID, participant_id: str) -> None:
         """Clear a given participant entry from the cache for a specific room."""
 
         cache_key = self._get_cache_key(room_id, participant_id)
         cache.delete(cache_key)
+        self._index_remove(room_id, participant_id)

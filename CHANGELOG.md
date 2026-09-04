@@ -28,6 +28,7 @@ and this project adheres to
 - 🐛(frontend) keep feedback buttons on one line for fr/es/en
 - ⚡️(frontend) increase lobby polling interval on both sides
 - ⚡️(frontend) add trailing slash on the /me endpoint call
+- ⚡️(backend) refactor lobby storage to bound key lookups per room
 
 ## [1.30.0] - 2026-09-01
 
