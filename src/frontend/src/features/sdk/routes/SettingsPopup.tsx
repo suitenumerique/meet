@@ -336,7 +336,7 @@ const SettingsPopup = () => {
             }
             items={accessLevelItems}
           />
-          {room.access_level_needs_choice && (
+          {room.access_level_overridden && (
             <Text
               role="status"
               variant="warning"

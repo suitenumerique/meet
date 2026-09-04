@@ -212,7 +212,7 @@ export const Admin = () => {
           }
           items={accessLevelItems}
         />
-        {readOnlyData?.access_level_needs_choice && (
+        {readOnlyData?.access_level_overridden && (
           <Text
             role="status"
             variant="warning"

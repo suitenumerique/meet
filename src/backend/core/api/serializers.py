@@ -220,8 +220,8 @@ class RoomSerializer(serializers.ModelSerializer):
 
             # Only the host is shown the picker, so only the host is told the
             # level they chose is no longer one this instance allows.
-            if instance.access_level_needs_choice:
-                output["access_level_needs_choice"] = True
+            if models.is_access_level_forbidden(instance.access_level):
+                output["access_level_overridden"] = True
 
         if instance.is_joinable_by(request.user, role):
             room_id = f"{instance.id!s}"

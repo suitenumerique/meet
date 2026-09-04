@@ -511,11 +511,6 @@ class Room(Resource):
         )
 
     @property
-    def access_level_needs_choice(self):
-        """Whether this instance has stopped allowing the level this room holds."""
-        return is_access_level_forbidden(self.access_level)
-
-    @property
     def is_public(self):
         """Check if a room is public"""
         return self.effective_access_level == RoomAccessLevel.PUBLIC
