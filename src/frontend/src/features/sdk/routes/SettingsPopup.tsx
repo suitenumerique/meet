@@ -327,7 +327,7 @@ const SettingsPopup = () => {
                 paddingBottom: '1rem',
               }),
             }}
-            value={room.access_level}
+            value={room.access_level_overridden ? null : room.access_level}
             onChange={(value) =>
               patchRoom({
                 roomId: roomSlug,

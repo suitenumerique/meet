@@ -203,7 +203,11 @@ export const Admin = () => {
               paddingBottom: '1rem',
             }),
           }}
-          value={readOnlyData?.access_level}
+          value={
+            readOnlyData?.access_level_overridden
+              ? null
+              : readOnlyData?.access_level
+          }
           onChange={(value) =>
             patchRoom({
               roomId,
