@@ -8,7 +8,7 @@ import {
 } from '../api/requestEntry'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
-export const POLL_INTERVAL_MS = 1000
+export const POLL_INTERVAL_MS = 3_000
 
 export const useLobby = ({
   roomId,
