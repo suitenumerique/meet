@@ -243,6 +243,9 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
             )
         ]
 
+    def __str__(self):
+        return self.email or self.admin_email or str(self.id)
+
     @property
     def effective_default_room_access_level(self):
         """The level a new room of this user starts at, or None for the instance default."""
@@ -252,9 +255,6 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
             return None
 
         return self.default_room_access_level
-
-    def __str__(self):
-        return self.email or self.admin_email or str(self.id)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Email this user."""

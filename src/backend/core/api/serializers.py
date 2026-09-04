@@ -67,7 +67,9 @@ class UserSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Report no default where the instance forbids the level the user saved."""
         output = super().to_representation(instance)
-        output["default_room_access_level"] = instance.effective_default_room_access_level
+        output["default_room_access_level"] = (
+            instance.effective_default_room_access_level
+        )
         return output
 
     def validate_default_room_configuration(self, value):
