@@ -6,6 +6,10 @@ body,
   height: 100%;
 }
 
+:root {
+  --avatar-cap-height: 0.7;
+}
+
 html.font-lexend {
   --fonts-sans: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
 }
