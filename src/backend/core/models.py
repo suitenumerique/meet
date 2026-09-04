@@ -498,6 +498,16 @@ class Room(Resource):
 
         return RoomAccessLevel.TRUSTED
 
+    def is_joinable_by(self, user, role=None):
+        """Whether this user enters the meeting rather than waiting in its lobby."""
+        access_level = self.effective_access_level
+
+        return (
+            access_level == RoomAccessLevel.PUBLIC
+            or (access_level == RoomAccessLevel.TRUSTED and user.is_authenticated)
+            or (access_level == RoomAccessLevel.RESTRICTED and role is not None)
+        )
+
     @property
     def is_public(self):
         """Check if a room is public"""

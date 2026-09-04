@@ -117,19 +117,7 @@ class LobbyService:
         a participant requests entry to ensure consistent access control, even for
         participants who have already begun waiting.
         """
-        access_level = room.effective_access_level
-
-        return (
-            access_level == models.RoomAccessLevel.PUBLIC
-            or (
-                access_level == models.RoomAccessLevel.TRUSTED and user.is_authenticated
-            )
-            or (
-                access_level == models.RoomAccessLevel.RESTRICTED
-                and user.is_authenticated
-                and role is not None
-            )
-        )
+        return room.is_joinable_by(user, role)
 
     def request_entry(
         self,
