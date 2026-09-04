@@ -34,6 +34,7 @@ Let's say you want to change the font of our application to a custom font. You c
 
 :root {
   --fonts-sans: 'Roboto', ui-sans-serif, system-ui, sans-serif;
+  --avatar-cap-height: 0.7;
 }
 ```
 

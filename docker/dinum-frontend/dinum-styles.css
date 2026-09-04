@@ -1,5 +1,6 @@
 :root {
     --fonts-sans: 'Marianne', ui-sans-serif, system-ui, sans-serif;
+    --avatar-cap-height: 0.7;
 }
 
 .Header-beforeLogo {
