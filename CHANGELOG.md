@@ -13,6 +13,7 @@ and this project adheres to
 - ✨(frontend) add 1080p sending resolution option #1660
 - ✨(backend) add Traefik support via configurable media-auth url header #1649
 - ✨(backend) update a room's attributes from the external API
+- ✨(fullstack) let an operator forbid public rooms
 
 ### Changed
 

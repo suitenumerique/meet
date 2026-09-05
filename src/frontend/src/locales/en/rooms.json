@@ -592,6 +592,7 @@
       "title": "Room access",
       "description": "These settings will also apply to future occurrences of this meeting.",
       "type": "Meeting access types",
+      "enforced": "Open access is no longer allowed here, so this meeting runs as {{level}}.",
       "levels": {
         "public": {
           "label": "Open",

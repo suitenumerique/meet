@@ -63,6 +63,7 @@ def get_frontend_configuration(request):
         "telephony": build_telephony_config(),
         "resource": {
             "default_access_level": settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
+            "allow_public_rooms": settings.ALLOW_PUBLIC_ROOMS,
         },
         "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
         "diagnostics": {"connection_test_enabled": settings.CONNECTION_TEST_ENABLED},

@@ -13,6 +13,7 @@ import { authUrl } from '@/features/auth/utils/authUrl'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
 import { updatePublishSources } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
 import { reportError } from '@/features/analytics/telemetry'
@@ -60,6 +61,7 @@ const SectionBody = ({ children }: { children: ReactNode }) => (
 const SettingsPopup = () => {
   const { t } = useTranslation('sdk', { keyPrefix: 'roomSettings' })
   const { t: tRooms } = useTranslation('rooms', { keyPrefix: 'admin' })
+  const accessLevelItems = useAccessLevelItems()
 
   const [searchParams] = useSearchParams()
   const roomSlug = searchParams.get('slug')?.trim()
@@ -325,31 +327,28 @@ const SettingsPopup = () => {
                 paddingBottom: '1rem',
               }),
             }}
-            value={room.access_level}
+            value={room.access_level_overridden ? null : room.access_level}
             onChange={(value) =>
               patchRoom({
                 roomId: roomSlug,
                 room: { access_level: value as ApiAccessLevel },
               }).catch((e) => reportError('generic_failure', e))
             }
-            items={[
-              {
-                value: ApiAccessLevel.PUBLIC,
-                label: tRooms('access.levels.public.label'),
-                description: tRooms('access.levels.public.description'),
-              },
-              {
-                value: ApiAccessLevel.TRUSTED,
-                label: tRooms('access.levels.trusted.label'),
-                description: tRooms('access.levels.trusted.description'),
-              },
-              {
-                value: ApiAccessLevel.RESTRICTED,
-                label: tRooms('access.levels.restricted.label'),
-                description: tRooms('access.levels.restricted.description'),
-              },
-            ]}
+            items={accessLevelItems}
           />
+          {room.access_level_overridden && (
+            <Text
+              role="status"
+              variant="warning"
+              wrap="pretty"
+              className={css({ textStyle: 'sm' })}
+              margin={'md'}
+            >
+              {tRooms('access.enforced', {
+                level: tRooms(`access.levels.${room.access_level}.label`),
+              })}
+            </Text>
+          )}
         </SectionBody>
       </div>
       <footer
