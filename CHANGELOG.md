@@ -32,6 +32,7 @@ and this project adheres to
 - ⚡️(frontend) add trailing slash on the /me endpoint call
 - ⚡️(backend) refactor lobby storage to bound key lookups per room
 - ⚡️(backend) refactor presence cache to bound key lookups per room
+- 💄(frontend) position the login hint dynamically next to the button
 
 ## [1.30.0] - 2026-09-01
 
