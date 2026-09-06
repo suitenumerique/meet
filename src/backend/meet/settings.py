@@ -53,6 +53,26 @@ def get_release():
         return "NA"  # Default: not available
 
 
+class VideoCodecValue(values.Value):
+    """
+    A video codec name, normalized to lowercase and validated against the codecs
+    supported by the LiveKit client, so that a typo fails at startup instead of
+    silently downgrading every publisher to another codec.
+    """
+
+    codecs = frozenset(("vp8", "h264", "vp9", "av1", "h265"))
+
+    def to_python(self, value):
+        """Normalize the codec name and ensure it is a supported one."""
+        codec = super().to_python(value).strip().lower()
+        if codec not in self.codecs:
+            raise ValueError(
+                f"Unsupported video codec {value!r}, "
+                f"expected one of: {', '.join(self.codecs)}."
+            )
+        return codec
+
+
 class Base(Configuration):
     """
     This is the base configuration every configuration (aka environment) should inherit from. It
@@ -677,6 +697,9 @@ class Base(Configuration):
         environ_name="LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND",
         environ_prefix=None,
         default=False,
+    )
+    LIVEKIT_DEFAULT_VIDEO_CODEC = VideoCodecValue(
+        "vp9", environ_name="LIVEKIT_DEFAULT_VIDEO_CODEC", environ_prefix=None
     )
     CONNECTION_TEST_ENABLED = values.BooleanValue(
         environ_name="CONNECTION_TEST_ENABLED",
