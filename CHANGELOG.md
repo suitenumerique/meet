@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) make the LiveKit default video codec configurable
+
 ### Changed
 
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
