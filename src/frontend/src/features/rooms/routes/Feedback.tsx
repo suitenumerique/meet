@@ -65,7 +65,7 @@ const FeedbackRoute = () => {
           <Stack
             direction={{ base: 'column', xsm: 'row' }}
             width={{ base: '100%', xsm: 'auto' }}
-            maxWidth="380px"
+            maxWidth="410px"
           >
             {showBackButton && (
               <Button

@@ -24,6 +24,7 @@ and this project adheres to
 - 🐛(frontend) keep the sending resolution picked while the camera is off #1667
 - 🐛(frontend) restore automatic lower-hand on speaking
 - 🐛(frontend) center Avatar initials with a font-aware cap-height ratio
+- 🐛(frontend) keep feedback buttons on one line for fr/es/en
 
 ## [1.30.0] - 2026-09-01
 
