@@ -35,30 +35,21 @@ const LoginHint = () => {
     <div
       className={css({
         position: 'absolute',
-        top: '103px',
-        right: '110px',
+        top: 'calc(100% + 12px)',
+        right: 0,
         zIndex: '100',
         outline: 'none',
         padding: '1.25rem',
-        maxWidth: '350px',
+        width: 'max-content',
+        maxWidth: 'min(350px, calc(100vw - 2rem))',
         boxShadow: '0 2px 5px rgba(0 0 0 / 0.1)',
         borderRadius: '1rem',
         backgroundColor: 'primary.200',
-        display: 'none',
-        xsm: {
-          display: 'block',
-        },
-        sm: {
-          top: '131px',
-          right: '100px',
-          zIndex: '100',
-        },
         _after: {
           content: '""',
           position: 'absolute',
           top: '-10px',
-          right: '20%',
-          marginLeft: '-10px',
+          right: '1.5rem',
           borderWidth: '0 10px 10px 10px',
           borderStyle: 'solid',
           borderColor: 'transparent transparent #E3E3FB transparent',
@@ -171,12 +162,13 @@ export const Header = () => {
                   <>
                     <div
                       className={css({
+                        position: 'relative',
                         display: { base: 'none', xsm: 'block' },
                       })}
                     >
                       <LoginButton proConnectHint={false} />
+                      <LoginHint />
                     </div>
-                    <LoginHint />
                   </>
                 )}
               {!!user && (
