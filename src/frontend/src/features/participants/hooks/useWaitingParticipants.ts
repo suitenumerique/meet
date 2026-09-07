@@ -9,6 +9,14 @@ import {
 } from '../../participants/api/listWaitingParticipants'
 import { reportError } from '@/features/analytics/telemetry'
 
+const toTimestamp = (participant: WaitingParticipant): number =>
+  Date.parse(participant.entered_at)
+
+export const sortWaitingParticipants = (
+  participants: WaitingParticipant[]
+): WaitingParticipant[] =>
+  [...participants].sort((a, b) => toTimestamp(a) - toTimestamp(b))
+
 export const useWaitingParticipants = () => {
   const roomData = useRoomData()
   const roomId = roomData?.id || '' // FIXME - bad practice
@@ -22,7 +30,10 @@ export const useWaitingParticipants = () => {
     })
 
   const waitingParticipants = useMemo(
-    () => (canManageLobby ? waitingData?.participants || [] : []),
+    () =>
+      canManageLobby
+        ? sortWaitingParticipants(waitingData?.participants || [])
+        : [],
     [waitingData, canManageLobby]
   )
 

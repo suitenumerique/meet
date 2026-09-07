@@ -9,6 +9,7 @@ from unittest import mock
 from django.core.cache import cache
 
 import pytest
+from freezegun import freeze_time
 from rest_framework.test import APIClient
 
 from ... import utils
@@ -24,6 +25,7 @@ pytestmark = pytest.mark.django_db
 # Tests for request_entry endpoint
 
 
+@freeze_time("2025-01-01 10:00:00")
 def test_request_entry_anonymous(settings):
     """Anonymous users should be allowed to request entry to a room."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -59,6 +61,7 @@ def test_request_entry_anonymous(settings):
         "username": "test_user",
         "status": "waiting",
         "color": "mocked-color",
+        "entered_at": "2025-01-01T10:00:00+00:00",
         "livekit": None,
     }
 
@@ -71,6 +74,7 @@ def test_request_entry_anonymous(settings):
     assert participant_data.get("username") == "test_user"
 
 
+@freeze_time("2025-01-01 10:00:00")
 def test_request_entry_authenticated_user(settings):
     """Authenticated users should be allowed to request entry."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -108,6 +112,7 @@ def test_request_entry_authenticated_user(settings):
         "username": "test_user",
         "status": "waiting",
         "color": "mocked-color",
+        "entered_at": "2025-01-01T10:00:00+00:00",
         "livekit": None,
     }
 
@@ -120,6 +125,7 @@ def test_request_entry_authenticated_user(settings):
     assert participant_data.get("username") == "test_user"
 
 
+@freeze_time("2025-01-01 10:00:00")
 def test_request_entry_with_existing_participants(settings):
     """Anonymous users should be allowed to request entry to a room with existing participants."""
     # Create a restricted access room
@@ -138,6 +144,7 @@ def test_request_entry_with_existing_participants(settings):
             "username": "user1",
             "status": "waiting",
             "color": "#123456",
+            "entered_at": "2025-01-01T10:00:00+00:00",
         },
     )
     cache.set(
@@ -147,6 +154,7 @@ def test_request_entry_with_existing_participants(settings):
             "username": "user2",
             "status": "accepted",
             "color": "#654321",
+            "entered_at": "2025-01-01T10:00:00+00:00",
         },
     )
 
@@ -178,6 +186,7 @@ def test_request_entry_with_existing_participants(settings):
     assert response.json() == {
         "id": participant_id,
         "username": "test_user",
+        "entered_at": "2025-01-01T10:00:00+00:00",
         "status": "waiting",
         "color": "mocked-color",
         "livekit": None,
@@ -192,6 +201,7 @@ def test_request_entry_with_existing_participants(settings):
     assert participant_data.get("username") == "test_user"
 
 
+@freeze_time("2025-01-01 10:00:00")
 def test_request_entry_public_room(settings):
     """Entry requests to public rooms should return ACCEPTED status with LiveKit config."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
@@ -230,6 +240,7 @@ def test_request_entry_public_room(settings):
     assert response.json() == {
         "id": "123",
         "username": "test_user",
+        "entered_at": "2025-01-01T10:00:00+00:00",
         "status": "accepted",
         "color": "mocked-color",
         "livekit": {"token": "test-token"},
@@ -240,6 +251,7 @@ def test_request_entry_public_room(settings):
     assert not lobby_keys
 
 
+@freeze_time("2025-01-01 10:00:00")
 def test_request_entry_authenticated_user_public_room(settings):
     """While authenticated, entry request to public rooms should get accepted."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
@@ -282,6 +294,7 @@ def test_request_entry_authenticated_user_public_room(settings):
     assert response.json() == {
         "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
         "username": "test_user",
+        "entered_at": "2025-01-01T10:00:00+00:00",
         "status": "accepted",
         "color": "mocked-color",
         "livekit": {"token": "test-token"},
@@ -292,6 +305,7 @@ def test_request_entry_authenticated_user_public_room(settings):
     assert not lobby_keys
 
 
+@freeze_time("2025-01-01 10:00:00")
 def test_request_entry_waiting_participant_public_room(settings):
     """While waiting, entry request to public rooms should get accepted."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
@@ -308,6 +322,7 @@ def test_request_entry_waiting_participant_public_room(settings):
             "username": "user1",
             "status": "waiting",
             "color": "#123456",
+            "entered_at": "2025-01-01T10:00:00+00:00",
         },
     )
 
@@ -338,6 +353,7 @@ def test_request_entry_waiting_participant_public_room(settings):
         "username": "user1",
         "status": "accepted",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
         "livekit": {"token": "test-token"},
     }
 
@@ -443,6 +459,7 @@ def test_allow_participant_to_enter_success(settings, allow_entry, updated_statu
             "status": "waiting",
             "username": "foo",
             "color": "123",
+            "entered_at": "2025-01-01T10:00:00+00:00",
         },
     )
 
@@ -578,6 +595,7 @@ def test_list_waiting_participants_success(settings):
             "username": "user1",
             "status": "waiting",
             "color": "#123456",
+            "entered_at": "2025-01-01T10:00:00+00:00",
         },
     )
     cache.set(
@@ -587,6 +605,7 @@ def test_list_waiting_participants_success(settings):
             "username": "user2",
             "status": "waiting",
             "color": "#654321",
+            "entered_at": "2025-01-01T10:05:00+00:00",
         },
     )
     lobby_service = LobbyService()
@@ -597,21 +616,24 @@ def test_list_waiting_participants_success(settings):
 
     assert response.status_code == 200
 
-    participants = response.json().get("participants")
-    assert sorted(participants, key=lambda p: p["id"]) == [
-        {
-            "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
-            "username": "user1",
-            "status": "waiting",
-            "color": "#123456",
-        },
-        {
-            "id": "f4ca3ab8a6c04ad88097b8da33f60f10",
-            "username": "user2",
-            "status": "waiting",
-            "color": "#654321",
-        },
-    ]
+    assert response.json() == {
+        "participants": [
+            {
+                "id": "f4ca3ab8a6c04ad88097b8da33f60f10",
+                "username": "user2",
+                "status": "waiting",
+                "color": "#654321",
+                "entered_at": "2025-01-01T10:05:00+00:00",
+            },
+            {
+                "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
+                "username": "user1",
+                "status": "waiting",
+                "color": "#123456",
+                "entered_at": "2025-01-01T10:00:00+00:00",
+            },
+        ]
+    }
 
 
 def test_list_waiting_participants_empty(settings):

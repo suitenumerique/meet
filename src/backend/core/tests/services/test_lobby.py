@@ -14,6 +14,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 
 import pytest
+from freezegun import freeze_time
 
 from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
 from core.models import RoleChoices, RoomAccessLevel
@@ -55,6 +56,7 @@ def participant_dict():
         "username": "test-username",
         "id": "test-participant-id",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
 
@@ -66,6 +68,7 @@ def participant_data():
         username="test-username",
         id="test-participant-id",
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
 
 
@@ -77,6 +80,7 @@ def test_lobby_participant_to_dict(participant_data):
     assert result["username"] == "test-username"
     assert result["id"] == "test-participant-id"
     assert result["color"] == "#123456"
+    assert result["entered_at"] == "2025-01-01T10:00:00+00:00"
 
 
 def test_lobby_participant_from_dict_success(participant_dict):
@@ -87,6 +91,20 @@ def test_lobby_participant_from_dict_success(participant_dict):
     assert participant.username == "test-username"
     assert participant.id == "test-participant-id"
     assert participant.color == "#123456"
+    assert participant.entered_at == "2025-01-01T10:00:00+00:00"
+
+
+def test_lobby_participant_from_dict_missing_entered_at():
+    """`entered_at` is mandatory; data without it is rejected."""
+    data = {
+        "status": "waiting",
+        "username": "test-username",
+        "id": "test-participant-id",
+        "color": "#123456",
+    }
+
+    with pytest.raises(LobbyParticipantParsingError, match="Invalid participant data"):
+        LobbyParticipant.from_dict(data)
 
 
 def test_lobby_participant_from_dict_default_status():
@@ -95,6 +113,7 @@ def test_lobby_participant_from_dict_default_status():
         "username": "test-username",
         "id": "test-participant-id",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     participant = LobbyParticipant.from_dict(data_without_status)
@@ -120,6 +139,7 @@ def test_lobby_participant_from_dict_invalid_status():
         "username": "test-username",
         "id": "test-participant-id",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     with pytest.raises(LobbyParticipantParsingError, match="Invalid participant data"):
@@ -264,6 +284,7 @@ def test_request_entry_public_room(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
 
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
@@ -302,6 +323,7 @@ def test_request_entry_trusted_room(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
 
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
@@ -344,6 +366,7 @@ def test_request_entry_new_participant(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
     mock_enter.return_value = participant_data
 
@@ -371,6 +394,7 @@ def test_request_entry_waiting_participant(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
@@ -399,6 +423,7 @@ def test_request_entry_accepted_participant(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
@@ -439,6 +464,7 @@ def test_request_entry_participant_with_role(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
@@ -479,6 +505,7 @@ def test_refresh_waiting_status(mock_cache, lobby_service, participant_id):
 @mock.patch("core.utils.generate_color")
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.lobby.LobbyService._index_add")
+@freeze_time("2025-01-01 10:00:00")
 def test_enter_success(
     mock_index_add,
     mock_notify,
@@ -500,6 +527,7 @@ def test_enter_success(
     assert participant.username == username
     assert participant.id == participant_id
     assert participant.color == "#123456"
+    assert participant.entered_at == "2025-01-01T10:00:00+00:00"
 
     lobby_service._get_cache_key.assert_called_once_with(room.id, participant_id)
 
@@ -629,6 +657,7 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
         "username": "user1",
         "id": "participant1",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     participant2 = {
@@ -636,6 +665,7 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
         "username": "user2",
         "id": "participant2",
         "color": "#654321",
+        "entered_at": "2025-01-01T10:05:00+00:00",
     }
 
     lobby_service._index_members = mock.Mock(
@@ -651,9 +681,10 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
 
     assert len(result) == 2
 
-    # Verify both participants are in the result
-    assert any(p["id"] == "participant1" and p["username"] == "user1" for p in result)
-    assert any(p["id"] == "participant2" and p["username"] == "user2" for p in result)
+    # Most recent entry comes first
+    assert [p["id"] for p in result] == ["participant2", "participant1"]
+    assert result[0]["username"] == "user2"
+    assert result[1]["username"] == "user1"
 
     # Verify all participants have waiting status
     assert all(p["status"] == "waiting" for p in result)
@@ -689,6 +720,7 @@ def test_list_waiting_participants_partially_corrupted(mock_cache, lobby_service
         "username": "user2",
         "id": "participant2",
         "color": "#654321",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     corrupted_participant = {"invalid": "data"}
@@ -729,12 +761,14 @@ def test_list_waiting_participants_non_waiting(mock_cache, lobby_service):
         "username": "user1",
         "id": "participant1",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
     participant2 = {
         "status": "accepted",
         "username": "user2",
         "id": "participant2",
         "color": "#654321",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     lobby_service._index_members = mock.Mock(
@@ -832,6 +866,7 @@ def test_update_participant_status_success(mock_cache, lobby_service, participan
         "username": "test-username",
         "id": participant_id,
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     mock_cache.get.return_value = participant_dict
@@ -850,6 +885,7 @@ def test_update_participant_status_success(mock_cache, lobby_service, participan
         "username": "test-username",
         "id": participant_id,
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
     mock_cache.set.assert_called_once_with(
         "mocked_cache_key", expected_data, timeout=60
@@ -875,6 +911,7 @@ def test_clear_room_cache(settings, lobby_service):
             username="participant1",
             id="participant1",
             color="#123456",
+            entered_at="2025-01-01T10:00:00+00:00",
         ),
         timeout=settings.LOBBY_WAITING_TIMEOUT,
     )
@@ -885,6 +922,7 @@ def test_clear_room_cache(settings, lobby_service):
             username="participant2",
             id="participant2",
             color="#123456",
+            entered_at="2025-01-01T10:00:00+00:00",
         ),
         timeout=settings.LOBBY_ACCEPTED_TIMEOUT,
     )
@@ -895,6 +933,7 @@ def test_clear_room_cache(settings, lobby_service):
             username="participant3",
             id="participant3",
             color="#123456",
+            entered_at="2025-01-01T10:00:00+00:00",
         ),
         timeout=settings.LOBBY_DENIED_TIMEOUT,
     )
@@ -930,6 +969,7 @@ def test_clear_participant_cache(lobby_service):
         "username": "test-username",
         "id": participant_id,
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
     cache.set(cache_key, participant_data, timeout=settings.LOBBY_WAITING_TIMEOUT)
     lobby_service._index_add(room_id, participant_id)
@@ -1000,6 +1040,7 @@ def test_list_waiting_participants_prunes_stale_index_ids(settings, lobby_servic
             "username": "user1",
             "status": "waiting",
             "color": "#123456",
+            "entered_at": "2025-01-01T10:00:00+00:00",
         },
         timeout=100,
     )

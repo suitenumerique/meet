@@ -9,6 +9,7 @@ from uuid import UUID
 
 from django.conf import settings
 from django.core.cache import cache
+from django.utils import timezone
 
 from core import models, utils
 
@@ -46,6 +47,7 @@ class LobbyParticipant:
     username: str
     color: str
     id: str
+    entered_at: str
 
     def to_dict(self) -> Dict[str, str]:
         """Serialize the participant object to a dict representation."""
@@ -54,6 +56,7 @@ class LobbyParticipant:
             "username": self.username,
             "id": self.id,
             "color": self.color,
+            "entered_at": self.entered_at,
         }
 
     @classmethod
@@ -68,6 +71,7 @@ class LobbyParticipant:
                 username=data["username"],
                 id=data["id"],
                 color=data["color"],
+                entered_at=data["entered_at"],
             )
         except (KeyError, ValueError) as e:
             logger.exception("Error creating Participant from dict:")
@@ -203,6 +207,7 @@ class LobbyService:
                     username=username,
                     id=participant_id,
                     color=utils.generate_color(participant_id),
+                    entered_at=timezone.now().isoformat(),
                 )
             else:
                 participant.status = LobbyParticipantStatus.ACCEPTED
@@ -264,6 +269,7 @@ class LobbyService:
             username=username,
             id=participant_id,
             color=color,
+            entered_at=timezone.now().isoformat(),
         )
 
         try:
@@ -337,6 +343,8 @@ class LobbyService:
                 waiting_participants.append(participant.to_dict())
 
         self._index_remove(room_id, *dead_ids)
+
+        waiting_participants.sort(key=lambda p: p["entered_at"], reverse=True)
 
         return tuple(waiting_participants)
 
