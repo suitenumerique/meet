@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🔒️(backend) enforce display name setting on rename API
+
 ## [1.31.0] - 2026-09-08
 
 ### Added
