@@ -8,16 +8,17 @@ and this project adheres to
 
 ## [Unreleased]
 
-### Fixed
-
-- 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
-- 🔒️(backend) enforce display name setting on rename API
-
 ### Changed
 
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
 - 🔇(backend) silence expected 401 warnings on /me
 - 🔇(backend) silence noisy request summary info logs
+
+### Fixed
+
+- 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
+- 🔒️(backend) enforce display name setting on rename API
+- 🔒️(backend) reject inactive users in resource server backend
 
 ## [1.31.0] - 2026-09-08
 
