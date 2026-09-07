@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.31.0] - 2026-09-08
+
 ### Added
 
 - ✨(frontend) add 1080p sending resolution option #1660
