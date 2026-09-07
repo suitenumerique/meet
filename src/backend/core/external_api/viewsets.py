@@ -8,6 +8,7 @@ from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
+from django_filters import rest_framework as django_filters
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 from rest_framework import decorators, mixins, viewsets
 from rest_framework import (
@@ -154,11 +155,15 @@ class RoomViewSet(
     authenticated user's accessible rooms.
 
     Supported operations:
-    - list: List rooms the user has access to (requires 'rooms:list' scope)
+    - list: List rooms the user has access to (requires 'rooms:list' scope).
+      The `slug` query parameter filters the listing by exact slug.
     - retrieve: Get room details (requires 'rooms:retrieve' scope)
     - create: Create a new room owned by the user (requires 'rooms:create' scope)
     - partial_update: Update a room's access level and configuration, for
       administrators and owners only (requires 'rooms:update' scope)
+    - grant_access: Grant administrator or member access on a room to another
+      user identified by email, for administrators and owners only
+      (requires 'rooms:grant-access' scope)
     """
 
     http_method_names = ["get", "post", "patch", "head", "options"]
@@ -175,6 +180,8 @@ class RoomViewSet(
     ]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
+    filter_backends = (django_filters.DjangoFilterBackend,)
+    filterset_fields = ("slug",)
 
     def list(self, request, *args, **kwargs):
         """Limit listed rooms to the ones related to the authenticated user."""
@@ -264,4 +271,99 @@ class RoomViewSet(
             analytics.AnalyticsEvent.ROOM_UPDATED,
             updated_fields=updated_fields,
             previous_access_level=previous_values["access_level"],
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="grant-access",
+        url_name="grant_access",
+    )
+    def grant_access(self, request, pk=None):  # pylint: disable=unused-argument
+        """Grant administrator (or member) access on the room to another user.
+
+        Allows an integration acting on behalf of a room administrator or owner
+        to delegate host controls (admitting lobby participants, managing
+        recordings, etc.) to another user. The delegate is identified by email;
+        if no account matches, a provisional user is created and claimed on the
+        delegate's first OIDC login.
+
+        Body: {"email": "<delegate@example.com>", "role": "administrator"|"member"}
+
+        The operation is idempotent: re-granting the same role to the same email
+        returns 200 with "created": false. An existing owner is never demoted.
+        """
+        room = self.get_object()
+
+        serializer = serializers.GrantAccessSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        role = serializer.validated_data["role"]
+
+        client_id = (request.auth or {}).get("client_id", "unknown")
+
+        try:
+            delegate, user_created = ProvisionalUserService().get_or_create(
+                email, client_id
+            )
+        except ProvisionalUserCreationDisabledError as not_found_error:
+            raise drf_exceptions.NotFound(
+                "Delegate user not found and provisional user creation is disabled."
+            ) from not_found_error
+        except ProvisionalUserIntegrityError:
+            return drf_response.Response(
+                {"error": "Failed to create or retrieve delegate user."},
+                status=drf_status.HTTP_409_CONFLICT,
+            )
+
+        access = models.ResourceAccess.objects.filter(
+            resource=room, user=delegate
+        ).first()
+        if access:
+            if access.role == models.RoleChoices.OWNER:
+                return drf_response.Response(
+                    {
+                        "email": email,
+                        "role": access.role,
+                        "created": False,
+                        "provisional_user_created": user_created,
+                        "detail": "Delegate is already owner of this room.",
+                    },
+                    status=drf_status.HTTP_200_OK,
+                )
+            access.role = role
+            access.save(update_fields=["role"])
+            access_created = False
+        else:
+            access = models.ResourceAccess.objects.create(
+                resource=room, user=delegate, role=role
+            )
+            access_created = True
+
+        logger.info(
+            "Room access granted via application: room_id=%s, delegate_email=%s, "
+            "role=%s, created_access=%s, provisional_user_created=%s, "
+            "user_id=%s, client_id=%s, auth_method=%s",
+            room.id,
+            email,
+            role,
+            access_created,
+            user_created,
+            request.user.id,
+            client_id,
+            type(request.successful_authenticator).__name__,
+        )
+
+        return drf_response.Response(
+            {
+                "email": email,
+                "role": access.role,
+                "created": access_created,
+                "provisional_user_created": user_created,
+            },
+            status=(
+                drf_status.HTTP_201_CREATED
+                if access_created
+                else drf_status.HTTP_200_OK
+            ),
         )

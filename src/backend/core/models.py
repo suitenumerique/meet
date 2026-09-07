@@ -788,6 +788,10 @@ class ApplicationScope(models.TextChoices):
     ROOMS_RETRIEVE = "rooms:retrieve", _("Retrieve room details")
     ROOMS_UPDATE = "rooms:update", _("Update rooms")
     ROOMS_DELETE = "rooms:delete", _("Delete rooms")
+    ROOMS_GRANT_ACCESS = (
+        "rooms:grant-access",
+        _("Grant access to another user on a room"),
+    )
 
 
 class Application(BaseModel):
