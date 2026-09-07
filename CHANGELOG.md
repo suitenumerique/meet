@@ -17,6 +17,7 @@ and this project adheres to
 ### Changed
 
 - ⬆️(dev) pin LiveKit server to v1.13.6
+- 🔒(frontend) upgrade base image to 1.30.4-alpine3.24
 
 ### Fixed
 
