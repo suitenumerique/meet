@@ -24,7 +24,8 @@ const Heading = styled('h1', {
 })
 
 const buttonClass = css({
-  width: { base: '100%', xsm: 'auto' },
+  width: '100%',
+  flex: 1,
 })
 
 enum DisconnectReasonKey {
@@ -64,7 +65,7 @@ const FeedbackRoute = () => {
           <Heading>{t(`feedback.heading.${reasonKey || 'normal'}`)}</Heading>
           <Stack
             direction={{ base: 'column', xsm: 'row' }}
-            width={{ base: '100%', xsm: 'auto' }}
+            width="100%"
             maxWidth="410px"
           >
             {showBackButton && (

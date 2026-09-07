@@ -16,7 +16,7 @@ const Card = styled('div', {
     borderRadius: '0.25rem',
     boxShadow: '',
     width: '100%',
-    maxWidth: '380px',
+    maxWidth: '410px',
     minHeight: '196px',
   },
 })
@@ -229,7 +229,7 @@ const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
   return (
     <Card
       style={{
-        maxWidth: '380px',
+        maxWidth: '410px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
