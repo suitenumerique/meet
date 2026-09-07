@@ -24,6 +24,27 @@ from core import models, utils
 logger = logging.getLogger(__name__)
 
 
+class AccessLevelField(serializers.ChoiceField):
+    """A room's access level, under the one key every reader already reads."""
+
+    def __init__(self, **kwargs):
+        """Take the model's own choices, as the generated field would."""
+        super().__init__(choices=models.RoomAccessLevel.choices, **kwargs)
+
+    def get_attribute(self, instance):
+        """Answer the level the meeting runs at, not the one stored for it."""
+        return instance.effective_access_level
+
+    def to_internal_value(self, data):
+        """Refuse a level this instance forbids."""
+        access_level = super().to_internal_value(data)
+        if models.is_access_level_forbidden(access_level):
+            raise serializers.ValidationError(
+                _("Public rooms are not allowed on this instance.")
+            )
+        return access_level
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Serialize users."""
 
@@ -42,6 +63,14 @@ class UserSerializer(serializers.ModelSerializer):
             "default_room_configuration",
         ]
         read_only_fields = ["id", "email", "full_name", "short_name"]
+
+    def to_representation(self, instance):
+        """Report no default where the instance forbids the level the user saved."""
+        output = super().to_representation(instance)
+        output["default_room_access_level"] = (
+            instance.effective_default_room_access_level
+        )
+        return output
 
     def validate_default_room_configuration(self, value):
         """Validate the default room configuration against the RoomConfiguration schema."""
@@ -137,6 +166,8 @@ class NestedResourceAccessSerializer(ResourceAccessSerializer):
 class ListRoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for a list API endpoint."""
 
+    access_level = AccessLevelField(required=False)
+
     class Meta:
         model = models.Room
         fields = ["id", "name", "slug", "access_level"]
@@ -145,6 +176,8 @@ class ListRoomSerializer(serializers.ModelSerializer):
 
 class RoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for the API."""
+
+    access_level = AccessLevelField(required=False)
 
     class Meta:
         model = models.Room
@@ -185,16 +218,12 @@ class RoomSerializer(serializers.ModelSerializer):
             )
             output["accesses"] = access_serializer.data
 
-        should_access_room = (
-            (
-                instance.access_level == models.RoomAccessLevel.TRUSTED
-                and request.user.is_authenticated
-            )
-            or role is not None
-            or instance.is_public
-        )
+            # Only the host is shown the picker, so only the host is told the
+            # level they chose is no longer one this instance allows.
+            if models.is_access_level_forbidden(instance.access_level):
+                output["access_level_overridden"] = True
 
-        if should_access_room:
+        if instance.is_joinable_by(request.user, role):
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
             output["livekit"] = utils.generate_livekit_config(

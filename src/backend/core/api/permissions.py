@@ -230,7 +230,7 @@ class CanManageLobby(permissions.BasePermission):
         if obj.is_administrator_or_owner(user):
             return True
 
-        if obj.access_level != RoomAccessLevel.TRUSTED:
+        if obj.effective_access_level != RoomAccessLevel.TRUSTED:
             return False
 
         self.message = "You must be connected to the meeting to manage its lobby."

@@ -591,6 +591,7 @@
       "title": "Acceso a la reunión",
       "description": "Esta configuración se aplicará también a las futuras ediciones de esta reunión.",
       "type": "Tipo de acceso a la reunión",
+      "enforced": "El acceso abierto ya no está permitido aquí, por lo que esta reunión funciona como {{level}}.",
       "levels": {
         "public": {
           "label": "Abierta",

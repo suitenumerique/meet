@@ -109,3 +109,19 @@ def test_api_users_update_other_user_default_room_preferences_forbidden():
     assert response.status_code == 403
     other_user.refresh_from_db()
     assert other_user.default_room_access_level is None
+
+
+def test_api_users_me_drops_a_default_the_instance_forbids(settings):
+    """The row keeps the level the user chose, and the endpoint answers with none."""
+    settings.ALLOW_PUBLIC_ROOMS = False
+    user = factories.UserFactory(default_room_access_level="public")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get("/api/v1.0/users/me/")
+
+    assert response.status_code == 200
+    assert response.json()["default_room_access_level"] is None
+    user.refresh_from_db()
+    assert user.default_room_access_level == "public"

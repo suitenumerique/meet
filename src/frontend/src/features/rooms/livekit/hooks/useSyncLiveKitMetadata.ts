@@ -48,14 +48,19 @@ export const useSyncLiveKitMetadata = () => {
   useEffect(() => {
     if (!room || !roomSlug) return
 
-    const applyMetadata = (raw: string | undefined) => {
+    const applyMetadata = (raw: string | undefined, live: boolean) => {
       const parsed = parseMetadata(raw)
       if (!parsed) return
 
       queryClient.setQueryData<ApiRoom>([keys.room, roomSlug], (prev) => {
         if (!prev) return prev
         const nextConfiguration = parsed.configuration ?? prev.configuration
-        const nextAccessLevel = parsed.access_level ?? prev.access_level
+        // Only a change we witnessed is newer than the answer the API just
+        // gave us. The metadata a room already carries can name a level the
+        // server has since stopped enforcing.
+        const nextAccessLevel = live
+          ? (parsed.access_level ?? prev.access_level)
+          : prev.access_level
         if (
           nextConfiguration === prev.configuration &&
           nextAccessLevel === prev.access_level
@@ -73,9 +78,9 @@ export const useSyncLiveKitMetadata = () => {
 
     // Apply whatever metadata is currently set (covers the case where we
     // joined the room AFTER the last metadata change, so no event will fire).
-    applyMetadata(room.metadata)
+    applyMetadata(room.metadata, false)
 
-    const handler = (raw: string) => applyMetadata(raw)
+    const handler = (raw: string) => applyMetadata(raw, true)
     room.on(RoomEvent.RoomMetadataChanged, handler)
 
     return () => {
