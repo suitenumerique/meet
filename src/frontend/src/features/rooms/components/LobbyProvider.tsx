@@ -79,7 +79,7 @@ export const LobbyProvider = () => {
   // 3. Rights regained.
   const prevCanManageLobby = usePrevious(canManageLobby)
   useEffect(() => {
-    if (!prevCanManageLobby && canManageLobby && isConnected) {
+    if (prevCanManageLobby != canManageLobby && isConnected) {
       fetchIfManager()
     }
   }, [
