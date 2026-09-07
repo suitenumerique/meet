@@ -909,6 +909,15 @@ class RoomViewSet(
         """Rename the current participant in the room."""
         room = self.get_object()
 
+        if (
+            not settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME
+            and request.user.is_authenticated
+        ):
+            return drf_response.Response(
+                {"error": "Authenticated participants cannot edit their display name"},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = serializers.RenameParticipantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
