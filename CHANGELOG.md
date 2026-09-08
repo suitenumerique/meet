@@ -15,6 +15,7 @@ and this project adheres to
 ### Changed
 
 - 🔇(backend) silence expected 401 warnings on /me
+- 🔇(backend) silence noisy request summary info logs
 
 ## [1.31.0] - 2026-09-08
 

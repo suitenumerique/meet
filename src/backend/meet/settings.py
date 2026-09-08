@@ -1148,6 +1148,13 @@ class Base(Configuration):
             ),
         },
         "loggers": {
+            "request.summary": {
+                "level": values.Value(
+                    "WARNING",
+                    environ_name="LOGGING_LEVEL_REQUEST_SUMMARY",
+                    environ_prefix="",
+                )
+            },
             "core": {
                 "handlers": ["console"],
                 "level": values.Value(
