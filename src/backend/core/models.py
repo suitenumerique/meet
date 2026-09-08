@@ -579,6 +579,7 @@ class Recording(BaseModel):
     4. NOTIFICATION_SUCCEEDED: External service has been notified of this recording
 
     Error States:
+    - FAILED: Livekit egress returned EGRESS_FAILED
     - FAILED_TO_START: Worker failed to initialize recording
     - FAILED_TO_STOP: Worker failed during stop operation
     - ABORTED: Recording was terminated before completion
