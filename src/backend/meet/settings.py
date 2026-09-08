@@ -1110,6 +1110,12 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    LOGGING_SILENCED_401_PATHS = values.ListValue(
+        default=["/api/v1.0/users/me/"],
+        environ_name="LOGGING_SILENCED_401_PATHS",
+        environ_prefix=None,
+    )
+
     # Logging
     # We want to make it easy to log to console but by default we log production
     # to Sentry and don't want to log to console.
@@ -1122,10 +1128,16 @@ class Base(Configuration):
                 "style": "{",
             },
         },
+        "filters": {
+            "silence_expected_401": {
+                "()": "core.logging_filters.SilenceExpected401",
+            },
+        },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "simple",
+                "filters": ["silence_expected_401"],
             },
         },
         # Override root logger to send it to console
