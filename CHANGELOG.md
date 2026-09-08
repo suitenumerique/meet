@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ⬆️(backend) update python dependencies
+- ⬆️(summary) update python dependencies
+- ⬆️(agents) update python dependencies
+
 ### Fixed
 
 - ⚡️(frontend) disable posthog-js periodic feature flag reloads
