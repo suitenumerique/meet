@@ -12,6 +12,12 @@ and this project adheres to
 
 - 🔒️(backend) enforce display name setting on rename API
 
+### Changed
+
+- ⬆️(backend) update python dependencies
+- ⬆️(summary) update python dependencies
+- ⬆️(agents) update python dependencies
+
 ## [1.31.0] - 2026-09-08
 
 ### Added
