@@ -178,6 +178,31 @@ class LiveKitEventsService:
         egress_status = data.egress_info.status
         self.recording_events.handle_update(recording, egress_status)
 
+    @staticmethod
+    def _log_egress_error(data, recording, event):
+        """Log the reason LiveKit reported an unsuccessful egress."""
+
+        logger.error(
+            "Egress %s for recording %s (room=%s, mode=%s): %s (error_code=%s)",
+            event,
+            recording.id,
+            recording.room.id,
+            recording.mode,
+            data.egress_info.error or "no error reported",
+            data.egress_info.error_code or "no error_code reported",
+        )
+
+    @staticmethod
+    def _log_notification_failure(recording, event):
+        """Log a participant notification error on an unsuccessful egress."""
+
+        logger.exception(
+            "Failed to notify participants that recording %s %s (room=%s)",
+            recording.id,
+            event,
+            recording.room.id,
+        )
+
     def _handle_egress_ended(self, data):  # noqa: PLR0912
         """Handle 'egress_ended' event."""
         # pylint: disable=too-many-branches
@@ -231,12 +256,11 @@ class LiveKitEventsService:
             data.egress_info.status == api.EgressStatus.EGRESS_ABORTED
             and recording.status == models.RecordingStatusChoices.ACTIVE
         ):
+            self._log_egress_error(data, recording, "aborted")
             try:
                 self.recording_events.handle_aborted(recording)
-            except RecordingEventsError as e:
-                raise ActionFailedError(
-                    f"Failed to process aborted event for recording {recording}"
-                ) from e
+            except RecordingEventsError:
+                self._log_notification_failure(recording, "aborted")
             return
 
         # Handle case: EGRESS_FAILED
@@ -244,12 +268,11 @@ class LiveKitEventsService:
             data.egress_info.status == api.EgressStatus.EGRESS_FAILED
             and recording.status == models.RecordingStatusChoices.ACTIVE
         ):
+            self._log_egress_error(data, recording, "failed")
             try:
                 self.recording_events.handle_failed(recording)
-            except RecordingEventsError as e:
-                raise ActionFailedError(
-                    f"Failed to process failed event for recording {recording}"
-                ) from e
+            except RecordingEventsError:
+                self._log_notification_failure(recording, "failed")
             return
 
         # Handle cases: EGRESS_COMPLETE & EGRESS_LIMIT_REACHED

@@ -36,12 +36,16 @@
     "started": "{{name}} is de transcriptie van de vergadering gestart.",
     "stopped": "{{name}} heeft de transcriptie van de vergadering gestopt.",
     "limitReached": "De transcriptie heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen.",
+    "failed": "De transcriptie is onverwacht gestopt en kon niet worden opgeslagen.",
+    "aborted": "De transcriptie kon niet worden gestart.",
     "requested": "{{name}} wil graag de transcriptie starten."
   },
   "screenRecording": {
     "started": "{{name}} is begonnen met het opnemen van de vergadering.",
     "stopped": "{{name}} is gestopt met het opnemen van de vergadering.",
     "limitReached": "De opname heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen.",
+    "failed": "De opname is onverwacht gestopt en kon niet worden opgeslagen.",
+    "aborted": "De opname kon niet worden gestart.",
     "requested": "{{name}} wil graag de opname starten."
   },
   "recordingSave": {

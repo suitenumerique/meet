@@ -96,6 +96,10 @@ export const MainNotificationToast = () => {
         case NotificationType.ScreenRecordingStopped:
         case NotificationType.TranscriptionLimitReached:
         case NotificationType.ScreenRecordingLimitReached:
+        case NotificationType.TranscriptionFailed:
+        case NotificationType.ScreenRecordingFailed:
+        case NotificationType.TranscriptionAborted:
+        case NotificationType.ScreenRecordingAborted:
           toastQueue.add(
             {
               participant,

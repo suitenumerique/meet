@@ -3,6 +3,7 @@ Test LiveKitEvents service.
 """
 # pylint: disable=W0621,W0613, W0212, E0611
 
+import logging
 import uuid
 from unittest import mock
 
@@ -348,7 +349,7 @@ def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditio
     "notify_return_value, recording_status",
     [(True, "notification_succeeded"), (False, "saved")],
 )
-def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913, PLR0917
+def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913
     mock_update_metadata,
     mock_notify,
     mock_notify_external_services,
@@ -412,23 +413,22 @@ def test_handle_egress_ended_unsuccessful_egress(  # noqa: PLR0913
 
 
 @pytest.mark.parametrize(
-    ("egress_status", "recording_status", "event"),
+    ("egress_status", "recording_status"),
     (
-        (EgressStatus.EGRESS_ABORTED, "aborted", "aborted"),
-        (EgressStatus.EGRESS_FAILED, "failed", "failed"),
+        (EgressStatus.EGRESS_ABORTED, "aborted"),
+        (EgressStatus.EGRESS_FAILED, "failed"),
     ),
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_unsuccessful_egress_notification_fails(  # noqa: PLR0913
+def test_handle_egress_ended_unsuccessful_egress_notification_fails(
     mock_update_metadata,
     mock_notify,
     egress_status,
     recording_status,
-    event,
     service,
 ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    """Should raise ActionFailedError when notification fails but still flag recording."""
+    """Test that notification failure does not disrupt the update."""
 
     mock_notify.side_effect = NotificationError("Error notifying")
 
@@ -437,14 +437,39 @@ def test_handle_egress_ended_unsuccessful_egress_notification_fails(  # noqa: PL
     mock_data.egress_info.egress_id = recording.worker_id
     mock_data.egress_info.status = egress_status
 
-    with pytest.raises(
-        ActionFailedError,
-        match=rf"Failed to process {event} event for recording .+",
-    ):
-        service._handle_egress_ended(mock_data)
+    service._handle_egress_ended(mock_data)
 
     recording.refresh_from_db()
     assert recording.status == recording_status
+
+
+@pytest.mark.parametrize(
+    ("egress_status", "event"),
+    (
+        (EgressStatus.EGRESS_ABORTED, "aborted"),
+        (EgressStatus.EGRESS_FAILED, "failed"),
+    ),
+)
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_logs_livekit_error(  # noqa: PLR0913
+    mock_update_metadata, mock_notify, egress_status, event, service, caplog
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """Should log the reason LiveKit reported an unsuccessful egress."""
+
+    recording = RecordingFactory(worker_id="worker-1", status="active")
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = egress_status
+    mock_data.egress_info.error = "could not connect to the room"
+    mock_data.egress_info.error_code = 500
+
+    with caplog.at_level(logging.ERROR):
+        service._handle_egress_ended(mock_data)
+
+    assert f"Egress {event} for recording {recording.id}" in caplog.text
+    assert "could not connect to the room" in caplog.text
+    assert "error_code=500" in caplog.text
 
 
 @pytest.mark.parametrize(

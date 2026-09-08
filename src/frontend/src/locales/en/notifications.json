@@ -36,12 +36,16 @@
     "started": "{{name}} started the meeting transcription.",
     "stopped": "{{name}} stopped the meeting transcription.",
     "limitReached": "The transcription has exceeded the maximum allowed duration and will be automatically saved.",
+    "failed": "The transcription stopped unexpectedly and could not be saved.",
+    "aborted": "The transcription could not be started.",
     "requested": "{{name}} wants to start the meeting transcription."
   },
   "screenRecording": {
     "started": "{{name}} started the meeting recording.",
     "stopped": "{{name}} stopped the meeting recording.",
     "limitReached": "The recording has exceeded the maximum allowed duration and will be automatically saved.",
+    "failed": "The recording stopped unexpectedly and could not be saved.",
+    "aborted": "The recording could not be started.",
     "requested": "{{name}} wants to start the meeting recording."
   },
   "recordingSave": {

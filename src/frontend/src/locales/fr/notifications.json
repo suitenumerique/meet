@@ -36,12 +36,16 @@
     "started": "{{name}} a démarré la transcription de la réunion.",
     "stopped": "{{name}} a arrêté la transcription de la réunion.",
     "limitReached": "La transcription a dépassé la durée maximale autorisée, elle va être automatiquement sauvegardée.",
+    "failed": "La transcription s'est interrompue de façon inattendue et n'a pas pu être sauvegardée.",
+    "aborted": "La transcription n'a pas pu être démarrée.",
     "requested": "{{name}} a demandé à démarrer la transcription."
   },
   "screenRecording": {
     "started": "{{name}} a démarré l'enregistrement de la réunion.",
     "stopped": "{{name}} a arrêté l'enregistrement de la réunion.",
     "limitReached": "L'enregistrement a dépassé la durée maximale autorisée, il va être automatiquement sauvegardé.",
+    "failed": "L'enregistrement s'est interrompu de façon inattendue et n'a pas pu être sauvegardé.",
+    "aborted": "L'enregistrement n'a pas pu être démarré.",
     "requested": "{{name}} a demandé à démarrer l'enregistrement."
   },
   "recordingSave": {
