@@ -178,8 +178,9 @@ class LiveKitEventsService:
         egress_status = data.egress_info.status
         self.recording_events.handle_update(recording, egress_status)
 
-    def _handle_egress_ended(self, data):
+    def _handle_egress_ended(self, data):  # noqa: PLR0912
         """Handle 'egress_ended' event."""
+        # pylint: disable=too-many-branches
 
         # Fetch recording
         try:
@@ -213,10 +214,10 @@ class LiveKitEventsService:
                 logger.warning("Failed to stop the MetadataCollectorService")
 
         # Handle case: EGRESS_LIMIT_REACHED
+        # question: can we remove or factorize condition on ACTIVE ?
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
-            and recording.status
-            == models.RecordingStatusChoices.ACTIVE  # question: can we remove or factorize condition on ACTIVE ?
+            and recording.status == models.RecordingStatusChoices.ACTIVE
         ):
             try:
                 self.recording_events.handle_limit_reached(recording)
@@ -230,14 +231,26 @@ class LiveKitEventsService:
             data.egress_info.status == api.EgressStatus.EGRESS_ABORTED
             and recording.status == models.RecordingStatusChoices.ACTIVE
         ):
-            return self.recording_events.handle_aborted(recording)
+            try:
+                self.recording_events.handle_aborted(recording)
+            except RecordingEventsError as e:
+                raise ActionFailedError(
+                    f"Failed to process aborted event for recording {recording}"
+                ) from e
+            return
 
         # Handle case: EGRESS_FAILED
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_FAILED
             and recording.status == models.RecordingStatusChoices.ACTIVE
         ):
-            return self.recording_events.handle_failed(recording)
+            try:
+                self.recording_events.handle_failed(recording)
+            except RecordingEventsError as e:
+                raise ActionFailedError(
+                    f"Failed to process failed event for recording {recording}"
+                ) from e
+            return
 
         # Handle cases: EGRESS_COMPLETE & EGRESS_LIMIT_REACHED
         # Finalize the recording, the egress has uploaded the file to the storage
@@ -253,8 +266,6 @@ class LiveKitEventsService:
                     "(already saved or in an error state); ignoring.",
                     recording.id,
                 )
-
-        # Silently ignoring EGRESS_ABORTED, EGRESS_FAILED
 
     @staticmethod
     def _is_connection_test_room(room_name: str) -> bool:

@@ -73,6 +73,90 @@ def test_handle_limit_reached_error(mock_notify, mode, notification_type, servic
     )
 
 
+@pytest.mark.parametrize(
+    ("mode", "notification_type"),
+    (
+        ("screen_recording", "screenRecordingFailed"),
+        ("transcript", "transcriptionFailed"),
+    ),
+)
+@mock.patch("core.utils.notify_participants")
+def test_handle_failed_success(mock_notify, mode, notification_type, service):
+    """Test handle_failed marks recording as failed and notifies participants."""
+
+    recording = RecordingFactory(status="active", mode=mode)
+    service.handle_failed(recording)
+
+    assert recording.status == "failed"
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id), notification_data={"type": notification_type}
+    )
+
+
+@mock.patch("core.utils.notify_participants")
+def test_handle_failed_error(mock_notify, service):
+    """Test handle_failed raises RecordingEventsError when notification fails."""
+
+    mock_notify.side_effect = NotificationError("Error notifying")
+
+    recording = RecordingFactory(status="active", mode="screen_recording")
+
+    with pytest.raises(
+        RecordingEventsError,
+        match=r"Failed to notify participants in room '.+' "
+        r"about recording failed \(recording_id=.+\)",
+    ):
+        service.handle_failed(recording)
+
+    assert recording.status == "failed"
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id),
+        notification_data={"type": "screenRecordingFailed"},
+    )
+
+
+@pytest.mark.parametrize(
+    ("mode", "notification_type"),
+    (
+        ("screen_recording", "screenRecordingAborted"),
+        ("transcript", "transcriptionAborted"),
+    ),
+)
+@mock.patch("core.utils.notify_participants")
+def test_handle_aborted_success(mock_notify, mode, notification_type, service):
+    """Test handle_aborted marks recording as aborted and notifies participants."""
+
+    recording = RecordingFactory(status="active", mode=mode)
+    service.handle_aborted(recording)
+
+    assert recording.status == "aborted"
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id), notification_data={"type": notification_type}
+    )
+
+
+@mock.patch("core.utils.notify_participants")
+def test_handle_aborted_error(mock_notify, service):
+    """Test handle_aborted raises RecordingEventsError when notification fails."""
+
+    mock_notify.side_effect = NotificationError("Error notifying")
+
+    recording = RecordingFactory(status="active", mode="screen_recording")
+
+    with pytest.raises(
+        RecordingEventsError,
+        match=r"Failed to notify participants in room '.+' "
+        r"about recording aborted \(recording_id=.+\)",
+    ):
+        service.handle_aborted(recording)
+
+    assert recording.status == "aborted"
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id),
+        notification_data={"type": "screenRecordingAborted"},
+    )
+
+
 @pytest.mark.parametrize("status", ["active", "stopped"])
 @pytest.mark.parametrize(
     ("notify_return_value", "expected_status"),

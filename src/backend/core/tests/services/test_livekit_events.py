@@ -105,7 +105,6 @@ def test_handle_egress_ended_success(  # pylint: disable=too-many-arguments, too
     (
         (EgressStatus.EGRESS_ACTIVE, "started"),
         (EgressStatus.EGRESS_ENDING, "saving"),
-        (EgressStatus.EGRESS_ABORTED, "aborted"),
     ),
 )
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
@@ -130,6 +129,7 @@ def test_handle_egress_updated_success(
     "egress_status",
     (
         EgressStatus.EGRESS_FAILED,
+        EgressStatus.EGRESS_ABORTED,
         EgressStatus.EGRESS_LIMIT_REACHED,
     ),
 )
@@ -376,13 +376,83 @@ def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913, PLR0917
 
 
 @pytest.mark.parametrize(
+    ("egress_status", "recording_status", "notification_type"),
+    (
+        (EgressStatus.EGRESS_ABORTED, "aborted", "screenRecordingAborted"),
+        (EgressStatus.EGRESS_FAILED, "failed", "screenRecordingFailed"),
+    ),
+)
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_unsuccessful_egress(  # noqa: PLR0913
+    mock_update_metadata,
+    mock_notify,
+    egress_status,
+    recording_status,
+    notification_type,
+    service,
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """Should flag the recording and notify participants on aborted/failed egress."""
+
+    recording = RecordingFactory(
+        worker_id="worker-1", status="active", mode="screen_recording"
+    )
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = egress_status
+
+    service._handle_egress_ended(mock_data)
+
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id), notification_data={"type": notification_type}
+    )
+
+    recording.refresh_from_db()
+    assert recording.status == recording_status
+
+
+@pytest.mark.parametrize(
+    ("egress_status", "recording_status", "event"),
+    (
+        (EgressStatus.EGRESS_ABORTED, "aborted", "aborted"),
+        (EgressStatus.EGRESS_FAILED, "failed", "failed"),
+    ),
+)
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_unsuccessful_egress_notification_fails(  # noqa: PLR0913
+    mock_update_metadata,
+    mock_notify,
+    egress_status,
+    recording_status,
+    event,
+    service,
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """Should raise ActionFailedError when notification fails but still flag recording."""
+
+    mock_notify.side_effect = NotificationError("Error notifying")
+
+    recording = RecordingFactory(worker_id="worker-1", status="active")
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = egress_status
+
+    with pytest.raises(
+        ActionFailedError,
+        match=rf"Failed to process {event} event for recording .+",
+    ):
+        service._handle_egress_ended(mock_data)
+
+    recording.refresh_from_db()
+    assert recording.status == recording_status
+
+
+@pytest.mark.parametrize(
     "egress_status",
     [
         EgressStatus.EGRESS_STARTING,
         EgressStatus.EGRESS_ACTIVE,
         EgressStatus.EGRESS_ENDING,
-        EgressStatus.EGRESS_FAILED,
-        EgressStatus.EGRESS_ABORTED,
     ],
 )
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
