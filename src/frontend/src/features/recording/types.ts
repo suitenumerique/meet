@@ -9,7 +9,7 @@ export enum RecordingStatus {
   Stopped = 'stopped',
   Saved = 'saved',
   Aborted = 'aborted',
-  Failed ='failed',
+  Failed = 'failed',
   FailedToStart = 'failedToStart',
   FailedToStop = 'failedToStop',
   NotificationSucceed = 'notification_succeeded',
