@@ -12,6 +12,10 @@ and this project adheres to
 
 - 🔒️(backend) enforce display name setting on rename API
 
+### Changed
+
+- 🔇(backend) silence expected 401 warnings on /me
+
 ## [1.31.0] - 2026-09-08
 
 ### Added
