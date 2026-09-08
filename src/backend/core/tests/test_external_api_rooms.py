@@ -4,6 +4,7 @@ Tests for external API /room endpoint
 
 # pylint: disable=W0621,C0302
 
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from unittest import mock
@@ -13,6 +14,7 @@ from django.conf import settings
 import jwt
 import pytest
 import responses
+from freezegun import freeze_time
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 from rest_framework.test import APIClient
 
@@ -2733,3 +2735,124 @@ def test_api_rooms_grant_access_room_not_found():
     )
 
     assert response.status_code == 404
+
+
+@pytest.mark.parametrize("actor_role", [RoleChoices.ADMIN, RoleChoices.OWNER])
+def test_api_rooms_grant_access_self_action_forbidden(actor_role):
+    """Granting access to oneself should be rejected, whatever the actor's role."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, actor_role)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": user.email, "role": "member"},
+        format="json",
+    )
+
+    assert response.status_code == 403
+    assert room.get_role(user) == actor_role
+
+
+def test_api_rooms_grant_access_race_safe_on_concurrent_creation():
+    """A concurrent creation must resolve on the existing access, not fail.
+
+    Two concurrent requests can both miss the access in their existence check;
+    the losing insert then conflicts with the unique (user, resource)
+    constraint. The endpoint must absorb the conflict and answer as if the
+    access already existed.
+    """
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    # The access is created by a "concurrent" request before ours.
+    ResourceAccess.objects.create(resource=room, user=delegate, role=RoleChoices.ADMIN)
+
+    real_get = ResourceAccess.objects.get
+    checks = {"count": 0}
+
+    def racing_get(*args, **kwargs):
+        """Hide the concurrently-created access from the first existence check."""
+        if checks["count"] == 0:
+            checks["count"] += 1
+            raise ResourceAccess.DoesNotExist
+        return real_get(*args, **kwargs)
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    with mock.patch.object(ResourceAccess.objects, "get", side_effect=racing_get):
+        response = client.post(
+            f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+            {"email": delegate.email, "role": "administrator"},
+            format="json",
+        )
+
+    assert response.status_code == 200
+    assert response.data["created"] is False
+    assert response.data["role"] == RoleChoices.ADMIN
+    assert ResourceAccess.objects.filter(resource=room, user=delegate).count() == 1
+
+
+def test_api_rooms_grant_access_refreshes_updated_at():
+    """Updating an existing delegate role should refresh the access `updated_at`."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+
+    with freeze_time("2023-01-15 12:00:00"):
+        room = RoomFactory(
+            users=[(user, RoleChoices.OWNER), (delegate, RoleChoices.MEMBER)]
+        )
+
+    access = ResourceAccess.objects.get(resource=room, user=delegate)
+    previous_updated_at = access.updated_at
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    access.refresh_from_db()
+    assert access.role == RoleChoices.ADMIN
+    assert access.updated_at > previous_updated_at
+
+
+def test_api_rooms_grant_access_preserves_owner_and_audits(caplog):
+    """Granting access to an existing owner should not demote them and should be audited."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER), (delegate, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    with caplog.at_level(logging.INFO, logger="core.external_api.viewsets"):
+        response = client.post(
+            f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+            {"email": delegate.email, "role": "member"},
+            format="json",
+        )
+
+    assert response.status_code == 200
+    assert response.data["created"] is False
+    assert response.data["role"] == RoleChoices.OWNER
+    assert response.data["detail"] == "Delegate is already owner of this room."
+    assert room.get_role(delegate) == RoleChoices.OWNER
+    assert "Room access granted via application" in caplog.text
+    assert f"delegate_email={delegate.email}" in caplog.text
