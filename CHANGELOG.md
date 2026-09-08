@@ -11,6 +11,7 @@ and this project adheres to
 ### Fixed
 
 - 🔒️(backend) enforce display name setting on rename API
+- 🩹(backend) handle failed and aborted egresses
 
 ## [1.31.0] - 2026-09-08
 

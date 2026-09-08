@@ -181,6 +181,7 @@ class LiveKitEventsService:
     def _handle_egress_ended(self, data):
         """Handle 'egress_ended' event."""
 
+        # Fetch recording
         try:
             recording = models.Recording.objects.select_related("room").get(
                 worker_id=data.egress_info.egress_id
@@ -190,6 +191,7 @@ class LiveKitEventsService:
                 f"Recording with worker ID {data.egress_info.egress_id} does not exist"
             ) from err
 
+        # Update room
         try:
             room_name = str(recording.room.id)
             RoomManagement.update_metadata(
@@ -203,15 +205,18 @@ class LiveKitEventsService:
         except RoomManagementException as e:
             logger.exception("Failed to update room's metadata: %s", e)
 
+        # Stop metadata collector
         if recording.options.get("metadata_collector_dispatch_id", None) is not None:
             try:
                 MetadataCollectorService().stop(recording)
             except MetadataCollectorException:
                 logger.warning("Failed to stop the MetadataCollectorService")
 
+        # Handle case: EGRESS_LIMIT_REACHED
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
-            and recording.status == models.RecordingStatusChoices.ACTIVE
+            and recording.status
+            == models.RecordingStatusChoices.ACTIVE  # question: can we remove or factorize condition on ACTIVE ?
         ):
             try:
                 self.recording_events.handle_limit_reached(recording)
@@ -220,6 +225,21 @@ class LiveKitEventsService:
                     f"Failed to process limit reached event for recording {recording}"
                 ) from e
 
+        # Handle case: EGRESS_ABORTED
+        if (
+            data.egress_info.status == api.EgressStatus.EGRESS_ABORTED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            return self.recording_events.handle_aborted(recording)
+
+        # Handle case: EGRESS_FAILED
+        if (
+            data.egress_info.status == api.EgressStatus.EGRESS_FAILED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            return self.recording_events.handle_failed(recording)
+
+        # Handle cases: EGRESS_COMPLETE & EGRESS_LIMIT_REACHED
         # Finalize the recording, the egress has uploaded the file to the storage
         if data.egress_info.status in [
             api.EgressStatus.EGRESS_COMPLETE,

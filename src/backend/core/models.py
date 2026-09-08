@@ -57,7 +57,8 @@ class RecordingStatusChoices(models.TextChoices):
     ACTIVE = "active", _("Active")
     STOPPED = "stopped", _("Stopped")
     SAVED = "saved", _("Saved")
-    ABORTED = "aborted", _("Aborted")
+    ABORTED = "aborted", _("Aborted")  # from livekit egress
+    FAILED = "failed", _("Failed")  # from livekit egress
     FAILED_TO_START = "failed_to_start", _("Failed to Start")
     FAILED_TO_STOP = "failed_to_stop", _("Failed to Stop")
     NOTIFICATION_SUCCEEDED = "notification_succeeded", _("Notification succeeded")
@@ -79,16 +80,12 @@ class RecordingStatusChoices(models.TextChoices):
             cls.STOPPED,
             cls.SAVED,
             cls.ABORTED,
+            cls.FAILED,
             cls.EXTERNAL_PROCESS_SUCCESSFUL,
             cls.EXTERNAL_PROCESS_FAILED,
             cls.FAILED_TO_START,
             cls.FAILED_TO_STOP,
         }
-
-    @classmethod
-    def is_unsuccessful(cls, status):
-        """Determine if the recording status represents an unsuccessful state."""
-        return status in {cls.ABORTED, cls.FAILED_TO_START, cls.FAILED_TO_STOP}
 
 
 class RecordingModeChoices(models.TextChoices):
