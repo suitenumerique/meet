@@ -52,12 +52,6 @@ class InvalidPayloadError(LiveKitWebhookError):
     status_code = 400
 
 
-class UnsupportedEventTypeError(LiveKitWebhookError):
-    """Unsupported event type."""
-
-    status_code = 422
-
-
 class ActionFailedError(LiveKitWebhookError):
     """Webhook action fails to process or complete."""
 
@@ -74,6 +68,7 @@ class LiveKitWebhookEventType(Enum):
     # Participant events
     PARTICIPANT_JOINED = "participant_joined"
     PARTICIPANT_LEFT = "participant_left"
+    PARTICIPANT_CONNECTION_ABORTED = "participant_connection_aborted"
 
     # Track events
     TRACK_PUBLISHED = "track_published"
@@ -153,10 +148,13 @@ class LiveKitEventsService:
 
         try:
             webhook_type = LiveKitWebhookEventType(data.event)
-        except ValueError as e:
-            raise UnsupportedEventTypeError(
-                f"Unknown webhook type: {data.event}"
-            ) from e
+        except ValueError:
+            logger.warning(
+                "Ignoring unknown LiveKit webhook event type '%s' for room '%s'",
+                data.event,
+                room_name,
+            )
+            return
 
         # Handle according to received webhook type
         handler = self._webhook_handlers.get(webhook_type.value)

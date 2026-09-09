@@ -16,7 +16,6 @@ from core.services.livekit_events import (
     AuthenticationError,
     InvalidPayloadError,
     LiveKitEventsService,
-    UnsupportedEventTypeError,
     api,
 )
 from core.services.lobby import LobbyService
@@ -665,22 +664,27 @@ def test_receive_missing_auth(service):
 
 
 @mock.patch.object(api.WebhookReceiver, "receive")
-def test_receive_unsupported_event(mock_receive, service):
-    """Should raise LiveKitWebhookError for unsupported events."""
+def test_receive_unknown_event_is_acknowledged(mock_receive, service, caplog):
+    """Unknown event types are logged and ignored, not rejected.
+
+    LiveKit adds event types over time and does not retry 4xx responses, so
+    raising here would silently drop the event.
+    """
     mock_request = mock.MagicMock()
     mock_request.headers = {"Authorization": "test_token"}
     mock_request.body = b"{}"
 
-    # Mock returned data with unsupported event type
     mock_data = mock.MagicMock()
     mock_data.room.name = str(uuid.uuid4())
-    mock_data.event = "unsupported_event"
+    mock_data.event = "some_future_event"
     mock_receive.return_value = mock_data
 
-    with pytest.raises(
-        UnsupportedEventTypeError, match="Unknown webhook type: unsupported_event"
-    ):
-        service.receive(mock_request)
+    with caplog.at_level("WARNING", logger="core.services.livekit_events"):
+        service.receive(mock_request)  # must not raise
+
+    assert "Ignoring unknown LiveKit webhook event type 'some_future_event'" in (
+        caplog.text
+    )
 
 
 @mock.patch.object(api.WebhookReceiver, "receive")
