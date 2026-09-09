@@ -92,6 +92,12 @@ class LiveKitWebhookEventType(Enum):
 class LiveKitEventsService:
     """Service for processing and handling LiveKit webhook events and notifications."""
 
+    # Terminal egress statuses LiveKit reports when the recording did not succeed.
+    UNSUCCESSFUL_EGRESS_EVENTS = {
+        api.EgressStatus.EGRESS_ABORTED: "aborted",
+        api.EgressStatus.EGRESS_FAILED: "failed",
+    }
+
     def __init__(self):
         """Initialize with required services."""
 
@@ -220,7 +226,6 @@ class LiveKitEventsService:
             data.egress_info.status == api.EgressStatus.EGRESS_ABORTED
             and recording.status == models.RecordingStatusChoices.ACTIVE
         ):
-            self._log_egress_error(data, recording, "aborted")
             try:
                 self.recording_events.handle_aborted(recording)
             except RecordingEventsError:
@@ -232,7 +237,6 @@ class LiveKitEventsService:
             data.egress_info.status == api.EgressStatus.EGRESS_FAILED
             and recording.is_savable()
         ):
-            self._log_egress_error(data, recording, "failed")
             try:
                 self.recording_events.handle_failed(recording)
             except RecordingEventsError:
@@ -272,6 +276,11 @@ class LiveKitEventsService:
             raise ActionFailedError(
                 f"Recording with worker ID {data.egress_info.egress_id} does not exist"
             ) from err
+
+        # Log unsuccessful events
+        event = self.UNSUCCESSFUL_EGRESS_EVENTS.get(data.egress_info.status)
+        if event is not None:
+            self._log_egress_error(data, recording, event)
 
         # Update room
         try:
