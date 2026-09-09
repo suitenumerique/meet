@@ -36,12 +36,16 @@
     "started": "{{name}} ha iniciado la transcripción de la reunión.",
     "stopped": "{{name}} ha detenido la transcripción de la reunión.",
     "limitReached": "La transcripción ha superado la duración máxima permitida, se va a guardar automáticamente.",
+    "failed": "La transcripción se ha interrumpido de forma inesperada y no se ha podido guardar.",
+    "aborted": "No se ha podido iniciar la transcripción.",
     "requested": "{{name}} ha solicitado iniciar la transcripción."
   },
   "screenRecording": {
     "started": "{{name}} ha iniciado la grabación de la reunión.",
     "stopped": "{{name}} ha detenido la grabación de la reunión.",
     "limitReached": "La grabación ha superado la duración máxima permitida, se va a guardar automáticamente.",
+    "failed": "La grabación se ha interrumpido de forma inesperada y no se ha podido guardar.",
+    "aborted": "No se ha podido iniciar la grabación.",
     "requested": "{{name}} ha solicitado iniciar la grabación."
   },
   "recordingSave": {

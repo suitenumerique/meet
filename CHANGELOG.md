@@ -12,6 +12,8 @@ and this project adheres to
 
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
 - 🔒️(backend) enforce display name setting on rename API
+- 🩹(backend) handle failed and aborted egresses
+- 🩹(frontend) notify participants when a recording fails or is aborted
 
 ### Changed
 
