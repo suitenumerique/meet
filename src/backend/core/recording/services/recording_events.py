@@ -94,7 +94,8 @@ class RecordingEventsService:
     def handle_update(recording: Recording, egress_status):
         """Handle egress status updates and sync recording state to room metadata.
 
-        Egress updates are sent exclusively for statuses EGRESS_ACTIVE and EGRESS_ENDING.
+        Egress updates only updates statuses to EGRESS_ACTIVE and EGRESS_ENDING.
+        Other statuses are sent through egress ending.
         """
 
         room_name = str(recording.room.id)

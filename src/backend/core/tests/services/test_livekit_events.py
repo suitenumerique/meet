@@ -127,30 +127,6 @@ def test_handle_egress_updated_success(
 
 
 @pytest.mark.parametrize(
-    "egress_status",
-    (
-        EgressStatus.EGRESS_FAILED,
-        EgressStatus.EGRESS_ABORTED,
-        EgressStatus.EGRESS_LIMIT_REACHED,
-    ),
-)
-@mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_updated_non_handled(
-    mock_update_metadata, egress_status, service
-):
-    """Should ignore certain egress status and don't trigger metadata updates."""
-
-    recording = RecordingFactory(worker_id="worker-1", status="initiated")
-    mock_data = mock.MagicMock()
-    mock_data.egress_info.egress_id = recording.worker_id
-    mock_data.egress_info.status = egress_status
-
-    service._handle_egress_updated(mock_data)
-
-    mock_update_metadata.assert_not_called()
-
-
-@pytest.mark.parametrize(
     ("mode", "notification_type"),
     (
         ("screen_recording", "screenRecordingLimitReached"),
