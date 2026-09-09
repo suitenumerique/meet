@@ -2,6 +2,8 @@
 
 # pylint: disable=no-member
 
+import logging
+
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
@@ -9,6 +11,8 @@ from ... import utils
 from ..enums import FileExtension
 from .exceptions import WorkerConnectionError, WorkerResponseError
 from .factories import WorkerServiceConfig
+
+logger = logging.getLogger(__name__)
 
 
 class BaseEgressService:
@@ -49,6 +53,23 @@ class BaseEgressService:
         finally:
             await lkapi.aclose()
 
+    @staticmethod
+    def _log_egress_error(response, event: str):
+        """Log the reason LiveKit reported an unsuccessful egress on stop.
+
+        Mirrors the logging done in the 'egress_ended' webhook. The
+        StopEgress response carries the same error fields.
+        """
+
+        logger.error(
+            "Egress %s on stop (egress_id=%s, status=%s): %s (error_code=%s)",
+            event,
+            response.egress_id,
+            livekit_api.EgressStatus.Name(response.status),
+            response.error or "no error reported",
+            response.error_code or "no error_code reported",
+        )
+
     def stop(self, worker_id: str) -> str:
         """Stop an ongoing egress worker.
         The StopEgressRequest is shared among all types of egress,
@@ -69,14 +90,17 @@ class BaseEgressService:
         # To avoid exposing EgressStatus values and coupling with LiveKit outside of this class,
         # the response status is mapped to simpler "ABORTED", "STOPPED" or "FAILED_TO_STOP" strings.
         if response.status == livekit_api.EgressStatus.EGRESS_ABORTED:
+            self._log_egress_error(response, "aborted")
             return "ABORTED"
 
         if response.status == livekit_api.EgressStatus.EGRESS_FAILED:
+            self._log_egress_error(response, "failed")
             return "FAILED"
 
         if response.status == livekit_api.EgressStatus.EGRESS_ENDING:
             return "STOPPED"
 
+        self._log_egress_error(response, "failed to stop")
         return "FAILED_TO_STOP"
 
     def start(self, room_name, recording_id):
