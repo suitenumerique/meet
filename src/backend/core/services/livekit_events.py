@@ -210,7 +210,10 @@ class LiveKitEventsService:
         )
 
     def _lkes_handle_limit_reached(self, data, recording):
-        """Handle status updates to EGRESS_LIMIT_REACHED."""
+        """Handle status updates to EGRESS_LIMIT_REACHED.
+
+        NB: `_lkes_handle_limit_reached` must precede `_lkes_handle_successful`
+        """
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
             and recording.status == models.RecordingStatusChoices.ACTIVE
@@ -246,6 +249,8 @@ class LiveKitEventsService:
         """Finalize the recording, the egress has uploaded the file to the storage.
 
         Recordings are savable for statuses EGRESS_COMPLETE, EGRESS_LIMIT_REACHED.
+
+        NB: `_lkes_handle_limit_reached` must precede `_lkes_handle_successful`
         """
         if data.egress_info.status in [
             api.EgressStatus.EGRESS_COMPLETE,

@@ -87,8 +87,14 @@ class BaseEgressService:
                 "LiveKit response is missing the recording status."
             )
 
-        # To avoid exposing EgressStatus values and coupling with LiveKit outside of this class,
-        # the response status is mapped to simpler "ABORTED", "STOPPED" or "FAILED_TO_STOP" strings.
+        if response.status == livekit_api.EgressStatus.EGRESS_ENDING:
+            return "STOPPED"
+
+        # Cases below should be very infrequent as status changes should be
+        # received and processed by `handle_ended`, thus `stop` would not
+        # be called (unless failure and stop are very close in time).
+        # We therefore accept not to notify the user in this code branch.
+        # This could be fixed in a future refactoring.
         if response.status == livekit_api.EgressStatus.EGRESS_ABORTED:
             self._log_egress_error(response, "aborted")
             return "ABORTED"
@@ -96,9 +102,6 @@ class BaseEgressService:
         if response.status == livekit_api.EgressStatus.EGRESS_FAILED:
             self._log_egress_error(response, "failed")
             return "FAILED"
-
-        if response.status == livekit_api.EgressStatus.EGRESS_ENDING:
-            return "STOPPED"
 
         self._log_egress_error(response, "failed to stop")
         return "FAILED_TO_STOP"
