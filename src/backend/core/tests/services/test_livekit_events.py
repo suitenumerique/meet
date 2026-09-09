@@ -234,17 +234,25 @@ def test_handle_egress_ended_recording_not_found(
     assert recording.status == "active"
 
 
+@pytest.mark.parametrize(
+    "egress_status",
+    (
+        EgressStatus.EGRESS_FAILED,
+        EgressStatus.EGRESS_ABORTED,
+        EgressStatus.EGRESS_LIMIT_REACHED,
+    ),
+)
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_recording_not_active(
-    mock_update_metadata, mock_notify, service
+    mock_update_metadata, mock_notify, egress_status, service
 ):
-    """Should ignore non-active recordings."""
+    """Don't update status for non-active recordings."""
 
     recording = RecordingFactory(worker_id="worker-1", status="failed_to_stop")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = "worker-1"
-    mock_data.egress_info.status = EgressStatus.EGRESS_LIMIT_REACHED
+    mock_data.egress_info.status = egress_status
 
     service._handle_egress_ended(mock_data)
 
@@ -455,7 +463,7 @@ def test_handle_egress_ended_unsuccessful_egress_notification_fails(
 def test_handle_egress_ended_logs_livekit_error(  # noqa: PLR0913
     mock_update_metadata, mock_notify, egress_status, event, service, caplog
 ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    """Should log the reason LiveKit reported an unsuccessful egress."""
+    """Should log the reason LiveKit reported an uqnsuccessful egress."""
 
     recording = RecordingFactory(worker_id="worker-1", status="active")
     mock_data = mock.MagicMock()

@@ -188,7 +188,14 @@ def test_handle_complete_saves_recording(  # pylint: disable=too-many-arguments,
 
 @pytest.mark.parametrize(
     "status",
-    ["initiated", "saved", "notification_succeeded", "aborted", "failed_to_start"],
+    [
+        "initiated",
+        "saved",
+        "notification_succeeded",
+        "aborted",
+        "failed",
+        "failed_to_start",
+    ],
 )
 @mock.patch(
     "core.recording.services.recording_events.notification_service."

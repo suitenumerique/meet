@@ -261,7 +261,6 @@ class LiveKitEventsService:
                 self.recording_events.handle_aborted(recording)
             except RecordingEventsError:
                 self._log_notification_failure(recording, "aborted")
-            return
 
         # Handle case: EGRESS_FAILED
         if (
@@ -273,7 +272,6 @@ class LiveKitEventsService:
                 self.recording_events.handle_failed(recording)
             except RecordingEventsError:
                 self._log_notification_failure(recording, "failed")
-            return
 
         # Handle cases: EGRESS_COMPLETE & EGRESS_LIMIT_REACHED
         # Finalize the recording, the egress has uploaded the file to the storage
