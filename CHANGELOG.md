@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Fixed
 
+- 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
 - 🔒️(backend) enforce display name setting on rename API
 
 ## [1.31.0] - 2026-09-08
