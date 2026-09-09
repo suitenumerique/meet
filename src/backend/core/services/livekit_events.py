@@ -258,7 +258,11 @@ class LiveKitEventsService:
                 )
 
     def _handle_egress_ended(self, data):
-        """Handle 'egress_ended' event."""
+        """Handle 'egress_ended' event.
+
+        Egress ended is sent with one of these statuses:
+        EGRESS_COMPLETE, EGRESS_FAILED, EGRESS_ABORTED, EGRESS_LIMIT_REACHED
+        """
 
         # Fetch recording
         try:

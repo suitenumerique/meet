@@ -79,7 +79,7 @@ def test_initialization(
 def test_handle_egress_ended_success(  # pylint: disable=too-many-arguments, too-many-positional-arguments
     mock_update_metadata, mock_notify, mode, notification_type, service
 ):
-    """Should successfully stop recording and notifies all participant."""
+    """Should successfully stop recording and notify all participant."""
 
     recording = RecordingFactory(worker_id="worker-1", mode=mode, status="active")
     mock_data = mock.MagicMock()
@@ -265,12 +265,24 @@ def test_handle_egress_ended_recording_not_active(
     assert recording.status == "failed_to_stop"
 
 
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_recording_not_limit_reached(
-    mock_update_metadata, mock_notify, service
+def test_handle_egress_ended_complete_does_not_notify_participants(
+    mock_update_metadata, mock_notify, mock_notify_external_services, service
 ):
-    """Should ignore egress non-limit-reached statuses."""
+    """Shouldn't notify participants on a successful egress.
+
+    EGRESS_COMPLETE is the only ended status that notifies no one: limit
+    reached, aborted and failed egresses each send their own notification.
+    A stopped recording is simply finalized, which is the nominal flow once
+    the egress uploaded the file of a user-initiated stop.
+    """
+
+    mock_notify_external_services.return_value = False
 
     recording = RecordingFactory(worker_id="worker-1", status="stopped")
     mock_data = mock.MagicMock()
@@ -283,7 +295,10 @@ def test_handle_egress_ended_recording_not_limit_reached(
     mock_update_metadata.assert_called_once_with(
         str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
     )
-    assert recording.status == "stopped"
+    mock_notify_external_services.assert_called_once_with(recording)
+
+    recording.refresh_from_db()
+    assert recording.status == "saved"
 
 
 @mock.patch("core.services.livekit_events.MetadataCollectorService")
