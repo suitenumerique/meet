@@ -145,7 +145,7 @@ class RecordingEventsService:
         cls._notify_participants(recording, RecordingEvent.ABORTED)
 
     @staticmethod
-    def handle_savable(recording: Recording):
+    def handle_successful(recording: Recording):
         """Notify external services and save recording."""
 
         if not recording.is_savable():

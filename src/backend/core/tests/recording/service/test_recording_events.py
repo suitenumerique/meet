@@ -139,19 +139,19 @@ def test_handle_event_notification_error(  # noqa: PLR0913
     "core.recording.services.recording_events.notification_service."
     "notify_external_services"
 )
-def test_handle_savable_saves_recording(  # pylint: disable=too-many-arguments, too-many-positional-arguments
+def test_handle_successful_saves_recording(  # pylint: disable=too-many-arguments, too-many-positional-arguments
     mock_notify_external_services,
     notify_return_value,
     expected_status,
     status,
     service,
 ):
-    """Test handle_savable notifies external services and saves a savable recording."""
+    """Test handle_successful notifies external services and saves a savable recording."""
 
     mock_notify_external_services.return_value = notify_return_value
 
     recording = RecordingFactory(status=status)
-    service.handle_savable(recording)
+    service.handle_successful(recording)
 
     mock_notify_external_services.assert_called_once_with(recording)
 
@@ -174,15 +174,15 @@ def test_handle_savable_saves_recording(  # pylint: disable=too-many-arguments, 
     "core.recording.services.recording_events.notification_service."
     "notify_external_services"
 )
-def test_handle_savable_non_savable_recording(
+def test_handle_successful_non_savable_recording(
     mock_notify_external_services, status, service
 ):
-    """Test handle_savable refuses recordings that are already saved or in error."""
+    """Test handle_successful refuses recordings that are already saved or in error."""
 
     recording = RecordingFactory(status=status)
 
     with pytest.raises(RecordingNotSavableError):
-        service.handle_savable(recording)
+        service.handle_successful(recording)
 
     mock_notify_external_services.assert_not_called()
 

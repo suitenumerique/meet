@@ -238,7 +238,7 @@ class LiveKitEventsService:
             except RecordingEventsError:
                 self._log_notification_failure(recording, "failed")
 
-    def _lkes_handle_savable(self, data, recording):
+    def _lkes_handle_successful(self, data, recording):
         """Finalize the recording, the egress has uploaded the file to the storage.
 
         Recordings are savable for statuses EGRESS_COMPLETE, EGRESS_LIMIT_REACHED.
@@ -248,7 +248,7 @@ class LiveKitEventsService:
             api.EgressStatus.EGRESS_LIMIT_REACHED,
         ]:
             try:
-                self.recording_events.handle_savable(recording)
+                self.recording_events.handle_successful(recording)
             except RecordingNotSavableError:
                 logger.warning(
                     "Recording %s is not savable on egress complete "
@@ -298,7 +298,7 @@ class LiveKitEventsService:
         self._lkes_handle_aborted(data, recording)
         self._lkes_handle_failed(data, recording)
         # Handle EGRESS_COMPLETE & EGRESS_LIMIT_REACHED
-        self._lkes_handle_savable(data, recording)
+        self._lkes_handle_successful(data, recording)
 
     @staticmethod
     def _is_connection_test_room(room_name: str) -> bool:
