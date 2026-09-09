@@ -435,8 +435,8 @@ def test_handle_egress_ended_unsuccessful_egress_notification_fails(
     egress_status,
     recording_status,
     service,
-):  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    """Test that notification failure does not disrupt the update."""
+):
+    """Test that notification failure does not interrupt the update."""
 
     mock_notify.side_effect = NotificationError("Error notifying")
 
@@ -463,7 +463,7 @@ def test_handle_egress_ended_unsuccessful_egress_notification_fails(
 def test_handle_egress_ended_logs_livekit_error(  # noqa: PLR0913
     mock_update_metadata, mock_notify, egress_status, event, service, caplog
 ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    """Should log the reason LiveKit reported an uqnsuccessful egress."""
+    """Should log the reason LiveKit reported an unsuccessful egress."""
 
     recording = RecordingFactory(worker_id="worker-1", status="active")
     mock_data = mock.MagicMock()
@@ -506,7 +506,8 @@ def test_handle_egress_ended_does_not_save_on_wrong_status(
 
 
 @pytest.mark.parametrize(
-    "status", ["failed_to_start", "aborted", "failed_to_stop", "saved", "initiated"]
+    "status",
+    ["failed_to_start", "aborted", "failed", "failed_to_stop", "saved", "initiated"],
 )
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_ignores_non_savable_recording(

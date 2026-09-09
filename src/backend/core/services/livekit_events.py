@@ -259,7 +259,6 @@ class LiveKitEventsService:
 
     def _handle_egress_ended(self, data):
         """Handle 'egress_ended' event."""
-        # pylint: disable=too-many-branches
 
         # Fetch recording
         try:
