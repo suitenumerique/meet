@@ -60,7 +60,6 @@ class BaseEgressService:
         Mirrors the logging done in the 'egress_ended' webhook. The
         StopEgress response carries the same error fields.
         """
-
         logger.error(
             "Egress %s on stop (egress_id=%s, status=%s): %s (error_code=%s)",
             event,
@@ -88,6 +87,9 @@ class BaseEgressService:
             )
 
         if response.status == livekit_api.EgressStatus.EGRESS_ENDING:
+            return "STOPPED"
+
+        if response.status == livekit_api.EgressStatus.EGRESS_LIMIT_REACHED:
             return "STOPPED"
 
         # Cases below should be very infrequent as status changes should be
