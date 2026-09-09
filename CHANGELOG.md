@@ -8,6 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add per-recording encoding quality presets to start-recording API
+
+### Changed
+git
+- 💥(backend) replace recording encoding options with a profile model
+
 ### Fixed
 
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
