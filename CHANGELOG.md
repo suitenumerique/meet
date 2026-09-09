@@ -34,6 +34,7 @@ and this project adheres to
 - 🐛(frontend) hide tooltips until they have a computed placement
 - 🐛(brevo) use django-lasuite for marketing management
 - ♿️(frontend) expose loading state to assistive technology
+- 🐛(frontend) honour Keep hand raised when picture-in-picture is open
 
 ## [1.33.0] - 2026-09-30
 
