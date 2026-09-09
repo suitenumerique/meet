@@ -244,10 +244,10 @@ def test_handle_egress_ended_recording_not_found(
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_recording_not_active(
+def test_handle_egress_ended_recording_should_not_be_saved(
     mock_update_metadata, mock_notify, egress_status, service
 ):
-    """Don't update status for non-active recordings."""
+    """Don't update status for recordings that must not be saved."""
 
     recording = RecordingFactory(worker_id="worker-1", status="failed_to_stop")
     mock_data = mock.MagicMock()
@@ -400,10 +400,16 @@ def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913
 
 
 @pytest.mark.parametrize(
-    ("egress_status", "recording_status", "notification_type"),
     (
-        (EgressStatus.EGRESS_ABORTED, "aborted", "screenRecordingAborted"),
-        (EgressStatus.EGRESS_FAILED, "failed", "screenRecordingFailed"),
+        "egress_status",
+        "original_recording_status",
+        "expected_recording_status",
+        "notification_type",
+    ),
+    (
+        (EgressStatus.EGRESS_ABORTED, "active", "aborted", "screenRecordingAborted"),
+        (EgressStatus.EGRESS_FAILED, "active", "failed", "screenRecordingFailed"),
+        (EgressStatus.EGRESS_FAILED, "active", "failed", "screenRecordingFailed"),
     ),
 )
 @mock.patch("core.utils.notify_participants")
@@ -412,14 +418,15 @@ def test_handle_egress_ended_unsuccessful_egress(  # noqa: PLR0913
     mock_update_metadata,
     mock_notify,
     egress_status,
-    recording_status,
+    original_recording_status,
+    expected_recording_status,
     notification_type,
     service,
 ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Should flag the recording and notify participants on aborted/failed egress."""
 
     recording = RecordingFactory(
-        worker_id="worker-1", status="active", mode="screen_recording"
+        worker_id="worker-1", status=original_recording_status, mode="screen_recording"
     )
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
@@ -432,7 +439,7 @@ def test_handle_egress_ended_unsuccessful_egress(  # noqa: PLR0913
     )
 
     recording.refresh_from_db()
-    assert recording.status == recording_status
+    assert recording.status == expected_recording_status
 
 
 @pytest.mark.parametrize(

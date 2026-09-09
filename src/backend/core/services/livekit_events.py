@@ -231,7 +231,7 @@ class LiveKitEventsService:
     def _lkes_handle_failed(self, data, recording):
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_FAILED
-            and recording.status == models.RecordingStatusChoices.ACTIVE
+            and recording.is_savable()
         ):
             self._log_egress_error(data, recording, "failed")
             try:

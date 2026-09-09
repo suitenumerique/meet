@@ -71,6 +71,9 @@ class BaseEgressService:
         if response.status == livekit_api.EgressStatus.EGRESS_ABORTED:
             return "ABORTED"
 
+        if response.status == livekit_api.EgressStatus.EGRESS_FAILED:
+            return "FAILED"
+
         if response.status == livekit_api.EgressStatus.EGRESS_ENDING:
             return "STOPPED"
 

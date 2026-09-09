@@ -154,9 +154,9 @@ def test_base_egress_filepath_construction(service, filename, extension, expecte
     "response_status,expected_result",
     [
         (livekit_api.EgressStatus.EGRESS_ABORTED, "ABORTED"),
+        (livekit_api.EgressStatus.EGRESS_FAILED, "FAILED"),
         (livekit_api.EgressStatus.EGRESS_COMPLETE, "FAILED_TO_STOP"),
         (livekit_api.EgressStatus.EGRESS_ENDING, "STOPPED"),
-        (livekit_api.EgressStatus.EGRESS_FAILED, "FAILED_TO_STOP"),
     ],
 )
 def test_base_egress_stop_with_status(service, response_status, expected_result):
