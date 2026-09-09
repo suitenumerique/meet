@@ -15,6 +15,7 @@ and this project adheres to
 
 ### Changed
 
+- 📈(frontend) include LiveKit SIDs in the connection analytics event
 - 🔇(backend) silence expected 401 warnings on /me
 - 🔇(backend) silence noisy request summary info logs
 
