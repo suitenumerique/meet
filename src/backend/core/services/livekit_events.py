@@ -204,20 +204,18 @@ class LiveKitEventsService:
         )
 
     def _lkes_handle_limit_reached(self, data, recording):
-        # Handle case: EGRESS_LIMIT_REACHED
-        # question: can we remove or factorize condition on ACTIVE ?
+        """Handle status updates to EGRESS_LIMIT_REACHED."""
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
             and recording.status == models.RecordingStatusChoices.ACTIVE
         ):
             try:
                 self.recording_events.handle_limit_reached(recording)
-            except RecordingEventsError as e:
-                raise ActionFailedError(
-                    f"Failed to process limit reached event for recording {recording}"
-                ) from e
+            except RecordingEventsError:
+                self._log_notification_failure(recording, "limit reached")
 
     def _lkes_handle_aborted(self, data, recording):
+        """Handle status updates to EGRESS_ABORTED."""
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_ABORTED
             and recording.status == models.RecordingStatusChoices.ACTIVE
@@ -229,6 +227,7 @@ class LiveKitEventsService:
                 self._log_notification_failure(recording, "aborted")
 
     def _lkes_handle_failed(self, data, recording):
+        """Handle status updates to EGRESS_FAILED."""
         if (
             data.egress_info.status == api.EgressStatus.EGRESS_FAILED
             and recording.is_savable()

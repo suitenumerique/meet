@@ -77,14 +77,6 @@ class RecordingEventsService:
                 notification_data={"type": notification_type},
             )
         except utils.NotificationError as e:
-            logger.exception(
-                "Failed to notify participants about recording %s: "
-                "room=%s, recording_id=%s, mode=%s",
-                event.value,
-                recording.room.id,
-                recording.id,
-                recording.mode,
-            )
             raise RecordingEventsError(
                 f"Failed to notify participants in room '{recording.room.id}' about "
                 f"recording {event.value} (recording_id={recording.id})"

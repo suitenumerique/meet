@@ -385,7 +385,7 @@ def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913
     (
         (EgressStatus.EGRESS_ABORTED, "active", "aborted", "screenRecordingAborted"),
         (EgressStatus.EGRESS_FAILED, "active", "failed", "screenRecordingFailed"),
-        (EgressStatus.EGRESS_FAILED, "active", "failed", "screenRecordingFailed"),
+        (EgressStatus.EGRESS_FAILED, "stopped", "failed", "screenRecordingFailed"),
     ),
 )
 @mock.patch("core.utils.notify_participants")
