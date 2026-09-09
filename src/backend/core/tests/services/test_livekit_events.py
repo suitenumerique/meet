@@ -158,32 +158,37 @@ def test_handle_egress_ended_metadata_update_fails(  # pylint: disable=too-many-
     assert recording.status == "saved"
 
 
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_notification_fails(
-    mock_update_metadata, mock_notify, service
+    mock_update_metadata, mock_notify, mock_notify_external_services, service
 ):
-    """Should raise ActionFailedError when notification fails but still stop recording."""
+    """Should still stop and save the recording when notifying participants fails."""
+
+    mock_notify_external_services.return_value = False
+    mock_notify.side_effect = NotificationError("Error notifying")
 
     recording = RecordingFactory(worker_id="worker-1", status="active")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
     mock_data.egress_info.status = EgressStatus.EGRESS_LIMIT_REACHED
 
-    mock_notify.side_effect = NotificationError("Error notifying")
+    service._handle_egress_ended(mock_data)
 
-    with pytest.raises(
-        ActionFailedError,
-        match=r"Failed to process limit reached event for recording .+",
-    ):
-        service._handle_egress_ended(mock_data)
-
-    recording.refresh_from_db()
-    assert recording.status == "stopped"
-
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id),
+        notification_data={"type": "screenRecordingLimitReached"},
+    )
     mock_update_metadata.assert_called_once_with(
         str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
     )
+
+    recording.refresh_from_db()
+    assert recording.status == "saved"
 
 
 @mock.patch("core.utils.notify_participants")

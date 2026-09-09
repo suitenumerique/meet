@@ -86,8 +86,8 @@ class RecordingEventsService:
     def handle_update(recording: Recording, egress_status):
         """Handle egress status updates and sync recording state to room metadata.
 
-        Egress updates only updates statuses to EGRESS_ACTIVE and EGRESS_ENDING.
-        Other statuses are sent through egress ending.
+        LiveKit only sends EGRESS_ACTIVE and EGRESS_ENDING here. Terminal statuses
+        arrive through 'egress_ended'.
         """
 
         room_name = str(recording.room.id)
