@@ -203,7 +203,61 @@ class LiveKitEventsService:
             recording.room.id,
         )
 
-    def _handle_egress_ended(self, data):  # noqa: PLR0912
+    def _lkes_handle_limit_reached(self, data, recording):
+        # Handle case: EGRESS_LIMIT_REACHED
+        # question: can we remove or factorize condition on ACTIVE ?
+        if (
+            data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            try:
+                self.recording_events.handle_limit_reached(recording)
+            except RecordingEventsError as e:
+                raise ActionFailedError(
+                    f"Failed to process limit reached event for recording {recording}"
+                ) from e
+
+    def _lkes_handle_aborted(self, data, recording):
+        if (
+            data.egress_info.status == api.EgressStatus.EGRESS_ABORTED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            self._log_egress_error(data, recording, "aborted")
+            try:
+                self.recording_events.handle_aborted(recording)
+            except RecordingEventsError:
+                self._log_notification_failure(recording, "aborted")
+
+    def _lkes_handle_failed(self, data, recording):
+        if (
+            data.egress_info.status == api.EgressStatus.EGRESS_FAILED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            self._log_egress_error(data, recording, "failed")
+            try:
+                self.recording_events.handle_failed(recording)
+            except RecordingEventsError:
+                self._log_notification_failure(recording, "failed")
+
+    def _lkes_handle_savable(self, data, recording):
+        """Finalize the recording, the egress has uploaded the file to the storage.
+
+        Recordings are savable for statuses EGRESS_COMPLETE, EGRESS_LIMIT_REACHED.
+        """
+        if data.egress_info.status in [
+            api.EgressStatus.EGRESS_COMPLETE,
+            api.EgressStatus.EGRESS_LIMIT_REACHED,
+        ]:
+            try:
+                self.recording_events.handle_savable(recording)
+            except RecordingNotSavableError:
+                logger.warning(
+                    "Recording %s is not savable on egress complete "
+                    "(already saved or in an error state); ignoring.",
+                    recording.id,
+                )
+
+    def _handle_egress_ended(self, data):
         """Handle 'egress_ended' event."""
         # pylint: disable=too-many-branches
 
@@ -238,55 +292,11 @@ class LiveKitEventsService:
             except MetadataCollectorException:
                 logger.warning("Failed to stop the MetadataCollectorService")
 
-        # Handle case: EGRESS_LIMIT_REACHED
-        # question: can we remove or factorize condition on ACTIVE ?
-        if (
-            data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
-            and recording.status == models.RecordingStatusChoices.ACTIVE
-        ):
-            try:
-                self.recording_events.handle_limit_reached(recording)
-            except RecordingEventsError as e:
-                raise ActionFailedError(
-                    f"Failed to process limit reached event for recording {recording}"
-                ) from e
-
-        # Handle case: EGRESS_ABORTED
-        if (
-            data.egress_info.status == api.EgressStatus.EGRESS_ABORTED
-            and recording.status == models.RecordingStatusChoices.ACTIVE
-        ):
-            self._log_egress_error(data, recording, "aborted")
-            try:
-                self.recording_events.handle_aborted(recording)
-            except RecordingEventsError:
-                self._log_notification_failure(recording, "aborted")
-
-        # Handle case: EGRESS_FAILED
-        if (
-            data.egress_info.status == api.EgressStatus.EGRESS_FAILED
-            and recording.status == models.RecordingStatusChoices.ACTIVE
-        ):
-            self._log_egress_error(data, recording, "failed")
-            try:
-                self.recording_events.handle_failed(recording)
-            except RecordingEventsError:
-                self._log_notification_failure(recording, "failed")
-
-        # Handle cases: EGRESS_COMPLETE & EGRESS_LIMIT_REACHED
-        # Finalize the recording, the egress has uploaded the file to the storage
-        if data.egress_info.status in [
-            api.EgressStatus.EGRESS_COMPLETE,
-            api.EgressStatus.EGRESS_LIMIT_REACHED,
-        ]:
-            try:
-                self.recording_events.handle_complete(recording)
-            except RecordingNotSavableError:
-                logger.warning(
-                    "Recording %s is not savable on egress complete "
-                    "(already saved or in an error state); ignoring.",
-                    recording.id,
-                )
+        self._lkes_handle_limit_reached(data, recording)
+        self._lkes_handle_aborted(data, recording)
+        self._lkes_handle_failed(data, recording)
+        # Handle EGRESS_COMPLETE & EGRESS_LIMIT_REACHED
+        self._lkes_handle_savable(data, recording)
 
     @staticmethod
     def _is_connection_test_room(room_name: str) -> bool:
