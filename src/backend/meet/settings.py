@@ -1312,6 +1312,7 @@ class Test(Base):
     )
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
+        "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     ]
     USE_SWAGGER = True
     EXTERNAL_API_ENABLED = True
