@@ -4,7 +4,6 @@ import copy
 from logging import getLogger
 
 from django.conf import settings
-from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
@@ -74,7 +73,7 @@ class ApplicationViewSet(viewsets.ViewSet):
         except models.Application.DoesNotExist as e:
             raise drf_exceptions.AuthenticationFailed("Invalid credentials") from e
 
-        if not check_password(client_secret, application.client_secret):
+        if not application.check_client_secret(client_secret):
             raise drf_exceptions.AuthenticationFailed("Invalid credentials")
 
         if not application.is_active:

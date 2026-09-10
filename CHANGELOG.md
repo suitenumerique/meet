@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ⚡️(backend) hash application secrets with SHA-256
+
 ## [1.32.1] - 2026-09-25
 
 ### Fixed
