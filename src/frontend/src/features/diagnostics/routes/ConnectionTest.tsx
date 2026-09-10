@@ -13,6 +13,7 @@ import { css } from '@/styled-system/css'
 import { Center, VStack } from '@/styled-system/jsx'
 import { Permissions } from '@/features/rooms/components/Permissions'
 import { useConnectionTestRunner } from '../hooks/useConnectionTestRunner'
+import { isSuboptimalRoute } from '../checks/selectedCandidate'
 import { ConnectionTestStepRow } from '../components/ConnectionTestStepRow'
 import { ConnectionTestSummary } from '../components/ConnectionTestSummary'
 import { CONNECTION_TEST_GROUPS, summarizeSteps } from '../types'
@@ -70,6 +71,13 @@ const ConnectionTest = () => {
     () => new Map(steps.map((step) => [step.id, step] as const)),
     [steps]
   )
+  // The summary headline downgrades to a warning when media flows but over a
+  // fallback route: TURN over TCP/TLS, or anything else that is not UDP.
+  const routeWarning = useMemo(() => {
+    const step = stepsById.get('selectedCandidate')
+    return step?.status === 'success' && isSuboptimalRoute(step.data)
+  }, [stepsById])
+
   const isPublishVideoRunning =
     stepsById.get('publishVideo')?.status === 'running'
 
@@ -99,7 +107,11 @@ const ConnectionTest = () => {
       <CenteredContent withBackButton>
         <Center>
           <VStack gap="1.5rem" maxWidth="40rem" width="100%">
-            <ConnectionTestSummary stats={stats} isRunning={isRunning}>
+            <ConnectionTestSummary
+              stats={stats}
+              isRunning={isRunning}
+              routeWarning={routeWarning}
+            >
               {isRunning ? (
                 // A disabled "run" button while the test runs is dead weight:
                 // cancelling is the only thing left to do.

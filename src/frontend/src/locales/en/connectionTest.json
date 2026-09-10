@@ -46,6 +46,9 @@
     "passedHint": "Your browser, your devices and your network are ready for a meeting.",
     "partial": "Partially tested",
     "partialHint": "Some checks were skipped. Allow access to your camera and microphone to test them.",
+    "warning": "Suboptimal connection",
+    "warningHint": "Warning: you are not in optimal conditions to use the tool. Your media is not carried over UDP (it falls back to a TURN relay over TCP or TLS), which can degrade audio and video quality.",
+    "warningDocLink": "Technical documentation for your IT department",
     "failed_one": "{{count}} check failed",
     "failed_other": "{{count}} checks failed",
     "failedHint": "Open the failed checks below for details, then send the report to your IT department."

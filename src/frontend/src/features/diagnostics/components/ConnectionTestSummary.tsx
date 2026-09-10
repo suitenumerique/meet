@@ -2,18 +2,33 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ProgressBar } from 'react-aria-components'
 import { css, cx } from '@/styled-system/css'
+import { A } from '@/primitives'
 import type { ConnectionTestStats } from '../types'
 import { statusSquareClass } from './stepAppearance'
 
-type SummaryState = 'idle' | 'running' | 'passed' | 'partial' | 'failed'
+/**
+ * Network prerequisites (protocols, ports, TURN fallbacks), written for the
+ * reader's IT department rather than for the end user.
+ */
+const NETWORK_REQUIREMENTS_DOC_URL =
+  'https://docs.numerique.gouv.fr/docs/f2baa1b9-f29e-4d58-959d-65d4376fc6b8/'
 
-/** Only a failure earns a colour: everything else stays near-black. */
+type SummaryState =
+  | 'idle'
+  | 'running'
+  | 'passed'
+  | 'partial'
+  | 'failed'
+  | 'warning'
+
+/** Only a failure or a degraded route earns a colour: everything else stays near-black. */
 const stateColorClass: Record<SummaryState, string> = {
   idle: css({ color: 'greyscale.1000' }),
   running: css({ color: 'greyscale.1000' }),
   passed: css({ color: 'greyscale.1000' }),
   partial: css({ color: 'greyscale.1000' }),
   failed: css({ color: 'danger.600' }),
+  warning: css({ color: 'warning' }),
 }
 
 const cardClass = css({
@@ -176,23 +191,31 @@ const Counter = ({
 export const ConnectionTestSummary = ({
   stats,
   isRunning,
+  routeWarning = false,
   children,
 }: {
   stats: ConnectionTestStats
   isRunning: boolean
+  /** The selected ICE route is usable but not UDP (e.g. TURN over TCP/TLS). */
+  routeWarning?: boolean
   children?: ReactNode
 }) => {
   const { t } = useTranslation('connectionTest')
 
+  // A hard failure still outranks the route warning; the warning outranks
+  // 'partial' because a measured degraded route matters more than skipped
+  // camera or microphone checks.
   const state: SummaryState = isRunning
     ? 'running'
     : !stats.hasStarted
       ? 'idle'
       : stats.failed > 0
         ? 'failed'
-        : stats.skipped > 0
-          ? 'partial'
-          : 'passed'
+        : routeWarning
+          ? 'warning'
+          : stats.skipped > 0
+            ? 'partial'
+            : 'passed'
 
   return (
     <section className={cardClass}>
@@ -206,7 +229,22 @@ export const ConnectionTestSummary = ({
             : t(`summary.${state}`)}
         </p>
 
-        <p className={hintClass}>{t(`summary.${state}Hint`)}</p>
+        <p className={hintClass}>
+          {t(`summary.${state}Hint`)}
+          {state === 'warning' && (
+            <>
+              {' '}
+              <A
+                href={NETWORK_REQUIREMENTS_DOC_URL}
+                target="_blank"
+                rel="noreferrer"
+                size="sm"
+              >
+                {t('summary.warningDocLink')}
+              </A>
+            </>
+          )}
+        </p>
       </div>
 
       {stats.hasStarted && (
