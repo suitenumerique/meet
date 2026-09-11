@@ -15,6 +15,7 @@ and this project adheres to
 - 🔇(backend) silence noisy request summary info logs
 - ⚡️(frontend) defer loading the Crisp script until idle
 - ⬆️(frontend) upgrade react-i18next from 17.0.10 to 17.0.12
+- ⬆️(frontend) upgrade posthog-js from 1.414.0 to 1.418.10
 
 ### Fixed
 
