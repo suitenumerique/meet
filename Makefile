@@ -36,9 +36,14 @@ DB_PORT            = 5432
 
 # -- Docker
 # Get the current user ID to use for docker run and docker exec commands
+ifneq ($(findstring podman,$(DOCKER_HOST)),)
+DOCKER_UID          = 0
+DOCKER_GID          = 0
+else
 DOCKER_UID          = $(shell id -u)
 DOCKER_GID          = $(shell id -g)
-DOCKER_USER         = $(DOCKER_UID):$(DOCKER_GID)
+endif
+DOCKER_USER        ?= $(DOCKER_UID):$(DOCKER_GID)
 COMPOSE                  = DOCKER_USER=$(DOCKER_USER) docker compose
 COMPOSE_EXEC             = $(COMPOSE) exec
 COMPOSE_EXEC_APP         = $(COMPOSE_EXEC) app-dev
@@ -292,7 +297,7 @@ shell: ## connect to database shell
 # -- Database
 
 dbshell: ## connect to database shell
-	docker compose exec app-dev python manage.py dbshell
+	@$(COMPOSE_EXEC_APP) python manage.py dbshell
 .PHONY: dbshell
 
 resetdb: FLUSH_ARGS ?=

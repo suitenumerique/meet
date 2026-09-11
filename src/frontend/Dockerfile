@@ -4,12 +4,12 @@ USER node
 
 WORKDIR /home/frontend/
 
-COPY ./src/frontend/package.json ./package.json
-COPY ./src/frontend/package-lock.json ./package-lock.json
+COPY --chown=node:node ./src/frontend/package.json ./package.json
+COPY --chown=node:node ./src/frontend/package-lock.json ./package-lock.json
 
 RUN npm ci
 
-COPY .dockerignore ./.dockerignore
+COPY --chown=node:node .dockerignore ./.dockerignore
 COPY --chown=node:node ./src/frontend/ .
 
 ### ---- Front-end builder image ----
