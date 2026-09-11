@@ -14,6 +14,7 @@ and this project adheres to
 - 🔇(backend) silence expected 401 warnings on /me
 - 🔇(backend) silence noisy request summary info logs
 - ⚡️(frontend) defer loading the Crisp script until idle
+- ⬆️(frontend) upgrade react-i18next from 17.0.10 to 17.0.12
 
 ### Fixed
 
