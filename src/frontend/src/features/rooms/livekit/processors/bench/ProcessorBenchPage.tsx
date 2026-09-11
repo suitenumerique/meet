@@ -3,6 +3,7 @@ import { VideoPresets } from 'livekit-client'
 import { css } from '@/styled-system/css'
 import { BENCH_CONTENDERS } from './contenders'
 import { BenchAbortError, runBenchmark } from './ProcessorBenchmark'
+import { MEASURE_SECONDS, PASSES, numberInRange } from './options'
 import { SUPPORTS_LONG_TASKS, SUPPORTS_RVFC } from './collectors'
 import {
   collectSystemSpecs,
@@ -26,23 +27,6 @@ type ResolutionKey = (typeof RESOLUTION_KEYS)[number]
 const resolutionOf = (key: ResolutionKey) => VideoPresets[key]
 const resolutionLabel = (key: ResolutionKey) =>
   `${VideoPresets[key].width}x${VideoPresets[key].height}`
-
-type Range = { min: number; max: number }
-
-const MEASURE_SECONDS: Range = { min: 3, max: 120 }
-const PASSES: Range = { min: 1, max: 6 }
-
-/**
- * The `min` and `max` attributes only bite on a form submit, and these
- * controls have no form: cleared, the field parses as 0 and the run produces
- * a report with no measurement in it. Null here means the field is unusable,
- * and the Run button stays disabled until it is not.
- */
-const numberInRange = (raw: string, range: Range): number | null => {
-  const value = Number(raw)
-  if (raw.trim() === '' || !Number.isInteger(value)) return null
-  return value >= range.min && value <= range.max ? value : null
-}
 
 const styles = {
   page: css({

@@ -13,6 +13,7 @@ import {
   raceAbort,
   throwIfAborted,
 } from './sequencing'
+import { resolveBenchOptions } from './options'
 import { mean } from './stats'
 import { collectSystemSpecs } from './systemSpecs'
 import type {
@@ -347,11 +348,14 @@ export async function runBenchmark(
   if (contenders.length === 0)
     throw new Error('Select at least one processor to benchmark')
 
+  // Every read below uses the resolved options, never the caller's.
+  const resolved = resolveBenchOptions(options)
+
   // Independent: a WebGPU adapter request should not sit in front of the
   // camera warm-up.
   const [specs, sourceTrack] = await Promise.all([
     collectSystemSpecs(),
-    acquireSourceTrack(options),
+    acquireSourceTrack(resolved),
   ])
   const sourceSettings = sourceTrack.getSettings()
   const runsByContender = new Map<string, RunMetrics[]>(
@@ -359,21 +363,21 @@ export async function runBenchmark(
   )
 
   try {
-    for (let pass = 0; pass < options.passes; pass++) {
+    for (let pass = 0; pass < resolved.passes; pass++) {
       const order = pass % 2 === 0 ? contenders : [...contenders].reverse()
       for (const contender of order) {
         throwIfAborted(signal)
         const metrics = await runSingle(contender, pass, {
           sourceTrack,
           mounts,
-          options,
+          options: resolved,
           signal,
           onProgress,
         })
         runsByContender.get(contender.id)!.push(metrics)
 
         onProgress({ phase: 'cooldown', contenderLabel: contender.label, pass })
-        await delay(options.cooldownMs, signal)
+        await delay(resolved.cooldownMs, signal)
       }
     }
   } finally {
@@ -386,7 +390,7 @@ export async function runBenchmark(
     startedAt: new Date().toISOString(),
     userAgent: navigator.userAgent,
     specs,
-    options,
+    options: resolved,
     sourceSettings,
     results: contenders.map((contender) =>
       aggregate(contender, runsByContender.get(contender.id)!)
