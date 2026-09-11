@@ -100,6 +100,19 @@ export const useScreenShareZoom = () => {
     )
   }, [])
 
+  // After the video moves to the other window, write the current zoom back
+  // on the new nodes (otherwise it looks like 100 % until the next scroll).
+  const resync = useCallback(() => {
+    panRef.current = clampPan(
+      panRef.current,
+      zoomRef.current,
+      readPictureRatio()
+    )
+    applyTransform()
+    applyCursor()
+    flush()
+  }, [applyCursor, applyTransform, flush, readPictureRatio])
+
   const setZoom = useCallback(
     (next: number) => {
       zoomRef.current = next
@@ -302,6 +315,7 @@ export const useScreenShareZoom = () => {
     zoomIn,
     zoomOut,
     resetZoom,
+    resync,
     handleWheel,
     handleKeyDown,
   }
