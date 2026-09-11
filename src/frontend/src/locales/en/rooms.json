@@ -763,7 +763,7 @@
     "zoomOut": "Zoom out",
     "zoomOutWithShortcut": "Zoom out ({{shortcut}})",
     "wheelShortcut": "Control plus scroll wheel",
-    "wheelShortcutMac": "Command plus scroll wheel",
+    "wheelShortcutMac": "⌘+scroll wheel",
     "wheelShortcutHint": "Shortcut: Control plus scroll wheel to zoom in or out.",
     "wheelShortcutHintMac": "Shortcut: Command plus scroll wheel to zoom in or out.",
     "fitToWindow": "Fit to window",
