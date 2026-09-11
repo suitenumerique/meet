@@ -88,7 +88,7 @@ export const ScreenShareZoomControls = ({
     }
   }, [containerRef])
 
-  const wheelShortcutVisual = isMacintosh() ? '⌘+scroll' : 'Ctrl+scroll'
+  const wheelShortcut = t(isMacintosh() ? 'wheelShortcutMac' : 'wheelShortcut')
 
   return (
     <div
@@ -161,7 +161,7 @@ export const ScreenShareZoomControls = ({
             variant="primaryTextDark"
             square
             tooltip={t('zoomOutWithShortcut', {
-              shortcut: wheelShortcutVisual,
+              shortcut: wheelShortcut,
             })}
             aria-label={t('zoomOut')}
             isDisabled={!isZoomed || !canZoomOut}
@@ -194,7 +194,7 @@ export const ScreenShareZoomControls = ({
           size="sm"
           variant="primaryTextDark"
           square
-          tooltip={t('zoomInWithShortcut', { shortcut: wheelShortcutVisual })}
+          tooltip={t('zoomInWithShortcut', { shortcut: wheelShortcut })}
           aria-label={t('zoomIn')}
           isDisabled={!canZoomIn}
           onPress={onZoomIn}
