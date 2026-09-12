@@ -756,6 +756,24 @@
     "muteParticipant": "{{name}} stummschalten",
     "fullScreen": "Vollbild"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Zoom-Steuerung für Bildschirmfreigabe",
+    "zoomIn": "Vergrößern",
+    "zoomInWithShortcut": "Vergrößern ({{shortcut}})",
+    "zoomOut": "Verkleinern",
+    "zoomOutWithShortcut": "Verkleinern ({{shortcut}})",
+    "wheelShortcut": "Steuerung plus Mausrad",
+    "wheelShortcutMac": "Befehl plus Mausrad",
+    "wheelShortcutHint": "Tastenkürzel: Steuerung plus Mausrad zum Vergrößern oder Verkleinern.",
+    "wheelShortcutHintMac": "Tastenkürzel: Befehl plus Mausrad zum Vergrößern oder Verkleinern.",
+    "fitToWindow": "An Fenster anpassen",
+    "fullScreen": "Vollbild",
+    "exitFullScreen": "Vollbild beenden",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Mit der Maus ziehen oder den Fokus zurück auf die Bildschirmfreigabe setzen und mit den Pfeiltasten im Bild navigieren.",
+    "fullScreenEntered": "Vollbild aktiviert",
+    "fullScreenExited": "Vollbild deaktiviert"
+  },
   "shortcutsPanel": {
     "title": "Tastenkürzel",
     "categories": {
@@ -775,7 +793,11 @@
       "raise-hand": "Hand heben oder senken",
       "toggle-chat": "Chat anzeigen/ausblenden",
       "toggle-participants": "Teilnehmende anzeigen/ausblenden",
-      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen"
+      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen",
+      "zoom-in": "In einen geteilten Bildschirm hineinzoomen",
+      "zoom-out": "Aus einem geteilten Bildschirm herauszoomen",
+      "zoom-reset": "Zoom des geteilten Bildschirms zurücksetzen",
+      "zoom-pan": "Im gezoomten geteilten Bildschirm navigieren"
     },
     "sr": {
       "control": "Steuerung",
@@ -785,10 +807,14 @@
       "shift": "Umschalt",
       "plus": "plus",
       "hold": "Halte {{key}} gedrückt",
+      "arrows": "Pfeiltasten",
+      "plusKey": "Plus-Taste",
+      "minusKey": "Minus-Taste",
       "noShortcut": "Kein Tastenkürzel"
     },
     "visual": {
-      "hold": "Halte {{key}} gedrückt"
+      "hold": "Halte {{key}} gedrückt",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {
