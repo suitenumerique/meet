@@ -102,6 +102,9 @@
       },
       "messageReceived": {
         "label": "Un message reçu"
+      },
+      "participantWaiting": {
+        "label": "Une personne en salle d’attente"
       }
     }
   },

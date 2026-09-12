@@ -16,6 +16,7 @@ and this project adheres to
 
 ### Fixed
 
+- 🐛(frontend) sound the waiting room notification on every arrival
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
 - 🔒️(backend) enforce display name setting on rename API
 - 🔒️(backend) reject inactive users in resource server backend
