@@ -3,8 +3,12 @@ Test recordings API endpoints in the Meet core app: retrieve.
 """
 
 import random
+from unittest import mock
+
+from django.core.files.storage import default_storage
 
 import pytest
+from botocore.exceptions import ClientError, EndpointConnectionError
 from freezegun import freeze_time
 from rest_framework.test import APIClient
 
@@ -12,6 +16,11 @@ from ...factories import RecordingFactory, UserFactory, UserRecordingAccessFacto
 from ...models import RecordingStatusChoices
 
 pytestmark = pytest.mark.django_db
+
+
+def media_recording_url(recording):
+    """Return the direct media URL for a recording."""
+    return f"/media/recordings/{recording.id!s}.{recording.extension}"
 
 
 def test_api_recording_retrieve_anonymous():
@@ -24,6 +33,9 @@ def test_api_recording_retrieve_anonymous():
     assert response.json() == {
         "detail": "Authentication credentials were not provided."
     }
+
+    response = client.get(media_recording_url(recording))
+    assert response.status_code == 401
 
 
 def test_api_recording_retrieve_authenticated():
@@ -44,6 +56,9 @@ def test_api_recording_retrieve_authenticated():
     assert response.status_code == 404
     assert response.json() == {"detail": "No Recording matches the given query."}
 
+    response = client.get(media_recording_url(recording))
+    assert response.status_code == 403
+
 
 def test_api_recording_retrieve_members():
     """
@@ -62,6 +77,11 @@ def test_api_recording_retrieve_members():
     assert response.json() == {
         "detail": "You do not have permission to perform this action."
     }
+
+    recording.status = RecordingStatusChoices.SAVED
+    recording.save(update_fields=["status"])
+    response = client.get(media_recording_url(recording))
+    assert response.status_code == 403
 
 
 def test_api_recording_retrieve_administrators(settings):
@@ -135,6 +155,78 @@ def test_api_recording_retrieve_owners(settings):
         "expired_at": None,
         "is_expired": False,
     }
+
+
+@pytest.mark.parametrize("role", ["owner", "administrator"])
+def test_api_recording_media_download_authorized(role):
+    """Owners and administrators can download a saved recording."""
+    user = UserFactory()
+    recording = RecordingFactory(status=RecordingStatusChoices.SAVED)
+    UserRecordingAccessFactory(recording=recording, user=user, role=role)
+
+    client = APIClient()
+    client.force_login(user)
+    body = mock.Mock(iter_chunks=mock.Mock(return_value=[b"recording content"]))
+    s3_object = {
+        "Body": body,
+        "ContentType": "video/mp4",
+        "ContentLength": len(b"recording content"),
+    }
+    with mock.patch.object(
+        default_storage.connection.meta.client,
+        "get_object",
+        return_value=s3_object,
+    ) as get_object:
+        response = client.get(media_recording_url(recording))
+
+    assert response.status_code == 200
+    get_object.assert_called_once_with(
+        Bucket=default_storage.bucket_name,
+        Key=recording.key,
+    )
+    assert response["Content-Type"] == "video/mp4"
+    assert response["Content-Disposition"] == (
+        f'attachment; filename="{recording.id}.{recording.extension}"'
+    )
+    assert b"".join(response.streaming_content) == b"recording content"
+    body.close.assert_called_once_with()
+
+
+def test_api_recording_media_download_missing_object():
+    """A missing recording object should return 404."""
+    user = UserFactory()
+    recording = RecordingFactory(status=RecordingStatusChoices.SAVED)
+    UserRecordingAccessFactory(recording=recording, user=user, role="owner")
+
+    client = APIClient()
+    client.force_login(user)
+    error = ClientError(
+        {"Error": {"Code": "NoSuchKey", "Message": "The object does not exist."}},
+        "GetObject",
+    )
+    with mock.patch.object(
+        default_storage.connection.meta.client, "get_object", side_effect=error
+    ):
+        response = client.get(media_recording_url(recording))
+
+    assert response.status_code == 404
+
+
+def test_api_recording_media_download_storage_unavailable():
+    """A storage connection failure should return 503."""
+    user = UserFactory()
+    recording = RecordingFactory(status=RecordingStatusChoices.SAVED)
+    UserRecordingAccessFactory(recording=recording, user=user, role="owner")
+
+    client = APIClient()
+    client.force_login(user)
+    error = EndpointConnectionError(endpoint_url="https://storage.test")
+    with mock.patch.object(
+        default_storage.connection.meta.client, "get_object", side_effect=error
+    ):
+        response = client.get(media_recording_url(recording))
+
+    assert response.status_code == 503
 
 
 @freeze_time("2023-01-15 12:00:00")
