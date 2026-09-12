@@ -15,7 +15,7 @@ import { useUser } from '@/features/auth/api/useUser'
 import { useConfig } from '@/api/useConfig'
 import { saveUsername, userStore } from '@/stores/user'
 import { fetchRoom } from '../api/fetchRoom'
-import { ApiAccessLevel } from '../api/ApiRoom'
+import { ApiAccessLevel, effectiveAccessLevel } from '../api/ApiRoom'
 import { ApiLobbyStatus, type ApiRequestEntry } from '../api/requestEntry'
 import { useLobby } from '../hooks/useLobby'
 
@@ -78,7 +78,7 @@ export const Lobby = ({
 
     if (!data?.livekit) {
       // Display a message to inform the user that by logging in, they won't have to wait for room entry approval.
-      if (data?.access_level == ApiAccessLevel.TRUSTED) {
+      if (effectiveAccessLevel(data) == ApiAccessLevel.TRUSTED) {
         openLoginHint()
       }
       startWaiting()

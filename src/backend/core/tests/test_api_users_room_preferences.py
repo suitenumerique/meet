@@ -74,6 +74,25 @@ def test_api_users_update_default_room_access_level_invalid():
     assert user.default_room_access_level is None
 
 
+def test_api_users_update_default_room_access_level_not_allowed(settings):
+    """A default the instance forbids should be rejected, since it creates rooms."""
+    settings.RESOURCE_ALLOWED_ACCESS_LEVELS = ["trusted", "restricted"]
+    user = factories.UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/users/{user.id!s}/",
+        {"default_room_access_level": "public"},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    user.refresh_from_db()
+    assert user.default_room_access_level is None
+
+
 def test_api_users_update_default_room_configuration_invalid():
     """An invalid room configuration should be rejected."""
     user = factories.UserFactory()

@@ -30,6 +30,8 @@ def test_api_rooms_retrieve_anonymous_private_pk():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -49,6 +51,8 @@ def test_api_rooms_retrieve_anonymous_trusted_pk():
     assert response.json() == {
         "configuration": {},
         "access_level": "trusted",
+        "effective_access_level": "trusted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -67,6 +71,8 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -83,6 +89,8 @@ def test_api_rooms_retrieve_anonymous_private_slug():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -99,6 +107,8 @@ def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -127,6 +137,8 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
         "id": None,
         "slug": "unregistered-room",
         "access_level": "public",
+        "effective_access_level": "public",
+        "access_level_needs_choice": False,
         "is_administrable": False,
         "livekit": {
             "url": "test_url_value",
@@ -162,6 +174,8 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
         "id": None,
         "slug": "reunion",
         "access_level": "public",
+        "effective_access_level": "public",
+        "access_level_needs_choice": False,
         "is_administrable": False,
         "livekit": {
             "url": "test_url_value",
@@ -173,6 +187,22 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
     mock_token.assert_called_once_with(
         room="reunion", user=AnonymousUser(), username=None
     )
+
+
+@override_settings(
+    ALLOW_UNREGISTERED_ROOMS=True,
+    RESOURCE_ALLOWED_ACCESS_LEVELS=["trusted", "restricted"],
+)
+def test_api_rooms_retrieve_unregistered_gone_when_public_is_forbidden():
+    """
+    An unregistered room is an open meeting, so an instance forbidding open
+    meetings should answer 404 rather than mint one.
+    """
+    client = APIClient()
+    response = client.get("/api/v1.0/rooms/unregistered-room/")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No Room matches the given query."}
 
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=False)
@@ -208,6 +238,8 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
     assert response.json() == {
         "configuration": {},
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -254,6 +286,8 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     assert response.json() == {
         "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -305,6 +339,8 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
     assert response.json() == {
         "configuration": {},
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -346,6 +382,8 @@ def test_api_rooms_retrieve_authenticated():
     assert response.json() == {
         "configuration": {},
         "access_level": "restricted",
+        "effective_access_level": "restricted",
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
@@ -391,6 +429,8 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
     assert content_dict == {
         "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "livekit": {
             "url": "test_url_value",
@@ -486,6 +526,8 @@ def test_api_rooms_retrieve_administrators(
     expected_name = str(room.id)
     assert content_dict == {
         "access_level": str(room.access_level),
+        "effective_access_level": str(room.effective_access_level),
+        "access_level_needs_choice": False,
         "id": str(room.id),
         "configuration": {},
         "livekit": {

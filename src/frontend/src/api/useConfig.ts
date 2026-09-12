@@ -55,6 +55,7 @@ export interface ApiConfig {
   }
   resource?: {
     default_access_level?: ApiAccessLevel
+    allowed_access_levels?: ApiAccessLevel[]
   }
   manifest_link?: string
   livekit: {
