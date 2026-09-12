@@ -102,6 +102,9 @@
       },
       "messageReceived": {
         "label": "Bericht ontvangen"
+      },
+      "participantWaiting": {
+        "label": "Deelnemer in de wachtkamer"
       }
     }
   },

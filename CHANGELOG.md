@@ -26,6 +26,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(backend) report the app release to Sentry instead of "NA"
+- 🐛(frontend) play the waiting room notification sound on every arrival
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
 - 🔒️(backend) enforce display name setting on rename API
 - 🔒️(backend) reject inactive users in resource server backend

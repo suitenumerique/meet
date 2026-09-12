@@ -16,6 +16,7 @@ const DEFAULT_STATE: State = {
       [NotificationType.ParticipantJoined, true],
       [NotificationType.HandRaised, true],
       [NotificationType.MessageReceived, true],
+      [NotificationType.ParticipantWaiting, true],
     ])
   ),
   soundNotificationVolume: 0.1,
