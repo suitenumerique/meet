@@ -31,6 +31,7 @@ and this project adheres to
 - 🔊(backend) log request duration in Gunicorn workers
 - 📈(frontend) track missing lobby participant on accept/reject
 - ✨(backend) sort waiting participants by their arrival time
+- ✨(frontend) add a dev-only benchmark harness for livekit track processors
 
 ### Changed
 
