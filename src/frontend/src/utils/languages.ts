@@ -11,8 +11,18 @@ const frontendToBackendMap: Record<FrontendLanguage, BackendLanguage> = {
   es: 'es-es',
 }
 
+export const fallbackLng: FrontendLanguage = 'fr'
+
 export const convertToBackendLanguage = (
-  frontendLang: string = 'fr'
-): BackendLanguage => {
+  frontendLang: string = fallbackLng
+): BackendLanguage | undefined => {
   return frontendToBackendMap[frontendLang as FrontendLanguage]
+}
+
+export const convertToFrontendLanguage = (
+  backendLang: string
+): FrontendLanguage | undefined => {
+  return (Object.keys(frontendToBackendMap) as FrontendLanguage[]).find(
+    (key) => frontendToBackendMap[key] === backendLang
+  )
 }
