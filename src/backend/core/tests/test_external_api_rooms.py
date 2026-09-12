@@ -29,6 +29,7 @@ from core.models import (
     RoomAccessLevel,
     User,
 )
+from core.services.participants_management import ParticipantNotFoundException
 from core.services.room_management import RoomManagement
 
 pytestmark = pytest.mark.django_db
@@ -2856,3 +2857,96 @@ def test_api_rooms_grant_access_preserves_owner_and_audits(caplog):
     assert room.get_role(delegate) == RoleChoices.OWNER
     assert "Room access granted via application" in caplog.text
     assert f"delegate_email={delegate.email}" in caplog.text
+
+
+@mock.patch("core.services.room_roles.RoomRoleService._sync_livekit_role")
+@mock.patch("core.services.room_roles.ParticipantsManagement")
+def test_api_rooms_grant_access_syncs_connected_delegate(
+    mock_participants_management, mock_sync
+):
+    """Granting access to a delegate currently in the meeting syncs LiveKit."""
+
+    mock_participants_management.return_value.check_if_in_meeting.return_value = True
+    mock_sync.return_value = True
+
+    user = UserFactory()
+    delegate = UserFactory(sub=uuid.uuid4())
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    mock_sync.assert_called_once_with(
+        room_name=str(room.pk),
+        participant_identity=str(delegate.sub),
+        role=RoleChoices.ADMIN,
+    )
+
+
+@mock.patch("core.services.room_roles.RoomRoleService._sync_livekit_role")
+@mock.patch("core.services.room_roles.ParticipantsManagement")
+def test_api_rooms_grant_access_no_sync_when_delegate_absent(
+    mock_participants_management, mock_sync
+):
+    """Granting access to a delegate outside the meeting does not sync LiveKit."""
+
+    mock_participants_management.return_value.check_if_in_meeting.side_effect = (
+        ParticipantNotFoundException("Participant does not exist")
+    )
+
+    user = UserFactory()
+    delegate = UserFactory(sub=uuid.uuid4())
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data["created"] is True
+    mock_sync.assert_not_called()
+
+
+@mock.patch("core.services.room_roles.RoomRoleService._sync_livekit_role")
+@mock.patch("core.services.room_roles.ParticipantsManagement")
+def test_api_rooms_grant_access_succeeds_on_livekit_failure(
+    mock_participants_management, mock_sync
+):
+    """A LiveKit failure must never fail the grant itself."""
+
+    mock_participants_management.return_value.check_if_in_meeting.side_effect = (
+        ConnectionError("LiveKit unreachable")
+    )
+
+    user = UserFactory()
+    delegate = UserFactory(sub=uuid.uuid4())
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data["created"] is True
+    assert room.get_role(delegate) == RoleChoices.ADMIN
+    mock_sync.assert_not_called()

@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.db import IntegrityError
 
 from django_filters import rest_framework as django_filters
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
@@ -29,6 +28,7 @@ from core import analytics, api, models
 from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
 from core.services.room_management import RoomManagement
+from core.services.room_roles import RoomRoleService, SelfActionError
 
 from ..services.provisional_user_service import (
     ProvisionalUserCreationDisabledError,
@@ -308,8 +308,12 @@ class RoomViewSet(
         client_id = (request.auth or {}).get("client_id", "unknown")
 
         try:
-            delegate, user_created = ProvisionalUserService().get_or_create(
-                email, client_id
+            result = RoomRoleService().grant_access_by_email(
+                room=room,
+                actor=request.user,
+                email=email,
+                role=role,
+                client_id=client_id,
             )
         except ProvisionalUserCreationDisabledError as not_found_error:
             raise drf_exceptions.NotFound(
@@ -320,36 +324,10 @@ class RoomViewSet(
                 {"error": "Failed to create or retrieve delegate user."},
                 status=drf_status.HTTP_409_CONFLICT,
             )
-
-        if delegate == request.user:
+        except SelfActionError as self_action_error:
             raise drf_exceptions.PermissionDenied(
-                "You cannot change your own access on a room."
-            )
-
-        # `get_or_create` keeps the endpoint race-safe: concurrent requests for
-        # the same (resource, user) pair resolve on the unique constraint
-        # instead of failing. Note that `BaseModel.save` runs `full_clean`, so
-        # the race can surface as a `ValidationError` (from `validate_unique`)
-        # before the database unique constraint is even hit. In both cases,
-        # fetch the access created by the concurrent request.
-        try:
-            access, access_created = models.ResourceAccess.objects.get_or_create(
-                resource=room,
-                user=delegate,
-                defaults={"role": role},
-            )
-        except (IntegrityError, ValidationError):
-            access = models.ResourceAccess.objects.get(resource=room, user=delegate)
-            access_created = False
-
-        detail = None
-        if not access_created:
-            if access.role == models.RoleChoices.OWNER:
-                # An existing owner is never demoted.
-                detail = "Delegate is already owner of this room."
-            elif access.role != role:
-                access.role = role
-                access.save(update_fields=["role", "updated_at"])
+                str(self_action_error)
+            ) from self_action_error
 
         logger.info(
             "Room access granted via application: room_id=%s, delegate_email=%s, "
@@ -357,28 +335,19 @@ class RoomViewSet(
             "user_id=%s, client_id=%s, auth_method=%s",
             room.id,
             email,
-            access.role,
-            access_created,
-            user_created,
+            result.role,
+            result.created,
+            result.provisional_user_created,
             request.user.id,
             client_id,
             type(request.successful_authenticator).__name__,
         )
 
-        payload = {
-            "email": email,
-            "role": access.role,
-            "created": access_created,
-            "provisional_user_created": user_created,
-        }
-        if detail:
-            payload["detail"] = detail
-
         return drf_response.Response(
-            payload,
+            result.to_payload(),
             status=(
                 drf_status.HTTP_201_CREATED
-                if access_created
+                if result.created
                 else drf_status.HTTP_200_OK
             ),
         )
