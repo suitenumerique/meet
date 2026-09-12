@@ -34,6 +34,15 @@ export const WaitingParticipantNotification = () => {
   const isParticipantListEmpty = (p?: WaitingParticipant[]) => p?.length == 0
 
   useEffect(() => {
+    const previousIds = new Set(prevWaitingParticipant?.map(({ id }) => id))
+    const hasNewWaitingParticipant = waitingParticipants.some(
+      ({ id }) => !previousIds.has(id)
+    )
+
+    if (hasNewWaitingParticipant) {
+      triggerNotificationSound(NotificationType.ParticipantWaiting)
+    }
+
     // Show notification when the first participant enters the waiting room
     if (
       !isParticipantListEmpty(waitingParticipants) &&
@@ -41,8 +50,6 @@ export const WaitingParticipantNotification = () => {
       !isParticipantsOpen
     ) {
       setShowQuickActionsMessage(true)
-
-      triggerNotificationSound(NotificationType.ParticipantJoined)
 
       if (timerRef.current !== null) {
         clearTimeout(timerRef.current)
