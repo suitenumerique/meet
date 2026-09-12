@@ -4,6 +4,7 @@ Tests for external API /room endpoint
 
 # pylint: disable=W0621,C0302
 
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from unittest import mock
@@ -13,6 +14,7 @@ from django.conf import settings
 import jwt
 import pytest
 import responses
+from freezegun import freeze_time
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 from rest_framework.test import APIClient
 
@@ -21,11 +23,13 @@ from core.factories import ApplicationFactory, RoomFactory, UserFactory
 from core.models import (
     Application,
     ApplicationScope,
+    ResourceAccess,
     RoleChoices,
     Room,
     RoomAccessLevel,
     User,
 )
+from core.services.participants_management import ParticipantNotFoundException
 from core.services.room_management import RoomManagement
 
 pytestmark = pytest.mark.django_db
@@ -2375,3 +2379,574 @@ def test_api_rooms_addons_disabled_does_not_break_application_auth(settings):
     assert response.status_code == 200
     assert response.data["count"] == 1
     assert response.data["results"][0]["id"] == str(room.id)
+
+
+def test_api_rooms_list_filter_by_slug():
+    """Filtering rooms by slug should return only the room with this exact slug."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)], name="My team room")
+    RoomFactory(users=[(user, RoleChoices.OWNER)], name="Another room")
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/?slug=my-team-room")
+
+    assert response.status_code == 200
+    assert response.data["count"] == 1
+    assert response.data["results"][0]["id"] == str(room.id)
+    assert response.data["results"][0]["slug"] == "my-team-room"
+
+
+def test_api_rooms_list_filter_by_slug_no_match():
+    """Filtering rooms by an unknown slug should return an empty list."""
+
+    user = UserFactory()
+    RoomFactory(users=[(user, RoleChoices.OWNER)], name="My team room")
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/?slug=nonexistent-slug")
+
+    assert response.status_code == 200
+    assert response.data["count"] == 0
+    assert response.data["results"] == []
+
+
+def test_api_rooms_list_filter_by_slug_scoped_to_user():
+    """The slug filter should not leak rooms the authenticated user cannot access."""
+
+    user = UserFactory()
+    other_user = UserFactory()
+    RoomFactory(users=[(other_user, RoleChoices.OWNER)], name="My team room")
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/?slug=my-team-room")
+
+    assert response.status_code == 200
+    assert response.data["count"] == 0
+    assert response.data["results"] == []
+
+
+def test_api_rooms_grant_access_requires_authentication():
+    """Granting access without authentication should return 401."""
+
+    room = RoomFactory(users=[(UserFactory(), RoleChoices.OWNER)])
+
+    client = APIClient()
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": "delegate@example.com"},
+        format="json",
+    )
+
+    assert response.status_code == 401
+
+
+def test_api_rooms_grant_access_requires_scope():
+    """Granting access requires the ROOMS_GRANT_ACCESS scope."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    # Token without ROOMS_GRANT_ACCESS scope
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": "delegate@example.com"},
+        format="json",
+    )
+
+    assert response.status_code == 403
+    assert (
+        "insufficient permissions. required scope: rooms:grant-access"
+        in str(response.data).lower()
+    )
+
+
+def test_api_rooms_grant_access_success_existing_delegate():
+    """An owner should be able to grant administrator access to an existing user."""
+
+    user = UserFactory()
+    delegate = UserFactory(email="delegate@example.com")
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data == {
+        "email": delegate.email,
+        "role": RoleChoices.ADMIN,
+        "created": True,
+        "provisional_user_created": False,
+    }
+    assert room.get_role(delegate) == RoleChoices.ADMIN
+
+
+def test_api_rooms_grant_access_default_role_is_administrator():
+    """Omitting the role should grant administrator access by default."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data["role"] == RoleChoices.ADMIN
+    assert room.get_role(delegate) == RoleChoices.ADMIN
+
+
+def test_api_rooms_grant_access_administrator_caller_success():
+    """An administrator (not only the owner) should be able to grant access."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.ADMIN)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "member"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert room.get_role(delegate) == RoleChoices.MEMBER
+
+
+@pytest.mark.parametrize("role", [RoleChoices.MEMBER, None])
+def test_api_rooms_grant_access_forbidden_for_non_administrators(role):
+    """Granting access should return 403 for members and users without any role."""
+
+    user = UserFactory()
+    users = [(user, role)] if role else []
+    room = RoomFactory(users=users)
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": "delegate@example.com"},
+        format="json",
+    )
+
+    assert response.status_code == 403
+
+
+def test_api_rooms_grant_access_idempotent():
+    """Re-granting the same role to the same delegate should return 200."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+    assert response.status_code == 201
+    assert response.data["created"] is True
+
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+    assert response.status_code == 200
+    assert response.data["created"] is False
+    assert response.data["role"] == RoleChoices.ADMIN
+    assert ResourceAccess.objects.filter(resource=room, user=delegate).count() == 1
+
+
+def test_api_rooms_grant_access_updates_existing_role():
+    """Granting a different role to an existing delegate should update their access."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER), (delegate, RoleChoices.MEMBER)]
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.data["created"] is False
+    assert room.get_role(delegate) == RoleChoices.ADMIN
+
+
+def test_api_rooms_grant_access_preserves_owner():
+    """Granting access to a delegate who is already owner should not demote them."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER), (delegate, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "member"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.data["created"] is False
+    assert response.data["role"] == RoleChoices.OWNER
+    assert room.get_role(delegate) == RoleChoices.OWNER
+
+
+def test_api_rooms_grant_access_provisional_user_created(settings):
+    """An unknown delegate email should create a provisional user when allowed."""
+
+    settings.APPLICATION_ALLOW_USER_CREATION = True
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
+    settings.OIDC_USER_SUB_FIELD_IMMUTABLE = False
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": "new-delegate@example.com", "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data["created"] is True
+    assert response.data["provisional_user_created"] is True
+
+    delegate = User.objects.get(email="new-delegate@example.com")
+    assert delegate.sub is None
+    assert room.get_role(delegate) == RoleChoices.ADMIN
+
+
+def test_api_rooms_grant_access_unknown_delegate_creation_disabled():
+    """An unknown delegate email should return 404 when user creation is disabled."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": "new-delegate@example.com"},
+        format="json",
+    )
+
+    assert response.status_code == 404
+    assert not User.objects.filter(email="new-delegate@example.com").exists()
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"email": "delegate@example.com", "role": "owner"},
+        {"email": "delegate@example.com", "role": "invalid-role"},
+        {"email": "not-an-email"},
+        {"role": "administrator"},
+        {},
+    ],
+)
+def test_api_rooms_grant_access_invalid_payload(payload):
+    """Granting access with an invalid role or email should return 400."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        payload,
+        format="json",
+    )
+
+    assert response.status_code == 400
+
+
+def test_api_rooms_grant_access_room_not_found():
+    """Granting access on a non-existing room should return 404."""
+
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{uuid.uuid4()}/grant-access/",
+        {"email": "delegate@example.com"},
+        format="json",
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.parametrize("actor_role", [RoleChoices.ADMIN, RoleChoices.OWNER])
+def test_api_rooms_grant_access_self_action_forbidden(actor_role):
+    """Granting access to oneself should be rejected, whatever the actor's role."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, actor_role)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": user.email, "role": "member"},
+        format="json",
+    )
+
+    assert response.status_code == 403
+    assert room.get_role(user) == actor_role
+
+
+def test_api_rooms_grant_access_race_safe_on_concurrent_creation():
+    """A concurrent creation must resolve on the existing access, not fail.
+
+    Two concurrent requests can both miss the access in their existence check;
+    the losing insert then conflicts with the unique (user, resource)
+    constraint. The endpoint must absorb the conflict and answer as if the
+    access already existed.
+    """
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    # The access is created by a "concurrent" request before ours.
+    ResourceAccess.objects.create(resource=room, user=delegate, role=RoleChoices.ADMIN)
+
+    real_get = ResourceAccess.objects.get
+    checks = {"count": 0}
+
+    def racing_get(*args, **kwargs):
+        """Hide the concurrently-created access from the first existence check."""
+        if checks["count"] == 0:
+            checks["count"] += 1
+            raise ResourceAccess.DoesNotExist
+        return real_get(*args, **kwargs)
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    with mock.patch.object(ResourceAccess.objects, "get", side_effect=racing_get):
+        response = client.post(
+            f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+            {"email": delegate.email, "role": "administrator"},
+            format="json",
+        )
+
+    assert response.status_code == 200
+    assert response.data["created"] is False
+    assert response.data["role"] == RoleChoices.ADMIN
+    assert ResourceAccess.objects.filter(resource=room, user=delegate).count() == 1
+
+
+def test_api_rooms_grant_access_refreshes_updated_at():
+    """Updating an existing delegate role should refresh the access `updated_at`."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+
+    with freeze_time("2023-01-15 12:00:00"):
+        room = RoomFactory(
+            users=[(user, RoleChoices.OWNER), (delegate, RoleChoices.MEMBER)]
+        )
+
+    access = ResourceAccess.objects.get(resource=room, user=delegate)
+    previous_updated_at = access.updated_at
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    access.refresh_from_db()
+    assert access.role == RoleChoices.ADMIN
+    assert access.updated_at > previous_updated_at
+
+
+def test_api_rooms_grant_access_preserves_owner_and_audits(caplog):
+    """Granting access to an existing owner should not demote them and should be audited."""
+
+    user = UserFactory()
+    delegate = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER), (delegate, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    with caplog.at_level(logging.INFO, logger="core.external_api.viewsets"):
+        response = client.post(
+            f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+            {"email": delegate.email, "role": "member"},
+            format="json",
+        )
+
+    assert response.status_code == 200
+    assert response.data["created"] is False
+    assert response.data["role"] == RoleChoices.OWNER
+    assert response.data["detail"] == "Delegate is already owner of this room."
+    assert room.get_role(delegate) == RoleChoices.OWNER
+    assert "Room access granted via application" in caplog.text
+    assert f"delegate_email={delegate.email}" in caplog.text
+
+
+@mock.patch("core.services.room_roles.RoomRoleService._sync_livekit_role")
+@mock.patch("core.services.room_roles.ParticipantsManagement")
+def test_api_rooms_grant_access_syncs_connected_delegate(
+    mock_participants_management, mock_sync
+):
+    """Granting access to a delegate currently in the meeting syncs LiveKit."""
+
+    mock_participants_management.return_value.check_if_in_meeting.return_value = True
+    mock_sync.return_value = True
+
+    user = UserFactory()
+    delegate = UserFactory(sub=uuid.uuid4())
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    mock_sync.assert_called_once_with(
+        room_name=str(room.pk),
+        participant_identity=str(delegate.sub),
+        role=RoleChoices.ADMIN,
+    )
+
+
+@mock.patch("core.services.room_roles.RoomRoleService._sync_livekit_role")
+@mock.patch("core.services.room_roles.ParticipantsManagement")
+def test_api_rooms_grant_access_no_sync_when_delegate_absent(
+    mock_participants_management, mock_sync
+):
+    """Granting access to a delegate outside the meeting does not sync LiveKit."""
+
+    mock_participants_management.return_value.check_if_in_meeting.side_effect = (
+        ParticipantNotFoundException("Participant does not exist")
+    )
+
+    user = UserFactory()
+    delegate = UserFactory(sub=uuid.uuid4())
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data["created"] is True
+    mock_sync.assert_not_called()
+
+
+@mock.patch("core.services.room_roles.RoomRoleService._sync_livekit_role")
+@mock.patch("core.services.room_roles.ParticipantsManagement")
+def test_api_rooms_grant_access_succeeds_on_livekit_failure(
+    mock_participants_management, mock_sync
+):
+    """A LiveKit failure must never fail the grant itself."""
+
+    mock_participants_management.return_value.check_if_in_meeting.side_effect = (
+        ConnectionError("LiveKit unreachable")
+    )
+
+    user = UserFactory()
+    delegate = UserFactory(sub=uuid.uuid4())
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_GRANT_ACCESS])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        f"/external-api/v1.0/rooms/{room.id}/grant-access/",
+        {"email": delegate.email, "role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.data["created"] is True
+    assert room.get_role(delegate) == RoleChoices.ADMIN
+    mock_sync.assert_not_called()

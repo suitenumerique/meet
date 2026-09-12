@@ -83,6 +83,7 @@ class HasRequiredRoomScope(BaseScopePermission):
         "update": models.ApplicationScope.ROOMS_UPDATE,
         "partial_update": models.ApplicationScope.ROOMS_UPDATE,
         "destroy": models.ApplicationScope.ROOMS_DELETE,
+        "grant_access": models.ApplicationScope.ROOMS_GRANT_ACCESS,
     }
 
 
