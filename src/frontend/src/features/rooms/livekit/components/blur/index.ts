@@ -6,6 +6,7 @@ import type { Track, TrackProcessor } from 'livekit-client'
 import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
 import { UnifiedBackgroundTrackProcessor } from './UnifiedBackgroundTrackProcessor'
 import { FaceLandmarksOptions } from './FaceLandmarksProcessor'
+import { captureEvent } from '@/features/analytics/telemetry'
 
 export const SELFIE_SEGMENTER_MODEL_PATH =
   '/assets/mediapipe/models/selfie_segmenter_landscape.tflite'
@@ -31,15 +32,29 @@ export interface BackgroundProcessorInterface extends TrackProcessor<Track.Kind>
   options: ProcessorConfig
 }
 
+let unsupportedReported = false
+
 export class BackgroundProcessorFactory {
+  private static _isSupported?: boolean
+
   static hasModernApiSupport() {
     return ProcessorWrapper.hasModernApiSupport
   }
 
   static isSupported() {
-    return (
-      supportsBackgroundProcessors() || BackgroundCustomProcessor.isSupported
-    )
+    if (this._isSupported === undefined) {
+      this._isSupported =
+        supportsBackgroundProcessors() || BackgroundCustomProcessor.isSupported
+    }
+
+    if (!this._isSupported && !unsupportedReported) {
+      unsupportedReported = true
+      captureEvent('background-processor-unsupported', {
+        path: 'isSupported',
+      })
+    }
+
+    return this._isSupported
   }
 
   static getProcessor(
@@ -47,6 +62,8 @@ export class BackgroundProcessorFactory {
   ): BackgroundProcessorInterface | undefined {
     const isBlur = config.type === ProcessorType.BLUR
     const isVirtual = config.type === ProcessorType.VIRTUAL
+
+    return new BackgroundCustomProcessor(config)
 
     if (!isBlur && !isVirtual) return undefined
 
@@ -56,6 +73,12 @@ export class BackgroundProcessorFactory {
 
     if (BackgroundCustomProcessor.isSupported) {
       return new BackgroundCustomProcessor(config)
+    }
+
+    if (!unsupportedReported) {
+      captureEvent('background-processor-unsupported', {
+        path: 'getProcessor',
+      })
     }
 
     return undefined
