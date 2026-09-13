@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) reworked background blur and virtual background #1378
+
 ### Changed
 
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
@@ -411,6 +415,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(frontend) add GPU video matting pipeline (blur & virtual bg)
 - 🔒️(backend) add validation of Room.configuration
 - ✨(helm) add support multiple transcribe worker / endpoint #1247
 - ✨(backend) make LiveKit Egress recording encoding configurable #1288

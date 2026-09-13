@@ -15,6 +15,7 @@ import {
   ProcessorType,
   MEDIAPIPE_PATH_WASM,
 } from '.'
+import { createCanvas } from './preprocessing/MattingCanvasManager'
 import { captureEvent } from '@/features/analytics/telemetry'
 
 const PROCESSING_WIDTH = 256 * 3
@@ -299,21 +300,13 @@ export class FaceLandmarksProcessor implements TrackProcessor<Track.Kind> {
       `#${FACE_LANDMARKS_CANVAS_ID}`
     ) as HTMLCanvasElement
     if (!this.outputCanvas) {
-      this.outputCanvas = this._createCanvas(
+      this.outputCanvas = createCanvas(
         FACE_LANDMARKS_CANVAS_ID,
         PROCESSING_WIDTH,
         PROCESSING_HEIGHT
       )
     }
     this.outputCanvasCtx = this.outputCanvas.getContext('2d')!
-  }
-
-  _createCanvas(id: string, width: number, height: number) {
-    const element = document.createElement('canvas')
-    element.setAttribute('id', id)
-    element.setAttribute('width', '' + width)
-    element.setAttribute('height', '' + height)
-    return element
   }
 
   update(opts: FaceLandmarksOptions): void {
