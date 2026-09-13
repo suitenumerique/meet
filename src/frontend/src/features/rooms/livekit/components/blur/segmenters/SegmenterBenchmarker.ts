@@ -1,10 +1,18 @@
 import { Segmenter, probeMediapipeDelegate } from './Segmenter'
 
+export type BenchmarkPairSink = (
+  mask: Float32Array,
+  source: ImageBitmap,
+  captureTime: number,
+  procW: number,
+  procH: number
+) => void
+
 export class SegmenterBenchmarker {
   static async measureInferenceP75(
     seg: Segmenter,
     videoElement: HTMLVideoElement | undefined,
-    onPairCreated: (mask: Float32Array, source: ImageBitmap, captureTime: number) => void,
+    onPairCreated: BenchmarkPairSink,
     isDestroyed: () => boolean
   ): Promise<number | null> {
     const width = seg.inputSize.width
@@ -28,12 +36,30 @@ export class SegmenterBenchmarker {
       return ctx.getImageData(0, 0, width, height)
     }
 
+    // Calibration frames go out on the live track, so they must carry the camera
+    // resolution — publishing benchCanvas would resize the outgoing video to the
+    // model input size. benchCanvas stays internal, as segmenter input only.
+    let frameCanvas: HTMLCanvasElement | null = null
+
     const publishFrame = async (mask: Float32Array): Promise<void> => {
       if (!hasRealFrame()) return
+      const video = videoElement!
+      const vw = video.videoWidth
+      const vh = video.videoHeight
+
+      const canvas = (frameCanvas ??= document.createElement('canvas'))
+      if (canvas.width !== vw || canvas.height !== vh) {
+        canvas.width = vw
+        canvas.height = vh
+      }
+      const frameCtx = canvas.getContext('2d')
+      if (!frameCtx) return
+      frameCtx.drawImage(video, 0, 0, vw, vh)
+
       const now = performance.now()
       let bitmap: ImageBitmap
       try {
-        bitmap = await createImageBitmap(benchCanvas, {
+        bitmap = await createImageBitmap(canvas, {
           imageOrientation: 'flipY',
         })
       } catch {
@@ -43,7 +69,9 @@ export class SegmenterBenchmarker {
         bitmap.close()
         return
       }
-      onPairCreated(mask, bitmap, now)
+      // The mask comes from the model under calibration, not from whichever
+      // model the processor is currently configured with.
+      onPairCreated(mask, bitmap, now, width, height)
     }
 
     const WARMUP = 5
@@ -72,7 +100,7 @@ export class SegmenterBenchmarker {
   static async benchmarkSegmenter(
     seg: Segmenter,
     videoElement: HTMLVideoElement | undefined,
-    onPairCreated: (mask: Float32Array, source: ImageBitmap, captureTime: number) => void,
+    onPairCreated: BenchmarkPairSink,
     isDestroyed: () => boolean
   ): Promise<'landscape' | 'multiclass_skip1' | 'multiclass_skip2'> {
     try {
@@ -100,7 +128,7 @@ export class SegmenterBenchmarker {
   static async benchmarkLandscapeSkip(
     seg: Segmenter,
     videoElement: HTMLVideoElement | undefined,
-    onPairCreated: (mask: Float32Array, source: ImageBitmap, captureTime: number) => void,
+    onPairCreated: BenchmarkPairSink,
     isDestroyed: () => boolean
   ): Promise<'skip1' | 'skip2'> {
     try {

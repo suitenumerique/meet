@@ -252,7 +252,13 @@ saturate the inference queue and effectively look like a frozen mask.
   - 25 ms ≤ p75 ≤ 50 ms → keep Multiclass, `frameSkip = 2` (~15 fps inference)
   - p75 > 50 ms → switch to Landscape
 - If Landscape is chosen, the same benchmark runs again to determine its own
-  `frameSkip` (threshold: 25 ms).
+  `frameSkip` (threshold: 25 ms). Landscape is loaded before Multiclass is
+  released, so a failed load falls back to Multiclass at `frameSkip = 2`.
+  Model loads are retried up to 3 times.
+- Calibration frames are published to the live track, so the user is not
+  broadcasting an unblurred background while the benchmark runs. They carry the
+  camera resolution and the benchmarked model's mask size.
+- While a model is being benchmarked, the previously active segmenter (if any) stops producing masks: running it in parallel would inflate the samples.
 - Both segmenters return a `Float32Array` mask in `[0, 1]` where 1 = person.
   For multiclass the foreground probability is computed as `1 − bg_prob`
   rather than summing the five "person" classes (faster, equivalent).
@@ -373,8 +379,9 @@ and run the standard `pComposite` shader instead.
 Every failure mode that is recoverable converts to an entry in the matting
 error store rather than a thrown exception:
 
-- WebGL2 context creation failure → fall back to passing the raw track
-  through unchanged.
+- WebGL2 failure → fall back to the Canvas2D renderer. It is built on a fresh
+  canvas, because a canvas that already holds a WebGL context cannot return a
+  2D one. Only if Canvas2D also fails is the raw track passed through unchanged.
 - Mediapipe init failure → continue rendering with a passthrough mask
   (all-ones) so the user sees their camera; the user can retry by toggling
   the effect off and on.

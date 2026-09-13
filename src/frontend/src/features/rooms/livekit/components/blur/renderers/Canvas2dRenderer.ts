@@ -153,14 +153,25 @@ export class Canvas2dRenderer implements GpuRenderer {
     const fg = this.fgCanvas!
     const fgCtx = this.fgCtx!
 
+    // ImageBitmap sources are pre-flipped for WebGL's bottom-left texture origin;
+    // Canvas2D has no such convention, so undo it. <video> passthrough is upright.
+    const flipSource = !('videoWidth' in source)
+
     fgCtx.globalCompositeOperation = 'source-over'
     fgCtx.clearRect(0, 0, this.outW, this.outH)
+    fgCtx.save()
+    if (flipSource) {
+      fgCtx.translate(0, this.outH)
+      fgCtx.scale(1, -1)
+    }
     try {
       fgCtx.drawImage(source, 0, 0, this.outW, this.outH)
     } catch {
       // Browser may throw if the source frame isn't ready yet — skip tick.
+      fgCtx.restore()
       return
     }
+    fgCtx.restore()
     fgCtx.globalCompositeOperation = 'destination-in'
     fgCtx.drawImage(this.maskCanvas, 0, 0, this.outW, this.outH)
     fgCtx.globalCompositeOperation = 'source-over'
@@ -170,12 +181,19 @@ export class Canvas2dRenderer implements GpuRenderer {
     if (this.mode === 'blur') {
 
       bgCtx.filter = this.blurRadius > 0 ? `blur(${this.blurRadius}px)` : 'none'
+      bgCtx.save()
+      if (flipSource) {
+        bgCtx.translate(0, this.outH)
+        bgCtx.scale(1, -1)
+      }
       try {
         bgCtx.drawImage(source, 0, 0, this.outW, this.outH)
       } catch {
+        bgCtx.restore()
         bgCtx.filter = 'none'
         return
       }
+      bgCtx.restore()
       bgCtx.filter = 'none'
     } else {
       this._drawVirtualBackground(bgCtx)

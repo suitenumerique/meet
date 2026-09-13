@@ -49,6 +49,10 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
   private _renderRunner!: RenderLoopRunner
 
   segmenter?: Segmenter
+  // Non-zero while a model is being timed. Calibration measures inference cost,
+  // so the outgoing model must stay idle: running it in parallel inflates the
+  // samples, and the benchmark only ever moves to a lighter model, never back.
+  private _calibrationDepth = 0
   gpuRenderer?: GpuRenderer
 
   private _latestPair: FrameMaskPair | null = null
@@ -74,7 +78,7 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
 
   private _initRunners() {
     this._segmenterRunner = new SegmenterLoopRunner(
-      () => this.segmenter,
+      () => (this._calibrationDepth > 0 ? undefined : this.segmenter),
       () => this._preProcessingPipeline,
       () => this._canvasManager,
       () => this._frameTracker,
@@ -239,14 +243,20 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     return SegmentationModel.AUTO
   }
 
-  private _publishBenchmarkPair(mask: Float32Array, source: ImageBitmap, captureTime: number) {
+  private _publishBenchmarkPair(
+    mask: Float32Array,
+    source: ImageBitmap,
+    captureTime: number,
+    procW: number,
+    procH: number
+  ) {
     this._onPairProduced({
       mask,
       source,
       captureTime,
       cameraCaptureTime: captureTime,
-      procW: this.processingWidth,
-      procH: this.processingHeight,
+      procW,
+      procH,
     })
   }
 
@@ -291,9 +301,19 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
         level: 'info',
         detail: `WebGL2 unavailable, using Canvas2D fallback: ${e instanceof Error ? e.message : String(e)}`,
       })
+      webgl2.destroy()
+      // A canvas keeps the first context type it is given. If WebGL2 took a
+      // context and only then failed (a shader that would not compile), asking
+      // the same canvas for a '2d' context returns null and the fallback dies
+      // too. Build Canvas2D on a fresh canvas — captureStream() has not run yet,
+      // so nothing is bound to the old one. Not _createMainCanvasWithSize: it
+      // reuses a canvas found by id, which would hand back the dead one.
+      this.outputCanvas = createCanvas(BLUR_CANVAS_ID, opts.outW, opts.outH)
       const c2d = new Canvas2dRenderer()
-      await c2d.init(this.outputCanvas!, opts)
+      await c2d.init(this.outputCanvas, opts)
       dismissMattingError('WEBGL2_INIT_FAILED')
+      // Canvas2D is now rendering, so a GPU-side error would be misleading.
+      dismissMattingError('POSTPROCESS_SHADER_COMPILE_FAILED')
       return c2d
     }
   }
@@ -320,6 +340,39 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
       : undefined
   }
 
+  // Model loads fail for transient reasons (asset not yet served, flaky network),
+  // so a couple of quick retries recover most of them. GPU/WASM failures repeat
+  // identically, but three short attempts are cheap enough not to special-case.
+  private static readonly SEGMENTER_INIT_ATTEMPTS = 3
+
+  private async _createSegmenterWithRetry(
+    model: SegmentationModel,
+    isCancelled: () => boolean
+  ): Promise<Segmenter | undefined> {
+    let lastError: unknown
+    const attempts = AdvancedMattingProcessor.SEGMENTER_INIT_ATTEMPTS
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      if (isCancelled()) return undefined
+      const seg = createSegmenter(model)
+      try {
+        await seg.init()
+        if (isCancelled()) {
+          seg.destroy()
+          return undefined
+        }
+        dismissMattingError('MEDIAPIPE_INIT_FAILED')
+        return seg
+      } catch (e) {
+        lastError = e
+        seg.destroy()
+        if (attempt < attempts) {
+          await new Promise<void>((r) => setTimeout(r, 200 * attempt))
+        }
+      }
+    }
+    throw lastError
+  }
+
   private async _calibrateMulticlass(
     seg: Segmenter,
     model: SegmentationModel
@@ -329,7 +382,8 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     const benchResult = await SegmenterBenchmarker.benchmarkSegmenter(
       seg,
       this.videoElement,
-      (mask, source, time) => this._publishBenchmarkPair(mask, source, time),
+      (mask, source, time, procW, procH) =>
+        this._publishBenchmarkPair(mask, source, time, procW, procH),
       isCancelled
     )
 
@@ -339,13 +393,27 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     }
 
     if (benchResult === 'landscape' && model === SegmentationModel.AUTO) {
-      seg.destroy()
-      const landscapeSeg = createSegmenter(SegmentationModel.LANDSCAPE)
-      await landscapeSeg.init()
-      if (isCancelled()) {
-        landscapeSeg.destroy()
+      // Load landscape before discarding multiclass: if the load fails we still
+      // have a working model. Landscape is 250 KB, so the overlap is cheap, and
+      // multiclass is idle here — it never runs alongside the next benchmark.
+      let landscapeSeg: Segmenter | undefined
+      try {
+        landscapeSeg = await this._createSegmenterWithRetry(
+          SegmentationModel.LANDSCAPE,
+          isCancelled
+        )
+      } catch {
+        // Multiclass was judged too slow, but a slow blur beats no blur at all.
+        // p75 > 50 ms, so run it at the conservative skip.
+        this._segmenterFrameSkip = 2
+        dismissMattingError('MEDIAPIPE_INIT_FAILED')
+        return { seg, targetModel: SegmentationModel.MULTICLASS }
+      }
+      if (!landscapeSeg) {
+        seg.destroy()
         return undefined
       }
+      seg.destroy()
       return { seg: landscapeSeg, targetModel: SegmentationModel.LANDSCAPE }
     }
 
@@ -362,7 +430,8 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     const skipResult = await SegmenterBenchmarker.benchmarkLandscapeSkip(
       seg,
       this.videoElement,
-      (mask, source, time) => this._publishBenchmarkPair(mask, source, time),
+      (mask, source, time, procW, procH) =>
+        this._publishBenchmarkPair(mask, source, time, procW, procH),
       isCancelled
     )
 
@@ -381,13 +450,8 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     const isCancelled = () => this._destroyed || this._pendingModel !== model
 
     let targetModel: SegmentationModel = model === SegmentationModel.AUTO ? SegmentationModel.MULTICLASS : model
-    let seg = createSegmenter(targetModel)
-    await seg.init()
-
-    if (isCancelled()) {
-      seg.destroy()
-      return undefined
-    }
+    let seg = await this._createSegmenterWithRetry(targetModel, isCancelled)
+    if (!seg) return undefined
 
     if (targetModel === SegmentationModel.MULTICLASS) {
       const calibrated = await this._calibrateMulticlass(seg, model)
@@ -411,7 +475,13 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     if (this._destroyed) return
     this._pendingModel = model
     try {
-      const result = await this._createAndCalibrateSegmenter(model)
+      this._calibrationDepth++
+      let result
+      try {
+        result = await this._createAndCalibrateSegmenter(model)
+      } finally {
+        this._calibrationDepth--
+      }
       if (!result || this._destroyed || this._pendingModel !== model) {
         return
       }
@@ -435,6 +505,7 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
         if (firstInit) {
           this.segmenter = undefined
         }
+        this._discardLatestPair()
         this._resolveReady()
       }
     }
@@ -446,14 +517,19 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
       this.processingWidth,
       this.processingHeight
     )
-    if (this._latestPair) {
-      try {
-        this._latestPair.source.close()
-      } catch {
-        /* ImageBitmap.close() — best-effort */
-      }
-      this._latestPair = null
+    this._discardLatestPair()
+  }
+
+  // The render loop draws _latestPair on every camera frame, so a pair left
+  // behind after a failed load would stay frozen on the published track.
+  private _discardLatestPair() {
+    if (!this._latestPair) return
+    try {
+      this._latestPair.source.close()
+    } catch {
+      /* ImageBitmap.close() — best-effort */
     }
+    this._latestPair = null
   }
 
   private _initVirtualBackgroundImage() {
@@ -537,14 +613,7 @@ export class AdvancedMattingProcessor implements BackgroundProcessorInterface {
     this.gpuRenderer = undefined
     this._preProcessingPipeline = undefined
     this._canvasManager.destroy()
-    if (this._latestPair) {
-      try {
-        this._latestPair.source.close()
-      } catch {
-        /* ImageBitmap.close() — best-effort */
-      }
-      this._latestPair = null
-    }
+    this._discardLatestPair()
     this._resolveReady()
     this._stopTrackCleanup()
   }
