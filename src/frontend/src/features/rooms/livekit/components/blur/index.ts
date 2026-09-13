@@ -5,6 +5,9 @@ import { FaceLandmarksOptions } from './FaceLandmarksProcessor'
 export const SELFIE_SEGMENTER_MODEL_PATH =
   '/assets/mediapipe/models/selfie_segmenter_landscape.tflite'
 
+export const SELFIE_MULTICLASS_MODEL_PATH =
+  '/assets/mediapipe/models/selfie_multiclass_256x256.tflite'
+
 export const FACE_LANDMARKS_MODEL_PATH =
   '/assets/mediapipe/models/face_landmarker.task'
 

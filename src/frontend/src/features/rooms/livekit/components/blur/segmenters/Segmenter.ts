@@ -1,6 +1,7 @@
 
 import { FilesetResolver, ImageSegmenter, ImageSegmenterResult } from '@mediapipe/tasks-vision'
 import { pushMattingError } from '../errors/MattingErrorStore'
+import { MEDIAPIPE_PATH_WASM, SELFIE_SEGMENTER_MODEL_PATH } from '..'
 
 type MediapipeFileset = Awaited<
   ReturnType<typeof FilesetResolver.forVisionTasks>
@@ -73,14 +74,12 @@ export abstract class BaseMediaPipeSegmenter implements Segmenter {
   }
 }
 
-const MEDIAPIPE_WASM_URL =
-  'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
 
 let _filesetPromise: Promise<MediapipeFileset> | null = null
 
 export function getMediapipeFileset(): Promise<MediapipeFileset> {
   _filesetPromise ??= FilesetResolver.forVisionTasks(
-    MEDIAPIPE_WASM_URL
+    MEDIAPIPE_PATH_WASM
   ).catch((e) => {
     _filesetPromise = null
     throw e
@@ -112,8 +111,7 @@ export function probeMediapipeDelegate(): Promise<'GPU' | 'CPU'> {
       const fileset = await getMediapipeFileset()
       const probe = await ImageSegmenter.createFromOptions(fileset, {
         baseOptions: {
-          modelAssetPath:
-            'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite',
+          modelAssetPath: SELFIE_SEGMENTER_MODEL_PATH,
           delegate: 'GPU',
         },
         runningMode: 'VIDEO',

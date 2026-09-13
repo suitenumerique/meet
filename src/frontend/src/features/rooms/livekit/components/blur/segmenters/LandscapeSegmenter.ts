@@ -1,12 +1,10 @@
 import { ImageSegmenterResult } from '@mediapipe/tasks-vision'
 import { BaseMediaPipeSegmenter } from './Segmenter'
-
-const MODEL_URL =
-  'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite'
+import { SELFIE_SEGMENTER_MODEL_PATH } from '..'
 
 export class LandscapeSegmenter extends BaseMediaPipeSegmenter {
   readonly inputSize = { width: 256, height: 144 }
-  protected readonly modelUrl = MODEL_URL
+  protected readonly modelUrl = SELFIE_SEGMENTER_MODEL_PATH
   protected readonly modelName = 'Landscape model'
 
   protected processSegmenterResult(result: ImageSegmenterResult): Float32Array {

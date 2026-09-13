@@ -1,13 +1,10 @@
 import { ImageSegmenterResult } from '@mediapipe/tasks-vision'
 import { BaseMediaPipeSegmenter } from './Segmenter'
-
-const MODEL_URL =
-  'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite'
-
+import { SELFIE_MULTICLASS_MODEL_PATH } from '..'
 
 export class MulticlassSegmenter extends BaseMediaPipeSegmenter {
   readonly inputSize = { width: 256, height: 256 }
-  protected readonly modelUrl = MODEL_URL
+  protected readonly modelUrl = SELFIE_MULTICLASS_MODEL_PATH
   protected readonly modelName = 'Multiclass model'
 
   protected processSegmenterResult(result: ImageSegmenterResult): Float32Array {
