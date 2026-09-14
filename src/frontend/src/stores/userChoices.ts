@@ -20,6 +20,7 @@ const isVideoResolution = (value: unknown): value is VideoResolution =>
 export type LocalUserChoices = Omit<LocalUserChoicesLK, 'username'> & {
   processorConfig?: ProcessorConfig
   noiseReductionEnabled?: boolean
+  audioLevelEqualizationEnabled?: boolean
   audioOutputDeviceId?: string
   videoPublishResolution?: VideoResolution
   videoSubscribeQuality?: VideoQuality
@@ -28,6 +29,8 @@ export type LocalUserChoices = Omit<LocalUserChoicesLK, 'username'> & {
 function getUserChoicesState(): LocalUserChoices {
   const stored: LocalUserChoices = {
     noiseReductionEnabled: false,
+    // Audio level equalization defaults off — opt-in before it becomes the default
+    audioLevelEqualizationEnabled: false,
     audioOutputDeviceId: 'default', // Use 'default' to match LiveKit's standard device selection behavior
     videoPublishResolution: 'h720',
     videoSubscribeQuality: VideoQuality.HIGH,
@@ -107,6 +110,10 @@ export const saveVideoSubscribeQuality = (quality: VideoQuality) => {
 
 export const saveNoiseReductionEnabled = (enabled: boolean) => {
   userChoicesStore.noiseReductionEnabled = enabled
+}
+
+export const saveAudioLevelEqualizationEnabled = (enabled: boolean) => {
+  userChoicesStore.audioLevelEqualizationEnabled = enabled
 }
 
 export const saveProcessorConfig = (
