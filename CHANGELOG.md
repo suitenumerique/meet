@@ -28,6 +28,7 @@ and this project adheres to
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
 - 🔒️(backend) enforce display name setting on rename API
 - 🔒️(backend) reject inactive users in resource server backend
+- 🐛(frontend) fix file permissions in the Docker image
 
 ## [1.31.0] - 2026-09-08
 
