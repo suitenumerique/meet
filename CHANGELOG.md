@@ -26,6 +26,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(backend) report the app release to Sentry instead of "NA"
+- 🐛(frontend) apply the saved reception resolution when joining a meeting #1714
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
 - 🔒️(backend) enforce display name setting on rename API
 - 🔒️(backend) reject inactive users in resource server backend
