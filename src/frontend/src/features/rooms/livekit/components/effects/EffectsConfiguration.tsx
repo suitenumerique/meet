@@ -25,7 +25,11 @@ import {
 } from '@/features/files/api/listFiles.ts'
 import { useCreateFile } from '@/features/files/api/createFile.ts'
 import { FileTrigger } from 'react-aria-components'
-import { RiDeleteBinLine, RiImageAddFill } from '@remixicon/react'
+import {
+  RiDeleteBinLine,
+  RiImageAddFill,
+  RiProhibitedLine,
+} from '@remixicon/react'
 import { useDeleteFile } from '@/features/files/api/deleteFile.ts'
 import { useUser } from '@/features/auth/api/useUser'
 import { ApiFileItem } from '@/features/files/api/types.ts'
@@ -197,10 +201,23 @@ export const EffectsConfiguration = ({
          *
          * We arrive in this condition when we enter the room with the camera already off.
          */
-        const newProcessorTmp = BackgroundProcessorFactory.getProcessor(config)!
-        await toggle(true, {
-          processor: newProcessorTmp,
-        })
+        try {
+          const newProcessorTmp =
+            BackgroundProcessorFactory.getProcessor(config)!
+          await toggle(true, {
+            processor: newProcessorTmp,
+          })
+        } catch (error) {
+          reportError('effects_processor_failure', error, {
+            context: 'Error applying effect while enabling camera:',
+          })
+          saveProcessorConfig(undefined)
+          try {
+            await toggle(true)
+          } catch {
+            // Camera errors are handled by the toggle's own error path.
+          }
+        }
         setTimeout(() => setProcessorPending(false))
         return
       }
@@ -242,6 +259,14 @@ export const EffectsConfiguration = ({
         reportError('effects_processor_failure', error, {
           context: 'Error applying effect:',
         })
+        try {
+          if (videoTrack.getProcessor()) {
+            await videoTrack.stopProcessor()
+          }
+        } catch {
+          // Best effort: the processor may already be broken.
+        }
+        saveProcessorConfig(undefined)
       } finally {
         // Without setTimeout the DOM is not refreshing when updating the options.
         setTimeout(() => setProcessorPending(false))
@@ -249,6 +274,24 @@ export const EffectsConfiguration = ({
     },
     [enabled, selectedId, toggle, updateEffectStatusMessage, videoTrack]
   )
+
+  const clearEffect = useCallback(async () => {
+    if (selectedId === 'none') return
+    setProcessorPending(true)
+    try {
+      if (videoTrack?.getProcessor()) {
+        await videoTrack.stopProcessor()
+      }
+      saveProcessorConfig(undefined)
+      announceEffectStatusMessage(t('blur.status.none'))
+    } catch (error) {
+      reportError('effects_processor_failure', error, {
+        context: 'Error clearing effect:',
+      })
+    } finally {
+      setTimeout(() => setProcessorPending(false))
+    }
+  }, [announceEffectStatusMessage, selectedId, t, videoTrack])
 
   const { data: appConfig } = useConfig()
   const { isLoggedIn } = useUser()
@@ -647,6 +690,17 @@ export const EffectsConfiguration = ({
                     gap: '1.25rem',
                   })}
                 >
+                  <ToggleButton
+                    variant="bigSquare"
+                    aria-label={t('clear')}
+                    tooltip={t('clear')}
+                    isDisabled={processorOptions.isDisabled}
+                    onChange={clearEffect}
+                    isSelected={selectedId === 'none'}
+                    data-attr="toggle-effect-none"
+                  >
+                    <RiProhibitedLine />
+                  </ToggleButton>
                   {processorOptions.blurBased.map(({ Icon, ...option }) => (
                     <ToggleButton
                       key={option.id}
