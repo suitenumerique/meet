@@ -2,7 +2,7 @@
 # Meet package
 #
 [build-system]
-requires = ["uv_build>=0.11.16,<0.12.0"]
+requires = ["uv_build>=0.12.6,<0.13.0"]
 build-backend = "uv_build"
 
 [project]
@@ -24,7 +24,7 @@ keywords = ["Django", "Contacts", "Templates", "RBAC"]
 license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
-    "boto3==1.43.56",
+    "boto3==1.43.80",
     "Brotli==1.2.0",
     "brevo-python==1.2.0",
     "celery[redis]==5.6.3",
@@ -33,7 +33,7 @@ dependencies = [
     "django-cors-headers==4.9.0",
     "django-countries==9.0.0",
     "django-filter==26.1",
-    "django-lasuite[all]==0.0.27",
+    "django-lasuite[all]==0.0.29",
     "django-parler==2.4",
     "redis==5.2.1",
     "django-redis==7.0.0",
@@ -41,30 +41,30 @@ dependencies = [
     "django-timezone-field>=5.1",
     "django-pydantic-field==0.5.4",
     "django==5.2.16",
-    "djangorestframework==3.17.1",
+    "djangorestframework==3.18.0",
     "drf_spectacular==0.30.0",
     "dockerflow==2026.3.4",
     "easy_thumbnails==2.10.1",
     "factory_boy==3.3.3",
-    "gunicorn==26.0.0",
+    "gunicorn==26.2.0",
     "jsonschema==4.26.0",
-    "markdown==3.10.2",
+    "markdown==3.10.3",
     "nested-multipart-parser==1.6.0",
-    "posthog==7.29.0",
+    "posthog==7.44.0",
     "psycopg[binary]==3.3.4",
     "pydantic==2.13.4",
     "PyJWT==2.13.0",
     "python-frontmatter==1.3.0",
     "python-magic==0.4.27",
     "requests==2.34.2",
-    "sentry-sdk==2.66.1",
+    "sentry-sdk==2.68.1",
     "whitenoise==6.12.0",
     "mozilla-django-oidc==5.0.2",
     "livekit-api==1.2.0",
     "aiohttp==3.14.3",
     "urllib3==2.7.0",
-    "phonenumbers==9.0.34",
-    "cryptography==50.0.0", # CVE-2026-69247
+    "phonenumbers==9.0.37",
+    "cryptography==50.0.1", # CVE-2026-69247
 ]
 
 [project.urls]
@@ -76,20 +76,20 @@ dependencies = [
 [dependency-groups]
 dev = [
     "django-extensions==4.1",
-    "drf-spectacular-sidecar==2026.7.1",
+    "drf-spectacular-sidecar==2026.8.1",
     "freezegun==1.5.5",
     "ipdb==0.13.13",
-    "ipython==9.15.0",
+    "ipython==9.16.1",
     "pyfakefs==6.2.0",
     "pylint-django==2.8.0",
     "pylint<4.0.0",
     "pytest-cov==7.1.0",
-    "pytest-django==4.12.0",
+    "pytest-django==4.14.0",
     "pytest==9.1.1",
     "pytest-icdiff==0.9",
     "pytest-xdist==3.8.0",
     "responses==0.26.2",
-    "ruff==0.16.0",
+    "ruff==0.16.4",
     "types-requests==2.33.0.20260712",
 ]
 
