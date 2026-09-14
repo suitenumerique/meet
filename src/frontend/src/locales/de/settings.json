@@ -102,6 +102,9 @@
       },
       "messageReceived": {
         "label": "Nachricht erhalten"
+      },
+      "participantWaiting": {
+        "label": "Person im Warteraum"
       }
     }
   },

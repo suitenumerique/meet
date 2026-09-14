@@ -11,7 +11,7 @@ export const useNotificationSound = () => {
       participantJoined: [0, 1150],
       handRaised: [1400, 180],
       messageReceived: [1580, 300],
-      waiting: [2039, 710],
+      participantWaiting: [2039, 710],
       success: [2740, 1304],
     },
     volume: notificationsSnap.soundNotificationVolume,
