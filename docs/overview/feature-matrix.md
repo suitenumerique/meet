@@ -69,6 +69,7 @@
 | Custom virtual backgrounds | ✅ Available | Upload custom images |
 | Customizable branding / CSS | ✅ Available | Runtime: `FRONTEND_CUSTOM_CSS_URL` + asset volume mount. Title change requires a custom Docker build (`VITE_APP_TITLE` build arg). |
 | Telephony / SIP integration | ✅ Available | Via LiveKit SIP bridge |
+| Roomkit (meeting-room hardware) | ⚗️ Beta | Server-to-server API letting SIP-based meeting-room devices join by PIN code before any browser participant connects. Backend-only, no frontend. Disabled by default (`ROOMKIT_ENABLED`) - see [Environment Variables](../reference/env-variables.md#roomkit-meeting-room-sip-devices). |
 | External API authentication | ✅ Available | Multiple modes: Application JWT (token exchange), Add-on JWT (calendar integrations), OIDC Resource Server |
 | Microsoft Outlook add-in | ✅ Available  | Introduced in v1.15.0; i18n support added in v1.20.0 |
 | Calendars (La Suite) integration | ✅ Available | Events include a Visio link; set `FRONTEND_MEET_BASE_URL` in Calendars backend |
