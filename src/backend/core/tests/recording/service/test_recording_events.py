@@ -98,7 +98,7 @@ def test_handle_aborted_success(mock_notify, mode, notification_type, service):
     ),
 )
 @mock.patch("core.utils.notify_participants")
-def test_handle_event_notification_error(  # noqa: PLR0913
+def test_handle_event_notification_error(  # noqa: PLR0913, PLR0917
     mock_notify,
     handler,
     expected_status,

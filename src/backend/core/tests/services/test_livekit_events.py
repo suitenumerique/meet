@@ -353,7 +353,7 @@ def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditio
     "notify_return_value, recording_status",
     [(True, "notification_succeeded"), (False, "saved")],
 )
-def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913
+def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913, PLR0917
     mock_update_metadata,
     mock_notify,
     mock_notify_external_services,
@@ -395,7 +395,7 @@ def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_unsuccessful_egress(  # noqa: PLR0913
+def test_handle_egress_ended_unsuccessful_egress(  # noqa: PLR0913, PLR0917
     mock_update_metadata,
     mock_notify,
     egress_status,
@@ -467,7 +467,7 @@ def test_handle_egress_ended_unsuccessful_egress_notification_fails(
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_logs_livekit_error(  # noqa: PLR0913
+def test_handle_egress_ended_logs_livekit_error(  # noqa: PLR0913, PLR0917
     mock_update_metadata,
     mock_notify,
     egress_status,
@@ -503,7 +503,7 @@ def test_handle_egress_ended_logs_livekit_error(  # noqa: PLR0913
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_does_not_log_error_on_successful_egress(  # noqa: PLR0913
+def test_handle_egress_ended_does_not_log_error_on_successful_egress(  # noqa: PLR0913, PLR0917
     mock_update_metadata,
     mock_notify,
     mock_notify_external_services,
