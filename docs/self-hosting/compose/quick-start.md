@@ -50,7 +50,8 @@ Use the [step-by-step Deployment Guide](deployment-guide.md) instead. Each stack
 ## After setup
  
 - Open `https://meet.example.com`
-- Log in with `meet-admin` / `ChangeMe!` - **change this password immediately**
+- Log in with `meet-admin` and the password printed at the end of the script's output. It's a
+  single-use password - Keycloak will ask you to set a new one immediately.
 **Recommended next steps:**
  
 - [Configure recording](../configuration/recording.md) - LiveKit Egress + MinIO

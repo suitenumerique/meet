@@ -131,6 +131,8 @@ sed -i "s|^KC_HOSTNAME=.*|KC_HOSTNAME=https://${IDP_HOST}|" "${KC_DIR}/env.d/key
 KC_ADMIN_PASSWORD=$(openssl rand -hex 16)
 KC_DB_PASSWORD=$(openssl rand -hex 16)
 KC_CLIENT_SECRET=$(openssl rand -hex 16)
+# Only the Meet realm user actually logs in via a browser, so keep it typeable.
+MEET_ADMIN_PASSWORD=$(openssl rand -base64 12)
 
 set_env "KC_BOOTSTRAP_ADMIN_PASSWORD" "$KC_ADMIN_PASSWORD"  "${KC_DIR}/env.d/keycloak"
 set_env "POSTGRES_PASSWORD"           "$KC_DB_PASSWORD"     "${KC_DIR}/env.d/kc_postgresql"
@@ -138,10 +140,15 @@ set_env "POSTGRES_PASSWORD"           "$KC_DB_PASSWORD"     "${KC_DIR}/env.d/kc_
 # Also write KC_DB_PASSWORD into KC_DB_PASSWORD field if present
 sed -i "s|^KC_DB_PASSWORD=.*|KC_DB_PASSWORD=${KC_DB_PASSWORD}|" "${KC_DIR}/env.d/kc_postgresql" 2>/dev/null || true
 
-# Patch realm.json with the client secret and Meet domain
-replace_in "REPLACE_ME"       "$KC_CLIENT_SECRET" "${KC_DIR}/keycloak-realm.json"
-replace_in "meet.example.com" "$MEET_HOST"         "${KC_DIR}/keycloak-realm.json"
-replace_in "admin@example.com" "$ADMIN_EMAIL" "${KC_DIR}/keycloak-realm.json"
+# Patch realm.json with the client secret, Meet domain, and a unique meet-admin
+# password. The realm ships with a temporary credential (Keycloak will force a
+# reset on first login), but the initial value must not be a value published in
+# the docs: on a public IdP, whoever reaches the login page first - not
+# necessarily the operator - would otherwise be free to claim the account.
+replace_in "REPLACE_ME"       "$KC_CLIENT_SECRET"    "${KC_DIR}/keycloak-realm.json"
+replace_in "meet.example.com" "$MEET_HOST"            "${KC_DIR}/keycloak-realm.json"
+replace_in "admin@example.com" "$ADMIN_EMAIL"         "${KC_DIR}/keycloak-realm.json"
+replace_in "MEET_ADMIN_PASSWORD_PLACEHOLDER" "$MEET_ADMIN_PASSWORD" "${KC_DIR}/keycloak-realm.json"
 
 # Write a .env file for Keycloak stack so compose override variables are available
 # as fallback even if the shell export is lost (e.g. when cd changes scope).
@@ -216,8 +223,9 @@ echo ""
 echo "  Meet:     https://${MEET_HOST}"
 echo "  Keycloak: https://${IDP_HOST}"
 echo ""
-echo "  Default login:  meet-admin / ChangeMe!"
-echo "  Change this password on first login."
+echo "  Login:  meet-admin / ${MEET_ADMIN_PASSWORD}"
+echo "  This password is single-use - Keycloak will prompt for a new one on first login."
+echo "  It is not saved anywhere else, so log in now or note it down."
 echo ""
 echo "  Stacks:"
 echo "    ${DOCKER_ROOT}/nginx-proxy/"

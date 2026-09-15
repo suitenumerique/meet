@@ -101,20 +101,30 @@ set -a && source env.d/hosts && set +a
 KC_ADMIN_PASSWORD=$(openssl rand -hex 16)
 KC_DB_PASSWORD=$(openssl rand -hex 16)
 KC_CLIENT_SECRET=$(openssl rand -hex 16)
+# Only this one is typed into a browser by a human, so keep it short.
+MEET_ADMIN_PASSWORD=$(openssl rand -base64 12)
 
 sed -i "s|KC_BOOTSTRAP_ADMIN_PASSWORD=.*|KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_ADMIN_PASSWORD}|" env.d/keycloak
 sed -i "s|POSTGRES_PASSWORD=<generate postgres password>|POSTGRES_PASSWORD=${KC_DB_PASSWORD}|" env.d/kc_postgresql
 sed -i "s|KC_DB_PASSWORD=<generate postgres password>|KC_DB_PASSWORD=${KC_DB_PASSWORD}|"      env.d/kc_postgresql
 ```
 
-Edit `keycloak-realm.json` - replace three placeholders:
+!!! warning
+    The realm ships with a placeholder password for the `meet-admin` user. Since Keycloak is reachable
+    on a public URL, do not leave the placeholder in place: whoever reaches the login page first -
+    not necessarily you - would be free to claim the account (the "temporary" flag only forces a
+    password change at *first* login, it doesn't protect the account until then). Always randomize it
+    below.
+
+Edit `keycloak-realm.json` - replace four placeholders:
 
 ```bash
-sed -i "s|REPLACE_ME|${KC_CLIENT_SECRET}|"       keycloak-realm.json
-sed -i "s|meet\.example\.com|${MEET_HOST}|g"     keycloak-realm.json
+sed -i "s|REPLACE_ME|${KC_CLIENT_SECRET}|"                        keycloak-realm.json
+sed -i "s|meet\.example\.com|${MEET_HOST}|g"                      keycloak-realm.json
+sed -i "s|MEET_ADMIN_PASSWORD_PLACEHOLDER|${MEET_ADMIN_PASSWORD}|" keycloak-realm.json
 ```
 
-And set your email in `keycloak-realm.json`
+Note the generated `MEET_ADMIN_PASSWORD` down now, since it isn't stored in any `env.d/` file. Also set your email in `keycloak-realm.json`.
 
 Start:
 
@@ -130,7 +140,8 @@ docker compose ps   # keycloak should show 'healthy'
 
 !!! info
     The admin console is at `https://${IDP_HOST}`. Log in with `admin` / `${KC_ADMIN_PASSWORD}`.
-    The default Meet user is `meet-admin` / `ChangeMe!`, change this password after first login.
+    The Meet user is `meet-admin` / `${MEET_ADMIN_PASSWORD}` (the value you generated above). Keycloak
+    will prompt for a new password on first login.
 
 ---
 
