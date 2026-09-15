@@ -56,15 +56,16 @@ def test_purge_deleted_files_success(settings):
         )
         purgeable_file.soft_delete()
 
+    # Simulate a file whose deletion task never went through
     hard_deleted_file = factories.FileFactory(
         type=models.FileTypeChoices.BACKGROUND_IMAGE,
         upload_bytes=b"hello",
+        deleted_at=now,
+        hard_deleted_at=now,
     )
-    hard_deleted_file.soft_delete()
-    hard_deleted_file.hard_delete()
 
     with patch(
-        "core.management.commands.purge_deleted_files.process_file_deletion.delay",
+        "core.tasks.file.process_file_deletion.delay",
         side_effect=process_file_deletion,
     ) as mock_delay:
         call_command("purge_deleted_files", stdout=out)

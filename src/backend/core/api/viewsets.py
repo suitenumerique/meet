@@ -82,7 +82,6 @@ from core.services.room_roles import (
 )
 from core.services.subtitle import SubtitleException, SubtitleService
 from core.tasks.connection_test import delete_connection_test_room
-from core.tasks.file import process_file_deletion
 from core.utils import generate_token
 
 from ..authentication.livekit import LiveKitTokenAuthentication
@@ -1353,7 +1352,7 @@ class FileViewSet(
                         )
 
             if validation_error is not None:
-                self._complete_file_deletion(file)
+                file.hard_delete()
             else:
                 file.upload_state = models.FileUploadStateChoices.READY
                 file.mimetype = mimetype
@@ -1394,12 +1393,6 @@ class FileViewSet(
         serializer = self.get_serializer(file)
 
         return drf_response.Response(serializer.data, status=drf_status.HTTP_200_OK)
-
-    def _complete_file_deletion(self, file):
-        """Delete a file completely."""
-        file.soft_delete()
-        file.hard_delete()
-        transaction.on_commit(lambda: process_file_deletion.delay(file.id))
 
     def _authorize_subrequest(self, request, pattern):
         """

@@ -3,23 +3,13 @@
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth import admin as auth_admin
-from django.db import transaction
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from core.recording.event import notification
 
 from . import models
-from .tasks.file import process_file_deletion
 from .utils import generate_download_s3_url
-
-
-def hard_delete_file(file):
-    """Hard delete a file, soft deleting it first when needed."""
-    if file.deleted_at is None:
-        file.soft_delete()
-    file.hard_delete()
-    transaction.on_commit(lambda: process_file_deletion.delay(file.id))
 
 
 class FileInlineFormSet(forms.BaseInlineFormSet):
@@ -27,7 +17,7 @@ class FileInlineFormSet(forms.BaseInlineFormSet):
 
     def delete_existing(self, obj, commit=True):
         """Hard delete files instead of calling model.delete()."""
-        hard_delete_file(obj)
+        obj.hard_delete()
 
 
 class FileInline(admin.TabularInline):
@@ -254,12 +244,12 @@ class FileAdmin(admin.ModelAdmin):
 
     def delete_model(self, request, obj):
         """Hard delete instead of calling model.delete()."""
-        hard_delete_file(obj)
+        obj.hard_delete()
 
     def delete_queryset(self, request, queryset):
         """Hard delete all selected files."""
         for file in queryset:
-            hard_delete_file(file)
+            file.hard_delete()
 
     def has_add_permission(self, request):
         return False

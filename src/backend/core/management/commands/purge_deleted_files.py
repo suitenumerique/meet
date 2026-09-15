@@ -33,8 +33,9 @@ class Command(BaseCommand):
         for file in File.objects.filter(is_hard_deleted | is_purgeable).iterator():
             if file.hard_deleted_at is None:
                 file.hard_delete()
-
-            process_file_deletion.delay(file.id)
+            else:
+                # Already marked, the previous deletion task did not go through.
+                process_file_deletion.delay(file.id)
             count += 1
 
         self.stdout.write(f"Purged {count} deleted file(s).")

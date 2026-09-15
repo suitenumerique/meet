@@ -97,7 +97,6 @@ def test_api_files_list_format():
             "hard_deleted_at": None,
             "abilities": {
                 "destroy": True,
-                "hard_delete": True,
                 "media_auth": True,
                 "partial_update": True,
                 "retrieve": True,

@@ -14,6 +14,7 @@ and this project adheres to
 
 ### Changed
 
+- ♻️(backend) centralize file hard deletion in the model
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
 - 🔇(backend) silence expected 401 warnings on /me
 - 🔇(backend) silence noisy request summary info logs

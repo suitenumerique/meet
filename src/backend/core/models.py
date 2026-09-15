@@ -955,10 +955,16 @@ class File(BaseModel):
         return super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
-        if self.deleted_at is None:
-            raise RuntimeError("The file must be soft deleted before being deleted.")
+        """Only allow removing rows that went through the hard delete flow."""
+        if self.hard_deleted_at is None:
+            raise RuntimeError("The file must be hard deleted before being deleted.")
 
         return super().delete(using, keep_parents)
+
+    @property
+    def is_deleted(self):
+        """Return whether the file is soft or hard deleted."""
+        return self.deleted_at is not None or self.hard_deleted_at is not None
 
     @property
     def is_ready(self):
@@ -1018,30 +1024,20 @@ class File(BaseModel):
         """
         Compute and return abilities for a given user on the file.
         """
-        # Characteristics that are based only on specific access
         is_creator = user == self.creator
-        retrieve = is_creator
-        is_deleted = self.deleted_at is not None
-        can_update = is_creator and not is_deleted and user.is_authenticated
-        can_hard_delete = is_creator and user.is_authenticated
-        can_destroy = can_hard_delete and not is_deleted
+        can_edit = is_creator and not self.is_deleted
 
         return {
-            "destroy": can_destroy,
-            "hard_delete": can_hard_delete,
-            "retrieve": retrieve,
-            "media_auth": retrieve and not is_deleted,
-            "partial_update": can_update,
-            "update": can_update,
-            "upload_ended": can_update and user.is_authenticated,
+            "destroy": can_edit,
+            "retrieve": is_creator,
+            "media_auth": can_edit,
+            "partial_update": can_edit,
+            "update": can_edit,
+            "upload_ended": can_edit,
         }
 
-    @transaction.atomic
     def soft_delete(self):
-        """
-        Soft delete the file.
-        We still keep the .delete() method untouched for programmatic purposes.
-        """
+        """Move the file to the trash bin."""
         if self.deleted_at:
             raise RuntimeError("This file is already deleted.")
 
@@ -1049,29 +1045,15 @@ class File(BaseModel):
         self.save(update_fields=["deleted_at"])
 
     def hard_delete(self):
-        """
-        Hard delete the file.
-        We still keep the .delete() method untouched for programmatic purposes.
-        """
+        """Mark the file for purge and queue the deletion of its storage and row."""
+        # pylint: disable=import-outside-toplevel
+        from core.tasks.file import process_file_deletion  # noqa: PLC0415
+
         if self.hard_deleted_at:
-            raise ValidationError(
-                {
-                    "hard_deleted_at": ValidationError(
-                        _("This file is already hard deleted."),
-                        code="file_hard_delete_already_effective",
-                    )
-                }
-            )
+            raise RuntimeError("This file is already hard deleted.")
 
-        if self.deleted_at is None:
-            raise ValidationError(
-                {
-                    "hard_deleted_at": ValidationError(
-                        _("To hard delete a file, it must first be soft deleted."),
-                        code="file_hard_delete_should_soft_delete_first",
-                    )
-                }
-            )
-
-        self.hard_deleted_at = timezone.now()
-        self.save(update_fields=["hard_deleted_at"])
+        now = timezone.now()
+        self.deleted_at = self.deleted_at or now
+        self.hard_deleted_at = now
+        self.save(update_fields=["deleted_at", "hard_deleted_at"])
+        transaction.on_commit(lambda: process_file_deletion.delay(self.id))

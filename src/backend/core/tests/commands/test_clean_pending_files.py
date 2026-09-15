@@ -10,7 +10,7 @@ import pytest
 
 from core import factories, models
 
-pytestmark = pytest.mark.django_db
+pytestmark = pytest.mark.django_db(transaction=True)
 
 
 def test_clean_pending_files_no_stale_files():
