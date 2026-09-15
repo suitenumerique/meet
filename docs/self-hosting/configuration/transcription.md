@@ -3,7 +3,7 @@
 AI transcription is available in beta. When enabled, a recording session is automatically transcribed and the result is delivered to a LaSuite Docs instance, where the room owner can read and edit the transcript.
 
 !!!info
-    **Prerequisite:** Transcription requires the [Recording](recording.md) feature to be fully set up and working first. Transcription uses the same LiveKit Egress, MinIO, and LiveKit webhook infrastructure.
+    **Prerequisite:** Transcription requires the [Recording](recording.md) feature to be fully set up and working first. Transcription uses the same LiveKit Egress, Object Store, and LiveKit webhook infrastructure.
 
 **Speaker identification:**
 
@@ -89,7 +89,7 @@ LLM_MODEL=gpt-4o-mini
 !!!info
     `AUTHORIZED_TENANTS` is a JSON array. Each entry defines one Meet backend that is allowed to submit transcription tasks and receive results. The `api_key` authenticates inbound requests from the Meet backend; the `webhook_api_key` authenticates outbound callbacks to Meet. Use separate strong secrets for each.
 
-    The legacy single-variable approach (`WEBHOOK_URL` / `WEBHOOK_API_TOKEN` / `APP_API_TOKEN`) still works but is deprecated and logs a warning at startup. Migrate to `AUTHORIZED_TENANTS` for new deployments.
+    `AUTHORIZED_TENANTS` is the only supported authentication mode - the older single-variable approach (`WEBHOOK_URL` / `WEBHOOK_API_TOKEN` / `APP_API_TOKEN`) has been removed from the summary service entirely, not just deprecated.
 
 You need a running [WhisperX](https://github.com/suitenumerique/meet-whisperx) instance. An Open Source implementation combining WhisperX and FastAPI is available at [github.com/suitenumerique/meet-whisperx](https://github.com/suitenumerique/meet-whisperx).
 

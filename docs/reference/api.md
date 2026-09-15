@@ -4,7 +4,7 @@ The Meet backend exposes a REST API at `/api/v1.0/`. All endpoints use JSON.
 
 ## Interactive API Explorer
 
-When `USE_SWAGGER=True` is set on the backend, an interactive Swagger UI is available at `/api/v1.0/swagger/`. You can explore endpoints, send test requests, and view schemas directly from your browser.
+An interactive Swagger UI is available at `/api/v1.0/swagger/` on the `Development` and `Test` `DJANGO_CONFIGURATION` classes. `USE_SWAGGER` is a hardcoded class attribute, not an environment variable - it cannot be turned on in `Production`/`Demo` by setting `USE_SWAGGER=True`.
 
 Meet also exposes an **External API** at `/external-api/v1.0/` for server-to-server room management, with three authentication modes:
 
@@ -44,12 +44,12 @@ GET /api/v1.0/users/me/
 
 ### Update current user
 ```
-PATCH /api/v1.0/users/me/
+PATCH /api/v1.0/users/{id}/
 ```
+
 ```json
 {"language": "fr-fr"}
 ```
-
 
 ## Rooms
 
