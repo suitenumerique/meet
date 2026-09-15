@@ -30,6 +30,10 @@ Yes. Open the meeting link in your mobile browser. Chrome works on Android, Safa
 
 Chrome, Firefox, Safari, and Edge, all kept up to date. WebRTC is required and ships with every modern browser.
 
+### Which audio and video codecs does Meet use?
+
+Meet uses **Opus** for audio (48 kHz) and **VP9** for video by default. VP9 supports Scalable Video Coding (SVC), which provides better quality at lower bitrates compared to older codecs. Meet also supports VP8, AV1, and simulcast, where the browser sends multiple quality levels simultaneously and the server forwards only what each receiver needs. For recordings, LiveKit Egress uses H.264 MAIN for video and AAC for audio.
+
 ## Audio & Video
 
 ![Meeting room](assets/meeting-room.png)
