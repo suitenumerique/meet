@@ -13,6 +13,7 @@ Displays your current login status and username. You can update your display nam
 ## Preferences
 
 - **Auto-leave when alone**: Automatically leave a call after a few minutes if no other participant is present.
+- **Automatically mute when joining a large meeting**: Mute your microphone automatically when entering a large room to reduce background noise.
 
 ## Audio
 

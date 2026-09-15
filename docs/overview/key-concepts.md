@@ -9,7 +9,7 @@ A **room** is a virtual meeting space. Each room has:
 - Access settings: open, authenticated-only, or invite-only
 - A configuration that can include recording options, participant limits, and feature flags
 
-Rooms are **non-persistent by default**: chat history and ephemeral state are not stored between sessions.
+Rooms are **persistent** in the database (room metadata, configuration, access rights), but **ephemeral state** (chat history, active participants, live connections) is not stored between sessions.
 
 ## Participant
 

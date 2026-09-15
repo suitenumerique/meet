@@ -1,6 +1,6 @@
 # What is LaSuite Meet?
 
-LaSuite Meet is an Open Source video conferencing application developed by [DINUM](https://www.numerique.gouv.fr/) (Direction interministérielle du numérique), the French government's digital agency. It powers **Visio**, the official video conferencing platform deployed to all French public servants.
+LaSuite Meet is an Open Source video conferencing application developed by [DINUM](https://www.numerique.gouv.fr/) (Direction interministérielle du numérique), the French government's digital agency. It powers **Visio** (French slang for "videoconferencing"), the official video conferencing platform deployed to all French public servants.
 
 Built on [LiveKit](https://livekit.io/), Meet delivers high-quality, low-latency audio and video entirely from the browser. No plugin or client installation required.
 
@@ -47,6 +47,8 @@ Meet inherits all of LiveKit's media optimizations:
 | [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT | French territorial administration (ProConnect required) |
 | [visio.lasuite.coop](https://visio.lasuite.coop/) | lasuite.coop | Open demo. Accounts reset monthly |
 | [mosa.cloud](https://mosa.cloud/) | mosa.cloud | Dutch commercial instance |
+| [Clever Cloud](https://www.clever.cloud/product/visio/)       | clever cloud | Openvisio is a sovereign video conferencing solution based on LaSuite Meet offered by [Clever Cloud](https://www.clever.cloud/).              |
+| [Email.eu](https://email.eu/)                                 | Email.eu     | Sovereign business workspace.     
 
 ## License
 
