@@ -166,7 +166,7 @@ Restart the egress container: `docker compose restart livekit-egress`
 
 1. Check Egress logs: `docker compose logs livekit-egress`
 2. Check your bucket
-3. Check webhook delivery: `docker compose logs backend | grep storage-hook`
+3. Check that the LiveKit `egress_ended` webhook arrived - this is what finalizes the recording: `docker compose logs backend | grep egress_ended`
 
 
 ### Recording download link shows "Verify your meeting code"

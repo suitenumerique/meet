@@ -109,7 +109,7 @@ Keep at 32+ characters. Treat like a database password.
 
 - Do not expose MinIO/S3 ports publicly
 - Use IAM-style policies to limit access to specific buckets
-- The webhook endpoint is secured via `RECORDING_STORAGE_EVENT_TOKEN` (or disable auth with `RECORDING_ENABLE_STORAGE_EVENT_AUTH=False`)
+- Recording completion is detected via LiveKit Server's own signed `egress_ended` webhook (verified with `LIVEKIT_API_SECRET`, same as other LiveKit webhooks).
 
 ### Docker
 

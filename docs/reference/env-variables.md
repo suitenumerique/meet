@@ -98,12 +98,8 @@ Complete reference for all environment variables accepted by LaSuite Meet's comp
 | `RECORDING_ENABLE` | No | `False` | Enable recording functionality. Must be `True` to show the record button in meetings. |
 | `RECORDING_OUTPUT_FOLDER` | No | `recordings` | Folder/prefix used in S3 storage for recording files. Change this to organize recordings under a custom path in your bucket. |
 | `RECORDING_WORKER_CLASSES` | No | -- | Maps recording mode to its worker class. Default: `screen_recording` → `VideoCompositeEgressService`, `transcript` → `AudioCompositeEgressService`. Only change if you implement custom egress workers. |
-| `RECORDING_EVENT_PARSER_CLASS` | No | `core.recording.event.parsers.MinioParser` | Class that parses storage events and updates recording state. Use `core.recording.event.parsers.S3Parser` for generic S3-compatible providers (added in v1.17.0); keep the default `MinioParser` for MinIO. |
 | `RECORDING_DOWNLOAD_BASE_URL` | For recording | -- | Base URL for recording download notification links. **Must include the `/recording` path**: `https://meet.example.com/recording`. Using the bare domain sends email links to a page that treats the UUID as a room code. |
 | `SCREEN_RECORDING_BASE_URL` | No | -- | ⚠️ **Deprecated.** Use `RECORDING_DOWNLOAD_BASE_URL` instead. Still accepted but logs a warning. |
-| `RECORDING_STORAGE_EVENT_ENABLE` | No | `False` | Enable MinIO/S3 bucket event notifications. Required for the backend to be notified when a recording file is uploaded. |
-| `RECORDING_ENABLE_STORAGE_EVENT_AUTH` | No | `True` | Require Bearer token for the storage webhook. Set to `False` for the simplest setup. |
-| `RECORDING_STORAGE_EVENT_TOKEN` | If auth enabled | -- | Bearer token MinIO sends with storage webhook requests. |
 | `RECORDING_EXPIRATION_DAYS` | No | -- | Days before recordings expire. `null` means no expiration. |
 | `RECORDING_MAX_DURATION` | No | -- | Maximum recording duration in milliseconds. `null` means no limit. |
 | `RECORDING_ENCODING_ENABLED` | No | `False` | Enable custom encoding for recordings. When `False`, LiveKit uses its built-in H264_720P_30 preset. |

@@ -69,18 +69,16 @@ Egress saves output to object storage (MinIO/S3). It requires:
 
 **Celery** is a distributed task queue used in two places:
 
-1. **Django backend Celery worker**: Handles async tasks like sending recording notification emails
+1. **Django backend Celery worker**: Handles async tasks like file deletion cleanup. Recording notification emails are sent synchronously instead, from the LiveKit webhook handler (see below)
 2. **Summary service Celery workers**: Two separate workers for transcription (`transcribe-queue`) and summarization (`summarize-queue`)
 
 Both use Redis as the message broker.
 
 ## Object Storage (MinIO / S3)
 
-Meet stores binary files (recordings, uploaded files) in **S3-compatible object storage**. 
+Meet stores binary files (recordings, uploaded files) in **S3-compatible object storage**. Any S3-compatible provider works (MinIO, AWS S3, Garage, Scaleway Object Storage, OVHcloud Object Storage, etc.) - the backend only uses it to upload/download files.
 
-For now recording needs an object store that supports bucket event notifications webhooks. The Django backend uses a **webhook** from S3-compatible storage to detect when a recording file has been uploaded, which triggers the recording state to update in the database.
-
-> **Info:** When [Pull Request](https://github.com/suitenumerique/meet/pull/1386) is merged any S3-compatible service can be used such as Garage, AWS S3, Scaleway Object Storage, OVH Object Storage.
+Recording completion is detected via LiveKit Server's own `egress_ended` webhook and delivered to the Django backend.
 
 ## Simulcast
 

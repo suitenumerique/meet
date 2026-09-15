@@ -304,14 +304,14 @@ These endpoints are called by other services, not by the browser or external int
 ```
 POST /api/v1.0/rooms/webhooks-livekit/
 ```
-Called by LiveKit when room/egress events occur (recording started/stopped, etc.).
+Called by LiveKit when room/egress events occur (recording started/stopped/ended, etc.). This is also how the backend detects that a recording has finished uploading (`egress_ended`).
 
-### Storage event webhook
+### External process hook
 ```
-POST /api/v1.0/recordings/storage-hook/
-Authorization: Bearer <storage-webhook-token>
+POST /api/v1.0/recordings/external-process-hook/
+Authorization: Bearer <SUMMARY_SERVICE_WEBHOOK_API_TOKEN>
 ```
-Called by ObjectStore when a recording file is uploaded.
+Called by the Summary service to report the result of an async transcription/summarization job back to a recording.
 
 
 ## Frontend configuration

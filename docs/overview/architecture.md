@@ -45,7 +45,6 @@ graph TB
     Agents -->|WebRTC| LiveKit
     Agents -->|metadata| ObjectStore["S3"]
     Egress -->|writes recording| ObjectStore["S3"]
-    ObjectStore["S3"] -->|storage webhook| Backend
     Summary -->|downloads from| ObjectStore["S3"]
     Summary -->|reports results| Backend
 ```
@@ -65,8 +64,8 @@ graph TB
   - User authentication (OIDC/OAuth2)
   - Room creation and access control
   - Issuing LiveKit JWT tokens to clients
-  - Recording lifecycle management (start/stop/webhook)
-  - S3 webhook processing from ObjectStore
+  - Recording lifecycle management (start/stop)
+  - LiveKit webhook processing (room, egress, and participant events)
 - **Port**: 8000
 
 ### LiveKit Server
@@ -158,7 +157,6 @@ sequenceDiagram
     BE->>LK: Stop egress
     EG->>S3: Upload recording file
     LK-->>BE: Webhook: egress ended
-    S3-->>BE: Webhook: file uploaded (/storage-hook/)
     BE->>BE: Set status → saved
     BE->>Mail: Send download link to owner
     Mail-->>U: Email with download link

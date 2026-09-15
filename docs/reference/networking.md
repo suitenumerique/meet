@@ -61,11 +61,13 @@ Browser ←→ server :7882/UDP  (RTP/RTCP (direct, no proxy))
 Browser ←→ server :7881/TCP  (fallback when UDP blocked)
 ```
 
-### Recording webhook
+### LiveKit webhook (room, egress, and recording events)
 
 ```
-MinIO/S3 → POST https://meet.example.com/api/v1.0/recordings/storage-hook/
+LiveKit Server → POST https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
 ```
+
+This is also how the backend detects that a recording has finished uploading (`egress_ended` event).
 
 ## Docker networks
 
