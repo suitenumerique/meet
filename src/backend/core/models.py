@@ -18,7 +18,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import default_storage
-from django.db import models, transaction
+from django.db import models
 from django.utils import timezone
 from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext_lazy as _
@@ -1038,8 +1038,12 @@ class File(BaseModel):
         self.save(update_fields=["deleted_at"])
 
     def delete(self, using=None, keep_parents=False):
-        """Remove the file from the database, then from storage once committed."""
-        key = self.file_key
-        result = super().delete(using, keep_parents)
-        transaction.on_commit(lambda: default_storage.delete(key))
-        return result
+        """
+        Remove the file's objects from storage, then its row from the database.
+
+        Storage is removed first so that a storage failure leaves the row in place
+        and the periodic purge commands retry it on their next run.
+        """
+        default_storage.delete(self.temporary_file_key)  # Pending
+        default_storage.delete(self.file_key)  # Final
+        return super().delete(using, keep_parents)

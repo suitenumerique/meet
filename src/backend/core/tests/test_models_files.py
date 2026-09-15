@@ -2,6 +2,9 @@
 Unit tests for the File model deletion flow
 """
 
+from io import BytesIO
+from unittest import mock
+
 from django.core.files.storage import default_storage
 from django.utils import timezone
 
@@ -34,13 +37,39 @@ def test_models_files_soft_delete_twice():
         file.soft_delete()
 
 
-@pytest.mark.django_db(transaction=True)
 def test_models_files_delete():
-    """Deleting should remove the row and the content from storage."""
+    """Deleting should remove the row and both the final and temporary objects."""
     file = FileFactory(upload_bytes=b"hello")
-    key = file.file_key
+    default_storage.save(file.temporary_file_key, BytesIO(b"hello"))
+    # Captured up front: Django nulls the pk after delete, and the keys depend on it
+    pk, key, temporary_key = file.pk, file.file_key, file.temporary_file_key
 
     file.delete()
 
-    assert not File.objects.filter(pk=file.pk).exists()
+    assert not File.objects.filter(pk=pk).exists()
     assert not default_storage.exists(key)
+    assert not default_storage.exists(temporary_key)
+
+
+def test_models_files_delete_without_storage_object():
+    """Deleting a file that has nothing in storage should still remove the row."""
+    file = FileFactory()
+    pk = file.pk
+
+    file.delete()
+
+    assert not File.objects.filter(pk=pk).exists()
+
+
+def test_models_files_delete_storage_failure_keeps_row():
+    """A storage failure must leave the row in place so the deletion can be retried."""
+    file = FileFactory(upload_bytes=b"hello")
+
+    with (
+        mock.patch.object(default_storage, "delete", side_effect=OSError("boom")),
+        pytest.raises(OSError, match="boom"),
+    ):
+        file.delete()
+
+    assert File.objects.filter(pk=file.pk).exists()
+    assert default_storage.exists(file.file_key)

@@ -34,8 +34,16 @@ class Command(BaseCommand):
         )
 
         count = 0
+        failed = []
         for file in files.iterator():
-            file.delete()
-            count += 1
+            try:
+                file.delete()
+                count += 1
+            except Exception as exc:  # noqa: BLE001 # pylint: disable=broad-exception-caught
+                failed.append(file.pk)
+                self.stderr.write(f"[ERROR] Failed to clean file '{file.pk}': {exc}")
 
         self.stdout.write(f"Cleaned {count} stale pending file(s).")
+
+        if failed:
+            raise CommandError(f"Failed to clean {len(failed)} file(s).")

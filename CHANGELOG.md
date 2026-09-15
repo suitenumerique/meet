@@ -26,6 +26,7 @@ and this project adheres to
 
 ### Fixed
 
+- 🐛(backend) remove the temporary upload object when a file is deleted
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
 - 🔒️(backend) enforce display name setting on rename API
 - 🔒️(backend) reject inactive users in resource server backend
