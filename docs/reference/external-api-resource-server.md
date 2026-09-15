@@ -14,7 +14,7 @@ Use resource server auth when:
 
 - The end user already authenticates with your OIDC provider
 - You want to use the user's own OIDC token to call Meet's API (no credential exchange needed)
-- You are building a deep integration where Meet is one resource server among several in your platform
+- Your integration is used by users spanning many/arbitrary email domains. Application-Delegated mode can optionally restrict an application to a fixed set of domains registered in the Meet admin, which doesn't scale well beyond a known, bounded set of organizations. Resource server mode has no such gate since the user's own OIDC-issued token is presented directly - trust is delegated entirely to whichever OIDC provider issued it.
 
 Compare with the [Application-Delegated mode](external-api-delegated.md), where your backend exchanges its own credentials for a token on behalf of a user.
 
@@ -38,9 +38,9 @@ Compare with the [Application-Delegated mode](external-api-delegated.md), where 
    without re-authenticating the user.
 ```
 
-Meet validates the token against your OIDC provider using the `OIDC_RS_*` configuration.
+Meet validates the token against your OIDC provider.
 
-By default, scopes are independent, space-separated tokens on the token (e.g. `openid lasuite_meet rooms:list`) - they are **not** colon-joined. If you'd rather issue namespaced scopes like `lasuite_meet:rooms:list` at your IdP, set `OIDC_RS_SCOPES_PREFIX=lasuite_meet` on the backend; it strips that prefix before matching.
+By default, request scopes as independent, space-separated tokens (e.g. `openid lasuite_meet rooms:list`) - they are **not** colon-joined by default. Some Meet instances may instead expect namespaced scopes like `lasuite_meet:rooms:list`; check with whoever operates your Meet instance which format it expects (see [`OIDC_RS_SCOPES_PREFIX`](#backend-configuration) below).
 
 ---
 
@@ -108,7 +108,7 @@ Content-Type: application/json
 | `OIDC_RS_CLIENT_ID` | Yes | `meet` | Client ID registered with the OIDC provider as a resource server |
 | `OIDC_RS_CLIENT_SECRET` | Yes | - | Client secret for the resource server |
 | `OIDC_RS_SCOPES` | No | `["lasuite_meet"]` | List of scopes this resource server accepts |
-| `OIDC_RS_SCOPES_PREFIX` | No | - | Prefix stripped from scope names before matching |
+| `OIDC_RS_SCOPES_PREFIX` | No | - | Unset by default: integrators must request flat, independent scopes (e.g. `lasuite_meet rooms:list`). Set this (e.g. `lasuite_meet`) if your IdP issues namespaced scopes like `lasuite_meet:rooms:list` instead - the prefix is stripped from each scope before matching. Tell integrators which format to use. |
 | `OIDC_RS_SIGNING_ALGO` | No | `ES256` | Algorithm used to sign tokens from the OIDC provider |
 | `OIDC_RS_ENCRYPTION_ALGO` | No | `RSA-OAEP` | Encryption algorithm for token encryption |
 | `OIDC_RS_ENCRYPTION_ENCODING` | No | `A256GCM` | Encoding for token encryption |
