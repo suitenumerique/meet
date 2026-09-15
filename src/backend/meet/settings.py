@@ -44,6 +44,19 @@ def validate_public_rooms_settings(allow_public_rooms, **defaults):
             raise ValueError(f"{name} cannot be public while ALLOW_PUBLIC_ROOMS is off")
 
 
+def warn_unregistered_rooms_settings(allow_public_rooms, allow_unregistered_rooms):
+    """Warn that unregistered rooms answer 404 on an instance forbidding public ones."""
+    if not allow_public_rooms and allow_unregistered_rooms:
+        warnings.warn(
+            "ALLOW_UNREGISTERED_ROOMS is on while ALLOW_PUBLIC_ROOMS is off, "
+            "so unregistered room codes answer 404. "
+            "Set ALLOW_UNREGISTERED_ROOMS=False.",
+            # We use UserWarning to make sure it shows up in production deployment
+            UserWarning,
+            stacklevel=2,
+        )
+
+
 def get_release():
     """
     Get the current release of the application
@@ -1222,6 +1235,10 @@ class Base(Configuration):
             cls.ALLOW_PUBLIC_ROOMS,
             RESOURCE_DEFAULT_ACCESS_LEVEL=cls.RESOURCE_DEFAULT_ACCESS_LEVEL,
             EXTERNAL_API_DEFAULT_ACCESS_LEVEL=cls.EXTERNAL_API_DEFAULT_ACCESS_LEVEL,
+        )
+
+        warn_unregistered_rooms_settings(
+            cls.ALLOW_PUBLIC_ROOMS, cls.ALLOW_UNREGISTERED_ROOMS
         )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
