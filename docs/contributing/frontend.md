@@ -102,7 +102,8 @@ const { t } = useTranslation();
 ## Linting and formatting
 
 ```bash
-make lint-front
+make frontend-lint
+make frontend-format
 
 # Or
 cd src/frontend
