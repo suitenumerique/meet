@@ -25,8 +25,11 @@ function _set_user() {
         return
     fi
 
-    # USER_ID = USER_ID or `id -u` if USER_ID is not set
-    USER_ID=${USER_ID:-$(id -u)}
+    # USER_ID = USER_ID or the engine-appropriate default if USER_ID is not set.
+    case "${DOCKER_HOST:-}" in
+        *podman*) USER_ID=${USER_ID:-0} ;;
+        *)        USER_ID=${USER_ID:-$(id -u)} ;;
+    esac
 
     echo "🙋(user) ID: ${USER_ID}"
 }
