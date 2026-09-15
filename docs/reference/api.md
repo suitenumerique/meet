@@ -6,10 +6,11 @@ The Meet backend exposes a REST API at `/api/v1.0/`. All endpoints use JSON.
 
 When `USE_SWAGGER=True` is set on the backend, an interactive Swagger UI is available at `/api/v1.0/swagger/`. You can explore endpoints, send test requests, and view schemas directly from your browser.
 
-Meet also exposes an **External API** at `/external-api/v1.0/` for server-to-server room management, with two authentication modes:
+Meet also exposes an **External API** at `/external-api/v1.0/` for server-to-server room management, with three authentication modes:
 
 - **[Application-Delegated](external-api-delegated.md)** (`EXTERNAL_API_ENABLED=True`): your backend exchanges credentials for a JWT and acts on behalf of a user. [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](openapi.yaml)
 - **[Resource Server](external-api-resource-server.md)** (`OIDC_RS_*` vars): the user authenticates with the OIDC provider and presents their token directly. [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](resource_server.yaml)
+- **[Calendar Add-ons](external-api-addons.md)** (`ADDONS_ENABLED=True`): secure token exchange flow for calendar add-ins (Outlook, etc.) running in embedded iframes.
 
 
 ## Authentication
@@ -270,7 +271,7 @@ POST /api/v1.0/rooms/{id}/rename/
 ```
 
 
-## Files (in-meeting file sharing)
+## Files (custom virtual background)
 
 Requires `FILE_UPLOAD_ENABLED=True`.
 
