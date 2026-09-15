@@ -208,7 +208,7 @@ section "Running database migrations"
 info "Waiting for backend to become healthy..."
 for i in $(seq 1 60); do
   status=$(docker inspect --format='{{.State.Health.Status}}' meet-backend-1 2>/dev/null || true)
-  if [ "$status" = "healthy" ]; then break; fi
+  if [[ "$status" = "healthy" ]]; then break; fi
   printf "."
   sleep 3
 done
