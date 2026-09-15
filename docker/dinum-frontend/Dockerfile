@@ -54,19 +54,11 @@ RUN npx webpack --mode production
 
 
 # ---- Front-end image ----
-FROM nginxinc/nginx-unprivileged:1.30.3-alpine3.23 AS frontend-production
+FROM nginxinc/nginx-unprivileged:1.30.4-alpine3.24 AS frontend-production
 
 USER root
-
-# Security patches for known CVEs
-RUN apk update && apk upgrade  \
-    libcrypto3>=3.5.7-r0 \
-    libssl3>=3.5.7-r0 \
-    musl \
-    musl-utils \
-    zlib>=1.3.2-r0 \
-    libexpat>=2.8.4-r0 \
-    && apk del curl
+RUN apk del curl
+USER nginx
 
 USER nginx
 

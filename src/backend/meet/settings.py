@@ -76,6 +76,26 @@ def get_release():
         return "NA"  # Default: not available
 
 
+class VideoCodecValue(values.Value):
+    """
+    A video codec name, normalized to lowercase and validated against the codecs
+    supported by the LiveKit client, so that a typo fails at startup instead of
+    silently downgrading every publisher to another codec.
+    """
+
+    codecs = frozenset(("vp8", "h264", "vp9", "av1"))
+
+    def to_python(self, value):
+        """Normalize the codec name and ensure it is a supported one."""
+        codec = super().to_python(value).strip().lower()
+        if codec not in self.codecs:
+            raise ValueError(
+                f"Unsupported video codec {value!r}, "
+                f"expected one of: {', '.join(sorted(self.codecs))}."
+            )
+        return codec
+
+
 class Base(Configuration):
     """
     This is the base configuration every configuration (aka environment) should inherit from. It
@@ -492,6 +512,9 @@ class Base(Configuration):
 
     # Sentry
     SENTRY_DSN = values.Value(None, environ_name="SENTRY_DSN")
+    SENTRY_TRACES_SAMPLE_RATE = values.FloatValue(
+        0.0, environ_name="SENTRY_TRACES_SAMPLE_RATE", environ_prefix=None
+    )
 
     # Easy thumbnails
     THUMBNAIL_EXTENSION = "webp"
@@ -698,6 +721,9 @@ class Base(Configuration):
         environ_prefix=None,
         default=False,
     )
+    LIVEKIT_DEFAULT_VIDEO_CODEC = VideoCodecValue(
+        "vp9", environ_name="LIVEKIT_DEFAULT_VIDEO_CODEC", environ_prefix=None
+    )
     CONNECTION_TEST_ENABLED = values.BooleanValue(
         environ_name="CONNECTION_TEST_ENABLED",
         environ_prefix=None,
@@ -891,7 +917,7 @@ class Base(Configuration):
         "room_lobby", environ_name="LOBBY_KEY_PREFIX", environ_prefix=None
     )
     LOBBY_WAITING_TIMEOUT = values.PositiveIntegerValue(
-        3, environ_name="LOBBY_WAITING_TIMEOUT", environ_prefix=None
+        6, environ_name="LOBBY_WAITING_TIMEOUT", environ_prefix=None
     )
     LOBBY_DENIED_TIMEOUT = values.PositiveIntegerValue(
         5, environ_name="LOBBY_DENIED_TIMEOUT", environ_prefix=None
@@ -1136,6 +1162,12 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    LOGGING_SILENCED_401_PATHS = values.ListValue(
+        default=["/api/v1.0/users/me/"],
+        environ_name="LOGGING_SILENCED_401_PATHS",
+        environ_prefix=None,
+    )
+
     # Logging
     # We want to make it easy to log to console but by default we log production
     # to Sentry and don't want to log to console.
@@ -1148,10 +1180,16 @@ class Base(Configuration):
                 "style": "{",
             },
         },
+        "filters": {
+            "silence_expected_401": {
+                "()": "core.logging_filters.SilenceExpected401",
+            },
+        },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "simple",
+                "filters": ["silence_expected_401"],
             },
         },
         # Override root logger to send it to console
@@ -1162,6 +1200,13 @@ class Base(Configuration):
             ),
         },
         "loggers": {
+            "request.summary": {
+                "level": values.Value(
+                    "WARNING",
+                    environ_name="LOGGING_LEVEL_REQUEST_SUMMARY",
+                    environ_prefix="",
+                )
+            },
             "core": {
                 "handlers": ["console"],
                 "level": values.Value(
@@ -1247,7 +1292,14 @@ class Base(Configuration):
                 dsn=cls.SENTRY_DSN,
                 environment=cls.__name__.lower(),  # build, test, development, production
                 release=get_release(),
-                integrations=[DjangoIntegration()],
+                traces_sample_rate=cls.SENTRY_TRACES_SAMPLE_RATE,
+                integrations=[
+                    DjangoIntegration(
+                        transaction_style="url",
+                        middleware_spans=True,
+                        cache_spans=True,
+                    )
+                ],
             )
             sentry_sdk.set_tag("application", "backend")
 

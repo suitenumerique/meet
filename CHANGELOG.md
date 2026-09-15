@@ -10,19 +10,55 @@ and this project adheres to
 
 ### Added
 
+- ✨(backend) make the LiveKit default video codec configurable
+
+### Changed
+
+- 📈(frontend) include LiveKit SIDs in the connection analytics event
+- 🔇(backend) silence expected 401 warnings on /me
+- 🔇(backend) silence noisy request summary info logs
+- ⚡️(frontend) defer loading the Crisp script until idle
+- ⬆️(frontend) upgrade react-i18next from 17.0.10 to 17.0.12
+- ⬆️(frontend) upgrade posthog-js from 1.414.0 to 1.418.10
+- ⬆️(addons) upgrade i18next from 26.3.6 to 26.4.0
+- ⬆️(frontend) upgrade humanize-duration from 3.33.2 to 3.34.1
+
+### Fixed
+
+- 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
+- 🔒️(backend) enforce display name setting on rename API
+- 🔒️(backend) reject inactive users in resource server backend
+- 🐛(frontend) fix file permissions in the Docker image
+
+## [1.31.0] - 2026-09-08
+
+### Added
+
 - ✨(frontend) add 1080p sending resolution option #1660
 - ✨(backend) add Traefik support via configurable media-auth url header #1649
 - ✨(backend) update a room's attributes from the external API
+- 🔊(backend) log request duration in Gunicorn workers
+- 📈(frontend) track missing lobby participant on accept/reject
+- ✨(backend) sort waiting participants by their arrival time
 - ✨(fullstack) let an operator forbid public rooms
 
 ### Changed
 
 - ⬆️(dev) pin LiveKit server to v1.13.6
+- 🔒(frontend) upgrade base image to 1.30.4-alpine3.24
 
 ### Fixed
 
 - 🐛(backend) allow any printable ASCII characters in user sub field #1673
 - 🐛(frontend) keep the sending resolution picked while the camera is off #1667
+- 🐛(frontend) restore automatic lower-hand on speaking
+- 🐛(frontend) center Avatar initials with a font-aware cap-height ratio
+- 🐛(frontend) keep feedback buttons on one line for fr/es/en
+- ⚡️(frontend) increase lobby polling interval on both sides
+- ⚡️(frontend) add trailing slash on the /me endpoint call
+- ⚡️(backend) refactor lobby storage to bound key lookups per room
+- ⚡️(backend) refactor presence cache to bound key lookups per room
+- 💄(frontend) position the login hint dynamically next to the button
 
 ## [1.30.0] - 2026-09-01
 

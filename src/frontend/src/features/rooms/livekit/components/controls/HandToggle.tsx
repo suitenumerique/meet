@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { RiHand } from '@remixicon/react'
 import { ToggleButton } from '@/primitives'
 import { css } from '@/styled-system/css'
-import { useRoomContext } from '@livekit/components-react'
+import { useIsSpeaking, useRoomContext } from '@livekit/components-react'
 import { useRaisedHand } from '@/features/rooms/livekit/hooks/useRaisedHand'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -25,11 +25,11 @@ export const HandToggle = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.hand' })
 
   const room = useRoomContext()
-  const { isHandRaised, toggleRaisedHand } = useRaisedHand({
+  const { isHandRaised, toggleRaisedHand, lowerHand } = useRaisedHand({
     participant: room.localParticipant,
   })
 
-  const isSpeaking = room.localParticipant.isSpeaking
+  const isSpeaking = useIsSpeaking(room.localParticipant)
   const speakingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [hasShownToast, setHasShownToast] = useState(false)
 
@@ -57,9 +57,10 @@ export const HandToggle = ({
 
     if (shouldShowToast && !speakingTimerRef.current) {
       speakingTimerRef.current = setTimeout(() => {
+        speakingTimerRef.current = null
         setHasShownToast(true)
         const onClose = () => {
-          if (isHandRaised) toggleRaisedHand()
+          lowerHand()
           resetToastState()
         }
         showLowerHandToast(room.localParticipant, onClose)
@@ -70,7 +71,17 @@ export const HandToggle = ({
       speakingTimerRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSpeaking, isHandRaised, hasShownToast, toggleRaisedHand])
+  }, [isSpeaking, isHandRaised, hasShownToast, lowerHand])
+
+  // Clear any pending timer on unmount
+  useEffect(() => {
+    return () => {
+      if (speakingTimerRef.current) {
+        clearTimeout(speakingTimerRef.current)
+        speakingTimerRef.current = null
+      }
+    }
+  }, [])
 
   const tooltipLabel = isHandRaised ? 'lower' : 'raise'
 

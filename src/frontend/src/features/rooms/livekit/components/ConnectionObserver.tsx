@@ -71,20 +71,30 @@ export const ConnectionObserver = () => {
   useEffect(() => {
     if (!isAnalyticsEnabled) return
 
-    const handleConnection = () => {
+    const handleConnection = async () => {
       // Preserve original connection timestamp across reconnections to measure
       // total session duration from first connect to final disconnect.
       if (connectionStartTimeRef.current != null) return
       connectionStartTimeRef.current = Date.now()
-      void captureMediaEvent('connection-event', {})
+      const participantSid = room.localParticipant.sid
+      const roomSid = await room.getSid().catch(() => undefined)
+      void captureMediaEvent('connection-event', {
+        livekit_room_sid: roomSid,
+        livekit_participant_sid: participantSid,
+      })
     }
 
     const handleReconnect = () => {
       captureEvent('reconnect-event')
     }
 
-    const handleReconnected = () => {
-      captureEvent('reconnected-event')
+    const handleReconnected = async () => {
+      const participantSid = room.localParticipant.sid
+      const roomSid = await room.getSid().catch(() => undefined)
+      captureEvent('reconnected-event', {
+        livekit_room_sid: roomSid,
+        livekit_participant_sid: participantSid,
+      })
     }
 
     const handleSignalingConnect = () => {

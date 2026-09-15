@@ -12,8 +12,8 @@ import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { ApiError } from '@/api/ApiError'
 
-export const POLL_INTERVAL_MS = 1000
-export const LAZY_POLL_INTERVAL_MS = 10_000
+export const POLL_INTERVAL_MS = 4_000
+export const LAZY_POLL_INTERVAL_MS = 15_000
 
 export const LobbyProvider = () => {
   const room = useRoomContext()
@@ -79,7 +79,7 @@ export const LobbyProvider = () => {
   // 3. Rights regained.
   const prevCanManageLobby = usePrevious(canManageLobby)
   useEffect(() => {
-    if (!prevCanManageLobby && canManageLobby && isConnected) {
+    if (prevCanManageLobby != canManageLobby && isConnected) {
       fetchIfManager()
     }
   }, [

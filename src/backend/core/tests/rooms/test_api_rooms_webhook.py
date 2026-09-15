@@ -94,7 +94,7 @@ def test_invalid_payload(client, auth_token, mock_livekit_config):
 
 
 def test_unknown_event_type(client, mock_livekit_config):
-    """Should return 422 for unknown event type."""
+    """Should acknowledge (200) an unknown event type rather than reject it."""
     event_data = json.dumps({"event": "unknown_event_type"})
 
     # Generate auth token for this specific payload
@@ -112,10 +112,8 @@ def test_unknown_event_type(client, mock_livekit_config):
         HTTP_AUTHORIZATION=auth_token,
     )
 
-    assert response.status_code == 422
-    assert response.json() == {
-        "status": "error",
-    }
+    assert response.status_code == 200
+    assert response.json() == {"status": "success"}
 
 
 @mock.patch.object(LiveKitEventsService, "_handle_room_finished")

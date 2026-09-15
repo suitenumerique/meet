@@ -480,7 +480,7 @@
       "destination": "A new document will be created on",
       "destinationUnknown": "A new document will be created",
       "language": "Meeting language:",
-      "recording": "Also start a recording"
+      "recording": "Also start a video recording"
     },
     "button": {
       "start": "Start transcribing the meeting",

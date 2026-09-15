@@ -286,6 +286,10 @@ class ResourceServerBackend(LaSuiteBackend):
         if user is None and settings.OIDC_CREATE_USER:
             user = self.create_user(sub)
 
+        if user is not None and not user.is_active:
+            logger.warning("Inactive user attempted authentication: %s", user.pk)
+            raise SuspiciousOperation("User account is disabled.")
+
         return user
 
     def create_user(self, sub):

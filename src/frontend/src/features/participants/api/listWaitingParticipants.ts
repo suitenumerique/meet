@@ -8,6 +8,7 @@ export type WaitingParticipant = {
   status: string
   username: string
   color: string
+  entered_at: string
 }
 
 export type WaitingParticipantsResponse = {
