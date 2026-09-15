@@ -106,6 +106,11 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
+def is_access_level_forbidden(access_level):
+    """Whether this instance has stopped letting a room be set to this access level."""
+    return not settings.ALLOW_PUBLIC_ROOMS and access_level == RoomAccessLevel.PUBLIC
+
+
 class BaseModel(models.Model):
     """
     Serves as an abstract base model for other models, ensuring that records are validated
@@ -240,6 +245,16 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
 
     def __str__(self):
         return self.email or self.admin_email or str(self.id)
+
+    @property
+    def effective_default_room_access_level(self):
+        """The level a new room of this user starts at, or None for the instance default."""
+        if not self.default_room_access_level or is_access_level_forbidden(
+            self.default_room_access_level
+        ):
+            return None
+
+        return self.default_room_access_level
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Email this user."""
@@ -472,9 +487,33 @@ class Room(Resource):
         super().clean_fields(exclude=exclude)
 
     @property
+    def effective_access_level(self):
+        """The level this room is entered at.
+
+        A room set to public before the instance forbade public rooms runs as
+        trusted, and keeps its own value, so allowing them again restores it.
+        """
+        if is_access_level_forbidden(self.access_level):
+            return RoomAccessLevel.TRUSTED
+
+        return self.access_level
+
+    def is_joinable_by(self, user, role=None):
+        """Whether this user enters the meeting rather than waiting in its lobby."""
+        access_level = self.effective_access_level
+
+        return (
+            access_level == RoomAccessLevel.PUBLIC
+            or (access_level == RoomAccessLevel.TRUSTED and user.is_authenticated)
+            # get_role answers None for anyone not signed in, so a role is
+            # already proof of that and the last branch needs no second check.
+            or (access_level == RoomAccessLevel.RESTRICTED and role is not None)
+        )
+
+    @property
     def is_public(self):
         """Check if a room is public"""
-        return self.access_level == RoomAccessLevel.PUBLIC
+        return self.effective_access_level == RoomAccessLevel.PUBLIC
 
     @staticmethod
     def generate_unique_pin_code(length):

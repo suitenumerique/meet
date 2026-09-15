@@ -40,6 +40,7 @@ and this project adheres to
 - 🔊(backend) log request duration in Gunicorn workers
 - 📈(frontend) track missing lobby participant on accept/reject
 - ✨(backend) sort waiting participants by their arrival time
+- ✨(fullstack) let an operator forbid public rooms
 
 ### Changed
 

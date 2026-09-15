@@ -994,6 +994,15 @@ def test_clear_participant_cache_nonexistent(lobby_service):
     assert cache.get(cache_key) is None
 
 
+def test_can_bypass_lobby_public_room_forbidden_by_the_instance(settings):
+    """A public room runs as trusted, so signed-in people walk in and the rest wait."""
+    settings.ALLOW_PUBLIC_ROOMS = False
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    assert LobbyService.can_bypass_lobby(room, UserFactory(), None) is True
+    assert LobbyService.can_bypass_lobby(room, AnonymousUser(), None) is False
+
+
 def test_index_add_members_remove_roundtrip(lobby_service):
     """The room index records, lists and forgets participant ids."""
     room_id = uuid.uuid4()

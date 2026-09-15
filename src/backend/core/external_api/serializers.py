@@ -8,7 +8,11 @@ from pydantic import ValidationError
 from rest_framework import serializers
 
 from core import models, utils
-from core.api.serializers import BaseValidationOnlySerializer, RoomConfiguration
+from core.api.serializers import (
+    AccessLevelField,
+    BaseValidationOnlySerializer,
+    RoomConfiguration,
+)
 
 OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials"
 
@@ -35,6 +39,7 @@ class RoomSerializer(serializers.ModelSerializer):
     following the principle of least privilege.
     """
 
+    access_level = AccessLevelField(required=False)
     configuration = serializers.JSONField(required=False)
 
     class Meta:

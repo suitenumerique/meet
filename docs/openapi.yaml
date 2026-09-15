@@ -502,6 +502,9 @@ components:
 
         `public` is rejected with a `400` unless the deployment explicitly enables it
         for this API. This applies both when creating a room and when updating one.
+
+        `access_level` reads the level in force and writes the stored one.
+        Sending it back overwrites the owner's choice.
       example: "trusted"
 
     Room:
