@@ -17,7 +17,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.postgres.fields import ArrayField
 from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import models, transaction
+from django.core.files.storage import default_storage
+from django.db import models
 from django.utils import timezone
 from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext_lazy as _
@@ -916,7 +917,6 @@ class File(BaseModel):
         null=True,
     )
     deleted_at = models.DateTimeField(null=True, blank=True)
-    hard_deleted_at = models.DateTimeField(null=True, blank=True)
 
     filename = models.CharField(max_length=255, null=False, blank=False)
 
@@ -954,11 +954,10 @@ class File(BaseModel):
 
         return super().save(*args, **kwargs)
 
-    def delete(self, using=None, keep_parents=False):
-        if self.deleted_at is None:
-            raise RuntimeError("The file must be soft deleted before being deleted.")
-
-        return super().delete(using, keep_parents)
+    @property
+    def is_deleted(self):
+        """Return whether the file is in the trash bin."""
+        return self.deleted_at is not None
 
     @property
     def is_ready(self):
@@ -1018,60 +1017,33 @@ class File(BaseModel):
         """
         Compute and return abilities for a given user on the file.
         """
-        # Characteristics that are based only on specific access
         is_creator = user == self.creator
-        retrieve = is_creator
-        is_deleted = self.deleted_at is not None
-        can_update = is_creator and not is_deleted and user.is_authenticated
-        can_hard_delete = is_creator and user.is_authenticated
-        can_destroy = can_hard_delete and not is_deleted
+        can_edit = is_creator and not self.is_deleted
 
         return {
-            "destroy": can_destroy,
-            "hard_delete": can_hard_delete,
-            "retrieve": retrieve,
-            "media_auth": retrieve and not is_deleted,
-            "partial_update": can_update,
-            "update": can_update,
-            "upload_ended": can_update and user.is_authenticated,
+            "destroy": can_edit,
+            "retrieve": is_creator,
+            "media_auth": can_edit,
+            "partial_update": can_edit,
+            "update": can_edit,
+            "upload_ended": can_edit,
         }
 
-    @transaction.atomic
     def soft_delete(self):
-        """
-        Soft delete the file.
-        We still keep the .delete() method untouched for programmatic purposes.
-        """
+        """Move the file to the trash bin."""
         if self.deleted_at:
             raise RuntimeError("This file is already deleted.")
 
         self.deleted_at = timezone.now()
         self.save(update_fields=["deleted_at"])
 
-    def hard_delete(self):
+    def delete(self, using=None, keep_parents=False):
         """
-        Hard delete the file.
-        We still keep the .delete() method untouched for programmatic purposes.
+        Remove the file's objects from storage, then its row from the database.
+
+        Storage is removed first so that a storage failure leaves the row in place
+        and the periodic purge commands retry it on their next run.
         """
-        if self.hard_deleted_at:
-            raise ValidationError(
-                {
-                    "hard_deleted_at": ValidationError(
-                        _("This file is already hard deleted."),
-                        code="file_hard_delete_already_effective",
-                    )
-                }
-            )
-
-        if self.deleted_at is None:
-            raise ValidationError(
-                {
-                    "hard_deleted_at": ValidationError(
-                        _("To hard delete a file, it must first be soft deleted."),
-                        code="file_hard_delete_should_soft_delete_first",
-                    )
-                }
-            )
-
-        self.hard_deleted_at = timezone.now()
-        self.save(update_fields=["hard_deleted_at"])
+        default_storage.delete(self.temporary_file_key)  # Pending
+        default_storage.delete(self.file_key)  # Final
+        return super().delete(using, keep_parents)

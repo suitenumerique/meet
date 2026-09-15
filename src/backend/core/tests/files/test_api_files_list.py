@@ -4,8 +4,6 @@ Tests for files API endpoint in meet's core app: list
 
 from unittest import mock
 
-from django.utils import timezone
-
 import pytest
 from faker import Faker
 from rest_framework.pagination import PageNumberPagination
@@ -56,14 +54,6 @@ def test_api_files_list_format():
         title="item 2",
     )
 
-    # hard deleted item should not appear
-    factories.FileFactory(
-        type=models.FileTypeChoices.BACKGROUND_IMAGE,
-        hard_deleted_at=timezone.now(),
-        title="hard deleted item",
-        creator=user,
-    )
-
     response = client.get("/api/v1.0/files/")
 
     assert response.status_code == 200
@@ -94,10 +84,8 @@ def test_api_files_list_format():
             "size": None,
             "description": None,
             "deleted_at": None,
-            "hard_deleted_at": None,
             "abilities": {
                 "destroy": True,
-                "hard_delete": True,
                 "media_auth": True,
                 "partial_update": True,
                 "retrieve": True,
