@@ -40,11 +40,7 @@ services:
       minio:
         condition: service_healthy
         restart: true
-    entrypoint: >
-      sh -c "
-      /usr/bin/mc alias set meet http://minio:9000 meet password && \
-      /usr/bin/mc mb meet/meet-media-storage && \
-      exit 0;"
+    entrypoint: ["/bin/sh", "-c", "mc alias set meet http://minio:9000 meet password && mc mb --ignore-existing meet/meet-media-storage"]
 
   app-dev:
     build:
