@@ -63,6 +63,9 @@ set_secret() {
     echo "${key}=${value}" >> "$file"
     echo "  add  ${key}  →  ${file##*/}"
   fi
+
+  # This file now holds a secret in plaintext. Restrict to the owner.
+  chmod 600 "$file"
 }
 
 # ── generate ──────────────────────────────────────────────────────────────────
@@ -91,6 +94,7 @@ echo "Done."
 # ── patch livekit-server.yaml ─────────────────────────────────────────────────
 if [ -n "$LIVEKIT_YAML" ]; then
   sed -i "s|^  meet:.*|  meet: ${LIVEKIT_API_SECRET}|" "$LIVEKIT_YAML"
+  chmod 600 "$LIVEKIT_YAML"
   echo "  set  LIVEKIT_API_SECRET  →  ${LIVEKIT_YAML##*/}"
   echo ""
 else

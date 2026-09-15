@@ -148,6 +148,9 @@ replace_in "meet.example.com" "$MEET_HOST"            "${KC_DIR}/keycloak-realm.
 replace_in "admin@example.com" "$ADMIN_EMAIL"         "${KC_DIR}/keycloak-realm.json"
 replace_in "MEET_ADMIN_PASSWORD_PLACEHOLDER" "$MEET_ADMIN_PASSWORD" "${KC_DIR}/keycloak-realm.json"
 
+# These three files hold secrets in plaintex. Restrict to the owner.
+chmod 600 "${KC_DIR}/env.d/keycloak" "${KC_DIR}/env.d/kc_postgresql" "${KC_DIR}/keycloak-realm.json"
+
 # Write a .env file for Keycloak stack so compose override variables are available
 # as fallback even if the shell export is lost (e.g. when cd changes scope).
 cat > "${KC_DIR}/.env" << EOF
