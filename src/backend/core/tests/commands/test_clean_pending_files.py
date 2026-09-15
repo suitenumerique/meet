@@ -63,7 +63,6 @@ def test_clean_pending_files_old_non_pending_not_deleted():
 
     file.refresh_from_db()
     assert file.deleted_at is None
-    assert file.hard_deleted_at is None
 
 
 def test_clean_pending_files_custom_hours():

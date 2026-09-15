@@ -17,6 +17,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.postgres.fields import ArrayField
 from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.files.storage import default_storage
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.text import capfirst, slugify
@@ -916,7 +917,6 @@ class File(BaseModel):
         null=True,
     )
     deleted_at = models.DateTimeField(null=True, blank=True)
-    hard_deleted_at = models.DateTimeField(null=True, blank=True)
 
     filename = models.CharField(max_length=255, null=False, blank=False)
 
@@ -954,17 +954,10 @@ class File(BaseModel):
 
         return super().save(*args, **kwargs)
 
-    def delete(self, using=None, keep_parents=False):
-        """Only allow removing rows that went through the hard delete flow."""
-        if self.hard_deleted_at is None:
-            raise RuntimeError("The file must be hard deleted before being deleted.")
-
-        return super().delete(using, keep_parents)
-
     @property
     def is_deleted(self):
-        """Return whether the file is soft or hard deleted."""
-        return self.deleted_at is not None or self.hard_deleted_at is not None
+        """Return whether the file is in the trash bin."""
+        return self.deleted_at is not None
 
     @property
     def is_ready(self):
@@ -1044,16 +1037,8 @@ class File(BaseModel):
         self.deleted_at = timezone.now()
         self.save(update_fields=["deleted_at"])
 
-    def hard_delete(self):
-        """Mark the file for purge and queue the deletion of its storage and row."""
-        # pylint: disable=import-outside-toplevel
-        from core.tasks.file import process_file_deletion  # noqa: PLC0415
-
-        if self.hard_deleted_at:
-            raise RuntimeError("This file is already hard deleted.")
-
-        now = timezone.now()
-        self.deleted_at = self.deleted_at or now
-        self.hard_deleted_at = now
-        self.save(update_fields=["deleted_at", "hard_deleted_at"])
-        transaction.on_commit(lambda: process_file_deletion.delay(self.id))
+    def delete(self, using=None, keep_parents=False):
+        """Remove the file from the database, then from storage once committed."""
+        key = self.file_key
+        super().delete(using, keep_parents)
+        transaction.on_commit(lambda: default_storage.delete(key))

@@ -15,7 +15,6 @@ export type ApiFileItem = {
   type: ApiFileType
   creator: ApiFileCreator
   deleted_at: string | null
-  hard_deleted_at: string | null
   filename: string
   upload_state: ApiFileUploadState
   mimetype: string // e.g. "image/png"

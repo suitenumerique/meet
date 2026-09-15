@@ -31,12 +31,11 @@ class Command(BaseCommand):
         files = File.objects.filter(
             upload_state=FileUploadStateChoices.PENDING,
             created_at__lt=threshold,
-            hard_deleted_at__isnull=True,
         )
 
         count = 0
         for file in files.iterator():
-            file.hard_delete()
+            file.delete()
             count += 1
 
         self.stdout.write(f"Cleaned {count} stale pending file(s).")

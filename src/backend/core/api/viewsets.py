@@ -1198,7 +1198,7 @@ class FileViewSet(
     permission_classes = [
         permissions.FilePermission,
     ]
-    queryset = models.File.objects.filter(hard_deleted_at__isnull=True)
+    queryset = models.File.objects.all()
     default_serializer_class = serializers.FileSerializer
     serializer_classes = {
         "list": serializers.ListFileSerializer,
@@ -1352,7 +1352,7 @@ class FileViewSet(
                         )
 
             if validation_error is not None:
-                file.hard_delete()
+                file.delete()
             else:
                 file.upload_state = models.FileUploadStateChoices.READY
                 file.mimetype = mimetype

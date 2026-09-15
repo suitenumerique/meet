@@ -12,7 +12,6 @@ from django.utils import timezone
 import pytest
 
 from core import factories, models
-from core.tasks.file import process_file_deletion
 
 pytestmark = pytest.mark.django_db
 
@@ -25,11 +24,7 @@ def test_purge_deleted_files_no_deleted_files(django_assert_num_queries):
 
 @pytest.mark.django_db(transaction=True)
 def test_purge_deleted_files_success(settings):
-    """
-    Queue deletion for:
-    - hard-deleted files
-    - soft-deleted files past retention period + grace period.
-    """
+    """Only soft deleted files past the grace period are purged."""
     out = StringIO()
 
     settings.FILE_PURGE_GRACE_DAYS = grace = randint(1, 20)
@@ -56,31 +51,14 @@ def test_purge_deleted_files_success(settings):
         )
         purgeable_file.soft_delete()
 
-    # Simulate a file whose deletion task never went through
-    hard_deleted_file = factories.FileFactory(
-        type=models.FileTypeChoices.BACKGROUND_IMAGE,
-        upload_bytes=b"hello",
-        deleted_at=now,
-        hard_deleted_at=now,
-    )
+    call_command("purge_deleted_files", stdout=out)
 
-    with patch(
-        "core.tasks.file.process_file_deletion.delay",
-        side_effect=process_file_deletion,
-    ) as mock_delay:
-        call_command("purge_deleted_files", stdout=out)
-
-    assert "Purged 2 deleted file(s)." in out.getvalue()
-    assert mock_delay.call_count == 2
-    called_ids = {call.args[0] for call in mock_delay.call_args_list}
-    assert called_ids == {purgeable_file.id, hard_deleted_file.id}
+    assert "Purged 1 deleted file(s)." in out.getvalue()
 
     assert models.File.objects.filter(id=not_deleted_file.id).exists()
     assert models.File.objects.filter(id=not_purgeable_file.id).exists()
     assert not models.File.objects.filter(id=purgeable_file.id).exists()
-    assert not models.File.objects.filter(id=hard_deleted_file.id).exists()
 
     assert default_storage.exists(not_deleted_file.file_key)
     assert default_storage.exists(not_purgeable_file.file_key)
     assert not default_storage.exists(purgeable_file.file_key)
-    assert not default_storage.exists(hard_deleted_file.file_key)
