@@ -772,7 +772,17 @@
     "currentZoomLevel": "Zoom {{level}} %",
     "panHint": "Zoom {{level}} %. Glissez avec la souris, ou revenez sur le partage d'écran et utilisez les touches fléchées pour naviguer dans l'image.",
     "fullScreenEntered": "Plein écran activé",
-    "fullScreenExited": "Plein écran désactivé"
+    "fullScreenExited": "Plein écran désactivé",
+    "openInSeparateWindow": "Ouvrir dans une fenêtre séparée",
+    "closeSeparateWindow": "Ramener le partage d'écran dans la réunion",
+    "separateWindowOpened": "Partage d'écran ouvert dans une fenêtre séparée",
+    "separateWindowClosed": "Partage d'écran ramené dans la réunion",
+    "separateWindowBlocked": "Le navigateur a bloqué la fenêtre séparée. Autorisez les pop-ups pour ce site, puis réessayez.",
+    "separateWindowTitle": "Partage d'écran de {{name}}",
+    "separateWindowLabel": "Partage d'écran de {{name}} dans une fenêtre séparée",
+    "placeholderTitle": "Ce partage d'écran est dans une autre fenêtre.",
+    "placeholderDescription": "Vous pouvez déplacer cette fenêtre vers un autre écran. La réunion reste ici.",
+    "placeholderBringBack": "Ramener le partage d'écran ici"
   },
   "shortcutsPanel": {
     "title": "Raccourcis clavier",
