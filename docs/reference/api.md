@@ -326,10 +326,9 @@ GET /api/v1.0/config/
 ## Health check
 
 ```
-GET /healthz/
+GET /__heartbeat__     # liveness
+GET /__lbheartbeat__   # readiness
 ```
-Returns HTTP 200 if the application is running.
-
 
 ## Pagination
 
