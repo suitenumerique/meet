@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     user: ${DOCKER_USER:-1000}
     env_file:
-      - env.d/hosts
+      - .env
       - env.d/common
       - env.d/postgresql
     healthcheck:
@@ -45,7 +45,7 @@ services:
     entrypoint: [/docker-entrypoint.sh]
     command: ["nginx", "-g", "daemon off;"]
     env_file:
-      - env.d/hosts
+      - .env
       - env.d/common
     volumes:
       - ./nginx-routing.conf:/etc/nginx/conf.d/routing.conf:ro
@@ -62,7 +62,7 @@ services:
     user: ${DOCKER_USER:-1000}
     command: ["celery", "-A", "meet.celery_app", "worker", "-l", "INFO"]
     env_file:
-      - env.d/hosts
+      - .env
       - env.d/common
       - env.d/postgresql
     depends_on:

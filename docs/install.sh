@@ -83,11 +83,10 @@ docker network create proxy 2>/dev/null && success "Created 'proxy' network." \
 mkdir -p "$DOCKER_ROOT"
 curl -fsSL -o "${DOCKER_ROOT}/hosts" "${RAW_ENVD_URL}/hosts"
 
-# The upstream hosts template uses KEYCLOAK_HOST (not IDP_HOST).
-# Patch all three domain vars using the correct key names from the template.
-sed -i "s|^MEET_HOST=.*|MEET_HOST=${MEET_HOST}|"           "${DOCKER_ROOT}/hosts"
-sed -i "s|^KEYCLOAK_HOST=.*|KEYCLOAK_HOST=${IDP_HOST}|"    "${DOCKER_ROOT}/hosts"
-sed -i "s|^LIVEKIT_HOST=.*|LIVEKIT_HOST=${LIVEKIT_HOST}|"  "${DOCKER_ROOT}/hosts"
+sed -i "s|^MEET_HOST=.*|MEET_HOST=${MEET_HOST}|"                     "${DOCKER_ROOT}/hosts"
+sed -i "s|^IDP_HOST=.*|IDP_HOST=${IDP_HOST}|"                       "${DOCKER_ROOT}/hosts"
+sed -i "s|^LIVEKIT_HOST=.*|LIVEKIT_HOST=${LIVEKIT_HOST}|"           "${DOCKER_ROOT}/hosts"
+sed -i "s|^LETSENCRYPT_EMAIL=.*|LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}|" "${DOCKER_ROOT}/hosts"
 
 # ── Stack 1: nginx-proxy ──────────────────────────────────────────────────────
 
@@ -119,8 +118,7 @@ curl -fsSL -o "${KC_DIR}/keycloak-realm.json" "${RAW_BASE_URL}/docs/examples/key
 curl -fsSL -o "${KC_DIR}/docker-compose.override.yml" \
   "${RAW_BASE_URL}/docs/examples/keycloak/docker-compose.override.yml.nginx"
 
-# Copy the shared hosts file and download Keycloak-specific env files
-cp "${DOCKER_ROOT}/hosts"                              "${KC_DIR}/env.d/hosts"
+# Download Keycloak-specific env files
 curl -fsSL -o "${KC_DIR}/env.d/keycloak"              "${RAW_ENVD_URL}/keycloak"
 curl -fsSL -o "${KC_DIR}/env.d/kc_postgresql"         "${RAW_ENVD_URL}/kc_postgresql"
 
@@ -174,7 +172,6 @@ curl -fsSL -o "${MEET_DIR}/docker-compose.override.yml" \
   "${RAW_BASE_URL}/docs/examples/meet/docker-compose.override.yml.nginx"
 
 # Download Meet env.d files (Meet stack only - no KC files here)
-cp "${DOCKER_ROOT}/hosts"                              "${MEET_DIR}/env.d/hosts"
 curl -fsSL -o "${MEET_DIR}/env.d/common"              "${RAW_ENVD_URL}/common"
 curl -fsSL -o "${MEET_DIR}/env.d/postgresql"          "${RAW_ENVD_URL}/postgresql"
 
@@ -187,10 +184,14 @@ curl -fsSL -o "${MEET_DIR}/generate-secrets.sh" "${RAW_BASE_URL}/docs/generate-s
 chmod +x "${MEET_DIR}/generate-secrets.sh"
 "${MEET_DIR}/generate-secrets.sh" "${MEET_DIR}/env.d" "${MEET_DIR}/livekit-server.yaml"
 
-# Write a .env file for Meet stack so compose override variables are available.
+# Write a .env file for the Meet stack. Beyond the proxy override, env.d/common
+# also references ${IDP_HOST}/${REALM_NAME} internally (OIDC endpoints), so all
+# four domain vars must be present here even though only two are Meet-specific.
 cat > "${MEET_DIR}/.env" << EOF
 MEET_HOST=${MEET_HOST}
+IDP_HOST=${IDP_HOST}
 LIVEKIT_HOST=${LIVEKIT_HOST}
+REALM_NAME=meet
 LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
 EOF
 

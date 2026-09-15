@@ -20,7 +20,7 @@ Each stack is independent: you manage, upgrade, and restart them separately. The
 
 ## Before you start: configure your domains
 
-All three stacks share the same domain names. Download the hosts file once and edit it - each stack will copy it in later.
+All three stacks share the same domain names and Let's Encrypt email. Download the hosts file once and edit it - each stack will copy it in later.
 
 ```bash
 RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
@@ -35,6 +35,7 @@ Edit `~/docker/hosts`:
 MEET_HOST=meet.example.com
 IDP_HOST=auth.example.com
 LIVEKIT_HOST=livekit.example.com
+LETSENCRYPT_EMAIL=you@example.com
 ```
 
 All three domains must have DNS A records pointing to your server before you proceed. Let's Encrypt verifies DNS during certificate issuance.
@@ -73,7 +74,7 @@ curl -fsSL -o keycloak-realm.json   ${RAW}/docs/examples/keycloak/keycloak-realm
 
 curl -fsSL -o env.d/keycloak        ${RAW}/env.d/production.dist/keycloak
 curl -fsSL -o env.d/kc_postgresql   ${RAW}/env.d/production.dist/kc_postgresql
-cp ~/docker/hosts env.d/hosts
+cp ~/docker/hosts .env
 ```
 
 Copy the proxy override for your reverse proxy:
@@ -96,7 +97,7 @@ Generate secrets and write them into `env.d/`:
 
 ```bash
 # Load domain variables from the hosts file
-set -a && source env.d/hosts && set +a
+set -a && source .env && set +a
 
 KC_ADMIN_PASSWORD=$(openssl rand -hex 16)
 KC_DB_PASSWORD=$(openssl rand -hex 16)
@@ -160,7 +161,7 @@ chmod +x generate-secrets.sh
 
 curl -fsSL -o env.d/common     ${RAW}/env.d/production.dist/common
 curl -fsSL -o env.d/postgresql ${RAW}/env.d/production.dist/postgresql
-cp ~/docker/hosts env.d/hosts
+cp ~/docker/hosts .env
 ```
 
 Copy the proxy override:
