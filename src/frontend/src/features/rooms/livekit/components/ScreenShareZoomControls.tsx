@@ -4,6 +4,8 @@ import {
   RiCollapseDiagonalLine,
   RiExpandDiagonalLine,
   RiFullscreenExitLine,
+  RiArrowGoBackLine,
+  RiShareBoxLine,
   RiZoomInLine,
   RiZoomOutLine,
 } from '@remixicon/react'
@@ -13,6 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { isMacintosh } from '@/utils/livekit'
 import { srOnly } from '@/styles/a11y'
+import { useIsMobile } from '@/utils/useIsMobile'
 
 interface ScreenShareZoomControlsProps {
   containerRef: React.RefObject<HTMLDivElement | null>
@@ -20,10 +23,15 @@ interface ScreenShareZoomControlsProps {
   zoomPercentage: number
   canZoomIn: boolean
   canZoomOut: boolean
+  isPoppedOut: boolean
+  popoutButtonRef: React.Ref<HTMLButtonElement>
   onZoomIn: () => void
   onZoomOut: () => void
   onResetZoom: () => void
+  onTogglePopout: () => void
 }
+
+const getOwnerDocument = (el: Element | null) => el?.ownerDocument ?? document
 
 export const ScreenShareZoomControls = ({
   containerRef,
@@ -31,27 +39,36 @@ export const ScreenShareZoomControls = ({
   zoomPercentage,
   canZoomIn,
   canZoomOut,
+  isPoppedOut,
+  popoutButtonRef,
   onZoomIn,
   onZoomOut,
   onResetZoom,
+  onTogglePopout,
 }: ScreenShareZoomControlsProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
   const announce = useScreenReaderAnnounce()
+  const isMobile = useIsMobile()
 
   const zoomInButtonRef = useRef<HTMLButtonElement>(null)
   const hadFocusInCollapsibleRef = useRef(false)
 
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isFullscreenAvailable, setIsFullscreenAvailable] = useState(
+    () => document.fullscreenEnabled
+  )
   // Tracks whether this tile's container triggered fullscreen (vs another share's).
   const wasThisTileFullscreen = useRef(false)
-  const isFullscreenAvailable = document.fullscreenEnabled
 
   // Covers Esc and browser UI exits, not just the toolbar button.
-  // Only this tile's instance announces to avoid duplicates with multiple shares.
+  // Listen on the popup document too, so fullscreen still works there.
   useEffect(() => {
+    const doc = getOwnerDocument(containerRef.current)
+    setIsFullscreenAvailable(!!doc.fullscreenEnabled)
+
     const onChange = () => {
       const isThisTileFullscreen =
-        document.fullscreenElement === containerRef.current
+        doc.fullscreenElement === containerRef.current
       setIsFullscreen(isThisTileFullscreen)
 
       if (isThisTileFullscreen) {
@@ -62,9 +79,9 @@ export const ScreenShareZoomControls = ({
         announce(t('fullScreenExited'), 'assertive')
       }
     }
-    document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
-  }, [announce, t, containerRef])
+    doc.addEventListener('fullscreenchange', onChange)
+    return () => doc.removeEventListener('fullscreenchange', onChange)
+  }, [announce, t, containerRef, isPoppedOut])
 
   // Back at 100 % the collapsible controls are disabled and hidden, which drops
   // keyboard focus on the body. Hand it to the zoom in button instead, the only
@@ -76,11 +93,12 @@ export const ScreenShareZoomControls = ({
   }, [isZoomed])
 
   const toggleFullScreen = useCallback(async () => {
+    const doc = getOwnerDocument(containerRef.current)
     try {
-      if (document.fullscreenElement === containerRef.current) {
-        await document.exitFullscreen()
+      if (doc.fullscreenElement === containerRef.current) {
+        await doc.exitFullscreen()
       } else {
-        // Tile container so zoom controls stay visible in fullscreen.
+        // Tile / pop-out chrome so zoom controls stay visible in fullscreen.
         await containerRef.current?.requestFullscreen()
       }
     } catch (error) {
@@ -201,6 +219,28 @@ export const ScreenShareZoomControls = ({
         >
           <RiZoomInLine size={20} />
         </Button>
+        {/* Desktop only — popups on mobile are usually blocked. */}
+        {!isMobile && (
+          <Button
+            ref={popoutButtonRef}
+            size="sm"
+            variant="primaryTextDark"
+            square
+            tooltip={
+              isPoppedOut ? t('closeSeparateWindow') : t('openInSeparateWindow')
+            }
+            aria-label={
+              isPoppedOut ? t('closeSeparateWindow') : t('openInSeparateWindow')
+            }
+            onPress={onTogglePopout}
+          >
+            {isPoppedOut ? (
+              <RiArrowGoBackLine size={20} />
+            ) : (
+              <RiShareBoxLine size={20} />
+            )}
+          </Button>
+        )}
         {isFullscreenAvailable && (
           <Button
             size="sm"
