@@ -1,6 +1,6 @@
 # External API - Resource Server (OAuth2)
 
-Meet exposes an external API at `/external-api/v1.0/` for server-to-server room management. This page covers the **resource server** authentication mode, where the end user authenticates directly with the OIDC provider and receives a token that includes `lasuite_visio` scopes, which your application then presents to Meet.
+Meet exposes an external API at `/external-api/v1.0/` for server-to-server room management. This page covers the **resource server** authentication mode, where the end user authenticates directly with the OIDC provider and receives a token that includes `lasuite_meet` scopes, which your application then presents to Meet.
 
 This follows the standard [OAuth 2.0 Resource Server](https://www.oauth.com/oauth2-servers/the-resource-server/) pattern.
 
@@ -24,9 +24,9 @@ Compare with the [Application-Delegated mode](external-api-delegated.md), where 
 
 ```
 1. The user authenticates with your OIDC provider and requests these scopes:
-     lasuite_visio                  (mandatory - base scope)
-     lasuite_visio:rooms:list       (as needed)
-     lasuite_visio:rooms:create     (as needed)
+     lasuite_meet                   (mandatory - base scope)
+     rooms:list                     (as needed)
+     rooms:create                   (as needed)
      ...
 
 2. The OIDC provider issues an access token containing those scopes.
@@ -40,24 +40,26 @@ Compare with the [Application-Delegated mode](external-api-delegated.md), where 
 
 Meet validates the token against your OIDC provider using the `OIDC_RS_*` configuration.
 
+By default, scopes are independent, space-separated tokens on the token (e.g. `openid lasuite_meet rooms:list`) - they are **not** colon-joined. If you'd rather issue namespaced scopes like `lasuite_meet:rooms:list` at your IdP, set `OIDC_RS_SCOPES_PREFIX=lasuite_meet` on the backend; it strips that prefix before matching.
+
 ---
 
 ## Scopes
 
 | Scope | Permission |
 |---|---|
-| `lasuite_visio` | **Mandatory.** Base scope required for any API access. |
-| `lasuite_visio:rooms:list` | List rooms accessible to the user |
-| `lasuite_visio:rooms:retrieve` | Retrieve details of a specific room |
-| `lasuite_visio:rooms:create` | Create new rooms |
-| `lasuite_visio:rooms:update` | *(Coming soon)* Update existing rooms |
-| `lasuite_visio:rooms:delete` | *(Coming soon)* Delete application-generated rooms |
+| `lasuite_meet` | **Mandatory.** Base scope required for any API access. |
+| `rooms:list` | List rooms accessible to the user |
+| `rooms:retrieve` | Retrieve details of a specific room |
+| `rooms:create` | Create new rooms |
+| `rooms:update` | Update the access level and configuration of existing rooms |
+| `rooms:delete` | *(Coming soon)* Delete application-generated rooms |
 
 ---
 
 ## Endpoints
 
-The endpoints are identical to the application-delegated mode - same paths, same request/response shapes. The only difference is how the Bearer token is obtained.
+The endpoints are identical to the application-delegated mode - same paths, same request/response shapes, same `access_level`/`configuration` fields. The only difference is how the Bearer token is obtained. See [Application-Delegated: Endpoints](external-api-delegated.md#endpoints) for the full parameter reference (create/update body fields, scopes required per action).
 
 ### List rooms
 ```
@@ -82,6 +84,19 @@ Content-Type: application/json
 ```
 GET /external-api/v1.0/rooms/{id}
 Authorization: Bearer <oidc-access-token>
+```
+
+### Update a room
+```
+PATCH /external-api/v1.0/rooms/{id}
+Authorization: Bearer <oidc-access-token>
+Content-Type: application/json
+```
+
+```json
+{
+  "access_level": "restricted"
+}
 ```
 
 ---
