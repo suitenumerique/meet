@@ -4,24 +4,23 @@ LaSuite Meet is a multi-service application. Understanding its components helps 
 
 ## Components overview
 
+Split into two views: control/data flow (who calls whom for orchestration and storage) and the real-time media path. Some nodes (LiveKit, Redis, ObjectStore) appear in both because they're genuinely shared - LiveKit's REST API is used for control (starting an egress), while its media port carries WebRTC.
+
+**Control & data flow:**
+
 ```mermaid
 graph TB
     Browser["Browser\nReact / TypeScript"]
     OIDC["OIDC Provider\nKeycloak · Authentik · Google…"]
-    Phone["Phone\n(optional)"]
 
     subgraph backend_layer["Application"]
         Backend["Django Backend"]
         Celery["Celery Worker"]
     end
 
-    subgraph media_layer["Media"]
-        LiveKit["LiveKit Server"]
-        Egress["LiveKit Egress"]
-        SIP["LiveKit SIP\n(optional)"]
-        Agents["LiveKit Agents\n(optional)"]
-        Summary["Summary Service\n(optional - transcription & AI)"]
-    end
+    LiveKit["LiveKit Server"]
+    Agents["LiveKit Agents\n(optional)"]
+    Summary["Summary Service\n(optional - transcription & AI)"]
 
     subgraph storage_layer["Storage"]
         PostgreSQL["PostgreSQL"]
@@ -30,23 +29,46 @@ graph TB
     end
 
     Browser -->|REST API| Backend
-    Browser -->|WebRTC| LiveKit
     Browser -->|OIDC login| OIDC
-    Phone -->|SIP/PSTN| SIP
-    SIP -->|WebRTC| LiveKit
     OIDC -->|tokens| Backend
     Backend --> PostgreSQL
     Backend --> Redis
+    Backend --> ObjectStore
     Backend -->|Egress API| LiveKit
     Backend -->|Agent dispatch| Agents
-    Backend --> ObjectStore["S3"]
+    Backend -->|submits task| Summary
     Celery --> Redis
-    LiveKit --> Redis
-    Agents -->|WebRTC| LiveKit
-    Agents -->|metadata| ObjectStore["S3"]
-    Egress -->|writes recording| ObjectStore["S3"]
-    Summary -->|downloads from| ObjectStore["S3"]
+    Celery --> PostgreSQL
+    Celery --> ObjectStore
+    Summary -->|downloads from| ObjectStore
     Summary -->|reports results| Backend
+```
+
+**Real-time media flow:**
+
+```mermaid
+graph TB
+    Browser["Browser\nReact / TypeScript"]
+    Phone["Phone\n(optional)"]
+
+    subgraph media_layer["Media"]
+        LiveKit["LiveKit Server"]
+        Egress["LiveKit Egress"]
+        SIP["LiveKit SIP\n(optional)"]
+        Agents["LiveKit Agents\n(optional)"]
+    end
+
+    Redis["Redis"]
+    ObjectStore["S3"]
+
+    Browser -->|WebRTC| LiveKit
+    Phone -->|SIP/PSTN| SIP
+    SIP -->|WebRTC| LiveKit
+    LiveKit --> Redis
+    Egress -->|job dispatch via Redis| Redis
+    Agents -->|WebRTC| LiveKit
+    Agents -->|metadata| ObjectStore
+    Egress -->|writes recording| ObjectStore
 ```
 
 ## Services
