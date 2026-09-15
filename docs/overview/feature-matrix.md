@@ -88,6 +88,13 @@
 
 | Version | Date | Key additions |
 |---|---|---|
+| v1.31.0 | 2026-09-08 | 1080p sending resolution option, Traefik support via media-auth header, external API room-attribute updates |
+| v1.30.0 | 2026-09-01 | **Removed the S3 storage-event webhook for recordings** - completion now detected solely via the LiveKit `egress_ended` webhook, Spanish language support |
+| v1.29.0 | 2026-08-25 | Lobby management opened to any authenticated user on trusted rooms, mobile UI improvements |
+| v1.28.0 | 2026-08-24 | Recording error analytics, configurable summary service S3 region |
+| v1.27.0 | 2026-08-14 | Control bar and toolbar layout stability fixes |
+| v1.26.0 | 2026-08-12 | Audio gauge and sound tester for device selection, silent-microphone watcher |
+| v1.25.0 | 2026-08-05 | Connection test feature, promoting authenticated participants, roomkit viewset |
 | v1.24.0 | 2026-07-21 | Participant color gradients, force SSO display name, search recordings by owner email, Outlook add-in improvements |
 | v1.23.0 | 2026-07-08 | Feature flags (PostHog), Sentry error reporting for agents, Python 3.14 upgrade for agents |
 | v1.22.0 | 2026-07-03 | Picture-in-picture pagination, recording fallback without S3 webhooks, screen share in PiP |
