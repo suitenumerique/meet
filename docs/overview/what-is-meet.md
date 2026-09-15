@@ -22,7 +22,7 @@ Most video conferencing solutions are either proprietary (Zoom, Teams, Google Me
 | Meeting recording | ✅ Available |
 | Transcription & AI summary | ⚗️ Beta |
 | Telephony / SIP integration | ✅ Available |
-| Large meetings (100+ participants) | ✅ Available |
+| Large meetings (150+ participants) | ✅ Available |
 | OIDC / SSO authentication | ✅ Available |
 | Accessibility (WCAG) | ✅ Actively maintained |
 | End-to-end encryption | 🔜 Coming soon |

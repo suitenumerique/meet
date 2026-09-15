@@ -12,7 +12,7 @@ It depends on how your instance is configured. Some instances allow anonymous ac
 
 ### How many people can join a meeting?
 
-Meet is designed for large meetings and is tested in production with 100+ participants. There is no hard cap built into Meet itself. The practical limit depends on your LiveKit server's resources.
+Meet is designed for large meetings and is tested in production with 150+ participants. There is no hard cap built into Meet itself. The practical limit depends on your LiveKit server's resources.
 
 ### Is there a time limit on meetings?
 
