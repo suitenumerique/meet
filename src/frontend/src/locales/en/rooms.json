@@ -772,7 +772,17 @@
     "currentZoomLevel": "Zoom {{level}} %",
     "panHint": "Zoom {{level}} %. Drag with mouse, or move focus back to the screen share and use arrow keys to navigate the picture.",
     "fullScreenEntered": "Full screen enabled",
-    "fullScreenExited": "Full screen disabled"
+    "fullScreenExited": "Full screen disabled",
+    "openInSeparateWindow": "Open in separate window",
+    "closeSeparateWindow": "Return screen share to meeting",
+    "separateWindowOpened": "Screen share opened in a separate window",
+    "separateWindowClosed": "Screen share returned to the meeting",
+    "separateWindowBlocked": "The browser blocked the separate window. Allow pop-ups for this site and try again.",
+    "separateWindowTitle": "{{name}}'s screen share",
+    "separateWindowLabel": "{{name}}'s screen share in a separate window",
+    "placeholderTitle": "This screen share is in another window.",
+    "placeholderDescription": "You can move that window to another screen. The meeting stays here.",
+    "placeholderBringBack": "Bring the screen share back here"
   },
   "shortcutsPanel": {
     "title": "Keyboard shortcuts",
