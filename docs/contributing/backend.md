@@ -13,7 +13,7 @@ The Meet backend is a Django 5.x application written in Python 3.13+.
 | LiveKit integration | `livekit-api` (Python SDK) |
 | Async tasks | Celery |
 | Testing | pytest + pytest-django |
-| Linting | Ruff |
+| Linting | Ruff + Pylint |
 
 ## Running the backend
 
@@ -44,24 +44,12 @@ All settings live in `src/backend/meet/settings.py` as a single file using `djan
 
 ## Key models
 
-```python
-# core/models.py
+The main models live in [`core/models.py`](../../src/backend/core/models.py):
 
-class Room(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    slug = models.SlugField(unique=True)
-    name = models.CharField(max_length=255)
-    access_level = models.CharField(...)  # public, authenticated, restricted
-    configuration = models.JSONField(default=dict)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+- **`Room`** — extends `Resource`; holds the room `slug`, `access_level` (`public`, `trusted`, `restricted`), a free-form `configuration` JSON field exposed to participants, and an optional telephony `pin_code`.
+- **`Recording`** — extends `BaseModel`; tracks a recording's `status` (`initiated`, `active`, `stopped`, `saved`, plus failure/abort states) and `mode` (`screen_recording`, `transcript`), and links back to its `Room`.
 
-class Recording(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE)
-    status = models.CharField(...)  # initiated, active, stopped, saved
-    mode = models.CharField(...)    # screen_recording, transcript
-    key = models.CharField(...)     # S3 object key (path in bucket)
-```
+Refer to the source file directly for exact fields, as this doc can drift from the code.
 
 After model changes, create and apply migrations:
 
@@ -71,50 +59,15 @@ make migrate
 
 ## API views
 
-Views use Django REST Framework ViewSets:
-
-```python
-class RoomViewSet(viewsets.ModelViewSet):
-    serializer_class = RoomSerializer
-    permission_classes = [IsAuthenticated, IsRoomMemberOrPublic]
-
-    def get_queryset(self):
-        return Room.objects.filter(
-            Q(access_level="public") | Q(accesses__user=self.request.user)
-        )
-```
+Views are implemented as Django REST Framework `ViewSet`s in [`core/api/viewsets.py`](../../src/backend/core/api/viewsets.py) (authenticated API) and [`core/external_api/viewsets.py`](../../src/backend/core/external_api/viewsets.py) (JWT-authenticated, scope-based API for external applications acting on behalf of users). Permissions are defined in `core/api/permissions.py`.
 
 ## LiveKit token generation
 
-The backend generates short-lived JWTs for clients:
-
-```python
-from livekit import api
-
-token = (
-    api.AccessToken(settings.LIVEKIT_CONFIGURATION["api_key"],
-                    settings.LIVEKIT_CONFIGURATION["api_secret"])
-        .with_identity(str(user.id))
-        .with_name(user.full_name)
-    .with_grants(api.VideoGrants(room_join=True, room=room.slug))
-    .to_jwt()
-)
-```
+The backend generates short-lived JWTs for clients in `generate_token()` ([`core/utils.py`](../../src/backend/core/utils.py)). It builds a `VideoGrants` object (publish/subscribe rights, admin grants for room owners/admins) and an `AccessToken`, attaching display name, color, and role as participant attributes. See [`docs/contributing/livekit-integration.md`](livekit-integration.md) for the full flow.
 
 ## Celery tasks
 
-Celery is used for async background operations. Currently the only task is file deletion cleanup (`core/tasks/file.py`):
-
-```python
-from core.tasks._task import task
-
-@task
-def process_file_deletion(file_id):
-    """Delete a file from the database and from object storage."""
-    file = File.objects.get(id=file_id)
-    default_storage.delete(file.file_key)
-    file.delete()
-```
+Celery is used for async background operations. Tasks live under `core/tasks/` (e.g. file deletion cleanup, connection-test room teardown) — see that directory for the current list rather than duplicating it here, as it changes over time.
 
 > **Note on recording notifications**: email notifications for completed recordings are sent **synchronously** in the storage webhook handler (`core/recording/event/notification.py`), not via Celery. `CELERY_ENABLED` is only needed when `FILE_UPLOAD_ENABLED=True` to handle file deletion cleanup asynchronously.
 
@@ -125,14 +78,16 @@ def process_file_deletion(file_id):
 make test-back
 
 # Specific file
-docker compose exec app-dev pytest core/tests/test_rooms.py
+docker compose exec app-dev pytest core/tests/rooms/test_api_rooms_list.py
 
 # With coverage
 docker compose exec app-dev pytest --cov=meet --cov-report=html
 
 # Single test
-docker compose exec app-dev pytest core/tests/test_rooms.py::TestRoomCreate::test_authenticated
+docker compose exec app-dev pytest core/tests/rooms/test_api_rooms_list.py::test_api_rooms_list_authenticated
 ```
+
+See [`docs/contributing/testing.md`](testing.md) for more on backend test conventions.
 
 ## Code style
 

@@ -11,7 +11,8 @@ The Meet frontend is a TypeScript/React SPA built with Vite.
 | Build tool | Vite |
 | WebRTC | livekit-client |
 | Headless UI components | React Aria (Adobe) |
-| State management | Zustand |
+| State management | Valtio |
+| Data fetching | TanStack Query |
 | i18n | i18next |
 | Linting | ESLint + Prettier |
 
@@ -50,30 +51,15 @@ See `src/frontend/src/features/` for the current list of features — this is no
 
 ## LiveKit connection
 
-```typescript
-import { LiveKitRoom, VideoConference } from '@livekit/components-react';
+The room component wraps `<LiveKitRoom>` from `@livekit/components-react`, passing the `token` and `serverUrl` obtained from the room API response (`GET /api/v1.0/rooms/{id}/` → `livekit.token` / `livekit.url`).
 
-// Token and URL come from GET /api/v1.0/rooms/{id}/ → response.livekit.token / .url
-<LiveKitRoom token={token} serverUrl={url} connect>
-  <VideoConference />
-</LiveKitRoom>
-```
+See [`features/rooms/components/Conference.tsx`](../../src/frontend/src/features/rooms/components/Conference.tsx) for the actual setup, which also handles things like connect gating, background processors, and browser-specific workarounds — details not reproduced here to avoid drift.
 
 ## State management
 
-```typescript
-import { create } from 'zustand';
+Global/cross-feature state uses [Valtio](https://valtio.dev/) proxy stores under `src/frontend/src/stores/`, one file per domain (e.g. `recording.ts`, `chat.ts`, `layout.ts`). Components read state with `useSnapshot()` and mutate the proxy object directly — no actions/reducers boilerplate.
 
-interface ConferenceStore {
-  isRecording: boolean;
-  setIsRecording: (v: boolean) => void;
-}
-
-export const useConferenceStore = create<ConferenceStore>((set) => ({
-  isRecording: false,
-  setIsRecording: (v) => set({ isRecording: v }),
-}));
-```
+Local/server state (API data, caching) uses TanStack Query instead of a store.
 
 ## Accessibility & React Aria
 
