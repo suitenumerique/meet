@@ -50,9 +50,18 @@ The method used by DINUM in production for Visio. For large organisations, high-
 | Component | Purpose |
 |---|---|
 | LiveKit Egress | Room recording |
-| MinIO / S3 storage | Recording file storage |
+| ObjectStore / S3 storage | Recording file storage and custom background |
 | Summary service | AI transcription & summary |
+| WhisperX API | Speech-to-text for transcription |
 | Celery workers | Async task processing |
+
+**Optional features:**
+
+| Component | Purpose |
+|---|---|
+| LiveKit SIP | Phone dial-in via SIP trunks |
+| LiveKit Agents | Real-time subtitles, metadata collection |
+| LaSuite Docs | Transcription document delivery |
 
 ---
 
@@ -66,6 +75,7 @@ After deploying the core, use the Configuration section to enable and tune featu
 - [SSO & Authentication](configuration/sso.md) - Keycloak, Authentik, Google, Microsoft, and others
 - [Recording](configuration/recording.md) - LiveKit Egress + MinIO
 - [AI Transcription](configuration/transcription.md) - WhisperX + summary service
+- [Real-time Subtitles](configuration/subtitles.md) - LiveKit agents with Deepgram/Kyutai
 - [Telephony](configuration/telephony.md) - SIP dial-in via LiveKit SIP bridge
 - [Theming](configuration/theming.md) - custom CSS, logo, build-time options
 - [Upgrading](configuration/upgrade.md)
@@ -76,10 +86,13 @@ After deploying the core, use the Configuration section to enable and tune featu
 
 - `lasuite/meet-backend` - Django backend
 - `lasuite/meet-frontend` - nginx router + React SPA
+- `lasuite/meet-summary` - Transcription & summary service
+- `lasuite/meet-agents` - LiveKit agents (metadata collector, subtitles)
 - `livekit/livekit-server` - LiveKit server
 - `livekit/egress` - LiveKit Egress
+- `livekit/sip` - LiveKit SIP bridge (optional)
 
-All images are on [Docker Hub](https://hub.docker.com/u/lasuite).
+All LaSuite images are on [Docker Hub](https://hub.docker.com/u/lasuite). LiveKit images are on [Docker Hub](https://hub.docker.com/u/livekit).
 
 ## Getting help
 
