@@ -4,11 +4,12 @@ import { useEffect } from 'react'
 import { RoomEvent } from 'livekit-client'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
-import type {
+import {
   ApiAccessLevel,
-  ApiRoom,
-  RoomConfiguration,
+  type ApiRoom,
+  type RoomConfiguration,
 } from '@/features/rooms/api/ApiRoom'
+import { useAllowPublicRooms } from '@/features/rooms/hooks/useAllowPublicRooms'
 import { useRoomContext } from '@livekit/components-react'
 import { useRoomData } from './useRoomData'
 
@@ -31,6 +32,19 @@ const parseMetadata = (raw: string | undefined): RoomLiveKitMetadata | null => {
 }
 
 /**
+ * The level a meeting runs at, which the metadata can predate: a room carries
+ * whatever it was last told, and the instance may have stopped allowing that
+ * level since. The server answers the same way.
+ */
+const enforcedAccessLevel = (
+  level: ApiAccessLevel,
+  allowPublic: boolean
+): ApiAccessLevel =>
+  !allowPublic && level === ApiAccessLevel.PUBLIC
+    ? ApiAccessLevel.TRUSTED
+    : level
+
+/**
  * Sync LiveKit room metadata into the React Query cache.
  *
  * The backend pushes room configuration into LiveKit's room metadata
@@ -44,23 +58,22 @@ export const useSyncLiveKitMetadata = () => {
   const room = useRoomContext()
   const roomData = useRoomData()
   const roomSlug = roomData?.slug
+  const allowPublic = useAllowPublicRooms()
 
   useEffect(() => {
     if (!room || !roomSlug) return
 
-    const applyMetadata = (raw: string | undefined, live: boolean) => {
+    const applyMetadata = (raw: string | undefined) => {
       const parsed = parseMetadata(raw)
       if (!parsed) return
 
       queryClient.setQueryData<ApiRoom>([keys.room, roomSlug], (prev) => {
         if (!prev) return prev
         const nextConfiguration = parsed.configuration ?? prev.configuration
-        // Only a change we witnessed is newer than the answer the API just
-        // gave us. The metadata a room already carries can name a level the
-        // server has since stopped enforcing.
-        const nextAccessLevel = live
-          ? (parsed.access_level ?? prev.access_level)
-          : prev.access_level
+        const nextAccessLevel = enforcedAccessLevel(
+          parsed.access_level ?? prev.access_level,
+          allowPublic
+        )
         if (
           nextConfiguration === prev.configuration &&
           nextAccessLevel === prev.access_level
@@ -78,13 +91,12 @@ export const useSyncLiveKitMetadata = () => {
 
     // Apply whatever metadata is currently set (covers the case where we
     // joined the room AFTER the last metadata change, so no event will fire).
-    applyMetadata(room.metadata, false)
+    applyMetadata(room.metadata)
 
-    const handler = (raw: string) => applyMetadata(raw, true)
-    room.on(RoomEvent.RoomMetadataChanged, handler)
+    room.on(RoomEvent.RoomMetadataChanged, applyMetadata)
 
     return () => {
-      room.off(RoomEvent.RoomMetadataChanged, handler)
+      room.off(RoomEvent.RoomMetadataChanged, applyMetadata)
     }
-  }, [room, roomSlug])
+  }, [room, roomSlug, allowPublic])
 }
