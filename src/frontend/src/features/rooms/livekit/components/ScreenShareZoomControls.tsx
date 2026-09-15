@@ -2,6 +2,8 @@ import { css } from '@/styled-system/css'
 import { Button } from '@/primitives'
 import {
   RiFullscreenExitLine,
+  RiArrowGoBackLine,
+  RiShareBoxLine,
   RiZoomInLine,
   RiZoomOutLine,
 } from '@remixicon/react'
@@ -10,6 +12,7 @@ import { Toolbar } from 'react-aria-components'
 import { useEffect, useRef } from 'react'
 import { isMacintosh } from '@/utils/livekit'
 import { srOnly } from '@/styles/a11y'
+import { useIsMobile } from '@/utils/useIsMobile'
 import { ScreenShareFullscreenButton } from './ScreenShareFullscreenButton'
 
 interface ScreenShareZoomControlsProps {
@@ -18,9 +21,12 @@ interface ScreenShareZoomControlsProps {
   zoomPercentage: number
   canZoomIn: boolean
   canZoomOut: boolean
+  isPoppedOut: boolean
+  popoutButtonRef: React.Ref<HTMLButtonElement>
   onZoomIn: () => void
   onZoomOut: () => void
   onResetZoom: () => void
+  onTogglePopout: () => void
 }
 
 export const ScreenShareZoomControls = ({
@@ -29,11 +35,15 @@ export const ScreenShareZoomControls = ({
   zoomPercentage,
   canZoomIn,
   canZoomOut,
+  isPoppedOut,
+  popoutButtonRef,
   onZoomIn,
   onZoomOut,
   onResetZoom,
+  onTogglePopout,
 }: ScreenShareZoomControlsProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
+  const isMobile = useIsMobile()
 
   const zoomInButtonRef = useRef<HTMLButtonElement>(null)
   const hadFocusInCollapsibleRef = useRef(false)
@@ -158,6 +168,28 @@ export const ScreenShareZoomControls = ({
         >
           <RiZoomInLine size={20} />
         </Button>
+        {/* Desktop only — popups on mobile are usually blocked. */}
+        {!isMobile && (
+          <Button
+            ref={popoutButtonRef}
+            size="sm"
+            variant="primaryTextDark"
+            square
+            tooltip={
+              isPoppedOut ? t('closeSeparateWindow') : t('openInSeparateWindow')
+            }
+            aria-label={
+              isPoppedOut ? t('closeSeparateWindow') : t('openInSeparateWindow')
+            }
+            onPress={onTogglePopout}
+          >
+            {isPoppedOut ? (
+              <RiArrowGoBackLine size={20} />
+            ) : (
+              <RiShareBoxLine size={20} />
+            )}
+          </Button>
+        )}
         <ScreenShareFullscreenButton containerRef={containerRef} />
       </Toolbar>
     </div>

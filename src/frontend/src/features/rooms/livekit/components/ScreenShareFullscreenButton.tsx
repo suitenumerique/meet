@@ -4,6 +4,8 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
+const getOwnerDocument = (el: Element | null) => el?.ownerDocument ?? document
+
 // Keeps the fullscreen state here rather than on the toolbar, so entering or
 // leaving fullscreen does not re-render the zoom controls.
 export const ScreenShareFullscreenButton = memo(
@@ -16,15 +18,22 @@ export const ScreenShareFullscreenButton = memo(
     const announce = useScreenReaderAnnounce()
 
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [isFullscreenAvailable, setIsFullscreenAvailable] = useState(
+      () => document.fullscreenEnabled
+    )
     // Tracks whether this tile's container triggered fullscreen (vs another share's).
     const wasThisTileFullscreen = useRef(false)
 
     // Covers Esc and browser UI exits, not just this button.
+    // Listens on the element's own document, so it still works in the popup.
     // Only this tile's instance announces to avoid duplicates with multiple shares.
     useEffect(() => {
+      const doc = getOwnerDocument(containerRef.current)
+      setIsFullscreenAvailable(!!doc.fullscreenEnabled)
+
       const onChange = () => {
         const isThisTileFullscreen =
-          document.fullscreenElement === containerRef.current
+          doc.fullscreenElement === containerRef.current
         setIsFullscreen(isThisTileFullscreen)
 
         if (isThisTileFullscreen) {
@@ -35,16 +44,17 @@ export const ScreenShareFullscreenButton = memo(
           announce(t('fullScreenExited'), 'assertive')
         }
       }
-      document.addEventListener('fullscreenchange', onChange)
-      return () => document.removeEventListener('fullscreenchange', onChange)
+      doc.addEventListener('fullscreenchange', onChange)
+      return () => doc.removeEventListener('fullscreenchange', onChange)
     }, [announce, t, containerRef])
 
     const toggleFullScreen = useCallback(async () => {
+      const doc = getOwnerDocument(containerRef.current)
       try {
-        if (document.fullscreenElement === containerRef.current) {
-          await document.exitFullscreen()
+        if (doc.fullscreenElement === containerRef.current) {
+          await doc.exitFullscreen()
         } else {
-          // Tile container so zoom controls stay visible in fullscreen.
+          // Tile / pop-out chrome so zoom controls stay visible in fullscreen.
           await containerRef.current?.requestFullscreen()
         }
       } catch (error) {
@@ -52,7 +62,7 @@ export const ScreenShareFullscreenButton = memo(
       }
     }, [containerRef])
 
-    if (!document.fullscreenEnabled) return null
+    if (!isFullscreenAvailable) return null
 
     return (
       <Button

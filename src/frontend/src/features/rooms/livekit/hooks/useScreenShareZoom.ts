@@ -89,8 +89,8 @@ export const useScreenShareZoom = () => {
     )
     applyTransform()
     applyCursor()
-    flush()
-  }, [applyCursor, applyTransform, flush, readPictureRatio])
+    syncToolbar()
+  }, [applyCursor, applyTransform, syncToolbar, readPictureRatio])
 
   const setZoom = useCallback(
     (next: number) => {

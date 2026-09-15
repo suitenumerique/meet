@@ -153,7 +153,11 @@ export const ParticipantTile: (
     // there without the dead fullscreen button.
     trackMedia =
       isRemoteScreenShare && !disableTileControls ? (
-        <ScreenShareZoomableVideo tileRef={tileRef}>
+        <ScreenShareZoomableVideo
+          tileRef={tileRef}
+          participantName={participantName}
+          windowName={`meet-screen-share-${trackReference.publication.trackSid || trackReference.participant.identity}`}
+        >
           {videoTrack}
         </ScreenShareZoomableVideo>
       ) : (
