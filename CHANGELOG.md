@@ -14,7 +14,6 @@ and this project adheres to
 
 ### Changed
 
-- ♻️(backend) centralize file hard deletion in the model
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
 - 🔇(backend) silence expected 401 warnings on /me
 - 🔇(backend) silence noisy request summary info logs
@@ -23,6 +22,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade posthog-js from 1.414.0 to 1.418.10
 - ⬆️(addons) upgrade i18next from 26.3.6 to 26.4.0
 - ⬆️(frontend) upgrade humanize-duration from 3.33.2 to 3.34.1
+- ♻️(backend) delete files synchronously
 
 ### Fixed
 

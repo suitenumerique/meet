@@ -1040,5 +1040,6 @@ class File(BaseModel):
     def delete(self, using=None, keep_parents=False):
         """Remove the file from the database, then from storage once committed."""
         key = self.file_key
-        super().delete(using, keep_parents)
+        result = super().delete(using, keep_parents)
         transaction.on_commit(lambda: default_storage.delete(key))
+        return result
