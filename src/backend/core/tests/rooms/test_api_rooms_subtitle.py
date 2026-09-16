@@ -117,8 +117,10 @@ def test_start_subtitle_invalid_token():
     assert response.json() == {"detail": "Invalid LiveKit token: Not enough segments"}
 
 
-def test_start_subtitle_disabled_by_default(mock_livekit_token):
+def test_start_subtitle_disabled_by_default(mock_livekit_token, settings):
     """Test that subtitle functionality is disabled when feature flag is off."""
+
+    settings.ROOM_SUBTITLE_ENABLED = False
 
     room = RoomFactory()
     user = UserFactory()
