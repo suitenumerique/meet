@@ -1,0 +1,7 @@
+# Override for Bureautix workstations, where the local proxy listens on
+# 8080 and collides with Keycloak's published admin port.
+
+services:
+  keycloak:
+    ports: !override
+      - "8081:8080"

@@ -240,6 +240,10 @@ in
           ;;
       esac
 
+
+      # Apply Bureautix override
+      _compose_files="$_compose_files:${config.devenv.root}/compose.bureautix.yml"
+
       export COMPOSE_FILE="$_compose_files"
       unset _compose_files
 
