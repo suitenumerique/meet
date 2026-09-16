@@ -1,5 +1,7 @@
 # Troubleshooting
 
+`docker system prune`/`docker volume prune` commands on this page act on the whole Docker host, not just Meet.
+
 ## Diagnostic checklist
 
 Before investigating specific symptoms, collect basic information:
@@ -20,9 +22,9 @@ docker compose logs --tail=50 keycloak
 
 ### App returns 404 on all routes
 
-**Cause**: `DJANGO_SETTINGS_MODULE` is not set in `.env`.
+**Cause**: `DJANGO_CONFIGURATION` is not set in `.env`.
 
-**Fix**: Add `DJANGO_SETTINGS_MODULE=meet.settings` to `.env` and restart.
+**Fix**: Add `DJANGO_CONFIGURATION=Production` (or the appropriate class) to `.env` and restart.
 
 
 ### 502 Bad Gateway on all routes
@@ -52,9 +54,7 @@ Then restart the frontend container.
 
 Meet's callback URL is `https://meet.example.com/api/v1.0/callback/`, **not** the standard `/oidc/callback/`. Update your OIDC provider's client configuration to use the correct URI (including the trailing slash).
 
-**Cause B**: Backend cannot reach Keycloak for token exchange.
-
-The backend must be on the `proxy` Docker network to resolve public hostnames like `auth.example.com`. Check your compose file: the backend service should list both `proxy` and `internal` in its `networks:`.
+**Cause B**: Backend cannot reach Keycloak for token exchange (network connectivity, wrong `OIDC_OP_*` URLs, or Keycloak down).
 
 **Cause C**: Session cookie mismatch. `DJANGO_CSRF_TRUSTED_ORIGINS` does not include your full HTTPS domain.
 
@@ -71,7 +71,7 @@ If using Keycloak, fix it in  admin console: Clients → meet → Settings → V
 
 **Most likely cause**: LiveKit WebSocket is unreachable from the browser.
 
-The browser connects to the URL returned by `GET /api/v1.0/rooms/{id}/token/`. If `LIVEKIT_API_URL` is set to the Docker-internal address (`http://livekit:7880`), browsers receive that address and can't connect.
+The browser connects to the URL returned by `GET /api/v1.0/rooms/{id}/`. If `LIVEKIT_API_URL` is set to the Docker-internal address (`http://livekit:7880`), browsers receive that address and can't connect.
 
 **Fix**: `LIVEKIT_API_URL` must be the public HTTPS URL:
 ```dotenv
@@ -138,9 +138,7 @@ When LiveKit sends webhooks to `http://backend:8000/...` (internal Docker URL), 
        - https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
    ```
 
-3. In `compose.yml`, add the `livekit` service to the `proxy` network so it can resolve the public domain name internally.
-
-4. Recreate the affected containers:
+3. Recreate the affected containers:
    ```bash
    docker compose up -d backend livekit
    ```
@@ -185,7 +183,7 @@ Then recreate the backend: `docker compose up -d --force-recreate backend celery
 
 The download button on the recording page links to `https://meet.example.com/media/recordings/<uuid>.mp4`. Without a routing rule, this falls through to the React frontend which shows "Verify your meeting code".
 
-**Fix**: Add a MinIO proxy to the template; see [Reverse Proxy & Routing](../self-hosting/compose/nginx.md) for the full config with recording support. Restart the frontend after updating: `docker compose restart frontend`
+**Fix**: Add a MinIO proxy to the template; see [Recording](../self-hosting/configuration/recording.md#step-5-update-nginx-routing-for-recording-downloads). Restart the frontend after updating: `docker compose restart frontend`
 
 
 ## Traefik issues
@@ -209,7 +207,7 @@ docker compose restart traefik
 
 ### Service returns 502 / Traefik can't reach a container
 
-**Cause**: The container is not on the `proxy` Docker network, which Traefik uses for backend connections.
+**Cause**: The container is not on the `proxy` Docker network. Only services with Traefik labels (`frontend`, `livekit`, `keycloak`) need to be on it - `backend` does not, it has no labels and is only reached via `frontend`.
 
 **Fix**: Ensure the service has `proxy` in its `networks:` list:
 ```yaml

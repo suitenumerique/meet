@@ -8,19 +8,19 @@ Meet does not manage passwords. All authentication is fully delegated to an exte
 
 ### LiveKit JWT tokens
 
-Clients authenticate with the LiveKit media server using short-lived JWTs:
+Clients authenticate with the LiveKit media server using JWTs:
 - Signed by the Django backend using `LIVEKIT_API_SECRET`
 - Encode: user identity, room name, and permissions
-- Default TTL: 1 hour (`LIVEKIT_TOKEN_TTL`)
+- TTL: 6 hours
 - If `LIVEKIT_API_SECRET` is compromised, anyone can forge tokens for your LiveKit server; rotate it immediately
 
 ### Room access levels
 
-| Level | Who can join |
-|---|---|
-| Public | Anyone with the URL |
-| Authenticated | Requires OIDC login |
-| Lobby | Requires host admission after authentication |
+| `access_level` | Who joins directly | Who waits in the lobby |
+|---|---|---|
+| `public` | Anyone with the room link | No one |
+| `trusted` | Authenticated users | Unauthenticated users |
+| `restricted` | Only participants explicitly trusted by the owner | Everyone else, authenticated or not |
 
 
 ## Media encryption
@@ -48,27 +48,20 @@ The Django backend uses CSRF tokens for browser-based requests. `DJANGO_CSRF_TRU
 
 ### Object-level permissions
 
-Room endpoints enforce per-object permission checks: users can only access rooms they own or are members of.
+Reading a room requires no authentication or membership - anyone with the slug/PIN can join. Modifying or deleting a room requires being an administrator or owner.
+
+By default (`ALLOW_UNREGISTERED_ROOMS=True`), joining a slug that doesn't exist yet creates the room on the fly instead of returning `404`. Set `ALLOW_UNREGISTERED_ROOMS=False` to require rooms to be explicitly created first.
 
 ### Rate limiting
 
 API endpoints are rate-limited per authenticated user. The lobby endpoint uses participant-ID-based throttling. Rate limit failures can be tracked via Sentry (`SENTRY_DSN`).
 
 
-## Known security fixes (by version)
+## Known security fixes
 
-| Version | Component | Issue |
-|---|---|---|
-| v1.5.0 | Frontend | XSS on the recording download page |
-| v1.6.0 | Backend | Object-level permission bypass on room endpoints |
-| v1.6.0 | Backend | Application validation bypass for external JWTs |
-| v1.13.0 | Backend | Email disclosure in room invitation endpoint |
-| v1.14.0 | Backend | Participant metadata update permission enforcement |
-| v1.14.0 | Multiple | CVEs: aiohttp, Vite, Django, Pillow |
-| v1.15.0 | Backend | Room configuration validation |
-| v1.16.0 | Frontend | Room IDs generated with non-cryptographic RNG (fixed) |
+See [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) and [GitHub Security Advisories](https://github.com/suitenumerique/meet/security/advisories).
 
-Always keep your instance up to date. Subscribe to [GitHub Security Advisories](https://github.com/suitenumerique/meet/security/advisories).
+Always keep your instance up to date.
 
 
 ## Infrastructure hardening
@@ -107,7 +100,7 @@ Keep at 32+ characters. Treat like a database password.
 
 ### Object storage (MinIO/S3)
 
-- Do not expose MinIO/S3 ports publicly
+- Do not expose MinIO/S3 ports publicly. Recording downloads go through `/media/` on the reverse proxy instead.
 - Use IAM-style policies to limit access to specific buckets
 - Recording completion is detected via LiveKit Server's own signed `egress_ended` webhook (verified with `LIVEKIT_API_SECRET`, same as other LiveKit webhooks).
 

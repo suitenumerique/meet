@@ -36,7 +36,6 @@ services:
       livekit:
         condition: service_started
     networks:
-      - proxy
       - internal
 
   frontend:

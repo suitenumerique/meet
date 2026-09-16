@@ -6,7 +6,7 @@ A **room** is a virtual meeting space. Each room has:
 
 - A unique slug/ID used in the URL (e.g., `meet.example.com/my-room-name`)
 - An owner (the user who created it) with full control
-- Access settings: open, authenticated-only, or invite-only
+- Access level: `public` (anyone with the link joins directly), `trusted` (authenticated users join directly, others wait in the lobby), or `restricted` (everyone waits in the lobby regardless of authentication, unless explicitly trusted by the owner)
 - A configuration that can include recording options, participant limits, and feature flags
 
 Rooms are **persistent** in the database (room metadata, configuration, access rights), but **ephemeral state** (chat history, active participants, live connections) is not stored between sessions.
