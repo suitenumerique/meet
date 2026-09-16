@@ -10,7 +10,7 @@ and this project adheres to
 
 ### Added
 
-- ✨(frontend) offer signed-out visitors to start a meeting when unregistered rooms are allowed
+- ✨(frontend) let signed-out visitors start a meeting
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✨(backend) make the LiveKit default video codec configurable
 
