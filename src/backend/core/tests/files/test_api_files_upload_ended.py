@@ -3,6 +3,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
+from unittest import mock
 
 from django.core.files.storage import default_storage
 
@@ -136,6 +137,40 @@ def test_api_file_upload_ended_mimetype_not_allowed(settings, caplog):
 
     assert not models.File.objects.filter(id=file.id).exists()
     assert not default_storage.exists(file.file_key)
+    assert not default_storage.exists(file.temporary_file_key)
+
+
+def test_api_file_upload_ended_rejected_storage_failure_keeps_row(settings):
+    """
+    When a rejected upload cannot be removed from storage, the row must survive
+    (reverted to pending) so the cleanup can be retried, and no phantom file
+    must be re-inserted under a new id.
+    """
+    settings.FILE_UPLOAD_RESTRICTIONS = {
+        "background_image": {
+            **settings.FILE_UPLOAD_RESTRICTIONS["background_image"],
+            "allowed_mimetypes": ["application/pdf"],
+        }
+    }
+
+    user = factories.UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    file = factories.FileFactory(
+        type=FileTypeChoices.BACKGROUND_IMAGE, filename="my_file.txt", creator=user
+    )
+    default_storage.save(file.temporary_file_key, BytesIO(b"my prose"))
+
+    with (
+        mock.patch.object(default_storage, "delete", side_effect=OSError("boom")),
+        pytest.raises(OSError, match="boom"),
+    ):
+        client.post(f"/api/v1.0/files/{file.id!s}/upload-ended/")
+
+    assert models.File.objects.count() == 1
+    file.refresh_from_db()
+    assert file.upload_state == FileUploadStateChoices.PENDING
 
 
 def test_api_file_upload_ended_mimetype_not_allowed_not_checking_mimetype(settings):
@@ -273,6 +308,7 @@ def test_api_upload_ended_file_size_exceeded(settings, caplog):
 
     assert not models.File.objects.filter(id=file.id).exists()
     assert not default_storage.exists(file.file_key)
+    assert not default_storage.exists(file.temporary_file_key)
 
 
 @pytest.mark.django_db(transaction=True)

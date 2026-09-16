@@ -134,7 +134,7 @@ class FilePermission(IsAuthenticated):
         Return a 404 on deleted files or if the user is not the owner
         """
 
-        if obj.deleted_at is not None or obj.hard_deleted_at is not None:
+        if obj.is_deleted:
             raise Http404
 
         if obj.creator != request.user:

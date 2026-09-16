@@ -3,47 +3,24 @@
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth import admin as auth_admin
-from django.db import transaction
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from core.recording.event import notification
 
 from . import models
-from .tasks.file import process_file_deletion
 from .utils import generate_download_s3_url
-
-
-def hard_delete_file(file):
-    """Hard delete a file, soft deleting it first when needed."""
-    if file.deleted_at is None:
-        file.soft_delete()
-    file.hard_delete()
-    transaction.on_commit(lambda: process_file_deletion.delay(file.id))
-
-
-class FileInlineFormSet(forms.BaseInlineFormSet):
-    """Inline formset overriding delete behavior for files."""
-
-    def delete_existing(self, obj, commit=True):
-        """Hard delete files instead of calling model.delete()."""
-        hard_delete_file(obj)
 
 
 class FileInline(admin.TabularInline):
     """Inline class for the File model."""
 
     model = models.File
-    formset = FileInlineFormSet
     fk_name = "creator"
     extra = 0
     fields = ("id", "title", "type", "upload_state", "created_at")
     readonly_fields = ("id", "created_at", "upload_state", "type")
     show_change_link = True
-
-    def get_queryset(self, request):
-        """Hide hard deleted files in the inline."""
-        return super().get_queryset(request).filter(hard_deleted_at__isnull=True)
 
 
 @admin.register(models.User)
@@ -146,7 +123,6 @@ class FileAdmin(admin.ModelAdmin):
         "creator",
         "upload_state",
         "deleted_at",
-        "hard_deleted_at",
         "created_at",
         "updated_at",
     )
@@ -156,7 +132,6 @@ class FileAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "deleted_at",
-        "hard_deleted_at",
     )
     search_fields = (
         "id",
@@ -174,7 +149,6 @@ class FileAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "deleted_at",
-        "hard_deleted_at",
         "description",
         "malware_detection_info",
         "is_ready",
@@ -213,15 +187,7 @@ class FileAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        (
-            _("Deletion"),
-            {
-                "fields": (
-                    "deleted_at",
-                    "hard_deleted_at",
-                )
-            },
-        ),
+        (_("Deletion"), {"fields": ("deleted_at",)}),
         (
             _("Derived info"),
             {
@@ -248,18 +214,10 @@ class FileAdmin(admin.ModelAdmin):
             '<a href="{}" target="_blank" rel="noopener noreferrer">Open File</a>', url
         )
 
-    def get_queryset(self, request):
-        """Hide hard deleted files in admin listing and lookups."""
-        return super().get_queryset(request).filter(hard_deleted_at__isnull=True)
-
-    def delete_model(self, request, obj):
-        """Hard delete instead of calling model.delete()."""
-        hard_delete_file(obj)
-
     def delete_queryset(self, request, queryset):
-        """Hard delete all selected files."""
+        """Delete one by one so storage is cleaned up too."""
         for file in queryset:
-            hard_delete_file(file)
+            file.delete()
 
     def has_add_permission(self, request):
         return False
