@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) make the LiveKit default video codec configurable
+- 🔧(dev) add support for Bureautix workstations
 
 ### Changed
 
@@ -24,7 +25,6 @@ and this project adheres to
 - ⬆️(frontend) upgrade humanize-duration from 3.33.2 to 3.34.1
 
 ### Fixed
-
 - 🐛(backend) report the app release to Sentry instead of "NA"
 - 🐛(frontend) play the waiting room notification sound on every arrival
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
