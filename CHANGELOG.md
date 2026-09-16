@@ -10,10 +10,12 @@ and this project adheres to
 
 ### Added
 
+- ✨(backend) add room deletion to the external API
 - ✨(backend) make the LiveKit default video codec configurable
 
 ### Changed
 
+- ♻️(backend) soft delete rooms and close their LiveKit room on deletion
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
 - 🔇(backend) silence expected 401 warnings on /me
 - 🔇(backend) silence noisy request summary info logs

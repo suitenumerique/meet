@@ -235,15 +235,18 @@ class RoomViewSet(
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
 
-    def get_object(self):
-        """Allow getting a room by its slug."""
+    def _get_lookup_kwargs(self):
+        """Return the lookup for the room referenced in the URL, by id or by slug."""
         try:
             uuid.UUID(self.kwargs["pk"])
-            filter_kwargs = {"pk": self.kwargs["pk"]}
         except ValueError:
-            filter_kwargs = {"slug": slugify(self.kwargs["pk"])}
+            return {"slug": slugify(self.kwargs["pk"])}
+        return {"pk": self.kwargs["pk"]}
+
+    def get_object(self):
+        """Allow getting a room by its slug."""
         queryset = self.filter_queryset(self.get_queryset())
-        obj = get_object_or_404(queryset, **filter_kwargs)
+        obj = get_object_or_404(queryset, **self._get_lookup_kwargs())
         # May raise a permission denied
         self.check_object_permissions(self.request, obj)
         return obj
@@ -258,6 +261,15 @@ class RoomViewSet(
         except Http404:
             if not settings.ALLOW_UNREGISTERED_ROOMS:
                 raise
+
+            # Don't retrieve a soft-deleted room as an unregistered one
+            if (
+                models.Room.all_objects.deleted()
+                .filter(**self._get_lookup_kwargs())
+                .exists()
+            ):
+                raise
+
             slug = slugify(self.kwargs["pk"])
             username = request.query_params.get("username", None)
             data = {
@@ -296,6 +308,13 @@ class RoomViewSet(
 
         serializer = self.get_serializer(queryset, many=True)
         return drf_response.Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        """Soft delete the room and close its LiveKit room.
+
+        The room and its recordings are kept in database for traceability.
+        """
+        RoomManagement.soft_delete(instance)
 
     def perform_create(self, serializer):
         """Set the current user as owner of the newly created room.
