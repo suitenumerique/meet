@@ -219,13 +219,14 @@ in
       esac
 
       # Compose files to merge
+      _compose_dir="${config.devenv.root}/docker/compose.d"
       _compose_files="${config.devenv.root}/compose.yml"
 
       export DOCKER_USER="$(id -u):$(id -g)"
 
       case "''${DOCKER_HOST:-}" in
         *podman*)
-          _compose_files="$_compose_files:${config.devenv.root}/compose.podman.yml"
+          _compose_files="$_compose_files:$_compose_dir/compose.podman.yml"
 
           # Build images with Podman/Buildah rather than BuildKit. `docker
           # compose build` otherwise has buildx boot a moby/buildkit container,
@@ -242,10 +243,10 @@ in
 
 
       # Apply Bureautix override
-      _compose_files="$_compose_files:${config.devenv.root}/compose.bureautix.yml"
+      _compose_files="$_compose_files:$_compose_dir/compose.bureautix.yml"
 
       export COMPOSE_FILE="$_compose_files"
-      unset _compose_files
+      unset _compose_dir _compose_files
 
       # Make binaries accessible
       for _d in \
