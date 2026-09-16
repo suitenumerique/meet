@@ -1,7 +1,8 @@
 FROM python:3.14.6-slim AS base
 
-# Install system dependencies required by LiveKit
-RUN apt-get update && apt-get install -y \
+# Install system dependencies required by LiveKit, fetching packages over HTTPS only for Bureautix proxy
+RUN sed -i "s|^URIs: http://|URIs: https://|" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update && apt-get install -y --no-install-recommends  \
     libglib2.0-0 \
     libgobject-2.0-0 \
     && rm -rf /var/lib/apt/lists/*

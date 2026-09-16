@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) make the LiveKit default video codec configurable
+- 🔧(dev) add support for Bureautix workstations
 
 ### Changed
 

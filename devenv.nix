@@ -243,7 +243,9 @@ in
 
 
       # Apply Bureautix override
-      _compose_files="$_compose_files:$_compose_dir/compose.bureautix.yml"
+      if [ -n "''${http_proxy:-}" ]; then
+        _compose_files="$_compose_files:$_compose_dir/compose.bureautix.yml"
+      fi
 
       export COMPOSE_FILE="$_compose_files"
       unset _compose_dir _compose_files

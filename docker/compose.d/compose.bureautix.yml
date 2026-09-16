@@ -1,7 +1,48 @@
-# Override for Bureautix workstations, where the local proxy listens on
-# 8080 and collides with Keycloak's published admin port.
+# Bureautix proxy overrides
+#
+# Builds submitted through the Docker API of the Podman service get none of
+# the proxy variables in their RUN steps. We need to pass the http_proxy explicitely
+# otherwise all connections fail during the build.
+
+x-proxy-vars: &proxy-vars
+  http_proxy: ${http_proxy:-}
+  https_proxy: ${https_proxy:-}
+  no_proxy: ${no_proxy:-}
 
 services:
+  app:
+    build:
+      args:
+        <<: *proxy-vars
+  app-dev:
+    build:
+      args:
+        <<: *proxy-vars
+  frontend:
+    build:
+      args:
+        <<: *proxy-vars
+  metadata-collector-dev:
+    build:
+      args:
+        <<: *proxy-vars
+  multi-user-transcriber-dev:
+    build:
+      args:
+        <<: *proxy-vars
+  app-summary-dev:
+    build:
+      args:
+        <<: *proxy-vars
+  celery-summary-transcribe:
+    build:
+      args:
+        <<: *proxy-vars
+  celery-summary-summarize:
+    build:
+      args:
+        <<: *proxy-vars
+  # The local proxy listens on 8080 and collides with Keycloak's published admin port.
   keycloak:
     ports: !override
       - "8081:8080"
