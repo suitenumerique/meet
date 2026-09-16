@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-# shellcheck source=bin/_config.sh
-source "$(dirname "${BASH_SOURCE[0]}")/_config.sh"
-
-_docker_compose "$@"
