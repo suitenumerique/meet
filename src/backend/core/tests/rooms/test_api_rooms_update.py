@@ -410,3 +410,27 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata, exception):
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_public_not_allowed(mock_update_metadata, settings):
+    """An access level the instance forbids should be rejected."""
+    settings.ALLOW_PUBLIC_ROOMS = False
+    user = UserFactory()
+    room = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED,
+        users=[(user, random.choice(["administrator", "owner"]))],
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"access_level": RoomAccessLevel.PUBLIC},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+    mock_update_metadata.assert_not_called()

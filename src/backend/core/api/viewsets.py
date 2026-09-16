@@ -256,7 +256,12 @@ class RoomViewSet(
         try:
             instance = self.get_object()
         except Http404:
-            if not settings.ALLOW_UNREGISTERED_ROOMS:
+            # An unregistered room has no row to hold a level and no lobby in
+            # front of it, so it is a public room or it is nothing.
+            if (
+                not settings.ALLOW_UNREGISTERED_ROOMS
+                or models.access_level_error(RoomAccessLevel.PUBLIC) is not None
+            ):
                 raise
             slug = slugify(self.kwargs["pk"])
             username = request.query_params.get("username", None)
