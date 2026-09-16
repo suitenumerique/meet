@@ -292,7 +292,7 @@ shell: ## connect to database shell
 # -- Database
 
 dbshell: ## connect to database shell
-	docker compose exec app-dev python manage.py dbshell
+	@$(COMPOSE_EXEC_APP) python manage.py dbshell
 .PHONY: dbshell
 
 resetdb: FLUSH_ARGS ?=

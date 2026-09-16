@@ -1,0 +1,33 @@
+# Rootless Podman override for compose.yml.
+#
+# Rootless Podman maps container UID 0 to the host user and every other
+# container UID to a subuid that owns nothing in the worktree. Meet compose.ymlruns
+# its containers as DOCKER_USER=$(id -u):$(id -g), which would land on such a
+# subuid and make every bind mount effectively read-only.
+#
+# `userns_mode: keep-id` maps the host user to the same UID and GID inside the
+# container instead, so DOCKER_USER keeps its Docker value and files written
+# through a bind mount are owned by the host user on both sides.
+#
+# Only the services that mount the worktree and run as DOCKER_USER are listed.
+
+x-keep-id: &keep-id
+  userns_mode: keep-id
+
+services:
+  app-dev:
+    <<: *keep-id
+  celery-dev:
+    <<: *keep-id
+  minio:
+    <<: *keep-id
+  node:
+    <<: *keep-id
+  crowdin:
+    <<: *keep-id
+  metadata-collector-dev:
+    <<: *keep-id
+  multi-user-transcriber-dev:
+    <<: *keep-id
+  app-summary-dev:
+    <<: *keep-id
