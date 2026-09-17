@@ -17,6 +17,7 @@ def test_startup_forbid_public_rooms_moves_public_rows(settings, caplog):
     """Where public rooms are forbidden, public rooms and defaults move, and it says so."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     user = UserFactory(default_room_access_level=RoomAccessLevel.PUBLIC)
+    room_updated_at, user_updated_at = room.updated_at, user.updated_at
     settings.ALLOW_PUBLIC_ROOMS = False
 
     with caplog.at_level(logging.WARNING, logger="core.startup"):
@@ -26,6 +27,8 @@ def test_startup_forbid_public_rooms_moves_public_rows(settings, caplog):
     user.refresh_from_db()
     assert room.access_level == RoomAccessLevel.TRUSTED
     assert user.default_room_access_level == RoomAccessLevel.TRUSTED
+    assert room.updated_at > room_updated_at
+    assert user.updated_at > user_updated_at
     assert "moved 1 room(s) and 1 user default(s)" in caplog.text
 
 
@@ -39,6 +42,7 @@ def test_startup_forbid_public_rooms_touches_nothing_otherwise(
     """An instance allowing public rooms, or holding none, is left alone and silent."""
     room = RoomFactory(access_level=access_level)
     user = UserFactory(default_room_access_level=access_level)
+    room_updated_at, user_updated_at = room.updated_at, user.updated_at
     settings.ALLOW_PUBLIC_ROOMS = allow_public_rooms
 
     with caplog.at_level(logging.WARNING, logger="core.startup"):
@@ -48,6 +52,7 @@ def test_startup_forbid_public_rooms_touches_nothing_otherwise(
     user.refresh_from_db()
     assert room.access_level == access_level
     assert user.default_room_access_level == access_level
+    assert (room.updated_at, user.updated_at) == (room_updated_at, user_updated_at)
     assert caplog.text == ""
 
 

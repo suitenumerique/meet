@@ -4,6 +4,8 @@ import { useAllowPublicRooms } from './useAllowPublicRooms'
 
 /**
  * The access levels this instance lets a room be set to, as radio group items.
+ * The open level waits for the configuration: unread, it is not offered, since
+ * the backend refuses a level it has not said it allows.
  */
 export const useAccessLevelItems = () => {
   const { t } = useTranslation('rooms', {
@@ -13,7 +15,7 @@ export const useAccessLevelItems = () => {
   const allowPublic = useAllowPublicRooms()
 
   return Object.values(ApiAccessLevel)
-    .filter((level) => allowPublic || level !== ApiAccessLevel.PUBLIC)
+    .filter((level) => level !== ApiAccessLevel.PUBLIC || allowPublic === true)
     .map((level) => ({
       value: level,
       label: t(`access.levels.${level}.label`),

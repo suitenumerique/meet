@@ -34,13 +34,15 @@ const parseMetadata = (raw: string | undefined): RoomLiveKitMetadata | null => {
 /**
  * The level a meeting runs at, which the metadata can predate: a room live
  * across a deploy carries whatever it was last told, while that deploy may
- * have stopped allowing the level and moved the row to trusted.
+ * have stopped allowing the level and moved the row to trusted. An unread
+ * configuration leaves the level alone, since clamping one the instance
+ * allows would mislabel a meeting that is open on purpose.
  */
 const enforcedAccessLevel = (
   level: ApiAccessLevel,
-  allowPublic: boolean
+  allowPublic: boolean | undefined
 ): ApiAccessLevel =>
-  !allowPublic && level === ApiAccessLevel.PUBLIC
+  allowPublic === false && level === ApiAccessLevel.PUBLIC
     ? ApiAccessLevel.TRUSTED
     : level
 
