@@ -4,12 +4,16 @@ Test LiveKitEvents service.
 # pylint: disable=W0621,W0613, W0212, E0611
 
 import uuid
+from datetime import timedelta
 from unittest import mock
+
+from django.utils import timezone
 
 import pytest
 from livekit.api import EgressStatus
 
 from core.factories import RecordingFactory, RoomFactory
+from core.models import Room
 from core.recording.services.recording_events import RecordingEventsService
 from core.services.livekit_events import (
     ActionFailedError,
@@ -619,6 +623,82 @@ def test_handle_room_started_skips_dispatch_rule_when_telephony_disabled(
     service._handle_room_started(mock_data)
 
     mock_ensure_dispatch_rule.assert_not_called()
+
+
+def test_handle_room_started_records_access(service, settings):
+    """Should record the access on a room that is started for the first time."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    room = RoomFactory()
+    other_room = RoomFactory()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    now = timezone.now()
+    with mock.patch("django.utils.timezone.now", return_value=now):
+        service._handle_room_started(mock_data)
+
+    room.refresh_from_db()
+    assert room.last_started_at == now
+
+    other_room.refresh_from_db()
+    assert other_room.last_started_at is None
+
+
+def test_handle_room_started_overwrites_previous_access(service, settings):
+    """Should overwrite the previous access each time the room is started again."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    now = timezone.now()
+    room = RoomFactory(last_started_at=now - timedelta(days=30))
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    with mock.patch("django.utils.timezone.now", return_value=now):
+        service._handle_room_started(mock_data)
+
+    room.refresh_from_db()
+    assert room.last_started_at == now
+
+
+def test_handle_room_started_only_updates_access(service, settings):
+    """Should leave the slug and the update date untouched when recording the access."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    room = RoomFactory()
+    Room.objects.filter(pk=room.pk).update(slug="𓆑")
+    room.refresh_from_db()
+    updated_at = room.updated_at
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    service._handle_room_started(mock_data)
+
+    room.refresh_from_db()
+    assert room.last_started_at is not None
+    assert room.slug == "𓆑"
+    assert room.updated_at == updated_at
+
+
+@mock.patch.object(
+    SIPManagement,
+    "ensure_dispatch_rule",
+    side_effect=SIPException("Test error"),
+)
+def test_handle_room_started_records_access_when_dispatch_rule_creation_fails(
+    mock_ensure_dispatch_rule, service, settings
+):
+    """Should still record the access when ensuring the dispatch rule fails."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    with pytest.raises(ActionFailedError):
+        service._handle_room_started(mock_data)
+
+    room.refresh_from_db()
+    assert room.last_started_at is not None
 
 
 def test_handle_room_started_raises_error_for_invalid_room_name(service):
