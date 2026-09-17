@@ -46,7 +46,7 @@ Your application :443
     → /external-api/* → backend :8000 (Django)
 ```
 
-Only reachable when `EXTERNAL_API_ENABLED=True` on the backend - see [Application-Delegated](external-api-delegated.md) or [Resource Server](external-api-resource-server.md) for the authentication modes. This is a separate top-level path from `/api/*` and needs its own nginx location block, unlike add-ons above.
+Only reachable when `EXTERNAL_API_ENABLED=True` on the backend - see [Application-Delegated](external-api-delegated.md) or [Resource Server](external-api-resource-server.md) for the authentication modes. Needs its own nginx location block (a separate top-level path from `/api/*`).
 
 ### OIDC login
 

@@ -248,7 +248,7 @@ Tracks which participants are currently connected to a room, backed by Redis.
 
 ### CORS
 
-Standard `django-cors-headers` settings, included for flexibility rather than a specific use case in this project's own deployments. These govern **cross-origin JavaScript requests** (`fetch`/XHR from a page on a different domain calling the API directly) - not iframe embedding, which is a separate concern (controlled by `X-Frame-Options`/CSP `frame-ancestors`, not CORS). A page embedding Meet in an iframe does not need these: requests made *from inside* that iframe to the Meet API are same-origin as far as CORS is concerned, since they originate from the Meet domain being rendered in the frame.
+Standard `django-cors-headers` settings. They govern **cross-origin JavaScript requests** (`fetch`/XHR from a page on a different domain calling the API directly) - not iframe embedding, which is controlled by `X-Frame-Options`/CSP `frame-ancestors` instead.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|

@@ -49,7 +49,7 @@ The main models live in [`core/models.py`](../../src/backend/core/models.py):
 - **`Room`** — extends `Resource`; holds the room `slug`, `access_level` (`public`, `trusted`, `restricted`), a free-form `configuration` JSON field exposed to participants, and an optional telephony `pin_code`.
 - **`Recording`** — extends `BaseModel`; tracks a recording's `status` (`initiated`, `active`, `stopped`, `saved`, plus failure/abort states) and `mode` (`screen_recording`, `transcript`), and links back to its `Room`.
 
-Refer to the source file directly for exact fields, as this doc can drift from the code.
+Refer to the source file for exact fields.
 
 After model changes, create and apply migrations:
 
@@ -67,9 +67,9 @@ The backend generates short-lived JWTs for clients in `generate_token()` ([`core
 
 ## Celery tasks
 
-Celery is used for async background operations. Tasks live under `core/tasks/` (e.g. file deletion cleanup, connection-test room teardown) — see that directory for the current list rather than duplicating it here, as it changes over time.
+Celery is used for async background operations. Tasks live under `core/tasks/` (e.g. file deletion cleanup, connection-test room teardown).
 
-> **Note on recording notifications**: email notifications for completed recordings are sent **synchronously** from the LiveKit `egress_ended` webhook handler (`core/recording/event/notification.py`), not via Celery. There is no separate object-storage webhook. `CELERY_ENABLED` is only needed when `FILE_UPLOAD_ENABLED=True` to handle file deletion cleanup asynchronously.
+> **Note on recording notifications**: email notifications for completed recordings are sent **synchronously** from the LiveKit `egress_ended` webhook handler (`core/recording/event/notification.py`), not via Celery. `CELERY_ENABLED` is only needed when `FILE_UPLOAD_ENABLED=True` to handle file deletion cleanup asynchronously.
 
 ## Running tests
 

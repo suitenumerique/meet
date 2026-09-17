@@ -4,7 +4,7 @@ LaSuite Meet is a multi-service application. Understanding its components helps 
 
 ## Components overview
 
-Split into two views: control/data flow (who calls whom for orchestration and storage) and the real-time media path. Some nodes (LiveKit, Redis, ObjectStore) appear in both because they're genuinely shared - LiveKit's REST API is used for control (starting an egress), while its media port carries WebRTC.
+Split into two views: control/data flow (who calls whom for orchestration and storage) and the real-time media path. Some nodes (LiveKit, Redis, ObjectStore) appear in both - e.g. LiveKit's REST API is used for control (starting an egress), while its media port carries WebRTC.
 
 **Control & data flow:**
 
