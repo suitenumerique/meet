@@ -87,6 +87,17 @@ class RecordingStatusChoices(models.TextChoices):
             cls.FAILED_TO_STOP,
         }
 
+    @classmethod
+    def saved_statuses(cls):
+        """Return the statuses of a recording whose file users can access."""
+
+        return {
+            cls.NOTIFICATION_SUCCEEDED,
+            cls.SAVED,
+            cls.EXTERNAL_PROCESS_SUCCESSFUL,
+            cls.EXTERNAL_PROCESS_FAILED,
+        }
+
 
 class RecordingModeChoices(models.TextChoices):
     """Recording mode choices."""
@@ -689,12 +700,7 @@ class Recording(BaseModel):
     @property
     def is_saved(self) -> bool:
         """Check if the recording is in a saved state."""
-        return self.status in {
-            RecordingStatusChoices.NOTIFICATION_SUCCEEDED,
-            RecordingStatusChoices.SAVED,
-            RecordingStatusChoices.EXTERNAL_PROCESS_SUCCESSFUL,
-            RecordingStatusChoices.EXTERNAL_PROCESS_FAILED,
-        }
+        return self.status in RecordingStatusChoices.saved_statuses()
 
     @property
     def extension(self):
