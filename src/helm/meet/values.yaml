@@ -289,6 +289,9 @@ backend:
   ## @param backend.cronjobs[1].name Name of the CronJob
   ## @param backend.cronjobs[1].schedule Schedule in cron format
   ## @param backend.cronjobs[1].command The bash command to execute in the CronJob
+  ## @param backend.cronjobs[2].name Name of the CronJob
+  ## @param backend.cronjobs[2].schedule Schedule in cron format
+  ## @param backend.cronjobs[2].command The bash command to execute in the CronJob
 
   cronjobs:
     - name: clean-pending-files
@@ -303,6 +306,12 @@ backend:
         - "/bin/sh"
         - "-c"
         - "python manage.py purge_deleted_files"
+    - name: purge-inactive-rooms
+      schedule: "0 1 * * *"
+      command:
+        - "/bin/sh"
+        - "-c"
+        - "python manage.py purge_inactive_rooms"
 
   ## @param backend.mergeDuplicateUsers.command backend merge_duplicate_users command
   ## @param backend.mergeDuplicateUsers.restartPolicy backend merge_duplicate_users job restart policy
