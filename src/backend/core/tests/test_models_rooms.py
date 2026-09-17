@@ -92,6 +92,12 @@ def test_models_rooms_access_level_default():
     assert room.access_level == RoomAccessLevel.PUBLIC
 
 
+def test_models_rooms_last_started_at_default():
+    """Should have no last access date until the room is started."""
+    room = Room.objects.create(name="room")
+    assert room.last_started_at is None
+
+
 # Access rights methods
 
 

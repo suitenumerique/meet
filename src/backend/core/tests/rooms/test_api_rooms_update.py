@@ -3,7 +3,10 @@ Test rooms API endpoints in the Meet core app: update.
 """
 
 import random
+from datetime import timedelta
 from unittest.mock import patch
+
+from django.utils import timezone
 
 import pytest
 from rest_framework.test import APIClient
@@ -223,6 +226,39 @@ def test_api_rooms_update_administrators_name_only(mock_update_metadata):
     assert room.configuration == {"can_publish_sources": ["camera"]}
 
     mock_update_metadata.assert_not_called()
+
+
+@pytest.mark.parametrize("method", ["put", "patch"])
+def test_api_rooms_update_last_started_at_ignored(method):
+    """Should ignore a "last_started_at" value sent by a client.
+
+    The field is only ever written by the LiveKit "room_started" webhook: it is not
+    declared on the serializer and is "editable=False" on the model. A client must
+    not be able to keep a room alive by postponing its last start date.
+    """
+    user = UserFactory()
+    last_started_at = timezone.now() - timedelta(days=30)
+    room = RoomFactory(
+        name="Old name",
+        last_started_at=last_started_at,
+        users=[(user, random.choice(["administrator", "owner"]))],
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = getattr(client, method)(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"name": "New name", "last_started_at": timezone.now().isoformat()},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert "last_started_at" not in response.json()
+
+    room.refresh_from_db()
+    # The rest of the payload was applied, so the request was not simply rejected
+    assert room.name == "New name"
+    assert room.last_started_at == last_started_at
 
 
 @pytest.mark.parametrize(
