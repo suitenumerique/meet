@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) make the LiveKit default video codec configurable
+- ✨(backend) purge rooms inactive for a configurable period
 - 🔧(dev) add support for Bureautix workstations
 - ✨(frontend) add screen share zoom controls #1498
 
