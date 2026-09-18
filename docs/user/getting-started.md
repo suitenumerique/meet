@@ -17,6 +17,8 @@ This tutorial takes about 10 minutes.
 
 ## Step 1: Log in and create a room
 
+![Pre-join screen](../assets/getting-started-step1.gif)
+
 Open Meet in your browser. If your instance requires login, you'll be redirected to a login page; enter your credentials and return.
 
 On the home page, you'll see two options:
@@ -99,6 +101,8 @@ The control bar at the bottom of the screen is your main interface during a meet
 
 ## Step 6: Send a chat message
 
+![Chat](../assets/getting-started-chat.gif.gif)
+
 Click the **Chat** icon in the control bar, or press `Ctrl+Shift+M`. A chat panel opens on the right side. Type a message and press **Enter**.
 
 !!! warning
@@ -106,6 +110,8 @@ Click the **Chat** icon in the control bar, or press `Ctrl+Shift+M`. A chat pane
     Chat messages are **not saved** - when the last participant leaves, the chat history is cleared. This is by design for privacy.
 
 ## Step 7: Raise your hand
+
+![Rais Hand](../assets/getting-started-raise-hand.gif)
 
 Click the **Raise hand** button (✋) in the control bar to signal you want to speak without interrupting. Other participants see a raised hand indicator on your tile and a notification in the Participants panel. Click again to lower your hand.
 
@@ -120,6 +126,8 @@ Click the **Screen share** button in the control bar. Your browser opens a dialo
 Select an option and click **Share**. To stop sharing, click the **Stop sharing** button in your browser's notification bar, or click **Screen share** again.
 
 ## Step 9: Leave the meeting
+
+![Leave](../assets/getting-started-leave.gif)
 
 Click the red **Leave** button in the control bar. You'll leave the meeting, but the room stays open for other participants. The room closes automatically when the last person leaves.
 

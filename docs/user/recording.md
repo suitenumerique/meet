@@ -2,13 +2,13 @@
 
 Only room owners and administrators can start a recording. Members cannot record directly.
 
-## Starting a recording
+## Start a recording
 
-![Recording option in More menu](../assets/recording.png)
+![Recording option in More menu](../assets/recording.gif)
 
 Click **...** (More options) → **Screen recording**. A red indicator appears for all participants.
 
-## Stopping a recording
+## Stop a recording
 
 Click **...** → **Screen recording** again to stop. The file is processed and uploaded automatically.
 
@@ -23,7 +23,7 @@ LaSuite Meet uses LiveKit's room composite recording (Egress). The recording cap
 
 The result is a single video file matching the meeting layout.
 
-## Downloading a recording
+## Download a recording
 
 When recording processing is complete, the **room owner receives an email** with a download link. The email contains a unique URL to the recording page.
 

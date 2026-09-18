@@ -1,5 +1,7 @@
 # Features & Controls
 
+![Features Tour](../assets/feature-tour.gif)
+
 Complete reference for everything available once you are inside a LaSuite Meet meeting: controls, features, permissions, and roles.
 
 > For joining a meeting and pre-join screen setup, see [Getting Started](getting-started.md).
