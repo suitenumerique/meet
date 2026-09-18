@@ -74,7 +74,7 @@ spec:
             value: meet
           - name: MINIO_ROOT_PASSWORD
             value: password
-        image: "minio/minio"
+        image: "quay.io/minio/minio"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9000
@@ -103,7 +103,7 @@ spec:
     spec:
       containers:
       - name: mc
-        image: minio/mc
+        image: quay.io/minio/mc
         command:
           - /bin/sh
           - -c
