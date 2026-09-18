@@ -96,10 +96,15 @@ echo "Done."
 
 # ── patch livekit-server.yaml ─────────────────────────────────────────────────
 if [[ -n "$LIVEKIT_YAML" ]]; then
-  sed -i "s|^  meet:.*|  meet: ${LIVEKIT_API_SECRET}|" "$LIVEKIT_YAML"
-  chmod 600 "$LIVEKIT_YAML"
-  echo "  set  LIVEKIT_API_SECRET  →  ${LIVEKIT_YAML##*/}"
-  echo ""
+  if grep -q "<your livekit secret key>" "$LIVEKIT_YAML"; then
+    sed -i "s|<your livekit secret key>|${LIVEKIT_API_SECRET}|" "$LIVEKIT_YAML"
+    chmod 600 "$LIVEKIT_YAML"
+    echo "  set  LIVEKIT_API_SECRET  →  ${LIVEKIT_YAML##*/}"
+    echo ""
+  else
+    echo "  skip LIVEKIT_API_SECRET (placeholder not found in ${LIVEKIT_YAML##*/} - already set, or key format changed)"
+    echo ""
+  fi
 else
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
