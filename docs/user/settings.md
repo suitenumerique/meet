@@ -1,6 +1,6 @@
 # Settings
 
-Configure your devices, preferences, and notifications via the settings page at `/settings`. These settings are stored in your browser's local storage and persist across sessions.
+Configure your devices, preferences, and notifications via the settings modal. These settings are stored in your browser's local storage and persist across sessions.
 
 ![Settings page](../assets/settings-page.png)
 

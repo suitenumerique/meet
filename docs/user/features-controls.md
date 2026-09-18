@@ -116,13 +116,7 @@ Press `Ctrl+Shift+E` to focus the reactions toolbar. Use arrow keys to navigate 
 
 ### Reaction settings
 
-In **Settings → Accessibility** you can toggle whether reactions are announced to screen readers and enable or disable reaction sounds.
-
-## File sharing
-
-Click **More tools** → **Share a file** and select a file. It becomes available for all participants to download from the side panel.
-
-> File sharing availability depends on your instance configuration. Contact your administrator if the option is not visible.
+In **Settings → Accessibility** you can toggle whether reactions are announced to screen readers.
 
 ## Backgrounds & Effects
 

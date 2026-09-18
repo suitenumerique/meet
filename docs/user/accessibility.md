@@ -32,24 +32,17 @@ When transcription is active, captions can be customized:
 
 1. Go to **Settings → Accessibility**
 2. Adjust:
-   - **Font size**: Small / Medium / Large / Extra large
-   - **Font family**: System default or dyslexia-friendly fonts
-   - **Background color**: Transparent, dark, or custom color
-   - **Text color**: White, black, or custom
+   - **Text size**: Small / Medium / Large
+   - **Text color**: Choose from a fixed palette of 9 colors (default/white, black, blue, green, red, yellow, cyan, magenta)
+   - **Background color**: Choose from the same palette (default is transparent)
 
 ## Reduced motion
 
-Meet respects the `prefers-reduced-motion` media query. When this is active in your OS settings:
-
-- Animated transitions are replaced by instant state changes
-- Reaction animations are suppressed
-- Loading spinners use a static fallback
-
-You can also manually enable reduced motion in **Settings → Accessibility** regardless of your OS setting.
+Meet respects the `prefers-reduced-motion` media query. When this is active in your OS settings, all animations and transitions are disabled via CSS (styles/index.css:68-73).
 
 ## High contrast
 
-Meet respects the `prefers-contrast: more` media query and ensures all interactive elements meet WCAG AA contrast requirements. Selected states, focus rings, and disabled states are clearly distinguishable.
+Meet ensures all interactive elements meet WCAG AA contrast requirements. Selected states, focus rings, and disabled states are clearly distinguishable.
 
 ## Focus management
 
