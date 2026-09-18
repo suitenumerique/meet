@@ -191,8 +191,12 @@ These variables configure the backend's connection to the summary service (for t
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `SUMMARY_SERVICE_ENDPOINT` | For transcription | -- | URL of the summary service API endpoint (e.g., `http://summary:8000/api/v1/tasks/`) |
+| `SUMMARY_SERVICE_VERSION` | For transcription | `1` | **Must be set to `2`** when using transcription. Version `1` is deprecated and logs a warning at startup. The v2 API uses different endpoints and payloads. |
+| `SUMMARY_SERVICE_ENDPOINT` | For transcription | -- | URL of the summary service API endpoint. **Must use v2 API**: `http://summary:8000/api/v2/async-jobs/transcribe/` |
 | `SUMMARY_SERVICE_API_TOKEN` | For transcription | -- | API token for authenticating with the summary service. Must match the `api_key` of the corresponding tenant in the summary service's `AUTHORIZED_TENANTS`. |
+| `SUMMARY_SERVICE_WEBHOOK_API_TOKEN` | For transcription | -- | Token the backend requires on incoming result callbacks from the summary service. Must match the tenant's `webhook_api_key` in `AUTHORIZED_TENANTS`. |
+| `SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS` | No | `86400` | Expiration of the pre-signed URL given to the summary service to fetch the recording (24 hours) |
+| `TRANSCRIPTION_SATISFACTION_FORM_BASE_URL` | No | -- | Base URL for an optional post-transcription satisfaction survey link |
 
 ### Telephony
 
@@ -227,7 +231,7 @@ The summary service supports two authentication modes. The **multi-tenant approa
 
 Example value:
 ```
-AUTHORIZED_TENANTS='[{"id":"meet","api_key":"<strong-random-secret>","webhook_url":"https://meet.example.com/api/v1/tasks/callback/","webhook_api_key":"<strong-random-secret>"}]'
+AUTHORIZED_TENANTS='[{"id":"meet","api_key":"<strong-random-secret>","webhook_url":"https://meet.example.com/api/v1.0/recordings/external-process-hook/","webhook_api_key":"<strong-random-secret>"}]'
 ```
 
 **Legacy approach (deprecated):**
@@ -272,4 +276,3 @@ AUTHORIZED_TENANTS='[{"id":"meet","api_key":"<strong-random-secret>","webhook_ur
 | `LLM_BASE_URL` | For summarization | -- | LLM API endpoint (OpenAI-compatible) |
 | `LLM_API_KEY` | For summarization | -- | LLM API key |
 | `LLM_MODEL` | For summarization | -- | LLM model identifier (e.g., `gpt-4o`) |
-| `IS_SUMMARY_ENABLED` | No | `True` | Enable AI summarization in addition to transcription. Set to `False` to produce transcripts only. |
