@@ -62,6 +62,8 @@ scalingo env-set DJANGO_ALLOWED_HOSTS="my-meet-app.osc-fr1.scalingo.io"
 Configure your OIDC provider (e.g., Keycloak, Authentik):
 
 ```bash
+scalingo env-set OIDC_OP_BASE_URL="https://auth.yourdomain.com/realms/meet"
+scalingo env-set OIDC_RP_CLIENT_ID="meet-client-id"
 scalingo env-set OIDC_OP_JWKS_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/certs"
 scalingo env-set OIDC_OP_AUTHORIZATION_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/auth"
 scalingo env-set OIDC_OP_TOKEN_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/token"
