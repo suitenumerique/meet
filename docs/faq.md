@@ -16,7 +16,7 @@ Meet is designed for large meetings and is tested in production with 150+ partic
 
 ### Is there a time limit on meetings?
 
-No. Meetings run until all participants leave or the owner ends the meeting.
+No. Meetings run until all participants leave. The room closes automatically when the last participant exits.
 
 ### What happens when I close the browser tab?
 
@@ -24,7 +24,9 @@ You leave the meeting. Other participants see your tile disappear. The meeting c
 
 ### Does Meet work on mobile?
 
-Yes. Open the meeting link in your mobile browser. Chrome works on Android, Safari on iOS. There is no app to install. Use headphones for the best audio.
+Yes. Open the meeting link in your mobile browser. Use headphones for the best audio.
+
+There is also a beta mobile app available at [github.com/mmaudet/visio-mobile](https://github.com/mmaudet/visio-mobile) (not officially supported). Another mobile app should be released soon.
 
 ### Which browsers are supported?
 
@@ -97,7 +99,7 @@ These features require additional server-side configuration (LiveKit Egress for 
 
 ### How long are recordings kept?
 
-This depends on your instance's storage policy. Contact your administrator.
+This depends on your instance's storage policy. The [`RECORDING_EXPIRATION_DAYS`](reference/env-variables.md#livekit) setting controls automatic deletion (default is no expiration). See also [recording configuration](self-hosting/configuration/recording.md). Contact your administrator for your instance's specific policy.
 
 ## Security & Privacy
 
