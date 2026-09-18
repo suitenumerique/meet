@@ -1,6 +1,7 @@
 # Troubleshooting
 
-`docker system prune`/`docker volume prune` commands on this page act on the whole Docker host, not just Meet.
+!!!warning
+    The `docker system prune`/`docker volume prune` commands on this page act on the whole Docker host, not just Meet. If other projects share this host, their unused containers, images, volumes, and networks are removed too. The `-f` flag skips the confirmation prompt that would otherwise list everything about to be deleted - drop it to review first.
 
 ## Diagnostic checklist
 
@@ -262,9 +263,10 @@ Common causes:
 ```bash
 df -h
 
-# Clean unused Docker resources
+# Clean unused Docker resources - affects the whole host, not just Meet.
+# Drop -f to see what would be removed before it happens.
 docker system prune -f
-docker volume prune -f  # WARNING: removes unused volumes
+docker volume prune -f  # WARNING: removes unused volumes, including from other projects
 ```
 
 
