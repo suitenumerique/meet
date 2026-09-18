@@ -44,6 +44,7 @@ nav = [
       {"Recording" = "self-hosting/configuration/recording.md"},
       {"AI Transcription" = "self-hosting/configuration/transcription.md"},
       {"Telephony" = "self-hosting/configuration/telephony.md"},
+      {"Email (SMTP)" = "self-hosting/configuration/email.md"},
       {"Theming" = "self-hosting/configuration/theming.md"},
       {"Upgrading" = "self-hosting/configuration/upgrade.md"}
     ]}

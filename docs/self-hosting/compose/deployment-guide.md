@@ -247,7 +247,7 @@ Open `https://meet.example.com`, log in, create a meeting, and confirm audio and
 
 **2. Configure email**
 
-Email is required for recording download notifications. Edit `env.d/common`:
+Required for recording download notifications and room email invitations. Edit `env.d/common`:
 
 ```dotenv
 DJANGO_EMAIL_HOST=smtp.example.com
@@ -259,6 +259,8 @@ DJANGO_EMAIL_FROM=meet@example.com
 ```
 
 Restart: `docker compose up -d --force-recreate backend celery`
+
+See [Email (SMTP)](../configuration/email.md) for branding options and the full variable reference.
 
 **3. Configure TURN**
 

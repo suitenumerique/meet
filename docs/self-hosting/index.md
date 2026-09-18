@@ -77,6 +77,7 @@ After deploying the core, use the Configuration section to enable and tune featu
 - [AI Transcription](configuration/transcription.md) - WhisperX + summary service
 - [Real-time Subtitles](configuration/subtitles.md) - LiveKit agents with Deepgram/Kyutai
 - [Telephony](configuration/telephony.md) - SIP dial-in via LiveKit SIP bridge
+- [Email (SMTP)](configuration/email.md) - recording notifications, room email invitations
 - [Theming](configuration/theming.md) - custom CSS, logo, build-time options
 - [Upgrading](configuration/upgrade.md)
 

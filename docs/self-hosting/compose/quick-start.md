@@ -57,5 +57,5 @@ Use the [step-by-step Deployment Guide](deployment-guide.md) instead. Each stack
 - [Configure recording](../configuration/recording.md) - LiveKit Egress + MinIO
 - [Configure AI transcription](../configuration/transcription.md) - WhisperX + summary service
 - [Configure TURN](../configuration/turn.md) - for participants on restricted corporate networks
-- [Configure SMTP](../configuration/upgrade.md) - required for recording download email notifications
+- [Configure SMTP](../configuration/email.md) - required for recording download and room email invitation notifications
 - [Configure theming](../configuration/theming.md) - custom CSS, logo, and branding

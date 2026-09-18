@@ -175,15 +175,7 @@ DJANGO_ALLOWED_HOSTS=meet.example.com,backend,localhost
 !!!info 
     **`RECORDING_DOWNLOAD_BASE_URL` must include the `/recording` path.** The frontend expects download links at `https://meet.example.com/recording/<uuid>`. Using the bare domain sends users to a page that treats the UUID as a room code.
 
-    **Email is required for recording downloads.** When a recording is ready, Meet sends the room owner an email with the download link. Without SMTP, users will never receive this notification. Configure SMTP in the same `.env`:
-    ```dotenv
-    DJANGO_EMAIL_HOST=smtp.example.com
-    DJANGO_EMAIL_PORT=587
-    DJANGO_EMAIL_HOST_USER=meet@example.com
-    DJANGO_EMAIL_HOST_PASSWORD=<password>
-    DJANGO_EMAIL_USE_TLS=True
-    DJANGO_EMAIL_FROM=meet@example.com
-    ```
+    **Email is required for recording downloads.** When a recording is ready, Meet sends the room owner an email with the download link. Without SMTP, users will never receive this notification. See [Email (SMTP)](email.md) for setup.
 
 If SMTP is not configured, administrators can find recording download links in the Django admin panel at `/admin/ → Core → Recordings`.
 
@@ -404,7 +396,7 @@ backend:
 !!!info
      **`RECORDING_DOWNLOAD_BASE_URL` must include the `/recording` path**. See [Step 4 in the Docker Compose guide](#step-4-configure-the-meet-backend) for why.
      
-     **Email is required.** Without SMTP, users never receive download links. Add `DJANGO_EMAIL_*` variables to `backend.envVars`. See [Step 4 above](#step-4-configure-the-meet-backend) for the variable names.
+     **Email is required.** Without SMTP, users never receive download links. See [Email (SMTP)](email.md#kubernetes-setup) for the `backend.envVars` to add.
 
 Apply the updated chart:
 
