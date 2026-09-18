@@ -41,7 +41,6 @@ brew install helmfile   # macOS / Linux with Homebrew
 | Nodes | 2 | 3+ |
 | CPU per node | 2 cores | 4+ cores |
 | RAM per node | 4 GB | 8+ GB |
-| Kubernetes version | 1.27+ | Latest stable |
 
 ### Required cluster components
 
@@ -81,13 +80,12 @@ For UDP port 7882 in managed Kubernetes, use a **LoadBalancer** service with UDP
 |---|---|
 | `meet.example.com` | Ingress load balancer IP |
 | `livekit.example.com` | Ingress load balancer IP (WebSocket) |
-| `auth.example.com` | Ingress load balancer IP (Keycloak) |
+| `auth.example.com` | Ingress load balancer IP (OIDC provider) |
 
 ## Checklist
 
 - [ ] kubectl configured for your cluster
 - [ ] Helm 3 installed
-- [ ] Kubernetes 1.27+ cluster running
 - [ ] nginx-ingress controller deployed
 - [ ] cert-manager deployed with a ClusterIssuer configured
 - [ ] PostgreSQL reachable

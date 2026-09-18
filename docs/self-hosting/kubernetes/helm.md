@@ -2,6 +2,13 @@
 
 LaSuite Meet provides an official Helm chart. This is the deployment method used by DINUM in production for Visio.
 
+> **Working examples:** For real production-tested configurations, see the [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/src/helm) directory in the repository:
+> - [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl) - DINUM's multi-environment setup
+> - [`env.d/dev-keycloak/`](https://github.com/suitenumerique/meet/tree/main/src/helm/env.d/dev-keycloak) - Complete values files for Meet, LiveKit, and Egress
+> - [`meet/README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) - Full parameter reference
+>
+> These examples are actively maintained and tested, while this documentation may lag behind chart updates.
+
 ## Getting the chart
 
 The chart is published to GitHub Pages:
@@ -61,8 +68,11 @@ backend:
     DJANGO_ALLOWED_HOSTS: "meet.example.com"
     DJANGO_CSRF_TRUSTED_ORIGINS: "https://meet.example.com"
     PYTHONPATH: "/app"
-    MEET_BASE_URL: "https://meet.example.com"
     ALLOW_UNREGISTERED_ROOMS: "False"
+
+    # Required for createsuperuser job (see values.yaml:279)
+    DJANGO_SUPERUSER_EMAIL: "admin@example.com"
+    DJANGO_SUPERUSER_PASSWORD: "change-this-password"
 
     DB_HOST: "postgresql.meet.svc.cluster.local"
     DB_PORT: "5432"
@@ -93,6 +103,8 @@ backend:
     DJANGO_EMAIL_USE_TLS: "True"
     DJANGO_EMAIL_FROM: "meet@example.com"
 ```
+
+See [Environment Variables](../../reference/env-variables.md) for what each one does and which are required.
 
 ### Frontend
 
@@ -162,18 +174,38 @@ agentSubtitles:
 
 ### Security context (recommended)
 
-```yaml
-podSecurityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  fsGroup: 1000
+Configure `podSecurityContext` and `securityContext` under each component: `backend`, `frontend`, `summary`, `celeryBackend`, `celeryTranscribe`, `celerySummarize`, `celerySummaryBackend`, `agentMetadata`, `agentSubtitles`.
 
-containerSecurityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: true
-  capabilities:
-    drop:
-      - ALL
+Example for backend:
+
+```yaml
+backend:
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+# Repeat for other components:
+frontend:
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+# And similarly for: summary, celeryBackend, celeryTranscribe, 
+# celerySummarize, celerySummaryBackend, agentMetadata, agentSubtitles
 ```
 
 ## Deploying
@@ -239,6 +271,7 @@ livekit:
     address: redis-master.meet.svc.cluster.local:6379
   rtc:
     use_external_ip: true
+    udp_port: 7882  # Required for UDP media
   logging:
     level: info
   webhook:
@@ -306,6 +339,61 @@ For the full step-by-step guide to setting up AI transcription on Kubernetes - i
 
 > **Prerequisite:** the recording infrastructure (MinIO, Egress, `ingressMedia`) must be working before enabling transcription.
 
+## Rebranding the favicon
+
+The favicon is bundled into the frontend image and served as a set of static files from `/usr/share/nginx/html` (`favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `icon.png`). To rebrand without forking and rebuilding the image, overlay your own icons onto those paths with a volume - this serves the right icon from the first byte (no rebuild, no flash) and covers every variant, including the iOS home-screen and Android/PWA icons.
+
+Put your icons in a `ConfigMap` (`binaryData` keeps the PNGs intact):
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: meet-favicon
+binaryData:
+  # base64 of each replacement icon
+  favicon.ico: <base64…>
+  favicon-16x16.png: <base64…>
+  favicon-32x32.png: <base64…>
+  apple-touch-icon.png: <base64…>
+  android-chrome-192x192.png: <base64…>
+  android-chrome-512x512.png: <base64…>
+```
+
+```bash
+# e.g. build the ConfigMap straight from a directory of icons
+kubectl create configmap meet-favicon --from-file=./my-icons/
+```
+
+Then mount each file over the bundled one via the chart's `frontend.extraVolumes` / `frontend.extraVolumeMounts` (the `subPath` mounts the single file without hiding the rest of `html/`):
+
+```yaml
+frontend:
+  extraVolumes:
+    - name: favicon
+      configMap:
+        name: meet-favicon
+  extraVolumeMounts:
+    - name: favicon
+      mountPath: /usr/share/nginx/html/favicon.ico
+      subPath: favicon.ico
+    - name: favicon
+      mountPath: /usr/share/nginx/html/favicon-16x16.png
+      subPath: favicon-16x16.png
+    - name: favicon
+      mountPath: /usr/share/nginx/html/favicon-32x32.png
+      subPath: favicon-32x32.png
+    - name: favicon
+      mountPath: /usr/share/nginx/html/apple-touch-icon.png
+      subPath: apple-touch-icon.png
+    - name: favicon
+      mountPath: /usr/share/nginx/html/android-chrome-192x192.png
+      subPath: android-chrome-192x192.png
+    - name: favicon
+      mountPath: /usr/share/nginx/html/android-chrome-512x512.png
+      subPath: android-chrome-512x512.png
+```
+
 ## Secrets management
 
 Avoid storing secrets in `values.yaml` in version control. Use Kubernetes Secrets instead:
@@ -353,58 +441,11 @@ sops --decrypt values/production-secrets.enc.yaml | helm upgrade meet meet/meet 
 
 ## Helmfile (multi-environment)
 
-For managing staging and production environments:
-
-```yaml
-# helmfile.yaml
-repositories:
-  - name: meet
-    url: https://suitenumerique.github.io/meet/
-
-releases:
-  - name: meet
-    chart: meet/meet
-    namespace: meet
-    values:
-      - values/common.yaml
-      - values/{{ .Environment.Name }}.yaml
-
-environments:
-  staging:
-  production:
-```
-
-Deploy:
+For managing multiple environments, use [helmfile](https://helmfile.readthedocs.io/). See [`src/helm/helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl) in the repository for a real working example (DINUM's own dev environments).
 
 ```bash
-helmfile -e production sync
-helmfile -e staging diff   # preview changes before applying
-```
-
-## Known Issues
-
-### Keycloak Health Check Port
-
-Keycloak 26+ requires the `--health-enabled=true` flag to expose health endpoints. The health endpoint is available on port 9000 (not 8080). Configure your readiness probe accordingly:
-
-```yaml
-readinessProbe:
-  httpGet:
-    path: /health/ready
-    port: 9000
-  initialDelaySeconds: 60
-  periodSeconds: 10
-```
-
-### Helm Chart Superuser Creation
-
-The Helm chart's automatic superuser creation job may fail with an error about missing email argument. If this occurs, create the superuser manually:
-
-```bash
-kubectl -n meet exec deployment/meet-backend -- \
-  python manage.py createsuperuser \
-  --email admin@example.com \
-  --password <password>
+helmfile -e <environment> sync
+helmfile -e <environment> diff   # preview changes before applying
 ```
 
 ## Upgrading

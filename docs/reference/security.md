@@ -110,16 +110,23 @@ The backend and frontend images run as non-root users. Avoid exposing `/var/run/
 
 ### Kubernetes
 
-The Meet Helm chart supports full `restricted` Pod Security Standards as of v1.14.0:
+The Meet Helm chart supports full `restricted` Pod Security Standards as of v1.14.0. These must be configured per-component:
+
 ```yaml
-podSecurityContext:
-  runAsNonRoot: true
-containerSecurityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: true
-  capabilities:
-    drop: [ALL]
+backend:
+  podSecurityContext:
+    runAsNonRoot: true
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+
+# Repeat for: frontend, summary, celeryBackend, celeryTranscribe,
+# celerySummarize, celerySummaryBackend, agentMetadata, agentSubtitles
 ```
+
+See [Helm deployment security context](../self-hosting/kubernetes/helm.md#security-context-recommended) for full configuration.
 
 
 ## Reporting vulnerabilities
