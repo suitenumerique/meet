@@ -13,10 +13,10 @@ Traefik is a modern reverse proxy that integrates natively with Docker. Services
 
 Traefik runs as its own Docker Compose stack, permanently attached to the `proxy` Docker network. Any container on that network with `traefik.enable=true` labels gets automatically routed and receives a TLS certificate. No config files to write - Traefik reconfigures itself when containers start or stop.
 
-Meet uses a two-layer routing setup:
+Traefik only routes by hostname, and there is a single hostname (`meet.example.com`) for both the API and the SPA. Path-based routing between the two happens one layer in - see [Networking: Web request](../../reference/networking.md#web-request-browser-meet-ui) for how:
 
 1. **Traefik** (outer) - terminates TLS, routes by hostname
-2. **frontend container nginx** (inner) - routes by URL path between the Django backend, the React SPA, and MinIO
+2. **frontend container nginx** (inner, `nginx-routing.conf`) - routes by URL path between the Django backend and the React SPA
 
 ```mermaid
 flowchart LR
@@ -89,7 +89,7 @@ Meet's three public-facing services each declare their own Traefik labels. This 
 
 ### Meet frontend
 
-The frontend container runs an internal nginx on port 8083 that routes traffic between the backend API and the React SPA. Traefik terminates TLS and forwards everything for `meet.example.com` to port 8083:
+The frontend container runs a second nginx server block (`nginx-routing.conf`) on port 8083 that routes traffic between the backend API and the React SPA. Traefik terminates TLS and forwards everything for `meet.example.com` to port 8083:
 
 ```yaml
 frontend:
@@ -146,8 +146,6 @@ keycloak:
 
 ### Backend
 
-The backend does **not** get Traefik labels. It is only reached via the frontend container's internal nginx. It still needs to be on the `proxy` network so it can resolve public hostnames (`auth.example.com`, `livekit.example.com`) for OIDC token exchange and LiveKit API calls:
-
 ```yaml
 backend:
   networks:
@@ -155,19 +153,7 @@ backend:
     - internal
 ```
 
----
-
-## Step 4: DNS
-
-Before starting Meet, create three DNS A records pointing to your server:
-
-| Record | Purpose |
-|---|---|
-| `meet.example.com` | Meet frontend + API |
-| `auth.example.com` | Keycloak |
-| `livekit.example.com` | LiveKit WebSocket |
-
-All three must resolve before you start the stack - Let's Encrypt verifies DNS during certificate issuance.
+See [Networks and DNS](deployment-guide.md#before-you-start-configure-your-domains) in the Deployment Guide for why the backend needs both networks and which DNS records to create.
 
 ---
 

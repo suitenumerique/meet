@@ -14,6 +14,8 @@ Each stack is independent: you manage, upgrade, and restart them separately. The
 - `proxy` - external, shared between all stacks, used by the reverse proxy for routing
 - `internal` - created per-stack, for service-to-service communication within each stack
 
+The Meet backend (Stack 3) needs both: `internal` for service-to-service communication, and `proxy` to resolve public hostnames (`auth.example.com`, `livekit.example.com`) for OIDC token exchange and LiveKit API calls. It never gets a `VIRTUAL_HOST` or proxy label itself - it's only reached via the frontend container's internal nginx.
+
 **Prerequisites:** Complete the [Prerequisites](prerequisites.md) checklist first. DNS must resolve before you start - Let's Encrypt needs it.
 
 ---
@@ -37,6 +39,12 @@ IDP_HOST=auth.example.com
 LIVEKIT_HOST=livekit.example.com
 LETSENCRYPT_EMAIL=you@example.com
 ```
+
+| Record | Purpose |
+|---|---|
+| `meet.example.com` | Meet frontend + API |
+| `auth.example.com` | Keycloak |
+| `livekit.example.com` | LiveKit WebSocket |
 
 All three domains must have DNS A records pointing to your server before you proceed. Let's Encrypt verifies DNS during certificate issuance.
 
