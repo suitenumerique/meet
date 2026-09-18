@@ -53,6 +53,9 @@ const fromCheckInfo = (info: CheckInfo): Partial<ConnectionTestStepResult> => ({
   status: CHECK_STATUS_TO_STEP[info.status] ?? 'failed',
   summary: info.description,
   logs: info.logs,
+  // Only SelectedCandidateCheck sets `data` (the ICE candidate report); for
+  // the stock LiveKit checks it is undefined and this is a no-op.
+  data: info.data as Record<string, unknown> | undefined,
 })
 
 const groupDevicesByKind = (devices: MediaDeviceInfo[]) => {

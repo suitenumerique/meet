@@ -46,6 +46,9 @@
     "passedHint": "Je browser, apparaten en netwerk zijn klaar voor een vergadering.",
     "partial": "Gedeeltelijke test",
     "partialHint": "Sommige controles zijn overgeslagen. Geef toegang tot je camera en microfoon om deze te testen.",
+    "warning": "Verbinding niet optimaal",
+    "warningHint": "Let op: je bevindt je niet in optimale omstandigheden om de tool te gebruiken. Je media loopt niet via UDP (terugval op een TURN-relay via TCP of TLS), wat de audio- en videokwaliteit kan verminderen.",
+    "warningDocLink": "Technische documentatie voor je IT-afdeling",
     "failed_one": "{{count}} controle mislukt",
     "failed_other": "{{count}} controles mislukt",
     "failedHint": "Open de mislukte controles voor meer details en stuur het rapport door naar je IT-afdeling."
