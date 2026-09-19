@@ -27,6 +27,7 @@ and this project adheres to
 
 ### Fixed
 
+- 🐛(helm) render periodSeconds and failureThreshold on probes
 - 🐛(backend) report the app release to Sentry instead of "NA"
 - 🐛(frontend) play the waiting room notification sound on every arrival
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
