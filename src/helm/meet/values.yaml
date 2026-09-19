@@ -320,26 +320,36 @@ backend:
   ## @param backend.probes.liveness.initialDelaySeconds [nullable] Configure initial delay for backend liveness probe
   ## @param backend.probes.liveness.periodSeconds [nullable] Configure period for backend liveness probe
   ## @param backend.probes.liveness.timeoutSeconds [nullable] Configure timeout for backend liveness probe
+  ## @param backend.probes.liveness.failureThreshold [nullable] Configure failure threshold for backend liveness probe
   ## @param backend.probes.startup.path [nullable] Configure path for backend HTTP startup probe
   ## @param backend.probes.startup.targetPort [nullable] Configure port for backend HTTP startup probe
   ## @param backend.probes.startup.initialDelaySeconds [nullable] Configure initial delay for backend startup probe
   ## @param backend.probes.startup.periodSeconds [nullable] Configure period for backend startup probe
   ## @param backend.probes.startup.timeoutSeconds [nullable] Configure timeout for backend startup probe
+  ## @param backend.probes.startup.failureThreshold [nullable] Configure failure threshold for backend startup probe
   ## @param backend.probes.readiness.path [nullable] Configure path for backend HTTP readiness probe
   ## @param backend.probes.readiness.targetPort [nullable] Configure port for backend HTTP readiness probe
   ## @param backend.probes.readiness.initialDelaySeconds [nullable] Configure initial delay for backend readiness probe
   ## @param backend.probes.readiness.periodSeconds [nullable] Configure period for backend readiness probe
   ## @param backend.probes.readiness.timeoutSeconds [nullable] Configure timeout for backend readiness probe
+  ## @param backend.probes.readiness.failureThreshold [nullable] Configure failure threshold for backend readiness probe
   probes:
+    startup:
+      path: /__lbheartbeat__
+      periodSeconds: 5
+      timeoutSeconds: 5
+      failureThreshold: 12
+
     liveness:
-      path: /__heartbeat__
-      initialDelaySeconds: 5
+      path: /__lbheartbeat__
       periodSeconds: 30
+      timeoutSeconds: 5
 
     readiness:
-      path: /__lbheartbeat__
-      initialDelaySeconds: 5
+      path: /__heartbeat__
       periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
 
   ## @param backend.resources Resource requirements for the backend container
   resources: {}
@@ -623,25 +633,36 @@ summary:
   ## @param summary.probes.liveness.initialDelaySeconds [nullable] Configure initial delay summary liveness probe
   ## @param summary.probes.liveness.periodSeconds [nullable] Configure the period for the summary liveness probe
   ## @param summary.probes.liveness.timeoutSeconds [nullable] Configure timeout for summary liveness probe
+  ## @param summary.probes.liveness.failureThreshold [nullable] Configure failure threshold for summary liveness probe
   ## @param summary.probes.startup.path [nullable] Configure path for summary HTTP startup probe
   ## @param summary.probes.startup.targetPort [nullable] Configure port for summary HTTP startup probe
   ## @param summary.probes.startup.initialDelaySeconds [nullable] Configure initial delay for summary startup probe
   ## @param summary.probes.startup.periodSeconds [nullable] Configure period for the summary startup probe
   ## @param summary.probes.startup.timeoutSeconds [nullable] Configure timeout for summary startup probe
+  ## @param summary.probes.startup.failureThreshold [nullable] Configure failure threshold for summary startup probe
   ## @param summary.probes.readiness.path [nullable] Configure path for summary HTTP readiness probe
   ## @param summary.probes.readiness.targetPort [nullable] Configure port for summary HTTP readiness probe
   ## @param summary.probes.readiness.initialDelaySeconds [nullable] Configure initial delay for summary readiness probe
   ## @param summary.probes.readiness.periodSeconds [nullable] Configure period for the summary readiness probe
   ## @param summary.probes.readiness.timeoutSeconds [nullable] Configure timeout for summary readiness probe
+  ## @param summary.probes.readiness.failureThreshold [nullable] Configure failure threshold for summary readiness probe
   probes:
-    liveness:
-      path: /__heartbeat__
-      initialDelaySeconds: 5
-      periodSeconds: 30
-    readiness:
+    startup:
       path: /__lbheartbeat__
-      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 5
+      failureThreshold: 12
+
+    liveness:
+      path: /__lbheartbeat__
       periodSeconds: 30
+      timeoutSeconds: 5
+
+    readiness:
+      path: /__heartbeat__
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
 
 
   ## @param summary.resources Resource requirements for the summary container
