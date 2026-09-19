@@ -36,7 +36,11 @@ const Room = () => {
   const { roomId } = useParams()
   const [location, setLocation] = useLocation()
   const initialRoomData = history.state?.initialRoomData
-  const mode = isLoggedIn && history.state?.create ? 'create' : 'join'
+  // `mode` only drives the invite dialog, so it does not require a session:
+  // an anonymous creator needs the share prompt just as much as a member.
+  const mode = history.state?.create ? 'create' : 'join'
+  // Skipping the join screen still does: anonymous participants have no display
+  // name yet, and that screen is where they pick one.
   const skipJoinScreen = isLoggedIn && mode === 'create'
 
   const { data } = useConfig()

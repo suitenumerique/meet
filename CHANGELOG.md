@@ -10,6 +10,8 @@ and this project adheres to
 
 ### Added
 
+- ✨(frontend) let signed-out visitors start a meeting
+- ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✨(backend) make the LiveKit default video codec configurable
 - 🔧(dev) add support for Bureautix workstations
 
