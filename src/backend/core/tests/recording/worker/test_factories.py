@@ -149,7 +149,7 @@ def mock_import_string(monkeypatch):
     return mock
 
 
-def test_factory_valid_mode(mock_import_string, settings, default_config):
+def test_factory_valid_mode(mock_import_string, default_config, settings):
     """Test getting worker service with valid mode."""
 
     settings.RECORDING_WORKER_CLASSES = {
@@ -164,7 +164,7 @@ def test_factory_valid_mode(mock_import_string, settings, default_config):
     assert worker.config == default_config
 
 
-def test_factory_invalid_mode(settings, mock_import_string, default_config):
+def test_factory_invalid_mode(mock_import_string, default_config, settings):
     """Test getting worker service with invalid mode raises ValueError."""
 
     settings.RECORDING_WORKER_CLASSES = {

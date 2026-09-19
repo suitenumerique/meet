@@ -312,3 +312,19 @@ def test_api_rooms_create_authenticated_blank_user_default_access_level():
     assert response.status_code == 201
     room = Room.objects.get()
     assert room.access_level == settings.RESOURCE_DEFAULT_ACCESS_LEVEL
+
+
+def test_api_rooms_create_public_not_allowed(settings):
+    """Creating a public room should be rejected where the instance forbids them."""
+    settings.ALLOW_PUBLIC_ROOMS = False
+    client = APIClient()
+    client.force_login(UserFactory())
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {"name": "my room", "access_level": RoomAccessLevel.PUBLIC},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert not Room.objects.exists()

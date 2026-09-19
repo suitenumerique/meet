@@ -109,3 +109,22 @@ def test_api_users_update_other_user_default_room_preferences_forbidden():
     assert response.status_code == 403
     other_user.refresh_from_db()
     assert other_user.default_room_access_level is None
+
+
+def test_api_users_update_default_room_access_level_public_not_allowed(settings):
+    """A default the instance forbids should be rejected, as it is on rooms."""
+    settings.ALLOW_PUBLIC_ROOMS = False
+    user = factories.UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/users/{user.id!s}/",
+        {"default_room_access_level": "public"},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    user.refresh_from_db()
+    assert user.default_room_access_level is None

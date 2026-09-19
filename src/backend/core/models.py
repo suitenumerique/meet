@@ -106,6 +106,20 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
+def access_level_error(access_level):
+    """The error this instance answers a writer setting this level, or None."""
+    if not settings.ALLOW_PUBLIC_ROOMS and access_level == RoomAccessLevel.PUBLIC:
+        return ValidationError(_("Public rooms are not allowed on this instance."))
+    return None
+
+
+def validate_access_level(access_level):
+    """Refuse a level this instance forbids, whichever writer sets it."""
+    error = access_level_error(access_level)
+    if error is not None:
+        raise error
+
+
 class BaseModel(models.Model):
     """
     Serves as an abstract base model for other models, ensuring that records are validated
@@ -185,6 +199,7 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
     default_room_access_level = models.CharField(
         max_length=50,
         choices=RoomAccessLevel.choices,
+        validators=[validate_access_level],
         blank=True,
         null=True,
         verbose_name=_("default room access level"),
@@ -413,6 +428,7 @@ class Room(Resource):
         max_length=50,
         choices=RoomAccessLevel.choices,
         default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
+        validators=[validate_access_level],
     )
     # Public configuration exposed to any room participant via the API
     configuration = models.JSONField(
@@ -470,6 +486,18 @@ class Room(Resource):
             raise ValidationError({"name": f'Room name "{self.name:s}" is reserved.'})
 
         super().clean_fields(exclude=exclude)
+
+    def is_joinable_by(self, user, role=None):
+        """Whether this user enters the meeting rather than waiting in its lobby."""
+        access_level = self.access_level
+
+        return (
+            access_level == RoomAccessLevel.PUBLIC
+            or (access_level == RoomAccessLevel.TRUSTED and user.is_authenticated)
+            # get_role answers None for anyone not signed in, so a role is
+            # already proof of that and the last branch needs no second check.
+            or (access_level == RoomAccessLevel.RESTRICTED and role is not None)
+        )
 
     @property
     def is_public(self):

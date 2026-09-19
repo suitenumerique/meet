@@ -55,6 +55,7 @@ export interface ApiConfig {
   }
   resource?: {
     default_access_level?: ApiAccessLevel
+    allow_public_rooms?: boolean
   }
   manifest_link?: string
   livekit: {
