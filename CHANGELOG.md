@@ -33,6 +33,12 @@ and this project adheres to
 - 🔒️(backend) reject inactive users in resource server backend
 - 🐛(frontend) fix file permissions in the Docker image
 
+### Changed
+
+- ⬆️(backend) update python dependencies
+- ⬆️(summary) update python dependencies
+- ⬆️(agents) update python dependencies
+
 ## [1.31.0] - 2026-09-08
 
 ### Added
