@@ -6,12 +6,12 @@ Unit tests for the Application and ApplicationDomain models
 
 from unittest import mock
 
-from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 
 import pytest
 
 from core.factories import ApplicationDomainFactory, ApplicationFactory
+from core.hashers import verify_client_secret
 from core.models import Application, ApplicationDomain, ApplicationScope
 
 pytestmark = pytest.mark.django_db
@@ -98,8 +98,8 @@ def test_models_application_client_secret_hashed_on_save():
 
     # Secret should be hashed, not plain
     assert application.client_secret != plain_secret
-    # Should verify with check_password
-    assert check_password(plain_secret, application.client_secret) is True
+    # Should verify with the application credential policy
+    assert verify_client_secret(plain_secret, application.client_secret) is True
 
 
 def test_models_application_client_secret_preserves_existing_hash():
