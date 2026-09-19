@@ -140,6 +140,7 @@ class ApplicationFactory(factory.django.DjangoModelFactory):
                 models.ApplicationScope.ROOMS_CREATE,
                 models.ApplicationScope.ROOMS_UPDATE,
                 models.ApplicationScope.ROOMS_DELETE,
+                models.ApplicationScope.ROOMS_GRANT_ACCESS,
             ]
         )
 
