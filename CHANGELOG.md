@@ -15,6 +15,7 @@ and this project adheres to
 
 ### Changed
 
+- 🔊(backend) pin the dockerflow logger level to WARNING
 - ♻️(backend) serve the dockerflow views early in the middleware stack
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
 - 🔇(backend) silence expected 401 warnings on /me

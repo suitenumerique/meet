@@ -1173,6 +1173,13 @@ class Base(Configuration):
                     environ_prefix="",
                 )
             },
+            "dockerflow": {
+                "level": values.Value(
+                    "WARNING",
+                    environ_name="LOGGING_LEVEL_DOCKERFLOW",
+                    environ_prefix="",
+                )
+            },
             "core": {
                 "handlers": ["console"],
                 "level": values.Value(
