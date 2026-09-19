@@ -756,6 +756,24 @@
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Contrôles de zoom du partage d'écran",
+    "zoomIn": "Zoomer",
+    "zoomInWithShortcut": "Zoomer ({{shortcut}})",
+    "zoomOut": "Dézoomer",
+    "zoomOutWithShortcut": "Dézoomer ({{shortcut}})",
+    "wheelShortcut": "Contrôle plus molette",
+    "wheelShortcutMac": "Commande plus molette",
+    "wheelShortcutHint": "Raccourci : Contrôle plus molette pour zoomer ou dézoomer.",
+    "wheelShortcutHintMac": "Raccourci : Commande plus molette pour zoomer ou dézoomer.",
+    "fitToWindow": "Ajuster à la fenêtre",
+    "fullScreen": "Plein écran",
+    "exitFullScreen": "Quitter le plein écran",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Glissez avec la souris, ou revenez sur le partage d'écran et utilisez les touches fléchées pour naviguer dans l'image.",
+    "fullScreenEntered": "Plein écran activé",
+    "fullScreenExited": "Plein écran désactivé"
+  },
   "shortcutsPanel": {
     "title": "Raccourcis clavier",
     "categories": {
@@ -775,7 +793,11 @@
       "raise-hand": "Lever ou baisser la main",
       "toggle-chat": "Afficher/Masquer le chat",
       "toggle-participants": "Afficher/Masquer les participants",
-      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis"
+      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis",
+      "zoom-in": "Zoomer sur un écran partagé",
+      "zoom-out": "Dézoomer sur un écran partagé",
+      "zoom-reset": "Réinitialiser le zoom de l’écran partagé",
+      "zoom-pan": "Se déplacer dans un écran partagé zoomé"
     },
     "sr": {
       "control": "Contrôle",
@@ -785,10 +807,14 @@
       "shift": "Majuscule",
       "plus": "plus",
       "hold": "Maintenir {{key}}",
+      "arrows": "Touches fléchées",
+      "plusKey": "Touche plus",
+      "minusKey": "Touche moins",
       "noShortcut": "Aucun raccourci"
     },
     "visual": {
-      "hold": "Maintenir {{key}}"
+      "hold": "Maintenir {{key}}",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {
