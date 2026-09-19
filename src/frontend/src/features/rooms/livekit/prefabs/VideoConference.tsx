@@ -19,6 +19,7 @@ import { MediaStateObserver } from '../components/MediaStateObserver'
 import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { VideoResolutionSubscription } from '../components/VideoResolutionSubscription'
+import { useParticipantAudioLeveling } from '../hooks/useParticipantAudioLeveling'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { MuteAlertDialogProvider } from '@/features/rooms/livekit/components/MuteAlertDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
@@ -74,6 +75,7 @@ const getScreenSharePermissionDeniedScope = (
  * @public
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
+  useParticipantAudioLeveling()
   useNoiseReduction()
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
