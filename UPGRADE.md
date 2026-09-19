@@ -16,6 +16,16 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Purging inactive rooms
+
+Rooms now keep track of the last time they were started (`last_started_at`), fed by LiveKit's `room_started` webhook. A new `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for `ROOM_INACTIVITY_DELETION_DAYS` days. See [the room purge documentation](docs/features/room-purge.md).
+
+- The feature is **disabled by default**: nothing is deleted unless you set `ROOM_INACTIVITY_DELETION_DAYS`.
+- The migration marks every existing room as started at the time of the upgrade, so no existing room can be purged before a full inactivity period has elapsed after upgrading.
+- Rooms holding a recording their users may still access are kept: any recording, or, when `RECORDING_EXPIRATION_DAYS` is set, a recording created within that window.
+- Inactivity is measured from LiveKit's `room_started` webhook: if it is not delivered to your backend, rooms in daily use look inactive and get purged.
+- With `ALLOW_UNREGISTERED_ROOMS` enabled, purging a room frees its slug: anyone can then create a new public room on the same slug.
+
 ## v1.30.0
 
 ### Removing S3 storage-event webhooks for recordings

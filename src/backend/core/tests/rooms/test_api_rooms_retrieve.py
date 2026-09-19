@@ -7,6 +7,7 @@ from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.test.utils import override_settings
+from django.utils import timezone
 
 import pytest
 from rest_framework.test import APIClient
@@ -507,3 +508,17 @@ def test_api_rooms_retrieve_administrators(
         role=str(user_access.role),
         participant_id=None,
     )
+
+
+def test_api_rooms_retrieve_last_started_at_not_exposed():
+    """Should not expose when the room was last started, even to its owner."""
+    user = UserFactory()
+    room = RoomFactory(last_started_at=timezone.now())
+    UserResourceAccessFactory(resource=room, user=user, role=RoleChoices.OWNER)
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert "last_started_at" not in response.json()

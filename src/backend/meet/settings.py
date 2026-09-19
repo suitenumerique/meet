@@ -730,6 +730,9 @@ class Base(Configuration):
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
+    ROOM_INACTIVITY_DELETION_DAYS = values.PositiveIntegerValue(
+        None, environ_name="ROOM_INACTIVITY_DELETION_DAYS", environ_prefix=None
+    )
     # if provided, treat as suspicious (possible privilege escalation attempt).
     PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(
         ["hidden", "recorder", "agent"],
