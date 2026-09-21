@@ -4,12 +4,13 @@ The Meet backend exposes a REST API at `/api/v1.0/`. All endpoints use JSON.
 
 ## Interactive API Explorer
 
-When `USE_SWAGGER=True` is set on the backend, an interactive Swagger UI is available at `/api/v1.0/swagger/`. You can explore endpoints, send test requests, and view schemas directly from your browser.
+An interactive Swagger UI is available at `/api/v1.0/swagger/` on the `Development` and `Test` `DJANGO_CONFIGURATION` classes. `USE_SWAGGER` is a hardcoded class attribute, not an environment variable - it cannot be turned on in `Production`/`Demo` by setting `USE_SWAGGER=True`.
 
-Meet also exposes an **External API** at `/external-api/v1.0/` for server-to-server room management, with two authentication modes:
+Meet also exposes an **External API** at `/external-api/v1.0/` for server-to-server room management, with three authentication modes:
 
 - **[Application-Delegated](external-api-delegated.md)** (`EXTERNAL_API_ENABLED=True`): your backend exchanges credentials for a JWT and acts on behalf of a user. [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](openapi.yaml)
 - **[Resource Server](external-api-resource-server.md)** (`OIDC_RS_*` vars): the user authenticates with the OIDC provider and presents their token directly. [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](resource_server.yaml)
+- **[Calendar Add-ons](external-api-addons.md)** (`ADDONS_ENABLED=True`): secure token exchange flow for calendar add-ins (Outlook, etc.) running in embedded iframes.
 
 
 ## Authentication
@@ -43,12 +44,12 @@ GET /api/v1.0/users/me/
 
 ### Update current user
 ```
-PATCH /api/v1.0/users/me/
+PATCH /api/v1.0/users/{id}/
 ```
+
 ```json
 {"language": "fr-fr"}
 ```
-
 
 ## Rooms
 
@@ -270,7 +271,7 @@ POST /api/v1.0/rooms/{id}/rename/
 ```
 
 
-## Files (in-meeting file sharing)
+## Files (custom virtual background)
 
 Requires `FILE_UPLOAD_ENABLED=True`.
 
@@ -303,14 +304,14 @@ These endpoints are called by other services, not by the browser or external int
 ```
 POST /api/v1.0/rooms/webhooks-livekit/
 ```
-Called by LiveKit when room/egress events occur (recording started/stopped, etc.).
+Called by LiveKit when room/egress events occur (recording started/stopped/ended, etc.). This is also how the backend detects that a recording has finished uploading (`egress_ended`).
 
-### Storage event webhook
+### External process hook
 ```
-POST /api/v1.0/recordings/storage-hook/
-Authorization: Bearer <storage-webhook-token>
+POST /api/v1.0/recordings/external-process-hook/
+Authorization: Bearer <SUMMARY_SERVICE_WEBHOOK_API_TOKEN>
 ```
-Called by ObjectStore when a recording file is uploaded.
+Called by the Summary service to report the result of an async transcription/summarization job back to a recording.
 
 
 ## Frontend configuration
@@ -325,10 +326,9 @@ GET /api/v1.0/config/
 ## Health check
 
 ```
-GET /healthz/
+GET /__heartbeat__     # liveness
+GET /__lbheartbeat__   # readiness
 ```
-Returns HTTP 200 if the application is running.
-
 
 ## Pagination
 
