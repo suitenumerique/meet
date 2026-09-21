@@ -1,22 +1,70 @@
 import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { TrackReferenceOrPlaceholder } from '@livekit/components-core'
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { Track } from 'livekit-client'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { FocusButton } from './FocusButton'
 import { EffectsButton } from './EffectsButton'
 import { MuteButton } from './MuteButton'
 
+const MOUSE_IDLE_TIME = 3000
+
 type FadeOverlayProps = {
   children: ReactNode
-  isVisible: boolean
+  hasKeyboardFocus: boolean
+  tileRef: React.RefObject<HTMLDivElement | null>
 }
 
 // Pointer-events none so this overlay doesn't block the zoom surface below.
-// Hover and idle tracking therefore lives on the tile, which still receives
-// the pointer events, and comes back in as isVisible.
-const FadeOverlay = ({ children, isVisible }: FadeOverlayProps) => {
+// The tile node still gets the mouse events, so we listen on it directly
+// rather than lifting the state up: this keeps mouse moves from re-rendering
+// the tile and the video it contains.
+const FadeOverlay = ({
+  children,
+  hasKeyboardFocus,
+  tileRef,
+}: FadeOverlayProps) => {
+  const [active, setActive] = useState(false)
+  const idleTimerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const tile = tileRef.current
+    if (!tile) return
+
+    const clearIdleTimer = () => {
+      if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current)
+      idleTimerRef.current = null
+    }
+
+    const handleActivity = () => {
+      setActive(true)
+      clearIdleTimer()
+      idleTimerRef.current = window.setTimeout(
+        () => setActive(false),
+        MOUSE_IDLE_TIME
+      )
+    }
+
+    const handleLeave = () => {
+      clearIdleTimer()
+      setActive(false)
+    }
+
+    tile.addEventListener('mouseenter', handleActivity)
+    tile.addEventListener('mousemove', handleActivity)
+    tile.addEventListener('mouseleave', handleLeave)
+
+    return () => {
+      clearIdleTimer()
+      tile.removeEventListener('mouseenter', handleActivity)
+      tile.removeEventListener('mousemove', handleActivity)
+      tile.removeEventListener('mouseleave', handleLeave)
+    }
+  }, [tileRef])
+
+  const isVisible = hasKeyboardFocus || active
+
   return (
     <div
       className={css({
@@ -40,10 +88,12 @@ const FadeOverlay = ({ children, isVisible }: FadeOverlayProps) => {
 
 export const ParticipantTileFocus = ({
   trackRef,
-  isVisible,
+  tileRef,
+  hasKeyboardFocus,
 }: {
   trackRef: TrackReferenceOrPlaceholder
-  isVisible: boolean
+  tileRef: React.RefObject<HTMLDivElement | null>
+  hasKeyboardFocus: boolean
 }) => {
   const participant = trackRef.participant
   const isScreenShare = trackRef.source == Track.Source.ScreenShare
@@ -51,7 +101,7 @@ export const ParticipantTileFocus = ({
   const canMute = useCanMute(participant)
 
   return (
-    <FadeOverlay isVisible={isVisible}>
+    <FadeOverlay hasKeyboardFocus={hasKeyboardFocus} tileRef={tileRef}>
       <div
         className={css({
           backgroundColor: 'primaryDark.50',

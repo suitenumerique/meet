@@ -49,8 +49,6 @@ interface ParticipantTileExtendedProps extends ParticipantTileProps {
   disableTileControls?: boolean
 }
 
-const MOUSE_IDLE_TIME = 3000
-
 export const ParticipantTile: (
   props: ParticipantTileExtendedProps & React.RefAttributes<HTMLDivElement>
 ) => React.ReactNode = /* @__PURE__ */ React.forwardRef<
@@ -103,23 +101,8 @@ export const ParticipantTile: (
   })
   const participantName = name || identity || 'Unknown'
 
-  // Hover + idle tracking for the focus overlay (pin, effects, mute buttons).
-  const [isTileHovered, setIsTileHovered] = React.useState(false)
-  const [isIdle, setIsIdle] = React.useState(false)
-  const idleTimerRef = React.useRef<number | null>(null)
-
-  const handleTileMouseMove = React.useCallback(() => {
-    if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current)
-    idleTimerRef.current = window.setTimeout(
-      () => setIsIdle(true),
-      MOUSE_IDLE_TIME
-    )
-    setIsIdle(false)
-  }, [])
-
-  const isOverlayVisible = hasKeyboardFocus || (isTileHovered && !isIdle)
-
-  // tileRef: fullscreen target. setRefs merges it with the forwarded ref on the same node.
+  // tileRef: fullscreen target, and the node the focus overlay listens on.
+  // setRefs merges it with the forwarded ref on the same node.
   const tileRef = React.useRef<HTMLDivElement>(null)
   const setRefs = React.useCallback(
     (node: HTMLDivElement | null) => {
@@ -191,21 +174,7 @@ export const ParticipantTile: (
   }
 
   return (
-    <div
-      ref={setRefs}
-      style={{ position: 'relative' }}
-      {...interactiveProps}
-      onMouseEnter={() => setIsTileHovered(true)}
-      onMouseLeave={() => {
-        setIsTileHovered(false)
-        setIsIdle(false)
-        if (idleTimerRef.current) {
-          window.clearTimeout(idleTimerRef.current)
-          idleTimerRef.current = null
-        }
-      }}
-      onMouseMove={handleTileMouseMove}
-    >
+    <div ref={setRefs} style={{ position: 'relative' }} {...interactiveProps}>
       <TrackRefContextIfNeeded trackRef={trackReference}>
         <ParticipantContextIfNeeded participant={trackReference.participant}>
           {trackReference.participant.isLocal && (
@@ -232,7 +201,8 @@ export const ParticipantTile: (
           {!disableMetadata && !disableTileControls && (
             <ParticipantTileFocus
               trackRef={trackReference}
-              isVisible={isOverlayVisible}
+              tileRef={tileRef}
+              hasKeyboardFocus={hasKeyboardFocus}
             />
           )}
         </ParticipantContextIfNeeded>
