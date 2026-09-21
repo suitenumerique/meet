@@ -1,6 +1,6 @@
 # Deployment on Scalingo
 
-This guide explains how to deploy La Suite Meet on [Scalingo](https://scalingo.com/) using the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack).
+This guide explains how to deploy LaSuite Meet on [Scalingo](https://scalingo.com/) using the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack).
 
 ## Overview
 
@@ -62,6 +62,7 @@ scalingo env-set DJANGO_ALLOWED_HOSTS="my-meet-app.osc-fr1.scalingo.io"
 Configure your OIDC provider (e.g., Keycloak, Authentik):
 
 ```bash
+scalingo env-set OIDC_OP_BASE_URL="https://auth.yourdomain.com/realms/meet"
 scalingo env-set OIDC_OP_JWKS_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/certs"
 scalingo env-set OIDC_OP_AUTHORIZATION_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/auth"
 scalingo env-set OIDC_OP_TOKEN_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/token"
@@ -108,8 +109,8 @@ The Procfile will automatically:
 2. Build the backend (Django)
 3. Run the post-compile script (cleanup)
 4. Run the post-frontend script (move assets and prepare for deployment)
-5. Start Nginx and Gunicorn
-6. Run django migrations
+5. Run database migrations via the `postdeploy` process, before the app goes live
+6. Start Nginx and Gunicorn (`web` process)
 
 ## Step 5: Create superuser
 
