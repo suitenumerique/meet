@@ -137,9 +137,7 @@ export const ParticipantTile: (
 
   const isVideoTrack =
     isTrackReference(trackReference) &&
-    (trackReference.publication?.kind === 'video' ||
-      trackReference.source === Track.Source.Camera ||
-      trackReference.source === Track.Source.ScreenShare)
+    trackReference.publication.kind === 'video'
 
   let trackMedia: React.ReactNode = null
   if (isVideoTrack) {
