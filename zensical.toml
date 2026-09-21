@@ -55,7 +55,8 @@ nav = [
     {"API" = "reference/api.md"},
     {"External API" = [
       {"Application-Delegated" = "reference/external-api-delegated.md"},
-      {"Resource Server (OAuth2)" = "reference/external-api-resource-server.md"}
+      {"Resource Server (OAuth2)" = "reference/external-api-resource-server.md"},
+      {"Calendar Add-ons" = "reference/external-api-addons.md"}
     ]},
     {"Environment Variables" = "reference/env-variables.md"},
     {"Networking" = "reference/networking.md"},
