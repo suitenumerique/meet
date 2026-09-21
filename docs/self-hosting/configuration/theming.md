@@ -14,7 +14,7 @@ You can customize the look and feel of LaSuite Meet to match your brand. Two app
 Set the `FRONTEND_CUSTOM_CSS_URL` environment variable on the **backend** container:
 
 ```bash
-FRONTEND_CUSTOM_CSS_URL=https://visio6.bebopo.eu/custom.css
+FRONTEND_CUSTOM_CSS_URL=https://visio.example.com/custom.css
 ```
 
 !!!info 
@@ -32,7 +32,7 @@ These CSS variables control the main visual aspects of the interface:
 | Dark mode | Primary color in room/dark mode | `--colors-primary-dark-500` |
 | Greyscale | Text, backgrounds, borders | `--colors-greyscale-500` |
 | Success | Success states | `--colors-success` |
-| Error | Errors and destructive actions | `--colors-error` |
+| Danger | Errors and destructive actions | `--colors-danger` |
 | Warning | Warnings and alerts | `--colors-warning` |
 | Alert | Notification backgrounds | `--colors-alert` |
 | Font sans | Main UI font | `--fonts-sans` |
@@ -164,9 +164,13 @@ Some settings require rebuilding the Docker image. The most common one is the ap
 
 ```bash
 docker build \
+  -f src/frontend/Dockerfile \
+  --target frontend-production \
   --build-arg VITE_APP_TITLE="My Custom Meet" \
-  -t my-org/meet:latest .
+  -t my-org/meet-frontend:latest .
 ```
+
+See also [`docker/dinum-frontend/Dockerfile`](https://github.com/suitenumerique/meet/blob/main/docker/dinum-frontend/Dockerfile) for a real-world example.
 
 ---
 
