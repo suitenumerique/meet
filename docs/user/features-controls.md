@@ -1,5 +1,7 @@
 # Features & Controls
 
+![Features Tour](../assets/feature-tour.gif)
+
 Complete reference for everything available once you are inside a LaSuite Meet meeting: controls, features, permissions, and roles.
 
 > For joining a meeting and pre-join screen setup, see [Getting Started](getting-started.md).
@@ -36,7 +38,7 @@ The control bar at the bottom provides all meeting actions.
 | <img src="../assets/icons/phone-fill.svg" width="20" /> | Leave | Exit the meeting |
 | <img src="../assets/icons/chat-1-line.svg" width="20" /> | Chat | Open the chat panel |
 | <img src="../assets/icons/group-line.svg" width="20" /> | Participants | Open the participants panel |
-| <img src="../assets/icons/shapes-line.svg" width="20" /> | More tools | Transcribe, record, share files |
+| <img src="../assets/icons/shapes-line.svg" width="20" /> | More tools | Transcribe, record |
 | <img src="../assets/icons/admin-line.svg" width="20" /> | Open admin | Room details, access rights, participants |
 
 ## Screen sharing
@@ -114,13 +116,7 @@ Press `Ctrl+Shift+E` to focus the reactions toolbar. Use arrow keys to navigate 
 
 ### Reaction settings
 
-In **Settings → Accessibility** you can toggle whether reactions are announced to screen readers and enable or disable reaction sounds.
-
-## File sharing
-
-Click **More tools** → **Share a file** and select a file. It becomes available for all participants to download from the side panel.
-
-> File sharing availability depends on your instance configuration. Contact your administrator if the option is not visible.
+In **Settings → Accessibility** you can toggle whether reactions are announced to screen readers.
 
 ## Backgrounds & Effects
 
@@ -143,7 +139,7 @@ If your instance allows it, you can upload your own background images (max 10, m
 
 If telephony is configured on your instance, participants can join a meeting by phone without needing a browser or internet connection.
 
-**Finding the dial-in number and PIN:** Click the room info button (left sidebar, ℹ️ icon) to see the phone number and PIN code assigned to the room.
+**Finding the dial-in number and PIN:** Click the room info button (ℹ️ icon, in the meeting controls) to see the phone number and PIN code assigned to the room.
 
 **To join by phone:**
 1. Dial the phone number shown in the room info panel
@@ -190,7 +186,6 @@ Every participant has one of three roles:
 | Send chat messages | ✅ | ✅ | ✅ |
 | Send reactions | ✅ | ✅ | ✅ |
 | Raise hand | ✅ | ✅ | ✅ |
-| Share files | ✅ | ✅ | ✅ (if enabled) |
 | Update room settings | ✅ | ✅ | ❌ |
 | Delete room | ✅ | ❌ | ❌ |
 

@@ -12,11 +12,11 @@ It depends on how your instance is configured. Some instances allow anonymous ac
 
 ### How many people can join a meeting?
 
-Meet is designed for large meetings and is tested in production with 100+ participants. There is no hard cap built into Meet itself. The practical limit depends on your LiveKit server's resources.
+Meet is designed for large meetings and is tested in production with 150+ participants. There is no hard cap built into Meet itself. The practical limit depends on your LiveKit server's resources.
 
 ### Is there a time limit on meetings?
 
-No. Meetings run until all participants leave or the owner ends the meeting.
+No. Meetings run until all participants leave. The room closes automatically when the last participant exits.
 
 ### What happens when I close the browser tab?
 
@@ -24,11 +24,17 @@ You leave the meeting. Other participants see your tile disappear. The meeting c
 
 ### Does Meet work on mobile?
 
-Yes. Open the meeting link in your mobile browser. Chrome works on Android, Safari on iOS. There is no app to install. Use headphones for the best audio.
+Yes. Open the meeting link in your mobile browser. Use headphones for the best audio.
+
+There is also a beta mobile app available at [github.com/mmaudet/visio-mobile](https://github.com/mmaudet/visio-mobile) (not officially supported). Another mobile app should be released soon.
 
 ### Which browsers are supported?
 
 Chrome, Firefox, Safari, and Edge, all kept up to date. WebRTC is required and ships with every modern browser.
+
+### Which audio and video codecs does Meet use?
+
+Meet uses **Opus** for audio (48 kHz) and **VP9** for video by default. VP9 supports Scalable Video Coding (SVC), which provides better quality at lower bitrates compared to older codecs. Meet also supports VP8, AV1, and simulcast, where the browser sends multiple quality levels simultaneously and the server forwards only what each receiver needs. For recordings, LiveKit Egress uses H.264 MAIN for video and AAC for audio.
 
 ## Audio & Video
 
@@ -93,7 +99,7 @@ These features require additional server-side configuration (LiveKit Egress for 
 
 ### How long are recordings kept?
 
-This depends on your instance's storage policy. Contact your administrator.
+This depends on your instance's storage policy. The [`RECORDING_EXPIRATION_DAYS`](reference/env-variables.md#livekit) setting controls automatic deletion (default is no expiration). See also [recording configuration](self-hosting/configuration/recording.md). Contact your administrator for your instance's specific policy.
 
 ## Security & Privacy
 
