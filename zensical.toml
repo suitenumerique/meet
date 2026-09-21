@@ -17,6 +17,7 @@ nav = [
     {"Settings" = "user/settings.md"},
     {"Recording" = "user/recording.md"},
     {"AI Transcription" = "user/transcription.md"},
+    {"Real-time Subtitles" = "user/subtitles.md"},
     {"Accessibility" = "user/accessibility.md"},
     {"Keyboard Shortcuts" = "user/keyboard-shortcuts.md"}
   ]},
@@ -43,6 +44,7 @@ nav = [
       {"SSO & Authentication" = "self-hosting/configuration/sso.md"},
       {"Recording" = "self-hosting/configuration/recording.md"},
       {"AI Transcription" = "self-hosting/configuration/transcription.md"},
+      {"Real-time Subtitles" = "self-hosting/configuration/subtitles.md"},
       {"Telephony" = "self-hosting/configuration/telephony.md"},
       {"Theming" = "self-hosting/configuration/theming.md"},
       {"Upgrading" = "self-hosting/configuration/upgrade.md"}
