@@ -9,11 +9,11 @@ The Meet frontend is a TypeScript/React SPA built with Vite.
 | Framework | React 18 |
 | Language | TypeScript |
 | Build tool | Vite |
-| WebRTC | `@livekit/components-react` |
-| Accessible UI | React Aria (Adobe) |
-| State management | Zustand |
+| WebRTC | livekit-client |
+| Headless UI components | React Aria (Adobe) |
+| State management | Valtio |
+| Data fetching | TanStack Query |
 | i18n | i18next |
-| Testing | Vitest + React Testing Library |
 | Linting | ESLint + Prettier |
 
 ## Running in dev mode
@@ -32,7 +32,7 @@ npm install
 npm run dev
 ```
 
-Dev server runs at http://localhost:5173 with hot module replacement.
+Dev server runs at http://localhost:3000 with hot module replacement.
 
 ## Project structure
 
@@ -40,55 +40,42 @@ Dev server runs at http://localhost:5173 with hot module replacement.
 src/frontend/src/
 ├── api/              # Typed fetch wrappers for backend endpoints
 ├── components/       # Shared/reusable components
-├── features/
-│   ├── conference/   # In-meeting UI
-│   │   ├── controls/ # Mic, camera, screen share, reactions
-│   │   ├── layout/   # Video grid, speaker view
-│   │   ├── chat/     # Chat panel
-│   │   └── recording/# Recording / transcription panels
-│   ├── home/         # Home page, room creation
-│   └── settings/     # Settings panels
+├── features/         # One directory per feature (rooms, chat, recording, participants, …)
 ├── hooks/            # Custom React hooks
-├── stores/           # Zustand state stores
-├── i18n/             # Translation files (en.json, fr.json, …)
+├── stores/           # Valtio state stores
+├── i18n/ | locales/  # Translation setup and JSON files
 └── App.tsx           # Root component + routing
 ```
 
+See `src/frontend/src/features/` for the current list of features — this is not duplicated here as it changes frequently.
+
 ## LiveKit connection
 
-```typescript
-import { LiveKitRoom, VideoConference } from '@livekit/components-react';
+The room component wraps `<LiveKitRoom>` from `@livekit/components-react`, passing the `token` and `serverUrl` obtained from the room API response (`GET /api/v1.0/rooms/{id}/` → `livekit.token` / `livekit.url`).
 
-// Token and URL come from GET /api/v1.0/rooms/{id}/ → response.livekit.token / .url
-<LiveKitRoom token={token} serverUrl={url} connect>
-  <VideoConference />
-</LiveKitRoom>
-```
+See [`features/rooms/components/Conference.tsx`](../../src/frontend/src/features/rooms/components/Conference.tsx) for the actual setup, which also handles things like connect gating, background processors, and browser-specific workarounds — details not reproduced here to avoid drift.
 
 ## State management
 
-```typescript
-import { create } from 'zustand';
+Global/cross-feature state uses [Valtio](https://valtio.dev/) proxy stores under `src/frontend/src/stores/`, one file per domain (e.g. `recording.ts`, `chat.ts`, `layout.ts`). Components read state with `useSnapshot()` and mutate the proxy object directly — no actions/reducers boilerplate.
 
-interface ConferenceStore {
-  isRecording: boolean;
-  setIsRecording: (v: boolean) => void;
-}
+Local/server state (API data, caching) uses TanStack Query instead of a store.
 
-export const useConferenceStore = create<ConferenceStore>((set) => ({
-  isRecording: false,
-  setIsRecording: (v) => set({ isRecording: v }),
-}));
-```
+## Accessibility & React Aria
 
-## Accessibility
+Meet builds on [React Aria Components](https://react-spectrum.adobe.com/react-aria/) via styled primitives in `src/frontend/src/primitives/`. Prefer these over raw HTML or direct RAC imports.
 
-Meet uses React Aria for accessible component primitives. Rules:
+### Rules
 
-- All interactive elements must have an accessible name (`aria-label` or visible text)
-- State changes (mute/unmute, recording) must be announced via ARIA live regions
-- Focus management: opening dialogs moves focus in; closing returns focus to the trigger
-- Test every new interactive element with keyboard navigation
+1. **Accessible names** : Every interactive element needs a name via `aria-label`, `aria-labelledby`, or visible text. Use i18n (`t(...)`) for all strings. Icon-only buttons must have `aria-label`; tooltips are supplementary, not a substitute.
+
+2. **State announcements** : Use `useScreenReaderAnnounce()` for programmatic screen reader feedback (e.g. recording state, effects). Use the toast system (`@react-aria/toast`) for room events. Do not add `aria-live` to visual-only UI :  announce separately to avoid duplication.
+
+3. **Focus management** :  RAC `Dialog` handles focus trap and return-to-trigger. Side panels and custom toolbars may need explicit focus (`autoFocus`, `ref.focus()`, or `FocusScope` from `@react-aria/focus`).
+
+4. **Keyboard & screen reader testing** : Test Tab navigation, arrow keys in menus/toolbars, and verify with a screen reader before merging.
+
+5. **PiP / cross-document contexts** : Use `VisualOnlyTooltip` instead of `TooltipWrapper` to prevent duplicate SR announcements.
 
 ```typescript
 import { Button } from 'react-aria-components';
@@ -104,7 +91,7 @@ import { Button } from 'react-aria-components';
 
 ## Internationalization
 
-1. Add the key to `en.json` and `fr.json` (minimum)
+1. Add the key to the relevant namespace file under `locales/en/` and `locales/fr/` (minimum) — see `src/frontend/src/locales/` for the current namespaces (e.g. `rooms.json`, `settings.json`, `global.json`)
 2. Use in components:
 
 ```typescript
@@ -112,23 +99,11 @@ const { t } = useTranslation();
 <span>{t('controls.mute')}</span>
 ```
 
-Other languages are managed via Crowdin.
-
-## Running tests
-
-```bash
-make test-front
-
-# Or directly
-cd src/frontend
-npm test
-npm run test:coverage
-```
-
 ## Linting and formatting
 
 ```bash
-make lint-front
+make frontend-lint
+make frontend-format
 
 # Or
 cd src/frontend

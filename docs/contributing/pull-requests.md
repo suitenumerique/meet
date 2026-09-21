@@ -2,8 +2,8 @@
 
 ## Before you start
 
+- Introduce yourself in the Matrix channel - [#meet-official:matrix.org](https://matrix.to/#/#meet-official:matrix.org)
 - Read the [developer handbook](https://suitenumerique.gitbook.io/handbook) for team best practices
-- Check the [roadmap](https://github.com/orgs/suitenumerique/projects/3/views/2) to avoid duplicating in-progress work
 - For significant changes, open an issue first to discuss the approach
 - For small fixes (typos, obvious bugs), open a PR directly
 
@@ -12,7 +12,7 @@
 1. Fork the repository
 2. Create a branch: `git checkout -b feat/my-feature` or `fix/my-bug`
 3. Make your changes with tests
-4. Run `make test-back test-front` and `make lint-back lint-front`
+4. Run `make test-back` and `make lint-back frontend-lint`
 5. Commit using the format below
 6. Push and open a pull request against `main`
 
@@ -22,6 +22,7 @@ Meet uses [Conventional Commits](https://www.conventionalcommits.org/) with gitm
 
 ```
 <emoji>(<scope>) <short description>
+[required body]
 ```
 
 ### Scopes
@@ -34,7 +35,6 @@ Meet uses [Conventional Commits](https://www.conventionalcommits.org/) with gitm
 | `agents` | LiveKit agents |
 | `summary` | Transcription/summary service |
 | `docker` | Docker configuration |
-| `deps` | Dependency updates |
 
 ### Common emojis
 
@@ -52,6 +52,8 @@ Meet uses [Conventional Commits](https://www.conventionalcommits.org/) with gitm
 | 🌐 | i18n/translations |
 | 📝 | Documentation |
 
+For full emoji list, check [gitmoji](https://gitmoji.dev/)
+
 ### Examples
 
 ```
@@ -66,15 +68,15 @@ Meet uses [Conventional Commits](https://www.conventionalcommits.org/) with gitm
 ⬆️(backend) bump django to v5.2.13 [SECURITY]
 ```
 
-Commit messages are validated by `gitlint` on push. Rules are in `gitlint/`.
+Commit messages are validated by `gitlint` in CI. Rules are in `gitlint/`.
 
 ## PR checklist
 
 - [ ] Tests added for new functionality or the bug fix
-- [ ] All tests pass (`make test-back test-front`)
-- [ ] Linters pass (`make lint-back lint-front`)
+- [ ] All tests pass (`make test-back`)
+- [ ] Linters pass (`make lint-back frontend-lint`)
 - [ ] If UI changed: keyboard navigation and screen reader labels work
-- [ ] If new strings added: translations in `en.json` and `fr.json` at minimum
+- [ ] If new strings added: check translations in every languages
 - [ ] No sensitive information (secrets, passwords) committed
 
 ## Code review
@@ -86,7 +88,7 @@ Commit messages are validated by `gitlint` on push. Rules are in `gitlint/`.
 
 ## Translations
 
-New UI strings must be added to `src/frontend/src/i18n/`. Add at minimum `en.json` and `fr.json`. Other languages are synced via Crowdin and translated by the community.
+New UI strings must be added to `src/frontend/src/i18n/`.
 
 ## Security fixes
 

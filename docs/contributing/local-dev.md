@@ -34,7 +34,7 @@ The Docker Compose stack starts all services with a single command.
 make bootstrap FLUSH_ARGS='--no-input'
 ```
 
-This builds the backend image, installs dependencies, runs migrations, creates a default user (`meet` / `meet`), and compiles translations.
+This builds the backend image, installs dependencies, runs migrations, creates a default user (`meet` / `meet`), compiles translations, adds demo data, and starts the stack.
 
 ### Start the stack
 
@@ -82,7 +82,7 @@ npm install
 npm run dev
 ```
 
-The frontend dev server runs at http://localhost:5173.
+The frontend dev server runs at http://localhost:3000.
 
 ## Backend development
 
@@ -91,7 +91,7 @@ The frontend dev server runs at http://localhost:5173.
 docker compose exec app-dev python manage.py shell
 
 # Create superuser
-docker compose exec app-dev python manage.py createsuperuser
+make superuser 
 
 # Run backend tests
 make test-back

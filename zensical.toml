@@ -71,6 +71,7 @@ nav = [
     {"Frontend" = "contributing/frontend.md"},
     {"LiveKit Integration" = "contributing/livekit-integration.md"},
     {"Testing" = "contributing/testing.md"},
-    {"Pull Requests" = "contributing/pull-requests.md"}
+    {"Pull Requests" = "contributing/pull-requests.md"},
+    {"Documentation Site" = "contributing/docs-site.md"}
   ]}
 ]
