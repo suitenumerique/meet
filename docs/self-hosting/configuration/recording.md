@@ -37,7 +37,7 @@ sequenceDiagram
     Backend->>LiveKit: Stop egress request
     LiveKit->>Egress: Stop recording
     Egress->>Storage: Upload recorded file
-    Storage->>Backend: Storage event webhook
+    LiveKit-->>Backend: POST /api/v1.0/rooms/webhooks-livekit/ (egress_ended)
     Backend->>Email: Send notification to room owner
     Email->>User: Email with download link
     User->>Frontend: Navigate to /recording/{id}
@@ -46,20 +46,20 @@ sequenceDiagram
 ## Requirements
 
 - A running LiveKit Egress server
-- S3-compatible object storage with bucket event notifications
+- S3-compatible object storage (any provider - Meet only uses it to upload/download files)
 - SMTP service for email notifications to room owners
-- LiveKit webhook configured to reach the Meet backend
+- LiveKit webhook configured to reach the Meet backend, this is what tells Meet a recording has finished
 
-!!!warning
-    An S3-compatible object storage with bucket event notifications is required. As an example we use MinIO but in production MinIO is not recommanded as the open source community version is not maintained anymore. This dependency is planned to be refactored in a future release see [PR #1386](https://github.com/suitenumerique/meet/pull/1386)
+!!!info
+    This guide uses MinIO as a convenient self-hosting example, but any S3-compatible provider works (AWS S3, Scaleway Object Storage, OVHcloud Object Storage, Garage, etc.).
 
 ---
 
 ## Docker Compose setup
 
-### Step 1: Configure MinIO
+Steps 1 and 2 below self-host [MinIO](https://min.io/) for the recorded files. If you'd rather use an external S3-compatible provider (AWS S3, Scaleway Object Storage, OVHcloud Object Storage, etc.), skip to [Step 3](#step-3-set-up-livekit-egress) and use your provider's credentials and endpoint wherever `AWS_S3_*` variables appear.
 
-[MinIO](https://min.io/) provides S3-compatible storage with the bucket event notifications Meet requires.
+### Step 1: Configure MinIO
 
 Add to your `compose.yml`:
 
@@ -74,7 +74,6 @@ minio:
   volumes:
     - minio_data:/data
   networks:
-    - proxy   # must be on proxy to reach the reverse proxy for webhook delivery
     - internal
 
 volumes:
@@ -83,7 +82,7 @@ volumes:
 
 ### Step 2: Initialize the bucket
 
-Create a one-time init container to set up the bucket and public access:
+Create a one-time init container to set up the bucket:
 
 ```yaml
 minio-init:
@@ -93,10 +92,12 @@ minio-init:
     - minio
   entrypoint: ["/bin/sh", "-c"]
   command:
-    - "sleep 5 && mc alias set myminio http://minio:9000 minioadmin minioadmin123 && mc mb myminio/meet-media-storage --ignore-existing && mc anonymous set download myminio/meet-media-storage"
+    - "sleep 5 && mc alias set myminio http://minio:9000 minioadmin minioadmin123 && mc mb myminio/meet-media-storage --ignore-existing"
   networks:
     - internal
 ```
+
+The bucket stays private - downloads are authorized per-request by the backend's `/api/v1.0/recordings/media-auth/` endpoint (see [Step 5](#step-5-update-nginx-routing-for-recording-downloads)), which signs each request with real S3 credentials before nginx proxies it to your object storage.
 
 Run the init container:
 
@@ -104,33 +105,7 @@ Run the init container:
 docker compose up -d minio-init
 ```
 
-### Step 3: Configure bucket event notifications
-
-MinIO must notify the Meet backend when a recording file is uploaded. Complete these three sub-steps in order.
-
-**1. Register the webhook target** (replace `<project>` with your Compose project name, typically the directory name):
-
-```bash
-docker run --rm --network <project>_internal --entrypoint /bin/sh minio/mc:latest -c \
-  "mc alias set myminio http://minio:9000 minioadmin minioadmin123 && \
-   mc admin config set myminio notify_webhook:recordings endpoint='https://meet.example.com/api/v1.0/recordings/storage-hook/' queue_limit=10"
-```
-
-**2. Restart MinIO** (the webhook target is only active after a restart):
-
-```bash
-docker compose restart minio && sleep 5
-```
-
-**3. Subscribe the bucket to the webhook:**
-
-```bash
-docker run --rm --network <project>_internal --entrypoint /bin/sh minio/mc:latest -c \
-  "mc alias set myminio http://minio:9000 minioadmin minioadmin123 && \
-   mc event add myminio/meet-media-storage arn:minio:sqs::recordings:webhook --event put --prefix recordings/"
-```
-
-### Step 4: Set up LiveKit Egress
+### Step 3: Set up LiveKit Egress
 
 Create `livekit-egress.yaml`:
 
@@ -179,7 +154,7 @@ livekit-egress:
     - internal
 ```
 
-### Step 5: Configure the Meet backend
+### Step 4: Configure the Meet backend
 
 Add to your `.env`:
 
@@ -191,8 +166,6 @@ AWS_S3_SECRET_ACCESS_KEY=minioadmin123
 AWS_STORAGE_BUCKET_NAME=meet-media-storage
 AWS_S3_SECURE_ACCESS=False
 
-RECORDING_STORAGE_EVENT_ENABLE=True
-RECORDING_ENABLE_STORAGE_EVENT_AUTH=False   # simplest setup; set True and configure RECORDING_STORAGE_EVENT_TOKEN for token auth
 RECORDING_DOWNLOAD_BASE_URL=https://meet.example.com/recording
 
 # DJANGO_ALLOWED_HOSTS - ensure it includes the public domain and internal service names
@@ -202,15 +175,7 @@ DJANGO_ALLOWED_HOSTS=meet.example.com,backend,localhost
 !!!info 
     **`RECORDING_DOWNLOAD_BASE_URL` must include the `/recording` path.** The frontend expects download links at `https://meet.example.com/recording/<uuid>`. Using the bare domain sends users to a page that treats the UUID as a room code.
 
-    **Email is required for recording downloads.** When a recording is ready, Meet sends the room owner an email with the download link. Without SMTP, users will never receive this notification. Configure SMTP in the same `.env`:
-    ```dotenv
-    DJANGO_EMAIL_HOST=smtp.example.com
-    DJANGO_EMAIL_PORT=587
-    DJANGO_EMAIL_HOST_USER=meet@example.com
-    DJANGO_EMAIL_HOST_PASSWORD=<password>
-    DJANGO_EMAIL_USE_TLS=True
-    DJANGO_EMAIL_FROM=meet@example.com
-    ```
+    **Email is required for recording downloads.** When a recording is ready, Meet sends the room owner an email with the download link. Without SMTP, users will never receive this notification. See [Email (SMTP)](email.md) for setup.
 
 If SMTP is not configured, administrators can find recording download links in the Django admin panel at `/admin/ → Core → Recordings`.
 
@@ -237,39 +202,53 @@ Expected output:
 }
 ```
 
-### Step 6: Update nginx routing for recording downloads
+### Step 5: Update nginx routing for recording downloads
 
-Add a `minio_backend` upstream to the template (alongside the existing upstreams):
+`nginx-routing.conf` ships with a commented-out `/media/` block for this. Uncomment it and replace the placeholders:
 
-```nginx
-upstream minio_backend {
-    server minio:9000 fail_timeout=0;
-}
-```
-
-Add the `/media/` location inside the `server { }` block:
+- `<OBJECT_STORAGE_HOST>` - the same host as your backend's `AWS_S3_ENDPOINT_URL` (Step 4): `http://minio:9000` for self-hosted MinIO on this Docker network, or your provider's public endpoint if using AWS S3, Scaleway Object Storage, OVHcloud Object Storage, etc.
+- `<OBJECT_STORAGE_HOST_NO_SCHEME>` - the same host without the `http(s)://` prefix, used for the `Host` header
+- `<BUCKET_NAME>` - your `AWS_STORAGE_BUCKET_NAME` (Step 4)
 
 ```nginx
 location /media/ {
-    proxy_pass http://minio_backend/meet-media-storage/;
+    auth_request /media-auth;
+    auth_request_set $authHeader $upstream_http_authorization;
+    auth_request_set $authDate $upstream_http_x_amz_date;
+    auth_request_set $authContentSha256 $upstream_http_x_amz_content_sha256;
+
+    proxy_set_header Authorization $authHeader;
+    proxy_set_header X-Amz-Date $authDate;
+    proxy_set_header X-Amz-Content-SHA256 $authContentSha256;
+
+    proxy_pass http://minio:9000/meet-media-storage/;
     proxy_set_header Host minio;
+}
+
+location = /media-auth {
+    internal;
+    proxy_pass http://meet_backend/api/v1.0/recordings/media-auth/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Original-URL $request_uri;
+
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
 }
 ```
 
-Your template now includes the MinIO upstream and `/media/` location. Reload the frontend container:
+This routes `https://meet.example.com/media/recordings/<uuid>.mp4` through the inner nginx to your object storage. Every request to `/media/` is gated by the `auth_request /media-auth` subrequest to the backend before nginx is allowed to proxy it upstream: the backend checks the requesting user's permissions on the recording (`get_abilities(user)["retrieve"]`) and, if authorized, returns S3 authorization headers that nginx forwards to the object storage.
+
+Reload the frontend container:
 
 ```bash
 docker compose restart frontend
 ```
 
-!!!info 
-    This routes `https://meet.example.com/media/recordings/<uuid>.mp4` through the inner nginx to MinIO. MinIO stays on the internal Docker network and is never directly exposed to the internet.
-
 ---
 
-### Step 7: Configure LiveKit webhook
+### Step 6: Configure LiveKit webhook
 
-LiveKit notifies Meet when a recording starts, stops, or fails via a signed webhook. The webhook URL must be the **public HTTPS URL**: Django's `SecurityMiddleware` redirects plain HTTP to HTTPS, causing internal requests to fail.
+LiveKit notifies Meet when a recording starts, stops, or fails via a signed webhook. This is also the mechanism Meet uses to detect that a recording has finished uploading and is ready to save. The webhook URL must be the **public HTTPS URL**: Django's `SecurityMiddleware` redirects plain HTTP to HTTPS, causing internal requests to fail.
 
 Add to `livekit-server.yaml`:
 
@@ -314,22 +293,14 @@ helm install minio minio/minio \
   --set persistence.size=50Gi
 ```
 
-### Step 2: Initialize the bucket and webhook
+### Step 2: Initialize the bucket
 
-Run the `minio/mc` commands from a temporary pod, identical to the Docker Compose setup:
+Run the `minio/mc` commands from a temporary pod, identical to the Docker Compose setup. The bucket stays private - `ingressMedia` (configured in [Step 5](#step-5-enable-ingressmedia) below) authorizes each download via the same `/api/v1.0/recordings/media-auth/` backend endpoint.
 
 ```bash
 kubectl -n meet run minio-init --image=minio/mc --restart=Never --rm -it -- /bin/sh -c "
   mc alias set myminio http://minio:9000 minioadmin minioadmin123 && \
-  mc mb myminio/meet-media-storage --ignore-existing && \
-  mc anonymous set download myminio/meet-media-storage && \
-  mc admin config set myminio notify_webhook:recordings \
-    endpoint='https://meet.example.com/api/v1.0/recordings/storage-hook/' \
-    queue_limit=10 && \
-  mc admin service restart myminio && \
-  sleep 5 && \
-  mc event add myminio/meet-media-storage arn:minio:sqs::recordings:webhook \
-    --event put --prefix recordings/
+  mc mb myminio/meet-media-storage --ignore-existing
 "
 ```
 
@@ -364,6 +335,7 @@ data:
       room_composite_cpu_cost: 2.0
       track_composite_cpu_cost: 1.0
       track_cpu_cost: 0.5
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -417,16 +389,14 @@ backend:
     AWS_S3_SECRET_ACCESS_KEY: "minioadmin123"
     AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
     AWS_S3_SECURE_ACCESS: "False"
-    RECORDING_STORAGE_EVENT_ENABLE: "True"
-    RECORDING_ENABLE_STORAGE_EVENT_AUTH: "False"
     RECORDING_DOWNLOAD_BASE_URL: "https://meet.example.com/recording"
     DJANGO_ALLOWED_HOSTS: "meet.example.com"
 ```
 
 !!!info
-     **`RECORDING_DOWNLOAD_BASE_URL` must include the `/recording` path**. See [Step 5 in the Docker Compose guide](#step-5-configure-the-meet-backend) for why.
+     **`RECORDING_DOWNLOAD_BASE_URL` must include the `/recording` path**. See [Step 4 in the Docker Compose guide](#step-4-configure-the-meet-backend) for why.
      
-     **Email is required.** Without SMTP, users never receive download links. Add `DJANGO_EMAIL_*` variables to `backend.envVars`. See [Step 5 above](#step-5-configure-the-meet-backend) for the variable names.
+     **Email is required.** Without SMTP, users never receive download links. See [Email (SMTP)](email.md#kubernetes-setup) for the `backend.envVars` to add.
 
 Apply the updated chart:
 
@@ -541,9 +511,7 @@ This lets you verify which recordings are in progress, troubleshoot egress issue
 |---|---|---|---|
 | `RECORDING_ENABLE` | Boolean | `False` | Enable the recording feature |
 | `RECORDING_OUTPUT_FOLDER` | String | `"recordings"` | Folder/prefix in object storage |
-| `RECORDING_STORAGE_EVENT_ENABLE` | Boolean | `False` | Enable storage event webhook handling |
-| `RECORDING_ENABLE_STORAGE_EVENT_AUTH` | Boolean | `True` | Require token auth on storage webhook |
-| `RECORDING_STORAGE_EVENT_TOKEN` | Secret | `None` | Token for storage webhook auth |
+| `RECORDING_WORKER_CLASSES` | Dict | -- | Maps recording mode to its worker class. Default: `screen_recording` → `VideoCompositeEgressService`, `transcript` → `AudioCompositeEgressService`. Only change for custom egress workers. |
 | `RECORDING_DOWNLOAD_BASE_URL` | String | - | Base URL for download links (must include `/recording`) |
 | `RECORDING_EXPIRATION_DAYS` | Integer | `None` | Days before recordings expire; should match bucket lifecycle policy |
 | `RECORDING_MAX_DURATION` | Integer | `None` | Max recording duration in milliseconds |
@@ -554,7 +522,6 @@ This lets you verify which recordings are in progress, troubleshoot egress issue
 | `RECORDING_ENCODING_VIDEO_BITRATE_KBPS` | Integer | `3000` | H.264 video bitrate |
 | `RECORDING_ENCODING_AUDIO_BITRATE_KBPS` | Integer | `128` | AAC audio bitrate |
 | `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S` | Float | `4.0` | Keyframe interval in seconds |
-| `RECORDING_EVENT_PARSER_CLASS` | String | `"core.recording.event.parsers.MinioParser"` | Class for parsing storage events. Use `MinioParser` for MinIO; use `core.recording.event.parsers.S3Parser` for generic S3-compatible providers (v1.17.0+). |
 
 
 ## Testing the full recording flow
@@ -567,5 +534,5 @@ This lets you verify which recordings are in progress, troubleshoot egress issue
      "mc alias set myminio http://minio:9000 minioadmin <MINIO_PASSWORD> && \
       mc ls myminio/meet-media-storage/recordings/"
    ```
-4. Check backend logs for the storage webhook: `docker compose logs backend | grep storage-hook`
+4. Check backend logs for the LiveKit egress webhook that finalizes the recording: `docker compose logs backend | grep egress_ended`
 5. The room owner should receive an email with a download link
