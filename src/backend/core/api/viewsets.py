@@ -582,7 +582,15 @@ class RoomViewSet(
             user=request.user,
             **serializer.validated_data,
         )
-        return drf_response.Response({**participant.to_dict(), "livekit": livekit})
+        return drf_response.Response(
+            {
+                **participant.to_dict(),
+                "id": serializers.RequestEntrySerializer.sign_participant_id(
+                    participant.id
+                ),
+                "livekit": livekit,
+            }
+        )
 
     @decorators.action(
         detail=True,

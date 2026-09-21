@@ -7,6 +7,7 @@ from typing import Literal
 from urllib.parse import quote
 
 from django.conf import settings
+from django.core import signing
 from django.core.exceptions import SuspiciousOperation
 
 # pylint: disable=abstract-method,no-name-in-module
@@ -292,11 +293,26 @@ class RequestEntrySerializer(BaseValidationOnlySerializer):
     """Validate request entry data."""
 
     username = serializers.CharField(required=True)
-    participant_id = serializers.UUIDField(required=False, allow_null=True)
+    participant_id = serializers.CharField(
+        required=False, allow_null=True, max_length=128
+    )
+
+    @staticmethod
+    def sign_participant_id(participant_id):
+        """Sign with Django's SECRET_KEY and a lobby-specific namespace."""
+        return signing.Signer(salt="core.lobby.participant").sign(participant_id)
 
     def validate_participant_id(self, value):
-        """The id is a bearer credential: never trusted, only looked up."""
-        return str(value) if value else None
+        """Require a valid server signature before looking up a participant."""
+        if value is None:
+            return None
+        try:
+            participant_id = signing.Signer(salt="core.lobby.participant").unsign(value)
+        except signing.BadSignature as exc:
+            raise serializers.ValidationError(
+                "Invalid participant credential."
+            ) from exc
+        return str(serializers.UUIDField().run_validation(participant_id))
 
 
 class ParticipantEntrySerializer(BaseValidationOnlySerializer):
