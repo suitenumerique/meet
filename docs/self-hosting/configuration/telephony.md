@@ -32,7 +32,13 @@ First, enable telephony in your Meet backend by adding to `.env`:
 
 ```dotenv
 ROOM_TELEPHONY_ENABLED=True
+ROOM_TELEPHONY_PHONE_NUMBER=+33123456789
+ROOM_TELEPHONY_DEFAULT_COUNTRY=FR
+ROOM_TELEPHONY_PIN_LENGTH=10
+ROOM_TELEPHONY_PIN_MAX_RETRIES=5
 ```
+
+`ROOM_TELEPHONY_PHONE_NUMBER` is required for the dial-in number to appear in the frontend config. Without it, telephony stays enabled server-side but the UI never shows a number to call.
 
 Then add SIP configuration to your `livekit-server.yaml`:
 
@@ -63,7 +69,7 @@ livekit-sip:
 Create `livekit-sip.yaml`:
 
 ```yaml
-api_key: myapikey
+api_key: meet
 api_secret: your-livekit-api-secret
 ws_url: ws://livekit:7880
 
@@ -138,6 +144,10 @@ SIP and RTP require additional open ports:
 
 !!!info 
     The RTP port range (10000-20000) must be open for telephony to work. This is in addition to LiveKit's standard WebRTC ports.
+
+## Audio prompt language
+
+By default, all LiveKit SIP audio instructions (PIN prompts, etc.) are in English. To use a different locale, mount the appropriate audio files as a volume in your deployment. The audio resources are available at [github.com/livekit/sip/tree/main/res](https://github.com/livekit/sip/tree/main/res).
 
 ## Audio quality notes
 
