@@ -4,6 +4,10 @@ LaSuite Meet is a multi-service application. Understanding its components helps 
 
 ## Components overview
 
+Split into two views: control/data flow (who calls whom for orchestration and storage) and the real-time media path. Some nodes (LiveKit, Redis, ObjectStore) appear in both - e.g. LiveKit's REST API is used for control (starting an egress), while its media port carries WebRTC.
+
+**Control & data flow:**
+
 ```mermaid
 graph TB
     Browser["Browser\nReact / TypeScript"]
@@ -14,11 +18,9 @@ graph TB
         Celery["Celery Worker"]
     end
 
-    subgraph media_layer["Media"]
-        LiveKit["LiveKit Server"]
-        Egress["LiveKit Egress"]
-        Summary["Summary Service\n(optional - transcription & AI)"]
-    end
+    LiveKit["LiveKit Server"]
+    Agents["LiveKit Agents\n(optional)"]
+    Summary["Summary Service\n(optional - transcription & AI)"]
 
     subgraph storage_layer["Storage"]
         PostgreSQL["PostgreSQL"]
@@ -27,19 +29,46 @@ graph TB
     end
 
     Browser -->|REST API| Backend
-    Browser -->|WebRTC| LiveKit
     Browser -->|OIDC login| OIDC
     OIDC -->|tokens| Backend
     Backend --> PostgreSQL
     Backend --> Redis
+    Backend --> ObjectStore
     Backend -->|Egress API| LiveKit
-    Backend --> ObjcectStore
+    Backend -->|Agent dispatch| Agents
+    Backend -->|submits task| Summary
     Celery --> Redis
-    LiveKit --> Redis
-    Egress -->|writes recording| ObjectStore
-    ObjectStore -->|storage webhook| Backend
+    Celery --> PostgreSQL
+    Celery --> ObjectStore
     Summary -->|downloads from| ObjectStore
     Summary -->|reports results| Backend
+```
+
+**Real-time media flow:**
+
+```mermaid
+graph TB
+    Browser["Browser\nReact / TypeScript"]
+    Phone["Phone\n(optional)"]
+
+    subgraph media_layer["Media"]
+        LiveKit["LiveKit Server"]
+        Egress["LiveKit Egress"]
+        SIP["LiveKit SIP\n(optional)"]
+        Agents["LiveKit Agents\n(optional)"]
+    end
+
+    Redis["Redis"]
+    ObjectStore["S3"]
+
+    Browser -->|WebRTC| LiveKit
+    Phone -->|SIP/PSTN| SIP
+    SIP -->|WebRTC| LiveKit
+    LiveKit --> Redis
+    Egress -->|job dispatch via Redis| Redis
+    Agents -->|WebRTC| LiveKit
+    Agents -->|metadata| ObjectStore
+    Egress -->|writes recording| ObjectStore
 ```
 
 ## Services
@@ -57,8 +86,8 @@ graph TB
   - User authentication (OIDC/OAuth2)
   - Room creation and access control
   - Issuing LiveKit JWT tokens to clients
-  - Recording lifecycle management (start/stop/webhook)
-  - S3 webhook processing from ObjectStore
+  - Recording lifecycle management (start/stop)
+  - LiveKit webhook processing (room, egress, and participant events)
 - **Port**: 8000
 
 ### LiveKit Server
@@ -73,16 +102,28 @@ graph TB
 - **Role**: Records rooms or individual tracks to files. Saves output to ObjectStore. Triggered by the Django backend via LiveKit's Egress API.
 - **Dependency**: Requires Redis (shared with LiveKit server)
 
+### LiveKit SIP (optional)
+
+- **Technology**: Go (open source, by LiveKit Inc.)
+- **Role**: SIP bridge that enables phone dial-in to meetings. Handles SIP signaling and audio transcoding between PSTN (G.711/G.722) and WebRTC (Opus). Connects to SIP trunks (Twilio, Vonage, etc.).
+- **Ports**: 5060/UDP (SIP signaling), 10000-20000/UDP (RTP media)
+- **Dependency**: Requires Redis and SIP trunk provider
+
 ### Summary Service
 
 - **Technology**: Python, FastAPI, Celery
-- **Role**: Optional AI service for transcription and meeting summarization. Uses Whisper (or compatible STT engines) for speech-to-text, and an LLM API for summarization. Runs two separate Celery queues: `transcribe-queue` and `summarize-queue`.
+- **Role**: Optional AI service for transcription and meeting summarization. Uses speech-to-text (STT) engines for transcription, and an LLM API for summarization. Runs three separate Celery queues: `transcribe-queue-v2`, `summarize-queue-v2`, and `call-webhook-queue-v2`.
 - **Port**: 8000 (internal)
 
-### Metadata Collector Agent
+### LiveKit Agents (optional)
 
+**Metadata Collector Agent**
 - **Technology**: Python (LiveKit Agents SDK)
-- **Role**: Connects to LiveKit rooms and collects metadata events: Voice Activity Detection (VAD), participant connection/disconnection events, chat messages. Stores metadata in object storage for later processing by the summary service.
+- **Role**: Connects to LiveKit rooms silently and collects metadata events: Voice Activity Detection (VAD), participant connection/disconnection events, chat messages. Stores metadata in object storage for later processing by the summary service.
+
+**Multi-User Transcriber Agent**
+- **Technology**: Python (LiveKit Agents SDK)
+- **Role**: Provides real-time speech-to-text transcription for meetings. Supports multiple STT providers (Deepgram, Kyutai, Voxtral). Joins rooms as a participant and streams live captions.
 
 ## Backing services
 
@@ -114,7 +155,7 @@ sequenceDiagram
     BE->>BE: Create / update user record
     BE-->>B: Session cookie, redirect → Meet
     B->>F: Load Meet (authenticated)
-    F->>BE: POST /api/v1.0/rooms/{id}/token/
+    F->>BE: POST /api/v1.0/rooms/{id}
     BE-->>F: LiveKit JWT
     F->>LK: Connect via WebRTC
 ```
@@ -138,17 +179,18 @@ sequenceDiagram
     BE->>LK: Stop egress
     EG->>S3: Upload recording file
     LK-->>BE: Webhook: egress ended
-    S3-->>BE: Webhook: file uploaded (/storage-hook/)
     BE->>BE: Set status → saved
     BE->>Mail: Send download link to owner
     Mail-->>U: Email with download link
 ```
 
-## Transcription flow (beta)
+## Transcription and summary flow (optional)
 
 1. Recording completes (or transcription is started independently)
 2. Django backend triggers the Summary service with the audio/video file location
 3. Summary service downloads the file from object storage
-4. Celery worker on `transcribe-queue` runs Whisper STT
-5. Celery worker on `summarize-queue` calls the configured LLM API
-6. Results are stored and made available for download via the Django API
+4. Celery worker on `transcribe-queue-v2` runs speech-to-text (STT) transcription
+5. Transcript is formatted and speaker diarization is performed (user assignment)
+6. Celery worker on `summarize-queue-v2` calls the configured LLM API to generate a meeting summary
+7. Celery worker on `call-webhook-queue-v2` sends the results back to the Django backend via webhook
+8. Results are stored in the database and made available for download via the Django API

@@ -6,10 +6,10 @@ A **room** is a virtual meeting space. Each room has:
 
 - A unique slug/ID used in the URL (e.g., `meet.example.com/my-room-name`)
 - An owner (the user who created it) with full control
-- Access settings: open, authenticated-only, or invite-only
+- Access level: `public` (anyone with the link joins directly), `trusted` (authenticated users join directly, others wait in the lobby), or `restricted` (everyone waits in the lobby regardless of authentication, unless explicitly trusted by the owner)
 - A configuration that can include recording options, participant limits, and feature flags
 
-Rooms are **non-persistent by default**: chat history and ephemeral state are not stored between sessions.
+Rooms are **persistent** in the database (room metadata, configuration, access rights), but **ephemeral state** (chat history, active participants, live connections) is not stored between sessions.
 
 ## Participant
 
@@ -69,18 +69,16 @@ Egress saves output to object storage (MinIO/S3). It requires:
 
 **Celery** is a distributed task queue used in two places:
 
-1. **Django backend Celery worker**: Handles async tasks like sending recording notification emails
-2. **Summary service Celery workers**: Two separate workers for transcription (`transcribe-queue`) and summarization (`summarize-queue`)
+1. **Django backend Celery worker**: Handles async tasks like file deletion cleanup. Recording notification emails are sent synchronously instead, from the LiveKit webhook handler (see below)
+2. **Summary service Celery workers**: Three separate workers - transcription (`transcribe-queue-v2`), summarization (`summarize-queue-v2`), and webhook callbacks (`call-webhook-queue-v2`)
 
 Both use Redis as the message broker.
 
 ## Object Storage (MinIO / S3)
 
-Meet stores binary files (recordings, uploaded files) in **S3-compatible object storage**. 
+Meet stores binary files (recordings, uploaded files) in **S3-compatible object storage**. Any S3-compatible provider works (MinIO, AWS S3, Garage, Scaleway Object Storage, OVHcloud Object Storage, etc.) - the backend only uses it to upload/download files.
 
-For now recording needs an object store that supports bucket event notifications webhooks. The Django backend uses a **webhook** from S3-compatible storage to detect when a recording file has been uploaded, which triggers the recording state to update in the database.
-
-> **Info:** When [Pull Request](https://github.com/suitenumerique/meet/pull/1386) is merged any S3-compatible service can be used such as Garage, AWS S3, Scaleway Object Storage, OVH Object Storage.
+Recording completion is detected via LiveKit Server's own `egress_ended` webhook and delivered to the Django backend.
 
 ## Simulcast
 
