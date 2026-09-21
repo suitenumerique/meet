@@ -15,7 +15,7 @@ LiveKit uses two separate channels:
 - **Media** (WebRTC RTP/RTCP): goes directly between browsers and LiveKit, bypassing the reverse proxy. This requires at least one UDP port open on your firewall.
 
 !!!info 
-    All audio and video tracks - including screen shares - are multiplexed on a **single UDP connection** using SSRC identifiers. Port 7881 is a TCP fallback for the same traffic when a participant's network blocks UDP.
+    Per LiveKit's client protocol, each participant uses up to two WebRTC PeerConnections - one for publishing, one for subscribing - each multiplexing its tracks (including screen shares) via SSRC identifiers, not separated by port. The subscriber connection opens as soon as the participant joins; the publisher connection only opens once they actually publish a track (e.g. unmute camera/mic). Port 7881 is a TCP fallback for the same traffic when a participant's network blocks UDP.
 
 ---
 

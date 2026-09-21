@@ -1,6 +1,6 @@
 # TURN Server
 
-TURN (Traversal Using Relays around NAT) is a relay protocol that routes WebRTC media through a well-known port when direct UDP is blocked. Without TURN, participants on corporate networks, hotel Wi-Fi, or VPNs may connect to a meeting but have no audio or video.
+TURN (Traversal Using Relays around NAT) relays WebRTC media through a well-known server when direct peer-to-SFU connections fail due to restrictive NATs or firewalls. Without TURN, some participants can join the meeting (signaling works over WebSocket) but have no audio or video (media fails).
 
 ---
 
@@ -8,30 +8,67 @@ TURN (Traversal Using Relays around NAT) is a relay protocol that routes WebRTC 
 
 | Deployment | Recommendation |
 |---|---|
-| Internal team, controlled network | TURN optional - direct media (7882/UDP) works |
+| Internal team, controlled network | TURN optional - direct media typically works |
 | Public instance, mixed networks | TURN recommended |
-| Enterprise | TURN required - corporate firewalls routinely block non-standard UDP |
+| Enterprise with corporate firewalls | TURN required - often UDP is blocked entirely |
 
-**How to tell if TURN is needed:** participants who connect (room appears joined, participants list shows them) but have no audio or video, and this resolves when they switch to a phone hotspot - that is a UDP-blocked network. TURN solves it.
-
----
-
-## How LiveKit TURN works
-
-LiveKit has a built-in TURN server. When a participant's ICE negotiation fails over UDP 7882, the browser falls back to TURN:
-
-1. Browser connects to LiveKit via WebSocket (443/TCP, already working)
-2. LiveKit advertises its TURN address in ICE candidates
-3. Browser establishes a TURN allocation on 443/UDP
-4. All media is relayed through that allocation
-
-The result: media travels over a port that firewalls universally allow, indistinguishable from regular HTTPS.
+**How to tell if TURN is needed:** participants connect (room appears joined, they see others) but have no audio or video. When they switch to a phone hotspot, media works - this indicates network restrictions. TURN solves it.
 
 ---
 
-## Option 1: Built-in TURN on 443/UDP (recommended)
+## NAT traversal and ICE candidates
 
-The simplest setup. No extra server, no coturn. LiveKit serves TURN directly alongside your existing stack.
+WebRTC uses ICE (Interactive Connectivity Establishment) to negotiate the best connection path between client and server. LiveKit gathers multiple candidate types:
+
+1. **Host candidates**: Direct connection to LiveKit's RTC ports (7881/TCP, 7882/UDP)
+2. **STUN (srflx) candidates**: Reflexive candidates discovered via STUN - the client's public IP/port as seen by the STUN server
+3. **TURN (relay) candidates**: Relayed connection through the TURN server
+
+ICE tries candidates in order of preference:
+- **Best**: Direct UDP to port 7882 (lowest latency)
+- **Fallback**: ICE-TCP to port 7881 (when UDP blocked but TCP allowed)
+- **Last resort**: TURN relay (when both direct UDP and TCP fail)
+
+LiveKit uses Google's public STUN servers (`stun.l.google.com:19302`) by default if no custom STUN is configured.
+
+### When TURN is required
+
+**Symmetric NAT**: STUN alone cannot establish connectivity through symmetric NAT because the port mapping changes for each destination. TURN is required.
+
+**UDP blocked**: Some corporate firewalls block all UDP traffic, including to port 7882. Clients fall back to:
+- ICE-TCP (port 7881) if allowed, or
+- TURN over TCP (port 443 or 5349) if configured
+
+**TLS-only networks**: Highly restrictive networks with deep packet inspection may block all non-TLS traffic. In these cases, **TURN/TLS (port 5349 or 443)** is the only option.
+
+---
+
+## How LiveKit's built-in TURN works
+
+LiveKit includes an embedded TURN server with integrated authentication. Only clients that have established a signal connection can allocate TURN resources - this prevents abuse.
+
+When ICE negotiation determines TURN is needed:
+
+1. Client connects to LiveKit via WebSocket (443/TCP or 7880/TCP)
+2. LiveKit advertises TURN candidates in its ICE offer
+3. Client establishes a TURN allocation on the configured port (UDP or TLS)
+4. Media is relayed through that allocation
+
+**TURN protocols supported by LiveKit's built-in server**:
+- TURN over UDP
+- TURN over TLS
+
+**Note**: LiveKit's embedded TURN does **not** support TURN over plain TCP (port 3478). For environments requiring TURN/TCP, deploy an external TURN server like coturn (see [Option 3](#option-3-external-turn-server-coturn)).
+
+---
+
+## Option 1: TURN over UDP on port 443 (recommended)
+
+The simplest setup. No extra server, no coturn. LiveKit serves TURN/UDP directly on port 443 - the same port used for HTTPS, but over UDP.
+
+**Why port 443/UDP?** As QUIC (HTTP/3) gains adoption, many firewalls now allow UDP on port 443. This provides better performance than TCP (lower latency, better congestion control) while passing through most corporate firewalls.
+
+**Port conflict note**: Port 443/UDP and 443/TCP are separate sockets on Linux and do not conflict. Your reverse proxy holds 443/TCP for HTTPS; LiveKit listens on 443/UDP for TURN.
 
 ### Step 1: Add the `turn:` block to `livekit-server.yaml`
 
@@ -103,11 +140,17 @@ Then join a meeting from a restricted network (or simulate it by blocking port 7
 
 ---
 
-## Option 2: TURN over TLS
+## Option 2: TURN over TLS (for UDP-blocked networks)
 
-Some networks block all UDP, including 443/UDP. For those, TURN can be served over TLS on port 5349 (the IANA standard TURN/TLS port). LiveKit needs direct access to a TLS certificate for this - it cannot use the certificate held by your reverse proxy.
+Some networks block **all UDP traffic**, including port 443/UDP. For those, TURN must be served over TLS. To firewalls, TURN/TLS traffic is indistinguishable from regular HTTPS, providing maximum connectivity.
 
-**This is an advanced setup.** Most deployments do not need it. Enable it only if you have evidence of participants on UDP-blocking networks.
+**Port options**:
+- **5349/TCP** - IANA standard TURN/TLS port (recommended)
+- **443/TCP** - Alternative if running without an L4 load balancer (conflicts with HTTPS on the same IP)
+
+LiveKit performs TLS termination for TURN/TLS. It needs direct access to certificate files - it **cannot** use certificates held by your reverse proxy (nginx, Traefik). Certificate renewal requires restarting LiveKit to pick up new files.
+
+**When to use**: Enable this only if you have evidence of participants on UDP-blocking networks (testing shows media fails even with TURN/UDP on 443).
 
 ### Step 1: Get the certificate files
 
@@ -203,7 +246,17 @@ Add a cron job or systemd timer to restart LiveKit after certificate renewal:
 
 ## Option 3: External TURN server (coturn)
 
-If you want to run TURN on a separate host - for example, to offload relay traffic from the LiveKit server - configure LiveKit to use an external coturn instance:
+For environments requiring:
+- **TURN over plain TCP** (port 3478) - not supported by LiveKit's built-in TURN
+- **Separate TURN infrastructure** - to offload relay traffic from the LiveKit server
+- **Multi-protocol support** - UDP, TCP, TLS all on one server
+
+Deploy an external coturn server. Coturn supports all TURN transports:
+- TURN/UDP (port 3478 or 443)
+- TURN/TCP (port 3478)
+- TURN/TLS (port 5349 or 443)
+
+Configure LiveKit to advertise the external TURN server:
 
 ```yaml
 rtc:
@@ -211,11 +264,12 @@ rtc:
     - host: turn.example.com
       port: 443
       protocol: tls
-      username: turnuser
-      credential: turnpassword
+      # Shared secret for coturn authentication
+      secret: your-coturn-shared-secret
+      ttl: 14400
 ```
 
-LiveKit announces this server in ICE candidates instead of its built-in TURN. The coturn instance must be deployed and configured separately; its setup is outside the scope of this guide.
+LiveKit announces this server in ICE candidates instead of its built-in TURN. Coturn deployment and configuration is outside the scope of this guide. See [coturn documentation](https://github.com/coturn/coturn) for setup details.
 
 ---
 

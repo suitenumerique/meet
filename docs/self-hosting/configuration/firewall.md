@@ -29,7 +29,7 @@ The standard Docker Compose setup. Open three ports total beyond 80/443:
 | 7882 | UDP | WebRTC media - all audio and video streams multiplexed here |
 
 !!!info
-    `7882/UDP` is the critical port. If it is blocked, participants connect to the room but have no audio or video and fall back to TCP (7881), which increases latency.
+    `7882/UDP` is the critical port. ICE tries every candidate pair before giving up, so if it is blocked, participants fall back to the TCP candidate (7881) instead, at the cost of higher latency. If TCP is blocked too, ICE negotiation fails and the participant cannot connect at all.
 
 ---
 
