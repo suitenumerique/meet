@@ -23,9 +23,6 @@ frontend:
     - name: outlook-addon-manifest
       configMap:
         name: outlook-addon-manifest
-    - name: frontend-nginx-config
-      configMap:
-        name: frontend-nginx-config
 
   extraVolumeMounts:
     - name: outlook-addon-config
@@ -36,10 +33,6 @@ frontend:
       mountPath: /usr/share/nginx/html/addons/outlook/manifest.xml
       subPath: manifest.xml
       readOnly: true
-    - name: frontend-nginx-config
-      mountPath: /etc/nginx/conf.d/default.conf
-      subPath: default.conf
-      readOnly: true
 
   outlookAddon:
     enabled: true
@@ -49,5 +42,3 @@ frontend:
     appName: "Visio"
     id: "a025f0f6-757a-4790-97f3-99c66c4a5795"
 
-frontendNginxConfig:
-  enabled: true

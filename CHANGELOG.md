@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(backend) make the LiveKit default video codec configurable
 - 🔧(dev) add support for Bureautix workstations
+- ✨(frontend) switch frontend images to Caddy and proxy recording/file downloads through it, removing the NGINX Ingress auth annotations dependency
 
 ### Changed
 

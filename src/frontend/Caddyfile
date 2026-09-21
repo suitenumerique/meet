@@ -1,0 +1,38 @@
+# Global options
+{
+	auto_https off
+	admin off
+}
+
+:{$PORT} {
+	root * /usr/share/nginx/html
+	encode gzip
+
+	# Vite fingerprints everything under /assets, so a given URL's bytes never
+	# change: cache it forever. A new build emits new hashed URLs.
+	@immutable path /assets/*
+	header @immutable Cache-Control "public, max-age=2592000, immutable"
+
+	# The SPA shell and other non-fingerprinted files must revalidate every
+	# load, or a deploy's new asset hashes only show up after a hard refresh.
+	@revalidate not path /assets/*
+	header @revalidate {
+		Cache-Control "no-cache, no-store, must-revalidate"
+		Pragma "no-cache"
+		Expires 0
+	}
+
+	route {
+		import /etc/caddy/media-proxy.caddy
+		try_files {path} /index.html
+		file_server
+	}
+
+	handle_errors {
+		@spa_404 expression `{err.status_code} == 404`
+		handle @spa_404 {
+			rewrite * /index.html
+			file_server
+		}
+	}
+}

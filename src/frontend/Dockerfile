@@ -41,24 +41,24 @@ ENV VITE_APP_TITLE=${VITE_APP_TITLE}
 
 RUN npm run build
 
+# ---- Caddy builder image ----
+FROM caddy:2.11.4-builder AS caddy-builder
+
+RUN xcaddy build --with github.com/caddyserver/replace-response
+RUN apk add --no-cache libcap && \
+    setcap -r /usr/bin/caddy
+
 # ---- Front-end image ----
-FROM nginxinc/nginx-unprivileged:1.30.4-alpine3.24 AS frontend-production
+FROM gcr.io/distroless/static-debian12:nonroot AS frontend-production
 
-USER root
-RUN apk del curl
-USER nginx
-
-# Un-privileged user running the application
-ARG DOCKER_USER
-USER ${DOCKER_USER}
-
+COPY --from=caddy-builder /usr/bin/caddy /usr/bin/caddy
 COPY --from=meet-builder \
     /home/frontend/dist \
     /usr/share/nginx/html
 
-COPY ./src/frontend/default.conf /etc/nginx/conf.d
-COPY ./docker/files/usr/local/bin/entrypoint /usr/local/bin/entrypoint
+COPY ./src/frontend/Caddyfile /etc/caddy/Caddyfile
+COPY ./docker/caddy/media-proxy.caddy /etc/caddy/media-proxy.caddy
 
-ENTRYPOINT [ "/usr/local/bin/entrypoint" ]
+ENV PORT=8080
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

@@ -54,6 +54,18 @@ spec:
             {{- if $envVars }}
             {{- $envVars | indent 12 }}
             {{- end }}
+            - name: BACKEND_INTERNAL_HOST
+              value: {{ include "meet.backend.fullname" . | quote }}
+            - name: BACKEND_INTERNAL_PORT
+              value: {{ .Values.backend.service.port | quote }}
+            - name: MEDIA_STORAGE_HOST
+              value: {{ .Values.frontend.mediaProxy.storageHost | quote }}
+            - name: MEDIA_STORAGE_PROTOCOL
+              value: {{ .Values.frontend.mediaProxy.storageProtocol | quote }}
+            - name: MEDIA_STORAGE_PORT
+              value: {{ .Values.frontend.mediaProxy.storagePort | quote }}
+            - name: AWS_STORAGE_BUCKET_NAME
+              value: {{ .Values.frontend.mediaProxy.bucketName | quote }}
           {{- with .Values.frontend.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}

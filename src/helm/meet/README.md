@@ -34,24 +34,6 @@
 | `ingressAdmin.tls.secretName`                                                | Secret name for TLS config                           | `nil`                                                              |
 | `ingressAdmin.tls.additional[].secretName`                                   | Secret name for additional TLS config                |                                                                    |
 | `ingressAdmin.tls.additional[].hosts[]`                                      | Hosts for additional TLS config                      |                                                                    |
-| `ingressMedia.enabled`                                                       | whether to enable the Ingress or not                 | `false`                                                            |
-| `ingressMedia.className`                                                     | IngressClass to use for the Ingress                  | `nil`                                                              |
-| `ingressMedia.host`                                                          | Host for the Ingress                                 | `meet.example.com`                                                 |
-| `ingressMedia.path`                                                          | Path to use for the Ingress                          | `/media/(.*)`                                                      |
-| `ingressMedia.hosts`                                                         | Additional host to configure for the Ingress         | `[]`                                                               |
-| `ingressMedia.tls.enabled`                                                   | Weather to enable TLS for the Ingress                | `true`                                                             |
-| `ingressMedia.tls.secretName`                                                | Secret name for TLS config                           | `nil`                                                              |
-| `ingressMedia.tls.additional[].secretName`                                   | Secret name for additional TLS config                |                                                                    |
-| `ingressMedia.tls.additional[].hosts[]`                                      | Hosts for additional TLS config                      |                                                                    |
-| `ingressMedia.annotations.nginx.ingress.kubernetes.io/auth-url`              |                                                      | `https://meet.example.com/api/v1.0/recordings/media-auth/`         |
-| `ingressMedia.annotations.nginx.ingress.kubernetes.io/auth-response-headers` |                                                      | `Authorization, X-Amz-Date, X-Amz-Content-SHA256`                  |
-| `ingressMedia.annotations.nginx.ingress.kubernetes.io/upstream-vhost`        |                                                      | `minio.meet.svc.cluster.local:9000`                                |
-| `ingressMedia.annotations.nginx.ingress.kubernetes.io/configuration-snippet` |                                                      | `add_header Content-Security-Policy "default-src 'none'" always;
-` |
-| `serviceMedia.host`                                                          |                                                      | `minio.meet.svc.cluster.local`                                     |
-| `serviceMedia.port`                                                          |                                                      | `9000`                                                             |
-| `serviceMedia.annotations`                                                   |                                                      | `{}`                                                               |
-
 ### backend
 
 | Name                                                  | Description                                                                        | Value                                                                                                                                                                                                                                                                               |
@@ -125,7 +107,11 @@
 | `frontend.envVars.FROM_CONFIGMAP.configMapKeyRef.key`  | Key within a ConfigMap when configuring env vars from a ConfigMap                   |                         |
 | `frontend.envVars.FROM_SECRET.secretKeyRef.name`       | Name of a Secret when configuring env vars from a Secret                            |                         |
 | `frontend.envVars.FROM_SECRET.secretKeyRef.key`        | Key within a Secret when configuring env vars from a Secret                         |                         |
-| `frontend.podAnnotations`                              | Annotations to add to the frontend Pod                                              | `{}`                    |
+| `frontend.podAnnotations`                              | Annotations to add to the frontend Pod                                              | `{}`                    |                |
+| `frontend.mediaProxy.storageHost`                      | Hostname of the S3/MinIO endpoint serving recordings and files                      | `minio.meet.svc.cluster.local` |
+| `frontend.mediaProxy.storageProtocol`                  | The protocol of the S3/MinIO endpoint serving recordings and files                  | http                    |    
+| `frontend.mediaProxy.storagePort`                      | Port of the S3/MinIO endpoint serving recordings and files                          | `9000`            |
+| `frontend.mediaProxy.bucketName`                       | Name of the S3/MinIO bucket storing recordings and files                            | `meet-media-storage`    |
 | `frontend.service.type`                                | frontend Service type                                                               | `ClusterIP`             |
 | `frontend.service.port`                                | frontend Service listening port                                                     | `80`                    |
 | `frontend.service.targetPort`                          | frontend container listening port                                                   | `8080`                  |

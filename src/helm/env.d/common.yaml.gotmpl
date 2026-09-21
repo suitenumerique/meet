@@ -256,37 +256,6 @@ posthog:
   ingressAssets:
     enabled: false
 
-# ---- Extra ingress/service for recording file downloads -----------
-
-ingressMedia:
-  enabled: true
-  host: meet.127.0.0.1.nip.io
-  annotations:
-    nginx.ingress.kubernetes.io/auth-url: https://meet.127.0.0.1.nip.io/api/v1.0/recordings/media-auth/
-    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
-    nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/$1
-
-serviceMedia:
-  host: minio.meet.svc.cluster.local
-  port: 9000
-
-# ---- Extra ingress/service for background file uploads ------------
-
-ingressMediaFiles:
-  enabled: true
-  host: meet.127.0.0.1.nip.io
-
-  annotations:
-    nginx.ingress.kubernetes.io/auth-url: https://meet.127.0.0.1.nip.io/api/v1.0/files/media-auth/
-    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
-    nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/files/$1
-
-serviceMediaFiles:
-  host: minio.meet.svc.cluster.local
-  port: 9000
-
 # ---- STT Orchestration Microservice Components --------------------
 
 summary:

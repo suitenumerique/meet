@@ -1,0 +1,75 @@
+# Global options
+{
+	auto_https off
+	admin off
+	# replace_response can't process compressed bodies, so it must run before encode.
+	order replace before encode
+}
+
+:{$PORT} {
+	root * /usr/share/nginx/html
+	encode gzip
+
+	route {
+		import /etc/caddy/media-proxy.caddy
+
+		handle /.well-known/windows-app-web-link {
+			header Content-Type "application/json"
+			header Content-Disposition "attachment; filename=windows-app-web-link"
+			file_server
+		}
+
+		# Manifest — fetched, never iframed
+		handle /addons/outlook/manifest.xml {
+			header Access-Control-Allow-Origin "*"
+			header Cache-Control "no-cache, no-store, must-revalidate"
+			header X-Frame-Options "DENY"
+			header Content-Security-Policy "frame-ancestors 'none'"
+			file_server
+		}
+
+		handle /addons/outlook/assets/* {
+			header Cache-Control "public, max-age=2592000, immutable"
+			header Access-Control-Allow-Origin "*"
+			header Vary "Origin"
+			file_server
+		}
+
+		# Outlook add-on pages: per-request CSP nonce, mirrors the Office.js/config.js
+		# script tags baked into the build with a literal NONCE_PLACEHOLDER string.
+		handle /addons/outlook/* {
+			header Cache-Control "no-cache, no-store, must-revalidate"
+			header Pragma "no-cache"
+			header Expires 0
+			header Content-Security-Policy "default-src 'self'; upgrade-insecure-requests; frame-ancestors https://*.live.com https://*.office.com https://*.microsoft.com https://*.office365.com https://*.sharepoint.com; script-src 'nonce-{http.request.uuid}' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.live.com https://*.office.com https://*.microsoft.com https://*.office365.com https://*.sharepoint.com; frame-src 'none'; object-src 'none'; base-uri 'none'"
+			replace NONCE_PLACEHOLDER {http.request.uuid}
+			try_files {path} /index.html
+			file_server
+		}
+
+		# Vite fingerprints everything under /assets, so a given URL's bytes never
+		# change: cache it forever. A new build emits new hashed URLs.
+		@immutable path /assets/*
+		header @immutable Cache-Control "public, max-age=2592000, immutable"
+
+		# The SPA shell and other non-fingerprinted files must revalidate every
+		# load, or a deploy's new asset hashes only show up after a hard refresh.
+		@revalidate not path /assets/*
+		header @revalidate {
+			Cache-Control "no-cache, no-store, must-revalidate"
+			Pragma "no-cache"
+			Expires 0
+		}
+
+		try_files {path} /index.html
+		file_server
+	}
+
+	handle_errors {
+		@spa_404 expression `{err.status_code} == 404`
+		handle @spa_404 {
+			rewrite * /index.html
+			file_server
+		}
+	}
+}

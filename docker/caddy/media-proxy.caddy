@@ -1,0 +1,42 @@
+# Shared Caddy snippet: proxies recording/file downloads to object storage after
+# checking authorization with the backend
+#
+# Env vars (all optional, fall back to local dev defaults): BACKEND_INTERNAL_HOST,
+# BACKEND_INTERNAL_PORT, MEDIA_STORAGE_HOST, MEDIA_STORAGE_PROTOCOL,  MEDIA_STORAGE_PORT, AWS_STORAGE_BUCKET_NAME.
+
+handle /media/files/* {
+	route {
+		forward_auth http://{$BACKEND_INTERNAL_HOST:localhost}:{$BACKEND_INTERNAL_PORT:8000} {
+			uri /api/v1.0/files/media-auth/
+			copy_headers Authorization X-Amz-Date X-Amz-Content-Sha256
+			header_up X-Original-URL {http.request.uri}
+			# Backend has SECURE_SSL_REDIRECT: without this the auth subrequest is
+			# 301'd to https, the browser follows it to media-auth (no X-Original-URL) and 403s.
+			header_up X-Forwarded-Proto https
+		}
+		uri replace /media/ /{$AWS_STORAGE_BUCKET_NAME:meet-media-storage}/ 1
+		reverse_proxy {$MEDIA_STORAGE_PROTOCOL:http}://{$MEDIA_STORAGE_HOST:localhost}:{$MEDIA_STORAGE_PORT:9000} {
+			header_up Host {$MEDIA_STORAGE_HOST:localhost}:{$MEDIA_STORAGE_PORT:9000}
+			header_down -Content-Disposition
+			header_down Content-Disposition attachment
+		}
+	}
+}
+
+# Recordings media - kept generic (/media/*) to match the existing ingress path.
+handle /media/* {
+	route {
+		forward_auth http://{$BACKEND_INTERNAL_HOST:localhost}:{$BACKEND_INTERNAL_PORT:8000} {
+			uri /api/v1.0/recordings/media-auth/
+			copy_headers Authorization X-Amz-Date X-Amz-Content-Sha256
+			header_up X-Original-URL {http.request.uri}
+			header_up X-Forwarded-Proto https
+		}
+		uri replace /media/ /{$AWS_STORAGE_BUCKET_NAME:meet-media-storage}/ 1
+		reverse_proxy {$MEDIA_STORAGE_PROTOCOL:http}://{$MEDIA_STORAGE_HOST:localhost}:{$MEDIA_STORAGE_PORT:9000} {
+			header_up Host {$MEDIA_STORAGE_HOST:localhost}:{$MEDIA_STORAGE_PORT:9000}
+			header_down -Content-Disposition
+			header_down Content-Disposition attachment
+		}
+	}
+}
