@@ -100,8 +100,6 @@ export const ScreenShareZoomControls = ({
         pointerEvents: 'auto',
       })}
     >
-      {/* react-aria Toolbar: left/right arrows move between the controls and
-          Tab leaves the group as a whole, as the toolbar role implies. */}
       <Toolbar
         aria-label={t('toolbarLabel')}
         className={css({
