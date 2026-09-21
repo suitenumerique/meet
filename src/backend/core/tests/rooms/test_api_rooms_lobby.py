@@ -6,6 +6,7 @@ Test rooms API endpoints in the Meet core app: lobby functionality.
 import uuid
 from unittest import mock
 
+from django.core import signing
 from django.core.cache import cache
 
 import pytest
@@ -18,6 +19,11 @@ from ...models import RoomAccessLevel
 from ...services.lobby import LobbyService
 
 pytestmark = pytest.mark.django_db
+
+
+def _lobby_signer():
+    """Use the polling credential's dedicated signing namespace."""
+    return signing.Signer(salt="core.lobby.participant")
 
 
 # Tests for request_entry endpoint
@@ -66,7 +72,8 @@ def test_request_entry_anonymous(settings):
     assert len(lobby_keys) == 1
 
     # Verify participant data was correctly stored in cache
-    participant_data = cache.get(f"mocked-cache-prefix_{room.id!s}_{participant_id}")
+    raw_id = _lobby_signer().unsign(participant_id)
+    participant_data = cache.get(f"mocked-cache-prefix_{room.id!s}_{raw_id}")
     assert participant_data.get("username") == "test_user"
 
 
@@ -115,7 +122,8 @@ def test_request_entry_authenticated_user(settings):
     assert len(lobby_keys) == 1
 
     # Verify participant data was correctly stored in cache
-    participant_data = cache.get(f"mocked-cache-prefix_{room.id!s}_{participant_id}")
+    raw_id = _lobby_signer().unsign(participant_id)
+    participant_data = cache.get(f"mocked-cache-prefix_{room.id!s}_{raw_id}")
     assert participant_data.get("username") == "test_user"
 
 
@@ -189,7 +197,8 @@ def test_request_entry_with_existing_participants(settings):
     assert len(lobby_keys) == 3
 
     # Verify the new participant data was correctly stored in cache
-    participant_data = cache.get(f"mocked-cache-prefix_{room.id!s}_{participant_id}")
+    raw_id = _lobby_signer().unsign(participant_id)
+    participant_data = cache.get(f"mocked-cache-prefix_{room.id!s}_{raw_id}")
     assert participant_data.get("username") == "test_user"
 
 
@@ -207,7 +216,10 @@ def test_request_entry_public_room(settings):
 
     with (
         mock.patch.object(utils, "notify_participants", return_value=None),
-        mock.patch("core.services.lobby.uuid.uuid4", return_value="123"),
+        mock.patch(
+            "core.services.lobby.uuid.uuid4",
+            return_value="2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
+        ),
         mock.patch.object(
             utils, "generate_livekit_config", return_value={"token": "test-token"}
         ),
@@ -222,7 +234,7 @@ def test_request_entry_public_room(settings):
 
     # Verify response content matches expected structure and values
     assert response.json() == {
-        "id": "123",
+        "id": _lobby_signer().sign("2f7f162f-e7d1-421b-90e7-02bfbfbf8def"),
         "username": "test_user",
         "entered_at": "2025-01-01T10:00:00+00:00",
         "status": "accepted",
@@ -268,7 +280,7 @@ def test_request_entry_authenticated_user_public_room(settings):
 
     # Verify response content matches expected structure and values
     assert response.json() == {
-        "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
+        "id": _lobby_signer().sign("2f7f162f-e7d1-421b-90e7-02bfbfbf8def"),
         "username": "test_user",
         "entered_at": "2025-01-01T10:00:00+00:00",
         "status": "accepted",
@@ -313,7 +325,9 @@ def test_request_entry_waiting_participant_public_room(settings):
             f"/api/v1.0/rooms/{room.id}/request-entry/",
             {
                 "username": "user1",
-                "participant_id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
+                "participant_id": _lobby_signer().sign(
+                    "2f7f162f-e7d1-421b-90e7-02bfbfbf8def"
+                ),
             },
         )
 
@@ -321,7 +335,7 @@ def test_request_entry_waiting_participant_public_room(settings):
 
     # Verify response content matches expected structure and values
     assert response.json() == {
-        "id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
+        "id": _lobby_signer().sign("2f7f162f-e7d1-421b-90e7-02bfbfbf8def"),
         "username": "user1",
         "status": "accepted",
         "color": "#123456",
@@ -671,7 +685,7 @@ def test_request_entry_throttling_anonymous_identified(
 
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "2/minute"
 
-    participant_id = str(uuid.uuid4())
+    participant_id = _lobby_signer().sign(str(uuid.uuid4()))
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/request-entry/",
@@ -763,7 +777,7 @@ def test_request_entry_with_participant_id(settings):
 
 
 def test_request_entry_unknown_participant_id_not_seeded(settings):
-    """An identifier unknown to the room's lobby must not be honored."""
+    """A valid signed credential with no cached record creates a new participant."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
@@ -777,11 +791,14 @@ def test_request_entry_unknown_participant_id_not_seeded(settings):
     ):
         response = client.post(
             f"/api/v1.0/rooms/{room.id}/request-entry/",
-            {"username": "test_user", "participant_id": forged_id},
+            {
+                "username": "test_user",
+                "participant_id": _lobby_signer().sign(forged_id),
+            },
         )
 
     assert response.status_code == 200
-    assert response.json()["id"] != forged_id
+    assert _lobby_signer().unsign(response.json()["id"]) != forged_id
 
     # Nothing was stored under the forged identifier
     assert cache.get(f"mocked-cache-prefix_{room.id}_{forged_id}") is None
@@ -832,11 +849,11 @@ def test_request_entry_legacy_cookie_ignored():
     assert response.status_code == 200
     returned_id = response.json()["id"]
     assert returned_id != legacy_participant_id
-    uuid.UUID(returned_id)
+    uuid.UUID(_lobby_signer().unsign(returned_id))
 
 
 def test_request_entry_malformed_participant_id(settings):
-    """A non-UUID identifier is rejected by the serializer with a 400."""
+    """A malformed polling credential is rejected with a 400."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
@@ -847,3 +864,113 @@ def test_request_entry_malformed_participant_id(settings):
 
     assert response.status_code == 400
     assert "participant_id" in response.json()
+
+
+@mock.patch.object(utils, "notify_participants", return_value=None)
+@mock.patch.object(utils, "generate_livekit_config")
+def test_request_entry_rejects_unsigned_id(generate_config, _notify):
+    """Knowing the public UUID must not grant admission."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/", {"username": "Guest"}
+    )
+    assert response.status_code == 200
+    public_id = _lobby_signer().unsign(response.json()["id"])
+    LobbyService().handle_participant_entry(room.id, public_id, True)
+
+    response = APIClient().post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "Impersonator", "participant_id": public_id},
+    )
+
+    assert response.status_code == 400
+    assert "participant_id" in response.json()
+    generate_config.assert_not_called()
+
+
+@mock.patch.object(utils, "notify_participants", return_value=None)
+@mock.patch.object(utils, "generate_livekit_config")
+def test_request_entry_rejects_tampered_credential(generate_config, _notify):
+    """Modifying a signed credential must invalidate it."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/", {"username": "Guest"}
+    )
+    assert response.status_code == 200
+    credential = response.json()["id"]
+    public_id = _lobby_signer().unsign(credential)
+    LobbyService().handle_participant_entry(room.id, public_id, True)
+
+    response = APIClient().post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "Impersonator", "participant_id": credential + "x"},
+    )
+
+    assert response.status_code == 400
+    assert "participant_id" in response.json()
+    generate_config.assert_not_called()
+
+
+@mock.patch.object(utils, "notify_participants", return_value=None)
+@mock.patch.object(utils, "generate_livekit_config")
+def test_request_entry_rejects_wrong_signing_secret(generate_config, _notify):
+    """A credential signed with another secret must not grant admission."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/", {"username": "Guest"}
+    )
+    assert response.status_code == 200
+    public_id = _lobby_signer().unsign(response.json()["id"])
+    LobbyService().handle_participant_entry(room.id, public_id, True)
+
+    forged = signing.Signer(
+        key="incorrect-test-signing-secret",
+        salt="core.lobby.participant",
+        fallback_keys=[],
+    ).sign(public_id)
+
+    response = APIClient().post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "Impersonator", "participant_id": forged},
+    )
+
+    assert response.status_code == 400
+    assert "participant_id" in response.json()
+    generate_config.assert_not_called()
+
+
+@mock.patch.object(utils, "notify_participants", return_value=None)
+@mock.patch.object(
+    utils, "generate_livekit_config", return_value={"token": "test-token"}
+)
+def test_request_entry_accepts_signed_credential(generate_config, _notify):
+    """The signed credential grants admission using the public LiveKit UUID."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/", {"username": "Guest"}
+    )
+    assert response.status_code == 200
+    credential = response.json()["id"]
+    public_id = _lobby_signer().unsign(credential)
+    assert credential != public_id
+    LobbyService().handle_participant_entry(room.id, public_id, True)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "Guest", "participant_id": credential},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "accepted"
+    assert response.json()["id"] == credential
+    assert response.json()["livekit"] == {"token": "test-token"}
+    generate_config.assert_called_once()
+    assert generate_config.call_args.kwargs["participant_id"] == public_id
