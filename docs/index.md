@@ -14,7 +14,7 @@ Built on [LiveKit](https://livekit.io/), LaSuite Meet delivers HD audio and vide
 ## Features
 
 - **HD video and audio**: noise suppression, adaptive bitrate, Opus codec
-- **Large meetings**: tested at national scale with 100+ participants
+- **Large meetings**: tested at national scale with 150+ participants
 - **Multiple screen shares**: any number of participants can share simultaneously
 - **Non-persistent chat**: history is cleared when the meeting ends
 - **Emoji reactions & hand raise**: without unmuting
