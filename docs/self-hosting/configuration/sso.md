@@ -138,12 +138,13 @@ Unauthenticated users have limited permissions (no recording, no moderation).
 
 ## Customizing login redirect
 
-To redirect unauthenticated users to a custom page instead of the OIDC login:
+`LOGIN_REDIRECT_URL` sets where users land after a **successful** login (default: the Meet home page):
 
 ```dotenv
 LOGIN_REDIRECT_URL=/
-OIDC_REDIRECT_UNAUTHENTICATED_URL=https://your-portal.example.com/login
 ```
+
+`LOGIN_REDIRECT_URL_FAILURE` sets where users land if login fails.
 
 ## Testing authentication
 
