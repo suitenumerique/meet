@@ -424,6 +424,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dockerflow"
+version = "2026.3.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9c/03/935f8399094611981b37634a7ee078484b3995f744135339e51385638f6c/dockerflow-2026.3.4.tar.gz", hash = "sha256:6cc7fcab2a078d06aeca8b02e22fd7f6766dca322fb30aed6910684dbc08690c", size = 68701, upload-time = "2026-03-04T09:01:28.178Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/86/b9/2d7bf30eb0c24e60e61e4f6ae7574e123d3fa51b39a612e146c94158446a/dockerflow-2026.3.4-py2.py3-none-any.whl", hash = "sha256:38fe0ad30a4aedf68e589919695d502fc6f584a761b56a91f56e80cbadfbf61a", size = 36424, upload-time = "2026-03-04T09:01:26.631Z" },
+]
+
+[[package]]
 name = "email-validator"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1511,6 +1520,7 @@ version = "1.31.0"
 source = { editable = "." }
 dependencies = [
     { name = "celery" },
+    { name = "dockerflow" },
     { name = "fastapi", extra = ["standard"] },
     { name = "langfuse" },
     { name = "minio" },
@@ -1534,6 +1544,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "celery", specifier = "==5.6.3" },
+    { name = "dockerflow", specifier = "==2026.3.4" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.105.0" },
     { name = "langfuse", specifier = "==4.14.1" },
     { name = "minio", specifier = "==7.2.20" },
