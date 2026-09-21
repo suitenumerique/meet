@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(backend) make the LiveKit default video codec configurable
 - 🔧(dev) add support for Bureautix workstations
+- ✨(frontend) add screen share zoom controls #1498
 
 ### Changed
 
@@ -271,10 +272,6 @@ and this project adheres to
 - 🐛(backend) fix info panel crash for unregistered rooms
 - ♿️(frontend) focus side panel container on open #1452
 - 🐛(summary) whisper call error handling
-
-### Added
-
-- ✨(frontend) add screen share zoom controls #1498
 
 ## [1.23.0] - 2026-07-08
 
