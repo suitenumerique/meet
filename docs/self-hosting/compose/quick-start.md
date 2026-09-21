@@ -14,8 +14,8 @@ a reverse proxy, Keycloak (identity provider), and Meet itself.
 ## One-liner
  
 ```bash
-RAW="https://raw.githubusercontent.com/suitenumerique/meet/main"
-curl -fsSL $RAW/docs/docs/install.sh -o install.sh
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
+curl -fsSL $RAW/docs/install.sh -o install.sh
 ```
  
 Review it, then run:
@@ -24,7 +24,7 @@ Review it, then run:
 bash install.sh
 ```
  
-The script prompts for your four domains, generates all secrets, and starts everything.
+The script prompts for your three domains and two email addresses, generates all secrets, and starts everything.
  
 ---
  
@@ -50,11 +50,13 @@ Use the [step-by-step Deployment Guide](deployment-guide.md) instead. Each stack
 ## After setup
  
 - Open `https://meet.example.com`
-- Log in with `meet-admin` / `ChangeMe!` - **change this password immediately**
+- Log in with `meet-admin` and the password printed at the end of the script's output. It's a
+  single-use password - Keycloak will ask you to set a new one immediately.
+  
 **Recommended next steps:**
  
 - [Configure recording](../configuration/recording.md) - LiveKit Egress + MinIO
 - [Configure AI transcription](../configuration/transcription.md) - WhisperX + summary service
 - [Configure TURN](../configuration/turn.md) - for participants on restricted corporate networks
-- [Configure SMTP](../configuration/upgrade.md) - required for recording download email notifications
+- [Configure SMTP](../configuration/email.md) - required for recording download and room email invitation notifications
 - [Configure theming](../configuration/theming.md) - custom CSS, logo, and branding

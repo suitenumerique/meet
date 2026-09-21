@@ -28,13 +28,13 @@ LIVEKIT_YAML="${2:-}"
 # Normalise: strip trailing slash
 ENV_DIR="${ENV_DIR%/}"
 
-if [ ! -d "$ENV_DIR" ]; then
+if [[ ! -d "$ENV_DIR" ]]; then
   echo "Error: $ENV_DIR directory not found."
   echo "Run this script from your project directory, or pass the env.d/ path as an argument."
   exit 1
 fi
 
-if [ -n "$LIVEKIT_YAML" ] && [ ! -f "$LIVEKIT_YAML" ]; then
+if [[ -n "$LIVEKIT_YAML" ]] && [[ ! -f "$LIVEKIT_YAML" ]]; then
   echo "Error: $LIVEKIT_YAML not found."
   exit 1
 fi
@@ -49,7 +49,7 @@ command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is not installed.";
 set_secret() {
   local file="$1" key="$2" value="$3"
 
-  if [ ! -f "$file" ]; then
+  if [[ ! -f "$file" ]]; then
     echo "  skip $key ($file not found)"
     return
   fi
@@ -63,6 +63,9 @@ set_secret() {
     echo "${key}=${value}" >> "$file"
     echo "  add  ${key}  →  ${file##*/}"
   fi
+
+  # This file now holds a secret in plaintext. Restrict to the owner.
+  chmod 600 "$file"
 }
 
 # ── generate ──────────────────────────────────────────────────────────────────
@@ -85,14 +88,23 @@ set_secret "${ENV_DIR}/postgresql"   "DB_PASSWORD"                  "$DB_PASSWOR
 set_secret "${ENV_DIR}/kc_postgresql" "POSTGRES_PASSWORD"           "$KC_DB_PASSWORD"
 set_secret "${ENV_DIR}/keycloak"     "KC_BOOTSTRAP_ADMIN_PASSWORD"  "$KC_ADMIN_PASSWORD"
 
+# Keep livekit-server.yaml in sync with whatever secret common actually has.
+LIVEKIT_API_SECRET=$(grep -E "^LIVEKIT_API_SECRET=" "${ENV_DIR}/common" | cut -d= -f2-)
+
 echo ""
 echo "Done."
 
 # ── patch livekit-server.yaml ─────────────────────────────────────────────────
-if [ -n "$LIVEKIT_YAML" ]; then
-  sed -i "s|^  meet:.*|  meet: ${LIVEKIT_API_SECRET}|" "$LIVEKIT_YAML"
-  echo "  set  LIVEKIT_API_SECRET  →  ${LIVEKIT_YAML##*/}"
-  echo ""
+if [[ -n "$LIVEKIT_YAML" ]]; then
+  if grep -q "<your livekit secret key>" "$LIVEKIT_YAML"; then
+    sed -i "s|<your livekit secret key>|${LIVEKIT_API_SECRET}|" "$LIVEKIT_YAML"
+    chmod 600 "$LIVEKIT_YAML"
+    echo "  set  LIVEKIT_API_SECRET  →  ${LIVEKIT_YAML##*/}"
+    echo ""
+  else
+    echo "  skip LIVEKIT_API_SECRET (placeholder not found in ${LIVEKIT_YAML##*/} - already set, or key format changed)"
+    echo ""
+  fi
 else
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

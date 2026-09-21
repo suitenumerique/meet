@@ -20,7 +20,7 @@
       "email": "admin@example.com",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{"type": "password", "value": "ChangeMe!", "temporary": true}]
+      "credentials": [{"type": "password", "value": "MEET_ADMIN_PASSWORD_PLACEHOLDER", "temporary": true}]
     }
   ]
 }

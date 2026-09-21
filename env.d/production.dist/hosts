@@ -2,3 +2,4 @@ MEET_HOST=meet.domain.tld
 IDP_HOST=id.domain.tld
 LIVEKIT_HOST=livekit.domain.tld
 REALM_NAME=meet
+LETSENCRYPT_EMAIL=you@domain.tld

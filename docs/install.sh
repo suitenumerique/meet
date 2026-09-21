@@ -14,7 +14,7 @@
 #   https://github.com/suitenumerique/meet/blob/main/docs/self-hosting/compose/deployment-guide.md
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/suitenumerique/meet/main/docs/docs/install.sh -o install.sh
+#   curl -fsSL https://raw.githubusercontent.com/suitenumerique/meet/main/docs/install.sh -o install.sh
 #   cat install.sh        # review before running
 #   bash install.sh
 
@@ -83,11 +83,10 @@ docker network create proxy 2>/dev/null && success "Created 'proxy' network." \
 mkdir -p "$DOCKER_ROOT"
 curl -fsSL -o "${DOCKER_ROOT}/hosts" "${RAW_ENVD_URL}/hosts"
 
-# The upstream hosts template uses KEYCLOAK_HOST (not IDP_HOST).
-# Patch all three domain vars using the correct key names from the template.
-sed -i "s|^MEET_HOST=.*|MEET_HOST=${MEET_HOST}|"           "${DOCKER_ROOT}/hosts"
-sed -i "s|^KEYCLOAK_HOST=.*|KEYCLOAK_HOST=${IDP_HOST}|"    "${DOCKER_ROOT}/hosts"
-sed -i "s|^LIVEKIT_HOST=.*|LIVEKIT_HOST=${LIVEKIT_HOST}|"  "${DOCKER_ROOT}/hosts"
+sed -i "s|^MEET_HOST=.*|MEET_HOST=${MEET_HOST}|"                     "${DOCKER_ROOT}/hosts"
+sed -i "s|^IDP_HOST=.*|IDP_HOST=${IDP_HOST}|"                       "${DOCKER_ROOT}/hosts"
+sed -i "s|^LIVEKIT_HOST=.*|LIVEKIT_HOST=${LIVEKIT_HOST}|"           "${DOCKER_ROOT}/hosts"
+sed -i "s|^LETSENCRYPT_EMAIL=.*|LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}|" "${DOCKER_ROOT}/hosts"
 
 # ── Stack 1: nginx-proxy ──────────────────────────────────────────────────────
 
@@ -119,8 +118,7 @@ curl -fsSL -o "${KC_DIR}/keycloak-realm.json" "${RAW_BASE_URL}/docs/examples/key
 curl -fsSL -o "${KC_DIR}/docker-compose.override.yml" \
   "${RAW_BASE_URL}/docs/examples/keycloak/docker-compose.override.yml.nginx"
 
-# Copy the shared hosts file and download Keycloak-specific env files
-cp "${DOCKER_ROOT}/hosts"                              "${KC_DIR}/env.d/hosts"
+# Download Keycloak-specific env files
 curl -fsSL -o "${KC_DIR}/env.d/keycloak"              "${RAW_ENVD_URL}/keycloak"
 curl -fsSL -o "${KC_DIR}/env.d/kc_postgresql"         "${RAW_ENVD_URL}/kc_postgresql"
 
@@ -131,6 +129,8 @@ sed -i "s|^KC_HOSTNAME=.*|KC_HOSTNAME=https://${IDP_HOST}|" "${KC_DIR}/env.d/key
 KC_ADMIN_PASSWORD=$(openssl rand -hex 16)
 KC_DB_PASSWORD=$(openssl rand -hex 16)
 KC_CLIENT_SECRET=$(openssl rand -hex 16)
+# Only the Meet realm user actually logs in via a browser, so keep it typeable.
+MEET_ADMIN_PASSWORD=$(openssl rand -base64 12)
 
 set_env "KC_BOOTSTRAP_ADMIN_PASSWORD" "$KC_ADMIN_PASSWORD"  "${KC_DIR}/env.d/keycloak"
 set_env "POSTGRES_PASSWORD"           "$KC_DB_PASSWORD"     "${KC_DIR}/env.d/kc_postgresql"
@@ -138,10 +138,18 @@ set_env "POSTGRES_PASSWORD"           "$KC_DB_PASSWORD"     "${KC_DIR}/env.d/kc_
 # Also write KC_DB_PASSWORD into KC_DB_PASSWORD field if present
 sed -i "s|^KC_DB_PASSWORD=.*|KC_DB_PASSWORD=${KC_DB_PASSWORD}|" "${KC_DIR}/env.d/kc_postgresql" 2>/dev/null || true
 
-# Patch realm.json with the client secret and Meet domain
-replace_in "REPLACE_ME"       "$KC_CLIENT_SECRET" "${KC_DIR}/keycloak-realm.json"
-replace_in "meet.example.com" "$MEET_HOST"         "${KC_DIR}/keycloak-realm.json"
-replace_in "admin@example.com" "$ADMIN_EMAIL" "${KC_DIR}/keycloak-realm.json"
+# Patch realm.json with the client secret, Meet domain, and a unique meet-admin
+# password. The realm ships with a temporary credential (Keycloak will force a
+# reset on first login), but the initial value must not be a value published in
+# the docs: on a public IdP, whoever reaches the login page first - not
+# necessarily the operator - would otherwise be free to claim the account.
+replace_in "REPLACE_ME"       "$KC_CLIENT_SECRET"    "${KC_DIR}/keycloak-realm.json"
+replace_in "meet.example.com" "$MEET_HOST"            "${KC_DIR}/keycloak-realm.json"
+replace_in "admin@example.com" "$ADMIN_EMAIL"         "${KC_DIR}/keycloak-realm.json"
+replace_in "MEET_ADMIN_PASSWORD_PLACEHOLDER" "$MEET_ADMIN_PASSWORD" "${KC_DIR}/keycloak-realm.json"
+
+# These three files hold secrets in plaintex. Restrict to the owner.
+chmod 600 "${KC_DIR}/env.d/keycloak" "${KC_DIR}/env.d/kc_postgresql" "${KC_DIR}/keycloak-realm.json"
 
 # Write a .env file for Keycloak stack so compose override variables are available
 # as fallback even if the shell export is lost (e.g. when cd changes scope).
@@ -167,7 +175,6 @@ curl -fsSL -o "${MEET_DIR}/docker-compose.override.yml" \
   "${RAW_BASE_URL}/docs/examples/meet/docker-compose.override.yml.nginx"
 
 # Download Meet env.d files (Meet stack only - no KC files here)
-cp "${DOCKER_ROOT}/hosts"                              "${MEET_DIR}/env.d/hosts"
 curl -fsSL -o "${MEET_DIR}/env.d/common"              "${RAW_ENVD_URL}/common"
 curl -fsSL -o "${MEET_DIR}/env.d/postgresql"          "${RAW_ENVD_URL}/postgresql"
 
@@ -180,10 +187,14 @@ curl -fsSL -o "${MEET_DIR}/generate-secrets.sh" "${RAW_BASE_URL}/docs/generate-s
 chmod +x "${MEET_DIR}/generate-secrets.sh"
 "${MEET_DIR}/generate-secrets.sh" "${MEET_DIR}/env.d" "${MEET_DIR}/livekit-server.yaml"
 
-# Write a .env file for Meet stack so compose override variables are available.
+# Write a .env file for the Meet stack. Beyond the proxy override, env.d/common
+# also references ${IDP_HOST}/${REALM_NAME} internally (OIDC endpoints), so all
+# four domain vars must be present here even though only two are Meet-specific.
 cat > "${MEET_DIR}/.env" << EOF
 MEET_HOST=${MEET_HOST}
+IDP_HOST=${IDP_HOST}
 LIVEKIT_HOST=${LIVEKIT_HOST}
+REALM_NAME=meet
 LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
 EOF
 
@@ -197,7 +208,7 @@ section "Running database migrations"
 info "Waiting for backend to become healthy..."
 for i in $(seq 1 60); do
   status=$(docker inspect --format='{{.State.Health.Status}}' meet-backend-1 2>/dev/null || true)
-  if [ "$status" = "healthy" ]; then break; fi
+  if [[ "$status" = "healthy" ]]; then break; fi
   printf "."
   sleep 3
 done
@@ -216,8 +227,12 @@ echo ""
 echo "  Meet:     https://${MEET_HOST}"
 echo "  Keycloak: https://${IDP_HOST}"
 echo ""
-echo "  Default login:  meet-admin / ChangeMe!"
-echo "  Change this password on first login."
+echo "  Meet login:      meet-admin / ${MEET_ADMIN_PASSWORD}"
+echo "  This password is single-use - Keycloak will prompt for a new one on first login."
+echo "  It is not saved anywhere else, so log in now or note it down."
+echo ""
+echo "  Keycloak admin console login: admin / <see KC_BOOTSTRAP_ADMIN_PASSWORD in the file below>"
+echo "    ${KC_DIR}/env.d/keycloak"
 echo ""
 echo "  Stacks:"
 echo "    ${DOCKER_ROOT}/nginx-proxy/"

@@ -6,3 +6,4 @@ KC_BOOTSTRAP_ADMIN_PASSWORD=<generate your password>
 KC_HOSTNAME=${IDP_HOST}
 KC_PROXY_HEADERS=xforwarded # in this example we are running behind an nginx proxy
 KC_HTTP_ENABLED=true # in this example we are running behind an nginx proxy
+KC_HEALTH_ENABLED=true # required for the compose healthcheck; disabled by default in production mode

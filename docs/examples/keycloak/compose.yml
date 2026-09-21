@@ -6,7 +6,7 @@
 # Usage:
 #   cd ~/docker/keycloak
 #   cp docker-compose.override.yml.nginx docker-compose.override.yml  # or traefik
-#   # edit env.d/hosts and env.d/keycloak
+#   # edit .env and env.d/keycloak
 #   docker compose up -d
 #
 # External network expected:
@@ -21,11 +21,12 @@ services:
       - start
       - --import-realm
     env_file:
-      - env.d/hosts
+      - .env
       - env.d/kc_postgresql
       - env.d/keycloak
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9000/health/ready || exit 1"]
+      # see https://www.keycloak.org/observability/health#_healthcheck
+      test: ["CMD-SHELL", "{ printf 'HEAD /health/ready HTTP/1.0\\r\\n\\r\\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000"]
       interval: 10s
       timeout: 5s
       retries: 20
