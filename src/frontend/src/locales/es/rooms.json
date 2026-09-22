@@ -762,7 +762,7 @@
     "zoomOut": "Alejar",
     "zoomOutWithShortcut": "Alejar ({{shortcut}})",
     "wheelShortcut": "Control más rueda del ratón",
-    "wheelShortcutMac": "Comando más rueda del ratón",
+    "wheelShortcutMac": "⌘+rueda del ratón",
     "wheelShortcutHint": "Atajo: Control más rueda del ratón para acercar o alejar.",
     "wheelShortcutHintMac": "Atajo: Comando más rueda del ratón para acercar o alejar.",
     "fitToWindow": "Ajustar a la ventana",
