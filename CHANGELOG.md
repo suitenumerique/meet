@@ -13,6 +13,8 @@ and this project adheres to
 - 🔒(backend) throttle meeting link generation
 - 🔒️(backend) add a daily cap on room creation
 - 🔧(summary) add setting to control Sentry traces sampling rate
+- ✨(frontend) let signed-out visitors start a meeting
+- ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 
 ### Fixed
 

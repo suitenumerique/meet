@@ -40,11 +40,15 @@ const StyledRACDialog = styled(Dialog, {
 })
 
 export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
-  const [showInviteDialog, setShowInviteDialog] = useState(mode === 'create')
-
   const { t } = useTranslation('rooms', { keyPrefix: 'shareDialog' })
 
   const roomData = useRoomData()
+
+  const isCreatingUnregisteredRoom =
+    roomData?.id === null && !!history.state?.create
+  const [isDismissed, setIsDismissed] = useState(false)
+  const showInviteDialog =
+    !isDismissed && (mode === 'create' || isCreatingUnregisteredRoom)
   const roomUrl = roomData?.slug ? getRouteUrl('room', roomData.slug) : ''
 
   const telephony = useTelephony()
@@ -78,7 +82,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
             variant="tertiaryText"
             size="xs"
             onPress={() => {
-              setShowInviteDialog(false)
+              setIsDismissed(true)
             }}
             aria-label={t('closeDialog')}
           >
