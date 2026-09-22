@@ -141,27 +141,24 @@ export const ParticipantTile: (
 
   let trackMedia: React.ReactNode = null
   if (isVideoTrack) {
+    const videoTrack = (
+      <VideoTrack
+        trackRef={trackReference}
+        onSubscriptionStatusChanged={handleSubscribe}
+        manageSubscription={autoManageSubscription}
+      />
+    )
     // Zoom toolbar stays out of picture-in-picture: that window has its own
     // document and the fullscreen API is off. Follow-up PR can restore zoom
     // there without the dead fullscreen button.
-    if (isRemoteScreenShare && !disableTileControls) {
-      trackMedia = (
-        <ScreenShareZoomableVideo
-          trackRef={trackReference}
-          tileRef={tileRef}
-          onSubscriptionStatusChanged={handleSubscribe}
-          manageSubscription={autoManageSubscription}
-        />
+    trackMedia =
+      isRemoteScreenShare && !disableTileControls ? (
+        <ScreenShareZoomableVideo tileRef={tileRef}>
+          {videoTrack}
+        </ScreenShareZoomableVideo>
+      ) : (
+        videoTrack
       )
-    } else {
-      trackMedia = (
-        <VideoTrack
-          trackRef={trackReference}
-          onSubscriptionStatusChanged={handleSubscribe}
-          manageSubscription={autoManageSubscription}
-        />
-      )
-    }
   } else if (isTrackReference(trackReference)) {
     trackMedia = (
       <AudioTrack

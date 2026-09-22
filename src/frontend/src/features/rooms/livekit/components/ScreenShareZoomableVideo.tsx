@@ -1,24 +1,20 @@
 import { css } from '@/styled-system/css'
-import { type TrackReference } from '@livekit/components-core'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useScreenShareZoom } from '../hooks/useScreenShareZoom'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ScreenShareZoomControls } from './ScreenShareZoomControls'
-import { ScreenShareVideoTrack } from './ScreenShareVideoTrack'
 
 interface ScreenShareZoomableVideoProps {
-  trackRef: TrackReference
   tileRef: React.RefObject<HTMLDivElement | null>
-  onSubscriptionStatusChanged: (subscribed: boolean) => void
-  manageSubscription?: boolean
+  children: ReactNode
 }
 
+// The video comes in as children so that a zoom change, which only re-renders
+// this wrapper, leaves the video subtree untouched.
 export const ScreenShareZoomableVideo = ({
-  trackRef,
   tileRef,
-  onSubscriptionStatusChanged,
-  manageSubscription,
+  children,
 }: ScreenShareZoomableVideoProps) => {
   const zoom = useScreenShareZoom()
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
@@ -84,11 +80,7 @@ export const ScreenShareZoomableVideo = ({
             transformOrigin: 'center center',
           }}
         >
-          <ScreenShareVideoTrack
-            trackRef={trackRef}
-            onSubscriptionStatusChanged={onSubscriptionStatusChanged}
-            manageSubscription={manageSubscription}
-          />
+          {children}
         </div>
       </div>
       <ScreenShareZoomControls
