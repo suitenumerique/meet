@@ -27,6 +27,7 @@ and this project adheres to
 - ⬆️(addons) upgrade i18next from 26.3.6 to 26.4.0
 - ⬆️(frontend) upgrade humanize-duration from 3.33.2 to 3.34.1
 - ⬆️(addons) upgrade i18next from 26.4.0 to 26.4.1
+- 🔖(helm) release chart 0.0.28
 
 ### Fixed
 
