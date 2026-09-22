@@ -105,6 +105,24 @@ export const useScreenShareZoom = () => {
 
   const resetZoom = useCallback(() => setZoom(MIN_ZOOM), [setZoom])
 
+  // Cancels the scale() that multiplies translate(), so the picture follows
+  // the pointer 1:1 and keyboard steps keep the same visual size.
+  const panBy = useCallback(
+    (dx: number, dy: number) => {
+      const zoom = zoomRef.current
+      panRef.current = clampPan(
+        {
+          x: panRef.current.x + dx / zoom,
+          y: panRef.current.y + dy / zoom,
+        },
+        zoom,
+        readPictureRatio()
+      )
+      applyTransform()
+    },
+    [applyTransform, readPictureRatio]
+  )
+
   // Must be attached with { passive: false } so preventDefault() blocks
   // the browser's native Ctrl+scroll page zoom. Trackpad pinch arrives
   // here as a wheel event with ctrl/cmd already set.
@@ -157,17 +175,9 @@ export const useScreenShareZoom = () => {
         -e.deltaY,
         el
       )
-      panRef.current = clampPan(
-        {
-          x: panRef.current.x + deltaXPercent,
-          y: panRef.current.y + deltaYPercent,
-        },
-        zoomRef.current,
-        readPictureRatio()
-      )
-      applyTransform()
+      panBy(deltaXPercent, deltaYPercent)
     },
-    [applyTransform, applyCursor, syncToolbar, readPictureRatio]
+    [applyTransform, applyCursor, syncToolbar, readPictureRatio, panBy]
   )
 
   // useMove handles mouse drag + touch pan. Keyboard arrows are not handled
@@ -190,17 +200,7 @@ export const useScreenShareZoom = () => {
         e.deltaY,
         el
       )
-
-      panRef.current = clampPan(
-        {
-          x: panRef.current.x + deltaXPercent,
-          y: panRef.current.y + deltaYPercent,
-        },
-        zoomRef.current,
-        readPictureRatio()
-      )
-
-      applyTransform()
+      panBy(deltaXPercent, deltaYPercent)
     },
     onMoveEnd() {
       draggingRef.current = false
@@ -208,18 +208,6 @@ export const useScreenShareZoom = () => {
       applyCursor()
     },
   })
-
-  const panBy = useCallback(
-    (dx: number, dy: number) => {
-      panRef.current = clampPan(
-        { x: panRef.current.x + dx, y: panRef.current.y + dy },
-        zoomRef.current,
-        readPictureRatio()
-      )
-      applyTransform()
-    },
-    [applyTransform, readPictureRatio]
-  )
 
   // Attached to the tile container (not the zoom surface) where keyboard
   // focus lives. Arrows pan, +/-/0 zoom.
