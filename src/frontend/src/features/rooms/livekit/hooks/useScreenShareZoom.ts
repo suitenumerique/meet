@@ -1,15 +1,14 @@
-import { useCallback, useRef, useSyncExternalStore } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useMove } from 'react-aria'
 import type { MoveMoveEvent } from '@react-types/shared'
 import {
   FULL_PICTURE_RATIO,
+  MAX_ZOOM,
   MIN_ZOOM,
   PAN_STEP,
   WHEEL_ZOOM_SPEED,
   ZOOM_STEP,
   type PanOffset,
-  type ZoomSnapshot,
-  buildZoomSnapshot,
   clampPan,
   clampZoom,
   getCursorFromZoomState,
@@ -24,9 +23,9 @@ import {
  * Manages zoom and pan state for a remote screen share.
  *
  * Performance: zoom/pan live in refs and are applied imperatively to the DOM
- * (via transformElRef / surfaceElRef) so the hot path (drag, wheel) never
- * triggers a React re-render. A useSyncExternalStore snapshot is flushed only
- * when the toolbar UI needs to update (zoom level change, drag end).
+ * (via transformElRef / surfaceElRef) so dragging and panning never re-render.
+ * React state only tracks what the toolbar displays, and only updates when
+ * the zoom level actually changes.
  *
  * Drag/touch panning is handled by react-aria's useMove (moveProps).
  * The wheel listener (non-passive) zooms on Ctrl/Cmd+scroll and pans on a
@@ -43,31 +42,11 @@ export const useScreenShareZoom = () => {
   const transformElRef = useRef<HTMLDivElement | null>(null)
   const surfaceElRef = useRef<HTMLDivElement | null>(null)
 
-  // Snapshot store: subscribers are notified only on explicit flush() calls.
-  const snapshotRef = useRef<ZoomSnapshot>(
-    buildZoomSnapshot(MIN_ZOOM, { x: 0, y: 0 }, false)
-  )
-  const listenersRef = useRef(new Set<() => void>())
+  // Mirrors zoomRef for the toolbar. Panning never publishes: the toolbar
+  // shows the zoom level, not the position.
+  const [zoomLevel, setZoomLevel] = useState(MIN_ZOOM)
 
-  const subscribe = useCallback((cb: () => void) => {
-    listenersRef.current.add(cb)
-    return () => {
-      listenersRef.current.delete(cb)
-    }
-  }, [])
-
-  const getSnapshot = useCallback(() => snapshotRef.current, [])
-
-  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
-
-  const flush = useCallback(() => {
-    snapshotRef.current = buildZoomSnapshot(
-      zoomRef.current,
-      panRef.current,
-      draggingRef.current
-    )
-    listenersRef.current.forEach((cb) => cb())
-  }, [])
+  const syncToolbar = useCallback(() => setZoomLevel(zoomRef.current), [])
 
   const applyTransform = useCallback(() => {
     const el = transformElRef.current
@@ -109,9 +88,9 @@ export const useScreenShareZoom = () => {
           : clampPan(panRef.current, next, readPictureRatio())
       applyTransform()
       applyCursor()
-      flush()
+      syncToolbar()
     },
-    [applyTransform, applyCursor, flush, readPictureRatio]
+    [applyTransform, applyCursor, syncToolbar, readPictureRatio]
   )
 
   const zoomIn = useCallback(
@@ -159,7 +138,7 @@ export const useScreenShareZoom = () => {
 
         applyTransform()
         applyCursor()
-        flush()
+        syncToolbar()
         return
       }
 
@@ -188,7 +167,7 @@ export const useScreenShareZoom = () => {
       )
       applyTransform()
     },
-    [applyTransform, applyCursor, flush, readPictureRatio]
+    [applyTransform, applyCursor, syncToolbar, readPictureRatio]
   )
 
   // useMove handles mouse drag + touch pan. Keyboard arrows are not handled
@@ -199,7 +178,6 @@ export const useScreenShareZoom = () => {
       if (zoomRef.current <= MIN_ZOOM) return
       draggingRef.current = true
       applyCursor()
-      flush()
     },
     onMove(e: MoveMoveEvent) {
       if (zoomRef.current <= MIN_ZOOM) return
@@ -223,17 +201,11 @@ export const useScreenShareZoom = () => {
       )
 
       applyTransform()
-      // Mouse drag: skip flush (imperative-only) to avoid re-renders per frame.
-      // Keyboard: flush so the toolbar reflects the updated position.
-      if (e.pointerType === 'keyboard') {
-        flush()
-      }
     },
     onMoveEnd() {
       draggingRef.current = false
       applyTransform()
       applyCursor()
-      flush()
     },
   })
 
@@ -245,9 +217,8 @@ export const useScreenShareZoom = () => {
         readPictureRatio()
       )
       applyTransform()
-      flush()
     },
-    [applyTransform, flush, readPictureRatio]
+    [applyTransform, readPictureRatio]
   )
 
   // Attached to the tile container (not the zoom surface) where keyboard
@@ -295,7 +266,10 @@ export const useScreenShareZoom = () => {
   )
 
   return {
-    ...snapshot,
+    zoomPercentage: Math.round(zoomLevel * 100),
+    isZoomed: zoomLevel > MIN_ZOOM,
+    canZoomIn: zoomLevel < MAX_ZOOM,
+    canZoomOut: zoomLevel > MIN_ZOOM,
     transformElRef,
     surfaceElRef,
     moveProps,

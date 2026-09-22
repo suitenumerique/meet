@@ -22,16 +22,6 @@ export interface PictureRatio {
 
 export const FULL_PICTURE_RATIO: PictureRatio = { x: 1, y: 1 }
 
-export interface ZoomSnapshot {
-  zoomLevel: number
-  zoomPercentage: number
-  panOffset: PanOffset
-  isZoomed: boolean
-  isDragging: boolean
-  canZoomIn: boolean
-  canZoomOut: boolean
-}
-
 export const clampZoom = (value: number) => {
   return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value))
 }
@@ -69,22 +59,6 @@ export const getPictureRatio = (
   return surfaceRatio > videoRatio
     ? { x: videoRatio / surfaceRatio, y: 1 }
     : { x: 1, y: surfaceRatio / videoRatio }
-}
-
-export const buildZoomSnapshot = (
-  zoom: number,
-  pan: PanOffset,
-  dragging: boolean
-): ZoomSnapshot => {
-  return {
-    zoomLevel: zoom,
-    zoomPercentage: Math.round(zoom * 100),
-    panOffset: pan,
-    isZoomed: zoom > MIN_ZOOM,
-    isDragging: dragging,
-    canZoomIn: zoom < MAX_ZOOM,
-    canZoomOut: zoom > MIN_ZOOM,
-  }
 }
 
 export const getZoomTransform = (zoom: number, pan: PanOffset) => {
