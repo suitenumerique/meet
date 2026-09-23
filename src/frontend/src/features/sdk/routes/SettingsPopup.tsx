@@ -14,6 +14,7 @@ import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
+import { EnforcedAccessLevelNotice } from '@/features/rooms/components/EnforcedAccessLevelNotice'
 import { updatePublishSources } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
 import { reportError } from '@/features/analytics/telemetry'
@@ -89,6 +90,9 @@ const SettingsPopup = () => {
 
   const { mutateAsync: patchRoom } = usePatchRoom()
   const { data: configData } = useConfig()
+
+  // No selection while the stored level is not the one in force.
+  const levelOverridden = !!room?.stored_access_level
 
   const configuration = room?.configuration
 
@@ -327,7 +331,7 @@ const SettingsPopup = () => {
                 paddingBottom: '1rem',
               }),
             }}
-            value={room.access_level}
+            value={levelOverridden ? null : room.access_level}
             onChange={(value) =>
               patchRoom({
                 roomId: roomSlug,
@@ -336,6 +340,9 @@ const SettingsPopup = () => {
             }
             items={accessLevelItems}
           />
+          {levelOverridden && (
+            <EnforcedAccessLevelNotice level={room.access_level} />
+          )}
         </SectionBody>
       </div>
       <footer

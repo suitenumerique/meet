@@ -260,7 +260,7 @@ class RoomViewSet(
             # front of it, so it is a public room or it is nothing.
             if (
                 not settings.ALLOW_UNREGISTERED_ROOMS
-                or models.access_level_error(RoomAccessLevel.PUBLIC) is not None
+                or models.is_public_level_forbidden(RoomAccessLevel.PUBLIC)
             ):
                 raise
             slug = slugify(self.kwargs["pk"])
@@ -311,11 +311,9 @@ class RoomViewSet(
         user = self.request.user
         save_kwargs = {}
 
-        if (
-            "access_level" not in serializer.validated_data
-            and user.default_room_access_level not in (None, "")
-        ):
-            save_kwargs["access_level"] = user.default_room_access_level
+        default_access_level = user.effective_default_room_access_level
+        if "access_level" not in serializer.validated_data and default_access_level:
+            save_kwargs["access_level"] = default_access_level
 
         user_default_configuration = user.default_room_configuration
         if not serializer.validated_data.get(

@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 from django.conf import settings
+from django.test.utils import override_settings
 
 import jwt
 import pytest
@@ -281,6 +282,25 @@ def test_api_rooms_list_access_level_in_results():
     assert (
         results[str(room_restricted.id)]["access_level"] == RoomAccessLevel.RESTRICTED
     )
+
+
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_api_rooms_list_answers_the_level_in_force():
+    """A room stored public is listed at the level it runs at."""
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)], access_level=RoomAccessLevel.PUBLIC
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    results = {r["id"]: r for r in response.data["results"]}
+    assert results[str(room.id)]["access_level"] == RoomAccessLevel.TRUSTED
 
 
 def test_api_rooms_list_does_not_expose_sensitive_fields():

@@ -235,6 +235,45 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
     mock_token.assert_called_once()
 
 
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_api_rooms_retrieve_public_forbidden_answers_trusted_to_anonymous():
+    """A room stored public runs as trusted while the instance forbids public rooms.
+
+    The level in force is what is answered, and an anonymous visitor gets no
+    token; the stored level stays public.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "configuration": {},
+        "access_level": "trusted",
+        "id": str(room.id),
+        "name": room.name,
+        "slug": room.slug,
+    }
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
+
+
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_api_rooms_retrieve_public_forbidden_tells_the_host():
+    """The host learns their stored level is no longer one the instance allows."""
+    user = UserFactory()
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC, users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    content = response.json()
+    assert content["access_level"] == "trusted"
+    assert content["stored_access_level"] == "public"
+
+
 @mock.patch("core.utils.generate_token", return_value="foo")
 @override_settings(
     LIVEKIT_CONFIGURATION={

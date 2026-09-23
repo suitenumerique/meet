@@ -106,18 +106,9 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
-def access_level_error(access_level):
-    """The error this instance answers a writer setting this level, or None."""
-    if not settings.ALLOW_PUBLIC_ROOMS and access_level == RoomAccessLevel.PUBLIC:
-        return ValidationError(_("Public rooms are not allowed on this instance."))
-    return None
-
-
-def validate_access_level(access_level):
-    """Refuse a level this instance forbids, whichever writer sets it."""
-    error = access_level_error(access_level)
-    if error is not None:
-        raise error
+def is_public_level_forbidden(access_level):
+    """Whether this instance forbids the public level."""
+    return not settings.ALLOW_PUBLIC_ROOMS and access_level == RoomAccessLevel.PUBLIC
 
 
 class BaseModel(models.Model):
@@ -199,7 +190,6 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
     default_room_access_level = models.CharField(
         max_length=50,
         choices=RoomAccessLevel.choices,
-        validators=[validate_access_level],
         blank=True,
         null=True,
         verbose_name=_("default room access level"),
@@ -255,6 +245,21 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
 
     def __str__(self):
         return self.email or self.admin_email or str(self.id)
+
+    @property
+    def effective_default_room_access_level(self):
+        """The level a new room of this user starts at, or None for the instance default.
+
+        A default saved public does not survive a restart with
+        ALLOW_PUBLIC_ROOMS off: new rooms fall back to the instance default,
+        and the forbid_public_rooms command is what makes the move permanent.
+        """
+        if not self.default_room_access_level or is_public_level_forbidden(
+            self.default_room_access_level
+        ):
+            return None
+
+        return self.default_room_access_level
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Email this user."""
@@ -428,7 +433,6 @@ class Room(Resource):
         max_length=50,
         choices=RoomAccessLevel.choices,
         default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
-        validators=[validate_access_level],
     )
     # Public configuration exposed to any room participant via the API
     configuration = models.JSONField(
@@ -487,22 +491,37 @@ class Room(Resource):
 
         super().clean_fields(exclude=exclude)
 
+    @property
+    def effective_access_level(self):
+        """The level this room is entered at.
+
+        A room stored public runs as trusted while the instance forbids public
+        rooms; the forbid_public_rooms command is what makes that permanent.
+        """
+        if is_public_level_forbidden(self.access_level):
+            return RoomAccessLevel.TRUSTED
+
+        return self.access_level
+
     def is_joinable_by(self, user, role=None):
         """Whether this user enters the meeting rather than waiting in its lobby."""
-        access_level = self.access_level
-
         return (
-            access_level == RoomAccessLevel.PUBLIC
-            or (access_level == RoomAccessLevel.TRUSTED and user.is_authenticated)
-            # get_role answers None for anyone not signed in, so a role is
-            # already proof of that and the last branch needs no second check.
-            or (access_level == RoomAccessLevel.RESTRICTED and role is not None)
+            self.effective_access_level == RoomAccessLevel.PUBLIC
+            or (
+                self.effective_access_level == RoomAccessLevel.TRUSTED
+                and user.is_authenticated
+            )
+            or (
+                self.effective_access_level == RoomAccessLevel.RESTRICTED
+                and user.is_authenticated
+                and role is not None
+            )
         )
 
     @property
     def is_public(self):
         """Check if a room is public"""
-        return self.access_level == RoomAccessLevel.PUBLIC
+        return self.effective_access_level == RoomAccessLevel.PUBLIC
 
     @staticmethod
     def generate_unique_pin_code(length):

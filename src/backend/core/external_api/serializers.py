@@ -8,7 +8,11 @@ from pydantic import ValidationError
 from rest_framework import serializers
 
 from core import models, utils
-from core.api.serializers import BaseValidationOnlySerializer, RoomConfiguration
+from core.api.serializers import (
+    AccessLevelField,
+    BaseValidationOnlySerializer,
+    RoomConfiguration,
+)
 
 OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials"
 
@@ -35,6 +39,7 @@ class RoomSerializer(serializers.ModelSerializer):
     following the principle of least privilege.
     """
 
+    access_level = AccessLevelField(required=False)
     configuration = serializers.JSONField(required=False)
 
     class Meta:
@@ -52,20 +57,23 @@ class RoomSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(e.errors()) from e
         return value
 
-    def validate_access_level(self, access_level):
-        """Reject public access_level unless explicitly allowed or the default is already public."""
+    def validate_access_level(self, requested_level):
+        """Reject public access_level unless explicitly allowed, and leave a repeated write alone."""
+
+        if self.instance and requested_level == self.instance.effective_access_level:
+            return self.instance.access_level
 
         if settings.EXTERNAL_API_DEFAULT_ACCESS_LEVEL == models.RoomAccessLevel.PUBLIC:
-            return access_level
+            return requested_level
 
         if (
-            access_level == models.RoomAccessLevel.PUBLIC
+            requested_level == models.RoomAccessLevel.PUBLIC
             and not settings.EXTERNAL_API_ALLOW_PUBLIC_ACCESS
         ):
             raise serializers.ValidationError(
                 "Public rooms are disabled for the external API."
             )
-        return access_level
+        return requested_level
 
     def to_representation(self, instance):
         """Enrich response with application-specific computed fields."""

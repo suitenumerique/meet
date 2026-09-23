@@ -6,6 +6,7 @@ import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { useAccessLevelItems } from '@/features/rooms/hooks/useAccessLevelItems'
+import { EnforcedAccessLevelNotice } from '@/features/rooms/components/EnforcedAccessLevelNotice'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
@@ -42,6 +43,9 @@ export const Admin = () => {
     retry: false,
     enabled: false,
   })
+
+  // No selection while the stored level is not the one in force.
+  const levelOverridden = !!readOnlyData?.stored_access_level
 
   const {
     toggleMicrophone,
@@ -203,7 +207,7 @@ export const Admin = () => {
               paddingBottom: '1rem',
             }),
           }}
-          value={readOnlyData?.access_level}
+          value={levelOverridden ? null : readOnlyData?.access_level}
           onChange={(value) =>
             patchRoom({
               roomId,
@@ -212,6 +216,9 @@ export const Admin = () => {
           }
           items={accessLevelItems}
         />
+        {levelOverridden && (
+          <EnforcedAccessLevelNotice level={readOnlyData.access_level} />
+        )}
       </div>
     </Div>
   )

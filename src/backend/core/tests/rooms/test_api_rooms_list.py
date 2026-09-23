@@ -4,6 +4,8 @@ Test rooms API endpoints in the Meet core app: list.
 
 from unittest import mock
 
+from django.test.utils import override_settings
+
 import pytest
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
@@ -156,3 +158,17 @@ def test_api_rooms_list_pagination_page_size():
     assert len(content["results"]) == 3
     assert content["next"] == "http://testserver/api/v1.0/rooms/?page=2&page_size=3"
     assert content["previous"] is None
+
+
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_api_rooms_list_answers_the_level_in_force():
+    """A room stored public is listed at the level it runs at."""
+    user = UserFactory()
+    RoomFactory(access_level=RoomAccessLevel.PUBLIC, users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get("/api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    assert response.json()["results"][0]["access_level"] == "trusted"

@@ -1,8 +1,17 @@
 """Test the frontend configuration endpoint of the Meet core app."""
 
+from django.test.utils import override_settings
+
 from rest_framework.test import APIClient
 
 
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
 def test_api_config_publishes_the_public_rooms_setting(settings):
     """The frontend reads whether public rooms are allowed from the configuration."""
     settings.ALLOW_PUBLIC_ROOMS = False

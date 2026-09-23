@@ -3,8 +3,11 @@ Test rooms API endpoints in the Meet core app: create.
 """
 
 # pylint: disable=redefined-outer-name,unused-argument
+from unittest import mock
+
 from django.conf import settings
 from django.core.cache import cache
+from django.test.utils import override_settings
 
 import pytest
 from rest_framework.test import APIClient
@@ -328,3 +331,23 @@ def test_api_rooms_create_public_not_allowed(settings):
 
     assert response.status_code == 400
     assert not Room.objects.exists()
+
+
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_api_rooms_create_forbidden_user_default_falls_back_to_the_instance_default():
+    """A stored default the instance forbids no longer seeds the room's level."""
+    user = UserFactory(default_room_access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+    client.force_login(user)
+
+    # The instance default is read off the model field at import, so the
+    # assertion needs it moved to tell the fallback from the stored default.
+    with mock.patch.object(
+        Room._meta.get_field("access_level"),
+        "default",
+        RoomAccessLevel.TRUSTED,
+    ):
+        response = client.post("/api/v1.0/rooms/", {"name": "my room"})
+
+    assert response.status_code == 201
+    assert Room.objects.get().access_level == RoomAccessLevel.TRUSTED

@@ -2,6 +2,8 @@
 Test the default room preferences exposed on the users API.
 """
 
+from django.test.utils import override_settings
+
 import pytest
 from rest_framework.test import APIClient
 
@@ -26,6 +28,22 @@ def test_api_users_me_includes_default_room_preferences():
     content = response.json()
     assert content["default_room_access_level"] == "restricted"
     assert content["default_room_configuration"] == {"everyone_can_mute": False}
+
+
+def test_api_users_me_hides_a_default_public_is_forbidden(settings):
+    """A default the instance forbids reads as no default; the row keeps its value."""
+    user = factories.UserFactory(default_room_access_level="public")
+    settings.ALLOW_PUBLIC_ROOMS = False
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get("/api/v1.0/users/me/")
+
+    assert response.status_code == 200
+    assert response.json()["default_room_access_level"] is None
+    user.refresh_from_db()
+    assert user.default_room_access_level == "public"
 
 
 def test_api_users_update_default_room_preferences():
@@ -128,3 +146,22 @@ def test_api_users_update_default_room_access_level_public_not_allowed(settings)
     assert response.status_code == 400
     user.refresh_from_db()
     assert user.default_room_access_level is None
+
+
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_api_users_update_repeating_the_answer_keeps_the_stored_default():
+    """Patching the default already in force leaves the stored default alone."""
+    user = factories.UserFactory(default_room_access_level="public")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/users/{user.id!s}/",
+        {"default_room_access_level": None},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.default_room_access_level == "public"

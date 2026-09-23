@@ -10,6 +10,7 @@ from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
+from django.test.utils import override_settings
 
 import pytest
 
@@ -181,6 +182,20 @@ def test_models_rooms_is_public_property():
     # Test non-public room
     private_room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     assert private_room.is_public is False
+
+
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_models_rooms_effective_access_level_when_public_is_forbidden():
+    """A room stored public is entered at trusted while public rooms are forbidden."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    assert room.effective_access_level == RoomAccessLevel.TRUSTED
+    assert room.is_public is False
+    assert room.is_joinable_by(UserFactory()) is True
+    assert room.is_joinable_by(AnonymousUser()) is False
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
 
 
 @mock.patch.object(Room, "generate_unique_pin_code")

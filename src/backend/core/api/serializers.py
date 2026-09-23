@@ -24,10 +24,53 @@ from core import models, utils
 logger = logging.getLogger(__name__)
 
 
+class AccessLevelField(serializers.ChoiceField):
+    """A room's access level, under the one key every reader already reads."""
+
+    def __init__(self, **kwargs):
+        """Take the model's choices and, to leave the stored value on a repeated write, its name."""
+        self.attribute = kwargs.pop("attribute", "effective_access_level")
+        self.stored_attribute = kwargs.pop("stored_attribute", None)
+        super().__init__(choices=models.RoomAccessLevel.choices, **kwargs)
+
+    def get_attribute(self, instance):
+        """Answer the level in force, not the one stored for it."""
+        return getattr(instance, self.attribute)
+
+    def run_validation(self, data=serializers.empty):
+        """Leave the stored value where the write repeats the level in force."""
+        requested_level = super().run_validation(data)
+        instance = getattr(self.parent, "instance", None)
+        if (
+            self.stored_attribute
+            and instance is not None
+            and requested_level == getattr(instance, self.attribute)
+        ):
+            return getattr(instance, self.stored_attribute)
+
+        return requested_level
+
+    def to_internal_value(self, data):
+        """Refuse a level this instance forbids."""
+        access_level = super().to_internal_value(data)
+        if models.is_public_level_forbidden(access_level):
+            raise serializers.ValidationError(
+                _("Public rooms are not allowed on this instance.")
+            )
+        return access_level
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Serialize users."""
 
     timezone = TimeZoneSerializerField()
+    default_room_access_level = AccessLevelField(
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        attribute="effective_default_room_access_level",
+        stored_attribute="default_room_access_level",
+    )
 
     class Meta:
         model = models.User
@@ -137,6 +180,8 @@ class NestedResourceAccessSerializer(ResourceAccessSerializer):
 class ListRoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for a list API endpoint."""
 
+    access_level = serializers.ReadOnlyField(source="effective_access_level")
+
     class Meta:
         model = models.Room
         fields = ["id", "name", "slug", "access_level"]
@@ -145,6 +190,8 @@ class ListRoomSerializer(serializers.ModelSerializer):
 
 class RoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for the API."""
+
+    access_level = AccessLevelField(required=False, stored_attribute="access_level")
 
     class Meta:
         model = models.Room
@@ -184,6 +231,11 @@ class RoomSerializer(serializers.ModelSerializer):
                 many=True,
             )
             output["accesses"] = access_serializer.data
+
+            # Only the host is shown the picker, so only the host is told the
+            # level their room is stored at when it is not the one in force.
+            if instance.access_level != instance.effective_access_level:
+                output["stored_access_level"] = instance.access_level
 
         if instance.is_joinable_by(request.user, role):
             room_id = f"{instance.id!s}"

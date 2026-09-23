@@ -33,6 +33,12 @@ export type ApiRoom = {
   pin_code?: string
   is_administrable: boolean
   access_level: ApiAccessLevel
+  /**
+   * The level the room is stored at, sent to its administrators and owners
+   * only, and only while it differs from `access_level`, which answers the
+   * level in force.
+   */
+  stored_access_level?: ApiAccessLevel
   livekit?: ApiLiveKit
   configuration?: RoomConfiguration
   /**

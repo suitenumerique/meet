@@ -5,6 +5,8 @@ Test rooms API endpoints in the Meet core app: update.
 import random
 from unittest.mock import patch
 
+from django.test.utils import override_settings
+
 import pytest
 from rest_framework.test import APIClient
 
@@ -434,3 +436,22 @@ def test_api_rooms_update_public_not_allowed(mock_update_metadata, settings):
     room.refresh_from_db()
     assert room.access_level == RoomAccessLevel.RESTRICTED
     mock_update_metadata.assert_not_called()
+
+
+@override_settings(ALLOW_PUBLIC_ROOMS=False)
+def test_api_rooms_update_repeating_the_level_in_force_keeps_the_stored_level():
+    """Patching the level the room already runs at leaves the stored level alone."""
+    user = UserFactory()
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC, users=[(user, "owner")])
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"access_level": RoomAccessLevel.TRUSTED},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
