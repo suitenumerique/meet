@@ -157,6 +157,7 @@ def test_models_recording_is_savable_normal():
 @pytest.mark.parametrize(
     "status",
     [
+        RecordingStatusChoices.FAILED,
         RecordingStatusChoices.FAILED_TO_STOP,
         RecordingStatusChoices.FAILED_TO_START,
         RecordingStatusChoices.ABORTED,
@@ -279,6 +280,7 @@ def test_models_recording_is_saved_false_initiated():
 @pytest.mark.parametrize(
     "status",
     [
+        RecordingStatusChoices.FAILED,
         RecordingStatusChoices.FAILED_TO_STOP,
         RecordingStatusChoices.FAILED_TO_START,
         RecordingStatusChoices.ABORTED,

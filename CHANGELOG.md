@@ -29,6 +29,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade humanize-duration from 3.33.2 to 3.34.1
 - ⬆️(addons) upgrade i18next from 26.4.0 to 26.4.1
 - 🔖(helm) release chart 0.0.28
+- ♻️(backend) decouple recording event handling from LiveKit egress statuses
 
 ### Fixed
 
@@ -43,6 +44,8 @@ and this project adheres to
 - 🐛(frontend) fix file permissions in the Docker image
 - 🚸(frontend) inform user that recording waits until a track is published
 - 🔒(backend) upgrade base image to python:3.13.5-alpine3.24
+- 🐛(backend) handle failed and aborted egresses
+- 🩹(frontend) notify participants when a recording fails or is aborted
 
 ## [1.31.0] - 2026-09-08
 
