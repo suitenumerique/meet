@@ -224,6 +224,7 @@ def test_api_recording_retrieve_expired(settings):
         RecordingStatusChoices.INITIATED,
         RecordingStatusChoices.ACTIVE,
         RecordingStatusChoices.SAVED,
+        RecordingStatusChoices.FAILED,
         RecordingStatusChoices.FAILED_TO_START,
         RecordingStatusChoices.FAILED_TO_STOP,
         RecordingStatusChoices.ABORTED,

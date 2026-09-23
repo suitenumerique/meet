@@ -12,15 +12,12 @@ from django.conf import settings
 from livekit import api
 
 from core import models
+from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.metadata_collector import (
     MetadataCollectorException,
     MetadataCollectorService,
 )
-from core.recording.services.recording_events import (
-    RecordingEventsError,
-    RecordingEventsService,
-    RecordingNotSavableError,
-)
+from core.recording.services.recording_events import RecordingEventsService
 
 from .lobby import LobbyService
 from .presence import PresenceCache
@@ -82,6 +79,30 @@ class LiveKitWebhookEventType(Enum):
     # Ingress events
     INGRESS_STARTED = "ingress_started"
     INGRESS_ENDED = "ingress_ended"
+
+
+# LiveKit egress statuses mapped to recording worker event statuses
+EGRESS_STATUS_TO_RECORDING_EVENT = {
+    api.EgressStatus.EGRESS_STARTING: RecordingWorkerEvent.STARTING,
+    api.EgressStatus.EGRESS_ACTIVE: RecordingWorkerEvent.STARTED,
+    api.EgressStatus.EGRESS_ENDING: RecordingWorkerEvent.SAVING,
+    api.EgressStatus.EGRESS_COMPLETE: RecordingWorkerEvent.COMPLETED,
+    api.EgressStatus.EGRESS_LIMIT_REACHED: RecordingWorkerEvent.LIMIT_REACHED,
+    api.EgressStatus.EGRESS_ABORTED: RecordingWorkerEvent.ABORTED,
+    api.EgressStatus.EGRESS_FAILED: RecordingWorkerEvent.FAILED,
+}
+
+
+def to_recording_event(egress_status):
+    """Translate a LiveKit egress status into a recording worker event."""
+
+    event = EGRESS_STATUS_TO_RECORDING_EVENT.get(egress_status)
+    if event is None:
+        logger.warning(
+            "Unmapped LiveKit egress status '%s', ignoring the event.",
+            egress_status,
+        )
+    return event
 
 
 class LiveKitEventsService:
@@ -173,12 +194,20 @@ class LiveKitEventsService:
                 f"Recording with worker ID {egress_id} does not exist"
             ) from err
 
-        egress_status = data.egress_info.status
-        self.recording_events.handle_update(recording, egress_status)
+        event = to_recording_event(data.egress_info.status)
+        if event is None:
+            return
+
+        self.recording_events.handle_update(recording, event)
 
     def _handle_egress_ended(self, data):
-        """Handle 'egress_ended' event."""
+        """Handle 'egress_ended' event.
 
+        Egress ended is sent with one of these statuses:
+        EGRESS_COMPLETE, EGRESS_FAILED, EGRESS_ABORTED, EGRESS_LIMIT_REACHED
+        """
+
+        # Fetch recording
         try:
             recording = models.Recording.objects.select_related("room").get(
                 worker_id=data.egress_info.egress_id
@@ -188,6 +217,17 @@ class LiveKitEventsService:
                 f"Recording with worker ID {data.egress_info.egress_id} does not exist"
             ) from err
 
+        event = to_recording_event(data.egress_info.status)
+
+        # Log if/why the recording failed
+        self.recording_events.log_worker_error(
+            recording,
+            event,
+            error=data.egress_info.error,
+            error_code=data.egress_info.error_code,
+        )
+
+        # Update room
         try:
             room_name = str(recording.room.id)
             RoomManagement.update_metadata(
@@ -201,38 +241,17 @@ class LiveKitEventsService:
         except RoomManagementException as e:
             logger.exception("Failed to update room's metadata: %s", e)
 
+        # Stop metadata collector
         if recording.options.get("metadata_collector_dispatch_id", None) is not None:
             try:
                 MetadataCollectorService().stop(recording)
             except MetadataCollectorException:
                 logger.warning("Failed to stop the MetadataCollectorService")
 
-        if (
-            data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
-            and recording.status == models.RecordingStatusChoices.ACTIVE
-        ):
-            try:
-                self.recording_events.handle_limit_reached(recording)
-            except RecordingEventsError as e:
-                raise ActionFailedError(
-                    f"Failed to process limit reached event for recording {recording}"
-                ) from e
+        if event is None:
+            return
 
-        # Finalize the recording, the egress has uploaded the file to the storage
-        if data.egress_info.status in [
-            api.EgressStatus.EGRESS_COMPLETE,
-            api.EgressStatus.EGRESS_LIMIT_REACHED,
-        ]:
-            try:
-                self.recording_events.handle_complete(recording)
-            except RecordingNotSavableError:
-                logger.warning(
-                    "Recording %s is not savable on egress complete "
-                    "(already saved or in an error state); ignoring.",
-                    recording.id,
-                )
-
-        # Silently ignoring EGRESS_ABORTED, EGRESS_FAILED
+        self.recording_events.handle_terminal_event(recording, event)
 
     @staticmethod
     def _is_connection_test_room(room_name: str) -> bool:

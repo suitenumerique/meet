@@ -58,6 +58,7 @@ class RecordingStatusChoices(models.TextChoices):
     STOPPED = "stopped", _("Stopped")
     SAVED = "saved", _("Saved")
     ABORTED = "aborted", _("Aborted")
+    FAILED = "failed", _("Failed")
     FAILED_TO_START = "failed_to_start", _("Failed to Start")
     FAILED_TO_STOP = "failed_to_stop", _("Failed to Stop")
     NOTIFICATION_SUCCEEDED = "notification_succeeded", _("Notification succeeded")
@@ -79,16 +80,12 @@ class RecordingStatusChoices(models.TextChoices):
             cls.STOPPED,
             cls.SAVED,
             cls.ABORTED,
+            cls.FAILED,
             cls.EXTERNAL_PROCESS_SUCCESSFUL,
             cls.EXTERNAL_PROCESS_FAILED,
             cls.FAILED_TO_START,
             cls.FAILED_TO_STOP,
         }
-
-    @classmethod
-    def is_unsuccessful(cls, status):
-        """Determine if the recording status represents an unsuccessful state."""
-        return status in {cls.ABORTED, cls.FAILED_TO_START, cls.FAILED_TO_STOP}
 
 
 class RecordingModeChoices(models.TextChoices):
@@ -582,6 +579,7 @@ class Recording(BaseModel):
     4. NOTIFICATION_SUCCEEDED: External service has been notified of this recording
 
     Error States:
+    - FAILED: Egress failed mid-recording
     - FAILED_TO_START: Worker failed to initialize recording
     - FAILED_TO_STOP: Worker failed during stop operation
     - ABORTED: Recording was terminated before completion
