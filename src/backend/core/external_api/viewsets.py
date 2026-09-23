@@ -26,7 +26,7 @@ from rest_framework import (
 from core import analytics, api, models
 from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
-from core.services.room_management import RoomManagement
+from core.services.room_management import RoomManagement, RoomManagementException
 
 from ..services.provisional_user_service import (
     ProvisionalUserCreationDisabledError,
@@ -244,7 +244,12 @@ class RoomViewSet(
 
     def perform_destroy(self, instance):
         """Soft delete the room, close its LiveKit room, then log and track it."""
-        RoomManagement.soft_delete(instance)
+        try:
+            RoomManagement.soft_delete(instance)
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException(
+                "Could not delete the room, please try again."
+            ) from e
         self._track_room_event(instance, analytics.AnalyticsEvent.ROOM_DELETED)
 
     def perform_update(self, serializer: serializers.RoomSerializer):

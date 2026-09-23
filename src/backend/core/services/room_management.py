@@ -129,12 +129,18 @@ class RoomManagement:
             RoomManagementException: the LiveKit room could not be closed.
         """
 
-        with transaction.atomic():
-            room.soft_delete()
-            try:
-                cls.delete_room(str(room.id))
-            except RoomNotFoundException:
-                logger.info("Room %s is not live in LiveKit, nothing to close", room.id)
+        try:
+            with transaction.atomic():
+                room.soft_delete()
+                try:
+                    cls.delete_room(str(room.id))
+                except RoomNotFoundException:
+                    logger.info(
+                        "Room %s is not live in LiveKit, nothing to close", room.id
+                    )
+        except RoomManagementException:
+            room.deleted_at = None
+            raise
 
     @classmethod
     def sync_room_metadata(cls, room):

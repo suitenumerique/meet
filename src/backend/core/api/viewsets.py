@@ -75,7 +75,7 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
-from core.services.room_management import RoomManagement
+from core.services.room_management import RoomManagement, RoomManagementException
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
@@ -314,7 +314,12 @@ class RoomViewSet(
 
         The room and its recordings are kept in database for traceability.
         """
-        RoomManagement.soft_delete(instance)
+        try:
+            RoomManagement.soft_delete(instance)
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException(
+                "Could not delete the room, please try again."
+            ) from e
 
     def perform_create(self, serializer):
         """Set the current user as owner of the newly created room.
