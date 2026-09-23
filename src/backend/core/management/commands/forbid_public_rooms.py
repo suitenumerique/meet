@@ -14,8 +14,7 @@ class Command(BaseCommand):
         "good, so that allowing public rooms again does not reopen them. Run "
         "this after turning ALLOW_PUBLIC_ROOMS off and restarting: until it "
         "runs, such rooms run as trusted at read time and keep their stored "
-        "level; writing that level in the settings stores it. --dry-run "
-        "reports what would move and changes nothing."
+        "level. --dry-run reports what would move and changes nothing."
     )
 
     def add_arguments(self, parser):
