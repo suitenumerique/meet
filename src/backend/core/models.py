@@ -903,11 +903,12 @@ class Application(BaseModel):
     def can_delegate_email(self, email):
         """Check if this application can delegate the given email."""
 
-        if not self.allowed_domains.exists():
+        allowed_domains = {d.domain for d in self.allowed_domains.all()}
+        if not allowed_domains:
             return True  # No domain restrictions
 
         domain = get_domain_from_email(email)
-        return self.allowed_domains.filter(domain__iexact=domain).exists()
+        return bool(domain) and domain.lower() in allowed_domains
 
 
 class ApplicationDomain(BaseModel):

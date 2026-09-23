@@ -87,6 +87,60 @@ def test_api_applications_generate_token_success(settings):
     }
 
 
+@pytest.mark.parametrize(
+    "restricted", [True, False], ids=["restricted", "unrestricted"]
+)
+def test_api_applications_generate_token_success_query_count(
+    restricted, django_assert_num_queries
+):
+    """An existing user needs one query each for application, domains, and user."""
+    user = UserFactory(email="user@example.com")
+    plain_secret = "test-secret-123"
+    application = ApplicationFactory(client_secret=plain_secret)
+    if restricted:
+        ApplicationDomainFactory(application=application, domain="example.com")
+
+    client = APIClient()
+    with django_assert_num_queries(3):
+        response = client.post(
+            "/external-api/v1.0/application/token/",
+            {
+                "client_id": application.client_id,
+                "client_secret": plain_secret,
+                "grant_type": "client_credentials",
+                "scope": user.email,
+            },
+            format="json",
+        )
+
+    assert response.status_code == 200
+    assert "access_token" in response.data
+
+
+def test_api_applications_generate_token_invalid_credentials_query_count(
+    django_assert_num_queries,
+):
+    """An invalid secret must be rejected before querying domains or users."""
+    application = ApplicationFactory(client_secret="test-secret-123")
+    ApplicationDomainFactory(application=application, domain="example.com")
+
+    client = APIClient()
+    with django_assert_num_queries(1):
+        response = client.post(
+            "/external-api/v1.0/application/token/",
+            {
+                "client_id": application.client_id,
+                "client_secret": "wrong-secret",
+                "grant_type": "client_credentials",
+                "scope": "user@example.com",
+            },
+            format="json",
+        )
+
+    assert response.status_code == 401
+    assert "Invalid credentials" in str(response.data)
+
+
 def test_api_applications_generate_token_form_urlencoded(settings):
     """The token endpoint should accept "application/x-www-form-urlencoded"
     requests, as mandated by RFC 6749 (sections 3.2 and 4.4.2) for OAuth 2.0
