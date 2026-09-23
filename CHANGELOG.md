@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ⚡️(backend) hash application secrets with SHA-256
+- ⚡️(backend) reduce domain queries on the application token endpoint
 
 ### Fixed
 
