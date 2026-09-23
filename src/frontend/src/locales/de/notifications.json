@@ -33,12 +33,14 @@
     "accept": "Hereinlassen"
   },
   "transcript": {
+    "waitingForTracks": "Die Transkription wartet auf ein Mikrofon. Schalten Sie Ihr Mikrofon ein, damit die Transkription starten kann.",
     "started": "{{name}} hat die Meeting-Transkription gestartet.",
     "stopped": "{{name}} hat die Meeting-Transkription gestoppt.",
     "limitReached": "Die Transkription hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert.",
     "requested": "{{name}} möchte die Meeting-Transkription starten."
   },
   "screenRecording": {
+    "waitingForTracks": "Die Aufnahme wartet auf Audio oder Video. Schalten Sie Ihr Mikrofon oder Ihre Kamera ein oder teilen Sie Ihren Bildschirm, damit die Aufnahme starten kann.",
     "started": "{{name}} hat die Meeting-Aufzeichnung gestartet.",
     "stopped": "{{name}} hat die Meeting-Aufzeichnung gestoppt.",
     "limitReached": "Die Aufzeichnung hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert.",
