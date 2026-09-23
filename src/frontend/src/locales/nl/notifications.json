@@ -33,12 +33,14 @@
     "accept": "Accepteren"
   },
   "transcript": {
+    "waitingForTracks": "De transcriptie wacht op een microfoon. Zet uw microfoon aan, zodat de transcriptie kan starten.",
     "started": "{{name}} is de transcriptie van de vergadering gestart.",
     "stopped": "{{name}} heeft de transcriptie van de vergadering gestopt.",
     "limitReached": "De transcriptie heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen.",
     "requested": "{{name}} wil graag de transcriptie starten."
   },
   "screenRecording": {
+    "waitingForTracks": "De opname wacht op audio of video. Zet uw microfoon of camera aan of deel uw scherm, zodat de opname kan starten.",
     "started": "{{name}} is begonnen met het opnemen van de vergadering.",
     "stopped": "{{name}} is gestopt met het opnemen van de vergadering.",
     "limitReached": "De opname heeft de maximaal toegestane duur overschreden en wordt automatisch opgeslagen.",

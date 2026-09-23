@@ -41,6 +41,7 @@ and this project adheres to
 - 🔒️(backend) enforce display name setting on rename API
 - 🔒️(backend) reject inactive users in resource server backend
 - 🐛(frontend) fix file permissions in the Docker image
+- 🚸(frontend) inform user that recording waits until a track is published
 
 ## [1.31.0] - 2026-09-08
 

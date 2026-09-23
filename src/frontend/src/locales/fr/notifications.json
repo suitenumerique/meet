@@ -33,12 +33,14 @@
     "accept": "Accepter"
   },
   "transcript": {
+    "waitingForTracks": "La transcription attend un microphone. Activez votre microphone pour permettre à la transcription de démarrer.",
     "started": "{{name}} a démarré la transcription de la réunion.",
     "stopped": "{{name}} a arrêté la transcription de la réunion.",
     "limitReached": "La transcription a dépassé la durée maximale autorisée, elle va être automatiquement sauvegardée.",
     "requested": "{{name}} a demandé à démarrer la transcription."
   },
   "screenRecording": {
+    "waitingForTracks": "L’enregistrement attend un flux audio ou vidéo. Activez votre microphone ou votre caméra, ou partagez votre écran, pour permettre à l’enregistrement de démarrer.",
     "started": "{{name}} a démarré l'enregistrement de la réunion.",
     "stopped": "{{name}} a arrêté l'enregistrement de la réunion.",
     "limitReached": "L'enregistrement a dépassé la durée maximale autorisée, il va être automatiquement sauvegardé.",
