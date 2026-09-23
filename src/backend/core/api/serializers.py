@@ -28,27 +28,13 @@ class AccessLevelField(serializers.ChoiceField):
     """A room's access level, under the one key every reader already reads."""
 
     def __init__(self, **kwargs):
-        """Take the model's choices and, to leave the stored value on a repeated write, its name."""
+        """Take the model's choices and the attribute that answers in force."""
         self.attribute = kwargs.pop("attribute", "effective_access_level")
-        self.stored_attribute = kwargs.pop("stored_attribute", None)
         super().__init__(choices=models.RoomAccessLevel.choices, **kwargs)
 
     def get_attribute(self, instance):
         """Answer the level in force, not the one stored for it."""
         return getattr(instance, self.attribute)
-
-    def run_validation(self, data=serializers.empty):
-        """Leave the stored value where the write repeats the level in force."""
-        requested_level = super().run_validation(data)
-        instance = getattr(self.parent, "instance", None)
-        if (
-            self.stored_attribute
-            and instance is not None
-            and requested_level == getattr(instance, self.attribute)
-        ):
-            return getattr(instance, self.stored_attribute)
-
-        return requested_level
 
     def to_internal_value(self, data):
         """Refuse a level this instance forbids."""
@@ -69,7 +55,6 @@ class UserSerializer(serializers.ModelSerializer):
         allow_null=True,
         allow_blank=True,
         attribute="effective_default_room_access_level",
-        stored_attribute="default_room_access_level",
     )
 
     class Meta:
@@ -191,7 +176,7 @@ class ListRoomSerializer(serializers.ModelSerializer):
 class RoomSerializer(serializers.ModelSerializer):
     """Serialize Room model for the API."""
 
-    access_level = AccessLevelField(required=False, stored_attribute="access_level")
+    access_level = AccessLevelField(required=False)
 
     class Meta:
         model = models.Room

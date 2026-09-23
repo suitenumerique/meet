@@ -438,9 +438,10 @@ def test_api_rooms_update_public_not_allowed(mock_update_metadata, settings):
     mock_update_metadata.assert_not_called()
 
 
+@patch.object(RoomManagement, "sync_room_metadata")
 @override_settings(ALLOW_PUBLIC_ROOMS=False)
-def test_api_rooms_update_repeating_the_level_in_force_keeps_the_stored_level():
-    """Patching the level the room already runs at leaves the stored level alone."""
+def test_api_rooms_update_stores_the_level_it_is_given(mock_sync_room_metadata):
+    """Patching a level the admin chose stores it, the level in force included."""
     user = UserFactory()
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC, users=[(user, "owner")])
     client = APIClient()
@@ -454,4 +455,4 @@ def test_api_rooms_update_repeating_the_level_in_force_keeps_the_stored_level():
 
     assert response.status_code == 200
     room.refresh_from_db()
-    assert room.access_level == RoomAccessLevel.PUBLIC
+    assert room.access_level == RoomAccessLevel.TRUSTED

@@ -149,8 +149,8 @@ def test_api_users_update_default_room_access_level_public_not_allowed(settings)
 
 
 @override_settings(ALLOW_PUBLIC_ROOMS=False)
-def test_api_users_update_repeating_the_answer_keeps_the_stored_default():
-    """Patching the default already in force leaves the stored default alone."""
+def test_api_users_update_clears_the_default_it_is_given():
+    """Patching null clears a stored default the instance forbids."""
     user = factories.UserFactory(default_room_access_level="public")
 
     client = APIClient()
@@ -164,4 +164,4 @@ def test_api_users_update_repeating_the_answer_keeps_the_stored_default():
 
     assert response.status_code == 200
     user.refresh_from_db()
-    assert user.default_room_access_level == "public"
+    assert user.default_room_access_level is None

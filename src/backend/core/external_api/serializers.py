@@ -58,10 +58,7 @@ class RoomSerializer(serializers.ModelSerializer):
         return value
 
     def validate_access_level(self, requested_level):
-        """Reject public access_level unless explicitly allowed, and leave a repeated write alone."""
-
-        if self.instance and requested_level == self.instance.effective_access_level:
-            return self.instance.access_level
+        """Reject public access_level unless explicitly allowed."""
 
         if settings.EXTERNAL_API_DEFAULT_ACCESS_LEVEL == models.RoomAccessLevel.PUBLIC:
             return requested_level
