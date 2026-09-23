@@ -26,7 +26,7 @@ from core.models import (
     RoomAccessLevel,
     User,
 )
-from core.services.room_management import RoomManagement
+from core.services.room_management import RoomManagement, RoomNotFoundException
 
 pytestmark = pytest.mark.django_db
 
@@ -1390,6 +1390,29 @@ def test_api_rooms_update_tracks_analytics(mock_update_metadata, mock_capture):
     }
 
     mock_update_metadata.assert_called_once()
+
+
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomNotFoundException("Room does not exist"),
+)
+def test_api_rooms_delete_room_not_live(mock_delete_room):
+    """Deleting a room that is not live in LiveKit should still soft delete it."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 204
+    mock_delete_room.assert_called_once_with(str(room.id))
+    assert Room.objects.filter(id=room.id).exists() is False
+    assert Room.all_objects.get(id=room.id).deleted_at is not None
 
 
 def test_api_rooms_response_no_url(settings):

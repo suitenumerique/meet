@@ -7,6 +7,7 @@ import uuid
 from unittest import mock
 
 from django.conf import settings
+from django.test.utils import override_settings
 
 import pytest
 from livekit.api import AccessToken, TwirpError, VideoGrants
@@ -117,7 +118,8 @@ def test_start_subtitle_invalid_token():
     assert response.json() == {"detail": "Invalid LiveKit token: Not enough segments"}
 
 
-def test_start_subtitle_disabled_by_default(mock_livekit_token, settings):
+@override_settings(ROOM_SUBTITLE_ENABLED=False)
+def test_start_subtitle_disabled_by_default(mock_livekit_token):
     """Test that subtitle functionality is disabled when feature flag is off."""
 
     settings.ROOM_SUBTITLE_ENABLED = False

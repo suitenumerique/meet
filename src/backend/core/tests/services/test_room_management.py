@@ -6,7 +6,7 @@ import pytest
 from livekit.api import TwirpError
 
 from core.factories import RoomFactory
-from core.models import RoomAccessLevel
+from core.models import Room, RoomAccessLevel
 from core.services.room_management import (
     RoomManagement,
     RoomManagementException,
@@ -60,6 +60,29 @@ def test_delete_room_raises_management_exception(mock_create_livekit_client):
         RoomManagement.delete_room("room-abc")
 
     mock_api.aclose.assert_awaited_once()
+
+
+@pytest.mark.django_db
+@mock.patch.object(RoomManagement, "delete_room")
+def test_soft_delete_failure_rolls_back_and_can_be_retried(mock_delete_room):
+    """A failed soft delete leaves the room untouched, in database and in memory,
+    so it can be retried."""
+    room = RoomFactory()
+    mock_delete_room.side_effect = RoomManagementException("Could not delete room")
+
+    with pytest.raises(RoomManagementException):
+        RoomManagement.soft_delete(room)
+
+    assert room.deleted_at is None
+    assert Room.objects.filter(id=room.id).exists()
+
+    mock_delete_room.side_effect = None
+    RoomManagement.soft_delete(room)
+
+    assert mock_delete_room.call_count == 2
+    assert room.deleted_at is not None
+    assert Room.all_objects.get(id=room.id).deleted_at is not None
+    assert Room.objects.filter(id=room.id).exists() is False
 
 
 @mock.patch.object(RoomManagement, "update_metadata")
