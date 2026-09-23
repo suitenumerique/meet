@@ -1,4 +1,4 @@
-"""Test the command that moves public rooms and defaults to trusted, for good."""
+"""Test the command that moves public rooms to trusted and clears the defaults."""
 
 from django.core.management import call_command
 
@@ -22,10 +22,10 @@ def test_forbid_public_rooms_moves_public_rows(settings, capsys):
     room.refresh_from_db()
     user.refresh_from_db()
     assert room.access_level == RoomAccessLevel.TRUSTED
-    assert user.default_room_access_level == RoomAccessLevel.TRUSTED
+    assert user.default_room_access_level is None
     assert room.updated_at > room_updated_at
     assert user.updated_at > user_updated_at
-    assert "Moved 1 room(s) and 1 user default(s)" in capsys.readouterr().out
+    assert "Moved 1 room(s) and cleared 1 user default(s)" in capsys.readouterr().out
 
 
 def test_forbid_public_rooms_dry_run_touches_nothing(settings, capsys):
@@ -43,9 +43,9 @@ def test_forbid_public_rooms_dry_run_touches_nothing(settings, capsys):
     assert user.default_room_access_level == RoomAccessLevel.PUBLIC
     assert (room.updated_at, user.updated_at) == (room_updated_at, user_updated_at)
     out = capsys.readouterr().out
-    assert "Would move 1 room(s) and 1 user default(s)" in out
+    assert "Would move 1 room(s) and clear 1 user default(s)" in out
     assert f"room {room.slug}" in out
-    assert f"user {user}" in out
+    assert f"default cleared for {user}" in out
     assert "Nothing changed." in out
 
 
