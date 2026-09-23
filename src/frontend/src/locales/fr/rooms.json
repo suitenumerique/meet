@@ -779,10 +779,7 @@
     "separateWindowClosed": "Partage d'écran ramené dans la réunion",
     "separateWindowBlocked": "Le navigateur a bloqué la fenêtre séparée. Autorisez les pop-ups pour ce site, puis réessayez.",
     "separateWindowTitle": "Partage d'écran de {{name}}",
-    "separateWindowLabel": "Partage d'écran de {{name}} dans une fenêtre séparée",
-    "placeholderTitle": "Ce partage d'écran est dans une autre fenêtre.",
-    "placeholderDescription": "Vous pouvez déplacer cette fenêtre vers un autre écran. La réunion reste ici.",
-    "placeholderBringBack": "Ramener le partage d'écran ici"
+    "separateWindowLabel": "Partage d'écran de {{name}} dans une fenêtre séparée"
   },
   "shortcutsPanel": {
     "title": "Raccourcis clavier",

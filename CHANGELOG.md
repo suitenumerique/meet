@@ -13,6 +13,7 @@ and this project adheres to
 - ✨(backend) make the LiveKit default video codec configurable
 - 🔧(dev) add support for Bureautix workstations
 - ✨(frontend) add screen share zoom controls #1498
+- ✨(frontend) open screen share in a separate window #1734
 
 ### Changed
 
@@ -34,7 +35,7 @@ and this project adheres to
 
 ### Fixed
 
-- 🐛(helm) probe liveness on __lbheartbeat__ and readiness on __heartbeat__
+- 🐛(helm) probe liveness on **lbheartbeat** and readiness on **heartbeat**
 - 🐛(helm) render periodSeconds and failureThreshold on probes
 - 🐛(backend) report the app release to Sentry instead of "NA"
 - 🐛(frontend) play the waiting room notification sound on every arrival

@@ -156,6 +156,7 @@ export const ParticipantTile: (
         <ScreenShareZoomableVideo
           tileRef={tileRef}
           participantName={participantName}
+          trackSid={trackReference.publication.trackSid}
           windowName={`meet-screen-share-${trackReference.publication.trackSid || trackReference.participant.identity}`}
         >
           {videoTrack}

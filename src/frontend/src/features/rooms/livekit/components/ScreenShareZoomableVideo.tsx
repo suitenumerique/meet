@@ -13,12 +13,17 @@ import { useScreenShareZoom } from '../hooks/useScreenShareZoom'
 import { useScreenSharePopout } from '../hooks/useScreenSharePopout'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { ScreenShareZoomControls } from './ScreenShareZoomControls'
-import { ScreenSharePopoutPlaceholder } from './ScreenSharePopoutPlaceholder'
 import { ScreenSharePopoutPortal } from './ScreenSharePopoutPortal'
+import {
+  saveScreenShareZoom,
+  takePopoutButtonFocus,
+  takeScreenShareZoom,
+} from '@/stores/screenSharePopout'
 
 interface ScreenShareZoomableVideoProps {
   tileRef: React.RefObject<HTMLDivElement | null>
   participantName: string
+  trackSid: string
   windowName: string
   children: ReactNode
 }
@@ -44,6 +49,7 @@ const popoutChromeClassName = css({
 export const ScreenShareZoomableVideo = ({
   tileRef,
   participantName,
+  trackSid,
   windowName,
   children,
 }: ScreenShareZoomableVideoProps) => {
@@ -60,10 +66,18 @@ export const ScreenShareZoomableVideo = ({
   )
 
   const popout = useScreenSharePopout({
+    trackSid,
     windowName,
     title: t('separateWindowTitle', { name: participantName }),
     getVideoElement,
   })
+
+  // Moving the video in or out of the window remounts this tile, because the
+  // stage pin changes. Stash the zoom so the new instance picks it up.
+  const { capture, resync } = zoom
+  useLayoutEffect(() => {
+    return () => saveScreenShareZoom(trackSid, capture())
+  }, [trackSid, capture])
 
   // SR announcement: announce zoom level on change, with a one-time pan hint
   // on the first zoom above 100 % per session.
@@ -102,18 +116,17 @@ export const ScreenShareZoomableVideo = ({
   }, [zoom.handleWheel, zoom.surfaceElRef, popout.isOpen])
 
   // Open: focus the popup. Close: focus the button again (the toolbar remounts).
-  const { resync } = zoom
   useLayoutEffect(() => {
-    resync()
+    resync(takeScreenShareZoom(trackSid) ?? undefined)
     if (popout.isOpen) {
       wasPoppedOut.current = true
       popoutChromeRef.current?.focus()
       return
     }
-    if (!wasPoppedOut.current) return
+    if (!wasPoppedOut.current && !takePopoutButtonFocus(trackSid)) return
     wasPoppedOut.current = false
     popoutButtonRef.current?.focus()
-  }, [popout.isOpen, resync])
+  }, [popout.isOpen, resync, trackSid])
 
   // LiveKit unsubscribes tiles it believes are off-screen. Its observer
   // cannot measure an element living in another window and reads it as
@@ -167,26 +180,23 @@ export const ScreenShareZoomableVideo = ({
     </>
   )
 
-  // Video in the popup, placeholder in the meeting so the layout stays put.
+  // Video in the popup. The meeting layout does not keep a tile for it.
   if (popout.isOpen && popout.container) {
     return (
-      <>
-        <ScreenSharePopoutPlaceholder onReturn={popout.close} />
-        <ScreenSharePopoutPortal container={popout.container}>
-          <div
-            ref={popoutChromeRef}
-            role="group"
-            // Focusable on purpose: it carries the zoom key handler, and the
-            // popup body is an ancestor, so keys would never bubble to it.
-            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-            tabIndex={0}
-            aria-label={t('separateWindowLabel', { name: participantName })}
-            className={popoutChromeClassName}
-          >
-            {media}
-          </div>
-        </ScreenSharePopoutPortal>
-      </>
+      <ScreenSharePopoutPortal container={popout.container}>
+        <div
+          ref={popoutChromeRef}
+          role="group"
+          // Focusable on purpose: it carries the zoom key handler, and the
+          // popup body is an ancestor, so keys would never bubble to it.
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+          tabIndex={0}
+          aria-label={t('separateWindowLabel', { name: participantName })}
+          className={popoutChromeClassName}
+        >
+          {media}
+        </div>
+      </ScreenSharePopoutPortal>
     )
   }
 

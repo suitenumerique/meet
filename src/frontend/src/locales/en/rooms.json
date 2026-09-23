@@ -779,10 +779,7 @@
     "separateWindowClosed": "Screen share returned to the meeting",
     "separateWindowBlocked": "The browser blocked the separate window. Allow pop-ups for this site and try again.",
     "separateWindowTitle": "{{name}}'s screen share",
-    "separateWindowLabel": "{{name}}'s screen share in a separate window",
-    "placeholderTitle": "This screen share is in another window.",
-    "placeholderDescription": "You can move that window to another screen. The meeting stays here.",
-    "placeholderBringBack": "Bring the screen share back here"
+    "separateWindowLabel": "{{name}}'s screen share in a separate window"
   },
   "shortcutsPanel": {
     "title": "Keyboard shortcuts",

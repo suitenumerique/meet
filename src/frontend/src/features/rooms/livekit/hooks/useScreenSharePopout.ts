@@ -1,8 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
+import { useCallback } from 'react'
+import { useSnapshot } from 'valtio'
 import { useTranslation } from 'react-i18next'
 import { reportError } from '@/features/analytics/telemetry'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
+import {
+  closeScreenSharePopout,
+  openScreenSharePopout,
+  screenSharePopoutStore,
+} from '@/stores/screenSharePopout'
 import {
   getAuxiliaryWindowFeatures,
   getAuxiliaryWindowSize,
@@ -10,57 +15,45 @@ import {
 } from '@/utils/auxiliaryWindow'
 
 type UseScreenSharePopoutOptions = {
+  trackSid: string
   windowName: string
   title: string
   getVideoElement?: () => HTMLVideoElement | null
-}
-
-type PopoutTarget = {
-  window: Window
-  container: HTMLElement
 }
 
 /**
  * Opens the screen share in another window. Closing it does not stop the
  * share: the video just comes back into the meeting.
  *
+ * The window lives in a store, not in this hook. Opening it drops the stage
+ * pin, so the tile moves from the focus layout into the grid and this
+ * component remounts. The store is what keeps the window open across that.
+ *
  * A real popup, not the meeting PiP, that one is already taken, and a
  * popup can be as large as another screen.
  */
 export const useScreenSharePopout = ({
+  trackSid,
   windowName,
   title,
   getVideoElement,
 }: UseScreenSharePopoutOptions) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
   const announce = useScreenReaderAnnounce()
-  const [target, setTarget] = useState<PopoutTarget | null>(null)
-  const targetRef = useRef<PopoutTarget | null>(null)
+  const { entry } = useSnapshot(screenSharePopoutStore)
+  const isOpen = entry?.trackSid === trackSid
 
   // Brings the video back into the meeting, from the toolbar button as well as
-  // from the window's own close button.
+  // from the window's own close button. Safe to call after this hook's
+  // component has unmounted: the listener sits on the popup, not on the tile.
   const release = useCallback(() => {
-    if (!targetRef.current) return
-    // Focus the meeting first so we can put the cursor back on the button.
-    window.focus()
-    // Unmount while the other document is still alive: React cannot clean up
-    // children in a window that is already gone.
-    flushSync(() => {
-      targetRef.current = null
-      setTarget(null)
-    })
+    if (screenSharePopoutStore.entry?.trackSid !== trackSid) return
+    closeScreenSharePopout({ restorePin: true })
     announce(t('separateWindowClosed'), 'assertive')
-  }, [announce, t])
-
-  const close = useCallback(() => {
-    const current = targetRef.current?.window
-    if (!current) return
-    release()
-    current.close()
-  }, [release])
+  }, [announce, t, trackSid])
 
   const open = useCallback(() => {
-    if (targetRef.current) return
+    if (screenSharePopoutStore.entry) return
 
     const { width, height } = getAuxiliaryWindowSize(getVideoElement?.())
     // Open right away: waiting first (fullscreen, etc.) lets the browser
@@ -79,14 +72,16 @@ export const useScreenSharePopout = ({
     try {
       const container = initializeAuxiliaryWindow(next, { title })
 
-      // The window X does not go through our close() — still bring the video back.
-      next.addEventListener('pagehide', release, { once: true })
-
-      targetRef.current = { window: next, container }
-      setTarget(targetRef.current)
+      openScreenSharePopout({
+        trackSid,
+        popup: next,
+        container,
+        // The window X does not go through close() — still bring the video back.
+        onPopupClosed: release,
+      })
       next.focus()
       announce(t('separateWindowOpened'), 'assertive')
-      // Drop meeting fullscreen or we would only see the placeholder.
+      // Drop meeting fullscreen: the stage this share was filling goes away.
       if (document.fullscreenElement) {
         void document.exitFullscreen()
       }
@@ -96,26 +91,22 @@ export const useScreenSharePopout = ({
       })
       next.close()
     }
-  }, [announce, getVideoElement, release, t, title, windowName])
+  }, [announce, getVideoElement, release, t, title, trackSid, windowName])
 
   const toggle = useCallback(() => {
-    if (targetRef.current) close()
+    if (screenSharePopoutStore.entry?.trackSid === trackSid) release()
     else open()
-  }, [close, open])
-
-  // Tile gone (share ended, layout change): close a leftover empty window.
-  useEffect(() => {
-    return () => {
-      targetRef.current?.window.close()
-      targetRef.current = null
-    }
-  }, [])
+  }, [open, release, trackSid])
 
   return {
-    isOpen: !!target,
-    container: target?.container ?? null,
+    isOpen,
+    // The snapshot deep-freezes the element. The portal needs the real node,
+    // which `ref()` kept out of the proxy.
+    container: isOpen
+      ? (screenSharePopoutStore.entry?.container ?? null)
+      : null,
     open,
-    close,
+    close: release,
     toggle,
   }
 }

@@ -779,10 +779,7 @@
     "separateWindowClosed": "Schermdeling teruggezet in de vergadering",
     "separateWindowBlocked": "De browser heeft het aparte venster geblokkeerd. Sta pop-ups toe voor deze site en probeer het opnieuw.",
     "separateWindowTitle": "Schermdeling van {{name}}",
-    "separateWindowLabel": "Schermdeling van {{name}} in een apart venster",
-    "placeholderTitle": "Deze schermdeling staat in een ander venster.",
-    "placeholderDescription": "U kunt dat venster naar een ander scherm verplaatsen. De vergadering blijft hier.",
-    "placeholderBringBack": "Schermdeling hier terughalen"
+    "separateWindowLabel": "Schermdeling van {{name}} in een apart venster"
   },
   "shortcutsPanel": {
     "title": "Sneltoetsen",

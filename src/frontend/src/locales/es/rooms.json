@@ -778,10 +778,7 @@
     "separateWindowClosed": "Pantalla compartida devuelta a la reunión",
     "separateWindowBlocked": "El navegador bloqueó la ventana separada. Permite las ventanas emergentes para este sitio y vuelve a intentarlo.",
     "separateWindowTitle": "Pantalla compartida de {{name}}",
-    "separateWindowLabel": "Pantalla compartida de {{name}} en una ventana separada",
-    "placeholderTitle": "Esta pantalla compartida está en otra ventana.",
-    "placeholderDescription": "Puedes mover esa ventana a otra pantalla. La reunión se queda aquí.",
-    "placeholderBringBack": "Traer la pantalla compartida aquí"
+    "separateWindowLabel": "Pantalla compartida de {{name}} en una ventana separada"
   },
   "shortcutsPanel": {
     "title": "Atajos de teclado",

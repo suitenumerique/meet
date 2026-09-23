@@ -779,10 +779,7 @@
     "separateWindowClosed": "Bildschirmfreigabe zurück in die Besprechung geholt",
     "separateWindowBlocked": "Der Browser hat das eigene Fenster blockiert. Erlauben Sie Pop-ups für diese Website und versuchen Sie es erneut.",
     "separateWindowTitle": "Bildschirmfreigabe von {{name}}",
-    "separateWindowLabel": "Bildschirmfreigabe von {{name}} in einem eigenen Fenster",
-    "placeholderTitle": "Diese Bildschirmfreigabe ist in einem anderen Fenster.",
-    "placeholderDescription": "Sie können dieses Fenster auf einen anderen Bildschirm verschieben. Die Besprechung bleibt hier.",
-    "placeholderBringBack": "Bildschirmfreigabe hierher zurückholen"
+    "separateWindowLabel": "Bildschirmfreigabe von {{name}} in einem eigenen Fenster"
   },
   "shortcutsPanel": {
     "title": "Tastenkürzel",
