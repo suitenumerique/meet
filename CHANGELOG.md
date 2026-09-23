@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(backend) add room deletion to the external API
 - ✨(backend) make the LiveKit default video codec configurable
 - 🔧(dev) add support for Bureautix workstations
 - ✨(frontend) add screen share zoom controls #1498
@@ -29,6 +30,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade humanize-duration from 3.33.2 to 3.34.1
 - ⬆️(addons) upgrade i18next from 26.4.0 to 26.4.1
 - 🔖(helm) release chart 0.0.28
+- ♻️(backend) soft delete rooms and close their LiveKit room on deletion
 
 ### Fixed
 
