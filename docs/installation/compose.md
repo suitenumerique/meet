@@ -14,7 +14,7 @@ All services are required to run the minimalist instance of LaSuite Meet. Click 
 | **OIDC Provider** | User authentication | [Keycloak setup](../examples/compose/keycloak/README.md) |
 | **SMTP Service**  | Email notifications | -                                                        |
 
-> [!NOTE] Some advanced features, as Recording and transcription, require additional services (MinIO, email). See `/features` folder for details.
+> [!NOTE] Some advanced features, as Recording and transcription, require additional services (S3-compatible object storage, email). See `/features` folder for details.
 
 
 ## Software Requirements

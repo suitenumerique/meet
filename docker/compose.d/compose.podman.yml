@@ -19,7 +19,7 @@ services:
     <<: *keep-id
   celery-dev:
     <<: *keep-id
-  minio:
+  garage:
     <<: *keep-id
   node:
     <<: *keep-id

@@ -19,11 +19,11 @@ egress:
     address: redis-master:6379
     password: pass
   s3:
-    access_key: meet
-    secret: password
+    access_key: meet-access-key
+    secret: meet-secret-access-key
     region: local
     bucket: meet-media-storage
-    endpoint: http://minio:9000
+    endpoint: http://garage:9000
     force_path_style: true
 
 loadBalancer:
