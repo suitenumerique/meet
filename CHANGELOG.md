@@ -42,6 +42,7 @@ and this project adheres to
 - 🔒️(backend) reject inactive users in resource server backend
 - 🐛(frontend) fix file permissions in the Docker image
 - 🚸(frontend) inform user that recording waits until a track is published
+- 🔒(backend) upgrade base image to python:3.13.5-alpine3.24
 
 ## [1.31.0] - 2026-09-08
 
