@@ -33,6 +33,7 @@ and this project adheres to
 - ♻️(backend) decouple recording event handling from LiveKit egress statuses
 - ♻️(agents) replace the minio client by boto3
 - 🔧(compose) replace MinIO by Garage for local development
+- 🔧(helm) point media services to Garage by default
 
 ### Fixed
 
