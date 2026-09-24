@@ -76,10 +76,6 @@ class RoomManagement:
 
         except TwirpError as e:
             if e.code == "not_found":
-                logger.warning(
-                    "Room %s not found in LiveKit, skipping metadata update",
-                    room_name,
-                )
                 raise RoomNotFoundException("Room does not exist") from e
 
             logger.exception(
