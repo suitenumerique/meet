@@ -94,11 +94,21 @@ export const Conference = ({
       fetchRoom({
         roomId: roomId as string,
         username: username,
-      }).catch((error) => {
-        if (error.statusCode == '404') {
-          createRoom({ slug: roomId, username })
-        }
-      }),
+      })
+        .then((room) =>
+          // A guest let in from the lobby gets no pass here, so keep theirs.
+          room.livekit
+            ? room
+            : {
+                ...room,
+                livekit: queryClient.getQueryData<ApiRoom>(fetchKey)?.livekit,
+              }
+        )
+        .catch((error) => {
+          if (error.statusCode == '404') {
+            createRoom({ slug: roomId, username })
+          }
+        }),
     retry: false,
   })
 
