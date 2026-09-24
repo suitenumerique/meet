@@ -13,7 +13,7 @@ These components rely on a few key services:
 
 - PostgreSQL for storing data (users, rooms, recordings)
 - Redis for caching and inter-service communication
-- MinIO for storing files (room recordings)
+- Garage for storing files (room recordings)
 - Celery workers for meeting transcript (optional, required for AI beta features)
 
 We provide two stack options for getting Visio up and running for development:

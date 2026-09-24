@@ -85,6 +85,7 @@ data/static:
 create-env-files: ## Copy the dist env files to env files
 create-env-files: \
 	env.d/development/common \
+	env.d/development/garage \
 	env.d/development/crowdin \
 	env.d/development/postgresql \
 	env.d/development/kc_postgresql \
@@ -316,6 +317,10 @@ env.d/development/summary:
 
 env.d/development/kube-secret:
 	cp -n env.d/development/kube-secret.dist env.d/development/kube-secret
+
+env.d/development/garage:
+	sed "s/^GARAGE_RPC_SECRET=.*/GARAGE_RPC_SECRET=$$(openssl rand -hex 32)/" \
+		env.d/development/garage.dist > env.d/development/garage
 
 env.d/development/multi_user_transcriber:
 	cp -n env.d/development/multi_user_transcriber.dist env.d/development/multi_user_transcriber

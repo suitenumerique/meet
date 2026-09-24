@@ -1,0 +1,172 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: garage
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+spec:
+  rules:
+  - host: "garage.127.0.0.1.nip.io"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: garage
+            port:
+              number: 9000
+  tls:
+  - hosts:
+    - garage.127.0.0.1.nip.io
+    secretName: meet-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  ports:
+  - name: client
+    port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app.kubernetes.io/instance: extra
+    app.kubernetes.io/name: garage
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: garage-config
+  namespace: {{ .Release.Namespace | quote }}
+data:
+  garage.toml: |
+    metadata_dir = "/var/lib/garage/meta"
+    data_dir = "/var/lib/garage/data"
+    db_engine = "lmdb"
+
+    replication_factor = 1
+
+    rpc_bind_addr = "127.0.0.1:3901"
+    rpc_public_addr = "127.0.0.1:3901"
+
+    [s3_api]
+    api_bind_addr = "[::]:9000"
+    # Clients must sign their requests for this region (AWS_S3_REGION_NAME)
+    s3_region = "local"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: garage-dev
+  namespace: {{ .Release.Namespace | quote }}
+type: Opaque
+data:
+  GARAGE_RPC_SECRET: {{ printf "%s/garage-rpc-secret" .Release.Namespace | sha256sum | b64enc }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: garage
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app.kubernetes.io/instance: extra
+    app.kubernetes.io/name: garage
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: extra
+      app.kubernetes.io/name: garage
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: extra
+        app.kubernetes.io/name: garage
+    spec:
+      containers:
+      - name: garage
+        command:
+          - /garage
+          - server
+          - --single-node
+          - --default-bucket
+        env:
+          - name: GARAGE_RPC_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: garage-dev
+                key: GARAGE_RPC_SECRET
+          - name: GARAGE_DEFAULT_ACCESS_KEY
+            value: meet-access-key
+          - name: GARAGE_DEFAULT_SECRET_KEY
+            value: meet-secret-access-key
+          - name: GARAGE_DEFAULT_BUCKET
+            value: meet-media-storage
+        image: "dxflrs/garage:v2.4.1"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          name: client
+        readinessProbe:
+          exec:
+            command:
+              - /garage
+              - health
+        volumeMounts:
+        - mountPath: /etc/garage.toml
+          name: config
+          subPath: garage.toml
+        - mountPath: /var/lib/garage
+          name: data
+      volumes:
+      - name: config
+        configMap:
+          name: garage-config
+      - name: data
+        emptyDir:
+---
+# Garage denies cross-origin requests by default: allow the frontend to upload
+# files straight to the bucket
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: garage-cors
+spec:
+  template:
+    spec:
+      containers:
+      - name: aws-cli
+        image: amazon/aws-cli:2.37.1
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            value: meet-access-key
+          - name: AWS_SECRET_ACCESS_KEY
+            value: meet-secret-access-key
+          - name: AWS_DEFAULT_REGION
+            value: local
+          - name: AWS_ENDPOINT_URL
+            value: http://garage:9000
+          - name: BUCKET
+            value: meet-media-storage
+        command:
+          - /bin/sh
+          - -c
+          - |
+            deadline=$(($(date +%s) + 300))
+            until aws s3api head-bucket --bucket="$BUCKET" --cli-connect-timeout=5; do
+              if [ "$(date +%s)" -ge "$deadline" ]; then
+                echo "Bucket $BUCKET still unavailable on $AWS_ENDPOINT_URL" >&2
+                exit 1
+              fi
+              echo "Waiting for bucket $BUCKET on $AWS_ENDPOINT_URL"
+              sleep 5
+            done
+            exec aws s3api put-bucket-cors --bucket="$BUCKET" \
+              --cors-configuration='{"CORSRules": [{"AllowedOrigins": ["https://meet.127.0.0.1.nip.io"], "AllowedMethods": ["GET", "HEAD", "PUT"], "AllowedHeaders": ["*"], "ExposeHeaders": ["ETag"]}]}'
+      restartPolicy: Never
+  backoffLimit: 3

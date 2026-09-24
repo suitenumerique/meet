@@ -32,6 +32,7 @@ and this project adheres to
 - 🔖(helm) release chart 0.0.28
 - ♻️(backend) decouple recording event handling from LiveKit egress statuses
 - ♻️(agents) replace the minio client by boto3
+- 🔧(compose) replace MinIO by Garage for local development
 
 ### Fixed
 

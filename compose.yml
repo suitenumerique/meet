@@ -15,36 +15,44 @@ services:
     ports:
       - "1081:1080"
 
-  minio:
+  garage:
     user: ${DOCKER_USER:-1000}
-    image: quay.io/minio/minio
+    image: dxflrs/garage:v2.4.1
+    command: /garage server --single-node --default-bucket
+    env_file:
+      - env.d/development/garage
     environment:
-      - MINIO_ROOT_USER=meet
-      - MINIO_ROOT_PASSWORD=password
+      - GARAGE_DEFAULT_ACCESS_KEY=meet-access-key
+      - GARAGE_DEFAULT_SECRET_KEY=meet-secret-access-key
+      - GARAGE_DEFAULT_BUCKET=meet-media-storage
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '127.0.0.1:9000:9000'
     healthcheck:
-      test: [ "CMD", "mc", "ready", "local" ]
+      test: [ "CMD", "/garage", "health" ]
       interval: 1s
       timeout: 20s
       retries: 300
-    entrypoint: ""
-    command: minio server --console-address :9001 /data
     volumes:
-      - ./data/media:/data
+      - ./docker/files/etc/garage/garage.toml:/etc/garage.toml:ro
+      - ./data/media:/var/lib/garage
 
-  createbuckets:
-    image: quay.io/minio/mc
+  # Garage denies cross-origin requests by default: allow the frontend to upload files
+  garage-cors:
+    image: amazon/aws-cli:2.37.1
+    environment:
+      - AWS_ACCESS_KEY_ID=meet-access-key
+      - AWS_SECRET_ACCESS_KEY=meet-secret-access-key
+      - AWS_DEFAULT_REGION=local
     depends_on:
-      minio:
+      garage:
         condition: service_healthy
         restart: true
-    entrypoint: >
-      sh -c "
-      /usr/bin/mc alias set meet http://minio:9000 meet password && \
-      /usr/bin/mc mb meet/meet-media-storage && \
-      exit 0;"
+    command:
+      - s3api
+      - put-bucket-cors
+      - --endpoint-url=http://garage:9000
+      - --bucket=meet-media-storage
+      - '--cors-configuration={"CORSRules": [{"AllowedOrigins": ["http://localhost:3000"], "AllowedMethods": ["GET", "HEAD", "PUT"], "AllowedHeaders": ["*"], "ExposeHeaders": ["ETag"]}]}'
 
   app-dev:
     build:
@@ -70,7 +78,7 @@ services:
         - postgresql
         - mailcatcher
         - redis
-        - createbuckets
+        - garage-cors
     extra_hosts:
       - "127.0.0.1.nip.io:host-gateway"
     networks:
@@ -110,7 +118,7 @@ services:
       - postgresql
       - redis
       - livekit
-      - minio
+      - garage
 
   celery:
     user: ${DOCKER_USER:-1000}
@@ -244,7 +252,7 @@ services:
       - /app/.venv
     depends_on:
       - livekit
-      - minio
+      - garage
     develop:
       watch:
         - action: rebuild
@@ -297,7 +305,7 @@ services:
     depends_on:
       - redis-summary
       - app-summary-dev
-      - minio
+      - garage
     develop:
       watch:
         - action: rebuild
@@ -317,7 +325,7 @@ services:
     depends_on:
       - redis-summary
       - app-summary-dev
-      - minio
+      - garage
     develop:
       watch:
         - action: rebuild
