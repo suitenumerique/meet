@@ -101,6 +101,7 @@ def generate_token(  # noqa: PLR0917
         room=room,
         room_join=True,
         room_admin=is_admin_or_owner,
+        room_create=is_admin_or_owner,
         can_update_own_metadata=False,
         can_publish=bool(sources),
         can_publish_sources=sources,
