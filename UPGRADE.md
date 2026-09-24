@@ -16,6 +16,31 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Local development: MinIO replaced by Garage
+
+The development stacks now use [Garage](https://garagehq.deuxfleurs.fr/) instead of MinIO as S3 storage . Garage keeps its own format in `data/media/meta` and `data/media/data` and cannot read what MinIO left there, so local recordings and files will be lost.
+
+To migrate a local environment:
+
+1. Stop the stack and remove its containers, including the former `minio` one: `docker compose down --remove-orphans`
+2. Optionally reclaim the space used by MinIO: `rm -rf data/media && make data/media`
+3. In your `env.d/development/*` files, replace `minio:9000` by `garage:9000`, the `meet` / `password` credentials by `meet-access-key` / `meet-secret-access-key`, and add `AWS_S3_REGION_NAME=local` (or delete these files and run `make create-env-files`)
+4. Run `make create-env-files` to generate `env.d/development/garage`, which holds a random RPC secret for Garage.
+5. Rebuild the images, since the summary and agent images now install boto3 instead of minio
+
+### Summary service and metadata collector: boto3 replaces the minio client
+
+The summary service and the metadata collector agent now talk to S3 through boto3 instead of the minio client, with the same settings.
+Requests are signed for `AWS_S3_REGION_NAME`. When it is not set, the region is still looked up from the bucket, but the fallbacks changed:
+
+Also:
+- Signed URLs to transcripts and summaries are now always path-style (`<endpoint>/<bucket>/<key>`), whereas the minio client used virtual-hosted-style URLs
+- The metadata collector now accepts `AWS_S3_ENDPOINT_URL` with or without a scheme, like the summary service: the scheme always follows `AWS_S3_SECURE_ACCESS`.
+
+### Helm chart: media services default to Garage
+
+The `meet` chart now defaults `serviceMedia.host` and `serviceMediaFiles.host` to `garage.meet.svc.cluster.local`, and the `upstream-vhost` annotation of `ingressMedia` and `ingressMediaFiles` to `garage.meet.svc.cluster.local:9000`. If you relied on the former `minio.meet.svc.cluster.local` defaults, set these values explicitly to your S3 service before upgrading, or recordings and files stop being served under `/media`.
+
 ## v1.30.0
 
 ### Removing S3 storage-event webhooks for recordings
