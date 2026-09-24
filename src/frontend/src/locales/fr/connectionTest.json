@@ -46,6 +46,9 @@
     "passedHint": "Votre navigateur, vos périphériques et votre réseau sont prêts pour une réunion.",
     "partial": "Test partiel",
     "partialHint": "Certaines vérifications ont été ignorées. Autorisez l'accès à votre caméra et à votre microphone pour les tester.",
+    "warning": "Connexion non optimale",
+    "warningHint": "Attention : vous n'êtes pas dans les conditions optimales pour accéder à l'outil. Vos flux ne transitent pas en UDP (repli sur un relais TURN en TCP ou TLS), ce qui peut dégrader la qualité audio et vidéo.",
+    "warningDocLink": "Documentation technique à destination de votre service informatique",
     "failed_one": "{{count}} vérification en échec",
     "failed_other": "{{count}} vérifications en échec",
     "failedHint": "Ouvrez les vérifications en échec pour voir le détail, puis transmettez le rapport à votre service informatique."
