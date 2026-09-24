@@ -77,7 +77,7 @@ class Settings(BaseSettings):
     summarize_queue_v2: str = "summarize-queue-v2"
     call_webhook_queue_v2: str = "call-webhook-queue-v2"
 
-    # Minio settings
+    # S3 settings
     aws_storage_bucket_name: str
     aws_s3_endpoint_url: str
     aws_s3_access_key_id: str

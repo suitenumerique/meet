@@ -31,6 +31,7 @@ and this project adheres to
 - ⬆️(addons) upgrade i18next from 26.4.0 to 26.4.1
 - 🔖(helm) release chart 0.0.28
 - ♻️(backend) decouple recording event handling from LiveKit egress statuses
+- ♻️(agents) replace the minio client by boto3
 
 ### Fixed
 
