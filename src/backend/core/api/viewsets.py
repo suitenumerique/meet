@@ -249,6 +249,18 @@ class RoomViewSet(
         Apply the user's default room preferences (access level and configuration)
         unless the request explicitly provides its own values.
         """
+        encryption_mode = serializer.validated_data.get(
+            "encryption_mode", models.EncryptionMode.NONE
+        )
+
+        if (
+            encryption_mode != models.EncryptionMode.NONE
+            and not settings.ENCRYPTION_ENABLED
+        ):
+            raise drf_exceptions.ValidationError(
+                {"encryption_mode": "Encryption is not enabled on this server."}
+            )
+
         user = self.request.user
         save_kwargs = {}
 
@@ -313,15 +325,20 @@ class RoomViewSet(
         """Start recording a room."""
 
         serializer = serializers.StartRecordingSerializer(data=request.data)
-
         if not serializer.is_valid():
             return drf_response.Response(
-                {"detail": "Invalid request."}, status=drf_status.HTTP_400_BAD_REQUEST
+                {"detail": "Invalid request."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
             )
 
         mode = serializer.validated_data["mode"]
         options = serializer.validated_data.get("options")
         room = self.get_object()
+
+        if room.is_encrypted:
+            raise drf_exceptions.ValidationError(
+                {"detail": "Recording is unavailable in encrypted rooms."}
+            )
 
         try:
             with transaction.atomic():
@@ -644,6 +661,11 @@ class RoomViewSet(
         """
 
         room = self.get_object()
+
+        if room.is_encrypted:
+            raise drf_exceptions.ValidationError(
+                {"detail": "Subtitles are unavailable in encrypted rooms."}
+            )
 
         try:
             SubtitleService().start_subtitle(room)

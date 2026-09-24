@@ -978,6 +978,10 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    ENCRYPTION_ENABLED = values.BooleanValue(
+        False, environ_name="ENCRYPTION_ENABLED", environ_prefix=None
+    )
+
     # External Applications
     APPLICATION_ENABLED = values.BooleanValue(
         False, environ_name="APPLICATION_ENABLED", environ_prefix=None
