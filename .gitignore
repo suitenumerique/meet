@@ -89,3 +89,4 @@ docker/livekit/rootCA.pem
 
 # NixOS
 .devenv
+.pre-commit-config.yaml
