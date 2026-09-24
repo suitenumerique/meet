@@ -48,6 +48,12 @@ and this project adheres to
 - 🩹(frontend) notify participants when a recording fails or is aborted
 - 🔒️(frontend) fix HIGH CVE-2026-93990 in libexpat
 
+### Changed
+
+- ⬆️(backend) update python dependencies
+- ⬆️(summary) update python dependencies
+- ⬆️(agents) update python dependencies
+
 ## [1.31.0] - 2026-09-08
 
 ### Added
