@@ -16,6 +16,7 @@ and this project adheres to
 
 ### Changed
 
+- 🔥(backend) remove unused API viewset and permission helpers
 - 🔊(backend) pin the dockerflow logger level to WARNING
 - 🚑️(summary) serve health endpoints with the dockerflow router
 - ♻️(backend) serve the dockerflow views early in the middleware stack
