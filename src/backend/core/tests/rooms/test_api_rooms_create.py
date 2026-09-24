@@ -312,3 +312,59 @@ def test_api_rooms_create_authenticated_blank_user_default_access_level():
     assert response.status_code == 201
     room = Room.objects.get()
     assert room.access_level == settings.RESOURCE_DEFAULT_ACCESS_LEVEL
+
+
+def test_api_rooms_create_throttled(settings):
+    """Excess requests are rejected and create no room."""
+    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["room_creation"] = "2/minute"
+
+    client = APIClient()
+    client.force_login(UserFactory())
+
+    for index in range(2):
+        response = client.post("/api/v1.0/rooms/", {"name": f"Room {index}"})
+        assert response.status_code == 201
+
+    response = client.post("/api/v1.0/rooms/", {"name": "Blocked room"})
+    assert response.status_code == 429
+    assert 0 < int(response["Retry-After"]) <= 60
+    assert Room.objects.count() == 2
+
+
+def test_api_rooms_create_throttle_per_user(settings):
+    """Users sharing an IP have independent creation limits."""
+    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["room_creation"] = "2/minute"
+
+    client = APIClient()
+    client.force_login(UserFactory())
+    for index in range(2):
+        response = client.post("/api/v1.0/rooms/", {"name": f"First user room {index}"})
+        assert response.status_code == 201
+
+    response = client.post("/api/v1.0/rooms/", {"name": "Blocked room"})
+    assert response.status_code == 429
+
+    client.force_login(UserFactory())
+    response = client.post("/api/v1.0/rooms/", {"name": "Second user room"})
+    assert response.status_code == 201
+
+
+def test_api_rooms_create_throttle_does_not_limit_other_actions(settings):
+    """Exhausting creation capacity leaves listing and updating available."""
+    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["room_creation"] = "2/minute"
+
+    client = APIClient()
+    client.force_login(UserFactory())
+    for index in range(2):
+        response = client.post("/api/v1.0/rooms/", {"name": f"Room {index}"})
+        assert response.status_code == 201
+    room_id = response.json()["id"]
+
+    assert client.post("/api/v1.0/rooms/", {"name": "Blocked room"}).status_code == 429
+    assert client.get("/api/v1.0/rooms/").status_code == 200
+    assert (
+        client.patch(
+            f"/api/v1.0/rooms/{room_id}/", {"name": "Renamed room"}
+        ).status_code
+        == 200
+    )
