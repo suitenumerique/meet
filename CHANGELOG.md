@@ -28,7 +28,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade posthog-js from 1.414.0 to 1.418.10
 - ⬆️(addons) upgrade i18next from 26.3.6 to 26.4.0
 - ⬆️(frontend) upgrade humanize-duration from 3.33.2 to 3.34.1
-- ⬆️(addons) upgrade i18next from 26.4.0 to 26.4.1
+- ⬆️(addons) upgrade i18next from 26.4.0 to 26.4.2
 - 🔖(helm) release chart 0.0.28
 - ♻️(backend) decouple recording event handling from LiveKit egress statuses
 
