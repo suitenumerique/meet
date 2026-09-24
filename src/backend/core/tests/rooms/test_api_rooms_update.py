@@ -440,7 +440,7 @@ def test_api_rooms_update_public_not_allowed(mock_update_metadata, settings):
 
 @patch.object(RoomManagement, "sync_room_metadata")
 @override_settings(ALLOW_PUBLIC_ROOMS=False)
-def test_api_rooms_update_stores_the_level_it_is_given(mock_sync_room_metadata):
+def test_api_rooms_update_stores_the_level_it_is_given(_mock_sync_room_metadata):
     """Patching a level the admin chose stores it, the level in force included."""
     user = UserFactory()
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC, users=[(user, "owner")])
