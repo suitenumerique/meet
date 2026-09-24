@@ -12,10 +12,6 @@ from ..services.participants_management import (
     ParticipantsManagementException,
 )
 
-ACTION_FOR_METHOD_TO_PERMISSION = {
-    "versions_detail": {"DELETE": "versions_destroy", "GET": "versions_retrieve"}
-}
-
 
 class IsAuthenticated(permissions.BasePermission):
     """
@@ -25,15 +21,6 @@ class IsAuthenticated(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return bool(request.auth) or request.user.is_authenticated
-
-
-class IsAuthenticatedOrSafe(IsAuthenticated):
-    """Allows access to authenticated users (or anonymous users but only on safe methods)."""
-
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return super().has_permission(request, view)
 
 
 class IsSelf(IsAuthenticated):
