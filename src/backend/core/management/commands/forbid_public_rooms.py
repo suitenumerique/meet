@@ -4,6 +4,10 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from core import models
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+)
 
 
 class Command(BaseCommand):
@@ -49,6 +53,7 @@ class Command(BaseCommand):
             self.stdout.write("Nothing changed.")
             return
 
+        moved_ids = {str(room_id) for room_id in rooms.values_list("id", flat=True)}
         moved_at = timezone.now()
         room_count = rooms.update(
             access_level=models.RoomAccessLevel.TRUSTED, updated_at=moved_at
@@ -57,3 +62,28 @@ class Command(BaseCommand):
         self.stdout.write(
             f"Moved {room_count} room(s) and cleared {user_count} user default(s)."
         )
+
+        if moved_ids:
+            self.push_level_to_live_rooms(moved_ids)
+
+    def push_level_to_live_rooms(self, moved_ids):
+        """Tell the meetings running in the moved rooms their new level.
+
+        Their level changed when the instance restarted with public rooms
+        forbidden; this push is what tells the meetings running then. Only
+        the rooms LiveKit holds right now are pushed, found in one listing,
+        since an instance can hold far more rooms than are live.
+        """
+        try:
+            live_ids = RoomManagement.list_live_room_names()
+        except RoomManagementException:
+            self.stderr.write(
+                "Could not reach LiveKit: meetings running now show their "
+                "new level once reloaded."
+            )
+            return
+
+        live_rooms = models.Room.objects.filter(id__in=moved_ids & live_ids)
+        for room in live_rooms:
+            RoomManagement.sync_room_metadata(room)
+        self.stdout.write(f"Pushed the new level to {len(live_rooms)} live meeting(s).")

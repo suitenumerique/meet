@@ -1,16 +1,23 @@
 """Test the command that moves public rooms to trusted and clears the defaults."""
 
+from unittest.mock import patch
+
 from django.core.management import call_command
 
 import pytest
 
 from core.factories import RoomFactory, UserFactory
 from core.models import RoomAccessLevel
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+)
 
 pytestmark = pytest.mark.django_db
 
 
-def test_forbid_public_rooms_moves_public_rows(settings, capsys):
+@patch.object(RoomManagement, "list_live_room_names", return_value=set())
+def test_forbid_public_rooms_moves_public_rows(_mock_list, settings, capsys):
     """Where public rooms are forbidden, the command moves them and reports the counts."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     user = UserFactory(default_room_access_level=RoomAccessLevel.PUBLIC)
@@ -69,3 +76,46 @@ def test_forbid_public_rooms_touches_nothing_otherwise(
     assert room.access_level == access_level
     assert user.default_room_access_level == access_level
     assert (room.updated_at, user.updated_at) == (room_updated_at, user_updated_at)
+
+
+@patch.object(RoomManagement, "update_metadata")
+def test_forbid_public_rooms_pushes_the_level_to_live_rooms(
+    mock_update_metadata, settings, capsys
+):
+    """A moved room LiveKit holds gets its new level; a room not live is skipped."""
+    live_room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    settings.ALLOW_PUBLIC_ROOMS = False
+
+    with patch.object(
+        RoomManagement, "list_live_room_names", return_value={str(live_room.id)}
+    ):
+        call_command("forbid_public_rooms")
+
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(live_room.id),
+        metadata={
+            "configuration": live_room.configuration,
+            "access_level": RoomAccessLevel.TRUSTED,
+        },
+    )
+    assert "Pushed the new level to 1 live meeting(s)." in capsys.readouterr().out
+
+
+@patch.object(
+    RoomManagement,
+    "list_live_room_names",
+    side_effect=RoomManagementException("Could not list rooms"),
+)
+def test_forbid_public_rooms_moves_rows_when_livekit_is_down(
+    _mock_list, settings, capsys
+):
+    """A LiveKit that cannot be reached leaves the move done and says so."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    settings.ALLOW_PUBLIC_ROOMS = False
+
+    call_command("forbid_public_rooms")
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.TRUSTED
+    assert "Could not reach LiveKit" in capsys.readouterr().err

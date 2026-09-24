@@ -120,6 +120,27 @@ class RoomManagement:
             await lkapi.aclose()
 
     @classmethod
+    @async_to_sync
+    async def list_live_room_names(cls):
+        """Name every room LiveKit holds right now, in one request.
+
+        Raises:
+            RoomManagementException: the listing fails.
+        """
+
+        lkapi = utils.create_livekit_client()
+
+        try:
+            response = await lkapi.room.list_rooms(ListRoomsRequest())
+        except TwirpError as e:
+            logger.exception("Unexpected error listing LiveKit rooms")
+            raise RoomManagementException("Could not list rooms") from e
+        finally:
+            await lkapi.aclose()
+
+        return {room.name for room in response.rooms}
+
+    @classmethod
     def sync_room_metadata(cls, room):
         """Push a room's configuration and access level to its LiveKit room metadata.
 
