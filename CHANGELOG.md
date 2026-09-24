@@ -46,6 +46,7 @@ and this project adheres to
 - 🔒(backend) upgrade base image to python:3.13.5-alpine3.24
 - 🐛(backend) handle failed and aborted egresses
 - 🩹(frontend) notify participants when a recording fails or is aborted
+- 🔒️(frontend) fix HIGH CVE-2026-93990 in libexpat
 
 ## [1.31.0] - 2026-09-08
 
