@@ -57,7 +57,8 @@ RUN npx webpack --mode production
 FROM nginxinc/nginx-unprivileged:1.30.4-alpine3.24 AS frontend-production
 
 USER root
-RUN apk del curl
+RUN apk upgrade --no-cache libexpat && \
+    apk del curl
 USER nginx
 
 USER nginx
