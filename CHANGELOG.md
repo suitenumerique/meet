@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🔒️(backend) fix CVE-2026-73228 and CVE-2026-73229 in drf
+
 ## [1.32.0] - 2026-09-25
 
 ### Added
