@@ -118,7 +118,7 @@ export function CollaborativeWhiteboard() {
     if (!svgRef.current) return
     svgRef.current.setPointerCapture(event.pointerId)
     activeStroke.current = {
-      id: `${room.localParticipant.identity}-${Date.now()}-${Math.random()}`,
+      id: `${room.localParticipant.identity}-${crypto.randomUUID()}`,
       color,
       points: [getPoint(event)],
     }
