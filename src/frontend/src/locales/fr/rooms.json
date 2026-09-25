@@ -423,7 +423,8 @@
       "screenRecording": "Enregistrer",
       "admin": "Commandes de l'organisateur",
       "tools": "Outils de réunion",
-      "info": "Informations sur la réunion"
+      "info": "Informations sur la réunion",
+      "whiteboard": "Tableau blanc"
     },
     "content": {
       "participants": "les participants",
@@ -433,7 +434,8 @@
       "screenRecording": "enregistrer",
       "admin": "commandes de l'organisateur",
       "tools": "outils de réunion",
-      "info": "informations sur la réunion"
+      "info": "informations sur la réunion",
+      "whiteboard": "tableau blanc"
     },
     "closeButton": "Masquer {{content}} (Échap)",
     "escapeHint": "Appuyez sur Échap pour fermer"
@@ -454,6 +456,15 @@
       "screenRecording": {
         "title": "Enregistrer",
         "body": "Enregistrer la réunion en vidéo."
+      },
+      "whiteboard": {
+        "title": "Tableau blanc",
+        "body": "Dessinez et réfléchissez ensemble en temps réel.",
+        "description": "Dessinez ensemble. Le tableau est partagé avec tous les participants.",
+        "waiting": "En attente du tableau partagé…",
+        "color": "Choisir une couleur",
+        "clear": "Effacer le tableau",
+        "canvas": "Zone du tableau blanc collaboratif"
       }
     }
   },

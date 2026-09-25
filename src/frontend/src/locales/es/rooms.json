@@ -423,7 +423,8 @@
       "screenRecording": "Grabar",
       "admin": "Controles del organizador",
       "tools": "Herramientas de reunión",
-      "info": "Información sobre la reunión"
+      "info": "Información sobre la reunión",
+      "whiteboard": "Pizarra"
     },
     "content": {
       "participants": "los participantes",
@@ -433,7 +434,8 @@
       "screenRecording": "grabar",
       "admin": "controles del organizador",
       "tools": "herramientas de reunión",
-      "info": "información sobre la reunión"
+      "info": "información sobre la reunión",
+      "whiteboard": "pizarra"
     },
     "closeButton": "Ocultar {{content}}"
   },
@@ -453,6 +455,15 @@
       "screenRecording": {
         "title": "Grabar",
         "body": "Grabar la reunión en vídeo."
+      },
+      "whiteboard": {
+        "title": "Pizarra",
+        "body": "Dibujad e intercambiad ideas en tiempo real.",
+        "description": "Dibujad juntos. La pizarra se comparte con todas las personas de la reunión.",
+        "waiting": "Esperando a que se comparta la pizarra…",
+        "color": "Elegir color",
+        "clear": "Borrar pizarra",
+        "canvas": "Lienzo de pizarra colaborativa"
       }
     }
   },
