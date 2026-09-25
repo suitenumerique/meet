@@ -11,6 +11,7 @@ and this project adheres to
 ### Fixed
 
 - 🔒️(backend) fix CVE-2026-73228 and CVE-2026-73229 in drf
+- 🔒️(agent) fix CRITICAL CVE-2026-63072 / CVE-2026-63073 in libssl3t64
 
 ## [1.32.0] - 2026-09-25
 
