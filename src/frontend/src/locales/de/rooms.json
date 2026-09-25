@@ -772,7 +772,14 @@
     "currentZoomLevel": "Zoom {{level}} %",
     "panHint": "Zoom {{level}} %. Mit der Maus ziehen oder den Fokus zurück auf die Bildschirmfreigabe setzen und mit den Pfeiltasten im Bild navigieren.",
     "fullScreenEntered": "Vollbild aktiviert",
-    "fullScreenExited": "Vollbild deaktiviert"
+    "fullScreenExited": "Vollbild deaktiviert",
+    "openInSeparateWindow": "In eigenem Fenster öffnen",
+    "closeSeparateWindow": "Bildschirmfreigabe zurück in die Besprechung holen",
+    "separateWindowOpened": "Bildschirmfreigabe in einem eigenen Fenster geöffnet",
+    "separateWindowClosed": "Bildschirmfreigabe zurück in die Besprechung geholt",
+    "separateWindowBlocked": "Der Browser hat das eigene Fenster blockiert. Erlauben Sie Pop-ups für diese Website und versuchen Sie es erneut.",
+    "separateWindowTitle": "Bildschirmfreigabe von {{name}}",
+    "separateWindowLabel": "Bildschirmfreigabe von {{name}} in einem eigenen Fenster"
   },
   "shortcutsPanel": {
     "title": "Tastenkürzel",

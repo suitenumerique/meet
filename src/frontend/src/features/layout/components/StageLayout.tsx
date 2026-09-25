@@ -12,6 +12,10 @@ import {
 import { Track } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
+import {
+  closeScreenSharePopout,
+  screenSharePopoutStore,
+} from '@/stores/screenSharePopout'
 import { useEffect, useRef } from 'react'
 
 export const StageLayout = () => {
@@ -31,8 +35,26 @@ export const StageLayout = () => {
     .filter((track) => track.publication.source === Track.Source.ScreenShare)
 
   const { pinnedTrackRef } = useSnapshot(layoutStore)
+  const { entry: popoutEntry } = useSnapshot(screenSharePopoutStore)
+  const detachedSid = popoutEntry?.trackSid
 
-  const carouselTracks = tracks.filter(
+  // The popped-out share stays mounted below, but out of the grid and the
+  // carousel. It comes back with the other tracks when its window closes.
+  const visibleTracks = detachedSid
+    ? tracks.filter(
+        (track) =>
+          !isTrackReference(track) || track.publication.trackSid !== detachedSid
+      )
+    : tracks
+
+  const detachedTrack = detachedSid
+    ? tracks.find(
+        (track) =>
+          isTrackReference(track) && track.publication.trackSid === detachedSid
+      )
+    : undefined
+
+  const carouselTracks = visibleTracks.filter(
     (track) => !isEqualTrackRef(track, pinnedTrackRef)
   )
 
@@ -85,11 +107,36 @@ export const StageLayout = () => {
   ])
   /* eslint-enable react-hooks/exhaustive-deps */
 
+  const screenShareKey = screenShareTracks
+    .map((track) => track.publication.trackSid)
+    .join()
+
+  // The popped-out tile is kept mounted below, so nothing else notices when
+  // the share stops. Close the window here instead.
+  useEffect(() => {
+    const entry = screenSharePopoutStore.entry
+    if (!entry) return
+    const alive = screenShareTracks.some(
+      (track) => track.publication.trackSid === entry.trackSid
+    )
+    if (!alive) closeScreenSharePopout({ restorePin: false })
+    // screenShareKey is the sid list; the array itself is new every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screenShareKey])
+
   return (
     <>
+      {/* Out of the layout, but still mounted: this subtree is what renders
+          into the separate window. hidden also takes it off the a11y tree
+          and out of the tab order. */}
+      {detachedTrack && (
+        <div hidden>
+          <ParticipantTile trackRef={detachedTrack} />
+        </div>
+      )}
       {!pinnedTrackRef ? (
         <div className="lk-grid-layout-wrapper" style={{ height: 'auto' }}>
-          <GridLayout tracks={tracks} style={{ padding: 0 }}>
+          <GridLayout tracks={visibleTracks} style={{ padding: 0 }}>
             <ParticipantTile />
           </GridLayout>
         </div>
