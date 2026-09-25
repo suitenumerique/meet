@@ -62,6 +62,7 @@ def test_request_entry_anonymous(settings):
         "status": "waiting",
         "color": "mocked-color",
         "entered_at": "2025-01-01T10:00:00+00:00",
+        "is_authenticated": False,
         "livekit": None,
     }
 
@@ -75,9 +76,12 @@ def test_request_entry_anonymous(settings):
 
 
 @freeze_time("2025-01-01 10:00:00")
-def test_request_entry_authenticated_user(settings):
+@pytest.mark.parametrize("encryption_mode", ["none", "basic"])
+def test_request_entry_authenticated_user(settings, encryption_mode):
     """Authenticated users should be allowed to request entry."""
-    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    room = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED, encryption_mode=encryption_mode
+    )
     user = UserFactory()
     client = APIClient()
     client.force_login(user)
@@ -113,6 +117,7 @@ def test_request_entry_authenticated_user(settings):
         "status": "waiting",
         "color": "mocked-color",
         "entered_at": "2025-01-01T10:00:00+00:00",
+        "is_authenticated": True,
         "livekit": None,
     }
 
@@ -189,6 +194,7 @@ def test_request_entry_with_existing_participants(settings):
         "entered_at": "2025-01-01T10:00:00+00:00",
         "status": "waiting",
         "color": "mocked-color",
+        "is_authenticated": False,
         "livekit": None,
     }
 
@@ -243,6 +249,7 @@ def test_request_entry_public_room(settings):
         "entered_at": "2025-01-01T10:00:00+00:00",
         "status": "accepted",
         "color": "mocked-color",
+        "is_authenticated": False,
         "livekit": {"token": "test-token"},
     }
 
@@ -297,6 +304,7 @@ def test_request_entry_authenticated_user_public_room(settings):
         "entered_at": "2025-01-01T10:00:00+00:00",
         "status": "accepted",
         "color": "mocked-color",
+        "is_authenticated": True,
         "livekit": {"token": "test-token"},
     }
 
@@ -354,6 +362,7 @@ def test_request_entry_waiting_participant_public_room(settings):
         "status": "accepted",
         "color": "#123456",
         "entered_at": "2025-01-01T10:00:00+00:00",
+        "is_authenticated": False,
         "livekit": {"token": "test-token"},
     }
 
@@ -623,6 +632,7 @@ def test_list_waiting_participants_success(settings):
                 "username": "user2",
                 "status": "waiting",
                 "color": "#654321",
+                "is_authenticated": False,
                 "entered_at": "2025-01-01T10:05:00+00:00",
             },
             {
@@ -630,6 +640,7 @@ def test_list_waiting_participants_success(settings):
                 "username": "user1",
                 "status": "waiting",
                 "color": "#123456",
+                "is_authenticated": False,
                 "entered_at": "2025-01-01T10:00:00+00:00",
             },
         ]

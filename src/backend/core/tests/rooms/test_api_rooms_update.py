@@ -410,3 +410,24 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata, exception):
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
+
+
+@pytest.mark.parametrize(
+    "access_level", [RoomAccessLevel.PUBLIC, RoomAccessLevel.TRUSTED]
+)
+def test_api_rooms_update_encrypted_access_rejected(access_level):
+    """API updates cannot change an encrypted room away from restricted access."""
+    room = RoomFactory(encryption_mode="basic")
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/rooms/{room.id}/", {"access_level": access_level}
+    )
+
+    assert response.status_code == 400
+    assert "access_level" in response.json()
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED

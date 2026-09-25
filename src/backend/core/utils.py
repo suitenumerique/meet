@@ -34,6 +34,9 @@ from livekit.api import (  # pylint: disable=E0611
     TwirpError,
     VideoGrants,
 )
+from livekit.protocol.room import RoomConfiguration  # pylint: disable=E0611
+
+from core.enums import EncryptionMode
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +72,7 @@ def generate_token(  # noqa: PLR0917
     role: Optional[str] = None,
     participant_id: Optional[str] = None,
     ttl: Optional[timedelta] = None,
+    encryption_mode: str = "none",
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -91,10 +95,8 @@ def generate_token(  # noqa: PLR0917
     """
 
     is_admin_or_owner = role in ("owner", "administrator")
-    if is_admin_or_owner:
-        sources = settings.LIVEKIT_DEFAULT_SOURCES
 
-    if sources is None:
+    if is_admin_or_owner or sources is None:
         sources = settings.LIVEKIT_DEFAULT_SOURCES
 
     video_grants = VideoGrants(
@@ -141,6 +143,14 @@ def generate_token(  # noqa: PLR0917
     if ttl is not None:
         token = token.with_ttl(ttl)
 
+    if encryption_mode != EncryptionMode.NONE:
+        token = token.with_room_config(
+            RoomConfiguration(
+                name=room,
+                metadata=json.dumps({"encryption_mode": encryption_mode}),
+            )
+        )
+
     return token.to_jwt()
 
 
@@ -152,6 +162,7 @@ def generate_livekit_config(  # noqa: PLR0917
     color: Optional[str] = None,
     configuration: Optional[dict] = None,
     participant_id: Optional[str] = None,
+    encryption_mode: str = "none",
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -184,6 +195,7 @@ def generate_livekit_config(  # noqa: PLR0917
             sources=sources,
             role=role,
             participant_id=participant_id,
+            encryption_mode=encryption_mode,
         ),
     }
 
