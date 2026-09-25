@@ -102,3 +102,22 @@ class RoomSerializer(serializers.ModelSerializer):
         validated_data.setdefault("configuration", {})
 
         return super().create(validated_data)
+
+
+class GrantAccessSerializer(BaseValidationOnlySerializer):
+    """Validate a request to grant a delegate administrator/member access to a room.
+
+    The delegate is identified by email so integrations can nominate a user
+    without knowing their internal user id. If the email doesn't match an
+    existing account, ProvisionalUserService creates a placeholder that is
+    claimed on the delegate's first OIDC login.
+    """
+
+    email = serializers.EmailField(write_only=True)
+    role = serializers.ChoiceField(
+        choices=[
+            (models.RoleChoices.ADMIN, "Administrator"),
+            (models.RoleChoices.MEMBER, "Member"),
+        ],
+        default=models.RoleChoices.ADMIN,
+    )
