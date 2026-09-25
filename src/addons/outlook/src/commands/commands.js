@@ -1,5 +1,5 @@
 /* global Office */
-const { APP_NAME } = require("../common/index");
+const { APP_NAME, POLYCOM_ENABLED } = require("../common/index");
 const { createRoom, initSession } = require("../common/api");
 const { startPolling } = require("../common/polling");
 const { saveSession, loadSession } = require("../common/session");
@@ -50,7 +50,7 @@ function _doInsertMeetingLink(event, session) {
 
   Promise.all([createRoom(session), getIsHtmlBody(item)])
     .then(([data, isHtml]) => {
-      const { url, text } = buildMeetingMessage(data, isHtml);
+      const { url, text } = buildMeetingMessage(data, isHtml, POLYCOM_ENABLED);
       const coercionType = isHtml ? Office.CoercionType.Html : Office.CoercionType.Text;
 
       return new Promise((resolve, reject) => {

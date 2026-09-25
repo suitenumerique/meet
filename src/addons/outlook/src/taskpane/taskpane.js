@@ -1,5 +1,5 @@
 /* global Office */
-const { APP_NAME, FEEDBACK_FORM } = require("../common");
+const { APP_NAME, FEEDBACK_FORM, POLYCOM_ENABLED } = require("../common");
 const { applyAppName, getIsHtmlBody } = require("../common/helpers");
 const { initSession, createRoom } = require("../common/api");
 const { startPolling } = require("../common/polling");
@@ -117,7 +117,7 @@ function generateMeetingLink() {
 
   Promise.all([createRoom(session), getIsHtmlBody(item)])
     .then(([data, isHtml]) => {
-      const { url, text } = buildMeetingMessage(data, isHtml);
+      const { url, text } = buildMeetingMessage(data, isHtml, POLYCOM_ENABLED);
       const coercionType = isHtml ? Office.CoercionType.Html : Office.CoercionType.Text;
 
       return new Promise((resolve, reject) => {

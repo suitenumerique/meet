@@ -67,7 +67,7 @@ function buildPolycomToken(sipNumber, isWeb, domain) {
 }
 
 // todo - escape html / link
-function buildMeetingMessage(data, isWeb) {
+function buildMeetingMessage(data, isWeb, polycomEnabled = false) {
   if (!data?.url) {
     throw new Error("buildMeetingMessage: missing url in data");
   }
@@ -84,7 +84,7 @@ function buildMeetingMessage(data, isWeb) {
   const phoneFr = t("meeting_message.phone_fr", { phone });
   const pinCode = t("meeting_message.pin_code", { pin });
 
-  const sipFromPin = data.telephony?.pin_code ? String(data.telephony.pin_code).replace(/\s+/g, "") : "";
+  const sipFromPin = polycomEnabled && data.telephony?.pin_code ? String(data.telephony.pin_code).replace(/\s+/g, "") : "";
   const domain = new URL(BASE_URL).hostname;
   const polycomContent = sipFromPin ? buildPolycomToken(sipFromPin, isWeb, domain) : "";
 
