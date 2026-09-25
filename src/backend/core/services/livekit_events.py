@@ -8,6 +8,7 @@ from enum import Enum
 from logging import getLogger
 
 from django.conf import settings
+from django.utils import timezone
 
 from livekit import api
 
@@ -270,12 +271,20 @@ class LiveKitEventsService:
             )
             raise ActionFailedError("Failed to process room started event") from e
 
-        try:
-            room = models.Room.objects.get(id=room_id)
-        except models.Room.DoesNotExist as err:
-            raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
+        room_updated_count = models.Room.objects.filter(pk=room_id).update(
+            last_started_at=timezone.now()
+        )
+        if not room_updated_count:
+            raise ActionFailedError(f"Room with ID {room_id} does not exist")
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
+            try:
+                room = models.Room.objects.get(pk=room_id)
+            except models.Room.DoesNotExist as err:
+                raise ActionFailedError(
+                    f"Room with ID {room_id} does not exist"
+                ) from err
+
             try:
                 self.sip_management.ensure_dispatch_rule(room)
             except SIPException as e:

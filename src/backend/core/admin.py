@@ -279,9 +279,16 @@ class RoomAdmin(admin.ModelAdmin):
 
     inlines = (ResourceAccessInline,)
     search_fields = ["name", "slug", "=id"]
-    list_display = ["name", "slug", "access_level", "get_owner", "created_at"]
-    list_filter = ["access_level", "created_at"]
-    readonly_fields = ["id", "created_at", "updated_at"]
+    list_display = [
+        "name",
+        "slug",
+        "access_level",
+        "get_owner",
+        "created_at",
+        "last_started_at",
+    ]
+    list_filter = ["access_level", "created_at", "last_started_at"]
+    readonly_fields = ["id", "created_at", "updated_at", "last_started_at"]
 
     def get_queryset(self, request):
         """Optimize queries by prefetching related access and user data to avoid N+1 queries."""

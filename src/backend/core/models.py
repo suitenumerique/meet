@@ -426,6 +426,13 @@ class Room(Resource):
         verbose_name=_("Room PIN code"),
         help_text=_("Unique n-digit code that identifies this room in telephony mode."),
     )
+    last_started_at = models.DateTimeField(
+        verbose_name=_("last started at"),
+        help_text=_("date and time at which the room was last started"),
+        blank=True,
+        null=True,
+        editable=False,
+    )
 
     class Meta:
         db_table = "meet_room"

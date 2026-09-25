@@ -16,6 +16,20 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Purging inactive rooms
+
+Rooms now keep track of the last time they were started (`last_started_at`), fed by LiveKit's `room_started` webhook. A new `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for `ROOM_INACTIVITY_DELETION_DAYS` days. See [the room purge documentation](docs/features/room-purge.md).
+
+- The feature is **disabled by default**: nothing is deleted unless you set `ROOM_INACTIVITY_DELETION_DAYS`.
+- The migration marks every existing room as started at the time of the upgrade, so no existing room can be purged before a full inactivity period has elapsed after upgrading.
+- Rooms holding a recording their users may still access are kept: any recording, or, when `RECORDING_EXPIRATION_DAYS` is set, a recording created within that window.
+- Inactivity is measured from LiveKit's `room_started` webhook: if it is not delivered to your backend, rooms in daily use look inactive and get purged.
+- When a room is purged, all it's configuration and access rights are also deleted. Its slug becomes available again and can be reused when a meeting is created from that same URL.
+
+* With `ALLOW_UNREGISTERED_ROOMS=false`, only an authenticated user can navigate to a previously existing link after the room has been purged. Doing so recreates the room in the database with a fresh configuration, with that user associated with it and granted admin rights.
+
+* With `ALLOW_UNREGISTERED_ROOMS=true`, any user can reopen the purged room by navigating to the same URL. In that case, the room is created dynamically and no corresponding room entry is persisted in the database.
+
 ## v1.30.0
 
 ### Removing S3 storage-event webhooks for recordings
