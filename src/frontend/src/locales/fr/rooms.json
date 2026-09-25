@@ -68,6 +68,7 @@
     "usernameLabel": "Votre nom",
     "participants": {
       "empty": "Personne n'a encore rejoint",
+      "started": "La réunion a commencé",
       "count_one": "1 personne est déjà là",
       "count_other": "{{count}} personnes sont déjà là",
       "more_one": "1 autre",

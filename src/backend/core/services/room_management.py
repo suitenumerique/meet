@@ -2,12 +2,12 @@
 
 # pylint: disable=no-name-in-module
 
-import asyncio
 import json
 from logging import getLogger
 from typing import Dict, Optional
 
 from django.conf import settings
+from django.core.cache import cache
 
 import aiohttp
 from asgiref.sync import async_to_sync
@@ -108,27 +108,50 @@ class RoomManagement:
             await lkapi.aclose()
 
     @classmethod
-    @async_to_sync
-    async def get_participants(cls, room_name: str) -> dict:
+    def get_participants(cls, room_name: str) -> dict:
         """Count the people in a LiveKit room and name the ones who gave a name.
 
         The two can differ: someone who joined without a display name is
-        counted but not named.
+        counted but not named. The answer is cached for
+        ROOM_PARTICIPANTS_CACHE_SECONDS and one caller at a time refreshes it,
+        so a meeting many are waiting on costs LiveKit one call per hold.
 
         Raises:
             RoomManagementException: the room could not be read.
         """
+        hold = settings.ROOM_PARTICIPANTS_CACHE_SECONDS
+        key = f"room_participants_{room_name:s}"
 
+        # The lock holder refreshes the answer; the others read it, and ask
+        # LiveKit themselves only while there is none yet.
+        refresh = cache.add(f"{key:s}_lock", True, hold)
+        answer = cache.get(key)
+
+        if answer is None or refresh:
+            try:
+                answer = cls._list_participants(room_name)
+            except RoomManagementException:
+                # Cached as well: an unreachable LiveKit is when it can least
+                # afford one call per poll.
+                answer = False
+            # Outlives the lock, so the callers it turns away have an answer.
+            cache.set(key, answer, hold * 3)
+
+        if answer is False:
+            raise RoomManagementException("Could not list participants")
+
+        return answer
+
+    @staticmethod
+    @async_to_sync
+    async def _list_participants(room_name: str) -> dict:
+        """Ask LiveKit who is in a room, leaving out bots and recorders."""
         lkapi = utils.create_livekit_client()
 
         try:
-            # The timeout has to wrap the call: the SDK passes timeout=None to
-            # aiohttp, so the client's own is ignored and a LiveKit that goes
-            # quiet holds one of the three workers until it answers.
-            async with asyncio.timeout(settings.ROOM_PARTICIPANTS_TIMEOUT_SECONDS):
-                response = await lkapi.room.list_participants(
-                    ListParticipantsRequest(room=room_name)
-                )
+            response = await lkapi.room.list_participants(
+                ListParticipantsRequest(room=room_name)
+            )
 
         except TwirpError as e:
             if e.code == "not_found":
@@ -139,10 +162,8 @@ class RoomManagement:
             logger.exception("Unexpected error listing participants of %s", room_name)
             raise RoomManagementException("Could not list participants") from e
 
-        # An unreachable LiveKit would otherwise surface as a 500 on every poll
-        # of the join screen, so it fails the same way as a refusal. Giving up
-        # raises TimeoutError, which is no kind of ClientError.
-        except (aiohttp.ClientError, TimeoutError) as e:
+        # Otherwise an unreachable LiveKit is a 500 on every poll.
+        except aiohttp.ClientError as e:
             logger.exception(
                 "Could not reach LiveKit listing participants of %s", room_name
             )

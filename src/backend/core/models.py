@@ -472,11 +472,6 @@ class Room(Resource):
     def is_joinable_by(self, user, role):
         """Check if a user can enter the room without waiting for approval.
 
-        A user can enter directly if:
-        1. The room is public (open to everyone)
-        2. The room has TRUSTED access level and the user is authenticated
-        3. The user has any role on the room
-
         `role` is the user's role on this room, which every caller has already
         resolved.
         """

@@ -7,7 +7,6 @@ from urllib.parse import unquote, urlparse
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.cache import cache
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.storage import default_storage
 from django.db import IntegrityError, transaction
@@ -19,7 +18,6 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from django_filters import rest_framework as django_filters
-from lasuite.drf.throttling import MonitoredScopedRateThrottle
 from rest_framework import (
     decorators,
     filters,
@@ -76,7 +74,10 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
-from core.services.room_management import RoomManagement
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+)
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
@@ -94,56 +95,6 @@ from .feature_flag import FeatureFlag
 # pylint: disable=too-many-ancestors
 
 logger = getLogger(__name__)
-
-
-def held_participants(livekit_room):
-    """Who is in the meeting, held briefly, refreshed by one caller at a time.
-
-    Whoever wins the window calls the media server, and everyone else keeps the
-    answer it replaces. A hold of zero stores nothing and asks every time.
-    """
-    hold = settings.ROOM_PARTICIPANTS_CACHE_SECONDS
-    answer_key = f"room_participants_{livekit_room:s}"
-
-    # Claimed before the answer is read, since a cold cache has none to keep.
-    mine = cache.add(f"{answer_key:s}_window", True, hold)
-    answer = cache.get(answer_key)
-
-    if answer is not None and not mine:
-        return answer
-
-    try:
-        answer = (
-            RoomManagement().get_participants(livekit_room),
-            drf_status.HTTP_200_OK,
-        )
-    except RoomManagementException:
-        # Held like any other answer: an unreachable media server is when it can
-        # least afford one call per browser.
-        answer = (
-            {"error": "Could not reach the meeting."},
-            drf_status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
-
-    # Outlives the window, so a refresh always has a copy to hand out.
-    cache.set(answer_key, answer, hold * 3)
-
-    return answer
-
-
-def unregistered_room_name(pk):
-    """The name to meet under when the database has no room for this address.
-
-    Anyone can type a name and meet under it, so nobody is checked here. A name
-    that looks like a room id is refused: rooms in the database meet under their
-    id, so such a name would open one of them to anyone.
-    """
-    slug = slugify(pk)
-
-    if not slug or utils.is_room_id(slug):
-        raise Http404
-
-    return slug
 
 
 class SerializerPerActionMixin:
@@ -229,9 +180,6 @@ class RoomViewSet(
 
     # pylint: disable=too-many-public-methods
 
-    # DRF refuses an @action keyword the class does not declare, and the
-    # participants action sets its own scope through the decorator.
-    throttle_scope = None
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
@@ -257,7 +205,11 @@ class RoomViewSet(
         except Http404:
             if not settings.ALLOW_UNREGISTERED_ROOMS:
                 raise
-            slug = unregistered_room_name(self.kwargs["pk"])
+            slug = slugify(self.kwargs["pk"])
+            # Registered rooms meet under their id, so a name reading as one
+            # would mint a token for that room's meeting.
+            if not slug or utils.is_room_id(slug):
+                raise
             username = request.query_params.get("username", None)
             data = {
                 "id": None,
@@ -358,51 +310,36 @@ class RoomViewSet(
         methods=["get"],
         url_path="participants",
         url_name="participants",
-        throttle_classes=[MonitoredScopedRateThrottle],
-        # ScopedRateThrottle reads this off the view. Drop it and every request
-        # is allowed, with nothing to say the endpoint went unthrottled.
-        throttle_scope="participants",
+        throttle_classes=[throttling.ParticipantsUserRateThrottle],
     )
     def participants(self, request, pk=None):  # pylint: disable=unused-argument
-        """Return how many people are in the room's meeting, and who they are.
+        """Tell who is in the room's meeting, for its join screen.
 
-        Only available to users with access to the room, anonymous included.
-        Anyone else gets the same answer as a room that does not exist.
-
-        `?names=<n>` asks for at most n names. Without it the answer names
-        everyone, and `count` is the whole meeting either way.
+        Only a signed-in user the room admits without approval is told; anyone
+        else gets the answer a missing room gets. Up to
+        ROOM_PARTICIPANTS_NAMES_LIMIT people are counted and named; past it the
+        count is null, so no request can read the roster of a large meeting.
         """
+        room = self.get_object()
+        user = request.user
+
+        if not user.is_authenticated or not room.is_joinable_by(
+            user, room.get_role(user)
+        ):
+            raise Http404
 
         try:
-            limit = int(request.query_params.get("names", 0))
-        except ValueError as e:
-            raise drf_exceptions.ValidationError(
-                {"names": "Give a number of names, or leave it out for all."}
-            ) from e
+            roster = RoomManagement.get_participants(str(room.id))
+        except RoomManagementException:
+            return drf_response.Response(
+                {"error": "Could not reach the meeting."},
+                status=drf_status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
-        try:
-            room = self.get_object()
-        except Http404:
-            if not settings.ALLOW_UNREGISTERED_ROOMS:
-                raise
-            # An unregistered room is public and named after its slug in
-            # LiveKit, exactly as the token the retrieve endpoint mints for it.
-            livekit_room = unregistered_room_name(self.kwargs["pk"])
-        else:
-            if not room.is_joinable_by(request.user, room.get_role(request.user)):
-                raise Http404
-            livekit_room = str(room.id)
+        if roster["count"] > settings.ROOM_PARTICIPANTS_NAMES_LIMIT:
+            return drf_response.Response({"count": None, "names": []})
 
-        # The join screen polls this, so everyone waiting on one meeting asks the
-        # same question at once, and one call answers all of them.
-        body, status_code = held_participants(livekit_room)
-
-        # Cut after the cache, never before, or one meeting is held once per
-        # number a caller asks for.
-        if limit > 0 and status_code == drf_status.HTTP_200_OK:
-            body = {**body, "names": body["names"][:limit]}
-
-        return drf_response.Response(body, status=status_code)
+        return drf_response.Response(roster)
 
     @decorators.action(
         detail=True,

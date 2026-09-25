@@ -735,16 +735,16 @@ class Base(Configuration):
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
-    # How long the join screen's view of a meeting is held. Longer than the
-    # interval it polls on, so one waiter costs LiveKit a call every other poll
-    # rather than every one, and forty waiting on one meeting cost the same.
-    # Zero turns the cache off.
+    # How long LiveKit's answer about who is in a meeting is reused. However
+    # many wait on one meeting, LiveKit is asked once per hold. Zero turns the
+    # cache off.
     ROOM_PARTICIPANTS_CACHE_SECONDS = values.IntegerValue(
-        6, environ_name="ROOM_PARTICIPANTS_CACHE_SECONDS", environ_prefix=None
+        10, environ_name="ROOM_PARTICIPANTS_CACHE_SECONDS", environ_prefix=None
     )
-    # How long the join screen waits on LiveKit before giving up on it.
-    ROOM_PARTICIPANTS_TIMEOUT_SECONDS = values.IntegerValue(
-        3, environ_name="ROOM_PARTICIPANTS_TIMEOUT_SECONDS", environ_prefix=None
+    # Past this many people, the join screen is told the meeting has started
+    # and nobody is named.
+    ROOM_PARTICIPANTS_NAMES_LIMIT = values.PositiveIntegerValue(
+        5, environ_name="ROOM_PARTICIPANTS_NAMES_LIMIT", environ_prefix=None
     )
     # if provided, treat as suspicious (possible privilege escalation attempt).
     PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(

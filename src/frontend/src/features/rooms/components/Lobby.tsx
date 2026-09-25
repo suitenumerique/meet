@@ -144,7 +144,7 @@ export const Lobby = ({
             <H lvl={1} margin="sm" centered>
               {t('heading')}
             </H>
-            <JoinParticipants roomId={roomId} />
+            {isLoggedIn && <JoinParticipants roomId={roomId} />}
             {(!isLoggedIn ||
               configData?.authenticated_users_can_edit_display_name) && (
               <Field
