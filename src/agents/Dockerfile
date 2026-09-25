@@ -5,6 +5,7 @@ RUN sed -i "s|^URIs: http://|URIs: https://|" /etc/apt/sources.list.d/debian.sou
     && apt-get update && apt-get install -y --no-install-recommends  \
     libglib2.0-0 \
     libgobject-2.0-0 \
+    libssl3t64 \
     && rm -rf /var/lib/apt/lists/*
 
 
