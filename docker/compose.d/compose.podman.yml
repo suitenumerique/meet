@@ -21,6 +21,8 @@ services:
     <<: *keep-id
   garage:
     <<: *keep-id
+  garage-cors:
+    <<: *keep-id
   node:
     <<: *keep-id
   crowdin:
