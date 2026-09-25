@@ -1,5 +1,5 @@
 """API endpoints"""
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines, too-many-public-methods
 
 import uuid
 from datetime import timedelta
@@ -180,6 +180,13 @@ class RoomViewSet(
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
+
+    def get_throttles(self):
+        """Apply the room creation limit without affecting other room actions."""
+        throttles = super().get_throttles()
+        if self.action == "create":
+            return [*throttles, throttling.RoomCreationUserRateThrottle()]
+        return throttles
 
     def get_object(self):
         """Allow getting a room by its slug."""

@@ -20,6 +20,12 @@ class MonitoredUserRateThrottle(MonitoredThrottleMixin, UserRateThrottle):
     """Throttle for the monitored scoped rate throttle."""
 
 
+class RoomCreationUserRateThrottle(MonitoredUserRateThrottle):
+    """Throttle room creation per authenticated user."""
+
+    scope = "room_creation"
+
+
 class RequestEntryAuthenticatedUserRateThrottle(MonitoredUserRateThrottle):
     """Throttle authenticated user requesting room entry"""
 
