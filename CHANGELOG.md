@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.32.0] - 2026-09-25
+
 ### Added
 
 - ✨(backend) make the LiveKit default video codec configurable
