@@ -6,9 +6,11 @@ import logging
 import os
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from io import BytesIO
 from typing import List, Optional
 
+import boto3
+from botocore.config import Config
+from botocore.exceptions import BotoCoreError, ClientError
 from dotenv import load_dotenv
 from livekit import api, rtc
 from livekit.agents import (
@@ -28,8 +30,6 @@ from livekit.agents import (
     room_io as lk_room_io,
 )
 from livekit.plugins import silero
-from minio import Minio
-from minio.error import S3Error
 
 from exceptions import MissingConfigError
 from observability import configure_sentry, set_job_context
@@ -40,6 +40,7 @@ load_dotenv()
 logger = logging.getLogger("metadata-collector")
 
 AGENT_NAME = os.getenv("METADATA_COLLECTOR_AGENT_NAME", "metadata-collector")
+DEFAULT_S3_REGION_NAME = "us-east-1"
 
 
 def prewarm(proc: JobProcess):
@@ -57,6 +58,45 @@ server = AgentServer(
     ),
 )
 server.setup_fnc = prewarm
+
+
+def _build_s3_client(region_name: str):
+    """Build an S3 client for the configured endpoint, signing for a region.
+
+    The endpoint may be given with or without a scheme: the scheme always
+    follows AWS_S3_SECURE_ACCESS.
+    """
+    endpoint = (
+        os.getenv("AWS_S3_ENDPOINT_URL", "")
+        .removeprefix("https://")
+        .removeprefix("http://")
+        .rstrip("/")
+    )
+    secure = os.getenv("AWS_S3_SECURE_ACCESS", "False").lower() == "true"
+
+    return boto3.client(
+        "s3",
+        endpoint_url=f"{'https' if secure else 'http'}://{endpoint}",
+        aws_access_key_id=os.getenv("AWS_S3_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_S3_SECRET_ACCESS_KEY"),
+        region_name=region_name,
+        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
+    )
+
+
+def create_s3_client(bucket_name: str):
+    """Create an S3 client signing for the bucket's region.
+
+    When AWS_S3_REGION_NAME is not set, the region is looked up from the
+    bucket, so that requests are signed for the region the provider expects.
+    """
+    region_name = os.getenv("AWS_S3_REGION_NAME")
+    if not region_name:
+        lookup_client = _build_s3_client(DEFAULT_S3_REGION_NAME)
+        location = lookup_client.get_bucket_location(Bucket=bucket_name)
+        region_name = location.get("LocationConstraint") or DEFAULT_S3_REGION_NAME
+
+    return _build_s3_client(region_name)
 
 
 @dataclass
@@ -121,13 +161,6 @@ class MetadataCollector:
 
     def __init__(self, ctx: JobContext, recording_id: str):
         """Initialize metadata agent."""
-        self.minio_client = Minio(
-            endpoint=os.getenv("AWS_S3_ENDPOINT_URL"),
-            access_key=os.getenv("AWS_S3_ACCESS_KEY_ID"),
-            secret_key=os.getenv("AWS_S3_SECRET_ACCESS_KEY"),
-            secure=os.getenv("AWS_S3_SECURE_ACCESS", "False").lower() == "true",
-        )
-
         if (bucket_name := os.getenv("AWS_STORAGE_BUCKET_NAME")) is not None:
             self.bucket_name = bucket_name
         else:
@@ -201,20 +234,18 @@ class MetadataCollector:
         }
 
         data = json.dumps(payload, indent=2).encode("utf-8")
-        stream = BytesIO(data)
 
         try:
-            self.minio_client.put_object(
-                self.bucket_name,
-                self.output_filename,
-                stream,
-                length=len(data),
-                content_type="application/json",
+            create_s3_client(self.bucket_name).put_object(
+                Bucket=self.bucket_name,
+                Key=self.output_filename,
+                Body=data,
+                ContentType="application/json",
             )
             logger.info(
                 "Uploaded speaker meeting metadata",
             )
-        except S3Error:
+        except (BotoCoreError, ClientError):
             logger.exception(
                 "Failed to upload meeting metadata",
             )

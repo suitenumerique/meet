@@ -42,7 +42,7 @@ sequenceDiagram
   participant Backend as Backend API
   participant Summary as Summary Service
   participant Celery as Celery Workers (transcribe-queue)
-  participant MinIO as MinIO (Object Storage)
+  participant S3 as S3 (Object Storage)
   participant STT as WhisperX API
   participant Docs as LaSuite Docs
 
@@ -50,7 +50,7 @@ sequenceDiagram
   Note right of Backend: Payload contains 7 params: owner_id, filename, email, sub, room, recording_date, recording_time
 
   Summary->>Celery: Register task (transcribe-queue)
-  Celery->>MinIO: Fetch audio file
+  Celery->>S3: Fetch audio file
   Celery->>STT: Transcribe audio (WhisperX)
   STT-->>Celery: Segmented transcript
 
@@ -72,11 +72,12 @@ sequenceDiagram
 | celery_result_backend    | String    | `"redis://redis/0"`                                                   | Celery result backend URL.                                                                                                                                              |
 | celery_max_retries       | Integer   | `1`                                                                   | Maximum number of retries for Celery tasks.                                                                                                                             |
 | transcribe_queue         | String    | `"transcribe-queue"`                                                  | Name of the Celery queue for transcription tasks.                                                                                                                       |
-| aws_storage_bucket_name  | String    | —                                                                     | Name of the S3/MinIO bucket used for storing recordings.                                                                                                                |
-| aws_s3_endpoint_url      | String    | —                                                                     | Endpoint URL of the S3/MinIO storage.                                                                                                                                   |
-| aws_s3_access_key_id     | String    | —                                                                     | Access key for S3/MinIO.                                                                                                                                                |
-| aws_s3_secret_access_key | Secret    | —                                                                     | Secret key for S3/MinIO.                                                                                                                                                |
-| aws_s3_secure_access     | Boolean   | `True`                                                                | Use HTTPS for S3/MinIO requests.                                                                                                                                        |
+| aws_storage_bucket_name  | String    | —                                                                     | Name of the S3 bucket used for storing recordings.                                                                                                                      |
+| aws_s3_endpoint_url      | String    | —                                                                     | Endpoint URL of the S3 storage.                                                                                                                                         |
+| aws_s3_access_key_id     | String    | —                                                                     | Access key for S3.                                                                                                                                                      |
+| aws_s3_secret_access_key | Secret    | —                                                                     | Secret key for S3.                                                                                                                                                      |
+| aws_s3_secure_access     | Boolean   | `True`                                                                | Use HTTPS for S3 requests.                                                                                                                                              |
+| aws_s3_region_name       | String    | —                                                                     | Region used to sign S3 requests. When unset, it is looked up from the bucket.                                                                                           |
 | whisperx_api_key         | Secret    | —                                                                     | API key for accessing WhisperX.                                                                                                                                         |
 | whisperx_base_url        | String    | `"https://api.whisperx.com/v1"`                                       | Base URL for the WhisperX API.                                                                                                                                          |
 | whisperx_asr_model       | String    | `"whisper-1"`                                                         | ASR model used for transcription.                                                                                                                                       |

@@ -2,11 +2,12 @@ APP_NAME="meet-app-summary-dev"
 APP_API_TOKEN="password"
 
 AWS_STORAGE_BUCKET_NAME="meet-media-storage"
-AWS_S3_ENDPOINT_URL="minio:9000"
+AWS_S3_ENDPOINT_URL="garage:9000"
 AWS_S3_SECURE_ACCESS=false
 
-AWS_S3_ACCESS_KEY_ID="meet"
-AWS_S3_SECRET_ACCESS_KEY="password"
+AWS_S3_ACCESS_KEY_ID="meet-access-key"
+AWS_S3_SECRET_ACCESS_KEY="meet-secret-access-key"
+AWS_S3_REGION_NAME="local"
 
 WHISPERX_BASE_URL="https://configure-your-url.com"
 WHISPERX_ASR_MODEL="large-v2"

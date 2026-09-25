@@ -1,6 +1,5 @@
 """File service to encapsulate files' manipulations."""
 
-import io
 import json
 import logging
 import os
@@ -9,11 +8,13 @@ import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import timedelta
+from functools import cached_property
 from pathlib import Path
 from urllib.parse import urlparse
 
+import boto3
 import requests
-from minio import Minio
+from botocore.config import Config
 
 from summary.core.config import get_settings
 from summary.core.shared_models import WhisperXResponse
@@ -21,6 +22,8 @@ from summary.core.shared_models import WhisperXResponse
 settings = get_settings()
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_S3_REGION_NAME = "us-east-1"
 
 
 class TranscribeError(ValueError):
@@ -266,29 +269,53 @@ class FileServiceException(Exception):
     pass
 
 
+def _build_s3_client(region_name: str):
+    """Build an S3 client for the configured endpoint, signing for a region.
+
+    The endpoint may be given with or without a scheme: the scheme always
+    follows `aws_s3_secure_access`.
+    """
+    endpoint = (
+        settings.aws_s3_endpoint_url.removeprefix("https://")
+        .removeprefix("http://")
+        .rstrip("/")
+    )
+    scheme = "https" if settings.aws_s3_secure_access else "http"
+
+    return boto3.client(
+        "s3",
+        endpoint_url=f"{scheme}://{endpoint}",
+        aws_access_key_id=settings.aws_s3_access_key_id,
+        aws_secret_access_key=settings.aws_s3_secret_access_key.get_secret_value(),
+        region_name=region_name,
+        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
+    )
+
+
 class FileService:
-    """Service for downloading and preparing files from MinIO storage."""
+    """Service for downloading and preparing files from S3 storage."""
 
     def __init__(self):
-        """Initialize FileService with MinIO client and configuration."""
-        endpoint = (
-            settings.aws_s3_endpoint_url.removeprefix("https://")
-            .removeprefix("http://")
-            .rstrip("/")
-        )
-
-        self._minio_client = Minio(
-            endpoint,
-            access_key=settings.aws_s3_access_key_id,
-            secret_key=settings.aws_s3_secret_access_key.get_secret_value(),
-            secure=settings.aws_s3_secure_access,
-            region=settings.aws_s3_region_name,
-        )
-
+        """Initialize FileService with its configuration."""
         self._bucket_name = settings.aws_storage_bucket_name
         self._stream_chunk_size = 32 * 1024
 
         self._max_duration_seconds = settings.recording_max_duration
+
+    @cached_property
+    def _s3_client(self):
+        """S3 client, created on first use.
+
+        When no region is configured, it is looked up from the bucket, so
+        that requests are signed for the region the provider expects.
+        """
+        region_name = settings.aws_s3_region_name
+        if not region_name:
+            lookup_client = _build_s3_client(DEFAULT_S3_REGION_NAME)
+            location = lookup_client.get_bucket_location(Bucket=self._bucket_name)
+            region_name = location.get("LocationConstraint") or DEFAULT_S3_REGION_NAME
+
+        return _build_s3_client(region_name)
 
     def _download_from_cloud_storage_url(self, cloud_storage_url: str) -> Path:
         """Download file from a cloud storage URL to local temporary file."""
@@ -368,7 +395,7 @@ class FileService:
     ):
         """Download and prepare audio file for processing.
 
-        Downloads file from MinIO or an external cloud URL, validates duration,
+        Downloads file from S3 or an external cloud URL, validates duration,
         and yields an open file handle with metadata. Automatically cleans up
         temporary files when the context exits.
         """
@@ -416,16 +443,13 @@ class FileService:
                     logger.warning("Failed to remove temporary file %s: %s", path, e)
 
     def store_transcript(self, *, transcript: WhisperXResponse, job_id: str) -> None:
-        """Store transcript in MinIO."""
+        """Store transcript in S3."""
         logger.info("Storing transcript for job id %s", job_id)
         transcript_path = f"{settings.aws_transcript_path}/{job_id}.json"
         logger.debug("Transcript path: %s", transcript_path)
         data = transcript.model_dump_json().encode()
-        self._minio_client.put_object(
-            self._bucket_name,
-            transcript_path,
-            io.BytesIO(data),
-            length=len(data),
+        self._s3_client.put_object(
+            Bucket=self._bucket_name, Key=transcript_path, Body=data
         )
         logger.info("Transcript stored successfully for job id %s", job_id)
 
@@ -433,21 +457,20 @@ class FileService:
         """Get signed URL for transcript file."""
         transcript_path = f"{settings.aws_transcript_path}/{job_id}.json"
         logger.debug("Transcript path: %s", transcript_path)
-        return self._minio_client.presigned_get_object(
-            self._bucket_name, transcript_path, expires=timedelta(hours=24)
+        return self._s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": self._bucket_name, "Key": transcript_path},
+            ExpiresIn=int(timedelta(hours=24).total_seconds()),
         )
 
     def store_summary(self, *, summary: str, job_id: str) -> None:
-        """Store summary in MinIO."""
+        """Store summary in S3."""
         logger.info("Storing summary for job id %s", job_id)
         summary_path = f"{settings.aws_summary_path}/{job_id}.txt"
         logger.debug("Summary path: %s", summary_path)
         data = summary.encode()
-        self._minio_client.put_object(
-            self._bucket_name,
-            summary_path,
-            io.BytesIO(data),
-            length=len(data),
+        self._s3_client.put_object(
+            Bucket=self._bucket_name, Key=summary_path, Body=data
         )
         logger.info("Summary stored successfully for job id %s", job_id)
 
@@ -455,6 +478,8 @@ class FileService:
         """Get signed URL for summary file."""
         summary_path = f"{settings.aws_summary_path}/{job_id}.txt"
         logger.debug("Summary path: %s", summary_path)
-        return self._minio_client.presigned_get_object(
-            self._bucket_name, summary_path, expires=timedelta(hours=24)
+        return self._s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": self._bucket_name, "Key": summary_path},
+            ExpiresIn=int(timedelta(hours=24).total_seconds()),
         )

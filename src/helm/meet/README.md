@@ -45,10 +45,10 @@
 | `ingressMedia.tls.additional[].hosts[]`                                      | Hosts for additional TLS config                      |                                                                    |
 | `ingressMedia.annotations.nginx.ingress.kubernetes.io/auth-url`              |                                                      | `https://meet.example.com/api/v1.0/recordings/media-auth/`         |
 | `ingressMedia.annotations.nginx.ingress.kubernetes.io/auth-response-headers` |                                                      | `Authorization, X-Amz-Date, X-Amz-Content-SHA256`                  |
-| `ingressMedia.annotations.nginx.ingress.kubernetes.io/upstream-vhost`        |                                                      | `minio.meet.svc.cluster.local:9000`                                |
+| `ingressMedia.annotations.nginx.ingress.kubernetes.io/upstream-vhost`        |                                                      | `garage.meet.svc.cluster.local:9000`                               |
 | `ingressMedia.annotations.nginx.ingress.kubernetes.io/configuration-snippet` |                                                      | `add_header Content-Security-Policy "default-src 'none'" always;
 ` |
-| `serviceMedia.host`                                                          |                                                      | `minio.meet.svc.cluster.local`                                     |
+| `serviceMedia.host`                                                          |                                                      | `garage.meet.svc.cluster.local`                                    |
 | `serviceMedia.port`                                                          |                                                      | `9000`                                                             |
 | `serviceMedia.annotations`                                                   |                                                      | `{}`                                                               |
 

@@ -128,7 +128,7 @@ ingressMedia:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/auth-url: https://meet.example.com/api/v1.0/recordings/media-auth/
     nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
+    nginx.ingress.kubernetes.io/upstream-vhost: garage.meet.svc.cluster.local:9000
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header Content-Security-Policy "default-src 'none'" always;
 
@@ -136,7 +136,7 @@ ingressMedia:
 ## @param serviceMedia.port
 ## @param serviceMedia.annotations
 serviceMedia:
-  host: minio.meet.svc.cluster.local
+  host: garage.meet.svc.cluster.local
   port: 9000
   annotations: {}
 
@@ -171,7 +171,7 @@ ingressMediaFiles:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/auth-url: https://meet.example.com/api/v1.0/files/media-auth/
     nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: minio.meet.svc.cluster.local:9000
+    nginx.ingress.kubernetes.io/upstream-vhost: garage.meet.svc.cluster.local:9000
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header Content-Security-Policy "default-src 'none'" always;
       add_header Content-Disposition "attachment";
@@ -180,7 +180,7 @@ ingressMediaFiles:
 ## @param serviceMediaFiles.port
 ## @param serviceMediaFiles.annotations
 serviceMediaFiles:
-  host: minio.meet.svc.cluster.local
+  host: garage.meet.svc.cluster.local
   port: 9000
   annotations: {}
 
