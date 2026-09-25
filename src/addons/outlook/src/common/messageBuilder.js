@@ -1,4 +1,4 @@
-const { APP_NAME, ENABLE_SOURCE_TRACKING } = require("./index");
+const { APP_NAME, ENABLE_SOURCE_TRACKING, BASE_URL } = require("./index");
 const { t } = require("./i18n");
 
 function _formatPin(pin) {
@@ -28,6 +28,43 @@ function _appendTrackingParams(url) {
   return u.toString();
 }
 
+function buildPolycomToken(sipNumber, isWeb, domain) {
+  const polycomPayload = [
+    "POLYCOM-AUDIONUMBER2=",
+    "POLYCOM-AUDIONUMBER1=",
+    "POLYCOM-STREAMMEETING=false",
+    "POLYCOM-RECORDMEETING=false",
+    "POLYCOM-RSSVMRNAME=",
+    "POLYCOM-DIALINPREFIX=",
+    "POLYCOM-INVITATIONLANGUAGE=",
+    "POLYCOM-SIGNALINGPREFIX=sip",
+    "POLYCOM-CHAIRPASSWORDREQUIRED=false",
+    "POLYCOM-SIGNALINGPOSTFIX=",
+    "POLYCOM-CHAIRPASSWORD=",
+    `POLYCOM-VMRNUMBER=${sipNumber}@${domain}`,
+    "POLYCOM-RECORDINGURI=",
+    "POLYCOM-MEETINGPASSWORD=",
+    "POLYCOM-VERSION=1",
+    "POLYCOM-MEETING-URL="
+  ].join("\r\n");
+
+  let b64Token = "";
+  if (typeof btoa !== 'undefined') {
+    const bytes = new TextEncoder().encode(polycomPayload);
+    const binString = Array.from(bytes, (b) => String.fromCodePoint(b)).join("");
+    b64Token = btoa(binString);
+  } else if (typeof Buffer !== 'undefined') {
+    b64Token = Buffer.from(polycomPayload).toString('base64');
+  }
+
+  const polycomRaw = `--=BEGIN POLYCOM VMR ENCODED TOKEN=--\n${b64Token}\n--=END POLYCOM VMR ENCODED TOKEN=--`;
+
+  if (isWeb) {
+    const style = "mso-hide:all;max-height:0;overflow:hidden;font-size:1px;line-height:1px";
+    return `<div style='${style}'>${polycomRaw.replace(/\n/g, "<br>")}</div>`;
+  }
+  return polycomRaw;
+}
 
 // todo - escape html / link
 function buildMeetingMessage(data, isWeb) {
@@ -47,6 +84,10 @@ function buildMeetingMessage(data, isWeb) {
   const phoneFr = t("meeting_message.phone_fr", { phone });
   const pinCode = t("meeting_message.pin_code", { pin });
 
+  const sipFromPin = data.telephony?.pin_code ? String(data.telephony.pin_code).replace(/\s+/g, "") : "";
+  const domain = new URL(BASE_URL).hostname;
+  const polycomContent = sipFromPin ? buildPolycomToken(sipFromPin, isWeb, domain) : "";
+
   if (isWeb) {
     phoneLines = phone && pin ? [`<br><br>${phoneOnly}`, `<br>${phoneFr}`, `<br>${pinCode}`] : [];
 
@@ -56,6 +97,7 @@ function buildMeetingMessage(data, isWeb) {
       `<br><br><a href="${url}" target="_blank">${url}</a>`,
       ...phoneLines,
       "<br>────────────────────────────────────────<br>",
+      polycomContent
     ];
 
   } else {
@@ -68,6 +110,7 @@ function buildMeetingMessage(data, isWeb) {
       `\n\n${url}`,
       ...phoneLines,
       "\n────────────────────────────────────────\n",
+      polycomContent
     ];
   }
 

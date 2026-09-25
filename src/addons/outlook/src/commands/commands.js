@@ -5,7 +5,7 @@ const { startPolling } = require("../common/polling");
 const { saveSession, loadSession } = require("../common/session");
 const { openTransitDialog } = require("../common/transitDialog");
 const { buildMeetingMessage } = require("../common/messageBuilder");
-const { applyAppName } = require("../common/helpers");
+const { applyAppName, getIsHtmlBody } = require("../common/helpers");
 const { initI18n, t } = require("../common/i18n");
 const { isMeetingAlreadyAdded } = require("../common/meetingDetector");
 
@@ -46,12 +46,12 @@ function insertMeetingLink(event, session) {
 }
 
 function _doInsertMeetingLink(event, session) {
-  createRoom(session)
-    .then((data) => {
-      const isWeb = Office.context.diagnostics.platform === "OfficeOnline";
-      const { url, text } = buildMeetingMessage(data, isWeb);
-      const item = Office.context.mailbox.item;
-      const coercionType = isWeb ? Office.CoercionType.Html : Office.CoercionType.Text;
+  const item = Office.context.mailbox.item;
+
+  Promise.all([createRoom(session), getIsHtmlBody(item)])
+    .then(([data, isHtml]) => {
+      const { url, text } = buildMeetingMessage(data, isHtml);
+      const coercionType = isHtml ? Office.CoercionType.Html : Office.CoercionType.Text;
 
       return new Promise((resolve, reject) => {
         item.body.setSelectedDataAsync(text, { coercionType }, (setResult) => {
