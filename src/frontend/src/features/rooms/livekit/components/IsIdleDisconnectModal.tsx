@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
 import { connectionObserverStore } from '@/stores/connectionObserver'
-import { HStack } from '@/styled-system/jsx'
+import { Stack } from '@/styled-system/jsx'
 import { useEffect, useRef, useState } from 'react'
 import { navigateTo } from '@/navigation/navigateTo'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
@@ -134,7 +134,11 @@ export const IsIdleDisconnectModal = () => {
             </H>
             <Description />
             <Settings />
-            <HStack marginTop="2rem">
+            <Stack
+              direction={{ base: 'column', xsm: 'row' }}
+              align={{ base: 'stretch', xsm: 'center' }}
+              marginTop="2rem"
+            >
               <Button
                 onPress={() => {
                   connectionObserverStore.isIdleDisconnectModalOpen = false
@@ -148,7 +152,7 @@ export const IsIdleDisconnectModal = () => {
               <Button onPress={close} size="sm" variant="primary">
                 {t('stayButton')}
               </Button>
-            </HStack>
+            </Stack>
           </div>
         )
       }}

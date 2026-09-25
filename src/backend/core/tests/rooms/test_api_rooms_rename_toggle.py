@@ -372,6 +372,67 @@ def test_rename_participant_unexpected_twirp_error(mock_livekit_client, room, to
     mock_livekit_client.aclose.assert_called_once()
 
 
+@pytest.mark.parametrize("name", ["John Doe", "Admin", "Room Owner"])
+def test_rename_participant_forbidden_when_display_name_edit_disabled(
+    mock_livekit_client, settings, room, token, name
+):
+    """
+    Test rename is rejected for authenticated users when the self-hoster
+    disables AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME.
+    """
+    settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
+
+    client = APIClient()
+    url = reverse("rooms-rename", kwargs={"pk": room.id})
+    response = client.post(
+        url, {"name": name}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.data == {
+        "error": "Authenticated participants cannot edit their display name"
+    }
+    mock_livekit_client.room.update_participant.assert_not_called()
+
+
+def test_rename_participant_allowed_when_display_name_edit_enabled(
+    mock_livekit_client, settings, room, token
+):
+    """Test rename still works for authenticated users when the setting is enabled."""
+    settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = True
+
+    client = APIClient()
+    url = reverse("rooms-rename", kwargs={"pk": room.id})
+    response = client.post(
+        url, {"name": "John Doe"}, format="json", HTTP_AUTHORIZATION=f"Bearer {token}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_livekit_client.room.update_participant.assert_called_once()
+
+
+def test_rename_participant_anonymous_allowed_when_display_name_edit_disabled(
+    mock_livekit_client, settings, room, anonymous_token
+):
+    """
+    Test the setting only restricts authenticated users: anonymous participants
+    have no account name to fall back on and can still rename themselves.
+    """
+    settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
+
+    client = APIClient()
+    url = reverse("rooms-rename", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"name": "Guest User"},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {anonymous_token}",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_livekit_client.room.update_participant.assert_called_once()
+
+
 def test_rename_participant_success_anonymous(
     mock_livekit_client, room, anonymous_token
 ):

@@ -2,7 +2,7 @@
 Test lobby service.
 """
 
-# pylint: disable=W0621,W0613, W0212, R0913
+# pylint: disable=W0621,W0613, W0212, R0913, C0302
 # ruff: noqa: PLR0913, PLR0917
 
 import uuid
@@ -14,6 +14,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 
 import pytest
+from freezegun import freeze_time
 
 from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
 from core.models import RoleChoices, RoomAccessLevel
@@ -55,6 +56,7 @@ def participant_dict():
         "username": "test-username",
         "id": "test-participant-id",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
 
@@ -66,6 +68,7 @@ def participant_data():
         username="test-username",
         id="test-participant-id",
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
 
 
@@ -77,6 +80,7 @@ def test_lobby_participant_to_dict(participant_data):
     assert result["username"] == "test-username"
     assert result["id"] == "test-participant-id"
     assert result["color"] == "#123456"
+    assert result["entered_at"] == "2025-01-01T10:00:00+00:00"
 
 
 def test_lobby_participant_from_dict_success(participant_dict):
@@ -87,6 +91,20 @@ def test_lobby_participant_from_dict_success(participant_dict):
     assert participant.username == "test-username"
     assert participant.id == "test-participant-id"
     assert participant.color == "#123456"
+    assert participant.entered_at == "2025-01-01T10:00:00+00:00"
+
+
+def test_lobby_participant_from_dict_missing_entered_at():
+    """`entered_at` is mandatory; data without it is rejected."""
+    data = {
+        "status": "waiting",
+        "username": "test-username",
+        "id": "test-participant-id",
+        "color": "#123456",
+    }
+
+    with pytest.raises(LobbyParticipantParsingError, match="Invalid participant data"):
+        LobbyParticipant.from_dict(data)
 
 
 def test_lobby_participant_from_dict_default_status():
@@ -95,6 +113,7 @@ def test_lobby_participant_from_dict_default_status():
         "username": "test-username",
         "id": "test-participant-id",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     participant = LobbyParticipant.from_dict(data_without_status)
@@ -120,6 +139,7 @@ def test_lobby_participant_from_dict_invalid_status():
         "username": "test-username",
         "id": "test-participant-id",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     with pytest.raises(LobbyParticipantParsingError, match="Invalid participant data"):
@@ -264,6 +284,7 @@ def test_request_entry_public_room(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
 
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
@@ -302,6 +323,7 @@ def test_request_entry_trusted_room(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
 
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
@@ -344,6 +366,7 @@ def test_request_entry_new_participant(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
     mock_enter.return_value = participant_data
 
@@ -371,6 +394,7 @@ def test_request_entry_waiting_participant(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
@@ -399,6 +423,7 @@ def test_request_entry_accepted_participant(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
@@ -439,6 +464,7 @@ def test_request_entry_participant_with_role(
         username=username,
         id=participant_id,
         color="#123456",
+        entered_at="2025-01-01T10:00:00+00:00",
     )
     lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
@@ -465,18 +491,23 @@ def test_request_entry_participant_with_role(
 def test_refresh_waiting_status(mock_cache, lobby_service, participant_id):
     """Test refreshing waiting status for a participant."""
     lobby_service._get_cache_key = mock.Mock(return_value="mocked_cache_key")
+    lobby_service._index_touch = mock.Mock()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     lobby_service.refresh_waiting_status(room.id, participant_id)
     mock_cache.touch.assert_called_once_with(
         "mocked_cache_key", settings.LOBBY_WAITING_TIMEOUT
     )
+    lobby_service._index_touch.assert_called_once_with(room.id)
 
 
 # pylint: disable=R0917
 @mock.patch("core.services.lobby.cache")
 @mock.patch("core.utils.generate_color")
 @mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.lobby.LobbyService._index_add")
+@freeze_time("2025-01-01 10:00:00")
 def test_enter_success(
+    mock_index_add,
     mock_notify,
     mock_generate_color,
     mock_cache,
@@ -496,6 +527,7 @@ def test_enter_success(
     assert participant.username == username
     assert participant.id == participant_id
     assert participant.color == "#123456"
+    assert participant.entered_at == "2025-01-01T10:00:00+00:00"
 
     lobby_service._get_cache_key.assert_called_once_with(room.id, participant_id)
 
@@ -507,13 +539,16 @@ def test_enter_success(
     mock_notify.assert_called_once_with(
         room_name=str(room.pk), notification_data={"type": "participantWaiting"}
     )
+    mock_index_add.assert_called_once_with(room.id, participant_id)
 
 
 # pylint: disable=R0917
 @mock.patch("core.services.lobby.cache")
 @mock.patch("core.utils.generate_color")
 @mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.lobby.LobbyService._index_add")
 def test_enter_with_notification_error(
+    mock_index_add,
     mock_notify,
     mock_generate_color,
     mock_cache,
@@ -540,6 +575,7 @@ def test_enter_with_notification_error(
         participant.to_dict(),
         timeout=settings.LOBBY_WAITING_TIMEOUT,
     )
+    mock_index_add.assert_called_once_with(room.id, participant_id)
 
 
 @mock.patch("core.services.lobby.cache")
@@ -578,14 +614,15 @@ def test_get_participant_parsing_error(
 @mock.patch("core.services.lobby.cache")
 def test_list_waiting_participants_empty(mock_cache, lobby_service):
     """Test listing waiting participants when none exist."""
-    mock_cache.keys.return_value = []
-
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    lobby_service._index_members = mock.Mock(return_value=[])
+    lobby_service._index_remove = mock.Mock()
+
     result = lobby_service.list_waiting_participants(room.id)
 
-    assert result == []
-    pattern = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_*"
-    mock_cache.keys.assert_called_once_with(pattern)
+    assert result == ()
+    lobby_service._index_members.assert_called_once_with(room.id)
+    lobby_service._index_remove.assert_not_called()
     mock_cache.get_many.assert_not_called()
 
 
@@ -594,7 +631,8 @@ def test_list_waiting_participants(mock_cache, lobby_service, participant_dict):
     """Test listing waiting participants with valid data."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     cache_key = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_participant1"
-    mock_cache.keys.return_value = [cache_key]
+    lobby_service._index_members = mock.Mock(return_value=["participant1"])
+    lobby_service._index_remove = mock.Mock()
     mock_cache.get_many.return_value = {cache_key: participant_dict}
 
     result = lobby_service.list_waiting_participants(room.id)
@@ -602,8 +640,8 @@ def test_list_waiting_participants(mock_cache, lobby_service, participant_dict):
     assert len(result) == 1
     assert result[0]["status"] == "waiting"
     assert result[0]["username"] == "test-username"
-    pattern = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_*"
-    mock_cache.keys.assert_called_once_with(pattern)
+    lobby_service._index_members.assert_called_once_with(room.id)
+    lobby_service._index_remove.assert_called_once_with(room.id)
     mock_cache.get_many.assert_called_once_with([cache_key])
 
 
@@ -619,6 +657,7 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
         "username": "user1",
         "id": "participant1",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     participant2 = {
@@ -626,9 +665,13 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
         "username": "user2",
         "id": "participant2",
         "color": "#654321",
+        "entered_at": "2025-01-01T10:05:00+00:00",
     }
 
-    mock_cache.keys.return_value = [cache_key1, cache_key2]
+    lobby_service._index_members = mock.Mock(
+        return_value=["participant1", "participant2"]
+    )
+    lobby_service._index_remove = mock.Mock()
     mock_cache.get_many.return_value = {
         cache_key1: participant1,
         cache_key2: participant2,
@@ -638,15 +681,15 @@ def test_list_waiting_participants_multiple(mock_cache, lobby_service):
 
     assert len(result) == 2
 
-    # Verify both participants are in the result
-    assert any(p["id"] == "participant1" and p["username"] == "user1" for p in result)
-    assert any(p["id"] == "participant2" and p["username"] == "user2" for p in result)
+    # Most recent entry comes first
+    assert [p["id"] for p in result] == ["participant2", "participant1"]
+    assert result[0]["username"] == "user2"
+    assert result[1]["username"] == "user1"
 
     # Verify all participants have waiting status
     assert all(p["status"] == "waiting" for p in result)
 
-    pattern = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_*"
-    mock_cache.keys.assert_called_once_with(pattern)
+    lobby_service._index_members.assert_called_once_with(room.id)
     mock_cache.get_many.assert_called_once_with([cache_key1, cache_key2])
 
 
@@ -655,12 +698,13 @@ def test_list_waiting_participants_corrupted_data(mock_cache, lobby_service):
     """Test listing waiting participants with corrupted data."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     cache_key = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_participant1"
-    mock_cache.keys.return_value = [cache_key]
+    lobby_service._index_members = mock.Mock(return_value=["participant1"])
+    lobby_service._index_remove = mock.Mock()
     mock_cache.get_many.return_value = {cache_key: {"invalid": "data"}}
 
     result = lobby_service.list_waiting_participants(room.id)
 
-    assert result == []
+    assert result == ()
     mock_cache.delete.assert_called_once_with(cache_key)
 
 
@@ -676,11 +720,15 @@ def test_list_waiting_participants_partially_corrupted(mock_cache, lobby_service
         "username": "user2",
         "id": "participant2",
         "color": "#654321",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     corrupted_participant = {"invalid": "data"}
 
-    mock_cache.keys.return_value = [cache_key1, cache_key2]
+    lobby_service._index_members = mock.Mock(
+        return_value=["participant1", "participant2"]
+    )
+    lobby_service._index_remove = mock.Mock()
     mock_cache.get_many.return_value = {
         cache_key1: corrupted_participant,
         cache_key2: valid_participant,
@@ -698,8 +746,6 @@ def test_list_waiting_participants_partially_corrupted(mock_cache, lobby_service
     mock_cache.delete.assert_called_once_with(cache_key1)
 
     # Verify both cache keys were queried
-    pattern = f"{settings.LOBBY_KEY_PREFIX}_{room.id!s}_*"
-    mock_cache.keys.assert_called_once_with(pattern)
     mock_cache.get_many.assert_called_once_with([cache_key1, cache_key2])
 
 
@@ -715,15 +761,20 @@ def test_list_waiting_participants_non_waiting(mock_cache, lobby_service):
         "username": "user1",
         "id": "participant1",
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
     participant2 = {
         "status": "accepted",
         "username": "user2",
         "id": "participant2",
         "color": "#654321",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
-    mock_cache.keys.return_value = [cache_key1, cache_key2]
+    lobby_service._index_members = mock.Mock(
+        return_value=["participant1", "participant2"]
+    )
+    lobby_service._index_remove = mock.Mock()
     mock_cache.get_many.return_value = {
         cache_key1: participant1,
         cache_key2: participant2,
@@ -815,10 +866,12 @@ def test_update_participant_status_success(mock_cache, lobby_service, participan
         "username": "test-username",
         "id": participant_id,
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
 
     mock_cache.get.return_value = participant_dict
     lobby_service._get_cache_key = mock.Mock(return_value="mocked_cache_key")
+    lobby_service._index_touch = mock.Mock()
 
     lobby_service._update_participant_status(
         room.id,
@@ -832,10 +885,12 @@ def test_update_participant_status_success(mock_cache, lobby_service, participan
         "username": "test-username",
         "id": participant_id,
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
     mock_cache.set.assert_called_once_with(
         "mocked_cache_key", expected_data, timeout=60
     )
+    lobby_service._index_touch.assert_called_once_with(room.id)
     lobby_service._get_cache_key.assert_called_once_with(room.id, participant_id)
 
 
@@ -856,6 +911,7 @@ def test_clear_room_cache(settings, lobby_service):
             username="participant1",
             id="participant1",
             color="#123456",
+            entered_at="2025-01-01T10:00:00+00:00",
         ),
         timeout=settings.LOBBY_WAITING_TIMEOUT,
     )
@@ -866,6 +922,7 @@ def test_clear_room_cache(settings, lobby_service):
             username="participant2",
             id="participant2",
             color="#123456",
+            entered_at="2025-01-01T10:00:00+00:00",
         ),
         timeout=settings.LOBBY_ACCEPTED_TIMEOUT,
     )
@@ -876,13 +933,18 @@ def test_clear_room_cache(settings, lobby_service):
             username="participant3",
             id="participant3",
             color="#123456",
+            entered_at="2025-01-01T10:00:00+00:00",
         ),
         timeout=settings.LOBBY_DENIED_TIMEOUT,
     )
 
+    for participant_id in ("participant1", "participant2", "participant3"):
+        lobby_service._index_add(room_id, participant_id)
+
     lobby_service.clear_room_cache(room_id)
 
     assert cache.keys(f"test-lobby_{room_id!s}_*") == []
+    assert lobby_service._index_members(room_id) == frozenset()
 
 
 def test_clear_room_empty(settings, lobby_service):
@@ -907,12 +969,16 @@ def test_clear_participant_cache(lobby_service):
         "username": "test-username",
         "id": participant_id,
         "color": "#123456",
+        "entered_at": "2025-01-01T10:00:00+00:00",
     }
     cache.set(cache_key, participant_data, timeout=settings.LOBBY_WAITING_TIMEOUT)
+    lobby_service._index_add(room_id, participant_id)
     assert cache.get(cache_key) is not None
+    assert participant_id in lobby_service._index_members(room_id)
 
     lobby_service.clear_participant_cache(room_id, participant_id)
     assert cache.get(cache_key) is None
+    assert participant_id not in lobby_service._index_members(room_id)
 
 
 def test_clear_participant_cache_nonexistent(lobby_service):
@@ -926,3 +992,85 @@ def test_clear_participant_cache_nonexistent(lobby_service):
     lobby_service.clear_participant_cache(room_id, participant_id)
 
     assert cache.get(cache_key) is None
+
+
+def test_index_add_members_remove_roundtrip(lobby_service):
+    """The room index records, lists and forgets participant ids."""
+    room_id = uuid.uuid4()
+
+    assert lobby_service._index_members(room_id) == frozenset()
+
+    lobby_service._index_add(room_id, "participant1")
+    lobby_service._index_add(room_id, "participant2")
+
+    assert sorted(lobby_service._index_members(room_id)) == [
+        "participant1",
+        "participant2",
+    ]
+
+    # The index carries a backstop TTL so abandoned rooms cannot leak it.
+    ttl = lobby_service._redis().ttl(lobby_service._get_index_key(room_id))
+    assert 0 < ttl <= settings.LOBBY_ACCEPTED_TIMEOUT
+
+    lobby_service._index_remove(room_id, "participant1")
+    assert lobby_service._index_members(room_id) == frozenset(["participant2"])
+
+
+@mock.patch("core.utils.notify_participants")
+def test_enter_registers_participant_in_room_index(
+    mock_notify, lobby_service, participant_id, username
+):
+    """Entering the lobby must index the participant id for the room."""
+    room_id = uuid.uuid4()
+
+    lobby_service.enter(room_id, participant_id, username)
+
+    assert lobby_service._index_members(room_id) == frozenset([participant_id])
+
+
+def test_list_waiting_participants_prunes_stale_index_ids(settings, lobby_service):
+    """Indexed ids whose cache entry expired are pruned and not listed."""
+    settings.LOBBY_KEY_PREFIX = "test-lobby-prune"
+    room_id = uuid.uuid4()
+
+    cache.set(
+        f"test-lobby-prune_{room_id!s}_participant1",
+        {
+            "id": "participant1",
+            "username": "user1",
+            "status": "waiting",
+            "color": "#123456",
+            "entered_at": "2025-01-01T10:00:00+00:00",
+        },
+        timeout=100,
+    )
+    lobby_service._index_add(room_id, "participant1")
+    # participant2 is indexed but its cache entry has expired.
+    lobby_service._index_add(room_id, "participant2")
+
+    result = lobby_service.list_waiting_participants(room_id)
+
+    assert [participant["id"] for participant in result] == ["participant1"]
+    assert lobby_service._index_members(room_id) == frozenset(["participant1"])
+
+
+def test_refresh_waiting_status_rearms_room_index_ttl(lobby_service, participant_id):
+    """A lone waiter's polling must keep the room index alive.
+
+    Regression test: the index backstop TTL is only armed at enter() time,
+    so a participant whose rolling WAITING refreshes outlast it would keep
+    their entry alive while silently vanishing from the moderator list.
+    Refreshing the waiting status must therefore re-arm the index TTL.
+    """
+    room_id = uuid.uuid4()
+    lobby_service._index_add(room_id, participant_id)
+
+    index_key = lobby_service._get_index_key(room_id)
+    redis_client = lobby_service._redis()
+    redis_client.expire(index_key, 10)
+    assert redis_client.ttl(index_key) <= 10
+
+    lobby_service.refresh_waiting_status(room_id, participant_id)
+
+    assert redis_client.ttl(index_key) > 10
+    assert lobby_service._index_members(room_id) == frozenset([participant_id])

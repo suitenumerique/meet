@@ -3,13 +3,13 @@ Gitlint extra rule to validate that the message title is of the form
 "<gitmoji>(<scope>) <subject>"
 """
 
-from __future__ import unicode_literals
-
+import json
 import re
-
-import requests
+import urllib.request
 
 from gitlint.rules import CommitMessageTitle, LineRule, RuleViolation
+
+GITMOJIS_URL = "https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json"
 
 
 class GitmojiTitle(LineRule):
@@ -28,10 +28,9 @@ class GitmojiTitle(LineRule):
         Download the list possible gitmojis from the project's github repository and check that
         title contains one of them.
         """
-        gitmojis = requests.get(
-            "https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json"
-        ).json()["gitmojis"]
-        emojis = [item["emoji"] for item in gitmojis]
+        with urllib.request.urlopen(GITMOJIS_URL, timeout=10) as response:
+            gitmojis = json.load(response)["gitmojis"]
+        emojis = [re.escape(item["emoji"]) for item in gitmojis]
         pattern = r"^({:s})\(.*\)\s[a-z].*$".format("|".join(emojis))
         if not re.search(pattern, title):
             violation_msg = 'Title does not match regex "<gitmoji>(<scope>) <subject>"'

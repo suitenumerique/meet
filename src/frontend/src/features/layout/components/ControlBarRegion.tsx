@@ -13,7 +13,7 @@ const controlBarRegion = cva({
     mobile: {
       true: {
         justifyContent: 'center',
-        width: '330px',
+        width: '100%',
       },
     },
   },

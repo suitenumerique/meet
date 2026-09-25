@@ -4,12 +4,12 @@ USER node
 
 WORKDIR /home/frontend/
 
-COPY ./src/frontend/package.json ./package.json
-COPY ./src/frontend/package-lock.json ./package-lock.json
+COPY --chown=node:node ./src/frontend/package.json ./package.json
+COPY --chown=node:node ./src/frontend/package-lock.json ./package-lock.json
 
 RUN npm ci
 
-COPY .dockerignore ./.dockerignore
+COPY --chown=node:node .dockerignore ./.dockerignore
 COPY --chown=node:node ./src/frontend/ .
 
 ### ---- Front-end builder image ----
@@ -42,19 +42,11 @@ ENV VITE_APP_TITLE=${VITE_APP_TITLE}
 RUN npm run build
 
 # ---- Front-end image ----
-FROM nginxinc/nginx-unprivileged:1.30.3-alpine3.23 AS frontend-production
+FROM nginxinc/nginx-unprivileged:1.30.4-alpine3.24 AS frontend-production
 
 USER root
-
-# Security patches for known CVEs
-RUN apk update && apk upgrade  \
-    libcrypto3>=3.5.7-r0 \
-    libssl3>=3.5.7-r0 \
-    musl \
-    musl-utils \
-    zlib>=1.3.2-r0 \
-    && apk del curl
-
+RUN apk upgrade --no-cache libexpat && \
+    apk del curl
 USER nginx
 
 # Un-privileged user running the application

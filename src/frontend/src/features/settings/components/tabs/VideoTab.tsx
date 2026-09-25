@@ -18,6 +18,7 @@ import {
   saveVideoPublishResolution,
   saveVideoSubscribeQuality,
   userChoicesStore,
+  VIDEO_RESOLUTIONS,
   VideoResolution,
 } from '@/stores/userChoices'
 import { RowWrapper } from './layout/RowWrapper'
@@ -32,7 +33,8 @@ const EMPTY_PROPS = {}
 
 export const VideoTab = ({ id }: VideoTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'video' })
-  const { localParticipant, remoteParticipants } = useRoomContext()
+  const room = useRoomContext()
+  const { localParticipant } = room
 
   const {
     videoDeviceId,
@@ -69,35 +71,20 @@ export const VideoTab = ({ id }: VideoTabProps) => {
         isDisabled: true,
       }
 
-  const handleVideoResolutionChange = async (key: 'h720' | 'h360' | 'h180') => {
-    const videoPublication = localParticipant.getTrackPublication(
+  const handleVideoResolutionChange = async (key: VideoResolution) => {
+    saveVideoPublishResolution(key)
+    const videoTrack = localParticipant.getTrackPublication(
       Track.Source.Camera
-    )
-    const videoTrack = videoPublication?.track
-    if (videoTrack) {
-      saveVideoPublishResolution(key)
-      await videoTrack.restartTrack({
-        resolution: VideoPresets[key].resolution,
-        deviceId: { exact: videoDeviceId },
-        processor:
-          BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
-      })
+    )?.track
+    if (!videoTrack) {
+      return
     }
-  }
 
-  /**
-   * Updates video quality for all existing remote video tracks when user preference changes.
-   * LiveKit doesn't support setting video quality preferences at the room level for remote participants,
-   * so this function applies the selected quality to all existing remote video tracks.
-   * Hook useVideoResolutionSubscription updates quality preferences of new participants joining.
-   */
-  const updateExistingRemoteVideoQuality = (selectedQuality: VideoQuality) => {
-    remoteParticipants.forEach((participant) => {
-      participant.videoTrackPublications.forEach((publication) => {
-        if (publication.videoQuality !== selectedQuality) {
-          publication.setVideoQuality(selectedQuality)
-        }
-      })
+    await videoTrack.restartTrack({
+      resolution: VideoPresets[key].resolution,
+      deviceId: { exact: videoDeviceId },
+      processor:
+        BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
     })
   }
 
@@ -122,20 +109,13 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   }, [videoDeviceId, videoElement])
 
   const resolutionItems = useMemo(() => {
-    return [
-      {
-        value: 'h720',
-        label: `${t('resolution.publish.items.high')} (720p)`,
-      },
-      {
-        value: 'h360',
-        label: `${t('resolution.publish.items.medium')} (360p)`,
-      },
-      {
-        value: 'h180',
-        label: `${t('resolution.publish.items.low')} (180p)`,
-      },
-    ]
+    const labels: Record<VideoResolution, string> = {
+      h1080: `${t('resolution.publish.items.veryHigh')} (1080p)`,
+      h720: `${t('resolution.publish.items.high')} (720p)`,
+      h360: `${t('resolution.publish.items.medium')} (360p)`,
+      h180: `${t('resolution.publish.items.low')} (180p)`,
+    }
+    return VIDEO_RESOLUTIONS.map((value) => ({ value, label: labels[value] }))
   }, [t])
 
   const videoQualityItems = useMemo(() => {
@@ -235,9 +215,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           selectedKey={videoSubscribeQuality?.toString()}
           onSelectionChange={(key) => {
             if (key == undefined) return
-            const selectedQuality = Number(String(key))
-            saveVideoSubscribeQuality(selectedQuality)
-            updateExistingRemoteVideoQuality(selectedQuality)
+            saveVideoSubscribeQuality(Number(String(key)))
           }}
           style={{
             width: '100%',

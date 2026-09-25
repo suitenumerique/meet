@@ -30,36 +30,36 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       -
         name: Set up QEMU
         if: env.IS_MULTI_PLATFORM_BUILD == 'true'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
       -
         name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: '${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-backend'
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       -
         name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
+        uses: numerique-gouv/action-trivy-cache@d6e94cfb488f03a0b3e8b8739aad94e74d24d8da # main
         with:
           docker-build-args: '--target backend-production -f Dockerfile'
           docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-backend:${{ github.sha }}'
       -
         name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           target: backend-production
@@ -76,36 +76,36 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       -
         name: Set up QEMU
         if: env.IS_MULTI_PLATFORM_BUILD == 'true'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
       -
         name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: '${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend'
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       -
         name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
+        uses: numerique-gouv/action-trivy-cache@d6e94cfb488f03a0b3e8b8739aad94e74d24d8da # main
         with:
           docker-build-args: '-f src/frontend/Dockerfile --target frontend-production'
           docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend:${{ github.sha }}'
       -
         name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           file: ./src/frontend/Dockerfile
@@ -123,36 +123,36 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       -
         name: Set up QEMU
         if: env.IS_MULTI_PLATFORM_BUILD == 'true'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
       -
         name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: '${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend-dinum'
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       -
         name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
+        uses: numerique-gouv/action-trivy-cache@d6e94cfb488f03a0b3e8b8739aad94e74d24d8da # main
         with:
           docker-build-args: '-f docker/dinum-frontend/Dockerfile --target frontend-production'
           docker-image-name: '${{ env.DOCKER_CONTAINER_REGISTRY_HOSTNAME }}/${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-frontend-dinum:${{ github.sha }}'
       -
         name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           file: ./docker/dinum-frontend/Dockerfile
@@ -170,30 +170,30 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       -
         name: Set up QEMU
         if: env.IS_MULTI_PLATFORM_BUILD == 'true'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
       -
         name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: '${{ env.DOCKER_CONTAINER_REGISTRY_NAMESPACE }}/meet-summary'
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       -
         name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
+        uses: numerique-gouv/action-trivy-cache@d6e94cfb488f03a0b3e8b8739aad94e74d24d8da # main
         continue-on-error: true
         with:
           docker-build-args: '-f src/summary/Dockerfile --target production'
@@ -201,7 +201,7 @@ jobs:
           docker-context: './src/summary'
       -
         name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: ./src/summary
           file: ./src/summary/Dockerfile
@@ -219,30 +219,30 @@ jobs:
     steps:
       -
         name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       -
         name: Set up QEMU
         if: env.IS_MULTI_PLATFORM_BUILD == 'true'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
       -
         name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: lasuite/meet-agents
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/')
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       -
         name: Run trivy scan
-        uses: numerique-gouv/action-trivy-cache@main
+        uses: numerique-gouv/action-trivy-cache@d6e94cfb488f03a0b3e8b8739aad94e74d24d8da # main
         continue-on-error: true
         with:
           docker-build-args: '-f src/agents/Dockerfile --target production'
@@ -250,7 +250,7 @@ jobs:
           docker-context: './src/agents'
       -
         name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: ./src/agents
           file: ./src/agents/Dockerfile
@@ -273,7 +273,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - uses: numerique-gouv/action-argocd-webhook-notification@main
+      - uses: numerique-gouv/action-argocd-webhook-notification@cac2ee67896eb13e84e804f60c4271370424eaa8 # main
         id: notify
         with:
           deployment_repo_path: "${{ secrets.DEPLOYMENT_REPO_URL }}"

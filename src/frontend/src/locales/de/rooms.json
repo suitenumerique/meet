@@ -16,6 +16,10 @@
       "videoinput": "Keine Kamera erkannt. Prüfe, ob sie richtig angeschlossen ist.",
       "audioinput": "Kein Mikrofon erkannt. Prüfe, ob es richtig angeschlossen ist."
     },
+    "deviceInUse": {
+      "videoinput": "Kamera nicht verfügbar: Sie wird wahrscheinlich von einer anderen App oder einem anderen Tab verwendet.",
+      "audioinput": "Mikrofon nicht verfügbar: Es wird wahrscheinlich von einer anderen App oder einem anderen Tab verwendet."
+    },
     "settings": {
       "audio": "Audioeinstellungen",
       "video": "Videoeinstellungen"
@@ -74,6 +78,7 @@
     },
     "cameraDisabled": "Kamera ist deaktiviert.",
     "cameraNotFound": "Keine Kamera erkannt. Prüfe, ob sie richtig angeschlossen ist.",
+    "cameraInUse": "Deine Kamera ist nicht verfügbar. Sie wird wahrscheinlich von einer anderen App oder einem anderen Tab verwendet.",
     "cameraStarting": "Kamera wird gestartet…",
     "cameraNotGranted": "Möchtest du, dass andere dich während des Meetings sehen können?",
     "cameraAndMicNotGranted": "Möchtest du, dass andere dich während des Meetings sehen und hören können?",
@@ -437,7 +442,8 @@
       "tools": "Weitere Tools",
       "info": "Meeting-Informationen"
     },
-    "closeButton": "{{content}} ausblenden"
+    "closeButton": "{{content}} ausblenden (Escape)",
+    "escapeHint": "Escape drücken zum Schließen"
   },
   "chat": {
     "disclaimer": "Die Nachrichten sind nur für Teilnehmende zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Meetings gelöscht.",
@@ -481,7 +487,7 @@
       "destination": "Ein neues Dokument wird erstellt auf",
       "destinationUnknown": "Ein neues Dokument wird erstellt",
       "language": "Meeting-Sprache:",
-      "recording": "Auch eine Aufzeichnung starten"
+      "recording": "Auch eine Videoaufzeichnung starten"
     },
     "button": {
       "start": "Meeting-Transkription starten",
@@ -757,6 +763,24 @@
     "muteParticipant": "{{name}} stummschalten",
     "fullScreen": "Vollbild"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Zoom-Steuerung für Bildschirmfreigabe",
+    "zoomIn": "Vergrößern",
+    "zoomInWithShortcut": "Vergrößern ({{shortcut}})",
+    "zoomOut": "Verkleinern",
+    "zoomOutWithShortcut": "Verkleinern ({{shortcut}})",
+    "wheelShortcut": "Steuerung plus Mausrad",
+    "wheelShortcutMac": "⌘+Mausrad",
+    "wheelShortcutHint": "Tastenkürzel: Steuerung plus Mausrad zum Vergrößern oder Verkleinern.",
+    "wheelShortcutHintMac": "Tastenkürzel: Befehl plus Mausrad zum Vergrößern oder Verkleinern.",
+    "fitToWindow": "An Fenster anpassen",
+    "fullScreen": "Vollbild",
+    "exitFullScreen": "Vollbild beenden",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Mit der Maus ziehen oder den Fokus zurück auf die Bildschirmfreigabe setzen und mit den Pfeiltasten im Bild navigieren.",
+    "fullScreenEntered": "Vollbild aktiviert",
+    "fullScreenExited": "Vollbild deaktiviert"
+  },
   "shortcutsPanel": {
     "title": "Tastenkürzel",
     "categories": {
@@ -776,7 +800,11 @@
       "raise-hand": "Hand heben oder senken",
       "toggle-chat": "Chat anzeigen/ausblenden",
       "toggle-participants": "Teilnehmende anzeigen/ausblenden",
-      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen"
+      "open-shortcuts-settings": "Tastenkürzel-Einstellungen öffnen",
+      "zoom-in": "In einen geteilten Bildschirm hineinzoomen",
+      "zoom-out": "Aus einem geteilten Bildschirm herauszoomen",
+      "zoom-reset": "Zoom des geteilten Bildschirms zurücksetzen",
+      "zoom-pan": "Im gezoomten geteilten Bildschirm navigieren"
     },
     "sr": {
       "control": "Steuerung",
@@ -786,10 +814,14 @@
       "shift": "Umschalt",
       "plus": "plus",
       "hold": "Halte {{key}} gedrückt",
+      "arrows": "Pfeiltasten",
+      "plusKey": "Plus-Taste",
+      "minusKey": "Minus-Taste",
       "noShortcut": "Kein Tastenkürzel"
     },
     "visual": {
-      "hold": "Halte {{key}} gedrückt"
+      "hold": "Halte {{key}} gedrückt",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {

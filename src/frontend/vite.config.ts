@@ -5,15 +5,25 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import svgr from 'vite-plugin-svgr'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
-const mediapipeVersion: string = JSON.parse(
-  readFileSync(
-    new URL(
-      './node_modules/@mediapipe/tasks-vision/package.json',
-      import.meta.url
-    ),
-    'utf-8'
-  )
+const readPackageJson = (path: string) =>
+  JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf-8'))
+
+const mediapipeVersion: string = readPackageJson(
+  './node_modules/@mediapipe/tasks-vision/package.json'
 ).version
+
+const livekitMediapipeVersion: string = readPackageJson(
+  './node_modules/@livekit/track-processors/package.json'
+).dependencies['@mediapipe/tasks-vision']
+
+if (mediapipeVersion !== livekitMediapipeVersion) {
+  throw new Error(
+    `@mediapipe/tasks-vision@${mediapipeVersion} is installed, but ` +
+      `@livekit/track-processors declares "${livekitMediapipeVersion}". ` +
+      `The two must stay in sync: pin "@mediapipe/tasks-vision" to ` +
+      `"${livekitMediapipeVersion}" in package.json.`
+  )
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

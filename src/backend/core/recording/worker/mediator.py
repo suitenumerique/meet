@@ -68,7 +68,7 @@ class WorkerServiceMediator:
         mode = recording.options.get("original_mode", None) or recording.mode
 
         try:
-            RoomManagement().update_metadata(
+            RoomManagement.update_metadata(
                 room_name, {"recording_mode": mode, "recording_status": "starting"}
             )
         except RoomNotFoundException:

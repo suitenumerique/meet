@@ -23,13 +23,10 @@ It uses LiveKit Egress to record room sessions. For reference, see the [LiveKit 
 To use the room recording feature, the following components are required:
 
 - A running [LiveKit Egress](https://github.com/livekit/egress) server capable of handling room composite recordings.
-- A S3-compatible object storage that supports webhook events to notify the backend when recordings are uploaded.
+- A S3-compatible object storage where the egress uploads the recorded files.
 - An email service to notify room owners when a recording is available for download.
 - Webhook events configured between LiveKit Server and the backend.
 
-
-> [!CAUTION]
->  Minio supports lifecycle events; other providers may not work out of the box. There is currently a dependency on Minio, which is planned to be refactored in the future.
 
 > [!NOTE]
 > Celery isn’t in use for these async tasks yet. It’s something we’d like to add, but it’s not planned at this stage.
@@ -75,7 +72,7 @@ sequenceDiagram
     LiveKit->>Egress: Stop recording
     Egress->>Storage: Upload recorded file
     
-    Storage->>Backend: Storage event notification
+    LiveKit->>Backend: POST /api/v1.0/rooms/webhooks-livekit/ (egress_ended)
     Backend->>Backend: Update Recording status to SAVED
     Backend->>Email: Send notification to room owner
     
@@ -94,10 +91,6 @@ sequenceDiagram
 | **RECORDING_ENABLE**                    | Boolean     | `False`                                                                                                                                                            | Enable or disable the room recording feature.                                                                                                                                                                                                                                                      |
 | **RECORDING_OUTPUT_FOLDER**             | String      | `"recordings"`                                                                                                                                                     | Folder/prefix where recordings are stored in the object storage.                                                                                                                                                                                                                                   |
 | **RECORDING_WORKER_CLASSES**            | Dict        | `{ "screen_recording": "core.recording.worker.services.VideoCompositeEgressService", "transcript": "core.recording.worker.services.AudioCompositeEgressService" }` | Maps recording types to their worker service classes.                                                                                                                                                                                                                                              |
-| **RECORDING_EVENT_PARSER_CLASS**        | String      | `"core.recording.event.parsers.MinioParser"`                                                                                                                       | Class responsible for parsing storage events and updating the backend.                                                                                                                                                                                                                             |
-| **RECORDING_ENABLE_STORAGE_EVENT_AUTH** | Boolean     | `True`                                                                                                                                                             | Enable authentication for storage event webhook requests.                                                                                                                                                                                                                                          |
-| **RECORDING_STORAGE_EVENT_ENABLE**      | Boolean     | `False`                                                                                                                                                            | Enable handling of storage events (must configure webhook in storage). If `False`, fallback to LiveKit egress complete webhook.                                                    |
-| **RECORDING_STORAGE_EVENT_TOKEN**       | Secret/File | `None`                                                                                                                                                             | Token used to authenticate storage webhook requests, if `RECORDING_ENABLE_STORAGE_EVENT_AUTH` is enabled.                                                                                                                                                                                          |
 | **RECORDING_EXPIRATION_DAYS**           | Integer     | `None`                                                                                                                                                             | Number of days before recordings expire. Should match bucket lifecycle policy. Set to `None` for no expiration.                                                                                                                                                                                    |
 | **RECORDING_MAX_DURATION**              | Integer     | `None`                                                                                                                                                             | Maximum duration of a recording in milliseconds. Must be synced with the LiveKit Egress configuration. Set to None for unlimited duration. When the maximum duration is reached, the recording is automatically stopped and saved, and the user is prompted in the frontend with an alert message. |
 | **RECORDING_ENCODING_ENABLED**          | Boolean     | `False`                                                                                                                                                            | When `False`, LiveKit Egress uses its built-in `H264_720P_30` preset. When `True`, the `RECORDING_ENCODING_*` values below are sent to LiveKit as advanced `EncodingOptions`. See [Tuning recording encoding](#tuning-recording-encoding).                                                          |
@@ -108,19 +101,6 @@ sequenceDiagram
 | **RECORDING_ENCODING_AUDIO_BITRATE_KBPS** | Integer   | `128`                                                                                                                                                              | AAC audio bitrate in kbps. Only applied when `RECORDING_ENCODING_ENABLED` is `True`.                                                                                                                                                                                                               |
 | **RECORDING_ENCODING_KEY_FRAME_INTERVAL_S** | Float   | `4.0`                                                                                                                                                              | Keyframe interval in seconds. Drives seek granularity in the recorded MP4 (a player can only seek to keyframe boundaries). Larger values give the encoder slightly more bits for non-keyframe content at a fixed bitrate. `4.0` is a standard VOD value. Only applied when `RECORDING_ENCODING_ENABLED` is `True`. |
 
-
-### Manual Storage Webhook
-
-Storage events must be configured manually; the Kubernetes chart does not do this automatically.
-
-1. Configure your S3 bucket to send file creation events to the backend webhook.
-2. Enable events and token in settings:
-
-```python
-RECORDING_STORAGE_EVENT_ENABLE = True
-RECORDING_ENABLE_STORAGE_EVENT_AUTH = True
-RECORDING_STORAGE_EVENT_TOKEN = <token>
-```
 
 > [!NOTE]
 > Questions? Open an issue on [GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) or join our [Matrix community](https://matrix.to/#/#meet-official:matrix.org).

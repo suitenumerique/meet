@@ -16,8 +16,17 @@ import responses
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 from rest_framework.test import APIClient
 
+from core.analytics import AnalyticsEvent
 from core.factories import ApplicationFactory, RoomFactory, UserFactory
-from core.models import ApplicationScope, RoleChoices, Room, RoomAccessLevel, User
+from core.models import (
+    Application,
+    ApplicationScope,
+    RoleChoices,
+    Room,
+    RoomAccessLevel,
+    User,
+)
+from core.services.room_management import RoomManagement
 
 pytestmark = pytest.mark.django_db
 
@@ -880,6 +889,509 @@ def test_api_rooms_create_public_access_level_when_default_is_public(settings):
     assert response.data["access_level"] == RoomAccessLevel.PUBLIC
 
 
+@mock.patch("core.external_api.viewsets.analytics.capture")
+def test_api_rooms_create_tracks_analytics(mock_capture):
+    """Creating a room should emit a ROOM_CREATED analytics event."""
+
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_CREATE])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        "/external-api/v1.0/rooms/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 201
+
+    mock_capture.assert_called_once()
+    captured_user, event, properties = mock_capture.call_args[0]
+
+    assert captured_user == user
+    assert event == AnalyticsEvent.ROOM_CREATED
+    assert properties == {
+        "room_id": response.data["id"],
+        "access_level": RoomAccessLevel.RESTRICTED,
+        "client_id": str(application.client_id),
+        "external_api": True,
+        "auth_method": "ApplicationJWTAuthentication",
+        "$set": {"email": user.email},
+    }
+
+
+def test_api_rooms_update_requires_authentication():
+    """Updating a room without authentication should return 401."""
+
+    room = RoomFactory(users=[(UserFactory(), RoleChoices.OWNER)])
+
+    client = APIClient()
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 401
+
+
+def test_api_rooms_update_requires_scope():
+    """Updating a room requires the ROOMS_UPDATE scope."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    # Token without ROOMS_UPDATE scope
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 403
+    assert (
+        "insufficient permissions. required scope: rooms:update"
+        in str(response.data).lower()
+    )
+
+
+def test_api_rooms_update_no_scope():
+    """Updating a room without any scope should return 403."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 403
+    assert "insufficient permissions." in str(response.data).lower()
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_owner_success(mock_update_metadata, settings):
+    """An owner should be able to update the access level and the configuration."""
+
+    settings.APPLICATION_BASE_URL = "http://your-application.com"
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+        configuration={},
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {
+            "access_level": RoomAccessLevel.RESTRICTED,
+            "configuration": {"everyone_can_mute": True},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.data["id"] == str(room.id)
+    assert response.data["access_level"] == RoomAccessLevel.RESTRICTED
+    assert response.data["configuration"] == {"everyone_can_mute": True}
+    assert response.data["url"] == f"http://your-application.com/{room.slug}"
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+    assert room.configuration == {"everyone_can_mute": True}
+
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={
+            "configuration": {"everyone_can_mute": True},
+            "access_level": RoomAccessLevel.RESTRICTED,
+        },
+    )
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_replaces_configuration(mock_update_metadata):
+    """The configuration is replaced as a whole, it is not merged with the stored one."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        configuration={"can_publish_sources": ["camera"], "everyone_can_mute": True},
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"configuration": {"everyone_can_mute": False}},
+        format="json",
+    )
+
+    assert response.status_code == 200
+
+    # The keys missing from the payload are dropped, not kept.
+    assert response.data["configuration"] == {"everyone_can_mute": False}
+
+    room.refresh_from_db()
+    assert room.configuration == {"everyone_can_mute": False}
+
+    mock_update_metadata.assert_called_once_with(
+        room_name=str(room.id),
+        metadata={
+            "configuration": {"everyone_can_mute": False},
+            "access_level": room.access_level,
+        },
+    )
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_administrator_success(mock_update_metadata):
+    """An administrator should be able to update a room."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.ADMIN)],
+        access_level=RoomAccessLevel.TRUSTED,
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 200
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+    mock_update_metadata.assert_called_once()
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_put_not_allowed(mock_update_metadata):
+    """PUT is not exposed: full replacement is not supported, only PATCH is."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+        configuration={},
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.put(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {
+            "access_level": RoomAccessLevel.RESTRICTED,
+            "configuration": {"everyone_can_mute": True},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 405
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.TRUSTED
+    assert room.configuration == {}
+    mock_update_metadata.assert_not_called()
+
+
+@pytest.mark.parametrize("role", [RoleChoices.MEMBER, None])
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_without_privileges(mock_update_metadata, role):
+    """Members and users without any role should not be able to update a room."""
+
+    user = UserFactory()
+    users = [(user, role)] if role else []
+    room = RoomFactory(users=users, access_level=RoomAccessLevel.TRUSTED)
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 403
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.TRUSTED
+    mock_update_metadata.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_readonly_enforcement(mock_update_metadata):
+    """Read-only fields provided on update should be ignored, the slug stays immutable."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+    )
+    expected_id, expected_name = str(room.id), room.name
+    expected_slug, expected_pin_code = room.slug, room.pin_code
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {
+            "id": str(uuid.uuid4()),
+            "name": "fake-name",
+            "slug": "fake-slug",
+            "pin_code": "000000",
+            "access_level": RoomAccessLevel.RESTRICTED,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.data["id"] == expected_id
+    assert response.data["name"] == expected_name
+    assert response.data["slug"] == expected_slug
+
+    room.refresh_from_db()
+    assert str(room.id) == expected_id
+    assert room.name == expected_name
+    assert room.slug == expected_slug
+    assert room.pin_code == expected_pin_code
+
+    # The one writable field in the payload was applied
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+    mock_update_metadata.assert_called_once()
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_rejects_invalid_configuration(mock_update_metadata):
+    """Updating a room with unsupported configuration keys should fail."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)], configuration={})
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"configuration": {"unsupported_flag": True}},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "extra inputs are not permitted" in str(response.data).lower()
+
+    room.refresh_from_db()
+    assert room.configuration == {}
+    mock_update_metadata.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "invalid_configuration",
+    [
+        {"can_publish_sources": ["invalid-source"]},
+        {"everyone_can_mute": "invalid-value"},
+    ],
+)
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_rejects_invalid_configuration_values(
+    mock_update_metadata, invalid_configuration
+):
+    """Updating a room with invalid configuration values should fail."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)], configuration={})
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"configuration": invalid_configuration},
+        format="json",
+    )
+
+    assert response.status_code == 400
+
+    room.refresh_from_db()
+    assert room.configuration == {}
+    mock_update_metadata.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_public_access_disabled_by_default(mock_update_metadata):
+    """Switching a room to public should be disabled for the external API by default."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.PUBLIC},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "public rooms are disabled" in str(response.data).lower()
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.TRUSTED
+    mock_update_metadata.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_public_access_enabled_with_settings(
+    mock_update_metadata, settings
+):
+    """Switching a room to public should be allowed when explicitly enabled."""
+
+    settings.EXTERNAL_API_ALLOW_PUBLIC_ACCESS = True
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.PUBLIC},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.data["access_level"] == RoomAccessLevel.PUBLIC
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.PUBLIC
+    mock_update_metadata.assert_called_once()
+
+
+@mock.patch("core.external_api.viewsets.analytics.capture")
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_unchanged_skips_livekit_sync(
+    mock_update_metadata, mock_capture
+):
+    """An update that changes nothing should not sync metadata nor report changes."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+        configuration={"everyone_can_mute": True},
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {
+            "access_level": RoomAccessLevel.TRUSTED,
+            "configuration": {"everyone_can_mute": True},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 200
+    mock_update_metadata.assert_not_called()
+
+    # The event is still emitted for auditing, but reports an empty delta.
+    _, _, properties = mock_capture.call_args[0]
+    assert properties["updated_fields"] == []
+
+
+@mock.patch("core.external_api.viewsets.analytics.capture")
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_tracks_analytics(mock_update_metadata, mock_capture):
+    """Updating a room should emit a ROOM_UPDATED analytics event."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+        configuration={},
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {
+            "access_level": RoomAccessLevel.RESTRICTED,
+            "configuration": {"everyone_can_mute": True},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 200
+
+    mock_capture.assert_called_once()
+    captured_user, event, properties = mock_capture.call_args[0]
+
+    assert captured_user == user
+    assert event == AnalyticsEvent.ROOM_UPDATED
+    assert properties == {
+        "room_id": str(room.pk),
+        "access_level": RoomAccessLevel.RESTRICTED,
+        "updated_fields": ["access_level", "configuration"],
+        "previous_access_level": RoomAccessLevel.TRUSTED,
+        "client_id": str(application.client_id),
+        "external_api": True,
+        "auth_method": "ApplicationJWTAuthentication",
+        "$set": {"email": user.email},
+    }
+
+    mock_update_metadata.assert_called_once()
+
+
 def test_api_rooms_response_no_url(settings):
     """Response should not include url field when APPLICATION_BASE_URL is None."""
     settings.APPLICATION_BASE_URL = None
@@ -1497,6 +2009,106 @@ def test_resource_server_denies_access_with_insufficient_scopes(settings):
     assert response.status_code == 403
 
 
+@responses.activate
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_resource_server_updates_room_with_prefixed_scope(
+    mock_update_metadata, settings
+):
+    """A resource server token carrying the prefixed update scope should be accepted."""
+
+    user = UserFactory(sub="very-specific-sub")
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+    )
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:update",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 200
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+    mock_update_metadata.assert_called_once()
+
+
+@responses.activate
+def test_resource_server_denies_room_update_without_update_scope(settings):
+    """A resource server token without the update scope should be denied."""
+
+    user = UserFactory(sub="very-specific-sub")
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+    )
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:retrieve",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 403
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.TRUSTED
+
+
 # ==============================
 # Addons
 # ==============================
@@ -1546,6 +2158,32 @@ def test_api_rooms_create_with_valid_addons_token():
     assert response.status_code == 201
     room = Room.objects.get(id=response.data["id"])
     assert room.get_role(user) == RoleChoices.OWNER
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_with_valid_addons_token(mock_update_metadata):
+    """Updating a room with a valid addons token should succeed."""
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+    )
+
+    token = generate_addons_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 200
+
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+    mock_update_metadata.assert_called_once()
 
 
 def test_api_rooms_addons_token_inactive_user():

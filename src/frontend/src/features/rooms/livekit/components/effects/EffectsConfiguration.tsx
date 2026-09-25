@@ -37,8 +37,8 @@ import { reportError } from '@/features/analytics/telemetry'
 
 enum BlurRadius {
   NONE = 0,
-  LIGHT = 5,
-  NORMAL = 10,
+  LIGHT = 10,
+  NORMAL = 20,
 }
 
 const isSupported = BackgroundProcessorFactory.isSupported()

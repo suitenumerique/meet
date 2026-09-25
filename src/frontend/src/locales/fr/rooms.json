@@ -16,6 +16,10 @@
       "videoinput": "Aucune caméra détectée. Vérifiez qu'elle est bien branchée.",
       "audioinput": "Aucun microphone détecté. Vérifiez qu'il est bien branché."
     },
+    "deviceInUse": {
+      "videoinput": "Caméra indisponible : elle est probablement utilisée par une autre application ou un autre onglet.",
+      "audioinput": "Microphone indisponible : il est probablement utilisé par une autre application ou un autre onglet."
+    },
     "settings": {
       "audio": "Paramètres audio",
       "video": "Paramètres video"
@@ -74,6 +78,7 @@
     },
     "cameraDisabled": "La caméra est désactivée.",
     "cameraNotFound": "Aucune caméra détectée. Vérifiez qu'elle est bien branchée.",
+    "cameraInUse": "Votre caméra n'est pas disponible. Elle est probablement utilisée par une autre application ou un autre onglet.",
     "cameraStarting": "La caméra va démarrer…",
     "cameraNotGranted": "Souhaitez-vous que les autres puissent vous voir pendant la réunion ?",
     "cameraAndMicNotGranted": "Souhaitez-vous que les autres puissent vous voir et vous entendre pendant la réunion ?",
@@ -437,7 +442,8 @@
       "tools": "outils de réunion",
       "info": "informations sur la réunion"
     },
-    "closeButton": "Masquer {{content}}"
+    "closeButton": "Masquer {{content}} (Échap)",
+    "escapeHint": "Appuyez sur Échap pour fermer"
   },
   "chat": {
     "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel.",
@@ -481,7 +487,7 @@
       "destination": "Un nouveau document sera créé sur",
       "destinationUnknown": "Un nouveau document sera créé",
       "language": "Langue de la réunion :",
-      "recording": "Démarrer aussi un enregistrement"
+      "recording": "Démarrer aussi un enregistrement vidéo"
     },
     "button": {
       "start": "Commencer à transcrire la réunion",
@@ -757,6 +763,24 @@
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Contrôles de zoom du partage d'écran",
+    "zoomIn": "Zoomer",
+    "zoomInWithShortcut": "Zoomer ({{shortcut}})",
+    "zoomOut": "Dézoomer",
+    "zoomOutWithShortcut": "Dézoomer ({{shortcut}})",
+    "wheelShortcut": "Contrôle plus molette",
+    "wheelShortcutMac": "⌘+molette",
+    "wheelShortcutHint": "Raccourci : Contrôle plus molette pour zoomer ou dézoomer.",
+    "wheelShortcutHintMac": "Raccourci : Commande plus molette pour zoomer ou dézoomer.",
+    "fitToWindow": "Ajuster à la fenêtre",
+    "fullScreen": "Plein écran",
+    "exitFullScreen": "Quitter le plein écran",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Glissez avec la souris, ou revenez sur le partage d'écran et utilisez les touches fléchées pour naviguer dans l'image.",
+    "fullScreenEntered": "Plein écran activé",
+    "fullScreenExited": "Plein écran désactivé"
+  },
   "shortcutsPanel": {
     "title": "Raccourcis clavier",
     "categories": {
@@ -776,7 +800,11 @@
       "raise-hand": "Lever ou baisser la main",
       "toggle-chat": "Afficher/Masquer le chat",
       "toggle-participants": "Afficher/Masquer les participants",
-      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis"
+      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis",
+      "zoom-in": "Zoomer sur un écran partagé",
+      "zoom-out": "Dézoomer sur un écran partagé",
+      "zoom-reset": "Réinitialiser le zoom de l’écran partagé",
+      "zoom-pan": "Se déplacer dans un écran partagé zoomé"
     },
     "sr": {
       "control": "Contrôle",
@@ -786,10 +814,14 @@
       "shift": "Majuscule",
       "plus": "plus",
       "hold": "Maintenir {{key}}",
+      "arrows": "Touches fléchées",
+      "plusKey": "Touche plus",
+      "minusKey": "Touche moins",
       "noShortcut": "Aucun raccourci"
     },
     "visual": {
-      "hold": "Maintenir {{key}}"
+      "hold": "Maintenir {{key}}",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {

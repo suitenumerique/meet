@@ -26,8 +26,8 @@
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
-    "core-js": "3.49.0",
-    "i18next": "26.3.6",
+    "core-js": "3.50.0",
+    "i18next": "26.4.2",
     "i18next-browser-languagedetector": "8.2.1",
     "regenerator-runtime": "0.14.1"
   },

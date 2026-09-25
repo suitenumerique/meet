@@ -16,6 +16,10 @@
       "videoinput": "No camera detected. Check that it is properly wired.",
       "audioinput": "No microphone detected. Check that it is properly wired."
     },
+    "deviceInUse": {
+      "videoinput": "Camera unavailable: it is probably in use by another application or browser tab.",
+      "audioinput": "Microphone unavailable: it is probably in use by another application or browser tab."
+    },
     "settings": {
       "audio": "Audio settings",
       "video": "Video settings"
@@ -74,6 +78,7 @@
     },
     "cameraDisabled": "Camera is disabled.",
     "cameraNotFound": "No camera detected. Check that it is properly plugged in.",
+    "cameraInUse": "Your camera is unavailable. It is probably being used by another application or browser tab.",
     "cameraStarting": "Camera is starting…",
     "cameraNotGranted": "Would you like others to be able to see you during the meeting?",
     "cameraAndMicNotGranted": "Would you like others to be able to see and hear you during the meeting?",
@@ -437,7 +442,8 @@
       "tools": "more tools",
       "info": "meeting information"
     },
-    "closeButton": "Hide {{content}}"
+    "closeButton": "Hide {{content}} (Escape)",
+    "escapeHint": "Press Escape to close"
   },
   "chat": {
     "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call.",
@@ -481,7 +487,7 @@
       "destination": "A new document will be created on",
       "destinationUnknown": "A new document will be created",
       "language": "Meeting language:",
-      "recording": "Also start a recording"
+      "recording": "Also start a video recording"
     },
     "button": {
       "start": "Start transcribing the meeting",
@@ -757,6 +763,24 @@
     "muteParticipant": "Mute {{name}}",
     "fullScreen": "Full screen"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Screen share zoom controls",
+    "zoomIn": "Zoom in",
+    "zoomInWithShortcut": "Zoom in ({{shortcut}})",
+    "zoomOut": "Zoom out",
+    "zoomOutWithShortcut": "Zoom out ({{shortcut}})",
+    "wheelShortcut": "Control plus scroll wheel",
+    "wheelShortcutMac": "⌘+scroll wheel",
+    "wheelShortcutHint": "Shortcut: Control plus scroll wheel to zoom in or out.",
+    "wheelShortcutHintMac": "Shortcut: Command plus scroll wheel to zoom in or out.",
+    "fitToWindow": "Fit to window",
+    "fullScreen": "Full screen",
+    "exitFullScreen": "Exit full screen",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Drag with mouse, or move focus back to the screen share and use arrow keys to navigate the picture.",
+    "fullScreenEntered": "Full screen enabled",
+    "fullScreenExited": "Full screen disabled"
+  },
   "shortcutsPanel": {
     "title": "Keyboard shortcuts",
     "categories": {
@@ -776,7 +800,11 @@
       "raise-hand": "Raise or lower hand",
       "toggle-chat": "Toggle chat",
       "toggle-participants": "Toggle participants",
-      "open-shortcuts-settings": "Open shortcuts settings"
+      "open-shortcuts-settings": "Open shortcuts settings",
+      "zoom-in": "Zoom in on a shared screen",
+      "zoom-out": "Zoom out on a shared screen",
+      "zoom-reset": "Reset the shared screen zoom",
+      "zoom-pan": "Move around a zoomed shared screen"
     },
     "sr": {
       "control": "Control",
@@ -786,10 +814,14 @@
       "shift": "Shift",
       "plus": "plus",
       "hold": "Hold {{key}}",
+      "arrows": "Arrow keys",
+      "plusKey": "Plus key",
+      "minusKey": "Minus key",
       "noShortcut": "No shortcut"
     },
     "visual": {
-      "hold": "Hold {{key}}"
+      "hold": "Hold {{key}}",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {

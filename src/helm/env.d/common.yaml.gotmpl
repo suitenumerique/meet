@@ -150,6 +150,7 @@ backend:
     # Frontend
     LIVEKIT_FORCE_WSS_PROTOCOL: True
     LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: True
+    LIVEKIT_DEFAULT_VIDEO_CODEC: vp9
     FRONTEND_IDLE_DISCONNECT_WARNING_DELAY: 9000
     FRONTEND_SILENCE_LIVEKIT_DEBUG: False
     FRONTEND_SUPPORT: "{'id': '58ea6697-8eba-4492-bc59-ad6562585041', 'help_article_transcript': 'https://lasuite.crisp.help/fr/article/visio-transcript-1sjq43x', 'help_article_recording': 'https://lasuite.crisp.help/fr/article/visio-enregistrement-wgc8o0', 'help_article_more_tools': 'https://lasuite.crisp.help/fr/article/visio-tools-bvxj23'}"
@@ -186,8 +187,6 @@ backend:
     CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
     # Recording & Transcription
     RECORDING_ENABLE: True
-    RECORDING_STORAGE_EVENT_ENABLE: True
-    RECORDING_STORAGE_EVENT_TOKEN: password
     SUMMARY_SERVICE_ENDPOINT: http://meet-summary:80/api/v2/async-jobs/transcribe/
     SUMMARY_SERVICE_API_TOKEN: password
     SUMMARY_SERVICE_WEBHOOK_API_TOKEN: webhook-password

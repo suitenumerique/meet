@@ -1,5 +1,6 @@
 import { isWeb } from '@livekit/components-core'
-import { Track } from 'livekit-client'
+import { MediaDeviceFailure, Track } from 'livekit-client'
+import { getMediaDeviceFailure } from '../utils/mediaPermissions'
 import React, { useState } from 'react'
 import {
   ConnectionStateToast,
@@ -19,6 +20,7 @@ import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
 import { VideoResolutionSubscription } from '../components/VideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
+import { MuteAlertDialogProvider } from '@/features/rooms/livekit/components/MuteAlertDialogProvider'
 import { IsIdleDisconnectModal } from '../components/IsIdleDisconnectModal'
 import { ReactionPortals } from '@/features/reactions/components/ReactionPortals'
 import { RoomContentArea } from '@/features/layout/components/RoomContentArea'
@@ -29,6 +31,7 @@ import { PinAnnouncer } from '@/features/layout/components/PinAnnouncer'
 import { ChatProvider } from '@/features/chat/components/ChatProvider'
 import { SyncDevicePreferences } from '@/features/rooms/livekit/components/SyncDevicePreferences'
 import { RoomSilentMicDetector } from '@/features/rooms/components/SilentMicDetector'
+import { LobbyProvider } from '@/features/rooms/components/LobbyProvider'
 
 /**
  * @public
@@ -99,6 +102,11 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
         return
       }
     }
+
+    if (getMediaDeviceFailure(error) !== MediaDeviceFailure.Other) {
+      return
+    }
+
     reportError('device_switch_failure', error, {
       at: 'ControlBar.onDeviceError',
       source,
@@ -113,6 +121,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       <RoomSilentMicDetector />
       <MediaStateObserver />
       <ChatProvider />
+      <LobbyProvider />
       <VideoResolutionSubscription />
       <div
         className="lk-video-conference"
@@ -144,6 +153,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
         <ConnectionStateToast />
         <RecordingProvider />
         <SettingsDialogProvider />
+        <MuteAlertDialogProvider />
         <ReactionPortals />
       </div>
     </>

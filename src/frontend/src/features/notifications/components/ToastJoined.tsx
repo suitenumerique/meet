@@ -1,5 +1,5 @@
 import { useToast } from 'react-aria'
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { Button as RACButton } from 'react-aria-components'
 import { Track } from 'livekit-client'
 import Source = Track.Source
@@ -11,6 +11,7 @@ import { Div } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { StyledToastContainer } from './StyledToastContainer'
 import { setPinnedTrack } from '@/stores/layout'
+import { useParticipantTracks } from '@livekit/components-react'
 
 const ClickableToast = styled(RACButton, {
   base: {
@@ -30,13 +31,17 @@ export function ToastJoined({ state, ...props }: Readonly<ToastProps>) {
   )
   const participant = props.toast.content.participant
 
-  if (!participant) return
+  const [cameraTrack] = useParticipantTracks(
+    [Source.Camera],
+    participant?.identity
+  )
 
-  const trackReference = {
-    participant,
-    publication: participant.getTrackPublication(Source.Camera),
-    source: Source.Camera,
-  }
+  const trackReference = useMemo(
+    () => cameraTrack ?? { participant, source: Source.Camera },
+    [cameraTrack, participant]
+  )
+
+  if (!participant) return
 
   return (
     <StyledToastContainer {...toastProps} ref={ref}>

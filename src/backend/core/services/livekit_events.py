@@ -12,17 +12,15 @@ from django.conf import settings
 from livekit import api
 
 from core import models
+from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.metadata_collector import (
     MetadataCollectorException,
     MetadataCollectorService,
 )
-from core.recording.services.recording_events import (
-    RecordingEventsError,
-    RecordingEventsService,
-    RecordingNotSavableError,
-)
+from core.recording.services.recording_events import RecordingEventsService
 
 from .lobby import LobbyService
+from .presence import PresenceCache
 from .room_management import (
     RoomManagement,
     RoomManagementException,
@@ -51,12 +49,6 @@ class InvalidPayloadError(LiveKitWebhookError):
     status_code = 400
 
 
-class UnsupportedEventTypeError(LiveKitWebhookError):
-    """Unsupported event type."""
-
-    status_code = 422
-
-
 class ActionFailedError(LiveKitWebhookError):
     """Webhook action fails to process or complete."""
 
@@ -73,6 +65,7 @@ class LiveKitWebhookEventType(Enum):
     # Participant events
     PARTICIPANT_JOINED = "participant_joined"
     PARTICIPANT_LEFT = "participant_left"
+    PARTICIPANT_CONNECTION_ABORTED = "participant_connection_aborted"
 
     # Track events
     TRACK_PUBLISHED = "track_published"
@@ -88,6 +81,30 @@ class LiveKitWebhookEventType(Enum):
     INGRESS_ENDED = "ingress_ended"
 
 
+# LiveKit egress statuses mapped to recording worker event statuses
+EGRESS_STATUS_TO_RECORDING_EVENT = {
+    api.EgressStatus.EGRESS_STARTING: RecordingWorkerEvent.STARTING,
+    api.EgressStatus.EGRESS_ACTIVE: RecordingWorkerEvent.STARTED,
+    api.EgressStatus.EGRESS_ENDING: RecordingWorkerEvent.SAVING,
+    api.EgressStatus.EGRESS_COMPLETE: RecordingWorkerEvent.COMPLETED,
+    api.EgressStatus.EGRESS_LIMIT_REACHED: RecordingWorkerEvent.LIMIT_REACHED,
+    api.EgressStatus.EGRESS_ABORTED: RecordingWorkerEvent.ABORTED,
+    api.EgressStatus.EGRESS_FAILED: RecordingWorkerEvent.FAILED,
+}
+
+
+def to_recording_event(egress_status):
+    """Translate a LiveKit egress status into a recording worker event."""
+
+    event = EGRESS_STATUS_TO_RECORDING_EVENT.get(egress_status)
+    if event is None:
+        logger.warning(
+            "Unmapped LiveKit egress status '%s', ignoring the event.",
+            egress_status,
+        )
+    return event
+
+
 class LiveKitEventsService:
     """Service for processing and handling LiveKit webhook events and notifications."""
 
@@ -99,6 +116,7 @@ class LiveKitEventsService:
             "egress_ended": self._handle_egress_ended,
             "room_started": self._handle_room_started,
             "room_finished": self._handle_room_finished,
+            "participant_left": self._handle_participant_left,
         }
 
         token_verifier = api.TokenVerifier(
@@ -107,6 +125,7 @@ class LiveKitEventsService:
         )
         self.webhook_receiver = api.WebhookReceiver(token_verifier)
         self.lobby_service = LobbyService()
+        self.presence_cache = PresenceCache()
         self.sip_management = SIPManagement()
         self.recording_events = RecordingEventsService()
 
@@ -150,10 +169,13 @@ class LiveKitEventsService:
 
         try:
             webhook_type = LiveKitWebhookEventType(data.event)
-        except ValueError as e:
-            raise UnsupportedEventTypeError(
-                f"Unknown webhook type: {data.event}"
-            ) from e
+        except ValueError:
+            logger.warning(
+                "Ignoring unknown LiveKit webhook event type '%s' for room '%s'",
+                data.event,
+                room_name,
+            )
+            return
 
         # Handle according to received webhook type
         handler = self._webhook_handlers.get(webhook_type.value)
@@ -172,12 +194,20 @@ class LiveKitEventsService:
                 f"Recording with worker ID {egress_id} does not exist"
             ) from err
 
-        egress_status = data.egress_info.status
-        self.recording_events.handle_update(recording, egress_status)
+        event = to_recording_event(data.egress_info.status)
+        if event is None:
+            return
+
+        self.recording_events.handle_update(recording, event)
 
     def _handle_egress_ended(self, data):
-        """Handle 'egress_ended' event."""
+        """Handle 'egress_ended' event.
 
+        Egress ended is sent with one of these statuses:
+        EGRESS_COMPLETE, EGRESS_FAILED, EGRESS_ABORTED, EGRESS_LIMIT_REACHED
+        """
+
+        # Fetch recording
         try:
             recording = models.Recording.objects.select_related("room").get(
                 worker_id=data.egress_info.egress_id
@@ -187,9 +217,20 @@ class LiveKitEventsService:
                 f"Recording with worker ID {data.egress_info.egress_id} does not exist"
             ) from err
 
+        event = to_recording_event(data.egress_info.status)
+
+        # Log if/why the recording failed
+        self.recording_events.log_worker_error(
+            recording,
+            event,
+            error=data.egress_info.error,
+            error_code=data.egress_info.error_code,
+        )
+
+        # Update room
         try:
             room_name = str(recording.room.id)
-            RoomManagement().update_metadata(
+            RoomManagement.update_metadata(
                 room_name, remove_keys=["recording_mode", "recording_status"]
             )
         except RoomNotFoundException:
@@ -200,40 +241,17 @@ class LiveKitEventsService:
         except RoomManagementException as e:
             logger.exception("Failed to update room's metadata: %s", e)
 
+        # Stop metadata collector
         if recording.options.get("metadata_collector_dispatch_id", None) is not None:
             try:
                 MetadataCollectorService().stop(recording)
             except MetadataCollectorException:
                 logger.warning("Failed to stop the MetadataCollectorService")
 
-        if (
-            data.egress_info.status == api.EgressStatus.EGRESS_LIMIT_REACHED
-            and recording.status == models.RecordingStatusChoices.ACTIVE
-        ):
-            try:
-                self.recording_events.handle_limit_reached(recording)
-            except RecordingEventsError as e:
-                raise ActionFailedError(
-                    f"Failed to process limit reached event for recording {recording}"
-                ) from e
+        if event is None:
+            return
 
-        # Fallback for completion when no MinIO/S3 webhooks are configured
-        if (
-            not settings.RECORDING_STORAGE_EVENT_ENABLE
-        ) and data.egress_info.status in [
-            api.EgressStatus.EGRESS_COMPLETE,
-            api.EgressStatus.EGRESS_LIMIT_REACHED,
-        ]:
-            try:
-                self.recording_events.handle_complete(recording)
-            except RecordingNotSavableError:
-                logger.warning(
-                    "Recording %s is not savable on egress complete "
-                    "(already saved or in an error state); ignoring.",
-                    recording.id,
-                )
-
-        # Silently ignoring EGRESS_ABORTED, EGRESS_FAILED
+        self.recording_events.handle_terminal_event(recording, event)
 
     @staticmethod
     def _is_connection_test_room(room_name: str) -> bool:
@@ -285,9 +303,31 @@ class LiveKitEventsService:
                     f"Failed to delete sip dispatch rule for room {room_id}"
                 ) from e
 
+        self.presence_cache.clear_room(room_id)
+
         try:
             self.lobby_service.clear_room_cache(room_id)
         except Exception as e:
             raise ActionFailedError(
                 f"Failed to clear room cache for room {room_id}"
             ) from e
+
+    def _handle_participant_left(self, data):
+        """Handle 'participant_left': invalidate the presence cache.
+
+        Presence entries are created lazily (only for users who administrate
+        the lobby of a trusted room), so for most participants this delete is
+        a no-op DEL on a key that never existed. Eager invalidation shrinks
+        the window during which a departed participant could still act on a
+        trusted room's lobby (cache hit until TTL expiry). It is gated behind
+        `PRESENCE_CLEAR_ON_PARTICIPANT_LEFT` so its production impact can be
+        measured and the behaviour reverted independently of the feature.
+        When disabled, invalidation relies on `room_finished` and the TTL.
+        """
+        if not settings.PRESENCE_CLEAR_ON_PARTICIPANT_LEFT:
+            return
+
+        identity = data.participant.identity
+        if not identity:
+            return
+        self.presence_cache.clear(data.room.name, identity)

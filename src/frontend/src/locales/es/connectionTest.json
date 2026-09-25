@@ -1,0 +1,56 @@
+{
+  "title": "Prueba tu configuración",
+  "runTest": "Iniciar la prueba",
+  "runAgain": "Repetir",
+  "cancel": "Cancelar",
+  "detailsFor": "Detalles del paso {{step}}",
+  "downloadReport": "Descargar el informe",
+  "homeLink": "Prueba tu configuración",
+  "progress": "{{done}}/{{total}}",
+  "progressLabel": "Progreso de la prueba de conexión",
+  "groups": {
+    "local": "Navegador y dispositivos",
+    "network": "Conexión al servidor"
+  },
+  "steps": {
+    "browser": "Navegador",
+    "microphone": "Micrófono",
+    "camera": "Cámara",
+    "devices": "Dispositivos multimedia",
+    "websocket": "WebSocket",
+    "webrtc": "WebRTC",
+    "turn": "TURN",
+    "reconnect": "Reconexión",
+    "selectedCandidate": "Ruta seleccionada",
+    "publishAudio": "Publicación de audio",
+    "publishVideo": "Publicación de vídeo"
+  },
+  "status": {
+    "pending": "En espera",
+    "running": "En curso…",
+    "success": "Correcto",
+    "failed": "Error",
+    "skipped": "Omitido"
+  },
+  "counts": {
+    "passed": "correctas",
+    "failed": "con errores",
+    "skipped": "omitidas"
+  },
+  "summary": {
+    "idle": "Listo para la prueba",
+    "idleHint": "La prueba dura aproximadamente un minuto. Tu cámara y tu micrófono solo se utilizan durante la prueba.",
+    "running": "Prueba en curso…",
+    "runningHint": "Mantén esta página abierta hasta que terminen las comprobaciones.",
+    "passed": "Todo funciona",
+    "passedHint": "Tu navegador, tus dispositivos y tu red están listos para una reunión.",
+    "partial": "Prueba parcial",
+    "partialHint": "Se han omitido algunas comprobaciones. Autoriza el acceso a tu cámara y a tu micrófono para probarlos.",
+    "failed_one": "{{count}} verificación en error",
+    "failed_other": "{{count}} verificaciones en error",
+    "failedHint": "Abre las verificaciones en error para ver el detalle y transmite después el informe a tu servicio informático."
+  },
+  "help": {
+    "firewall": "Si las pruebas de red fallan, comprueba los permisos de tu navegador y las reglas de filtrado de red (WebRTC, WebSocket, TURN) con tu servicio informático."
+  }
+}

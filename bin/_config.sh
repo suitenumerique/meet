@@ -5,7 +5,7 @@ set -eo pipefail
 REPO_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd)"
 UNSET_USER=0
 
-COMPOSE_FILE="${REPO_DIR}/compose.yml"
+export COMPOSE_FILE="${COMPOSE_FILE:-${REPO_DIR}/compose.yml}"
 COMPOSE_PROJECT="meet"
 
 
@@ -42,7 +42,6 @@ function _docker_compose() {
     echo "🐳(compose) project: '${COMPOSE_PROJECT}' file: '${COMPOSE_FILE}'"
     docker compose \
         -p "${COMPOSE_PROJECT}" \
-        -f "${COMPOSE_FILE}" \
         --project-directory "${REPO_DIR}" \
         "$@"
 }

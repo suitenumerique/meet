@@ -16,6 +16,10 @@
       "videoinput": "Geen camera gedetecteerd. Controleer of deze goed is aangesloten.",
       "audioinput": "Geen microfoon gedetecteerd. Controleer of deze goed is aangesloten."
     },
+    "deviceInUse": {
+      "videoinput": "Camera niet beschikbaar: deze wordt waarschijnlijk gebruikt door een andere toepassing of een ander tabblad.",
+      "audioinput": "Microfoon niet beschikbaar: deze wordt waarschijnlijk gebruikt door een andere toepassing of een ander tabblad."
+    },
     "settings": {
       "audio": "Audio-instellingen",
       "video": "Video-instellingen"
@@ -74,6 +78,7 @@
     },
     "cameraDisabled": "Camera is uitgeschakeld.",
     "cameraNotFound": "Geen camera gedetecteerd. Controleer of deze goed is aangesloten.",
+    "cameraInUse": "Je camera is niet beschikbaar. Deze wordt waarschijnlijk gebruikt door een andere toepassing of een ander tabblad.",
     "cameraStarting": "Camera wordt ingeschakeld…",
     "cameraNotGranted": "Wilt u dat anderen u tijdens de vergadering kunnen zien?",
     "cameraAndMicNotGranted": "Wilt u dat anderen u tijdens de vergadering kunnen zien en horen?",
@@ -437,7 +442,8 @@
       "tools": "meer tools",
       "info": "vergaderinformatie"
     },
-    "closeButton": "Verberg {{content}}"
+    "closeButton": "Verberg {{content}} (Escape)",
+    "escapeHint": "Druk op Escape om te sluiten"
   },
   "chat": {
     "disclaimer": "De berichten zijn alleen voor de deelnemers zichtbaar op het moment dat ze worden verzonden. Alle berichten worden verwijderd aan het einde van het gesprek.",
@@ -481,7 +487,7 @@
       "destination": "Er wordt een nieuw document aangemaakt op",
       "destinationUnknown": "Een nieuw document wordt aangemaakt",
       "language": "Vergadertalen:",
-      "recording": "Start ook een opname"
+      "recording": "Start ook een video-opname"
     },
     "button": {
       "start": "Begin met het transcriberen van de vergadering",
@@ -757,6 +763,24 @@
     "muteParticipant": "Demp {{name}}",
     "fullScreen": "Volledig scherm"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Zoombediening voor schermdeling",
+    "zoomIn": "Inzoomen",
+    "zoomInWithShortcut": "Inzoomen ({{shortcut}})",
+    "zoomOut": "Uitzoomen",
+    "zoomOutWithShortcut": "Uitzoomen ({{shortcut}})",
+    "wheelShortcut": "Control plus scrollwiel",
+    "wheelShortcutMac": "⌘+scrollwiel",
+    "wheelShortcutHint": "Sneltoets: Control plus scrollwiel om in of uit te zoomen.",
+    "wheelShortcutHintMac": "Sneltoets: Command plus scrollwiel om in of uit te zoomen.",
+    "fitToWindow": "Aanpassen aan venster",
+    "fullScreen": "Volledig scherm",
+    "exitFullScreen": "Volledig scherm verlaten",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Sleep met de muis, of zet de focus terug op de schermdeling en gebruik de pijltjestoetsen om door het beeld te navigeren.",
+    "fullScreenEntered": "Volledig scherm ingeschakeld",
+    "fullScreenExited": "Volledig scherm uitgeschakeld"
+  },
   "shortcutsPanel": {
     "title": "Sneltoetsen",
     "categories": {
@@ -776,7 +800,11 @@
       "raise-hand": "Hand opsteken of laten zakken",
       "toggle-chat": "Chat tonen/verbergen",
       "toggle-participants": "Deelnemers tonen/verbergen",
-      "open-shortcuts-settings": "Sneltoets-instellingen openen"
+      "open-shortcuts-settings": "Sneltoets-instellingen openen",
+      "zoom-in": "Inzoomen op een gedeeld scherm",
+      "zoom-out": "Uitzoomen op een gedeeld scherm",
+      "zoom-reset": "Zoom van het gedeelde scherm herstellen",
+      "zoom-pan": "Navigeren in een ingezoomd gedeeld scherm"
     },
     "sr": {
       "control": "Control",
@@ -786,10 +814,14 @@
       "shift": "Shift",
       "plus": "plus",
       "hold": "Houd {{key}} ingedrukt",
+      "arrows": "Pijltoetsen",
+      "plusKey": "Plus-toets",
+      "minusKey": "Min-toets",
       "noShortcut": "Geen sneltoets"
     },
     "visual": {
-      "hold": "Houd {{key}} ingedrukt"
+      "hold": "Houd {{key}} ingedrukt",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {

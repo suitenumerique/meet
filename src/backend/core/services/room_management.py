@@ -50,9 +50,10 @@ class RoomNotFoundException(RoomManagementException):
 class RoomManagement:
     """Service for managing LiveKit rooms."""
 
+    @classmethod
     @async_to_sync
     async def update_metadata(
-        self,
+        cls,
         room_name: str,
         metadata: Optional[Dict] = None,
         remove_keys: Optional[list[str]] = None,
@@ -95,10 +96,6 @@ class RoomManagement:
 
         except TwirpError as e:
             if e.code == "not_found":
-                logger.warning(
-                    "Room %s not found in LiveKit, skipping metadata update",
-                    room_name,
-                )
                 raise RoomNotFoundException("Room does not exist") from e
 
             logger.exception(
@@ -110,8 +107,9 @@ class RoomManagement:
         finally:
             await lkapi.aclose()
 
+    @classmethod
     @async_to_sync
-    async def get_participants(self, room_name: str) -> dict:
+    async def get_participants(cls, room_name: str) -> dict:
         """Count the people in a LiveKit room and name the ones who gave a name.
 
         The two can differ: someone who joined without a display name is
@@ -160,8 +158,9 @@ class RoomManagement:
             "names": [p.name for p in people if p.name],
         }
 
+    @classmethod
     @async_to_sync
-    async def delete_room(self, room_name: str):
+    async def delete_room(cls, room_name: str):
         """Delete a LiveKit room and disconnect all participants.
 
         Raises:
@@ -186,3 +185,32 @@ class RoomManagement:
             raise RoomManagementException("Could not delete room") from e
         finally:
             await lkapi.aclose()
+
+    @classmethod
+    def sync_room_metadata(cls, room):
+        """Push a room's configuration and access level to its LiveKit room metadata.
+
+        Failures are swallowed: a room that is not live yet, or a LiveKit hiccup,
+        should never fail the request that triggered the update.
+        """
+
+        metadata = {
+            "configuration": room.configuration,
+            "access_level": room.access_level,
+        }
+
+        try:
+            cls.update_metadata(
+                room_name=str(room.id),
+                metadata=metadata,
+            )
+        except RoomNotFoundException:
+            logger.info(
+                "LiveKit room %s does not exist yet, skipping metadata sync",
+                room.id,
+            )
+        except RoomManagementException:
+            logger.warning(
+                "Failed to sync metadata to LiveKit for room %s",
+                room.id,
+            )

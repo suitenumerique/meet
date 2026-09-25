@@ -381,38 +381,11 @@ def test_api_rooms_update_administrators_of_another():
     assert other_room.slug == "old-name"
 
 
-@patch.object(RoomManagement, "update_metadata", side_effect=RoomNotFoundException)
-def test_api_rooms_update_livekit_room_not_found(mock_update_metadata):
-    """Should not fail the API request when the LiveKit room does not exist yet."""
-    user = UserFactory()
-    room = RoomFactory(
-        users=[(user, random.choice(["administrator", "owner"]))],
-        configuration={},
-    )
-    client = APIClient()
-    client.force_login(user)
-
-    response = client.patch(
-        f"/api/v1.0/rooms/{room.id!s}/",
-        {"configuration": {"can_publish_sources": ["camera"]}},
-        format="json",
-    )
-    assert response.status_code == 200
-    room.refresh_from_db()
-    assert room.configuration == {"can_publish_sources": ["camera"]}
-
-    mock_update_metadata.assert_called_once_with(
-        room_name=str(room.id),
-        metadata={
-            "access_level": room.access_level,
-            "configuration": {"can_publish_sources": ["camera"]},
-        },
-    )
-
-
-@patch.object(RoomManagement, "update_metadata", side_effect=RoomManagementException)
-def test_api_rooms_update_livekit_sync_failure(mock_update_metadata):
+@pytest.mark.parametrize("exception", [RoomNotFoundException, RoomManagementException])
+@patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_livekit_sync_failure(mock_update_metadata, exception):
     """Should not fail the API request when the LiveKit metadata sync fails."""
+    mock_update_metadata.side_effect = exception
     user = UserFactory()
     room = RoomFactory(
         users=[(user, random.choice(["administrator", "owner"]))],

@@ -7,6 +7,7 @@ from urllib.parse import quote, urlparse
 
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.test import override_settings
 from django.utils import timezone
 
 import pytest
@@ -136,6 +137,62 @@ def test_api_files_media_auth_own_file_deleted():
         BytesIO(b"my prose"),
     )
     file.soft_delete()
+
+    original_url = f"http://localhost/media/{file.file_key:s}"
+    response = client.get(
+        "/api/v1.0/files/media-auth/", HTTP_X_ORIGINAL_URL=original_url
+    )
+
+    assert response.status_code == 403
+
+
+@override_settings(MEDIA_AUTH_ORIGINAL_URL_HEADER="HTTP_X_FORWARDED_URI")
+def test_api_files_media_auth_custom_original_url_header():
+    """
+    Authorization should honour the configured original-url header.
+
+    Covers the attachment subrequest path, which resolves the header separately
+    from the recording one. Reverse proxies other than nginx-ingress use
+    different headers: Traefik's ForwardAuth sends X-Forwarded-Uri and cannot
+    emit X-Original-URL at all.
+    """
+    user = factories.UserFactory()
+
+    file = factories.FileFactory(
+        type=models.FileTypeChoices.BACKGROUND_IMAGE,
+        update_upload_state=models.FileUploadStateChoices.READY,
+        creator=user,
+    )
+
+    client = APIClient()
+    client.force_login(user)
+
+    default_storage.save(file.file_key, BytesIO(b"my prose"))
+
+    original_url = f"http://localhost/media/{file.file_key:s}"
+    response = client.get(
+        "/api/v1.0/files/media-auth/", HTTP_X_FORWARDED_URI=original_url
+    )
+
+    assert response.status_code == 200
+    assert "AWS4-HMAC-SHA256 Credential=" in response["Authorization"]
+
+
+@override_settings(MEDIA_AUTH_ORIGINAL_URL_HEADER="HTTP_X_FORWARDED_URI")
+def test_api_files_media_auth_default_header_ignored_when_reconfigured():
+    """
+    Only the configured header should be honoured, never a hardcoded fallback.
+    """
+    user = factories.UserFactory()
+
+    file = factories.FileFactory(
+        type=models.FileTypeChoices.BACKGROUND_IMAGE,
+        update_upload_state=models.FileUploadStateChoices.READY,
+        creator=user,
+    )
+
+    client = APIClient()
+    client.force_login(user)
 
     original_url = f"http://localhost/media/{file.file_key:s}"
     response = client.get(

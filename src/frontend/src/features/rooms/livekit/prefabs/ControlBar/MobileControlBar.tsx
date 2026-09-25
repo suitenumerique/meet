@@ -1,7 +1,7 @@
 import { supportsScreenSharing } from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
 import type { ControlBarAuxProps } from './ControlBar'
-import React from 'react'
+import React, { useLayoutEffect, useRef, useState } from 'react'
 import { css } from '@/styled-system/css'
 import { LeaveButton } from '../../components/controls/LeaveButton'
 import { Track } from 'livekit-client'
@@ -26,7 +26,26 @@ import { AudioDevicesControl } from '../../components/controls/Device/AudioDevic
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
 import { openSettingsDialog } from '@/stores/settings'
 import { ControlBarRegion } from '@/features/layout/components/ControlBarRegion'
-import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
+import {
+  ReactionsToggle,
+  reactionShortcutHandler,
+} from '@/features/reactions/components/ReactionsToggle'
+import { useSize } from '../../hooks/useResizeObserver'
+import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
+import { useRaisedHand } from '@/features/rooms/livekit/hooks/useRaisedHand'
+import { useRoomContext } from '@livekit/components-react'
+
+// Hand collapses first, then reactions; hidden toggles move into the menu.
+const COLLAPSIBLE_COUNT = 2
+
+// Layout-neutral measuring wrapper: inherits the region's gap and refuses to
+// flex-shrink so measured widths are natural content widths.
+const measuredRow = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 'inherit',
+  flexShrink: 0,
+})
 
 export function MobileControlBar({
   onDeviceError,
@@ -36,50 +55,107 @@ export function MobileControlBar({
   const browserSupportsScreenSharing = supportsScreenSharing()
   const { toggleEffects } = useSidePanel()
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { width } = useSize(containerRef)
+  const barRef = useRef<HTMLDivElement>(null)
+  const { width: barWidth } = useSize(barRef)
+  const collapsibleRef = useRef<HTMLDivElement>(null)
+  const { width: collapsibleWidth } = useSize(collapsibleRef)
+
+  const [hiddenCount, setHiddenCount] = useState(0)
+  const calibration = useRef<{ essential: number; slot: number }>()
+
+  useLayoutEffect(() => {
+    if (hiddenCount === 0 && collapsibleWidth > 0 && barRef.current) {
+      const gap = parseFloat(getComputedStyle(barRef.current).columnGap) || 0
+      calibration.current = {
+        essential: barWidth - collapsibleWidth - gap,
+        slot: (collapsibleWidth + gap) / COLLAPSIBLE_COUNT,
+      }
+    }
+    if (!calibration.current || width <= 0) return
+    const { essential, slot } = calibration.current
+    const fits = Math.floor((width - essential) / slot)
+    const next = Math.min(
+      COLLAPSIBLE_COUNT,
+      Math.max(0, COLLAPSIBLE_COUNT - fits)
+    )
+    if (next !== hiddenCount) setHiddenCount(next)
+  }, [barWidth, collapsibleWidth, hiddenCount, width, setHiddenCount])
+
+  const hideHand = hiddenCount >= 1
+  const hideReactions = hiddenCount >= 2
+
+  const room = useRoomContext()
+  const { toggleRaisedHand } = useRaisedHand({
+    participant: room.localParticipant,
+  })
+  useRegisterKeyboardShortcut({
+    id: 'raise-hand',
+    handler: toggleRaisedHand,
+  })
+  useRegisterKeyboardShortcut({
+    id: 'reaction',
+    handler: reactionShortcutHandler,
+  })
+
   const { data } = useConfig()
+
+  const closeMenu = () => setIsMenuOpened(false)
 
   return (
     <>
       <div
         className={css({
           width: '100vw',
-          display: 'flex',
           padding: '1.125rem',
-          justifyContent: 'center',
         })}
       >
-        <ControlBarRegion mobile>
-          <LeaveButton />
-          <AudioDevicesControl
-            onDeviceError={(error) =>
-              onDeviceError?.({ source: Track.Source.Microphone, error })
-            }
-            hideMenu={true}
-          />
-          <VideoDeviceControl
-            onDeviceError={(error) =>
-              onDeviceError?.({ source: Track.Source.Camera, error })
-            }
-            hideMenu={true}
-          />
-          <ReactionsToggle />
-          <HandToggle />
-          <Button
-            id="room-options-trigger"
-            square
-            variant="primaryDark"
-            aria-label={t('options.buttonLabel')}
-            tooltip={t('options.buttonLabel')}
-            onPress={() => setIsMenuOpened(true)}
-          >
-            <RiMore2Line />
-          </Button>
-        </ControlBarRegion>
+        <div
+          ref={containerRef}
+          className={css({
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+          })}
+        >
+          <ControlBarRegion mobile>
+            <div ref={barRef} className={measuredRow}>
+              <LeaveButton />
+              <AudioDevicesControl
+                onDeviceError={(error) =>
+                  onDeviceError?.({ source: Track.Source.Microphone, error })
+                }
+                hideMenu={true}
+              />
+              <VideoDeviceControl
+                onDeviceError={(error) =>
+                  onDeviceError?.({ source: Track.Source.Camera, error })
+                }
+                hideMenu={true}
+              />
+              {/* Unmounted when empty so it doesn't leave a stray gap. */}
+              {!hideReactions && (
+                <div ref={collapsibleRef} className={measuredRow}>
+                  <ReactionsToggle />
+                  {!hideHand && <HandToggle />}
+                </div>
+              )}
+              <Button
+                id="room-options-trigger"
+                square
+                variant="primaryDark"
+                aria-label={t('options.buttonLabel')}
+                tooltip={t('options.buttonLabel')}
+                onPress={() => setIsMenuOpened(true)}
+              >
+                <RiMore2Line />
+              </Button>
+            </div>
+          </ControlBarRegion>
+        </div>
       </div>
-      <ResponsiveMenu
-        isOpened={isMenuOpened}
-        onClosed={() => setIsMenuOpened(false)}
-      >
+      <ResponsiveMenu isOpened={isMenuOpened} onClosed={closeMenu}>
         <div
           className={css({
             display: 'flex',
@@ -98,6 +174,20 @@ export function MobileControlBar({
               },
             })}
           >
+            {hideReactions && (
+              <ReactionsToggle
+                variant="primaryTextDark"
+                description={true}
+                onPress={closeMenu}
+              />
+            )}
+            {hideHand && (
+              <HandToggle
+                variant="primaryTextDark"
+                description={true}
+                onPress={closeMenu}
+              />
+            )}
             {browserSupportsScreenSharing && (
               <ScreenShareToggle
                 onDeviceError={(error) =>
@@ -105,25 +195,16 @@ export function MobileControlBar({
                 }
                 variant="primaryTextDark"
                 description={true}
-                onPress={() => setIsMenuOpened(false)}
+                onPress={closeMenu}
               />
             )}
-            <ChatToggle
-              description={true}
-              onPress={() => setIsMenuOpened(false)}
-            />
-            <ParticipantsToggle
-              description={true}
-              onPress={() => setIsMenuOpened(false)}
-            />
-            <ToolsToggle
-              description={true}
-              onPress={() => setIsMenuOpened(false)}
-            />
+            <ChatToggle description={true} onPress={closeMenu} />
+            <ParticipantsToggle description={true} onPress={closeMenu} />
+            <ToolsToggle description={true} onPress={closeMenu} />
             <Button
               onPress={() => {
                 toggleEffects()
-                setIsMenuOpened(false)
+                closeMenu()
               }}
               variant="primaryTextDark"
               aria-label={t('options.items.effects')}
@@ -140,7 +221,7 @@ export function MobileControlBar({
                 aria-label={t('options.items.feedback')}
                 description={true}
                 target="_blank"
-                onPress={() => setIsMenuOpened(false)}
+                onPress={closeMenu}
               >
                 <RiMegaphoneLine size={20} />
               </LinkButton>
@@ -148,7 +229,7 @@ export function MobileControlBar({
             <Button
               onPress={() => {
                 openSettingsDialog()
-                setIsMenuOpened(false)
+                closeMenu()
               }}
               variant="primaryTextDark"
               aria-label={t('options.items.settings')}
@@ -157,7 +238,7 @@ export function MobileControlBar({
             >
               <RiSettings3Line size={20} />
             </Button>
-            <CameraSwitchButton onPress={() => setIsMenuOpened(false)} />
+            <CameraSwitchButton onPress={closeMenu} />
           </div>
         </div>
       </ResponsiveMenu>

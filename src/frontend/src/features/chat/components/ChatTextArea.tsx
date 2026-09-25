@@ -21,7 +21,9 @@ const StyledContainer = styled('div', {
 })
 
 export const ChatTextArea = () => {
-  const { isSending, send, textAreaValue } = useSnapshot(chatStore)
+  const { isSending, send, textAreaValue } = useSnapshot(chatStore, {
+    sync: true,
+  })
 
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.chat.input' })
 
@@ -49,7 +51,7 @@ export const ChatTextArea = () => {
   const isDisabled = !textAreaValue.trim() || isSending
 
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    e.stopPropagation()
+    if (e.key !== 'Escape') e.stopPropagation()
     if (e.key !== 'Enter' || (e.key === 'Enter' && e.shiftKey) || isDisabled)
       return
     e.preventDefault()

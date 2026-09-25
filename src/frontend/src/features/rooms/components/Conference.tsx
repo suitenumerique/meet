@@ -6,12 +6,15 @@ import {
   usePersistentUserChoices,
 } from '@livekit/components-react'
 import {
+  ConnectionError,
+  ConnectionErrorReason,
   DisconnectReason,
   MediaDeviceFailure,
   Room,
   type RoomOptions,
   VideoPresets,
 } from 'livekit-client'
+import { getMediaDeviceFailure } from '@/features/rooms/livekit/utils/mediaPermissions'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
@@ -25,7 +28,11 @@ import { VideoConference } from '../livekit/prefabs/VideoConference'
 import { css } from '@/styled-system/css'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
 import { LocalUserChoices } from '@/stores/userChoices'
-import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
+import {
+  captureEvent,
+  captureMediaEvent,
+  reportError,
+} from '@/features/analytics/telemetry'
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
@@ -36,6 +43,8 @@ import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
+import { MeetDevtools } from '@/features/devtools'
+import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 
 export const Conference = ({
   roomId,
@@ -98,7 +107,7 @@ export const Conference = ({
       adaptiveStream: true,
       dynacast: true,
       publishDefaults: {
-        videoCodec: 'vp9',
+        videoCodec: apiConfig?.livekit.default_video_codec ?? 'vp9',
       },
       videoCaptureDefaults: {
         deviceId: userConfig.videoDeviceId ?? undefined,
@@ -108,6 +117,7 @@ export const Conference = ({
       },
       audioCaptureDefaults: {
         deviceId: userConfig.audioDeviceId ?? undefined,
+        ...VOICE_AUDIO_CONSTRAINTS,
       },
       audioOutput: {
         deviceId: userConfig.audioOutputDeviceId ?? undefined,
@@ -119,6 +129,7 @@ export const Conference = ({
     userConfig.videoPublishResolution,
     userConfig.audioDeviceId,
     userConfig.audioOutputDeviceId,
+    apiConfig?.livekit.default_video_codec,
   ])
 
   const room = useMemo(() => new Room(roomOptions), [roomOptions])
@@ -225,8 +236,18 @@ export const Conference = ({
             backgroundColor: 'primaryDark.50 !important',
           })}
           onError={(e) => {
-            const failure = MediaDeviceFailure.getFailure(e)
+            const failure = getMediaDeviceFailure(e)
             if (failure && failure !== MediaDeviceFailure.Other) return
+
+            // connect() was aborted by a disconnect() before the join completed
+            if (
+              e instanceof ConnectionError &&
+              e.reason === ConnectionErrorReason.Cancelled
+            ) {
+              void captureEvent('connection-cancelled')
+              return
+            }
+
             reportError('livekit_room_error', e, {
               path: 'connect_publish',
             })
@@ -279,6 +300,7 @@ export const Conference = ({
           <VideoConference />
           {!isMobile && <InviteDialog mode={mode} />}
           <PictureInPictureConference />
+          <MeetDevtools />
         </LiveKitRoom>
       </Screen>
     </QueryAware>

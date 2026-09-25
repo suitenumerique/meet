@@ -3,6 +3,7 @@ Test LiveKitEvents service.
 """
 # pylint: disable=W0621,W0613, W0212, E0611
 
+import logging
 import uuid
 from unittest import mock
 
@@ -10,14 +11,16 @@ import pytest
 from livekit.api import EgressStatus
 
 from core.factories import RecordingFactory, RoomFactory
+from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.recording_events import RecordingEventsService
 from core.services.livekit_events import (
+    EGRESS_STATUS_TO_RECORDING_EVENT,
     ActionFailedError,
     AuthenticationError,
     InvalidPayloadError,
     LiveKitEventsService,
-    UnsupportedEventTypeError,
     api,
+    to_recording_event,
 )
 from core.services.lobby import LobbyService
 from core.services.room_management import RoomManagementException
@@ -75,12 +78,11 @@ def test_initialization(
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_success(  # noqa: PLR0913, PLR0917 # pylint: disable=too-many-arguments, too-many-positional-arguments
-    mock_update_metadata, mock_notify, mode, notification_type, service, settings
+def test_handle_egress_ended_success(  # pylint: disable=too-many-arguments, too-many-positional-arguments
+    mock_update_metadata, mock_notify, mode, notification_type, service
 ):
-    """Should successfully stop recording and notifies all participant."""
+    """Should successfully stop recording and notify all participant."""
 
-    settings.RECORDING_STORAGE_EVENT_ENABLE = False
     recording = RecordingFactory(worker_id="worker-1", mode=mode, status="active")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
@@ -106,7 +108,6 @@ def test_handle_egress_ended_success(  # noqa: PLR0913, PLR0917 # pylint: disabl
     (
         (EgressStatus.EGRESS_ACTIVE, "started"),
         (EgressStatus.EGRESS_ENDING, "saving"),
-        (EgressStatus.EGRESS_ABORTED, "aborted"),
     ),
 )
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
@@ -128,29 +129,6 @@ def test_handle_egress_updated_success(
 
 
 @pytest.mark.parametrize(
-    "egress_status",
-    (
-        EgressStatus.EGRESS_FAILED,
-        EgressStatus.EGRESS_LIMIT_REACHED,
-    ),
-)
-@mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_updated_non_handled(
-    mock_update_metadata, egress_status, service
-):
-    """Should ignore certain egress status and don't trigger metadata updates."""
-
-    recording = RecordingFactory(worker_id="worker-1", status="initiated")
-    mock_data = mock.MagicMock()
-    mock_data.egress_info.egress_id = recording.worker_id
-    mock_data.egress_info.status = egress_status
-
-    service._handle_egress_updated(mock_data)
-
-    mock_update_metadata.assert_not_called()
-
-
-@pytest.mark.parametrize(
     ("mode", "notification_type"),
     (
         ("screen_recording", "screenRecordingLimitReached"),
@@ -159,12 +137,11 @@ def test_handle_egress_updated_non_handled(
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_metadata_update_fails(  # noqa: PLR0913, PLR0917 # pylint: disable=too-many-arguments, too-many-positional-arguments
-    mock_update_metadata, mock_notify, mode, notification_type, service, settings
+def test_handle_egress_ended_metadata_update_fails(  # pylint: disable=too-many-arguments, too-many-positional-arguments
+    mock_update_metadata, mock_notify, mode, notification_type, service
 ):
     """Should successfully stop and save recording when metadata's update fails."""
 
-    settings.RECORDING_STORAGE_EVENT_ENABLE = False
     recording = RecordingFactory(worker_id="worker-1", mode=mode, status="active")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
@@ -183,32 +160,37 @@ def test_handle_egress_ended_metadata_update_fails(  # noqa: PLR0913, PLR0917 # 
     assert recording.status == "saved"
 
 
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
 def test_handle_egress_ended_notification_fails(
-    mock_update_metadata, mock_notify, service
+    mock_update_metadata, mock_notify, mock_notify_external_services, service
 ):
-    """Should raise ActionFailedError when notification fails but still stop recording."""
+    """Should still stop and save the recording when notifying participants fails."""
+
+    mock_notify_external_services.return_value = False
+    mock_notify.side_effect = NotificationError("Error notifying")
 
     recording = RecordingFactory(worker_id="worker-1", status="active")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
     mock_data.egress_info.status = EgressStatus.EGRESS_LIMIT_REACHED
 
-    mock_notify.side_effect = NotificationError("Error notifying")
+    service._handle_egress_ended(mock_data)
 
-    with pytest.raises(
-        ActionFailedError,
-        match=r"Failed to process limit reached event for recording .+",
-    ):
-        service._handle_egress_ended(mock_data)
-
-    recording.refresh_from_db()
-    assert recording.status == "stopped"
-
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id),
+        notification_data={"type": "screenRecordingLimitReached"},
+    )
     mock_update_metadata.assert_called_once_with(
         str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
     )
+
+    recording.refresh_from_db()
+    assert recording.status == "saved"
 
 
 @mock.patch("core.utils.notify_participants")
@@ -235,17 +217,25 @@ def test_handle_egress_ended_recording_not_found(
     assert recording.status == "active"
 
 
+@pytest.mark.parametrize(
+    "egress_status",
+    (
+        EgressStatus.EGRESS_FAILED,
+        EgressStatus.EGRESS_ABORTED,
+        EgressStatus.EGRESS_LIMIT_REACHED,
+    ),
+)
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_recording_not_active(
-    mock_update_metadata, mock_notify, service
+def test_handle_egress_ended_recording_should_not_be_saved(
+    mock_update_metadata, mock_notify, egress_status, service
 ):
-    """Should ignore non-active recordings."""
+    """Don't update status for recordings that must not be saved."""
 
     recording = RecordingFactory(worker_id="worker-1", status="failed_to_stop")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = "worker-1"
-    mock_data.egress_info.status = EgressStatus.EGRESS_LIMIT_REACHED
+    mock_data.egress_info.status = egress_status
 
     service._handle_egress_ended(mock_data)
 
@@ -258,12 +248,24 @@ def test_handle_egress_ended_recording_not_active(
     assert recording.status == "failed_to_stop"
 
 
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_recording_not_limit_reached(
-    mock_update_metadata, mock_notify, service
+def test_handle_egress_ended_complete_does_not_notify_participants(
+    mock_update_metadata, mock_notify, mock_notify_external_services, service
 ):
-    """Should ignore egress non-limit-reached statuses."""
+    """Shouldn't notify participants on a successful egress.
+
+    EGRESS_COMPLETE is the only ended status that notifies no one: limit
+    reached, aborted and failed egresses each send their own notification.
+    A stopped recording is simply finalized, which is the nominal flow once
+    the egress uploaded the file of a user-initiated stop.
+    """
+
+    mock_notify_external_services.return_value = False
 
     recording = RecordingFactory(worker_id="worker-1", status="stopped")
     mock_data = mock.MagicMock()
@@ -276,7 +278,10 @@ def test_handle_egress_ended_recording_not_limit_reached(
     mock_update_metadata.assert_called_once_with(
         str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
     )
-    assert recording.status == "stopped"
+    mock_notify_external_services.assert_called_once_with(recording)
+
+    recording.refresh_from_db()
+    assert recording.status == "saved"
 
 
 @mock.patch("core.services.livekit_events.MetadataCollectorService")
@@ -336,141 +341,163 @@ def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditio
     mock_collector.stop.assert_not_called()
 
 
-@mock.patch(
-    "core.recording.services.recording_events.notification_service."
-    "notify_external_services"
+@pytest.mark.parametrize(
+    ("egress_status", "recording_status", "event", "expected_level"),
+    (
+        (EgressStatus.EGRESS_ABORTED, "active", "aborted", logging.INFO),
+        (EgressStatus.EGRESS_FAILED, "active", "failed", logging.ERROR),
+        # The synchronous stop may already have persisted the terminal status,
+        # and the error details exist only in the webhook payload.
+        (EgressStatus.EGRESS_ABORTED, "aborted", "aborted", logging.INFO),
+        (EgressStatus.EGRESS_FAILED, "failed", "failed", logging.ERROR),
+    ),
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-@pytest.mark.parametrize(
-    "egress_status",
-    [EgressStatus.EGRESS_COMPLETE, EgressStatus.EGRESS_LIMIT_REACHED],
-)
-@pytest.mark.parametrize(
-    "notify_return_value, recording_status",
-    [(True, "notification_succeeded"), (False, "saved")],
-)
-def test_handle_egress_ended_finalizes_recording(  # noqa: PLR0913, PLR0917
+def test_handle_egress_ended_logs_livekit_error(  # noqa: PLR0913, PLR0917
     mock_update_metadata,
     mock_notify,
-    mock_notify_external_services,
-    notify_return_value,
+    egress_status,
     recording_status,
-    egress_status,
+    event,
+    expected_level,
     service,
-    settings,
+    caplog,
 ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    """Should notify external services and save the recording on egress completion
-    (EGRESS_COMPLETE or EGRESS_LIMIT_REACHED) when RECORDING_STORAGE_EVENT_ENABLE is False.
-    """
-    settings.RECORDING_STORAGE_EVENT_ENABLE = False
-    mock_notify_external_services.return_value = notify_return_value
+    """Should log the reason LiveKit reported an unsuccessful egress."""
 
-    recording = RecordingFactory(worker_id="worker-1", status="active")
+    recording = RecordingFactory(worker_id="worker-1", status=recording_status)
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
     mock_data.egress_info.status = egress_status
+    mock_data.egress_info.error = "could not connect to the room"
+    mock_data.egress_info.error_code = 500
 
-    service._handle_egress_ended(mock_data)
+    with caplog.at_level(logging.INFO):
+        service._handle_egress_ended(mock_data)
 
-    mock_notify_external_services.assert_called_once_with(recording)
+    assert (
+        f"Recording worker reported {event} for recording {recording.id}" in caplog.text
+    )
+    assert "could not connect to the room" in caplog.text
+    assert "error_code=500" in caplog.text
 
-    recording.refresh_from_db()
-    assert recording.status == recording_status
+    worker_logs = [
+        record
+        for record in caplog.records
+        if record.name == "core.recording.services.recording_events"
+    ]
+    assert [record.levelno for record in worker_logs] == [expected_level]
 
 
+@pytest.mark.parametrize(
+    "egress_status",
+    (EgressStatus.EGRESS_COMPLETE, EgressStatus.EGRESS_LIMIT_REACHED),
+)
 @mock.patch(
     "core.recording.services.recording_events.notification_service."
     "notify_external_services"
 )
 @mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-@pytest.mark.parametrize(
-    "egress_status, expected_status",
-    [
-        (EgressStatus.EGRESS_COMPLETE, "active"),
-        (EgressStatus.EGRESS_LIMIT_REACHED, "stopped"),
-    ],
-)
-def test_handle_egress_ended_does_not_finalize_when_webhooks_enabled(  # noqa: PLR0913, PLR0917
+def test_handle_egress_ended_does_not_log_error_on_successful_egress(  # noqa: PLR0913, PLR0917
     mock_update_metadata,
     mock_notify,
     mock_notify_external_services,
     egress_status,
-    expected_status,
     service,
-    settings,
+    caplog,
 ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    """When storage event webhooks are enabled, egress_ended must not finalize the
-    recording: external services are never notified. EGRESS_LIMIT_REACHED still stops
-    the recording, EGRESS_COMPLETE leaves it active.
-    """
-    settings.RECORDING_STORAGE_EVENT_ENABLE = True
+    """Shouldn't log an egress error when LiveKit reports a successful egress."""
 
     recording = RecordingFactory(worker_id="worker-1", status="active")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
     mock_data.egress_info.status = egress_status
 
-    service._handle_egress_ended(mock_data)
+    with caplog.at_level(logging.ERROR):
+        service._handle_egress_ended(mock_data)
 
-    mock_notify_external_services.assert_not_called()
-
-    recording.refresh_from_db()
-    assert recording.status == expected_status
+    assert "Recording worker reported" not in caplog.text
 
 
-@pytest.mark.parametrize(
-    "egress_status",
-    [
-        EgressStatus.EGRESS_STARTING,
-        EgressStatus.EGRESS_ACTIVE,
-        EgressStatus.EGRESS_ENDING,
-        EgressStatus.EGRESS_FAILED,
-        EgressStatus.EGRESS_ABORTED,
-    ],
-)
+@mock.patch("core.utils.notify_participants")
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_does_not_save_on_wrong_status(
-    mock_update_metadata, egress_status, service, settings
+def test_handle_egress_ended_logs_livekit_error_before_cleaning_up(
+    mock_update_metadata, mock_notify, service, caplog
 ):
-    """Shouldn't save on invalid status."""
-    settings.RECORDING_STORAGE_EVENT_ENABLE = False
+    """Should log the failure reason even when the cleanup fails afterwards."""
+
+    mock_update_metadata.side_effect = RuntimeError("LiveKit is unreachable")
 
     recording = RecordingFactory(worker_id="worker-1", status="active")
     mock_data = mock.MagicMock()
     mock_data.egress_info.egress_id = recording.worker_id
-    mock_data.egress_info.status = egress_status
+    mock_data.egress_info.status = EgressStatus.EGRESS_FAILED
+    mock_data.egress_info.error = "could not connect to the room"
+    mock_data.egress_info.error_code = 500
 
-    service._handle_egress_ended(mock_data)
+    with caplog.at_level(logging.ERROR), pytest.raises(RuntimeError):
+        service._handle_egress_ended(mock_data)
 
-    recording.refresh_from_db()
-    assert recording.status == "active"
+    assert (
+        f"Recording worker reported failed for recording {recording.id}" in caplog.text
+    )
+    assert "could not connect to the room" in caplog.text
+
+
+def test_egress_status_mapping_covers_every_livekit_status():
+    """Every egress status LiveKit can report must translate to a recording event."""
+
+    unmapped = [
+        name
+        for name in EgressStatus.keys()
+        if getattr(EgressStatus, name) not in EGRESS_STATUS_TO_RECORDING_EVENT
+    ]
+
+    assert not unmapped
 
 
 @pytest.mark.parametrize(
-    "status", ["failed_to_start", "aborted", "failed_to_stop", "saved", "initiated"]
+    ("egress_status", "expected_event"),
+    (
+        (EgressStatus.EGRESS_STARTING, RecordingWorkerEvent.STARTING),
+        (EgressStatus.EGRESS_ACTIVE, RecordingWorkerEvent.STARTED),
+        (EgressStatus.EGRESS_ENDING, RecordingWorkerEvent.SAVING),
+        (EgressStatus.EGRESS_COMPLETE, RecordingWorkerEvent.COMPLETED),
+        (EgressStatus.EGRESS_LIMIT_REACHED, RecordingWorkerEvent.LIMIT_REACHED),
+        (EgressStatus.EGRESS_ABORTED, RecordingWorkerEvent.ABORTED),
+        (EgressStatus.EGRESS_FAILED, RecordingWorkerEvent.FAILED),
+    ),
 )
+def test_to_recording_event_translates_egress_status(egress_status, expected_event):
+    """Should translate a LiveKit egress status into a recording worker event."""
+
+    assert to_recording_event(egress_status) == expected_event
+
+
+def test_to_recording_event_returns_none_on_unmapped_status(caplog):
+    """Should warn and return None when LiveKit reports an unknown status."""
+
+    with caplog.at_level(logging.WARNING):
+        event = to_recording_event(999)
+
+    assert event is None
+    assert "Unmapped LiveKit egress status" in caplog.text
+
+
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
-def test_handle_egress_ended_ignores_non_savable_recording(
-    mock_update_metadata, status, service, settings
-):
-    """Should handle non-savable recordings idempotently without raising.
+def test_handle_egress_updated_ignores_unmapped_status(mock_update_metadata, service):
+    """Shouldn't touch the room's metadata when the egress status is unknown."""
 
-    'egress_ended' may be redelivered (e.g. for an already-saved recording);
-    this must not raise, otherwise the webhook would 500 and LiveKit would retry.
-    """
-    settings.RECORDING_STORAGE_EVENT_ENABLE = False
-
-    recording = RecordingFactory(worker_id="worker-1", status=status)
+    RecordingFactory(worker_id="worker-1", status="active")
     mock_data = mock.MagicMock()
-    mock_data.egress_info.egress_id = recording.worker_id
-    mock_data.egress_info.status = EgressStatus.EGRESS_COMPLETE
+    mock_data.egress_info.egress_id = "worker-1"
+    mock_data.egress_info.status = 999
 
-    service._handle_egress_ended(mock_data)
+    service._handle_egress_updated(mock_data)
 
-    recording.refresh_from_db()
-    assert recording.status == status
+    mock_update_metadata.assert_not_called()
 
 
 @mock.patch.object(LobbyService, "clear_room_cache")
@@ -712,22 +739,27 @@ def test_receive_missing_auth(service):
 
 
 @mock.patch.object(api.WebhookReceiver, "receive")
-def test_receive_unsupported_event(mock_receive, service):
-    """Should raise LiveKitWebhookError for unsupported events."""
+def test_receive_unknown_event_is_acknowledged(mock_receive, service, caplog):
+    """Unknown event types are logged and ignored, not rejected.
+
+    LiveKit adds event types over time and does not retry 4xx responses, so
+    raising here would silently drop the event.
+    """
     mock_request = mock.MagicMock()
     mock_request.headers = {"Authorization": "test_token"}
     mock_request.body = b"{}"
 
-    # Mock returned data with unsupported event type
     mock_data = mock.MagicMock()
     mock_data.room.name = str(uuid.uuid4())
-    mock_data.event = "unsupported_event"
+    mock_data.event = "some_future_event"
     mock_receive.return_value = mock_data
 
-    with pytest.raises(
-        UnsupportedEventTypeError, match="Unknown webhook type: unsupported_event"
-    ):
-        service.receive(mock_request)
+    with caplog.at_level("WARNING", logger="core.services.livekit_events"):
+        service.receive(mock_request)  # must not raise
+
+    assert "Ignoring unknown LiveKit webhook event type 'some_future_event'" in (
+        caplog.text
+    )
 
 
 @mock.patch.object(api.WebhookReceiver, "receive")
@@ -854,3 +886,31 @@ def test_receive_ignores_connection_test_room(
 
     mock_handle_room_started.assert_not_called()
     mock_handle_room_finished.assert_not_called()
+
+
+@mock.patch("core.services.presence.cache.delete")
+def test_participant_left_clearing_gated_by_setting(mock_delete, service, settings):
+    """PRESENCE_CLEAR_ON_PARTICIPANT_LEFT toggles eager presence invalidation."""
+    data = mock.Mock()
+    data.room.name = "room-name"
+    data.participant.identity = "user-sub"
+
+    settings.PRESENCE_CLEAR_ON_PARTICIPANT_LEFT = False
+    service._handle_participant_left(data)  # pylint: disable=protected-access
+    mock_delete.assert_not_called()
+
+    settings.PRESENCE_CLEAR_ON_PARTICIPANT_LEFT = True
+    service._handle_participant_left(data)  # pylint: disable=protected-access
+    mock_delete.assert_called_once()
+
+
+@mock.patch("core.services.presence.cache.delete")
+def test_participant_left_without_identity_is_ignored(mock_delete, service, settings):
+    """No cache operation when the webhook carries no identity."""
+    settings.PRESENCE_CLEAR_ON_PARTICIPANT_LEFT = True
+    data = mock.Mock()
+    data.room.name = "room-name"
+    data.participant.identity = ""
+
+    service._handle_participant_left(data)  # pylint: disable=protected-access
+    mock_delete.assert_not_called()

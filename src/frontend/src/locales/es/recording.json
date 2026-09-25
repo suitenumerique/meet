@@ -1,0 +1,28 @@
+{
+  "error": {
+    "title": "Grabación no disponible",
+    "body": "No se encuentra la grabación. Solo el organizador de la reunión puede acceder a ella. No dudes en ponerte en contacto con él si lo necesitas."
+  },
+  "expired": {
+    "title": "Grabación caducada",
+    "body": "Esta grabación se eliminó el {{date}}."
+  },
+  "authentication": {
+    "title": "Autenticación necesaria",
+    "body": "Inicia sesión para acceder a esta grabación."
+  },
+  "unsaved": {
+    "title": "Descarga no disponible",
+    "body": "Esta grabación aún no está lista para descargarse. Inténtalo de nuevo más tarde."
+  },
+  "success": {
+    "title": "¡Tu grabación está lista!",
+    "body": "Grabación de la reunión {{room}} del {{created_at}}.",
+    "expiration": "Atención: esta grabación caducará al cabo de {{expiration_days}} día(s).",
+    "button": "Descargar",
+    "warning": {
+      "title": "Uso compartido por enlace desactivado",
+      "body": "Compartir la grabación mediante un enlace todavía no está disponible. Solo los organizadores pueden descargarla."
+    }
+  }
+}

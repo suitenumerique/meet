@@ -20,6 +20,7 @@ from livekit.protocol.models import ParticipantInfo
 from core import utils
 
 from .lobby import LobbyService
+from .presence import PresenceCache
 
 logger = getLogger(__name__)
 
@@ -72,7 +73,9 @@ class ParticipantsManagement:
 
     @async_to_sync
     async def remove(self, room_name: str, identity: str):
-        """Remove a participant from a room and clear their lobby cache."""
+        """Remove a participant from a room and clear their lobby/presence cache."""
+
+        PresenceCache().clear(room_name, identity)
 
         try:
             LobbyService().clear_participant_cache(
@@ -155,6 +158,30 @@ class ParticipantsManagement:
 
         finally:
             await lkapi.aclose()
+
+    def check_if_in_meeting_cached(self, room_name: str, identity: str) -> bool:
+        """Cache-first variant of `check_if_in_meeting`.
+
+        Cache hit  -> True without touching LiveKit.
+        Cache miss -> ask LiveKit; memoize only positive answers.
+
+        Raises the same exceptions as `check_if_in_meeting` so callers keep
+        failing closed the same way.
+        """
+        if not room_name or not identity:
+            return False
+
+        presence_cache = PresenceCache()
+
+        if presence_cache.is_marked_present(room_name, identity):
+            return True
+
+        present = self.check_if_in_meeting(room_name=room_name, identity=identity)
+
+        if present:
+            presence_cache.mark_present(room_name, identity)
+
+        return present
 
     @async_to_sync
     async def check_if_in_meeting(self, room_name: str, identity: str) -> bool:

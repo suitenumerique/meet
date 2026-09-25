@@ -3,7 +3,11 @@
 import contextlib
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured, SuspiciousOperation
+from django.core.exceptions import (
+    ImproperlyConfigured,
+    SuspiciousOperation,
+    ValidationError,
+)
 from django.utils.translation import gettext_lazy as _
 
 from lasuite.oidc_login.backends import (
@@ -17,6 +21,7 @@ from core.services.marketing import (
     ContactData,
     get_marketing_service,
 )
+from core.validators import sub_validator
 
 
 class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
@@ -84,6 +89,19 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
 
     def get_existing_user(self, sub, email):
         """Fetch existing user by sub or email."""
+
+        sub = str(sub)
+
+        try:
+            sub_validator(sub)
+        except ValidationError as err:
+            raise SuspiciousOperation(
+                "User info contained an invalid sub claim"
+            ) from err
+
+        if len(sub) > 255:
+            raise SuspiciousOperation("User info contained an invalid sub claim")
+
         try:
             return User.objects.get(sub=sub)
         except User.DoesNotExist:

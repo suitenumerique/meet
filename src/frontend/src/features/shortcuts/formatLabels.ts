@@ -25,6 +25,7 @@ export const formatShortcutLabelForSR = (
     shiftLabel,
     plusLabel,
     noShortcutLabel,
+    keyLabels,
   }: {
     controlLabel: string
     commandLabel: string
@@ -33,10 +34,12 @@ export const formatShortcutLabelForSR = (
     shiftLabel: string
     plusLabel: string
     noShortcutLabel: string
+    // Spelled-out names for keys screen readers may skip or mispronounce.
+    keyLabels?: Record<string, string>
   }
 ) => {
   if (!shortcut) return noShortcutLabel
-  const key = shortcut.key?.toUpperCase()
+  const key = keyLabels?.[shortcut.key] ?? shortcut.key?.toUpperCase()
   if (!key) return noShortcutLabel
   const ctrlWord = isMacintosh() ? commandLabel : controlLabel
   const altWord = isMacintosh() ? optionLabel : altLabel

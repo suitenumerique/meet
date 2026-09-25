@@ -9,7 +9,7 @@ import { SubtitlesToggle } from '../../components/controls/SubtitlesToggle'
 import { OptionsButton } from '../../components/controls/Options/OptionsButton'
 import { StartMediaButton } from '../../components/controls/StartMediaButton'
 import { MoreOptions } from './MoreOptions'
-import { useRef } from 'react'
+import { RefObject, useMemo, useState } from 'react'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { useFullScreen } from '../../hooks/useFullScreen'
 import { VideoDeviceControl } from '../../components/controls/Device/VideoDeviceControl'
@@ -21,7 +21,14 @@ export function DesktopControlBar({
   onDeviceError,
 }: Readonly<ControlBarAuxProps>) {
   const browserSupportsScreenSharing = supportsScreenSharing()
-  const desktopControlBarEl = useRef<HTMLDivElement>(null)
+
+  const [controlBarElement, setControlBarElement] =
+    useState<HTMLDivElement | null>(null)
+
+  const desktopControlBarEl = useMemo<RefObject<HTMLDivElement>>(
+    () => ({ current: controlBarElement }),
+    [controlBarElement]
+  )
 
   const { toggleFullScreen, isFullscreenAvailable } = useFullScreen({})
 
@@ -45,7 +52,7 @@ export function DesktopControlBar({
 
   return (
     <div
-      ref={desktopControlBarEl}
+      ref={setControlBarElement}
       className={css({
         width: '100vw',
         display: 'flex',

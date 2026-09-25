@@ -19,13 +19,11 @@ import {
 import Source = Track.Source
 import { RiMicFill, RiMicOffFill } from '@remixicon/react'
 import { Button } from '@/primitives'
-import { useState } from 'react'
-import { useMuteParticipant } from '@/features/rooms/api/muteParticipant'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { ParticipantMenuButton } from './menu/ParticipantMenuButton'
 import { PinBadge } from './PinBadge'
 import { UnauthenticatedBadge } from './UnauthenticatedBadge'
-import { MuteAlertDialog } from '@/features/rooms/livekit/components/MuteAlertDialog'
+import { openMuteDialog } from '@/stores/muteDialog'
 import { ParticipantName } from './ParticipantName'
 
 type MicIndicatorProps = {
@@ -34,7 +32,6 @@ type MicIndicatorProps = {
 
 const MicIndicator = ({ participant }: MicIndicatorProps) => {
   const { t } = useTranslation('rooms')
-  const { muteParticipant } = useMuteParticipant()
   const { isMuted } = useTrackMutedIndicator({
     participant: participant,
     source: Source.Microphone,
@@ -42,7 +39,6 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
 
   const canMute = useCanMute(participant)
   const isSpeaking = useIsSpeaking(participant)
-  const [isAlertOpen, setIsAlertOpen] = useState(false)
   const name = participant.name || participant.identity
 
   const label = isLocal(participant)
@@ -52,46 +48,34 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
       })
 
   return (
-    <>
-      <Button
-        square
-        variant="greyscale"
-        size="sm"
-        tooltip={label}
-        aria-label={label}
-        isDisabled={isMuted || !canMute}
-        onPress={async () =>
-          !isMuted && isLocal(participant)
-            ? await (participant as LocalParticipant)?.setMicrophoneEnabled(
-                false
-              )
-            : setIsAlertOpen(true)
-        }
-        data-attr="participants-mute"
-      >
-        {isMuted ? (
-          <RiMicOffFill color={'gray'} aria-hidden={true} />
-        ) : (
-          <RiMicFill
-            className={css({
-              color: isSpeaking ? 'primaryDark.300' : 'primaryDark.50',
-              animation: isSpeaking
-                ? 'pulse_background 800ms infinite'
-                : undefined,
-            })}
-            aria-hidden={true}
-          />
-        )}
-      </Button>
-      <MuteAlertDialog
-        isOpen={isAlertOpen}
-        onSubmit={() =>
-          muteParticipant(participant).then(() => setIsAlertOpen(false))
-        }
-        onClose={() => setIsAlertOpen(false)}
-        name={name}
-      />
-    </>
+    <Button
+      square
+      variant="greyscale"
+      size="sm"
+      tooltip={label}
+      aria-label={label}
+      isDisabled={isMuted || !canMute}
+      onPress={async () =>
+        !isMuted && isLocal(participant)
+          ? await (participant as LocalParticipant)?.setMicrophoneEnabled(false)
+          : openMuteDialog(participant)
+      }
+      data-attr="participants-mute"
+    >
+      {isMuted ? (
+        <RiMicOffFill color={'gray'} aria-hidden={true} />
+      ) : (
+        <RiMicFill
+          className={css({
+            color: isSpeaking ? 'primaryDark.300' : 'primaryDark.50',
+            animation: isSpeaking
+              ? 'pulse_background 800ms infinite'
+              : undefined,
+          })}
+          aria-hidden={true}
+        />
+      )}
+    </Button>
   )
 }
 

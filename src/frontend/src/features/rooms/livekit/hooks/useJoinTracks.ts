@@ -10,16 +10,15 @@ import {
 } from 'livekit-client'
 import { BackgroundProcessorFactory } from '../components/blur'
 import {
-  classifyPermissionError,
-  isLikelySystemNotFound,
   isSystemPermissionError,
-  noteGumSuccess,
-  notePermissionDeniedFromGum,
-  noteSystemPermissionDenied,
   type PermissionKind,
 } from '@/stores/permissions'
-import { getOS } from '@/utils/os'
-import { captureMediaEvent, reportError } from '@/features/analytics/telemetry'
+import {
+  getMediaDeviceFailure,
+  noteDeviceReady,
+  onMediaPermissionError,
+} from '../utils/mediaPermissions'
+import { VOICE_AUDIO_CONSTRAINTS } from '../utils/constants'
 import {
   saveAudioInputDeviceId,
   saveAudioInputEnabled,
@@ -29,98 +28,12 @@ import {
 } from '@/stores/userChoices'
 import { useSyncTrackDeviceId } from './useSyncTrackDeviceId'
 
-const VOICE_AUDIO_CONSTRAINTS = {
-  noiseSuppression: true,
-  echoCancellation: true,
-  autoGainControl: true,
-  voiceIsolation: false,
-  sampleRate: 48000,
-  channelCount: 1,
-  sampleSize: 16,
-} as const
-
-const PERMISSION_KIND: Record<'audioinput' | 'videoinput', PermissionKind> = {
-  audioinput: 'microphone',
-  videoinput: 'camera',
-}
-
-type MediaPath = 'join_preview' | 'room'
-
-const onMediaPermissionError = (
-  e: Error,
-  kind?: PermissionKind,
-  path: MediaPath = 'join_preview'
-) => {
-  if (
-    MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.PermissionDenied
-  ) {
-    void classifyPermissionError(e, kind).then((scope) => {
-      if (scope === 'system') {
-        noteSystemPermissionDenied(kind)
-      } else {
-        notePermissionDeniedFromGum(kind)
-      }
-      captureMediaEvent('permissions-denied', {
-        path,
-        kind,
-        denied_scope: scope,
-        os: getOS(),
-      })
-    })
-    return
-  }
-
-  if (MediaDeviceFailure.getFailure(e) === MediaDeviceFailure.NotFound) {
-    // Firefox reports OS-level blocks as NotFoundError (macOS privacy
-    // settings, missing Android app permissions).
-    void isLikelySystemNotFound(e, kind).then((system) => {
-      if (system) {
-        noteSystemPermissionDenied(kind)
-        captureMediaEvent('permissions-denied', {
-          path,
-          kind,
-          denied_scope: 'system',
-          os: getOS(),
-        })
-        return
-      }
-      captureMediaEvent('device-not-found', { path, kind })
-    })
-    return
-  }
-
-  // "Other" and "Device in use" are still reported as errors, as they are not handled on the join screen.
-  reportError(
-    path === 'room' ? 'room_media_failure' : 'join_preview_failure',
-    e,
-    { path, kind }
-  )
-}
-
 // Module-level: effect dependencies, must be referentially stable.
 const disableAudio = () => saveAudioInputEnabled(false)
 const disableVideo = () => saveVideoInputEnabled(false)
 
 const stopAll = (stream: MediaStream) =>
   stream.getTracks().forEach((track) => track.stop())
-
-export const requestDevicePermission = async (
-  kind: 'audioinput' | 'videoinput',
-  path: MediaPath = 'join_preview'
-): Promise<boolean> => {
-  try {
-    const track =
-      kind === 'audioinput'
-        ? await createLocalAudioTrack()
-        : await createLocalVideoTrack()
-    track.stop()
-    noteGumSuccess(PERMISSION_KIND[kind])
-    return true
-  } catch (error) {
-    onMediaPermissionError(error as Error, PERMISSION_KIND[kind], path)
-    return false
-  }
-}
 
 type WarmupState = {
   audioReady: boolean
@@ -158,11 +71,11 @@ function useWarmupPermissions(): WarmupState {
             video: true,
           })
         )
-        noteGumSuccess()
+        noteDeviceReady()
         bothReady()
       } catch (error) {
         if (
-          MediaDeviceFailure.getFailure(error as Error) ===
+          getMediaDeviceFailure(error as Error) ===
             MediaDeviceFailure.PermissionDenied &&
           !isSystemPermissionError(error)
         ) {
@@ -180,7 +93,7 @@ function useWarmupPermissions(): WarmupState {
           .getUserMedia({ audio: true })
           .then((stream) => {
             stopAll(stream)
-            noteGumSuccess('microphone')
+            noteDeviceReady('microphone')
           })
           .catch((e) => onMediaPermissionError(e as Error, 'microphone'))
           .finally(() =>
@@ -190,7 +103,7 @@ function useWarmupPermissions(): WarmupState {
           .getUserMedia({ video: true })
           .then((stream) => {
             stopAll(stream)
-            noteGumSuccess('camera')
+            noteDeviceReady('camera')
           })
           .catch((e) => onMediaPermissionError(e as Error, 'camera'))
           .finally(() =>
@@ -209,12 +122,14 @@ function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
   enabled,
   create,
   permissionKind,
+  deviceId,
   onFailure,
 }: {
   ready: boolean
   enabled: boolean
   create: () => Promise<T>
   permissionKind: PermissionKind
+  deviceId?: string
   onFailure: () => void
 }): T | null {
   const [track, setTrack] = useState<T | null>(null)
@@ -227,21 +142,27 @@ function useLocalTrack<T extends LocalAudioTrack | LocalVideoTrack>({
     let cancelled = false
     create()
       .then((newTrack) => {
-        noteGumSuccess(permissionKind)
         if (cancelled) {
           newTrack.stop()
           return
         }
+        noteDeviceReady(permissionKind)
         setTrack(newTrack)
       })
       .catch((error) => {
-        onMediaPermissionError(error as Error, permissionKind)
+        if (cancelled) return
+        onMediaPermissionError(
+          error as Error,
+          permissionKind,
+          'join_preview',
+          deviceId
+        )
         onFailure()
       })
     return () => {
       cancelled = true
     }
-  }, [ready, enabled, track, create, permissionKind, onFailure])
+  }, [ready, enabled, track, create, permissionKind, deviceId, onFailure])
 
   // Release on toggle-off so the LED turns off.
   useEffect(() => {
@@ -315,6 +236,7 @@ export function useJoinTracks(): {
     enabled: audioEnabled,
     create: createAudio,
     permissionKind: 'microphone',
+    deviceId: audioDeviceId,
     onFailure: disableAudio,
   })
 
@@ -323,6 +245,7 @@ export function useJoinTracks(): {
     enabled: videoEnabled,
     create: createVideo,
     permissionKind: 'camera',
+    deviceId: videoDeviceId,
     onFailure: disableVideo,
   })
 

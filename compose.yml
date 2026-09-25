@@ -17,7 +17,7 @@ services:
 
   minio:
     user: ${DOCKER_USER:-1000}
-    image: minio/minio
+    image: quay.io/minio/minio
     environment:
       - MINIO_ROOT_USER=meet
       - MINIO_ROOT_PASSWORD=password
@@ -35,7 +35,7 @@ services:
       - ./data/media:/data
 
   createbuckets:
-    image: minio/mc
+    image: quay.io/minio/mc
     depends_on:
       minio:
         condition: service_healthy
@@ -44,21 +44,6 @@ services:
       sh -c "
       /usr/bin/mc alias set meet http://minio:9000 meet password && \
       /usr/bin/mc mb meet/meet-media-storage && \
-      exit 0;"
-
-  createwebhook:
-    image: minio/mc
-    depends_on:
-      minio:
-        condition: service_healthy
-        restart: true
-    entrypoint: >
-      sh -c "
-      /usr/bin/mc alias set meet http://minio:9000 meet password &&
-      /usr/bin/mc admin config set meet notify_webhook:meet-webhook endpoint='http://app-dev:8000/api/v1.0/recordings/storage-hook/' auth_token='Bearer password' &&
-      /usr/bin/mc admin service restart meet --wait --json &&
-      sleep 15 &&
-      /usr/bin/mc event add meet/meet-media-storage arn:minio:sqs::meet-webhook:webhook --event put --prefix "recordings" &&
       exit 0;"
 
   app-dev:
@@ -86,7 +71,6 @@ services:
         - mailcatcher
         - redis
         - createbuckets
-        - createwebhook
     extra_hosts:
       - "127.0.0.1.nip.io:host-gateway"
     networks:
@@ -223,12 +207,14 @@ services:
       - kc_postgresql
 
   livekit:
-    image: livekit/livekit-server
+    image: livekit/livekit-server:v1.13.6
     entrypoint: /livekit-server --dev --bind 0.0.0.0 --config ./config.yaml
     ports:
       - "7880:7880"
       - "7881:7881"
       - "7882:7882/udp"
+      - "3478:3478/udp"
+      - "30000-30100:30000-30100/udp"
     volumes:
       - ./docker/livekit/config/livekit-server.yaml:/config.yaml
     depends_on:
@@ -249,6 +235,7 @@ services:
     build:
       context: ./src/agents
       target: development
+    user: ${DOCKER_USER:-1000}
     command: ["python", "metadata_collector.py", "dev"]
     env_file:
       - env.d/development/metadata_collector
@@ -267,6 +254,8 @@ services:
     build:
       context: ./src/agents
       target: development
+    user: ${DOCKER_USER:-1000}
+    command: ["python", "multi_user_transcriber.py", "dev"]
     env_file:
       - env.d/development/multi_user_transcriber
     volumes:

@@ -46,24 +46,10 @@ from core.api import throttling
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
-from core.recording.event.authentication import (
-    RecordingProcessWebhookAuthentication,
-    StorageEventAuthentication,
-)
-from core.recording.event.exceptions import (
-    InvalidBucketError,
-    InvalidFilepathError,
-    InvalidFileTypeError,
-    ParsingEventDataError,
-)
-from core.recording.event.parsers import get_parser
+from core.recording.event.authentication import RecordingProcessWebhookAuthentication
 from core.recording.services.metadata_collector import (
     MetadataCollectorException,
     MetadataCollectorService,
-)
-from core.recording.services.recording_events import (
-    RecordingEventsService,
-    RecordingNotSavableError,
 )
 from core.recording.worker.exceptions import (
     RecordingStartError,
@@ -90,11 +76,7 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
-from core.services.room_management import (
-    RoomManagement,
-    RoomManagementException,
-    RoomNotFoundException,
-)
+from core.services.room_management import RoomManagement
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
@@ -162,60 +144,6 @@ def unregistered_room_name(pk):
         raise Http404
 
     return slug
-
-
-class NestedGenericViewSet(viewsets.GenericViewSet):
-    """
-    A generic Viewset aims to be used in a nested route context.
-    e.g: `/api/v1.0/resource_1/<resource_1_pk>/resource_2/<resource_2_pk>/`
-
-    It allows to define all url kwargs and lookup fields to perform the lookup.
-    """
-
-    lookup_fields: list[str] = ["pk"]
-    lookup_url_kwargs: list[str] = []
-
-    def __getattribute__(self, file):
-        """
-        This method is overridden to allow to get the last lookup field or lookup url kwarg
-        when accessing the `lookup_field` or `lookup_url_kwarg` attribute. This is useful
-        to keep compatibility with all methods used by the parent class `GenericViewSet`.
-        """
-        if file in ["lookup_field", "lookup_url_kwarg"]:
-            return getattr(self, file + "s", [None])[-1]
-
-        return super().__getattribute__(file)
-
-    def get_queryset(self):
-        """
-        Get the list of files for this view.
-
-        `lookup_fields` attribute is enumerated here to perform the nested lookup.
-        """
-        queryset = super().get_queryset()
-
-        # The last lookup field is removed to perform the nested lookup as it corresponds
-        # to the object pk, it is used within get_object method.
-        lookup_url_kwargs = (
-            self.lookup_url_kwargs[:-1]
-            if self.lookup_url_kwargs
-            else self.lookup_fields[:-1]
-        )
-
-        filter_kwargs = {}
-        for index, lookup_url_kwarg in enumerate(lookup_url_kwargs):
-            if lookup_url_kwarg not in self.kwargs:
-                raise KeyError(
-                    f"Expected view {self.__class__.__name__} to be called with a URL "
-                    f'keyword argument named "{lookup_url_kwarg}". Fix your URL conf, or '
-                    "set the `.lookup_fields` attribute on the view correctly."
-                )
-
-            filter_kwargs.update(
-                {self.lookup_fields[index]: self.kwargs[lookup_url_kwarg]}
-            )
-
-        return queryset.filter(**filter_kwargs)
 
 
 class SerializerPerActionMixin:
@@ -423,26 +351,7 @@ class RoomViewSet(
         ):
             return
 
-        metadata = {
-            "configuration": room.configuration,
-            "access_level": room.access_level,
-        }
-
-        try:
-            RoomManagement().update_metadata(
-                room_name=str(room.id),
-                metadata=metadata,
-            )
-        except RoomNotFoundException:
-            logger.info(
-                "LiveKit room %s does not exist yet, skipping metadata sync",
-                room.id,
-            )
-        except RoomManagementException:
-            logger.warning(
-                "Failed to sync metadata to LiveKit for room %s",
-                room.id,
-            )
+        RoomManagement.sync_room_metadata(room)
 
     @decorators.action(
         detail=True,
@@ -640,7 +549,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="enter",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanManageLobby,
         ],
     )
     def allow_participant_to_enter(self, request, pk=None):  # pylint: disable=unused-argument
@@ -678,7 +587,7 @@ class RoomViewSet(
         methods=["GET"],
         url_path="waiting-participants",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanManageLobby,
         ],
     )
     def list_waiting_participants(self, request, pk=None):  # pylint: disable=unused-argument
@@ -1050,6 +959,15 @@ class RoomViewSet(
         """Rename the current participant in the room."""
         room = self.get_object()
 
+        if (
+            not settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME
+            and request.user.is_authenticated
+        ):
+            return drf_response.Response(
+                {"error": "Authenticated participants cannot edit their display name"},
+                status=drf_status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = serializers.RenameParticipantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -1141,56 +1059,6 @@ class RecordingViewSet(
     @decorators.action(
         detail=False,
         methods=["post"],
-        url_path="storage-hook",
-        authentication_classes=[StorageEventAuthentication],
-    )
-    @FeatureFlag.require("storage_event")
-    def on_storage_event_received(self, request, pk=None):  # pylint: disable=unused-argument
-        """Handle incoming storage hook events for recordings."""
-
-        parser = get_parser()
-
-        try:
-            recording_id = parser.get_recording_id(request.data)
-
-        except ParsingEventDataError as e:
-            raise drf_exceptions.PermissionDenied("Invalid request data.") from e
-
-        except InvalidBucketError as e:
-            raise drf_exceptions.PermissionDenied("Invalid bucket specified.") from e
-
-        except InvalidFilepathError:
-            return drf_response.Response(
-                {"message": "Notification ignored."},
-            )
-
-        except InvalidFileTypeError:
-            return drf_response.Response(
-                {"message": "Notification ignored."},
-            )
-
-        try:
-            recording = models.Recording.objects.get(id=recording_id)
-        except models.Recording.DoesNotExist as e:
-            raise drf_exceptions.NotFound("No recording found for this event.") from e
-
-        # Save recording
-        recording_events_service = RecordingEventsService()
-        try:
-            recording_events_service.handle_complete(recording)
-        except RecordingNotSavableError:
-            raise drf_exceptions.PermissionDenied(
-                f"Recording with ID {recording_id} cannot be saved because it is either,"
-                " in an error state or has already been saved."
-            ) from None
-
-        return drf_response.Response(
-            {"message": "Event processed."},
-        )
-
-    @decorators.action(
-        detail=False,
-        methods=["post"],
         url_path="external-process-hook",
         authentication_classes=[RecordingProcessWebhookAuthentication],
         serializer_class=serializers.ExternalProcessEventSerializer,
@@ -1244,9 +1112,10 @@ class RecordingViewSet(
 
     def _auth_get_original_url(self, request):
         """
-        Extracts and parses the original URL from the "HTTP_X_ORIGINAL_URL" header.
+        Extracts and parses the original URL from the configured header.
         Raises PermissionDenied if the header is missing.
-        The original url is passed by nginx in the "HTTP_X_ORIGINAL_URL" header.
+        The original url is passed by the reverse proxy in the header named by the
+        MEDIA_AUTH_ORIGINAL_URL_HEADER setting, which defaults to "HTTP_X_ORIGINAL_URL".
         See corresponding ingress configuration in Helm chart and read about the
         nginx.ingress.kubernetes.io/auth-url annotation to understand how the Nginx ingress
         is configured to do this.
@@ -1256,9 +1125,13 @@ class RecordingViewSet(
         reasons.
         """
         # Extract the original URL from the request header
-        original_url = request.META.get("HTTP_X_ORIGINAL_URL")
+        original_url = request.META.get(settings.MEDIA_AUTH_ORIGINAL_URL_HEADER)
         if not original_url:
-            logger.warning("Missing HTTP_X_ORIGINAL_URL header in subrequest")
+            logger.warning(
+                "Missing %s header in subrequest. Set MEDIA_AUTH_ORIGINAL_URL_HEADER "
+                "to the header your reverse proxy sends.",
+                settings.MEDIA_AUTH_ORIGINAL_URL_HEADER,
+            )
             raise drf_exceptions.PermissionDenied()
 
         logger.debug("Original url: '%s'", original_url)
@@ -1583,7 +1456,8 @@ class FileViewSet(
         Authorize access based on the original URL of an Nginx subrequest
         and user permissions. Returns a dictionary of URL parameters if authorized.
 
-        The original url is passed by nginx in the "HTTP_X_ORIGINAL_URL" header.
+        The original url is passed by the reverse proxy in the header named by the
+        MEDIA_AUTH_ORIGINAL_URL_HEADER setting, which defaults to "HTTP_X_ORIGINAL_URL".
         See corresponding ingress configuration in Helm chart and read about the
         nginx.ingress.kubernetes.io/auth-url annotation to understand how the Nginx ingress
         is configured to do this.
@@ -1602,9 +1476,13 @@ class FileViewSet(
         - PermissionDenied if authorization fails.
         """
         # Extract the original URL from the request header
-        original_url = request.META.get("HTTP_X_ORIGINAL_URL")
+        original_url = request.META.get(settings.MEDIA_AUTH_ORIGINAL_URL_HEADER)
         if not original_url:
-            logger.warning("Missing HTTP_X_ORIGINAL_URL header in subrequest")
+            logger.warning(
+                "Missing %s header in subrequest. Set MEDIA_AUTH_ORIGINAL_URL_HEADER "
+                "to the header your reverse proxy sends.",
+                settings.MEDIA_AUTH_ORIGINAL_URL_HEADER,
+            )
             raise drf_exceptions.PermissionDenied()
 
         parsed_url = urlparse(original_url)
