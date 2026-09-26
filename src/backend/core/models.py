@@ -459,11 +459,7 @@ class Room(Resource):
         both be used to get a room detail view on the API.
         """
         self.slug = slugify(self.name)
-        try:
-            uuid.UUID(self.slug)
-        except ValueError:
-            pass
-        else:
+        if utils.is_room_id(self.slug):
             raise ValidationError({"name": f'Room name "{self.name:s}" is reserved.'})
 
         super().clean_fields(exclude=exclude)
@@ -472,6 +468,18 @@ class Room(Resource):
     def is_public(self):
         """Check if a room is public"""
         return self.access_level == RoomAccessLevel.PUBLIC
+
+    def is_joinable_by(self, user, role):
+        """Check if a user can enter the room without waiting for approval.
+
+        `role` is the user's role on this room, which every caller has already
+        resolved.
+        """
+        return (
+            self.is_public
+            or (self.access_level == RoomAccessLevel.TRUSTED and user.is_authenticated)
+            or role is not None
+        )
 
     @staticmethod
     def generate_unique_pin_code(length):

@@ -8,6 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(fullstack) show who is already in the meeting on the join screen
+
+### Fixed
+
+- 🔒️(backend) refuse an unregistered room named after a registered one
+
 ## [1.32.1] - 2026-09-25
 
 ### Fixed

@@ -6,17 +6,37 @@ import json
 from logging import getLogger
 from typing import Dict, Optional
 
+from django.conf import settings
+from django.core.cache import cache
+
+import aiohttp
 from asgiref.sync import async_to_sync
 from livekit.api import (
     DeleteRoomRequest,
+    ListParticipantsRequest,
     ListRoomsRequest,
     TwirpError,
     UpdateRoomMetadataRequest,
 )
+from livekit.protocol.models import ParticipantInfo
 
 from core import utils
 
 logger = getLogger(__name__)
+
+
+def _is_machine(participant: ParticipantInfo) -> bool:
+    """Whether this participant is a bot or a recorder rather than a person.
+
+    A recorder connects to the room the way a browser does, so LiveKit lists it
+    beside the people and the join screen would count it as one. The three fields
+    below are the ones LiveKit's own IsDependent reads for the same decision.
+    """
+    return (
+        participant.kind in (ParticipantInfo.Kind.AGENT, ParticipantInfo.Kind.EGRESS)
+        or participant.permission.agent
+        or participant.permission.recorder
+    )
 
 
 class RoomManagementException(Exception):
@@ -86,6 +106,78 @@ class RoomManagement:
 
         finally:
             await lkapi.aclose()
+
+    @classmethod
+    def get_participants(cls, room_name: str) -> dict:
+        """Count the people in a LiveKit room and name the ones who gave a name.
+
+        The two can differ: someone who joined without a display name is
+        counted but not named. The answer is cached for
+        ROOM_PARTICIPANTS_CACHE_SECONDS and one caller at a time refreshes it,
+        so a meeting many are waiting on costs LiveKit one call per hold.
+
+        Raises:
+            RoomManagementException: the room could not be read.
+        """
+        hold = settings.ROOM_PARTICIPANTS_CACHE_SECONDS
+        key = f"room_participants_{room_name:s}"
+
+        # The lock holder refreshes the answer; the others read it, and ask
+        # LiveKit themselves only while there is none yet.
+        refresh = cache.add(f"{key:s}_lock", True, hold)
+        answer = cache.get(key)
+
+        if answer is None or refresh:
+            try:
+                answer = cls._list_participants(room_name)
+            except RoomManagementException:
+                # Cached as well: an unreachable LiveKit is when it can least
+                # afford one call per poll.
+                answer = False
+            # Outlives the lock, so the callers it turns away have an answer.
+            cache.set(key, answer, hold * 3)
+
+        if answer is False:
+            raise RoomManagementException("Could not list participants")
+
+        return answer
+
+    @staticmethod
+    @async_to_sync
+    async def _list_participants(room_name: str) -> dict:
+        """Ask LiveKit who is in a room, leaving out bots and recorders."""
+        lkapi = utils.create_livekit_client()
+
+        try:
+            response = await lkapi.room.list_participants(
+                ListParticipantsRequest(room=room_name)
+            )
+
+        except TwirpError as e:
+            if e.code == "not_found":
+                # LiveKit creates a room when its first participant joins, so a
+                # name it does not know has nobody in it.
+                return {"count": 0, "names": []}
+
+            logger.exception("Unexpected error listing participants of %s", room_name)
+            raise RoomManagementException("Could not list participants") from e
+
+        # Otherwise an unreachable LiveKit is a 500 on every poll.
+        except aiohttp.ClientError as e:
+            logger.exception(
+                "Could not reach LiveKit listing participants of %s", room_name
+            )
+            raise RoomManagementException("Could not list participants") from e
+
+        finally:
+            await lkapi.aclose()
+
+        people = [p for p in response.participants if not _is_machine(p)]
+
+        return {
+            "count": len(people),
+            "names": [p.name for p in people if p.name],
+        }
 
     @classmethod
     @async_to_sync

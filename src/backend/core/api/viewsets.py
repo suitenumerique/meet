@@ -1,7 +1,6 @@
 """API endpoints"""
 # pylint: disable=too-many-lines
 
-import uuid
 from datetime import timedelta
 from logging import getLogger
 from urllib.parse import unquote, urlparse
@@ -75,7 +74,10 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
-from core.services.room_management import RoomManagement
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+)
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
@@ -176,18 +178,17 @@ class RoomViewSet(
     API endpoints to access and perform actions on rooms.
     """
 
+    # pylint: disable=too-many-public-methods
+
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
 
     def get_object(self):
-        """Allow getting a room by its slug."""
-        try:
-            uuid.UUID(self.kwargs["pk"])
-            filter_kwargs = {"pk": self.kwargs["pk"]}
-        except ValueError:
-            filter_kwargs = {"slug": slugify(self.kwargs["pk"])}
+        """Allow getting a room by its id or by its slug."""
+        pk = self.kwargs["pk"]
+        filter_kwargs = {"pk": pk} if utils.is_room_id(pk) else {"slug": slugify(pk)}
         queryset = self.filter_queryset(self.get_queryset())
         obj = get_object_or_404(queryset, **filter_kwargs)
         # May raise a permission denied
@@ -205,6 +206,10 @@ class RoomViewSet(
             if not settings.ALLOW_UNREGISTERED_ROOMS:
                 raise
             slug = slugify(self.kwargs["pk"])
+            # Registered rooms meet under their id, so a name reading as one
+            # would mint a token for that room's meeting.
+            if not slug or utils.is_room_id(slug):
+                raise
             username = request.query_params.get("username", None)
             data = {
                 "id": None,
@@ -299,6 +304,42 @@ class RoomViewSet(
             return
 
         RoomManagement.sync_room_metadata(room)
+
+    @decorators.action(
+        detail=True,
+        methods=["get"],
+        url_path="participants",
+        url_name="participants",
+        throttle_classes=[throttling.ParticipantsUserRateThrottle],
+    )
+    def participants(self, request, pk=None):  # pylint: disable=unused-argument
+        """Tell who is in the room's meeting, for its join screen.
+
+        Only a signed-in user the room admits without approval is told; anyone
+        else gets the answer a missing room gets. Up to
+        ROOM_PARTICIPANTS_NAMES_LIMIT people are counted and named; past it the
+        count is null, so no request can read the roster of a large meeting.
+        """
+        room = self.get_object()
+        user = request.user
+
+        if not user.is_authenticated or not room.is_joinable_by(
+            user, room.get_role(user)
+        ):
+            raise Http404
+
+        try:
+            roster = RoomManagement.get_participants(str(room.id))
+        except RoomManagementException:
+            return drf_response.Response(
+                {"error": "Could not reach the meeting."},
+                status=drf_status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        if roster["count"] > settings.ROOM_PARTICIPANTS_NAMES_LIMIT:
+            return drf_response.Response({"count": None, "names": []})
+
+        return drf_response.Response(roster)
 
     @decorators.action(
         detail=True,
