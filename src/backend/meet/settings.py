@@ -978,11 +978,6 @@ class Base(Configuration):
         environ_name="CHAT_MEDIA_ALLOWED_MIMETYPES",
         environ_prefix=None,
     )
-    CHAT_MEDIA_ALLOWED_EXTENSIONS = values.ListValue(
-        [".jpg", ".jpeg", ".png", ".webp", ".gif"],
-        environ_name="CHAT_MEDIA_ALLOWED_EXTENSIONS",
-        environ_prefix=None,
-    )
 
     # Metadata collector settings
     METADATA_COLLECTOR_ENABLED = values.BooleanValue(

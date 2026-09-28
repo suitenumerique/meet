@@ -11,7 +11,9 @@ import { DOWNSCALE_LONG_EDGE, DOWNSCALE_QUALITY } from './constants'
  * result carries no metadata. That is not this function's job, and stripping
  * metadata generally is a separate change.
  */
-export async function downscaleImage(file: File): Promise<Blob> {
+export async function downscaleImage(
+  file: File
+): Promise<{ blob: Blob; width: number; height: number }> {
   const bitmap = await createImageBitmap(file)
   try {
     const scale = Math.min(
@@ -29,7 +31,7 @@ export async function downscaleImage(file: File): Promise<Blob> {
     if (!context) throw new Error('2d canvas context unavailable')
     context.drawImage(bitmap, 0, 0, width, height)
 
-    return await new Promise<Blob>((resolve, reject) => {
+    const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
         (blob) =>
           blob ? resolve(blob) : reject(new Error('canvas encoding failed')),
@@ -37,6 +39,7 @@ export async function downscaleImage(file: File): Promise<Blob> {
         DOWNSCALE_QUALITY
       )
     })
+    return { blob, width, height }
   } finally {
     bitmap.close()
   }

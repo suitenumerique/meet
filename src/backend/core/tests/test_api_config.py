@@ -26,7 +26,6 @@ def test_api_config_chat_media_defaults():
             "image/webp",
             "image/gif",
         ],
-        "allowed_extensions": [".jpg", ".jpeg", ".png", ".webp", ".gif"],
     }
 
 
@@ -37,7 +36,6 @@ def test_api_config_chat_media_excludes_svg():
     chat_media = response.json()["chat_media"]
 
     assert "image/svg+xml" not in chat_media["allowed_mimetypes"]
-    assert ".svg" not in chat_media["allowed_extensions"]
 
 
 def test_api_config_chat_media_disabled(settings):
@@ -53,7 +51,6 @@ def test_api_config_chat_media_overrides(settings):
     """Limits and allowlists are reported from settings, not hardcoded."""
     settings.CHAT_MEDIA_MAX_SIZE = 1024
     settings.CHAT_MEDIA_ALLOWED_MIMETYPES = ["image/png"]
-    settings.CHAT_MEDIA_ALLOWED_EXTENSIONS = [".png"]
 
     response = APIClient().get("/api/v1.0/config/")
 
@@ -61,5 +58,4 @@ def test_api_config_chat_media_overrides(settings):
         "enabled": True,
         "max_size": 1024,
         "allowed_mimetypes": ["image/png"],
-        "allowed_extensions": [".png"],
     }

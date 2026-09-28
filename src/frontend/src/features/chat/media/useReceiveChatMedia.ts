@@ -12,7 +12,7 @@ import {
   MAX_CONCURRENT_STREAMS_PER_SENDER,
   PROGRESS_STEP_PERCENT,
 } from './constants'
-import { sniffImageType } from './probeImage'
+import { measureImage, sniffBlob } from './probeImage'
 import { useChatMediaLimits } from './useChatMediaLimits'
 
 /**
@@ -33,22 +33,14 @@ const sanitizeDimension = (value: unknown) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
 }
 
-const decodes = (objectUrl: string) =>
-  new Promise<boolean>((resolve) => {
-    const image = new Image()
-    image.onload = () => resolve(true)
-    image.onerror = () => resolve(false)
-    image.src = objectUrl
-  })
-
 /**
  * Receives images sent on the chat media topic.
  *
  * Everything the sender declares is treated as hostile, because a room admits
- * unauthenticated participants: the declared size is checked before the stream
- * is read and the assembled length again after it, the declared MIME type is
- * ignored in favour of the payload's own leading bytes, and the result must
- * decode as an image before it is shown.
+ * unauthenticated participants: a stream must declare a size within the cap
+ * before it is read, the read fails once the bytes pass that size, the
+ * declared MIME type is ignored in favour of the payload's own leading bytes,
+ * and the result must decode as an image before it is shown.
  */
 export const useReceiveChatMedia = () => {
   const room = useRoomContext()
@@ -68,7 +60,9 @@ export const useReceiveChatMedia = () => {
 
       const { id, size, attributes } = reader.info
       try {
-        if (typeof size === 'number' && size > limits.maxSize) return
+        // LiveKit fails a read that passes the declared size, and skips that
+        // check when no size or a zero size is declared.
+        if (!size || size > limits.maxSize) return
 
         appendReceivingMediaRow({
           id,
@@ -80,14 +74,11 @@ export const useReceiveChatMedia = () => {
             : undefined,
           caption: sanitizeCaption(attributes?.caption),
           mimeType: '',
-          size: size ?? 0,
           width: sanitizeDimension(attributes?.width),
           height: sanitizeDimension(attributes?.height),
         })
 
-        // A 5 MB image arrives in roughly 350 chunks. Writing each one would
-        // re-render the virtualized list about 44 times a second, so the store
-        // only sees a change when the displayed percentage does.
+        // See PROGRESS_STEP_PERCENT.
         let lastShown = -1
         reader.onProgress = (progress) => {
           if (progress == null) return updateMediaProgress(id, undefined)
@@ -99,30 +90,19 @@ export const useReceiveChatMedia = () => {
           updateMediaProgress(id, shown / 100)
         }
 
-        const chunks = await reader.readAll()
-        const total = chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0)
-        if (total > limits.maxSize) {
-          failMediaRow(id, 'transfer_failed')
-          return
-        }
-
-        const payload = new Uint8Array(total)
-        let offset = 0
-        for (const chunk of chunks) {
-          payload.set(chunk, offset)
-          offset += chunk.byteLength
-        }
-
-        const mimeType = sniffImageType(payload)
+        const payload = new Blob((await reader.readAll()) as BlobPart[])
+        const mimeType = await sniffBlob(payload)
         if (!mimeType || !limits.allowedMimetypes.includes(mimeType)) {
           failMediaRow(id, 'decode_failed')
           return
         }
 
         const objectUrl = URL.createObjectURL(
-          new Blob([payload as BlobPart], { type: mimeType })
+          new Blob([payload], { type: mimeType })
         )
-        if (!(await decodes(objectUrl))) {
+        try {
+          await measureImage(objectUrl)
+        } catch {
           URL.revokeObjectURL(objectUrl)
           failMediaRow(id, 'decode_failed')
           return

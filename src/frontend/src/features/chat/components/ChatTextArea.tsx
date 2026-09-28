@@ -10,6 +10,7 @@ import {
 } from '@/stores/chat'
 import { ChatSubmitButton } from './ChatSubmitButton'
 import { ChatAttachButton } from './ChatAttachButton'
+import { useSendChatMedia } from '../media/useSendChatMedia'
 
 const StyledContainer = styled('div', {
   base: {
@@ -22,21 +23,18 @@ const StyledContainer = styled('div', {
   },
 })
 
-type ChatTextAreaProps = {
-  onAttach: (file: File) => void
-  onSendMedia: () => void
-  isMediaEnabled: boolean
-  acceptedMimetypes: string[]
-}
-
-export const ChatTextArea = ({
-  onAttach,
-  onSendMedia,
-  isMediaEnabled,
-  acceptedMimetypes,
-}: ChatTextAreaProps) => {
-  const { isSending, isPreparing, send, textAreaValue, pendingAttachment } =
-    useSnapshot(chatStore, { sync: true })
+export const ChatTextArea = () => {
+  const {
+    isSending,
+    isSendingMedia,
+    isPreparing,
+    send,
+    textAreaValue,
+    pendingAttachment,
+  } = useSnapshot(chatStore, { sync: true })
+  const { stage, send: sendMedia, limits } = useSendChatMedia()
+  const isMediaEnabled = limits.enabled
+  const isBusy = isSending || isSendingMedia || isPreparing
 
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.chat.input' })
 
@@ -57,7 +55,7 @@ export const ChatTextArea = ({
     // A staged image takes precedence: the text box then holds its caption,
     // and the two go out as one stream rather than as two messages.
     if (chatStore.pendingAttachment) {
-      await onSendMedia()
+      await sendMedia()
       inputRef?.current?.focus({ preventScroll: true })
       return
     }
@@ -66,10 +64,9 @@ export const ChatTextArea = ({
     await send(text)
     inputRef?.current?.focus({ preventScroll: true })
     clearTextAreaValue()
-  }, [send, inputRef, onSendMedia])
+  }, [send, inputRef, sendMedia])
 
-  const isDisabled =
-    (!textAreaValue.trim() && !pendingAttachment) || isSending || isPreparing
+  const isDisabled = (!textAreaValue.trim() && !pendingAttachment) || isBusy
 
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== 'Escape') e.stopPropagation()
@@ -94,16 +91,16 @@ export const ChatTextArea = ({
     )
     if (!file) return
     e.preventDefault()
-    onAttach(file)
+    stage(file)
   }
 
   return (
     <StyledContainer>
       {isMediaEnabled && (
         <ChatAttachButton
-          onSelect={onAttach}
-          isDisabled={isSending || isPreparing}
-          acceptedMimetypes={acceptedMimetypes}
+          onSelect={stage}
+          isDisabled={isBusy}
+          acceptedMimetypes={limits.allowedMimetypes}
         />
       )}
       <TextArea

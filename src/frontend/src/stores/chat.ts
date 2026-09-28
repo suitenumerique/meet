@@ -8,7 +8,7 @@ type ChatApi = ReturnType<typeof useChat>
  * Blobs held by the browser through `URL.createObjectURL` are unreachable by
  * the garbage collector, so the number retained is capped explicitly.
  */
-export const MAX_RETAINED_MEDIA = 50
+const MAX_RETAINED_MEDIA = 50
 
 type ChatRowBase = {
   id: string
@@ -23,18 +23,15 @@ export type ChatTextRow = ChatRowBase & {
   message: string
 }
 
-export type ChatMediaStatus = 'receiving' | 'ready' | 'failed'
-
-export type ChatMediaError = 'transfer_failed' | 'decode_failed' | 'expired'
+type ChatMediaError = 'transfer_failed' | 'decode_failed' | 'expired'
 
 export type ChatMediaRow = ChatRowBase & {
   kind: 'media'
   caption: string
   mimeType: string
-  size: number
   width?: number
   height?: number
-  status: ChatMediaStatus
+  status: 'receiving' | 'ready' | 'failed'
   /** Between 0 and 1, or undefined while the total size is unknown. */
   progress?: number
   objectUrl?: string
@@ -66,6 +63,8 @@ export type ChatMediaFailure =
 type State = {
   unreadMessages: number
   isSending: boolean
+  /** Separate from `isSending`, which mirrors LiveKit's text chat. */
+  isSendingMedia: boolean
   isPreparing: boolean
   rows: ChatRow[]
   names: Record<string, string>
@@ -78,6 +77,7 @@ type State = {
 const initialState: State = {
   unreadMessages: 0,
   isSending: false,
+  isSendingMedia: false,
   isPreparing: false,
   rows: [],
   names: {},
@@ -105,28 +105,21 @@ function shouldHideMetadata(identity: string | undefined, timestamp: number) {
   )
 }
 
-let lastReadTimestamp = 0
 let isChatVisible = false
-
-function countAsUnread(row: ChatRow) {
-  if (isChatVisible) {
-    lastReadTimestamp = row.timestamp
-    return
-  }
-  if (row.timestamp > lastReadTimestamp) chatStore.unreadMessages += 1
-}
 
 /**
  * Unread is counted over rows rather than over LiveKit's `chatMessages`: byte
  * streams never appear in `chatMessages`, and rows are the only place that sees
- * both kinds.
+ * both kinds. Each row is appended once, so every row appended while the chat
+ * is hidden is unread.
  */
+function countAsUnread() {
+  if (!isChatVisible) chatStore.unreadMessages += 1
+}
+
 export function setChatVisibility(visible: boolean) {
   isChatVisible = visible
-  if (!visible) return
-  const last = chatStore.rows[chatStore.rows.length - 1]
-  if (last) lastReadTimestamp = last.timestamp
-  chatStore.unreadMessages = 0
+  if (visible) chatStore.unreadMessages = 0
 }
 
 /**
@@ -146,7 +139,7 @@ export function appendRow(msg: ReceivedChatMessage) {
   const identity = p?.identity
   const timestamp = msg.timestamp
 
-  const row: ChatTextRow = {
+  chatStore.rows.push({
     kind: 'text',
     id: msg.id ?? `${timestamp}`,
     identity,
@@ -154,10 +147,8 @@ export function appendRow(msg: ReceivedChatMessage) {
     message: msg.message,
     timestamp,
     hideMetadata: shouldHideMetadata(identity, timestamp),
-  }
-
-  chatStore.rows.push(row)
-  countAsUnread(row)
+  })
+  countAsUnread()
 }
 
 function revokeMediaRow(row: ChatMediaRow) {
@@ -172,7 +163,7 @@ function revokeMediaRow(row: ChatMediaRow) {
  * Drops the oldest blobs once more than `MAX_RETAINED_MEDIA` are held, marking
  * their rows expired rather than leaving a broken image behind.
  */
-export function enforceMediaRetention() {
+function enforceMediaRetention() {
   const retained = chatStore.rows.filter(
     (row): row is ChatMediaRow => row.kind === 'media' && !!row.objectUrl
   )
@@ -184,7 +175,6 @@ export function enforceMediaRetention() {
 export function stageAttachment(attachment: PendingAttachment) {
   clearPendingAttachment()
   chatStore.pendingAttachment = attachment
-  chatStore.mediaFailure = undefined
 }
 
 export function clearPendingAttachment() {
@@ -193,35 +183,38 @@ export function clearPendingAttachment() {
   chatStore.pendingAttachment = undefined
 }
 
-/**
- * Hands the staged preview URL to the row rather than revoking it, so the
- * sender's own copy renders from bytes already in memory. Byte streams do not
- * echo to their sender, so without this the sender alone would not see it.
- */
-export function appendLocalMediaRow({
-  name,
-  ...row
-}: {
+type NewMediaRow = {
   id: string
   identity?: string
   name?: string
   caption: string
   mimeType: string
-  size: number
   width?: number
   height?: number
-  objectUrl: string
-}) {
+}
+
+function pushMediaRow(
+  { name, ...row }: NewMediaRow,
+  state: Pick<ChatMediaRow, 'isLocal' | 'status' | 'progress' | 'objectUrl'>
+) {
   const timestamp = Date.now()
   rememberName(row.identity, name)
   chatStore.rows.push({
     kind: 'media',
-    isLocal: true,
-    status: 'ready',
     timestamp,
     hideMetadata: shouldHideMetadata(row.identity, timestamp),
     ...row,
+    ...state,
   })
+}
+
+/**
+ * Hands the staged preview URL to the row rather than revoking it, so the
+ * sender's own copy renders from bytes already in memory. Byte streams do not
+ * echo to their sender, so without this the sender alone would not see it.
+ */
+export function appendLocalMediaRow(row: NewMediaRow, objectUrl: string) {
+  pushMediaRow(row, { isLocal: true, status: 'ready', objectUrl })
   chatStore.pendingAttachment = undefined
   enforceMediaRetention()
 }
@@ -230,32 +223,9 @@ export function appendLocalMediaRow({
  * Inserted when the stream opens, before any bytes arrive, so a participant
  * sees an image being sent rather than a silence.
  */
-export function appendReceivingMediaRow({
-  name,
-  ...row
-}: {
-  id: string
-  identity?: string
-  name?: string
-  caption: string
-  mimeType: string
-  size: number
-  width?: number
-  height?: number
-}) {
-  const timestamp = Date.now()
-  rememberName(row.identity, name)
-  chatStore.rows.push({
-    kind: 'media',
-    isLocal: false,
-    status: 'receiving',
-    progress: 0,
-    timestamp,
-    hideMetadata: shouldHideMetadata(row.identity, timestamp),
-    ...row,
-  })
-  const inserted = chatStore.rows[chatStore.rows.length - 1]
-  countAsUnread(inserted)
+export function appendReceivingMediaRow(row: NewMediaRow) {
+  pushMediaRow(row, { isLocal: false, status: 'receiving', progress: 0 })
+  countAsUnread()
 }
 
 function findMediaRow(id: string) {
@@ -283,7 +253,6 @@ export function resolveMediaRow(
   row.mimeType = mimeType
   row.objectUrl = objectUrl
   row.status = 'ready'
-  row.progress = 1
   enforceMediaRetention()
 }
 
@@ -292,7 +261,6 @@ export function failMediaRow(id: string, error: ChatMediaError) {
   if (!row) return
   row.status = 'failed'
   row.error = error
-  row.progress = undefined
 }
 
 export const persistTextAreaValue = (value: string) => {
@@ -308,11 +276,8 @@ export function resetChatStore() {
     if (row.kind === 'media' && row.objectUrl)
       URL.revokeObjectURL(row.objectUrl)
   }
-  if (chatStore.pendingAttachment) {
-    URL.revokeObjectURL(chatStore.pendingAttachment.previewUrl)
-  }
+  clearPendingAttachment()
 
-  lastReadTimestamp = 0
   isChatVisible = false
   Object.assign(chatStore, {
     ...initialState,

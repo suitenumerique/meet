@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ProgressBar } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
@@ -40,43 +41,6 @@ type ChatMessageImageProps = {
   item: ChatMediaRow
 }
 
-/**
- * Progress lives in its own component so that updating it re-renders nothing
- * else. The row sits inside a virtualized list, and a transfer writes a new
- * percentage twenty times.
- */
-const TransferProgress = ({ item }: { item: ChatMediaRow }) => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
-  const percent =
-    item.progress == null ? undefined : Math.round(item.progress * 100)
-
-  return (
-    <div
-      role="progressbar"
-      aria-label={t('receiving')}
-      aria-valuenow={percent}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      className={css({
-        width: '100%',
-        height: '4px',
-        borderRadius: 'full',
-        backgroundColor: 'greyscale.200',
-        overflow: 'hidden',
-      })}
-    >
-      <div
-        className={css({
-          height: '100%',
-          backgroundColor: 'primary.500',
-          transition: 'width 150ms linear',
-        })}
-        style={{ width: percent == null ? '100%' : `${percent}%` }}
-      />
-    </div>
-  )
-}
-
 export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
   const [isOpen, setIsOpen] = useState(false)
@@ -95,7 +59,32 @@ export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
         <StyledFrame
           style={{ aspectRatio: aspectRatio(item), width: '12rem' }}
         />
-        <TransferProgress item={item} />
+        <ProgressBar
+          aria-label={t('receiving')}
+          value={(item.progress ?? 0) * 100}
+          isIndeterminate={item.progress == null}
+          className={css({ width: '100%' })}
+        >
+          {({ percentage }) => (
+            <div
+              className={css({
+                height: '4px',
+                borderRadius: 'full',
+                backgroundColor: 'greyscale.200',
+                overflow: 'hidden',
+              })}
+            >
+              <div
+                className={css({
+                  height: '100%',
+                  backgroundColor: 'primary.500',
+                  transition: 'width 150ms linear',
+                })}
+                style={{ width: `${percentage ?? 100}%` }}
+              />
+            </div>
+          )}
+        </ProgressBar>
         <Text variant="smNote" margin={false}>
           {t('receiving')}
         </Text>
@@ -136,7 +125,12 @@ export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
           />
         </button>
       </StyledFrame>
-      <ChatImageLightbox item={item} isOpen={isOpen} onOpenChange={setIsOpen} />
+      <ChatImageLightbox
+        item={item}
+        objectUrl={item.objectUrl}
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+      />
       {!!item.caption && (
         <Text
           variant="sm"

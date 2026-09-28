@@ -3,30 +3,21 @@ import { DropZone } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { Text } from '@/primitives'
-
-type ChatDropZoneProps = {
-  onDrop: (file: File) => void
-  isDisabled?: boolean
-  acceptedMimetypes: string[]
-  children: ReactNode
-}
+import { useSendChatMedia } from '../media/useSendChatMedia'
 
 /**
  * Wraps the whole chat panel so a file can be dropped anywhere in it rather
  * than onto a small target. Convenience only: the picker button and pasting
  * both do the same thing without a pointer.
  */
-export const ChatDropZone = ({
-  onDrop,
-  isDisabled,
-  acceptedMimetypes,
-  children,
-}: ChatDropZoneProps) => {
+export const ChatDropZone = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
+  const { stage, limits } = useSendChatMedia()
+  const acceptedMimetypes = limits.allowedMimetypes
 
   return (
     <DropZone
-      isDisabled={isDisabled}
+      isDisabled={!limits.enabled}
       aria-label={t('dropZone')}
       getDropOperation={(types) =>
         acceptedMimetypes.some((type) => types.has(type)) ? 'copy' : 'cancel'
@@ -37,7 +28,7 @@ export const ChatDropZone = ({
             candidate.kind === 'file' &&
             acceptedMimetypes.includes(candidate.type)
         )
-        if (item?.kind === 'file') onDrop(await item.getFile())
+        if (item?.kind === 'file') stage(await item.getFile())
       }}
       className={css({
         display: 'flex',

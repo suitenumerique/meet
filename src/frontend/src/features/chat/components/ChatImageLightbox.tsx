@@ -3,9 +3,11 @@ import { RiDownloadLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { Dialog, Text } from '@/primitives'
 import type { ChatMediaRow } from '@/stores/chat'
+import { imageExtension } from '../media/probeImage'
 
 type ChatImageLightboxProps = {
   item: ChatMediaRow
+  objectUrl: string
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
 }
@@ -20,14 +22,11 @@ type ChatImageLightboxProps = {
  */
 export const ChatImageLightbox = ({
   item,
+  objectUrl,
   isOpen,
   onOpenChange,
 }: ChatImageLightboxProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
-
-  if (!item.objectUrl) return null
-
-  const extension = item.mimeType.split('/')[1] || 'bin'
 
   return (
     <Dialog
@@ -47,7 +46,7 @@ export const ChatImageLightbox = ({
         })}
       >
         <img
-          src={item.objectUrl}
+          src={objectUrl}
           alt={item.caption || t('alt')}
           className={css({
             maxWidth: '100%',
@@ -66,8 +65,8 @@ export const ChatImageLightbox = ({
           </Text>
         )}
         <a
-          href={item.objectUrl}
-          download={`image-${item.id.slice(0, 8)}.${extension}`}
+          href={objectUrl}
+          download={`image-${item.id.slice(0, 8)}.${imageExtension(item.mimeType)}`}
           className={css({
             display: 'inline-flex',
             alignItems: 'center',
