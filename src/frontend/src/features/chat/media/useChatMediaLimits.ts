@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useConfig } from '@/api/useConfig'
 import { FALLBACK_ALLOWED_MIMETYPES, FALLBACK_MAX_SIZE } from './constants'
 
-export type ChatMediaLimits = {
+type ChatMediaLimits = {
   enabled: boolean
   maxSize: number
   allowedMimetypes: string[]

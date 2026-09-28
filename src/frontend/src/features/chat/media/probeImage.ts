@@ -59,26 +59,16 @@ export function isAnimatedGif(bytes: Uint8Array): boolean {
   return false
 }
 
-export type ImageProbe = {
-  mimeType: string
-  isAnimated: boolean
-}
-
 /**
- * Reads only the head of the blob. `slice` hands back a view without pulling
- * the whole file into the JavaScript heap, which matters for the animation scan
- * on a large GIF.
+ * Reads only the head of the blob: `slice` hands back a view without pulling
+ * the whole file into the JavaScript heap.
  */
-export async function probeImage(blob: Blob): Promise<ImageProbe | null> {
-  const head = new Uint8Array(await blob.slice(0, 4096).arrayBuffer())
-  const mimeType = sniffImageType(head)
-  if (!mimeType) return null
-
-  if (mimeType !== 'image/gif') return { mimeType, isAnimated: false }
-
-  const whole = new Uint8Array(await blob.arrayBuffer())
-  return { mimeType, isAnimated: isAnimatedGif(whole) }
+export async function sniffBlob(blob: Blob): Promise<string | null> {
+  return sniffImageType(new Uint8Array(await blob.slice(0, 12).arrayBuffer()))
 }
+
+/** The download and stream name, taken from the sniffed type. */
+export const imageExtension = (mimeType: string) => mimeType.split('/')[1]
 
 /**
  * Natural dimensions, via the browser's own decoder. Doubles as the check that

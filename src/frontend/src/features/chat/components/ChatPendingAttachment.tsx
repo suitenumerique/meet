@@ -4,7 +4,8 @@ import { RiCloseLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
 import { Button, Text } from '@/primitives'
-import { chatStore } from '@/stores/chat'
+import { chatStore, clearPendingAttachment } from '@/stores/chat'
+import { useChatMediaLimits } from '../media/useChatMediaLimits'
 
 const StyledRow = styled('div', {
   base: {
@@ -18,20 +19,15 @@ const StyledRow = styled('div', {
   },
 })
 
-type ChatPendingAttachmentProps = {
-  onRemove: () => void
-}
-
 /**
  * The staged image, above the text box, before anything is sent. Its presence
  * is what makes a drop reversible: nothing leaves the browser until send.
  */
-export const ChatPendingAttachment = ({
-  onRemove,
-}: ChatPendingAttachmentProps) => {
+export const ChatPendingAttachment = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
-  const { pendingAttachment, isPreparing, mediaFailure } =
+  const { pendingAttachment, isPreparing, isSendingMedia, mediaFailure } =
     useSnapshot(chatStore)
+  const { enabled } = useChatMediaLimits()
 
   // A failed send keeps the staged image, so the error is shown beside it
   // rather than in place of it: a participant whose send failed still needs
@@ -43,6 +39,8 @@ export const ChatPendingAttachment = ({
       </Text>
     </StyledRow>
   )
+
+  if (!enabled) return null
 
   if (isPreparing) {
     return (
@@ -79,7 +77,8 @@ export const ChatPendingAttachment = ({
           variant="tertiaryText"
           size="sm"
           aria-label={t('remove')}
-          onPress={onRemove}
+          isDisabled={isSendingMedia}
+          onPress={clearPendingAttachment}
           data-attr="chat-remove-image"
         >
           <RiCloseLine size={18} />

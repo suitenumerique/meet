@@ -64,7 +64,6 @@ def get_frontend_configuration(request):
             "enabled": settings.CHAT_MEDIA_ENABLED,
             "max_size": settings.CHAT_MEDIA_MAX_SIZE,
             "allowed_mimetypes": settings.CHAT_MEDIA_ALLOWED_MIMETYPES,
-            "allowed_extensions": settings.CHAT_MEDIA_ALLOWED_EXTENSIONS,
         },
         "telephony": build_telephony_config(),
         "resource": {
