@@ -24,6 +24,8 @@ from core import utils
 
 logger = getLogger(__name__)
 
+LIST_PARTICIPANTS_FAILED = "Could not list participants"
+
 
 def _is_machine(participant: ParticipantInfo) -> bool:
     """Whether this participant is a bot or a recorder rather than a person.
@@ -138,7 +140,7 @@ class RoomManagement:
             cache.set(key, answer, hold * 3)
 
         if answer is False:
-            raise RoomManagementException("Could not list participants")
+            raise RoomManagementException(LIST_PARTICIPANTS_FAILED)
 
         return answer
 
@@ -160,14 +162,14 @@ class RoomManagement:
                 return {"count": 0, "names": []}
 
             logger.exception("Unexpected error listing participants of %s", room_name)
-            raise RoomManagementException("Could not list participants") from e
+            raise RoomManagementException(LIST_PARTICIPANTS_FAILED) from e
 
         # Otherwise an unreachable LiveKit is a 500 on every poll.
         except aiohttp.ClientError as e:
             logger.exception(
                 "Could not reach LiveKit listing participants of %s", room_name
             )
-            raise RoomManagementException("Could not list participants") from e
+            raise RoomManagementException(LIST_PARTICIPANTS_FAILED) from e
 
         finally:
             await lkapi.aclose()

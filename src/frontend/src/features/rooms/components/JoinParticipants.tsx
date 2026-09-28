@@ -22,6 +22,11 @@ export const JoinParticipants = memo(({ roomId }: { roomId: string }) => {
   // Counted and not named: they joined without a display name.
   const notShown = (count ?? 0) - names.length
 
+  let summary
+  if (count === null) summary = t('started')
+  else if (count === 0) summary = t('empty')
+  else summary = t('count', { count })
+
   // <output> is a live region already, so a screen reader reads these lines
   // again when the meeting changes, without announcing a form value.
   return (
@@ -34,11 +39,7 @@ export const JoinParticipants = memo(({ roomId }: { roomId: string }) => {
       })}
     >
       <Text as="span" variant="note" centered margin="sm">
-        {count === 0
-          ? t('empty')
-          : count === null
-            ? t('started')
-            : t('count', { count })}
+        {summary}
       </Text>
       {names.length > 0 && (
         <Text as="span" variant="note" centered margin="sm">
