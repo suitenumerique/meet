@@ -15,6 +15,7 @@ and this project adheres to
 
 ### Fixed
 
+- 🐛(frontend) allow mic testing while muted #804
 - 🐛(frontend) enforce recording-mode permissions on the checkboxes
 - 🔒️(agents) fix util-linux CVEs reported by Cyberwatch
 
