@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- ⚡️(frontend) disable posthog-js periodic feature flag reloads
+
 ## [1.32.1] - 2026-09-25
 
 ### Fixed
