@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(all) share images in the meeting chat #1547
+
 ## [1.32.1] - 2026-09-25
 
 ### Fixed
