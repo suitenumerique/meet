@@ -143,10 +143,53 @@ def test_participants_past_the_limit_only_says_the_meeting_started(
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=True)
 def test_participants_unregistered_room(mock_livekit_client):
-    """An unregistered room has no one to tell, so it is not found."""
+    """An unregistered room admits anyone, and is read under its room code."""
     response = signed_in().get(
         reverse("rooms-participants", kwargs={"pk": "tst-room-dev"})
     )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == INSIDE
+    request = mock_livekit_client.room.list_participants.call_args.args[0]
+    assert request.room == "tst-room-dev"
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+def test_participants_unregistered_room_anonymous(mock_livekit_client):
+    """Nobody is told who is inside without signing in, unregistered rooms included."""
+    response = APIClient().get(
+        reverse("rooms-participants", kwargs={"pk": "tst-room-dev"})
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=False)
+def test_participants_unregistered_room_disabled(mock_livekit_client):
+    """With unregistered rooms off, an unknown room stays unknown."""
+    response = signed_in().get(
+        reverse("rooms-participants", kwargs={"pk": "tst-room-dev"})
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+@pytest.mark.parametrize("spelling", ["_{id}", " {id}", "({id})", "_{hex}", "___"])
+def test_participants_refuses_a_room_id_spelled_as_a_name(
+    mock_livekit_client, spelling
+):
+    """No spelling of a registered room's id, and no empty name, reaches a meeting.
+
+    Each misses both lookups, so it lands on the unregistered path, where its
+    room code would be the restricted room's own meeting, or nobody's.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    pk = spelling.format(id=str(room.id), hex=room.id.hex)
+
+    response = signed_in().get(f"/api/v1.0/rooms/{pk}/participants/")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     mock_livekit_client.room.list_participants.assert_not_called()

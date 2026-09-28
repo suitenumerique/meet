@@ -195,6 +195,17 @@ class RoomViewSet(
         self.check_object_permissions(self.request, obj)
         return obj
 
+    def get_unregistered_slug(self):
+        """Return the room code an unregistered room meets under, or None.
+
+        Registered rooms meet under their id, so a name reading as one would
+        reach that room's meeting.
+        """
+        slug = slugify(self.kwargs["pk"])
+        if settings.ALLOW_UNREGISTERED_ROOMS and slug and not utils.is_room_id(slug):
+            return slug
+        return None
+
     def retrieve(self, request, *args, **kwargs):
         """
         Allow unregistered rooms when activated.
@@ -203,12 +214,8 @@ class RoomViewSet(
         try:
             instance = self.get_object()
         except Http404:
-            if not settings.ALLOW_UNREGISTERED_ROOMS:
-                raise
-            slug = slugify(self.kwargs["pk"])
-            # Registered rooms meet under their id, so a name reading as one
-            # would mint a token for that room's meeting.
-            if not slug or utils.is_room_id(slug):
+            slug = self.get_unregistered_slug()
+            if slug is None:
                 raise
             username = request.query_params.get("username", None)
             data = {
@@ -315,21 +322,29 @@ class RoomViewSet(
     def participants(self, request, pk=None):  # pylint: disable=unused-argument
         """Tell who is in the room's meeting, for its join screen.
 
-        Only a signed-in user the room admits without approval is told; anyone
-        else gets the answer a missing room gets. Up to
+        Only a signed-in user the room admits without approval is told, and an
+        unregistered room admits anyone; everyone else gets the answer a missing
+        room gets. Up to
         ROOM_PARTICIPANTS_NAMES_LIMIT people are counted and named; past it the
         count is null, so no request can read the roster of a large meeting.
         """
-        room = self.get_object()
         user = request.user
-
-        if not user.is_authenticated or not room.is_joinable_by(
-            user, room.get_role(user)
-        ):
+        if not user.is_authenticated:
             raise Http404
 
         try:
-            roster = RoomManagement.get_participants(str(room.id))
+            room = self.get_object()
+        except Http404:
+            livekit_room = self.get_unregistered_slug()
+            if livekit_room is None:
+                raise
+        else:
+            if not room.is_joinable_by(user, room.get_role(user)):
+                raise Http404
+            livekit_room = str(room.id)
+
+        try:
+            roster = RoomManagement.get_participants(livekit_room)
         except RoomManagementException:
             return drf_response.Response(
                 {"error": "Could not reach the meeting."},
