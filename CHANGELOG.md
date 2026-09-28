@@ -405,7 +405,7 @@ and this project adheres to
 
 ### Fixed
 
-- ♿️(frontend) improve accessibilty of the Effects panel #1401
+- ♿️(frontend) improve accessibility of the Effects panel #1401
 
 ## [1.20.0] - 2026-06-12
 

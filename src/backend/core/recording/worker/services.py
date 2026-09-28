@@ -24,7 +24,7 @@ class BaseEgressService:
 
     def _get_filepath(self, filename: str, extension: str) -> str:
         """Construct the file path for a given filename and extension.
-        Unsecure method, doesn't handle paths robustly and securely.
+        Insecure method, doesn't handle paths robustly and securely.
         """
         return f"{self._config.output_folder}/{filename}.{extension}"
 

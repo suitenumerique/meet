@@ -1,5 +1,5 @@
 """
-Test SIP mamagement service.
+Test SIP management service.
 """
 
 # pylint: disable=W0212

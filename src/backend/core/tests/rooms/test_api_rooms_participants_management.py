@@ -458,7 +458,7 @@ def test_mute_participant_livekit_token_presence_check_twirp_error_forbidden(
     room = RoomFactory()
 
     mock_livekit_client.room.get_participant.side_effect = TwirpError(
-        msg="an error occured", code="not_found", status=500
+        msg="an error occurred", code="not_found", status=500
     )
 
     user = AnonymousUser()

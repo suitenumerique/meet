@@ -1,7 +1,7 @@
 # Bureautix proxy overrides
 #
 # Builds submitted through the Docker API of the Podman service get none of
-# the proxy variables in their RUN steps. We need to pass the http_proxy explicitely
+# the proxy variables in their RUN steps. We need to pass the http_proxy explicitly
 # otherwise all connections fail during the build.
 
 x-proxy-vars: &proxy-vars

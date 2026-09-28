@@ -158,7 +158,7 @@ export const Conference = ({
            *
            * Issue: On Firefox behind proxy configurations, WebSocket signaling fails to establish.
            * Symptom: Client receives HTTP 200 instead of expected 101 (Switching Protocols).
-           * Root Cause: Certificate/security issue where the initial request is considered unsecure.
+           * Root Cause: Certificate/security issue where the initial request is considered insecure.
            *
            * Solution: Pre-establish a WebSocket connection to the signaling server, which fails.
            * This "primes" the connection, allowing subsequent WebSocket establishments to work correctly.
