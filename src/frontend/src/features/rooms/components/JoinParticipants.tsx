@@ -19,8 +19,7 @@ export const JoinParticipants = memo(({ roomId }: { roomId: string }) => {
   }
 
   const { count, names } = participants
-  // Counted and not named: they joined without a display name.
-  const notShown = (count ?? 0) - names.length
+  const unnamed = (count ?? 0) - names.length
 
   let summary
   if (count === null) summary = t('started')
@@ -46,7 +45,7 @@ export const JoinParticipants = memo(({ roomId }: { roomId: string }) => {
           {/* Intl joins the names in the reader's own language, so the word
             before the last one is never translated here. */}
           {new Intl.ListFormat(i18n.language, { type: 'conjunction' }).format(
-            notShown > 0 ? [...names, t('more', { count: notShown })] : names
+            unnamed > 0 ? [...names, t('more', { count: unnamed })] : names
           )}
         </Text>
       )}

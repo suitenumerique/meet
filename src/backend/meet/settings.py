@@ -738,7 +738,7 @@ class Base(Configuration):
     # How long LiveKit's answer about who is in a meeting is reused. However
     # many wait on one meeting, LiveKit is asked once per hold. Zero turns the
     # cache off.
-    ROOM_PARTICIPANTS_CACHE_SECONDS = values.IntegerValue(
+    ROOM_PARTICIPANTS_CACHE_SECONDS = values.PositiveIntegerValue(
         10, environ_name="ROOM_PARTICIPANTS_CACHE_SECONDS", environ_prefix=None
     )
     # Past this many people, the join screen is told the meeting has started
