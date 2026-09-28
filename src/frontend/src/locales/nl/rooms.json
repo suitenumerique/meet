@@ -423,7 +423,8 @@
       "screenRecording": "Opnemen",
       "admin": "Beheerdersbediening",
       "tools": "Meer tools",
-      "info": "Vergaderinformatie"
+      "info": "Vergaderinformatie",
+      "whiteboard": "Whiteboard"
     },
     "content": {
       "participants": "deelnemers",
@@ -433,7 +434,8 @@
       "transcript": "transcriberen",
       "admin": "beheerdersbediening",
       "tools": "meer tools",
-      "info": "vergaderinformatie"
+      "info": "vergaderinformatie",
+      "whiteboard": "whiteboard"
     },
     "closeButton": "Verberg {{content}} (Escape)",
     "escapeHint": "Druk op Escape om te sluiten"
@@ -454,6 +456,15 @@
       "screenRecording": {
         "title": "Opnemen",
         "body": "Sla vergaderingen op als video."
+      },
+      "whiteboard": {
+        "title": "Whiteboard",
+        "body": "Teken en brainstorm samen in realtime.",
+        "description": "Teken samen. Het bord wordt gedeeld met iedereen in deze vergadering.",
+        "waiting": "Wachten op het gedeelde bord…",
+        "color": "Kies een tekenkleur",
+        "clear": "Bord wissen",
+        "canvas": "Gezamenlijk whiteboard"
       }
     }
   },

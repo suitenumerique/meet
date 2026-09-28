@@ -421,6 +421,7 @@
       "chat": "Messages in the chat",
       "transcript": "Transcribe",
       "screenRecording": "Record",
+      "whiteboard": "Whiteboard",
       "admin": "Host settings",
       "tools": "More tools",
       "info": "Meeting information"
@@ -431,6 +432,7 @@
       "chat": "messages",
       "transcript": "transcribe",
       "screenRecording": "record",
+      "whiteboard": "whiteboard",
       "admin": "host settings",
       "tools": "more tools",
       "info": "meeting information"
@@ -454,6 +456,15 @@
       "screenRecording": {
         "title": "Record",
         "body": "Save meetings as video."
+      },
+      "whiteboard": {
+        "title": "Whiteboard",
+        "body": "Draw and brainstorm together in real time.",
+        "description": "Draw together. Your board is shared with everyone in this meeting.",
+        "waiting": "Waiting for the shared board…",
+        "color": "Choose drawing color",
+        "clear": "Clear board",
+        "canvas": "Collaborative whiteboard canvas"
       }
     }
   },

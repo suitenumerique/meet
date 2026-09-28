@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) add a collaborative meeting whiteboard #714
+
 ## [1.32.1] - 2026-09-25
 
 ### Fixed

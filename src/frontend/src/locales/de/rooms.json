@@ -423,7 +423,8 @@
       "screenRecording": "Aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
-      "info": "Meeting-Informationen"
+      "info": "Meeting-Informationen",
+      "whiteboard": "Whiteboard"
     },
     "content": {
       "participants": "Teilnehmende",
@@ -433,7 +434,8 @@
       "screenRecording": "aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
-      "info": "Meeting-Informationen"
+      "info": "Meeting-Informationen",
+      "whiteboard": "Whiteboard"
     },
     "closeButton": "{{content}} ausblenden (Escape)",
     "escapeHint": "Escape drücken zum Schließen"
@@ -454,6 +456,15 @@
       "screenRecording": {
         "title": "Aufnehmen",
         "body": "Speichert Meetings als Video."
+      },
+      "whiteboard": {
+        "title": "Whiteboard",
+        "body": "Zeichnet und sammelt Ideen gemeinsam in Echtzeit.",
+        "description": "Zeichnet gemeinsam. Das Board wird mit allen Teilnehmenden geteilt.",
+        "waiting": "Warten auf das gemeinsame Board…",
+        "color": "Zeichenfarbe auswählen",
+        "clear": "Board leeren",
+        "canvas": "Gemeinsame Whiteboard-Zeichenfläche"
       }
     }
   },

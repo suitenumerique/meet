@@ -12,6 +12,8 @@ import {
   ScreenRecordingSidePanel,
 } from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
+import { RiShapeLine } from '@remixicon/react'
+import { CollaborativeWhiteboard } from '@/features/whiteboard/CollaborativeWhiteboard'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -98,6 +100,7 @@ export const Tools = () => {
   const {
     openTranscript,
     openScreenRecording,
+    openWhiteboard,
     activeSubPanelId,
     isToolsOpen,
     isSidePanelOpen,
@@ -134,6 +137,8 @@ export const Tools = () => {
       return <TranscriptSidePanel />
     case SubPanelId.SCREEN_RECORDING:
       return <ScreenRecordingSidePanel />
+    case SubPanelId.WHITEBOARD:
+      return <CollaborativeWhiteboard />
     default:
       break
   }
@@ -188,6 +193,14 @@ export const Tools = () => {
           onPress={() => openScreenRecording()}
         />
       )}
+      <ToolButton
+        icon={<RiShapeLine size={20} />}
+        title={t('tools.whiteboard.title', { defaultValue: 'Whiteboard' })}
+        description={t('tools.whiteboard.body', {
+          defaultValue: 'Draw and brainstorm together in real time.',
+        })}
+        onPress={openWhiteboard}
+      />
     </Div>
   )
 }
