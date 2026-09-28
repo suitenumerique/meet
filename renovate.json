@@ -1,5 +1,5 @@
 {
-  "extends": ["github>numerique-gouv/renovate-configuration"],
+  "extends": ["github>suitenumerique/ci//renovate/default"],
   "dependencyDashboard": true,
   "labels": ["dependencies", "noChangeLog"],
   "packageRules": [
