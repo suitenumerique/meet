@@ -988,7 +988,7 @@ class Base(Configuration):
         environ_prefix=None,
     )
     APPLICATION_CLIENT_SECRET_LENGTH = values.PositiveIntegerValue(
-        128,
+        50,
         environ_name="APPLICATION_CLIENT_SECRET_LENGTH",
         environ_prefix=None,
     )
@@ -1249,6 +1249,20 @@ class Base(Configuration):
                 stacklevel=2,
             )
 
+        # Secrets use a 62-character alphanumeric charset (~5.95 bits/char).
+        # 43 characters provide at least 256 bits of entropy; 42 provide ~250 bits.
+        if cls.APPLICATION_CLIENT_SECRET_LENGTH < 43:
+            warnings.warn(
+                f"APPLICATION_CLIENT_SECRET_LENGTH={cls.APPLICATION_CLIENT_SECRET_LENGTH} "
+                "is below the recommended 43 characters (256 bits of entropy). "
+                "Application secrets use a fast hash and rely on high entropy to "
+                "resist offline guessing if the database leaks. "
+                "Please set APPLICATION_CLIENT_SECRET_LENGTH to at least 43.",
+                # We use UserWarning to make sure it shows up in production deployment
+                UserWarning,
+                stacklevel=2,
+            )
+
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:
             sentry_sdk.init(
@@ -1334,6 +1348,7 @@ class Test(Base):
     )
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
+        "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     ]
     USE_SWAGGER = True
     EXTERNAL_API_ENABLED = True

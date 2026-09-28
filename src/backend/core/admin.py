@@ -476,6 +476,11 @@ class ApplicationAdminForm(forms.ModelForm):
         if self.instance.pk and self.instance.scopes:
             self.fields["scopes"].initial = self.instance.scopes
 
+        # On creation: display generated credentials without allowing edits
+        for name in ("client_id", "client_secret"):
+            if name in self.fields:
+                self.fields[name].widget.attrs["readonly"] = True
+
 
 @admin.register(models.Application)
 class ApplicationAdmin(admin.ModelAdmin):
