@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -o errexit
 
-CURRENT_DIR=$(pwd)
 NAMESPACE=${1:-meet}
 SECRET_NAME=${2:-bitwarden-cli-meet}
 TEMP_SECRET_FILE=$(mktemp)
@@ -30,10 +29,10 @@ check_secret_exists() {
 # Collect user input securely
 get_user_input() {
     echo "Please provide the following information:"
-    read -p "Enter your Vaultwarden email login: " LOGIN
-    read -s -p "Enter your Vaultwarden password: " PASSWORD
+    read -r -p "Enter your Vaultwarden email login: " LOGIN
+    read -r -s -p "Enter your Vaultwarden password: " PASSWORD
     echo
-    read -p "Enter your Vaultwarden server url: " URL
+    read -r -p "Enter your Vaultwarden server url: " URL
 }
 
 # Create and apply the secret
@@ -77,7 +76,7 @@ main() {
         exit 0
     fi
 
-    echo -e ${TEMP_SECRET_FILE}
+    echo -e "${TEMP_SECRET_FILE}"
 
     get_user_input
     echo -e "\nCreating Vaultwarden secret…"

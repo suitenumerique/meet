@@ -68,7 +68,7 @@ fi
 
 # Ask user for release version number
 echo ""
-read -p "Enter release version number (e.g., 1.2.3): " VERSION
+read -r -p "Enter release version number (e.g., 1.2.3): " VERSION
 
 # Validate version format (basic semver check)
 if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
