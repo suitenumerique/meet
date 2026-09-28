@@ -1,0 +1,14 @@
+# Traefik override for Keycloak
+#
+# Usage:
+#   cp docker-compose.override.yml.traefik docker-compose.override.yml
+
+services:
+  keycloak:
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.keycloak.rule: "Host(`${IDP_HOST}`)"
+      traefik.http.routers.keycloak.entrypoints: websecure
+      traefik.http.routers.keycloak.tls: "true"
+      traefik.http.routers.keycloak.tls.certresolver: letsencrypt
+      traefik.http.services.keycloak.loadbalancer.server.port: "8080"
