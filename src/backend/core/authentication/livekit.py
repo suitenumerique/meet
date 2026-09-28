@@ -9,6 +9,8 @@ from rest_framework import authentication, exceptions
 
 UserModel = get_user_model()
 
+LIVEKIT_AUTH_SCHEME = "X-LiveKit-Token"
+
 
 class LiveKitTokenAuthentication(authentication.BaseAuthentication):
     """Authenticate using LiveKit token and load the associated Django user."""
@@ -20,9 +22,14 @@ class LiveKitTokenAuthentication(authentication.BaseAuthentication):
             return None  # No authentication attempted
 
         parts = auth_header.split()
-        if len(parts) != 2 or parts[0].lower() != "bearer":
+        if not parts or parts[0].lower() != LIVEKIT_AUTH_SCHEME.lower():
+            # Not our scheme (e.g. "Bearer <user access token>"): defer, another
+            # backend may recognize it.
+            return None
+
+        if len(parts) != 2:
             raise exceptions.AuthenticationFailed(
-                "Authorization header must be: Bearer <token>"
+                f"Authorization header must be: {LIVEKIT_AUTH_SCHEME} <token>"
             )
 
         token = parts[1]

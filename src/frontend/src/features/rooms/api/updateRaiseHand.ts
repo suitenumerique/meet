@@ -1,5 +1,6 @@
 import { fetchApi } from '@/api/fetchApi'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
+import { getLiveKitAuthHeaders } from '../utils/getLiveKitAuthHeaders'
 
 export const useRaiseHand = () => {
   const data = useRoomData()
@@ -15,11 +16,10 @@ export const useRaiseHand = () => {
       throw new Error('LiveKit token is not available')
     }
 
+    const headers = getLiveKitAuthHeaders(token)
     return fetchApi(`rooms/${data.id}/toggle-hand/`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
       body: JSON.stringify({
         raised,
       }),
