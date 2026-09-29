@@ -206,6 +206,23 @@ class RoomViewSet(
             return slug
         return None
 
+    def get_livekit_room(self, user):
+        """Return the name of the room's meeting, if the user may join it directly.
+
+        Raises Http404 otherwise, the same answer a missing room gets.
+        """
+        try:
+            room = self.get_object()
+        except Http404:
+            slug = self.get_unregistered_slug()
+            if slug is None:
+                raise
+            return slug
+
+        if not room.is_joinable_by(user, room.get_role(user)):
+            raise Http404
+        return str(room.id)
+
     def retrieve(self, request, *args, **kwargs):
         """
         Allow unregistered rooms when activated.
@@ -324,24 +341,15 @@ class RoomViewSet(
 
         Only a signed-in user the room admits without approval is told, and an
         unregistered room admits anyone; everyone else gets the answer a missing
-        room gets. Up to
-        ROOM_PARTICIPANTS_NAMES_LIMIT people are counted and named; past it the
-        count is null, so no request can read the roster of a large meeting.
+        room gets. Up to ROOM_PARTICIPANTS_NAMES_LIMIT people are counted and
+        named; past it the count is null, so no request can read the roster of a
+        large meeting.
         """
         user = request.user
         if not user.is_authenticated:
             raise Http404
 
-        try:
-            room = self.get_object()
-        except Http404:
-            livekit_room = self.get_unregistered_slug()
-            if livekit_room is None:
-                raise
-        else:
-            if not room.is_joinable_by(user, room.get_role(user)):
-                raise Http404
-            livekit_room = str(room.id)
+        livekit_room = self.get_livekit_room(user)
 
         try:
             roster = RoomManagement.get_participants(livekit_room)
