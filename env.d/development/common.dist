@@ -63,7 +63,8 @@ ALLOW_UNREGISTERED_ROOMS=False
 
 # Recording
 RECORDING_ENABLE=True
-SUMMARY_SERVICE_ENDPOINT=http://app-summary-dev:8000/api/v2/async-jobs/transcribe/
+SUMMARY_SERVICE_VERSION=2
+SUMMARY_SERVICE_ENDPOINT=http://app-summary-dev:8000/api/v2/async-jobs/transcribe
 SUMMARY_SERVICE_API_TOKEN=password
 SUMMARY_SERVICE_WEBHOOK_API_TOKEN=webhook-password
 RECORDING_DOWNLOAD_BASE_URL=http://localhost:3000/recording
