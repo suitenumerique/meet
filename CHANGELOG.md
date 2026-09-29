@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛(backend) put a timeout on every LiveKit API call
+
 ## [1.32.1] - 2026-09-25
 
 ### Fixed

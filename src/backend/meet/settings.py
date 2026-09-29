@@ -720,6 +720,9 @@ class Base(Configuration):
     LIVEKIT_VERIFY_SSL = values.BooleanValue(
         True, environ_name="LIVEKIT_VERIFY_SSL", environ_prefix=None
     )
+    LIVEKIT_API_TIMEOUT_SECONDS = values.PositiveIntegerValue(
+        10, environ_name="LIVEKIT_API_TIMEOUT_SECONDS", environ_prefix=None
+    )
     # Regex to filter webhook events by room name. Only matching events are processed.
     LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = values.Value(
         None, environ_name="LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX", environ_prefix=None
@@ -1234,6 +1237,9 @@ class Base(Configuration):
             raise ValueError(
                 "FILE_UPLOAD_TMP_PATH cannot be the same as FILE_UPLOAD_PATH"
             )
+
+        if cls.LIVEKIT_API_TIMEOUT_SECONDS < 1:
+            raise ValueError("LIVEKIT_API_TIMEOUT_SECONDS must be at least 1")
 
         if (
             cls.SUMMARY_SERVICE_VERSION == 1

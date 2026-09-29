@@ -4,6 +4,8 @@ Test utils functions
 
 # pylint: disable=W0621
 import json
+import socket
+import threading
 from unittest import mock
 
 from django.conf import settings
@@ -11,9 +13,11 @@ from django.contrib.auth.models import AnonymousUser
 
 import jwt
 import pytest
+from asgiref.sync import async_to_sync
 from livekit.api import TwirpError
 
 from core.factories import UserFactory
+from core.services.room_management import RoomManagement
 from core.utils import (
     NotificationError,
     create_livekit_client,
@@ -107,59 +111,121 @@ def test_anonymous_falls_back_to_anonymous_label():
     assert claims["name"] == "Anonymous"
 
 
-@mock.patch("asyncio.get_running_loop")
-@mock.patch("core.utils.LiveKitAPI")
-def test_create_livekit_client_ssl_enabled(
-    mock_livekit_api, mock_get_running_loop, settings
-):
-    """Test LiveKitAPI client creation with SSL verification enabled."""
-    mock_get_running_loop.return_value = mock.MagicMock()
-    settings.LIVEKIT_VERIFY_SSL = True
+@pytest.fixture
+def fake_livekit(request):
+    """A LiveKit address that takes the connection, sends `request.param`, then waits."""
+    server = socket.create_server(("127.0.0.1", 0))
+    held = []
 
-    create_livekit_client()
+    def accept():
+        while True:
+            try:
+                connection, _ = server.accept()
+            except OSError:
+                return
+            held.append(connection)
+            connection.sendall(request.param)
 
-    mock_livekit_api.assert_called_once_with(
-        **settings.LIVEKIT_CONFIGURATION, session=None
-    )
-
-
-@mock.patch("core.utils.aiohttp.ClientSession")
-@mock.patch("asyncio.get_running_loop")
-@mock.patch("core.utils.LiveKitAPI")
-def test_create_livekit_client_ssl_disabled(
-    mock_livekit_api, mock_get_running_loop, mock_client_session, settings
-):
-    """Test LiveKitAPI client creation with SSL verification disabled."""
-    mock_get_running_loop.return_value = mock.MagicMock()
-    mock_session_instance = mock.MagicMock()
-    mock_client_session.return_value = mock_session_instance
-    settings.LIVEKIT_VERIFY_SSL = False
-
-    create_livekit_client()
-
-    mock_livekit_api.assert_called_once_with(
-        **settings.LIVEKIT_CONFIGURATION, session=mock_session_instance
-    )
+    threading.Thread(target=accept, daemon=True).start()
+    yield f"http://127.0.0.1:{server.getsockname()[1]:d}"
+    server.close()
+    for connection in held:
+        connection.close()
 
 
-@mock.patch("asyncio.get_running_loop")
-@mock.patch("core.utils.LiveKitAPI")
-def test_create_livekit_client_custom_configuration(
-    mock_livekit_api, mock_get_running_loop, settings
-):
-    """Test LiveKitAPI client creation with custom configuration."""
-    settings.LIVEKIT_VERIFY_SSL = True
-
-    mock_get_running_loop.return_value = mock.MagicMock()
-    custom_configuration = {
-        "api_key": "mock_key",
-        "api_secret": "mock_secret",
-        "url": "http://mock-url.com",
+@pytest.mark.parametrize(
+    "fake_livekit",
+    [b"", b"HTTP/1.1 200 OK\r\nContent-Length: 64\r\n\r\n"],
+    ids=["no answer", "answer cut short"],
+    indirect=True,
+)
+def test_create_livekit_client_gives_up_on_a_quiet_livekit(fake_livekit, settings):
+    """A LiveKit that stops answering fails the call after the timeout."""
+    settings.LIVEKIT_CONFIGURATION = {
+        **settings.LIVEKIT_CONFIGURATION,
+        "url": fake_livekit,
     }
+    settings.LIVEKIT_API_TIMEOUT_SECONDS = 1
 
-    create_livekit_client(custom_configuration)
+    raised = []
 
-    mock_livekit_api.assert_called_once_with(**custom_configuration, session=None)
+    def delete_room():
+        try:
+            RoomManagement.delete_room("room-abc")
+        except TimeoutError as error:
+            raised.append(error)
+
+    # A thread, so a call that never gives up fails the test rather than hangs it.
+    call = threading.Thread(target=delete_room, daemon=True)
+    call.start()
+    call.join(5)
+
+    assert not call.is_alive()
+    assert len(raised) == 1
+
+
+@pytest.mark.parametrize(
+    "fake_livekit",
+    [b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"],
+    ids=["answer"],
+    indirect=True,
+)
+def test_create_livekit_client_lets_an_answer_through(fake_livekit, settings):
+    """A LiveKit that answers within the timeout is not cut off."""
+    settings.LIVEKIT_CONFIGURATION = {
+        **settings.LIVEKIT_CONFIGURATION,
+        "url": fake_livekit,
+    }
+    settings.LIVEKIT_API_TIMEOUT_SECONDS = 1
+
+    RoomManagement.delete_room("room-abc")
+
+
+@pytest.mark.parametrize("verify_ssl", [True, False])
+def test_create_livekit_client_closes_its_session(verify_ssl, settings):
+    """Closing the client closes its session, whether SSL is verified or not."""
+    settings.LIVEKIT_VERIFY_SSL = verify_ssl
+
+    @async_to_sync
+    async def open_and_close():
+        client = create_livekit_client()
+        await client.aclose()
+        return client._session  # pylint: disable=protected-access
+
+    session = open_and_close()
+
+    assert session.closed
+    assert session.connector is None
+
+
+@pytest.mark.parametrize("verify_ssl", [True, False])
+def test_create_livekit_client_ssl(verify_ssl, settings):
+    """SSL is verified unless the setting turns it off."""
+    settings.LIVEKIT_VERIFY_SSL = verify_ssl
+
+    @async_to_sync
+    async def ssl_of_new_client():
+        client = create_livekit_client()
+        ssl = client._session.connector._ssl  # pylint: disable=protected-access
+        await client.aclose()
+        return ssl
+
+    assert (ssl_of_new_client() is not False) is verify_ssl
+
+
+def test_create_livekit_client_custom_configuration():
+    """A custom configuration picks the LiveKit the client talks to."""
+
+    @async_to_sync
+    async def url_of_new_client():
+        client = create_livekit_client(
+            {"api_key": "key", "api_secret": "secret", "url": "http://mock-url.com"}
+        )
+        url = client.room._client.host  # pylint: disable=protected-access
+        await client.aclose()
+        return url
+
+    assert url_of_new_client().startswith("http://mock-url.com")
 
 
 @mock.patch("core.utils.create_livekit_client")
