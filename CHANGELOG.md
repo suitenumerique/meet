@@ -8,8 +8,15 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ⬆️(backend) update python dependencies
+- ⬆️(summary) update python dependencies
+- ⬆️(agents) update python dependencies
+
 ### Fixed
 
+- ⚡️(frontend) disable posthog-js periodic feature flag reloads
 - 🐛(backend) put a timeout on every LiveKit API call
 
 ## [1.32.1] - 2026-09-25
@@ -24,8 +31,10 @@ and this project adheres to
 ### Added
 
 - ✨(backend) make the LiveKit default video codec configurable
+- ✨(backend) purge rooms inactive for a configurable period
 - 🔧(dev) add support for Bureautix workstations
 - ✨(frontend) add screen share zoom controls #1498
+- 🔨(makefile) add targets to list and download files stored in Garage
 
 ### Changed
 
@@ -44,6 +53,9 @@ and this project adheres to
 - ⬆️(addons) upgrade i18next from 26.4.0 to 26.4.2
 - 🔖(helm) release chart 0.0.28
 - ♻️(backend) decouple recording event handling from LiveKit egress statuses
+- ♻️(agents) replace the minio client by boto3
+- 🔧(compose) replace MinIO by Garage for local development
+- 🔧(helm) point media services to Garage by default
 
 ### Fixed
 
