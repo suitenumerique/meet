@@ -16,6 +16,44 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Purging inactive rooms
+
+Rooms now keep track of the last time they were started (`last_started_at`), fed by LiveKit's `room_started` webhook. A new `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for `ROOM_INACTIVITY_DELETION_DAYS` days. See [the room purge documentation](docs/features/room-purge.md).
+
+- The feature is **disabled by default**: nothing is deleted unless you set `ROOM_INACTIVITY_DELETION_DAYS`.
+- The migration marks every existing room as started at the time of the upgrade, so no existing room can be purged before a full inactivity period has elapsed after upgrading.
+- Rooms holding a saved recording their users may still access are kept: any saved recording, or, when `RECORDING_EXPIRATION_DAYS` is set, a saved recording created within that window.
+- Inactivity is measured from LiveKit's `room_started` webhook: if it is not delivered to your backend, rooms in daily use look inactive and get purged.
+- When a room is purged, all it's configuration and access rights are also deleted. Its slug becomes available again and can be reused when a meeting is created from that same URL.
+
+* With `ALLOW_UNREGISTERED_ROOMS=false`, only an authenticated user can navigate to a previously existing link after the room has been purged. Doing so recreates the room in the database with a fresh configuration, with that user associated with it and granted admin rights.
+* With `ALLOW_UNREGISTERED_ROOMS=true`, any user can reopen the purged room by navigating to the same URL. In that case, the room is created dynamically and no corresponding room entry is persisted in the database.
+
+### Local development: MinIO replaced by Garage
+
+The development stacks now use [Garage](https://garagehq.deuxfleurs.fr/) instead of MinIO as S3 storage. Garage keeps its own format in `data/media/meta` and `data/media/data` and cannot read what MinIO left there, so local recordings and files will be lost.
+
+To migrate a local environment:
+
+1. Stop the stack and remove its containers, including the former `minio` one: `docker compose down --remove-orphans`
+2. Optionally reclaim the space used by MinIO: `rm -rf data/media && make data/media`
+3. In your `env.d/development/*` files, replace `minio:9000` by `garage:9000`, the `meet` / `password` credentials by `meet-access-key` / `meet-secret-access-key`, and add `AWS_S3_REGION_NAME=local` (or delete these files and run `make create-env-files`)
+4. Run `make create-env-files` to generate `env.d/development/garage`, which holds a random RPC secret for Garage.
+5. Rebuild the images, since the summary and agent images now install boto3 instead of minio
+
+### Summary service and metadata collector: boto3 replaces the minio client
+
+The summary service and the metadata collector agent now talk to S3 through boto3 instead of the minio client, with the same settings.
+Requests are now signed for `AWS_S3_REGION_NAME` as-is. When it is not set, the region is no longer looked up from the bucket: boto3 falls back to `AWS_DEFAULT_REGION`, then to `us-east-1`. If you left `AWS_S3_REGION_NAME` unset, set it to your provider's region before upgrading, or providers that check the signing region will reject the transcripts, summaries and meeting metadata uploads, as well as their signed URLs.
+
+Also:
+- Signed URLs to transcripts and summaries are now always path-style (`<endpoint>/<bucket>/<key>`), whereas the minio client used virtual-hosted-style URLs
+- The metadata collector now accepts `AWS_S3_ENDPOINT_URL` with or without a scheme, like the summary service: the scheme always follows `AWS_S3_SECURE_ACCESS`.
+
+### Helm chart: media services default to Garage
+
+The `meet` chart now defaults `serviceMedia.host` and `serviceMediaFiles.host` to `garage.meet.svc.cluster.local`, and the `upstream-vhost` annotation of `ingressMedia` and `ingressMediaFiles` to `garage.meet.svc.cluster.local:9000`. If you relied on the former `minio.meet.svc.cluster.local` defaults, set these values explicitly to your S3 service before upgrading, or recordings and files stop being served under `/media`.
+
 ## v1.30.0
 
 ### Removing S3 storage-event webhooks for recordings

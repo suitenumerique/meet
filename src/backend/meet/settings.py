@@ -735,6 +735,9 @@ class Base(Configuration):
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
     )
+    ROOM_INACTIVITY_DELETION_DAYS = values.PositiveIntegerValue(
+        None, environ_name="ROOM_INACTIVITY_DELETION_DAYS", environ_prefix=None
+    )
     # How long LiveKit's answer about who is in a meeting is reused. However
     # many wait on one meeting, LiveKit is asked once per hold. Zero turns the
     # cache off.
@@ -1264,6 +1267,25 @@ class Base(Configuration):
                 UserWarning,
                 stacklevel=2,
             )
+
+        if cls.ROOM_INACTIVITY_DELETION_DAYS:
+            if not cls.RECORDING_EXPIRATION_DAYS:
+                warnings.warn(
+                    "ROOM_INACTIVITY_DELETION_DAYS is set but "
+                    "RECORDING_EXPIRATION_DAYS is not. Recordings never expire, so "
+                    "inactive rooms holding a saved recording will never be purged.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            elif cls.RECORDING_EXPIRATION_DAYS >= cls.ROOM_INACTIVITY_DELETION_DAYS:
+                warnings.warn(
+                    "RECORDING_EXPIRATION_DAYS is greater than or equal to "
+                    "ROOM_INACTIVITY_DELETION_DAYS. Inactive rooms holding a saved "
+                    "recording will be kept past the inactivity period, until their "
+                    "recordings expire.",
+                    UserWarning,
+                    stacklevel=2,
+                )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:
