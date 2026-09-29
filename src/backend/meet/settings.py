@@ -382,7 +382,7 @@ class Base(Configuration):
                 environ_prefix=None,
             ),
             "participants": values.Value(
-                default="180/minute",
+                default="60/minute",
                 environ_name="PARTICIPANTS_THROTTLE_RATES",
                 environ_prefix=None,
             ),
