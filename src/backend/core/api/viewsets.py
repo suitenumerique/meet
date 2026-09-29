@@ -334,22 +334,19 @@ class RoomViewSet(
         methods=["get"],
         url_path="participants",
         url_name="participants",
+        permission_classes=[permissions.IsAuthenticated],
         throttle_classes=[throttling.ParticipantsUserRateThrottle],
     )
     def participants(self, request, pk=None):  # pylint: disable=unused-argument
         """Tell who is in the room's meeting, for its join screen.
 
-        Only a signed-in user the room admits without approval is told, and an
-        unregistered room admits anyone; everyone else gets the answer a missing
-        room gets. Up to ROOM_PARTICIPANTS_NAMES_LIMIT people are counted and
-        named; past it the count is null, so no request can read the roster of a
-        large meeting.
+        Only a user the room admits without approval is told, and an
+        unregistered room admits anyone signed in; a room that refuses the user
+        answers as a missing room would. Up to ROOM_PARTICIPANTS_NAMES_LIMIT
+        people are counted and named; past it the count is null, so no request
+        can read the roster of a large meeting.
         """
-        user = request.user
-        if not user.is_authenticated:
-            raise Http404
-
-        livekit_room = self.get_livekit_room(user)
+        livekit_room = self.get_livekit_room(request.user)
 
         try:
             roster = RoomManagement.get_participants(livekit_room)
@@ -359,6 +356,7 @@ class RoomViewSet(
                 status=drf_status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
+        # A large meeting only says it has started, so its roster stays private.
         if roster["count"] > settings.ROOM_PARTICIPANTS_NAMES_LIMIT:
             return drf_response.Response({"count": None, "names": []})
 

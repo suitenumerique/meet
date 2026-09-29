@@ -136,7 +136,7 @@ class RoomManagement:
                 # Cached as well: an unreachable LiveKit is when it can least
                 # afford one call per poll.
                 answer = False
-            # Outlives the lock, so the callers it turns away have an answer.
+            # Kept past the lock, so callers waiting on a refresh still read one.
             cache.set(key, answer, hold * 3)
 
         if answer is False:

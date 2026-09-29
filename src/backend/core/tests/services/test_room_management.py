@@ -1,6 +1,6 @@
 """Tests for the RoomManagement service."""
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,unused-argument
 
 from unittest import mock
 
@@ -23,8 +23,8 @@ from core.services.room_management import (
 
 
 @pytest.fixture
-def livekit():
-    """A mocked LiveKit client, reporting nobody in every room."""
+def livekit(local_cache):
+    """A mocked LiveKit client over a local cache, every room empty."""
     with mock.patch(
         "core.services.room_management.utils.create_livekit_client"
     ) as create:
@@ -82,7 +82,6 @@ def test_delete_room_raises_management_exception(mock_create_livekit_client):
     mock_api.aclose.assert_awaited_once()
 
 
-@pytest.mark.usefixtures("local_cache")
 def test_get_participants_counts_and_names_them(livekit):
     """Everyone is counted, and the ones who gave a name are named."""
     livekit.room.list_participants.return_value = ListParticipantsResponse(
@@ -103,7 +102,6 @@ def test_get_participants_counts_and_names_them(livekit):
     livekit.aclose.assert_awaited_once()
 
 
-@pytest.mark.usefixtures("local_cache")
 def test_get_participants_leaves_out_machines(livekit):
     """A recorder and an agent are in the room and are not people."""
     livekit.room.list_participants.return_value = ListParticipantsResponse(
@@ -127,7 +125,6 @@ def test_get_participants_leaves_out_machines(livekit):
     }
 
 
-@pytest.mark.usefixtures("local_cache")
 def test_get_participants_of_a_room_livekit_does_not_know(livekit):
     """A room LiveKit has never created has nobody in it."""
     livekit.room.list_participants.side_effect = TwirpError(
@@ -139,7 +136,6 @@ def test_get_participants_of_a_room_livekit_does_not_know(livekit):
     livekit.aclose.assert_awaited_once()
 
 
-@pytest.mark.usefixtures("local_cache")
 @pytest.mark.parametrize(
     "error",
     [
@@ -157,7 +153,6 @@ def test_get_participants_raises_management_exception(livekit, error):
     livekit.aclose.assert_awaited_once()
 
 
-@pytest.mark.usefixtures("local_cache")
 def test_get_participants_is_read_once_for_everyone_waiting(livekit):
     """The join screen polls, so the answer is cached rather than asked twice."""
     RoomManagement.get_participants("room-abc")
@@ -166,7 +161,6 @@ def test_get_participants_is_read_once_for_everyone_waiting(livekit):
     assert livekit.room.list_participants.await_count == 1
 
 
-@pytest.mark.usefixtures("local_cache")
 def test_get_participants_of_two_rooms_are_cached_apart(livekit):
     """One meeting's answer is never served for another."""
     RoomManagement.get_participants("room-abc")
@@ -175,7 +169,6 @@ def test_get_participants_of_two_rooms_are_cached_apart(livekit):
     assert livekit.room.list_participants.await_count == 2
 
 
-@pytest.mark.usefixtures("local_cache")
 def test_get_participants_one_caller_refreshes_an_expired_answer(livekit):
     """The lock expires once, so the callers behind it read the last answer."""
     RoomManagement.get_participants("room-abc")
@@ -187,7 +180,6 @@ def test_get_participants_one_caller_refreshes_an_expired_answer(livekit):
     assert livekit.room.list_participants.await_count == 2
 
 
-@pytest.mark.usefixtures("local_cache")
 @override_settings(ROOM_PARTICIPANTS_CACHE_SECONDS=0)
 def test_get_participants_cache_can_be_turned_off(livekit):
     """A zero hold sends every call through to LiveKit."""
@@ -197,7 +189,6 @@ def test_get_participants_cache_can_be_turned_off(livekit):
     assert livekit.room.list_participants.await_count == 2
 
 
-@pytest.mark.usefixtures("local_cache")
 def test_get_participants_caches_a_failure(livekit):
     """A LiveKit that failed is not asked again by everyone else waiting."""
     livekit.room.list_participants.side_effect = TwirpError(

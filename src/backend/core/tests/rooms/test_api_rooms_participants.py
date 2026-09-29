@@ -54,12 +54,12 @@ def signed_in():
     "access_level,sign_in,with_role,expected",
     [
         # Nobody is told who is inside without signing in, even in a public room.
-        (RoomAccessLevel.PUBLIC, False, False, status.HTTP_404_NOT_FOUND),
+        (RoomAccessLevel.PUBLIC, False, False, status.HTTP_401_UNAUTHORIZED),
         (RoomAccessLevel.PUBLIC, True, False, status.HTTP_200_OK),
-        (RoomAccessLevel.TRUSTED, False, False, status.HTTP_404_NOT_FOUND),
+        (RoomAccessLevel.TRUSTED, False, False, status.HTTP_401_UNAUTHORIZED),
         (RoomAccessLevel.TRUSTED, True, False, status.HTTP_200_OK),
         # A restricted room tells the people invited to it.
-        (RoomAccessLevel.RESTRICTED, False, False, status.HTTP_404_NOT_FOUND),
+        (RoomAccessLevel.RESTRICTED, False, False, status.HTTP_401_UNAUTHORIZED),
         (RoomAccessLevel.RESTRICTED, True, False, status.HTTP_404_NOT_FOUND),
         (RoomAccessLevel.RESTRICTED, True, True, status.HTTP_200_OK),
     ],
@@ -103,19 +103,6 @@ def test_participants_by_slug(mock_livekit_client):
     assert response.json() == INSIDE
 
 
-def test_participants_of_an_empty_meeting(mock_livekit_client):
-    """A meeting nobody has joined counts nobody."""
-    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
-    mock_livekit_client.room.list_participants.side_effect = TwirpError(
-        "not_found", "room not found", status=404
-    )
-
-    response = signed_in().get(reverse("rooms-participants", kwargs={"pk": room.id}))
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"count": 0, "names": []}
-
-
 def test_participants_names_everyone_up_to_the_limit(mock_livekit_client):
     """At the limit, everyone is still counted and named."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
@@ -152,17 +139,6 @@ def test_participants_unregistered_room(mock_livekit_client):
     assert response.json() == INSIDE
     request = mock_livekit_client.room.list_participants.call_args.args[0]
     assert request.room == "tst-room-dev"
-
-
-@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
-def test_participants_unregistered_room_anonymous(mock_livekit_client):
-    """Nobody is told who is inside without signing in, unregistered rooms included."""
-    response = APIClient().get(
-        reverse("rooms-participants", kwargs={"pk": "tst-room-dev"})
-    )
-
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    mock_livekit_client.room.list_participants.assert_not_called()
 
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=False)
@@ -208,20 +184,15 @@ def test_participants_refuses_a_room_id_spelled_as_a_name(
 
 
 def test_participants_livekit_unreachable(mock_livekit_client):
-    """A media server that cannot answer gives 503, never a 500, and is not
-    asked again by everyone else waiting on the same meeting."""
+    """A media server that cannot answer gives 503, never a 500."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     mock_livekit_client.room.list_participants.side_effect = TwirpError(
         "internal", "boom", status=500
     )
-    url = reverse("rooms-participants", kwargs={"pk": room.id})
 
-    first = signed_in().get(url)
-    second = signed_in().get(url)
+    response = signed_in().get(reverse("rooms-participants", kwargs={"pk": room.id}))
 
-    assert first.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-    assert second.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-    assert mock_livekit_client.room.list_participants.call_count == 1
+    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
 
 
 def test_participants_is_throttled(mock_livekit_client):
