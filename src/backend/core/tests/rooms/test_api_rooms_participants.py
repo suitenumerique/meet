@@ -177,6 +177,18 @@ def test_participants_unregistered_room_disabled(mock_livekit_client):
 
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+def test_participants_restricted_room_by_its_room_code(mock_livekit_client):
+    """A restricted room's code keeps the room's own rules, and never falls
+    through to the unregistered path that would answer anyone signed in."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+
+    response = signed_in().get(reverse("rooms-participants", kwargs={"pk": room.slug}))
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
 @pytest.mark.parametrize("spelling", ["_{id}", " {id}", "({id})", "_{hex}", "___"])
 def test_participants_refuses_a_room_id_spelled_as_a_name(
     mock_livekit_client, spelling
