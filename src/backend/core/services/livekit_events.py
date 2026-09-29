@@ -275,7 +275,9 @@ class LiveKitEventsService:
         except models.Room.DoesNotExist as err:
             raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
 
-        if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
+        if (
+            settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED
+        ) and not room.is_encrypted:
             try:
                 self.sip_management.ensure_dispatch_rule(room)
             except SIPException as e:

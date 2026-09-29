@@ -312,3 +312,34 @@ def test_api_rooms_create_authenticated_blank_user_default_access_level():
     assert response.status_code == 201
     room = Room.objects.get()
     assert room.access_level == settings.RESOURCE_DEFAULT_ACCESS_LEVEL
+
+
+@pytest.mark.parametrize("encryption_mode", ["none", "basic"])
+@pytest.mark.parametrize(
+    "user_default", [None, RoomAccessLevel.PUBLIC, RoomAccessLevel.TRUSTED]
+)
+@pytest.mark.parametrize(
+    "requested_access", [None, RoomAccessLevel.PUBLIC, RoomAccessLevel.TRUSTED]
+)
+def test_api_rooms_create_encryption_access_precedence(
+    settings, encryption_mode, user_default, requested_access
+):
+    """Encryption overrides request and user access defaults only for encrypted rooms."""
+    settings.ENCRYPTION_ENABLED = True
+    user = UserFactory(default_room_access_level=user_default)
+    client = APIClient()
+    client.force_login(user)
+    data = {"name": "New room", "encryption_mode": encryption_mode}
+    if requested_access is not None:
+        data["access_level"] = requested_access
+
+    response = client.post("/api/v1.0/rooms/", data)
+
+    assert response.status_code == 201
+    expected_access = (
+        RoomAccessLevel.RESTRICTED
+        if encryption_mode == "basic"
+        else requested_access or user_default or settings.RESOURCE_DEFAULT_ACCESS_LEVEL
+    )
+    assert response.json()["access_level"] == expected_access
+    assert Room.objects.get().access_level == expected_access

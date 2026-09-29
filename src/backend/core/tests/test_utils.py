@@ -57,21 +57,35 @@ def test_generate_token_authenticated_fallback_user_representation():
     assert claims["name"] == str(user)
 
 
-def test_generate_token_explicit_username_overrides_default():
+@pytest.mark.parametrize("encryption_mode", ["none", "basic"])
+def test_generate_token_explicit_username_overrides_default(encryption_mode):
     """An explicitly provided username should take precedence over the full name."""
     user = UserFactory(full_name="Jane Doe")
 
-    token = generate_token(room="my-room", user=user, username="Custom Name")
+    token = generate_token(
+        room="my-room",
+        user=user,
+        username="Custom Name",
+        encryption_mode=encryption_mode,
+    )
 
     claims = decode_token(token)
     assert claims["name"] == "Custom Name"
 
 
-def test_authenticated_username_ignored_when_editing_disabled(settings):
+@pytest.mark.parametrize("encryption_mode", ["none", "basic"])
+def test_authenticated_username_ignored_when_editing_disabled(
+    settings, encryption_mode
+):
     """With editing disabled, an authenticated user's username is ignored."""
     settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = False
     user = UserFactory(full_name="Jane Doe")
-    token = generate_token(room="my-room", user=user, username="Custom Name")
+    token = generate_token(
+        room="my-room",
+        user=user,
+        username="Custom Name",
+        encryption_mode=encryption_mode,
+    )
     claims = decode_token(token)
     assert claims["name"] == "Jane Doe"
 

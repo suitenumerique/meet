@@ -26,6 +26,7 @@ from lasuite.tools.email import get_domain_from_email
 from timezone_field import TimeZoneField
 
 from . import fields, utils
+from .enums import EncryptionMode
 from .recording.enums import FileExtension
 from .validators import sub_validator
 
@@ -214,6 +215,15 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
         help_text=_(
             "Whether this user should be treated as active. "
             "Unselect this instead of deleting accounts."
+        ),
+    )
+    default_encryption_mode = models.CharField(
+        _("Default encryption mode"),
+        max_length=20,
+        choices=EncryptionMode.choices,
+        default=EncryptionMode.NONE,
+        help_text=_(
+            "Encryption mode pre-selected when this user creates a new meeting."
         ),
     )
 
@@ -411,6 +421,13 @@ class Room(Resource):
         choices=RoomAccessLevel.choices,
         default=settings.RESOURCE_DEFAULT_ACCESS_LEVEL,
     )
+    encryption_mode = models.CharField(
+        max_length=20,
+        choices=EncryptionMode.choices,
+        default=EncryptionMode.NONE,
+        verbose_name=_("Encryption mode"),
+        help_text=_("End-to-end encryption mode for this room."),
+    )
     # Public configuration exposed to any room participant via the API
     configuration = models.JSONField(
         blank=True,
@@ -437,19 +454,67 @@ class Room(Resource):
         return capfirst(self.name)
 
     def save(self, *args, **kwargs):
-        """Generate a unique n-digit pin code for new rooms."""
+        """Restrict new encrypted rooms and allocate PINs for unencrypted rooms.
 
-        # Roomkit devices also join by PIN, so a PIN is needed as soon as
-        # either integration is enabled.
+        Skip PIN allocation for encrypted rooms — the SIP gateway will
+        always reject calls to them (no way to derive the key), and the
+        PIN namespace is finite (10**length): no point burning slots that
+        can never be dialed.
+
+        Also run `clean()` so the encryption invariants are enforced on
+        every save path (ORM, admin, shell), not only via the DRF
+        serializer.
+        """
+        # Override both explicit access levels and user defaults on creation.
+        # Updates remain subject to clean() instead of being silently normalized.
+        if self._state.adding and self.is_encrypted:
+            self.access_level = RoomAccessLevel.RESTRICTED
+        self.clean()
         if (
             (settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED)
             and not self.pk
             and not self.pin_code
+            and self.encryption_mode == EncryptionMode.NONE
         ):
             self.pin_code = self.generate_unique_pin_code(
                 length=settings.ROOM_TELEPHONY_PIN_LENGTH
             )
         super().save(*args, **kwargs)
+
+    def clean(self):
+        """Enforce encryption-mode invariants outside DRF.
+
+        Two rules:
+        - `encryption_mode` is set at creation and never mutated afterwards
+          (the URL-hash passphrase encodes assumptions about it).
+        - An encrypted room must be at the RESTRICTED access level so the
+          host vets joiners before they ever see the in-URL key.
+        """
+        super().clean()
+        if self.pk is not None:
+            previous = Room.objects.filter(pk=self.pk).only("encryption_mode").first()
+            if (
+                previous is not None
+                and previous.encryption_mode != self.encryption_mode
+            ):
+                raise ValidationError(
+                    {
+                        "encryption_mode": _(
+                            "Encryption mode cannot be changed after room creation."
+                        )
+                    }
+                )
+        if (
+            self.encryption_mode != EncryptionMode.NONE
+            and self.access_level != RoomAccessLevel.RESTRICTED
+        ):
+            raise ValidationError(
+                {
+                    "access_level": _(
+                        "Encrypted rooms must use the 'restricted' access level."
+                    )
+                }
+            )
 
     def clean_fields(self, exclude=None):
         """
@@ -472,6 +537,11 @@ class Room(Resource):
     def is_public(self):
         """Check if a room is public"""
         return self.access_level == RoomAccessLevel.PUBLIC
+
+    @property
+    def is_encrypted(self):
+        """Convenience: any non-none encryption mode counts as encrypted."""
+        return self.encryption_mode != EncryptionMode.NONE
 
     @staticmethod
     def generate_unique_pin_code(length):

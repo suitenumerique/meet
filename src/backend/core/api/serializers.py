@@ -38,6 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
             "short_name",
             "timezone",
             "language",
+            "default_encryption_mode",
             "default_room_access_level",
             "default_room_configuration",
         ]
@@ -51,6 +52,14 @@ class UserSerializer(serializers.ModelSerializer):
             RoomConfiguration.model_validate(value)
         except PydanticValidationError as e:
             raise serializers.ValidationError(e.errors()) from e
+        return value
+
+    def validate_default_encryption_mode(self, value):
+        """Reject a non-none default when the server has encryption disabled."""
+        if value != models.EncryptionMode.NONE and not settings.ENCRYPTION_ENABLED:
+            raise serializers.ValidationError(
+                _("End-to-end encryption is disabled on this server.")
+            )
         return value
 
 
@@ -94,6 +103,7 @@ class ResourceAccessSerializerMixin:
             raise PermissionDenied(
                 "Only owners of a room can assign other users as owners."
             )
+
         return data
 
     def validate_resource(self, resource):
@@ -148,7 +158,15 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Room
-        fields = ["id", "name", "slug", "configuration", "access_level", "pin_code"]
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "configuration",
+            "access_level",
+            "pin_code",
+            "encryption_mode",
+        ]
         read_only_fields = ["id", "slug", "pin_code"]
 
     def validate_configuration(self, value):
@@ -159,6 +177,32 @@ class RoomSerializer(serializers.ModelSerializer):
             RoomConfiguration.model_validate(value)
         except PydanticValidationError as e:
             raise serializers.ValidationError(e.errors()) from e
+        return value
+
+    def validate_encryption_mode(self, value):
+        """Encryption mode is part of the link's semantics (the passphrase
+        lives in the URL hash for `basic` rooms) so it cannot be changed once
+        the room exists."""
+        instance = self.instance
+        if instance and instance.encryption_mode != value:
+            raise serializers.ValidationError(
+                "Encryption mode cannot be changed after room creation."
+            )
+        return value
+
+    def validate_access_level(self, value):
+        """Encrypted rooms must stay restricted — the lobby is the only way
+        to enforce per-participant admission, and basic encryption relies on
+        the host vetting each joiner before they receive the in-URL key."""
+        instance = self.instance
+        if (
+            instance
+            and instance.encryption_mode != models.EncryptionMode.NONE
+            and value != models.RoomAccessLevel.RESTRICTED
+        ):
+            raise serializers.ValidationError(
+                "Encrypted rooms require restricted access level."
+            )
         return value
 
     def to_representation(self, instance):
@@ -197,12 +241,14 @@ class RoomSerializer(serializers.ModelSerializer):
         if should_access_room:
             room_id = f"{instance.id!s}"
             username = request.query_params.get("username", None)
+
             output["livekit"] = utils.generate_livekit_config(
                 room_id=room_id,
                 user=request.user,
                 username=username,
                 configuration=output["configuration"],
                 role=role,
+                encryption_mode=instance.encryption_mode,
             )
         else:
             del output["pin_code"]

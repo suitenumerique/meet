@@ -48,8 +48,11 @@ class LobbyParticipant:
     color: str
     id: str
     entered_at: str
+    # Whether the user signed in (e.g. via ProConnect). Surfaced to admins so
+    # they can decide whether to accept self-declared identities.
+    is_authenticated: bool = False
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, object]:
         """Serialize the participant object to a dict representation."""
         return {
             "status": self.status.value,
@@ -57,6 +60,7 @@ class LobbyParticipant:
             "id": self.id,
             "color": self.color,
             "entered_at": self.entered_at,
+            "is_authenticated": self.is_authenticated,
         }
 
     @classmethod
@@ -72,6 +76,7 @@ class LobbyParticipant:
                 id=data["id"],
                 color=data["color"],
                 entered_at=data["entered_at"],
+                is_authenticated=bool(data.get("is_authenticated", False)),
             )
         except (KeyError, ValueError) as e:
             logger.exception("Error creating Participant from dict:")
@@ -144,7 +149,7 @@ class LobbyService:
                 key=settings.LOBBY_COOKIE_NAME,
                 value=participant_id,
                 httponly=True,
-                secure=True,
+                secure=not settings.DEBUG,
                 samesite="Lax",
             )
 
@@ -208,6 +213,7 @@ class LobbyService:
                     id=participant_id,
                     color=utils.generate_color(participant_id),
                     entered_at=timezone.now().isoformat(),
+                    is_authenticated=request.user.is_authenticated,
                 )
             else:
                 participant.status = LobbyParticipantStatus.ACCEPTED
@@ -220,19 +226,24 @@ class LobbyService:
                 configuration=room.configuration,
                 participant_id=participant_id,
                 role=user_role,
+                encryption_mode=room.encryption_mode,
             )
             return participant, livekit_config
 
         livekit_config = None
 
         if participant is None:
-            participant = self.enter(room.id, participant_id, username)
+            participant = self.enter(
+                room.id,
+                participant_id,
+                username,
+                is_authenticated=request.user.is_authenticated,
+            )
 
         elif participant.status == LobbyParticipantStatus.WAITING:
             self.refresh_waiting_status(room.id, participant_id)
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
-            # wrongly named, contains access token to join a room
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
                 user=request.user,
@@ -241,6 +252,7 @@ class LobbyService:
                 configuration=room.configuration,
                 participant_id=participant_id,
                 role=user_role,
+                encryption_mode=room.encryption_mode,
             )
 
         return participant, livekit_config
@@ -258,7 +270,11 @@ class LobbyService:
         self._index_touch(room_id)
 
     def enter(
-        self, room_id: UUID, participant_id: str, username: str
+        self,
+        room_id: UUID,
+        participant_id: str,
+        username: str,
+        is_authenticated: bool = False,
     ) -> LobbyParticipant:
         """Add participant to waiting lobby."""
 
@@ -270,6 +286,7 @@ class LobbyService:
             id=participant_id,
             color=color,
             entered_at=timezone.now().isoformat(),
+            is_authenticated=is_authenticated,
         )
 
         try:

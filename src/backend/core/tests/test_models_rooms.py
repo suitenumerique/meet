@@ -360,3 +360,35 @@ def test_pin_generation_upper_bound(mock_randbelow, settings):
 
     # Assert called with the right exclusive upper bound, 10^5
     mock_randbelow.assert_called_with(100000)
+
+
+@pytest.mark.parametrize("access_level", [None, *RoomAccessLevel.values])
+@pytest.mark.parametrize("use_manager", [False, True])
+def test_models_encrypted_room_creation_is_restricted(access_level, use_manager):
+    """Both save and manager creation normalize encrypted rooms before validation."""
+    fields = {"name": "Encrypted room", "encryption_mode": "basic"}
+    if access_level is not None:
+        fields["access_level"] = access_level
+    if use_manager:
+        room = Room.objects.create(**fields)
+    else:
+        room = Room(**fields)
+        # A caller may assign the primary key before the first save.
+        room.pk = room.id
+        room.save()
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED
+
+
+@pytest.mark.parametrize(
+    "access_level", [RoomAccessLevel.PUBLIC, RoomAccessLevel.TRUSTED]
+)
+def test_models_encrypted_room_access_update_rejected(access_level):
+    """Existing encrypted rooms reject incompatible access instead of normalizing it."""
+    room = Room.objects.create(name="Encrypted room", encryption_mode="basic")
+    room.access_level = access_level
+    with pytest.raises(ValidationError) as excinfo:
+        room.save()
+    assert "access_level" in excinfo.value.message_dict
+    room.refresh_from_db()
+    assert room.access_level == RoomAccessLevel.RESTRICTED

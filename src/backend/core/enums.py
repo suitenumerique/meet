@@ -5,6 +5,7 @@ Core application enums declaration
 import re
 
 from django.conf import global_settings, settings
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 UUID_REGEX = (
@@ -32,3 +33,14 @@ ALL_LANGUAGES = getattr(
     "ALL_LANGUAGES",
     [(language, _(name)) for language, name in global_settings.LANGUAGES],
 )
+
+
+class EncryptionMode(models.TextChoices):
+    """Encryption mode for a room.
+
+    Kept as an enum (not a boolean) so future modes — e.g. a vault-managed
+    per-user key flow — can be added without another schema migration.
+    """
+
+    NONE = "none", _("No encryption")
+    BASIC = "basic", _("Passphrase-in-URL encryption")

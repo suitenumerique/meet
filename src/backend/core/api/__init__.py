@@ -76,6 +76,9 @@ def get_frontend_configuration(request):
         "authenticated_users_can_edit_display_name": (
             settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME
         ),
+        "encryption": {
+            "is_enabled": settings.ENCRYPTION_ENABLED,
+        },
     }
     frontend_configuration.update(settings.FRONTEND_CONFIGURATION)
     return Response(frontend_configuration)

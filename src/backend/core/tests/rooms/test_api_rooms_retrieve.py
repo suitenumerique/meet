@@ -33,6 +33,7 @@ def test_api_rooms_retrieve_anonymous_private_pk():
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -52,6 +53,7 @@ def test_api_rooms_retrieve_anonymous_trusted_pk():
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -70,6 +72,7 @@ def test_api_rooms_retrieve_anonymous_private_pk_no_dashes():
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -86,6 +89,7 @@ def test_api_rooms_retrieve_anonymous_private_slug():
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -102,6 +106,7 @@ def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -217,6 +222,7 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once()
@@ -263,6 +269,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once_with(
@@ -273,6 +280,7 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
         sources=["camera"],
         role=None,
         participant_id=None,
+        encryption_mode="none",
     )
 
 
@@ -314,6 +322,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once_with(
@@ -324,6 +333,7 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
         sources=None,
         role=None,
         participant_id=None,
+        encryption_mode="none",
     )
 
 
@@ -349,6 +359,7 @@ def test_api_rooms_retrieve_authenticated():
         "id": str(room.id),
         "name": room.name,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
 
@@ -400,6 +411,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once_with(
@@ -410,6 +422,7 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
         sources=["camera"],
         role=str(RoleChoices.MEMBER),
         participant_id=None,
+        encryption_mode="none",
     )
 
 
@@ -461,6 +474,7 @@ def test_api_rooms_retrieve_administrators(
                     "short_name": other_user_access.user.short_name,
                     "timezone": "UTC",
                     "language": other_user_access.user.language,
+                    "default_encryption_mode": "none",
                 },
                 "resource": str(room.id),
                 "role": other_user_access.role,
@@ -476,6 +490,7 @@ def test_api_rooms_retrieve_administrators(
                     "short_name": user_access.user.short_name,
                     "timezone": "UTC",
                     "language": user_access.user.language,
+                    "default_encryption_mode": "none",
                 },
                 "resource": str(room.id),
                 "role": user_access.role,
@@ -496,6 +511,7 @@ def test_api_rooms_retrieve_administrators(
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
+        "encryption_mode": room.encryption_mode,
     }
 
     mock_token.assert_called_once_with(
@@ -506,4 +522,25 @@ def test_api_rooms_retrieve_administrators(
         sources=None,
         role=str(user_access.role),
         participant_id=None,
+        encryption_mode="none",
     )
+
+
+@pytest.mark.parametrize("encryption_mode", ["none", "basic"])
+@mock.patch("core.utils.generate_token", return_value="test-token")
+def test_api_rooms_retrieve_custom_username(mock_token, encryption_mode, settings):
+    """Encryption does not override the participant's requested display name."""
+    settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME = True
+    user = UserFactory(full_name="Profile Name")
+    room = RoomFactory(
+        access_level=RoomAccessLevel.RESTRICTED, encryption_mode=encryption_mode
+    )
+    UserResourceAccessFactory(resource=room, user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id}/", {"username": "Custom Name"})
+
+    assert response.status_code == 200
+    assert mock_token.call_args.kwargs["username"] == "Custom Name"
+    assert mock_token.call_args.kwargs["encryption_mode"] == encryption_mode
