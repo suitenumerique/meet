@@ -66,6 +66,14 @@
     "toggleOn": "Haz clic para activar",
     "usernameHint": "Se muestra a los demás participantes",
     "usernameLabel": "Tu nombre",
+    "participants": {
+      "empty": "Todavía no se ha unido nadie",
+      "started": "La reunión ha comenzado",
+      "count_one": "1 persona ya está aquí",
+      "count_other": "{{count}} personas ya están aquí",
+      "more_one": "1 persona más",
+      "more_other": "{{count}} personas más"
+    },
     "errors": {
       "usernameEmpty": "Tu nombre no puede estar vacío"
     },

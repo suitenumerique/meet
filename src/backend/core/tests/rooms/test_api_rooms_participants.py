@@ -1,0 +1,211 @@
+"""
+Test rooms API endpoints in the Meet core app: participants.
+"""
+
+# pylint: disable=redefined-outer-name,unused-argument,no-name-in-module
+
+import random
+from unittest import mock
+
+from django.test.utils import override_settings
+from django.urls import reverse
+
+import pytest
+from livekit.api import TwirpError
+from livekit.protocol.models import ParticipantInfo
+from livekit.protocol.room import ListParticipantsResponse
+from rest_framework import status
+from rest_framework.test import APIClient
+
+from core.api.throttling import ParticipantsUserRateThrottle
+from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
+from core.models import RoomAccessLevel
+
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("local_cache")]
+
+INSIDE = {"count": 2, "names": ["Zora", "Neel"]}
+
+
+def in_the_room(mock_livekit_client, *names):
+    """Have LiveKit report these people in every room."""
+    mock_livekit_client.room.list_participants.return_value = ListParticipantsResponse(
+        participants=[ParticipantInfo(name=name) for name in names]
+    )
+
+
+@pytest.fixture
+def mock_livekit_client():
+    """Mock LiveKit API client, reporting Zora and Neel in every room."""
+    with mock.patch("core.utils.create_livekit_client") as mock_create:
+        mock_client = mock.AsyncMock()
+        in_the_room(mock_client, "Zora", "Neel")
+        mock_create.return_value = mock_client
+        yield mock_client
+
+
+def signed_in():
+    """An API client signed in as a new user."""
+    client = APIClient()
+    client.force_authenticate(user=UserFactory())
+    return client
+
+
+@pytest.mark.parametrize(
+    "access_level,sign_in,with_role,expected",
+    [
+        # Nobody is told who is inside without signing in, even in a public room.
+        (RoomAccessLevel.PUBLIC, False, False, status.HTTP_401_UNAUTHORIZED),
+        (RoomAccessLevel.PUBLIC, True, False, status.HTTP_200_OK),
+        (RoomAccessLevel.TRUSTED, False, False, status.HTTP_401_UNAUTHORIZED),
+        (RoomAccessLevel.TRUSTED, True, False, status.HTTP_200_OK),
+        # A restricted room tells the people invited to it.
+        (RoomAccessLevel.RESTRICTED, False, False, status.HTTP_401_UNAUTHORIZED),
+        (RoomAccessLevel.RESTRICTED, True, False, status.HTTP_404_NOT_FOUND),
+        (RoomAccessLevel.RESTRICTED, True, True, status.HTTP_200_OK),
+    ],
+)
+def test_participants_answers_signed_in_users_the_room_would_admit(
+    mock_livekit_client, access_level, sign_in, with_role, expected
+):
+    """Only a signed-in user the room lets in without approval is told."""
+    room = RoomFactory(access_level=access_level)
+    client = APIClient()
+
+    if sign_in:
+        user = UserFactory()
+        if with_role:
+            UserResourceAccessFactory(
+                resource=room,
+                user=user,
+                role=random.choice(["member", "administrator", "owner"]),
+            )
+        client.force_authenticate(user=user)
+
+    response = client.get(reverse("rooms-participants", kwargs={"pk": room.id}))
+
+    assert response.status_code == expected
+
+    if expected == status.HTTP_200_OK:
+        assert response.json() == INSIDE
+        request = mock_livekit_client.room.list_participants.call_args.args[0]
+        assert request.room == str(room.id)
+    else:
+        mock_livekit_client.room.list_participants.assert_not_called()
+
+
+def test_participants_by_slug(mock_livekit_client):
+    """The room code in the address reaches the same answer as the id."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    response = signed_in().get(reverse("rooms-participants", kwargs={"pk": room.slug}))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == INSIDE
+
+
+def test_participants_names_everyone_up_to_the_limit(mock_livekit_client):
+    """At the limit, everyone is still counted and named."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    names = [f"P{i:d}" for i in range(5)]
+    in_the_room(mock_livekit_client, *names)
+
+    response = signed_in().get(reverse("rooms-participants", kwargs={"pk": room.id}))
+
+    assert response.json() == {"count": 5, "names": names}
+
+
+@override_settings(ROOM_PARTICIPANTS_NAMES_LIMIT=1)
+def test_participants_past_the_limit_only_says_the_meeting_started(
+    mock_livekit_client,
+):
+    """Past the limit nobody is named or counted, whatever the caller asks for."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    url = reverse("rooms-participants", kwargs={"pk": room.id})
+
+    response = signed_in().get(url, {"names": 100})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"count": None, "names": []}
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+def test_participants_unregistered_room(mock_livekit_client):
+    """An unregistered room admits anyone, and is read under its room code."""
+    response = signed_in().get(
+        reverse("rooms-participants", kwargs={"pk": "tst-room-dev"})
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == INSIDE
+    request = mock_livekit_client.room.list_participants.call_args.args[0]
+    assert request.room == "tst-room-dev"
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=False)
+def test_participants_unregistered_room_disabled(mock_livekit_client):
+    """With unregistered rooms off, an unknown room stays unknown."""
+    response = signed_in().get(
+        reverse("rooms-participants", kwargs={"pk": "tst-room-dev"})
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+def test_participants_restricted_room_by_its_room_code(mock_livekit_client):
+    """A restricted room's code keeps the room's own rules, and never falls
+    through to the unregistered path that would answer anyone signed in."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+
+    response = signed_in().get(reverse("rooms-participants", kwargs={"pk": room.slug}))
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+@pytest.mark.parametrize("spelling", ["_{id}", " {id}", "({id})", "_{hex}", "___"])
+def test_participants_refuses_a_room_id_spelled_as_a_name(
+    mock_livekit_client, spelling
+):
+    """No spelling of a registered room's id, and no empty name, reaches a meeting.
+
+    Each misses both lookups, so it lands on the unregistered path, where its
+    room code would be the restricted room's own meeting, or nobody's.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    pk = spelling.format(id=str(room.id), hex=room.id.hex)
+
+    response = signed_in().get(f"/api/v1.0/rooms/{pk}/participants/")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    mock_livekit_client.room.list_participants.assert_not_called()
+
+
+def test_participants_livekit_unreachable(mock_livekit_client):
+    """A media server that cannot answer gives 503, never a 500."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    mock_livekit_client.room.list_participants.side_effect = TwirpError(
+        "internal", "boom", status=500
+    )
+
+    response = signed_in().get(reverse("rooms-participants", kwargs={"pk": room.id}))
+
+    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+
+
+def test_participants_is_throttled(mock_livekit_client):
+    """Polling past the rate is refused."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    url = reverse("rooms-participants", kwargs={"pk": room.id})
+    client = signed_in()
+
+    with mock.patch.object(
+        ParticipantsUserRateThrottle, "get_rate", return_value="1/minute"
+    ):
+        first = client.get(url)
+        second = client.get(url)
+
+    assert first.status_code == status.HTTP_200_OK
+    assert second.status_code == status.HTTP_429_TOO_MANY_REQUESTS

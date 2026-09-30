@@ -87,6 +87,12 @@ class RoomKitJoinRateThrottle(MonitoredUserRateThrottle):
     scope = "roomkit_join"
 
 
+class ParticipantsUserRateThrottle(MonitoredUserRateThrottle):
+    """Throttle users polling who is in a meeting from its join screen."""
+
+    scope = "participants"
+
+
 class ConnectionTestUserRateThrottle(MonitoredUserRateThrottle):
     """Throttle authenticated users requesting connection test tokens."""
 

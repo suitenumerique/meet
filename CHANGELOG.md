@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(fullstack) show who is already in the meeting on the join screen
+
 ### Changed
 
 - ⬆️(backend) update python dependencies
@@ -18,6 +22,7 @@ and this project adheres to
 
 - 🔒️(backend) fix critical and high CVEs in PyJWT
 - ⚡️(frontend) disable posthog-js periodic feature flag reloads
+- 🔒️(backend) refuse an unregistered room named after a registered one
 
 ## [1.32.1] - 2026-09-25
 
