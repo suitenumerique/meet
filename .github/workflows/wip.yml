@@ -1,0 +1,21 @@
+name: Test trivy-cache
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: suitenumerique/ci/actions/trivy-cache@bd6e0368dde6deb6edc00e059e8f682ff848f477 # fix-trivy-save-always
+        with:
+          docker-build-args: "-f ./Dockerfile --target backend-production"
+          docker-image-name: "docker.io/lasuite/meet-backend:${{ github.sha }}"
+          docker-context: "."
+          trivyignores: ./.github/.trivyignore
