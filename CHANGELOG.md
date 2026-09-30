@@ -18,6 +18,7 @@ and this project adheres to
 
 - 🔒️(backend) fix critical and high CVEs in PyJWT
 - ⚡️(frontend) disable posthog-js periodic feature flag reloads
+- 🐛(backend) put a timeout on every LiveKit API call
 
 ## [1.32.1] - 2026-09-25
 
