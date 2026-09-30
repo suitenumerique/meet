@@ -21,6 +21,7 @@ and this project adheres to
 - ♻️(agents) replace the minio client by boto3
 - 🔧(compose) replace MinIO by Garage for local development
 - 🔧(helm) point media services to Garage by default
+- 💥(backend) replace recording encoding options with a profile model
 
 ### Fixed
 

@@ -55,6 +55,7 @@ from core.recording.worker.exceptions import (
     RecordingStopError,
 )
 from core.recording.worker.factories import (
+    build_encoding_options,
     get_worker_service,
 )
 from core.recording.worker.mediator import (
@@ -323,12 +324,20 @@ class RoomViewSet(
         options = serializer.validated_data.get("options")
         room = self.get_object()
 
+        options_data = options.model_dump(exclude_none=True) if options else {}
+        if options is not None and options.encoding is not None:
+            # Persist the resolved encoding (concrete width/height/framerate/
+            # bitrate) alongside the requested resolution/profile for traceability.
+            options_data["encoding"]["resolved"] = build_encoding_options(
+                options.encoding.resolution, options.encoding.profile
+            )
+
         try:
             with transaction.atomic():
                 recording = models.Recording.objects.create(
                     room=room,
                     mode=mode,
-                    options=options.model_dump(exclude_none=True) if options else {},
+                    options=options_data,
                 )
                 models.RecordingAccess.objects.create(
                     user=self.request.user,

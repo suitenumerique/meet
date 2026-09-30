@@ -70,17 +70,32 @@ SUMMARY_SERVICE_API_TOKEN=password
 SUMMARY_SERVICE_WEBHOOK_API_TOKEN=webhook-password
 RECORDING_DOWNLOAD_BASE_URL=http://localhost:3000/recording
 
+
 # Recording encoding (LiveKit Egress advanced options).
-# When RECORDING_ENCODING_ENABLED is False (default), LiveKit uses its built-in
-# H264_720P_30 preset (1280x720, 30fps, 3000 kbps). Enable and tune to reduce
-# file size and CPU load on the egress worker.
-# RECORDING_ENCODING_ENABLED=False
-# RECORDING_ENCODING_WIDTH=1280
-# RECORDING_ENCODING_HEIGHT=720
-# RECORDING_ENCODING_FRAMERATE=30
-# RECORDING_ENCODING_VIDEO_BITRATE_KBPS=3000
+# Every video recording is encoded with parameters (height, width, fps, kbps) derived
+# from the pair (profile, resolution) and passed to LiveKit as advanced EncodingOptions.
+# Choose the available resolutions and profiles that default settings and users can 
+# pick from. They must be defined as a single-line dict literal (parsed with 
+# ast.literal_eval: double-quoted keys, no trailing comma, no outer quotes). 
+# Every profile must define a kbps entry for exactly the keys of
+# RECORDING_ENCODING_AVAILABLE_RESOLUTIONS (validated at startup).
+# RECORDING_ENCODING_AVAILABLE_RESOLUTIONS={"540p": {"width": 960, "height": 540}, "720p": {"width": 1280, "height": 720}, "1080p": {"width": 1920, "height": 1080}}
+# RECORDING_ENCODING_AVAILABLE_PROFILES={"talking_heads": {"fps": 15, "kbps": {"540p": 400, "720p": 700, "1080p": 1200}}, "text": {"fps": 15, "kbps": {"540p": 600, "720p": 1000, "1080p": 1800}}, "mixed": {"fps": 20, "kbps": {"540p": 900, "720p": 1500, "1080p": 2500}}, "full": {"fps": 30, "kbps": {"540p": 2000, "720p": 3000, "1080p": 4500}}}
+
+
+# Choose the default named resolution and profile to use by default. These values must
+# be keys of RECORDING_ENCODING_AVAILABLE_RESOLUTIONS and RECORDING_ENCODING_AVAILABLE_PROFILES.
+# RECORDING_ENCODING_DEFAULT_RESOLUTION=720p
+# RECORDING_ENCODING_DEFAULT_PROFILE=full
+
+# Default encoding values independant of resolution/profile
 # RECORDING_ENCODING_AUDIO_BITRATE_KBPS=128
 # RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
+
+# Set to True to let the start-recording API override that default per recording
+# with an `encoding` object, e.g. {"resolution": "720p", "profile": "talking_heads"}.
+# RECORDING_CUSTOM_ENCODING_ENABLED=False
+
 
 # Telephony
 ROOM_TELEPHONY_ENABLED=True
