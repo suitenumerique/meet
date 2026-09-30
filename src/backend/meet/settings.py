@@ -766,6 +766,9 @@ class Base(Configuration):
     ROOM_INACTIVITY_DELETION_DAYS = values.PositiveIntegerValue(
         None, environ_name="ROOM_INACTIVITY_DELETION_DAYS", environ_prefix=None
     )
+    ROOM_DELETED_RETENTION_DAYS = values.PositiveIntegerValue(
+        None, environ_name="ROOM_DELETED_RETENTION_DAYS", environ_prefix=None
+    )
     # if provided, treat as suspicious (possible privilege escalation attempt).
     PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(
         ["hidden", "recorder", "agent"],
@@ -1414,21 +1417,26 @@ class Base(Configuration):
                 stacklevel=2,
             )
 
-        if cls.ROOM_INACTIVITY_DELETION_DAYS:
+        for setting_name, rooms, period in (
+            ("ROOM_INACTIVITY_DELETION_DAYS", "Inactive rooms", "inactivity period"),
+            ("ROOM_DELETED_RETENTION_DAYS", "Deleted rooms", "retention period"),
+        ):
+            purge_days = getattr(cls, setting_name)
+            if not purge_days:
+                continue
             if not cls.RECORDING_EXPIRATION_DAYS:
                 warnings.warn(
-                    "ROOM_INACTIVITY_DELETION_DAYS is set but "
-                    "RECORDING_EXPIRATION_DAYS is not. Recordings never expire, so "
-                    "inactive rooms holding a saved recording will never be purged.",
+                    f"{setting_name} is set but RECORDING_EXPIRATION_DAYS is not. "
+                    f"Recordings never expire, so {rooms.lower()} holding a saved "
+                    "recording will never be purged.",
                     UserWarning,
                     stacklevel=2,
                 )
-            elif cls.RECORDING_EXPIRATION_DAYS >= cls.ROOM_INACTIVITY_DELETION_DAYS:
+            elif cls.RECORDING_EXPIRATION_DAYS >= purge_days:
                 warnings.warn(
                     "RECORDING_EXPIRATION_DAYS is greater than or equal to "
-                    "ROOM_INACTIVITY_DELETION_DAYS. Inactive rooms holding a saved "
-                    "recording will be kept past the inactivity period, until their "
-                    "recordings expire.",
+                    f"{setting_name}. {rooms} holding a saved recording will be "
+                    f"kept past the {period}, until their recordings expire.",
                     UserWarning,
                     stacklevel=2,
                 )
