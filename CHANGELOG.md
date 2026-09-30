@@ -13,6 +13,10 @@ and this project adheres to
 - 🔒(backend) throttle meeting link generation
 - 🔒️(backend) add a daily cap on room creation
 
+### Fixed
+
+- 🔒️(agents) fix CVE-2026-53612 to CVE-2026-53615 in util-linux
+
 ## [1.33.0] - 2026-09-30
 
 ### Added

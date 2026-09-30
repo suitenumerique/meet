@@ -1,4 +1,4 @@
-FROM python:3.14.6-slim AS base
+FROM python:3.14.7-slim AS base
 
 # Install system dependencies required by LiveKit, fetching packages over HTTPS only for Bureautix proxy
 RUN sed -i "s|^URIs: http://|URIs: https://|" /etc/apt/sources.list.d/debian.sources \
