@@ -57,6 +57,7 @@ jobs:
       is_multi_platform: ${{ startsWith(github.ref, 'refs/tags/v') }}
       should_push: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'integration/') }}
       trivy_scan: true
+      trivy_ignore_files: ./.github/.trivyignore
     secrets:
       DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
