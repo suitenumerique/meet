@@ -27,7 +27,7 @@ jobs:
           - service: summary
             working_directory: src/summary
             pylint_targets: ""
-    uses: suitenumerique/ci/.github/workflows/_python-lint.yml@main
+    uses: suitenumerique/ci/.github/workflows/_python-lint.yml@ca6401ac83e981e5b0a94f06f68baaa6e6d0a436 # v0.0.1
     with:
       working_directory: ${{ matrix.working_directory }}
       python_version: "3.13"
@@ -95,7 +95,7 @@ jobs:
           sudo mkdir -p /data/static
 
       - name: Build or restore the mail templates
-        uses: suitenumerique/ci/actions/mail-templates@main
+        uses: suitenumerique/ci/actions/mail-templates@ca6401ac83e981e5b0a94f06f68baaa6e6d0a436 # v0.0.1
 
       # Creates the access key and the bucket on startup
       - name: Start Garage

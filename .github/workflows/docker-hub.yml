@@ -47,7 +47,7 @@ jobs:
             context: ./src/agents
             file: ./src/agents/Dockerfile
             target: production
-    uses: suitenumerique/ci/.github/workflows/_docker-publish.yml@main
+    uses: suitenumerique/ci/.github/workflows/_docker-publish.yml@ca6401ac83e981e5b0a94f06f68baaa6e6d0a436 # v0.0.1
     with:
       image_name: ${{ matrix.image_name }}
       context: ${{ matrix.context }}
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - uses: suitenumerique/ci/actions/argocd-webhook-notification@main
+      - uses: suitenumerique/ci/actions/argocd-webhook-notification@ca6401ac83e981e5b0a94f06f68baaa6e6d0a436 # v0.0.1
         id: notify
         with:
           deployment_repo_path: "${{ secrets.DEPLOYMENT_REPO_URL }}"

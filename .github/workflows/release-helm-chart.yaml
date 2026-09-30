@@ -14,4 +14,4 @@ jobs:
   release:
     permissions:
       contents: write
-    uses: suitenumerique/ci/.github/workflows/_release-helm-chart.yml@main
+    uses: suitenumerique/ci/.github/workflows/_release-helm-chart.yml@ca6401ac83e981e5b0a94f06f68baaa6e6d0a436 # v0.0.1
