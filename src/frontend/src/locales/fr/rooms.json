@@ -3,7 +3,8 @@
     "heading": {
       "normal": "Vous avez quitté la réunion",
       "duplicateIdentity": "Vous avez rejoint la réunion depuis un autre appareil",
-      "participantRemoved": "Vous avez été exclu de l'appel par un administrateur"
+      "participantRemoved": "Vous avez été exclu de l'appel par un administrateur",
+      "roomDeleted": "Cette réunion a été supprimée"
     },
     "home": "Retourner à l'accueil",
     "back": "Réintégrer la réunion"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "Vous ne pouvez pas participer à cet appel",
       "body": "Personne n'a répondu à votre demande de participation à l'appel"
+    },
+    "deleted": {
+      "title": "Vous ne pouvez pas participer à cet appel",
+      "body": "Cette réunion a été supprimée."
     }
   },
   "leaveRoomPrompt": "Revenir à l'accueil vous fera quitter la réunion.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Authentification requise",
       "body": "Cette réunion n'a pas encore été créée. Veuillez vous authentifier pour la créer ou attendre qu'un utilisateur authentifié le fasse."
+    },
+    "deletedRoom": {
+      "heading": "Réunion supprimée",
+      "body": "Cette réunion a été supprimée et n'est plus accessible."
     },
     "screenShare": {
       "title": "Impossible de partager votre écran",

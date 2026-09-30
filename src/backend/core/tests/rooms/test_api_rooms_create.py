@@ -116,6 +116,29 @@ def test_api_rooms_create_authenticated_existing_slug():
     assert response.json() == {"slug": ["Room with this Slug already exists."]}
 
 
+def test_api_rooms_create_authenticated_slug_held_by_soft_deleted_room():
+    """
+    A deleted room keeps its slug: creating a room with the same name should
+    fail validation rather than hit the database constraint.
+    """
+    RoomFactory(name="my room").soft_delete()
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {
+            "name": "My Room!",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"slug": ["Room with this Slug already exists."]}
+    assert Room.all_objects.count() == 1
+
+
 def test_api_rooms_create_authenticated_user_default_access_level():
     """
     The user's default room access level should be applied to the new room

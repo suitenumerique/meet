@@ -3,7 +3,8 @@
     "heading": {
       "normal": "You have left the meeting",
       "duplicateIdentity": "You have joined the meeting from another device",
-      "participantRemoved": "You have been removed from the meeting by a host"
+      "participantRemoved": "You have been removed from the meeting by a host",
+      "roomDeleted": "This meeting has been deleted"
     },
     "home": "Return to home",
     "back": "Rejoin the meeting"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "You cannot join this call",
       "body": "No one responded to your request"
+    },
+    "deleted": {
+      "title": "You cannot join this call",
+      "body": "This meeting has been deleted."
     }
   },
   "leaveRoomPrompt": "This will make you leave the meeting.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Authentication Required",
       "body": "This room has not been created yet. Please authenticate to create it or wait for an authenticated user to do so."
+    },
+    "deletedRoom": {
+      "heading": "Meeting deleted",
+      "body": "This meeting has been deleted and can no longer be joined."
     },
     "screenShare": {
       "title": "Unable to share your screen",

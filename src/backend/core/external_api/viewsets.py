@@ -22,11 +22,13 @@ from rest_framework import (
 from rest_framework import (
     status as drf_status,
 )
+from rest_framework.generics import get_object_or_404
 
 from core import analytics, api, models
+from core.api.exceptions import ensure_room_not_deleted
 from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
-from core.services.room_management import RoomManagement
+from core.services.room_management import RoomManagement, RoomManagementException
 
 from ..services.provisional_user_service import (
     ProvisionalUserCreationDisabledError,
@@ -142,6 +144,7 @@ class ApplicationViewSet(viewsets.ViewSet):
 
 class RoomViewSet(
     mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
@@ -159,9 +162,13 @@ class RoomViewSet(
     - create: Create a new room owned by the user (requires 'rooms:create' scope)
     - partial_update: Update a room's access level and configuration, for
       administrators and owners only (requires 'rooms:update' scope)
+    - destroy: Soft delete a room and close its LiveKit room, for owners only
+      (requires 'rooms:delete' scope)
+
+    Detail operations on a soft-deleted room answer 410 Gone.
     """
 
-    http_method_names = ["get", "post", "patch", "head", "options"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     authentication_classes = [
         authentication.ApplicationJWTAuthentication,
@@ -175,6 +182,17 @@ class RoomViewSet(
     ]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
+
+    def get_object(self):
+        """Get the room, answer 410 if it has been deleted.
+
+        Permissions are checked first so a deleted room is only revealed to
+        users who would have been granted access to it.
+        """
+        room = get_object_or_404(models.Room.all_objects, pk=self.kwargs["pk"])
+        self.check_object_permissions(self.request, room)
+        ensure_room_not_deleted(room)
+        return room
 
     def list(self, request, *args, **kwargs):
         """Limit listed rooms to the ones related to the authenticated user."""
@@ -238,6 +256,16 @@ class RoomViewSet(
         )
 
         self._track_room_event(room, analytics.AnalyticsEvent.ROOM_CREATED)
+
+    def perform_destroy(self, instance):
+        """Soft delete the room, close its LiveKit room, then log and track it."""
+        try:
+            RoomManagement.soft_delete(instance)
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException(
+                "Could not delete the room, please try again."
+            ) from e
+        self._track_room_event(instance, analytics.AnalyticsEvent.ROOM_DELETED)
 
     def perform_update(self, serializer: serializers.RoomSerializer):
         """Persist the room update, sync it to LiveKit, then log and track it."""

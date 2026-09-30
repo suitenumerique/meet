@@ -3,7 +3,8 @@
     "heading": {
       "normal": "Du hast das Meeting verlassen",
       "duplicateIdentity": "Du bist dem Meeting von einem anderen Gerät aus beigetreten",
-      "participantRemoved": "Du wurdest vom Host aus dem Meeting entfernt"
+      "participantRemoved": "Du wurdest vom Host aus dem Meeting entfernt",
+      "roomDeleted": "Dieses Meeting wurde gelöscht"
     },
     "home": "Zur Startseite zurückkehren",
     "back": "Dem Meeting erneut beitreten"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "Du kannst diesem Meeting nicht beitreten",
       "body": "Niemand hat auf deine Anfrage reagiert"
+    },
+    "deleted": {
+      "title": "Du kannst diesem Meeting nicht beitreten",
+      "body": "Dieses Meeting wurde gelöscht."
     }
   },
   "leaveRoomPrompt": "Hiermit verlässt du das Meeting.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Authentifizierung erforderlich",
       "body": "Dieser Raum wurde noch nicht erstellt. Bitte authentifiziere dich, um ihn zu erstellen, oder warte, bis eine authentifizierte Person dies tut."
+    },
+    "deletedRoom": {
+      "heading": "Meeting gelöscht",
+      "body": "Dieses Meeting wurde gelöscht und kann nicht mehr betreten werden."
     },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",
