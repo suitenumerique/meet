@@ -982,7 +982,7 @@ class Base(Configuration):
         environ_prefix=None,
     )
     LOBBY_COOKIE_NAME = values.Value(
-        "lobbyParticipantId",
+        "lobbyGuest",
         environ_name="LOBBY_COOKIE_NAME",
         environ_prefix=None,
     )

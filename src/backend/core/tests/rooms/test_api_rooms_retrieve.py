@@ -3,14 +3,20 @@ Test rooms API endpoints in the Meet core app: retrieve.
 """
 
 import random
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpRequest
 from django.test.utils import override_settings
 from django.utils import timezone
 
 import pytest
+from freezegun import freeze_time
 from rest_framework.test import APIClient
+
+from core.services.lobby import LobbyService
 
 from ...factories import RoomFactory, UserFactory, UserResourceAccessFactory
 from ...models import RoleChoices, RoomAccessLevel
@@ -525,3 +531,137 @@ def test_api_rooms_retrieve_last_started_at_not_exposed(role, access_level):
 
     assert response.status_code == 200
     assert "last_started_at" not in response.json()
+
+
+@mock.patch("core.utils.generate_token", return_value="foo")
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+def test_api_rooms_retrieve_anonymous_public_issues_lobby_identity(
+    mock_token, settings
+):
+    """A guest entering a public room directly gets the lobby's signed identity."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert response["Cache-Control"] == "no-store"
+    cookie = response.cookies[settings.LOBBY_COOKIE_NAME]
+    assert cookie["httponly"] is True
+    assert cookie["secure"] is True
+
+    identity = mock_token.call_args.kwargs["participant_id"]
+    assert identity.startswith("guest_")
+
+    replay = HttpRequest()
+    replay.COOKIES[settings.LOBBY_COOKIE_NAME] = cookie.value
+    assert LobbyService.get_or_create_participant_id(replay, room.id) == identity
+
+
+@mock.patch("core.utils.generate_token", return_value="foo")
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+def test_api_rooms_retrieve_authenticated_public_sets_no_guest_cookie(
+    mock_token, settings
+):
+    """Authenticated users are identified by their sub, never by a guest cookie."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+    client.force_login(UserFactory())
+
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert settings.LOBBY_COOKIE_NAME not in response.cookies
+    assert mock_token.call_args.kwargs["participant_id"] is None
+
+
+@mock.patch("core.utils.generate_token", return_value="foo")
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+def test_api_rooms_retrieve_anonymous_public_one_guest_cookie(mock_token, settings):
+    """A guest opening many public rooms keeps a single cookie.
+
+    gunicorn refuses a Cookie header past 8190 bytes, so a cookie per room
+    locks the browser out after about thirty meetings.
+    """
+    client = APIClient()
+
+    for _ in range(40):
+        room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+        response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+        assert response.status_code == 200
+
+    assert list(client.cookies) == [settings.LOBBY_COOKIE_NAME]
+    identities = {call.kwargs["participant_id"] for call in mock_token.call_args_list}
+    assert len(identities) == 40
+
+
+@mock.patch("core.utils.generate_token", return_value="foo")
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+def test_api_rooms_retrieve_anonymous_public_identity_outlives_first_issue(
+    mock_token, settings
+):
+    """A guest who keeps visiting keeps one identity past the signature age."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+    start = datetime(2026, 9, 29, 8, 0, tzinfo=dt_timezone.utc)
+    age = timedelta(seconds=settings.SESSION_COOKIE_AGE)
+
+    for elapsed in (timedelta(0), age - timedelta(hours=1), age + timedelta(minutes=1)):
+        with freeze_time(start + elapsed):
+            response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+        assert response.status_code == 200
+
+    identities = [call.kwargs["participant_id"] for call in mock_token.call_args_list]
+    assert identities == [identities[0]] * 3
+
+
+@mock.patch("core.utils.generate_token", return_value="foo")
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+def test_api_rooms_retrieve_anonymous_public_identity_expires_when_idle(
+    mock_token, settings
+):
+    """A guest idle past the signature age gets a new identity."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    client = APIClient()
+    start = datetime(2026, 9, 29, 8, 0, tzinfo=dt_timezone.utc)
+    age = timedelta(seconds=settings.SESSION_COOKIE_AGE)
+
+    for elapsed in (timedelta(0), age + timedelta(minutes=1)):
+        with freeze_time(start + elapsed):
+            response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+        assert response.status_code == 200
+
+    first, second = [
+        call.kwargs["participant_id"] for call in mock_token.call_args_list
+    ]
+    assert first != second

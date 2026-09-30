@@ -99,7 +99,7 @@ def test_trusted_room_present_user_can_accept_entry(mock_check):
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/enter/",
-        {"participant_id": "2f7f162f-e7d1-421b-90e7-02bfbfbf8def", "allow_entry": True},
+        {"participant_id": "guest_" + "a" * 40, "allow_entry": True},
     )
     # Permission passed; 404 because that participant isn't actually waiting.
     assert response.status_code == 404

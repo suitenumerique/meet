@@ -24,6 +24,7 @@ and this project adheres to
 - 🐛(summary) disable default S3 checksums for GCS-compatible storage
 - 🔒️(summary) redact meeting content from Sentry events
 - 🐛(frontend) hide tooltips until they have a computed placement
+- 🔒️(backend) sign guest identities and scope them to each room
 
 ## [1.33.0] - 2026-09-30
 

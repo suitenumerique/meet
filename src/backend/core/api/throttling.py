@@ -1,10 +1,10 @@
 """Throttling modules for the API."""
 
-from django.conf import settings
-
 from lasuite.drf.throttling import MonitoredThrottleMixin
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import capture_message
+
+from core.services.lobby import LobbyService
 
 
 def sentry_monitoring_throttle_failure(message):
@@ -67,7 +67,7 @@ class RequestEntryAnonRateThrottle(MonitoredAnonRateThrottle):
     scope = "request_entry"
 
     def get_cache_key(self, request, view):
-        """Use the lobby participant cookie ID as the throttle cache key.
+        """Use the guest capability in the lobby cookie as the throttle cache key.
 
         Only throttle if a cookie is already set. If no cookie exists yet,
         return None to skip throttling — the cookie will be set on the first
@@ -85,14 +85,14 @@ class RequestEntryAnonRateThrottle(MonitoredAnonRateThrottle):
         if request.user and request.user.is_authenticated:
             return None  # Only throttle unauthenticated requests.
 
-        participant_id = request.COOKIES.get(settings.LOBBY_COOKIE_NAME)
+        capability = LobbyService.read_guest_capability(request)
 
-        if participant_id is None:
-            return None  # No throttling for cookieless requests
+        if capability is None:
+            return None  # No throttling without a valid guest cookie
 
         return self.cache_format % {
             "scope": self.scope,
-            "ident": participant_id,
+            "ident": capability,
         }
 
 
