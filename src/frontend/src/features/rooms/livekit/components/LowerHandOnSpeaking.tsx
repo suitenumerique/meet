@@ -9,13 +9,9 @@ import {
 const SPEAKING_DETECTION_DELAY = 3000
 
 /**
- * Offers to lower the local participant's raised hand once they have been
- * speaking for SPEAKING_DETECTION_DELAY.
- *
- * Mounted once beside the room rather than inside HandToggle: the
- * picture-in-picture window draws a second control bar, so a second copy of
- * the button would run a second timer, and the offer the user dismissed on one
- * toast would still be honoured by the other.
+ * Offers to lower the local participant's raised hand after
+ * SPEAKING_DETECTION_DELAY of speaking. Mount it once: each copy runs its own
+ * timer and shows its own toast.
  */
 export const LowerHandOnSpeaking = () => {
   const room = useRoomContext()
