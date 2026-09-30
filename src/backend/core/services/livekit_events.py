@@ -271,26 +271,49 @@ class LiveKitEventsService:
             )
             raise ActionFailedError("Failed to process room started event") from e
 
-        room_updated_count = models.Room.objects.filter(pk=room_id).update(
+        try:
+            room = models.Room.all_objects.get(id=room_id)
+        except models.Room.DoesNotExist as err:
+            raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
+
+        # The block below is intended to fix the issue where long-lived livekit
+        # tokens allow users who already entered a room to re-create it,
+        # even if it was closed.
+        if room.is_deleted:
+            self._close_deleted_room(room_id)
+            return
+
+        # Update through the queryset to skip the full_clean run by save()
+        models.Room.all_objects.filter(pk=room.pk).update(
             last_started_at=timezone.now()
         )
-        if not room_updated_count:
-            raise ActionFailedError(f"Room with ID {room_id} does not exist")
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
-            try:
-                room = models.Room.objects.get(pk=room_id)
-            except models.Room.DoesNotExist as err:
-                raise ActionFailedError(
-                    f"Room with ID {room_id} does not exist"
-                ) from err
-
             try:
                 self.sip_management.ensure_dispatch_rule(room)
             except SIPException as e:
                 raise ActionFailedError(
                     f"Failed to create sip dispatch rule for room {room_id}"
                 ) from e
+
+    @staticmethod
+    def _close_deleted_room(room_id):
+        """Close a LiveKit room recreated after its room was soft deleted.
+
+        LiveKit auto-creates a room on join, so a participant still holding a
+        valid token can bring a deleted room back to life until the token expires.
+        """
+
+        logger.warning(
+            "LiveKit room %s started for a deleted room, closing it", room_id
+        )
+
+        try:
+            RoomManagement.delete_room(str(room_id))
+        except RoomNotFoundException:
+            logger.info("LiveKit room %s is already closed", room_id)
+        except RoomManagementException as e:
+            raise ActionFailedError(f"Failed to close deleted room {room_id}") from e
 
     def _handle_room_finished(self, data):
         """Handle 'room_finished' event."""

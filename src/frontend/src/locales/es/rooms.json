@@ -3,7 +3,8 @@
     "heading": {
       "normal": "Has salido de la reunión",
       "duplicateIdentity": "Te has unido a la reunión desde otro dispositivo",
-      "participantRemoved": "Un administrador te ha expulsado de la llamada"
+      "participantRemoved": "Un administrador te ha expulsado de la llamada",
+      "roomDeleted": "Esta reunión ha sido eliminada"
     },
     "home": "Volver al inicio",
     "back": "Volver a la reunión"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "No puedes participar en esta llamada",
       "body": "Nadie ha respondido a tu solicitud de participación en la llamada"
+    },
+    "deleted": {
+      "title": "No puedes participar en esta llamada",
+      "body": "Esta reunión ha sido eliminada."
     }
   },
   "leaveRoomPrompt": "Volver al inicio hará que salgas de la reunión.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Autenticación necesaria",
       "body": "Esta reunión todavía no se ha creado. Autentícate para crearla o espera a que lo haga un usuario autenticado."
+    },
+    "deletedRoom": {
+      "heading": "Reunión eliminada",
+      "body": "Esta reunión ha sido eliminada y ya no es posible unirse a ella."
     },
     "screenShare": {
       "title": "No se puede compartir tu pantalla",

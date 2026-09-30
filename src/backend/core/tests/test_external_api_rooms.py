@@ -26,7 +26,11 @@ from core.models import (
     RoomAccessLevel,
     User,
 )
-from core.services.room_management import RoomManagement
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -561,6 +565,53 @@ def test_api_rooms_retrieve_not_found():
 
     assert response.status_code == 404
     assert "no room matches the given query." in str(response.data).lower()
+
+
+def test_api_rooms_retrieve_invalid_id():
+    """Retrieving a room with a malformed id should return a 404."""
+
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/not-a-uuid/")
+
+    assert response.status_code == 404
+
+
+def test_api_rooms_retrieve_soft_deleted():
+    """Retrieving a soft-deleted room should return a 410."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+    room.soft_delete()
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 410
+    assert response.json() == {"detail": "This room has been deleted."}
+
+
+def test_api_rooms_retrieve_soft_deleted_not_member():
+    """Retrieving a soft-deleted room without any role on it should return a 403,
+    not revealing that the room has been deleted."""
+
+    user = UserFactory()
+    room = RoomFactory()
+    room.soft_delete()
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
 
 
 def test_api_rooms_create_requires_authentication():
@@ -1390,6 +1441,204 @@ def test_api_rooms_update_tracks_analytics(mock_update_metadata, mock_capture):
     }
 
     mock_update_metadata.assert_called_once()
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_requires_authentication(mock_delete_room):
+    """Deleting a room without authentication should return 401."""
+
+    room = RoomFactory(users=[(UserFactory(), RoleChoices.OWNER)])
+
+    client = APIClient()
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 401
+    assert Room.objects.filter(id=room.id).exists() is True
+    mock_delete_room.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_requires_scope(mock_delete_room):
+    """Deleting a room requires the ROOMS_DELETE scope."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    # Token without ROOMS_DELETE scope
+    token = generate_test_token(
+        user, [ApplicationScope.ROOMS_RETRIEVE, ApplicationScope.ROOMS_UPDATE]
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
+    assert (
+        "insufficient permissions. required scope: rooms:delete"
+        in str(response.data).lower()
+    )
+    assert Room.objects.filter(id=room.id).exists() is True
+    mock_delete_room.assert_not_called()
+
+
+@pytest.mark.parametrize("role", [RoleChoices.ADMIN, RoleChoices.MEMBER, None])
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_without_ownership(mock_delete_room, role):
+    """Only owners should be able to delete a room, administrators included."""
+
+    user = UserFactory()
+    users = [(user, role)] if role else []
+    room = RoomFactory(users=users)
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
+    assert Room.objects.filter(id=room.id).exists() is True
+    mock_delete_room.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_unknown_room(mock_delete_room):
+    """Deleting a room that does not exist should return 404."""
+
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{uuid.uuid4()}/")
+
+    assert response.status_code == 404
+    mock_delete_room.assert_not_called()
+
+
+@mock.patch("core.external_api.viewsets.analytics.capture")
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_success(mock_delete_room, mock_capture):
+    """Owners should be able to delete a room: it is soft deleted, its LiveKit
+    room is closed and a ROOM_DELETED analytics event is emitted."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)], access_level=RoomAccessLevel.TRUSTED
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 204
+    mock_delete_room.assert_called_once_with(str(room.id))
+    assert Room.objects.filter(id=room.id).exists() is False
+    assert Room.all_objects.get(id=room.id).deleted_at is not None
+
+    mock_capture.assert_called_once()
+    captured_user, event, properties = mock_capture.call_args[0]
+
+    assert captured_user == user
+    assert event == AnalyticsEvent.ROOM_DELETED
+    assert properties == {
+        "room_id": str(room.pk),
+        "access_level": RoomAccessLevel.TRUSTED,
+        "client_id": str(application.client_id),
+        "external_api": True,
+        "auth_method": "ApplicationJWTAuthentication",
+        "$set": {"email": user.email},
+    }
+
+
+@mock.patch("core.external_api.viewsets.analytics.capture")
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_api_rooms_delete_livekit_failure(mock_delete_room, mock_capture):
+    """When the LiveKit room can't be closed, the deletion should be rolled back
+    and no analytics event emitted."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Could not delete the room, please try again."}
+    mock_delete_room.assert_called_once_with(str(room.id))
+    assert Room.objects.get(id=room.id).deleted_at is None
+    mock_capture.assert_not_called()
+
+
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomNotFoundException("Room does not exist"),
+)
+def test_api_rooms_delete_room_not_live(mock_delete_room):
+    """Deleting a room that is not live in LiveKit should still soft delete it."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 204
+    mock_delete_room.assert_called_once_with(str(room.id))
+    assert Room.objects.filter(id=room.id).exists() is False
+    assert Room.all_objects.get(id=room.id).deleted_at is not None
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_soft_deleted(mock_delete_room):
+    """Deleting a room that is already soft deleted should return a 410."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+    room.soft_delete()
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 410
+    mock_delete_room.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_soft_deleted_not_owner(mock_delete_room):
+    """Deleting a soft-deleted room as a non-owner should return a 403,
+    not revealing that the room has been deleted."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.ADMIN)])
+    room.soft_delete()
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
+    mock_delete_room.assert_not_called()
 
 
 def test_api_rooms_response_no_url(settings):
