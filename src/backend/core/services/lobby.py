@@ -149,7 +149,7 @@ class LobbyService:
         The cookie ends with the browser session, and its signature expires
         after SESSION_COOKIE_AGE unless prepare_response renews it on a visit.
         """
-        cookie_value = request.COOKIES.get(settings.LOBBY_COOKIE_NAME)
+        cookie_value = request.COOKIES.get(settings.LOBBY_GUEST_COOKIE_NAME)
         if not cookie_value:
             return None
         try:
@@ -190,7 +190,7 @@ class LobbyService:
         # A token plus a Set-Cookie must never be served from a shared cache.
         response["Cache-Control"] = "no-store"
         response.set_cookie(
-            key=settings.LOBBY_COOKIE_NAME,
+            key=settings.LOBBY_GUEST_COOKIE_NAME,
             value=cls.sign_guest_capability(capability),
             httponly=True,
             secure=True,

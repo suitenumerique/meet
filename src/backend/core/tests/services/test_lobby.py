@@ -161,7 +161,7 @@ def guest_request(cookie=None):
     """Return a request carrying the given lobby cookie, if any."""
     request = HttpRequest()
     if cookie is not None:
-        request.COOKIES[settings.LOBBY_COOKIE_NAME] = cookie
+        request.COOKIES[settings.LOBBY_GUEST_COOKIE_NAME] = cookie
     return request
 
 
@@ -190,7 +190,7 @@ def test_get_or_create_participant_id_new(lobby_service):
     response = HttpResponse()
     lobby_service.prepare_response(response, request)
 
-    cookie = response.cookies[settings.LOBBY_COOKIE_NAME].value
+    cookie = response.cookies[settings.LOBBY_GUEST_COOKIE_NAME].value
     assert participant_id.startswith("guest_")
     assert participant_id == lobby_service.get_or_create_participant_id(
         guest_request(cookie), room.id
@@ -252,7 +252,7 @@ def test_prepare_response_without_guest(lobby_service):
 
     lobby_service.prepare_response(response, guest_request())
 
-    assert settings.LOBBY_COOKIE_NAME not in response.cookies
+    assert settings.LOBBY_GUEST_COOKIE_NAME not in response.cookies
     assert not response.has_header("Cache-Control")
 
 
@@ -265,7 +265,7 @@ def test_prepare_response_new_cookie(lobby_service):
 
     lobby_service.prepare_response(response, request)
 
-    cookie = response.cookies.get(settings.LOBBY_COOKIE_NAME)
+    cookie = response.cookies.get(settings.LOBBY_GUEST_COOKIE_NAME)
     assert cookie is not None
     assert cookie.value != participant_id
     assert cookie["httponly"] is True
@@ -420,7 +420,7 @@ def test_request_entry_new_participant(
 ):
     """Test requesting entry for a new participant."""
     request = mock.Mock()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.COOKIES = {settings.LOBBY_GUEST_COOKIE_NAME: participant_id}
     request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -451,7 +451,7 @@ def test_request_entry_waiting_participant(
 ):
     """Test requesting entry for a waiting participant."""
     request = mock.Mock()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.COOKIES = {settings.LOBBY_GUEST_COOKIE_NAME: participant_id}
     request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -481,7 +481,7 @@ def test_request_entry_accepted_participant(
     """Test requesting entry for an accepted participant."""
     request = mock.Mock()
     request.user = AnonymousUser()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.COOKIES = {settings.LOBBY_GUEST_COOKIE_NAME: participant_id}
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
@@ -520,7 +520,7 @@ def test_request_entry_participant_with_role(
     """Test requesting entry for a participant with a role on the room."""
     request = mock.Mock()
     request.user = UserFactory()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.COOKIES = {settings.LOBBY_GUEST_COOKIE_NAME: participant_id}
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 

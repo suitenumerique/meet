@@ -177,9 +177,9 @@ for the full setting reference, the shipped profile table and the tuning caveats
 
 ### Guest cookie signed and renamed
 
-The cookie that identifies a guest who is not signed in now holds a signed value, and its default name moves from `lobbyParticipantId` to `lobbyGuest`, so a pod still on the previous release never reads it.
+The cookie that identifies a guest who is not signed in now holds a signed value. Its name comes from the new `LOBBY_GUEST_COOKIE_NAME`, default `lobbyGuest`, so a pod still on the previous release never reads it.
 
-- If you set `LOBBY_COOKIE_NAME`, give it a new value for this release. A pod on the previous release that reads the new cookie lists the signed value as the guest's id, and admitting that guest fails.
+- `LOBBY_COOKIE_NAME` is no longer read, so remove it. Never give `LOBBY_GUEST_COOKIE_NAME` the value it held, since a pod on the previous release would read the signed cookie under that name.
 - Guests waiting in a lobby during the upgrade queue again.
 
 ## v1.30.0

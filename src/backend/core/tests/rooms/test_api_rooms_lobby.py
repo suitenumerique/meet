@@ -32,7 +32,7 @@ def test_request_entry_anonymous(settings):
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Lobby cache should be empty before the request
@@ -85,7 +85,7 @@ def test_request_entry_authenticated_user(settings):
     client = APIClient()
     client.force_login(user)
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Lobby cache should be empty before the request
@@ -138,7 +138,7 @@ def test_request_entry_with_existing_participants(settings):
     client = APIClient()
 
     # Configure test settings for cookies and cache
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Add two participants already waiting in the lobby
@@ -214,7 +214,7 @@ def test_request_entry_public_room(settings):
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Lobby cache should be empty before the request
@@ -264,7 +264,7 @@ def test_request_entry_authenticated_user_public_room(settings):
     client = APIClient()
     client.force_login(user)
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     # Lobby cache should be empty before the request
@@ -312,7 +312,7 @@ def test_request_entry_waiting_participant_public_room(settings):
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
 
     guest_cookie = LobbyService.sign_guest_capability(str(uuid.uuid4()))
@@ -768,7 +768,7 @@ def test_request_entry_throttling_anonymous_without_cookie(
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "1/minute"
 
     response = client.post(
@@ -800,7 +800,7 @@ def test_request_entry_throttling_anonymous_with_cookie(
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "2/minute"
 
     # A capability of its own, since the throttle cache is shared across tests
@@ -842,7 +842,7 @@ def test_request_entry_throttling_authenticated_user(
     client = APIClient()
     client.force_login(user)
 
-    settings.LOBBY_COOKIE_NAME = "mocked-cookie"
+    settings.LOBBY_GUEST_COOKIE_NAME = "mocked-cookie"
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["request_entry"] = "2/minute"
 
     response = client.post(
