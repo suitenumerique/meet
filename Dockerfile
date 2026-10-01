@@ -37,14 +37,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --locked --no-dev
 
 # ---- mails ----
-FROM node:22 AS mail-builder
+FROM node:22-alpine AS mail-builder
 
 COPY ./src/mail /mail/app
 
 WORKDIR /mail/app
 
-RUN yarn install --frozen-lockfile && \
-  yarn build
+RUN npm ci --ignore-scripts && npm run build
 
 
 # ---- static link collector ----
