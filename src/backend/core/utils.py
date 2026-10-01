@@ -401,6 +401,8 @@ def _get_s3_client(*, override_domain: bool = True):
             config=botocore.client.Config(
                 region_name=settings.AWS_S3_REGION_NAME,
                 signature_version=settings.AWS_S3_SIGNATURE_VERSION,
+                request_checksum_calculation=settings.AWS_REQUEST_CHECKSUM_CALCULATION,
+                response_checksum_validation=settings.AWS_RESPONSE_CHECKSUM_VALIDATION,
             ),
         )
     return default_storage.connection.meta.client
