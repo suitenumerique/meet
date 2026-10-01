@@ -8,6 +8,10 @@ const IGNORED_EXCEPTION_PATTERNS = [
   // the close reason is already logged by the SDK.
   // See: https://github.com/livekit/client-sdk-js/issues/2062
   /^Event captured as exception with keys: isTrusted$/,
+  // LiveKit logs a rejected setSinkId on remote audio attach and already
+  // swallows it. capture_console_errors turns that log into an exception
+  // and stringifies the real error as [object Object].
+  /^Failed to set sink id on remote audio track/,
 ]
 
 const shouldIgnoreException = (value: unknown): boolean =>
