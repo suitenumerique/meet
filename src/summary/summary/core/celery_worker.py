@@ -442,6 +442,19 @@ def call_webhook_v2_task(
         payload=webhook_payload_adapter.validate_python(payload), tenant_id=tenant_id
     )
 
+MOCK_TRANSCRIPT_JSON = """
+{
+  "segments": [
+    {"start": 0.0, "end": 0.9, "text": "Bonjour à tous.", "speaker": "SPEAKER_00"}
+  ],
+  "word_segments": [
+    {"word": "Bonjour", "start": 0.0, "end": 0.42, "score": 0.98},
+    {"word": "à", "start": 0.45, "end": 0.52, "score": 0.95},
+    {"word": "tous.", "start": 0.55, "end": 0.9, "score": 0.97}
+  ]
+}
+"""
+
 
 @celery.task(
     bind=True,
@@ -473,6 +486,13 @@ def process_audio_transcribe_v2_task(
     )
 
     job_id = self.request.id
+
+    transcription_res = WhisperXResponse.model_validate_json(MOCK_TRANSCRIPT_JSON)
+
+    file_service.store_transcript(
+        transcript=transcription_res,
+        job_id=job_id,
+    )
 
     try:
         transcription_res = WhisperXResponse(
