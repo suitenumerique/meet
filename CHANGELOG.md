@@ -21,6 +21,7 @@ and this project adheres to
 - 🔒️(agents) upgrade libpcre2-8-0 to fix CVE-2026-103111
 - 🔒️(frontend) upgrade pcre2 to fix CVE-2026-103111
 - 🐛(summary) disable default S3 checksums for GCS-compatible storage
+- 🔒️(summary) redact meeting content from Sentry events
 
 ## [1.33.0] - 2026-09-30
 
