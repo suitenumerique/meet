@@ -143,8 +143,12 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
     }
 
     mock_token.assert_called_once_with(
-        room="unregistered-room", user=AnonymousUser(), username=None
+        room="unregistered-room",
+        user=AnonymousUser(),
+        username=None,
+        participant_id=mock.ANY,
     )
+    assert mock_token.call_args.kwargs["participant_id"].startswith("guest_")
 
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=True)
@@ -178,8 +182,35 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
     }
 
     mock_token.assert_called_once_with(
-        room="reunion", user=AnonymousUser(), username=None
+        room="reunion",
+        user=AnonymousUser(),
+        username=None,
+        participant_id=mock.ANY,
     )
+    assert mock_token.call_args.kwargs["participant_id"].startswith("guest_")
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+@override_settings(
+    LIVEKIT_CONFIGURATION={
+        "api_key": "key",
+        "api_secret": "secret",
+        "url": "test_url_value",
+    }
+)
+@mock.patch("core.utils.generate_token", return_value="foo")
+def test_api_rooms_retrieve_anonymous_unregistered_keeps_identity(mock_token, settings):
+    """A guest keeps one identity in an unregistered room, as in any other."""
+    client = APIClient()
+    for slug in ("unregistered-room", "unregistered-room", "another-room"):
+        response = client.get(f"/api/v1.0/rooms/{slug}/")
+        assert response.status_code == 200
+
+    first, again, other = [
+        call.kwargs["participant_id"] for call in mock_token.call_args_list
+    ]
+    assert first == again != other
+    assert list(client.cookies) == [settings.LOBBY_COOKIE_NAME]
 
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=False)

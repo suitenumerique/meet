@@ -211,6 +211,11 @@ class RoomViewSet(
                 raise
             slug = slugify(self.kwargs["pk"])
             username = request.query_params.get("username", None)
+            participant_id = (
+                LobbyService.get_or_create_participant_id(request, slug)
+                if request.user.is_anonymous
+                else None
+            )
             data = {
                 "id": None,
                 "slug": slug,
@@ -220,7 +225,10 @@ class RoomViewSet(
                     "url": settings.LIVEKIT_CONFIGURATION["url"],
                     "room": slug,
                     "token": utils.generate_token(
-                        room=slug, user=request.user, username=username
+                        room=slug,
+                        user=request.user,
+                        username=username,
+                        participant_id=participant_id,
                     ),
                 },
             }

@@ -162,7 +162,7 @@ class LobbyService:
             return None
 
     @classmethod
-    def get_or_create_participant_id(cls, request, room_id: UUID) -> str:
+    def get_or_create_participant_id(cls, request, room_id: UUID | str) -> str:
         """Return the guest's identity in one room, issuing a capability if needed.
 
         One capability per browser, never shown to anyone, gives a different
