@@ -25,6 +25,7 @@ and this project adheres to
 - 🔒️(frontend) upgrade tiff to fix CVE-2026-4775
 - 🔒️(backend) bind accepted lobby entries to the current username
 - 🔒️(backend) sign lobby participant id
+- 🐛(frontend) omit the default speaker id sent to LiveKit
 
 ## [1.34.0] - 2026-10-07
 
