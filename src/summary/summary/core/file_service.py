@@ -286,7 +286,12 @@ def _build_s3_client():
         aws_access_key_id=settings.aws_s3_access_key_id,
         aws_secret_access_key=settings.aws_s3_secret_access_key.get_secret_value(),
         region_name=settings.aws_s3_region_name,
-        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
+        config=Config(
+            signature_version="s3v4",
+            s3={"addressing_style": "path"},
+            request_checksum_calculation=settings.aws_s3_request_checksum_calculation,
+            response_checksum_validation=settings.aws_s3_response_checksum_validation,
+        ),
     )
 
 

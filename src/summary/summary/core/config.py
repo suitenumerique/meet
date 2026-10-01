@@ -84,6 +84,8 @@ class Settings(BaseSettings):
     aws_s3_secret_access_key: SecretStr
     aws_s3_secure_access: bool = True
     aws_s3_region_name: str | None = None
+    aws_s3_request_checksum_calculation: str | None = None
+    aws_s3_response_checksum_validation: str | None = None
     aws_transcript_path: str = "transcripts"
     aws_summary_path: str = "summaries"
 
