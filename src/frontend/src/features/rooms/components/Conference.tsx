@@ -45,6 +45,7 @@ import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
+import { closeScreenSharePopout } from '@/stores/screenSharePopout'
 
 export const Conference = ({
   roomId,
@@ -266,6 +267,10 @@ export const Conference = ({
             }
           }}
           onDisconnected={(e) => {
+            // Quit and a dropped connection navigate inside the app, so the
+            // page never unloads and the separate window stays open.
+            closeScreenSharePopout({ restorePin: false })
+
             const metadata = {
               room_id: roomId,
             }
