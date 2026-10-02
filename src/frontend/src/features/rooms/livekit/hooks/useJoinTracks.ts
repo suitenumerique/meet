@@ -22,10 +22,12 @@ import { VOICE_AUDIO_CONSTRAINTS } from '../utils/constants'
 import {
   saveAudioInputDeviceId,
   saveAudioInputEnabled,
+  saveProcessorConfig,
   saveVideoInputDeviceId,
   saveVideoInputEnabled,
   userChoicesStore,
 } from '@/stores/userChoices'
+import { reportError } from '@/features/analytics/telemetry'
 import { useSyncTrackDeviceId } from './useSyncTrackDeviceId'
 
 // Module-level: effect dependencies, must be referentially stable.
@@ -221,15 +223,32 @@ export function useJoinTracks(): {
     [audioDeviceId]
   )
 
-  const createVideo = useCallback(
-    () =>
-      createLocalVideoTrack({
+  const createVideo = useCallback(async () => {
+    const processor =
+      BackgroundProcessorFactory.fromProcessorConfig(processorConfig)
+    if (!processor) {
+      return createLocalVideoTrack({ deviceId: videoDeviceId })
+    }
+    try {
+      return await createLocalVideoTrack({
         deviceId: videoDeviceId,
-        processor:
-          BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
-      }),
-    [videoDeviceId, processorConfig]
-  )
+        processor,
+      })
+    } catch (error) {
+      // A camera problem (permission, device missing/busy) is not the
+      // effect's fault: let the normal media error handling deal with it
+      // without touching the user's saved effect.
+      const e = getMediaDeviceFailure(error as Error)
+      if (e !== MediaDeviceFailure.Other && !!e) {
+        throw error
+      }
+      reportError('effects_processor_failure', error, {
+        context: 'Restoring saved effect failed, retrying without it',
+      })
+      saveProcessorConfig(undefined)
+      return createLocalVideoTrack({ deviceId: videoDeviceId })
+    }
+  }, [videoDeviceId, processorConfig])
 
   const audioTrack = useLocalTrack({
     ready: audioReady,
