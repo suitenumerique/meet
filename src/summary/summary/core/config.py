@@ -128,6 +128,7 @@ class Settings(BaseSettings):
     # Sentry
     sentry_is_enabled: bool = False
     sentry_dsn: Optional[str] = None
+    sentry_traces_sample_rate: float = Field(default=0.1, ge=0.0, le=1.0)
 
     # Posthog (analytics)
     posthog_enabled: bool = False

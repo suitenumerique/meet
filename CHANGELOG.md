@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🔒(backend) throttle meeting link generation
 - 🔒️(backend) add a daily cap on room creation
+- 🔧(summary) add setting to control Sentry traces sampling rate
 
 ### Fixed
 

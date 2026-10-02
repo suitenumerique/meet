@@ -84,7 +84,7 @@ def init_sentry() -> None:
 
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
-        enable_tracing=True,
+        traces_sample_rate=settings.sentry_traces_sample_rate,
         # Never attach request bodies, Celery task arguments or user data.
         send_default_pii=False,
         # Task creation requests carry the content to summarize.
