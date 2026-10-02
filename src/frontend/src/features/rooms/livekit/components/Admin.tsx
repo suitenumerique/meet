@@ -13,7 +13,6 @@ import { usePermissionsManager } from '../hooks/usePermissionsManager'
 import { useEffect } from 'react'
 import { closeSidePanel } from '@/stores/layout'
 import { useParticipantAttribute } from '@livekit/components-react'
-import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
 import { reportError } from '@/features/analytics/telemetry'
 
 export const Admin = () => {
@@ -27,12 +26,10 @@ export const Admin = () => {
 
   const { mutateAsync: patchRoom } = usePatchRoom()
 
-  const isAdminOrOwner = useIsAdminOrOwner()
   const role = useParticipantAttribute('room_role')
 
   useEffect(() => {
-    // The LiveKit role attribute can briefly be undefined while participant
-    // attributes are refreshed. Do not close the panel during that transient state.
+    // The LiveKit role can briefly be undefined while attributes refresh.
     if (
       role !== undefined &&
       !['administrator', 'owner'].includes(role as ParticipantRole)
