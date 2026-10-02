@@ -1,17 +1,14 @@
-import * as React from 'react'
-import { createInteractingObservable } from '@livekit/components-core'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { Button } from '@/primitives'
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
+import { Toolbar } from 'react-aria-components'
 
 export interface PaginationControlProps {
   totalPageCount: number
   nextPage: () => void
   prevPage: () => void
   currentPage: number
-  pagesContainer?: React.RefObject<HTMLElement>
 }
 
 export function PaginationControl({
@@ -19,65 +16,53 @@ export function PaginationControl({
   nextPage,
   prevPage,
   currentPage,
-  pagesContainer: connectedElement,
 }: PaginationControlProps) {
   const { t } = useTranslation('rooms', { keyPrefix: 'pagination' })
-  const [interactive, setInteractive] = useState(false)
-
-  useEffect(() => {
-    let subscription:
-      | ReturnType<ReturnType<typeof createInteractingObservable>['subscribe']>
-      | undefined
-    if (connectedElement) {
-      subscription = createInteractingObservable(
-        connectedElement.current,
-        2000
-      ).subscribe(setInteractive)
-    }
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe()
-      }
-    }
-  }, [connectedElement])
 
   if (totalPageCount <= 1) return null
 
   return (
-    <nav
+    <Toolbar
       aria-label={t('label')}
       className={css({
         position: 'absolute',
         bottom: '1rem',
         left: '50%',
+        zIndex: 2,
         transform: 'translateX(-50%)',
-        alignItems: 'stretch',
-        backgroundColor: 'var(--lk-control-bg)',
-        borderRadius: 'var(--lk-border-radius)',
-        transition: 'opacity ease-in-out .15s',
-        display: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.125rem',
+        backgroundColor: 'primaryDark.50',
+        borderRadius: '2rem',
         border: '1px solid',
-        borderColor: 'primaryDark.100',
-        overflow: 'hidden',
+        borderColor: 'primaryDark.200',
+        padding: '0.375rem',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.45)',
       })}
-      style={{
-        display: interactive ? 'flex' : 'none',
-      }}
-      data-lk-user-interaction={interactive}
     >
       <Button
-        isDisabled={currentPage == 1}
+        isDisabled={currentPage === 1}
         onPress={prevPage}
-        size="xs"
-        variant="quaternaryText"
+        size="sm"
+        square
+        variant="primaryTextDark"
         aria-label={t('previous')}
+        tooltip={t('previous')}
       >
-        <RiArrowLeftSLine />
+        <RiArrowLeftSLine size={20} />
       </Button>
       <span
         role="status"
         className={css({
-          padding: '0.25rem 0.5rem',
+          color: 'white',
+          fontSize: '0.8125rem',
+          fontWeight: 500,
+          minWidth: '3.5rem',
+          textAlign: 'center',
+          userSelect: 'none',
+          padding: '0 0.35rem',
+          whiteSpace: 'nowrap',
         })}
       >
         {t('count', {
@@ -86,14 +71,16 @@ export function PaginationControl({
         })}
       </span>
       <Button
-        isDisabled={currentPage == totalPageCount}
+        isDisabled={currentPage === totalPageCount}
         onPress={nextPage}
-        size="xs"
-        variant="quaternaryText"
+        size="sm"
+        square
+        variant="primaryTextDark"
         aria-label={t('next')}
+        tooltip={t('next')}
       >
-        <RiArrowRightSLine />
+        <RiArrowRightSLine size={20} />
       </Button>
-    </nav>
+    </Toolbar>
   )
 }

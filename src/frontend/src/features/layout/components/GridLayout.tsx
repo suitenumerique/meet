@@ -67,7 +67,7 @@ export function GridLayout({ tracks, ...props }: GridLayoutProps) {
             totalPageCount={pagination.totalPageCount}
             currentPage={pagination.currentPage}
           />
-          <PaginationControl pagesContainer={gridEl} {...pagination} />
+          <PaginationControl {...pagination} />
         </>
       )}
     </div>

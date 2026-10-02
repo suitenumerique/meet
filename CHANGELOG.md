@@ -15,6 +15,7 @@ and this project adheres to
 
 ### Fixed
 
+- ♿️(frontend) make participant pagination readable and keyboard reachable #1703
 - 🐛(frontend) enforce recording-mode permissions on the checkboxes
 - 🔒️(agents) fix util-linux CVEs reported by Cyberwatch
 - 🔒️(backend) fix HIGH CVEs in Django and urllib3
