@@ -32,6 +32,15 @@
         "disable": "Disable noise reduction"
       }
     },
+    "audioLevelEqualization": {
+      "label": "Automatically balance participant audio levels",
+      "heading": "Audio level equalization",
+      "description": "Continuously adjusts each participant's volume so everyone sounds equally loud.",
+      "ariaLabel": {
+        "enable": "Enable audio level equalization",
+        "disable": "Disable audio level equalization"
+      }
+    },
     "speakers": {
       "heading": "Speakers",
       "label": "Select your audio output",

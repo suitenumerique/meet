@@ -18,6 +18,7 @@ import { isFireFox } from '@/utils/livekit'
 import { MediaStateObserver } from '../components/MediaStateObserver'
 import { RoomMetadataSynchronizer } from '../components/RoomMetadataSynchronizer'
 import { useNoiseReduction } from '../hooks/useNoiseReduction'
+import { useAudioLevelEqualization } from '../hooks/useAudioLevelEqualization'
 import { VideoResolutionSubscription } from '../components/VideoResolutionSubscription'
 import { SettingsDialogProvider } from '@/features/settings/components/SettingsDialogProvider'
 import { MuteAlertDialogProvider } from '@/features/rooms/livekit/components/MuteAlertDialogProvider'
@@ -75,6 +76,7 @@ const getScreenSharePermissionDeniedScope = (
  */
 export function VideoConference({ ...props }: VideoConferenceProps) {
   useNoiseReduction()
+  useAudioLevelEqualization()
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
 
