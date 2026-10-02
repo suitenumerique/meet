@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🔒(backend) throttle meeting link generation
 - 🔒️(backend) add a daily cap on room creation
+- ✅(frontend) add vitest so the frontend can carry unit tests
 
 ### Fixed
 
