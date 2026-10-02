@@ -4,7 +4,7 @@ import { Separator as RACSeparator } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { fetchRoom } from '@/features/rooms/api/fetchRoom'
-import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
+import { ApiAccessLevel, ParticipantRole } from '@/features/rooms/api/ApiRoom'
 import { keys } from '@/api/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
@@ -12,6 +12,7 @@ import { usePublishSourcesManager } from '../hooks/usePublishSourcesManager'
 import { usePermissionsManager } from '../hooks/usePermissionsManager'
 import { useEffect } from 'react'
 import { closeSidePanel } from '@/stores/layout'
+import { useParticipantAttribute } from '@livekit/components-react'
 import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
 import { reportError } from '@/features/analytics/telemetry'
 
@@ -27,12 +28,18 @@ export const Admin = () => {
   const { mutateAsync: patchRoom } = usePatchRoom()
 
   const isAdminOrOwner = useIsAdminOrOwner()
+  const role = useParticipantAttribute('room_role')
 
   useEffect(() => {
-    if (!isAdminOrOwner) {
+    // The LiveKit role attribute can briefly be undefined while participant
+    // attributes are refreshed. Do not close the panel during that transient state.
+    if (
+      role !== undefined &&
+      !['administrator', 'owner'].includes(role as ParticipantRole)
+    ) {
       closeSidePanel()
     }
-  }, [isAdminOrOwner])
+  }, [role])
 
   const { data: readOnlyData } = useQuery({
     queryKey: [keys.room, roomId],
