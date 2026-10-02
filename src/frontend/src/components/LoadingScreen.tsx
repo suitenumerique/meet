@@ -19,7 +19,7 @@ export const LoadingScreen = ({
       <Screen layout={layout} header={header} footer={footer}>
         <CenteredContent>
           <Center>
-            <p>{t('loading')}</p>
+            <p role="status" aria-live="polite">{t('loading')}</p>
           </Center>
         </CenteredContent>
       </Screen>
