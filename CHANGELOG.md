@@ -19,6 +19,7 @@ and this project adheres to
 - 🔒️(agents) fix util-linux CVEs reported by Cyberwatch
 - 🔒️(backend) fix HIGH CVEs in Django and urllib3
 - 🔒️(agents) upgrade libpcre2-8-0 to fix CVE-2026-103111
+- 🔒️(frontend) upgrade pcre2 to fix CVE-2026-103111
 
 ## [1.33.0] - 2026-09-30
 
