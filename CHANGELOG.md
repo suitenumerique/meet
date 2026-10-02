@@ -33,6 +33,7 @@ and this project adheres to
 - 🔒️(summary) redact meeting content from Sentry events
 - 🐛(frontend) hide tooltips until they have a computed placement
 - 🐛(brevo) use django-lasuite for marketing management
+- ♿️(frontend) expose loading state to assistive technology
 
 ## [1.33.0] - 2026-09-30
 
