@@ -1,4 +1,5 @@
 {{- $envVars := include "meet.env.transformDict" (mergeOverwrite (default dict .Values.backend.envVars) (default dict .Values.celeryBackend.envVars)) -}}
+{{- $envFrom := concat (default (list) .Values.backend.envFrom) (default (list) .Values.celeryBackend.envFrom) -}}
 {{- $fullName := include "meet.celeryBackend.fullname" . -}}
 {{- $component := "celery-backend" -}}
 apiVersion: apps/v1
@@ -48,6 +49,10 @@ spec:
           {{- end }}
           {{- with .Values.celeryBackend.args }}
           args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $envFrom }}
+          envFrom:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:

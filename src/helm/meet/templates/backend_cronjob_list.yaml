@@ -41,6 +41,10 @@ items:
                   imagePullPolicy: {{ ($.Values.backend.image | default dict).pullPolicy | default $.Values.image.pullPolicy }}
                   args:
                     {{- toYaml .command | nindent 22 }}
+                  {{- with $.Values.backend.envFrom }}
+                  envFrom:
+                    {{- toYaml . | nindent 20 }}
+                  {{- end }}
                   env:
                     {{- if $envVars}}
                     {{- $envVars | indent 22 }}
