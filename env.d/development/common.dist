@@ -88,7 +88,7 @@ RECORDING_DOWNLOAD_BASE_URL=http://localhost:3000/recording
 # RECORDING_ENCODING_DEFAULT_RESOLUTION=720p
 # RECORDING_ENCODING_DEFAULT_PROFILE=full
 
-# Default encoding values independant of resolution/profile
+# Default encoding values independent of resolution/profile
 # RECORDING_ENCODING_AUDIO_BITRATE_KBPS=128
 # RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
 
