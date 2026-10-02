@@ -212,6 +212,10 @@ frontend-format: ## run the frontend format
 	cd $(PATH_FRONT) && npm run format
 .PHONY: frontend-format
 
+frontend-test: ## run the frontend unit tests
+	cd $(PATH_FRONT) && npm test
+.PHONY: frontend-test
+
 run-frontend-development: ## run the frontend in development mode
 	@$(COMPOSE) stop frontend
 	cd $(PATH_FRONT) && npm run dev
@@ -260,7 +264,8 @@ lint-pylint: ## lint back-end python sources with pylint only on changed files f
 test: ## run project tests; pass extra pytest args via ARGS, e.g. `make test ARGS="-vv"`
 	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
 	$(MAKE) test-back-parallel ARGS="$${args}" && \
-	$(MAKE) test-summary ARGS="$${args}"
+	$(MAKE) test-summary ARGS="$${args}" && \
+	$(MAKE) frontend-test
 .PHONY: test
 
 test-back: ## run back-end tests (pass extra pytest args via ARGS)
