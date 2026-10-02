@@ -3,7 +3,8 @@
     "heading": {
       "normal": "Je hebt de vergadering verlaten",
       "duplicateIdentity": "U heeft de vergadering via een ander apparaat geopend",
-      "participantRemoved": "U bent door een beheerder uit het gesprek verwijderd"
+      "participantRemoved": "U bent door een beheerder uit het gesprek verwijderd",
+      "roomDeleted": "Deze vergadering is verwijderd"
     },
     "home": "Keer terug naar het hoofdscherm",
     "back": "Sluit weer bij de vergadering aan"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "U kunt niet deelnemen aan dit gesprek",
       "body": "Niemand heeft gereageerd op uw verzoek om deel te nemen aan het gesprek"
+    },
+    "deleted": {
+      "title": "U kunt niet deelnemen aan dit gesprek",
+      "body": "Deze vergadering is verwijderd."
     }
   },
   "leaveRoomPrompt": "Dat zal u de vergadering doen verlaten.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Verificatie vereist",
       "body": "Deze ruimte is nog niet gemaakt. Logt u alstublieft in om hem aan te maken, of wacht tot een ingelogde gebruiker dat doet."
+    },
+    "deletedRoom": {
+      "heading": "Vergadering verwijderd",
+      "body": "Deze vergadering is verwijderd en u kunt er niet meer aan deelnemen."
     },
     "screenShare": {
       "title": "Kan uw scherm niet delen",

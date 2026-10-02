@@ -85,6 +85,7 @@ export const Conference = ({
   const {
     status: fetchStatus,
     isError: isFetchError,
+    error: fetchError,
     data,
   } = useQuery({
     queryKey: fetchKey,
@@ -98,6 +99,8 @@ export const Conference = ({
         if (error.statusCode == '404') {
           createRoom({ slug: roomId, username })
         }
+        // A deleted room can't be recreated, surface the error instead
+        if (error.statusCode == '410') throw error
       }),
     retry: false,
   })
@@ -198,6 +201,15 @@ export const Conference = ({
   }, [apiConfig?.livekit])
 
   const { t } = useTranslation('rooms')
+  if (fetchError?.statusCode == 410) {
+    return (
+      <ErrorScreen
+        title={t('error.deletedRoom.heading')}
+        body={t('error.deletedRoom.body')}
+      />
+    )
+  }
+
   if (isCreateError) {
     // this error screen should be replaced by a proper waiting room for anonymous user.
     return (
@@ -282,6 +294,7 @@ export const Conference = ({
                 return
               case DisconnectReason.DUPLICATE_IDENTITY:
               case DisconnectReason.PARTICIPANT_REMOVED:
+              case DisconnectReason.ROOM_DELETED:
                 navigateTo(
                   'feedback',
                   {},

@@ -25,6 +25,7 @@ from rest_framework.exceptions import PermissionDenied
 from timezone_field.rest_framework import TimeZoneSerializerField
 
 from core import models, utils
+from core.api.exceptions import ensure_room_not_deleted
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,7 @@ class ResourceAccessSerializerMixin:
                 _("You must be administrator or owner of a room to add accesses to it.")
             )
 
+        ensure_room_not_deleted(resource)
         return resource
 
 

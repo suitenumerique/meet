@@ -188,6 +188,28 @@ def test_api_rooms_retrieve_anonymous_unregistered_not_allowed():
     assert response.json() == {"detail": "No Room matches the given query."}
 
 
+@pytest.mark.parametrize("allow_unregistered_rooms", [True, False])
+@pytest.mark.parametrize("lookup", ["id", "slug"])
+@mock.patch("core.utils.generate_token", return_value="foo")
+def test_api_rooms_retrieve_soft_deleted(
+    mock_token, lookup, allow_unregistered_rooms, settings
+):
+    """
+    Retrieving a soft-deleted room should return a 410, and never fall back
+    to an unregistered room with the same slug.
+    """
+    settings.ALLOW_UNREGISTERED_ROOMS = allow_unregistered_rooms
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    room.soft_delete()
+
+    client = APIClient()
+    response = client.get(f"/api/v1.0/rooms/{getattr(room, lookup)!s}/")
+
+    assert response.status_code == 410
+    assert response.json() == {"detail": "This room has been deleted."}
+    mock_token.assert_not_called()
+
+
 @mock.patch("core.utils.generate_token", return_value="foo")
 @override_settings(
     LIVEKIT_CONFIGURATION={

@@ -1,7 +1,7 @@
 """
 Test LiveKitEvents service.
 """
-# pylint: disable=W0621,W0613, W0212, E0611
+# pylint: disable=W0621,W0613, W0212, E0611, C0302
 
 import logging
 import uuid
@@ -27,7 +27,10 @@ from core.services.livekit_events import (
     to_recording_event,
 )
 from core.services.lobby import LobbyService
-from core.services.room_management import RoomManagementException
+from core.services.room_management import (
+    RoomManagementException,
+    RoomNotFoundException,
+)
 from core.services.sip_management import (
     SIPException,
     SIPManagement,
@@ -791,6 +794,61 @@ def test_handle_room_started_raises_error_for_nonexistent_room(service):
     mock_data.room.name = str(uuid.uuid4())
 
     expected_error = f"Room with ID {mock_data.room.name} does not exist"
+
+    with pytest.raises(ActionFailedError, match=expected_error):
+        service._handle_room_started(mock_data)
+
+
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_handle_room_started_closes_deleted_room(
+    mock_delete_room, mock_ensure_dispatch_rule, service, settings
+):
+    """Should close a LiveKit room recreated for a soft-deleted room."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    room.soft_delete()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    service._handle_room_started(mock_data)
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+    mock_ensure_dispatch_rule.assert_not_called()
+
+
+@mock.patch(
+    "core.services.room_management.RoomManagement.delete_room",
+    side_effect=RoomNotFoundException("Room does not exist"),
+)
+def test_handle_room_started_ignores_already_closed_deleted_room(
+    mock_delete_room, service
+):
+    """Should proceed silently when the deleted room is already closed in LiveKit."""
+    room = RoomFactory()
+    room.soft_delete()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    service._handle_room_started(mock_data)
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+
+
+@mock.patch(
+    "core.services.room_management.RoomManagement.delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_handle_room_started_raises_error_when_closing_deleted_room_fails(
+    mock_delete_room, service
+):
+    """Should raise ActionFailedError when the deleted room cannot be closed."""
+    room = RoomFactory()
+    room.soft_delete()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    expected_error = f"Failed to close deleted room {room.id}"
 
     with pytest.raises(ActionFailedError, match=expected_error):
         service._handle_room_started(mock_data)

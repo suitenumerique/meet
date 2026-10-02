@@ -406,6 +406,33 @@ class ResourceAccess(BaseModel):
         return super().delete(*args, **kwargs)
 
 
+class RoomQuerySet(models.QuerySet):
+    """QuerySet exposing the room lifecycle filters."""
+
+    def active(self):
+        """Rooms that have not been soft deleted."""
+        return self.filter(deleted_at__isnull=True)
+
+    def deleted(self):
+        """Rooms that have been soft deleted."""
+        return self.filter(deleted_at__isnull=False)
+
+
+class RoomManager(models.Manager.from_queryset(RoomQuerySet)):
+    """Manager hiding soft-deleted rooms, exposed as ``Room.objects``.
+
+    It is deliberately not the model's default manager: Django relies on
+    ``_default_manager`` for unique validation, which must see deleted rooms as
+    they still guard their slug and pin code. Other object relations (e.g.
+    ``recording.room``) go through the base manager and still resolve deleted
+    rooms, which keeps recordings and their notifications working.
+    """
+
+    def get_queryset(self):
+        """Exclude soft-deleted rooms."""
+        return super().get_queryset().active()
+
+
 class Room(Resource):
     """Model for one room"""
 
@@ -429,6 +456,7 @@ class Room(Resource):
         verbose_name=_("Visio room configuration"),
         help_text=_("Values for Visio parameters to configure the room."),
     )
+    deleted_at = models.DateTimeField(null=True, blank=True)
     pin_code = models.CharField(
         max_length=None,
         unique=True,
@@ -445,8 +473,13 @@ class Room(Resource):
         editable=False,
     )
 
+    # Managers
+    objects = RoomManager()
+    all_objects = models.Manager.from_queryset(RoomQuerySet)()
+
     class Meta:
         db_table = "meet_room"
+        default_manager_name = "all_objects"
         ordering = ("name",)
         verbose_name = _("Room")
         verbose_name_plural = _("Rooms")
@@ -468,6 +501,23 @@ class Room(Resource):
                 length=settings.ROOM_TELEPHONY_PIN_LENGTH
             )
         super().save(*args, **kwargs)
+
+    @property
+    def is_deleted(self):
+        """Whether the room has been soft deleted."""
+        return self.deleted_at is not None
+
+    def soft_delete(self):
+        """Soft delete the room.
+
+        The room is hidden from the default manager making it impossible to
+        list, join or update.
+        """
+        if self.deleted_at:
+            raise RuntimeError("This room is already deleted.")
+
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["deleted_at"])
 
     def clean_fields(self, exclude=None):
         """
@@ -504,7 +554,7 @@ class Room(Resource):
 
         for _ in range(settings.ROOM_TELEPHONY_PIN_MAX_RETRIES):
             pin_code = str(secrets.randbelow(max_value)).zfill(length)
-            if not Room.objects.filter(pin_code=pin_code).exists():
+            if not Room.all_objects.filter(pin_code=pin_code).exists():
                 return pin_code
 
         # Log a warning as a temporary measure until backend observability is implemented.

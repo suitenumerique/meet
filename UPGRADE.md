@@ -29,6 +29,14 @@ Rooms now keep track of the last time they were started (`last_started_at`), fed
 * With `ALLOW_UNREGISTERED_ROOMS=false`, only an authenticated user can navigate to a previously existing link after the room has been purged. Doing so recreates the room in the database with a fresh configuration, with that user associated with it and granted admin rights.
 * With `ALLOW_UNREGISTERED_ROOMS=true`, any user can reopen the purged room by navigating to the same URL. In that case, the room is created dynamically and no corresponding room entry is persisted in the database.
 
+### Purging deleted rooms
+
+Deleting a room now only soft deletes it: it is hidden but keeps its slug and PIN code. The `purge_inactive_rooms` command also permanently deletes soft-deleted rooms. See [the room purge documentation](docs/features/room-purge.md).
+
+- Inactive soft-deleted rooms are purged along with the other inactive rooms: if `ROOM_INACTIVITY_DELETION_DAYS` is already set, nothing else is needed.
+- The new `ROOM_DELETED_RETENTION_DAYS` setting purges soft-deleted rooms that many days after their deletion, whether they are inactive or not. It is unset by default.
+- As for inactive rooms, a deleted room holding a saved recording its users may still access is kept until that recording expires.
+
 ### Local development: MinIO replaced by Garage
 
 The development stacks now use [Garage](https://garagehq.deuxfleurs.fr/) instead of MinIO as S3 storage. Garage keeps its own format in `data/media/meta` and `data/media/data` and cannot read what MinIO left there, so local recordings and files will be lost.

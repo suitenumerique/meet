@@ -42,6 +42,7 @@ from rest_framework.settings import api_settings
 
 from core import analytics, enums, models, utils
 from core.api import throttling
+from core.api.exceptions import ensure_room_not_deleted
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
@@ -76,7 +77,7 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
-from core.services.room_management import RoomManagement
+from core.services.room_management import RoomManagement, RoomManagementException
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
@@ -167,7 +168,7 @@ class UserViewSet(
         )
 
 
-class RoomViewSet(
+class RoomViewSet(  # pylint: disable=too-many-public-methods
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -193,10 +194,9 @@ class RoomViewSet(
             filter_kwargs = {"pk": self.kwargs["pk"]}
         except ValueError:
             filter_kwargs = {"slug": slugify(self.kwargs["pk"])}
-        queryset = self.filter_queryset(self.get_queryset())
-        obj = get_object_or_404(queryset, **filter_kwargs)
-        # May raise a permission denied
+        obj = get_object_or_404(models.Room.all_objects, **filter_kwargs)
         self.check_object_permissions(self.request, obj)
+        ensure_room_not_deleted(obj)
         return obj
 
     def retrieve(self, request, *args, **kwargs):
@@ -247,6 +247,27 @@ class RoomViewSet(
 
         serializer = self.get_serializer(queryset, many=True)
         return drf_response.Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        """Soft delete the room and close its LiveKit room.
+
+        The room and its recordings are kept in database for traceability.
+        """
+        try:
+            RoomManagement.soft_delete(instance)
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException(
+                "Could not delete the room, please try again."
+            ) from e
+
+        analytics.capture(
+            self.request.user,
+            analytics.AnalyticsEvent.ROOM_DELETED,
+            {
+                "room_id": str(instance.pk),
+                "access_level": instance.access_level,
+            },
+        )
 
     def perform_create(self, serializer):
         """Set the current user as owner of the newly created room.
@@ -939,6 +960,13 @@ class ResourceAccessViewSet(
             ).distinct()
 
         return queryset
+
+    def get_object(self):
+        """Accesses to a soft-deleted room can be read but no longer modified."""
+        access = super().get_object()
+        if self.request.method not in drf_permissions.SAFE_METHODS:
+            ensure_room_not_deleted(access.resource)
+        return access
 
 
 class RecordingViewSet(

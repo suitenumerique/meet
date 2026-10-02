@@ -12,6 +12,12 @@ and this project adheres to
 
 - 🔒(backend) throttle meeting link generation
 - 🔒️(backend) add a daily cap on room creation
+- ✨(backend) add room soft-deletion to the external API
+- ✨(backend) purge soft-deleted rooms after a retention period
+
+### Changed
+
+- ♻️(backend) soft delete rooms instead of hard-delete
 
 ### Fixed
 

@@ -2,11 +2,13 @@
 
 from unittest import mock
 
+from django.db import connection
+
 import pytest
 from livekit.api import TwirpError
 
 from core.factories import RoomFactory
-from core.models import RoomAccessLevel
+from core.models import Room, RoomAccessLevel
 from core.services.room_management import (
     RoomManagement,
     RoomManagementException,
@@ -60,6 +62,54 @@ def test_delete_room_raises_management_exception(mock_create_livekit_client):
         RoomManagement.delete_room("room-abc")
 
     mock_api.aclose.assert_awaited_once()
+
+
+@pytest.mark.django_db(transaction=True)
+@mock.patch.object(RoomManagement, "delete_room")
+def test_soft_delete_commits_before_closing_livekit_room(mock_delete_room):
+    """The deletion is committed before the LiveKit room is closed, so the
+    room_started webhook of a participant reconnecting right away sees it."""
+    room = RoomFactory()
+
+    def assert_deletion_committed(room_name):
+        assert connection.in_atomic_block is False
+        assert Room.all_objects.get(id=room_name).is_deleted
+
+    mock_delete_room.side_effect = assert_deletion_committed
+
+    RoomManagement.soft_delete(room)
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "error",
+    [
+        RoomManagementException("Could not delete room"),
+        ConnectionError("LiveKit is unreachable"),
+    ],
+)
+@mock.patch.object(RoomManagement, "delete_room")
+def test_soft_delete_failure_rolls_back_and_can_be_retried(mock_delete_room, error):
+    """A failed soft delete leaves the room untouched, in database and in memory,
+    so it can be retried."""
+    room = RoomFactory()
+    mock_delete_room.side_effect = error
+
+    with pytest.raises(type(error)):
+        RoomManagement.soft_delete(room)
+
+    assert room.deleted_at is None
+    assert Room.objects.filter(id=room.id).exists()
+
+    mock_delete_room.side_effect = None
+    RoomManagement.soft_delete(room)
+
+    assert mock_delete_room.call_count == 2
+    assert room.deleted_at is not None
+    assert Room.all_objects.get(id=room.id).deleted_at is not None
+    assert Room.objects.filter(id=room.id).exists() is False
 
 
 @mock.patch.object(RoomManagement, "update_metadata")

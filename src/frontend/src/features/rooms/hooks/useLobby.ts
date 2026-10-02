@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { keys } from '@/api/queryKeys'
+import { ApiError } from '@/api/ApiError'
 import {
   requestEntry,
   ApiLobbyStatus,
@@ -39,10 +40,21 @@ export const useLobby = ({
   const { data: waitingData } = useQuery({
     queryKey: [keys.requestEntry, roomId],
     queryFn: async () => {
-      const response = await requestEntry({
-        roomId,
-        username,
-      })
+      let response: ApiRequestEntry
+      try {
+        response = await requestEntry({
+          roomId,
+          username,
+        })
+      } catch (error) {
+        // The room was deleted while waiting, stop polling
+        if (error instanceof ApiError && error.statusCode === 410) {
+          clearWaitingTimeout()
+          setStatus(ApiLobbyStatus.DELETED)
+          return { status: ApiLobbyStatus.DELETED }
+        }
+        throw error
+      }
       if (response.status === ApiLobbyStatus.ACCEPTED) {
         clearWaitingTimeout()
         setStatus(ApiLobbyStatus.ACCEPTED)
