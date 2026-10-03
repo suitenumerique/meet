@@ -132,6 +132,7 @@ and this project adheres to
 - ⚡️(backend) refactor lobby storage to bound key lookups per room
 - ⚡️(backend) refactor presence cache to bound key lookups per room
 - 💄(frontend) position the login hint dynamically next to the button
+- 🐛(frontend) honour Keep hand raised when picture-in-picture is open
 
 ## [1.30.0] - 2026-09-01
 
