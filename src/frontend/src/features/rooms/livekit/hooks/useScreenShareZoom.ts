@@ -19,6 +19,8 @@ import {
   getZoomTransform,
 } from '../utils/screenShareZoom'
 
+export type ZoomState = { zoom: number; pan: PanOffset }
+
 /**
  * Manages zoom and pan state for a remote screen share.
  *
@@ -78,6 +80,28 @@ export const useScreenShareZoom = () => {
       draggingRef.current
     )
   }, [])
+
+  // After the video moves to the other window, write the current zoom back
+  // on the new nodes (otherwise it looks like 100 % until the next scroll).
+  // Pass a state to adopt one captured before a remount; the pan is clamped
+  // against the new container either way.
+  const resync = useCallback(
+    (state?: ZoomState) => {
+      if (state) {
+        zoomRef.current = state.zoom
+        panRef.current = state.pan
+      }
+      panRef.current = clampPan(
+        panRef.current,
+        zoomRef.current,
+        readPictureRatio()
+      )
+      applyTransform()
+      applyCursor()
+      syncToolbar()
+    },
+    [applyCursor, applyTransform, syncToolbar, readPictureRatio]
+  )
 
   const setZoom = useCallback(
     (next: number) => {
@@ -253,6 +277,13 @@ export const useScreenShareZoom = () => {
     [panBy, zoomIn, zoomOut, resetZoom]
   )
 
+  // The tile remounts when the layout switches. Callers stash this across
+  // that remount so the popup keeps the zoom the user already had.
+  const capture = useCallback(
+    (): ZoomState => ({ zoom: zoomRef.current, pan: { ...panRef.current } }),
+    []
+  )
+
   return {
     zoomPercentage: Math.round(zoomLevel * 100),
     isZoomed: zoomLevel > MIN_ZOOM,
@@ -264,6 +295,8 @@ export const useScreenShareZoom = () => {
     zoomIn,
     zoomOut,
     resetZoom,
+    resync,
+    capture,
     handleWheel,
     handleKeyDown,
   }
