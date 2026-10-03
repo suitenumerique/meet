@@ -6,4 +6,5 @@ export const keys = {
   waitingParticipants: 'waitingParticipants',
   roomCreationCallback: 'roomCreationCallback',
   files: 'files',
+  breakoutSession: 'breakoutSession',
 }

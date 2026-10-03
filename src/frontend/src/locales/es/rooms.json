@@ -423,7 +423,8 @@
       "screenRecording": "Grabar",
       "admin": "Controles del organizador",
       "tools": "Herramientas de reunión",
-      "info": "Información sobre la reunión"
+      "info": "Información sobre la reunión",
+      "breakout": "Salas para grupos"
     },
     "content": {
       "participants": "los participantes",
@@ -433,7 +434,8 @@
       "screenRecording": "grabar",
       "admin": "controles del organizador",
       "tools": "herramientas de reunión",
-      "info": "información sobre la reunión"
+      "info": "información sobre la reunión",
+      "breakout": "salas para grupos"
     },
     "closeButton": "Ocultar {{content}}"
   },
@@ -453,6 +455,10 @@
       "screenRecording": {
         "title": "Grabar",
         "body": "Grabar la reunión en vídeo."
+      },
+      "breakout": {
+        "title": "Salas para grupos",
+        "body": "Divide la reunión en grupos más pequeños."
       }
     }
   },
@@ -820,5 +826,29 @@
   },
   "participantTile": {
     "screenShare": "Pantalla de {{name}}"
+  },
+  "breakout": {
+    "roomName": "Sala {{number}}",
+    "error": "La acción ha fallado. Inténtalo de nuevo.",
+    "setup": {
+      "roomCount": "Número de salas",
+      "unassignedOption": "Sin asignar",
+      "nobody": "Todavía no hay nadie para asignar",
+      "unassigned_one": "{{count}} persona sin asignar",
+      "unassigned_other": "{{count}} personas sin asignar",
+      "allAssigned": "Todos están asignados",
+      "shuffle": "Asignar al azar",
+      "assign": "Sala para {{name}}",
+      "open": "Abrir salas",
+      "recording": "Detén la grabación para abrir salas."
+    },
+    "active": {
+      "empty": "Nadie asignado",
+      "close": "Cerrar salas"
+    },
+    "participant": {
+      "currentRoom": "Estás en {{room}}",
+      "mainRoom": "Las salas están abiertas. Estás en la sala principal."
+    }
   }
 }

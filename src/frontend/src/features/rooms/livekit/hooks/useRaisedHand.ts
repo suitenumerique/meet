@@ -9,6 +9,7 @@ import { isLocal } from '@/utils/livekit'
 import { useMemo } from 'react'
 import { useRaiseHand } from '@/features/rooms/api/updateRaiseHand'
 import { reportError } from '@/features/analytics/telemetry'
+import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
 
 type useRaisedHandProps = {
   participant: Participant
@@ -26,6 +27,8 @@ export function useRaisedHandPosition({ participant }: useRaisedHandProps) {
   const remoteParticipants = useRemoteParticipants({
     updateOnlyOn: [RoomEvent.ParticipantAttributesChanged],
   })
+  // In a split, the queue holds this browser's room only.
+  const { isInMyGroup } = useBreakoutGroup()
 
   const raisedHands = useMemo(() => {
     const byIdentity = new Map<string, number>()
@@ -39,12 +42,12 @@ export function useRaisedHandPosition({ participant }: useRaisedHandProps) {
 
     if (localIdentity) add(localIdentity, localHandRaisedAt)
 
-    remoteParticipants.forEach((p) =>
-      add(p.identity, p.attributes.handRaisedAt)
-    )
+    remoteParticipants.forEach((p) => {
+      if (isInMyGroup(p.identity)) add(p.identity, p.attributes.handRaisedAt)
+    })
 
     return byIdentity
-  }, [remoteParticipants, localIdentity, localHandRaisedAt])
+  }, [remoteParticipants, localIdentity, localHandRaisedAt, isInMyGroup])
 
   const sortedHands = useMemo(
     () =>

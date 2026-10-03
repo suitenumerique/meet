@@ -15,6 +15,7 @@ import { Emoji } from '@/features/reactions/types'
 import { useReactions } from '@/features/reactions/hooks/useReactions'
 import { NotificationProvider } from './NotificationProvider'
 import { useConfig } from '@/api/useConfig'
+import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -24,6 +25,7 @@ export const MainNotificationToast = () => {
   const announce = useScreenReaderAnnounce()
 
   const { appendReaction } = useReactions()
+  const { isInMyGroup } = useBreakoutGroup()
 
   useEffect(() => {
     const handleChatMessage = (
@@ -72,6 +74,13 @@ export const MainNotificationToast = () => {
       const notification = decodeNotificationDataReceived(payload)
 
       if (!notification) return
+      // A change to the receiver's own rights shows whoever made it.
+      if (
+        participant &&
+        notification.type !== NotificationType.PermissionsRemoved &&
+        !isInMyGroup(participant.identity)
+      )
+        return
 
       switch (notification.type) {
         case NotificationType.ParticipantMuted:
@@ -139,7 +148,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.DataReceived, handleDataReceived)
     }
-  }, [room, handleEmoji])
+  }, [room, handleEmoji, isInMyGroup])
 
   const triggerNotificationSoundIfRoomIsSmall = useCallback(
     (type: NotificationType) => {
@@ -152,7 +161,7 @@ export const MainNotificationToast = () => {
 
   useEffect(() => {
     const showJoinNotification = (participant: Participant) => {
-      if (isMobileBrowser()) {
+      if (isMobileBrowser() || !isInMyGroup(participant.identity)) {
         return
       }
       triggerNotificationSoundIfRoomIsSmall(NotificationType.ParticipantJoined)
@@ -170,7 +179,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.ParticipantConnected, showJoinNotification)
     }
-  }, [room, triggerNotificationSoundIfRoomIsSmall])
+  }, [room, triggerNotificationSoundIfRoomIsSmall, isInMyGroup])
 
   useEffect(() => {
     const handleAttributeChanged = (
@@ -236,6 +245,8 @@ export const MainNotificationToast = () => {
         return
       }
 
+      if (!isInMyGroup(participant.identity)) return
+
       if (!existingToast && !!changedAttributes?.handRaisedAt) {
         triggerNotificationSound(NotificationType.HandRaised)
         toastQueue.add(
@@ -256,7 +267,7 @@ export const MainNotificationToast = () => {
         handleNotificationReceived
       )
     }
-  }, [room, triggerNotificationSound])
+  }, [room, triggerNotificationSound, isInMyGroup])
 
   useEffect(() => {
     const closeAllToasts = () => {

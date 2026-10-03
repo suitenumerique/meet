@@ -423,7 +423,8 @@
       "screenRecording": "Opnemen",
       "admin": "Beheerdersbediening",
       "tools": "Meer tools",
-      "info": "Vergaderinformatie"
+      "info": "Vergaderinformatie",
+      "breakout": "Aparte ruimtes"
     },
     "content": {
       "participants": "deelnemers",
@@ -433,7 +434,8 @@
       "transcript": "transcriberen",
       "admin": "beheerdersbediening",
       "tools": "meer tools",
-      "info": "vergaderinformatie"
+      "info": "vergaderinformatie",
+      "breakout": "aparte ruimtes"
     },
     "closeButton": "Verberg {{content}} (Escape)",
     "escapeHint": "Druk op Escape om te sluiten"
@@ -454,6 +456,10 @@
       "screenRecording": {
         "title": "Opnemen",
         "body": "Sla vergaderingen op als video."
+      },
+      "breakout": {
+        "title": "Aparte ruimtes",
+        "body": "Verdeel de vergadering in kleinere groepen."
       }
     }
   },
@@ -825,5 +831,29 @@
   },
   "participantTile": {
     "screenShare": "{{name}} scherm"
+  },
+  "breakout": {
+    "roomName": "Ruimte {{number}}",
+    "error": "De actie is mislukt. Probeer het opnieuw.",
+    "setup": {
+      "roomCount": "Aantal ruimtes",
+      "unassignedOption": "Niet toegewezen",
+      "nobody": "Nog niemand om toe te wijzen",
+      "unassigned_one": "{{count}} persoon niet toegewezen",
+      "unassigned_other": "{{count}} personen niet toegewezen",
+      "allAssigned": "Iedereen is toegewezen",
+      "shuffle": "Willekeurig toewijzen",
+      "assign": "Ruimte voor {{name}}",
+      "open": "Ruimtes openen",
+      "recording": "Stop de opname om ruimtes te openen."
+    },
+    "active": {
+      "empty": "Niemand toegewezen",
+      "close": "Ruimtes sluiten"
+    },
+    "participant": {
+      "currentRoom": "Je bent in {{room}}",
+      "mainRoom": "De ruimtes zijn open. Je bent in de hoofdruimte."
+    }
   }
 }

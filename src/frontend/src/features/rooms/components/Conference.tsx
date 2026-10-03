@@ -44,6 +44,8 @@ import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
+import { BreakoutParticipant } from '@/features/breakout/components/BreakoutParticipant'
+import { useBreakoutEnabled } from '@/features/breakout/hooks/useCanManageBreakout'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 
 export const Conference = ({
@@ -132,7 +134,14 @@ export const Conference = ({
     apiConfig?.livekit.default_video_codec,
   ])
 
-  const room = useMemo(() => new Room(roomOptions), [roomOptions])
+  const isBreakoutEnabled = useBreakoutEnabled()
+  const room = useMemo(() => {
+    const room = new Room(roomOptions)
+    // Where the meeting can split, nobody receives this browser until it knows its room.
+    if (isBreakoutEnabled)
+      room.localParticipant.setTrackSubscriptionPermissions(false)
+    return room
+  }, [roomOptions, isBreakoutEnabled])
 
   useEffect(() => {
     /**
@@ -298,6 +307,7 @@ export const Conference = ({
         >
           <WatchMediaDeviceErrors />
           <VideoConference />
+          <BreakoutParticipant isolatedOnJoin={isBreakoutEnabled} />
           {!isMobile && <InviteDialog mode={mode} />}
           <PictureInPictureConference />
           <MeetDevtools />
