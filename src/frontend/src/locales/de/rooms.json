@@ -423,7 +423,8 @@
       "screenRecording": "Aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
-      "info": "Meeting-Informationen"
+      "info": "Meeting-Informationen",
+      "breakout": "Breakout-Räume"
     },
     "content": {
       "participants": "Teilnehmende",
@@ -433,7 +434,8 @@
       "screenRecording": "aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
-      "info": "Meeting-Informationen"
+      "info": "Meeting-Informationen",
+      "breakout": "Breakout-Räume"
     },
     "closeButton": "{{content}} ausblenden (Escape)",
     "escapeHint": "Escape drücken zum Schließen"
@@ -454,6 +456,10 @@
       "screenRecording": {
         "title": "Aufnehmen",
         "body": "Speichert Meetings als Video."
+      },
+      "breakout": {
+        "title": "Breakout-Räume",
+        "body": "Teile das Meeting in kleinere Gruppen auf."
       }
     }
   },
@@ -824,5 +830,29 @@
   },
   "participantTile": {
     "screenShare": "{{name}}’s Bildschirm"
+  },
+  "breakout": {
+    "roomName": "Raum {{number}}",
+    "error": "Die Aktion ist fehlgeschlagen. Bitte erneut versuchen.",
+    "setup": {
+      "roomCount": "Anzahl der Räume",
+      "unassignedOption": "Nicht zugewiesen",
+      "nobody": "Noch niemand zum Zuweisen",
+      "unassigned_one": "{{count}} Person nicht zugewiesen",
+      "unassigned_other": "{{count}} Personen nicht zugewiesen",
+      "allAssigned": "Alle sind zugewiesen",
+      "shuffle": "Zufällig zuweisen",
+      "assign": "Raum für {{name}}",
+      "open": "Räume öffnen",
+      "recording": "Beende die Aufnahme, um Räume zu öffnen."
+    },
+    "active": {
+      "empty": "Niemand zugewiesen",
+      "close": "Räume schließen"
+    },
+    "participant": {
+      "currentRoom": "Du bist in {{room}}",
+      "mainRoom": "Die Räume sind offen. Du bist im Hauptraum."
+    }
   }
 }

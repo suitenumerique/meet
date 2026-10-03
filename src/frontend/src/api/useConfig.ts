@@ -49,6 +49,9 @@ export interface ApiConfig {
   diagnostics: {
     connection_test_enabled?: boolean
   }
+  breakout_rooms?: {
+    is_enabled?: boolean
+  }
   telephony: {
     enabled: boolean
     international_phone_number?: string

@@ -1046,6 +1046,11 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    # Breakout rooms settings
+    BREAKOUT_ROOMS_ENABLED = values.BooleanValue(
+        False, environ_name="BREAKOUT_ROOMS_ENABLED", environ_prefix=None
+    )
+
     # Metadata collector settings
     METADATA_COLLECTOR_ENABLED = values.BooleanValue(
         False, environ_name="METADATA_COLLECTOR_ENABLED", environ_prefix=None
@@ -1540,6 +1545,7 @@ class Test(Base):
     ADDONS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
 
     CONNECTION_TEST_ENABLED = True
+    BREAKOUT_ROOMS_ENABLED = True
 
     def __init__(self):
         # pylint: disable=invalid-name

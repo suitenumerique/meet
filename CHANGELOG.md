@@ -16,6 +16,7 @@ and this project adheres to
 - ✨(frontend) let signed-out visitors start a meeting
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✅(frontend) add vitest so the frontend can carry unit tests
+- ✨(fullstack) split a meeting into breakout rooms and bring everyone back
 
 ### Fixed
 

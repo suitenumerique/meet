@@ -13,6 +13,7 @@ export enum PanelId {
 export enum SubPanelId {
   TRANSCRIPT = 'transcript',
   SCREEN_RECORDING = 'screenRecording',
+  BREAKOUT = 'breakout',
 }
 
 export const useSidePanel = () => {
@@ -71,6 +72,11 @@ export const useSidePanel = () => {
     layoutStore.activePanelId = PanelId.TOOLS
   }
 
+  const openBreakout = () => {
+    layoutStore.activeSubPanelId = SubPanelId.BREAKOUT
+    layoutStore.activePanelId = PanelId.TOOLS
+  }
+
   return {
     activePanelId,
     activeSubPanelId,
@@ -82,6 +88,7 @@ export const useSidePanel = () => {
     toggleInfo,
     openTranscript,
     openScreenRecording,
+    openBreakout,
     isSubPanelOpen,
     isChatOpen,
     isParticipantsOpen,

@@ -12,18 +12,24 @@ import {
 import { Track } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
 
 export const StageLayout = () => {
   const lastAutoFocusedScreenShareTrack =
     useRef<TrackReferenceOrPlaceholder | null>(null)
 
-  const tracks = useTracks(
+  const roomTracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
       { source: Track.Source.ScreenShare, withPlaceholder: false },
     ],
     { updateOnlyOn: [], onlySubscribed: false }
+  )
+  const { isInMyGroup } = useBreakoutGroup()
+  const tracks = useMemo(
+    () => roomTracks.filter((track) => isInMyGroup(track.participant.identity)),
+    [roomTracks, isInMyGroup]
   )
 
   const screenShareTracks = tracks
@@ -84,6 +90,12 @@ export const StageLayout = () => {
     tracks,
   ])
   /* eslint-enable react-hooks/exhaustive-deps */
+
+  // A tile pinned before a split may belong to another room.
+  useEffect(() => {
+    if (pinnedTrackRef && !isInMyGroup(pinnedTrackRef.participant.identity))
+      clearPinnedTrack()
+  }, [pinnedTrackRef, isInMyGroup])
 
   return (
     <>

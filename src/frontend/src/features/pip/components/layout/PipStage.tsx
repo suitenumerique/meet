@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { usePagination, useTracks } from '@livekit/components-react'
+import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
 import { RoomEvent, Track } from 'livekit-client'
 import { styled } from '@/styled-system/jsx'
 import { PipFocusLayout } from './PipFocusLayout'
@@ -22,12 +23,17 @@ import {
  *     + one thumbnail overlay.
  */
 export const PipStage = () => {
-  const tracks = useTracks(
+  const roomTracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
       { source: Track.Source.ScreenShare, withPlaceholder: false },
     ],
     { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false }
+  )
+  const { isInMyGroup } = useBreakoutGroup()
+  const tracks = useMemo(
+    () => roomTracks.filter((track) => isInMyGroup(track.participant.identity)),
+    [roomTracks, isInMyGroup]
   )
 
   const screenShareTrack = useMemo(() => {
