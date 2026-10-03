@@ -175,6 +175,13 @@ Before enabling it:
 See [docs/features/recording.md](docs/features/recording.md#tuning-recording-encoding)
 for the full setting reference, the shipped profile table and the tuning caveats.
 
+### Guest cookie signed and renamed
+
+The cookie that identifies a guest who is not signed in now holds a signed value. Its name comes from the new `LOBBY_GUEST_COOKIE_NAME`, default `lobbyGuest`, so a pod still on the previous release never reads it.
+
+- `LOBBY_COOKIE_NAME` is no longer read, so remove it. Never give `LOBBY_GUEST_COOKIE_NAME` the value it held, since a pod on the previous release would read the signed cookie under that name.
+- Guests waiting in a lobby during the upgrade queue again under a new id. Until the rollout ends, and for `LOBBY_WAITING_TIMEOUT` seconds after it, a host may still see a guest listed under their previous id. Admitting that entry fails on a pod running this release; the guest reappears under the new id and is admitted from there.
+
 ## v1.30.0
 
 ### Removing S3 storage-event webhooks for recordings

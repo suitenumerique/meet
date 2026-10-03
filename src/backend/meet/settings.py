@@ -986,9 +986,9 @@ class Base(Configuration):
         environ_name="LOBBY_NOTIFICATION_TYPE",
         environ_prefix=None,
     )
-    LOBBY_COOKIE_NAME = values.Value(
-        "lobbyParticipantId",
-        environ_name="LOBBY_COOKIE_NAME",
+    LOBBY_GUEST_COOKIE_NAME = values.Value(
+        "lobbyGuest",
+        environ_name="LOBBY_GUEST_COOKIE_NAME",
         environ_prefix=None,
     )
 

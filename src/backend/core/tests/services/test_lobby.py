@@ -10,8 +10,10 @@ from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core import signing
 from django.core.cache import cache
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
+from django.test import override_settings
 
 import pytest
 from freezegun import freeze_time
@@ -155,57 +157,122 @@ def test_get_cache_key(lobby_service, participant_id):
     assert cache_key == expected_key
 
 
+def guest_request(cookie=None):
+    """Return a request carrying the given lobby cookie, if any."""
+    request = HttpRequest()
+    if cookie is not None:
+        request.COOKIES[settings.LOBBY_GUEST_COOKIE_NAME] = cookie
+    return request
+
+
 def test_get_or_create_participant_id_from_cookie(lobby_service):
-    """Test extracting participant ID from cookie."""
-    request = mock.Mock()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: "existing-id"}
+    """A valid cookie gives the same identity on every request."""
+    room = RoomFactory()
+    cookie = LobbyService.sign_guest_capability("capability")
 
-    participant_id = lobby_service._get_or_create_participant_id(request)
+    participant_id = lobby_service.get_or_create_participant_id(
+        guest_request(cookie), room.id
+    )
 
-    assert participant_id == "existing-id"
-
-
-@mock.patch.object(uuid, "uuid4", return_value="generated-id")
-def test_get_or_create_participant_id_new(mock_uuid4, lobby_service):
-    """Test creating new participant ID when cookie is missing."""
-    request = mock.Mock()
-    request.COOKIES = {}
-
-    participant_id = lobby_service._get_or_create_participant_id(request)
-
-    assert participant_id == "generated-id"
-    mock_uuid4.assert_called_once()
+    assert participant_id == lobby_service.get_or_create_participant_id(
+        guest_request(cookie), room.id
+    )
+    assert participant_id.startswith("guest_")
+    assert "capability" not in participant_id
 
 
-def test_prepare_response_existing_cookie(lobby_service, participant_id):
-    """Test response preparation with existing cookie."""
+def test_get_or_create_participant_id_new(lobby_service):
+    """A missing cookie gives a new capability, which the response carries."""
+    room = RoomFactory()
+    request = guest_request()
+
+    participant_id = lobby_service.get_or_create_participant_id(request, room.id)
     response = HttpResponse()
-    response.cookies[settings.LOBBY_COOKIE_NAME] = "existing-cookie"
+    lobby_service.prepare_response(response, request)
 
-    lobby_service.prepare_response(response, participant_id)
+    cookie = response.cookies[settings.LOBBY_GUEST_COOKIE_NAME].value
+    assert participant_id.startswith("guest_")
+    assert participant_id == lobby_service.get_or_create_participant_id(
+        guest_request(cookie), room.id
+    )
 
-    # Verify cookie wasn't set again
-    cookie = response.cookies.get(settings.LOBBY_COOKIE_NAME)
-    assert cookie.value == "existing-cookie"
-    assert cookie.value != participant_id
+
+@pytest.mark.parametrize(
+    "cookie",
+    [
+        "2f7f162f-e7d1-421b-90e7-02bfbfbf8def",
+        signing.dumps("capability", salt="another-salt"),
+        LobbyService.sign_guest_capability("capability")[:-1],
+    ],
+)
+def test_get_or_create_participant_id_refuses_unsigned_cookie(lobby_service, cookie):
+    """A cookie the server did not sign never selects an identity."""
+    room = RoomFactory()
+
+    participant_id = lobby_service.get_or_create_participant_id(
+        guest_request(cookie), room.id
+    )
+
+    assert participant_id != lobby_service.get_or_create_participant_id(
+        guest_request(cookie), room.id
+    )
 
 
-def test_prepare_response_new_cookie(lobby_service, participant_id):
-    """Test response preparation with new cookie."""
+def test_get_or_create_participant_id_differs_per_room(lobby_service):
+    """One cookie gives a different identity in every room."""
+    first_room, second_room = RoomFactory(), RoomFactory()
+    cookie = LobbyService.sign_guest_capability("capability")
+
+    assert lobby_service.get_or_create_participant_id(
+        guest_request(cookie), first_room.id
+    ) != lobby_service.get_or_create_participant_id(
+        guest_request(cookie), second_room.id
+    )
+
+
+def test_get_or_create_participant_id_survives_secret_key_rotation(lobby_service):
+    """A key rotation that keeps the old key as a fallback keeps every identity."""
+    room = RoomFactory()
+    cookie = LobbyService.sign_guest_capability("capability")
+    before = lobby_service.get_or_create_participant_id(guest_request(cookie), room.id)
+
+    with override_settings(
+        SECRET_KEY="another-secret-key", SECRET_KEY_FALLBACKS=[settings.SECRET_KEY]
+    ):
+        after = lobby_service.get_or_create_participant_id(
+            guest_request(cookie), room.id
+        )
+
+    assert after == before
+
+
+def test_prepare_response_without_guest(lobby_service):
+    """A request that resolved no guest identity sets no cookie."""
     response = HttpResponse()
 
-    lobby_service.prepare_response(response, participant_id)
+    lobby_service.prepare_response(response, guest_request())
 
-    # Verify cookie was set
-    cookie = response.cookies.get(settings.LOBBY_COOKIE_NAME)
+    assert settings.LOBBY_GUEST_COOKIE_NAME not in response.cookies
+    assert not response.has_header("Cache-Control")
+
+
+def test_prepare_response_new_cookie(lobby_service):
+    """The cookie carries the signed capability, never the identity."""
+    room = RoomFactory()
+    request = guest_request()
+    participant_id = lobby_service.get_or_create_participant_id(request, room.id)
+    response = HttpResponse()
+
+    lobby_service.prepare_response(response, request)
+
+    cookie = response.cookies.get(settings.LOBBY_GUEST_COOKIE_NAME)
     assert cookie is not None
-    assert cookie.value == participant_id
+    assert cookie.value != participant_id
     assert cookie["httponly"] is True
     assert cookie["secure"] is True
     assert cookie["samesite"] == "Lax"
-
-    # It's a session cookies (no max_age specified):
-    assert not cookie["max-age"]
+    assert not cookie["max-age"]  # a session cookie
+    assert response["Cache-Control"] == "no-store"
 
 
 def test_can_bypass_lobby_public_room(lobby_service):
@@ -287,7 +354,7 @@ def test_request_entry_public_room(
         entered_at="2025-01-01T10:00:00+00:00",
     )
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
     mock_generate_config.return_value = {"token": "test-token"}
 
@@ -326,7 +393,7 @@ def test_request_entry_trusted_room(
         entered_at="2025-01-01T10:00:00+00:00",
     )
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
     mock_generate_config.return_value = {"token": "test-token"}
 
@@ -353,12 +420,12 @@ def test_request_entry_new_participant(
 ):
     """Test requesting entry for a new participant."""
     request = mock.Mock()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.COOKIES = {settings.LOBBY_GUEST_COOKIE_NAME: participant_id}
     request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=None)
 
     participant_data = LobbyParticipant(
@@ -384,7 +451,7 @@ def test_request_entry_waiting_participant(
 ):
     """Test requesting entry for a waiting participant."""
     request = mock.Mock()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.COOKIES = {settings.LOBBY_GUEST_COOKIE_NAME: participant_id}
     request.user = AnonymousUser()
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
@@ -396,7 +463,7 @@ def test_request_entry_waiting_participant(
         color="#123456",
         entered_at="2025-01-01T10:00:00+00:00",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
     participant, livekit_config = lobby_service.request_entry(room, request, username)
@@ -414,7 +481,7 @@ def test_request_entry_accepted_participant(
     """Test requesting entry for an accepted participant."""
     request = mock.Mock()
     request.user = AnonymousUser()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.COOKIES = {settings.LOBBY_GUEST_COOKIE_NAME: participant_id}
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
@@ -425,7 +492,7 @@ def test_request_entry_accepted_participant(
         color="#123456",
         entered_at="2025-01-01T10:00:00+00:00",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
     mock_generate_config.return_value = {"token": "test-token"}
@@ -453,7 +520,7 @@ def test_request_entry_participant_with_role(
     """Test requesting entry for a participant with a role on the room."""
     request = mock.Mock()
     request.user = UserFactory()
-    request.COOKIES = {settings.LOBBY_COOKIE_NAME: participant_id}
+    request.COOKIES = {settings.LOBBY_GUEST_COOKIE_NAME: participant_id}
 
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
 
@@ -466,7 +533,7 @@ def test_request_entry_participant_with_role(
         color="#123456",
         entered_at="2025-01-01T10:00:00+00:00",
     )
-    lobby_service._get_or_create_participant_id = mock.Mock(return_value=participant_id)
+    lobby_service.get_or_create_participant_id = mock.Mock(return_value=participant_id)
     lobby_service._get_participant = mock.Mock(return_value=mocked_participant)
 
     mock_generate_config.return_value = {"token": "test-token"}

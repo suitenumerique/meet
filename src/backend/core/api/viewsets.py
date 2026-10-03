@@ -211,6 +211,11 @@ class RoomViewSet(
                 raise
             slug = slugify(self.kwargs["pk"])
             username = request.query_params.get("username", None)
+            participant_id = (
+                LobbyService.get_or_create_participant_id(request, slug)
+                if request.user.is_anonymous
+                else None
+            )
             data = {
                 "id": None,
                 "slug": slug,
@@ -220,14 +225,19 @@ class RoomViewSet(
                     "url": settings.LIVEKIT_CONFIGURATION["url"],
                     "room": slug,
                     "token": utils.generate_token(
-                        room=slug, user=request.user, username=username
+                        room=slug,
+                        user=request.user,
+                        username=username,
+                        participant_id=participant_id,
                     ),
                 },
             }
         else:
             data = self.get_serializer(instance).data
 
-        return drf_response.Response(data)
+        response = drf_response.Response(data)
+        LobbyService.prepare_response(response, request)
+        return response
 
     def list(self, request, *args, **kwargs):
         """Limit listed rooms to the ones related to the authenticated user."""
@@ -449,7 +459,7 @@ class RoomViewSet(
             **serializer.validated_data,
         )
         response = drf_response.Response({**participant.to_dict(), "livekit": livekit})
-        lobby_service.prepare_response(response, participant.id)
+        lobby_service.prepare_response(response, request)
 
         return response
 
@@ -480,7 +490,7 @@ class RoomViewSet(
         try:
             lobby_service.handle_participant_entry(
                 room_id=room.id,
-                participant_id=str(serializer.validated_data.get("participant_id")),
+                participant_id=serializer.validated_data["participant_id"],
                 allow_entry=serializer.validated_data.get("allow_entry"),
             )
             return drf_response.Response({"message": "Participant was updated."})

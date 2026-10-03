@@ -1,13 +1,15 @@
 """Lobby Service"""
 
+import hashlib
 import logging
-import uuid
+import secrets
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, FrozenSet, Optional, Sequence, Tuple
 from uuid import UUID
 
 from django.conf import settings
+from django.core import signing
 from django.core.cache import cache
 from django.utils import timezone
 
@@ -85,6 +87,10 @@ class LobbyService:
     using cache for state management and LiveKit for real-time updates.
     """
 
+    GUEST_COOKIE_SALT = "meet.guest-capability.v1"
+    GUEST_IDENTITY_SALT = "meet.guest-identity.v1"
+    _REQUEST_CAPABILITY_ATTRIBUTE = "_meet_guest_capability"
+
     @staticmethod
     def _get_cache_key(room_id: UUID, participant_id: str) -> str:
         """Generate cache key for participant(s) data."""
@@ -131,22 +137,65 @@ class LobbyService:
         if participant_ids:
             self._redis().srem(self._get_index_key(room_id), *participant_ids)
 
-    @staticmethod
-    def _get_or_create_participant_id(request) -> str:
-        """Extract unique participant identifier from the request."""
-        return request.COOKIES.get(settings.LOBBY_COOKIE_NAME, str(uuid.uuid4()))
+    @classmethod
+    def sign_guest_capability(cls, capability: str) -> str:
+        """Return the guest cookie value that read_guest_capability accepts."""
+        return signing.dumps(capability, salt=cls.GUEST_COOKIE_SALT)
 
-    @staticmethod
-    def prepare_response(response, participant_id):
-        """Set participant cookie if needed."""
-        if not response.cookies.get(settings.LOBBY_COOKIE_NAME):
-            response.set_cookie(
-                key=settings.LOBBY_COOKIE_NAME,
-                value=participant_id,
-                httponly=True,
-                secure=True,
-                samesite="Lax",
+    @classmethod
+    def read_guest_capability(cls, request) -> Optional[str]:
+        """Return the capability signed into the browser's cookie, if still valid.
+
+        The cookie ends with the browser session, and its signature expires
+        after SESSION_COOKIE_AGE unless prepare_response renews it on a visit.
+        """
+        cookie_value = request.COOKIES.get(settings.LOBBY_GUEST_COOKIE_NAME)
+        if not cookie_value:
+            return None
+        try:
+            return signing.loads(
+                cookie_value,
+                salt=cls.GUEST_COOKIE_SALT,
+                max_age=settings.SESSION_COOKIE_AGE,
             )
+        except signing.BadSignature:
+            return None
+
+    @classmethod
+    def get_or_create_participant_id(cls, request, room_id: UUID | str) -> str:
+        """Return the guest's identity in one room, issuing a capability if needed.
+
+        One capability per browser, never shown to anyone, gives a different
+        identity in every room, so one cookie serves every meeting.
+        """
+        capability = getattr(request, cls._REQUEST_CAPABILITY_ATTRIBUTE, None)
+        if capability is None:
+            capability = cls.read_guest_capability(request)
+            if capability is None:
+                capability = secrets.token_urlsafe(32)
+            setattr(request, cls._REQUEST_CAPABILITY_ATTRIBUTE, capability)
+        # Derived from the capability alone, so identities survive a SECRET_KEY
+        # rotation that keeps the old key in SECRET_KEY_FALLBACKS.
+        digest = hashlib.sha256(
+            f"{cls.GUEST_IDENTITY_SALT}:{room_id}:{capability}".encode()
+        ).hexdigest()
+        return f"guest_{digest[:40]}"
+
+    @classmethod
+    def prepare_response(cls, response, request) -> None:
+        """Re-sign the capability used by this request into the guest cookie."""
+        capability = getattr(request, cls._REQUEST_CAPABILITY_ATTRIBUTE, None)
+        if capability is None:
+            return
+        # A token plus a Set-Cookie must never be served from a shared cache.
+        response["Cache-Control"] = "no-store"
+        response.set_cookie(
+            key=settings.LOBBY_GUEST_COOKIE_NAME,
+            value=cls.sign_guest_capability(capability),
+            httponly=True,
+            secure=True,
+            samesite="Lax",
+        )
 
     @staticmethod
     def can_bypass_lobby(room, user, role) -> bool:
@@ -194,7 +243,7 @@ class LobbyService:
         5. If denied, do nothing.
         """
 
-        participant_id = self._get_or_create_participant_id(request)
+        participant_id = self.get_or_create_participant_id(request, room.id)
         participant = self._get_participant(room.id, participant_id)
 
         room_id = str(room.id)
