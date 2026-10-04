@@ -260,7 +260,8 @@ lint-pylint: ## lint back-end python sources with pylint only on changed files f
 test: ## run project tests; pass extra pytest args via ARGS, e.g. `make test ARGS="-vv"`
 	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
 	$(MAKE) test-back-parallel ARGS="$${args}" && \
-	$(MAKE) test-summary ARGS="$${args}"
+	$(MAKE) test-summary ARGS="$${args}" && \
+	$(MAKE) test-frontend
 .PHONY: test
 
 test-back: ## run back-end tests (pass extra pytest args via ARGS)
@@ -277,6 +278,10 @@ test-summary: ## run summary tests (pass extra pytest args via ARGS)
 	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
 	bin/pytest-summary $${args}
 .PHONY: test-summary
+
+test-frontend: ## run the frontend unit tests
+	cd $(PATH_FRONT) && npm test
+.PHONY: test-frontend
 
 makemigrations:  ## run django makemigrations for the Meet project.
 	@echo "$(BOLD)Running makemigrations$(RESET)"

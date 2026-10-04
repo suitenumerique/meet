@@ -7,6 +7,7 @@
     "dev": "panda codegen && vite",
     "build": "panda codegen && tsc -b && vite build",
     "build:debug": "VITE_ANALYZE=true npm run build -- --debug",
+    "test": "panda codegen && vitest run",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
@@ -52,6 +53,7 @@
     "@pandacss/dev": "1.11.1",
     "@tanstack/eslint-plugin-query": "5.100.14",
     "@tanstack/react-query-devtools": "5.100.14",
+    "@testing-library/react": "16.3.3",
     "@types/humanize-duration": "3.27.4",
     "@types/node": "24.12.4",
     "@types/react": "18.3.12",
@@ -64,6 +66,7 @@
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.2",
     "globals": "17.6.0",
+    "happy-dom": "20.14.5",
     "postcss": "8.5.15",
     "prettier": "3.8.3",
     "rollup-plugin-visualizer": "7.0.1",
@@ -71,6 +74,7 @@
     "typescript-eslint": "8.60.1",
     "vite": "8.0.14",
     "vite-plugin-static-copy": "4.1.1",
-    "vite-plugin-svgr": "5.2.0"
+    "vite-plugin-svgr": "5.2.0",
+    "vitest": "5.0.2"
   }
 }

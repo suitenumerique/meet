@@ -68,5 +68,9 @@
       "member": "Mitglied"
     }
   },
-  "openMenu": "Menü öffnen"
+  "openMenu": "Menü öffnen",
+  "breakout": {
+    "moved": "Du bist jetzt in {{room}}",
+    "closed": "Die Räume sind geschlossen. Alle sind zurück im Hauptraum."
+  }
 }

@@ -68,5 +68,9 @@
       "member": "Lid"
     }
   },
-  "openMenu": "Menu openen"
+  "openMenu": "Menu openen",
+  "breakout": {
+    "moved": "Je bent nu in {{room}}",
+    "closed": "De ruimtes zijn gesloten. Iedereen is terug in de hoofdruimte."
+  }
 }

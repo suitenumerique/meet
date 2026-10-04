@@ -43,6 +43,7 @@ from rest_framework.settings import api_settings
 from core import analytics, enums, models, utils
 from core.api import throttling
 from core.api.filters import ListFileFilter
+from core.breakout import services as breakout_services
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import RecordingProcessWebhookAuthentication
@@ -338,6 +339,12 @@ class RoomViewSet(
 
         try:
             with transaction.atomic():
+                breakout_services.lock_room(room)
+                if breakout_services.has_active_session(room):
+                    return drf_response.Response(
+                        {"error": "Close the breakout rooms before recording."},
+                        status=drf_status.HTTP_409_CONFLICT,
+                    )
                 recording = models.Recording.objects.create(
                     room=room,
                     mode=mode,

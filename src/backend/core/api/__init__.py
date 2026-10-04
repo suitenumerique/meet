@@ -66,6 +66,7 @@ def get_frontend_configuration(request):
         },
         "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
         "diagnostics": {"connection_test_enabled": settings.CONNECTION_TEST_ENABLED},
+        "breakout_rooms": {"is_enabled": settings.BREAKOUT_ROOMS_ENABLED},
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "force_wss_protocol": settings.LIVEKIT_FORCE_WSS_PROTOCOL,

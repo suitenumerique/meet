@@ -423,7 +423,8 @@
       "screenRecording": "Record",
       "admin": "Host settings",
       "tools": "More tools",
-      "info": "Meeting information"
+      "info": "Meeting information",
+      "breakout": "Breakout rooms"
     },
     "content": {
       "participants": "participants",
@@ -433,7 +434,8 @@
       "screenRecording": "record",
       "admin": "host settings",
       "tools": "more tools",
-      "info": "meeting information"
+      "info": "meeting information",
+      "breakout": "breakout rooms"
     },
     "closeButton": "Hide {{content}} (Escape)",
     "escapeHint": "Press Escape to close"
@@ -454,6 +456,10 @@
       "screenRecording": {
         "title": "Record",
         "body": "Save meetings as video."
+      },
+      "breakout": {
+        "title": "Breakout rooms",
+        "body": "Split the meeting into smaller groups."
       }
     }
   },
@@ -824,5 +830,29 @@
   },
   "participantTile": {
     "screenShare": "{{name}}'s screen"
+  },
+  "breakout": {
+    "roomName": "Room {{number}}",
+    "error": "The action failed. Please try again.",
+    "setup": {
+      "roomCount": "Number of rooms",
+      "unassignedOption": "Unassigned",
+      "nobody": "Nobody to assign yet",
+      "unassigned_one": "{{count}} person unassigned",
+      "unassigned_other": "{{count}} people unassigned",
+      "allAssigned": "Everyone is assigned",
+      "shuffle": "Assign randomly",
+      "assign": "Room for {{name}}",
+      "open": "Open rooms",
+      "recording": "Stop the recording to open rooms."
+    },
+    "active": {
+      "empty": "Nobody assigned",
+      "close": "Close rooms"
+    },
+    "participant": {
+      "currentRoom": "You are in {{room}}",
+      "mainRoom": "Rooms are open. You are in the main room."
+    }
   }
 }
