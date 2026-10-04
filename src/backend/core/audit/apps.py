@@ -1,6 +1,7 @@
 """Application configurations of the audit facility."""
 
 from django.apps import AppConfig
+from django.contrib.admin.apps import AdminConfig
 from django.utils.module_loading import autodiscover_modules
 
 from .signals import connect_auth_signals
@@ -20,3 +21,9 @@ class AuditConfig(AppConfig):
         """
         connect_auth_signals()
         autodiscover_modules("auditing")
+
+
+class AuditedAdminConfig(AdminConfig):
+    """Serve the admin from the site that audits every write."""
+
+    default_site = "core.audit.admin.AuditedAdminSite"

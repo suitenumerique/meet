@@ -2,6 +2,8 @@
 
 from types import SimpleNamespace
 
+from django.contrib.auth.models import Group
+
 import pytest
 
 from core import audit
@@ -36,6 +38,14 @@ def test_register_refuses_unknown_options():
     assert model_options(Resource) == ModelOptions()
 
 
+def test_register_refuses_unknown_categories():
+    """A category outside the ECS subset fails where it is registered."""
+    with pytest.raises(ValueError):
+        audit.register(Resource, category="nonsense")
+
+    assert model_options(Resource) == ModelOptions()
+
+
 def test_model_options_falls_back_to_the_concrete_model():
     """A proxy model is described as the model it proxies."""
     proxy = type("ProxyRoom", (), {"_meta": SimpleNamespace(concrete_model=Room)})
@@ -57,6 +67,7 @@ def test_override_registration_restores_the_previous_one():
 def test_project_declarations_are_discovered():
     """``core.auditing`` is imported when the audit app is ready."""
     assert model_options(Room).fields == ("slug", "name", "access_level")
+    assert model_options(Group).category == audit.EventCategory.IAM
     assert auth_methods()[dotted_path(ApplicationJWTAuthentication)] == (
         "application_jwt"
     )

@@ -3,7 +3,12 @@
 The project registers them from an ``auditing`` module in one of its apps,
 imported once the audit app is ready::
 
-    audit.register(Room, fields=("slug", "access_level"))  # describe the target
+    audit.register(
+        Room,
+        fields=("slug", "access_level"),  # describe the target
+        admin_values=("name", "access_level"),  # values diffed in the admin
+        category=audit.EventCategory.CONFIGURATION,  # ECS category of admin writes
+    )
     audit.register_auth_method(ApplicationJWTAuthentication, "application_jwt")
 
 A target is always identified by its model name and primary key, so a model
@@ -13,6 +18,8 @@ that is not registered is still identifiable, just less detailed.
 from dataclasses import dataclass
 
 from django.db.models import Model
+
+from .enums import EventCategory
 
 
 class AlreadyRegistered(Exception):
@@ -24,20 +31,36 @@ class ModelOptions:
     """What audit events may say about a model.
 
     ``fields`` describe the model when it is the target of an event.
+    ``admin_values`` are the fields whose before and after values may be
+    recorded when they change in the Django admin. ``category`` is the ECS
+    category of admin writes: ``iam`` for anything granting access to the
+    product, ``configuration`` by default.
     """
 
     fields: tuple[str, ...] = ()
+    admin_values: tuple[str, ...] = ()
+    category: EventCategory | None = None
 
 
 _models: dict[type[Model], ModelOptions] = {}
 _auth_methods: dict[str, str] = {}
 
 
-def register(model: type[Model], *, fields=()) -> None:
+def register(
+    model: type[Model],
+    *,
+    fields=(),
+    admin_values=(),
+    category: EventCategory | str | None = None,
+) -> None:
     """Declare what audit events may say about ``model``."""
     if model in _models:
         raise AlreadyRegistered(f"{model._meta.label} is already registered")  # noqa: SLF001
-    _models[model] = ModelOptions(fields=tuple(fields))
+    _models[model] = ModelOptions(
+        fields=tuple(fields),
+        admin_values=tuple(admin_values),
+        category=EventCategory(category) if category is not None else None,
+    )
 
 
 def unregister(model: type[Model]) -> ModelOptions | None:

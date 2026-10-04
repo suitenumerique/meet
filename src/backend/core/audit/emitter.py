@@ -8,7 +8,7 @@ from typing import Any
 from django.conf import settings
 
 from .actions import Action
-from .actor import describe_actor
+from .actor import describe_actor, describe_user
 from .enums import ActorType, EventCategory, EventType, Outcome, Reason
 from .request import current_request, current_request_id, resolve_client_ip
 from .targets import describe_target
@@ -55,6 +55,7 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
     category: EventCategory | str | None = None,
     types: list[EventType | str] | None = None,
     target: Any = None,
+    user_target: Any = None,
     actor: Any = None,
     actor_type: ActorType | str | None = None,
     auth_method: str | None = None,
@@ -72,8 +73,9 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
     The actor, auth method and network fields are read from ``request``, by
     default the request being served.
     ``actor``, ``actor_type``, ``auth_method`` and ``client_id`` override them.
-    ``target`` is the resource acted on. Any other keyword argument lands under
-    ``lasuite.details``.
+    ``target`` is the resource acted on and ``user_target`` the account an IAM
+    action was performed on, reported as ``user.target``. Any other keyword
+    argument lands under ``lasuite.details``.
     """
     if request is None:
         request = current_request()
@@ -110,7 +112,10 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
                 "response": {"status_code": status_code},
             },
             "url": {"path": getattr(request, "path", None) or None},
-            "user": actor_fields["user"],
+            "user": {
+                **(actor_fields["user"] or {}),
+                "target": describe_user(user_target) if user_target else None,
+            },
             "organization": actor_fields["organization"],
             "lasuite": {
                 **actor_fields["lasuite"],

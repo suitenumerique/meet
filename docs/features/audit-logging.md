@@ -60,7 +60,8 @@ Standard fields follow the [Elastic Common Schema](https://www.elastic.co/guide/
 | `lasuite.actor.name` | Name of a `service` actor: `roomkit`, `summary` |
 | `lasuite.auth.method` | `session`, `application_jwt`, `addons_jwt`, `resource_server`, `livekit_token`, `shared_secret`, `client_credentials`, `oidc`, `password`, `none`, or `unknown` for a class that is not registered. Requests served outside DRF, as the admin and logout are, report `session` when signed in |
 | `lasuite.application.client_id` | The external application acting, when there is one. Only set once its credentials are verified |
-| `user.id`, `user.sub`, `user.domain` | The (delegated) human user: primary key, OIDC sub when the account has one, and email domain. The email address is never recorded |
+| `user.id`, `user.sub`, `user.domain` | The account whose authority the action used, see [Actors](#actors): primary key, OIDC sub when the account has one, and email domain. The email address is never recorded |
+| `user.target.id`, `user.target.sub`, `user.target.domain` | The account an IAM action was performed on, when the target is a user. `user.*` stays the actor |
 | `organization.id` | Tenant: the application client id when present, else the user's email domain |
 | `lasuite.target` | The resource acted on: `type`, `id` and a few stable fields per type |
 | `lasuite.details` | Action-specific fields (see catalogue) |
@@ -102,9 +103,54 @@ an account a user. An event emitted with neither a request nor an actor is the s
 | `room.list` | Rooms are listed through the external API, or the attempt fails | `lasuite.details.total` |
 | `user.login` | A user logs in or a login attempt fails, `denied` with reason `authentication_failed` | `lasuite.auth.method` = `oidc` or `password`, or `unknown`: named after the backend on success, `lasuite.details.auth_backend`, and after the credentials submitted on failure (a password, or the nonce of the OIDC callback) |
 | `user.logout` | A user logs out | |
+| `admin.access` | A signed-in account without staff access reaches an admin page (always denied), once per refused page | `event.reason`, `http.response.status_code`: the redirect to the login page |
+| `admin.<target>.<verb>` | A write is made through the Django admin, see below | |
 
 Actions are always dotted, lower-case, with the format `<target>.<verb>`, and name what was attempted: whether it
 succeeded is told by `event.outcome`, `lasuite.outcome` and `event.reason`, never by the action.
+
+## Django admin
+
+The admin is the most sensitive surface of the product, so every write made through it emits an audit event next to
+the `LogEntry` Django writes itself. Nothing is replaced and there is no extra table: the admin history keeps working.
+
+The action is templated rather than listed: `admin.<target>.<verb>`, where `<target>` is the model name and `<verb>`
+one of:
+
+| `<verb>` | Emitted when | Notable fields |
+|---|---|---|
+| `create` | An object is added | `lasuite.details.changed_fields`, `changes` |
+| `update` | An object is changed | `lasuite.details.changed_fields`, `changes` |
+| `delete` | An object is deleted, one event per object, once the deletion has run. A deletion that raises is a `failure` with reason `internal_error`; in a bulk deletion every selected object is then reported as failed | `error.message` on failure |
+| `action` | A bulk action runs | `lasuite.details.admin_action`, `count` |
+
+So `admin.room.update`, `admin.user.delete`, `admin.recording.action`. `event.category` is `iam` for anything granting
+access to the product and `configuration` otherwise. Writes on a user or a group lead `event.type` with `user` or
+`group`, as in `["user", "change"]`.
+
+`lasuite.details.changed_fields` always carries the **names** of the fields a form changed, exactly the ones Django
+reports in its own history. `lasuite.details.changes` carries their **values**, as `{"from": ..., "to": ...}`, and only
+for the fields a model explicitly allows in the `admin_values` it is registered with. Anything that
+looks like a secret is refused there whatever the allow-list says, so a password change is reported as a change to `password` and never with its value.
+A `JSONField` on the allow-list, such as a room's `configuration`, is recorded as JSON rather than stringified, and both versions are kept
+whole.
+
+Objects edited through an **inline** emit their own event, joined to the parent's by `trace.id`: granting a role on a
+room produces both `admin.room.update` and `admin.resourceaccess.create`.
+
+What is deliberately **not** covered:
+
+- **Reads.** Opening a change list, a change form or the history page emits nothing. Django's own `LogEntry` remains
+  the record of who touched what.
+- **A custom action bypassing the ORM hooks.** An action calling `queryset.update()` or `queryset.delete()` directly
+  is reported as `admin.<target>.action` with its name and the number of objects, not one event per object.
+  `delete_selected` is the exception: Django reports its objects through `log_deletions`, so it emits one
+  `admin.<target>.delete` each and no `action` event.
+
+The wiring lives in `core/audit/admin.py`: `AuditedAdminSite` mixes the auditing into every admin class at
+registration, including those declared by Django itself, and is installed through
+`core.audit.apps.AuditedAdminConfig` in `INSTALLED_APPS`. A new `ModelAdmin` is therefore covered without doing
+anything; registering its model (see below) only adds its category and its allowed values.
 
 ## Emitting events
 
@@ -186,8 +232,9 @@ emitted.
 The project describes itself to the facility in code, from `core/auditing.py`. The audit app imports the `auditing`
 module of every installed app once it is ready:
 
-- `audit.register(Model, fields=...)`: the `fields` describing a model as a target. A proxy model falls back to its
-  concrete model. Registering a model twice raises `AlreadyRegistered`.
+- `audit.register(Model, fields=..., admin_values=..., category=...)`: the `fields` describing a model as a target,
+  the `admin_values` whose before and after values may be recorded in the admin, and the `category` of its admin
+  writes. A proxy model falls back to its concrete model. Registering a model twice raises `AlreadyRegistered`.
 - `audit.register_auth_method(klass, name)`: the `lasuite.auth.method` of a DRF authentication class or of a login
   backend. A DRF class inherits the name of its closest registered base, and DRF's own classes are built in. A login
   backend must be registered itself, as custom backends often subclass `ModelBackend` for its permission checks
