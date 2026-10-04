@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { VideoPresets } from 'livekit-client'
-import { css } from '@/styled-system/css'
 import { BENCH_CONTENDERS } from './contenders'
 import { BenchAbortError, runBenchmark } from './ProcessorBenchmark'
 import { MEASURE_SECONDS, PASSES, numberInRange } from './options'
@@ -27,114 +26,6 @@ type ResolutionKey = (typeof RESOLUTION_KEYS)[number]
 const resolutionOf = (key: ResolutionKey) => VideoPresets[key]
 const resolutionLabel = (key: ResolutionKey) =>
   `${VideoPresets[key].width}x${VideoPresets[key].height}`
-
-const styles = {
-  page: css({
-    padding: '1.5rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.25rem',
-    maxWidth: '1200px',
-    marginX: 'auto',
-  }),
-  row: css({
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '1rem',
-    alignItems: 'flex-end',
-  }),
-  field: css({
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.25rem',
-    fontSize: '0.875rem',
-  }),
-  contenders: css({
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.375rem',
-  }),
-  previews: css({
-    display: 'flex',
-    gap: '1rem',
-    flexWrap: 'wrap',
-  }),
-  // Reserves the slot while the harness swaps its video element in and out.
-  videoSlot: css({
-    width: '320px',
-    maxWidth: '100%',
-    aspectRatio: '16 / 9',
-    background: '#111',
-    borderRadius: '4px',
-  }),
-  video: css({
-    width: '100%',
-    height: '100%',
-    borderRadius: '4px',
-    objectFit: 'contain',
-  }),
-  tableWrap: css({
-    overflowX: 'auto',
-  }),
-  table: css({
-    borderCollapse: 'collapse',
-    fontSize: '0.8125rem',
-    width: '100%',
-    '& th, & td': {
-      border: '1px solid #ddd',
-      padding: '0.375rem 0.5rem',
-      textAlign: 'right',
-      whiteSpace: 'nowrap',
-    },
-    '& th:first-child, & td:first-child': {
-      textAlign: 'left',
-    },
-  }),
-  note: css({
-    fontSize: '0.8125rem',
-    color: '#666',
-  }),
-  specs: css({
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-    gap: '0.25rem 1.5rem',
-    fontSize: '0.8125rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    padding: '0.75rem 1rem',
-  }),
-  specRow: css({
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '1rem',
-  }),
-  specKey: css({
-    color: '#666',
-  }),
-  specValue: css({
-    fontFamily: 'monospace',
-    textAlign: 'right',
-    wordBreak: 'break-word',
-  }),
-  badge: css({
-    display: 'inline-block',
-    padding: '0.125rem 0.5rem',
-    borderRadius: '999px',
-    fontSize: '0.75rem',
-    border: '1px solid currentColor',
-  }),
-  error: css({
-    fontSize: '0.8125rem',
-    color: '#b3261e',
-  }),
-  button: css({
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    border: '1px solid #666',
-    cursor: 'pointer',
-    _disabled: { opacity: 0.5, cursor: 'not-allowed' },
-  }),
-}
 
 const fmt = (value: number | null | undefined, digits = 1): string =>
   typeof value === 'number' && Number.isFinite(value)
@@ -190,9 +81,9 @@ const RESULT_COLUMNS: Array<{
 ]
 
 const SpecRow = ({ label, value }: { label: string; value: string }) => (
-  <div className={styles.specRow}>
-    <span className={styles.specKey}>{label}</span>
-    <span className={styles.specValue}>{value}</span>
+  <div className="specRow">
+    <span className="specKey">{label}</span>
+    <span className="specValue">{value}</span>
   </div>
 )
 
@@ -208,7 +99,7 @@ const SpecsPanel = ({ specs }: { specs: SystemSpecs }) => {
   }
 
   return (
-    <div className={styles.specs}>
+    <div className="specs">
       <SpecRow
         label="Platform"
         value={`${or(specs.platform)} ${or(specs.platformVersion)}`}
@@ -283,9 +174,11 @@ const ProcessorBenchPage = () => {
 
   useEffect(() => {
     let cancelled = false
-    collectSystemSpecs().then((collected) => {
-      if (!cancelled) setSpecs(collected)
-    })
+    collectSystemSpecs()
+      .then((collected) => {
+        if (!cancelled) setSpecs(collected)
+      })
+      .catch((error) => console.error(error))
     return () => {
       cancelled = true
     }
@@ -337,7 +230,7 @@ const ProcessorBenchPage = () => {
         {
           sourceContainer,
           outputContainer,
-          videoClassName: styles.video,
+          videoClassName: 'video',
         },
         setProgress,
         controller.signal
@@ -358,24 +251,22 @@ const ProcessorBenchPage = () => {
   const stop = () => abortRef.current?.abort()
 
   return (
-    <div className={styles.page}>
+    <div className="page">
       <div>
         <h1>Track processor benchmark</h1>
-        <p className={styles.note}>
+        <p className="note">
           Measures any livekit <code>TrackProcessor</code> under an identical
           protocol: one camera track, warm up, measure, tear down, repeated with
-          the running order reversed. Dev-only page.
+          the running order reversed.
         </p>
       </div>
 
       {specs && (
         <>
-          <div className={styles.row}>
+          <div className="row">
             <strong>This machine</strong>
             {specs.gpu.softwareRendered && (
-              <span className={styles.badge}>
-                GPU disabled — software rendering
-              </span>
+              <span className="badge">GPU disabled — software rendering</span>
             )}
           </div>
           <SpecsPanel specs={specs} />
@@ -383,20 +274,20 @@ const ProcessorBenchPage = () => {
       )}
 
       {!SUPPORTS_RVFC && (
-        <p className={styles.error}>
+        <p className="error">
           This browser has no requestVideoFrameCallback, so frame pacing cannot
           be measured. FPS falls back to decoded-frame counts and jitter is
           unavailable.
         </p>
       )}
       {!SUPPORTS_LONG_TASKS && (
-        <p className={styles.error}>
+        <p className="error">
           This browser does not report long tasks, so main-thread blocking
           columns will be empty. Chromium reports them.
         </p>
       )}
 
-      <div className={styles.contenders}>
+      <div className="contenders">
         <strong>Processors</strong>
         {BENCH_CONTENDERS.map((contender) => (
           <label key={contender.id}>
@@ -407,13 +298,13 @@ const ProcessorBenchPage = () => {
               onChange={() => toggle(contender.id)}
             />{' '}
             {contender.label}{' '}
-            <span className={styles.note}>{contender.description}</span>
+            <span className="note">{contender.description}</span>
           </label>
         ))}
       </div>
 
-      <div className={styles.row}>
-        <label className={styles.field}>
+      <div className="row">
+        <label className="field">
           <span>Resolution</span>
           <select
             value={resolution}
@@ -430,7 +321,7 @@ const ProcessorBenchPage = () => {
           </select>
         </label>
 
-        <label className={styles.field}>
+        <label className="field">
           <span>Measure seconds</span>
           <input
             type="number"
@@ -443,7 +334,7 @@ const ProcessorBenchPage = () => {
           />
         </label>
 
-        <label className={styles.field}>
+        <label className="field">
           <span>Passes</span>
           <input
             type="number"
@@ -458,7 +349,7 @@ const ProcessorBenchPage = () => {
 
         <button
           type="button"
-          className={styles.button}
+          className="button"
           onClick={start}
           disabled={
             running ||
@@ -471,14 +362,14 @@ const ProcessorBenchPage = () => {
         </button>
         <button
           type="button"
-          className={styles.button}
+          className="button"
           onClick={stop}
           disabled={!running}
         >
           Stop
         </button>
 
-        <span className={styles.note}>
+        <span className="note">
           {estimatedSeconds === null
             ? `Measure seconds ${MEASURE_SECONDS.min}–${MEASURE_SECONDS.max}, passes ${PASSES.min}–${PASSES.max}`
             : `~${estimatedSeconds}s total`}
@@ -488,28 +379,28 @@ const ProcessorBenchPage = () => {
       <p>
         <strong>Status:</strong> {describeProgress(progress)}
       </p>
-      {failure && <p className={styles.error}>{failure}</p>}
+      {failure && <p className="error">{failure}</p>}
 
       {/*
         The harness owns these video elements: it creates a fresh pair per run,
         the way livekit's setProcessor does, so no `loadeddata` state carries
         from one processor's start-up into the next.
       */}
-      <div className={styles.previews}>
+      <div className="previews">
         <div>
-          <div className={styles.note}>Camera source</div>
-          <div ref={sourceContainerRef} className={styles.videoSlot} />
+          <div className="note">Camera source</div>
+          <div ref={sourceContainerRef} className="videoSlot" />
         </div>
         <div>
-          <div className={styles.note}>Processor output</div>
-          <div ref={outputContainerRef} className={styles.videoSlot} />
+          <div className="note">Processor output</div>
+          <div ref={outputContainerRef} className="videoSlot" />
         </div>
       </div>
 
       {report && (
         <>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
+          <div className="tableWrap">
+            <table className="table">
               <thead>
                 <tr>
                   {RESULT_COLUMNS.map((column) => (
@@ -529,26 +420,26 @@ const ProcessorBenchPage = () => {
             </table>
           </div>
 
-          <p className={styles.note}>
+          <p className="note">
             <strong>Rendering</strong> is observed: the canvas context types
             each processor actually created during its run.{' '}
             <strong>Inference</strong> is only what the processor asks MediaPipe
             for — MediaPipe never reports the delegate it settled on and can
             fall back to CPU silently, so it is not proof. To take the GPU out
             of the picture entirely, including compositing, run{' '}
-            <code>make run-frontend-nogpu</code>; the panel above will then
-            report software rendering.
+            <code>make run-frontend-tools-nogpu</code>; the panel above will
+            then report software rendering.
           </p>
 
           {report.results.map((result) => (
             <div key={result.contenderId}>
               {result.notes.map((note) => (
-                <div key={note} className={styles.note}>
+                <div key={note} className="note">
                   {result.label}: {note}
                 </div>
               ))}
               {result.errors.map((error) => (
-                <div key={error} className={styles.error}>
+                <div key={error} className="error">
                   {result.label}: {error}
                 </div>
               ))}
@@ -557,7 +448,7 @@ const ProcessorBenchPage = () => {
 
           <button
             type="button"
-            className={styles.button}
+            className="button"
             onClick={() =>
               navigator.clipboard.writeText(JSON.stringify(report, null, 2))
             }

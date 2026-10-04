@@ -1,21 +1,28 @@
-# Track processor benchmark
+# Frontend tools
 
-A dev-only harness that measures any livekit `TrackProcessor<Track.Kind>` under an
-identical protocol, so two implementations can be compared on the same machine in
-the same session.
+Development and diagnostic tools for meet's frontend. They are a separate Vite app,
+never shipped, and boot nothing of the meet application: no providers, i18n, analytics
+or API calls run in the background while a tool measures something.
 
-## Running it
+They import meet's production code directly from `src/frontend/src` (the `@/` alias),
+so what they exercise is exactly what ships. `vite.config.ts` refuses to start if any
+package declared here is pinned to a different version than in `src/frontend`.
 
 ```bash
-npm run dev
+make frontend-tools-install
+make run-frontend-tools   # http://localhost:3001
+make frontend-tools-test
 ```
 
-Open <http://localhost:3000/processor-bench>, tick the processors to compare, press
-**Run benchmark** and grant camera access. The route only exists in dev builds:
-`import.meta.env.DEV` is inlined as `false` for production, so the branch and the
-chunk it imports are dropped from `dist` entirely.
+## Track processor benchmark
 
-## Protocol
+Measures any livekit `TrackProcessor<Track.Kind>` under an identical protocol, so two
+implementations can be compared on the same machine in the same session.
+
+Open <http://localhost:3001>, tick the processors to compare, press **Run benchmark**
+and grant camera access.
+
+### Protocol
 
 One `getUserMedia` track is acquired and shared by every run, then per processor:
 
@@ -47,7 +54,7 @@ warmth do not systematically favour whoever ran first. Steady-state metrics are 
 across passes; startup is reported separately as cold (first run, model download included)
 and warm (later runs).
 
-## Metrics
+### Metrics
 
 All of them are black-box, observed on the output track and the main thread, which is
 what keeps the harness processor-agnostic.
@@ -65,7 +72,7 @@ GPU time is not measured — there is no portable API for it — and neither are
 of any processor. Compare rows only when their notes agree: a processor that self-tunes at
 startup reports what it settled on via `describe()`.
 
-## Machine specs
+### Machine specs
 
 Every report captures the machine that produced it, shown in a panel on the page and
 embedded in the JSON: CPU cores, device memory, OS and architecture, browser version,
@@ -74,7 +81,7 @@ GPU vendor and renderer (WebGPU `adapter.info` when available, else the WebGL
 pixel ratio, timezone, and battery charging state — a laptop on battery throttles hard
 enough to invalidate a comparison against one on mains.
 
-## Did a processor use the GPU?
+### Did a processor use the GPU?
 
 Two columns, and they are not equally strong:
 
@@ -88,15 +95,15 @@ Two columns, and they are not equally strong:
   the delegate it settled on and can fall back to CPU silently, so this is a request and
   is labelled as one. Never read it as proof.
 
-### Running without a GPU at all
+#### Running without a GPU at all
 
 Neither column can be changed from inside the page: forcing a delegate would only move
 MediaPipe inference, while WebGL rendering and browser compositing stay hardware
 accelerated. For a genuinely GPU-less run:
 
 ```bash
-make run-frontend-development   # in one shell
-make run-frontend-nogpu         # in another
+make run-frontend-tools         # in one shell
+make run-frontend-tools-nogpu   # in another
 ```
 
 That launches Chrome with `--disable-gpu` against a throwaway profile. The profile is
@@ -105,7 +112,7 @@ opens a tab in the existing process and the flag is **silently ignored** — you
 an ordinary GPU run that looks like a GPU-less one. The specs panel closes that loop, so
 check it says _software rendering_ before trusting the numbers.
 
-## Adding a processor
+### Adding a processor
 
 One entry in `contenders.ts`:
 
@@ -124,8 +131,8 @@ One entry in `contenders.ts`:
 
 Nothing else changes: the protocol and the metrics apply to whatever the entry constructs.
 
-## Tests
+### Tests
 
-`stats.ts` and `sequencing.ts` are pure and unit-tested (`npm run test`) — the latter pins the
+`stats.ts` and `sequencing.ts` are pure and unit-tested (`make frontend-tools-test`) — the latter pins the
 init-before-attach ordering and the abort behaviour described above. The collectors and the page
 need a real camera, GPU and compositor, so they are verified by running the page.

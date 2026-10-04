@@ -8,7 +8,7 @@ import { Switch, Route } from 'wouter'
 import { I18nProvider } from 'react-aria-components'
 import { Layout } from './layout/Layout'
 import { NotFoundScreen } from './components/NotFoundScreen'
-import { devRoutes, routes } from './routes'
+import { routes } from './routes'
 import './i18n/init'
 import { queryClient } from '@/api/queryClient'
 import { AppInitialization } from '@/components/AppInitialization'
@@ -31,13 +31,6 @@ function App() {
             <Switch>
               {Object.entries(routes).map(([, route], i) => (
                 <Route key={i} path={route.path} component={route.Component} />
-              ))}
-              {devRoutes.map((route) => (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  component={route.Component}
-                />
               ))}
               <Route component={NotFoundScreen} />
             </Switch>
