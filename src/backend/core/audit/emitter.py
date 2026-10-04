@@ -12,7 +12,7 @@ from typing import Any
 from django.conf import settings
 
 from .actions import Action
-from .actor import FROM_REQUEST, describe_actor
+from .actor import FROM_REQUEST, describe_actor, describe_user
 from .ecs import (
     DEFAULT_CATEGORY,
     ECS_VERSION,
@@ -22,7 +22,7 @@ from .ecs import (
 )
 from .enums import ActorType, EventCategory, EventType, Outcome, Reason
 from .request import RequestContext, request_context
-from .targets import describe_target
+from .targets import describe_target, user_target_of
 from .utils import prune_empty, render_value
 
 AUDIT_LOGGER_NAME = "audit"
@@ -76,6 +76,7 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
     category: EventCategory | str | Iterable[EventCategory | str] | None = None,
     types: list[EventType | str] | None = None,
     target: Any = None,
+    user_target: Any = None,
     actor: Any = FROM_REQUEST,
     actor_type: ActorType | str | None = None,
     auth_method: str | None = None,
@@ -96,12 +97,14 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
     default from the context of the request being served.
     ``actor``, ``actor_type``, ``auth_method`` and ``client_id`` override them;
     ``actor=None`` records no account even when the request is signed in.
-    ``target`` is the resource acted on, reported as ``entity.target``.
-    ``target_service`` names the peer service the backend called, reported as
-    ``service.target.name``. Any other keyword argument lands under
-    ``lasuite.details``, unless ``None`` or an empty mapping. The value of a
-    detail is data and is kept whole: a ``None`` or an empty mapping inside
-    it, as in the ``from`` and ``to`` of a change, stays.
+    ``target`` is the resource acted on, reported as ``entity.target``, and
+    ``user_target`` the account the action was about, reported as
+    ``user.target``: by default the target if it is a user, or the account
+    registered for its model. ``target_service`` names the peer service the
+    backend called, reported as ``service.target.name``. Any other keyword
+    argument lands under ``lasuite.details``, unless ``None`` or an empty
+    mapping. The value of a detail is data and is kept whole: a ``None`` or an
+    empty mapping inside it, as in the ``from`` and ``to`` of a change, stays.
     """
     context = (
         request_context() if request is None else RequestContext.from_request(request)
@@ -111,6 +114,8 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
     if isinstance(action, Action):
         category = category or action.category
         types = types or list(action.types)
+    if user_target is None and target is not None:
+        user_target = user_target_of(target)
     actor_fields = describe_actor(
         context.request,
         actor=actor,
@@ -144,7 +149,10 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
             },
             "url": {"path": context.path},
             "user_agent": {"original": context.user_agent},
-            "user": actor_fields["user"],
+            "user": {
+                **(actor_fields["user"] or {}),
+                "target": describe_user(user_target) if user_target else None,
+            },
             "organization": actor_fields["organization"],
             "entity": {
                 "target": describe_target(target) if target is not None else None

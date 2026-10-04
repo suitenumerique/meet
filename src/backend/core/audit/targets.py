@@ -63,3 +63,27 @@ def describe_target(obj: Any) -> dict[str, Any]:
             "raw": raw,
         }
     )
+
+
+def user_target_of(obj: Any) -> Any:
+    """Return the account an event on ``obj`` is about, if any.
+
+    It is ``obj`` itself for a user, else the attribute registered as the
+    ``user_target`` of its model, as the user an access is granted to.
+    """
+    if _is_user(obj):
+        return obj
+    if not isinstance(obj, Model):
+        return None
+    meta = obj._meta  # noqa: SLF001
+    attribute = model_options(meta.model).user_target
+    if attribute is None:
+        return None
+    try:
+        user = getattr(obj, attribute)
+    except Exception:  # pylint: disable=broad-exception-caught
+        _logger.exception(
+            "Audit user target %r of %s could not be read", attribute, meta.label
+        )
+        return None
+    return user if _is_user(user) else None
