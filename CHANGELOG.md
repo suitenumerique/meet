@@ -19,6 +19,7 @@ and this project adheres to
 - ✅(frontend) add vitest so the frontend can carry unit tests
 - ♿️(frontend) make participant pagination readable and keyboard reachable #1775
 - ✨(backend) add structured audit logging facility
+- ✨(backend) audit external API token and room operations
 
 ### Changed
 
