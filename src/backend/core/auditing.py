@@ -6,6 +6,7 @@ Imported by the audit app once it is ready, see ``core.audit.apps``.
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 
 from core import audit, models
+from core.audit import EventCategory, EventType
 from core.authentication.backends import OIDCAuthenticationBackend
 from core.authentication.livekit import LiveKitTokenAuthentication
 from core.external_api.authentication import (
@@ -14,6 +15,23 @@ from core.external_api.authentication import (
 )
 from core.recording.event.authentication import HeaderBasedAuthentication
 from core.roomkit.authentication import ServerToServerAuthentication
+
+# Actions
+
+APPLICATION_TOKEN_ISSUE = audit.Action(
+    "application.token.issue",
+    category=EventCategory.AUTHENTICATION,
+    types=(EventType.START,),
+)
+USER_PROVISION = audit.Action(
+    "user.provision",
+    category=EventCategory.IAM,
+    types=(EventType.USER, EventType.CREATION),
+)
+ROOM_CREATE = audit.Action("room.create")
+ROOM_LIST = audit.Action("room.list")
+ROOM_RETRIEVE = audit.Action("room.retrieve")
+ROOM_UPDATE = audit.Action("room.update")
 
 # Models
 

@@ -124,7 +124,7 @@ def stream_fields() -> dict[str, dict[str, str]]:
         "data_stream": {
             "type": "logs",
             "dataset": name,
-            "namespace": settings.AUDIT_LOG_DATA_STREAM_NAMESPACE
+            "namespace": settings.AUDIT_LOG_DATA_STREAM_NAMESPACE,
         },
         "event": {"dataset": name},
     }
