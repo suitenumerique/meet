@@ -2,6 +2,8 @@
 
 from types import SimpleNamespace
 
+from django.contrib.auth.models import Group
+
 import pytest
 
 from core import audit
@@ -15,7 +17,7 @@ from core.audit.registry import (
 )
 from core.audit.testing import override_registration
 from core.external_api.authentication import ApplicationJWTAuthentication
-from core.models import Application, Resource, Room
+from core.models import Application, Resource, ResourceAccess, Room
 
 
 def test_register_twice_is_refused():
@@ -32,6 +34,14 @@ def test_register_refuses_unknown_options():
     """A misspelled option is an error, not silently ignored."""
     with pytest.raises(TypeError):
         audit.register(Resource, field=("name",))  # pylint: disable=unexpected-keyword-arg
+
+    assert model_options(Resource) == ModelOptions()
+
+
+def test_register_refuses_unknown_categories():
+    """A category outside the ECS subset fails where it is registered."""
+    with pytest.raises(ValueError):
+        audit.register(Resource, category="nonsense")
 
     assert model_options(Resource) == ModelOptions()
 
@@ -65,7 +75,9 @@ def test_override_registration_restores_the_previous_one():
 def test_project_declarations_are_discovered():
     """``core.auditing`` is imported when the audit app is ready."""
     assert model_options(Room).fields == ("slug", "name", "access_level")
+    assert model_options(Group).category == audit.EventCategory.IAM
     assert model_options(Application).entity_type == "application"
+    assert model_options(ResourceAccess).user_target == "user"
     assert auth_methods()[dotted_path(ApplicationJWTAuthentication)] == (
         "application_jwt"
     )

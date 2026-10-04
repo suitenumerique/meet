@@ -1,7 +1,7 @@
 # Audit logging
 
 La Suite Meet keeps an **audit log**: a record of the notable things that happen in the product, such as a room created
-through the external API, an application obtaining a token, or a sign-in. Every entry answers the
+through the external API, a sign-in, or a change made in the Django admin. Every entry answers the
 same questions: *who* did *what*, *to what*, *on whose behalf*, *from where*, and *did it work?*
 
 It is written for:
@@ -89,7 +89,7 @@ find each one in the JSON above.
 | **Audit Event** | One immutable record that a notable action was attempted, by whom, on what, and with what outcome. Written as a single JSON line on the Audit Log. | The whole document, identified by `event.id` |
 | **Audit Log** | The stream of Audit Events. It is distinct from the application logs: a logger and a dataset of its own. | `data_stream.*`, `event.dataset` |
 | **Action** | The dotted, stable name of what was attempted, such as `room.create` or `application.token.issue`. It names the attempt, not its result: a refused `room.create` is still a `room.create`. Every Action belongs to the Catalogue. | `event.action` |
-| **Catalogue** | The closed list of Actions the code may emit, with their meaning and fields: see [Catalogue](#catalogue). | — |
+| **Catalogue** | The closed list of Actions the code may emit, with their meaning and fields: see [Catalogue](#catalogue). Writes made through the Django admin are its one templated family, `admin.<target>.<verb>`. | — |
 | **Details** | The fields specific to one Action, such as the scopes granted with a token or the fields a room update changed. The Catalogue lists them. | `lasuite.details.*` |
 
 ### Who acted
@@ -110,6 +110,7 @@ find each one in the JSON above.
 | Term | Meaning | In the event |
 |---|---|---|
 | **Target** | The resource the Action was attempted on: a room, a recording, an access grant, an application or a user. Described by its type, its id and a few stable fields. See [Targets](#targets). | `entity.target.*` |
+| **User Target** | The person the Action was *about*, when there is one: a provisioned user, the user an access grants a role to, or the account an admin edits. Not to be confused with `user.*`, the account whose authority was used. | `user.target.*` |
 
 ### How it went
 
@@ -140,18 +141,18 @@ find each one in the JSON above.
 These are the fields to filter on for the questions that come up most. They work the same whatever tool you search
 your logs with.
 
-**Who created or changed this room?**
+**Who created, changed or deleted this room?**
 Filter on `entity.target.sub_type: room` with the room's id in `entity.target.id`, or its slug in
 `entity.target.raw.slug`. `event.action` says what happened, and `user.id` or `lasuite.application.client_id` who did
-it. Rooms are audited when they are handled through the external API (`room.*`).
+it. Rooms are audited when they are handled through the external API (`room.*`) or the Django admin (`admin.room.*`).
 
 **What has this application done?**
 Filter on `lasuite.application.client_id`. To include the attempts made before its credentials were verified, such as a
 wrong secret or an inactive application, also search `lasuite.details.claimed_client_id`.
 
-**What did this person do?**
-Filter on `user.id`, the account whose authority an action used. To follow someone across the other La Suite products,
-use their OIDC `sub`, in `lasuite.actor.sub`.
+**What did this person do, and what was done to their account?**
+`user.id` is the account whose authority an action used, and `user.target.id` the account an action was about: search
+both. To follow someone across the other La Suite products, use their OIDC `sub`, in `lasuite.actor.sub`.
 
 **Which requests were refused, and why?**
 Filter on `lasuite.outcome: denied` and group by `event.reason`. A burst of `authentication_failed` on `user.login` or
@@ -187,6 +188,7 @@ what ECS does not define: `lasuite.*`, and `entity.target.raw.*` for the fields 
 | `lasuite.application.client_id` | The external application acting, if any. Only set once its credentials are verified |
 | `user.id`, `user.domain` | The account whose authority the action used (see [Actors](#actors)): its primary key and email domain. The email address itself is never recorded |
 | `user.roles` | That account's privileges when the event happened: `superuser`, `staff` |
+| `user.target.id`, `user.target.domain` | The account the action was about: the target when it is a user, or the user an access grants a role to. `user.*` stays the actor |
 | `organization.id` | The Tenant: the application's client id when there is one, otherwise the user's email domain |
 | `entity.target.*` | The resource acted on, see [Targets](#targets) |
 | `lasuite.details` | Fields specific to the action, see the [Catalogue](#catalogue) |
@@ -257,7 +259,7 @@ is told by `event.outcome`, `lasuite.outcome` and `event.reason`, never by the n
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
 | `application.token.issue` | An application asks for a delegated token (`POST /external-api/v1.0/application/token/`), whether it gets one or is refused. It can be refused for bad credentials, an inactive application, an invalid or unauthorized email domain, an unknown user, or a provisioning conflict | On success: `user.*` is the delegated user, `entity.target` the application, and `lasuite.details` holds `scopes`, `user_provisioned` and `expires_in`. On refusal: `event.reason`, `http.response.status_code` and `lasuite.details.requested_domain`. Until its credentials are verified, the client id the caller submitted is only recorded as `lasuite.details.claimed_client_id`: it never sets `lasuite.application` or `organization` |
-| `user.provision` | An application creates a provisional user from an email address, or fails to. It is a `failure` with reason `conflict` when a concurrent request created the user first | `entity.target` is the user, the existing one on a conflict. A provisional user has no `sub` yet: its id links this event to the winning one and to its later `user.login` |
+| `user.provision` | An application creates a provisional user from an email address, or fails to. It is a `failure` with reason `conflict` when a concurrent request created the user first | `user.target` and `entity.target` are the user, the existing one on a conflict. A provisional user has no `sub` yet: its id links this event to the winning one and to its later `user.login` |
 
 ### Rooms
 
@@ -270,12 +272,66 @@ Rooms are audited on the external API only.
 | `room.retrieve` | A room is read through the external API, or the attempt fails | `entity.target` is the room |
 | `room.list` | Rooms are listed through the external API, or the attempt fails | `lasuite.details.total` |
 
-### Sign-in
+### Sign-in and the admin
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
 | `user.login` | A user signs in, or a sign-in attempt fails: `denied`, with reason `authentication_failed` | `lasuite.auth.method` is `oidc`, `password` or `unknown`. On success, it is named after the login backend, also given in `lasuite.details.auth_backend`. On failure, it is named after the credentials submitted: a password, or the nonce of the OIDC callback |
 | `user.logout` | A user signs out | |
+| `admin.access` | A signed-in account without staff access reaches an admin page. Always denied, once per refused page | `event.category` is `web` and `event.type` is `access`. `event.reason`, and `http.response.status_code`: the redirect to the login page |
+| `admin.<target>.<verb>` | A write is made through the Django admin, see [Django admin](#django-admin) | |
+
+## Django admin
+
+The admin is the most sensitive part of the product, so every write made through it produces an audit event, alongside
+the `LogEntry` Django already writes. Nothing is replaced and there is no extra table: the admin history keeps working.
+
+The action name follows a template, `admin.<target>.<verb>`, where `<target>` is the model name and `<verb>` one of:
+
+| `<verb>` | Emitted when | Notable fields |
+|---|---|---|
+| `create` | An object is added | `lasuite.details.changed_fields`, `changes` |
+| `update` | An object is changed | `lasuite.details.changed_fields`, `changes` |
+| `delete` | An object is deleted: one event per object, once the deletion has run. A deletion that raises is a `failure` with reason `internal_error`, and in a bulk deletion every selected object is then reported as failed | `error.message` on failure |
+| `action` | A bulk action runs | `lasuite.details.admin_action`, `count` |
+
+This gives names such as `admin.room.update`, `admin.user.delete` or `admin.recording.action`. `event.category` is `iam`
+for anything that grants access to the product, and `configuration` otherwise. Writes on a user or a group put `user` or
+`group` first in `event.type`, as in `["user", "change"]`.
+
+### What changed
+
+- `lasuite.details.changed_fields` always lists the **names** of the fields a form changed, exactly the ones Django
+  reports in its own history.
+- `lasuite.details.changes` gives their **values**, as `{"from": ..., "to": ...}`, but only for the fields a model
+  explicitly allows in the `admin_values` it is registered with (see
+  [Registering models](#registering-models-and-authentication-methods)).
+- Anything that looks like a secret is refused, whatever the allow-list says. A password change is reported as a change
+  to `password`, never with its value.
+- A `JSONField` on the allow-list, such as a room's `configuration`, is recorded as JSON rather than as a string, and
+  both versions are kept whole.
+
+### Inlines
+
+Objects edited through an **inline** produce their own event, linked to the parent's by `http.request.id`. Granting a
+role on a room produces both `admin.room.update` and `admin.resourceaccess.create`, whose `user.target` is the account
+granted the role.
+
+### What is not covered
+
+- **Reads.** Opening a change list, a change form or the history page emits nothing. Django's own `LogEntry` remains
+  the record of who touched what.
+- **Custom actions that bypass the ORM hooks.** An action calling `queryset.update()` or `queryset.delete()` directly
+  is reported as a single `admin.<target>.action`, with its name and the number of objects, not one event per object.
+  `delete_selected` is the exception: Django reports its objects through `log_deletions`, so it emits one
+  `admin.<target>.delete` per object and no `action` event.
+
+### How it is wired
+
+The wiring lives in `core/audit/admin.py`. `AuditedAdminSite` adds auditing to every admin class when it is registered,
+including those Django declares itself, and is installed through `core.audit.apps.AuditedAdminConfig` in
+`INSTALLED_APPS`. A new `ModelAdmin` is therefore covered without doing anything. Registering its model (see
+[Registering models](#registering-models-and-authentication-methods)) only adds its category and its allowed values.
 
 ## For developers: emitting events
 
@@ -352,7 +408,8 @@ and the actor is the system.
   as. `actor=None` records no account: for a caller failing to authenticate, an application acting before it is given
   a delegated user, or the system.
 - **The target** is described by its model name, its primary key and the `fields` its model is registered with, see
-  [Targets](#targets). A model that is not registered is still identified. Name a service the backend calls with
+  [Targets](#targets). A model that is not registered is still identified. The account the action is about,
+  `user.target`, is found from the target, unless given as `user_target=`. Name a service the backend calls with
   `target_service=`. Any other keyword argument lands under `lasuite.details`.
 
 ### Emission never raises
@@ -380,7 +437,10 @@ imports the `auditing` module of every installed app.
 **`audit.register(Model, ...)`** tells the audit log how to handle a model:
 
 - `fields`: the fields describing it as a target;
-- `entity_type`: its ECS entity type, when one of the allowed values fits (`application`, `user`...).
+- `admin_values`: the fields whose before and after values may be recorded for admin writes;
+- `category`: the ECS category of its admin writes;
+- `entity_type`: its ECS entity type, when one of the allowed values fits (`application`, `user`...);
+- `user_target`: the attribute holding the account an event on it is about, such as `user` for an access.
 
 A proxy model falls back to its concrete model. Registering a model twice raises `AlreadyRegistered`, and an entity type
 ECS does not allow raises `ValueError`.

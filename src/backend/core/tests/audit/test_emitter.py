@@ -335,6 +335,48 @@ def test_audit_log_describes_registered_targets(audit_events):
     assert "user" not in audit_events[0]
 
 
+def test_audit_log_reports_a_user_target_as_user_target(audit_events):
+    """A user acted on is the ``user.target``, its sub only in ``entity.target``."""
+    user = UserFactory(email="jane@example.org")
+
+    audit.log("user.provision", target=user)
+
+    event = audit_events[0]
+
+    assert event["user"] == {"target": {"id": str(user.pk), "domain": "example.org"}}
+    assert event["entity"]["target"] == {
+        "id": str(user.pk),
+        "type": ["user"],
+        "sub_type": "user",
+        "raw": {"sub": user.sub},
+    }
+
+
+def test_audit_log_reports_the_registered_user_target(audit_events):
+    """An access names the user it grants a role to as the ``user.target``."""
+    room = RoomFactory(users=[(UserFactory(email="jane@example.org"), "member")])
+    access = room.accesses.get()
+
+    audit.log("thing.grant", target=access)
+
+    event = audit_events[0]
+
+    assert event["user"] == {
+        "target": {"id": str(access.user_id), "domain": "example.org"}
+    }
+    assert event["entity"]["target"]["sub_type"] == "resourceaccess"
+
+
+def test_audit_log_explicit_user_target_wins(audit_events):
+    """A user target given to ``log`` wins over the one of the target."""
+    room = RoomFactory(users=[(UserFactory(), "member")])
+    other = UserFactory(email="other@example.net")
+
+    audit.log("thing.grant", target=room.accesses.get(), user_target=other)
+
+    assert audit_events[0]["user"]["target"]["id"] == str(other.pk)
+
+
 def test_audit_log_registered_entity_type(audit_events):
     """A model registered with an ECS entity type reports it."""
     application = ApplicationFactory()

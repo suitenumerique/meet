@@ -5,15 +5,16 @@ from django.utils.functional import SimpleLazyObject
 import pytest
 
 from core.audit.registry import ModelOptions, model_options
-from core.audit.targets import describe_target
+from core.audit.targets import describe_target, user_target_of
 from core.audit.testing import override_registration
 from core.factories import (
     ApplicationFactory,
     RecordingFactory,
     RoomFactory,
     UserFactory,
+    UserRecordingAccessFactory,
 )
-from core.models import Application, Recording, Resource, Room
+from core.models import Application, Recording, Resource, ResourceAccess, Room
 
 pytestmark = pytest.mark.django_db
 
@@ -148,3 +149,49 @@ def test_model_options_by_model():
     with override_registration(Room, fields=("slug",)):
         assert model_options(Room) == ModelOptions(fields=("slug",))
     assert model_options(Resource) == ModelOptions()
+
+
+def test_user_target_of_a_user_is_itself():
+    """An event on an account is about that account."""
+    user = UserFactory()
+
+    assert user_target_of(user) == user
+
+
+def test_user_target_of_reads_the_registered_attribute():
+    """An event on an access is about the user it grants a role to."""
+    user = UserFactory()
+    access = RoomFactory(users=[(user, "member")]).accesses.get()
+
+    assert user_target_of(access) == user
+
+
+def test_user_target_of_a_recording_access():
+    """``core.auditing`` registers the user of a recording access."""
+    access = UserRecordingAccessFactory()
+
+    assert user_target_of(access) == access.user
+
+
+def test_user_target_of_an_unregistered_model_is_none():
+    """A model registered without a user target is about no account."""
+    assert user_target_of(RoomFactory()) is None
+    assert user_target_of("something") is None
+
+
+def test_user_target_of_a_broken_registration_is_none(caplog):
+    """An attribute that cannot be read costs the user target, not the event."""
+    access = RoomFactory(users=[(UserFactory(), "member")]).accesses.get()
+
+    with override_registration(ResourceAccess, user_target="no_such_attribute"):
+        assert user_target_of(access) is None
+
+    assert "no_such_attribute" in caplog.text
+
+
+def test_user_target_of_an_attribute_that_is_not_a_user_is_none():
+    """A registered attribute holding anything but an account is ignored."""
+    access = RoomFactory(users=[(UserFactory(), "member")]).accesses.get()
+
+    with override_registration(ResourceAccess, user_target="role"):
+        assert user_target_of(access) is None

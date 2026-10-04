@@ -335,6 +335,7 @@ class Base(Configuration):
         "core.audit.apps.AuditConfig",
         "demo",
         "drf_spectacular",
+        "core.audit.apps.AuditedAdminConfig",
         # Third party apps
         "corsheaders",
         "dockerflow.django",
@@ -342,7 +343,6 @@ class Base(Configuration):
         "parler",
         "easy_thumbnails",
         # Django
-        "django.contrib.admin",
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "django.contrib.postgres",
