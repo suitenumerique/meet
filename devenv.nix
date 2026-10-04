@@ -126,7 +126,7 @@ in
 
       # -- summary service
       ++ lib.optionals config.meet.summary.enable [
-        redis
+        valkey
       ]
 
       # -- Kubernetes tools

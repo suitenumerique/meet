@@ -53,12 +53,12 @@ jobs:
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
-        image: redis:5
+        image: valkey/valkey:8.1-alpine
         ports:
           - 6379:6379
-        # Set health checks to wait until redis has started
+        # Set health checks to wait until valkey has started
         options: >-
-          --health-cmd "redis-cli ping"
+          --health-cmd "valkey-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5

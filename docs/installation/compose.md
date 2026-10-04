@@ -9,7 +9,7 @@ All services are required to run the minimalist instance of LaSuite Meet. Click 
 | Service           | Purpose | Example Config                                           |
 |-------------------|---------|----------------------------------------------------------|
 | **PostgreSQL**    | Main database | [compose.yaml](../examples/compose/compose.yaml)         |
-| **Redis**         | Cache & sessions | [compose.yaml](../examples/compose/compose.yaml)         |
+| **Valkey**        | Cache & sessions | [compose.yaml](../examples/compose/compose.yaml)         |
 | **Livekit**       | Real-time communication | [compose.yaml](../examples/compose/compose.yaml)         |
 | **OIDC Provider** | User authentication | [Keycloak setup](../examples/compose/keycloak/README.md) |
 | **SMTP Service**  | Email notifications | -                                                        |
@@ -75,9 +75,9 @@ If you are using the example provided, you need to generate a secure key for `DB
 
 If you are using an external service or not using our default values, you should update the variables in `env.d/postgresql`
 
-### Redis
+### Valkey
 
-Meet uses Redis for caching and inter-service communication. While an external Redis can be used, our example provides a deployment method.
+Meet uses [Valkey](https://valkey.io) for caching and inter-service communication. While an external Valkey (or any Redis-compatible server) can be used, our example provides a deployment method.
 
 If you are using an external service, you need to set `REDIS_URL` environment variable in `env.d/common`.
 
