@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next'
 import type { ChatRow } from '@/stores/chat'
+import { Text } from '@/primitives'
 import { styled } from '@/styled-system/jsx'
 import { ChatMessageMetadata } from './ChatMessageMedata'
 import { ChatMessageBody } from './ChatMessageBody'
@@ -16,6 +18,7 @@ type ChatMessageProps = {
 }
 
 export const ChatMessage = ({ item }: ChatMessageProps) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'chat.everyRoom' })
   const time = new Date(item.timestamp)
   const locale = navigator ? navigator.language : 'en-US'
   return (
@@ -28,6 +31,7 @@ export const ChatMessage = ({ item }: ChatMessageProps) => {
           identity={item.identity}
         />
       )}
+      {item.toEveryRoom && <Text variant="xsNote">{t('tag')}</Text>}
       <ChatMessageBody message={item.message} />
     </StyledContainer>
   )

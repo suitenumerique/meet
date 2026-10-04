@@ -1,4 +1,5 @@
-import { ParticipantKind } from 'livekit-client'
+import { ParticipantKind, type Participant } from 'livekit-client'
+import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 
 // What the backend writes into the meeting's metadata while it is split.
 export type BreakoutSignal = {
@@ -88,3 +89,25 @@ export const breakoutRecipients = (room: RoomLike): string[] | undefined => {
   if (listeners === null) return undefined
   return listeners.length ? listeners : [me]
 }
+
+// The chat attribute a host in the main room sets on a message meant for every
+// room. Receivers trust it from an owner or an administrator alone, whose role
+// the backend writes into the pass and nobody can change.
+export const TO_EVERY_ROOM = 'breakout.to_every_room'
+
+// True for a message a host sent to every room; the same mark from anyone
+// else is ignored.
+export const isToEveryRoom = (message: {
+  attributes?: Record<string, string>
+  from?: Participant
+}) =>
+  message.attributes?.[TO_EVERY_ROOM] === 'true' &&
+  !!message.from &&
+  getParticipantIsRoomAdminOrOwner(message.from)
+
+// Where a host may send to every room from: a split is open and they are in
+// no breakout room.
+export const isInMainRoomOfSplit = (
+  signal: BreakoutSignal | null,
+  identity: string
+) => signal !== null && groupOf(signal, identity) === MAIN_GROUP

@@ -441,6 +441,10 @@
     "escapeHint": "Press Escape to close"
   },
   "chat": {
+    "everyRoom": {
+      "label": "Send to every room",
+      "tag": "To every room"
+    },
     "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call.",
     "messagesLog": "Chat messages"
   },

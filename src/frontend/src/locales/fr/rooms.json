@@ -441,6 +441,10 @@
     "escapeHint": "Appuyez sur Échap pour fermer"
   },
   "chat": {
+    "everyRoom": {
+      "label": "Envoyer à toutes les salles",
+      "tag": "À toutes les salles"
+    },
     "disclaimer": "Les messages sont visibles par les participants uniquement au moment de\nleur envoi. Tous les messages sont supprimés à la fin de l'appel.",
     "messagesLog": "Messages du chat"
   },

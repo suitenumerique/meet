@@ -440,6 +440,10 @@
     "closeButton": "Ocultar {{content}}"
   },
   "chat": {
+    "everyRoom": {
+      "label": "Enviar a todas las salas",
+      "tag": "A todas las salas"
+    },
     "disclaimer": "Los mensajes solo son visibles para los participantes en el momento de\nsu envío. Todos los mensajes se eliminan al final de la llamada.",
     "messagesLog": "Mensajes del chat"
   },

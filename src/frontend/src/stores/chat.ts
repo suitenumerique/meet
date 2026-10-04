@@ -11,6 +11,8 @@ export type ChatRow = {
   timestamp: number
   hideMetadata: boolean
   isLocal: boolean
+  // Sent by a host in the main room to every breakout room.
+  toEveryRoom: boolean
 }
 
 type State = {
@@ -20,6 +22,8 @@ type State = {
   names: Record<string, string>
   send?: ChatApi['send']
   textAreaValue: string
+  // The host's switch: the next messages go to every breakout room.
+  toEveryRoom: boolean
 }
 
 const initialState: State = {
@@ -29,13 +33,14 @@ const initialState: State = {
   names: {},
   send: undefined,
   textAreaValue: '',
+  toEveryRoom: false,
 }
 
 export const chatStore = proxy<State>({ ...initialState })
 
 const GROUPING_WINDOW_MS = 60_000
 
-export function appendRow(msg: ReceivedChatMessage) {
+export function appendRow(msg: ReceivedChatMessage, toEveryRoom = false) {
   const p = msg.from
   if (p) chatStore.names[p.identity] = p.name || p.identity
 
@@ -48,6 +53,7 @@ export function appendRow(msg: ReceivedChatMessage) {
     isLocal: p?.isLocal ?? false,
     message: msg.message,
     timestamp: msg.timestamp,
+    toEveryRoom,
     hideMetadata:
       !!prev &&
       prev.identity === identity &&

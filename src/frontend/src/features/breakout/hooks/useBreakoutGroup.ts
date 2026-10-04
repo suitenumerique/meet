@@ -1,6 +1,11 @@
 import { useCallback, useMemo } from 'react'
 import { useRoomContext, useRoomInfo } from '@livekit/components-react'
-import { groupOf, inSameGroup, readSignal } from '../utils/group'
+import {
+  groupOf,
+  inSameGroup,
+  isInMainRoomOfSplit,
+  readSignal,
+} from '../utils/group'
 
 // Which room this browser is in, and whether another identity shares it.
 // Renders again only when the metadata or the connection changes.
@@ -16,6 +21,7 @@ export const useBreakoutGroup = () => {
   return {
     isInMyGroup,
     isOpen: signal !== null,
+    isInMainRoom: isInMainRoomOfSplit(signal, me),
     roomName: signal?.rooms[groupOf(signal, me)] ?? null,
   }
 }

@@ -10,7 +10,14 @@ import {
   type ReceivedChatMessage,
 } from '@livekit/components-core'
 import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
-import { breakoutRecipients } from '@/features/breakout/utils/group'
+import {
+  breakoutRecipients,
+  isInMainRoomOfSplit,
+  isToEveryRoom,
+  readSignal,
+  TO_EVERY_ROOM,
+} from '@/features/breakout/utils/group'
+import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 import {
   LocalParticipant,
   Participant,
@@ -23,7 +30,7 @@ export const ChatProvider = () => {
   const lastReadMsgAt = React.useRef<ChatMessage['timestamp']>(0)
   const { send, chatMessages, isSending } = useChat()
   const { isChatOpen } = useSidePanel()
-  const { isInMyGroup } = useBreakoutGroup()
+  const { isInMyGroup, isOpen } = useBreakoutGroup()
   // How many of chatMessages have been looked at, shown or not.
   const seen = React.useRef(0)
 
@@ -33,14 +40,21 @@ export const ChatProvider = () => {
     resetChatStore()
   }, [])
 
+  // Each split starts with the host writing to the main room only.
+  useEffect(() => {
+    if (!isOpen) chatStore.toEveryRoom = false
+  }, [isOpen])
+
   // Each new message is shown and announced once. In a split, one from another
-  // room never is, an older tab's included.
+  // room never is, an older tab's included, unless a host sent it to every room.
   useEffect(() => {
     let latest: ReceivedChatMessage | undefined
     for (; seen.current < chatMessages.length; seen.current++) {
       const message = chatMessages[seen.current]
-      if (message.from && !isInMyGroup(message.from.identity)) continue
-      appendRow(message)
+      const toEveryRoom = isToEveryRoom(message)
+      if (message.from && !isInMyGroup(message.from.identity) && !toEveryRoom)
+        continue
+      appendRow(message, toEveryRoom)
       latest = message
     }
     if (!latest) return
@@ -54,16 +68,29 @@ export const ChatProvider = () => {
 
   useEffect(() => {
     chatStore.send = ref(async (message: string, options?: SendTextOptions) => {
-      const destinationIdentities = breakoutRecipients(room)
-      if (!destinationIdentities) return send(message, options)
+      // A host in the main room may reach every room: no recipients, marked.
+      const toEveryRoom =
+        chatStore.toEveryRoom &&
+        isInMainRoomOfSplit(
+          readSignal(room.metadata),
+          room.localParticipant.identity
+        ) &&
+        getParticipantIsRoomAdminOrOwner(room.localParticipant)
+      const destinationIdentities = toEveryRoom
+        ? undefined
+        : breakoutRecipients(room)
+      if (!toEveryRoom && !destinationIdentities) return send(message, options)
       // useChat's send also copies the text to the whole meeting in the legacy
       // format, so a split sends the text stream alone, to the group.
+      const attributes = toEveryRoom
+        ? { ...options?.attributes, [TO_EVERY_ROOM]: 'true' }
+        : options?.attributes
       chatStore.isSending = true
       try {
         const { id } = await room.localParticipant.sendText(message, {
           topic: DataTopic.CHAT,
           ...options,
-          destinationIdentities,
+          ...(toEveryRoom ? { attributes } : { destinationIdentities }),
         })
         const sent: ReceivedChatMessage = {
           id,
@@ -71,9 +98,9 @@ export const ChatProvider = () => {
           message,
           type: 'chatMessage',
           from: room.localParticipant,
-          attributes: options?.attributes,
+          attributes,
         }
-        appendRow(sent)
+        appendRow(sent, toEveryRoom)
         return sent
       } finally {
         chatStore.isSending = false

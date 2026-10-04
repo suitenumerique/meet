@@ -441,6 +441,10 @@
     "escapeHint": "Druk op Escape om te sluiten"
   },
   "chat": {
+    "everyRoom": {
+      "label": "Naar alle ruimtes sturen",
+      "tag": "Aan alle ruimtes"
+    },
     "disclaimer": "De berichten zijn alleen voor de deelnemers zichtbaar op het moment dat ze worden verzonden. Alle berichten worden verwijderd aan het einde van het gesprek.",
     "messagesLog": "Chatberichten"
   },

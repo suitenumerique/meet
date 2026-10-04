@@ -1,6 +1,6 @@
 # Breakout rooms
 
-A host can split a meeting into 2 to 10 smaller rooms and later bring everyone back. Nobody leaves the meeting: a room is a group of participants who hear, see and chat only with each other, inside the meeting's one LiveKit room.
+A host can split a meeting into 2 to 10 smaller rooms and later bring everyone back. Nobody leaves the meeting: a room is a group of participants who hear, see and chat only with each other, the host's messages to every room aside, inside the meeting's one LiveKit room.
 
 ## What a host does
 
@@ -14,7 +14,7 @@ Only one split can be open in a meeting at a time. To change the assignments, cl
 
 Each browser tells LiveKit who may receive its audio and video: the other members of its room. LiveKit refuses everyone else, whatever their browser does, and cuts off anyone already listening when the list shrinks. Where breakout rooms are enabled, a browser lets nobody receive it until it has read its room from the meeting's metadata, so a participant who joins during a split is never heard outside it.
 
-Chat messages and notifications go to the members of the room by name. Each browser also stops playing anyone outside its room, and shows only its room in the grid, the participant list, the participant count, the raised hands and the join messages.
+Chat messages and notifications go to the members of the room by name. A host in the main room can turn on Send to every room in the chat: those messages reach every room, marked To every room, and a browser accepts the mark only from an owner or an administrator, whose role the backend sets in their pass. Each browser also stops playing anyone outside its room, and shows only its room in the grid, the participant list, the participant count, the raised hands and the join messages.
 
 ## What is not kept apart
 
@@ -48,7 +48,7 @@ Close removes the `breakout` key from the meeting's metadata, then marks the ses
 ## Limits
 
 - There is no timer: a split stays open until the host closes it.
-- The host does not visit rooms and cannot write to every room at once.
+- The host does not visit rooms.
 - Moving one participant to another room means closing and opening again.
 - A guest of a public meeting gets a new identity with every pass, so one who reloads the page while a split is open lands in the main room.
 - In a public meeting, anyone with the link can join the main room, so the main room is private from the other rooms only in a meeting that is not public.
