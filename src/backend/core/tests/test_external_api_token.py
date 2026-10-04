@@ -892,6 +892,7 @@ def test_api_applications_generate_token_provisioning_is_audited(
         "type": ["user"],
         "sub_type": "user",
     }
+    assert provision["user"]["target"] == {"id": str(user.pk), "domain": "example.com"}
     assert provision["http"]["request"]["id"] == response["X-Request-ID"]
     assert provision["url"]["path"] == "/external-api/v1.0/application/token/"
     assert "new.user@example.com" not in json.dumps(provision)

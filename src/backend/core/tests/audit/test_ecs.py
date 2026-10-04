@@ -1,9 +1,12 @@
 """Tests holding audit events to the Elastic Common Schema 9.5.0."""
 
+from django.apps import apps
+
 import pytest
 
 from core import audit, auditing
 from core.audit import ecs
+from core.audit.admin import ADMIN_ACCESS_ACTION, AdminVerb, category_for, types_for
 
 
 def declared_actions() -> list[audit.Action]:
@@ -11,7 +14,7 @@ def declared_actions() -> list[audit.Action]:
     actions = [
         value for value in vars(auditing).values() if isinstance(value, audit.Action)
     ]
-    return [*actions, audit.LOGIN_ACTION, audit.LOGOUT_ACTION]
+    return [*actions, audit.LOGIN_ACTION, audit.LOGOUT_ACTION, ADMIN_ACCESS_ACTION]
 
 
 def test_check_classification_accepts_expected_types():
@@ -45,3 +48,10 @@ def test_declared_actions_are_classified_as_ecs_expects(action):
     ``Action`` refuses anything else when it is declared: this lists them.
     """
     ecs.check_classification([action.category or ecs.DEFAULT_CATEGORY], action.types)
+
+
+@pytest.mark.parametrize("verb", list(AdminVerb))
+def test_admin_writes_are_classified_as_ecs_expects(verb):
+    """Writes made through the admin are classified as ECS expects, for any model."""
+    for model in apps.get_models():
+        ecs.check_classification([category_for(model)], types_for(model, verb))

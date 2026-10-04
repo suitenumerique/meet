@@ -3,8 +3,14 @@
 The project registers them from an ``auditing`` module in one of its apps,
 imported once the audit app is ready::
 
-    audit.register(Room, fields=("slug", "access_level"))  # describe the target
+    audit.register(
+        Room,
+        fields=("slug", "access_level"),  # describe the target
+        admin_values=("name", "access_level"),  # values diffed in the admin
+        category=audit.EventCategory.CONFIGURATION,  # ECS category of admin writes
+    )
     audit.register(Application, entity_type="application")  # ECS ``entity.type``
+    audit.register(ResourceAccess, user_target="user")  # the account it is about
     audit.register_auth_method(ApplicationJWTAuthentication, "application_jwt")
 
 A target is always identified by its model name and primary key, so a model
@@ -16,6 +22,7 @@ from dataclasses import dataclass
 from django.db.models import Model
 
 from .ecs import ENTITY_TYPES
+from .enums import EventCategory
 
 
 class AlreadyRegistered(Exception):
@@ -27,19 +34,35 @@ class ModelOptions:
     """What audit events may say about a model.
 
     ``fields`` describe the model when it is the target of an event, under
-    ``entity.target``. ``entity_type`` is the ECS ``entity.type`` of the
-    model, when one of its allowed values fits.
+    ``entity.target``. ``admin_values`` are the fields whose before and after
+    values may be recorded when they change in the Django admin. ``category``
+    is the ECS category of admin writes: ``iam`` for anything granting access
+    to the product, ``configuration`` by default. ``entity_type`` is the ECS
+    ``entity.type`` of the model, when one of its allowed values fits.
+    ``user_target`` names the attribute holding the account an event on the
+    model is about, reported as ``user.target``.
     """
 
     fields: tuple[str, ...] = ()
+    admin_values: tuple[str, ...] = ()
+    category: EventCategory | None = None
     entity_type: str | None = None
+    user_target: str | None = None
 
 
 _models: dict[type[Model], ModelOptions] = {}
 _auth_methods: dict[str, str] = {}
 
 
-def register(model: type[Model], *, fields=(), entity_type: str | None = None) -> None:
+def register(  # noqa: PLR0913  # pylint: disable=too-many-arguments
+    model: type[Model],
+    *,
+    fields=(),
+    admin_values=(),
+    category: EventCategory | str | None = None,
+    entity_type: str | None = None,
+    user_target: str | None = None,
+) -> None:
     """Declare what audit events may say about ``model``."""
     if model in _models:
         raise AlreadyRegistered(f"{model._meta.label} is already registered")  # noqa: SLF001
@@ -48,7 +71,13 @@ def register(model: type[Model], *, fields=(), entity_type: str | None = None) -
             f"{entity_type!r} is not an ECS entity type: "
             f"use one of {', '.join(sorted(ENTITY_TYPES))}"
         )
-    _models[model] = ModelOptions(fields=tuple(fields), entity_type=entity_type)
+    _models[model] = ModelOptions(
+        fields=tuple(fields),
+        admin_values=tuple(admin_values),
+        category=EventCategory(category) if category is not None else None,
+        entity_type=entity_type,
+        user_target=user_target,
+    )
 
 
 def unregister(model: type[Model]) -> ModelOptions | None:

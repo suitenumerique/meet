@@ -20,6 +20,7 @@ and this project adheres to
 - ♿️(frontend) make participant pagination readable and keyboard reachable #1775
 - ✨(backend) add structured audit logging facility
 - ✨(backend) audit external API token and room operations
+- 🔒️(backend) audit writes and bulk actions made in the Django admin
 
 ### Changed
 

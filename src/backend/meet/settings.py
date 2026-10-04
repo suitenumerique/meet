@@ -342,7 +342,8 @@ class Base(Configuration):
         "parler",
         "easy_thumbnails",
         # Django
-        "django.contrib.admin",
+        # The admin is served by a site that audits every write it performs.
+        "core.audit.apps.AuditedAdminConfig",
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "django.contrib.postgres",

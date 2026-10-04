@@ -61,6 +61,7 @@ def test_get_or_create_creation_is_audited(audit_events):
         "type": ["user"],
         "sub_type": "user",
     }
+    assert event["user"] == {"target": {"id": str(user.pk), "domain": "example.com"}}
     assert "john.doe" not in json.dumps(event)
 
 
@@ -88,6 +89,9 @@ def test_get_or_create_lost_race_is_audited_with_the_existing_user(
         "id": str(existing_user.pk),
         "type": ["user"],
         "sub_type": "user",
+    }
+    assert event["user"] == {
+        "target": {"id": str(existing_user.pk), "domain": "example.com"}
     }
     assert "john.doe" not in json.dumps(event)
 
