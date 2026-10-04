@@ -311,6 +311,7 @@ class Base(Configuration):
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
         "dockerflow.django.middleware.DockerflowMiddleware",
+        "core.audit.request.AuditLogMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",
@@ -331,6 +332,7 @@ class Base(Configuration):
     INSTALLED_APPS = [
         # Meet
         "core",
+        "core.audit.apps.AuditConfig",
         "demo",
         "drf_spectacular",
         # Third party apps
@@ -383,6 +385,13 @@ class Base(Configuration):
         "PAGE_SIZE": 20,
         "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        # Trusted proxies appending to X-Forwarded-For in front of the backend.
+        # Throttles and audit events identify the client as the entry that many
+        # positions from the right; unset, DRF would use the raw header, which a
+        # client can vary to escape its throttle.
+        "NUM_PROXIES": values.IntegerValue(
+            1, environ_name="NUM_PROXIES", environ_prefix=None
+        ),
         "DEFAULT_THROTTLE_RATES": {
             "room_creation": values.Value(
                 default="50/minute",
@@ -1210,6 +1219,28 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    AUDIT_LOG_LEVEL = values.Value(
+        "INFO", environ_name="AUDIT_LOG_LEVEL", environ_prefix=None
+    )
+    AUDIT_LOG_STREAM = values.Value(
+        "ext://sys.stdout", environ_name="AUDIT_LOG_STREAM", environ_prefix=None
+    )
+    AUDIT_LOG_SERVICE_NAME = values.Value(
+        "meet", environ_name="AUDIT_LOG_SERVICE_NAME", environ_prefix=None
+    )
+    # Reuse the inbound request id as the trace id
+    # Only enable it when the ingress overwrites the header
+    # When off, the backend generates the id.
+    REQUEST_ID_TRUST_HEADER = values.BooleanValue(
+        False, environ_name="REQUEST_ID_TRUST_HEADER", environ_prefix=None
+    )
+
+    DOCKERFLOW_REQUEST_ID_HEADER_NAME = values.Value(
+        "X-Request-ID",
+        environ_name="DOCKERFLOW_REQUEST_ID_HEADER_NAME",
+        environ_prefix=None,
+    )
+
     LOGGING_SILENCED_401_PATHS = values.ListValue(
         default=["/api/v1.0/users/me/"],
         environ_name="LOGGING_SILENCED_401_PATHS",
@@ -1227,6 +1258,9 @@ class Base(Configuration):
                 "format": "{asctime} {name} {levelname} {message}",
                 "style": "{",
             },
+            "audit_json": {
+                "()": "core.audit.formatter.AuditJsonFormatter",
+            },
         },
         "filters": {
             "silence_expected_401": {
@@ -1238,6 +1272,11 @@ class Base(Configuration):
                 "class": "logging.StreamHandler",
                 "formatter": "simple",
                 "filters": ["silence_expected_401"],
+            },
+            "audit_console": {
+                "class": "logging.StreamHandler",
+                "stream": AUDIT_LOG_STREAM,
+                "formatter": "audit_json",
             },
         },
         # Override root logger to send it to console
@@ -1269,6 +1308,11 @@ class Base(Configuration):
                     environ_name="LOGGING_LEVEL_LOGGERS_APP",
                     environ_prefix=None,
                 ),
+                "propagate": False,
+            },
+            "audit": {
+                "handlers": ["audit_console"],
+                "level": AUDIT_LOG_LEVEL,
                 "propagate": False,
             },
         },
@@ -1451,6 +1495,8 @@ class Base(Configuration):
 
             # Ignore the logs added by the DockerflowMiddleware
             ignore_logger("request.summary")
+            # Audit events are a data stream, not errors to report
+            ignore_logger("audit")
 
 
 class Build(Base):
@@ -1502,15 +1548,30 @@ class Test(Base):
         {
             "version": 1,
             "disable_existing_loggers": False,
+            "formatters": {
+                "audit_json": {
+                    "()": "core.audit.formatter.AuditJsonFormatter",
+                },
+            },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
+                },
+                "audit_console": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                    "formatter": "audit_json",
                 },
             },
             "loggers": {
                 "meet": {
                     "handlers": ["console"],
                     "level": "DEBUG",
+                },
+                "audit": {
+                    "handlers": ["audit_console"],
+                    "level": "INFO",
+                    "propagate": False,
                 },
             },
         }
