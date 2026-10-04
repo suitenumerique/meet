@@ -1,26 +1,19 @@
 """Authentication Backends for the Meet core app."""
 
-import contextlib
-
 from django.conf import settings
 from django.core.exceptions import (
-    ImproperlyConfigured,
     SuspiciousOperation,
     ValidationError,
 )
 from django.utils.translation import gettext_lazy as _
 
+from lasuite.marketing.tasks import create_or_update_contact
 from lasuite.oidc_login.backends import (
     OIDCAuthenticationBackend as LaSuiteOIDCAuthenticationBackend,
 )
 from rest_framework.authentication import SessionAuthentication
 
 from core.models import User
-from core.services.marketing import (
-    ContactCreationError,
-    ContactData,
-    get_marketing_service,
-)
 from core.validators import sub_validator
 
 
@@ -67,25 +60,15 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
 
     @staticmethod
     def signup_to_marketing_email(email):
-        """Pragmatic approach to newsletter signup during authentication flow.
+        """Add the user to the newsletter list on sign-in.
 
-        Details:
-        1. Uses a very short timeout (1s) to prevent blocking the auth process
-        2. Silently fails if the marketing service is down/slow to prioritize user experience
-        3. Trade-off: May miss some signups but ensures auth flow remains fast
-
-        Note: For a more robust solution, consider using Async task processing (Celery/Django-Q)
+        Uses the team's standard Brevo integration, dispatching the contact
+        creation/update as an asynchronous task to keep authentication fast.
         """
-        with contextlib.suppress(
-            ContactCreationError, ImproperlyConfigured, ImportError
-        ):
-            marketing_service = get_marketing_service()
-            contact_data = ContactData(
-                email=email, attributes={"VISIO_SOURCE": ["SIGNIN"]}
-            )
-            marketing_service.create_contact(
-                contact_data, timeout=settings.BREVO_API_TIMEOUT
-            )
+        create_or_update_contact.delay(
+            email=email,
+            attributes={"VISIO_SOURCE": ["SIGNIN"]},
+        )
 
     def get_existing_user(self, sub, email):
         """Fetch existing user by sub or email."""
