@@ -1,14 +1,10 @@
 """Service for provisional user creation."""
 
-import logging
-
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.db import IntegrityError
 
-from core import models
-
-logger = logging.getLogger(__name__)
+from core import audit, auditing, models
 
 
 class ProvisionalUserError(Exception):
@@ -54,6 +50,20 @@ class ProvisionalUserService:
                 "Multiple user accounts share a common email."
             ) from e
 
+    def _audit(self, client_id: str, **fields) -> None:
+        """Emit a ``user.provision`` event on behalf of the application.
+
+        The user is identified by its id since it has no `sub` yet, therefore
+        the user id is what correlate this event to the ones of its later sign-ins.
+        """
+        audit.log(
+            auditing.USER_PROVISION,
+            actor_type=audit.ActorType.APPLICATION,
+            auth_method="client_credentials",
+            client_id=client_id,
+            **fields,
+        )
+
     def get_or_create(
         self, email: str, client_id: str
     ) -> tuple[models.User | None, bool]:
@@ -86,21 +96,16 @@ class ProvisionalUserService:
             user = models.User(sub=None, email=email)
             user.set_unusable_password()
             user.save()
-            logger.info(
-                "Provisional user created via application: user_id=%s, email=%s, client_id=%s",
-                user.id,
-                email,
-                client_id,
-            )
-            return user, True
         except (IntegrityError, ValidationError) as e:
-            logger.warning(
-                "Race condition on provisional user creation, fetching existing: "
-                "email=%s, client_id=%s",
-                email,
-                client_id,
-            )
+            # Race condition on provisional user creation
             user = self._get_by_email(email)
+            self._audit(
+                client_id,
+                outcome=audit.Outcome.FAILURE,
+                reason=audit.Reason.CONFLICT,
+                target=user,
+                error_type=type(e).__name__,
+            )
 
             if user:
                 return user, False
@@ -108,3 +113,6 @@ class ProvisionalUserService:
             raise ProvisionalUserIntegrityError(
                 "Failed to create or retrieve provisional user."
             ) from e
+
+        self._audit(client_id, target=user)
+        return user, True
