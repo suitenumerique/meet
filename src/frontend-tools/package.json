@@ -1,0 +1,31 @@
+{
+  "name": "meet-frontend-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "format": "prettier --write ./src",
+    "check": "prettier --check ./src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@livekit/track-processors": "0.7.2",
+    "@mediapipe/tasks-vision": "0.10.14",
+    "livekit-client": "2.21.0",
+    "posthog-js": "1.418.10",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.4",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "6.0.2",
+    "prettier": "3.8.3",
+    "typescript": "6.0.3",
+    "vite": "8.0.14",
+    "vite-plugin-static-copy": "4.1.1",
+    "vitest": "3.2.7"
+  }
+}
