@@ -29,6 +29,7 @@ logger = getLogger(__name__)
 MEDIA_SERVER_TIMEOUT_SECONDS = 5
 # Long enough for the read and the write of one metadata update.
 METADATA_LOCK_TIMEOUT_SECONDS = 3 * MEDIA_SERVER_TIMEOUT_SECONDS
+METADATA_UPDATE_FAILED = "Could not update room metadata"
 
 
 async def bounded(call):
@@ -136,7 +137,7 @@ class RoomManagement:
                 )
             except TimeoutError as e:
                 logger.warning("Timed out writing metadata for room %s", room_name)
-                raise MetadataWriteTimeout("Could not update room metadata") from e
+                raise MetadataWriteTimeout(METADATA_UPDATE_FAILED) from e
 
         except TwirpError as e:
             if e.code == "not_found":
@@ -146,11 +147,11 @@ class RoomManagement:
                 "Unexpected error updating metadata for room %s",
                 room_name,
             )
-            raise RoomManagementException("Could not update room metadata") from e
+            raise RoomManagementException(METADATA_UPDATE_FAILED) from e
 
         except TimeoutError as e:
             logger.warning("Timed out updating metadata for room %s", room_name)
-            raise RoomManagementException("Could not update room metadata") from e
+            raise RoomManagementException(METADATA_UPDATE_FAILED) from e
 
         finally:
             await lkapi.aclose()

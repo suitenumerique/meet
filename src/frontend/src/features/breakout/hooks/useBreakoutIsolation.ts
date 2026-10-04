@@ -31,7 +31,9 @@ export const useBreakoutIsolation = (isolatedOnJoin: boolean) => {
       room.localParticipant.identity,
       remotes
     )
-    return listeners && [...listeners].sort().join('\n')
+    return (
+      listeners && [...listeners].sort((a, b) => a.localeCompare(b)).join('\n')
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room, state, metadata, remotes])
 

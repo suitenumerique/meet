@@ -72,7 +72,9 @@ describe('BreakoutPanel', () => {
     h.config = { breakout_rooms: { is_enabled: false } }
     vi.mocked(fetchBreakoutSession).mockResolvedValueOnce(session)
     render(ui())
-    await screen.findByRole('button', { name: 'active.close' })
+    expect(
+      await screen.findByRole('button', { name: 'active.close' })
+    ).toBeTruthy()
   })
 
   it('offers no Open with the flag off', async () => {
