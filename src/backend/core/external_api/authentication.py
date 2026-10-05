@@ -4,19 +4,49 @@
 # ruff: noqa: PLR0913
 
 import logging
+from dataclasses import asdict
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import SuspiciousOperation
 
+import requests
 from lasuite.oidc_resource_server.backend import ResourceServerBackend as LaSuiteBackend
+from menshen_client import Configuration, IntrospectionRequest, TokenExchangeClient
+from menshen_client.exceptions import ResponseParsingError
 from rest_framework import authentication, exceptions
 
-from core.models import Application
+from core.models import Application, ApplicationScope
 from core.services import jwt_token
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+
+def get_bearer_token(request):
+    """Extract the bearer token from the Authorization header.
+
+    Returns:
+        Token string, or None if the request carries no bearer token
+
+    Raises:
+        AuthenticationFailed: If the Authorization header is malformed
+    """
+
+    auth_header = authentication.get_authorization_header(request).split()
+
+    if not auth_header or auth_header[0].lower() != b"bearer":
+        return None
+
+    if len(auth_header) != 2:
+        logger.warning("Invalid token header format")
+        raise exceptions.AuthenticationFailed("Invalid token header.")
+
+    try:
+        return auth_header[1].decode("utf-8")
+    except UnicodeError as e:
+        logger.warning("Token decode error: %s", e)
+        raise exceptions.AuthenticationFailed("Invalid token encoding.") from e
 
 
 class BaseJWTAuthentication(authentication.BaseAuthentication):
@@ -71,21 +101,11 @@ class BaseJWTAuthentication(authentication.BaseAuthentication):
         if not self.is_enabled:
             return None
 
-        auth_header = authentication.get_authorization_header(request).split()
+        token = get_bearer_token(request)
 
-        if not auth_header or auth_header[0].lower() != b"bearer":
+        if token is None:
             # Defer to next authentication backend
             return None
-
-        if len(auth_header) != 2:
-            logger.warning("Invalid token header format")
-            raise exceptions.AuthenticationFailed("Invalid token header.")
-
-        try:
-            token = auth_header[1].decode("utf-8")
-        except UnicodeError as e:
-            logger.warning("Token decode error: %s", e)
-            raise exceptions.AuthenticationFailed("Invalid token encoding.") from e
 
         return self.authenticate_credentials(token)
 
@@ -250,6 +270,139 @@ class AddonsJWTAuthentication(BaseJWTAuthentication):
             token_type=settings.ADDONS_TOKEN_TYPE,
             is_enabled=settings.ADDONS_ENABLED,
         )
+
+
+# Menshen grants scopes following La Suite's "service:resource:action" convention.
+# Map them to the scopes expected by the external API permissions.
+MENSHEN_SCOPES_MAPPING = {
+    "meet:room:create": ApplicationScope.ROOMS_CREATE,
+}
+
+
+class MenshenAuthentication(authentication.BaseAuthentication):
+    """Authentication for tokens exchanged through Menshen.
+
+    Menshen is La Suite's OAuth 2.0 token exchange server (RFC 8693): another service
+    exchanges its user's access token for a token targeting Meet, then calls the external
+    API on behalf of that user. Tokens are validated by introspection (RFC 7662). Menshen
+    only reports a token as active when Meet is among its audiences.
+    """
+
+    def __init__(self):
+        """Initialize the Menshen client from Django settings."""
+
+        super().__init__()
+
+        self._client = None
+
+        if not settings.MENSHEN_ENABLED:
+            return
+
+        self._client = TokenExchangeClient(
+            config=Configuration(
+                client_id=settings.MENSHEN_CLIENT_ID,
+                client_secret=settings.MENSHEN_CLIENT_SECRET,
+                server_root_url=settings.MENSHEN_SERVER_URL,
+            )
+        )
+
+    def authenticate(self, request):
+        """Introspect the bearer token with Menshen.
+
+        Returns:
+            Tuple of (user, payload) if the token is active, None otherwise
+        """
+
+        if self._client is None:
+            return None
+
+        token = get_bearer_token(request)
+
+        if token is None:
+            return None
+
+        payload = self.introspect(token)
+
+        if not payload.get("active"):
+            # Not a Menshen token, or an expired or revoked one: defer to next
+            # authentication backend
+            return None
+
+        user = self.get_user(payload)
+
+        scopes = payload.get("scope") or ""
+        payload["scope"] = [
+            MENSHEN_SCOPES_MAPPING[scope]
+            for scope in scopes.split()
+            if scope in MENSHEN_SCOPES_MAPPING
+        ]
+
+        return (user, payload)
+
+    def introspect(self, token):
+        """Submit the token to Menshen's introspection endpoint.
+
+        Errors are reported as an inactive token, so a Menshen outage doesn't
+        prevent the next authentication backends from running.
+
+        Args:
+            token: Bearer token string
+
+        Returns:
+            Introspection response dict
+        """
+
+        try:
+            response = self._client.introspect(IntrospectionRequest(token=token))
+        except (requests.RequestException, ResponseParsingError) as e:
+            logger.warning("Menshen introspection failed: %s", e)
+            return {"active": False}
+
+        # Permission classes expect a dict payload in request.auth
+        return asdict(response)
+
+    def get_user(self, payload):
+        """Retrieve or create the user from the introspection response.
+
+        Menshen forwards the `sub` and `email` of the subject token, as introspected
+        with the OIDC provider.
+
+        Args:
+            payload: Introspection response dict
+
+        Returns:
+            User instance
+
+        Raises:
+            AuthenticationFailed: If user not found or inactive
+        """
+
+        sub = payload.get("sub")
+
+        if not sub:
+            logger.warning("Missing 'sub' in Menshen introspection response")
+            raise exceptions.AuthenticationFailed("Invalid token claims.")
+
+        try:
+            user = User.objects.get(sub=sub)
+        except User.DoesNotExist as e:
+            if not settings.OIDC_CREATE_USER:
+                logger.warning("User not found: %s", sub)
+                raise exceptions.AuthenticationFailed("User not found.") from e
+
+            user = User(sub=sub, email=payload.get("email"))
+            user.set_unusable_password()
+            user.save()
+
+        if not user.is_active:
+            logger.warning("Inactive user attempted authentication: %s", user.pk)
+            raise exceptions.AuthenticationFailed("User account is disabled.")
+
+        return user
+
+    def authenticate_header(self, request):
+        """Return authentication scheme for WWW-Authenticate header."""
+        return "Bearer"
 
 
 class ResourceServerBackend(LaSuiteBackend):

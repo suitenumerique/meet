@@ -49,6 +49,7 @@ dependencies = [
     "gunicorn==26.2.0",
     "jsonschema==4.26.0",
     "markdown==3.10.3",
+    "menshen-client==0.1.0",
     "nested-multipart-parser==1.6.0",
     "posthog==7.44.0",
     "psycopg[binary]==3.3.4",

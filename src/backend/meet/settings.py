@@ -702,6 +702,20 @@ class Base(Configuration):
         default=None, environ_name="OIDC_RS_SCOPES_PREFIX", environ_prefix=None
     )
 
+    # Menshen, La Suite's OAuth 2.0 token exchange server
+    MENSHEN_ENABLED = values.BooleanValue(
+        False, environ_name="MENSHEN_ENABLED", environ_prefix=None
+    )
+    MENSHEN_SERVER_URL = values.Value(
+        None, environ_name="MENSHEN_SERVER_URL", environ_prefix=None
+    )
+    MENSHEN_CLIENT_ID = values.Value(
+        None, environ_name="MENSHEN_CLIENT_ID", environ_prefix=None
+    )
+    MENSHEN_CLIENT_SECRET = SecretFileValue(
+        None, environ_name="MENSHEN_CLIENT_SECRET", environ_prefix=None
+    )
+
     # Video conference configuration
     LIVEKIT_CONFIGURATION = {
         "api_key": SecretFileValue(environ_name="LIVEKIT_API_KEY", environ_prefix=None),
