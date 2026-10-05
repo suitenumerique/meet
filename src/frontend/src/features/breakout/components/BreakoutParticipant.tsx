@@ -13,6 +13,7 @@ import { NotificationType } from '@/features/notifications/NotificationType'
 import { NotificationDuration } from '@/features/notifications/NotificationDuration'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
 import { resetBreakout } from '../store'
+import { appendDivider } from '@/stores/chat'
 import { useBreakoutGroup } from '../hooks/useBreakoutGroup'
 import { useBreakoutIsolation } from '../hooks/useBreakoutIsolation'
 import { readSignal } from '../utils/group'
@@ -42,24 +43,33 @@ const InBreakoutMeeting = ({ isolatedOnJoin }: { isolatedOnJoin: boolean }) => {
   const wasOpen = usePrevious(isOpen)
   const lastRoomName = usePrevious(roomName)
   const room = useRoomContext()
-  // Back in the main room, a microphone left on would reach everyone at once.
   useEffect(() => {
-    if (lastRoomName && !roomName)
-      void room.localParticipant.setMicrophoneEnabled(false)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomName])
-  useEffect(() => {
+    // A new room starts muted: a microphone left on would reach new people at once.
+    const changed = lastRoomName !== undefined && roomName !== lastRoomName
+    const muted = changed && room.localParticipant.isMicrophoneEnabled
+    if (muted) void room.localParticipant.setMicrophoneEnabled(false)
     const moved = !!roomName && roomName !== lastRoomName
     const closed = !!wasOpen && !isOpen
-    if (!moved && !closed) return
+    if (!moved && !closed && !muted) return
     triggerNotificationSound(NotificationType.BreakoutRoomChanged)
     toastQueue.add(
       {
         type: NotificationType.BreakoutRoomChanged,
         room: roomName,
+        muted,
       },
       { timeout: NotificationDuration.BREAKOUT_ROOM_CHANGED }
     )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, roomName])
+
+  // The chat marks each change of who this browser's messages reach.
+  useEffect(() => {
+    if (lastRoomName === undefined) return
+    if (roomName === lastRoomName && isOpen === wasOpen) return
+    if (!isOpen) appendDivider(t('chatAll'))
+    else if (roomName) appendDivider(t('chatRoom', { room: roomName }))
+    else appendDivider(t('chatMain'))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, roomName])
 

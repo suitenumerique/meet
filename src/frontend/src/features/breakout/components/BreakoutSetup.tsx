@@ -14,24 +14,19 @@ import { queryClient } from '@/api/queryClient'
 import { breakoutSessionKey, createBreakoutSession } from '../api'
 import { breakoutStore, resetBreakout } from '../store'
 import {
-  MAX_ROOMS,
-  MIN_ROOMS,
   buildRooms,
   isAssignable,
   isHost,
   shuffleAssignments,
 } from '../utils/setup'
 import { ErrorNote } from './ErrorNote'
+import { RoomCountField } from './RoomCountField'
 import { useOpenShortcut } from '../hooks/useOpenShortcut'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useRoomMetadata } from '@/features/recording/hooks/useRoomMetadata'
 import { RecordingStatus } from '@/features/recording/hooks/useRecordingStatuses'
 
 const UNASSIGNED = -1
-const ROOM_COUNT_ITEMS = Array.from(
-  { length: MAX_ROOMS - MIN_ROOMS + 1 },
-  (_, i) => ({ value: MIN_ROOMS + i, label: String(MIN_ROOMS + i) })
-)
 
 export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'breakout' })
@@ -102,12 +97,9 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
 
   return (
     <>
-      <Select
-        aria-label={t('setup.roomCount')}
-        label={t('setup.roomCount')}
-        items={ROOM_COUNT_ITEMS}
-        selectedKey={roomCount}
-        onSelectionChange={(key) => (breakoutStore.roomCount = Number(key))}
+      <RoomCountField
+        value={roomCount}
+        onChange={(count) => (breakoutStore.roomCount = count)}
       />
       <div
         className={css({

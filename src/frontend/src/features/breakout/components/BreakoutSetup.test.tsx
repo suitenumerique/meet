@@ -64,11 +64,15 @@ afterEach(() => {
 })
 
 describe('BreakoutSetup', () => {
-  it('names the room-count selector for screen readers', () => {
+  it('takes a typed room count, kept within the bounds', () => {
     renderSetup()
-    expect(
-      screen.getByRole('button', { name: /setup\.roomCount/ })
-    ).toBeTruthy()
+    const field = screen.getByRole('textbox', { name: 'roomCount' })
+    fireEvent.change(field, { target: { value: '7' } })
+    fireEvent.blur(field)
+    expect(breakoutStore.roomCount).toBe(7)
+    fireEvent.change(field, { target: { value: '99' } })
+    fireEvent.blur(field)
+    expect(breakoutStore.roomCount).toBe(10)
   })
 
   it('lists the host, who can be placed by hand', () => {

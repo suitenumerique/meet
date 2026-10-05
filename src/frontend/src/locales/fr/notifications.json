@@ -70,6 +70,7 @@
   },
   "openMenu": "Ouvrir le menu",
   "breakout": {
+    "muted": "Votre micro est coupé.",
     "moved": "Vous êtes maintenant dans {{room}}",
     "closed": "Les salles sont fermées. Tout le monde est de retour dans la salle principale."
   }

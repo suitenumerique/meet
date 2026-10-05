@@ -857,6 +857,9 @@
       "close": "Close rooms"
     },
     "participant": {
+      "chatRoom": "{{room}}: messages reach this room",
+      "chatMain": "Main room: messages reach the main room",
+      "chatAll": "Rooms closed: messages reach everyone",
       "currentRoom": "You are in {{room}}",
       "mainRoom": "Rooms are open. You are in the main room."
     }

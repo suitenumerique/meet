@@ -857,6 +857,9 @@
       "close": "Fermer les salles"
     },
     "participant": {
+      "chatRoom": "{{room}} : les messages restent dans cette salle",
+      "chatMain": "Salle principale : les messages restent dans la salle principale",
+      "chatAll": "Salles fermées : les messages vont à tout le monde",
       "currentRoom": "Vous êtes dans {{room}}",
       "mainRoom": "Les salles sont ouvertes. Vous êtes dans la salle principale."
     }

@@ -852,6 +852,9 @@
       "close": "Cerrar salas"
     },
     "participant": {
+      "chatRoom": "{{room}}: los mensajes llegan a esta sala",
+      "chatMain": "Sala principal: los mensajes llegan a la sala principal",
+      "chatAll": "Salas cerradas: los mensajes llegan a todos",
       "currentRoom": "Estás en {{room}}",
       "mainRoom": "Las salas están abiertas. Estás en la sala principal."
     }

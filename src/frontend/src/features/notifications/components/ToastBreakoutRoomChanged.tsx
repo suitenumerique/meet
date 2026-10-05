@@ -15,6 +15,7 @@ export function ToastBreakoutRoomChanged({
   const ref = useRef(null)
   const { toastProps, contentProps } = useToast(props, state, ref)
   const room: string | null = props.toast.content.room
+  const muted: boolean = !!props.toast.content.muted
 
   return (
     <StyledToastContainer {...toastProps} ref={ref}>
@@ -24,8 +25,10 @@ export function ToastBreakoutRoomChanged({
         {...contentProps}
         padding={14}
         gap={0}
+        flexDirection="column"
       >
-        {room ? t('moved', { room }) : t('closed')}
+        <span>{room ? t('moved', { room }) : t('closed')}</span>
+        {muted && <span>{t('muted')}</span>}
       </HStack>
     </StyledToastContainer>
   )

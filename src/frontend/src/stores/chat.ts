@@ -13,6 +13,8 @@ export type ChatRow = {
   isLocal: boolean
   // Sent by a host in the main room to every breakout room.
   toEveryRoom: boolean
+  // A line this browser writes when who its messages reach changes.
+  divider?: string
 }
 
 type State = {
@@ -60,6 +62,20 @@ export function appendRow(msg: ReceivedChatMessage, toEveryRoom = false) {
       prev.identity === identity &&
       prev.toEveryRoom === toEveryRoom &&
       msg.timestamp - prev.timestamp < GROUPING_WINDOW_MS,
+  })
+}
+
+// Written by this browser, so it never counts as unread.
+export function appendDivider(label: string) {
+  const timestamp = Date.now()
+  chatStore.rows.push({
+    id: `divider-${timestamp}`,
+    message: '',
+    timestamp,
+    hideMetadata: true,
+    isLocal: true,
+    toEveryRoom: false,
+    divider: label,
   })
 }
 

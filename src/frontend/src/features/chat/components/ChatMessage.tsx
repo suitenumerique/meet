@@ -22,6 +22,21 @@ export const ChatMessage = ({ item }: ChatMessageProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.everyRoom' })
   const time = new Date(item.timestamp)
   const locale = navigator ? navigator.language : 'en-US'
+  if (item.divider)
+    return (
+      <StyledContainer
+        role="separator"
+        className={css({
+          alignItems: 'center',
+          borderTop: '1px solid',
+          borderColor: 'greyscale.300',
+          marginY: '0.5rem',
+          paddingTop: '0.25rem',
+        })}
+      >
+        <Text variant="xsNote">{item.divider}</Text>
+      </StyledContainer>
+    )
   return (
     <StyledContainer
       title={time.toLocaleTimeString(locale, { timeStyle: 'full' })}

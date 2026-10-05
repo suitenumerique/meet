@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
+import { chatStore, resetChatStore } from '@/stores/chat'
 import { BreakoutParticipant } from './BreakoutParticipant'
 import { NotificationType } from '@/features/notifications/NotificationType'
 
@@ -13,6 +14,7 @@ const h = vi.hoisted(() => ({
   isolation: [] as boolean[],
   connection: 'connected',
   mic: vi.fn(),
+  micOn: true,
 }))
 
 vi.mock('react-i18next', () => ({
@@ -23,7 +25,13 @@ vi.mock('react-i18next', () => ({
 }))
 vi.mock('@livekit/components-react', () => ({
   useRoomContext: () => ({
-    localParticipant: { identity: h.me, setMicrophoneEnabled: h.mic },
+    localParticipant: {
+      identity: h.me,
+      setMicrophoneEnabled: h.mic,
+      get isMicrophoneEnabled() {
+        return h.micOn
+      },
+    },
   }),
   useRoomInfo: () => ({ metadata: h.metadata }),
   useConnectionState: () => h.connection,
@@ -60,6 +68,7 @@ afterEach(() => {
   h.isolation = []
   h.connection = 'connected'
   h.mic.mockReset()
+  h.micOn = true
 })
 
 describe('BreakoutParticipant', () => {
@@ -67,7 +76,11 @@ describe('BreakoutParticipant', () => {
     const { rerender } = render(showing(''))
     rerender(showing(split))
     expect(h.toasts).toEqual([
-      { type: NotificationType.BreakoutRoomChanged, room: 'Room 1' },
+      {
+        type: NotificationType.BreakoutRoomChanged,
+        room: 'Room 1',
+        muted: true,
+      },
     ])
     expect(h.sound).toHaveBeenCalledWith(NotificationType.BreakoutRoomChanged)
     expect(screen.getByText('currentRoom Room 1')).toBeTruthy()
@@ -81,11 +94,32 @@ describe('BreakoutParticipant', () => {
     expect(h.toasts).toEqual([])
   })
 
-  it('turns the microphone off on the way back to the main room', () => {
-    const { rerender } = render(showing(split))
-    expect(h.mic).not.toHaveBeenCalled()
+  it('turns the microphone off at every change of room, and says so', () => {
+    const { rerender } = render(showing(''))
+    rerender(showing(split))
+    expect(h.mic).toHaveBeenCalledTimes(1)
     rerender(showing(''))
-    expect(h.mic).toHaveBeenCalledWith(false)
+    expect(h.mic).toHaveBeenCalledTimes(2)
+    expect(h.toasts.map((toast) => toast.muted)).toEqual([true, true])
+  })
+
+  it('marks in the chat each change of who the messages reach', () => {
+    resetChatStore()
+    const { rerender } = render(showing(''))
+    rerender(showing(split))
+    rerender(showing(''))
+    expect(chatStore.rows.map((row) => row.divider)).toEqual([
+      'chatRoom Room 1',
+      'chatAll',
+    ])
+  })
+
+  it('says nothing about a microphone already off', () => {
+    h.micOn = false
+    const { rerender } = render(showing(''))
+    rerender(showing(split))
+    expect(h.mic).not.toHaveBeenCalled()
+    expect(h.toasts).toMatchObject([{ room: 'Room 1', muted: false }])
   })
 
   it('leaves the microphone of someone already in the main room alone', () => {
@@ -121,7 +155,7 @@ describe('BreakoutParticipant', () => {
     const { rerender } = render(showing(split))
     rerender(showing(''))
     expect(h.toasts).toEqual([
-      { type: NotificationType.BreakoutRoomChanged, room: null },
+      { type: NotificationType.BreakoutRoomChanged, room: null, muted: false },
     ])
     expect(screen.queryByText('mainRoom')).toBeNull()
   })

@@ -857,6 +857,9 @@
       "close": "Räume schließen"
     },
     "participant": {
+      "chatRoom": "{{room}}: Nachrichten erreichen diesen Raum",
+      "chatMain": "Hauptraum: Nachrichten erreichen den Hauptraum",
+      "chatAll": "Räume geschlossen: Nachrichten erreichen alle",
       "currentRoom": "Du bist in {{room}}",
       "mainRoom": "Die Räume sind offen. Du bist im Hauptraum."
     }

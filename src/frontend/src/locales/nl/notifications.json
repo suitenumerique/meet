@@ -70,6 +70,7 @@
   },
   "openMenu": "Menu openen",
   "breakout": {
+    "muted": "Je microfoon staat uit.",
     "moved": "Je bent nu in {{room}}",
     "closed": "De ruimtes zijn gesloten. Iedereen is terug in de hoofdruimte."
   }
