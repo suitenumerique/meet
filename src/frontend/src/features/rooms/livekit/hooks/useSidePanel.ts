@@ -31,35 +31,20 @@ export const useSidePanel = () => {
   const isSidePanelOpen = !!activePanelId
   const isSubPanelOpen = !!activeSubPanelId
 
-  const toggleAdmin = () => {
-    layoutStore.activePanelId = isAdminOpen ? null : PanelId.ADMIN
-    if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
+  // Reads the live store, not the render snapshot: shortcut handlers outlive
+  // toggles that unmount (e.g. inside a closed overflow menu).
+  const togglePanel = (panelId: PanelId) => {
+    layoutStore.activePanelId =
+      layoutStore.activePanelId === panelId ? null : panelId
+    if (layoutStore.activeSubPanelId) layoutStore.activeSubPanelId = null
   }
 
-  const toggleParticipants = () => {
-    layoutStore.activePanelId = isParticipantsOpen ? null : PanelId.PARTICIPANTS
-    if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
-  }
-
-  const toggleChat = () => {
-    layoutStore.activePanelId = isChatOpen ? null : PanelId.CHAT
-    if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
-  }
-
-  const toggleEffects = () => {
-    layoutStore.activePanelId = isEffectsOpen ? null : PanelId.EFFECTS
-    if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
-  }
-
-  const toggleTools = () => {
-    layoutStore.activePanelId = isToolsOpen ? null : PanelId.TOOLS
-    if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
-  }
-
-  const toggleInfo = () => {
-    layoutStore.activePanelId = isInfoOpen ? null : PanelId.INFO
-    if (layoutSnap.activeSubPanelId) layoutStore.activeSubPanelId = null
-  }
+  const toggleAdmin = () => togglePanel(PanelId.ADMIN)
+  const toggleParticipants = () => togglePanel(PanelId.PARTICIPANTS)
+  const toggleChat = () => togglePanel(PanelId.CHAT)
+  const toggleEffects = () => togglePanel(PanelId.EFFECTS)
+  const toggleTools = () => togglePanel(PanelId.TOOLS)
+  const toggleInfo = () => togglePanel(PanelId.INFO)
 
   const openTranscript = () => {
     layoutStore.activeSubPanelId = SubPanelId.TRANSCRIPT
