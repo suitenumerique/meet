@@ -278,8 +278,8 @@ class LiveKitEventsService:
         if not room_updated_count:
             raise ActionFailedError(f"Room with ID {room_id} does not exist")
 
-        # A split still open from the meeting's last run lost its metadata with it.
-        breakout_services.end_sessions(room_id)
+        # A split still open when the room starts again ends, its key included.
+        breakout_services.end_sessions(room_id, remove_signal=True)
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:

@@ -54,10 +54,15 @@ def has_active_session(room):
     return active_sessions(room.id).exists()
 
 
-def end_sessions(room_id):
-    """Close the split of a meeting whose LiveKit room ended, its metadata with it."""
+def end_sessions(room_id, remove_signal=False):
+    """Close the meeting's split; remove_signal also takes its key off a live room."""
+    sessions = active_sessions(room_id)
+    # LiveKit reloads a room with its metadata, so every browser would stay split.
+    # A failed removal keeps the session active, so a host's Close tries again.
+    if remove_signal and sessions.exists():
+        _write_signal(room_id, remove_keys=[METADATA_KEY])
     now = timezone.now()
-    active_sessions(room_id).update(
+    sessions.update(
         status=models.BreakoutSessionStatusChoices.CLOSED,
         closed_at=now,
         updated_at=now,
