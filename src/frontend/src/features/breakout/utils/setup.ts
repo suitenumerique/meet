@@ -5,11 +5,12 @@ import type { BreakoutPerson } from '../api'
 export const MIN_ROOMS = 2
 export const MAX_ROOMS = 10
 
-// Only browsers keep themselves to a room: phone callers and agents stay, and so do the hosts.
+// Only browsers keep themselves to a room: phone callers and agents stay.
+// Hosts, this browser included, can be placed too, though never at random.
 export const isAssignable = (p: Participant) =>
-  !p.isLocal &&
-  p.kind === ParticipantKind.STANDARD &&
-  !getParticipantIsRoomAdminOrOwner(p)
+  p.isLocal || p.kind === ParticipantKind.STANDARD
+
+export const isHost = getParticipantIsRoomAdminOrOwner
 
 // Room index per identity; an index past the room count means unassigned.
 export type Assignments = Record<string, number>

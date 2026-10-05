@@ -5,7 +5,7 @@ A host can split a meeting into 2 to 10 smaller rooms and later bring everyone b
 ## What a host does
 
 1. In the meeting, the owner or an administrator opens the breakout panel, picks a number of rooms and assigns each participant to one of them, by hand or with a shuffle.
-2. Open starts the split, and every assigned participant is in their room at once, with no reconnection. Everyone else forms the main room: the hosts, phone callers, anyone left unassigned and anyone who joins later. Each participant sent to a room gets a toast and a sound naming it, and the main room shows a banner while the rooms are open.
+2. Open starts the split, and every assigned participant is in their room at once, with no reconnection. Everyone else forms the main room: phone callers, anyone left unassigned and anyone who joins later. Hosts stay there too unless placed by hand, the host using the panel included; a random split never moves a host. Each participant sent to a room gets a toast and a sound naming it, and the main room shows a banner while the rooms are open.
 3. Close ends the split, and everyone hears and sees everyone again, cameras and microphones as they were, with a toast and a sound.
 
 Only one split can be open in a meeting at a time. To change the assignments, close and open again.

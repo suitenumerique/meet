@@ -840,6 +840,7 @@
     "roomName": "Raum {{number}}",
     "error": "Die Aktion ist fehlgeschlagen. Bitte erneut versuchen.",
     "setup": {
+      "you": "{{name}} (du)",
       "roomCount": "Anzahl der Räume",
       "unassignedOption": "Nicht zugewiesen",
       "nobody": "Noch niemand zum Zuweisen",

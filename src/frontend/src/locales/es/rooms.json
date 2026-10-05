@@ -835,6 +835,7 @@
     "roomName": "Sala {{number}}",
     "error": "La acción ha fallado. Inténtalo de nuevo.",
     "setup": {
+      "you": "{{name}} (tú)",
       "roomCount": "Número de salas",
       "unassignedOption": "Sin asignar",
       "nobody": "Todavía no hay nadie para asignar",

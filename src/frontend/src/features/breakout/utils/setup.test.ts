@@ -28,14 +28,11 @@ describe('isAssignable', () => {
     )
   })
 
-  it('leaves out the local host and the other hosts', () => {
-    expect(isAssignable(participant({ isLocal: true }))).toBe(false)
+  it('offers the hosts, this browser included', () => {
+    expect(isAssignable(participant({ isLocal: true }))).toBe(true)
     expect(
       isAssignable(participant({ attributes: { room_role: 'owner' } }))
-    ).toBe(false)
-    expect(
-      isAssignable(participant({ attributes: { room_role: 'administrator' } }))
-    ).toBe(false)
+    ).toBe(true)
   })
 })
 

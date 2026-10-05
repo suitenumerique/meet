@@ -1,5 +1,8 @@
 import { useMutation } from '@tanstack/react-query'
-import { useRemoteParticipants } from '@livekit/components-react'
+import {
+  useLocalParticipant,
+  useRemoteParticipants,
+} from '@livekit/components-react'
 import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
@@ -15,6 +18,7 @@ import {
   MIN_ROOMS,
   buildRooms,
   isAssignable,
+  isHost,
   shuffleAssignments,
 } from '../utils/setup'
 import { ErrorNote } from './ErrorNote'
@@ -34,24 +38,35 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
   const { roomCount, assignments } = useSnapshot(breakoutStore)
 
   // Joins and leaves always update; a name or a role is all else the list reads.
-  const people = useRemoteParticipants({
+  const { localParticipant } = useLocalParticipant()
+  const remotes = useRemoteParticipants({
     updateOnlyOn: [
       RoomEvent.ParticipantNameChanged,
       RoomEvent.ParticipantAttributesChanged,
     ],
   })
+  const people = [localParticipant, ...remotes]
     .filter(isAssignable)
-    .map((p) => ({ identity: p.identity, name: getParticipantName(p) }))
+    .map((p) => ({
+      identity: p.identity,
+      name: p.isLocal
+        ? t('setup.you', { name: getParticipantName(p) })
+        : getParticipantName(p),
+      isHost: isHost(p),
+    }))
   // A room removed by lowering the room count leaves its people unassigned.
   const roomOf = (identity: string) => {
     const index = assignments[identity] ?? UNASSIGNED
     return index >= 0 && index < roomCount ? index : UNASSIGNED
   }
-  const unassigned = people.filter(
+  // A host left unplaced stays in the main room, as hosts do by default.
+  const guests = people.filter((p) => !p.isHost)
+  const placed = people.some((p) => roomOf(p.identity) !== UNASSIGNED)
+  const unassigned = guests.filter(
     (p) => roomOf(p.identity) === UNASSIGNED
   ).length
   let assignmentStatus = t('setup.allAssigned')
-  if (people.length === 0) assignmentStatus = t('setup.nobody')
+  if (guests.length === 0) assignmentStatus = t('setup.nobody')
   else if (unassigned > 0)
     assignmentStatus = t('setup.unassigned', { count: unassigned })
   const roomNames = Array.from({ length: roomCount }, (_, i) =>
@@ -101,12 +116,20 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
         <Button
           variant="secondaryText"
           size="sm"
-          isDisabled={people.length === 0}
+          isDisabled={guests.length === 0}
           onPress={() =>
-            (breakoutStore.assignments = shuffleAssignments(
-              people.map((p) => p.identity),
-              roomCount
-            ))
+            // Hosts keep whatever room they were given by hand.
+            (breakoutStore.assignments = {
+              ...Object.fromEntries(
+                people
+                  .filter((p) => p.isHost && p.identity in assignments)
+                  .map((p) => [p.identity, assignments[p.identity]])
+              ),
+              ...shuffleAssignments(
+                people.filter((p) => !p.isHost).map((p) => p.identity),
+                roomCount
+              ),
+            })
           }
         >
           <RiShuffleLine size={16} aria-hidden />
@@ -152,9 +175,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
       <Button
         variant="primary"
         fullWidth
-        isDisabled={
-          open.isPending || isRecording || unassigned === people.length
-        }
+        isDisabled={open.isPending || isRecording || !placed}
         onPress={() => open.mutate()}
       >
         {t('setup.open')}

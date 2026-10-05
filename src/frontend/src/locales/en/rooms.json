@@ -840,6 +840,7 @@
     "roomName": "Room {{number}}",
     "error": "The action failed. Please try again.",
     "setup": {
+      "you": "{{name}} (you)",
       "roomCount": "Number of rooms",
       "unassignedOption": "Unassigned",
       "nobody": "Nobody to assign yet",

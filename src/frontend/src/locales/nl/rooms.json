@@ -840,6 +840,7 @@
     "roomName": "Ruimte {{number}}",
     "error": "De actie is mislukt. Probeer het opnieuw.",
     "setup": {
+      "you": "{{name}} (jij)",
       "roomCount": "Aantal ruimtes",
       "unassignedOption": "Niet toegewezen",
       "nobody": "Nog niemand om toe te wijzen",

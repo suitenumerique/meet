@@ -25,6 +25,15 @@ vi.mock('react-i18next', () => ({
 }))
 vi.mock('@livekit/components-react', () => ({
   useRemoteParticipants: () => h.participants,
+  useLocalParticipant: () => ({
+    localParticipant: {
+      identity: 'me',
+      name: 'Me',
+      isLocal: true,
+      kind: 0,
+      attributes: { room_role: 'owner' },
+    },
+  }),
   useRoomInfo: () => ({ metadata: h.metadata }),
 }))
 vi.mock('../api', async (importOriginal) => ({
@@ -60,6 +69,24 @@ describe('BreakoutSetup', () => {
     expect(
       screen.getByRole('button', { name: /setup\.roomCount/ })
     ).toBeTruthy()
+  })
+
+  it('lists the host, who can be placed by hand', () => {
+    renderSetup()
+    expect(screen.getByText('setup.you')).toBeTruthy()
+  })
+
+  it('shuffles the guests alone, keeping a host placed by hand', async () => {
+    h.participants = [guest]
+    breakoutStore.assignments = { me: 1 }
+    renderSetup()
+    fireEvent.click(screen.getByRole('button', { name: 'setup.shuffle' }))
+    await waitFor(() =>
+      expect({ ...breakoutStore.assignments }).toEqual({
+        me: 1,
+        'guest-1': 0,
+      })
+    )
   })
 
   it('keeps Open disabled until someone is assigned', async () => {

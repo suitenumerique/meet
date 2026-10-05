@@ -840,6 +840,7 @@
     "roomName": "Salle {{number}}",
     "error": "L'action a échoué. Veuillez réessayer.",
     "setup": {
+      "you": "{{name}} (vous)",
       "roomCount": "Nombre de salles",
       "unassignedOption": "Non assigné",
       "nobody": "Personne à répartir pour l'instant",
