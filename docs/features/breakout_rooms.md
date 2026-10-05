@@ -1,6 +1,6 @@
 # Breakout rooms
 
-A host can split a meeting into two or more smaller rooms and later bring everyone back. Nobody leaves the meeting: a room is a group of participants who hear, see and chat only with each other, the host's messages to every room aside, inside the meeting's one LiveKit room.
+A host can split a meeting into 2 to 20 smaller rooms and later bring everyone back. Nobody leaves the meeting: a room is a group of participants who hear, see and chat only with each other, the host's messages to every room aside, inside the meeting's one LiveKit room.
 
 ## What a host does
 

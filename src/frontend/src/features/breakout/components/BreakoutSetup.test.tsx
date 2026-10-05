@@ -64,11 +64,11 @@ afterEach(() => {
 })
 
 describe('BreakoutSetup', () => {
-  it('takes a typed room count, never below two', async () => {
+  it('takes a typed room count, kept between 2 and 20', async () => {
     renderSetup()
     const field = screen.getByRole('textbox', { name: 'roomCount' })
     for (const [typed, kept] of [
-      ['30', 30],
+      ['30', 20],
       ['1', 2],
     ] as const) {
       fireEvent.change(field, { target: { value: typed } })

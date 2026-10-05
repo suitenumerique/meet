@@ -138,11 +138,12 @@ def test_api_breakout_sessions_create_not_manager(livekit, role):
     "rooms",
     [
         [["alice"]],
+        [[f"p{index}"] for index in range(21)],
         [["alice"], ["alice"]],
     ],
 )
 def test_api_breakout_sessions_create_invalid(livekit, owner_room, rooms):
-    """Two rooms or more, and one room per participant."""
+    """Two to twenty rooms, and one room per participant."""
     room, client = owner_room
 
     response = client.post(url(room), payload(*rooms), "json")
@@ -151,16 +152,16 @@ def test_api_breakout_sessions_create_invalid(livekit, owner_room, rooms):
     livekit.room.update_room_metadata.assert_not_awaited()
 
 
-def test_api_breakout_sessions_create_many_rooms(livekit, owner_room):
-    """No ceiling on the room count: a split may hold a room per participant."""
+def test_api_breakout_sessions_create_twenty_rooms(livekit, owner_room):
+    """Twenty rooms, the ceiling, open."""
     room, client = owner_room
 
     response = client.post(
-        url(room), payload(*([f"p{index}"] for index in range(30))), "json"
+        url(room), payload(*([f"p{index}"] for index in range(20))), "json"
     )
 
     assert response.status_code == 201
-    assert models.BreakoutRoom.objects.count() == 30
+    assert models.BreakoutRoom.objects.count() == 20
 
 
 def test_api_breakout_sessions_create_long_name(livekit, owner_room):
@@ -449,6 +450,42 @@ def test_api_breakout_sessions_close_member(livekit, owner_room):
 
     assert response.status_code == 403
     livekit.room.update_room_metadata.assert_not_awaited()
+
+
+def test_api_breakout_sessions_close_other_meeting(livekit, owner_room):
+    """A host's meeting in the URL never reaches another meeting's session."""
+    room, client = owner_room
+    other = make_session(RoomFactory(), ["alice"], ["bob"])
+
+    response = client.post(url(room, f"{other.id!s}/close/"))
+
+    assert response.status_code == 404
+    other.refresh_from_db()
+    assert other.status == ACTIVE
+    livekit.room.update_room_metadata.assert_not_awaited()
+
+
+def test_api_breakout_sessions_administrator(livekit):
+    """An administrator lists, opens and closes like the owner."""
+    room = RoomFactory()
+    _admin, client = logged_in(room, "administrator")
+
+    response = client.post(url(room), payload(["alice"], ["bob"]), "json")
+    assert response.status_code == 201
+    session_id = response.json()["id"]
+    assert [s["id"] for s in client.get(url(room)).json()] == [session_id]
+    assert client.post(url(room, f"{session_id}/close/")).status_code == 200
+
+
+def test_api_breakout_sessions_anonymous(livekit, owner_room):
+    """Someone signed out can neither list nor close."""
+    room, _client = owner_room
+    session = make_session(room, ["alice"], ["bob"])
+
+    assert APIClient().get(url(room)).status_code == 401
+    assert APIClient().post(url(room, f"{session.id!s}/close/")).status_code == 401
+    session.refresh_from_db()
+    assert session.status == ACTIVE
 
 
 # Flag
