@@ -17,6 +17,15 @@ import { NotificationProvider } from './NotificationProvider'
 import { useConfig } from '@/api/useConfig'
 import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
 
+const SENT_BY_BROWSERS = new Set<NotificationType>([
+  NotificationType.TranscriptionRequested,
+  NotificationType.ScreenRecordingRequested,
+  NotificationType.TranscriptionStarted,
+  NotificationType.TranscriptionStopped,
+  NotificationType.ScreenRecordingStarted,
+  NotificationType.ScreenRecordingStopped,
+])
+
 export const MainNotificationToast = () => {
   const room = useRoomContext()
   const { data } = useConfig()
@@ -25,14 +34,16 @@ export const MainNotificationToast = () => {
   const announce = useScreenReaderAnnounce()
 
   const { appendReaction } = useReactions()
-  const { isInMyGroup } = useBreakoutGroup()
+  const { isInMyGroup, isOpen } = useBreakoutGroup()
 
   useEffect(() => {
     const handleChatMessage = (
       chatMessage: ChatMessage,
       participant?: Participant | undefined
     ) => {
+      // In a split, a message from another room never toasts.
       if (!participant || participant.isLocal) return
+      if (!isInMyGroup(participant.identity)) return
       triggerNotificationSound(NotificationType.MessageReceived)
       toastQueue.add(
         {
@@ -56,7 +67,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.ChatMessage, handleChatMessage)
     }
-  }, [room, triggerNotificationSound, announce, t])
+  }, [room, triggerNotificationSound, announce, t, isInMyGroup])
 
   const handleEmoji = useCallback(
     (emoji: string, participant: Participant) => {
@@ -80,6 +91,10 @@ export const MainNotificationToast = () => {
         notification.type !== NotificationType.PermissionsRemoved &&
         !isInMyGroup(participant.identity)
       )
+        return
+      // In a split, a browser's notice from a sender not yet known may come from
+      // another room; the backend's own notices carry no sender at all.
+      if (!participant && isOpen && SENT_BY_BROWSERS.has(notification.type))
         return
 
       switch (notification.type) {
@@ -148,7 +163,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.DataReceived, handleDataReceived)
     }
-  }, [room, handleEmoji, isInMyGroup])
+  }, [room, handleEmoji, isInMyGroup, isOpen])
 
   const triggerNotificationSoundIfRoomIsSmall = useCallback(
     (type: NotificationType) => {

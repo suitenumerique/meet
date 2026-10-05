@@ -124,6 +124,15 @@ describe('ChatProvider', () => {
     expect(h.room.emit).toHaveBeenCalledTimes(1)
   })
 
+  it('drops a message from a sender not yet known during a split alone', () => {
+    const unknown = { ...message('carol', 1), from: undefined }
+    mount(split, [unknown])
+    expect(h.room.emit).not.toHaveBeenCalled()
+    cleanup()
+    mount('', [unknown])
+    expect(h.room.emit).toHaveBeenCalledTimes(1)
+  })
+
   it('shows a host message sent to every room, in any room', () => {
     mount(split, [message('host', 1, { role: 'owner', toEveryRoom: true })])
     expect(chatStore.rows).toMatchObject([

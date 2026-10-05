@@ -52,8 +52,11 @@ export const ChatProvider = () => {
     for (; seen.current < chatMessages.length; seen.current++) {
       const message = chatMessages[seen.current]
       const toEveryRoom = isToEveryRoom(message)
-      if (message.from && !isInMyGroup(message.from.identity) && !toEveryRoom)
-        continue
+      // A sender not yet known, during a split, may be in another room.
+      const isElsewhere = message.from
+        ? !isInMyGroup(message.from.identity)
+        : isOpen
+      if (isElsewhere && !toEveryRoom) continue
       appendRow(message, toEveryRoom)
       latest = message
     }
@@ -64,7 +67,7 @@ export const ChatProvider = () => {
     // Remove this once we refactor chat to use the new text stream approach
     const from = latest.from as RemoteParticipant | LocalParticipant | undefined
     room.emit(RoomEvent.ChatMessage, latest, from)
-  }, [chatMessages, isInMyGroup, room])
+  }, [chatMessages, isInMyGroup, isOpen, room])
 
   useEffect(() => {
     chatStore.send = ref(async (message: string, options?: SendTextOptions) => {

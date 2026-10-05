@@ -107,6 +107,23 @@ describe('MainNotificationToast in a split', () => {
     expect(h.toasts.add).toHaveLength(0)
   })
 
+  it('drops a browser notice from a sender not yet known, but keeps the backend notices', () => {
+    fire(
+      RoomEvent.DataReceived,
+      data(NotificationType.ScreenRecordingRequested)
+    )
+    expect(h.toasts.add).toHaveLength(0)
+    fire(RoomEvent.DataReceived, data(NotificationType.ScreenRecordingFailed))
+    expect(h.toasts.add).toHaveLength(1)
+  })
+
+  it('toasts a chat message from the room alone', () => {
+    fire(RoomEvent.ChatMessage, { message: 'from Room 2' }, person('carol'))
+    expect(h.toasts.add).toHaveLength(0)
+    fire(RoomEvent.ChatMessage, { message: 'from Room 1' }, person('bob'))
+    expect(h.toasts.add.map((toast) => toast.message)).toEqual(['from Room 1'])
+  })
+
   it('takes down a raised hand lowered from another room', () => {
     const carol = person('carol')
     h.toasts.visible = [
