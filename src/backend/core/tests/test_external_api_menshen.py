@@ -85,7 +85,13 @@ def test_menshen_disabled(mock_rs_authenticate, settings):
 def test_menshen_inactive_token_defers(mock_rs_authenticate):
     """An inactive token should defer to the next authentication backend."""
 
-    responses.add(responses.POST, INTROSPECTION_ENDPOINT, json={"active": False})
+    user = UserFactory()
+
+    responses.add(
+        responses.POST,
+        INTROSPECTION_ENDPOINT,
+        json=_introspection(user.sub, scope="meet:room:create", active=False),
+    )
 
     response = _create_room()
 
