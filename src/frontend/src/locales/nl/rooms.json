@@ -784,6 +784,7 @@
     "actions": {
       "open-shortcuts": "Sneltoetsenhulp openen",
       "focus-toolbar": "Focus op de onderste werkbalk",
+      "focus-pagination": "Focus op de paginering van deelnemers",
       "toggle-microphone": "Microfoon aan/uit",
       "toggle-camera": "Camera aan/uit",
       "push-to-talk": "Push-to-talk (ingedrukt houden om te activeren)",

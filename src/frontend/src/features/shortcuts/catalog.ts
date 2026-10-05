@@ -7,6 +7,7 @@ export type ShortcutCategory = 'navigation' | 'media' | 'interaction'
 export type ShortcutId =
   | 'open-shortcuts'
   | 'focus-toolbar'
+  | 'focus-pagination'
   | 'toggle-microphone'
   | 'toggle-camera'
   | 'push-to-talk'
@@ -43,6 +44,11 @@ export const shortcutCatalog: ShortcutDescriptor[] = [
     id: 'focus-toolbar',
     category: 'navigation',
     shortcut: { key: 'F2' },
+  },
+  {
+    id: 'focus-pagination',
+    category: 'navigation',
+    shortcut: { key: 'G', ctrlKey: true, shiftKey: true },
   },
   {
     id: 'toggle-microphone',

@@ -17,6 +17,7 @@ and this project adheres to
 - ✨(frontend) let signed-out visitors start a meeting
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✅(frontend) add vitest so the frontend can carry unit tests
+- ♿️(frontend) make participant pagination readable and keyboard reachable #1775
 
 ### Changed
 
@@ -94,7 +95,7 @@ and this project adheres to
 
 ### Fixed
 
-- 🐛(helm) probe liveness on __lbheartbeat__ and readiness on __heartbeat__
+- 🐛(helm) probe liveness on **lbheartbeat** and readiness on **heartbeat**
 - 🐛(helm) render periodSeconds and failureThreshold on probes
 - 🐛(backend) report the app release to Sentry instead of "NA"
 - 🐛(frontend) play the waiting room notification sound on every arrival
@@ -166,6 +167,7 @@ and this project adheres to
 ### Added
 
 - ✨(any) let any authenticated user manage the lobby on trusted rooms
+
 ### Changed
 
 - 📱(frontend) collapse mobile control bar items on narrow viewports

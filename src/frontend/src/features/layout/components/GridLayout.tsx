@@ -7,7 +7,6 @@ import {
   useSwipe,
 } from '@livekit/components-react'
 import { mergeProps } from '@/utils/mergeProps'
-import { PaginationIndicator } from './PaginationIndicator'
 import { useGridLayout } from '../hooks/useGridLayout'
 import { PaginationControl } from './PaginationControl'
 import { useSpeakerPromotionTrigger } from '../hooks/useSpeakerPromotionTrigger'
@@ -62,13 +61,7 @@ export function GridLayout({ tracks, ...props }: GridLayoutProps) {
     >
       <TrackLoop tracks={pagination.tracks}>{props.children}</TrackLoop>
       {tracks.length > layout.maxTiles && (
-        <>
-          <PaginationIndicator
-            totalPageCount={pagination.totalPageCount}
-            currentPage={pagination.currentPage}
-          />
-          <PaginationControl pagesContainer={gridEl} {...pagination} />
-        </>
+        <PaginationControl {...pagination} focusShortcut />
       )}
     </div>
   )

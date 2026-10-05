@@ -783,6 +783,7 @@
     "actions": {
       "open-shortcuts": "Abrir la ayuda de atajos",
       "focus-toolbar": "Poner el foco en la barra de herramientas inferior",
+      "focus-pagination": "Poner el foco en la paginación de participantes",
       "toggle-microphone": "Activar o desactivar el micrófono",
       "toggle-camera": "Activar o desactivar la cámara",
       "push-to-talk": "Pulsar para hablar (mantener para reactivar)",

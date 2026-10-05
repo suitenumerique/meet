@@ -784,6 +784,7 @@
     "actions": {
       "open-shortcuts": "Open shortcuts help",
       "focus-toolbar": "Focus bottom toolbar",
+      "focus-pagination": "Focus participant pagination",
       "toggle-microphone": "Toggle microphone",
       "toggle-camera": "Toggle camera",
       "push-to-talk": "Push-to-talk (hold to unmute)",
