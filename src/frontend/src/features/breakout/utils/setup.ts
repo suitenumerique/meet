@@ -3,7 +3,6 @@ import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getPart
 import type { BreakoutPerson } from '../api'
 
 export const MIN_ROOMS = 2
-export const MAX_ROOMS = 10
 
 // Only browsers keep themselves to a room: phone callers and agents stay.
 // Hosts, this browser included, can be placed too, though never at random.

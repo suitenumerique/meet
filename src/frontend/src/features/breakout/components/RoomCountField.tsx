@@ -3,9 +3,9 @@ import { Group, Input, Label, NumberField } from 'react-aria-components'
 import { RiAddLine, RiSubtractLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { Button } from '@/primitives'
-import { MAX_ROOMS, MIN_ROOMS } from '../utils/setup'
+import { MIN_ROOMS } from '../utils/setup'
 
-// Typed, or stepped with the buttons or the arrow keys, and kept in bounds.
+// Typed, or stepped with the buttons or the arrow keys, never below two.
 export const RoomCountField = ({
   value,
   onChange,
@@ -18,7 +18,6 @@ export const RoomCountField = ({
     <NumberField
       value={value}
       minValue={MIN_ROOMS}
-      maxValue={MAX_ROOMS}
       // A cleared field changes nothing until a number is typed.
       onChange={(next) => Number.isInteger(next) && onChange(next)}
       className={css({

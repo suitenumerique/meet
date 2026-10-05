@@ -850,7 +850,8 @@
       "shuffle": "Assign randomly",
       "assign": "Room for {{name}}",
       "open": "Open rooms",
-      "recording": "Stop the recording to open rooms."
+      "recording": "Stop the recording to open rooms.",
+      "notInBrowser": "Participants who did not join from a browser, such as phone callers, stay in the main room."
     },
     "active": {
       "empty": "Nobody assigned",

@@ -64,15 +64,18 @@ afterEach(() => {
 })
 
 describe('BreakoutSetup', () => {
-  it('takes a typed room count, kept within the bounds', () => {
+  it('takes a typed room count, never below two', async () => {
     renderSetup()
     const field = screen.getByRole('textbox', { name: 'roomCount' })
-    fireEvent.change(field, { target: { value: '7' } })
-    fireEvent.blur(field)
-    expect(breakoutStore.roomCount).toBe(7)
-    fireEvent.change(field, { target: { value: '99' } })
-    fireEvent.blur(field)
-    expect(breakoutStore.roomCount).toBe(10)
+    for (const [typed, kept] of [
+      ['30', 30],
+      ['1', 2],
+    ] as const) {
+      fireEvent.change(field, { target: { value: typed } })
+      fireEvent.blur(field)
+      expect(breakoutStore.roomCount).toBe(kept)
+      await waitFor(() => expect(field).toHaveProperty('value', String(kept)))
+    }
   })
 
   it('lists the host, who can be placed by hand', () => {
@@ -118,6 +121,20 @@ describe('BreakoutSetup', () => {
     const open = screen.getByRole('button', { name: 'setup.open' })
     expect(open.hasAttribute('disabled')).toBe(true)
     expect(screen.getByText('setup.recording')).toBeTruthy()
+  })
+
+  it('warns that anyone outside a browser stays in the main room, and lists none', () => {
+    const caller = { ...guest, identity: 'sip-1', kind: ParticipantKind.SIP }
+    h.participants = [guest, caller]
+    renderSetup()
+    expect(screen.getByText('setup.notInBrowser')).toBeTruthy()
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+  })
+
+  it('shows no such warning when everyone is in a browser', () => {
+    h.participants = [guest]
+    renderSetup()
+    expect(screen.queryByText('setup.notInBrowser')).toBeNull()
   })
 
   it('keeps the plan when the panel closes and opens again', () => {

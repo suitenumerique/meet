@@ -59,9 +59,9 @@ class RoomInputSerializer(BaseValidationOnlySerializer):
 
 
 class OpenBreakoutSessionSerializer(BaseValidationOnlySerializer):
-    """The host's split: 2 to 10 rooms, each participant in one of them."""
+    """The host's split: two rooms or more, each participant in one of them."""
 
-    rooms = RoomInputSerializer(many=True, min_length=2, max_length=10)
+    rooms = RoomInputSerializer(many=True, min_length=2)
 
     def validate_rooms(self, rooms):
         """Reject a participant assigned to two rooms."""

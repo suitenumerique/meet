@@ -850,7 +850,8 @@
       "shuffle": "Willekeurig toewijzen",
       "assign": "Ruimte voor {{name}}",
       "open": "Ruimtes openen",
-      "recording": "Stop de opname om ruimtes te openen."
+      "recording": "Stop de opname om ruimtes te openen.",
+      "notInBrowser": "Deelnemers die niet via een browser zijn binnengekomen, bijvoorbeeld per telefoon, blijven in de hoofdruimte."
     },
     "active": {
       "empty": "Niemand toegewezen",
