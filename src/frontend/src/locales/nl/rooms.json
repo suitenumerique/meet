@@ -218,7 +218,7 @@
     },
     "roomFull": {
       "heading": "Deze vergadering is vol",
-      "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het opnieuw zodra iemand vertrekt.",
+      "body": "Je neemt automatisch deel zodra iemand vertrekt.",
       "bodyWithLimit": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Probeer het opnieuw zodra iemand vertrekt."
     },
     "screenShare": {

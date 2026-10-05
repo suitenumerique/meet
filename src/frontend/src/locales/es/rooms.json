@@ -218,7 +218,7 @@
     },
     "roomFull": {
       "heading": "Esta reunión está completa",
-      "body": "La reunión ha alcanzado el número máximo de participantes. Vuelve a intentarlo cuando alguien salga.",
+      "body": "Te unirás automáticamente en cuanto alguien salga.",
       "bodyWithLimit": "La reunión ha alcanzado su límite de {{count}} participantes. Vuelve a intentarlo cuando alguien salga."
     },
     "screenShare": {
