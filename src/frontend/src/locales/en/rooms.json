@@ -215,6 +215,10 @@
       "heading": "Authentication Required",
       "body": "This room has not been created yet. Please authenticate to create it or wait for an authenticated user to do so."
     },
+    "roomFull": {
+      "heading": "This meeting is full",
+      "body": "The meeting has reached its maximum number of participants. Try again once someone leaves."
+    },
     "screenShare": {
       "title": "Unable to share your screen",
       "ariaLabel": "Unable to share your screen",

@@ -37,6 +37,7 @@ and this project adheres to
 - 🐛(brevo) use django-lasuite for marketing management
 - ♿️(frontend) expose loading state to assistive technology
 - 🐛(frontend) honour Keep hand raised when picture-in-picture is open
+- 🐛(fullstack) show a clear error when joining a full meeting
 
 ## [1.33.0] - 2026-09-30
 

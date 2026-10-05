@@ -89,6 +89,35 @@ class RoomManagement:
 
     @classmethod
     @async_to_sync
+    async def is_full(cls, room_name: str) -> bool:
+        """Tell whether a LiveKit room has reached its participant limit.
+
+        Mirrors the check LiveKit runs on join: the room is full once its
+        participant count reaches `max_participants`, where 0 means no limit.
+        A room that is not live is never full.
+
+        Raises:
+            RoomManagementException: the room could not be read.
+        """
+
+        lkapi = utils.create_livekit_client()
+
+        try:
+            response = await lkapi.room.list_rooms(ListRoomsRequest(names=[room_name]))
+        except TwirpError as e:
+            logger.exception("Unexpected error reading room %s", room_name)
+            raise RoomManagementException("Could not read room") from e
+        finally:
+            await lkapi.aclose()
+
+        if not response.rooms:
+            return False
+
+        room = response.rooms[0]
+        return 0 < room.max_participants <= room.num_participants
+
+    @classmethod
+    @async_to_sync
     async def delete_room(cls, room_name: str):
         """Delete a LiveKit room and disconnect all participants.
 

@@ -215,6 +215,10 @@
       "heading": "Verificatie vereist",
       "body": "Deze ruimte is nog niet gemaakt. Logt u alstublieft in om hem aan te maken, of wacht tot een ingelogde gebruiker dat doet."
     },
+    "roomFull": {
+      "heading": "Deze vergadering is vol",
+      "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het opnieuw zodra iemand vertrekt."
+    },
     "screenShare": {
       "title": "Kan uw scherm niet delen",
       "ariaLabel": "Kan uw scherm niet delen",

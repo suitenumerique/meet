@@ -215,6 +215,10 @@
       "heading": "Authentifizierung erforderlich",
       "body": "Dieser Raum wurde noch nicht erstellt. Bitte authentifiziere dich, um ihn zu erstellen, oder warte, bis eine authentifizierte Person dies tut."
     },
+    "roomFull": {
+      "heading": "Dieses Meeting ist voll",
+      "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es erneut, sobald jemand es verlassen hat."
+    },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",
       "ariaLabel": "Bildschirmfreigabe nicht möglich",
