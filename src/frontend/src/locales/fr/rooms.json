@@ -851,7 +851,7 @@
       "assign": "Salle de {{name}}",
       "open": "Ouvrir les salles",
       "recording": "Arrêtez l'enregistrement pour ouvrir les salles.",
-      "notInBrowser": "Les participants qui n'ont pas rejoint depuis un navigateur, par téléphone par exemple, restent dans la salle principale."
+      "notInBrowser": "Les participants qui n'ont pas rejoint depuis un navigateur, par téléphone par exemple, ne peuvent pas être placés dans une salle."
     },
     "active": {
       "empty": "Personne n'est assigné",

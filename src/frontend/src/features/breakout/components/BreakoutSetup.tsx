@@ -50,7 +50,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
         : getParticipantName(p),
       isHost: isHost(p),
     }))
-  // Whoever is not in a browser cannot be placed and stays in the main room.
+  // Whoever is not in a browser cannot be placed in a room.
   const hasNonBrowsers = remotes.some((p) => !isAssignable(p))
   // A room removed by lowering the room count leaves its people unassigned.
   const roomOf = (identity: string) => {

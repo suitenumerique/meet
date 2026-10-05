@@ -5,7 +5,7 @@ A host can split a meeting into two or more smaller rooms and later bring everyo
 ## What a host does
 
 1. In the meeting, the owner or an administrator opens the breakout panel, picks a number of rooms and assigns each participant to one of them, by hand or with a shuffle.
-2. Open starts the split, and every assigned participant is in their room at once, with no reconnection. Everyone else forms the main room: phone callers, anyone left unassigned and anyone who joins later. Hosts stay there too unless placed by hand, the host using the panel included; a random split never moves a host. Each participant sent to a room gets a toast and a sound naming it, and the main room shows a banner while the rooms are open.
+2. Open starts the split, and every assigned participant is in their room at once, with no reconnection. Everyone else forms the main room: phone callers, anyone left unassigned and anyone who joins later. Hosts stay there too unless placed by hand, the host using the panel included; a random split never moves a host. Each participant sent to a room gets a toast and a sound naming it, and every browser shows a banner naming its room while the rooms are open.
 3. Close ends the split, and everyone hears and sees everyone again, with a toast and a sound. Cameras stay as they were. A microphone is turned off at every change of room, Close included, and the toast says so.
 
 Only one split can be open in a meeting at a time. To change the assignments, close and open again.
@@ -29,7 +29,7 @@ Chat messages and notifications go to the members of the room by name. A host in
 
 Set `BREAKOUT_ROOMS_ENABLED=True` on the backend. It is off by default. The frontend reads it from the config endpoint as `breakout_rooms.is_enabled`.
 
-With the flag off, opening answers 404 to a caller it would otherwise accept. A split opened before the flag was turned off can still be listed and closed by a host, who still sees the breakout panel while it is open.
+With the flag off, opening answers 404 to every signed-in caller. A split opened before the flag was turned off can still be listed and closed by a host, who still sees the breakout panel while it is open.
 
 Nothing else is required: no worker, no scheduled task, no extra LiveKit room. Opening first asks LiveKit whether a recorder runs in the meeting. Opening and closing each write the meeting's metadata, and every call to LiveKit gives up after 5 seconds with a 503 the host can retry. Writers of one meeting's metadata take turns through a lock in the cache, so none drops another's key, and a write that timed out keeps the lock until it expires, so the next writer reads after it lands.
 

@@ -846,7 +846,7 @@
       "assign": "Sala para {{name}}",
       "open": "Abrir salas",
       "recording": "Detén la grabación para abrir salas.",
-      "notInBrowser": "Los participantes que no se unieron desde un navegador, por teléfono por ejemplo, se quedan en la sala principal."
+      "notInBrowser": "Los participantes que no se unieron desde un navegador, por teléfono por ejemplo, no se pueden asignar a una sala."
     },
     "active": {
       "empty": "Nadie asignado",
