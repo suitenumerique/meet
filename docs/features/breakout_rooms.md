@@ -48,7 +48,7 @@ Close removes the `breakout` key from the meeting's metadata, then marks the ses
 ## Limits
 
 - There is no timer: a split stays open until the host closes it.
-- The host does not visit rooms.
+- A host enters a room only by placing themself in it before Open.
 - Moving one participant to another room means closing and opening again.
 - A guest of a public meeting gets a new identity with every pass, so one who reloads the page while a split is open lands in the main room.
 - In a public meeting, anyone with the link can join the main room, so the main room is private from the other rooms only in a meeting that is not public.
