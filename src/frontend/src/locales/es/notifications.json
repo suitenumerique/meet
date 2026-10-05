@@ -71,7 +71,6 @@
   "openMenu": "Abrir el menú",
   "breakout": {
     "muted": "Tu micrófono está apagado.",
-    "moved": "Ahora estás en {{room}}",
     "closed": "Las salas están cerradas. Todos han vuelto a la sala principal."
   }
 }

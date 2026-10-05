@@ -47,7 +47,8 @@ const InBreakoutMeeting = ({
   // The host's plan belongs to this meeting only.
   useEffect(() => resetBreakoutSetup, [])
 
-  // Moving into a room and the rooms closing each get a toast and a sound.
+  // Each change of room plays a sound. The banner names the room, so a toast
+  // says only what it cannot: the microphone turned off, or the rooms closed.
   const wasOpen = usePrevious(isOpen)
   const lastRoomName = usePrevious(roomName)
   const room = useRoomContext()
@@ -60,12 +61,9 @@ const InBreakoutMeeting = ({
     const closed = !!wasOpen && !isOpen
     if (!moved && !closed && !muted) return
     triggerNotificationSound(NotificationType.BreakoutRoomChanged)
+    if (!closed && !muted) return
     toastQueue.add(
-      {
-        type: NotificationType.BreakoutRoomChanged,
-        room: roomName,
-        muted,
-      },
+      { type: NotificationType.BreakoutRoomChanged, closed, muted },
       { timeout: NotificationDuration.BREAKOUT_ROOM_CHANGED }
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps

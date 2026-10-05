@@ -74,13 +74,13 @@ afterEach(() => {
 })
 
 describe('BreakoutRoomTracker', () => {
-  it('announces the room it moves into, with a sound', () => {
+  it('names the room in the banner, and toasts only the microphone it turned off', () => {
     const { rerender } = render(showing(''))
     rerender(showing(split))
     expect(h.toasts).toEqual([
       {
         type: NotificationType.BreakoutRoomChanged,
-        room: 'Room 1',
+        closed: false,
         muted: true,
       },
     ])
@@ -116,12 +116,13 @@ describe('BreakoutRoomTracker', () => {
     ])
   })
 
-  it('says nothing about a microphone already off', () => {
+  it('plays the sound with no toast when the microphone was already off', () => {
     h.micOn = false
     const { rerender } = render(showing(''))
     rerender(showing(split))
     expect(h.mic).not.toHaveBeenCalled()
-    expect(h.toasts).toMatchObject([{ room: 'Room 1', muted: false }])
+    expect(h.sound).toHaveBeenCalledWith(NotificationType.BreakoutRoomChanged)
+    expect(h.toasts).toEqual([])
   })
 
   it('leaves the microphone of someone already in the main room alone', () => {
@@ -141,8 +142,9 @@ describe('BreakoutRoomTracker', () => {
     const { rerender } = render(showing('', false))
     expect(h.toasts).toEqual([])
     rerender(showing(split, false))
+    expect(h.sound).toHaveBeenCalledTimes(1)
     rerender(showing('', false))
-    expect(h.toasts.map((toast) => toast.room)).toEqual(['Room 1', null])
+    expect(h.toasts.map((toast) => toast.closed)).toEqual([true])
   })
 
   it('isolates a tab whose flag turns on after it mounted', () => {
@@ -157,7 +159,11 @@ describe('BreakoutRoomTracker', () => {
     const { rerender } = render(showing(split))
     rerender(showing(''))
     expect(h.toasts).toEqual([
-      { type: NotificationType.BreakoutRoomChanged, room: null, muted: false },
+      {
+        type: NotificationType.BreakoutRoomChanged,
+        closed: true,
+        muted: false,
+      },
     ])
     expect(screen.queryByText('mainRoom')).toBeNull()
   })
