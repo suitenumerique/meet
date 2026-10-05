@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 import { chatStore, resetChatStore } from '@/stores/chat'
-import { BreakoutParticipant } from './BreakoutParticipant'
+import { BreakoutRoomTracker } from './BreakoutRoomTracker'
 import { NotificationType } from '@/features/notifications/NotificationType'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -11,7 +11,7 @@ const h = vi.hoisted(() => ({
   metadata: '',
   toasts: [] as any[],
   sound: vi.fn(),
-  isolation: [] as boolean[],
+  permissionCalls: [] as boolean[],
   connection: 'connected',
   mic: vi.fn(),
   micOn: true,
@@ -36,9 +36,9 @@ vi.mock('@livekit/components-react', () => ({
   useRoomInfo: () => ({ metadata: h.metadata }),
   useConnectionState: () => h.connection,
 }))
-vi.mock('../hooks/useBreakoutIsolation', () => ({
-  useBreakoutIsolation: (isolatedOnJoin: boolean) =>
-    h.isolation.push(isolatedOnJoin),
+vi.mock('../hooks/useBreakoutMediaPermissions', () => ({
+  useBreakoutMediaPermissions: (restrictedBeforeConnect: boolean) =>
+    h.permissionCalls.push(restrictedBeforeConnect),
 }))
 vi.mock('@/features/notifications/hooks/useSoundNotification', () => ({
   useNotificationSound: () => ({ triggerNotificationSound: h.sound }),
@@ -55,9 +55,11 @@ const split = JSON.stringify({
   },
 })
 
-const showing = (metadata: string, isolatedOnJoin = true) => {
+const showing = (metadata: string, restrictedBeforeConnect = true) => {
   h.metadata = metadata
-  return <BreakoutParticipant isolatedOnJoin={isolatedOnJoin} />
+  return (
+    <BreakoutRoomTracker restrictedBeforeConnect={restrictedBeforeConnect} />
+  )
 }
 
 afterEach(() => {
@@ -65,13 +67,13 @@ afterEach(() => {
   h.me = 'alice'
   h.toasts = []
   h.sound.mockReset()
-  h.isolation = []
+  h.permissionCalls = []
   h.connection = 'connected'
   h.mic.mockReset()
   h.micOn = true
 })
 
-describe('BreakoutParticipant', () => {
+describe('BreakoutRoomTracker', () => {
   it('announces the room it moves into, with a sound', () => {
     const { rerender } = render(showing(''))
     rerender(showing(split))
@@ -145,9 +147,9 @@ describe('BreakoutParticipant', () => {
 
   it('isolates a tab whose flag turns on after it mounted', () => {
     const { rerender } = render(showing('', false))
-    expect(h.isolation).toEqual([])
+    expect(h.permissionCalls).toEqual([])
     rerender(showing('', true))
-    expect(h.isolation.at(-1)).toBe(true)
+    expect(h.permissionCalls.at(-1)).toBe(true)
   })
 
   it('announces the rooms closing to everyone', () => {

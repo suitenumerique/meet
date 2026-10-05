@@ -44,7 +44,7 @@ import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
-import { BreakoutParticipant } from '@/features/breakout/components/BreakoutParticipant'
+import { BreakoutRoomTracker } from '@/features/breakout/components/BreakoutRoomTracker'
 import { useBreakoutEnabled } from '@/features/breakout/hooks/useCanManageBreakout'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 
@@ -307,7 +307,7 @@ export const Conference = ({
         >
           <WatchMediaDeviceErrors />
           <VideoConference />
-          <BreakoutParticipant isolatedOnJoin={isBreakoutEnabled} />
+          <BreakoutRoomTracker restrictedBeforeConnect={isBreakoutEnabled} />
           {!isMobile && <InviteDialog mode={mode} />}
           <PictureInPictureConference />
           <MeetDevtools />

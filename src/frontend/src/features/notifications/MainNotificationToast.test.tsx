@@ -53,7 +53,7 @@ vi.mock('./components/ToastProvider', () => ({
 }))
 
 // alice receives; bob shares her room, carol is in the other one, and the
-// host stays in the main group.
+// host stays in the main room.
 const split = JSON.stringify({
   breakout: {
     session_id: 's1',

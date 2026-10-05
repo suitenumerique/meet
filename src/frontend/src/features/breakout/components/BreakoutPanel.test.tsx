@@ -122,7 +122,7 @@ describe('BreakoutPanel', () => {
     expect(screen.queryByRole('button', { name: 'setup.open' })).toBeNull()
   })
 
-  it('keeps the session and a running close when the signal goes', async () => {
+  it('keeps the session and a running close when the split leaves the metadata', async () => {
     // Opened from the panel: the list answered no session first.
     announce(null)
     vi.mocked(fetchBreakoutSession).mockResolvedValueOnce(null)
@@ -136,7 +136,7 @@ describe('BreakoutPanel', () => {
     vi.mocked(closeBreakoutSession).mockReturnValueOnce(new Promise(() => {}))
     fireEvent.click(close)
     await waitFor(() => expect(close.hasAttribute('disabled')).toBe(true))
-    // The signal goes before the close answers: the session stays shown.
+    // The split leaves the metadata before the close answers: the session stays shown.
     vi.mocked(fetchBreakoutSession).mockResolvedValueOnce(session)
     announce(null)
     rerender(ui())

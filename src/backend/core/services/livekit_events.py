@@ -279,7 +279,7 @@ class LiveKitEventsService:
             raise ActionFailedError(f"Room with ID {room_id} does not exist")
 
         # A split still open when the room starts again ends, its key included.
-        breakout_services.end_sessions(room_id, remove_signal=True)
+        breakout_services.close_active_sessions(room_id, clear_metadata=True)
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:
@@ -309,7 +309,7 @@ class LiveKitEventsService:
             raise ActionFailedError("Failed to process room finished event") from e
 
         # The split's metadata ended with the room, and nobody is left to close it.
-        breakout_services.end_sessions(room_id)
+        breakout_services.close_active_sessions(room_id)
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:

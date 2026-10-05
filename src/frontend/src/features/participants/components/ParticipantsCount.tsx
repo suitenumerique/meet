@@ -4,7 +4,7 @@ import { useRemoteParticipants } from '@livekit/components-react'
 import { srOnly } from '@/styles/a11y'
 import { css } from '@/styled-system/css'
 import { RiInfinityLine } from '@remixicon/react'
-import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
+import { useMyBreakoutRoom } from '@/features/breakout/hooks/useMyBreakoutRoom'
 
 const badgeStyles = css({
   position: 'absolute',
@@ -36,9 +36,10 @@ export const ParticipantsCount = React.memo(
     const remoteParticipants = useRemoteParticipants({
       updateOnlyOn: [],
     })
-    const { isInMyGroup } = useBreakoutGroup()
+    const { isInMyBreakoutRoom } = useMyBreakoutRoom()
     const count =
-      remoteParticipants.filter((p) => isInMyGroup(p.identity)).length + 1
+      remoteParticipants.filter((p) => isInMyBreakoutRoom(p.identity)).length +
+      1
 
     return (
       <>

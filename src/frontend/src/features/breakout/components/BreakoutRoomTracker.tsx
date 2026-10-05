@@ -12,32 +12,40 @@ import { toastQueue } from '@/features/notifications/components/ToastProvider'
 import { NotificationType } from '@/features/notifications/NotificationType'
 import { NotificationDuration } from '@/features/notifications/NotificationDuration'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
-import { resetBreakout } from '../store'
+import { resetBreakoutSetup } from '../store'
 import { appendDivider } from '@/stores/chat'
-import { useBreakoutGroup } from '../hooks/useBreakoutGroup'
-import { useBreakoutIsolation } from '../hooks/useBreakoutIsolation'
-import { readSignal } from '../utils/group'
+import { useMyBreakoutRoom } from '../hooks/useMyBreakoutRoom'
+import { useBreakoutMediaPermissions } from '../hooks/useBreakoutMediaPermissions'
+import { readSplit } from '../utils/split'
 
-// Where the flag is off, nothing runs until a split shows up, then it stays.
-export const BreakoutParticipant = ({
-  isolatedOnJoin,
+// Follows this browser's breakout room for everyone in the meeting: who hears
+// it, the banner, the toasts and the chat dividers. Where the flag is off,
+// nothing runs until a split shows up, then it stays.
+export const BreakoutRoomTracker = ({
+  restrictedBeforeConnect,
 }: {
-  isolatedOnJoin: boolean
+  restrictedBeforeConnect: boolean
 }) => {
   const { metadata } = useRoomInfo()
-  const [isNeeded, setIsNeeded] = useState(isolatedOnJoin)
-  if (!isNeeded && (isolatedOnJoin || readSignal(metadata) !== null))
+  const [isNeeded, setIsNeeded] = useState(restrictedBeforeConnect)
+  if (!isNeeded && (restrictedBeforeConnect || readSplit(metadata) !== null))
     setIsNeeded(true)
-  return isNeeded ? <InBreakoutMeeting isolatedOnJoin={isolatedOnJoin} /> : null
+  return isNeeded ? (
+    <InBreakoutMeeting restrictedBeforeConnect={restrictedBeforeConnect} />
+  ) : null
 }
 
-const InBreakoutMeeting = ({ isolatedOnJoin }: { isolatedOnJoin: boolean }) => {
+const InBreakoutMeeting = ({
+  restrictedBeforeConnect,
+}: {
+  restrictedBeforeConnect: boolean
+}) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'breakout.participant' })
-  const { isOpen, roomName } = useBreakoutGroup()
+  const { isOpen, roomName } = useMyBreakoutRoom()
   const { triggerNotificationSound } = useNotificationSound()
-  useBreakoutIsolation(isolatedOnJoin)
+  useBreakoutMediaPermissions(restrictedBeforeConnect)
   // The host's plan belongs to this meeting only.
-  useEffect(() => resetBreakout, [])
+  useEffect(() => resetBreakoutSetup, [])
 
   // Moving into a room and the rooms closing each get a toast and a sound.
   const wasOpen = usePrevious(isOpen)

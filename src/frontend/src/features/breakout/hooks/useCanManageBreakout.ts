@@ -1,6 +1,6 @@
 import { useConfig } from '@/api/useConfig'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
-import { useBreakoutGroup } from './useBreakoutGroup'
+import { useMyBreakoutRoom } from './useMyBreakoutRoom'
 
 // False while the config loads.
 export const useBreakoutEnabled = () =>
@@ -10,7 +10,7 @@ export const useBreakoutEnabled = () =>
 export const useCanManageBreakout = () => {
   const isAdminOrOwner = useIsAdminOrOwner()
   const isEnabled = useBreakoutEnabled()
-  const { isOpen } = useBreakoutGroup()
+  const { isOpen } = useMyBreakoutRoom()
   return {
     canOpen: isAdminOrOwner && isEnabled,
     canManage: isAdminOrOwner && (isEnabled || isOpen),

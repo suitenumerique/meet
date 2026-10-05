@@ -11,7 +11,7 @@ import {
   useRemoteParticipants,
   useRoomInfo,
 } from '@livekit/components-react'
-import { readSignal } from '../utils/group'
+import { readSplit } from '../utils/split'
 import {
   breakoutSessionKey,
   closeBreakoutSession,
@@ -36,6 +36,11 @@ const ActiveSession = ({
     localParticipant.identity,
     ...useRemoteParticipants().map((p) => p.identity),
   ])
+  const namesHere = (room: BreakoutSession['rooms'][number]) =>
+    room.participants
+      .filter((p) => here.has(p.identity))
+      .map((p) => p.name)
+      .join(', ')
   const close = useMutation({
     mutationFn: () => closeBreakoutSession(roomId, session.id),
     onSettled: () =>
@@ -55,10 +60,7 @@ const ActiveSession = ({
           <li key={room.id}>
             <Text variant="bodyXsBold">{room.name}</Text>
             <Text variant="xsNote" wrap="pretty">
-              {room.participants
-                .filter((p) => here.has(p.identity))
-                .map((p) => p.name)
-                .join(', ') || t('active.empty')}
+              {namesHere(room) || t('active.empty')}
             </Text>
           </li>
         ))}
@@ -79,7 +81,8 @@ const ActiveSession = ({
 export const BreakoutPanel = () => {
   const roomId = useRoomData()?.id
   const { canOpen } = useCanManageBreakout()
-  const announced = readSignal(useRoomInfo().metadata)?.session_id ?? null
+  // The session the metadata announces, null outside a split.
+  const announced = readSplit(useRoomInfo().metadata)?.session_id ?? null
   const {
     data: session,
     isPending,
@@ -90,7 +93,8 @@ export const BreakoutPanel = () => {
     enabled: !!roomId,
     retry: false,
   })
-  // An open or close elsewhere refetches, the shown session kept meanwhile.
+  // Another host opened or closed a split: refetch, and keep showing the
+  // current session until the answer lands.
   const seen = useRef(announced)
   useEffect(() => {
     if (seen.current === announced) return

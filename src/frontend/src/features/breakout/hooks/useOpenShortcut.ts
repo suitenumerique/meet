@@ -7,6 +7,8 @@ const CONTROL = 'button, a, [role="option"], [role="radio"], [role="switch"]'
 // Enter opens the rooms while focus is on no control, and Ctrl or Cmd with
 // Enter opens them from anywhere but a text field.
 export const useOpenShortcut = (open: () => void, isEnabled: boolean) => {
+  // The listener reads the newest callback, so it is not added again on
+  // every render.
   const latest = useRef(open)
   latest.current = open
   useEffect(() => {

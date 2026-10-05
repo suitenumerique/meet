@@ -19,8 +19,10 @@ export const RoomCountField = ({
       value={value}
       minValue={MIN_ROOMS}
       maxValue={MAX_ROOMS}
-      // A cleared field changes nothing until a number is typed.
-      onChange={(next) => Number.isInteger(next) && onChange(next)}
+      onChange={(next) => {
+        // A cleared field gives NaN: keep the count until a number is typed.
+        if (Number.isInteger(next)) onChange(next)
+      }}
       className={css({
         display: 'flex',
         alignItems: 'center',

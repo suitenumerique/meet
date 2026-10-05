@@ -54,13 +54,13 @@ def has_active_session(room):
     return active_sessions(room.id).exists()
 
 
-def end_sessions(room_id, remove_signal=False):
-    """Close the meeting's split; remove_signal also takes its key off a live room."""
+def close_active_sessions(room_id, clear_metadata=False):
+    """Close the meeting's split; clear_metadata also takes its key off a live room."""
     sessions = active_sessions(room_id)
     # LiveKit reloads a room with its metadata, so every browser would stay split.
     # A failed removal keeps the session active, so a host's Close tries again.
-    if remove_signal and sessions.exists():
-        _write_signal(room_id, remove_keys=[METADATA_KEY])
+    if clear_metadata and sessions.exists():
+        _write_metadata(room_id, remove_keys=[METADATA_KEY])
     now = timezone.now()
     sessions.update(
         status=models.BreakoutSessionStatusChoices.CLOSED,
@@ -69,7 +69,7 @@ def end_sessions(room_id, remove_signal=False):
     )
 
 
-def lock_room(room):
+def lock_room_row(room):
     """Hold the meeting's row until the transaction ends.
 
     Opening a split and starting a recording both take it, so neither slips past
@@ -78,8 +78,13 @@ def lock_room(room):
     models.Room.objects.select_for_update().filter(pk=room.pk).first()
 
 
-def _signal(session, rooms):
-    """The metadata every browser reads: the rooms' names and each identity's room."""
+def _split_metadata(session, rooms):
+    """The metadata every browser reads: the rooms' names and each identity's room.
+
+    For two rooms, alice in the first and bob in the second:
+    {"session_id": "<uuid>", "rooms": ["Room 1", "Room 2"],
+     "assignments": {"alice": 0, "bob": 1}}
+    """
     return {
         "session_id": str(session.id),
         "rooms": [data["name"] for data in rooms],
@@ -91,14 +96,14 @@ def _signal(session, rooms):
     }
 
 
-def _write_signal(room_id, **changes):
+def _write_metadata(room_id, **changes):
     """Change the meeting's metadata through its one writer; False when it is not live."""
     try:
         RoomManagement.update_metadata(str(room_id), **changes)
     except RoomNotFoundException:
         return False
     except Exception as error:
-        logger.exception("Breakout signal write to room %s failed", room_id)
+        logger.exception("Breakout metadata write to room %s failed", room_id)
         raise MediaServerError() from error
     return True
 
@@ -112,13 +117,19 @@ def _recorder_running(room_id):
 
 
 def open_session(room, user, rooms):
-    """Write the session and its assignments, then announce them to the meeting."""
+    """Write the session and its assignments, then announce them to the meeting.
+
+    1. Refuse while a recorder runs, or a recording starts.
+    2. Under the meeting's row lock, store the session, its rooms and who goes where.
+    3. Write the split into the LiveKit room's metadata, which every browser reads.
+       A failed or unanswered write deletes the session again.
+    """
     # A recorder whose stop failed still runs with no active recording row.
     if _recorder_running(room.id):
         raise RecordingInProgress()
     try:
         with transaction.atomic():
-            lock_room(room)
+            lock_room_row(room)
             if has_active_session(room):
                 raise SessionAlreadyActive()
             if room.recordings.filter(
@@ -149,16 +160,17 @@ def open_session(room, user, rooms):
         raise SessionAlreadyActive() from error
 
     try:
-        is_live = _write_signal(
-            room.id, metadata={METADATA_KEY: _signal(session, rooms)}
+        is_live = _write_metadata(
+            room.id, metadata={METADATA_KEY: _split_metadata(session, rooms)}
         )
     except MediaServerError:
         # A write cut off by its deadline may still have landed; take it back.
         # Should that fail too, the session stays active, so a close retries.
         with contextlib.suppress(MediaServerError):
-            _write_signal(room.id, remove_keys=[METADATA_KEY])
+            _write_metadata(room.id, remove_keys=[METADATA_KEY])
             session.delete()
         raise
+    # No LiveKit room: nobody is in the meeting to split.
     if not is_live:
         session.delete()
         raise MediaServerError()
@@ -166,14 +178,14 @@ def open_session(room, user, rooms):
 
 
 def close_session(session):
-    """Remove the signal, then mark the session closed.
+    """Remove the split from the metadata, then mark the session closed.
 
-    Closing a closed session does nothing. A close whose signal removal fails
+    Closing a closed session does nothing. A close whose metadata removal fails
     leaves the session active, so closing it again tries again.
     """
     if session.status == models.BreakoutSessionStatusChoices.CLOSED:
         return session
-    _write_signal(session.room_id, remove_keys=[METADATA_KEY])
+    _write_metadata(session.room_id, remove_keys=[METADATA_KEY])
     session.status = models.BreakoutSessionStatusChoices.CLOSED
     session.closed_at = timezone.now()
     session.save(update_fields=["status", "closed_at", "updated_at"])

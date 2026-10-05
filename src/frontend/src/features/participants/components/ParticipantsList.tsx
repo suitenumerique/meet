@@ -12,7 +12,7 @@ import { LowerAllHandsButton } from './LowerAllHandsButton'
 import { MuteEveryoneButton } from './MuteEveryoneButton'
 import { WaitingParticipantsSection } from './WaitingParticipantsSection'
 import { RaisedHandRow } from './RaisedHandRow'
-import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
+import { useMyBreakoutRoom } from '@/features/breakout/hooks/useMyBreakoutRoom'
 
 const JoinedParticipantsSections = () => {
   const room = useRoomContext()
@@ -27,13 +27,13 @@ const JoinedParticipantsSections = () => {
   // and its hand-raise state comes from `attributes.handRaisedAt`. Without the
   // local events waking this component up, raising your own hand would not
   // update the UI. Do not "optimise" these away.
-  const { isInMyGroup } = useBreakoutGroup()
+  const { isInMyBreakoutRoom } = useMyBreakoutRoom()
   const remoteParticipants = useRemoteParticipants({
     updateOnlyOn: [
       RoomEvent.ParticipantNameChanged,
       RoomEvent.ParticipantAttributesChanged,
     ],
-  }).filter((p) => isInMyGroup(p.identity))
+  }).filter((p) => isInMyBreakoutRoom(p.identity))
 
   const allParticipants = [
     room.localParticipant,

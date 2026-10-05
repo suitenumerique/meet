@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { usePagination, useTracks } from '@livekit/components-react'
-import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
+import { useMyBreakoutRoom } from '@/features/breakout/hooks/useMyBreakoutRoom'
 import { RoomEvent, Track } from 'livekit-client'
 import { styled } from '@/styled-system/jsx'
 import { PipFocusLayout } from './PipFocusLayout'
@@ -30,10 +30,13 @@ export const PipStage = () => {
     ],
     { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false }
   )
-  const { isInMyGroup } = useBreakoutGroup()
+  const { isInMyBreakoutRoom } = useMyBreakoutRoom()
   const tracks = useMemo(
-    () => roomTracks.filter((track) => isInMyGroup(track.participant.identity)),
-    [roomTracks, isInMyGroup]
+    () =>
+      roomTracks.filter((track) =>
+        isInMyBreakoutRoom(track.participant.identity)
+      ),
+    [roomTracks, isInMyBreakoutRoom]
   )
 
   const screenShareTrack = useMemo(() => {

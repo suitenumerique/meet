@@ -12,13 +12,10 @@ import { Button, Text } from '@/primitives'
 import { Select } from '@/primitives/Select'
 import { queryClient } from '@/api/queryClient'
 import { breakoutSessionKey, createBreakoutSession } from '../api'
-import { breakoutStore, resetBreakout } from '../store'
-import {
-  buildRooms,
-  isAssignable,
-  isHost,
-  shuffleAssignments,
-} from '../utils/setup'
+import { breakoutSetupStore, resetBreakoutSetup } from '../store'
+import { buildRooms, isAssignable, shuffleAssignments } from '../utils/setup'
+import { MAIN_ROOM } from '../utils/split'
+import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 import { ErrorNote } from './ErrorNote'
 import { RoomCountField } from './RoomCountField'
 import { useOpenShortcut } from '../hooks/useOpenShortcut'
@@ -26,12 +23,13 @@ import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useRoomMetadata } from '@/features/recording/hooks/useRoomMetadata'
 import { RecordingStatus } from '@/features/recording/hooks/useRecordingStatuses'
 
-const UNASSIGNED = -1
+// Someone left unassigned stays in the main room.
+const UNASSIGNED = MAIN_ROOM
 
 export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'breakout' })
   // In the store, so switching panels keeps the plan.
-  const { roomCount, assignments } = useSnapshot(breakoutStore)
+  const { roomCount, assignments } = useSnapshot(breakoutSetupStore)
 
   // Joins and leaves always update; a name or a role is all else the list reads.
   const { localParticipant } = useLocalParticipant()
@@ -48,7 +46,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
       name: p.isLocal
         ? t('setup.you', { name: getParticipantName(p) })
         : getParticipantName(p),
-      isHost: isHost(p),
+      isHost: getParticipantIsRoomAdminOrOwner(p),
     }))
   // Whoever is not in a browser cannot be placed in a room.
   const hasNonBrowsers = remotes.some((p) => !isAssignable(p))
@@ -87,7 +85,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
       }),
     onSuccess: (session) => {
       queryClient.setQueryData(breakoutSessionKey(roomId), session)
-      resetBreakout()
+      resetBreakoutSetup()
     },
     // A failed open leaves the metadata as it was, so nothing else refetches.
     onError: () =>
@@ -97,11 +95,26 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
   const canOpen = !open.isPending && !isRecording && placed
   useOpenShortcut(() => open.mutate(), canOpen)
 
+  // Deals the guests across the rooms at random. Hosts keep whatever room
+  // they were given by hand, and stay in the main room otherwise.
+  const shuffle = () => {
+    const hostPlaces = Object.fromEntries(
+      people
+        .filter((p) => p.isHost && p.identity in assignments)
+        .map((p) => [p.identity, assignments[p.identity]])
+    )
+    const guestPlaces = shuffleAssignments(
+      guests.map((p) => p.identity),
+      roomCount
+    )
+    breakoutSetupStore.assignments = { ...hostPlaces, ...guestPlaces }
+  }
+
   return (
     <>
       <RoomCountField
         value={roomCount}
-        onChange={(count) => (breakoutStore.roomCount = count)}
+        onChange={(count) => (breakoutSetupStore.roomCount = count)}
       />
       <div
         className={css({
@@ -115,20 +128,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
           variant="secondaryText"
           size="sm"
           isDisabled={guests.length === 0}
-          onPress={() =>
-            // Hosts keep whatever room they were given by hand.
-            (breakoutStore.assignments = {
-              ...Object.fromEntries(
-                people
-                  .filter((p) => p.isHost && p.identity in assignments)
-                  .map((p) => [p.identity, assignments[p.identity]])
-              ),
-              ...shuffleAssignments(
-                people.filter((p) => !p.isHost).map((p) => p.identity),
-                roomCount
-              ),
-            })
-          }
+          onPress={shuffle}
         >
           <RiShuffleLine size={16} aria-hidden />
           {t('setup.shuffle')}
@@ -161,7 +161,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
                 items={roomItems}
                 selectedKey={roomOf(p.identity)}
                 onSelectionChange={(key) =>
-                  (breakoutStore.assignments[p.identity] = Number(key))
+                  (breakoutSetupStore.assignments[p.identity] = Number(key))
                 }
               />
             </div>

@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { ConnectionState, ParticipantKind, RoomEvent } from 'livekit-client'
-import { useBreakoutIsolation } from './useBreakoutIsolation'
+import { useBreakoutMediaPermissions } from './useBreakoutMediaPermissions'
 
 type Publication = {
   isDesired: boolean
@@ -87,17 +87,17 @@ beforeEach(() => {
   h.state = ConnectionState.Connected
 })
 
-describe('useBreakoutIsolation', () => {
+describe('useBreakoutMediaPermissions', () => {
   it('leaves the list stored before connecting until the meeting answers', () => {
     h.state = ConnectionState.Connecting
     setUp('alice', [], split({ alice: 0 }))
-    renderHook(() => useBreakoutIsolation(true))
+    renderHook(() => useBreakoutMediaPermissions(true))
     expect(permissions).not.toHaveBeenCalled()
   })
 
   it('lets everyone listen outside a split', () => {
     setUp('alice', [remote('bob')])
-    renderHook(() => useBreakoutIsolation(true))
+    renderHook(() => useBreakoutMediaPermissions(true))
     expect(permissions).toHaveBeenCalledWith(true, [])
   })
 
@@ -106,7 +106,7 @@ describe('useBreakoutIsolation', () => {
     const carol = remote('carol')
     const phone = remote('phone', ParticipantKind.SIP)
     setUp('alice', [bob, carol, phone], split({ alice: 0, bob: 0, carol: 1 }))
-    renderHook(() => useBreakoutIsolation(true))
+    renderHook(() => useBreakoutMediaPermissions(true))
 
     expect(permissions).toHaveBeenLastCalledWith(false, listed(['bob']))
     expect(mic(bob).setSubscribed).not.toHaveBeenCalled()
@@ -116,11 +116,11 @@ describe('useBreakoutIsolation', () => {
 
   it('lets nobody listen to someone alone in a room', () => {
     setUp('carol', [remote('alice')], split({ alice: 0, carol: 1 }))
-    renderHook(() => useBreakoutIsolation(true))
+    renderHook(() => useBreakoutMediaPermissions(true))
     expect(permissions).toHaveBeenLastCalledWith(false, [])
   })
 
-  it('keeps the main group to its people and phone callers', () => {
+  it('keeps the main room to its people and phone callers', () => {
     const others = [
       remote('alice'),
       remote('dave'),
@@ -128,7 +128,7 @@ describe('useBreakoutIsolation', () => {
       remote('subtitles', ParticipantKind.AGENT),
     ]
     setUp('host', others, split({ alice: 0 }))
-    renderHook(() => useBreakoutIsolation(true))
+    renderHook(() => useBreakoutMediaPermissions(true))
     expect(permissions).toHaveBeenLastCalledWith(
       false,
       listed(['dave', 'phone'])
@@ -140,7 +140,7 @@ describe('useBreakoutIsolation', () => {
   it('stops playing a track another room publishes later', () => {
     const carol = remote('carol')
     setUp('alice', [carol], split({ alice: 0, carol: 1 }))
-    renderHook(() => useBreakoutIsolation(true))
+    renderHook(() => useBreakoutMediaPermissions(true))
     const screen = publication()
     handlers.get(RoomEvent.TrackPublished)?.(screen, carol)
     expect(screen.setSubscribed).toHaveBeenCalledWith(false)
@@ -148,7 +148,7 @@ describe('useBreakoutIsolation', () => {
 
   it('sends a list once, and again only when it changes', () => {
     setUp('host', [remote('dave')], split({ alice: 0 }))
-    const { rerender } = renderHook(() => useBreakoutIsolation(true))
+    const { rerender } = renderHook(() => useBreakoutMediaPermissions(true))
     h.remotes = [...h.remotes]
     rerender()
     expect(permissions).toHaveBeenCalledTimes(1)
@@ -170,13 +170,13 @@ describe('useBreakoutIsolation', () => {
     Object.defineProperty(room, 'metadata', {
       get: () => split({ alice: 0, carol: 1 }),
     })
-    renderHook(() => useBreakoutIsolation(true))
+    renderHook(() => useBreakoutMediaPermissions(true))
     expect(permissions).toHaveBeenLastCalledWith(false, [])
   })
 
   it('keeps the stored list while reconnecting', () => {
     setUp('alice', [], split({ alice: 0 }))
-    const { rerender } = renderHook(() => useBreakoutIsolation(true))
+    const { rerender } = renderHook(() => useBreakoutMediaPermissions(true))
     permissions.mockClear()
     h.state = ConnectionState.Reconnecting
     h.metadata = ''
@@ -187,7 +187,7 @@ describe('useBreakoutIsolation', () => {
   it('lets everyone listen and plays everyone again when the split closes', () => {
     const carol = remote('carol')
     setUp('alice', [carol], split({ alice: 0, carol: 1 }))
-    const { rerender } = renderHook(() => useBreakoutIsolation(true))
+    const { rerender } = renderHook(() => useBreakoutMediaPermissions(true))
     expect(mic(carol).isDesired).toBe(false)
 
     h.metadata = ''
@@ -198,13 +198,13 @@ describe('useBreakoutIsolation', () => {
 
   it('sends nothing where nothing was ever restricted', () => {
     setUp('alice', [remote('bob')])
-    renderHook(() => useBreakoutIsolation(false))
+    renderHook(() => useBreakoutMediaPermissions(false))
     expect(permissions).not.toHaveBeenCalled()
   })
 
   it('isolates a tab loaded with the setting off once a split opens', () => {
     setUp('alice', [remote('bob')])
-    const { rerender } = renderHook(() => useBreakoutIsolation(false))
+    const { rerender } = renderHook(() => useBreakoutMediaPermissions(false))
 
     h.metadata = split({ alice: 0, bob: 0 })
     rerender()

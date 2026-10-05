@@ -339,7 +339,7 @@ class RoomViewSet(
 
         try:
             with transaction.atomic():
-                breakout_services.lock_room(room)
+                breakout_services.lock_room_row(room)
                 if breakout_services.has_active_session(room):
                     return drf_response.Response(
                         {"error": "Close the breakout rooms before recording."},

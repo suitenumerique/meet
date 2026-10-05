@@ -2,74 +2,76 @@ import { ParticipantKind, type Participant } from 'livekit-client'
 import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 
 // What the backend writes into the meeting's metadata while it is split.
-export type BreakoutSignal = {
+export type BreakoutSplit = {
   session_id: string
   rooms: string[]
   // The index of each assigned identity's room in rooms.
   assignments: Record<string, number>
 }
 
-// Everyone with no room, the hosts and phone callers included.
-export const MAIN_GROUP = -1
+// The room of everyone not assigned one, the hosts and phone callers included.
+// The host's setup uses it too, for someone left unassigned.
+export const MAIN_ROOM = -1
 
 type Person = { identity: string; kind: ParticipantKind }
 
-export const groupOf = (signal: BreakoutSignal | null, identity: string) =>
-  signal?.assignments[identity] ?? MAIN_GROUP
+export const breakoutRoomOf = (split: BreakoutSplit | null, identity: string) =>
+  split?.assignments[identity] ?? MAIN_ROOM
 
-export const inSameGroup = (
-  signal: BreakoutSignal | null,
+export const inSameBreakoutRoom = (
+  split: BreakoutSplit | null,
   a: string,
   b: string
-) => groupOf(signal, a) === groupOf(signal, b)
+) => breakoutRoomOf(split, a) === breakoutRoomOf(split, b)
 
 // Who the media server lets receive my tracks: null lets everyone, outside a
 // split. Agents and recorders are never named, so subtitles pause in a split.
 export const allowedListeners = (
-  signal: BreakoutSignal | null,
+  split: BreakoutSplit | null,
   me: string,
   others: Person[]
 ): string[] | null => {
-  if (!signal) return null
-  const group = groupOf(signal, me)
-  if (group !== MAIN_GROUP) {
-    return Object.keys(signal.assignments).filter(
-      (identity) => identity !== me && signal.assignments[identity] === group
+  if (!split) return null
+  const myRoom = breakoutRoomOf(split, me)
+  if (myRoom !== MAIN_ROOM) {
+    return Object.keys(split.assignments).filter(
+      (identity) => identity !== me && split.assignments[identity] === myRoom
     )
   }
   return others
     .filter(
       (p) =>
-        groupOf(signal, p.identity) === MAIN_GROUP &&
+        breakoutRoomOf(split, p.identity) === MAIN_ROOM &&
         (p.kind === ParticipantKind.STANDARD || p.kind === ParticipantKind.SIP)
     )
     .map((p) => p.identity)
 }
 
-const parseSignal = (metadata?: string): BreakoutSignal | null => {
-  let signal: BreakoutSignal | undefined
+const parseSplit = (metadata?: string): BreakoutSplit | null => {
+  let split: BreakoutSplit | undefined
   try {
-    signal = JSON.parse(metadata || '{}')?.breakout
+    split = JSON.parse(metadata || '{}')?.breakout
   } catch {
     return null
   }
-  return signal?.assignments && Array.isArray(signal.rooms) ? signal : null
+  return split?.assignments && Array.isArray(split.rooms) ? split : null
 }
 
-let last: { metadata?: string; signal: BreakoutSignal | null } = {
-  signal: null,
+let last: { metadata?: string; split: BreakoutSplit | null } = {
+  split: null,
 }
 
 // The split announced in the meeting's raw metadata, null outside a split.
-// A session's assignments never change, so its first reading is kept: a write
-// to another key leaves every filter built on it untouched.
-export const readSignal = (metadata?: string): BreakoutSignal | null => {
-  if (metadata === last.metadata) return last.signal
-  const next = parseSignal(metadata)
-  const signal =
-    next && next.session_id === last.signal?.session_id ? last.signal : next
-  last = { metadata, signal }
-  return signal
+// A session's assignments never change, so its first reading is kept and
+// returned as the same object: a write to another key, a recording status for
+// one, re-runs none of the hooks and filters built on it.
+export const readSplit = (metadata?: string): BreakoutSplit | null => {
+  if (metadata === last.metadata) return last.split
+  const next = parseSplit(metadata)
+  const split =
+    next && next.session_id === last.split?.session_id ? last.split : next
+  last = { metadata, split }
+  return split
 }
 
 type RoomLike = {
@@ -83,7 +85,7 @@ type RoomLike = {
 // so a room of one sends to its own identity, which reaches nobody.
 export const breakoutRecipients = (room: RoomLike): string[] | undefined => {
   const me = room.localParticipant.identity
-  const listeners = allowedListeners(readSignal(room.metadata), me, [
+  const listeners = allowedListeners(readSplit(room.metadata), me, [
     ...room.remoteParticipants.values(),
   ])
   if (listeners === null) return undefined
@@ -108,6 +110,6 @@ export const isToEveryRoom = (message: {
 // Where a host may send to every room from: a split is open and they are in
 // no breakout room.
 export const isInMainRoomOfSplit = (
-  signal: BreakoutSignal | null,
+  split: BreakoutSplit | null,
   identity: string
-) => signal !== null && groupOf(signal, identity) === MAIN_GROUP
+) => split !== null && breakoutRoomOf(split, identity) === MAIN_ROOM

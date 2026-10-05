@@ -276,10 +276,10 @@ def test_api_breakout_sessions_create_meeting_not_live(livekit, owner_room):
     assert not models.BreakoutSession.objects.exists()
 
 
-def test_api_breakout_sessions_create_signal_times_out_after_landing(
+def test_api_breakout_sessions_create_metadata_write_times_out_after_landing(
     livekit, owner_room
 ):
-    """A signal write that lands, then times out, is taken back."""
+    """A metadata write that lands, then times out, is taken back."""
     room, client = owner_room
     update = livekit.room.update_room_metadata
     store = update.side_effect
@@ -300,7 +300,7 @@ def test_api_breakout_sessions_create_signal_times_out_after_landing(
 
 
 def test_api_breakout_sessions_create_take_back_fails(livekit, owner_room):
-    """A signal that may have landed and cannot be taken back keeps its session to close."""
+    """A metadata write that may have landed and cannot be taken back keeps its session to close."""
     room, client = owner_room
     store = livekit.room.update_room_metadata.side_effect
     livekit.room.update_room_metadata.side_effect = TimeoutError
@@ -390,7 +390,7 @@ def test_api_breakout_sessions_list_empty_and_member(livekit, owner_room):
 
 
 def test_api_breakout_sessions_close(livekit, owner_room):
-    """Close removes the signal, and a second close answers 200 without a write."""
+    """Close removes the split from the metadata, and a second close answers 200 without a write."""
     room, client = owner_room
     client.post(url(room), payload(["alice"], ["bob"]), "json")
     session = models.BreakoutSession.objects.get()
@@ -411,7 +411,7 @@ def test_api_breakout_sessions_close(livekit, owner_room):
 
 
 def test_api_breakout_sessions_close_meeting_not_live(livekit, owner_room):
-    """A meeting the media server no longer holds has no signal left to remove."""
+    """A meeting the media server no longer holds has no split left to remove."""
     room, client = owner_room
     session = make_session(room, ["alice"], ["bob"])
     livekit.room.list_rooms.return_value = mock.Mock(rooms=[])
@@ -422,8 +422,10 @@ def test_api_breakout_sessions_close_meeting_not_live(livekit, owner_room):
     assert response.json()["status"] == "closed"
 
 
-def test_api_breakout_sessions_close_signal_fails_then_retries(livekit, owner_room):
-    """A signal removal that fails keeps the session active, and closing again ends it."""
+def test_api_breakout_sessions_close_metadata_removal_fails_then_retries(
+    livekit, owner_room
+):
+    """A metadata removal that fails keeps the session active, and closing again ends it."""
     room, client = owner_room
     session = make_session(room, ["alice"], ["bob"])
     livekit.room.update_room_metadata.side_effect = TimeoutError

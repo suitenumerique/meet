@@ -1,5 +1,5 @@
 import { useRoomContext } from '@livekit/components-react'
-import { breakoutRecipients } from '@/features/breakout/utils/group'
+import { breakoutRecipients } from '@/features/breakout/utils/split'
 import type { NotificationType } from '../NotificationType'
 import type { NotificationPayload } from '../NotificationPayload'
 

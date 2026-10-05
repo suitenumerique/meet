@@ -7,8 +7,8 @@ const initialSetup = () => ({
 })
 
 // The host's plan before Open, kept while the panel is closed.
-export const breakoutStore = proxy(initialSetup())
+export const breakoutSetupStore = proxy(initialSetup())
 
-export const resetBreakout = () => {
-  Object.assign(breakoutStore, initialSetup())
+export const resetBreakoutSetup = () => {
+  Object.assign(breakoutSetupStore, initialSetup())
 }

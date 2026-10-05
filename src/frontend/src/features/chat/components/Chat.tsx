@@ -3,7 +3,7 @@ import { useSnapshot } from 'valtio'
 import { Text } from '@/primitives'
 import { Switch } from '@/primitives/Switch'
 import { chatStore } from '@/stores/chat'
-import { useBreakoutGroup } from '@/features/breakout/hooks/useBreakoutGroup'
+import { useMyBreakoutRoom } from '@/features/breakout/hooks/useMyBreakoutRoom'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { ChatMessages } from './ChatMessages'
 import { ChatTextArea } from './ChatTextArea'
@@ -42,7 +42,7 @@ const TextContainer = styled('div', {
 const EveryRoomSwitch = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.everyRoom' })
   const { toEveryRoom } = useSnapshot(chatStore)
-  const { isInMainRoom } = useBreakoutGroup()
+  const { isInMainRoom } = useMyBreakoutRoom()
   const isHost = useIsAdminOrOwner()
   if (!isInMainRoom || !isHost) return null
   return (

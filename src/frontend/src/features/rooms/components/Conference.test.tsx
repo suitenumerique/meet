@@ -11,7 +11,7 @@ const h = vi.hoisted(() => ({
   breakout: false,
   rooms: [] as any[],
   roomGivenToLiveKit: [] as any[],
-  isolatedOnJoin: undefined as boolean | undefined,
+  restrictedBeforeConnect: undefined as boolean | undefined,
 }))
 
 vi.mock('@livekit/components-react', async (orig) => ({
@@ -54,9 +54,9 @@ vi.mock('@/features/analytics/telemetry', () => ({
   captureMediaEvent: vi.fn(async () => undefined),
   reportError: vi.fn(),
 }))
-vi.mock('@/features/breakout/components/BreakoutParticipant', () => ({
-  BreakoutParticipant: (props: { isolatedOnJoin: boolean }) => {
-    h.isolatedOnJoin = props.isolatedOnJoin
+vi.mock('@/features/breakout/components/BreakoutRoomTracker', () => ({
+  BreakoutRoomTracker: (props: { restrictedBeforeConnect: boolean }) => {
+    h.restrictedBeforeConnect = props.restrictedBeforeConnect
     return null
   },
 }))
@@ -100,7 +100,7 @@ afterEach(() => {
   Object.assign(h, {
     rooms: [],
     roomGivenToLiveKit: [],
-    isolatedOnJoin: undefined,
+    restrictedBeforeConnect: undefined,
   })
 })
 
@@ -113,7 +113,7 @@ describe('Conference', () => {
     expect(
       room.localParticipant.setTrackSubscriptionPermissions
     ).toHaveBeenCalledWith(false)
-    expect(h.isolatedOnJoin).toBe(true)
+    expect(h.restrictedBeforeConnect).toBe(true)
   })
 
   it('leaves the room open on joining where breakout rooms are off', () => {
@@ -125,6 +125,6 @@ describe('Conference', () => {
       room.localParticipant.setTrackSubscriptionPermissions
     ).not.toHaveBeenCalled()
     // It still keeps to its room once it reads a split.
-    expect(h.isolatedOnJoin).toBe(false)
+    expect(h.restrictedBeforeConnect).toBe(false)
   })
 })

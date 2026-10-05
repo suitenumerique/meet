@@ -12,7 +12,7 @@ import { ParticipantKind } from 'livekit-client'
 import { queryClient } from '@/api/queryClient'
 import { ApiError } from '@/api/ApiError'
 import { BreakoutSetup } from './BreakoutSetup'
-import { breakoutStore, resetBreakout } from '../store'
+import { breakoutSetupStore, resetBreakoutSetup } from '../store'
 import { createBreakoutSession } from '../api'
 
 const h = vi.hoisted(() => ({
@@ -58,7 +58,7 @@ const renderSetup = () =>
 
 afterEach(() => {
   cleanup()
-  resetBreakout()
+  resetBreakoutSetup()
   h.participants = []
   h.metadata = undefined
 })
@@ -73,7 +73,7 @@ describe('BreakoutSetup', () => {
     ] as const) {
       fireEvent.change(field, { target: { value: typed } })
       fireEvent.blur(field)
-      expect(breakoutStore.roomCount).toBe(kept)
+      expect(breakoutSetupStore.roomCount).toBe(kept)
       await waitFor(() => expect(field).toHaveProperty('value', String(kept)))
     }
   })
@@ -85,11 +85,11 @@ describe('BreakoutSetup', () => {
 
   it('shuffles the guests alone, keeping a host placed by hand', async () => {
     h.participants = [guest]
-    breakoutStore.assignments = { me: 1 }
+    breakoutSetupStore.assignments = { me: 1 }
     renderSetup()
     fireEvent.click(screen.getByRole('button', { name: 'setup.shuffle' }))
     await waitFor(() =>
-      expect({ ...breakoutStore.assignments }).toEqual({
+      expect({ ...breakoutSetupStore.assignments }).toEqual({
         me: 1,
         'guest-1': 0,
       })
@@ -107,7 +107,7 @@ describe('BreakoutSetup', () => {
 
   it('opens with part of the meeting unassigned', () => {
     h.participants = [guest, { ...guest, identity: 'guest-2', name: 'Bo' }]
-    breakoutStore.assignments = { 'guest-1': 0 }
+    breakoutSetupStore.assignments = { 'guest-1': 0 }
     renderSetup()
     const open = screen.getByRole('button', { name: 'setup.open' })
     expect(open.hasAttribute('disabled')).toBe(false)
@@ -116,7 +116,7 @@ describe('BreakoutSetup', () => {
   it('keeps Open disabled, and says why, while a recording runs', () => {
     h.metadata = JSON.stringify({ recording_status: 'started' })
     h.participants = [guest]
-    breakoutStore.assignments = { 'guest-1': 0 }
+    breakoutSetupStore.assignments = { 'guest-1': 0 }
     renderSetup()
     const open = screen.getByRole('button', { name: 'setup.open' })
     expect(open.hasAttribute('disabled')).toBe(true)
