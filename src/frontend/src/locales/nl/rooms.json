@@ -219,7 +219,7 @@
     "roomFull": {
       "heading": "Deze vergadering is vol",
       "body": "Je neemt automatisch deel zodra iemand vertrekt.",
-      "bodyWithLimit": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Probeer het opnieuw zodra iemand vertrekt."
+      "bodyWithLimit": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Je neemt automatisch deel zodra iemand vertrekt."
     },
     "screenShare": {
       "title": "Kan uw scherm niet delen",

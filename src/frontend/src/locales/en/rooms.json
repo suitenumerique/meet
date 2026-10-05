@@ -219,7 +219,7 @@
     "roomFull": {
       "heading": "This meeting is full",
       "body": "You will join automatically as soon as someone leaves.",
-      "bodyWithLimit": "The meeting has reached its limit of {{count}} participants. Try again once someone leaves."
+      "bodyWithLimit": "The meeting has reached its limit of {{count}} participants. You will join automatically as soon as someone leaves."
     },
     "screenShare": {
       "title": "Unable to share your screen",

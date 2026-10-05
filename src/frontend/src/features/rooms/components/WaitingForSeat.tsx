@@ -7,6 +7,7 @@ import { Center, VStack } from '@/styled-system/jsx'
 import { Text } from '@/primitives'
 import { Spinner } from '@/primitives/Spinner'
 import { keys } from '@/api/queryKeys'
+import { useConfig } from '@/api/useConfig'
 import { fetchRoomCapacity } from '../api/fetchRoomCapacity'
 
 const SEAT_POLL_INTERVAL = 5000
@@ -25,6 +26,8 @@ export const WaitingForSeat = ({
   onSeatFree: () => void
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'error.roomFull' })
+  const { data: apiConfig } = useConfig()
+  const limit = apiConfig?.room_max_participants
 
   // The first ask waits an interval: the room count lags a join, so an early ask
   // after a lost race reads as not full.
@@ -50,7 +53,7 @@ export const WaitingForSeat = ({
           <Spinner />
           <Center>
             <Text as="p" variant="h3" centered role="status">
-              {t('body')}
+              {limit ? t('bodyWithLimit', { count: limit }) : t('body')}
             </Text>
           </Center>
         </VStack>

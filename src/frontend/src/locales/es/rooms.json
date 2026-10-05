@@ -219,7 +219,7 @@
     "roomFull": {
       "heading": "Esta reunión está completa",
       "body": "Te unirás automáticamente en cuanto alguien salga.",
-      "bodyWithLimit": "La reunión ha alcanzado su límite de {{count}} participantes. Vuelve a intentarlo cuando alguien salga."
+      "bodyWithLimit": "La reunión ha alcanzado su límite de {{count}} participantes. Te unirás automáticamente en cuanto alguien salga."
     },
     "screenShare": {
       "title": "No se puede compartir tu pantalla",

@@ -20,6 +20,7 @@ and this project adheres to
 - ♿️(frontend) make participant pagination readable and keyboard reachable #1775
 - ✨(frontend) join a full meeting as soon as a seat frees
 - ✨(fullstack) let operators cap meetings and show hosts the limit
+- ✨(frontend) name the participant limit while waiting for a seat
 
 ### Changed
 
