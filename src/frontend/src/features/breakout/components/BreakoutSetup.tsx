@@ -22,6 +22,7 @@ import {
   shuffleAssignments,
 } from '../utils/setup'
 import { ErrorNote } from './ErrorNote'
+import { useOpenShortcut } from '../hooks/useOpenShortcut'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useRoomMetadata } from '@/features/recording/hooks/useRoomMetadata'
 import { RecordingStatus } from '@/features/recording/hooks/useRecordingStatuses'
@@ -95,6 +96,9 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
     onError: () =>
       queryClient.invalidateQueries({ queryKey: breakoutSessionKey(roomId) }),
   })
+
+  const canOpen = !open.isPending && !isRecording && placed
+  useOpenShortcut(() => open.mutate(), canOpen)
 
   return (
     <>
@@ -175,7 +179,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
       <Button
         variant="primary"
         fullWidth
-        isDisabled={open.isPending || isRecording || !placed}
+        isDisabled={!canOpen}
         onPress={() => open.mutate()}
       >
         {t('setup.open')}

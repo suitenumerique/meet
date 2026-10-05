@@ -11,6 +11,8 @@ const h = vi.hoisted(() => ({
   toasts: [] as any[],
   sound: vi.fn(),
   isolation: [] as boolean[],
+  connection: 'connected',
+  mic: vi.fn(),
 }))
 
 vi.mock('react-i18next', () => ({
@@ -20,8 +22,11 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 vi.mock('@livekit/components-react', () => ({
-  useRoomContext: () => ({ localParticipant: { identity: h.me } }),
+  useRoomContext: () => ({
+    localParticipant: { identity: h.me, setMicrophoneEnabled: h.mic },
+  }),
   useRoomInfo: () => ({ metadata: h.metadata }),
+  useConnectionState: () => h.connection,
 }))
 vi.mock('../hooks/useBreakoutIsolation', () => ({
   useBreakoutIsolation: (isolatedOnJoin: boolean) =>
@@ -53,6 +58,8 @@ afterEach(() => {
   h.toasts = []
   h.sound.mockReset()
   h.isolation = []
+  h.connection = 'connected'
+  h.mic.mockReset()
 })
 
 describe('BreakoutParticipant', () => {
@@ -72,6 +79,26 @@ describe('BreakoutParticipant', () => {
     rerender(showing(split))
     expect(screen.getByText('mainRoom')).toBeTruthy()
     expect(h.toasts).toEqual([])
+  })
+
+  it('turns the microphone off on the way back to the main room', () => {
+    const { rerender } = render(showing(split))
+    expect(h.mic).not.toHaveBeenCalled()
+    rerender(showing(''))
+    expect(h.mic).toHaveBeenCalledWith(false)
+  })
+
+  it('leaves the microphone of someone already in the main room alone', () => {
+    h.me = 'host'
+    const { rerender } = render(showing(split))
+    rerender(showing(''))
+    expect(h.mic).not.toHaveBeenCalled()
+  })
+
+  it('hides the banner while the connection is down', () => {
+    h.connection = 'reconnecting'
+    render(showing(split))
+    expect(screen.queryByText('currentRoom Room 1')).toBeNull()
   })
 
   it('waits for a split where the flag was off, then stays to announce its end', () => {

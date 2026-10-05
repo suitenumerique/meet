@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useRoomInfo } from '@livekit/components-react'
+import {
+  useConnectionState,
+  useRoomContext,
+  useRoomInfo,
+} from '@livekit/components-react'
+import { ConnectionState } from 'livekit-client'
 import { usePrevious } from '@/hooks/usePrevious'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
@@ -36,6 +41,13 @@ const InBreakoutMeeting = ({ isolatedOnJoin }: { isolatedOnJoin: boolean }) => {
   // Moving into a room and the rooms closing each get a toast and a sound.
   const wasOpen = usePrevious(isOpen)
   const lastRoomName = usePrevious(roomName)
+  const room = useRoomContext()
+  // Back in the main room, a microphone left on would reach everyone at once.
+  useEffect(() => {
+    if (lastRoomName && !roomName)
+      void room.localParticipant.setMicrophoneEnabled(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomName])
   useEffect(() => {
     const moved = !!roomName && roomName !== lastRoomName
     const closed = !!wasOpen && !isOpen
@@ -51,7 +63,9 @@ const InBreakoutMeeting = ({ isolatedOnJoin }: { isolatedOnJoin: boolean }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, roomName])
 
-  if (!isOpen) return null
+  // While the connection drops, the meeting's own messages hold the top.
+  const isConnected = useConnectionState() === ConnectionState.Connected
+  if (!isOpen || !isConnected) return null
   return (
     <output
       className={css({

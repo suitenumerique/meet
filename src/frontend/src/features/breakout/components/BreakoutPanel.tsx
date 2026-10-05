@@ -6,7 +6,11 @@ import { Button, Div, Text } from '@/primitives'
 import { queryClient } from '@/api/queryClient'
 import { useCanManageBreakout } from '../hooks/useCanManageBreakout'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
-import { useRoomInfo } from '@livekit/components-react'
+import {
+  useLocalParticipant,
+  useRemoteParticipants,
+  useRoomInfo,
+} from '@livekit/components-react'
 import { readSignal } from '../utils/group'
 import {
   breakoutSessionKey,
@@ -25,6 +29,13 @@ const ActiveSession = ({
   session: BreakoutSession
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'breakout' })
+  // Someone who left, a guest who reloaded under a new identity included,
+  // stays assigned and is no longer listed.
+  const { localParticipant } = useLocalParticipant()
+  const here = new Set([
+    localParticipant.identity,
+    ...useRemoteParticipants().map((p) => p.identity),
+  ])
   const close = useMutation({
     mutationFn: () => closeBreakoutSession(roomId, session.id),
     onSettled: () =>
@@ -44,8 +55,10 @@ const ActiveSession = ({
           <li key={room.id}>
             <Text variant="bodyXsBold">{room.name}</Text>
             <Text variant="xsNote" wrap="pretty">
-              {room.participants.map((p) => p.name).join(', ') ||
-                t('active.empty')}
+              {room.participants
+                .filter((p) => here.has(p.identity))
+                .map((p) => p.name)
+                .join(', ') || t('active.empty')}
             </Text>
           </li>
         ))}

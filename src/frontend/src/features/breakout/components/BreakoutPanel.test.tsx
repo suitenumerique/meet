@@ -17,6 +17,7 @@ import { closeBreakoutSession, fetchBreakoutSession } from '../api'
 const h = vi.hoisted(() => ({
   metadata: '',
   config: { breakout_rooms: { is_enabled: true } } as object,
+  remotes: [] as { identity: string }[],
 }))
 
 vi.mock('react-i18next', () => ({
@@ -25,7 +26,8 @@ vi.mock('react-i18next', () => ({
 vi.mock('@livekit/components-react', () => ({
   useRoomInfo: () => ({ metadata: h.metadata }),
   useRoomContext: () => ({ localParticipant: { identity: 'host' } }),
-  useRemoteParticipants: () => [],
+  useRemoteParticipants: () => h.remotes,
+  useLocalParticipant: () => ({ localParticipant: { identity: 'host' } }),
 }))
 vi.mock('@/api/useConfig', () => ({ useConfig: () => ({ data: h.config }) }))
 vi.mock('@/features/rooms/livekit/hooks/useIsAdminOrOwner', () => ({
@@ -68,6 +70,27 @@ afterEach(() => {
 })
 
 describe('BreakoutPanel', () => {
+  it('lists the people still connected, not one who left', async () => {
+    h.remotes = [{ identity: 'alice' }]
+    vi.mocked(fetchBreakoutSession).mockResolvedValueOnce({
+      ...session,
+      rooms: [
+        {
+          id: 'r1',
+          name: 'Room 1',
+          participants: [
+            { identity: 'alice', name: 'Alice' },
+            { identity: 'gone', name: 'Ghost' },
+          ],
+        },
+      ],
+    })
+    render(ui())
+    expect(await screen.findByText('Alice')).toBeTruthy()
+    expect(screen.queryByText(/Ghost/)).toBeNull()
+    h.remotes = []
+  })
+
   it('offers close with the flag off', async () => {
     h.config = { breakout_rooms: { is_enabled: false } }
     vi.mocked(fetchBreakoutSession).mockResolvedValueOnce(session)

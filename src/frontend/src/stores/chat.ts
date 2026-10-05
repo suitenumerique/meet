@@ -54,9 +54,11 @@ export function appendRow(msg: ReceivedChatMessage, toEveryRoom = false) {
     message: msg.message,
     timestamp: msg.timestamp,
     toEveryRoom,
+    // A change between every room and this room alone starts a new group.
     hideMetadata:
       !!prev &&
       prev.identity === identity &&
+      prev.toEveryRoom === toEveryRoom &&
       msg.timestamp - prev.timestamp < GROUPING_WINDOW_MS,
   })
 }

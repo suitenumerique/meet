@@ -131,6 +131,21 @@ describe('ChatProvider', () => {
     ])
   })
 
+  it('starts a new group when a host switches between every room and this one', () => {
+    mount(
+      split,
+      [
+        message('host', 1, { role: 'owner', toEveryRoom: true }),
+        message('host', 2, { role: 'owner' }),
+      ],
+      'dan'
+    )
+    expect(chatStore.rows).toMatchObject([
+      { toEveryRoom: true, hideMetadata: false },
+      { toEveryRoom: false, hideMetadata: false },
+    ])
+  })
+
   it('drops a guest message marked for every room', () => {
     mount(split, [message('carol', 1, { toEveryRoom: true })])
     expect(chatStore.rows).toEqual([])
