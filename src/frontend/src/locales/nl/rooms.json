@@ -217,7 +217,7 @@
     },
     "roomFull": {
       "heading": "Deze vergadering is vol",
-      "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het opnieuw zodra iemand vertrekt."
+      "body": "Je neemt automatisch deel zodra iemand vertrekt."
     },
     "screenShare": {
       "title": "Kan uw scherm niet delen",

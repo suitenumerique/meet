@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -22,6 +22,7 @@ import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
 import { fetchRoomCapacity } from '../api/fetchRoomCapacity'
+import { WaitingForSeat } from './WaitingForSeat'
 import type { ApiRoom } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
@@ -71,6 +72,12 @@ export const Conference = ({
 
   const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
   const [isRoomFull, setIsRoomFull] = useState(false)
+  // The room count lags a join, so a retry that lost the seat can read as not full
+  const isRetryingSeatRef = useRef(false)
+  const handleSeatFree = useCallback(() => {
+    isRetryingSeatRef.current = true
+    setIsRoomFull(false)
+  }, [])
 
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
@@ -210,11 +217,12 @@ export const Conference = ({
     )
   }
 
-  if (isRoomFull) {
+  if (isRoomFull && data?.id && data.livekit?.token) {
     return (
-      <ErrorScreen
-        title={t('error.roomFull.heading')}
-        body={t('error.roomFull.body')}
+      <WaitingForSeat
+        roomId={data.id}
+        token={data.livekit.token}
+        onSeatFree={handleSeatFree}
       />
     )
   }
@@ -229,6 +237,10 @@ export const Conference = ({
    * failure as an unreachable server, so ask the backend which one it was.
    */
   const handleConnectionError = async (e: ConnectionError) => {
+    if (isRetryingSeatRef.current) {
+      setIsRoomFull(true)
+      return
+    }
     if (data?.id && data.livekit?.token) {
       const capacity = await fetchRoomCapacity({
         roomId: data.id,
@@ -291,6 +303,7 @@ export const Conference = ({
             reportRoomError(e)
           }}
           onConnected={async () => {
+            isRetryingSeatRef.current = false
             if (!apiConfig) return
             if (
               userPreferencesSnap.is_auto_mute_large_room_enabled &&

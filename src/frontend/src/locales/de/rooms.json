@@ -217,7 +217,7 @@
     },
     "roomFull": {
       "heading": "Dieses Meeting ist voll",
-      "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es erneut, sobald jemand es verlassen hat."
+      "body": "Du trittst automatisch bei, sobald jemand das Meeting verlässt."
     },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",
