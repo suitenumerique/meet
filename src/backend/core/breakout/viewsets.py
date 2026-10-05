@@ -54,7 +54,10 @@ class BreakoutSessionViewSet(viewsets.GenericViewSet):
         serializer = serializers.OpenBreakoutSessionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         session = services.open_session(
-            room, request.user, serializer.validated_data["rooms"]
+            room,
+            request.user,
+            serializer.validated_data["rooms"],
+            stop_recording=serializer.validated_data["stop_recording"],
         )
         prefetch_related_objects([session], "rooms__assignments")
         return drf_response.Response(

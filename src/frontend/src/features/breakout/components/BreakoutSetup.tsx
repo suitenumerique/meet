@@ -68,7 +68,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
   const roomNames = Array.from({ length: roomCount }, (_, i) =>
     t('roomName', { number: i + 1 })
   )
-  // The backend refuses to open while a recording starts or runs.
+  // A recording would hear every room, so Open stops it, and says so first.
   const isRecording = [
     RecordingStatus.Starting,
     RecordingStatus.Started,
@@ -82,6 +82,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
     mutationFn: () =>
       createBreakoutSession(roomId, {
         rooms: buildRooms(roomNames, people, assignments),
+        stop_recording: isRecording,
       }),
     onSuccess: (session) => {
       queryClient.setQueryData(breakoutSessionKey(roomId), session)
@@ -92,7 +93,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
       queryClient.invalidateQueries({ queryKey: breakoutSessionKey(roomId) }),
   })
 
-  const canOpen = !open.isPending && !isRecording && placed
+  const canOpen = !open.isPending && placed
   useOpenShortcut(() => open.mutate(), canOpen)
 
   // Deals the guests across the rooms at random. Hosts keep whatever room
@@ -172,7 +173,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
         <Text variant="warning">{t('setup.notInBrowser')}</Text>
       )}
       {isRecording && <Text variant="warning">{t('setup.recording')}</Text>}
-      {open.isError && !isRecording && <ErrorNote />}
+      {open.isError && <ErrorNote />}
       <Button
         variant="primary"
         fullWidth

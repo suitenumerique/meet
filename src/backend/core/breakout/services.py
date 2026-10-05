@@ -10,6 +10,9 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
 
 from core import models
+from core.recording.worker.exceptions import RecordingStopError
+from core.recording.worker.factories import get_worker_service
+from core.recording.worker.mediator import WorkerServiceMediator
 from core.services.room_management import (
     RoomManagement,
     RoomManagementException,
@@ -116,14 +119,29 @@ def _recorder_running(room_id):
         raise MediaServerError() from error
 
 
-def open_session(room, user, rooms):
+def _stop_recordings(room):
+    """Stop the meeting's active recordings, for a host who opens rooms over one."""
+    for recording in room.recordings.filter(
+        status=models.RecordingStatusChoices.ACTIVE
+    ):
+        mediator = WorkerServiceMediator(get_worker_service(mode=recording.mode))
+        try:
+            mediator.stop(recording)
+        except RecordingStopError as error:
+            raise MediaServerError() from error
+
+
+def open_session(room, user, rooms, stop_recording=False):
     """Write the session and its assignments, then announce them to the meeting.
 
-    1. Refuse while a recorder runs, or a recording starts.
-    2. Under the meeting's row lock, store the session, its rooms and who goes where.
-    3. Write the split into the LiveKit room's metadata, which every browser reads.
+    1. With stop_recording, stop the active recording: the host was warned.
+    2. Refuse while a recorder runs, or a recording starts.
+    3. Under the meeting's row lock, store the session, its rooms and who goes where.
+    4. Write the split into the LiveKit room's metadata, which every browser reads.
        A failed or unanswered write deletes the session again.
     """
+    if stop_recording:
+        _stop_recordings(room)
     # A recorder whose stop failed still runs with no active recording row.
     if _recorder_running(room.id):
         raise RecordingInProgress()

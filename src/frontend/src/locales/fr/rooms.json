@@ -850,7 +850,7 @@
       "shuffle": "Répartir aléatoirement",
       "assign": "Salle de {{name}}",
       "open": "Ouvrir les salles",
-      "recording": "Arrêtez l'enregistrement pour ouvrir les salles.",
+      "recording": "Ouvrir les salles arrête l'enregistrement.",
       "notInBrowser": "Les participants qui n'ont pas rejoint depuis un navigateur, par téléphone par exemple, ne peuvent pas être placés dans une salle."
     },
     "active": {

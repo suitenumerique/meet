@@ -62,6 +62,8 @@ class OpenBreakoutSessionSerializer(BaseValidationOnlySerializer):
     """The host's split: 2 to 20 rooms, each participant in one of them."""
 
     rooms = RoomInputSerializer(many=True, min_length=2, max_length=20)
+    # The host saw that opening stops the recording running in the meeting.
+    stop_recording = serializers.BooleanField(default=False)
 
     def validate_rooms(self, rooms):
         """Reject a participant assigned to two rooms."""

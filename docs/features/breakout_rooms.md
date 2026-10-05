@@ -22,7 +22,7 @@ Chat messages and notifications go to the members of the room by name. A host in
 - Names, mute states and raised hands still reach every browser. Only the interface hides the other rooms.
 - A tab loaded before the release that added breakout rooms knows nothing of a split: it shows every participant and lets anyone receive it.
 - A tab loaded while `BREAKOUT_ROOMS_ENABLED` was off keeps to its room once it has read the split, but anyone may hear it for the moment it takes to join.
-- LiveKit's recorder receives every room, so a recording cannot start during a split, and a split cannot open during a recording or while LiveKit still runs a recorder.
+- LiveKit's recorder receives every room, so a recording cannot start during a split. Opening rooms during a recording stops it, after a warning in the host's panel, and nothing starts it again at Close. A recorder LiveKit still runs without a recording behind it refuses the split.
 - The subtitle agent is on no room's list, so subtitles pause during a split.
 
 ## Enabling it

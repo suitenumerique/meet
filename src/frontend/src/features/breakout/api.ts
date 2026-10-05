@@ -11,6 +11,8 @@ export type BreakoutSession = {
 
 export type CreateBreakoutSession = {
   rooms: { name: string; participants: BreakoutPerson[] }[]
+  // The host was warned that opening stops the running recording.
+  stop_recording?: boolean
 }
 
 const sessionsUrl = (roomId: string) => `/rooms/${roomId}/breakout-sessions/`

@@ -850,7 +850,7 @@
       "shuffle": "Zufällig zuweisen",
       "assign": "Raum für {{name}}",
       "open": "Räume öffnen",
-      "recording": "Beende die Aufnahme, um Räume zu öffnen.",
+      "recording": "Das Öffnen der Räume beendet die Aufnahme.",
       "notInBrowser": "Teilnehmende, die nicht über einen Browser beigetreten sind, etwa per Telefon, können keinem Raum zugewiesen werden."
     },
     "active": {

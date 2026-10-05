@@ -14,6 +14,7 @@ import aiohttp
 from asgiref.sync import async_to_sync
 from livekit.api import (
     DeleteRoomRequest,
+    EgressStatus,
     ListEgressRequest,
     ListRoomsRequest,
     TwirpError,
@@ -161,6 +162,8 @@ class RoomManagement:
     async def has_active_egress(room_name: str):
         """True while a recorder of the media server runs in the room.
 
+        A recorder asked to stop is ending: it captures nothing more, so it is not counted.
+
         Raises:
             RoomManagementException: the media server could not answer.
         """
@@ -179,7 +182,10 @@ class RoomManagement:
         finally:
             await lkapi.aclose()
 
-        return bool(response.items)
+        return any(
+            item.status in (EgressStatus.EGRESS_STARTING, EgressStatus.EGRESS_ACTIVE)
+            for item in response.items
+        )
 
     @classmethod
     @async_to_sync

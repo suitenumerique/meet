@@ -845,7 +845,7 @@
       "shuffle": "Asignar al azar",
       "assign": "Sala para {{name}}",
       "open": "Abrir salas",
-      "recording": "Detén la grabación para abrir salas.",
+      "recording": "Abrir las salas detiene la grabación.",
       "notInBrowser": "Los participantes que no se unieron desde un navegador, por teléfono por ejemplo, no se pueden asignar a una sala."
     },
     "active": {

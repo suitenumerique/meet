@@ -58,6 +58,7 @@ const renderSetup = () =>
 
 afterEach(() => {
   cleanup()
+  queryClient.clear()
   resetBreakoutSetup()
   h.participants = []
   h.metadata = undefined
@@ -113,14 +114,33 @@ describe('BreakoutSetup', () => {
     expect(open.hasAttribute('disabled')).toBe(false)
   })
 
-  it('keeps Open disabled, and says why, while a recording runs', () => {
+  it('warns that Open stops a running recording, and asks for it to stop', async () => {
     h.metadata = JSON.stringify({ recording_status: 'started' })
     h.participants = [guest]
     breakoutSetupStore.assignments = { 'guest-1': 0 }
     renderSetup()
-    const open = screen.getByRole('button', { name: 'setup.open' })
-    expect(open.hasAttribute('disabled')).toBe(true)
     expect(screen.getByText('setup.recording')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'setup.open' }))
+    await waitFor(() =>
+      expect(createBreakoutSession).toHaveBeenLastCalledWith(
+        'room-1',
+        expect.objectContaining({ stop_recording: true })
+      )
+    )
+  })
+
+  it('opens without stopping anything when nothing records', async () => {
+    h.participants = [guest]
+    breakoutSetupStore.assignments = { 'guest-1': 0 }
+    renderSetup()
+    expect(screen.queryByText('setup.recording')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'setup.open' }))
+    await waitFor(() =>
+      expect(createBreakoutSession).toHaveBeenLastCalledWith(
+        'room-1',
+        expect.objectContaining({ stop_recording: false })
+      )
+    )
   })
 
   it('warns that anyone outside a browser stays in the main room, and lists none', () => {

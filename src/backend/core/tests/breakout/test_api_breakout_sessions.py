@@ -2,7 +2,7 @@
 Test breakout sessions API endpoints in the Meet core app.
 """
 
-# pylint: disable=W0621,W0613
+# pylint: disable=W0621,W0613,no-name-in-module
 import asyncio
 import json
 import time
@@ -12,6 +12,7 @@ from django.db import IntegrityError
 
 import aiohttp
 import pytest
+from livekit.api import EgressStatus
 from rest_framework.test import APIClient
 
 from core import models
@@ -21,6 +22,7 @@ from core.factories import (
     UserFactory,
     UserResourceAccessFactory,
 )
+from core.recording.worker.exceptions import RecordingStopError
 from core.services import room_management
 
 pytestmark = pytest.mark.django_db
@@ -204,19 +206,73 @@ def test_api_breakout_sessions_create_while_recording(livekit, owner_room, statu
     livekit.room.update_room_metadata.assert_not_awaited()
 
 
-def test_api_breakout_sessions_create_while_a_recorder_runs(livekit, owner_room):
-    """A recorder the media server still runs refuses the split, whatever the rows say."""
+def stop_as_the_worker(recording):
+    """The mediator's stop, as a recorder that answers it."""
+    recording.status = models.RecordingStatusChoices.STOPPED
+    recording.save()
+
+
+def test_api_breakout_sessions_create_stopping_the_recording(livekit, owner_room):
+    """A host warned that Open stops the recording gets the rooms, the recording stopped."""
+    room, client = owner_room
+    recording = RecordingFactory(room=room, status=models.RecordingStatusChoices.ACTIVE)
+    body = {**payload(["alice"], ["bob"]), "stop_recording": True}
+
+    with (
+        mock.patch("core.breakout.services.get_worker_service"),
+        mock.patch("core.breakout.services.WorkerServiceMediator") as mediator,
+    ):
+        mediator.return_value.stop.side_effect = stop_as_the_worker
+        response = client.post(url(room), body, "json")
+
+    assert response.status_code == 201
+    recording.refresh_from_db()
+    assert recording.status == models.RecordingStatusChoices.STOPPED
+    assert "breakout" in written_metadata(livekit)
+
+
+def test_api_breakout_sessions_create_recording_fails_to_stop(livekit, owner_room):
+    """A recording that does not stop leaves the meeting whole."""
+    room, client = owner_room
+    RecordingFactory(room=room, status=models.RecordingStatusChoices.ACTIVE)
+    body = {**payload(["alice"], ["bob"]), "stop_recording": True}
+
+    with (
+        mock.patch("core.breakout.services.get_worker_service"),
+        mock.patch("core.breakout.services.WorkerServiceMediator") as mediator,
+    ):
+        mediator.return_value.stop.side_effect = RecordingStopError()
+        response = client.post(url(room), body, "json")
+
+    assert response.status_code == 503
+    assert not models.BreakoutSession.objects.exists()
+    livekit.room.update_room_metadata.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "egress_status, refused",
+    [
+        (EgressStatus.EGRESS_STARTING, True),
+        (EgressStatus.EGRESS_ACTIVE, True),
+        (EgressStatus.EGRESS_ENDING, False),
+    ],
+)
+def test_api_breakout_sessions_create_while_a_recorder_runs(
+    livekit, owner_room, egress_status, refused
+):
+    """A recorder still capturing refuses the split, whatever the rows say; one ending does not."""
     room, client = owner_room
     RecordingFactory(room=room, status=models.RecordingStatusChoices.FAILED_TO_STOP)
-    livekit.egress.list_egress.return_value = mock.Mock(items=[mock.Mock()])
+    livekit.egress.list_egress.return_value = mock.Mock(
+        items=[mock.Mock(status=egress_status)]
+    )
 
     response = client.post(url(room), payload(["alice"], ["bob"]), "json")
 
-    assert response.status_code == 409
+    assert response.status_code == (409 if refused else 201)
     request = livekit.egress.list_egress.await_args.args[0]
     assert (request.room_name, request.active) == (str(room.id), True)
-    assert not models.BreakoutSession.objects.exists()
-    livekit.room.update_room_metadata.assert_not_awaited()
+    assert models.BreakoutSession.objects.exists() is not refused
 
 
 @pytest.mark.parametrize(
