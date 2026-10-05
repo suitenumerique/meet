@@ -30,6 +30,7 @@ from livekit.api import (  # pylint: disable=E0611
     AccessToken,
     ListRoomsRequest,
     LiveKitAPI,
+    RoomConfiguration,
     SendDataRequest,
     TwirpError,
     VideoGrants,
@@ -140,6 +141,11 @@ def generate_token(  # noqa: PLR0917
     )
     if ttl is not None:
         token = token.with_ttl(ttl)
+
+    if settings.ROOM_MAX_PARTICIPANTS:
+        token = token.with_room_config(
+            RoomConfiguration(max_participants=settings.ROOM_MAX_PARTICIPANTS)
+        )
 
     return token.to_jwt()
 

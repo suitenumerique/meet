@@ -18,6 +18,7 @@
     "auto": "You have joined a large meeting. Your microphone has been automatically muted.",
     "dismiss": "Unmute"
   },
+  "roomFull": "The meeting is full: {{count}} participants. No one else can join until someone leaves.",
   "reaction": {
     "description": "{{name}} reacted with {{emoji}}"
   },

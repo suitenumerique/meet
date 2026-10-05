@@ -211,10 +211,15 @@ export const Conference = ({
   }
 
   if (isRoomFull) {
+    const limit = apiConfig?.room_max_participants
     return (
       <ErrorScreen
         title={t('error.roomFull.heading')}
-        body={t('error.roomFull.body')}
+        body={
+          limit
+            ? t('error.roomFull.bodyWithLimit', { count: limit })
+            : t('error.roomFull.body')
+        }
       />
     )
   }

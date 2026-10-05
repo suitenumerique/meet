@@ -15,6 +15,15 @@ export const notifyAutoMutedOnJoin = () => {
   )
 }
 
+export const notifyRoomFull = () => {
+  toastQueue.add(
+    {
+      type: NotificationType.RoomFull,
+    },
+    { timeout: NotificationDuration.ALERT }
+  )
+}
+
 export const showLowerHandToast = (
   participant: Participant,
   onClose: () => void

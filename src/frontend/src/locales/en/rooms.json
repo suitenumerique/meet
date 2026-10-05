@@ -110,6 +110,7 @@
       "pinCode": "Code:"
     }
   },
+  "participantLimit": "Up to {{count}} people can join this meeting.",
   "pagination": {
     "label": "Participants pages",
     "count": "{{currentPage}} of {{totalPageCount}}",
@@ -217,7 +218,8 @@
     },
     "roomFull": {
       "heading": "This meeting is full",
-      "body": "The meeting has reached its maximum number of participants. Try again once someone leaves."
+      "body": "The meeting has reached its maximum number of participants. Try again once someone leaves.",
+      "bodyWithLimit": "The meeting has reached its limit of {{count}} participants. Try again once someone leaves."
     },
     "screenShare": {
       "title": "Unable to share your screen",

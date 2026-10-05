@@ -17,6 +17,7 @@ import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
+import { ParticipantLimit } from '@/features/rooms/components/ParticipantLimit'
 
 // fixme - extract in a proper primitive this dialog without overlay
 const StyledRACDialog = styled(Dialog, {
@@ -90,6 +91,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
           </Button>
         </Div>
         <P>{t('description')}</P>
+        <ParticipantLimit />
         {isTelephonyReadyForUse ? (
           <div
             className={css({

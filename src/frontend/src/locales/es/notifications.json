@@ -18,6 +18,7 @@
     "auto": "Acabas de unirte a una reunión numerosa. Tu micrófono se ha silenciado automáticamente.",
     "dismiss": "Reactivar el micrófono"
   },
+  "roomFull": "La reunión está completa: {{count}} participantes. Nadie más puede unirse hasta que alguien salga.",
   "reaction": {
     "description": "{{name}} ha reaccionado con {{emoji}}"
   },

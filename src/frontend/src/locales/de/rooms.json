@@ -110,6 +110,7 @@
       "pinCode": "Code:"
     }
   },
+  "participantLimit": "Bis zu {{count}} Personen können diesem Meeting beitreten.",
   "pagination": {
     "label": "Teilnehmerseiten",
     "count": "{{currentPage}} von {{totalPageCount}}",
@@ -217,7 +218,8 @@
     },
     "roomFull": {
       "heading": "Dieses Meeting ist voll",
-      "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es erneut, sobald jemand es verlassen hat."
+      "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es erneut, sobald jemand es verlassen hat.",
+      "bodyWithLimit": "Das Meeting hat sein Limit von {{count}} Teilnehmenden erreicht. Versuche es erneut, sobald jemand es verlassen hat."
     },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",

@@ -18,6 +18,7 @@
     "auto": "U bent zojuist lid geworden van een grote vergadering. Uw microfoon is automatisch gedempt.",
     "dismiss": "Microfoon inschakelen"
   },
+  "roomFull": "De vergadering is vol: {{count}} deelnemers. Niemand anders kan deelnemen totdat iemand vertrekt.",
   "reaction": {
     "description": "{{name}} reageerde met {{emoji}}"
   },
