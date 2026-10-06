@@ -142,12 +142,18 @@ def generate_token(  # noqa: PLR0917
     if ttl is not None:
         token = token.with_ttl(ttl)
 
-    if settings.ROOM_MAX_PARTICIPANTS:
-        token = token.with_room_config(
-            RoomConfiguration(max_participants=settings.ROOM_MAX_PARTICIPANTS)
-        )
+    room_config = room_configuration()
+    if room_config is not None:
+        token = token.with_room_config(room_config)
 
     return token.to_jwt()
+
+
+def room_configuration() -> Optional[RoomConfiguration]:
+    """Return the configuration meet gives the rooms it opens, or None."""
+    if not settings.ROOM_MAX_PARTICIPANTS:
+        return None
+    return RoomConfiguration(max_participants=settings.ROOM_MAX_PARTICIPANTS)
 
 
 def generate_livekit_config(  # noqa: PLR0917

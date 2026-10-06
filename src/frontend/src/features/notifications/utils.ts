@@ -15,10 +15,11 @@ export const notifyAutoMutedOnJoin = () => {
   )
 }
 
-export const notifyRoomFull = () => {
+export const notifyRoomFull = (limit: number) => {
   toastQueue.add(
     {
       type: NotificationType.RoomFull,
+      limit,
     },
     { timeout: NotificationDuration.ALERT }
   )

@@ -9,20 +9,27 @@ import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOw
 import { notifyRoomFull } from '@/features/notifications/utils'
 
 /**
- * Warns a host each time the meeting fills up. Counts people the way the media
- * server does, leaving out agents and recorders, since room.numParticipants
- * trails a join by seconds.
+ * Warns a host each time the meeting fills up. Mounts the watcher for hosts
+ * of a capped meeting only, so nobody else re-renders on every join.
  */
 export const WarnHostWhenRoomFull = () => {
   const { data } = useConfig()
   const isAdminOrOwner = useIsAdminOrOwner()
+  const limit = data?.room_max_participants
+  if (!limit || !isAdminOrOwner) return null
+  return <WatchRoomFill limit={limit} />
+}
+
+/**
+ * Counts people the way the media server does, leaving out agents and
+ * recorders, since room.numParticipants trails a join by seconds.
+ */
+const WatchRoomFill = ({ limit }: { limit: number }) => {
   const remoteParticipants = useRemoteParticipants({ updateOnlyOn: [] })
   const connectionState = useConnectionState()
   const wasFullRef = useRef(false)
-  const limit = data?.room_max_participants
 
   useEffect(() => {
-    if (!limit || !isAdminOrOwner) return
     // A full reconnect drops and re-adds everyone; skipping it keeps the
     // toast from repeating when nobody left.
     if (connectionState !== ConnectionState.Connected) return
@@ -32,9 +39,9 @@ export const WarnHostWhenRoomFull = () => {
           p.kind !== ParticipantKind.AGENT && p.kind !== ParticipantKind.EGRESS
       ).length + 1
     const isFull = count >= limit
-    if (isFull && !wasFullRef.current) notifyRoomFull()
+    if (isFull && !wasFullRef.current) notifyRoomFull(limit)
     wasFullRef.current = isFull
-  }, [remoteParticipants, limit, isAdminOrOwner, connectionState])
+  }, [remoteParticipants, limit, connectionState])
 
   return null
 }
