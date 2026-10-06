@@ -41,7 +41,7 @@ const InBreakoutMeeting = ({
   restrictedBeforeConnect: boolean
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'breakout.participant' })
-  const { isOpen, roomName } = useMyBreakoutRoom()
+  const { isSplit, roomName } = useMyBreakoutRoom()
   const { triggerNotificationSound } = useNotificationSound()
   useBreakoutMediaPermissions(restrictedBeforeConnect)
   // The host's plan belongs to this meeting only.
@@ -49,7 +49,7 @@ const InBreakoutMeeting = ({
 
   // Each change of room plays a sound. The banner names the room, so a toast
   // says only what it cannot: the microphone turned off, or the rooms closed.
-  const wasOpen = usePrevious(isOpen)
+  const wasSplit = usePrevious(isSplit)
   const lastRoomName = usePrevious(roomName)
   const room = useRoomContext()
   useEffect(() => {
@@ -58,7 +58,7 @@ const InBreakoutMeeting = ({
     const muted = changed && room.localParticipant.isMicrophoneEnabled
     if (muted) void room.localParticipant.setMicrophoneEnabled(false)
     const moved = !!roomName && roomName !== lastRoomName
-    const closed = !!wasOpen && !isOpen
+    const closed = !!wasSplit && !isSplit
     if (!moved && !closed && !muted) return
     triggerNotificationSound(NotificationType.BreakoutRoomChanged)
     if (!closed && !muted) return
@@ -67,21 +67,21 @@ const InBreakoutMeeting = ({
       { timeout: NotificationDuration.BREAKOUT_ROOM_CHANGED }
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, roomName])
+  }, [isSplit, roomName])
 
   // The chat marks each change of who this browser's messages reach.
   useEffect(() => {
     if (lastRoomName === undefined) return
-    if (roomName === lastRoomName && isOpen === wasOpen) return
-    if (!isOpen) appendDivider(t('chatAll'))
+    if (roomName === lastRoomName && isSplit === wasSplit) return
+    if (!isSplit) appendDivider(t('chatAll'))
     else if (roomName) appendDivider(t('chatRoom', { room: roomName }))
     else appendDivider(t('chatMain'))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, roomName])
+  }, [isSplit, roomName])
 
   // While the connection drops, the meeting's own messages hold the top.
   const isConnected = useConnectionState() === ConnectionState.Connected
-  if (!isOpen || !isConnected) return null
+  if (!isSplit || !isConnected) return null
   return (
     <output
       className={css({

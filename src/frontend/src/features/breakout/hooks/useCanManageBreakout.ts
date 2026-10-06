@@ -10,9 +10,9 @@ export const useBreakoutEnabled = () =>
 export const useCanManageBreakout = () => {
   const isAdminOrOwner = useIsAdminOrOwner()
   const isEnabled = useBreakoutEnabled()
-  const { isOpen } = useMyBreakoutRoom()
+  const { isSplit } = useMyBreakoutRoom()
   return {
     canOpen: isAdminOrOwner && isEnabled,
-    canManage: isAdminOrOwner && (isEnabled || isOpen),
+    canManage: isAdminOrOwner && (isEnabled || isSplit),
   }
 }

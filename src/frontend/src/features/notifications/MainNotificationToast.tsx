@@ -34,7 +34,7 @@ export const MainNotificationToast = () => {
   const announce = useScreenReaderAnnounce()
 
   const { appendReaction } = useReactions()
-  const { isInMyBreakoutRoom, isOpen } = useMyBreakoutRoom()
+  const { isInMyBreakoutRoom, isSplit } = useMyBreakoutRoom()
 
   useEffect(() => {
     const handleChatMessage = (
@@ -94,7 +94,7 @@ export const MainNotificationToast = () => {
       if (isFromAnotherRoom && !isAboutMyRights) return
       // In a split, a browser's notice from a sender not yet known may come from
       // another room; the backend's own notices carry no sender at all.
-      if (!participant && isOpen && SENT_BY_BROWSERS.has(notification.type))
+      if (!participant && isSplit && SENT_BY_BROWSERS.has(notification.type))
         return
 
       switch (notification.type) {
@@ -163,7 +163,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.DataReceived, handleDataReceived)
     }
-  }, [room, handleEmoji, isInMyBreakoutRoom, isOpen])
+  }, [room, handleEmoji, isInMyBreakoutRoom, isSplit])
 
   const triggerNotificationSoundIfRoomIsSmall = useCallback(
     (type: NotificationType) => {

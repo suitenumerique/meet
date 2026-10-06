@@ -30,7 +30,7 @@ export const ChatProvider = () => {
   const lastReadMsgAt = React.useRef<ChatMessage['timestamp']>(0)
   const { send, chatMessages, isSending } = useChat()
   const { isChatOpen } = useSidePanel()
-  const { isInMyBreakoutRoom, isOpen } = useMyBreakoutRoom()
+  const { isInMyBreakoutRoom, isSplit } = useMyBreakoutRoom()
   // How many of chatMessages have been looked at, shown or not.
   const seen = React.useRef(0)
 
@@ -42,8 +42,8 @@ export const ChatProvider = () => {
 
   // Each split starts with the host writing to the main room only.
   useEffect(() => {
-    if (!isOpen) chatStore.toEveryRoom = false
-  }, [isOpen])
+    if (!isSplit) chatStore.toEveryRoom = false
+  }, [isSplit])
 
   // Each new message is shown and announced once. In a split, one from another
   // room never is, an older tab's included, unless a host sent it to every room.
@@ -55,7 +55,7 @@ export const ChatProvider = () => {
       // A sender not yet known, during a split, may be in another room.
       const isElsewhere = message.from
         ? !isInMyBreakoutRoom(message.from.identity)
-        : isOpen
+        : isSplit
       if (isElsewhere && !toEveryRoom) continue
       appendRow(message, toEveryRoom)
       latest = message
@@ -67,7 +67,7 @@ export const ChatProvider = () => {
     // Remove this once we refactor chat to use the new text stream approach
     const from = latest.from as RemoteParticipant | LocalParticipant | undefined
     room.emit(RoomEvent.ChatMessage, latest, from)
-  }, [chatMessages, isInMyBreakoutRoom, isOpen, room])
+  }, [chatMessages, isInMyBreakoutRoom, isSplit, room])
 
   // Where a message goes:
   // - outside a split, everyone, through useChat's own send;

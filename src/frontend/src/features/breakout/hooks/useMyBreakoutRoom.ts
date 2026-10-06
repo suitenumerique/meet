@@ -20,7 +20,7 @@ export const useMyBreakoutRoom = () => {
   )
   return {
     isInMyBreakoutRoom,
-    isOpen: split !== null,
+    isSplit: split !== null,
     isInMainRoom: isInMainRoomOfSplit(split, me),
     roomName: split?.rooms[breakoutRoomOf(split, me)] ?? null,
   }
