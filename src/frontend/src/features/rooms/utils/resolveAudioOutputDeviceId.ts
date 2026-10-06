@@ -1,7 +1,7 @@
 /**
  * `'default'` means "use the system output". Firefox has no device with that
- * id, so LiveKit's setSinkId('default') rejects on every remote audio attach.
- * Omit it and the browser keeps the OS default, which is the same result.
+ * id, so setSinkId('default') rejects. Omit it and the browser keeps the OS
+ * default, which is the same result.
  */
 export const resolveAudioOutputDeviceId = (
   deviceId: string | undefined

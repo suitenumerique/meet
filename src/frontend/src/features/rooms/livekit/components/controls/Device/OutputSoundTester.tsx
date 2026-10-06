@@ -4,6 +4,7 @@ import { RiVolumeUpLine } from '@remixicon/react'
 import { styled } from '@/styled-system/jsx'
 import { Button } from '@/primitives'
 import { canTestAudioOutput } from '@/features/rooms/utils/canTestAudioOutput'
+import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
 
 // Speaker test in the audiooutput menu footer (Meet-style UX). Outputs have
 // no track: the test plays a bundled file through the selected sink, and
@@ -66,6 +67,8 @@ export const OutputSoundTester = ({
   const audioRef = useRef<HTMLAudioElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
+  const outputId = resolveAudioOutputDeviceId(sinkId)
+
   const latestSinkIdRef = useRef(sinkId)
   latestSinkIdRef.current = sinkId
 
@@ -79,15 +82,15 @@ export const OutputSoundTester = ({
   }, [])
 
   useEffect(() => {
-    if (!sinkId || !canTestAudioOutput()) return
-    audioRef.current?.setSinkId(sinkId).catch(() => {
+    if (!outputId || !canTestAudioOutput()) return
+    audioRef.current?.setSinkId(outputId).catch(() => {
       // Re-routing failed (stale or unplugged device): stop the test rather
       // than keep playing through the previous sink.
       if (latestSinkIdRef.current === sinkId) {
         stopPlayback()
       }
     })
-  }, [sinkId, stopPlayback])
+  }, [outputId, sinkId, stopPlayback])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -108,8 +111,8 @@ export const OutputSoundTester = ({
             // Confirm routing before starting: a no-op when already routed,
             // but rejects on a stale device id, so the test never plays
             // through the wrong sink.
-            if (sinkId && canTestAudioOutput()) {
-              await audio.setSinkId(sinkId)
+            if (outputId && canTestAudioOutput()) {
+              await audio.setSinkId(outputId)
             }
             await audio.play()
             setIsPlaying(true)
