@@ -12,8 +12,9 @@ from django.utils import timezone
 
 from livekit import api
 
-from core import models
-from core.recording.enums import RecordingWorkerEvent
+from core import audit, auditing, models
+from core.recording.enums import UNSUCCESSFUL_EVENTS, RecordingWorkerEvent
+from core.recording.event.authentication import MachineUser
 from core.recording.services.metadata_collector import (
     MetadataCollectorException,
     MetadataCollectorService,
@@ -30,6 +31,8 @@ from .room_management import (
 from .sip_management import SIPException, SIPManagement
 
 logger = getLogger(__name__)
+
+SERVICE_ORIGIN = "livekit"
 
 
 class LiveKitWebhookError(Exception):
@@ -219,6 +222,7 @@ class LiveKitEventsService:
             ) from err
 
         event = to_recording_event(data.egress_info.status)
+        self._audit_recording_end(recording, event, data.egress_info.error_code)
 
         # Log if/why the recording failed
         self.recording_events.log_worker_error(
@@ -253,6 +257,28 @@ class LiveKitEventsService:
             return
 
         self.recording_events.handle_terminal_event(recording, event)
+
+    @staticmethod
+    def _audit_recording_end(recording, event, error_code=None):
+        """Audit the end of a recording, as LiveKit reports it.
+
+        An egress status the backend does not map has an unknown outcome.
+        """
+        if event is None:
+            outcome = audit.Outcome.UNKNOWN
+        elif event in UNSUCCESSFUL_EVENTS:
+            outcome = audit.Outcome.FAILURE
+        else:
+            outcome = audit.Outcome.SUCCESS
+        audit.log(
+            auditing.RECORDING_END,
+            actor=MachineUser(SERVICE_ORIGIN),
+            auth_method="shared_secret",
+            target=recording,
+            outcome=outcome,
+            worker_event=event.value if event is not None else None,
+            error_code=error_code or None,
+        )
 
     @staticmethod
     def _is_connection_test_room(room_name: str) -> bool:

@@ -15,6 +15,7 @@ import pytest
 
 from core import factories, models
 from core.analytics import UserFeatureFlag
+from core.audit.testing import find_events
 from core.recording.event.notification import NotificationService, notification_service
 
 pytestmark = pytest.mark.django_db
@@ -479,3 +480,64 @@ def test_notify_summary_service_v2_payload_json_serializable_without_timestamps(
     assert isinstance(title, str)
     # ...so the payload serializes exactly the way ``requests`` serializes it.
     json.dumps(payload)
+
+
+@pytest.mark.parametrize("summary_requested", [True, False])
+@mock.patch("core.recording.event.notification.requests.post")
+@mock.patch("core.recording.event.notification.generate_download_s3_url")
+@mock.patch.object(
+    NotificationService, "_get_recording_timestamps", new_callable=mock.AsyncMock
+)
+def test_notify_summary_service_is_audited(  # noqa: PLR0913, PLR0917
+    mock_get_recording_timestamps,
+    mock_generate_download_s3_url,
+    mock_post,
+    summary_requested,
+    settings,
+    audit_events,
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """Sending a recording to be transcribed says whether a summary is asked for."""
+    settings.SUMMARY_SERVICE_VERSION = 2
+    settings.SUMMARY_SERVICE_ENDPOINT = "https://summary.test/api/v2/tasks"
+    settings.SUMMARY_SERVICE_API_TOKEN = "summary-token"
+    settings.METADATA_COLLECTOR_ENABLED = False
+
+    recording = factories.RecordingFactory(mode="transcript")
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER
+    )
+    mock_get_recording_timestamps.return_value = (None, None)
+    mock_generate_download_s3_url.return_value = "https://storage.test/recording.ogg"
+    mock_post.return_value.json.return_value = {"job_id": "job-7"}
+
+    with mock.patch(
+        "core.recording.event.notification.is_user_feature_flag_enabled",
+        return_value=summary_requested,
+    ):
+        assert NotificationService._notify_summary_service(recording) is True
+
+    [event] = find_events(audit_events, "recording.transcript.request")
+
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "system"}
+    assert event["entity"]["target"]["id"] == str(recording.id)
+    assert event["service"]["target"] == {"name": "summary"}
+    assert event["lasuite"]["details"] == {
+        "job_id": "job-7",
+        "summary_requested": summary_requested,
+    }
+
+
+def test_notify_summary_service_failure_is_audited(settings, audit_events):
+    """A recording the summary service never received is a failure."""
+    settings.SUMMARY_SERVICE_VERSION = 2
+    settings.SUMMARY_SERVICE_ENDPOINT = None
+
+    recording = factories.RecordingFactory(mode="transcript")
+
+    assert NotificationService._notify_summary_service(recording) is False
+
+    [event] = find_events(audit_events, "recording.transcript.request")
+
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["entity"]["target"]["id"] == str(recording.id)

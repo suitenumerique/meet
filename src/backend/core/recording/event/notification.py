@@ -17,7 +17,7 @@ import requests
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
-from core import models, utils
+from core import audit, auditing, models, utils
 from core.analytics import UserFeatureFlag, is_user_feature_flag_enabled
 from core.utils import generate_download_s3_url
 
@@ -52,7 +52,7 @@ class NotificationService:
 
         if recording.mode == models.RecordingModeChoices.SCREEN_RECORDING:
             summary_success = True
-            if recording.options.get("transcribe", False):
+            if recording.is_transcribed:
                 summary_success = self._notify_summary_service(recording)
 
             email_success = self._notify_user_by_email(recording)
@@ -213,14 +213,32 @@ class NotificationService:
 
     @staticmethod
     def _notify_summary_service(recording: models.Recording):
-        if settings.SUMMARY_SERVICE_VERSION == 1:
-            return NotificationService._notify_summary_service_v1(recording)
-        if settings.SUMMARY_SERVICE_VERSION == 2:
-            return NotificationService._notify_summary_service_v2(recording)
-
-        raise NotImplementedError(
-            f"Unknown summary service version: {settings.SUMMARY_SERVICE_VERSION}"
-        )
+        succeeded = False
+        audit_details = {}
+        try:
+            if settings.SUMMARY_SERVICE_VERSION == 1:
+                succeeded = NotificationService._notify_summary_service_v1(recording)
+            elif settings.SUMMARY_SERVICE_VERSION == 2:
+                succeeded = NotificationService._notify_summary_service_v2(
+                    recording, audit_details
+                )
+            else:
+                raise NotImplementedError(
+                    "Unknown summary service version: "
+                    f"{settings.SUMMARY_SERVICE_VERSION}"
+                )
+            return succeeded
+        finally:
+            audit.log(
+                auditing.RECORDING_TRANSCRIPT_REQUEST,
+                actor=None,
+                actor_type=audit.ActorType.SYSTEM,
+                target=recording,
+                target_service="summary",
+                outcome=audit.Outcome.SUCCESS if succeeded else audit.Outcome.FAILURE,
+                job_id=recording.external_process_id,
+                **audit_details,
+            )
 
     @staticmethod
     def _notify_summary_service_v1(recording: models.Recording):
@@ -298,8 +316,11 @@ class NotificationService:
         return True
 
     @staticmethod
-    def _notify_summary_service_v2(recording: models.Recording):
-        """Notify summary service about a new recording."""
+    def _notify_summary_service_v2(recording: models.Recording, audit_details=None):
+        """Notify summary service about a new recording.
+
+        Whether a summary is asked for is added to ``audit_details``.
+        """
 
         if (
             not settings.SUMMARY_SERVICE_ENDPOINT
@@ -349,6 +370,12 @@ class NotificationService:
                 "ended_at": ended_at.isoformat(),
             }
 
+        summary_requested = is_user_feature_flag_enabled(
+            owner_access.user, UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED
+        )
+        if audit_details is not None:
+            audit_details["summary_requested"] = summary_requested
+
         payload = {
             "user_sub": owner_access.user.sub,
             "user_email": owner_access.user.email,
@@ -372,9 +399,7 @@ class NotificationService:
                 ),
                 "download_link": f"{get_recording_download_base_url()}/{recording.id}",
                 "form_link": form_link,
-                "auto_create_summary": is_user_feature_flag_enabled(
-                    owner_access.user, UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED
-                ),
+                "auto_create_summary": summary_requested,
             },
             "metadata": metadata_payload,
         }

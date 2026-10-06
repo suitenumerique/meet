@@ -61,8 +61,8 @@ hold what ECS does not define: `lasuite.*`, and `entity.target.raw.*` for the fi
 | `@timestamp` | ISO 8601 with millisecond precision in UTC timezone |
 | `data_stream.*`, `event.dataset` | `logs`, `<AUDIT_LOG_SERVICE_NAME>.audit` and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what tells the audit stream apart from the application logs |
 | `service.name`, `service.environment`, `service.version`, `service.node.name` | `AUDIT_LOG_SERVICE_NAME`, current environment, release and host name (the pod on Kubernetes): the emitter, never the caller |
-| `service.origin.name` | The internal peer that called the backend, when the actor is a `service`: `roomkit`, `summary` |
-| `service.target.name` | The peer service the backend called, when one is named |
+| `service.origin.name` | The internal peer that called the backend, when the actor is a `service`: `roomkit`, `summary`, `livekit` |
+| `service.target.name` | The peer service the backend called, as `summary` for `recording.transcript.request` |
 | `event.id` | Unique id of the event, so that a shipper retrying it cannot duplicate it |
 | `event.action` | What was attempted, from the catalogue below |
 | `event.category`, `event.type` | ECS classification (`api`, `authentication`, `iam`... / `creation`, `change`, `access`, `denied`, `user`...). Always a combination ECS expects, see [Classification](#classification) |
@@ -124,7 +124,7 @@ An audited API action that raises an exception DRF does not handle is still reco
 |---|---|---|
 | `user` | A person's account acting for itself: session, OIDC or password login, add-on token, LiveKit token of a known account | That account |
 | `application` | A client application acting on behalf of a user: a Meet application through its client credentials or its delegated token, or another La Suite application through the resource server. `lasuite.application.client_id` names it | The delegating user |
-| `service` | An internal peer of the deployment acting on its own behalf, named by `service.origin.name`: the LiveKit SIP bridge (`roomkit`), the summary service (`summary`). | Absent |
+| `service` | An internal peer of the deployment, named by `service.origin.name`: the LiveKit SIP bridge (`roomkit`), the summary service (`summary`), the LiveKit server reporting on a recording (`livekit`) | Absent |
 | `system` | The backend itself, with no inbound request | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
 
@@ -141,10 +141,25 @@ an account a user. An event emitted with neither a request nor an actor is the s
 | `room.update` | A room is updated through the external API, or the attempt fails | `entity.target` = room, refusals included, `lasuite.details.updated_fields`, `previous_access_level` |
 | `room.retrieve` | A room is read through the external API, or the attempt fails | `entity.target` = room |
 | `room.list` | Rooms are listed through the external API, or the attempt fails | `lasuite.details.total` |
+| `recording.start` | A room owner or administrator starts a recording, or the attempt fails: conflict with a recording in progress, worker error | `entity.target` = recording, or the room when none was created, `lasuite.details.collect_metadata` |
+| `recording.stop` | A room owner or administrator stops the recording in progress, or the attempt fails | `entity.target` = recording, or the room when none is active |
+| `recording.end` | LiveKit reports a recording ended (`egress_ended` webhook): `success` when its media file is available, `failure` when it was aborted or failed, `unknown` for a status the backend does not map | `service.origin.name` = `livekit`, `entity.target` = recording, as it was before the report is processed, `lasuite.details.worker_event` (`completed`, `limit reached`, `aborted`, `failed`), `error_code` |
+| `recording.delete` | A recording is deleted, or the attempt fails | `entity.target` = recording |
+| `recording.transcript.request` | The backend sends a recording to the summary service to be transcribed, or fails to | `lasuite.actor.type` = `system`, `service.target.name` = `summary`, `entity.target` = recording, `lasuite.details.summary_requested`: whether a summary is to be made of the transcript, `job_id` |
+| `recording.transcript.report` | The summary service reports on a transcript (`external-process-hook`), or a call to the hook is refused | `service.origin.name` = `summary`, `entity.target` = recording, absent for an unknown job, `lasuite.details.job_id`, `status`. A reported `failure` is a `failure` |
+| `recording.summary.report` | The summary service reports on a summary | As `recording.transcript.report` |
 | `user.login` | A user logs in or a login attempt fails, `denied` with reason `authentication_failed` | `lasuite.auth.method` = `oidc` or `password`, or `unknown`: named after the backend on success, `lasuite.details.auth_backend`, and after the credentials submitted on failure (a password, or the nonce of the OIDC callback) |
 | `user.logout` | A user logs out | |
 | `admin.access` | A signed-in account without staff access reaches an admin page (always denied), once per refused page | `event.category` = `web`, `event.type` = `access`, `event.reason`, `http.response.status_code`: the redirect to the login page |
 | `admin.<target>.<verb>` | A write is made through the Django admin, see below | |
+
+### Recordings, transcripts and summaries
+
+A recording's target carries what was recorded: `mode` is how the media was captured (`screen_recording`, a video;
+`transcript`, an audio track), `requested_mode` what the user asked for, and `is_transcribed` whether it is sent to
+the summary service. They differ for a transcript started with a screen capture: `mode` is `screen_recording`,
+`requested_mode` `transcript`. A transcript and a summary are not recordings but what the summary service derives
+from one, audited under `recording.transcript.*` and `recording.summary.*` with the recording as their target.
 
 Actions are always dotted, lower-case, with the format `<target>.<verb>`, and name what was attempted: whether it
 succeeded is told by `event.outcome`, `lasuite.outcome` and `event.reason`, never by the action.
