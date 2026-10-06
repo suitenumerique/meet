@@ -9,6 +9,8 @@ services:
 
   redis:
     image: redis:5
+    ports:
+      - "6379:6379"
 
   mailcatcher:
     image: sj26/mailcatcher:latest
@@ -271,11 +273,6 @@ services:
       - ./src/agents:/app
       - /app/.venv
 
-  redis-summary:
-    image: redis:5
-    ports:
-      - "6379:6379"
-
   app-summary-dev:
     build:
       context: src/summary
@@ -290,7 +287,7 @@ services:
     volumes:
       - ./src/summary:/app
     depends_on:
-        - redis-summary
+        - redis
 
   celery-summary-transcribe:
     container_name: celery-summary-transcribe
@@ -304,7 +301,7 @@ services:
     volumes:
       - ./src/summary:/app
     depends_on:
-      - redis-summary
+      - redis
       - app-summary-dev
       - garage
     develop:
@@ -324,7 +321,7 @@ services:
     volumes:
       - ./src/summary:/app
     depends_on:
-      - redis-summary
+      - redis
       - app-summary-dev
       - garage
     develop:
