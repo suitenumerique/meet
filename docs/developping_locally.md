@@ -107,6 +107,37 @@ $ npm i
 $ npm run dev
 ```
 
+### LiveKit agents (optional)
+
+The LiveKit agents are not started by `make run`. Each one runs its own
+container and stays connected to LiveKit, which costs CPU and memory you
+don't need unless you work on the features they power. Start them only
+when you need them.
+
+| Agent | Feature | Make command | Setting in `env.d/development/common` |
+|---|---|---|---|
+| `metadata-collector-dev` | Recording metadata (used to identify speakers in transcripts) | `make run-agent-metadata-collector` | `METADATA_COLLECTOR_ENABLED=True` |
+| `multi-user-transcriber-dev` | Live subtitles | `make run-agent-multi-user-transcriber` | `ROOM_SUBTITLE_ENABLED=True` |
+
+To start both at once:
+```shellscript
+$ make run-agents
+```
+
+Then set the matching settings to `True` and restart the backend so it
+picks them up:
+```shellscript
+$ make run-backend
+```
+
+The multi-user transcriber also needs a speech-to-text provider. Configure
+`STT_PROVIDER` and its credentials in
+`env.d/development/multi_user_transcriber`.
+
+Keep the settings and the agents in sync: if a setting is `True` while its
+agent is stopped, the backend still dispatches jobs to it and the feature
+fails silently.
+
 ---
 
 ## Adding Content
