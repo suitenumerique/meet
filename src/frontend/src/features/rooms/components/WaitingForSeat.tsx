@@ -26,13 +26,9 @@ export const WaitingForSeat = ({
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'error.roomFull' })
 
-  // The first ask waits an interval: the room count lags a join, so an early ask
-  // after a lost race reads as not full.
   const { data } = useQuery({
     queryKey: [keys.roomCapacity, roomId],
     queryFn: () => fetchRoomCapacity({ roomId, token }),
-    initialData: { is_full: true },
-    refetchOnMount: false,
     refetchInterval: SEAT_POLL_INTERVAL,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: false,

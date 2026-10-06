@@ -72,12 +72,7 @@ export const Conference = ({
 
   const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
   const [isRoomFull, setIsRoomFull] = useState(false)
-  // The room count lags a join, so a retry that lost the seat can read as not full
-  const isRetryingSeatRef = useRef(false)
-  const handleSeatFree = useCallback(() => {
-    isRetryingSeatRef.current = true
-    setIsRoomFull(false)
-  }, [])
+  const handleSeatFree = useCallback(() => setIsRoomFull(false), [])
 
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
@@ -237,10 +232,6 @@ export const Conference = ({
    * failure as an unreachable server, so ask the backend which one it was.
    */
   const handleConnectionError = async (e: ConnectionError) => {
-    if (isRetryingSeatRef.current) {
-      setIsRoomFull(true)
-      return
-    }
     if (data?.id && data.livekit?.token) {
       const capacity = await fetchRoomCapacity({
         roomId: data.id,
@@ -303,7 +294,6 @@ export const Conference = ({
             reportRoomError(e)
           }}
           onConnected={async () => {
-            isRetryingSeatRef.current = false
             if (!apiConfig) return
             if (
               userPreferencesSnap.is_auto_mute_large_room_enabled &&
