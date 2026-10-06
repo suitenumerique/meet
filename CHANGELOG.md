@@ -26,6 +26,7 @@ and this project adheres to
 - 🔒️(backend) bind accepted lobby entries to the current username
 - 🔒️(backend) sign lobby participant id
 - 🐛(frontend) omit the default speaker id sent to LiveKit
+- 🐛(frontend) play the speaker test when no output is picked
 
 ## [1.34.0] - 2026-10-07
 
