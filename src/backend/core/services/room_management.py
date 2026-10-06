@@ -6,6 +6,7 @@ import json
 from logging import getLogger
 from typing import Dict, Optional
 
+import aiohttp
 from asgiref.sync import async_to_sync
 from livekit.api import (
     DeleteRoomRequest,
@@ -122,7 +123,7 @@ class RoomManagement:
             participants = await lkapi.room.list_participants(
                 ListParticipantsRequest(room=room_name)
             )
-        except TwirpError as e:
+        except (TwirpError, aiohttp.ClientError) as e:
             logger.exception("Unexpected error reading room %s", room_name)
             raise RoomManagementException("Could not read room") from e
         finally:

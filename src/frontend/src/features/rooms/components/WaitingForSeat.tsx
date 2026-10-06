@@ -14,19 +14,22 @@ const SEAT_POLL_INTERVAL = 5000
 /**
  * Shown while the meeting is full. Calls onSeatFree once someone has left, so
  * the join is retried; a retry that loses the seat comes back here.
+ * onCheckFailed lets the caller fetch a fresh pass, since one expires.
  */
 export const WaitingForSeat = ({
   roomId,
   token,
   onSeatFree,
+  onCheckFailed,
 }: {
   roomId: string
   token: string
   onSeatFree: () => void
+  onCheckFailed: () => void
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'error.roomFull' })
 
-  const { data } = useQuery({
+  const { data, isError } = useQuery({
     queryKey: [keys.roomCapacity, roomId],
     queryFn: () => fetchRoomCapacity({ roomId, token }),
     refetchInterval: SEAT_POLL_INTERVAL,
@@ -38,6 +41,10 @@ export const WaitingForSeat = ({
   useEffect(() => {
     if (data?.is_full === false) onSeatFree()
   }, [data, onSeatFree])
+
+  useEffect(() => {
+    if (isError) onCheckFailed()
+  }, [isError, onCheckFailed])
 
   return (
     <Screen layout="centered">
