@@ -57,6 +57,7 @@ const parseSplit = (metadata?: string): BreakoutSplit | null => {
   return split?.assignments && Array.isArray(split.rooms) ? split : null
 }
 
+// The last metadata read, and the split returned for it.
 let last: { metadata?: string; split: BreakoutSplit | null } = {
   split: null,
 }
@@ -67,9 +68,12 @@ let last: { metadata?: string; split: BreakoutSplit | null } = {
 // one, re-runs none of the hooks and filters built on it.
 export const readSplit = (metadata?: string): BreakoutSplit | null => {
   if (metadata === last.metadata) return last.split
-  const next = parseSplit(metadata)
-  const split =
-    next && next.session_id === last.split?.session_id ? last.split : next
+
+  let split = parseSplit(metadata)
+  const isSameSession =
+    split !== null && split.session_id === last.split?.session_id
+  if (isSameSession) split = last.split
+
   last = { metadata, split }
   return split
 }
@@ -80,16 +84,18 @@ type RoomLike = {
   remoteParticipants: Map<string, Person>
 }
 
-// Who a message from this browser goes to, read at send time: undefined
-// reaches everyone, outside a split. An empty list would reach everyone too,
-// so a room of one sends to its own identity, which reaches nobody.
+// Who a message from this browser goes to, read at send time.
 export const breakoutRecipients = (room: RoomLike): string[] | undefined => {
   const me = room.localParticipant.identity
   const listeners = allowedListeners(readSplit(room.metadata), me, [
     ...room.remoteParticipants.values(),
   ])
+  // Outside a split: no recipients, which LiveKit sends to everyone.
   if (listeners === null) return undefined
-  return listeners.length ? listeners : [me]
+  // Alone in a room. LiveKit sends a message with an empty recipient list to
+  // everyone, so it goes to this browser's own identity, which reaches nobody.
+  if (listeners.length === 0) return [me]
+  return listeners
 }
 
 // The chat attribute a host in the main room sets on a message meant for every
