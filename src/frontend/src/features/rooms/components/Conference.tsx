@@ -8,6 +8,7 @@ import {
 import {
   ConnectionError,
   ConnectionErrorReason,
+  ConnectionState,
   DisconnectReason,
   MediaDeviceFailure,
   Room,
@@ -73,6 +74,11 @@ export const Conference = ({
   const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
   const [isRoomFull, setIsRoomFull] = useState(false)
   const handleSeatFree = useCallback(() => setIsRoomFull(false), [])
+  // Someone the lobby let in gets no pass from this fetch, so theirs is kept.
+  const refreshPass = useCallback(async () => {
+    const room = await fetchRoom({ roomId, username }).catch(() => undefined)
+    if (room?.livekit) queryClient.setQueryData([keys.room, roomId], room)
+  }, [roomId, username])
 
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
@@ -218,6 +224,7 @@ export const Conference = ({
         roomId={data.id}
         token={data.livekit.token}
         onSeatFree={handleSeatFree}
+        onCheckFailed={refreshPass}
       />
     )
   }
@@ -286,7 +293,12 @@ export const Conference = ({
               return
             }
 
-            if (e instanceof ConnectionError) {
+            // A refused join leaves the room disconnected; a publish failing
+            // once joined does not, and is reported below.
+            if (
+              e instanceof ConnectionError &&
+              room.state === ConnectionState.Disconnected
+            ) {
               void handleConnectionError(e)
               return
             }

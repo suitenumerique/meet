@@ -4,6 +4,7 @@
 
 from unittest import mock
 
+import aiohttp
 import pytest
 from livekit.api import (
     ListParticipantsResponse,
@@ -121,11 +122,18 @@ def test_is_full_room_not_live(mock_create_livekit_client):
     assert RoomManagement.is_full("room-abc") is False
 
 
+@pytest.mark.parametrize(
+    "error",
+    [
+        TwirpError("internal", "boom", status=500),
+        aiohttp.ClientConnectionError("connection refused"),
+    ],
+)
 @mock.patch("core.services.room_management.utils.create_livekit_client")
-def test_is_full_raises_management_exception(mock_create_livekit_client):
-    """Twirp errors raise RoomManagementException."""
+def test_is_full_raises_management_exception(mock_create_livekit_client, error):
+    """Twirp and connection errors raise RoomManagementException."""
     mock_api = _mock_room(mock_create_livekit_client, rooms=[])
-    mock_api.room.list_rooms.side_effect = TwirpError("internal", "boom", status=500)
+    mock_api.room.list_rooms.side_effect = error
 
     with pytest.raises(RoomManagementException):
         RoomManagement.is_full("room-abc")
