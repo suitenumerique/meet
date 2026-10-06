@@ -35,6 +35,9 @@ export const WaitingForSeat = ({
   const { data, isError } = useQuery({
     queryKey: [keys.roomCapacity, roomId],
     queryFn: () => fetchRoomCapacity({ roomId, token }),
+    // The caller just found the meeting full, so the first ask waits an interval.
+    initialData: { is_full: true },
+    staleTime: SEAT_POLL_INTERVAL,
     refetchInterval: SEAT_POLL_INTERVAL,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: false,
