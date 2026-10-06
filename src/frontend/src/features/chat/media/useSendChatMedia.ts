@@ -7,14 +7,16 @@ import {
   clearTextAreaValue,
   stageAttachment,
 } from '@/stores/chat'
-import { CHAT_MEDIA_TOPIC, CHUNK_SIZE, MAX_CAPTION_LENGTH } from './constants'
+import { CHAT_MEDIA_TOPIC, CHUNK_SIZE } from './constants'
 import { downscaleImage } from './downscaleImage'
 import {
+  exceedsPixelCap,
   imageExtension,
-  isAnimatedGif,
+  isAnimated,
   measureImage,
   sniffBlob,
 } from './probeImage'
+import { sanitizeCaption } from './sanitize'
 import { useChatMediaLimits } from './useChatMediaLimits'
 
 /**
@@ -40,45 +42,52 @@ export const useSendChatMedia = () => {
   const stage = useCallback(
     async (file: File) => {
       // Staging mid-send would replace the attachment the send is about to
-      // hand to the sender's own row.
-      if (chatStore.isSendingMedia) return
+      // hand to the sender's own row, and a second staging still reducing
+      // would land after this one and replace it.
+      if (chatStore.isSendingMedia || chatStore.isPreparing) return
       chatStore.isPreparing = true
       chatStore.mediaFailure = undefined
       let previewUrl: string | undefined
 
       try {
-        const sniffed = await sniffBlob(file)
-        if (!sniffed || !limits.allowedMimetypes.includes(sniffed)) {
+        let mimeType = await sniffBlob(file)
+        if (!mimeType || !limits.allowedMimetypes.includes(mimeType)) {
           chatStore.mediaFailure = 'type_not_allowed'
           return
         }
 
         let payload: Blob = file
-        let mimeType = sniffed
-        let size: { width: number; height: number } | undefined
-        if (file.size > limits.maxSize) {
+        previewUrl = URL.createObjectURL(file)
+        // An image over the size cap is reduced whatever its dimensions.
+        let size =
+          file.size > limits.maxSize
+            ? undefined
+            : await measureImage(previewUrl)
+
+        // Receivers refuse an image past the pixel cap, so it is reduced here
+        // like one past the size cap.
+        if (!size || exceedsPixelCap(size)) {
           // Flattening an animation to one frame is a silent surprise, and
-          // the browser has no GIF encoder to reduce it with.
-          if (
-            mimeType === 'image/gif' &&
-            isAnimatedGif(new Uint8Array(await file.arrayBuffer()))
-          ) {
+          // the browser has no encoder that keeps the frames.
+          if (await isAnimated(file, mimeType)) {
             chatStore.mediaFailure = 'animation_too_large'
             return
           }
-          const { blob, ...dimensions } = await downscaleImage(file)
-          if (blob.size > limits.maxSize) {
+          const reduced = await downscaleImage(file, limits.allowedMimetypes)
+          if (!reduced) {
+            chatStore.mediaFailure = 'type_not_allowed'
+            return
+          }
+          if (reduced.blob.size > limits.maxSize) {
             chatStore.mediaFailure = 'too_large'
             return
           }
-          payload = blob
-          // WebP where the browser can encode it, PNG where it cannot.
-          mimeType = blob.type
-          size = dimensions
+          URL.revokeObjectURL(previewUrl)
+          previewUrl = URL.createObjectURL(reduced.blob)
+          payload = reduced.blob
+          mimeType = reduced.blob.type
+          size = { width: reduced.width, height: reduced.height }
         }
-
-        previewUrl = URL.createObjectURL(payload)
-        const { width, height } = size ?? (await measureImage(previewUrl))
 
         stageAttachment({
           // A Blob keeps its bytes in an internal slot a proxy cannot forward,
@@ -86,8 +95,7 @@ export const useSendChatMedia = () => {
           blob: ref(payload),
           mimeType,
           previewUrl,
-          width,
-          height,
+          ...size,
         })
         previewUrl = undefined
       } catch {
@@ -104,9 +112,11 @@ export const useSendChatMedia = () => {
     const pending = chatStore.pendingAttachment
     if (!pending || chatStore.isSendingMedia) return
 
-    const caption = chatStore.textAreaValue.slice(0, MAX_CAPTION_LENGTH)
+    // Cleaned as every receiver cleans it, so the sender's row reads the same.
+    const caption = sanitizeCaption(chatStore.textAreaValue)
     const { blob } = pending
     chatStore.isSendingMedia = true
+    chatStore.mediaFailure = undefined
 
     try {
       const writer = await room.localParticipant.streamBytes({
@@ -123,10 +133,18 @@ export const useSendChatMedia = () => {
         },
       })
 
-      // Read a chunk at a time, so the whole image is never copied at once.
-      for (let offset = 0; offset < blob.size; offset += CHUNK_SIZE) {
-        const chunk = blob.slice(offset, offset + CHUNK_SIZE)
-        await writer.write(new Uint8Array(await chunk.arrayBuffer()))
+      try {
+        // Read a chunk at a time, so the whole image is never copied at once.
+        for (let offset = 0; offset < blob.size; offset += CHUNK_SIZE) {
+          const chunk = blob.slice(offset, offset + CHUNK_SIZE)
+          await writer.write(new Uint8Array(await chunk.arrayBuffer()))
+        }
+      } catch (error) {
+        // Closed short of its declared size, the stream fails on every
+        // receiver and frees the slot it held there. Left open, it holds that
+        // slot until this participant leaves.
+        await writer.close().catch(() => {})
+        throw error
       }
       await writer.close()
 

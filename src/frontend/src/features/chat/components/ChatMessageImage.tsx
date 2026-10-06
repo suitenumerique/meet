@@ -5,6 +5,7 @@ import { css } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
 import { Text } from '@/primitives'
 import type { ChatMediaRow } from '@/stores/chat'
+import { MAX_ASPECT_RATIO } from '../media/constants'
 import { ChatImageLightbox } from './ChatImageLightbox'
 
 const StyledFigure = styled('figure', {
@@ -31,11 +32,17 @@ const StyledFrame = styled('div', {
 
 /**
  * Reserves the final height while the bytes are still arriving, so the list
- * does not jump when the image lands. The sender measured these; a receiver
- * that was not told falls back to a fixed box.
+ * does not jump when the image lands. Until then the dimensions are the
+ * sender's word, and once the image decodes they are its own; either way the
+ * ratio is clamped, so no row can bury the rest of the chat.
  */
-const aspectRatio = (row: ChatMediaRow) =>
-  row.width && row.height ? `${row.width} / ${row.height}` : undefined
+const aspectRatio = (row: ChatMediaRow) => {
+  if (!row.width || !row.height) return '4 / 3'
+  const ratio = row.width / row.height
+  return String(
+    Math.min(MAX_ASPECT_RATIO, Math.max(1 / MAX_ASPECT_RATIO, ratio))
+  )
+}
 
 type ChatMessageImageProps = {
   item: ChatMediaRow

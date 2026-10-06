@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useRoomContext } from '@livekit/components-react'
+import type { ByteStreamReader } from 'livekit-client'
 import {
   appendReceivingMediaRow,
   failMediaRow,
@@ -8,29 +9,36 @@ import {
 } from '@/stores/chat'
 import {
   CHAT_MEDIA_TOPIC,
-  MAX_CAPTION_LENGTH,
   MAX_CONCURRENT_STREAMS_PER_SENDER,
   PROGRESS_STEP_PERCENT,
 } from './constants'
-import { measureImage, sniffBlob } from './probeImage'
+import { exceedsPixelCap, measureImage, sniffBlob } from './probeImage'
+import { sanitizeCaption, sanitizeDimension } from './sanitize'
 import { useChatMediaLimits } from './useChatMediaLimits'
 
 /**
- * Control characters would let a sender break the row's layout. Matching them
- * is the point here, so the rule that normally catches them by accident is
- * suppressed deliberately.
+ * LiveKit queues every chunk of a stream until its trailer whether anyone reads
+ * it or not, and gives a handler no way to refuse one, so a declined stream is
+ * read and dropped.
  */
-// eslint-disable-next-line no-control-regex
-const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f-\u009f]/g
-
-const sanitizeCaption = (value: unknown) =>
-  typeof value === 'string'
-    ? value.replace(CONTROL_CHARACTERS, '').slice(0, MAX_CAPTION_LENGTH)
-    : ''
-
-const sanitizeDimension = (value: unknown) => {
-  const parsed = Number.parseInt(String(value ?? ''), 10)
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+const discard = async (reader: ByteStreamReader) => {
+  try {
+    for await (const chunk of reader) void chunk
+  } catch {
+    // Past its declared size the reader throws on every chunk, so the rest is
+    // read from the queue it wraps. That queue is not public API: should an
+    // upgrade rename it, failing loudly beats silently buffering again.
+    const queue = (reader as unknown as { reader?: unknown }).reader
+    if (!(queue instanceof ReadableStream)) {
+      throw new Error('livekit-client no longer exposes the stream queue')
+    }
+    try {
+      const chunks = queue.getReader()
+      while (!(await chunks.read()).done);
+    } catch {
+      // Already failed or closed: nothing left to drop.
+    }
+  }
 }
 
 /**
@@ -40,7 +48,8 @@ const sanitizeDimension = (value: unknown) => {
  * unauthenticated participants: a stream must declare a size within the cap
  * before it is read, the read fails once the bytes pass that size, the
  * declared MIME type is ignored in favour of the payload's own leading bytes,
- * and the result must decode as an image before it is shown.
+ * and the result must decode as an image within the pixel cap before it is
+ * shown.
  */
 export const useReceiveChatMedia = () => {
   const room = useRoomContext()
@@ -54,16 +63,15 @@ export const useReceiveChatMedia = () => {
     room.registerByteStreamHandler(CHAT_MEDIA_TOPIC, async (reader, from) => {
       const identity = from?.identity
       const key = identity ?? 'unknown'
-      const running = inFlight.get(key) ?? 0
-      if (running >= MAX_CONCURRENT_STREAMS_PER_SENDER) return
-      inFlight.set(key, running + 1)
-
       const { id, size, attributes } = reader.info
-      try {
-        // LiveKit fails a read that passes the declared size, and skips that
-        // check when no size or a zero size is declared.
-        if (!size || size > limits.maxSize) return
+      const running = inFlight.get(key) ?? 0
 
+      // LiveKit fails a read that passes the declared size, and skips that
+      // check when no size or a zero size is declared.
+      const accepted =
+        running < MAX_CONCURRENT_STREAMS_PER_SENDER &&
+        !!size &&
+        size <= limits.maxSize &&
         appendReceivingMediaRow({
           id,
           identity,
@@ -77,7 +85,13 @@ export const useReceiveChatMedia = () => {
           width: sanitizeDimension(attributes?.width),
           height: sanitizeDimension(attributes?.height),
         })
+      if (!accepted) {
+        void discard(reader)
+        return
+      }
+      inFlight.set(key, running + 1)
 
+      try {
         // See PROGRESS_STEP_PERCENT.
         let lastShown = -1
         reader.onProgress = (progress) => {
@@ -100,16 +114,17 @@ export const useReceiveChatMedia = () => {
         const objectUrl = URL.createObjectURL(
           new Blob([payload], { type: mimeType })
         )
-        try {
-          await measureImage(objectUrl)
-        } catch {
+        // Loading reads the header alone; showing it decodes every pixel.
+        const measured = await measureImage(objectUrl).catch(() => undefined)
+        if (!measured || exceedsPixelCap(measured)) {
           URL.revokeObjectURL(objectUrl)
           failMediaRow(id, 'decode_failed')
           return
         }
 
-        resolveMediaRow(id, objectUrl, mimeType)
+        resolveMediaRow(id, objectUrl, mimeType, measured)
       } catch {
+        void discard(reader)
         failMediaRow(id, 'transfer_failed')
       } finally {
         inFlight.set(key, (inFlight.get(key) ?? 1) - 1)

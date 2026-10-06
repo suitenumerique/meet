@@ -4,7 +4,7 @@ import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useEffect } from 'react'
 import { useChat, useRoomContext } from '@livekit/components-react'
 import {
-  appendRow,
+  appendNewMessages,
   chatStore,
   resetChatStore,
   setChatVisibility,
@@ -25,8 +25,11 @@ export const ChatProvider = () => {
 
   useReceiveChatMedia()
 
+  // Reset on leaving too: the page outlives the meeting, and so would every
+  // image the chat still holds.
   useEffect(() => {
     resetChatStore()
+    return resetChatStore
   }, [])
 
   // Trigger the message notification (temporary)
@@ -46,9 +49,7 @@ export const ChatProvider = () => {
   }, [chatMessages, room])
 
   useEffect(() => {
-    for (let i = chatStore.rows.length; i < chatMessages.length; i++) {
-      appendRow(chatMessages[i])
-    }
+    appendNewMessages(chatMessages)
   }, [chatMessages])
 
   useEffect(() => {

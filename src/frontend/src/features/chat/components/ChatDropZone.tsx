@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { DropZone } from 'react-aria-components'
+import { DropZone, isFileDropItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { Text } from '@/primitives'
@@ -13,22 +13,17 @@ import { useSendChatMedia } from '../media/useSendChatMedia'
 export const ChatDropZone = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
   const { stage, limits } = useSendChatMedia()
-  const acceptedMimetypes = limits.allowedMimetypes
 
+  // Any file is taken, whatever type the operating system declares for it:
+  // `stage` reads the bytes and says why one cannot be sent, where a refused
+  // drop would say nothing, and a file saved without an extension declares none.
   return (
     <DropZone
       isDisabled={!limits.enabled}
       aria-label={t('dropZone')}
-      getDropOperation={(types) =>
-        acceptedMimetypes.some((type) => types.has(type)) ? 'copy' : 'cancel'
-      }
       onDrop={async (event) => {
-        const item = event.items.find(
-          (candidate) =>
-            candidate.kind === 'file' &&
-            acceptedMimetypes.includes(candidate.type)
-        )
-        if (item?.kind === 'file') stage(await item.getFile())
+        const item = event.items.find(isFileDropItem)
+        if (item) stage(await item.getFile())
       }}
       className={css({
         display: 'flex',

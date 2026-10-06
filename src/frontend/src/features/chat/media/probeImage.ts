@@ -1,11 +1,12 @@
+import { MAX_IMAGE_PIXELS } from './constants'
+
 /**
  * Identifies an image from its leading bytes rather than from what the sender
  * says it is. A declared MIME type is attacker-controlled on the receive path
  * and merely wrong on the send path, since browsers guess it from the file
  * extension.
  *
- * Pure functions over a `Uint8Array`, so a test runner covers them the day this
- * repository has one.
+ * Covered by `probeImage.test.ts`.
  */
 
 const startsWith = (bytes: Uint8Array, signature: number[], offset = 0) =>
@@ -38,24 +39,76 @@ export function sniffImageType(bytes: Uint8Array): string | null {
   return null
 }
 
+/** Skips a run of GIF data sub-blocks, each a length byte then that many bytes. */
+const skipSubBlocks = (bytes: Uint8Array, offset: number) => {
+  let i = offset
+  while (i < bytes.length && bytes[i] !== 0) i += bytes[i] + 1
+  return i + 1
+}
+
+/** The size of a GIF color table, from the packed byte that declares it. */
+const colorTableSize = (packed: number) =>
+  packed & 0x80 ? 3 * 2 ** ((packed & 0x07) + 1) : 0
+
 /**
- * Whether a GIF carries more than one frame.
- *
- * Counts Graphic Control Extension blocks, `21 F9`, which precede each rendered
- * frame. A heuristic rather than a parse: it can misread that byte pair inside
- * compressed image data. Both failure directions are mild. A false positive
- * refuses an over-cap GIF that could have been flattened, and a false negative
- * flattens an animation the sender expected to keep, which only reaches a user
- * for a GIF above the size cap.
+ * Counts image descriptors by walking the block structure, so a `21 F9` or
+ * `2C` byte inside compressed pixel data is never read as a frame.
  */
-export function isAnimatedGif(bytes: Uint8Array): boolean {
-  let seen = 0
-  for (let i = 0; i < bytes.length - 1; i++) {
-    if (bytes[i] === 0x21 && bytes[i + 1] === 0xf9) {
-      seen += 1
-      if (seen > 1) return true
+function isAnimatedGif(bytes: Uint8Array): boolean {
+  let i = 13 + colorTableSize(bytes[10] ?? 0)
+  let frames = 0
+  while (i < bytes.length) {
+    if (bytes[i] === 0x2c) {
+      frames += 1
+      if (frames > 1) return true
+      // Descriptor, local color table, LZW code size, then the pixel data.
+      i = skipSubBlocks(bytes, i + 10 + colorTableSize(bytes[i + 9] ?? 0) + 1)
+    } else if (bytes[i] === 0x21) {
+      i = skipSubBlocks(bytes, i + 2)
+    } else {
+      return false
     }
   }
+  return false
+}
+
+// "acTL" and "IDAT", PNG chunk types.
+const PNG_ANIMATION_CONTROL = [0x61, 0x63, 0x54, 0x4c]
+const PNG_IMAGE_DATA = [0x49, 0x44, 0x41, 0x54]
+
+/** An APNG declares `acTL` before its first `IDAT`; a still PNG never does. */
+function isAnimatedPng(bytes: Uint8Array): boolean {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  let i = 8
+  while (i + 8 <= bytes.length) {
+    if (startsWith(bytes, PNG_ANIMATION_CONTROL, i + 4)) return true
+    if (startsWith(bytes, PNG_IMAGE_DATA, i + 4)) return false
+    // Length, type and CRC around the chunk's data.
+    i += 12 + view.getUint32(i)
+  }
+  return false
+}
+
+/** An animated WebP sets the animation flag of its leading `VP8X` chunk. */
+const isAnimatedWebp = (bytes: Uint8Array) =>
+  startsWith(bytes, [0x56, 0x50, 0x38, 0x58], 12) && (bytes[20] & 0x02) !== 0
+
+const readBytes = async (blob: Blob) => new Uint8Array(await blob.arrayBuffer())
+
+/**
+ * Whether the image carries more than one frame. Reducing one through a canvas
+ * keeps the first frame alone, so an animation over the cap is refused instead.
+ * Reads only as much of the file as its format needs: none of a JPEG, the
+ * header of a WebP.
+ */
+export async function isAnimated(
+  blob: Blob,
+  mimeType: string
+): Promise<boolean> {
+  if (mimeType === 'image/gif') return isAnimatedGif(await readBytes(blob))
+  if (mimeType === 'image/png') return isAnimatedPng(await readBytes(blob))
+  if (mimeType === 'image/webp')
+    return isAnimatedWebp(await readBytes(blob.slice(0, 21)))
   return false
 }
 
@@ -69,6 +122,18 @@ export async function sniffBlob(blob: Blob): Promise<string | null> {
 
 /** The download and stream name, taken from the sniffed type. */
 export const imageExtension = (mimeType: string) => mimeType.split('/')[1]
+
+/**
+ * Past `MAX_IMAGE_PIXELS` the sender reduces an image and every receiver
+ * refuses it, so both sides ask this one question.
+ */
+export const exceedsPixelCap = ({
+  width,
+  height,
+}: {
+  width: number
+  height: number
+}) => width * height > MAX_IMAGE_PIXELS
 
 /**
  * Natural dimensions, via the browser's own decoder. Doubles as the check that

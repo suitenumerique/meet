@@ -132,7 +132,7 @@ function rememberName(identity?: string, name?: string) {
   if (identity) chatStore.names[identity] = name || identity
 }
 
-export function appendRow(msg: ReceivedChatMessage) {
+function appendRow(msg: ReceivedChatMessage) {
   const p = msg.from
   if (p) rememberName(p.identity, p.name)
 
@@ -149,6 +149,19 @@ export function appendRow(msg: ReceivedChatMessage) {
     hideMetadata: shouldHideMetadata(identity, timestamp),
   })
   countAsUnread()
+}
+
+/**
+ * How many of LiveKit's `chatMessages` the rows already hold. Counted apart
+ * from the rows, which also hold images that never enter `chatMessages`.
+ */
+let copiedMessages = 0
+
+/** Copies the messages of LiveKit's `chatMessages` not yet in the rows. */
+export function appendNewMessages(messages: ReceivedChatMessage[]) {
+  for (; copiedMessages < messages.length; copiedMessages++) {
+    appendRow(messages[copiedMessages])
+  }
 }
 
 function revokeMediaRow(row: ChatMediaRow) {
@@ -222,10 +235,17 @@ export function appendLocalMediaRow(row: NewMediaRow, objectUrl: string) {
 /**
  * Inserted when the stream opens, before any bytes arrive, so a participant
  * sees an image being sent rather than a silence.
+ *
+ * Refuses an id a row already holds, the sender's own included, and returns
+ * false. The id is the sender's choice and LiveKit accepts one again once its
+ * first stream has ended, so every later lookup by id would otherwise land on
+ * another participant's row.
  */
 export function appendReceivingMediaRow(row: NewMediaRow) {
+  if (findMediaRow(row.id)) return false
   pushMediaRow(row, { isLocal: false, status: 'receiving', progress: 0 })
   countAsUnread()
+  return true
 }
 
 function findMediaRow(id: string) {
@@ -242,15 +262,18 @@ export function updateMediaProgress(id: string, progress: number | undefined) {
 export function resolveMediaRow(
   id: string,
   objectUrl: string,
-  mimeType: string
+  mimeType: string,
+  size: { width: number; height: number }
 ) {
   const row = findMediaRow(id)
   if (!row) {
     URL.revokeObjectURL(objectUrl)
     return
   }
-  // Written from the sniffed bytes, not from what the sender declared.
+  // Written from the decoded bytes, not from what the sender declared.
   row.mimeType = mimeType
+  row.width = size.width
+  row.height = size.height
   row.objectUrl = objectUrl
   row.status = 'ready'
   enforceMediaRetention()
@@ -279,6 +302,7 @@ export function resetChatStore() {
   clearPendingAttachment()
 
   isChatVisible = false
+  copiedMessages = 0
   Object.assign(chatStore, {
     ...initialState,
     rows: [],
