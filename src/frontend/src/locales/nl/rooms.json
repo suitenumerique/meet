@@ -110,7 +110,8 @@
       "pinCode": "Code:"
     }
   },
-  "participantLimit": "Er kunnen maximaal {{count}} personen aan deze vergadering deelnemen.",
+  "participantLimit_one": "Er kan maximaal {{count}} persoon aan deze vergadering deelnemen.",
+  "participantLimit_other": "Er kunnen maximaal {{count}} personen aan deze vergadering deelnemen.",
   "pagination": {
     "label": "Pagina's van deelnemers",
     "count": "{{currentPage}} van {{totalPageCount}}",
@@ -219,7 +220,8 @@
     "roomFull": {
       "heading": "Deze vergadering is vol",
       "body": "Je neemt automatisch deel zodra iemand vertrekt.",
-      "bodyWithLimit": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Je neemt automatisch deel zodra iemand vertrekt."
+      "bodyWithLimit_one": "De vergadering heeft haar limiet van {{count}} deelnemer bereikt. Je neemt automatisch deel zodra iemand vertrekt.",
+      "bodyWithLimit_other": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Je neemt automatisch deel zodra iemand vertrekt."
     },
     "screenShare": {
       "title": "Kan uw scherm niet delen",

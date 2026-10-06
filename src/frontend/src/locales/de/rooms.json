@@ -110,7 +110,8 @@
       "pinCode": "Code:"
     }
   },
-  "participantLimit": "Bis zu {{count}} Personen können diesem Meeting beitreten.",
+  "participantLimit_one": "Bis zu {{count}} Person kann diesem Meeting beitreten.",
+  "participantLimit_other": "Bis zu {{count}} Personen können diesem Meeting beitreten.",
   "pagination": {
     "label": "Teilnehmerseiten",
     "count": "{{currentPage}} von {{totalPageCount}}",
@@ -219,7 +220,8 @@
     "roomFull": {
       "heading": "Dieses Meeting ist voll",
       "body": "Du trittst automatisch bei, sobald jemand das Meeting verlässt.",
-      "bodyWithLimit": "Das Meeting hat sein Limit von {{count}} Teilnehmenden erreicht. Du trittst automatisch bei, sobald jemand es verlässt."
+      "bodyWithLimit_one": "Das Meeting hat sein Limit von {{count}} Teilnehmenden erreicht. Du trittst automatisch bei, sobald jemand es verlässt.",
+      "bodyWithLimit_other": "Das Meeting hat sein Limit von {{count}} Teilnehmenden erreicht. Du trittst automatisch bei, sobald jemand es verlässt."
     },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",

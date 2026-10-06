@@ -110,7 +110,8 @@
       "pinCode": "Code:"
     }
   },
-  "participantLimit": "Up to {{count}} people can join this meeting.",
+  "participantLimit_one": "Up to {{count}} person can join this meeting.",
+  "participantLimit_other": "Up to {{count}} people can join this meeting.",
   "pagination": {
     "label": "Participants pages",
     "count": "{{currentPage}} of {{totalPageCount}}",
@@ -219,7 +220,8 @@
     "roomFull": {
       "heading": "This meeting is full",
       "body": "You will join automatically as soon as someone leaves.",
-      "bodyWithLimit": "The meeting has reached its limit of {{count}} participants. You will join automatically as soon as someone leaves."
+      "bodyWithLimit_one": "The meeting has reached its limit of {{count}} participant. You will join automatically as soon as someone leaves.",
+      "bodyWithLimit_other": "The meeting has reached its limit of {{count}} participants. You will join automatically as soon as someone leaves."
     },
     "screenShare": {
       "title": "Unable to share your screen",

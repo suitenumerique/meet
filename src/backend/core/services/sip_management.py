@@ -2,8 +2,11 @@
 
 from logging import getLogger
 
+from django.conf import settings
+
 from asgiref.sync import async_to_sync
 from livekit.api import TwirpError, TwirpErrorCode
+from livekit.protocol.room import RoomConfiguration
 from livekit.protocol.sip import (
     CreateSIPDispatchRuleRequest,
     DeleteSIPDispatchRuleRequest,
@@ -46,8 +49,15 @@ class SIPManagement:
             )
         )
 
+        # A call can open the meeting, and LiveKit caps a meeting only from the
+        # pass that opens it.
+        room_config = (
+            RoomConfiguration(max_participants=settings.ROOM_MAX_PARTICIPANTS)
+            if settings.ROOM_MAX_PARTICIPANTS
+            else None
+        )
         request = CreateSIPDispatchRuleRequest(
-            rule=direct_rule, name=self._rule_name(room.pk)
+            rule=direct_rule, name=self._rule_name(room.pk), room_config=room_config
         )
 
         lkapi = utils.create_livekit_client()

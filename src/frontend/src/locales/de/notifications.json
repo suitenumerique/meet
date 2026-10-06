@@ -18,7 +18,8 @@
     "auto": "Sie haben an einer großen Besprechung teilgenommen. Ihr Mikrofon wurde automatisch stummgeschaltet.",
     "dismiss": "Stummschaltung aufheben"
   },
-  "roomFull": "Das Meeting ist voll: {{count}} Teilnehmende. Niemand sonst kann beitreten, bis jemand es verlässt.",
+  "roomFull_one": "Das Meeting ist voll: {{count}} Teilnehmende. Niemand sonst kann beitreten, bis jemand es verlässt.",
+  "roomFull_other": "Das Meeting ist voll: {{count}} Teilnehmende. Niemand sonst kann beitreten, bis jemand es verlässt.",
   "reaction": {
     "description": "{{name}} hat mit {{emoji}} reagiert"
   },

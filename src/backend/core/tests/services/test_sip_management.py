@@ -68,6 +68,24 @@ def test_create_dispatch_rule_success(mock_client_factory):
     mock_api.aclose.assert_called_once()
 
 
+@pytest.mark.parametrize("limit", [None, 5])
+@mock.patch("core.utils.create_livekit_client")
+def test_create_dispatch_rule_room_config(mock_client_factory, limit, settings):
+    """The rule carries ROOM_MAX_PARTICIPANTS, so a meeting a call opens is capped."""
+    settings.ROOM_MAX_PARTICIPANTS = limit
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
+
+    mock_api = create_mock_livekit_client()
+    mock_api.sip.create_sip_dispatch_rule = mock.AsyncMock()
+    mock_client_factory.return_value = mock_api
+
+    SIPManagement().create_dispatch_rule(room)
+
+    create_request = mock_api.sip.create_sip_dispatch_rule.call_args[1]["create"]
+    assert create_request.HasField("room_config") is bool(limit)
+    assert create_request.room_config.max_participants == (limit or 0)
+
+
 @mock.patch("core.utils.create_livekit_client")
 def test_create_dispatch_rule_api_failure(mock_client_factory):
     """Test dispatch rule creation when API fails."""

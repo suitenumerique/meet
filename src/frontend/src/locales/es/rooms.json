@@ -110,7 +110,8 @@
       "pinCode": "Código:"
     }
   },
-  "participantLimit": "Hasta {{count}} personas pueden unirse a esta reunión.",
+  "participantLimit_one": "Hasta {{count}} persona puede unirse a esta reunión.",
+  "participantLimit_other": "Hasta {{count}} personas pueden unirse a esta reunión.",
   "pagination": {
     "label": "Páginas de participantes",
     "count": "{{currentPage}} de {{totalPageCount}}",
@@ -219,7 +220,8 @@
     "roomFull": {
       "heading": "Esta reunión está completa",
       "body": "Te unirás automáticamente en cuanto alguien salga.",
-      "bodyWithLimit": "La reunión ha alcanzado su límite de {{count}} participantes. Te unirás automáticamente en cuanto alguien salga."
+      "bodyWithLimit_one": "La reunión ha alcanzado su límite de {{count}} participante. Te unirás automáticamente en cuanto alguien salga.",
+      "bodyWithLimit_other": "La reunión ha alcanzado su límite de {{count}} participantes. Te unirás automáticamente en cuanto alguien salga."
     },
     "screenShare": {
       "title": "No se puede compartir tu pantalla",

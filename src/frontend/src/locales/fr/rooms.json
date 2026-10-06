@@ -110,7 +110,8 @@
       "pinCode": "Code :"
     }
   },
-  "participantLimit": "Jusqu'à {{count}} personnes peuvent rejoindre cette réunion.",
+  "participantLimit_one": "Jusqu'à {{count}} personne peut rejoindre cette réunion.",
+  "participantLimit_other": "Jusqu'à {{count}} personnes peuvent rejoindre cette réunion.",
   "pagination": {
     "label": "Pages des participants",
     "count": "{{currentPage}} sur {{totalPageCount}}",
@@ -219,7 +220,8 @@
     "roomFull": {
       "heading": "Cette réunion est complète",
       "body": "Vous rejoindrez automatiquement la réunion dès qu'une personne la quittera.",
-      "bodyWithLimit": "La réunion a atteint sa limite de {{count}} participants. Vous la rejoindrez automatiquement dès qu'une personne la quittera."
+      "bodyWithLimit_one": "La réunion a atteint sa limite de {{count}} participant. Vous la rejoindrez automatiquement dès qu'une personne la quittera.",
+      "bodyWithLimit_other": "La réunion a atteint sa limite de {{count}} participants. Vous la rejoindrez automatiquement dès qu'une personne la quittera."
     },
     "screenShare": {
       "title": "Impossible de partager votre écran",
