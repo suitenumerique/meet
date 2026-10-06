@@ -10,6 +10,7 @@ import pytest
 from livekit import api as livekit_api
 from rest_framework.test import APIClient
 
+from ... import utils
 from ...factories import RoomFactory, UserFactory
 from ...models import Recording
 from ...recording.worker.exceptions import RecordingStartError
@@ -40,6 +41,58 @@ def mock_worker_manager(mock_worker_service):
         mock_mediator = mock.Mock()
         mock_mediator_class.return_value = mock_mediator
         yield mock_mediator
+
+
+def livekit_token_for(user, room):
+    """The LiveKit token Meet mints for a MatrixRTC participant."""
+    return utils.generate_token(
+        room=str(room.id),
+        user=user,
+        participant_id=f"@{user.sub}:localhost:DEVICE",
+    )
+
+
+def test_start_recording_with_the_livekit_token_of_the_call(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """An owner without a Meet session records with the token of the call."""
+    settings.RECORDING_ENABLE = True
+    user = UserFactory()
+    room = RoomFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {livekit_token_for(user, room)}")
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert Recording.objects.filter(room=room).count() == 1
+    mock_worker_manager.start.assert_called_once()
+
+
+def test_start_recording_with_a_livekit_token_of_another_room(settings):
+    """A token of room X must not record room Y."""
+    settings.RECORDING_ENABLE = True
+    user = UserFactory()
+    other = RoomFactory()
+    other.accesses.create(user=user, role="owner")
+    room = RoomFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {livekit_token_for(user, other)}")
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+        format="json",
+    )
+
+    assert response.status_code == 403
+    assert Recording.objects.count() == 0
 
 
 def test_start_recording_anonymous():

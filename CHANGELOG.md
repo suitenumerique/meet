@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) mint LiveKit tokens for delegated users in external API #1796
+
 ### Changed
 
 - ⚡️(backend) hash application secrets with SHA-256

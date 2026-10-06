@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from livekit.api import TokenVerifier
 from rest_framework import authentication, exceptions
@@ -38,14 +39,26 @@ class LiveKitTokenAuthentication(authentication.BaseAuthentication):
             if not user_id:
                 raise exceptions.AuthenticationFailed("Token missing user identity")
 
-            try:
-                user = UserModel.objects.get(sub=user_id)
-            except UserModel.DoesNotExist:
-                user = AnonymousUser()
-
-            return (user, claims)
+            return (self._user_of(claims), claims)
 
         except Exception as e:
             raise exceptions.AuthenticationFailed(
                 f"Invalid LiveKit token: {str(e)}"
             ) from e
+
+    @staticmethod
+    def _user_of(claims):
+        """The user of the token: by its `user_id` attribute when the identity was
+        imposed by the caller (the external API mints `user:device` identities
+        for MatrixRTC, and a provisioned user has no `sub`), else by `sub`."""
+        attributes = getattr(claims, "attributes", None) or {}
+        pk = attributes.get("user_id")
+        if pk:
+            try:
+                return UserModel.objects.get(pk=pk)
+            except (UserModel.DoesNotExist, ValueError, DjangoValidationError):
+                pass
+        try:
+            return UserModel.objects.get(sub=claims.identity)
+        except UserModel.DoesNotExist:
+            return AnonymousUser()
