@@ -18,6 +18,7 @@ A refusal is recorded under the action that was attempted, with its outcome
 and reason derived from the response status.
 """
 
+import copy
 import logging
 from collections.abc import Mapping
 from typing import Any
@@ -93,6 +94,11 @@ class AuditViewMixin:
         """Remember the object as the target."""
         self.audit_target = obj
         super().check_object_permissions(request, obj)
+
+    def perform_destroy(self, instance):
+        """Keep a copy of the target, since deleting an instance clears its pk."""
+        self.audit_target = copy.copy(instance)
+        super().perform_destroy(instance)
 
     def finalize_response(self, request, response, *args, **kwargs):
         """Audit the response once DRF has built it."""

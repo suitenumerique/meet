@@ -176,7 +176,7 @@ class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
         return fields
 
 
-class RoomViewSet(
+class RoomViewSet(  # pylint: disable=too-many-ancestors
     audit.AuditViewMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,

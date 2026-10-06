@@ -1,7 +1,7 @@
 # Audit logging
 
 La Suite Meet keeps an **audit log**: a record of the notable things that happen in the product, such as a room created
-through the external API, a sign-in, or a change made in the Django admin. Every entry answers the
+through the external API, a recording started, a sign-in, or a change made in the Django admin. Every entry answers the
 same questions: *who* did *what*, *to what*, *on whose behalf*, *from where*, and *did it work?*
 
 It is written for:
@@ -102,7 +102,7 @@ find each one in the JSON above.
 | **Application** | A registered third-party integration, identified by its client id, that calls the external API on behalf of users. | `lasuite.application.client_id` |
 | **Delegation** | An Application acting for one specific user, through the delegated token it obtained with `application.token.issue`. The event then names both: the Application as the Actor, and the user in `user.*`. | `lasuite.actor.type` = `application`, with `user.*` set |
 | **Provisional User** | An account an Application created from an email address before that person ever signed in. It has no OIDC `sub` yet, so its account id is what links its `user.provision` event to its later `user.login`. | `event.action` = `user.provision` |
-| **Machine User** | The identity of an internal service calling the backend with a shared secret: the LiveKit SIP bridge (`roomkit`) and the summary service (`summary`). It is an Actor of type `service`, never an account. | `service.origin.name` |
+| **Machine User** | The identity of an internal service calling the backend with a shared secret: the LiveKit SIP bridge (`roomkit`), the summary service (`summary`), and the LiveKit server reporting that a recording ended (`livekit`). It is an Actor of type `service`, never an account. | `service.origin.name` |
 | **Tenant** | The organisation an event belongs to: the calling Application when there is one, otherwise the Actor's email domain. | `organization.id` |
 
 ### What it was done to
@@ -174,8 +174,8 @@ what ECS does not define: `lasuite.*`, and `entity.target.raw.*` for the fields 
 | `@timestamp` | When the event was emitted: ISO 8601, in UTC, with millisecond precision |
 | `data_stream.*`, `event.dataset` | `logs`, `<AUDIT_LOG_SERVICE_NAME>.audit` and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what sets the audit stream apart from the application logs |
 | `service.name`, `service.environment`, `service.version`, `service.node.name` | The Emitter: `AUDIT_LOG_SERVICE_NAME`, the current environment, the release and the host name (the pod, on Kubernetes). Never the caller |
-| `service.origin.name` | The internal service that called the backend, when the actor is a `service`: `roomkit` or `summary` |
-| `service.target.name` | The service the backend called, when one is named |
+| `service.origin.name` | The internal service that called the backend, when the actor is a `service`: `roomkit`, `summary` or `livekit` |
+| `service.target.name` | The service the backend called, such as `summary` for `recording.transcript.request` |
 | `event.id` | Unique id of the event, so that a shipper retrying it cannot create a duplicate |
 | `event.action` | What was attempted, from the [Catalogue](#catalogue) |
 | `event.category`, `event.type` | The ECS classification (`api`, `authentication`, `iam`... and `creation`, `change`, `access`, `denied`, `user`...). Always a combination ECS expects, see [Classification](#classification) |
@@ -223,7 +223,7 @@ an application acts for a user, the actor is the application, but `user.*` is th
 |---|---|---|
 | `user` | A person's account acting for itself: through a session, an OIDC or password login, an add-on token, or the LiveKit token of a known account | That account |
 | `application` | A client application acting on behalf of a user. Either a Meet application, through its client credentials or its delegated token, or another La Suite application, through the resource server. `lasuite.application.client_id` names it | The delegating user |
-| `service` | An internal service of the deployment, named by `service.origin.name`: the LiveKit SIP bridge (`roomkit`) or the summary service (`summary`) | Absent |
+| `service` | An internal service of the deployment, named by `service.origin.name`: the LiveKit SIP bridge (`roomkit`), the summary service (`summary`), or the LiveKit server reporting on a recording (`livekit`) | Absent |
 | `system` | The backend itself, with no inbound request | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
 
@@ -272,6 +272,30 @@ Rooms are audited on the external API only.
 | `room.delete` | A room is deleted through the external API: soft deleted, its LiveKit room closed. Or the attempt fails | `entity.target` is the room, refusals included |
 | `room.retrieve` | A room is read through the external API, or the attempt fails | `entity.target` is the room |
 | `room.list` | Rooms are listed through the external API, or the attempt fails | `lasuite.details.total` |
+
+### Recordings, transcripts and summaries
+
+| `event.action` | Emitted when | Notable fields |
+|---|---|---|
+| `recording.start` | A room owner or administrator starts a recording, or the attempt fails: a recording already in progress, a worker error | `entity.target` is the recording, or the room when none was created. `lasuite.details.collect_metadata` |
+| `recording.stop` | A room owner or administrator stops the recording in progress, or the attempt fails | `entity.target` is the recording, or the room when none is active |
+| `recording.end` | LiveKit reports that a recording ended (`egress_ended` webhook): `success` when its media file is available, `failure` when it was aborted or failed, `unknown` for a status the backend does not map | `service.origin.name` is `livekit`. `entity.target` is the recording as it was before the report was processed. `lasuite.details.worker_event` (`completed`, `limit reached`, `aborted`, `failed`) and `error_code` |
+| `recording.delete` | A recording is deleted, or the attempt fails | `entity.target` is the recording |
+| `recording.transcript.request` | The backend sends a recording to the summary service to be transcribed, or fails to | `lasuite.actor.type` is `system`, `service.target.name` is `summary`, and `entity.target` is the recording. `lasuite.details.summary_requested` (whether a summary of the transcript is to be made too) and `job_id` |
+| `recording.transcript.report` | The summary service reports on a transcript (`external-process-hook`), or a call to that hook is refused | `service.origin.name` is `summary`. `entity.target` is the recording, absent for an unknown job. `lasuite.details.job_id` and `status`. A failure the service reports is recorded as a `failure` |
+| `recording.summary.report` | The summary service reports on a summary | Same as `recording.transcript.report` |
+
+A recording's target says what was recorded:
+
+- `mode` is how the media was captured: `screen_recording` for a video, `transcript` for an audio track;
+- `requested_mode` is what the user asked for;
+- `is_transcribed` says whether it is sent to the summary service.
+
+`mode` and `requested_mode` differ for a transcript started with a screen capture: `mode` is then `screen_recording`,
+and `requested_mode` is `transcript`.
+
+Transcripts and summaries are not recordings, but what the summary service derives from one. They are audited under
+`recording.transcript.*` and `recording.summary.*`, with the recording as their target.
 
 ### Sign-in and the admin
 
