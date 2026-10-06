@@ -218,11 +218,15 @@ export const Conference = ({
     )
   }
 
-  if (isRoomFull && data?.id && data.livekit?.token) {
+  const capacityArgs =
+    data?.id && data.livekit?.token
+      ? { roomId: data.id, token: data.livekit.token }
+      : undefined
+
+  if (isRoomFull && capacityArgs) {
     return (
       <WaitingForSeat
-        roomId={data.id}
-        token={data.livekit.token}
+        {...capacityArgs}
         onSeatFree={handleSeatFree}
         onCheckFailed={refreshPass}
       />
@@ -239,11 +243,10 @@ export const Conference = ({
    * failure as an unreachable server, so ask the backend which one it was.
    */
   const handleConnectionError = async (e: ConnectionError) => {
-    if (data?.id && data.livekit?.token) {
-      const capacity = await fetchRoomCapacity({
-        roomId: data.id,
-        token: data.livekit.token,
-      }).catch(() => undefined)
+    if (capacityArgs) {
+      const capacity = await fetchRoomCapacity(capacityArgs).catch(
+        () => undefined
+      )
       if (capacity?.is_full) {
         void captureEvent('room-full')
         setIsRoomFull(true)
