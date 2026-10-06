@@ -22,6 +22,6 @@ export const sanitizeCaption = (value: unknown) =>
     : ''
 
 export const sanitizeDimension = (value: unknown) => {
-  const parsed = Number.parseInt(String(value ?? ''), 10)
+  const parsed = typeof value === 'string' ? Number.parseInt(value, 10) : NaN
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
 }

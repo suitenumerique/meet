@@ -23,14 +23,15 @@ import { useChatMediaLimits } from './useChatMediaLimits'
  */
 const discard = async (reader: ByteStreamReader) => {
   try {
-    for await (const chunk of reader) void chunk
+    const chunks = reader[Symbol.asyncIterator]()
+    while (!(await chunks.next()).done);
   } catch {
     // Past its declared size the reader throws on every chunk, so the rest is
     // read from the queue it wraps. That queue is not public API: should an
     // upgrade rename it, failing loudly beats silently buffering again.
     const queue = (reader as unknown as { reader?: unknown }).reader
     if (!(queue instanceof ReadableStream)) {
-      throw new Error('livekit-client no longer exposes the stream queue')
+      throw new TypeError('livekit-client no longer exposes the stream queue')
     }
     try {
       const chunks = queue.getReader()
