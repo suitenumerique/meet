@@ -21,6 +21,7 @@ and this project adheres to
 - ✨(backend) add structured audit logging facility
 - ✨(backend) audit external API token and room operations
 - 🔒️(backend) audit writes and bulk actions made in the Django admin
+- ✨(backend) audit recordings, transcripts and summaries
 
 ### Changed
 

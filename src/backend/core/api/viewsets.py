@@ -40,7 +40,7 @@ from rest_framework import (
 )
 from rest_framework.settings import api_settings
 
-from core import analytics, enums, models, utils
+from core import analytics, audit, auditing, enums, models, utils
 from core.api import throttling
 from core.api.filters import ListFileFilter
 from core.enums import MEDIA_STORAGE_URL_PATTERN
@@ -168,6 +168,7 @@ class UserViewSet(
 
 
 class RoomViewSet(
+    audit.AuditViewMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -312,6 +313,7 @@ class RoomViewSet(
         permission_classes=[
             permissions.HasPrivilegesOnRoom,
         ],
+        audit_action=auditing.RECORDING_START,
     )
     @FeatureFlag.require("recording")
     def start_room_recording(self, request, pk=None):  # pylint: disable=unused-argument
@@ -348,6 +350,11 @@ class RoomViewSet(
                     role=models.RoleChoices.OWNER,
                     recording=recording,
                 )
+
+            self.audit_target = recording
+            self.audit_details = {
+                "collect_metadata": bool(recording.options.get("collect_metadata")),
+            }
 
         except (DjangoValidationError, IntegrityError):
             # DjangoValidationError covers the Python-level check (full_clean);
@@ -393,6 +400,7 @@ class RoomViewSet(
         permission_classes=[
             permissions.HasPrivilegesOnRoom,
         ],
+        audit_action=auditing.RECORDING_STOP,
     )
     @FeatureFlag.require("recording")
     def stop_room_recording(self, request, pk=None):  # pylint: disable=unused-argument
@@ -408,6 +416,8 @@ class RoomViewSet(
             raise drf_exceptions.NotFound(
                 "No active recording found for this room."
             ) from e
+
+        self.audit_target = recording
 
         worker_service = get_worker_service(mode=recording.mode)
         worker_manager = WorkerServiceMediator(worker_service=worker_service)
@@ -942,6 +952,7 @@ class ResourceAccessViewSet(
 
 
 class RecordingViewSet(
+    audit.AuditViewMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -955,6 +966,23 @@ class RecordingViewSet(
     permission_classes = [permissions.HasAbilityPermission]
     queryset = models.Recording.objects.all()
     serializer_class = serializers.RecordingSerializer
+
+    audit_actions = {"destroy": auditing.RECORDING_DELETE}
+    # What the summary service reports on, once its event is validated
+    audit_process_type = None
+
+    def get_audit_action(self):
+        """Audit a summary apart from the transcript it is made from."""
+        if self.audit_process_type == "summary":
+            return auditing.RECORDING_SUMMARY_REPORT
+        return super().get_audit_action()
+
+    def get_audit_fields(self, status_code, error=None):
+        """Report a failure of the summary service as one, though it is acknowledged."""
+        fields = super().get_audit_fields(status_code, error)
+        if status_code < 400 and (self.audit_details or {}).get("status") == "failure":
+            fields["outcome"] = audit.Outcome.FAILURE
+        return fields
 
     def get_queryset(self):
         """Restrict recordings to the user's ones."""
@@ -971,6 +999,7 @@ class RecordingViewSet(
         url_path="external-process-hook",
         authentication_classes=[RecordingProcessWebhookAuthentication],
         serializer_class=serializers.ExternalProcessEventSerializer,
+        audit_action=auditing.RECORDING_TRANSCRIPT_REPORT,
     )
     def on_external_process_event_received(self, request, pk=None):  # pylint: disable=unused-argument
         """Handle incoming external process events for recordings."""
@@ -984,11 +1013,15 @@ class RecordingViewSet(
 
         validated_data = serializer.validated_data
         job_id = validated_data["job_id"]
+        self.audit_process_type = validated_data.get("type")
+        self.audit_details = {"job_id": job_id, "status": validated_data.get("status")}
         try:
             recording = models.Recording.objects.get(external_process_id=job_id)
         except models.Recording.DoesNotExist as e:
             logger.warning("No recording found for job_id %s: %s", job_id, e)
             return ok_response
+
+        self.audit_target = recording
 
         if validated_data.get("type") == "transcript":
             if validated_data.get("status") == "success":

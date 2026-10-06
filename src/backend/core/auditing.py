@@ -34,6 +34,19 @@ ROOM_CREATE = audit.Action("room.create")
 ROOM_LIST = audit.Action("room.list")
 ROOM_RETRIEVE = audit.Action("room.retrieve")
 ROOM_UPDATE = audit.Action("room.update")
+RECORDING_START = audit.Action("recording.start", types=(EventType.START,))
+RECORDING_STOP = audit.Action("recording.stop", types=(EventType.END,))
+RECORDING_END = audit.Action("recording.end", types=(EventType.END,))
+RECORDING_DELETE = audit.Action("recording.delete", types=(EventType.DELETION,))
+RECORDING_TRANSCRIPT_REQUEST = audit.Action(
+    "recording.transcript.request", types=(EventType.START,)
+)
+RECORDING_TRANSCRIPT_REPORT = audit.Action(
+    "recording.transcript.report", types=(EventType.END,)
+)
+RECORDING_SUMMARY_REPORT = audit.Action(
+    "recording.summary.report", types=(EventType.END,)
+)
 
 # Models
 
@@ -75,7 +88,7 @@ audit.register(
 )
 audit.register(
     models.Recording,
-    fields=("room_id", "status", "mode"),
+    fields=("room_id", "status", "mode", "requested_mode", "is_transcribed"),
     admin_values=("status", "mode"),
 )
 audit.register(models.File, admin_values=("title", "upload_state"))

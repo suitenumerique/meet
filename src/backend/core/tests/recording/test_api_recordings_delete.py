@@ -5,6 +5,7 @@ Test recordings API endpoints in the Meet core app: delete.
 import pytest
 from rest_framework.test import APIClient
 
+from ...audit.testing import capture_audit, find_events
 from ...factories import RecordingFactory, UserFactory, UserRecordingAccessFactory
 from ...models import Recording
 
@@ -112,3 +113,24 @@ def test_api_recordings_delete_final(role):
 
     assert response.status_code == 204
     assert Recording.objects.count() == 0
+
+
+def test_api_recordings_delete_is_audited():
+    """A deleted recording is still identified by the event."""
+    user = UserFactory()
+    recording = RecordingFactory(status="saved", mode="transcript")
+    UserRecordingAccessFactory(role="owner", user=user, recording=recording)
+    client = APIClient()
+    client.force_login(user)
+
+    with capture_audit() as events:
+        response = client.delete(f"/api/v1.0/recordings/{recording.id}/")
+
+    assert response.status_code == 204
+
+    [event] = find_events(events, "recording.delete")
+
+    assert event["event"]["type"] == ["deletion"]
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["lasuite"]["target"]["id"] == str(recording.id)
+    assert event["lasuite"]["target"]["mode"] == "transcript"

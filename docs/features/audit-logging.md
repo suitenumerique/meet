@@ -57,7 +57,7 @@ Standard fields follow the [Elastic Common Schema](https://www.elastic.co/guide/
 | `event.reason` | Why it did not succeed: `authentication_failed`, `permission_denied`, `rate_limited`, `validation_error`, `not_found`, `conflict`, `internal_error` |
 | `lasuite.outcome` | `success`, `failure` or `denied` |
 | `lasuite.actor.type` | `user`, `application`, `service`, `system` or `anonymous`, see [Actors](#actors) |
-| `lasuite.actor.name` | Name of a `service` actor: `roomkit`, `summary` |
+| `lasuite.actor.name` | Name of a `service` actor: `roomkit`, `summary`, `livekit` |
 | `lasuite.auth.method` | `session`, `application_jwt`, `addons_jwt`, `resource_server`, `livekit_token`, `shared_secret`, `client_credentials`, `oidc`, `password`, `none`, or `unknown` for a class that is not registered. Requests served outside DRF, as the admin and logout are, report `session` when signed in |
 | `lasuite.application.client_id` | The external application acting, when there is one. Only set once its credentials are verified |
 | `user.id`, `user.sub`, `user.domain` | The account whose authority the action used, see [Actors](#actors): primary key, OIDC sub when the account has one, and email domain. The email address is never recorded |
@@ -84,7 +84,7 @@ An audited API action that raises an exception DRF does not handle is still reco
 |---|---|---|
 | `user` | A person's account acting for itself: session, OIDC or password login, add-on token, LiveKit token of a known account | That account |
 | `application` | A client application acting on behalf of a user: a Meet application through its client credentials or its delegated token, or another La Suite application through the resource server. `lasuite.application.client_id` names it | The delegating user |
-| `service` | An internal peer of the deployment acting on its own behalf: the LiveKit SIP bridge (`roomkit`), the summary service (`summary`). | Absent |
+| `service` | An internal peer of the deployment : the LiveKit SIP bridge (`roomkit`), the summary service (`summary`), the LiveKit server reporting on a recording (`livekit`) | Absent |
 | `system` | The backend itself, with no inbound request | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
 
@@ -101,10 +101,25 @@ an account a user. An event emitted with neither a request nor an actor is the s
 | `room.update` | A room is updated through the external API, or the attempt fails | `lasuite.target` = room, refusals included, `lasuite.details.updated_fields`, `previous_access_level` |
 | `room.retrieve` | A room is read through the external API, or the attempt fails | `lasuite.target` = room |
 | `room.list` | Rooms are listed through the external API, or the attempt fails | `lasuite.details.total` |
+| `recording.start` | A room owner or administrator starts a recording, or the attempt fails: conflict with a recording in progress, worker error | `lasuite.target` = recording, or the room when none was created, `lasuite.details.collect_metadata` |
+| `recording.stop` | A room owner or administrator stops the recording in progress, or the attempt fails | `lasuite.target` = recording, or the room when none is active |
+| `recording.end` | LiveKit reports a recording ended (`egress_ended` webhook): `success` when its media file is available, `failure` when it was aborted or failed | `lasuite.actor.name` = `livekit`, `lasuite.target` = recording, as it was before the report is processed, `lasuite.details.worker_event` (`completed`, `limit reached`, `aborted`, `failed`), `error_code` |
+| `recording.delete` | A recording is deleted, or the attempt fails | `lasuite.target` = recording |
+| `recording.transcript.request` | The backend sends a recording to the summary service to be transcribed, or fails to | `lasuite.actor.type` = `system`, `lasuite.target` = recording, `lasuite.details.summary_requested`: whether a summary is to be made of the transcript, `job_id` |
+| `recording.transcript.report` | The summary service reports on a transcript (`external-process-hook`), or a call to the hook is refused | `lasuite.actor.name` = `summary`, `lasuite.target` = recording, absent for an unknown job, `lasuite.details.job_id`, `status`. A reported `failure` is a `failure` |
+| `recording.summary.report` | The summary service reports on a summary | As `recording.transcript.report` |
 | `user.login` | A user logs in or a login attempt fails, `denied` with reason `authentication_failed` | `lasuite.auth.method` = `oidc` or `password`, or `unknown`: named after the backend on success, `lasuite.details.auth_backend`, and after the credentials submitted on failure (a password, or the nonce of the OIDC callback) |
 | `user.logout` | A user logs out | |
 | `admin.access` | A signed-in account without staff access reaches an admin page (always denied), once per refused page | `event.reason`, `http.response.status_code`: the redirect to the login page |
 | `admin.<target>.<verb>` | A write is made through the Django admin, see below | |
+
+### Recordings, transcripts and summaries
+
+A recording's target carries what was recorded: `mode` is how the media was captured (`screen_recording`, a video;
+`transcript`, an audio track), `requested_mode` what the user asked for, and `is_transcribed` whether it is sent to
+the summary service. They differ for a transcript started with a screen capture: `mode` is `screen_recording`,
+`requested_mode` `transcript`. A transcript and a summary are not recordings but what the summary service derives
+from one, audited under `recording.transcript.*` and `recording.summary.*` with the recording as their target.
 
 Actions are always dotted, lower-case, with the format `<target>.<verb>`, and name what was attempted: whether it
 succeeded is told by `event.outcome`, `lasuite.outcome` and `event.reason`, never by the action.

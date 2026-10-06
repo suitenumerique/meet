@@ -703,6 +703,22 @@ class Recording(BaseModel):
         return self.status in RecordingStatusChoices.saved_statuses()
 
     @property
+    def requested_mode(self) -> str:
+        """Return the mode the user asked for.
+
+        A transcript started with a screen capture is stored as a screen
+        recording, which keeps the transcript as its original mode.
+        """
+        return (self.options or {}).get("original_mode") or self.mode
+
+    @property
+    def is_transcribed(self) -> bool:
+        """Tell whether the recording is sent to the summary service."""
+        return self.mode == RecordingModeChoices.TRANSCRIPT or bool(
+            (self.options or {}).get("transcribe", False)
+        )
+
+    @property
     def extension(self):
         """Get recording extension based on its mode."""
         extensions = {
