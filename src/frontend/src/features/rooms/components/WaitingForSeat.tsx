@@ -29,13 +29,9 @@ export const WaitingForSeat = ({
   const { data: apiConfig } = useConfig()
   const limit = apiConfig?.room_max_participants
 
-  // The first ask waits an interval: the room count lags a join, so an early ask
-  // after a lost race reads as not full.
   const { data } = useQuery({
     queryKey: [keys.roomCapacity, roomId],
     queryFn: () => fetchRoomCapacity({ roomId, token }),
-    initialData: { is_full: true },
-    refetchOnMount: false,
     refetchInterval: SEAT_POLL_INTERVAL,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: false,
