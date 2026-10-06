@@ -23,6 +23,7 @@ and this project adheres to
 
 - ✨(frontend) warn users when the connection falls back to TURN
 - 🔧(backend) configure the technical documentation url
+- 🔒️(devex) bind ports in compose.yaml to localhost
 
 ### Fixed
 
