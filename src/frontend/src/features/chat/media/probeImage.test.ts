@@ -26,7 +26,8 @@ const gif = (frames: number) =>
 
 // prettier-ignore
 const pngChunk = (type: string, length = 0) => [
-  0x00, 0x00, 0x00, length, ...ascii(type),
+  (length >>> 24) & 0xff, (length >>> 16) & 0xff, (length >>> 8) & 0xff, length & 0xff,
+  ...ascii(type),
   ...new Array(length).fill(0),
   0x00, 0x00, 0x00, 0x00,
 ]
@@ -79,6 +80,21 @@ describe('isAnimated', () => {
     expect(
       await animated(
         png([pngChunk('IHDR', 13), pngChunk('acTL', 8), pngChunk('IDAT', 2)]),
+        'image/png'
+      )
+    ).toBe(true)
+  })
+
+  it('reads past the head of a PNG whose acTL comes late', async () => {
+    const profile = pngChunk('iCCP', 70_000)
+    expect(
+      await animated(
+        png([
+          pngChunk('IHDR', 13),
+          profile,
+          pngChunk('acTL', 8),
+          pngChunk('IDAT', 2),
+        ]),
         'image/png'
       )
     ).toBe(true)

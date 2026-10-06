@@ -76,8 +76,11 @@ function isAnimatedGif(bytes: Uint8Array): boolean {
 const PNG_ANIMATION_CONTROL = [0x61, 0x63, 0x54, 0x4c]
 const PNG_IMAGE_DATA = [0x49, 0x44, 0x41, 0x54]
 
-/** An APNG declares `acTL` before its first `IDAT`; a still PNG never does. */
-function isAnimatedPng(bytes: Uint8Array): boolean {
+/**
+ * An APNG declares `acTL` before its first `IDAT`; a still PNG never does.
+ * Null when the bytes end before either.
+ */
+function isAnimatedPng(bytes: Uint8Array): boolean | null {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   let i = 8
   while (i + 8 <= bytes.length) {
@@ -86,7 +89,7 @@ function isAnimatedPng(bytes: Uint8Array): boolean {
     // Length, type and CRC around the chunk's data.
     i += 12 + view.getUint32(i)
   }
-  return false
+  return null
 }
 
 /** An animated WebP sets the animation flag of its leading `VP8X` chunk. */
@@ -95,18 +98,24 @@ const isAnimatedWebp = (bytes: Uint8Array) =>
 
 const readBytes = async (blob: Blob) => new Uint8Array(await blob.arrayBuffer())
 
+/** Where a PNG's first `IDAT` almost always sits, past any colour profile. */
+const PNG_HEAD_BYTES = 64 * 1024
+
 /**
  * Whether the image carries more than one frame. Reducing one through a canvas
  * keeps the first frame alone, so an animation over the cap is refused instead.
  * Reads only as much of the file as its format needs: none of a JPEG, the
- * header of a WebP.
+ * header of a WebP, the head of a PNG.
  */
 export async function isAnimated(
   blob: Blob,
   mimeType: string
 ): Promise<boolean> {
   if (mimeType === 'image/gif') return isAnimatedGif(await readBytes(blob))
-  if (mimeType === 'image/png') return isAnimatedPng(await readBytes(blob))
+  if (mimeType === 'image/png') {
+    const head = isAnimatedPng(await readBytes(blob.slice(0, PNG_HEAD_BYTES)))
+    return head ?? !!isAnimatedPng(await readBytes(blob))
+  }
   if (mimeType === 'image/webp')
     return isAnimatedWebp(await readBytes(blob.slice(0, 21)))
   return false

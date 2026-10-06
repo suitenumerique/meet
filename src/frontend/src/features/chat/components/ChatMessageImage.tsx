@@ -1,12 +1,14 @@
 import { useState } from 'react'
+import { useSnapshot } from 'valtio'
 import { ProgressBar } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
 import { Text } from '@/primitives'
-import type { ChatMediaRow } from '@/stores/chat'
+import { mediaProgress, type ChatMediaRow } from '@/stores/chat'
 import { MAX_ASPECT_RATIO } from '../media/constants'
 import { ChatImageLightbox } from './ChatImageLightbox'
+import { ChatMessageBody } from './ChatMessageBody'
 
 const StyledFigure = styled('figure', {
   base: {
@@ -16,6 +18,19 @@ const StyledFigure = styled('figure', {
     margin: 0,
     maxWidth: '100%',
   },
+})
+
+const progressTrack = css({
+  height: '4px',
+  borderRadius: 'full',
+  backgroundColor: 'greyscale.200',
+  overflow: 'hidden',
+})
+
+const progressFill = css({
+  height: '100%',
+  backgroundColor: 'primary.500',
+  transition: 'width 150ms linear',
 })
 
 const StyledFrame = styled('div', {
@@ -51,6 +66,8 @@ type ChatMessageImageProps = {
 export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
   const [isOpen, setIsOpen] = useState(false)
+  // Read here alone, so a step re-renders this row and not the list.
+  const progress = useSnapshot(mediaProgress)[item.id]
 
   if (item.status === 'failed') {
     return (
@@ -68,25 +85,14 @@ export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
         />
         <ProgressBar
           aria-label={t('receiving')}
-          value={(item.progress ?? 0) * 100}
-          isIndeterminate={item.progress == null}
+          value={(progress ?? 0) * 100}
+          isIndeterminate={progress == null}
           className={css({ width: '100%' })}
         >
           {({ percentage }) => (
-            <div
-              className={css({
-                height: '4px',
-                borderRadius: 'full',
-                backgroundColor: 'greyscale.200',
-                overflow: 'hidden',
-              })}
-            >
+            <div className={progressTrack}>
               <div
-                className={css({
-                  height: '100%',
-                  backgroundColor: 'primary.500',
-                  transition: 'width 150ms linear',
-                })}
+                className={progressFill}
                 style={{ width: `${percentage ?? 100}%` }}
               />
             </div>
@@ -113,9 +119,6 @@ export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
             border: 'none',
             background: 'none',
             cursor: 'pointer',
-            '&:focus-visible': {
-              outline: '2px solid token(colors.primary.500)',
-            },
           })}
           data-attr="chat-open-image"
         >
@@ -138,15 +141,7 @@ export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
         isOpen={isOpen}
         onOpenChange={setIsOpen}
       />
-      {!!item.caption && (
-        <Text
-          variant="sm"
-          margin={false}
-          className={css({ whiteSpace: 'pre-wrap' })}
-        >
-          {item.caption}
-        </Text>
-      )}
+      {!!item.caption && <ChatMessageBody message={item.caption} />}
     </StyledFigure>
   )
 }

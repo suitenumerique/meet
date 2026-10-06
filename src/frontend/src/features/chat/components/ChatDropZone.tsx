@@ -14,9 +14,8 @@ export const ChatDropZone = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
   const { stage, limits } = useSendChatMedia()
 
-  // Any file is taken, whatever type the operating system declares for it:
-  // `stage` reads the bytes and says why one cannot be sent, where a refused
-  // drop would say nothing, and a file saved without an extension declares none.
+  // Any file is taken, whatever type the system declares: `stage` reads the
+  // bytes and says why one cannot be sent, where a refused drop says nothing.
   return (
     <DropZone
       isDisabled={!limits.enabled}

@@ -20,15 +20,8 @@ import { sanitizeCaption } from './sanitize'
 import { useChatMediaLimits } from './useChatMediaLimits'
 
 /**
- * An image and its caption are one byte stream. The caption travels in the
- * stream's attributes rather than as a second chat message, so the two arrive
- * together, nothing has to pair them afterwards, and an attachment cannot be
- * forged by typing a marker into the message box.
- *
- * Written with `streamBytes` rather than `sendFile`. The convenience wrapper
- * accepts only a topic, a MIME type and destinations, dropping the three fields
- * this needs: the attributes carrying the caption, the name that replaces the
- * real filename, and the total size that lets a receiver show a percentage.
+ * An image and its caption are one byte stream, so they arrive together. It
+ * uses `streamBytes`, since `sendFile` drops the attributes, name and size.
  */
 export const useSendChatMedia = () => {
   const room = useRoomContext()
@@ -44,7 +37,8 @@ export const useSendChatMedia = () => {
       // Staging mid-send would replace the attachment the send is about to
       // hand to the sender's own row, and a second staging still reducing
       // would land after this one and replace it.
-      if (chatStore.isSendingMedia || chatStore.isPreparing) return
+      if (!limits.enabled || chatStore.isSendingMedia || chatStore.isPreparing)
+        return
       chatStore.isPreparing = true
       chatStore.mediaFailure = undefined
       let previewUrl: string | undefined
@@ -90,8 +84,6 @@ export const useSendChatMedia = () => {
         }
 
         stageAttachment({
-          // A Blob keeps its bytes in an internal slot a proxy cannot forward,
-          // so valtio must store it as-is.
           blob: ref(payload),
           mimeType,
           previewUrl,

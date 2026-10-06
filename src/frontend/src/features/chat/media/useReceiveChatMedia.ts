@@ -43,14 +43,8 @@ const discard = async (reader: ByteStreamReader) => {
 }
 
 /**
- * Receives images sent on the chat media topic.
- *
- * Everything the sender declares is treated as hostile, because a room admits
- * unauthenticated participants: a stream must declare a size within the cap
- * before it is read, the read fails once the bytes pass that size, the
- * declared MIME type is ignored in favour of the payload's own leading bytes,
- * and the result must decode as an image within the pixel cap before it is
- * shown.
+ * Receives images on the chat media topic, trusting nothing the sender
+ * declares, since a meeting admits guests without an account.
  */
 export const useReceiveChatMedia = () => {
   const room = useRoomContext()

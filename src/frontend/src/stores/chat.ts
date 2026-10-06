@@ -32,8 +32,6 @@ export type ChatMediaRow = ChatRowBase & {
   width?: number
   height?: number
   status: 'receiving' | 'ready' | 'failed'
-  /** Between 0 and 1, or undefined while the total size is unknown. */
-  progress?: number
   objectUrl?: string
   error?: ChatMediaError
 }
@@ -53,7 +51,7 @@ export type PendingAttachment = {
   height: number
 }
 
-export type ChatMediaFailure =
+type ChatMediaFailure =
   | 'type_not_allowed'
   | 'too_large'
   | 'animation_too_large'
@@ -88,6 +86,12 @@ const initialState: State = {
 }
 
 export const chatStore = proxy<State>({ ...initialState })
+
+/**
+ * Receiving progress per media row id, between 0 and 1, kept apart from the
+ * rows: in them, every step would re-render the whole message list.
+ */
+export const mediaProgress = proxy<Record<string, number | undefined>>({})
 
 const GROUPING_WINDOW_MS = 60_000
 
@@ -208,7 +212,7 @@ type NewMediaRow = {
 
 function pushMediaRow(
   { name, ...row }: NewMediaRow,
-  state: Pick<ChatMediaRow, 'isLocal' | 'status' | 'progress' | 'objectUrl'>
+  state: Pick<ChatMediaRow, 'isLocal' | 'status' | 'objectUrl'>
 ) {
   const timestamp = Date.now()
   rememberName(row.identity, name)
@@ -243,7 +247,8 @@ export function appendLocalMediaRow(row: NewMediaRow, objectUrl: string) {
  */
 export function appendReceivingMediaRow(row: NewMediaRow) {
   if (findMediaRow(row.id)) return false
-  pushMediaRow(row, { isLocal: false, status: 'receiving', progress: 0 })
+  pushMediaRow(row, { isLocal: false, status: 'receiving' })
+  mediaProgress[row.id] = 0
   countAsUnread()
   return true
 }
@@ -255,8 +260,7 @@ function findMediaRow(id: string) {
 }
 
 export function updateMediaProgress(id: string, progress: number | undefined) {
-  const row = findMediaRow(id)
-  if (row) row.progress = progress
+  mediaProgress[id] = progress
 }
 
 export function resolveMediaRow(
@@ -265,6 +269,7 @@ export function resolveMediaRow(
   mimeType: string,
   size: { width: number; height: number }
 ) {
+  delete mediaProgress[id]
   const row = findMediaRow(id)
   if (!row) {
     URL.revokeObjectURL(objectUrl)
@@ -280,6 +285,7 @@ export function resolveMediaRow(
 }
 
 export function failMediaRow(id: string, error: ChatMediaError) {
+  delete mediaProgress[id]
   const row = findMediaRow(id)
   if (!row) return
   row.status = 'failed'
@@ -303,6 +309,7 @@ export function resetChatStore() {
 
   isChatVisible = false
   copiedMessages = 0
+  for (const id of Object.keys(mediaProgress)) delete mediaProgress[id]
   Object.assign(chatStore, {
     ...initialState,
     rows: [],

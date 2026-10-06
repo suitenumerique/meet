@@ -5,7 +5,6 @@ import { css } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
 import { Button, Text } from '@/primitives'
 import { chatStore, clearPendingAttachment } from '@/stores/chat'
-import { useChatMediaLimits } from '../media/useChatMediaLimits'
 
 const StyledRow = styled('div', {
   base: {
@@ -27,11 +26,9 @@ export const ChatPendingAttachment = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
   const { pendingAttachment, isPreparing, isSendingMedia, mediaFailure } =
     useSnapshot(chatStore)
-  const { enabled } = useChatMediaLimits()
 
-  // A failed send keeps the staged image, so the error is shown beside it
-  // rather than in place of it: a participant whose send failed still needs
-  // the thumbnail and the remove button to retry or give up.
+  // Shown beside the staged image, not instead of it: after a failed send the
+  // participant still needs the thumbnail and remove button to retry.
   const failure = mediaFailure && (
     <StyledRow role="alert">
       <Text variant="smNote" margin={false}>
@@ -39,8 +36,6 @@ export const ChatPendingAttachment = () => {
       </Text>
     </StyledRow>
   )
-
-  if (!enabled) return null
 
   if (isPreparing) {
     return (

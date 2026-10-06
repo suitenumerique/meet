@@ -5,15 +5,11 @@ Test the frontend configuration endpoint.
 from rest_framework.test import APIClient
 
 
-def test_api_config_is_public():
-    """The configuration is readable without authentication."""
-    response = APIClient().get("/api/v1.0/config/")
-
-    assert response.status_code == 200
-
-
 def test_api_config_chat_media_defaults():
-    """Chat media is advertised with its default limits and enabled by default."""
+    """
+    Chat media is advertised without authentication, enabled, with its default
+    limits. SVG is never among them, since it can execute script once rendered.
+    """
     response = APIClient().get("/api/v1.0/config/")
 
     assert response.status_code == 200
@@ -27,15 +23,6 @@ def test_api_config_chat_media_defaults():
             "image/gif",
         ],
     }
-
-
-def test_api_config_chat_media_excludes_svg():
-    """SVG is never advertised, it can execute script once rendered."""
-    response = APIClient().get("/api/v1.0/config/")
-
-    chat_media = response.json()["chat_media"]
-
-    assert "image/svg+xml" not in chat_media["allowed_mimetypes"]
 
 
 def test_api_config_chat_media_disabled(settings):

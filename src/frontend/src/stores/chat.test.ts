@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { snapshot } from 'valtio'
 import type { ReceivedChatMessage } from '@livekit/components-core'
 import {
   appendNewMessages,
   appendReceivingMediaRow,
   chatStore,
+  mediaProgress,
   resetChatStore,
   resolveMediaRow,
+  updateMediaProgress,
 } from './chat'
 
 const message = (id: string, text: string) =>
@@ -53,5 +56,15 @@ describe('chat rows', () => {
     resolveMediaRow('img', 'blob:img', 'image/png', { width: 64, height: 48 })
     const row = chatStore.rows[0]
     expect(row.kind === 'media' && [row.width, row.height]).toEqual([64, 48])
+  })
+
+  it('keeps receiving progress apart from the rows, until the image resolves', () => {
+    appendReceivingMediaRow(image('img'))
+    const before = snapshot(chatStore).rows
+    updateMediaProgress('img', 0.5)
+    expect(mediaProgress.img).toBe(0.5)
+    expect(snapshot(chatStore).rows).toBe(before)
+    resolveMediaRow('img', 'blob:img', 'image/png', { width: 1, height: 1 })
+    expect('img' in mediaProgress).toBe(false)
   })
 })

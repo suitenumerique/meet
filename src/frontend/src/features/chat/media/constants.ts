@@ -5,19 +5,6 @@
  */
 export const CHAT_MEDIA_TOPIC = 'chat-media'
 
-/**
- * Used until `/config/` answers, and when it cannot be reached. The backend is
- * authoritative: these mirror the defaults in `CHAT_MEDIA_*` settings.
- */
-export const FALLBACK_MAX_SIZE = 5 * 1024 * 1024
-
-export const FALLBACK_ALLOWED_MIMETYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-]
-
 /** Long edge of a downscaled image, in pixels. */
 export const DOWNSCALE_LONG_EDGE = 2048
 

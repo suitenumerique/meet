@@ -5,18 +5,8 @@ import {
 } from './constants'
 
 /**
- * Reduces an over-cap image by drawing it smaller and re-encoding it as the
- * first of `DOWNSCALE_TYPES` the allowlist accepts and the browser can encode.
- * Null when there is none: a browser falls back to PNG for a type it cannot
- * encode, so each result's type is checked rather than assumed.
- *
- * Only reached when the image exceeds the size or the pixel cap. Under both
- * the bytes are sent untouched, because re-encoding a screenshot that was
- * already lossless costs exactly the legibility the feature exists for.
- *
- * A side effect worth knowing: canvas copies pixels and nothing else, so the
- * result carries no metadata. That is not this function's job, and stripping
- * metadata generally is a separate change.
+ * The image redrawn smaller, as the first of `DOWNSCALE_TYPES` allowed and
+ * encodable, or null. A browser falls back to PNG, so each type is checked.
  */
 export async function downscaleImage(
   file: File,
