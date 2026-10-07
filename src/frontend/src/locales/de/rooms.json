@@ -858,7 +858,8 @@
       "close": "Räume schließen",
       "join": "Beitreten",
       "joinRoom": "{{room}} beitreten",
-      "backToMain": "Zurück zum Hauptraum"
+      "backToMain": "Zurück zum Hauptraum",
+      "mainRoom": "Hauptraum"
     },
     "participant": {
       "chatRoom": "{{room}}: Nachrichten erreichen diesen Raum",

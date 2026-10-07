@@ -12,16 +12,19 @@ import {
   useRoomInfo,
 } from '@livekit/components-react'
 import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
-import { readSplit } from '../utils/split'
+import { MAIN_ROOM, readSplit } from '../utils/split'
+import { useAssignablePeople } from '../hooks/useAssignablePeople'
 import {
   breakoutSessionKey,
   closeBreakoutSession,
   fetchBreakoutSession,
   moveBreakoutParticipant,
   type BreakoutSession,
+  type MoveBreakoutParticipant,
 } from '../api'
 import { BreakoutSetup } from './BreakoutSetup'
 import { ErrorNote } from './ErrorNote'
+import { PersonRow } from './PersonRow'
 
 const ActiveSession = ({
   roomId,
@@ -45,27 +48,51 @@ const ActiveSession = ({
       getParticipantName(p),
     ])
   )
-  const namesHere = (room: BreakoutSession['rooms'][number]) =>
-    room.participants.flatMap((p) => here.get(p.identity) ?? []).join(', ')
   const close = useMutation({
     mutationFn: () => closeBreakoutSession(roomId, session.id),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: breakoutSessionKey(roomId) }),
   })
-  // The host sends their own browser to a room, or to the main room on null.
   const move = useMutation({
-    mutationFn: (position: number | null) =>
-      moveBreakoutParticipant(roomId, session.id, {
-        identity: localParticipant.identity,
-        room: position,
-      }),
+    mutationFn: (body: MoveBreakoutParticipant) =>
+      moveBreakoutParticipant(roomId, session.id, body),
     onSuccess: (moved) =>
       queryClient.setQueryData(breakoutSessionKey(roomId), moved),
     onError: () =>
       queryClient.invalidateQueries({ queryKey: breakoutSessionKey(roomId) }),
   })
+
+  // The main room holds whoever is here and in no room, latecomers included.
+  const { people } = useAssignablePeople()
+  const assigned = new Set(
+    session.rooms.flatMap((room) => room.participants.map((p) => p.identity))
+  )
+  const groups = [
+    ...session.rooms.map((room, position) => ({
+      position,
+      name: room.name,
+      people: room.participants.flatMap((p) => {
+        const name = here.get(p.identity)
+        return name === undefined ? [] : [{ identity: p.identity, name }]
+      }),
+    })),
+    {
+      position: MAIN_ROOM,
+      name: t('active.mainRoom'),
+      people: people.filter((p) => !assigned.has(p.identity)),
+    },
+  ]
+  const roomItems = groups.map((group) => ({
+    value: group.position,
+    label: group.name,
+  }))
+  const moveTo = (identity: string, from: number, to: number) => {
+    if (to === from) return
+    move.mutate({ identity, room: to === MAIN_ROOM ? null : to })
+  }
+  const me = { identity: localParticipant.identity }
   const isMine = (room: BreakoutSession['rooms'][number]) =>
-    room.participants.some((p) => p.identity === localParticipant.identity)
+    room.participants.some((p) => p.identity === me.identity)
   const isInARoom = session.rooms.some(isMine)
 
   return (
@@ -77,32 +104,47 @@ const ActiveSession = ({
           gap: '0.75rem',
         })}
       >
-        {session.rooms.map((room, position) => (
-          <li
-            key={room.id}
-            className={css({
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            })}
-          >
-            <div className={css({ flexGrow: 1 })}>
-              <Text variant="bodyXsBold">{room.name}</Text>
-              <Text variant="xsNote" wrap="pretty">
-                {namesHere(room) || t('active.empty')}
+        {groups.map((group) => (
+          <li key={group.position}>
+            <div
+              className={css({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              })}
+            >
+              <Text variant="bodyXsBold" className={css({ flexGrow: 1 })}>
+                {group.name}
               </Text>
+              {canMove &&
+                group.position !== MAIN_ROOM &&
+                !isMine(session.rooms[group.position]) && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label={t('active.joinRoom', { room: group.name })}
+                    isDisabled={move.isPending}
+                    onPress={() => move.mutate({ ...me, room: group.position })}
+                  >
+                    {t('active.join')}
+                  </Button>
+                )}
             </div>
-            {canMove && !isMine(room) && (
-              <Button
-                variant="secondary"
-                size="sm"
-                aria-label={t('active.joinRoom', { room: room.name })}
-                isDisabled={move.isPending}
-                onPress={() => move.mutate(position)}
-              >
-                {t('active.join')}
-              </Button>
+            {group.people.length === 0 && (
+              <Text variant="xsNote">{t('active.empty')}</Text>
             )}
+            <ul>
+              {group.people.map((p) => (
+                <PersonRow
+                  key={p.identity}
+                  name={p.name}
+                  items={roomItems}
+                  selectedKey={group.position}
+                  isDisabled={!canMove || move.isPending}
+                  onChange={(to) => moveTo(p.identity, group.position, to)}
+                />
+              ))}
+            </ul>
           </li>
         ))}
       </ul>
@@ -112,7 +154,7 @@ const ActiveSession = ({
           variant="secondary"
           fullWidth
           isDisabled={move.isPending}
-          onPress={() => move.mutate(null)}
+          onPress={() => move.mutate({ ...me, room: null })}
         >
           {t('active.backToMain')}
         </Button>
@@ -148,7 +190,7 @@ export const BreakoutPanel = () => {
     enabled: !!roomId,
     retry: false,
   })
-  // Another host opened, joined a room or closed: refetch, and keep showing
+  // Another host opened, moved someone or closed: refetch, and keep showing
   // the current session until the answer lands.
   const seen = useRef(announced)
   useEffect(() => {

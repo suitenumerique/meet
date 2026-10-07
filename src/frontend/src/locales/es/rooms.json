@@ -853,7 +853,8 @@
       "close": "Cerrar salas",
       "join": "Unirse",
       "joinRoom": "Unirse a {{room}}",
-      "backToMain": "Volver a la sala principal"
+      "backToMain": "Volver a la sala principal",
+      "mainRoom": "Sala principal"
     },
     "participant": {
       "chatRoom": "{{room}}: los mensajes llegan a esta sala",

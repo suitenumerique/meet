@@ -79,7 +79,7 @@ afterEach(() => {
 })
 
 describe('BreakoutPanel', () => {
-  it('refetches when someone changes room in the same session', async () => {
+  it('refetches when someone is moved elsewhere in the same session', async () => {
     vi.mocked(fetchBreakoutSession).mockResolvedValue(session)
     announce('s1')
     const { rerender } = render(ui())
@@ -165,6 +165,40 @@ describe('BreakoutPanel', () => {
     expect(await screen.findByRole('alert')).toBeTruthy()
     await waitFor(() =>
       expect(vi.mocked(fetchBreakoutSession).mock.calls.length).toBe(calls + 1)
+    )
+  })
+
+  it('moves one person to another room, and shows where they went', async () => {
+    const alice = { identity: 'alice' }
+    h.remotes = [{ identity: 'alice', name: 'Alice' }]
+    vi.mocked(fetchBreakoutSession).mockResolvedValue({
+      ...session,
+      rooms: [
+        { id: 'r1', name: 'Room 1', participants: [alice] },
+        { id: 'r2', name: 'Room 2', participants: [] },
+      ],
+    })
+    vi.mocked(moveBreakoutParticipant).mockResolvedValueOnce({
+      ...session,
+      rooms: [
+        { id: 'r1', name: 'Room 1', participants: [] },
+        { id: 'r2', name: 'Room 2', participants: [alice] },
+      ],
+    })
+    render(ui())
+    fireEvent.click(
+      await screen.findByRole('button', { name: /setup\.assign/ })
+    )
+    fireEvent.click(await screen.findByRole('option', { name: 'Room 2' }))
+    await waitFor(() =>
+      expect(moveBreakoutParticipant).toHaveBeenCalledWith('room-1', 's1', {
+        identity: 'alice',
+        room: 1,
+      })
+    )
+    // Room 1 and the main room are empty now, Alice is in Room 2.
+    await waitFor(() =>
+      expect(screen.getAllByText('active.empty')).toHaveLength(2)
     )
   })
 

@@ -1,25 +1,19 @@
 import { useMutation } from '@tanstack/react-query'
-import {
-  useLocalParticipant,
-  useRemoteParticipants,
-} from '@livekit/components-react'
-import { RoomEvent } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { RiShuffleLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { Button, Text } from '@/primitives'
-import { Select } from '@/primitives/Select'
 import { queryClient } from '@/api/queryClient'
 import { breakoutSessionKey, createBreakoutSession } from '../api'
 import { breakoutSetupStore, resetBreakoutSetup } from '../store'
-import { buildRooms, isAssignable, shuffleAssignments } from '../utils/setup'
+import { buildRooms, shuffleAssignments } from '../utils/setup'
 import { MAIN_ROOM } from '../utils/split'
-import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 import { ErrorNote } from './ErrorNote'
+import { PersonRow } from './PersonRow'
 import { RoomCountField } from './RoomCountField'
+import { useAssignablePeople } from '../hooks/useAssignablePeople'
 import { useOpenShortcut } from '../hooks/useOpenShortcut'
-import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { useRoomMetadata } from '@/features/recording/hooks/useRoomMetadata'
 import { RecordingStatus } from '@/features/recording/hooks/useRecordingStatuses'
 
@@ -31,28 +25,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
   // In the store, so switching panels keeps the plan.
   const { roomCount, assignments } = useSnapshot(breakoutSetupStore)
 
-  // Joins and leaves always update; a name or a role is all else the list reads.
-  const { localParticipant } = useLocalParticipant()
-  const remotes = useRemoteParticipants({
-    updateOnlyOn: [
-      RoomEvent.ParticipantNameChanged,
-      RoomEvent.ParticipantAttributesChanged,
-    ],
-  })
-  const people = [localParticipant, ...remotes]
-    .filter(isAssignable)
-    .map((p) => ({
-      identity: p.identity,
-      name: getParticipantName(p),
-      isHost: getParticipantIsRoomAdminOrOwner(p),
-    }))
-  // "(you)" is shown here alone, never sent.
-  const labelOf = (p: (typeof people)[number]) =>
-    p.identity === localParticipant.identity
-      ? t('setup.you', { name: p.name })
-      : p.name
-  // Whoever is not in a browser cannot be placed in a room.
-  const hasNonBrowsers = remotes.some((p) => !isAssignable(p))
+  const { people, hasNonBrowsers } = useAssignablePeople()
   // A room removed by lowering the room count leaves its people unassigned.
   const roomOf = (identity: string) => {
     const index = assignments[identity] ?? UNASSIGNED
@@ -146,30 +119,15 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
         })}
       >
         {people.map((p) => (
-          <li
+          <PersonRow
             key={p.identity}
-            className={css({
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.5rem',
-            })}
-          >
-            <Text variant="sm" wrap="pretty">
-              {labelOf(p)}
-            </Text>
-            <div className={css({ width: '10rem', flexShrink: 0 })}>
-              <Select
-                aria-label={t('setup.assign', { name: labelOf(p) })}
-                label=""
-                items={roomItems}
-                selectedKey={roomOf(p.identity)}
-                onSelectionChange={(key) =>
-                  (breakoutSetupStore.assignments[p.identity] = Number(key))
-                }
-              />
-            </div>
-          </li>
+            name={p.label}
+            items={roomItems}
+            selectedKey={roomOf(p.identity)}
+            onChange={(room) =>
+              (breakoutSetupStore.assignments[p.identity] = room)
+            }
+          />
         ))}
       </ul>
       {hasNonBrowsers && (

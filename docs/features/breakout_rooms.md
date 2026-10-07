@@ -8,7 +8,7 @@ A host can split a meeting into 2 to 20 smaller rooms and later bring everyone b
 2. Open starts the split, and every assigned participant is in their room at once, with no reconnection. Everyone else forms the main room: phone callers, anyone left unassigned and anyone who joins later. Hosts stay there too unless placed by hand, the host using the panel included; a random split never moves a host. Each participant sent to a room hears a sound, and every browser shows a banner naming its room while the rooms are open.
 3. Close ends the split, and everyone hears and sees everyone again, with a toast and a sound. Cameras stay as they were. A microphone is turned off at every change of room, Close included, and the toast says so.
 
-Only one split can be open in a meeting at a time. While it is open, a host can join any room, or go back to the main room, from the panel: they are in the new room at once, with a sound, and their microphone turns off if it was on. To change anyone else's room, close and open again.
+Only one split can be open in a meeting at a time. While it is open, a host can send anyone to another room or back to the main room, themselves and someone who joined later included: that participant is in their new room at once, with a sound, and their microphone turns off if it was on.
 
 ## How the rooms are kept apart
 
@@ -31,7 +31,7 @@ Set `BREAKOUT_ROOMS_ENABLED=True` on the backend. It is off by default. The fron
 
 With the flag off, opening answers 404 to every signed-in caller. A split opened before the flag was turned off can still be listed and closed by a host, who still sees the breakout panel while it is open.
 
-Nothing else is required: no worker, no scheduled task, no extra LiveKit room. Opening first asks LiveKit whether a recorder runs in the meeting. Opening, closing and a host changing room each write the meeting's metadata, and every call to LiveKit gives up after 5 seconds with a 503 the host can retry. Writers of one meeting's metadata take turns through a lock in the cache, so none drops another's key, and a write that timed out keeps the lock until it expires, so the next writer reads after it lands.
+Nothing else is required: no worker, no scheduled task, no extra LiveKit room. Opening first asks LiveKit whether a recorder runs in the meeting. Opening, closing and every move each write the meeting's metadata, and every call to LiveKit gives up after 5 seconds with a 503 the host can retry. Writers of one meeting's metadata take turns through a lock in the cache, so none drops another's key, and a write that timed out keeps the lock until it expires, so the next writer reads after it lands.
 
 ## What is stored
 
@@ -48,6 +48,5 @@ Close removes the `breakout` key from the meeting's metadata, then marks the ses
 ## Limits
 
 - There is no timer: a split stays open until the host closes it.
-- Moving a participant other than the host to another room means closing and opening again.
 - A guest of a public meeting gets a new identity with every pass, so one who reloads the page while a split is open lands in the main room.
 - In a public meeting, anyone with the link can join the main room, so the main room is private from the other rooms only in a meeting that is not public.

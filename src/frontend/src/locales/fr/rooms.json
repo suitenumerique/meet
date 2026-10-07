@@ -858,7 +858,8 @@
       "close": "Fermer les salles",
       "join": "Rejoindre",
       "joinRoom": "Rejoindre {{room}}",
-      "backToMain": "Retour à la salle principale"
+      "backToMain": "Retour à la salle principale",
+      "mainRoom": "Salle principale"
     },
     "participant": {
       "chatRoom": "{{room}} : les messages restent dans cette salle",

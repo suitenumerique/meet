@@ -858,7 +858,8 @@
       "close": "Ruimtes sluiten",
       "join": "Deelnemen",
       "joinRoom": "Deelnemen aan {{room}}",
-      "backToMain": "Terug naar de hoofdruimte"
+      "backToMain": "Terug naar de hoofdruimte",
+      "mainRoom": "Hoofdruimte"
     },
     "participant": {
       "chatRoom": "{{room}}: berichten bereiken deze ruimte",
