@@ -37,7 +37,7 @@ Nothing else is required: no worker, no scheduled task, no extra LiveKit room. O
 
 - A breakout session per split: the meeting, whether it is still open, and who opened it.
 - A breakout room per room: its display name and its position.
-- An assignment per participant: the room, the participant's identity in the meeting and their display name at the time.
+- An assignment per participant: the room and the participant's identity in the meeting. Names are not stored: the panel shows the name each person has in the meeting now.
 
 Closed sessions stay in the database. While a session is active, the meeting's LiveKit metadata carries `{"breakout": {"session_id", "rooms", "assignments"}}`: the room names in order, and the position of each assigned identity's room. Every browser in the meeting reads it.
 

@@ -73,7 +73,7 @@ class BreakoutSessionViewSet(viewsets.GenericViewSet):
         serializer = serializers.MoveParticipantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        services.move_participant(session, data["identity"], data["name"], data["room"])
+        services.move_participant(session, data["identity"], data["room"])
         # Read again: the session above still caches the rooms from before the move.
         session = self.get_queryset().get(pk=session.pk)
         return drf_response.Response(self.get_serializer(session).data)

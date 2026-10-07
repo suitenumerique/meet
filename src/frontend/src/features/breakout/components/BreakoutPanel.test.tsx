@@ -95,7 +95,7 @@ describe('BreakoutPanel', () => {
   })
 
   it('lets the host join a room, then go back to the main room', async () => {
-    const host = { identity: 'host', name: 'host' }
+    const host = { identity: 'host' }
     const rooms = (inFirst: (typeof host)[]) => [
       { id: 'r1', name: 'Room 1', participants: inFirst },
       { id: 'r2', name: 'Room 2', participants: [] },
@@ -168,24 +168,21 @@ describe('BreakoutPanel', () => {
     )
   })
 
-  it('lists the people still connected, not one who left', async () => {
-    h.remotes = [{ identity: 'alice', name: 'Alice' }]
+  it('lists the people still connected under their names now, not one who left', async () => {
+    h.remotes = [{ identity: 'alice', name: 'Alice Renamed' }]
     vi.mocked(fetchBreakoutSession).mockResolvedValueOnce({
       ...session,
       rooms: [
         {
           id: 'r1',
           name: 'Room 1',
-          participants: [
-            { identity: 'alice', name: 'Alice' },
-            { identity: 'gone', name: 'Ghost' },
-          ],
+          participants: [{ identity: 'alice' }, { identity: 'gone' }],
         },
       ],
     })
     render(ui())
-    expect(await screen.findByText('Alice')).toBeTruthy()
-    expect(screen.queryByText(/Ghost/)).toBeNull()
+    expect(await screen.findByText('Alice Renamed')).toBeTruthy()
+    expect(screen.queryByText(/gone/)).toBeNull()
   })
 
   it('offers close, and no Join, with the flag off', async () => {
@@ -196,22 +193,6 @@ describe('BreakoutPanel', () => {
       await screen.findByRole('button', { name: 'active.close' })
     ).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'active.joinRoom' })).toBeNull()
-  })
-
-  it('shows each name as the person shows it now', async () => {
-    h.remotes = [{ identity: 'alice', name: 'Alice Renamed' }]
-    vi.mocked(fetchBreakoutSession).mockResolvedValueOnce({
-      ...session,
-      rooms: [
-        {
-          id: 'r1',
-          name: 'Room 1',
-          participants: [{ identity: 'alice', name: 'Alice' }],
-        },
-      ],
-    })
-    render(ui())
-    expect(await screen.findByText('Alice Renamed')).toBeTruthy()
   })
 
   it('offers no Close to someone who is no longer a host', async () => {

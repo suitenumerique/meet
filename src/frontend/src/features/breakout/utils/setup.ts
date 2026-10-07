@@ -35,5 +35,7 @@ export const buildRooms = (
 ) =>
   roomNames.map((name, index) => ({
     name,
-    participants: people.filter((p) => assignments[p.identity] === index),
+    participants: people
+      .filter((p) => assignments[p.identity] === index)
+      .map(({ identity }) => ({ identity })),
   }))

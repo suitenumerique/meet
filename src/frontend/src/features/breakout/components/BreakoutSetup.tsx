@@ -46,7 +46,7 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
       name: getParticipantName(p),
       isHost: getParticipantIsRoomAdminOrOwner(p),
     }))
-  // The stored name stays the participant's own; "(you)" is shown here alone.
+  // "(you)" is shown here alone, never sent.
   const labelOf = (p: (typeof people)[number]) =>
     p.identity === localParticipant.identity
       ? t('setup.you', { name: p.name })

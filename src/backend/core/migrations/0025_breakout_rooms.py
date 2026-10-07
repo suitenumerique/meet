@@ -54,7 +54,6 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='date and time at which a record was created', verbose_name='created on')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='date and time at which a record was last updated', verbose_name='updated on')),
                 ('identity', models.CharField(max_length=255, verbose_name='Participant identity')),
-                ('name', models.CharField(blank=True, max_length=255, verbose_name='Participant name')),
                 ('breakout_room', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assignments', to='core.breakoutroom', verbose_name='Breakout room')),
                 ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assignments', to='core.breakoutsession', verbose_name='Breakout session')),
             ],

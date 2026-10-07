@@ -150,12 +150,8 @@ class RoomManagement:
             )
             raise RoomManagementException(METADATA_UPDATE_FAILED) from e
 
-        except TimeoutError as e:
-            logger.warning("Timed out updating metadata for room %s", room_name)
-            raise RoomManagementException(METADATA_UPDATE_FAILED) from e
-
-        except aiohttp.ClientError as e:
-            logger.warning("Could not reach LiveKit to update room %s", room_name)
+        except (TimeoutError, aiohttp.ClientError) as e:
+            logger.warning("Could not update metadata for room %s: %s", room_name, e)
             raise RoomManagementException(METADATA_UPDATE_FAILED) from e
 
         finally:

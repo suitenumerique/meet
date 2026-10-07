@@ -14,5 +14,7 @@ export const useCanManageBreakout = () => {
   return {
     canOpen: isAdminOrOwner && isEnabled,
     canManage: isAdminOrOwner && (isEnabled || isSplit),
+    // Close follows the role alone: a split outlives the flag and its key.
+    canClose: isAdminOrOwner,
   }
 }

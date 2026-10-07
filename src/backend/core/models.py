@@ -1167,9 +1167,6 @@ class BreakoutAssignment(BaseModel):
         verbose_name=_("Breakout room"),
     )
     identity = models.CharField(max_length=255, verbose_name=_("Participant identity"))
-    name = models.CharField(
-        max_length=255, blank=True, verbose_name=_("Participant name")
-    )
 
     class Meta:
         db_table = "meet_breakout_assignment"

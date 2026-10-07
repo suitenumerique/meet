@@ -15,7 +15,7 @@ class BreakoutAssignmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.BreakoutAssignment
-        fields = ["identity", "name"]
+        fields = ["identity"]
 
 
 class BreakoutRoomSerializer(serializers.ModelSerializer):
@@ -44,11 +44,6 @@ class ParticipantInputSerializer(BaseValidationOnlySerializer):
     """A participant the host assigns."""
 
     identity = serializers.CharField(max_length=255, trim_whitespace=False)
-    name = serializers.CharField(allow_blank=True)
-
-    def validate_name(self, value):
-        """Cut the name to the column: joining takes a name of any length."""
-        return value[:255]
 
 
 class MoveParticipantSerializer(ParticipantInputSerializer):

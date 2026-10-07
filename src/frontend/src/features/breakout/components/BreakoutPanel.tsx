@@ -5,7 +5,6 @@ import { css } from '@/styled-system/css'
 import { Button, Div, Text } from '@/primitives'
 import { queryClient } from '@/api/queryClient'
 import { useCanManageBreakout } from '../hooks/useCanManageBreakout'
-import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import {
   useLocalParticipant,
@@ -47,10 +46,7 @@ const ActiveSession = ({
     ])
   )
   const namesHere = (room: BreakoutSession['rooms'][number]) =>
-    room.participants
-      .filter((p) => here.has(p.identity))
-      .map((p) => here.get(p.identity))
-      .join(', ')
+    room.participants.flatMap((p) => here.get(p.identity) ?? []).join(', ')
   const close = useMutation({
     mutationFn: () => closeBreakoutSession(roomId, session.id),
     onSettled: () =>
@@ -61,7 +57,6 @@ const ActiveSession = ({
     mutationFn: (position: number | null) =>
       moveBreakoutParticipant(roomId, session.id, {
         identity: localParticipant.identity,
-        name: getParticipantName(localParticipant),
         room: position,
       }),
     onSuccess: (moved) =>
@@ -139,9 +134,7 @@ const ActiveSession = ({
 
 export const BreakoutPanel = () => {
   const roomId = useRoomData()?.id
-  const { canOpen } = useCanManageBreakout()
-  // Close follows the role alone: a split outlives the flag and its key.
-  const isAdminOrOwner = useIsAdminOrOwner()
+  const { canOpen, canClose } = useCanManageBreakout()
   // The split the metadata announces, null outside one. readSplit returns a
   // new object only when the split itself changed: an open, a move or a close.
   const announced = readSplit(useRoomInfo().metadata)
@@ -180,7 +173,7 @@ export const BreakoutPanel = () => {
           roomId={roomId}
           session={session}
           canMove={canOpen}
-          canClose={isAdminOrOwner}
+          canClose={canClose}
         />
       )}
       {/* A first list that failed leaves no form: Open would fail as well. */}

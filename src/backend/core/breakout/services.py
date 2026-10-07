@@ -167,7 +167,6 @@ def open_session(room, user, rooms, stop_recording=False):
                     session=session,
                     breakout_room=breakout_room,
                     identity=participant["identity"],
-                    name=participant["name"],
                 )
                 for data, breakout_room in zip(rooms, breakout_rooms, strict=True)
                 for participant in data["participants"]
@@ -193,7 +192,7 @@ def open_session(room, user, rooms, stop_recording=False):
     return session
 
 
-def move_participant(session, identity, name, position):
+def move_participant(session, identity, position):
     """Send one participant to the room at position, or to the main room on None."""
     with transaction.atomic():
         lock_room_row(session.room)
@@ -211,7 +210,7 @@ def move_participant(session, identity, name, position):
             models.BreakoutAssignment.objects.update_or_create(
                 session=session,
                 identity=identity,
-                defaults={"breakout_room": breakout_room, "name": name},
+                defaults={"breakout_room": breakout_room},
             )
         # A failed write rolls the rows back; one that lands after its deadline
         # is written over by the next move or close.

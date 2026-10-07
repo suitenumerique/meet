@@ -57,10 +57,7 @@ def payload(*room_participants):
         "rooms": [
             {
                 "name": f"Room {index + 1}",
-                "participants": [
-                    {"identity": identity, "name": identity.title()}
-                    for identity in identities
-                ],
+                "participants": [{"identity": identity} for identity in identities],
             }
             for index, identities in enumerate(room_participants)
         ]
@@ -104,8 +101,7 @@ def test_api_breakout_sessions_create_owner(livekit, owner_room):
             "id": str(breakout_room.id),
             "name": breakout_room.name,
             "participants": [
-                {"identity": a.identity, "name": a.name}
-                for a in breakout_room.assignments.all()
+                {"identity": a.identity} for a in breakout_room.assignments.all()
             ],
         }
         for breakout_room in session.rooms.all()
@@ -161,18 +157,6 @@ def test_api_breakout_sessions_create_twenty_rooms(livekit, owner_room):
 
     assert response.status_code == 201
     assert models.BreakoutRoom.objects.count() == 20
-
-
-def test_api_breakout_sessions_create_long_name(livekit, owner_room):
-    """A name longer than the column, which joining accepts, is cut, not refused."""
-    room, client = owner_room
-    split = payload(["alice"], ["bob"])
-    split["rooms"][0]["participants"][0]["name"] = "x" * 300
-
-    response = client.post(url(room), split, "json")
-
-    assert response.status_code == 201
-    assert models.BreakoutAssignment.objects.get(identity="alice").name == "x" * 255
 
 
 def test_api_breakout_sessions_create_while_active(livekit, owner_room):
@@ -452,7 +436,7 @@ def move(client, room, session, identity, position):
     """Ask to send one participant to the room at position, or to the main room."""
     return client.post(
         url(room, f"{session.id!s}/move/"),
-        {"identity": identity, "name": identity.title(), "room": position},
+        {"identity": identity, "room": position},
         "json",
     )
 

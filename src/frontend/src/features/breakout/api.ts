@@ -1,7 +1,8 @@
 import { fetchApi } from '@/api/fetchApi'
 import { keys } from '@/api/queryKeys'
 
-export type BreakoutPerson = { identity: string; name: string }
+// Names are not stored: each person shows the name they have in the meeting now.
+export type BreakoutPerson = { identity: string }
 
 export type BreakoutSession = {
   id: string

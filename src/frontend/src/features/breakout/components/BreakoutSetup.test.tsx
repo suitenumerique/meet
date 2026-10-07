@@ -129,7 +129,7 @@ describe('BreakoutSetup', () => {
     )
   })
 
-  it('stores the host under their own name, "(you)" being shown alone', async () => {
+  it('sends the host by identity alone, "(you)" being shown and never sent', async () => {
     breakoutSetupStore.assignments = { me: 0 }
     renderSetup()
     fireEvent.click(screen.getByRole('button', { name: 'setup.open' }))
@@ -140,9 +140,7 @@ describe('BreakoutSetup', () => {
           rooms: expect.arrayContaining([
             {
               name: 'roomName',
-              participants: [
-                expect.objectContaining({ identity: 'me', name: 'Me' }),
-              ],
+              participants: [{ identity: 'me' }],
             },
           ]),
         })

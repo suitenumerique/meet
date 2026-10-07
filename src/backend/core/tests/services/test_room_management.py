@@ -105,15 +105,21 @@ def test_sync_room_metadata_pushes_configuration_and_access_level(mock_update_me
 
 
 @pytest.mark.parametrize(
-    ("hanging", "lock_kept"), [("list_rooms", False), ("update_room_metadata", True)]
+    ("failing", "failure", "lock_kept"),
+    [
+        ("list_rooms", hang, False),
+        ("update_room_metadata", hang, True),
+        ("list_rooms", aiohttp.ClientConnectionError(), False),
+    ],
 )
-def test_update_metadata_bounded(hanging, lock_kept):
-    """A media server that never answers costs one deadline; a cut-off write keeps its lock."""
+def test_update_metadata_bounded(failing, failure, lock_kept):
+    """A media server that never answers or refuses the connection answers the
+    service's own error within one deadline; a cut-off write keeps its lock."""
     room_name = str(uuid.uuid4())
     client = mock.MagicMock()
     client.aclose = mock.AsyncMock()
     for call in ("list_rooms", "update_room_metadata"):
-        side_effect = hang if call == hanging else None
+        side_effect = failure if call == failing else None
         setattr(client.room, call, mock.AsyncMock(side_effect=side_effect))
     client.room.list_rooms.return_value = mock.Mock(rooms=[mock.Mock(metadata="{}")])
 
@@ -129,23 +135,6 @@ def test_update_metadata_bounded(hanging, lock_kept):
     client.aclose.assert_awaited_once()
     # The write may still land, so the next writer waits for the lock to expire.
     assert cache.lock(f"room-metadata:{room_name}").locked() is lock_kept
-
-
-def test_update_metadata_unreachable_raises_management_exception():
-    """A media server refusing the connection answers the service's own error."""
-    room_name = str(uuid.uuid4())
-    client = fake_livekit(list_rooms=aiohttp.ClientConnectionError())
-
-    with (
-        mock.patch.object(
-            room_management.utils, "create_livekit_client", return_value=client
-        ),
-        pytest.raises(RoomManagementException),
-    ):
-        RoomManagement.update_metadata(room_name, {"key": "value"})
-
-    client.aclose.assert_awaited_once()
-    assert not cache.lock(f"room-metadata:{room_name}").locked()
 
 
 def test_update_metadata_concurrent_writers_keep_both_keys():

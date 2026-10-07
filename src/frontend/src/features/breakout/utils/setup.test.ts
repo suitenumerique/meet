@@ -57,7 +57,7 @@ describe('shuffleAssignments', () => {
 })
 
 describe('buildRooms', () => {
-  it('puts each present person in their room and drops the others', () => {
+  it('puts each present person in their room by identity and drops the others', () => {
     const people = [
       { identity: 'alice', name: 'Alice' },
       { identity: 'bob', name: 'Bob' },
@@ -65,8 +65,8 @@ describe('buildRooms', () => {
     ]
     const assignments = { alice: 1, bob: 0, carol: 2, dave: 0 }
     expect(buildRooms(['Room 1', 'Room 2'], people, assignments)).toEqual([
-      { name: 'Room 1', participants: [{ identity: 'bob', name: 'Bob' }] },
-      { name: 'Room 2', participants: [{ identity: 'alice', name: 'Alice' }] },
+      { name: 'Room 1', participants: [{ identity: 'bob' }] },
+      { name: 'Room 2', participants: [{ identity: 'alice' }] },
     ])
   })
 })

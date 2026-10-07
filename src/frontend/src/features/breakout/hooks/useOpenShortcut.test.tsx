@@ -37,12 +37,18 @@ describe('useOpenShortcut', () => {
     expect(open).toHaveBeenCalledTimes(2)
   })
 
-  it('opens with a modifier on a button that stops the Enter it presses', () => {
+  it('opens with a modifier on a button that stops the Enter it presses, and the button stays unpressed', () => {
     const open = mount('<button>Shuffle</button>')
     const button = document.querySelector('button')!
-    button.addEventListener('keydown', (event) => event.stopPropagation())
+    const pressed = vi.fn()
+    button.addEventListener('keydown', (event) => {
+      event.stopPropagation()
+      pressed()
+    })
     press(button, { ctrlKey: true })
-    expect(open).toHaveBeenCalledTimes(1)
+    press(button, { metaKey: true })
+    expect(open).toHaveBeenCalledTimes(2)
+    expect(pressed).not.toHaveBeenCalled()
   })
 
   it('leaves plain Enter to a menu item that keeps it', () => {
