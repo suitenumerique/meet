@@ -219,10 +219,10 @@
     },
     "roomFull": {
       "heading": "Cette réunion est complète",
-      "body": "La réunion a atteint son nombre maximum de participants. Réessayez lorsqu'une personne l'aura quittée.",
+      "body": "La réunion a atteint son nombre maximum de participants. Réessayez plus tard.",
       "retry": "Réessayer",
-      "bodyWithLimit_one": "La réunion a atteint sa limite de {{count}} participant. Réessayez lorsqu'une personne l'aura quittée.",
-      "bodyWithLimit_other": "La réunion a atteint sa limite de {{count}} participants. Réessayez lorsqu'une personne l'aura quittée."
+      "bodyWithLimit_one": "La réunion a atteint sa limite de {{count}} participant. Réessayez plus tard.",
+      "bodyWithLimit_other": "La réunion a atteint sa limite de {{count}} participants. Réessayez plus tard."
     },
     "screenShare": {
       "title": "Impossible de partager votre écran",
