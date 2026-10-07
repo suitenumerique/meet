@@ -1,6 +1,6 @@
-// Helpers for a separate window. Not the meeting PiP: that API allows only
-// one window, and it is already used. A blank popup has no CSS, so we copy
-// styles from the meeting.
+// A normal window the user can move, resize, and put on another screen.
+// Not the meeting PiP: that API allows only one always-on-top window, and
+// it is already used. A blank popup has no CSS, so we copy styles from the meeting.
 
 const AUXILIARY_ROOT_ID = 'root'
 
