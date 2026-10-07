@@ -217,7 +217,7 @@
     },
     "roomFull": {
       "heading": "Cette réunion est complète",
-      "body": "La réunion a atteint son nombre maximum de participants. Réessayez lorsqu'une personne l'aura quittée.",
+      "body": "La réunion a atteint son nombre maximum de participants. Réessayez plus tard.",
       "retry": "Réessayer"
     },
     "screenShare": {

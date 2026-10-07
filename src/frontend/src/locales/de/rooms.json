@@ -217,7 +217,7 @@
     },
     "roomFull": {
       "heading": "Dieses Meeting ist voll",
-      "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es erneut, sobald jemand es verlassen hat.",
+      "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es später erneut.",
       "retry": "Erneut versuchen"
     },
     "screenShare": {
