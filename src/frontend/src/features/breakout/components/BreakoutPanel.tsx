@@ -11,11 +11,13 @@ import {
   useRemoteParticipants,
   useRoomInfo,
 } from '@livekit/components-react'
+import { getParticipantName } from '@/features/rooms/utils/getParticipantName'
 import { readSplit } from '../utils/split'
 import {
   breakoutSessionKey,
   closeBreakoutSession,
   fetchBreakoutSession,
+  moveBreakoutParticipant,
   type BreakoutSession,
 } from '../api'
 import { BreakoutSetup } from './BreakoutSetup'
@@ -24,9 +26,11 @@ import { ErrorNote } from './ErrorNote'
 const ActiveSession = ({
   roomId,
   session,
+  canMove,
 }: {
   roomId: string
   session: BreakoutSession
+  canMove: boolean
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'breakout' })
   // Someone who left, a guest who reloaded under a new identity included,
@@ -46,6 +50,22 @@ const ActiveSession = ({
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: breakoutSessionKey(roomId) }),
   })
+  // The host sends their own browser to a room, or to the main room on null.
+  const move = useMutation({
+    mutationFn: (position: number | null) =>
+      moveBreakoutParticipant(roomId, session.id, {
+        identity: localParticipant.identity,
+        name: getParticipantName(localParticipant),
+        room: position,
+      }),
+    onSuccess: (moved) =>
+      queryClient.setQueryData(breakoutSessionKey(roomId), moved),
+    onError: () =>
+      queryClient.invalidateQueries({ queryKey: breakoutSessionKey(roomId) }),
+  })
+  const isMine = (room: BreakoutSession['rooms'][number]) =>
+    room.participants.some((p) => p.identity === localParticipant.identity)
+  const isInARoom = session.rooms.some(isMine)
 
   return (
     <>
@@ -56,16 +76,46 @@ const ActiveSession = ({
           gap: '0.75rem',
         })}
       >
-        {session.rooms.map((room) => (
-          <li key={room.id}>
-            <Text variant="bodyXsBold">{room.name}</Text>
-            <Text variant="xsNote" wrap="pretty">
-              {namesHere(room) || t('active.empty')}
-            </Text>
+        {session.rooms.map((room, position) => (
+          <li
+            key={room.id}
+            className={css({
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            })}
+          >
+            <div className={css({ flexGrow: 1 })}>
+              <Text variant="bodyXsBold">{room.name}</Text>
+              <Text variant="xsNote" wrap="pretty">
+                {namesHere(room) || t('active.empty')}
+              </Text>
+            </div>
+            {canMove && !isMine(room) && (
+              <Button
+                variant="secondary"
+                size="sm"
+                aria-label={t('active.joinRoom', { room: room.name })}
+                isDisabled={move.isPending}
+                onPress={() => move.mutate(position)}
+              >
+                {t('active.join')}
+              </Button>
+            )}
           </li>
         ))}
       </ul>
-      {close.isError && <ErrorNote />}
+      {(close.isError || move.isError) && <ErrorNote />}
+      {canMove && isInARoom && (
+        <Button
+          variant="secondary"
+          fullWidth
+          isDisabled={move.isPending}
+          onPress={() => move.mutate(null)}
+        >
+          {t('active.backToMain')}
+        </Button>
+      )}
       <Button
         variant="primary"
         fullWidth
@@ -81,8 +131,9 @@ const ActiveSession = ({
 export const BreakoutPanel = () => {
   const roomId = useRoomData()?.id
   const { canOpen } = useCanManageBreakout()
-  // The session the metadata announces, null outside a split.
-  const announced = readSplit(useRoomInfo().metadata)?.session_id ?? null
+  // The split the metadata announces, null outside one. readSplit returns a
+  // new object only when the split itself changed: an open, a move or a close.
+  const announced = readSplit(useRoomInfo().metadata)
   const {
     data: session,
     isPending,
@@ -93,8 +144,8 @@ export const BreakoutPanel = () => {
     enabled: !!roomId,
     retry: false,
   })
-  // Another host opened or closed a split: refetch, and keep showing the
-  // current session until the answer lands.
+  // Another host opened, joined a room or closed: refetch, and keep showing
+  // the current session until the answer lands.
   const seen = useRef(announced)
   useEffect(() => {
     if (seen.current === announced) return
@@ -113,7 +164,9 @@ export const BreakoutPanel = () => {
       gap="1rem"
     >
       {isError && <ErrorNote />}
-      {session && <ActiveSession roomId={roomId} session={session} />}
+      {session && (
+        <ActiveSession roomId={roomId} session={session} canMove={canOpen} />
+      )}
       {/* A first list that failed leaves no form: Open would fail as well. */}
       {session === null && canOpen && <BreakoutSetup roomId={roomId} />}
     </Div>

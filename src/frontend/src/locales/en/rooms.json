@@ -855,7 +855,10 @@
     },
     "active": {
       "empty": "Nobody assigned",
-      "close": "Close rooms"
+      "close": "Close rooms",
+      "join": "Join",
+      "joinRoom": "Join {{room}}",
+      "backToMain": "Back to main room"
     },
     "participant": {
       "chatRoom": "{{room}}: messages reach this room",

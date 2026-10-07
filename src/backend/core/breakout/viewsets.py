@@ -65,6 +65,20 @@ class BreakoutSessionViewSet(viewsets.GenericViewSet):
         )
 
     @decorators.action(detail=True, methods=["post"])
+    @FeatureFlag.require("breakout_rooms")
+    def move(self, request, pk=None, **kwargs):
+        """Send one participant to another room, or back to the main room."""
+        self.get_room()
+        session = get_object_or_404(self.get_queryset(), pk=pk)
+        serializer = serializers.MoveParticipantSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        services.move_participant(session, data["identity"], data["name"], data["room"])
+        # Read again: the session above still caches the rooms from before the move.
+        session = self.get_queryset().get(pk=session.pk)
+        return drf_response.Response(self.get_serializer(session).data)
+
+    @decorators.action(detail=True, methods=["post"])
     def close(self, request, pk=None, **kwargs):
         """Close a session; closing it again answers the same."""
         self.get_room()

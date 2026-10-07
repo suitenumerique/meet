@@ -51,6 +51,12 @@ class ParticipantInputSerializer(BaseValidationOnlySerializer):
         return value[:255]
 
 
+class MoveParticipantSerializer(ParticipantInputSerializer):
+    """A participant the host sends to the room at a position, or to the main room."""
+
+    room = serializers.IntegerField(min_value=0, allow_null=True)
+
+
 class RoomInputSerializer(BaseValidationOnlySerializer):
     """A breakout room the host opens."""
 

@@ -38,6 +38,13 @@ class RecordingInProgress(exceptions.APIException):
     default_detail = _("Stop the recording before opening breakout rooms.")
 
 
+class SessionClosed(exceptions.APIException):
+    """The breakout session has closed, so nobody moves in it."""
+
+    status_code = 409
+    default_detail = _("These breakout rooms are closed.")
+
+
 class MediaServerError(exceptions.APIException):
     """A media server call failed; the detail never carries the upstream error."""
 
@@ -75,14 +82,14 @@ def close_active_sessions(room_id, clear_metadata=False):
 def lock_room_row(room):
     """Hold the meeting's row until the transaction ends.
 
-    Opening a split and starting a recording both take it, so neither slips past
-    the other's check.
+    Opening, moving, closing and starting a recording all take it, so none slips
+    past another's check.
     """
     models.Room.objects.select_for_update().filter(pk=room.pk).first()
 
 
-def _split_metadata(session, rooms):
-    """The metadata every browser reads: the rooms' names and each identity's room.
+def _split_metadata(session):
+    """The metadata every browser reads, as the session's rows hold it.
 
     For two rooms, alice in the first and bob in the second:
     {"session_id": "<uuid>", "rooms": ["Room 1", "Room 2"],
@@ -90,12 +97,10 @@ def _split_metadata(session, rooms):
     """
     return {
         "session_id": str(session.id),
-        "rooms": [data["name"] for data in rooms],
-        "assignments": {
-            participant["identity"]: position
-            for position, data in enumerate(rooms)
-            for participant in data["participants"]
-        },
+        "rooms": [room.name for room in session.rooms.order_by("position")],
+        "assignments": dict(
+            session.assignments.values_list("identity", "breakout_room__position")
+        ),
     }
 
 
@@ -179,7 +184,7 @@ def open_session(room, user, rooms, stop_recording=False):
 
     try:
         is_live = _write_metadata(
-            room.id, metadata={METADATA_KEY: _split_metadata(session, rooms)}
+            room.id, metadata={METADATA_KEY: _split_metadata(session)}
         )
     except MediaServerError:
         # A write cut off by its deadline may still have landed; take it back.
@@ -195,16 +200,49 @@ def open_session(room, user, rooms, stop_recording=False):
     return session
 
 
+def move_participant(session, identity, name, position):
+    """Send one participant to the room at position, or to the main room on None."""
+    with transaction.atomic():
+        lock_room_row(session.room)
+        if not active_sessions(session.room_id).filter(pk=session.pk).exists():
+            raise SessionClosed()
+        if position is None:
+            session.assignments.filter(identity=identity).delete()
+        else:
+            try:
+                breakout_room = session.rooms.get(position=position)
+            except models.BreakoutRoom.DoesNotExist as error:
+                raise exceptions.ValidationError(
+                    {"room": _("This room does not exist.")}
+                ) from error
+            models.BreakoutAssignment.objects.update_or_create(
+                session=session,
+                identity=identity,
+                defaults={"breakout_room": breakout_room, "name": name},
+            )
+        # A failed write rolls the rows back; one that lands after its deadline
+        # is written over by the next move or close.
+        if not _write_metadata(
+            session.room_id, metadata={METADATA_KEY: _split_metadata(session)}
+        ):
+            raise MediaServerError()
+    return session
+
+
 def close_session(session):
     """Remove the split from the metadata, then mark the session closed.
 
     Closing a closed session does nothing. A close whose metadata removal fails
     leaves the session active, so closing it again tries again.
     """
-    if session.status == models.BreakoutSessionStatusChoices.CLOSED:
-        return session
-    _write_metadata(session.room_id, remove_keys=[METADATA_KEY])
-    session.status = models.BreakoutSessionStatusChoices.CLOSED
-    session.closed_at = timezone.now()
-    session.save(update_fields=["status", "closed_at", "updated_at"])
+    # The row lock a move holds keeps it from writing the split back after this.
+    with transaction.atomic():
+        lock_room_row(session.room)
+        session.refresh_from_db(fields=["status"])
+        if session.status == models.BreakoutSessionStatusChoices.CLOSED:
+            return session
+        _write_metadata(session.room_id, remove_keys=[METADATA_KEY])
+        session.status = models.BreakoutSessionStatusChoices.CLOSED
+        session.closed_at = timezone.now()
+        session.save(update_fields=["status", "closed_at", "updated_at"])
     return session

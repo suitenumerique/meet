@@ -850,7 +850,10 @@
     },
     "active": {
       "empty": "Nadie asignado",
-      "close": "Cerrar salas"
+      "close": "Cerrar salas",
+      "join": "Unirse",
+      "joinRoom": "Unirse a {{room}}",
+      "backToMain": "Volver a la sala principal"
     },
     "participant": {
       "chatRoom": "{{room}}: los mensajes llegan a esta sala",

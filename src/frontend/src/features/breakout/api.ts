@@ -15,6 +15,9 @@ export type CreateBreakoutSession = {
   stop_recording?: boolean
 }
 
+// One person sent to the room at a position, or to the main room on null.
+export type MoveBreakoutParticipant = BreakoutPerson & { room: number | null }
+
 const sessionsUrl = (roomId: string) => `/rooms/${roomId}/breakout-sessions/`
 
 export const breakoutSessionKey = (roomId?: string) => [
@@ -34,6 +37,16 @@ export const createBreakoutSession = (
   body: CreateBreakoutSession
 ) =>
   fetchApi<BreakoutSession>(sessionsUrl(roomId), {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+
+export const moveBreakoutParticipant = (
+  roomId: string,
+  sessionId: string,
+  body: MoveBreakoutParticipant
+) =>
+  fetchApi<BreakoutSession>(`${sessionsUrl(roomId)}${sessionId}/move/`, {
     method: 'POST',
     body: JSON.stringify(body),
   })

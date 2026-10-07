@@ -442,6 +442,94 @@ def test_api_breakout_sessions_list_empty_and_member(livekit, owner_room):
     assert member_client.get(url(room)).status_code == 403
 
 
+# Move
+
+
+def open_split(client, room):
+    """A split opened through the API: alice in Room 1, bob in Room 2."""
+    client.post(url(room), payload(["alice"], ["bob"]), "json")
+    return models.BreakoutSession.objects.get()
+
+
+def move(client, room, session, identity, position):
+    """Ask to send one participant to the room at position, or to the main room."""
+    return client.post(
+        url(room, f"{session.id!s}/move/"),
+        {"identity": identity, "name": identity.title(), "room": position},
+        "json",
+    )
+
+
+@pytest.mark.parametrize(
+    ("identity", "position", "expected"),
+    [
+        ("alice", 1, {"alice": 1, "bob": 1}),
+        ("carol", 0, {"alice": 0, "bob": 1, "carol": 0}),
+        ("alice", None, {"bob": 1}),
+    ],
+)
+def test_api_breakout_sessions_move(livekit, owner_room, identity, position, expected):
+    """A move rewrites one assignment, in the rows and in the metadata."""
+    room, client = owner_room
+    session = open_split(client, room)
+
+    response = move(client, room, session, identity, position)
+
+    assert response.status_code == 200
+    assert written_metadata(livekit)["breakout"]["assignments"] == expected
+    assert written_metadata(livekit)["breakout"]["session_id"] == str(session.id)
+    assert {
+        a.identity: a.breakout_room.position
+        for a in models.BreakoutAssignment.objects.all()
+    } == expected
+    assert {
+        p["identity"]: position
+        for position, r in enumerate(response.json()["rooms"])
+        for p in r["participants"]
+    } == expected
+
+
+def test_api_breakout_sessions_move_to_a_missing_room(livekit, owner_room):
+    """A position past the last room is refused, and nothing is written."""
+    room, client = owner_room
+    session = open_split(client, room)
+    livekit.room.update_room_metadata.reset_mock()
+
+    assert move(client, room, session, "alice", 2).status_code == 400
+    livekit.room.update_room_metadata.assert_not_awaited()
+
+
+def test_api_breakout_sessions_move_in_a_closed_session(livekit, owner_room):
+    """Nobody moves once the rooms are closed."""
+    room, client = owner_room
+    session = open_split(client, room)
+    client.post(url(room, f"{session.id!s}/close/"))
+
+    assert move(client, room, session, "alice", 1).status_code == 409
+
+
+def test_api_breakout_sessions_move_metadata_write_fails(livekit, owner_room):
+    """A move the media server refuses leaves the rows as they were."""
+    room, client = owner_room
+    session = open_split(client, room)
+    livekit.room.update_room_metadata.side_effect = TimeoutError
+
+    assert move(client, room, session, "alice", 1).status_code == 503
+    assert (
+        models.BreakoutAssignment.objects.get(identity="alice").breakout_room.position
+        == 0
+    )
+
+
+def test_api_breakout_sessions_move_member(livekit, owner_room):
+    """A member cannot move anyone."""
+    room, client = owner_room
+    session = open_split(client, room)
+    _member, member_client = logged_in(room, "member")
+
+    assert move(member_client, room, session, "alice", 1).status_code == 403
+
+
 # Close
 
 
@@ -536,11 +624,12 @@ def test_api_breakout_sessions_administrator(livekit):
 
 
 def test_api_breakout_sessions_anonymous(livekit, owner_room):
-    """Someone signed out can neither list nor close."""
+    """Someone signed out can neither list, move nor close."""
     room, _client = owner_room
     session = make_session(room, ["alice"], ["bob"])
 
     assert APIClient().get(url(room)).status_code == 401
+    assert move(APIClient(), room, session, "alice", 1).status_code == 401
     assert APIClient().post(url(room, f"{session.id!s}/close/")).status_code == 401
     session.refresh_from_db()
     assert session.status == ACTIVE
@@ -556,6 +645,7 @@ def test_api_breakout_sessions_flag_off(livekit, owner_room, settings):
     session = make_session(room, ["alice"], ["bob"])
 
     assert client.post(url(room), payload(["a"], ["b"]), "json").status_code == 404
+    assert move(client, room, session, "a", 0).status_code == 404
     assert [s["id"] for s in client.get(url(room)).json()] == [str(session.id)]
     assert client.post(url(room, f"{session.id!s}/close/")).status_code == 200
     session.refresh_from_db()

@@ -62,17 +62,19 @@ describe('readSplit', () => {
     expect(readSplit(JSON.stringify({ breakout: split }))).toEqual(split)
   })
 
-  it('keeps one reading per session, whatever else the metadata holds', () => {
+  it('keeps one reading while the split is unchanged, whatever else the metadata holds', () => {
     const first = readSplit(JSON.stringify({ breakout: split }))
     const again = readSplit(
       JSON.stringify({ breakout: split, recording_status: 'saving' })
     )
     expect(again).toBe(first)
-    const next = readSplit(
-      JSON.stringify({ breakout: { ...split, session_id: 's2' } })
+    const moved = readSplit(
+      JSON.stringify({
+        breakout: { ...split, assignments: { ...split.assignments, bob: 1 } },
+      })
     )
-    expect(next).not.toBe(first)
-    expect(next?.session_id).toBe('s2')
+    expect(moved).not.toBe(first)
+    expect(moved?.assignments.bob).toBe(1)
   })
 
   it('reads no split from metadata without one, or unreadable', () => {

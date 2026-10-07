@@ -12,7 +12,11 @@ import { QueryClientProvider, focusManager } from '@tanstack/react-query'
 import { queryClient } from '@/api/queryClient'
 import { ApiError } from '@/api/ApiError'
 import { BreakoutPanel } from './BreakoutPanel'
-import { closeBreakoutSession, fetchBreakoutSession } from '../api'
+import {
+  closeBreakoutSession,
+  fetchBreakoutSession,
+  moveBreakoutParticipant,
+} from '../api'
 
 const h = vi.hoisted(() => ({
   metadata: '',
@@ -40,6 +44,7 @@ vi.mock('../api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../api')>()),
   fetchBreakoutSession: vi.fn(),
   closeBreakoutSession: vi.fn(async () => ({})),
+  moveBreakoutParticipant: vi.fn(),
 }))
 
 const announce = (sessionId: string | null) => {
@@ -70,6 +75,71 @@ afterEach(() => {
 })
 
 describe('BreakoutPanel', () => {
+  it('refetches when someone changes room in the same session', async () => {
+    vi.mocked(fetchBreakoutSession).mockResolvedValue(session)
+    announce('s1')
+    const { rerender } = render(ui())
+    await screen.findByRole('button', { name: 'active.close' })
+    const calls = vi.mocked(fetchBreakoutSession).mock.calls.length
+    h.metadata = JSON.stringify({
+      breakout: { session_id: 's1', rooms: [], assignments: { alice: 0 } },
+    })
+    rerender(ui())
+    await waitFor(() =>
+      expect(vi.mocked(fetchBreakoutSession).mock.calls.length).toBe(calls + 1)
+    )
+  })
+
+  it('lets the host join a room, then go back to the main room', async () => {
+    const host = { identity: 'host', name: 'host' }
+    const rooms = (inFirst: (typeof host)[]) => [
+      { id: 'r1', name: 'Room 1', participants: inFirst },
+      { id: 'r2', name: 'Room 2', participants: [] },
+    ]
+    vi.mocked(fetchBreakoutSession).mockResolvedValue({
+      ...session,
+      rooms: rooms([]),
+    })
+    vi.mocked(moveBreakoutParticipant)
+      .mockResolvedValueOnce({ ...session, rooms: rooms([host]) })
+      .mockResolvedValueOnce({ ...session, rooms: rooms([]) })
+    render(ui())
+    await screen.findByRole('button', { name: 'active.close' })
+    expect(
+      screen.queryByRole('button', { name: 'active.backToMain' })
+    ).toBeNull()
+
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'active.joinRoom' })[0]
+    )
+    await waitFor(() =>
+      expect(moveBreakoutParticipant).toHaveBeenCalledWith('room-1', 's1', {
+        ...host,
+        room: 0,
+      })
+    )
+    // In Room 1 now: only Room 2 offers Join, and the way back shows.
+    const back = await screen.findByRole('button', {
+      name: 'active.backToMain',
+    })
+    expect(
+      screen.getAllByRole('button', { name: 'active.joinRoom' })
+    ).toHaveLength(1)
+
+    fireEvent.click(back)
+    await waitFor(() =>
+      expect(moveBreakoutParticipant).toHaveBeenLastCalledWith('room-1', 's1', {
+        ...host,
+        room: null,
+      })
+    )
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole('button', { name: 'active.joinRoom' })
+      ).toHaveLength(2)
+    )
+  })
+
   it('lists the people still connected, not one who left', async () => {
     h.remotes = [{ identity: 'alice' }]
     vi.mocked(fetchBreakoutSession).mockResolvedValueOnce({
@@ -91,13 +161,14 @@ describe('BreakoutPanel', () => {
     h.remotes = []
   })
 
-  it('offers close with the flag off', async () => {
+  it('offers close, and no Join, with the flag off', async () => {
     h.config = { breakout_rooms: { is_enabled: false } }
     vi.mocked(fetchBreakoutSession).mockResolvedValueOnce(session)
     render(ui())
     expect(
       await screen.findByRole('button', { name: 'active.close' })
     ).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'active.joinRoom' })).toBeNull()
   })
 
   it('offers no Open with the flag off', async () => {

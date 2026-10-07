@@ -855,7 +855,10 @@
     },
     "active": {
       "empty": "Personne n'est assigné",
-      "close": "Fermer les salles"
+      "close": "Fermer les salles",
+      "join": "Rejoindre",
+      "joinRoom": "Rejoindre {{room}}",
+      "backToMain": "Retour à la salle principale"
     },
     "participant": {
       "chatRoom": "{{room}} : les messages restent dans cette salle",

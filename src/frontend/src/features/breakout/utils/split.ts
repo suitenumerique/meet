@@ -63,16 +63,15 @@ let last: { metadata?: string; split: BreakoutSplit | null } = {
 }
 
 // The split announced in the meeting's raw metadata, null outside a split.
-// A session's assignments never change, so its first reading is kept and
-// returned as the same object: a write to another key, a recording status for
-// one, re-runs none of the hooks and filters built on it.
+// An unchanged split is returned as the same object: a write to another key, a
+// recording status for one, re-runs none of the hooks and filters built on it.
+// A move inside the split gives a new one.
 export const readSplit = (metadata?: string): BreakoutSplit | null => {
   if (metadata === last.metadata) return last.split
 
   let split = parseSplit(metadata)
-  const isSameSession =
-    split !== null && split.session_id === last.split?.session_id
-  if (isSameSession) split = last.split
+  const isSameSplit = JSON.stringify(split) === JSON.stringify(last.split)
+  if (isSameSplit) split = last.split
 
   last = { metadata, split }
   return split

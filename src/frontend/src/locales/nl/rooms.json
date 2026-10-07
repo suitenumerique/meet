@@ -855,7 +855,10 @@
     },
     "active": {
       "empty": "Niemand toegewezen",
-      "close": "Ruimtes sluiten"
+      "close": "Ruimtes sluiten",
+      "join": "Deelnemen",
+      "joinRoom": "Deelnemen aan {{room}}",
+      "backToMain": "Terug naar de hoofdruimte"
     },
     "participant": {
       "chatRoom": "{{room}}: berichten bereiken deze ruimte",

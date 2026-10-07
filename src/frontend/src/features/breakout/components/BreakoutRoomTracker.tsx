@@ -57,9 +57,11 @@ const InBreakoutMeeting = ({
     const changed = lastRoomName !== undefined && roomName !== lastRoomName
     const muted = changed && room.localParticipant.isMicrophoneEnabled
     if (muted) void room.localParticipant.setMicrophoneEnabled(false)
+    // moved also covers a browser that loads straight into its room; changed
+    // covers the host sending this browser back to the main room.
     const moved = !!roomName && roomName !== lastRoomName
     const closed = !!wasSplit && !isSplit
-    if (!moved && !closed && !muted) return
+    if (!moved && !changed && !closed) return
     triggerNotificationSound(NotificationType.BreakoutRoomChanged)
     if (!closed && !muted) return
     toastQueue.add(

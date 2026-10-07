@@ -125,6 +125,26 @@ describe('BreakoutRoomTracker', () => {
     expect(h.toasts).toEqual([])
   })
 
+  it('plays the sound for someone sent back to the main room while rooms stay open', () => {
+    h.micOn = false
+    const { rerender } = render(showing(split))
+    h.sound.mockClear()
+    rerender(
+      showing(
+        JSON.stringify({
+          breakout: {
+            session_id: 's1',
+            rooms: ['Room 1', 'Room 2'],
+            assignments: {},
+          },
+        })
+      )
+    )
+    expect(h.sound).toHaveBeenCalledWith(NotificationType.BreakoutRoomChanged)
+    expect(h.toasts).toEqual([])
+    expect(screen.getByText('mainRoom')).toBeTruthy()
+  })
+
   it('leaves the microphone of someone already in the main room alone', () => {
     h.me = 'host'
     const { rerender } = render(showing(split))

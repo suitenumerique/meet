@@ -42,7 +42,6 @@ const remote = (identity: string, kind = ParticipantKind.STANDARD): Remote => ({
   trackPublications: new Map([['mic', publication()]]),
 })
 
-// A session's assignments never change, so each split here is its own session.
 const split = (assignments: Record<string, number>) =>
   JSON.stringify({
     breakout: {

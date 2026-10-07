@@ -855,7 +855,10 @@
     },
     "active": {
       "empty": "Niemand zugewiesen",
-      "close": "Räume schließen"
+      "close": "Räume schließen",
+      "join": "Beitreten",
+      "joinRoom": "{{room}} beitreten",
+      "backToMain": "Zurück zum Hauptraum"
     },
     "participant": {
       "chatRoom": "{{room}}: Nachrichten erreichen diesen Raum",
