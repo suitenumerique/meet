@@ -217,8 +217,7 @@
     },
     "roomFull": {
       "heading": "Esta reunión está completa",
-      "body": "La reunión ha alcanzado el número máximo de participantes. Vuelve a intentarlo más tarde.",
-      "retry": "Volver a intentarlo"
+      "body": "La reunión ha alcanzado el número máximo de participantes. Vuelve a intentarlo más tarde."
     },
     "screenShare": {
       "title": "No se puede compartir tu pantalla",

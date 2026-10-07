@@ -217,8 +217,7 @@
     },
     "roomFull": {
       "heading": "This meeting is full",
-      "body": "The meeting has reached its maximum number of participants. Try again later.",
-      "retry": "Try again"
+      "body": "The meeting has reached its maximum number of participants. Try again later."
     },
     "screenShare": {
       "title": "Unable to share your screen",

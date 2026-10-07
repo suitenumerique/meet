@@ -217,8 +217,7 @@
     },
     "roomFull": {
       "heading": "Deze vergadering is vol",
-      "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het later opnieuw.",
-      "retry": "Opnieuw proberen"
+      "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het later opnieuw."
     },
     "screenShare": {
       "title": "Kan uw scherm niet delen",
