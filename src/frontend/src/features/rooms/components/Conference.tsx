@@ -267,8 +267,7 @@ export const Conference = ({
             }
           }}
           onDisconnected={(e) => {
-            // Quit and a dropped connection navigate inside the app, so the
-            // page never unloads and the separate window stays open.
+            // Quit and connection loss navigate within the app, so the page never unloads and the separate window stays open.
             closeScreenSharePopout({ restorePin: false })
 
             const metadata = {
