@@ -40,19 +40,15 @@ export const StageLayout = () => {
 
   // The popped-out share stays mounted below, but out of the grid and the
   // carousel. It comes back with the other tracks when its window closes.
-  const visibleTracks = detachedSid
-    ? tracks.filter(
-        (track) =>
-          !isTrackReference(track) || track.publication.trackSid !== detachedSid
-      )
-    : tracks
-
-  const detachedTrack = detachedSid
-    ? tracks.find(
-        (track) =>
-          isTrackReference(track) && track.publication.trackSid === detachedSid
-      )
-    : undefined
+  const visibleTracks: TrackReferenceOrPlaceholder[] = []
+  let detachedTrack: TrackReferenceOrPlaceholder | undefined
+  for (const track of tracks) {
+    if (isTrackReference(track) && track.publication.trackSid === detachedSid) {
+      detachedTrack = track
+    } else {
+      visibleTracks.push(track)
+    }
+  }
 
   const carouselTracks = visibleTracks.filter(
     (track) => !isEqualTrackRef(track, pinnedTrackRef)
