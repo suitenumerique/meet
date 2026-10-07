@@ -17,6 +17,7 @@ from lasuite.oidc_resource_server.authentication import ResourceServerAuthentica
 from rest_framework.test import APIClient
 
 from core.analytics import AnalyticsEvent
+from core.audit.testing import find_events
 from core.factories import ApplicationFactory, RoomFactory, UserFactory
 from core.models import (
     Application,
@@ -2375,3 +2376,278 @@ def test_api_rooms_addons_disabled_does_not_break_application_auth(settings):
     assert response.status_code == 200
     assert response.data["count"] == 1
     assert response.data["results"][0]["id"] == str(room.id)
+
+
+def test_api_rooms_create_is_audited(audit_events):
+    """Creating a room records the application, the delegated user and the room."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    token = generate_test_token(user, [ApplicationScope.ROOMS_CREATE])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        "/external-api/v1.0/rooms/", {}, format="json", REMOTE_ADDR="1.2.3.4"
+    )
+
+    assert response.status_code == 201
+
+    room = Room.objects.get(id=response.data["id"])
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["event"]["type"] == ["creation"]
+    assert event["event"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["lasuite"]["auth"] == {"method": "application_jwt"}
+    assert event["lasuite"]["application"] == {"client_id": str(application.client_id)}
+    assert event["user"] == {
+        "id": str(user.pk),
+        "sub": user.sub,
+        "domain": "winterfell.com",
+    }
+    assert event["organization"] == {"id": str(application.client_id)}
+    assert event["lasuite"]["target"] == {
+        "type": "room",
+        "id": str(room.pk),
+        "slug": room.slug,
+        "name": room.name,
+        "access_level": "trusted",
+    }
+    assert event["client"]["ip"] == "1.2.3.4"
+    assert event["http"]["request"]["method"] == "POST"
+    assert event["url"]["path"] == "/external-api/v1.0/rooms/"
+    assert event["trace"]["id"] == response["X-Request-ID"]
+    assert "jean-neige@winterfell.com" not in str(event)
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_is_audited(mock_update_metadata, audit_events):
+    """Updating a room records what changed and the previous access level."""
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+        configuration={},
+    )
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 200
+
+    mock_update_metadata.assert_called_once()
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["type"] == ["change"]
+    assert event["lasuite"]["target"]["id"] == str(room.pk)
+    assert event["lasuite"]["target"]["access_level"] == "restricted"
+    assert event["lasuite"]["details"] == {
+        "updated_fields": ["access_level"],
+        "previous_access_level": "trusted",
+    }
+
+
+def test_api_rooms_update_refused_is_audited_with_its_target(audit_events):
+    """A refused update names the room it was aimed at."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.MEMBER)])
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["target"]["id"] == str(room.pk)
+
+
+@mock.patch.object(
+    RoomManagement, "sync_room_metadata", side_effect=RuntimeError("LiveKit down")
+)
+def test_api_rooms_update_crashing_is_audited(mock_sync_room_metadata, audit_events):
+    """An update saved but not synced to LiveKit is recorded as a failure."""
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)], access_level=RoomAccessLevel.TRUSTED
+    )
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    with pytest.raises(RuntimeError):
+        client.patch(
+            f"/external-api/v1.0/rooms/{room.id}/",
+            {"access_level": RoomAccessLevel.RESTRICTED},
+            format="json",
+        )
+
+    mock_sync_room_metadata.assert_called_once()
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["reason"] == "internal_error"
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["lasuite"]["target"]["id"] == str(room.pk)
+    assert event["http"]["response"] == {"status_code": 500}
+    assert event["error"] == {"type": "builtins.RuntimeError"}
+
+
+def test_api_rooms_list_is_audited(audit_events):
+    """Listing records how many rooms were visible to the user."""
+    user = UserFactory()
+    RoomFactory(users=[(user, RoleChoices.OWNER)])
+    RoomFactory(users=[(user, RoleChoices.OWNER)])
+    RoomFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+
+    [event] = find_events(audit_events, "room.list")
+
+    assert event["event"]["type"] == ["access"]
+    assert event["lasuite"]["details"] == {"total": 2}
+    assert "target" not in event["lasuite"]
+    assert event["user"]["id"] == str(user.pk)
+
+
+def test_api_rooms_retrieve_is_audited(audit_events):
+    """Reading a room is recorded as an access to that room."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 200
+
+    [event] = find_events(audit_events, "room.retrieve")
+
+    assert event["event"]["type"] == ["access"]
+    assert event["lasuite"]["target"]["id"] == str(room.pk)
+    assert event["lasuite"]["target"]["slug"] == room.slug
+
+
+def test_api_rooms_missing_token_is_audited_as_denial(audit_events):
+    """An unauthenticated call is recorded under the action it attempted."""
+    response = APIClient().get("/external-api/v1.0/rooms/", REMOTE_ADDR="1.2.3.4")
+
+    assert response.status_code == 401
+    [event] = find_events(audit_events, "room.list")
+
+    assert event["event"]["category"] == ["authentication"]
+    assert event["event"]["type"] == ["access", "denied"]
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert "details" not in event["lasuite"]
+    assert event["http"]["response"] == {"status_code": 401}
+    assert event["client"]["ip"] == "1.2.3.4"
+    assert event["url"]["path"] == "/external-api/v1.0/rooms/"
+
+
+def test_api_rooms_missing_scope_is_audited_as_denial(audit_events):
+    """A token without the required scope is a permission denial by the application."""
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post("/external-api/v1.0/rooms/", {}, format="json")
+
+    assert response.status_code == 403
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["event"]["type"] == ["creation", "denied"]
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["lasuite"]["auth"] == {"method": "application_jwt"}
+    assert event["lasuite"]["application"] == {"client_id": str(application.client_id)}
+    assert event["user"]["id"] == str(user.pk)
+    assert event["http"]["response"] == {"status_code": 403}
+    assert "Required scope" in event["error"]["message"]
+    assert "target" not in event["lasuite"]
+
+
+def test_api_rooms_addons_token_is_audited_as_user(audit_events):
+    """An add-on token has no application: the actor is the user."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    RoomFactory(users=[(user, RoleChoices.OWNER)])
+    token = generate_addons_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    [event] = find_events(audit_events, "room.list")
+
+    assert event["lasuite"]["actor"] == {"type": "user"}
+    assert event["lasuite"]["auth"] == {"method": "addons_jwt"}
+    assert "application" not in event["lasuite"]
+    assert event["organization"] == {"id": "winterfell.com"}
+
+
+@responses.activate
+def test_api_rooms_resource_server_is_audited_as_application(audit_events, settings):
+    """A La Suite application calling through the resource server acts for the user.
+
+    The application is the client the introspected token was issued to.
+    """
+    user = UserFactory(sub="very-specific-sub")
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:list",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    [event] = find_events(audit_events, "room.list")
+
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["lasuite"]["auth"] == {"method": "resource_server"}
+    assert event["lasuite"]["application"] == {"client_id": "some_service_provider"}
+    assert event["user"]["id"] == str(user.pk)

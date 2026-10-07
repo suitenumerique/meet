@@ -1,7 +1,7 @@
 """
 Test LiveKitEvents service.
 """
-# pylint: disable=W0621,W0613, W0212, E0611
+# pylint: disable=W0621,W0613, W0212, E0611, too-many-lines
 
 import logging
 import uuid
@@ -13,6 +13,7 @@ from django.utils import timezone
 import pytest
 from livekit.api import EgressStatus
 
+from core.audit.testing import find_events
 from core.factories import RecordingFactory, RoomFactory
 from core.models import Room
 from core.recording.enums import RecordingWorkerEvent
@@ -994,3 +995,54 @@ def test_participant_left_without_identity_is_ignored(mock_delete, service, sett
 
     service._handle_participant_left(data)  # pylint: disable=protected-access
     mock_delete.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("egress_status", "worker_event", "outcome"),
+    (
+        (EgressStatus.EGRESS_COMPLETE, "completed", "success"),
+        (EgressStatus.EGRESS_LIMIT_REACHED, "limit reached", "success"),
+        (EgressStatus.EGRESS_ABORTED, "aborted", "failure"),
+        (EgressStatus.EGRESS_FAILED, "failed", "failure"),
+    ),
+)
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_is_audited(  # noqa: PLR0913, PLR0917
+    mock_update_metadata,
+    mock_notify,
+    mock_notify_external_services,
+    egress_status,
+    worker_event,
+    outcome,
+    service,
+    audit_events,
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """The end of a recording is audited as LiveKit reports it."""
+
+    recording = RecordingFactory(
+        worker_id="worker-1",
+        status="active",
+        mode="screen_recording",
+        options={"transcribe": True},
+    )
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = egress_status
+    mock_data.egress_info.error_code = 0
+
+    service._handle_egress_ended(mock_data)
+
+    [event] = find_events(audit_events, "recording.end")
+
+    assert event["event"]["type"] == ["end"]
+    assert event["lasuite"]["outcome"] == outcome
+    assert event["lasuite"]["actor"] == {"type": "service", "name": "livekit"}
+    assert event["lasuite"]["auth"] == {"method": "shared_secret"}
+    assert event["lasuite"]["target"]["id"] == str(recording.id)
+    assert event["lasuite"]["target"]["is_transcribed"] is True
+    assert event["lasuite"]["details"] == {"worker_event": worker_event}

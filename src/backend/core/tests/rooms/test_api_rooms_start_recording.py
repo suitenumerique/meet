@@ -2,7 +2,7 @@
 Test rooms API endpoints in the Meet core app: start recording.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument,no-member
+# pylint: disable=redefined-outer-name,unused-argument,no-member,too-many-lines
 
 from unittest import mock
 
@@ -10,6 +10,7 @@ import pytest
 from livekit import api as livekit_api
 from rest_framework.test import APIClient
 
+from ...audit.testing import capture_audit, find_events
 from ...factories import RoomFactory, UserFactory
 from ...models import Recording
 from ...recording.worker.exceptions import RecordingStartError
@@ -879,3 +880,142 @@ def test_start_recording_options_original_mode_invalid(settings, value):
     )
 
     assert response.status_code == 400
+
+
+def test_start_recording_is_audited(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A started screen recording names the recording and its mode."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+    )
+
+    assert response.status_code == 201
+
+    recording = Recording.objects.get(room=room)
+    [event] = find_events(audit_events, "recording.start")
+
+    assert event["event"]["type"] == ["start"]
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["user"]["id"] == str(user.pk)
+    assert event["lasuite"]["target"] == {
+        "type": "recording",
+        "id": str(recording.pk),
+        "room_id": str(room.pk),
+        "status": "initiated",
+        "mode": "screen_recording",
+        "requested_mode": "screen_recording",
+        "is_transcribed": False,
+    }
+    assert event["lasuite"]["details"] == {"collect_metadata": False}
+
+
+def test_start_recording_transcript_with_screen_capture_is_audited(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A transcript recorded with the screen is told apart from a screen recording."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"transcribe": True, "original_mode": "transcript"},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+
+    [event] = find_events(audit_events, "recording.start")
+    target = event["lasuite"]["target"]
+
+    assert target["mode"] == "screen_recording"
+    assert target["requested_mode"] == "transcript"
+    assert target["is_transcribed"] is True
+
+
+def test_start_recording_conflict_is_audited_on_the_room(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A conflicting start is a failure aimed at the room, no recording existing."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    Recording.objects.create(room=room, mode="screen_recording", status="active")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "transcript"},
+    )
+
+    assert response.status_code == 409
+
+    [event] = find_events(audit_events, "recording.start")
+
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["event"]["reason"] == "conflict"
+    assert event["lasuite"]["target"]["type"] == "room"
+    assert event["lasuite"]["target"]["id"] == str(room.pk)
+
+
+def test_start_recording_worker_error_is_audited(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A recording the worker could not start is a failure on that recording."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    mock_worker_manager.start = mock.Mock(side_effect=RecordingStartError("boom"))
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "transcript"},
+    )
+
+    assert response.status_code == 502
+
+    [event] = find_events(audit_events, "recording.start")
+
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["http"]["response"]["status_code"] == 502
+    assert event["lasuite"]["target"]["id"] == str(Recording.objects.get().pk)
+    assert event["lasuite"]["target"]["mode"] == "transcript"
+    assert event["lasuite"]["target"]["is_transcribed"] is True
+
+
+def test_start_recording_anonymous_is_audited():
+    """An anonymous attempt is denied."""
+    room = RoomFactory()
+
+    with capture_audit() as events:
+        response = APIClient().post(
+            f"/api/v1.0/rooms/{room.id}/start-recording/",
+            {"mode": "screen_recording"},
+        )
+
+    assert response.status_code == 401
+
+    [event] = find_events(events, "recording.start")
+
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"]["type"] == "anonymous"

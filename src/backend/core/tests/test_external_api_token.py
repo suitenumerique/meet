@@ -4,6 +4,7 @@ Tests for external API /token endpoint
 
 # pylint: disable=W0621
 
+import json
 from unittest import mock
 from urllib.parse import urlencode
 
@@ -12,6 +13,7 @@ import pytest
 from freezegun import freeze_time
 from rest_framework.test import APIClient
 
+from core.audit.testing import find_events
 from core.factories import (
     ApplicationDomainFactory,
     ApplicationFactory,
@@ -674,3 +676,225 @@ def test_api_applications_token_new_user_race_condition_unrecoverable(
 
     assert response.status_code == 409
     assert mock_get_or_create.call_count == 1
+
+
+def _application(**kwargs):
+    """Create an application whose plain secret is ``test-secret-123``."""
+    kwargs.setdefault("is_active", True)
+    application = ApplicationFactory(**kwargs)
+    application.client_secret = "test-secret-123"
+    application.save()
+    return application
+
+
+def _post_token(client_id, client_secret, scope, **extra):
+    """Post a client-credentials token request."""
+    return APIClient().post(
+        "/external-api/v1.0/application/token/",
+        {
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "grant_type": "client_credentials",
+            "scope": scope,
+        },
+        format="json",
+        **extra,
+    )
+
+
+def test_api_applications_generate_token_success_is_audited(audit_events, settings):
+    """An issued token records the application, the delegated user and scopes."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    application = _application(scopes=[ApplicationScope.ROOMS_LIST])
+
+    response = _post_token(
+        application.client_id,
+        "test-secret-123",
+        "jean-neige@winterfell.com",
+        REMOTE_ADDR="1.2.3.4",
+    )
+
+    assert response.status_code == 200
+    [event] = find_events(audit_events, "application.token.issue")
+
+    assert event["event"]["category"] == ["authentication"]
+    assert event["event"]["type"] == ["start"]
+    assert event["event"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["lasuite"]["auth"] == {"method": "client_credentials"}
+    assert event["lasuite"]["application"] == {"client_id": application.client_id}
+    assert event["user"] == {
+        "id": str(user.pk),
+        "sub": user.sub,
+        "domain": "winterfell.com",
+    }
+    assert event["organization"] == {"id": application.client_id}
+    assert event["lasuite"]["target"] == {
+        "type": "application",
+        "id": str(application.pk),
+        "client_id": application.client_id,
+        "name": application.name,
+        "is_active": True,
+        "scopes": ["rooms:list"],
+    }
+    assert event["lasuite"]["details"] == {
+        "scopes": ["rooms:list"],
+        "user_provisioned": False,
+        "expires_in": settings.APPLICATION_JWT_EXPIRATION_SECONDS,
+    }
+    assert event["client"]["ip"] == "1.2.3.4"
+    assert event["url"]["path"] == "/external-api/v1.0/application/token/"
+    assert event["trace"]["id"] == response["X-Request-ID"]
+    assert "jean-neige@winterfell.com" not in json.dumps(event)
+
+
+def test_api_applications_generate_token_wrong_secret_is_audited(audit_events):
+    """A wrong secret is a denial: the submitted client id is only a claim."""
+    UserFactory(email="jean-neige@winterfell.com")
+    application = _application()
+
+    response = _post_token(application.client_id, "wrong-secret", "user@example.com")
+
+    assert response.status_code == 401
+
+    [event] = find_events(audit_events, "application.token.issue")
+
+    assert event["event"]["category"] == ["authentication"]
+    assert event["event"]["type"] == ["start", "denied"]
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert event["lasuite"]["auth"] == {"method": "client_credentials"}
+    assert "application" not in event["lasuite"]
+    assert "organization" not in event
+    assert event["lasuite"]["details"] == {
+        "requested_domain": "example.com",
+        "claimed_client_id": application.client_id,
+    }
+    assert "target" not in event["lasuite"]
+    assert event["http"]["response"] == {"status_code": 401}
+    assert event["error"] == {"message": "Invalid credentials"}
+    assert event["log"]["level"] == "warning"
+    assert "jean-neige@winterfell.com" not in json.dumps(event)
+
+
+def test_api_applications_generate_token_unknown_client_is_audited(audit_events):
+    """An unknown client id is still recorded, so brute force is visible."""
+    response = _post_token("does-not-exist", "whatever", "jean-neige@winterfell.com")
+
+    assert response.status_code == 401
+
+    [event] = find_events(audit_events, "application.token.issue")
+
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["lasuite"]["details"]["claimed_client_id"] == "does-not-exist"
+    assert "application" not in event["lasuite"]
+    assert "organization" not in event
+
+
+def test_api_applications_generate_token_inactive_application_is_audited(
+    audit_events,
+):
+    """A disabled application is refused with an explicit message."""
+    UserFactory(email="jean-neige@winterfell.com")
+    application = _application(is_active=False)
+
+    response = _post_token(
+        application.client_id, "test-secret-123", "jean-neige@winterfell.com"
+    )
+
+    assert response.status_code == 401
+    [event] = find_events(audit_events, "application.token.issue")
+
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["error"] == {"message": "Application is inactive"}
+
+
+def test_api_applications_generate_token_domain_denied_is_audited(audit_events):
+    """Delegating outside the allowed domains is a permission denial."""
+    UserFactory(email="user@random.com")
+    application = _application()
+    ApplicationDomainFactory(application=application, domain="allowed.com")
+
+    response = _post_token(application.client_id, "test-secret-123", "user@random.com")
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "application.token.issue")
+
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["lasuite"]["target"]["id"] == str(application.pk)
+    assert event["lasuite"]["details"] == {"requested_domain": "random.com"}
+    assert event["http"]["response"] == {"status_code": 403}
+
+
+def test_api_applications_generate_token_invalid_email_is_audited(audit_events):
+    """An invalid scope is a validation failure by an authenticated application."""
+    application = _application()
+
+    response = _post_token(application.client_id, "test-secret-123", "not-an-email")
+
+    assert response.status_code == 400
+
+    [event] = find_events(audit_events, "application.token.issue")
+
+    assert event["event"]["reason"] == "validation_error"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["http"]["response"] == {"status_code": 400}
+    assert "details" not in event["lasuite"]
+
+
+def test_api_applications_generate_token_unknown_user_is_audited(audit_events):
+    """An unknown user with provisioning disabled is a not-found denial."""
+    application = _application()
+
+    response = _post_token(
+        application.client_id, "test-secret-123", "nobody@example.com"
+    )
+
+    assert response.status_code == 404
+
+    [event] = find_events(audit_events, "application.token.issue")
+
+    assert event["event"]["reason"] == "not_found"
+    assert event["lasuite"]["details"] == {"requested_domain": "example.com"}
+    assert event["http"]["response"] == {"status_code": 404}
+
+
+def test_api_applications_generate_token_provisioning_is_audited(
+    audit_events, settings
+):
+    """Provisioning a user is its own event, correlated with the token issue."""
+    settings.APPLICATION_ALLOW_USER_CREATION = True
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
+    settings.OIDC_USER_SUB_FIELD_IMMUTABLE = False
+    application = _application(scopes=[ApplicationScope.ROOMS_LIST])
+
+    response = _post_token(
+        application.client_id, "test-secret-123", "new.user@example.com"
+    )
+
+    assert response.status_code == 200
+
+    user = User.objects.get(email="new.user@example.com")
+    [provision] = find_events(audit_events, "user.provision")
+
+    assert provision["event"]["category"] == ["iam"]
+    assert provision["event"]["type"] == ["user", "creation"]
+    assert provision["lasuite"]["actor"] == {"type": "application"}
+    # Same mechanism as the token issue it belongs to
+    assert provision["lasuite"]["auth"] == {"method": "client_credentials"}
+    assert provision["lasuite"]["application"] == {"client_id": application.client_id}
+    assert provision["lasuite"]["target"] == {
+        "type": "user",
+        "id": str(user.pk),
+        "domain": "example.com",
+    }
+    assert provision["trace"]["id"] == response["X-Request-ID"]
+    assert provision["url"]["path"] == "/external-api/v1.0/application/token/"
+    assert "new.user@example.com" not in json.dumps(provision)
+
+    [issue] = find_events(audit_events, "application.token.issue")
+    assert issue["lasuite"]["details"]["user_provisioned"] is True
+    assert issue["user"]["id"] == str(user.pk)

@@ -1,7 +1,6 @@
 """External API endpoints"""
 
 import copy
-from logging import getLogger
 
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
@@ -23,7 +22,7 @@ from rest_framework import (
     status as drf_status,
 )
 
-from core import analytics, api, models
+from core import analytics, api, audit, auditing, models
 from core.api.feature_flag import FeatureFlag
 from core.services.jwt_token import JwtTokenService
 from core.services.room_management import RoomManagement
@@ -35,11 +34,11 @@ from ..services.provisional_user_service import (
 )
 from . import authentication, permissions, serializers
 
-logger = getLogger(__name__)
 
-
-class ApplicationViewSet(viewsets.ViewSet):
+class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
     """API endpoints for application authentication and token generation."""
+
+    audit_client_id = None
 
     @decorators.action(
         detail=False,
@@ -47,6 +46,7 @@ class ApplicationViewSet(viewsets.ViewSet):
         url_path="token",
         url_name="token",
         parser_classes=[drf_parsers.FormParser, drf_parsers.JSONParser],
+        audit_action=auditing.APPLICATION_TOKEN_ISSUE,
     )
     @FeatureFlag.require("application")
     def generate_jwt_access_token(self, request, *args, **kwargs):
@@ -68,6 +68,10 @@ class ApplicationViewSet(viewsets.ViewSet):
 
         client_id = serializer.validated_data["client_id"]
         client_secret = serializer.validated_data["client_secret"]
+        email = serializer.validated_data["scope"]
+
+        self.audit_client_id = client_id
+        self.audit_details = {"requested_domain": audit.email_domain(email)}
 
         try:
             application = models.Application.objects.get(client_id=client_id)
@@ -80,7 +84,8 @@ class ApplicationViewSet(viewsets.ViewSet):
         if not application.is_active:
             raise drf_exceptions.AuthenticationFailed("Application is inactive")
 
-        email = serializer.validated_data["scope"]
+        self.audit_target = application
+
         try:
             validate_email(email)
         except ValidationError:
@@ -92,11 +97,6 @@ class ApplicationViewSet(viewsets.ViewSet):
             )
 
         if not application.can_delegate_email(email):
-            logger.warning(
-                "Application %s denied delegation for %s",
-                application.client_id,
-                email,
-            )
             return drf_response.Response(
                 {
                     "error": "This application is not authorized for this email domain.",
@@ -105,7 +105,7 @@ class ApplicationViewSet(viewsets.ViewSet):
             )
 
         try:
-            user, _ = ProvisionalUserService().get_or_create(email, client_id)
+            user, created = ProvisionalUserService().get_or_create(email, client_id)
         except ProvisionalUserCreationDisabledError as not_found_error:
             raise drf_exceptions.NotFound("User not found.") from not_found_error
         except ProvisionalUserIntegrityError:
@@ -134,13 +134,42 @@ class ApplicationViewSet(viewsets.ViewSet):
             },
         )
 
+        self.audit_actor = user
+        self.audit_details = {
+            "scopes": list(application.scopes or []),
+            "user_provisioned": created,
+            "expires_in": settings.APPLICATION_JWT_EXPIRATION_SECONDS,
+        }
+
         return drf_response.Response(
             data,
             status=drf_status.HTTP_200_OK,
         )
 
+    def get_audit_fields(self, status_code, error=None):
+        """Report the application as the actor once its credentials are verified.
+
+        Until then the submitted client id is only a claim: it is kept apart so
+        that it never names the application or the tenant of the event.
+        """
+        application = self.audit_target
+        fields = {
+            **super().get_audit_fields(status_code, error),
+            "auth_method": "client_credentials",
+            "actor_type": audit.ActorType.ANONYMOUS,
+        }
+        if application:
+            fields |= {
+                "actor_type": audit.ActorType.APPLICATION,
+                "client_id": application.client_id,
+            }
+        else:
+            fields["claimed_client_id"] = self.audit_client_id
+        return fields
+
 
 class RoomViewSet(
+    audit.AuditViewMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
@@ -162,6 +191,13 @@ class RoomViewSet(
     """
 
     http_method_names = ["get", "post", "patch", "head", "options"]
+
+    audit_actions = {
+        "list": auditing.ROOM_LIST,
+        "retrieve": auditing.ROOM_RETRIEVE,
+        "create": auditing.ROOM_CREATE,
+        "partial_update": auditing.ROOM_UPDATE,
+    }
 
     authentication_classes = [
         authentication.ApplicationJWTAuthentication,
@@ -191,28 +227,21 @@ class RoomViewSet(
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
+            self.audit_details = {"total": self.paginator.page.paginator.count}
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
+        self.audit_details = {"total": len(serializer.data)}
         return drf_response.Response(serializer.data)
 
     def _track_room_event(self, room, event, **extra_properties):
-        """Log a room operation for auditing and forward it to analytics."""
+        """Add a room operation to the audit event and forward it to analytics."""
+
+        self.audit_target = room
+        self.audit_details = extra_properties
 
         auth_method = type(self.request.successful_authenticator).__name__
         client_id = (self.request.auth or {}).get("client_id", "unknown")
-
-        # Log for auditing
-        details = "".join(f", {key}={value}" for key, value in extra_properties.items())
-        logger.info(
-            "Room %s via application: room_id=%s, user_id=%s, client_id=%s, auth_method=%s%s",
-            event.removeprefix("room_"),
-            room.id,
-            self.request.user.id,
-            client_id,
-            auth_method,
-            details,
-        )
 
         analytics.capture(
             self.request.user,

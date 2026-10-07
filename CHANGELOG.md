@@ -20,6 +20,10 @@ and this project adheres to
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✅(frontend) add vitest so the frontend can carry unit tests
 - ♿️(frontend) make participant pagination readable and keyboard reachable #1775
+- ✨(backend) add structured audit logging facility
+- ✨(backend) audit external API token and room operations
+- 🔒️(backend) audit writes and bulk actions made in the Django admin
+- ✨(backend) audit recordings, transcripts and summaries
 
 ### Changed
 
@@ -30,6 +34,7 @@ and this project adheres to
 
 - 🐛(frontend) enforce recording-mode permissions on the checkboxes
 - 🔒️(agents) fix util-linux CVEs reported by Cyberwatch
+- 🔒️(backend) identify throttled clients by IP using NUM_PROXIES
 - 🔒️(backend) fix HIGH CVEs in Django and urllib3
 - 🔒️(agents) upgrade libpcre2-8-0 to fix CVE-2026-103111
 - 🔒️(frontend) upgrade pcre2 to fix CVE-2026-103111
