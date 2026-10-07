@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) number the raised hands in the participants panel
+
 ## [1.34.0] - 2026-10-07
 
 ### Added

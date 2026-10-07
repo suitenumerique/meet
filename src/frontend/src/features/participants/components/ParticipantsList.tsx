@@ -61,8 +61,12 @@ const JoinedParticipantsSections = () => {
             <LowerAllHandsButton participants={participantsWithRaisedHands} />
           }
         >
-          {participantsWithRaisedHands.map((p) => (
-            <RaisedHandRow key={p.identity} participant={p} />
+          {participantsWithRaisedHands.map((p, index) => (
+            <RaisedHandRow
+              key={p.identity}
+              participant={p}
+              position={index + 1}
+            />
           ))}
         </ParticipantsCollapsibleSection>
       )}

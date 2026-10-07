@@ -39,9 +39,13 @@ const ActionButton = ({
 
 type HandRaisedListItemProps = {
   participant: Participant
+  position: number
 }
 
-export const RaisedHandRow = ({ participant }: HandRaisedListItemProps) => {
+export const RaisedHandRow = ({
+  participant,
+  position,
+}: HandRaisedListItemProps) => {
   const name = participant.name || participant.identity
   return (
     <HStack
@@ -55,6 +59,9 @@ export const RaisedHandRow = ({ participant }: HandRaisedListItemProps) => {
       })}
     >
       <HStack flex="1" minW="0" overflow="hidden">
+        <span className={css({ minWidth: '1rem', textAlign: 'right' })}>
+          {position}
+        </span>
         <Avatar name={name} bgColor={getParticipantColor(participant)} />
         <ParticipantName displayedName={name} isLocal={isLocal(participant)} />
       </HStack>
