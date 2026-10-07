@@ -423,7 +423,8 @@
       "screenRecording": "Record",
       "admin": "Host settings",
       "tools": "More tools",
-      "info": "Meeting information"
+      "info": "Meeting information",
+      "breakout": "Breakout rooms"
     },
     "content": {
       "participants": "participants",
@@ -433,12 +434,17 @@
       "screenRecording": "record",
       "admin": "host settings",
       "tools": "more tools",
-      "info": "meeting information"
+      "info": "meeting information",
+      "breakout": "breakout rooms"
     },
     "closeButton": "Hide {{content}} (Escape)",
     "escapeHint": "Press Escape to close"
   },
   "chat": {
+    "everyRoom": {
+      "label": "Send to every room",
+      "tag": "To every room"
+    },
     "disclaimer": "The messages are visible to participants only at the time they are sent. All messages are deleted at the end of the call.",
     "messagesLog": "Chat messages"
   },
@@ -454,6 +460,10 @@
       "screenRecording": {
         "title": "Record",
         "body": "Save meetings as video."
+      },
+      "breakout": {
+        "title": "Breakout rooms",
+        "body": "Split the meeting into smaller groups."
       }
     }
   },
@@ -825,5 +835,37 @@
   },
   "participantTile": {
     "screenShare": "{{name}}'s screen"
+  },
+  "breakout": {
+    "roomName": "Room {{number}}",
+    "error": "The action failed. Please try again.",
+    "setup": {
+      "you": "{{name}} (you)",
+      "roomCount": "Number of rooms",
+      "unassignedOption": "Unassigned",
+      "nobody": "Nobody to assign yet",
+      "unassigned_one": "{{count}} person unassigned",
+      "unassigned_other": "{{count}} people unassigned",
+      "allAssigned": "Everyone is assigned",
+      "shuffle": "Assign randomly",
+      "assign": "Room for {{name}}",
+      "open": "Open rooms",
+      "recording": "Opening the rooms stops the recording.",
+      "notInBrowser": "Participants who did not join from a browser, such as phone callers, cannot be placed in a room."
+    },
+    "active": {
+      "empty": "Nobody assigned",
+      "close": "Close rooms",
+      "join": "Join",
+      "joinRoom": "Join {{room}}",
+      "backToMain": "Back to main room"
+    },
+    "participant": {
+      "chatRoom": "{{room}}: messages reach this room",
+      "chatMain": "Main room: messages reach the main room",
+      "chatAll": "Rooms closed: messages reach everyone",
+      "currentRoom": "You are in {{room}}",
+      "mainRoom": "Rooms are open. You are in the main room."
+    }
   }
 }

@@ -68,5 +68,9 @@
       "member": "Member"
     }
   },
-  "openMenu": "Open menu"
+  "openMenu": "Open menu",
+  "breakout": {
+    "muted": "Your microphone is off.",
+    "closed": "Rooms are closed. Everyone is back in the main room."
+  }
 }

@@ -68,5 +68,9 @@
       "member": "Membre"
     }
   },
-  "openMenu": "Ouvrir le menu"
+  "openMenu": "Ouvrir le menu",
+  "breakout": {
+    "muted": "Votre micro est coupé.",
+    "closed": "Les salles sont fermées. Tout le monde est de retour dans la salle principale."
+  }
 }

@@ -13,6 +13,7 @@ from django.utils import timezone
 from livekit import api
 
 from core import models
+from core.breakout import services as breakout_services
 from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.metadata_collector import (
     MetadataCollectorException,
@@ -277,6 +278,9 @@ class LiveKitEventsService:
         if not room_updated_count:
             raise ActionFailedError(f"Room with ID {room_id} does not exist")
 
+        # A split still open when the room starts again ends, its key included.
+        breakout_services.close_active_sessions(room_id, clear_metadata=True)
+
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:
                 room = models.Room.objects.get(pk=room_id)
@@ -303,6 +307,9 @@ class LiveKitEventsService:
                 data.room.name,
             )
             raise ActionFailedError("Failed to process room finished event") from e
+
+        # The split's metadata ended with the room, and nobody is left to close it.
+        breakout_services.close_active_sessions(room_id)
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:

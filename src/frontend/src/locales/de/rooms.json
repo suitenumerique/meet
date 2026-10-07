@@ -423,7 +423,8 @@
       "screenRecording": "Aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
-      "info": "Meeting-Informationen"
+      "info": "Meeting-Informationen",
+      "breakout": "Breakout-Räume"
     },
     "content": {
       "participants": "Teilnehmende",
@@ -433,12 +434,17 @@
       "screenRecording": "aufzeichnen",
       "admin": "Admin-Einstellungen",
       "tools": "Weitere Tools",
-      "info": "Meeting-Informationen"
+      "info": "Meeting-Informationen",
+      "breakout": "Breakout-Räume"
     },
     "closeButton": "{{content}} ausblenden (Escape)",
     "escapeHint": "Escape drücken zum Schließen"
   },
   "chat": {
+    "everyRoom": {
+      "label": "An alle Räume senden",
+      "tag": "An alle Räume"
+    },
     "disclaimer": "Die Nachrichten sind nur für Teilnehmende zum Zeitpunkt des Sendens sichtbar. Alle Nachrichten werden am Ende des Meetings gelöscht.",
     "messagesLog": "Chat-Nachrichten"
   },
@@ -454,6 +460,10 @@
       "screenRecording": {
         "title": "Aufnehmen",
         "body": "Speichert Meetings als Video."
+      },
+      "breakout": {
+        "title": "Breakout-Räume",
+        "body": "Teile das Meeting in kleinere Gruppen auf."
       }
     }
   },
@@ -825,5 +835,37 @@
   },
   "participantTile": {
     "screenShare": "{{name}}’s Bildschirm"
+  },
+  "breakout": {
+    "roomName": "Raum {{number}}",
+    "error": "Die Aktion ist fehlgeschlagen. Bitte erneut versuchen.",
+    "setup": {
+      "you": "{{name}} (du)",
+      "roomCount": "Anzahl der Räume",
+      "unassignedOption": "Nicht zugewiesen",
+      "nobody": "Noch niemand zum Zuweisen",
+      "unassigned_one": "{{count}} Person nicht zugewiesen",
+      "unassigned_other": "{{count}} Personen nicht zugewiesen",
+      "allAssigned": "Alle sind zugewiesen",
+      "shuffle": "Zufällig zuweisen",
+      "assign": "Raum für {{name}}",
+      "open": "Räume öffnen",
+      "recording": "Das Öffnen der Räume beendet die Aufnahme.",
+      "notInBrowser": "Teilnehmende, die nicht über einen Browser beigetreten sind, etwa per Telefon, können keinem Raum zugewiesen werden."
+    },
+    "active": {
+      "empty": "Niemand zugewiesen",
+      "close": "Räume schließen",
+      "join": "Beitreten",
+      "joinRoom": "{{room}} beitreten",
+      "backToMain": "Zurück zum Hauptraum"
+    },
+    "participant": {
+      "chatRoom": "{{room}}: Nachrichten erreichen diesen Raum",
+      "chatMain": "Hauptraum: Nachrichten erreichen den Hauptraum",
+      "chatAll": "Räume geschlossen: Nachrichten erreichen alle",
+      "currentRoom": "Du bist in {{room}}",
+      "mainRoom": "Die Räume sind offen. Du bist im Hauptraum."
+    }
   }
 }

@@ -17,6 +17,7 @@ class FeatureFlag:
         "application": "APPLICATION_ENABLED",
         "roomkit": "ROOMKIT_ENABLED",
         "connection_test": "CONNECTION_TEST_ENABLED",
+        "breakout_rooms": "BREAKOUT_ROOMS_ENABLED",
     }
 
     @classmethod
