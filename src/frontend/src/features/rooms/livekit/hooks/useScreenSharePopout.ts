@@ -89,7 +89,13 @@ export const useScreenSharePopout = ({
       reportError('generic_failure', error, {
         context: 'screen_share_popout_init',
       })
-      next.close()
+      // The open may already have cleared the pin and stored the window.
+      // Closing it alone would leave the meeting unpinned.
+      if (screenSharePopoutStore.entry) {
+        closeScreenSharePopout({ restorePin: true })
+      } else {
+        next.close()
+      }
     }
   }, [announce, getVideoElement, release, t, title, trackSid, windowName])
 
