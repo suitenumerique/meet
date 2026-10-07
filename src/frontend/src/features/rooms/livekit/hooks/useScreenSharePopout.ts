@@ -100,8 +100,8 @@ export const useScreenSharePopout = ({
 
   return {
     isOpen,
-    // The snapshot deep-freezes the element. The portal needs the real node,
-    // which `ref()` kept out of the proxy.
+    // Use the ref instead of the snapshot: snapshots deep-freeze the element,
+    // while the portal needs the real DOM node. `ref()` keeps it out of the proxy.
     container: isOpen
       ? (screenSharePopoutStore.entry?.container ?? null)
       : null,
