@@ -16,6 +16,54 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Marketing / Brevo integration now uses `django-lasuite`
+
+The in-house marketing service (`core.services.marketing`) has been removed and
+replaced by the shared implementation from `django-lasuite`
+(`lasuite.marketing`). This fixes a bug where updating a user's contact on
+Brevo overwrote their list memberships, removing lists set by other
+La Suite products. Existing lists are now preserved and merged.
+
+**Celery worker required.** Newsletter signup on login
+(`SIGNUP_NEW_USER_TO_MARKETING_EMAIL=True`) is now dispatched as an
+asynchronous Celery task (`lasuite.marketing.tasks.create_or_update_contact`)
+instead of a synchronous call with a 1s timeout. Make sure a Celery worker is
+running alongside the backend, otherwise contacts will never be pushed to Brevo.
+
+**Configuration changes.** The following environment variables / settings are
+**removed** and no longer read:
+
+- `MARKETING_SERVICE_CLASS`
+- `BREVO_API_KEY`
+- `BREVO_API_CONTACT_LIST_IDS`
+- `BREVO_API_CONTACT_ATTRIBUTES` (previous default: `{"VISIO_USER": True}`)
+- `BREVO_API_TIMEOUT`
+
+They are replaced by a single `LASUITE_MARKETING` setting, configured through:
+
+| Variable                       | Default                                          | Description                                  |
+| ------------------------------ | ------------------------------------------------ | -------------------------------------------- |
+| `LASUITE_MARKETING_BACKEND`    | `lasuite.marketing.backends.dummy.DummyBackend`  | Backend class path                           |
+| `LASUITE_MARKETING_PARAMETERS` | `{}`                                             | Keyword arguments passed to the backend      |
+
+⚠️ The default backend is now a **dummy** (no-op). If you previously used
+Brevo, you must explicitly configure it, otherwise signups are silently dropped:
+
+    LASUITE_MARKETING_BACKEND=lasuite.marketing.backends.brevo.BrevoBackend
+    LASUITE_MARKETING_PARAMETERS={"api_key": "<your-brevo-api-key>", "api_contact_list_ids": [1, 2], "api_contact_attributes": {"VISIO_USER": True}}
+
+Migration mapping:
+
+- `BREVO_API_KEY` → `api_key`
+- `BREVO_API_CONTACT_LIST_IDS` → `api_contact_list_ids`
+- `BREVO_API_CONTACT_ATTRIBUTES` → `api_contact_attributes` (re-add
+  `{"VISIO_USER": True}` if you relied on the old default)
+- `BREVO_API_TIMEOUT` → no equivalent (the request runs in a background task)
+
+Note: `BREVO_API_KEY` used to support being read from a secret file; the API key
+now lives inside `LASUITE_MARKETING_PARAMETERS`, so adapt how you inject that
+secret (e.g. build the whole variable from your secret store).
+
 ### Recording encoding settings replaced by a resolution/profile model
 
 The `RECORDING_ENCODING_*` settings introduced in v1.16.0 exposed raw encoder
