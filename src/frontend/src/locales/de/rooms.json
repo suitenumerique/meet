@@ -410,6 +410,16 @@
         "apply": "Französischen Touch hinzufügen",
         "clear": "Französischen Touch entfernen"
       }
+    },
+    "matting": {
+      "errors": {
+        "MEDIAPIPE_INIT_FAILED": "Das Segmentierungsmodell konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung.",
+        "WEBGL2_INIT_FAILED": "WebGL2 ist in diesem Browser nicht verfügbar. Der Videoeffekt kann nicht angewendet werden.",
+        "CAPTURESTREAM_UNSUPPORTED": "Dieser Browser unterstützt die für die Verarbeitung erforderliche Videoaufnahme nicht.",
+        "VIRTUAL_BG_LOAD_FAILED": "Das Hintergrundbild konnte nicht geladen werden.",
+        "POSTPROCESS_SHADER_COMPILE_FAILED": "Ein GPU-Fehler verhindert die Funktion des Effekts.",
+        "CANVAS2D_FALLBACK": "GPU-Rendering nicht verfügbar, Canvas2D-Fallback aktiv. Die Leistung kann eingeschränkt sein."
+      }
     }
   },
   "sidePanel": {
