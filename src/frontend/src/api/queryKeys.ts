@@ -5,6 +5,5 @@ export const keys = {
   requestEntry: 'requestEntry',
   waitingParticipants: 'waitingParticipants',
   roomCreationCallback: 'roomCreationCallback',
-  roomCapacity: 'roomCapacity',
   files: 'files',
 }

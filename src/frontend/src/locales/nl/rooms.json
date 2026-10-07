@@ -219,9 +219,10 @@
     },
     "roomFull": {
       "heading": "Deze vergadering is vol",
-      "body": "Je neemt automatisch deel zodra iemand vertrekt.",
-      "bodyWithLimit_one": "De vergadering heeft haar limiet van {{count}} deelnemer bereikt. Je neemt automatisch deel zodra iemand vertrekt.",
-      "bodyWithLimit_other": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Je neemt automatisch deel zodra iemand vertrekt."
+      "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het opnieuw zodra iemand vertrekt.",
+      "retry": "Opnieuw proberen",
+      "bodyWithLimit_one": "De vergadering heeft haar limiet van {{count}} deelnemer bereikt. Probeer het opnieuw zodra iemand vertrekt.",
+      "bodyWithLimit_other": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Probeer het opnieuw zodra iemand vertrekt."
     },
     "screenShare": {
       "title": "Kan uw scherm niet delen",

@@ -18,9 +18,8 @@ and this project adheres to
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✅(frontend) add vitest so the frontend can carry unit tests
 - ♿️(frontend) make participant pagination readable and keyboard reachable #1775
-- ✨(frontend) join a full meeting as soon as a seat frees
 - ✨(fullstack) let operators cap meetings and show hosts the limit
-- ✨(frontend) name the participant limit while waiting for a seat
+- ✨(frontend) name the participant limit when a meeting is full
 
 ### Changed
 
