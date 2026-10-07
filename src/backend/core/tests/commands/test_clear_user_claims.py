@@ -72,3 +72,18 @@ def test_clear_user_claims_with_nothing_to_clear():
     assert "0 user(s)" in output
     user.refresh_from_db()
     assert user.claims == {"locale": "nl"}
+
+
+def test_clear_user_claims_updates_in_a_single_query(django_assert_num_queries):
+    """
+    The claims are removed from the current database value in one UPDATE, so a
+    login happening meanwhile can't be overwritten with stale values.
+    """
+    UserFactory(claims={"picture": "https://example.com/a.png", "locale": "nl"})
+    UserFactory(claims={"picture": "https://example.com/b.png", "locale": "fr"})
+
+    with django_assert_num_queries(1):
+        run_command("--claim", "picture")
+
+    with django_assert_num_queries(1):
+        run_command()
