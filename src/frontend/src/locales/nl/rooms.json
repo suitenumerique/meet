@@ -220,7 +220,6 @@
     "roomFull": {
       "heading": "Deze vergadering is vol",
       "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het later opnieuw.",
-      "retry": "Opnieuw proberen",
       "bodyWithLimit_one": "De vergadering heeft haar limiet van {{count}} deelnemer bereikt. Probeer het later opnieuw.",
       "bodyWithLimit_other": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Probeer het later opnieuw."
     },

@@ -23,7 +23,6 @@ import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
 import { fetchRoomCapacity } from '../api/fetchRoomCapacity'
-import { RoomFull } from './RoomFull'
 import type { ApiRoom } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
@@ -213,7 +212,18 @@ export const Conference = ({
   }
 
   if (isRoomFull) {
-    return <RoomFull onRetry={() => setIsRoomFull(false)} />
+    return (
+      <ErrorScreen
+        title={t('error.roomFull.heading')}
+        body={
+          apiConfig?.room_max_participants
+            ? t('error.roomFull.bodyWithLimit', {
+                count: apiConfig.room_max_participants,
+              })
+            : t('error.roomFull.body')
+        }
+      />
+    )
   }
 
   const reportRoomError = (e: Error) =>

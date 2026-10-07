@@ -220,7 +220,6 @@
     "roomFull": {
       "heading": "Esta reunión está completa",
       "body": "La reunión ha alcanzado el número máximo de participantes. Vuelve a intentarlo más tarde.",
-      "retry": "Volver a intentarlo",
       "bodyWithLimit_one": "La reunión ha alcanzado su límite de {{count}} participante. Vuelve a intentarlo más tarde.",
       "bodyWithLimit_other": "La reunión ha alcanzado su límite de {{count}} participantes. Vuelve a intentarlo más tarde."
     },

@@ -220,7 +220,6 @@
     "roomFull": {
       "heading": "Dieses Meeting ist voll",
       "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es später erneut.",
-      "retry": "Erneut versuchen",
       "bodyWithLimit_one": "Das Meeting hat sein Limit von {{count}} Teilnehmenden erreicht. Versuche es später erneut.",
       "bodyWithLimit_other": "Das Meeting hat sein Limit von {{count}} Teilnehmenden erreicht. Versuche es später erneut."
     },
