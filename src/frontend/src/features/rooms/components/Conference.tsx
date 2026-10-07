@@ -232,7 +232,7 @@ export const Conference = ({
         token: data.livekit.token,
       }).catch(() => undefined)
       if (capacity?.is_full) {
-        void captureEvent('room-full')
+        captureEvent('room-full')
         setIsRoomFull(true)
         return
       }
