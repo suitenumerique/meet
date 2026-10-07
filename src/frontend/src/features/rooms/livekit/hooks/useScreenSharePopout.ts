@@ -40,8 +40,8 @@ export const useScreenSharePopout = ({
 }: UseScreenSharePopoutOptions) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'screenShareZoom' })
   const announce = useScreenReaderAnnounce()
-  const { entry } = useSnapshot(screenSharePopoutStore)
-  const isOpen = entry?.trackSid === trackSid
+  const { entry: popout } = useSnapshot(screenSharePopoutStore)
+  const isOpen = popout?.trackSid === trackSid
 
   // Brings the video back into the meeting, from the toolbar button as well as
   // from the window's own close button. Safe to call after this hook's
