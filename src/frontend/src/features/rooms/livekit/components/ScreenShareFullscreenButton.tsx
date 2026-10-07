@@ -27,6 +27,9 @@ export const ScreenShareFullscreenButton = memo(
     // Covers Esc and browser UI exits, not just this button.
     // Listens on the element's own document, so it still works in the popup.
     // Only this tile's instance announces to avoid duplicates with multiple shares.
+    // Opening the separate window passes another ref, the popup's. That is
+    // what re-runs this effect and moves the listener there. `.current`
+    // changing would not.
     useEffect(() => {
       const doc = getOwnerDocument(containerRef.current)
       setIsFullscreenAvailable(doc.fullscreenEnabled)
