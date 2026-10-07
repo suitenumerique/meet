@@ -13,10 +13,13 @@ export type AttendanceLabels = {
   guest: string
 }
 
-// A guest types their own name, and a spreadsheet runs a cell starting with
-// one of these characters as a formula.
+// A guest types their own name, and a spreadsheet may run a cell starting with
+// = + - @, or their full-width forms, as a formula, even behind invisible space.
+const FORMULA_START =
+  /^[\s\u200B-\u200D\u2060]*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20]|^[\t\r]/
+
 const escapeCell = (value: string) => {
-  const safe = /^\s*[=+\-@]|^[\t\r]/.test(value) ? `'${value}` : value
+  const safe = FORMULA_START.test(value) ? `'${value}` : value
   return `"${safe.replaceAll('"', '""')}"`
 }
 

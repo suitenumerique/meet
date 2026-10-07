@@ -32,8 +32,17 @@ describe('buildAttendanceCsv', () => {
     expect(csv.split('\r\n')[1]).toBe('"\'=HYPERLINK(""x"",""y"")","Guest"')
   })
 
-  it('keeps every formula trigger as text, after leading spaces too', () => {
-    const names = ['+1', '-1', '@SUM(1)', '\t=1', ' =1', 'Ana-Maria']
+  it('keeps every formula trigger as text, in full width or behind spaces too', () => {
+    const names = [
+      '+1',
+      '-1',
+      '@SUM(1)',
+      '\t=1',
+      ' =1',
+      '\uFF1D1+1',
+      '\u200B=1',
+      'Ana-Maria',
+    ]
     const csv = buildAttendanceCsv(
       names.map((name) => ({ name, signedIn: true })),
       labels
@@ -48,6 +57,8 @@ describe('buildAttendanceCsv', () => {
       '"\'@SUM(1)',
       '"\'\t=1',
       '"\' =1',
+      '"\'\uFF1D1+1',
+      '"\'\u200B=1',
       '"Ana-Maria',
     ])
   })
