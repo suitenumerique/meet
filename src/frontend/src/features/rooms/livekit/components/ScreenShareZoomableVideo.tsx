@@ -24,7 +24,6 @@ interface ScreenShareZoomableVideoProps {
   tileRef: React.RefObject<HTMLDivElement | null>
   participantName: string
   trackSid: string
-  windowName: string
   children: ReactNode
 }
 
@@ -50,7 +49,6 @@ export const ScreenShareZoomableVideo = ({
   tileRef,
   participantName,
   trackSid,
-  windowName,
   children,
 }: ScreenShareZoomableVideoProps) => {
   const zoom = useScreenShareZoom()
@@ -67,7 +65,7 @@ export const ScreenShareZoomableVideo = ({
 
   const popout = useScreenSharePopout({
     trackSid,
-    windowName,
+    windowName: `meet-screen-share-${trackSid}`,
     title: t('separateWindowTitle', { name: participantName }),
     getVideoElement,
   })
