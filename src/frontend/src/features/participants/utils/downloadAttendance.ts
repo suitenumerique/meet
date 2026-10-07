@@ -19,7 +19,7 @@ export type AttendanceLabels = {
 // one of these characters as a formula.
 const escapeCell = (value: string) => {
   const safe = /^\s*[=+\-@]|^[\t\r]/.test(value) ? `'${value}` : value
-  return `"${safe.replace(/"/g, '""')}"`
+  return `"${safe.replaceAll('"', '""')}"`
 }
 
 export const buildAttendanceCsv = (
@@ -42,8 +42,6 @@ export const downloadAttendance = (csv: string, roomSlug?: string) => {
   const timestamp = formatDate(new Date(), 'YYYY-MM-DD_HH-mm')
   // The byte order mark makes Excel read accented names as UTF-8.
   const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' })
-  downloadBlob(
-    blob,
-    `attendance-${roomSlug ? `${roomSlug}-` : ''}${timestamp}.csv`
-  )
+  const filename = ['attendance', roomSlug, timestamp].filter(Boolean).join('-')
+  downloadBlob(blob, `${filename}.csv`)
 }
