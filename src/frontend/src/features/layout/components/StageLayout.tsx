@@ -139,6 +139,8 @@ export const StageLayout = () => {
 
   // The popped-out tile is kept mounted below, so nothing else notices when
   // the share stops. Close the window here instead.
+  // The snapshot above is for the layout. Here we read the store itself,
+  // to get the window that's open at this moment.
   useEffect(() => {
     const entry = screenSharePopoutStore.entry
     if (!entry) return
