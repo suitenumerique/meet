@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(backend) store configurable OIDC claims on the user
 - ✨(helm) import environment variables from Secrets and ConfigMaps
 - 🔒(backend) throttle meeting link generation
 - 🔒️(backend) add a daily cap on room creation

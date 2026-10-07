@@ -657,6 +657,13 @@ class Base(Configuration):
         environ_name="OIDC_USERINFO_SHORTNAME_FIELD",
         environ_prefix=None,
     )
+    # OIDC userinfo claims to store on the user, as a comma-separated list
+    # (e.g. "picture,locale")
+    OIDC_USERINFO_STORED_CLAIMS = values.ListValue(
+        default=[],
+        environ_name="OIDC_USERINFO_STORED_CLAIMS",
+        environ_prefix=None,
+    )
     OIDC_USERINFO_ESSENTIAL_CLAIMS = values.ListValue(
         default=[],
         environ_name="OIDC_USERINFO_ESSENTIAL_CLAIMS",

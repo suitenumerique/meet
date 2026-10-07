@@ -209,6 +209,11 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
             "Configurations applied by default to new rooms created by this user."
         ),
     )
+    claims = models.JSONField(
+        blank=True,
+        default=dict,
+        help_text=_("OIDC userinfo claims selected by OIDC_USERINFO_STORED_CLAIMS."),
+    )
     is_device = models.BooleanField(
         _("device"),
         default=False,
