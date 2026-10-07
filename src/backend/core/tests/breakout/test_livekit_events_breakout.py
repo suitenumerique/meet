@@ -127,6 +127,42 @@ def test_handle_room_started_keeps_a_split_whose_key_stays(
     assert session.is_active
 
 
+@override_settings(ROOM_TELEPHONY_ENABLED=True)
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+def test_handle_room_started_key_removal_fails_still_ensures_dispatch_rule(
+    mock_ensure_dispatch_rule, livekit, service
+):
+    """A failed key removal still leaves the room its phone dial-in rule."""
+    room = RoomFactory()
+    open_session(room)
+    livekit.room.update_room_metadata.side_effect = TimeoutError
+
+    with pytest.raises(MediaServerError):
+        started(service, room)
+
+    mock_ensure_dispatch_rule.assert_called_once()
+
+
+@override_settings(ROOM_TELEPHONY_ENABLED=True)
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+def test_handle_room_started_dispatch_rule_fails_still_closes_breakout(
+    mock_ensure_dispatch_rule, livekit, service
+):
+    """A failed dial-in rule still ends the stale split."""
+    mock_ensure_dispatch_rule.side_effect = SIPException("boom")
+    room = RoomFactory()
+    session = open_session(room)
+    livekit.room.list_rooms.return_value = live_room(
+        json.dumps({"breakout": {"session_id": "s"}})
+    )
+
+    with pytest.raises(ActionFailedError):
+        started(service, room)
+
+    session.refresh_from_db()
+    assert not session.is_active
+
+
 @mock.patch.object(SIPManagement, "ensure_dispatch_rule")
 def test_handle_room_started_without_a_split_calls_no_media_server(
     mock_ensure_dispatch_rule, livekit, service

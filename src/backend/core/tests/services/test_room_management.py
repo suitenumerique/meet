@@ -9,6 +9,7 @@ from unittest import mock
 
 from django.core.cache import cache
 
+import aiohttp
 import pytest
 from livekit.api import TwirpError
 
@@ -128,6 +129,23 @@ def test_update_metadata_bounded(hanging, lock_kept):
     client.aclose.assert_awaited_once()
     # The write may still land, so the next writer waits for the lock to expire.
     assert cache.lock(f"room-metadata:{room_name}").locked() is lock_kept
+
+
+def test_update_metadata_unreachable_raises_management_exception():
+    """A media server refusing the connection answers the service's own error."""
+    room_name = str(uuid.uuid4())
+    client = fake_livekit(list_rooms=aiohttp.ClientConnectionError())
+
+    with (
+        mock.patch.object(
+            room_management.utils, "create_livekit_client", return_value=client
+        ),
+        pytest.raises(RoomManagementException),
+    ):
+        RoomManagement.update_metadata(room_name, {"key": "value"})
+
+    client.aclose.assert_awaited_once()
+    assert not cache.lock(f"room-metadata:{room_name}").locked()
 
 
 def test_update_metadata_concurrent_writers_keep_both_keys():

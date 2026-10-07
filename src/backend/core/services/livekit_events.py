@@ -279,22 +279,28 @@ class LiveKitEventsService:
             raise ActionFailedError(f"Room with ID {room_id} does not exist")
 
         # A split still open when the room starts again ends, its key included.
-        breakout_services.close_active_sessions(room_id, clear_metadata=True)
+        # It runs after the dial-in rule, so a failed key removal never leaves
+        # the room without one, and runs even when that rule fails.
+        try:
+            self._ensure_dispatch_rule(room_id)
+        finally:
+            breakout_services.close_active_sessions(room_id, clear_metadata=True)
 
-        if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
-            try:
-                room = models.Room.objects.get(pk=room_id)
-            except models.Room.DoesNotExist as err:
-                raise ActionFailedError(
-                    f"Room with ID {room_id} does not exist"
-                ) from err
+    def _ensure_dispatch_rule(self, room_id):
+        """Give the room its phone dial-in rule, where telephony is on."""
+        if not (settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED):
+            return
+        try:
+            room = models.Room.objects.get(pk=room_id)
+        except models.Room.DoesNotExist as err:
+            raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
 
-            try:
-                self.sip_management.ensure_dispatch_rule(room)
-            except SIPException as e:
-                raise ActionFailedError(
-                    f"Failed to create sip dispatch rule for room {room_id}"
-                ) from e
+        try:
+            self.sip_management.ensure_dispatch_rule(room)
+        except SIPException as e:
+            raise ActionFailedError(
+                f"Failed to create sip dispatch rule for room {room_id}"
+            ) from e
 
     def _handle_room_finished(self, data):
         """Handle 'room_finished' event."""

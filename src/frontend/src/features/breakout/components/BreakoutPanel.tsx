@@ -5,6 +5,7 @@ import { css } from '@/styled-system/css'
 import { Button, Div, Text } from '@/primitives'
 import { queryClient } from '@/api/queryClient'
 import { useCanManageBreakout } from '../hooks/useCanManageBreakout'
+import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import {
   useLocalParticipant,
@@ -27,23 +28,28 @@ const ActiveSession = ({
   roomId,
   session,
   canMove,
+  canClose,
 }: {
   roomId: string
   session: BreakoutSession
   canMove: boolean
+  canClose: boolean
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'breakout' })
   // Someone who left, a guest who reloaded under a new identity included,
   // stays assigned and is no longer listed.
+  // Each name is read live, so a rename shows.
   const { localParticipant } = useLocalParticipant()
-  const here = new Set([
-    localParticipant.identity,
-    ...useRemoteParticipants().map((p) => p.identity),
-  ])
+  const here = new Map(
+    [localParticipant, ...useRemoteParticipants()].map((p) => [
+      p.identity,
+      getParticipantName(p),
+    ])
+  )
   const namesHere = (room: BreakoutSession['rooms'][number]) =>
     room.participants
       .filter((p) => here.has(p.identity))
-      .map((p) => p.name)
+      .map((p) => here.get(p.identity))
       .join(', ')
   const close = useMutation({
     mutationFn: () => closeBreakoutSession(roomId, session.id),
@@ -116,14 +122,17 @@ const ActiveSession = ({
           {t('active.backToMain')}
         </Button>
       )}
-      <Button
-        variant="primary"
-        fullWidth
-        isDisabled={close.isPending}
-        onPress={() => close.mutate()}
-      >
-        {t('active.close')}
-      </Button>
+      {/* A host demoted while the panel is open loses Close with the rest. */}
+      {canClose && (
+        <Button
+          variant="primary"
+          fullWidth
+          isDisabled={close.isPending}
+          onPress={() => close.mutate()}
+        >
+          {t('active.close')}
+        </Button>
+      )}
     </>
   )
 }
@@ -131,6 +140,8 @@ const ActiveSession = ({
 export const BreakoutPanel = () => {
   const roomId = useRoomData()?.id
   const { canOpen } = useCanManageBreakout()
+  // Close follows the role alone: a split outlives the flag and its key.
+  const isAdminOrOwner = useIsAdminOrOwner()
   // The split the metadata announces, null outside one. readSplit returns a
   // new object only when the split itself changed: an open, a move or a close.
   const announced = readSplit(useRoomInfo().metadata)
@@ -165,7 +176,12 @@ export const BreakoutPanel = () => {
     >
       {isError && <ErrorNote />}
       {session && (
-        <ActiveSession roomId={roomId} session={session} canMove={canOpen} />
+        <ActiveSession
+          roomId={roomId}
+          session={session}
+          canMove={canOpen}
+          canClose={isAdminOrOwner}
+        />
       )}
       {/* A first list that failed leaves no form: Open would fail as well. */}
       {session === null && canOpen && <BreakoutSetup roomId={roomId} />}

@@ -154,6 +154,10 @@ class RoomManagement:
             logger.warning("Timed out updating metadata for room %s", room_name)
             raise RoomManagementException(METADATA_UPDATE_FAILED) from e
 
+        except aiohttp.ClientError as e:
+            logger.warning("Could not reach LiveKit to update room %s", room_name)
+            raise RoomManagementException(METADATA_UPDATE_FAILED) from e
+
         finally:
             await lkapi.aclose()
 

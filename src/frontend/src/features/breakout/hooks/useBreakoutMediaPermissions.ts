@@ -44,10 +44,6 @@ export const useBreakoutMediaPermissions = (
 
   // A tab nothing has restricted sends nothing until a split opens.
   const restricted = useRef(restrictedBeforeConnect)
-  // The flag known late gives a new room, which Conference restricted.
-  useEffect(() => {
-    restricted.current = restrictedBeforeConnect
-  }, [room, restrictedBeforeConnect])
 
   useEffect(() => {
     // Not connected: the list already sent stands, and the SDK sends it again

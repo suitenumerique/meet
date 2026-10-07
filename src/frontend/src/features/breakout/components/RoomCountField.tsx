@@ -21,7 +21,8 @@ export const RoomCountField = ({
       maxValue={MAX_ROOMS}
       onChange={(next) => {
         // A cleared field gives NaN: keep the count until a number is typed.
-        if (Number.isInteger(next)) onChange(next)
+        // A typed fraction rounds to a whole count.
+        if (Number.isFinite(next)) onChange(Math.round(next))
       }}
       className={css({
         display: 'flex',

@@ -13,16 +13,26 @@ export const useOpenShortcut = (open: () => void, isEnabled: boolean) => {
   latest.current = open
   useEffect(() => {
     if (!isEnabled) return
-    const onKeyDown = (event: KeyboardEvent) => {
+    const listener = (withModifier: boolean) => (event: KeyboardEvent) => {
       if (event.key !== 'Enter' || event.shiftKey || event.altKey) return
+      if ((event.ctrlKey || event.metaKey) !== withModifier) return
       const target = event.target as Element | null
       if (target?.closest(TYPING)) return
-      const withModifier = event.ctrlKey || event.metaKey
       if (!withModifier && target?.closest(CONTROL)) return
       event.preventDefault()
+      if (withModifier) event.stopPropagation()
       latest.current()
     }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
+    // With a modifier the shortcut listens in the capture phase, since a
+    // button stops the Enter it presses; plain Enter waits for the bubble,
+    // which a menu item or a tab keeps for itself.
+    const withModifier = listener(true)
+    const plain = listener(false)
+    document.addEventListener('keydown', withModifier, true)
+    document.addEventListener('keydown', plain)
+    return () => {
+      document.removeEventListener('keydown', withModifier, true)
+      document.removeEventListener('keydown', plain)
+    }
   }, [isEnabled])
 }

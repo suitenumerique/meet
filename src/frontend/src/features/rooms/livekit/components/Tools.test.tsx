@@ -53,6 +53,15 @@ describe('Tools', () => {
     expect(breakoutTool()).not.toBeNull()
   })
 
+  it('offers no breakout rooms to a member while a split is open', () => {
+    h.isHost = false
+    h.metadata = JSON.stringify({
+      breakout: { session_id: 's1', rooms: ['Room 1'], assignments: {} },
+    })
+    render(<Tools />)
+    expect(breakoutTool()).toBeNull()
+  })
+
   it('opens breakout rooms as a tool for a host', async () => {
     render(<Tools />)
     fireEvent.click(breakoutTool()!)
