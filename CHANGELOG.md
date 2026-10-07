@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
+
 ## [1.35.0] - 2026-10-13
 
 ### Added

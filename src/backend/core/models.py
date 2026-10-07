@@ -246,6 +246,9 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
                 name="unique_email_when_sub_is_null",
             )
         ]
+        indexes = [
+            models.Index(models.functions.Upper("email"), name="user_email_upper_idx"),
+        ]
 
     def __str__(self):
         return self.email or self.admin_email or str(self.id)
