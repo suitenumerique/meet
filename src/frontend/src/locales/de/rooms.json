@@ -679,6 +679,14 @@
     "lowerParticipantHand": "{{name}}’s Hand senken",
     "lowerParticipantsHand": "Alle Hände senken",
     "muteParticipants": "Alle Mikrofone stummschalten",
+    "attendance": {
+      "download": "Anwesenheitsliste herunterladen",
+      "name": "Name",
+      "account": "Konto",
+      "joinedAt": "Beigetreten um",
+      "signedIn": "Angemeldet",
+      "guest": "Gast"
+    },
     "waiting": {
       "title": "Warteraum",
       "accept": {

@@ -10,6 +10,7 @@ import { ParticipantRow } from './ParticipantRow'
 import { ParticipantsCollapsibleSection } from './ParticipantsCollapsibleSection'
 import { LowerAllHandsButton } from './LowerAllHandsButton'
 import { MuteEveryoneButton } from './MuteEveryoneButton'
+import { DownloadAttendanceButton } from './DownloadAttendanceButton'
 import { WaitingParticipantsSection } from './WaitingParticipantsSection'
 import { RaisedHandRow } from './RaisedHandRow'
 
@@ -69,7 +70,12 @@ const JoinedParticipantsSections = () => {
       <ParticipantsCollapsibleSection
         heading={t('contributors')}
         count={allParticipants.length}
-        action={<MuteEveryoneButton participants={remoteParticipants} />}
+        action={
+          <>
+            <MuteEveryoneButton participants={remoteParticipants} />
+            <DownloadAttendanceButton participants={allParticipants} />
+          </>
+        }
       >
         {allParticipants.map((p) => (
           <ParticipantRow key={p.identity} participant={p} />

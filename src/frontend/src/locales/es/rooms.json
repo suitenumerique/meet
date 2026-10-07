@@ -678,6 +678,14 @@
     "lowerParticipantHand": "Bajar la mano de {{name}}",
     "lowerParticipantsHand": "Bajar todas las manos",
     "muteParticipants": "Silenciar todos los micrófonos",
+    "attendance": {
+      "download": "Descargar la lista de asistencia",
+      "name": "Nombre",
+      "account": "Cuenta",
+      "joinedAt": "Hora de llegada",
+      "signedIn": "Con sesión iniciada",
+      "guest": "Invitado"
+    },
     "waiting": {
       "title": "Sala de espera",
       "accept": {

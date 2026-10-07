@@ -679,6 +679,14 @@
     "lowerParticipantHand": "Baisser la main de {{name}}",
     "lowerParticipantsHand": "Baisser toutes les mains",
     "muteParticipants": "Couper tous les micros",
+    "attendance": {
+      "download": "Télécharger la liste de présence",
+      "name": "Nom",
+      "account": "Compte",
+      "joinedAt": "Arrivée",
+      "signedIn": "Connecté",
+      "guest": "Invité"
+    },
     "waiting": {
       "title": "Salle d'attente",
       "accept": {
