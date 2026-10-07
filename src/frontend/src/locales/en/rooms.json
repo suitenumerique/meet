@@ -217,7 +217,8 @@
     },
     "roomFull": {
       "heading": "This meeting is full",
-      "body": "You will join automatically as soon as someone leaves."
+      "body": "The meeting has reached its maximum number of participants. Try again once someone leaves.",
+      "retry": "Try again"
     },
     "screenShare": {
       "title": "Unable to share your screen",

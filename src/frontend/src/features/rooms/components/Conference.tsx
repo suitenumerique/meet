@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -23,7 +23,7 @@ import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
 import { fetchRoomCapacity } from '../api/fetchRoomCapacity'
-import { WaitingForSeat } from './WaitingForSeat'
+import { RoomFull } from './RoomFull'
 import type { ApiRoom } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
@@ -73,12 +73,6 @@ export const Conference = ({
 
   const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
   const [isRoomFull, setIsRoomFull] = useState(false)
-  const handleSeatFree = useCallback(() => setIsRoomFull(false), [])
-  // Someone the lobby let in gets no pass from this fetch, so theirs is kept.
-  const refreshPass = useCallback(async () => {
-    const room = await fetchRoom({ roomId, username }).catch(() => undefined)
-    if (room?.livekit) queryClient.setQueryData([keys.room, roomId], room)
-  }, [roomId, username])
 
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
@@ -218,19 +212,8 @@ export const Conference = ({
     )
   }
 
-  const capacityArgs =
-    data?.id && data.livekit?.token
-      ? { roomId: data.id, token: data.livekit.token }
-      : undefined
-
-  if (isRoomFull && capacityArgs) {
-    return (
-      <WaitingForSeat
-        {...capacityArgs}
-        onSeatFree={handleSeatFree}
-        onCheckFailed={refreshPass}
-      />
-    )
+  if (isRoomFull) {
+    return <RoomFull onRetry={() => setIsRoomFull(false)} />
   }
 
   const reportRoomError = (e: Error) =>
@@ -243,10 +226,11 @@ export const Conference = ({
    * failure as an unreachable server, so ask the backend which one it was.
    */
   const handleConnectionError = async (e: ConnectionError) => {
-    if (capacityArgs) {
-      const capacity = await fetchRoomCapacity(capacityArgs).catch(
-        () => undefined
-      )
+    if (data?.id && data.livekit?.token) {
+      const capacity = await fetchRoomCapacity({
+        roomId: data.id,
+        token: data.livekit.token,
+      }).catch(() => undefined)
       if (capacity?.is_full) {
         void captureEvent('room-full')
         setIsRoomFull(true)
