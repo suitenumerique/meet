@@ -122,9 +122,9 @@ export const StageLayout = () => {
 
   return (
     <>
-      {/* Out of the layout, but still mounted: this subtree is what renders
-          into the separate window. hidden also takes it off the a11y tree
-          and out of the tab order. */}
+      {/* The tile keeps living in the meeting, hidden, so the other window
+          can show it. Hidden so a screen reader and the keyboard don't find
+          the same share twice. */}
       {detachedTrack && (
         <div hidden>
           <ParticipantTile trackRef={detachedTrack} />
