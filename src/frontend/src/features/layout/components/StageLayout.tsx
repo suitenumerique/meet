@@ -1,12 +1,19 @@
-import { FocusLayoutContainer, useTracks } from '@livekit/components-react'
+import {
+  FocusLayoutContainer,
+  useParticipantInfo,
+  useTracks,
+  VideoTrack,
+} from '@livekit/components-react'
 import { CarouselLayout } from '@/features/layout/components/CarouselLayout'
 import { FocusLayout } from '@/features/layout/components/FocusLayout'
 import { ParticipantTile } from '@/features/participantTile/components/ParticipantTile'
 import { GridLayout } from '@/features/layout/components/GridLayout'
+import { ScreenShareZoomableVideo } from '@/features/rooms/livekit/components/ScreenShareZoomableVideo'
 import {
   isEqualTrackRef,
   isTrackReference,
   log,
+  type TrackReference,
   type TrackReferenceOrPlaceholder,
 } from '@livekit/components-core'
 import { Track } from 'livekit-client'
@@ -17,6 +24,29 @@ import {
   screenSharePopoutStore,
 } from '@/stores/screenSharePopout'
 import { useEffect, useRef } from 'react'
+
+// Only the media part of the tile: it is what the other window shows (video,
+// zoom bar, fullscreen, bring-back button). The rest of the tile would stay
+// hidden anyway. Hidden so a screen reader and the keyboard don't find the
+// same share twice.
+const DetachedScreenShare = ({ trackRef }: { trackRef: TrackReference }) => {
+  const hostRef = useRef<HTMLDivElement>(null)
+  const { identity, name } = useParticipantInfo({
+    participant: trackRef.participant,
+  })
+
+  return (
+    <div ref={hostRef} hidden>
+      <ScreenShareZoomableVideo
+        tileRef={hostRef}
+        participantName={name || identity || 'Unknown'}
+        trackSid={trackRef.publication.trackSid}
+      >
+        <VideoTrack trackRef={trackRef} />
+      </ScreenShareZoomableVideo>
+    </div>
+  )
+}
 
 export const StageLayout = () => {
   const lastAutoFocusedScreenShareTrack =
@@ -41,7 +71,7 @@ export const StageLayout = () => {
   // The popped-out share stays mounted below, but out of the grid and the
   // carousel. It comes back with the other tracks when its window closes.
   const visibleTracks: TrackReferenceOrPlaceholder[] = []
-  let detachedTrack: TrackReferenceOrPlaceholder | undefined
+  let detachedTrack: TrackReference | undefined
   for (const track of tracks) {
     if (isTrackReference(track) && track.publication.trackSid === detachedSid) {
       detachedTrack = track
@@ -122,14 +152,7 @@ export const StageLayout = () => {
 
   return (
     <>
-      {/* The tile keeps living in the meeting, hidden, so the other window
-          can show it. Hidden so a screen reader and the keyboard don't find
-          the same share twice. */}
-      {detachedTrack && (
-        <div hidden>
-          <ParticipantTile trackRef={detachedTrack} />
-        </div>
-      )}
+      {detachedTrack && <DetachedScreenShare trackRef={detachedTrack} />}
       {!pinnedTrackRef ? (
         <div className="lk-grid-layout-wrapper" style={{ height: 'auto' }}>
           <GridLayout tracks={visibleTracks} style={{ padding: 0 }}>
