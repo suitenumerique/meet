@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.34.0] - 2026-10-07
+
 ### Added
 
 - ✨(helm) import environment variables from Secrets and ConfigMaps
