@@ -29,7 +29,7 @@ export const ScreenShareFullscreenButton = memo(
     // Only this tile's instance announces to avoid duplicates with multiple shares.
     useEffect(() => {
       const doc = getOwnerDocument(containerRef.current)
-      setIsFullscreenAvailable(!!doc.fullscreenEnabled)
+      setIsFullscreenAvailable(doc.fullscreenEnabled)
 
       const onChange = () => {
         const isThisTileFullscreen =
