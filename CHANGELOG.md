@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
+
 ### Changed
 
 - ⚡️(backend) hash application secrets with SHA-256
