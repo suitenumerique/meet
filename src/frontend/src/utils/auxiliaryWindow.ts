@@ -62,26 +62,40 @@ export const initializeAuxiliaryWindow = (
   return ensureAuxiliaryRoot(target)
 }
 
-// Match the shared screen size, but keep the window on one display.
+const MIN_WIDTH = 320
+const MIN_HEIGHT = 240
+const FALLBACK_WIDTH = 1280
+const FALLBACK_HEIGHT = 720
+// Leaves room for the browser's title bar: window.open sizes the content.
+const SCREEN_FRACTION = 0.9
+
+// Sized to the share, on the meeting's screen. The user moves it from there.
+// A very narrow share hits the minimum and gets bars, not a stretched picture.
 export const getAuxiliaryWindowSize = (
   video?: Pick<HTMLVideoElement, 'videoWidth' | 'videoHeight'> | null
 ) => {
-  const maxWidth = Math.max(320, Math.round(window.screen.availWidth * 0.9))
-  const maxHeight = Math.max(240, Math.round(window.screen.availHeight * 0.9))
+  const maxWidth = Math.max(
+    MIN_WIDTH,
+    Math.round(window.screen.availWidth * SCREEN_FRACTION)
+  )
+  const maxHeight = Math.max(
+    MIN_HEIGHT,
+    Math.round(window.screen.availHeight * SCREEN_FRACTION)
+  )
   const videoWidth = video?.videoWidth ?? 0
   const videoHeight = video?.videoHeight ?? 0
 
   if (videoWidth > 0 && videoHeight > 0) {
     const scale = Math.min(maxWidth / videoWidth, maxHeight / videoHeight, 1)
     return {
-      width: Math.max(320, Math.round(videoWidth * scale)),
-      height: Math.max(240, Math.round(videoHeight * scale)),
+      width: Math.max(MIN_WIDTH, Math.round(videoWidth * scale)),
+      height: Math.max(MIN_HEIGHT, Math.round(videoHeight * scale)),
     }
   }
 
   return {
-    width: Math.min(1280, maxWidth),
-    height: Math.min(720, maxHeight),
+    width: Math.min(FALLBACK_WIDTH, maxWidth),
+    height: Math.min(FALLBACK_HEIGHT, maxHeight),
   }
 }
 
