@@ -5,7 +5,7 @@ export type BreakoutPerson = { identity: string; name: string }
 
 export type BreakoutSession = {
   id: string
-  status: 'active' | 'closed'
+  is_active: boolean
   rooms: { id: string; name: string; participants: BreakoutPerson[] }[]
 }
 

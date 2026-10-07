@@ -63,7 +63,7 @@ const ui = () => (
 
 const session = {
   id: 's1',
-  status: 'active' as const,
+  is_active: true,
   rooms: [{ id: 'r1', name: 'Room 1', participants: [] }],
 }
 

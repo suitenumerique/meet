@@ -43,11 +43,14 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
     .filter(isAssignable)
     .map((p) => ({
       identity: p.identity,
-      name: p.isLocal
-        ? t('setup.you', { name: getParticipantName(p) })
-        : getParticipantName(p),
+      name: getParticipantName(p),
       isHost: getParticipantIsRoomAdminOrOwner(p),
     }))
+  // The stored name stays the participant's own; "(you)" is shown here alone.
+  const labelOf = (p: (typeof people)[number]) =>
+    p.identity === localParticipant.identity
+      ? t('setup.you', { name: p.name })
+      : p.name
   // Whoever is not in a browser cannot be placed in a room.
   const hasNonBrowsers = remotes.some((p) => !isAssignable(p))
   // A room removed by lowering the room count leaves its people unassigned.
@@ -153,11 +156,11 @@ export const BreakoutSetup = ({ roomId }: { roomId: string }) => {
             })}
           >
             <Text variant="sm" wrap="pretty">
-              {p.name}
+              {labelOf(p)}
             </Text>
             <div className={css({ width: '10rem', flexShrink: 0 })}>
               <Select
-                aria-label={t('setup.assign', { name: p.name })}
+                aria-label={t('setup.assign', { name: labelOf(p) })}
                 label=""
                 items={roomItems}
                 selectedKey={roomOf(p.identity)}

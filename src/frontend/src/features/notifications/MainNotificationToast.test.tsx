@@ -124,6 +124,26 @@ describe('MainNotificationToast in a split', () => {
     expect(h.toasts.add.map((toast) => toast.message)).toEqual(['from Room 1'])
   })
 
+  it('toasts a message a host in the main room sent to every room', () => {
+    const toEveryRoom = { 'breakout.to_every_room': 'true' }
+    const host = { ...person('hana'), attributes: { room_role: 'owner' } }
+    const guest = person('dave')
+    fire(
+      RoomEvent.ChatMessage,
+      { message: 'from a guest', attributes: toEveryRoom, from: guest },
+      guest
+    )
+    expect(h.toasts.add).toHaveLength(0)
+    fire(
+      RoomEvent.ChatMessage,
+      { message: '5 minutes left', attributes: toEveryRoom, from: host },
+      host
+    )
+    expect(h.toasts.add.map((toast) => toast.message)).toEqual([
+      '5 minutes left',
+    ])
+  })
+
   it('takes down a raised hand lowered from another room', () => {
     const carol = person('carol')
     h.toasts.visible = [

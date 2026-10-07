@@ -37,7 +37,7 @@ class BreakoutSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.BreakoutSession
-        fields = ["id", "status", "created_at", "closed_at", "rooms"]
+        fields = ["id", "is_active", "created_at", "rooms"]
 
 
 class ParticipantInputSerializer(BaseValidationOnlySerializer):

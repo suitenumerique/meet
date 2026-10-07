@@ -129,6 +129,27 @@ describe('BreakoutSetup', () => {
     )
   })
 
+  it('stores the host under their own name, "(you)" being shown alone', async () => {
+    breakoutSetupStore.assignments = { me: 0 }
+    renderSetup()
+    fireEvent.click(screen.getByRole('button', { name: 'setup.open' }))
+    await waitFor(() =>
+      expect(createBreakoutSession).toHaveBeenLastCalledWith(
+        'room-1',
+        expect.objectContaining({
+          rooms: expect.arrayContaining([
+            {
+              name: 'roomName',
+              participants: [
+                expect.objectContaining({ identity: 'me', name: 'Me' }),
+              ],
+            },
+          ]),
+        })
+      )
+    )
+  })
+
   it('opens without stopping anything when nothing records', async () => {
     h.participants = [guest]
     breakoutSetupStore.assignments = { 'guest-1': 0 }
@@ -167,7 +188,7 @@ describe('BreakoutSetup', () => {
   })
 
   it('shows the open rooms and starts a fresh plan once they are open', async () => {
-    const opened = { id: 's1', status: 'active', rooms: [] }
+    const opened = { id: 's1', is_active: true, rooms: [] }
     vi.mocked(createBreakoutSession).mockResolvedValueOnce(opened as never)
     h.participants = [guest]
     renderSetup()

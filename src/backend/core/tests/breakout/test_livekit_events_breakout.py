@@ -13,7 +13,7 @@ from rest_framework.test import APIClient
 
 from core.breakout.services import MediaServerError
 from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
-from core.models import BreakoutRoom, BreakoutSession, BreakoutSessionStatusChoices
+from core.models import BreakoutRoom, BreakoutSession
 from core.services.livekit_events import ActionFailedError, LiveKitEventsService
 from core.services.lobby import LobbyService
 from core.services.sip_management import SIPException, SIPManagement
@@ -65,8 +65,7 @@ def test_handle_room_finished_closes_breakout_session(
     finished(service, room)
 
     session.refresh_from_db()
-    assert session.status == BreakoutSessionStatusChoices.CLOSED
-    assert session.closed_at is not None
+    assert not session.is_active
     mock_clear_cache.assert_called_once_with(room.id)
     # The meeting's metadata went with its room: nothing is written to it.
     livekit.room.update_room_metadata.assert_not_awaited()
@@ -107,7 +106,7 @@ def test_handle_room_started_closes_a_stale_breakout_session(
     started(service, room)
 
     session.refresh_from_db()
-    assert session.status == BreakoutSessionStatusChoices.CLOSED
+    assert not session.is_active
     request = livekit.room.update_room_metadata.await_args.args[0]
     assert json.loads(request.metadata) == {"access_level": "public"}
 
@@ -125,7 +124,7 @@ def test_handle_room_started_keeps_a_split_whose_key_stays(
         started(service, room)
 
     session.refresh_from_db()
-    assert session.status == BreakoutSessionStatusChoices.ACTIVE
+    assert session.is_active
 
 
 @mock.patch.object(SIPManagement, "ensure_dispatch_rule")
@@ -157,4 +156,4 @@ def test_handle_room_finished_cleanup_fails_still_closes_breakout(
         finished(service, room)
 
     session.refresh_from_db()
-    assert session.status == BreakoutSessionStatusChoices.CLOSED
+    assert not session.is_active

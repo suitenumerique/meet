@@ -27,9 +27,6 @@ from core.services import room_management
 
 pytestmark = pytest.mark.django_db
 
-ACTIVE = models.BreakoutSessionStatusChoices.ACTIVE
-CLOSED = models.BreakoutSessionStatusChoices.CLOSED
-
 
 def logged_in(room, role=None):
     """A new user, holding role in the meeting if given, and a client logged in as them."""
@@ -101,7 +98,7 @@ def test_api_breakout_sessions_create_owner(livekit, owner_room):
 
     assert response.status_code == 201
     session = models.BreakoutSession.objects.get()
-    assert session.status == ACTIVE
+    assert session.is_active
     assert response.json()["rooms"] == [
         {
             "id": str(breakout_room.id),
@@ -365,7 +362,7 @@ def test_api_breakout_sessions_create_take_back_fails(livekit, owner_room):
 
     assert response.status_code == 503
     session = models.BreakoutSession.objects.get()
-    assert session.status == ACTIVE
+    assert session.is_active
     assert [s["id"] for s in client.get(url(room)).json()] == [str(session.id)]
 
     livekit.room.update_room_metadata.side_effect = store
@@ -421,7 +418,7 @@ def test_api_breakout_sessions_list(livekit, owner_room):
     """The owner reads the active session only."""
     room, client = owner_room
     make_session(room, ["alice"])
-    models.BreakoutSession.objects.update(status=CLOSED)
+    models.BreakoutSession.objects.update(is_active=False)
     session = make_session(room, ["alice"], ["bob"])
 
     response = client.get(url(room))
@@ -543,10 +540,9 @@ def test_api_breakout_sessions_close(livekit, owner_room):
     response = client.post(url(room, f"{session.id!s}/close/"))
 
     assert response.status_code == 200
-    assert response.json()["status"] == "closed"
+    assert response.json()["is_active"] is False
     session.refresh_from_db()
-    assert session.status == CLOSED
-    assert session.closed_at is not None
+    assert not session.is_active
     assert written_metadata(livekit) == {"access_level": "public"}
 
     livekit.reset_mock()
@@ -563,7 +559,7 @@ def test_api_breakout_sessions_close_meeting_not_live(livekit, owner_room):
     response = client.post(url(room, f"{session.id!s}/close/"))
 
     assert response.status_code == 200
-    assert response.json()["status"] == "closed"
+    assert response.json()["is_active"] is False
 
 
 def test_api_breakout_sessions_close_metadata_removal_fails_then_retries(
@@ -577,13 +573,13 @@ def test_api_breakout_sessions_close_metadata_removal_fails_then_retries(
     response = client.post(url(room, f"{session.id!s}/close/"))
 
     assert response.status_code == 503
-    assert [s["status"] for s in client.get(url(room)).json()] == ["active"]
+    assert [s["is_active"] for s in client.get(url(room)).json()] == [True]
 
     livekit.room.update_room_metadata.side_effect = None
     response = client.post(url(room, f"{session.id!s}/close/"))
 
     assert response.status_code == 200
-    assert response.json()["status"] == "closed"
+    assert response.json()["is_active"] is False
 
 
 def test_api_breakout_sessions_close_member(livekit, owner_room):
@@ -607,7 +603,7 @@ def test_api_breakout_sessions_close_other_meeting(livekit, owner_room):
 
     assert response.status_code == 404
     other.refresh_from_db()
-    assert other.status == ACTIVE
+    assert other.is_active
     livekit.room.update_room_metadata.assert_not_awaited()
 
 
@@ -632,7 +628,7 @@ def test_api_breakout_sessions_anonymous(livekit, owner_room):
     assert move(APIClient(), room, session, "alice", 1).status_code == 401
     assert APIClient().post(url(room, f"{session.id!s}/close/")).status_code == 401
     session.refresh_from_db()
-    assert session.status == ACTIVE
+    assert session.is_active
 
 
 # Flag
@@ -649,4 +645,4 @@ def test_api_breakout_sessions_flag_off(livekit, owner_room, settings):
     assert [s["id"] for s in client.get(url(room)).json()] == [str(session.id)]
     assert client.post(url(room, f"{session.id!s}/close/")).status_code == 200
     session.refresh_from_db()
-    assert session.status == CLOSED
+    assert not session.is_active

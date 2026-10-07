@@ -35,7 +35,7 @@ Nothing else is required: no worker, no scheduled task, no extra LiveKit room. O
 
 ## What is stored
 
-- A breakout session per split: the meeting, its state, `active` or `closed`, who opened it, and when it closed.
+- A breakout session per split: the meeting, whether it is still open, and who opened it.
 - A breakout room per room: its display name and its position.
 - An assignment per participant: the room, the participant's identity in the meeting and their display name at the time.
 
@@ -43,7 +43,7 @@ Closed sessions stay in the database. While a session is active, the meeting's L
 
 ## Closing
 
-Close removes the `breakout` key from the meeting's metadata, then marks the session `closed`. If LiveKit fails, the close answers 503 and the session stays `active`, so closing it again tries again. The split also closes on its own when LiveKit reports the meeting's room as finished, or as started again.
+Close removes the `breakout` key from the meeting's metadata, then marks the session closed. If LiveKit fails, the close answers 503 and the session stays open, so closing it again tries again. The split also closes on its own when LiveKit reports the meeting's room as finished, or as started again.
 
 ## Limits
 

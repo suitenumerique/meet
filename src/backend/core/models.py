@@ -1088,13 +1088,6 @@ class File(BaseModel):
         self.save(update_fields=["hard_deleted_at"])
 
 
-class BreakoutSessionStatusChoices(models.TextChoices):
-    """Breakout session status choices."""
-
-    ACTIVE = "active", _("Active")
-    CLOSED = "closed", _("Closed")
-
-
 BREAKOUT_SESSION_LABEL = _("Breakout session")
 
 
@@ -1107,11 +1100,7 @@ class BreakoutSession(BaseModel):
         related_name="breakout_sessions",
         verbose_name=_("Room"),
     )
-    status = models.CharField(
-        max_length=20,
-        choices=BreakoutSessionStatusChoices.choices,
-        default=BreakoutSessionStatusChoices.ACTIVE,
-    )
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
     created_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -1120,7 +1109,6 @@ class BreakoutSession(BaseModel):
         related_name="+",
         verbose_name=_("Created by"),
     )
-    closed_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Closed at"))
 
     class Meta:
         db_table = "meet_breakout_session"
@@ -1130,13 +1118,14 @@ class BreakoutSession(BaseModel):
         constraints = [
             models.UniqueConstraint(
                 fields=["room"],
-                condition=models.Q(status=BreakoutSessionStatusChoices.ACTIVE),
+                condition=models.Q(is_active=True),
                 name="unique_active_breakout_session_per_room",
             )
         ]
 
     def __str__(self):
-        return f"Breakout session {self.id!s} ({self.status})"
+        state = "active" if self.is_active else "closed"
+        return f"Breakout session {self.id!s} ({state})"
 
 
 class BreakoutRoom(BaseModel):

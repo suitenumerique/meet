@@ -19,8 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, help_text='primary key for the record as UUID', primary_key=True, serialize=False, verbose_name='id')),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='date and time at which a record was created', verbose_name='created on')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='date and time at which a record was last updated', verbose_name='updated on')),
-                ('status', models.CharField(choices=[('active', 'Active'), ('closed', 'Closed')], default='active', max_length=20)),
-                ('closed_at', models.DateTimeField(blank=True, null=True, verbose_name='Closed at')),
+                ('is_active', models.BooleanField(default=True, verbose_name='Active')),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='Created by')),
                 ('room', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='breakout_sessions', to='core.room', verbose_name='Room')),
             ],
@@ -68,7 +67,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='breakoutsession',
-            constraint=models.UniqueConstraint(condition=models.Q(('status', 'active')), fields=('room',), name='unique_active_breakout_session_per_room'),
+            constraint=models.UniqueConstraint(condition=models.Q(('is_active', True)), fields=('room',), name='unique_active_breakout_session_per_room'),
         ),
         migrations.AddConstraint(
             model_name='breakoutassignment',

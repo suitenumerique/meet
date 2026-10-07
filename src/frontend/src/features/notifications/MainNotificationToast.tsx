@@ -1,7 +1,10 @@
 import { useCallback, useEffect } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
-import { type ChatMessage, isMobileBrowser } from '@livekit/components-core'
+import {
+  type ReceivedChatMessage,
+  isMobileBrowser,
+} from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
@@ -16,6 +19,7 @@ import { useReactions } from '@/features/reactions/hooks/useReactions'
 import { NotificationProvider } from './NotificationProvider'
 import { useConfig } from '@/api/useConfig'
 import { useMyBreakoutRoom } from '@/features/breakout/hooks/useMyBreakoutRoom'
+import { isToEveryRoom } from '@/features/breakout/utils/split'
 
 const SENT_BY_BROWSERS = new Set<NotificationType>([
   NotificationType.TranscriptionRequested,
@@ -38,12 +42,17 @@ export const MainNotificationToast = () => {
 
   useEffect(() => {
     const handleChatMessage = (
-      chatMessage: ChatMessage,
+      chatMessage: ReceivedChatMessage,
       participant?: Participant | undefined
     ) => {
-      // In a split, a message from another room never toasts.
+      // In a split, a message from another room never toasts, unless a host
+      // sent it to every room.
       if (!participant || participant.isLocal) return
-      if (!isInMyBreakoutRoom(participant.identity)) return
+      if (
+        !isInMyBreakoutRoom(participant.identity) &&
+        !isToEveryRoom(chatMessage)
+      )
+        return
       triggerNotificationSound(NotificationType.MessageReceived)
       toastQueue.add(
         {

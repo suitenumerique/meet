@@ -54,9 +54,7 @@ class MediaServerError(exceptions.APIException):
 
 def active_sessions(room_id):
     """The meeting's active breakout session, as a queryset of zero or one."""
-    return models.BreakoutSession.objects.filter(
-        room_id=room_id, status=models.BreakoutSessionStatusChoices.ACTIVE
-    )
+    return models.BreakoutSession.objects.filter(room_id=room_id, is_active=True)
 
 
 def has_active_session(room):
@@ -71,12 +69,7 @@ def close_active_sessions(room_id, clear_metadata=False):
     # A failed removal keeps the session active, so a host's Close tries again.
     if clear_metadata and sessions.exists():
         _write_metadata(room_id, remove_keys=[METADATA_KEY])
-    now = timezone.now()
-    sessions.update(
-        status=models.BreakoutSessionStatusChoices.CLOSED,
-        closed_at=now,
-        updated_at=now,
-    )
+    sessions.update(is_active=False, updated_at=timezone.now())
 
 
 def lock_room_row(room):
@@ -238,11 +231,10 @@ def close_session(session):
     # The row lock a move holds keeps it from writing the split back after this.
     with transaction.atomic():
         lock_room_row(session.room)
-        session.refresh_from_db(fields=["status"])
-        if session.status == models.BreakoutSessionStatusChoices.CLOSED:
+        session.refresh_from_db(fields=["is_active"])
+        if not session.is_active:
             return session
         _write_metadata(session.room_id, remove_keys=[METADATA_KEY])
-        session.status = models.BreakoutSessionStatusChoices.CLOSED
-        session.closed_at = timezone.now()
-        session.save(update_fields=["status", "closed_at", "updated_at"])
+        session.is_active = False
+        session.save(update_fields=["is_active", "updated_at"])
     return session

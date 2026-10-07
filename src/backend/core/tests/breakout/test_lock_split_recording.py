@@ -106,7 +106,7 @@ def test_split_and_recording_never_both_pass(livekit, settings, first):
     # The second request waits on the row lock, then sees the first one's row.
     assert statuses == {first: 201, second: 409}
     has_split = models.BreakoutSession.objects.filter(
-        room=room, status=models.BreakoutSessionStatusChoices.ACTIVE
+        room=room, is_active=True
     ).exists()
     assert has_split is (first == "split")
     assert models.Recording.objects.filter(room=room).exists() is (first == "recording")
