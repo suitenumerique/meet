@@ -29,12 +29,10 @@ const DownloadAttendanceButtonInner = ({
       participants.map((p) => ({
         name: getParticipantName(p),
         signedIn: getParticipantIsAuthenticated(p),
-        joinedAt: p.joinedAt,
       })),
       {
         name: t('name'),
         account: t('account'),
-        joinedAt: t('joinedAt'),
         signedIn: t('signedIn'),
         guest: t('guest'),
       }

@@ -4,13 +4,11 @@ import { formatDate } from '@/utils/formatDate'
 export type AttendanceRow = {
   name: string
   signedIn: boolean
-  joinedAt?: Date
 }
 
 export type AttendanceLabels = {
   name: string
   account: string
-  joinedAt: string
   signedIn: string
   guest: string
 }
@@ -27,12 +25,10 @@ export const buildAttendanceCsv = (
   labels: AttendanceLabels
 ): string => {
   const lines = [
-    [labels.name, labels.account, labels.joinedAt],
-    ...rows.map(({ name, signedIn, joinedAt }) => [
+    [labels.name, labels.account],
+    ...rows.map(({ name, signedIn }) => [
       name,
       signedIn ? labels.signedIn : labels.guest,
-      // Local time, so the sheet reads in the clock of whoever took the register.
-      joinedAt ? formatDate(joinedAt, 'YYYY-MM-DD HH:mm') : '',
     ]),
   ]
   return lines.map((cells) => cells.map(escapeCell).join(',')).join('\r\n')

@@ -682,7 +682,6 @@
       "download": "Descargar la lista de asistencia",
       "name": "Nombre",
       "account": "Cuenta",
-      "joinedAt": "Hora de llegada",
       "signedIn": "Con sesión iniciada",
       "guest": "Invitado"
     },

@@ -4,7 +4,6 @@ import { buildAttendanceCsv } from './downloadAttendance'
 const labels = {
   name: 'Name',
   account: 'Account',
-  joinedAt: 'Joined at',
   signedIn: 'Signed in',
   guest: 'Guest',
 }
@@ -13,15 +12,15 @@ describe('buildAttendanceCsv', () => {
   it('writes one row per person under a header', () => {
     const csv = buildAttendanceCsv(
       [
-        { name: 'Zoé', signedIn: true, joinedAt: new Date(2026, 9, 7, 8, 5) },
+        { name: 'Zoé', signedIn: true },
         { name: 'Sam', signedIn: false },
       ],
       labels
     )
     expect(csv.split('\r\n')).toEqual([
-      '"Name","Account","Joined at"',
-      '"Zoé","Signed in","2026-10-07 08:05"',
-      '"Sam","Guest",""',
+      '"Name","Account"',
+      '"Zoé","Signed in"',
+      '"Sam","Guest"',
     ])
   })
 
@@ -30,7 +29,7 @@ describe('buildAttendanceCsv', () => {
       [{ name: '=HYPERLINK("x","y")', signedIn: false }],
       labels
     )
-    expect(csv.split('\r\n')[1]).toBe('"\'=HYPERLINK(""x"",""y"")","Guest",""')
+    expect(csv.split('\r\n')[1]).toBe('"\'=HYPERLINK(""x"",""y"")","Guest"')
   })
 
   it('keeps every formula trigger as text, after leading spaces too', () => {

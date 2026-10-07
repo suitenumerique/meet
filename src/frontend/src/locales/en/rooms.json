@@ -683,7 +683,6 @@
       "download": "Download attendance",
       "name": "Name",
       "account": "Account",
-      "joinedAt": "Joined at",
       "signedIn": "Signed in",
       "guest": "Guest"
     },

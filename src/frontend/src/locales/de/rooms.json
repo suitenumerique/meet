@@ -683,7 +683,6 @@
       "download": "Anwesenheitsliste herunterladen",
       "name": "Name",
       "account": "Konto",
-      "joinedAt": "Beigetreten um",
       "signedIn": "Angemeldet",
       "guest": "Gast"
     },

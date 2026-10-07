@@ -683,7 +683,6 @@
       "download": "Télécharger la liste de présence",
       "name": "Nom",
       "account": "Compte",
-      "joinedAt": "Arrivée",
       "signedIn": "Connecté",
       "guest": "Invité"
     },
