@@ -16,6 +16,7 @@ and this project adheres to
 ### Fixed
 
 - 🔒️(backend) prevent editing client id and secret in Django admin
+- 🔒️(frontend) upgrade tiff to fix CVE-2026-4775
 
 ## [1.34.0] - 2026-10-07
 
