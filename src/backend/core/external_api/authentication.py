@@ -48,6 +48,7 @@ class BaseJWTAuthentication(authentication.BaseAuthentication):
 
         self.is_enabled = is_enabled
         self._token_service = None
+        self._token_type = token_type
 
         if not self.is_enabled:
             return
@@ -73,7 +74,10 @@ class BaseJWTAuthentication(authentication.BaseAuthentication):
 
         auth_header = authentication.get_authorization_header(request).split()
 
-        if not auth_header or auth_header[0].lower() != b"bearer":
+        if (
+            not auth_header
+            or auth_header[0].lower() != self._token_type.lower().encode()
+        ):
             # Defer to next authentication backend
             return None
 
@@ -159,7 +163,7 @@ class BaseJWTAuthentication(authentication.BaseAuthentication):
 
     def authenticate_header(self, request):
         """Return authentication scheme for WWW-Authenticate header."""
-        return "Bearer"
+        return self._token_type
 
     def authenticate_credentials(self, token):
         """Validate JWT token and return authenticated user.
