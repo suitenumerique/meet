@@ -4,15 +4,12 @@ Test rooms API endpoints: toggle hand and rename participant.
 
 # pylint: disable=redefined-outer-name,unused-argument,protected-access
 
-from datetime import datetime, timedelta, timezone
 from unittest import mock
 from uuid import uuid4
 
-from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 
-import jwt
 import pytest
 from freezegun import freeze_time
 from livekit.api import TwirpError
@@ -21,12 +18,11 @@ from rest_framework.test import APIClient
 
 from core import utils
 from core.factories import (
-    ApplicationFactory,
     RoomFactory,
     UserFactory,
     UserResourceAccessFactory,
 )
-from core.models import ApplicationScope
+from core.tests.utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -702,25 +698,7 @@ def test_rename_participant_not_found(mock_livekit_client, room, token):
 @pytest.fixture
 def user_access_token(user):
     """Generate a valid user access JWT, sent with the "X-LiveKit-Token" scheme."""
-    now = datetime.now(timezone.utc)
-    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
-
-    payload = {
-        "iss": django_settings.USER_ACCESS_TOKEN_ISSUER,
-        "aud": django_settings.USER_ACCESS_TOKEN_AUDIENCE,
-        "iat": now,
-        "exp": now + timedelta(seconds=django_settings.USER_ACCESS_TOKEN_TTL),
-        "user_id": str(user.id),
-        "token_type": "user_access",
-        "client_id": application.client_id,
-        "scope": "user:access",
-    }
-
-    return jwt.encode(
-        payload,
-        django_settings.USER_ACCESS_TOKEN_SECRET_KEY,
-        algorithm=django_settings.USER_ACCESS_TOKEN_ALG,
-    )
+    return generate_user_access_token(user)
 
 
 def test_toggle_hand_bearer_scheme_defers_to_next_authentication(
