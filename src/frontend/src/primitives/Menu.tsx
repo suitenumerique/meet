@@ -10,14 +10,16 @@ export const Menu = ({
   children,
   variant = 'light',
   placement,
+  onOpenChange,
 }: {
   children: [trigger: ReactNode, menu: ReactNode]
   variant?: 'dark' | 'light'
   placement?: 'bottom' | 'top' | 'left' | 'right'
+  onOpenChange?: (isOpen: boolean) => void
 }) => {
   const [trigger, menu] = children
   return (
-    <MenuTrigger>
+    <MenuTrigger onOpenChange={onOpenChange}>
       {trigger}
       <StyledPopover placement={placement}>
         <Box size="sm" type="popover" variant={variant}>

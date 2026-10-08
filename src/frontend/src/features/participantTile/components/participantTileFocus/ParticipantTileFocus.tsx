@@ -7,6 +7,9 @@ import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { FocusButton } from './FocusButton'
 import { EffectsButton } from './EffectsButton'
 import { MuteButton } from './MuteButton'
+import { SelfTileMenu } from './SelfTileMenu'
+import { layoutStore } from '@/stores/layout'
+import { useSnapshot } from 'valtio'
 
 const MOUSE_IDLE_TIME = 3000
 
@@ -14,6 +17,7 @@ type FadeOverlayProps = {
   children: ReactNode
   hasKeyboardFocus: boolean
   tileRef: React.RefObject<HTMLDivElement | null>
+  forceVisible?: boolean
 }
 
 // Pointer-events none so this overlay doesn't block the zoom surface below.
@@ -24,6 +28,7 @@ const FadeOverlay = ({
   children,
   hasKeyboardFocus,
   tileRef,
+  forceVisible = false,
 }: FadeOverlayProps) => {
   const [active, setActive] = useState(false)
   const idleTimerRef = useRef<number | null>(null)
@@ -63,8 +68,7 @@ const FadeOverlay = ({
     }
   }, [tileRef])
 
-  const isVisible = hasKeyboardFocus || active
-
+  const isVisible = hasKeyboardFocus || active || forceVisible
   return (
     <div
       className={css({
@@ -99,9 +103,18 @@ export const ParticipantTileFocus = ({
   const isScreenShare = trackRef.source == Track.Source.ScreenShare
   const isLocal = participant.isLocal
   const canMute = useCanMute(participant)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const { pinnedTrackRef } = useSnapshot(layoutStore)
+  // A pin (screen shares auto-pin) replaces the corner layout with the carousel,
+  // where the self-tile actions have no effect.
+  const showSelfTileMenu = isLocal && !isScreenShare && !pinnedTrackRef
 
   return (
-    <FadeOverlay hasKeyboardFocus={hasKeyboardFocus} tileRef={tileRef}>
+    <FadeOverlay
+      hasKeyboardFocus={hasKeyboardFocus}
+      tileRef={tileRef}
+      forceVisible={menuOpen}
+    >
       <div
         className={css({
           backgroundColor: 'primaryDark.50',
@@ -127,6 +140,7 @@ export const ParticipantTileFocus = ({
               )}
             </>
           )}
+          {showSelfTileMenu && <SelfTileMenu onOpenChange={setMenuOpen} />}
         </HStack>
       </div>
     </FadeOverlay>

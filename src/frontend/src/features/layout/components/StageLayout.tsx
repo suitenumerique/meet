@@ -12,7 +12,12 @@ import {
 import { Track } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { OneToOneFocusLayout } from '@/features/layout/components/OneToOneFocusLayout'
+import {
+  shouldUseFocusLayout,
+  splitFocusTracks,
+} from '@/features/layout/utils/selfTileLayout'
 
 export const StageLayout = () => {
   const lastAutoFocusedScreenShareTrack =
@@ -30,10 +35,26 @@ export const StageLayout = () => {
     .filter(isTrackReference)
     .filter((track) => track.publication.source === Track.Source.ScreenShare)
 
-  const { pinnedTrackRef } = useSnapshot(layoutStore)
+  const { pinnedTrackRef, selfTileLayout, selfTileMinimized } =
+    useSnapshot(layoutStore)
 
   const carouselTracks = tracks.filter(
     (track) => !isEqualTrackRef(track, pinnedTrackRef)
+  )
+
+  const cameraTracks = useMemo(
+    () => tracks.filter((t) => t.source === Track.Source.Camera),
+    [tracks]
+  )
+
+  const useFocusLayout =
+    !pinnedTrackRef &&
+    screenShareTracks.length === 0 &&
+    shouldUseFocusLayout(selfTileLayout, cameraTracks)
+
+  const { mainTracks, thumbnailTrack } = useMemo(
+    () => splitFocusTracks(cameraTracks),
+    [cameraTracks]
   )
 
   /* eslint-disable react-hooks/exhaustive-deps */
@@ -87,7 +108,13 @@ export const StageLayout = () => {
 
   return (
     <>
-      {!pinnedTrackRef ? (
+      {useFocusLayout ? (
+        <OneToOneFocusLayout
+          mainTracks={mainTracks}
+          thumbnailTrack={thumbnailTrack}
+          thumbnailMinimized={selfTileLayout === 'corner' && selfTileMinimized}
+        />
+      ) : !pinnedTrackRef ? (
         <div className="lk-grid-layout-wrapper" style={{ height: 'auto' }}>
           <GridLayout tracks={tracks} style={{ padding: 0 }}>
             <ParticipantTile />

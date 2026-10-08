@@ -754,7 +754,18 @@
     },
     "effects": "Arrière-plans et effets",
     "muteParticipant": "Couper le micro de {{name}}",
-    "fullScreen": "Plein écran"
+    "fullScreen": "Plein écran",
+    "moreOptions": "Plus d'options",
+    "reduce": "Réduire",
+    "expand": "Agrandir",
+    "hideTile": "Supprimer cette tuile",
+    "showTile": "Afficher la tuile",
+    "announcements": {
+      "reduced": "Votre tuile est réduite.",
+      "expanded": "Votre tuile est agrandie.",
+      "shown": "Votre tuile est affichée en bas à droite.",
+      "hidden": "La disposition d’origine est rétablie."
+    }
   },
   "screenShareZoom": {
     "toolbarLabel": "Contrôles de zoom du partage d'écran",
