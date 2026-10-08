@@ -754,7 +754,18 @@
     },
     "effects": "Hintergründe und Effekte anwenden",
     "muteParticipant": "{{name}} stummschalten",
-    "fullScreen": "Vollbild"
+    "fullScreen": "Vollbild",
+    "moreOptions": "Weitere Optionen",
+    "reduce": "Verkleinern",
+    "expand": "Vergrößern",
+    "hideTile": "Diese Kachel entfernen",
+    "showTile": "Kachel anzeigen",
+    "announcements": {
+      "reduced": "Deine Kachel ist verkleinert.",
+      "expanded": "Deine Kachel ist vergrößert.",
+      "shown": "Deine Kachel wird unten rechts angezeigt.",
+      "hidden": "Das ursprüngliche Layout ist wiederhergestellt."
+    }
   },
   "screenShareZoom": {
     "toolbarLabel": "Zoom-Steuerung für Bildschirmfreigabe",

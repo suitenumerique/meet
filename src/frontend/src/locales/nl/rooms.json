@@ -754,7 +754,18 @@
     },
     "effects": "Pas visuele effecten toe",
     "muteParticipant": "Demp {{name}}",
-    "fullScreen": "Volledig scherm"
+    "fullScreen": "Volledig scherm",
+    "moreOptions": "Meer opties",
+    "reduce": "Verkleinen",
+    "expand": "Vergroten",
+    "hideTile": "Deze tegel verwijderen",
+    "showTile": "Tegel weergeven",
+    "announcements": {
+      "reduced": "Je tegel is verkleind.",
+      "expanded": "Je tegel is vergroot.",
+      "shown": "Je tegel wordt rechtsonder weergegeven.",
+      "hidden": "De oorspronkelijke indeling is hersteld."
+    }
   },
   "screenShareZoom": {
     "toolbarLabel": "Zoombediening voor schermdeling",

@@ -754,7 +754,18 @@
     },
     "effects": "Apply backgrounds and effects",
     "muteParticipant": "Mute {{name}}",
-    "fullScreen": "Full screen"
+    "fullScreen": "Full screen",
+    "moreOptions": "More options",
+    "reduce": "Minimize",
+    "expand": "Enlarge",
+    "hideTile": "Remove this tile",
+    "showTile": "Show tile",
+    "announcements": {
+      "reduced": "Your tile is minimized.",
+      "expanded": "Your tile is enlarged.",
+      "shown": "Your tile is shown at the bottom right.",
+      "hidden": "The original layout is restored."
+    }
   },
   "screenShareZoom": {
     "toolbarLabel": "Screen share zoom controls",

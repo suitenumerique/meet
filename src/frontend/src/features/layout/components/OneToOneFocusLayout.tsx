@@ -4,10 +4,13 @@ import { styled } from '@/styled-system/jsx'
 import { cva } from '@/styled-system/css'
 import { ParticipantTile } from '@/features/participantTile/components/ParticipantTile'
 import { getTrackKey } from '@/features/layout/utils/trackSelection'
+import { GridLayout } from '@/features/layout/components/GridLayout'
 
 type OneToOneFocusLayoutProps = {
   mainTrack?: TrackReferenceOrPlaceholder
+  mainTracks?: TrackReferenceOrPlaceholder[]
   thumbnailTrack?: TrackReferenceOrPlaceholder
+  thumbnailMinimized?: boolean
   disableTileControls?: boolean
   /** Controls thumbnail dimensions – 'pip' for small PiP window, 'room' for the main viewport. */
   context?: 'pip' | 'room'
@@ -15,7 +18,9 @@ type OneToOneFocusLayoutProps = {
 
 /**
  * Focus layout for 1-to-1 calls: one main tile filling the area (letterboxed)
- * with an optional thumbnail overlay at the bottom-right.
+ * with an optional thumbnail overlay at the bottom-right. When the user keeps
+ * their tile in the corner with more participants, remotes share the main area
+ * as a grid.
  *
  * Shared between PiP and the main room – pass `disableTileControls` in PiP
  * where hover controls should be hidden.
@@ -23,23 +28,37 @@ type OneToOneFocusLayoutProps = {
 export const OneToOneFocusLayout = memo(
   ({
     mainTrack,
+    mainTracks,
     thumbnailTrack,
+    thumbnailMinimized = false,
     disableTileControls,
     context = 'room',
   }: OneToOneFocusLayoutProps) => {
+    const resolvedMainTracks = mainTracks ?? (mainTrack ? [mainTrack] : [])
+
     return (
       <FocusContainer>
-        {mainTrack && (
-          <MainSlot>
+        {resolvedMainTracks.length === 1 && (
+          <MainSlot letterbox>
             <ParticipantTile
-              key={getTrackKey(mainTrack)}
-              trackRef={mainTrack}
+              key={getTrackKey(resolvedMainTracks[0])}
+              trackRef={resolvedMainTracks[0]}
               disableTileControls={disableTileControls}
             />
           </MainSlot>
         )}
+        {resolvedMainTracks.length > 1 && (
+          <MainSlot>
+            <GridLayout
+              tracks={resolvedMainTracks}
+              style={{ height: '100%', padding: 0 }}
+            >
+              <ParticipantTile disableTileControls={disableTileControls} />
+            </GridLayout>
+          </MainSlot>
+        )}
         {thumbnailTrack && (
-          <Thumbnail context={context}>
+          <Thumbnail context={context} minimized={thumbnailMinimized}>
             <ParticipantTile
               key={getTrackKey(thumbnailTrack)}
               trackRef={thumbnailTrack}
@@ -71,12 +90,19 @@ const MainSlot = styled('div', {
     height: '100%',
     borderRadius: '8px',
     overflow: 'hidden',
+    minHeight: 0,
     '& .lk-participant-tile': {
       width: '100%',
       height: '100%',
     },
-    '& .lk-participant-media-video': {
-      objectFit: 'contain',
+  },
+  variants: {
+    letterbox: {
+      true: {
+        '& .lk-participant-media-video': {
+          objectFit: 'contain',
+        },
+      },
     },
   },
 })
@@ -109,6 +135,13 @@ const Thumbnail = styled(
           width: '20%',
           maxWidth: '320px',
           minWidth: '180px',
+        },
+      },
+      minimized: {
+        true: {
+          width: '14%',
+          maxWidth: '180px',
+          minWidth: '128px',
         },
       },
     },

@@ -14,6 +14,10 @@ import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
 import { useEffect, useMemo, useRef } from 'react'
 import { OneToOneFocusLayout } from '@/features/layout/components/OneToOneFocusLayout'
+import {
+  shouldUseFocusLayout,
+  splitFocusTracks,
+} from '@/features/layout/utils/selfTileLayout'
 
 export const StageLayout = () => {
   const lastAutoFocusedScreenShareTrack =
@@ -31,7 +35,8 @@ export const StageLayout = () => {
     .filter(isTrackReference)
     .filter((track) => track.publication.source === Track.Source.ScreenShare)
 
-  const { pinnedTrackRef } = useSnapshot(layoutStore)
+  const { pinnedTrackRef, selfTileLayout, selfTileMinimized } =
+    useSnapshot(layoutStore)
 
   const carouselTracks = tracks.filter(
     (track) => !isEqualTrackRef(track, pinnedTrackRef)
@@ -42,23 +47,15 @@ export const StageLayout = () => {
     [tracks]
   )
 
-  const isOneToOne =
+  const useFocusLayout =
     !pinnedTrackRef &&
     screenShareTracks.length === 0 &&
-    cameraTracks.length <= 2
+    shouldUseFocusLayout(selfTileLayout, cameraTracks)
 
-  const oneToOneMainTrack = useMemo(() => {
-    if (!isOneToOne) return undefined
-    const remote = cameraTracks.find((t) => !t.participant?.isLocal)
-    const local = cameraTracks.find((t) => t.participant?.isLocal)
-    return remote ?? local
-  }, [isOneToOne, cameraTracks])
-
-  const oneToOneThumbnailTrack = useMemo(() => {
-    if (!isOneToOne) return undefined
-    const local = cameraTracks.find((t) => t.participant?.isLocal)
-    return oneToOneMainTrack === local ? undefined : local
-  }, [isOneToOne, cameraTracks, oneToOneMainTrack])
+  const { mainTracks, thumbnailTrack } = useMemo(
+    () => splitFocusTracks(cameraTracks),
+    [cameraTracks]
+  )
 
   /* eslint-disable react-hooks/exhaustive-deps */
   // Code duplicated from LiveKit; this warning will be addressed in the refactoring.
@@ -111,10 +108,11 @@ export const StageLayout = () => {
 
   return (
     <>
-      {isOneToOne ? (
+      {useFocusLayout ? (
         <OneToOneFocusLayout
-          mainTrack={oneToOneMainTrack}
-          thumbnailTrack={oneToOneThumbnailTrack}
+          mainTracks={mainTracks}
+          thumbnailTrack={thumbnailTrack}
+          thumbnailMinimized={selfTileLayout === 'corner' && selfTileMinimized}
         />
       ) : !pinnedTrackRef ? (
         <div className="lk-grid-layout-wrapper" style={{ height: 'auto' }}>
