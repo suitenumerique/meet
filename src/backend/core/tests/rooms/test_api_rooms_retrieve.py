@@ -3,25 +3,22 @@ Test rooms API endpoints in the Meet core app: retrieve.
 """
 
 import random
-from datetime import datetime, timedelta, timezone
 from unittest import mock
 
-from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
 from django.test.utils import override_settings
 from django.utils import timezone as dj_timezone
 
-import jwt
 import pytest
 from rest_framework.test import APIClient
 
 from ...factories import (
-    ApplicationFactory,
     RoomFactory,
     UserFactory,
     UserResourceAccessFactory,
 )
-from ...models import ApplicationScope, RoleChoices, RoomAccessLevel
+from ...models import RoleChoices, RoomAccessLevel
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -533,29 +530,6 @@ def test_api_rooms_retrieve_last_started_at_not_exposed(role, access_level):
 
     assert response.status_code == 200
     assert "last_started_at" not in response.json()
-
-
-def generate_user_access_token(user):
-    """Generate a valid user access JWT signed with the token secret."""
-    now = datetime.now(timezone.utc)
-    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
-
-    payload = {
-        "iss": django_settings.USER_ACCESS_TOKEN_ISSUER,
-        "aud": django_settings.USER_ACCESS_TOKEN_AUDIENCE,
-        "iat": now,
-        "exp": now + timedelta(seconds=django_settings.USER_ACCESS_TOKEN_TTL),
-        "user_id": str(user.id),
-        "token_type": "user_token",
-        "client_id": application.client_id,
-        "scope": "user:access",
-    }
-
-    return jwt.encode(
-        payload,
-        django_settings.USER_ACCESS_TOKEN_SECRET_KEY,
-        algorithm=django_settings.USER_ACCESS_TOKEN_ALG,
-    )
 
 
 def test_api_rooms_retrieve_authenticated_with_user_access_token():

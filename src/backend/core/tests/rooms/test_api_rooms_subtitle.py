@@ -4,18 +4,16 @@ Test rooms API endpoints in the Meet core app: start subtitle.
 # pylint: disable=W0621
 
 import uuid
-from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 from django.conf import settings
 
-import jwt
 import pytest
 from livekit.api import AccessToken, TwirpError, VideoGrants
 from rest_framework.test import APIClient
 
-from core.factories import ApplicationFactory, RoomFactory, UserFactory
-from core.models import ApplicationScope
+from core.factories import RoomFactory, UserFactory
+from core.tests.utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -236,26 +234,7 @@ def test_start_subtitle_wrong_signature(settings, mock_livekit_token):
 @pytest.fixture
 def user_access_token():
     """Generate a valid user access JWT, sent with the "Bearer" scheme."""
-    user = UserFactory()
-    now = datetime.now(timezone.utc)
-    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
-
-    payload = {
-        "iss": settings.USER_ACCESS_TOKEN_ISSUER,
-        "aud": settings.USER_ACCESS_TOKEN_AUDIENCE,
-        "iat": now,
-        "exp": now + timedelta(seconds=settings.USER_ACCESS_TOKEN_TTL),
-        "user_id": str(user.id),
-        "token_type": "user_access",
-        "client_id": application.client_id,
-        "scope": "user:access",
-    }
-
-    return jwt.encode(
-        payload,
-        settings.USER_ACCESS_TOKEN_SECRET_KEY,
-        algorithm=settings.USER_ACCESS_TOKEN_ALG,
-    )
+    return generate_user_access_token(UserFactory())
 
 
 def test_start_subtitle_bearer_scheme_defers_to_next_authentication(

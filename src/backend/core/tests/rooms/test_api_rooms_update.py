@@ -3,23 +3,22 @@ Test rooms API endpoints in the Meet core app: update.
 """
 
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from unittest.mock import patch
 
-from django.conf import settings as django_settings
-from django.utils import timezone as dj_timezone
+from django.utils import timezone
 
-import jwt
 import pytest
 from rest_framework.test import APIClient
 
-from ...factories import ApplicationFactory, RoomFactory, UserFactory
-from ...models import ApplicationScope, RoomAccessLevel
+from ...factories import RoomFactory, UserFactory
+from ...models import RoomAccessLevel
 from ...services.room_management import (
     RoomManagement,
     RoomManagementException,
     RoomNotFoundException,
 )
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -239,7 +238,7 @@ def test_api_rooms_update_last_started_at_ignored(method):
     not be able to keep a room alive by postponing its last start date.
     """
     user = UserFactory()
-    last_started_at = dj_timezone.now() - timedelta(days=30)
+    last_started_at = timezone.now() - timedelta(days=30)
     room = RoomFactory(
         name="Old name",
         last_started_at=last_started_at,
@@ -250,7 +249,7 @@ def test_api_rooms_update_last_started_at_ignored(method):
 
     response = getattr(client, method)(
         f"/api/v1.0/rooms/{room.id!s}/",
-        {"name": "New name", "last_started_at": dj_timezone.now().isoformat()},
+        {"name": "New name", "last_started_at": timezone.now().isoformat()},
         format="json",
     )
 
@@ -447,29 +446,6 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata, exception):
             "access_level": room.access_level,
             "configuration": {"can_publish_sources": ["camera"]},
         },
-    )
-
-
-def generate_user_access_token(user):
-    """Generate a valid user access JWT signed with the token secret."""
-    now = datetime.now(timezone.utc)
-    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
-
-    payload = {
-        "iss": django_settings.USER_ACCESS_TOKEN_ISSUER,
-        "aud": django_settings.USER_ACCESS_TOKEN_AUDIENCE,
-        "iat": now,
-        "exp": now + timedelta(seconds=django_settings.USER_ACCESS_TOKEN_TTL),
-        "user_id": str(user.id),
-        "token_type": "user_token",
-        "client_id": application.client_id,
-        "scope": "user:access",
-    }
-
-    return jwt.encode(
-        payload,
-        django_settings.USER_ACCESS_TOKEN_SECRET_KEY,
-        algorithm=django_settings.USER_ACCESS_TOKEN_ALG,
     )
 
 

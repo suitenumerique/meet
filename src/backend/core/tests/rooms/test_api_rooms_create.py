@@ -2,13 +2,10 @@
 Test rooms API endpoints in the Meet core app: create.
 """
 
-from datetime import datetime, timedelta, timezone
-
 # pylint: disable=redefined-outer-name,unused-argument
 from django.conf import settings
 from django.core.cache import cache
 
-import jwt
 import pytest
 from rest_framework.test import APIClient
 
@@ -16,8 +13,9 @@ from ...api.throttling import (
     RoomCreationDailyUserRateThrottle,
     RoomCreationUserRateThrottle,
 )
-from ...factories import ApplicationFactory, RoomFactory, UserFactory
-from ...models import ApplicationScope, Room, RoomAccessLevel
+from ...factories import RoomFactory, UserFactory
+from ...models import Room, RoomAccessLevel
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -461,29 +459,6 @@ def test_api_rooms_create_daily_throttle_does_not_limit_other_actions(
     assert client.get("/api/v1.0/rooms/").status_code == 200
     response = client.patch(f"/api/v1.0/rooms/{room_id}/", {"name": "Renamed"})
     assert response.status_code == 200
-
-
-def generate_user_access_token(user):
-    """Generate a valid user access JWT signed with the token secret."""
-    now = datetime.now(timezone.utc)
-    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
-
-    payload = {
-        "iss": settings.USER_ACCESS_TOKEN_ISSUER,
-        "aud": settings.USER_ACCESS_TOKEN_AUDIENCE,
-        "iat": now,
-        "exp": now + timedelta(seconds=settings.USER_ACCESS_TOKEN_TTL),
-        "user_id": str(user.id),
-        "token_type": "user_token",
-        "client_id": application.client_id,
-        "scope": "user:access",
-    }
-
-    return jwt.encode(
-        payload,
-        settings.USER_ACCESS_TOKEN_SECRET_KEY,
-        algorithm=settings.USER_ACCESS_TOKEN_ALG,
-    )
 
 
 def test_api_rooms_create_authenticated_with_user_access_token():
