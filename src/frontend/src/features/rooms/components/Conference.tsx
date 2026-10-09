@@ -8,6 +8,7 @@ import {
 import {
   ConnectionError,
   ConnectionErrorReason,
+  ConnectionState,
   DisconnectReason,
   MediaDeviceFailure,
   Room,
@@ -21,6 +22,7 @@ import { Screen } from '@/layout/Screen'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { fetchRoom } from '../api/fetchRoom'
+import { fetchRoomCapacity } from '../api/fetchRoomCapacity'
 import type { ApiRoom } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
@@ -69,6 +71,7 @@ export const Conference = ({
   const fetchKey = [keys.room, roomId]
 
   const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
+  const [isRoomFull, setIsRoomFull] = useState(false)
 
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
@@ -208,6 +211,39 @@ export const Conference = ({
     )
   }
 
+  if (isRoomFull) {
+    return (
+      <ErrorScreen
+        title={t('error.roomFull.heading')}
+        body={t('error.roomFull.body')}
+      />
+    )
+  }
+
+  const reportRoomError = (e: Error) =>
+    reportError('livekit_room_error', e, {
+      path: 'connect_publish',
+    })
+
+  /**
+   * LiveKit refuses a participant joining a full room with the same signal
+   * failure as an unreachable server, so ask the backend which one it was.
+   */
+  const handleConnectionError = async (e: ConnectionError) => {
+    if (data?.id && data.livekit?.token) {
+      const capacity = await fetchRoomCapacity({
+        roomId: data.id,
+        token: data.livekit.token,
+      }).catch(() => undefined)
+      if (capacity?.is_full) {
+        captureEvent('room-full')
+        setIsRoomFull(true)
+        return
+      }
+    }
+    reportRoomError(e)
+  }
+
   // Some clients (like DINUM) operate in bandwidth-constrained environments
   // These settings help ensure successful connections in poor network conditions
   const connectOptions = {
@@ -248,9 +284,17 @@ export const Conference = ({
               return
             }
 
-            reportError('livekit_room_error', e, {
-              path: 'connect_publish',
-            })
+            // A refused join leaves the room disconnected; a publish failing
+            // once joined does not, and is reported below.
+            if (
+              e instanceof ConnectionError &&
+              room.state === ConnectionState.Disconnected
+            ) {
+              void handleConnectionError(e)
+              return
+            }
+
+            reportRoomError(e)
           }}
           onConnected={async () => {
             if (!apiConfig) return
