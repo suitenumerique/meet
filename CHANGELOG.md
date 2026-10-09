@@ -18,6 +18,7 @@ and this project adheres to
 - ⚡️(backend) reduce domain queries on the application token endpoint
 - ♻️️️(backend) use a dedicated auth scheme for LiveKit token auth
 - ♻️(all) stop relying on cookies for the lobby flow
+- ♿️(frontend) show a visible focus outline on menu items #1797
 
 ### Fixed
 
