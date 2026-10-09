@@ -8,15 +8,23 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) introduce a token exchange endpoint for iframe embeds
+
 ### Changed
 
 - ⚡️(backend) hash application secrets with SHA-256
 - ⚡️(backend) reduce domain queries on the application token endpoint
+- ♻️️️(backend) use a dedicated auth scheme for LiveKit token auth
+- ♻️(all) stop relying on cookies for the lobby flow
 
 ### Fixed
 
 - 🔒️(backend) prevent editing client id and secret in Django admin
 - 🔒️(frontend) upgrade tiff to fix CVE-2026-4775
+- 🔒️(backend) bind accepted lobby entries to the current username
+- 🔒️(backend) sign lobby participant id
 
 ## [1.34.0] - 2026-10-07
 
