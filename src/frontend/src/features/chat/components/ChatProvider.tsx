@@ -1,10 +1,15 @@
 // features/rooms/chat/ChatProvider.tsx — renders no DOM, mounted once at room level
 import { ref } from 'valtio'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useChat, useRoomContext } from '@livekit/components-react'
-import { appendRow, chatStore, resetChatStore } from '@/stores/chat'
-import type { ChatMessage } from '@livekit/components-core'
+import {
+  appendNewMessages,
+  chatStore,
+  resetChatStore,
+  setChatVisibility,
+} from '@/stores/chat'
+import { useReceiveChatMedia } from '../media/useReceiveChatMedia'
 import {
   LocalParticipant,
   Participant,
@@ -13,14 +18,18 @@ import {
 } from 'livekit-client'
 
 export const ChatProvider = () => {
-  const lastReadMsgAt = React.useRef<ChatMessage['timestamp']>(0)
   const { send, chatMessages, isSending } = useChat()
   const { isChatOpen } = useSidePanel()
 
   const room = useRoomContext()
 
+  useReceiveChatMedia()
+
+  // Reset on leaving too: the page outlives the meeting, and so would every
+  // image the chat still holds.
   useEffect(() => {
     resetChatStore()
+    return resetChatStore
   }, [])
 
   // Trigger the message notification (temporary)
@@ -40,9 +49,7 @@ export const ChatProvider = () => {
   }, [chatMessages, room])
 
   useEffect(() => {
-    for (let i = chatStore.rows.length; i < chatMessages.length; i++) {
-      appendRow(chatMessages[i])
-    }
+    appendNewMessages(chatMessages)
   }, [chatMessages])
 
   useEffect(() => {
@@ -53,19 +60,11 @@ export const ChatProvider = () => {
     chatStore.isSending = isSending
   }, [isSending])
 
-  // Set the unread messages count
+  // Unread is counted over chat rows, which see both text messages and the
+  // images arriving on byte streams. `chatMessages` only ever holds the former.
   useEffect(() => {
-    if (chatMessages.length === 0) return
-    const last = chatMessages[chatMessages.length - 1]
-    if (isChatOpen) {
-      lastReadMsgAt.current = last.timestamp
-      chatStore.unreadMessages = 0
-      return
-    }
-    chatStore.unreadMessages = chatMessages.filter(
-      (m) => !lastReadMsgAt.current || m.timestamp > lastReadMsgAt.current
-    ).length
-  }, [chatMessages, isChatOpen])
+    setChatVisibility(isChatOpen)
+  }, [isChatOpen])
 
   // Listen to participant name changes
   useEffect(() => {

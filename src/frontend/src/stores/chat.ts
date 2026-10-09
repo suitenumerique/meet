@@ -4,55 +4,292 @@ import type { ReceivedChatMessage } from '@livekit/components-core'
 
 type ChatApi = ReturnType<typeof useChat>
 
-export type ChatRow = {
+/**
+ * Blobs held by the browser through `URL.createObjectURL` are unreachable by
+ * the garbage collector, so the number retained is capped explicitly.
+ */
+const MAX_RETAINED_MEDIA = 50
+
+type ChatRowBase = {
   id: string
   identity?: string
-  message: string
   timestamp: number
   hideMetadata: boolean
   isLocal: boolean
 }
 
+export type ChatTextRow = ChatRowBase & {
+  kind: 'text'
+  message: string
+}
+
+type ChatMediaError = 'transfer_failed' | 'decode_failed' | 'expired'
+
+export type ChatMediaRow = ChatRowBase & {
+  kind: 'media'
+  caption: string
+  mimeType: string
+  width?: number
+  height?: number
+  status: 'receiving' | 'ready' | 'failed'
+  objectUrl?: string
+  error?: ChatMediaError
+}
+
+export type ChatRow = ChatTextRow | ChatMediaRow
+
+export type PendingAttachment = {
+  /**
+   * Wrapped in valtio's `ref`. A Blob keeps its bytes in an internal slot that
+   * a proxy cannot forward, so proxying one breaks its methods.
+   */
+  blob: Blob
+  /** Sniffed from the bytes, never taken from the file extension. */
+  mimeType: string
+  previewUrl: string
+  width: number
+  height: number
+}
+
+type ChatMediaFailure =
+  | 'type_not_allowed'
+  | 'too_large'
+  | 'animation_too_large'
+  | 'unreadable'
+  | 'send_failed'
+
 type State = {
   unreadMessages: number
   isSending: boolean
+  /** Separate from `isSending`, which mirrors LiveKit's text chat. */
+  isSendingMedia: boolean
+  isPreparing: boolean
   rows: ChatRow[]
   names: Record<string, string>
   send?: ChatApi['send']
   textAreaValue: string
+  pendingAttachment?: PendingAttachment
+  mediaFailure?: ChatMediaFailure
 }
 
 const initialState: State = {
   unreadMessages: 0,
   isSending: false,
+  isSendingMedia: false,
+  isPreparing: false,
   rows: [],
   names: {},
   send: undefined,
   textAreaValue: '',
+  pendingAttachment: undefined,
+  mediaFailure: undefined,
 }
 
 export const chatStore = proxy<State>({ ...initialState })
 
+/**
+ * Receiving progress per media row id, between 0 and 1, kept apart from the
+ * rows: in them, every step would re-render the whole message list.
+ */
+export const mediaProgress = proxy<Record<string, number | undefined>>({})
+
 const GROUPING_WINDOW_MS = 60_000
 
-export function appendRow(msg: ReceivedChatMessage) {
+/**
+ * Consecutive rows from the same participant within the grouping window repeat
+ * no name header. Shared by every row kind so an image sent right after a
+ * message groups with it.
+ */
+function shouldHideMetadata(identity: string | undefined, timestamp: number) {
+  const prev = chatStore.rows[chatStore.rows.length - 1]
+  return (
+    !!prev &&
+    prev.identity === identity &&
+    timestamp - prev.timestamp < GROUPING_WINDOW_MS
+  )
+}
+
+let isChatVisible = false
+
+/**
+ * Unread is counted over rows rather than over LiveKit's `chatMessages`: byte
+ * streams never appear in `chatMessages`, and rows are the only place that sees
+ * both kinds. Each row is appended once, so every row appended while the chat
+ * is hidden is unread.
+ */
+function countAsUnread() {
+  if (!isChatVisible) chatStore.unreadMessages += 1
+}
+
+export function setChatVisibility(visible: boolean) {
+  isChatVisible = visible
+  if (visible) chatStore.unreadMessages = 0
+}
+
+/**
+ * Rows carry an identity; the header shows a display name. Every path that
+ * appends a row has to register the name, because a participant whose first
+ * act is sending an image would otherwise be labelled with their raw identity
+ * until they also sent text.
+ */
+function rememberName(identity?: string, name?: string) {
+  if (identity) chatStore.names[identity] = name || identity
+}
+
+function appendRow(msg: ReceivedChatMessage) {
   const p = msg.from
-  if (p) chatStore.names[p.identity] = p.name || p.identity
+  if (p) rememberName(p.identity, p.name)
 
   const identity = p?.identity
-  const prev = chatStore.rows[chatStore.rows.length - 1]
+  const timestamp = msg.timestamp
 
   chatStore.rows.push({
-    id: msg.id ?? `${msg.timestamp}`,
+    kind: 'text',
+    id: msg.id ?? `${timestamp}`,
     identity,
     isLocal: p?.isLocal ?? false,
     message: msg.message,
-    timestamp: msg.timestamp,
-    hideMetadata:
-      !!prev &&
-      prev.identity === identity &&
-      msg.timestamp - prev.timestamp < GROUPING_WINDOW_MS,
+    timestamp,
+    hideMetadata: shouldHideMetadata(identity, timestamp),
   })
+  countAsUnread()
+}
+
+/**
+ * How many of LiveKit's `chatMessages` the rows already hold. Counted apart
+ * from the rows, which also hold images that never enter `chatMessages`.
+ */
+let copiedMessages = 0
+
+/** Copies the messages of LiveKit's `chatMessages` not yet in the rows. */
+export function appendNewMessages(messages: ReceivedChatMessage[]) {
+  for (; copiedMessages < messages.length; copiedMessages++) {
+    appendRow(messages[copiedMessages])
+  }
+}
+
+function revokeMediaRow(row: ChatMediaRow) {
+  if (!row.objectUrl) return
+  URL.revokeObjectURL(row.objectUrl)
+  row.objectUrl = undefined
+  row.status = 'failed'
+  row.error = 'expired'
+}
+
+/**
+ * Drops the oldest blobs once more than `MAX_RETAINED_MEDIA` are held, marking
+ * their rows expired rather than leaving a broken image behind.
+ */
+function enforceMediaRetention() {
+  const retained = chatStore.rows.filter(
+    (row): row is ChatMediaRow => row.kind === 'media' && !!row.objectUrl
+  )
+  for (let i = 0; i < retained.length - MAX_RETAINED_MEDIA; i++) {
+    revokeMediaRow(retained[i])
+  }
+}
+
+export function stageAttachment(attachment: PendingAttachment) {
+  clearPendingAttachment()
+  chatStore.pendingAttachment = attachment
+}
+
+export function clearPendingAttachment() {
+  const pending = chatStore.pendingAttachment
+  if (pending) URL.revokeObjectURL(pending.previewUrl)
+  chatStore.pendingAttachment = undefined
+}
+
+type NewMediaRow = {
+  id: string
+  identity?: string
+  name?: string
+  caption: string
+  mimeType: string
+  width?: number
+  height?: number
+}
+
+function pushMediaRow(
+  { name, ...row }: NewMediaRow,
+  state: Pick<ChatMediaRow, 'isLocal' | 'status' | 'objectUrl'>
+) {
+  const timestamp = Date.now()
+  rememberName(row.identity, name)
+  chatStore.rows.push({
+    kind: 'media',
+    timestamp,
+    hideMetadata: shouldHideMetadata(row.identity, timestamp),
+    ...row,
+    ...state,
+  })
+}
+
+/**
+ * Hands the staged preview URL to the row rather than revoking it, so the
+ * sender's own copy renders from bytes already in memory. Byte streams do not
+ * echo to their sender, so without this the sender alone would not see it.
+ */
+export function appendLocalMediaRow(row: NewMediaRow, objectUrl: string) {
+  pushMediaRow(row, { isLocal: true, status: 'ready', objectUrl })
+  chatStore.pendingAttachment = undefined
+  enforceMediaRetention()
+}
+
+/**
+ * Inserted when the stream opens, before any bytes arrive, so a participant
+ * sees an image being sent rather than a silence.
+ *
+ * Refuses an id a row already holds, the sender's own included, and returns
+ * false. The id is the sender's choice and LiveKit accepts one again once its
+ * first stream has ended, so every later lookup by id would otherwise land on
+ * another participant's row.
+ */
+export function appendReceivingMediaRow(row: NewMediaRow) {
+  if (findMediaRow(row.id)) return false
+  pushMediaRow(row, { isLocal: false, status: 'receiving' })
+  mediaProgress[row.id] = 0
+  countAsUnread()
+  return true
+}
+
+function findMediaRow(id: string) {
+  return chatStore.rows.find(
+    (row): row is ChatMediaRow => row.kind === 'media' && row.id === id
+  )
+}
+
+export function updateMediaProgress(id: string, progress: number | undefined) {
+  mediaProgress[id] = progress
+}
+
+export function resolveMediaRow(
+  id: string,
+  objectUrl: string,
+  mimeType: string,
+  size: { width: number; height: number }
+) {
+  delete mediaProgress[id]
+  const row = findMediaRow(id)
+  if (!row) {
+    URL.revokeObjectURL(objectUrl)
+    return
+  }
+  // Written from the decoded bytes, not from what the sender declared.
+  row.mimeType = mimeType
+  row.width = size.width
+  row.height = size.height
+  row.objectUrl = objectUrl
+  row.status = 'ready'
+  enforceMediaRetention()
+}
+
+export function failMediaRow(id: string, error: ChatMediaError) {
+  delete mediaProgress[id]
+  const row = findMediaRow(id)
+  if (!row) return
+  row.status = 'failed'
+  row.error = error
 }
 
 export const persistTextAreaValue = (value: string) => {
@@ -64,6 +301,15 @@ export const clearTextAreaValue = () => {
 }
 
 export function resetChatStore() {
+  for (const row of chatStore.rows) {
+    if (row.kind === 'media' && row.objectUrl)
+      URL.revokeObjectURL(row.objectUrl)
+  }
+  clearPendingAttachment()
+
+  isChatVisible = false
+  copiedMessages = 0
+  for (const id of Object.keys(mediaProgress)) delete mediaProgress[id]
   Object.assign(chatStore, {
     ...initialState,
     rows: [],
