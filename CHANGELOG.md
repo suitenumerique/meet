@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(frontend) let users pick the recording encoding
 - ✨(backend) introduce a token exchange endpoint for iframe embeds
+- ⚡️(backend) send recording notification emails from a Celery task
 
 ### Changed
 

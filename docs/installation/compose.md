@@ -113,6 +113,7 @@ DJANGO_EMAIL_FROM=<your email address>
 
 #DJANGO_EMAIL_USE_TLS=true # A flag to enable or disable TLS for email sending.
 #DJANGO_EMAIL_USE_SSL=true # A flag to enable or disable SSL for email sending.
+#DJANGO_EMAIL_TIMEOUT=30 # Seconds before a stalled SMTP connection times out.
 
 
 DJANGO_EMAIL_BRAND_NAME=<brand name used in email templates> # e.g. "La Suite Numérique"
