@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(backend) introduce a token exchange endpoint for iframe embeds
+- ✨(all) allow any authenticated user to start a recording
 
 ### Changed
 

@@ -44,6 +44,9 @@ def get_frontend_configuration(request):
             "available_modes": settings.RECORDING_WORKER_CLASSES.keys(),
             "expiration_days": settings.RECORDING_EXPIRATION_DAYS,
             "max_duration": settings.RECORDING_MAX_DURATION,
+            "authenticated_participants_enabled": (
+                settings.RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED
+            ),
         },
         "background_image": {
             "upload_is_enabled": settings.FILE_UPLOAD_ENABLED,

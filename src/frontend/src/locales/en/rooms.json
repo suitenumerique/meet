@@ -507,6 +507,22 @@
         "buttonLabel": "Request"
       }
     },
+    "notLoggedIn": {
+      "heading": "Log in to transcribe",
+      "body": "In this meeting, any logged-in participant can start a transcription (beta).",
+      "linkMore": "Open documentation",
+      "linkAriaLabel": "Open documentation about transcription access - opens in new window",
+      "dividerLabel": "OR",
+      "login": {
+        "heading": "Login Required",
+        "body": "Log in, then come back to this panel to start the transcription."
+      },
+      "request": {
+        "heading": "Request Transcription",
+        "body": "The host will be notified and can enable transcription for you.",
+        "buttonLabel": "Request"
+      }
+    },
     "premium": {
       "heading": "Advanced feature",
       "body": "This feature is not available to you. Please contact support for more information.",
@@ -553,6 +569,22 @@
       "login": {
         "heading": "Login Required",
         "body": "Only the meeting creator or an admin can start screen recording. Log in to verify your permissions."
+      },
+      "request": {
+        "heading": "Request Recording",
+        "body": "The host will be notified and can enable recording for you.",
+        "buttonLabel": "Request"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Log in to record",
+      "body": "In this meeting, any logged-in participant can start a recording (beta).",
+      "linkMore": "Open documentation",
+      "linkAriaLabel": "Open documentation about recording access - opens in new window",
+      "dividerLabel": "OR",
+      "login": {
+        "heading": "Login Required",
+        "body": "Log in, then come back to this panel to start the recording."
       },
       "request": {
         "heading": "Request Recording",

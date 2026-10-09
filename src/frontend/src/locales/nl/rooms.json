@@ -507,6 +507,22 @@
         "buttonLabel": "Aanvragen"
       }
     },
+    "notLoggedIn": {
+      "heading": "Log in om te transcriberen",
+      "body": "In deze vergadering kan elke ingelogde deelnemer een transcriptie starten (beta).",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over transcriptietoegang openen - opent in nieuw venster",
+      "dividerLabel": "OF",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Log in en kom daarna terug naar dit paneel om de transcriptie te starten."
+      },
+      "request": {
+        "heading": "Transcriptie aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de transcriptie voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
+      }
+    },
     "premium": {
       "heading": "Geavanceerde functie",
       "body": "Deze functie is niet voor u beschikbaar. Neem contact op met de ondersteuning voor meer informatie.",
@@ -553,6 +569,22 @@
       "login": {
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de opname starten. Log in om uw machtigingen te controleren."
+      },
+      "request": {
+        "heading": "Opname aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de opname voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Log in om op te nemen",
+      "body": "In deze vergadering kan elke ingelogde deelnemer een opname starten (beta).",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over opnametoegang openen - opent in nieuw venster",
+      "dividerLabel": "OF",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Log in en kom daarna terug naar dit paneel om de opname te starten."
       },
       "request": {
         "heading": "Opname aanvragen",

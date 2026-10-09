@@ -479,3 +479,24 @@ def test_notify_summary_service_v2_payload_json_serializable_without_timestamps(
     assert isinstance(title, str)
     # ...so the payload serializes exactly the way ``requests`` serializes it.
     json.dumps(payload)
+
+
+def test_summary_recipient_is_oldest_owner():
+    """With several owners, the summary goes to the oldest one."""
+    recording = factories.RecordingFactory()
+    oldest = factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER
+    )
+    for _ in range(2):
+        factories.UserRecordingAccessFactory(
+            recording=recording, role=models.RoleChoices.OWNER
+        )
+
+    assert NotificationService._get_summary_recipient(recording) == oldest.user
+
+
+def test_summary_recipient_none_without_owner():
+    """No owner: nobody to send the summary to."""
+    recording = factories.RecordingFactory()
+
+    assert NotificationService._get_summary_recipient(recording) is None

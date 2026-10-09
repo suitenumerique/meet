@@ -506,6 +506,22 @@
         "buttonLabel": "Solicitar"
       }
     },
+    "notLoggedIn": {
+      "heading": "Inicia sesión para transcribir",
+      "body": "En esta reunión, cualquier participante con sesión iniciada puede iniciar una transcripción (beta).",
+      "linkMore": "Abrir la documentación",
+      "linkAriaLabel": "Abrir la documentación sobre el acceso a la transcripción - se abre en una nueva ventana",
+      "dividerLabel": "O",
+      "login": {
+        "heading": "Inicio de sesión necesario",
+        "body": "Inicia sesión y vuelve a este panel para iniciar la transcripción."
+      },
+      "request": {
+        "heading": "Pedírselo al organizador",
+        "body": "El anfitrión recibirá una notificación y podrá iniciar la transcripción por ti.",
+        "buttonLabel": "Solicitar"
+      }
+    },
     "premium": {
       "heading": "Función avanzada",
       "body": "Esta función no está disponible para ti. Ponte en contacto con el soporte para obtener más información.",
@@ -552,6 +568,22 @@
       "login": {
         "heading": "Inicio de sesión necesario",
         "body": "Solo el creador de la reunión o un administrador puede iniciar la grabación. Inicia sesión para comprobar tus permisos."
+      },
+      "request": {
+        "heading": "Pedírselo al organizador",
+        "body": "El anfitrión recibirá una notificación y podrá iniciar la grabación por ti.",
+        "buttonLabel": "Solicitar"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Inicia sesión para grabar",
+      "body": "En esta reunión, cualquier participante con sesión iniciada puede iniciar una grabación (beta).",
+      "linkMore": "Abrir la documentación",
+      "linkAriaLabel": "Abrir la documentación sobre el acceso a la grabación - se abre en una nueva ventana",
+      "dividerLabel": "O",
+      "login": {
+        "heading": "Inicio de sesión necesario",
+        "body": "Inicia sesión y vuelve a este panel para iniciar la grabación."
       },
       "request": {
         "heading": "Pedírselo al organizador",
