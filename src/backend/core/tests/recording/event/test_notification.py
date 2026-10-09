@@ -12,6 +12,7 @@ from unittest import mock
 from django.contrib.sites.models import Site
 
 import pytest
+from kombu.exceptions import OperationalError as KombuOperationalError
 
 from core import factories, models
 from core.analytics import UserFeatureFlag
@@ -142,7 +143,7 @@ def test_notify_user_by_email_success(mocked_current_site, settings):
 
     notification_service = NotificationService()
 
-    with mock.patch("core.recording.event.notification.send_mail") as mock_send_mail:
+    with mock.patch("core.tasks.email.send_mail") as mock_send_mail:
         result = notification_service._notify_user_by_email(recording)
 
         assert result is True
@@ -237,7 +238,7 @@ def test_notify_user_by_email_smtp_exception(mocked_current_site, caplog):
     notification_service = NotificationService()
 
     with mock.patch(
-        "core.recording.event.notification.send_mail",
+        "core.tasks.email.send_mail",
         side_effect=smtplib.SMTPException("SMTP Error"),
     ) as mock_send_mail:
         result = notification_service._notify_user_by_email(recording)
@@ -245,6 +246,60 @@ def test_notify_user_by_email_smtp_exception(mocked_current_site, caplog):
         assert result is False
         assert mock_send_mail.call_count == 2
         assert "notification could not be sent:" in caplog.text
+
+
+def test_notify_user_by_email_queues_generic_task(settings):
+    """One generic send_email task is queued per owner, with serializable args."""
+    settings.RECORDING_DOWNLOAD_BASE_URL = "https://acme.com/recordings"
+    settings.RECORDING_EXPIRATION_DAYS = 7
+
+    recording = factories.RecordingFactory(room__name="Conference Room A")
+    recording.created_at = datetime.datetime(
+        2023, 5, 15, 14, 30, 0, tzinfo=datetime.timezone.utc
+    )
+    user = factories.UserFactory(
+        email="franc@test.com", language="fr-fr", timezone="Europe/Paris"
+    )
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER, user=user
+    )
+
+    with mock.patch("core.recording.event.notification.send_email.delay") as mock_delay:
+        result = notification_service._notify_user_by_email(recording)
+
+    assert result is True
+    mock_delay.assert_called_once_with(
+        template="screen_recording",
+        subject="Your recording is ready",
+        recipients=["franc@test.com"],
+        language="fr-fr",
+        context={
+            "room_name": "Conference Room A",
+            "recording_expiration_days": 7,
+            "link": f"https://acme.com/recordings/{recording.id}",
+            "recording_date": "2023-05-15",
+            "recording_time": "16:30",
+        },
+    )
+    # Celery's JSON serializer must accept every argument
+    json.dumps(mock_delay.call_args.kwargs)
+
+
+def test_notify_user_by_email_broker_unavailable(caplog):
+    """A broker outage is reported as a failure without crashing the caller."""
+    recording = factories.RecordingFactory()
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER
+    )
+
+    with mock.patch(
+        "core.recording.event.notification.send_email.delay",
+        side_effect=KombuOperationalError("broker down"),
+    ):
+        result = notification_service._notify_user_by_email(recording)
+
+    assert result is False
+    assert "notification could not be sent: broker down" in caplog.text
 
 
 @mock.patch("core.recording.event.notification.requests.post")
