@@ -18,6 +18,8 @@
     "auto": "Vous venez de rejoindre une grande réunion. Votre micro a été automatiquement coupé.",
     "dismiss": "Rétablir le micro"
   },
+  "roomFull_one": "La réunion est complète : {{count}} participant. Personne d'autre ne peut la rejoindre tant que personne ne la quitte.",
+  "roomFull_other": "La réunion est complète : {{count}} participants. Personne d'autre ne peut la rejoindre tant que personne ne la quitte.",
   "reaction": {
     "description": "{{name}} a reagi avec {{emoji}}"
   },

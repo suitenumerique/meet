@@ -46,8 +46,12 @@ class SIPManagement:
             )
         )
 
+        # A call can open the meeting, and LiveKit caps a meeting only from the
+        # pass that opens it.
         request = CreateSIPDispatchRuleRequest(
-            rule=direct_rule, name=self._rule_name(room.pk)
+            rule=direct_rule,
+            name=self._rule_name(room.pk),
+            room_config=utils.room_configuration(),
         )
 
         lkapi = utils.create_livekit_client()

@@ -110,6 +110,8 @@
       "pinCode": "Código:"
     }
   },
+  "participantLimit_one": "Hasta {{count}} persona puede unirse a esta reunión.",
+  "participantLimit_other": "Hasta {{count}} personas pueden unirse a esta reunión.",
   "pagination": {
     "label": "Páginas de participantes",
     "count": "{{currentPage}} de {{totalPageCount}}",
@@ -214,6 +216,12 @@
     "createRoom": {
       "heading": "Autenticación necesaria",
       "body": "Esta reunión todavía no se ha creado. Autentícate para crearla o espera a que lo haga un usuario autenticado."
+    },
+    "roomFull": {
+      "heading": "Esta reunión está completa",
+      "body": "La reunión ha alcanzado el número máximo de participantes. Vuelve a intentarlo más tarde.",
+      "bodyWithLimit_one": "La reunión ha alcanzado su límite de {{count}} participante. Vuelve a intentarlo más tarde.",
+      "bodyWithLimit_other": "La reunión ha alcanzado su límite de {{count}} participantes. Vuelve a intentarlo más tarde."
     },
     "screenShare": {
       "title": "No se puede compartir tu pantalla",

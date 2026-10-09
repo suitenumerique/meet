@@ -110,6 +110,8 @@
       "pinCode": "Code:"
     }
   },
+  "participantLimit_one": "Bis zu {{count}} Person kann diesem Meeting beitreten.",
+  "participantLimit_other": "Bis zu {{count}} Personen können diesem Meeting beitreten.",
   "pagination": {
     "label": "Teilnehmerseiten",
     "count": "{{currentPage}} von {{totalPageCount}}",
@@ -214,6 +216,12 @@
     "createRoom": {
       "heading": "Authentifizierung erforderlich",
       "body": "Dieser Raum wurde noch nicht erstellt. Bitte authentifiziere dich, um ihn zu erstellen, oder warte, bis eine authentifizierte Person dies tut."
+    },
+    "roomFull": {
+      "heading": "Dieses Meeting ist voll",
+      "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es später erneut.",
+      "bodyWithLimit_one": "Das Meeting hat sein Limit von {{count}} Teilnehmenden erreicht. Versuche es später erneut.",
+      "bodyWithLimit_other": "Das Meeting hat sein Limit von {{count}} Teilnehmenden erreicht. Versuche es später erneut."
     },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",

@@ -777,6 +777,11 @@ class Base(Configuration):
     ROOM_INACTIVITY_DELETION_DAYS = values.PositiveIntegerValue(
         None, environ_name="ROOM_INACTIVITY_DELETION_DAYS", environ_prefix=None
     )
+    # Carried in every LiveKit token, so it overrides the LiveKit server's own
+    # room.max_participants for rooms it creates.
+    ROOM_MAX_PARTICIPANTS = values.PositiveIntegerValue(
+        None, environ_name="ROOM_MAX_PARTICIPANTS", environ_prefix=None
+    )
     # if provided, treat as suspicious (possible privilege escalation attempt).
     PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(
         ["hidden", "recorder", "agent"],

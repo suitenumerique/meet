@@ -38,6 +38,8 @@ and this project adheres to
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✅(frontend) add vitest so the frontend can carry unit tests
 - ♿️(frontend) make participant pagination readable and keyboard reachable #1775
+- ✨(fullstack) let operators cap meetings and show hosts the limit
+- ✨(frontend) name the participant limit when a meeting is full
 
 ### Changed
 
@@ -57,6 +59,7 @@ and this project adheres to
 - 🐛(brevo) use django-lasuite for marketing management
 - ♿️(frontend) expose loading state to assistive technology
 - 🐛(frontend) honour Keep hand raised when picture-in-picture is open
+- 🐛(fullstack) show a clear error when joining a full meeting
 
 ## [1.33.0] - 2026-09-30
 

@@ -6,10 +6,13 @@ import json
 from logging import getLogger
 from typing import Dict, Optional
 
+import aiohttp
 from asgiref.sync import async_to_sync
 from livekit.api import (
     DeleteRoomRequest,
+    ListParticipantsRequest,
     ListRoomsRequest,
+    ParticipantInfo,
     TwirpError,
     UpdateRoomMetadataRequest,
 )
@@ -25,6 +28,15 @@ class RoomManagementException(Exception):
 
 class RoomNotFoundException(RoomManagementException):
     """Raised when the target room does not exist in LiveKit."""
+
+
+def _is_dependent(participant: ParticipantInfo) -> bool:
+    """A recorder or an agent, which LiveKit leaves out of the participant limit."""
+    return (
+        participant.kind in (ParticipantInfo.Kind.EGRESS, ParticipantInfo.Kind.AGENT)
+        or participant.permission.recorder
+        or participant.permission.agent
+    )
 
 
 class RoomManagement:
@@ -86,6 +98,39 @@ class RoomManagement:
 
         finally:
             await lkapi.aclose()
+
+    @classmethod
+    @async_to_sync
+    async def is_full(cls, room_name: str) -> bool:
+        """Tell whether a LiveKit room has reached its participant limit.
+
+        Mirrors the check LiveKit runs on join: the room is full once the
+        people in it, recorders and agents left out, reach `max_participants`,
+        where 0 means no limit. A room that is not live is never full.
+
+        Raises:
+            RoomManagementException: the room could not be read.
+        """
+
+        lkapi = utils.create_livekit_client()
+
+        try:
+            response = await lkapi.room.list_rooms(ListRoomsRequest(names=[room_name]))
+            if not response.rooms or not response.rooms[0].max_participants:
+                return False
+            # The room's num_participants trails a join by seconds; the
+            # participant list does not.
+            participants = await lkapi.room.list_participants(
+                ListParticipantsRequest(room=room_name)
+            )
+        except (TwirpError, aiohttp.ClientError) as e:
+            logger.exception("Unexpected error reading room %s", room_name)
+            raise RoomManagementException("Could not read room") from e
+        finally:
+            await lkapi.aclose()
+
+        people = [p for p in participants.participants if not _is_dependent(p)]
+        return len(people) >= response.rooms[0].max_participants
 
     @classmethod
     @async_to_sync

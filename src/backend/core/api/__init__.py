@@ -74,6 +74,7 @@ def get_frontend_configuration(request):
             "default_video_codec": settings.LIVEKIT_DEFAULT_VIDEO_CODEC,
         },
         "allow_unregistered_rooms": settings.ALLOW_UNREGISTERED_ROOMS,
+        "room_max_participants": settings.ROOM_MAX_PARTICIPANTS,
         "authenticated_users_can_edit_display_name": (
             settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME
         ),

@@ -30,6 +30,7 @@ export interface ApiConfig {
   use_french_gov_footer?: boolean
   use_proconnect_button?: boolean
   allow_unregistered_rooms?: boolean
+  room_max_participants?: number | null
   idle_disconnect_warning_delay?: number
   recording?: {
     is_enabled?: boolean
