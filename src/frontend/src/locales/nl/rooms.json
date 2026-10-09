@@ -772,7 +772,14 @@
     "currentZoomLevel": "Zoom {{level}} %",
     "panHint": "Zoom {{level}} %. Sleep met de muis, of zet de focus terug op de schermdeling en gebruik de pijltjestoetsen om door het beeld te navigeren.",
     "fullScreenEntered": "Volledig scherm ingeschakeld",
-    "fullScreenExited": "Volledig scherm uitgeschakeld"
+    "fullScreenExited": "Volledig scherm uitgeschakeld",
+    "openInSeparateWindow": "Openen in een apart venster",
+    "closeSeparateWindow": "Schermdeling terugzetten in de vergadering",
+    "separateWindowOpened": "Schermdeling geopend in een apart venster",
+    "separateWindowClosed": "Schermdeling teruggezet in de vergadering",
+    "separateWindowBlocked": "De browser heeft het aparte venster geblokkeerd. Sta pop-ups toe voor deze site en probeer het opnieuw.",
+    "separateWindowTitle": "Schermdeling van {{name}}",
+    "separateWindowLabel": "Schermdeling van {{name}} in een apart venster"
   },
   "shortcutsPanel": {
     "title": "Sneltoetsen",

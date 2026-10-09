@@ -148,12 +148,13 @@ export const ParticipantTile: (
         manageSubscription={autoManageSubscription}
       />
     )
-    // Zoom toolbar stays out of picture-in-picture: that window has its own
-    // document and the fullscreen API is off. Follow-up PR can restore zoom
-    // there without the dead fullscreen button.
     trackMedia =
       isRemoteScreenShare && !disableTileControls ? (
-        <ScreenShareZoomableVideo tileRef={tileRef}>
+        <ScreenShareZoomableVideo
+          tileRef={tileRef}
+          participantName={participantName}
+          trackSid={trackReference.publication.trackSid}
+        >
           {videoTrack}
         </ScreenShareZoomableVideo>
       ) : (

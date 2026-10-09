@@ -1,7 +1,7 @@
 import { isWeb } from '@livekit/components-core'
 import { MediaDeviceFailure, Track } from 'livekit-client'
 import { getMediaDeviceFailure } from '../utils/mediaPermissions'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   ConnectionStateToast,
   RoomAudioRenderer,
@@ -33,6 +33,7 @@ import { SyncDevicePreferences } from '@/features/rooms/livekit/components/SyncD
 import { RoomSilentMicDetector } from '@/features/rooms/components/SilentMicDetector'
 import { LowerHandOnSpeaking } from '@/features/rooms/livekit/components/LowerHandOnSpeaking'
 import { LobbyProvider } from '@/features/rooms/components/LobbyProvider'
+import { closeScreenSharePopout } from '@/stores/screenSharePopout'
 
 /**
  * @public
@@ -78,6 +79,12 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   useNoiseReduction()
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
+
+  // Picture-in-picture replaces the stage, which is what renders a popped-out
+  // share. Bring it back rather than leave an empty window behind.
+  useEffect(() => {
+    if (isPictureInPictureOpen) closeScreenSharePopout({ restorePin: true })
+  }, [isPictureInPictureOpen])
 
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
