@@ -41,6 +41,7 @@ and this project adheres to
 
 ### Changed
 
+- 🔧(docker) replace redis with valkey #1041
 - ✨(frontend) warn users when the connection falls back to TURN
 - 🔧(backend) configure the technical documentation url
 
