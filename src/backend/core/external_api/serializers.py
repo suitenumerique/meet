@@ -22,6 +22,23 @@ class ApplicationJwtSerializer(BaseValidationOnlySerializer):
     scope = serializers.CharField(write_only=True)
 
 
+class LivekitTokenSerializer(BaseValidationOnlySerializer):
+    """What an application asks for a LiveKit token of the delegated user.
+
+    `identity` is imposed by the caller: a MatrixRTC client derives it on every
+    device (`user:device`), so Meet must mint exactly that one. `sub` fills the
+    OIDC subject of a user provisioned by email, which deliveries to the user
+    (recordings, transcripts) need.
+    """
+
+    identity = serializers.CharField(max_length=255)
+    username = serializers.CharField(max_length=255, required=False)
+    role = serializers.ChoiceField(
+        choices=models.RoleChoices.choices, required=False, allow_null=True
+    )
+    sub = serializers.CharField(max_length=255, required=False, allow_blank=True)
+
+
 class RoomSerializer(serializers.ModelSerializer):
     """External API serializer for room data exposed to applications.
 

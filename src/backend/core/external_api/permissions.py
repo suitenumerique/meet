@@ -83,6 +83,9 @@ class HasRequiredRoomScope(BaseScopePermission):
         "update": models.ApplicationScope.ROOMS_UPDATE,
         "partial_update": models.ApplicationScope.ROOMS_UPDATE,
         "destroy": models.ApplicationScope.ROOMS_DELETE,
+        # Minting a LiveKit token for the delegated user reads the room: a
+        # dedicated scope would need a migration of the choices (later)
+        "livekit_token": models.ApplicationScope.ROOMS_RETRIEVE,
     }
 
 
