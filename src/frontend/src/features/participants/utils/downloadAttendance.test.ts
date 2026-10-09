@@ -1,0 +1,65 @@
+import { describe, expect, it } from 'vitest'
+import { buildAttendanceCsv } from './downloadAttendance'
+
+const labels = {
+  name: 'Name',
+  account: 'Account',
+  signedIn: 'Signed in',
+  guest: 'Guest',
+}
+
+describe('buildAttendanceCsv', () => {
+  it('writes one row per person under a header', () => {
+    const csv = buildAttendanceCsv(
+      [
+        { name: 'Zoé', signedIn: true },
+        { name: 'Sam', signedIn: false },
+      ],
+      labels
+    )
+    expect(csv.split('\r\n')).toEqual([
+      '"Name","Account"',
+      '"Zoé","Signed in"',
+      '"Sam","Guest"',
+    ])
+  })
+
+  it('keeps a typed name from running as a spreadsheet formula', () => {
+    const csv = buildAttendanceCsv(
+      [{ name: '=HYPERLINK("x","y")', signedIn: false }],
+      labels
+    )
+    expect(csv.split('\r\n')[1]).toBe('"\'=HYPERLINK(""x"",""y"")","Guest"')
+  })
+
+  it('keeps every formula trigger as text, in full width or behind spaces too', () => {
+    const names = [
+      '+1',
+      '-1',
+      '@SUM(1)',
+      '\t=1',
+      ' =1',
+      '\uFF1D1+1',
+      '\u200B=1',
+      'Ana-Maria',
+    ]
+    const csv = buildAttendanceCsv(
+      names.map((name) => ({ name, signedIn: true })),
+      labels
+    )
+    const firstCells = csv
+      .split('\r\n')
+      .slice(1)
+      .map((line) => line.split('","')[0])
+    expect(firstCells).toEqual([
+      '"\'+1',
+      '"\'-1',
+      '"\'@SUM(1)',
+      '"\'\t=1',
+      '"\' =1',
+      '"\'\uFF1D1+1',
+      '"\'\u200B=1',
+      '"Ana-Maria',
+    ])
+  })
+})

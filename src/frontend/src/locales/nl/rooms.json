@@ -679,6 +679,13 @@
     "lowerParticipantHand": "Laat {{name}}'s hand zakken",
     "lowerParticipantsHand": "Laat alle handen zakken",
     "muteParticipants": "Alle microfoons dempen",
+    "attendance": {
+      "download": "Aanwezigheidslijst downloaden",
+      "name": "Naam",
+      "account": "Account",
+      "signedIn": "Ingelogd",
+      "guest": "Gast"
+    },
     "waiting": {
       "title": "Wachtkamer",
       "accept": {

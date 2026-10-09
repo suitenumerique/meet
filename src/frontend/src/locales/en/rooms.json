@@ -679,6 +679,13 @@
     "lowerParticipantHand": "Lower {{name}}'s hand",
     "lowerParticipantsHand": "Lower all hands",
     "muteParticipants": "Mute all microphones",
+    "attendance": {
+      "download": "Download attendance",
+      "name": "Name",
+      "account": "Account",
+      "signedIn": "Signed in",
+      "guest": "Guest"
+    },
     "waiting": {
       "title": "Lobby",
       "accept": {
