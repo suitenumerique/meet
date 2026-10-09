@@ -690,6 +690,29 @@ class Recording(BaseModel):
             "update": False,
         }
 
+    def grant_initial_accesses(self, starter):
+        """Make the starter and the room's owners/administrators OWNER of the recording.
+
+        The starter's access is created first, so it is the oldest one: the
+        transcript summary, which goes to a single owner, is sent to them.
+
+        Room roles are copied when the recording starts: later changes to the
+        room's accesses do not affect existing recordings.
+        """
+        RecordingAccess.objects.create(
+            user=starter, role=RoleChoices.OWNER, recording=self
+        )
+
+        room_privileged_user_ids = (
+            self.room.accesses.filter(role__in=[RoleChoices.OWNER, RoleChoices.ADMIN])
+            .exclude(user=starter)
+            .values_list("user_id", flat=True)
+        )
+        RecordingAccess.objects.bulk_create(
+            RecordingAccess(user_id=user_id, role=RoleChoices.OWNER, recording=self)
+            for user_id in room_privileged_user_ids
+        )
+
     def is_savable(self) -> bool:
         """Determine if the recording can be saved based on its current status."""
 

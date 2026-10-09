@@ -404,7 +404,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="start-recording",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanManageRecording,
         ],
     )
     @FeatureFlag.require("recording")
@@ -437,11 +437,7 @@ class RoomViewSet(
                     mode=mode,
                     options=options_data,
                 )
-                models.RecordingAccess.objects.create(
-                    user=self.request.user,
-                    role=models.RoleChoices.OWNER,
-                    recording=recording,
-                )
+                recording.grant_initial_accesses(starter=self.request.user)
 
         except (DjangoValidationError, IntegrityError):
             # DjangoValidationError covers the Python-level check (full_clean);
@@ -485,7 +481,7 @@ class RoomViewSet(
         methods=["post"],
         url_path="stop-recording",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanManageRecording,
         ],
     )
     @FeatureFlag.require("recording")

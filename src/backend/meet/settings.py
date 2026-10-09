@@ -793,6 +793,14 @@ class Base(Configuration):
     RECORDING_ENABLE = values.BooleanValue(
         False, environ_name="RECORDING_ENABLE", environ_prefix=None
     )
+    # Let any authenticated participant connected to a trusted or public room
+    # start/stop recordings. Disable to keep recording reserved to room
+    # admins/owners.
+    RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED = values.BooleanValue(
+        True,
+        environ_name="RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED",
+        environ_prefix=None,
+    )
     RECORDING_OUTPUT_FOLDER = values.Value(
         "recordings", environ_name="RECORDING_OUTPUT_FOLDER", environ_prefix=None
     )

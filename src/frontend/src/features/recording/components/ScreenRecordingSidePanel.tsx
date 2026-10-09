@@ -26,6 +26,10 @@ import { useTranscriptionLanguage } from '@/features/settings'
 import { useMutateRecording } from '../hooks/useMutateRecording'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
+import {
+  useCanRecord,
+  useIsRecordingOpenToParticipants,
+} from '../hooks/useCanRecord'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { LimitDescription } from './LimitDescription'
 import { captureEvent, reportError } from '@/features/analytics/telemetry'
@@ -39,6 +43,8 @@ export const ScreenRecordingSidePanel = () => {
   const [includeTranscript, setIncludeTranscript] = useState(false)
 
   const isAdminOrOwner = useIsAdminOrOwner()
+  const canRecord = useCanRecord()
+  const isRecordingOpenToParticipants = useIsRecordingOpenToParticipants()
 
   const hasScreenRecordingAccess = useHasRecordingAccess(
     RecordingMode.ScreenRecording,
@@ -116,11 +122,13 @@ export const ScreenRecordingSidePanel = () => {
     }
   }
 
-  if (!isAdminOrOwner) {
+  if (!canRecord) {
     return (
       <NoAccessView
         i18nKeyPrefix={keyPrefix}
-        i18nKey="notAdminOrOwner"
+        i18nKey={
+          isRecordingOpenToParticipants ? 'notLoggedIn' : 'notAdminOrOwner'
+        }
         helpArticle={data?.support?.help_article_recording}
         imagePath="/assets/intro-slider/4.png"
         handleRequest={handleRequestScreenRecording}

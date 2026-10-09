@@ -11,7 +11,7 @@ from livekit import api as livekit_api
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory
-from ...models import Recording
+from ...models import Recording, RoomAccessLevel
 from ...recording.worker.exceptions import RecordingStartError
 
 pytestmark = pytest.mark.django_db
@@ -42,8 +42,13 @@ def mock_worker_manager(mock_worker_service):
         yield mock_mediator
 
 
-def test_start_recording_anonymous():
+@pytest.mark.parametrize(
+    "recording_enabled, expected_status",
+    [(True, 401), (False, 404)],
+)
+def test_start_recording_anonymous(settings, recording_enabled, expected_status):
     """Anonymous users should not be allowed to start room recordings."""
+    settings.RECORDING_ENABLE = recording_enabled
     room = RoomFactory()
     client = APIClient()
 
@@ -52,14 +57,14 @@ def test_start_recording_anonymous():
         {"mode": "screen_recording"},
     )
 
-    assert response.status_code == 401
+    assert response.status_code == expected_status
     assert Recording.objects.count() == 0
 
 
 def test_start_recording_non_owner_and_non_administrator(settings):
     """Non-owner and Non-Administrator users should not be allowed to start room recordings."""
     settings.RECORDING_ENABLE = True
-    room = RoomFactory()
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     user = UserFactory()
     client = APIClient()
     client.force_login(user)

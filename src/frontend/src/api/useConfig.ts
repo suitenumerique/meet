@@ -36,6 +36,7 @@ export interface ApiConfig {
     available_modes?: RecordingMode[]
     expiration_days?: number
     max_duration?: number
+    authenticated_participants_enabled?: boolean
   }
   background_image: {
     upload_is_enabled: boolean

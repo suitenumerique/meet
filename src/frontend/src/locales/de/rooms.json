@@ -507,6 +507,22 @@
         "buttonLabel": "Anfragen"
       }
     },
+    "notLoggedIn": {
+      "heading": "Zum Transkribieren anmelden",
+      "body": "In diesem Meeting kann jede angemeldete Person eine Transkription (Beta) starten.",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Transkriptionszugang öffnen – öffnet in neuem Tab",
+      "dividerLabel": "ODER",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Melden Sie sich an und kehren Sie dann zu diesem Bereich zurück, um die Transkription zu starten."
+      },
+      "request": {
+        "heading": "Transkription anfragen",
+        "body": "Die Moderation wird benachrichtigt und kann die Transkription starten.",
+        "buttonLabel": "Anfragen"
+      }
+    },
     "premium": {
       "heading": "Advanced-Funktion",
       "body": "Diese Funktion ist für Sie nicht verfügbar. Bitte wenden Sie sich an den Support, um weitere Informationen zu erhalten.",
@@ -553,6 +569,22 @@
       "login": {
         "heading": "Anmeldung erforderlich",
         "body": "Nur die*der Ersteller:in bzw. Admin kann die Aufzeichnung starten. Melde dich an, um deine Berechtigungen zu überprüfen."
+      },
+      "request": {
+        "heading": "Aufnahme anfragen",
+        "body": "Die Moderation wird benachrichtigt und kann die Aufnahme starten.",
+        "buttonLabel": "Anfrage senden"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Zum Aufnehmen anmelden",
+      "body": "In diesem Meeting kann jede angemeldete Person eine Videoaufnahme (Beta) starten.",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Aufzeichnungszugang öffnen – öffnet in neuem Tab",
+      "dividerLabel": "ODER",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Melden Sie sich an und kehren Sie dann zu diesem Bereich zurück, um die Aufnahme zu starten."
       },
       "request": {
         "heading": "Aufnahme anfragen",

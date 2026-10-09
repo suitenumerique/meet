@@ -6,7 +6,8 @@ import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
   useHasRecordingAccess,
-  useHasFeatureWithoutAdminRights,
+  useHasFeatureWithoutRecordingRights,
+  useIsRecordingOpenToParticipants,
   useRecordingStatuses,
 } from '../index'
 import { useState } from 'react'
@@ -57,12 +58,13 @@ export const TranscriptSidePanel = () => {
     RecordingMode.ScreenRecording,
     FeatureFlags.ScreenRecording
   )
-  const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
+  const hasFeatureWithoutRecordingRights = useHasFeatureWithoutRecordingRights(
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
 
   const isAdminOrOwner = useIsAdminOrOwner()
+  const isRecordingOpenToParticipants = useIsRecordingOpenToParticipants()
 
   const isMetadataCollectorEnabled = useIsMetadataCollectorEnabled()
 
@@ -139,11 +141,13 @@ export const TranscriptSidePanel = () => {
     }
   }
 
-  if (hasFeatureWithoutAdminRights) {
+  if (hasFeatureWithoutRecordingRights) {
     return (
       <NoAccessView
         i18nKeyPrefix={keyPrefix}
-        i18nKey="notAdminOrOwner"
+        i18nKey={
+          isRecordingOpenToParticipants ? 'notLoggedIn' : 'notAdminOrOwner'
+        }
         helpArticle={data?.support?.help_article_transcript}
         imagePath="/assets/intro-slider/3.png"
         handleRequest={handleRequestTranscription}
