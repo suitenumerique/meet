@@ -5,17 +5,17 @@ services:
     env_file:
       - env.d/development/postgresql
     ports:
-      - "15432:5432"
+      - "127.0.0.1:15432:5432"
 
   redis:
     image: redis:5
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
 
   mailcatcher:
     image: sj26/mailcatcher:latest
     ports:
-      - "1081:1080"
+      - "127.0.0.1:1081:1080"
 
   garage:
     user: ${DOCKER_USER:-1000}
@@ -71,7 +71,7 @@ services:
       - env.d/development/common
       - env.d/development/postgresql
     ports:
-      - "8071:8000"
+      - "127.0.0.1:8071:8000"
     volumes:
       - ./src/backend:/app
       - ./data/static:/data/static
@@ -137,7 +137,7 @@ services:
   nginx:
     image: nginx:1.25
     ports:
-      - "8083:8083"
+      - "127.0.0.1:8083:8083"
     volumes:
       - ./docker/files/etc/nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
@@ -159,7 +159,7 @@ services:
         VITE_APP_TITLE: "LaSuite Meet"
     image: meet:frontend-development
     ports:
-      - "3000:8080"
+      - "127.0.0.1:3000:8080"
 
   dockerize:
     image: jwilder/dockerize
@@ -185,7 +185,7 @@ services:
   kc_postgresql:
     image: postgres:14.3
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     env_file:
       - env.d/development/kc_postgresql
 
@@ -213,7 +213,7 @@ services:
       KC_DB_SCHEMA: public
       PROXY_ADDRESS_FORWARDING: 'true'
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       - kc_postgresql
 
@@ -222,10 +222,10 @@ services:
     entrypoint: /livekit-server --dev --bind 0.0.0.0 --config ./config.yaml
     ports:
       - "7880:7880"
-      - "7881:7881"
-      - "7882:7882/udp"
-      - "3478:3478/udp"
-      - "30000-30100:30000-30100/udp"
+      - "127.0.0.1:7881:7881"
+      - "127.0.0.1:7882:7882/udp"
+      - "127.0.0.1:3478:3478/udp"
+      - "127.0.0.1:30000-30100:30000-30100/udp"
     volumes:
       - ./docker/livekit/config/livekit-server.yaml:/config.yaml
     depends_on:
@@ -283,7 +283,7 @@ services:
     env_file:
       - env.d/development/summary
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
     volumes:
       - ./src/summary:/app
     depends_on:
