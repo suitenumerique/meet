@@ -7,18 +7,18 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.conf import settings
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.translation import get_language, gettext, override
+from django.utils.translation import get_language, gettext, gettext_noop, override
 from django.utils.translation import gettext_lazy as _
 
 import aiohttp
 import requests
 from asgiref.sync import async_to_sync
+from kombu.exceptions import OperationalError as KombuOperationalError
 from livekit import api as livekit_api
 
 from core import models, utils
 from core.analytics import UserFeatureFlag, is_user_feature_flag_enabled
+from core.tasks.email import send_email
 from core.utils import generate_download_s3_url
 
 logger = logging.getLogger(__name__)
@@ -68,10 +68,14 @@ class NotificationService:
     @staticmethod
     def _notify_user_by_email(recording) -> bool:
         """
-        Send an email notification to recording owners when their recording is ready.
+        Queue an email notification to recording owners when their recording is ready.
 
         The email includes a direct link that redirects owners to a dedicated download
         page in the frontend where they can access their specific recording.
+
+        Rendering and SMTP delivery happen in a Celery worker (``send_email``), so
+        this only does one DB query and enqueues one message per owner.
+        Returns True when every email was queued (or sent, if Celery is disabled).
         """
 
         owner_accesses = (
@@ -88,10 +92,6 @@ class NotificationService:
             return False
 
         context = {
-            "brandname": settings.EMAIL_BRAND_NAME,
-            "support_email": settings.EMAIL_SUPPORT_EMAIL,
-            "logo_img": settings.EMAIL_LOGO_IMG,
-            "domain": settings.EMAIL_DOMAIN,
             "room_name": recording.room.name,
             "recording_expiration_days": settings.RECORDING_EXPIRATION_DAYS,
             "link": f"{get_recording_download_base_url()}/{recording.id}",
@@ -104,37 +104,22 @@ class NotificationService:
         # 2. The number of recipients per recording is typically small (not thousands)
         for access in owner_accesses:
             user = access.user
-            language = user.language or get_language()
-            with override(language):
-                personalized_context = {
-                    "recording_date": recording.created_at.astimezone(
-                        user.timezone
-                    ).strftime("%Y-%m-%d"),
-                    "recording_time": recording.created_at.astimezone(
-                        user.timezone
-                    ).strftime("%H:%M"),
-                    **context,
-                }
-                msg_html = render_to_string(
-                    "mail/html/screen_recording.html", personalized_context
+            local_created_at = recording.created_at.astimezone(user.timezone)
+            try:
+                send_email.delay(
+                    template="screen_recording",
+                    subject=gettext_noop("Your recording is ready"),
+                    recipients=[user.email],
+                    language=user.language or get_language(),
+                    context={
+                        **context,
+                        "recording_date": local_created_at.strftime("%Y-%m-%d"),
+                        "recording_time": local_created_at.strftime("%H:%M"),
+                    },
                 )
-                msg_plain = render_to_string(
-                    "mail/text/screen_recording.txt", personalized_context
-                )
-                subject = gettext("Your recording is ready")  # Force translation
-
-                try:
-                    send_mail(
-                        subject.capitalize(),
-                        msg_plain,
-                        settings.EMAIL_FROM,
-                        [user.email],
-                        html_message=msg_html,
-                        fail_silently=False,
-                    )
-                except smtplib.SMTPException as exception:
-                    logger.error("notification could not be sent: %s", exception)
-                    has_failures = True
+            except (smtplib.SMTPException, KombuOperationalError) as exception:
+                logger.error("notification could not be sent: %s", exception)
+                has_failures = True
 
         return not has_failures
 
